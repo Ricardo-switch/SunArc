@@ -30,8 +30,12 @@ export interface Rechthoek {
   readonly breedte: number;
 }
 
-/** De kleinste rechthoek om de omtrek, per graad gezocht. */
-export function rechthoekOm(omtrek: readonly Xy[]): Rechthoek {
+/**
+ * De kleinste rechthoek om de omtrek, per graad gezocht. De lengte is de
+ * langste kant, of met `voorAs` de kant die het dichtst bij die as ligt: dan
+ * wisselen lengte en breedte niet om als de breedte groter wordt (issue 149).
+ */
+export function rechthoekOm(omtrek: readonly Xy[], voorAs?: number): Rechthoek {
   let beste: { a: number; opp: number; s: [number, number]; t: [number, number] } | null = null;
   for (let a = 0; a < 180; a++) {
     const u = richting(a);
@@ -59,7 +63,22 @@ export function rechthoekOm(omtrek: readonly Xy[]): Rechthoek {
   const midden: Xy = [u[0] * sm + p[0] * tm, u[1] * sm + p[1] * tm];
   const l = b.s[1] - b.s[0];
   const w = b.t[1] - b.t[0];
-  return l >= w ? { midden, asDeg: b.a, lengte: l, breedte: w } : { midden, asDeg: (b.a + 90) % 180, lengte: w, breedte: l };
+  const langs = voorAs == null ? l >= w : asVerschil(voorAs, b.a) <= asVerschil(voorAs, b.a + 90);
+  return langs ? { midden, asDeg: b.a, lengte: l, breedte: w } : { midden, asDeg: (b.a + 90) % 180, lengte: w, breedte: l };
+}
+
+/**
+ * De as die de bewoner als lengte koos: een blok dat hij op maat zette is een
+ * rechthoek waarvan de eerste rand langs de lengte loopt. Andere gebouwen
+ * houden de langste kant als lengte.
+ */
+export function maatAs(g: Pick<Gebouw, 'omtrek' | 'bron'>): number | undefined {
+  if (g.bron !== 'bewoner' || g.omtrek.length !== 4) return undefined;
+  const [a, b] = g.omtrek as [Xy, Xy];
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  if (Math.hypot(dx, dy) < 0.1) return undefined;
+  return norm(Math.atan2(dx, dy) / RAD) % 180;
 }
 
 export interface Dakvlakje {
@@ -423,7 +442,7 @@ export function tekening(d: Daken, o: { huisPlat?: boolean } = {}): Tekening {
     .slice(0, 8)
     .map((x) => x.o);
   const plaats = plaatsVlakken(d.vlakken, gebouwen);
-  const boven = gebouwen.map((g) => ({ ...g, ...vanBoven(g), maat: rechthoekOm(g.omtrek) }));
+  const boven = gebouwen.map((g) => ({ ...g, ...vanBoven(g), maat: rechthoekOm(g.omtrek, maatAs(g)) }));
   const panelen: Record<string, Xy[][]> = {};
   for (const g of boven) {
     for (const dv of g.dakvlakken) {

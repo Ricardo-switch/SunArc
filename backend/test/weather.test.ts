@@ -11,7 +11,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { HaEntityState } from '../src/adapters/homeassistant/client.js';
 import type { HaRegistryEntity } from '../src/adapters/homeassistant/discovery.js';
-import { expectedAndActual, expectedTotal, forecastFromEntity, kindOf, learnShare, priorShare, readForecast, shareFor, WEATHER_FILE, WeatherLog, weatherInLang, weatherReport, wordsFor } from '../src/web/weather.js';
+import { dagenUitUren, expectedAndActual, expectedTotal, forecastFromEntity, kindOf, learnShare, priorShare, readForecast, shareFor, WEATHER_FILE, WeatherLog, weatherInLang, weatherReport, wordsFor } from '../src/web/weather.js';
 import { exampleSite } from './site.js';
 
 const cleanup: string[] = [];
@@ -98,6 +98,27 @@ describe('de verwachting uit een weerentiteit (besluit 111)', () => {
       [2, 10, 'bewolkt', 13, 8, null],
     ]);
     expect(dagen[1]!.tekst).toBe('Bewolkt met regen');
+  });
+
+  it('maakt dagen van een verwachting per uur, als de entiteit geen dagen geeft', () => {
+    // Zaterdag 10 oktober in Nederland (UTC+2): 's nachts helder en koud, overdag bewolkt.
+    const uur = (h: number, x: Record<string, unknown>) => ({ datetime: new Date(Date.UTC(2026, 9, 10, h - 2)).toISOString(), ...x });
+    const uren = [
+      uur(3, { condition: 'clear-night', temperature: 6, cloud_coverage: 0, precipitation_probability: 0 }),
+      uur(10, { condition: 'cloudy', temperature: 11, cloud_coverage: 90, precipitation_probability: 20 }),
+      uur(13, { condition: 'cloudy', temperature: 14, cloud_coverage: 80, precipitation_probability: 60 }),
+      uur(16, { condition: 'partlycloudy', temperature: 13, cloud_coverage: 70, precipitation_probability: 10 }),
+      uur(25, { condition: 'sunny', temperature: 12, cloud_coverage: 10 }),
+    ];
+    const dagen = dagenUitUren(uren, 'Europe/Amsterdam');
+    expect(dagen).toHaveLength(2);
+    expect(dagen[0]).toMatchObject({ condition: 'cloudy', temperature: 14, templow: 6, precipitation_probability: 60, cloud_coverage: 80 });
+    const nu = Date.UTC(2026, 9, 9, 8);
+    const verwachting = forecastFromEntity(undefined, dagen, nu, 'Europe/Amsterdam');
+    expect(verwachting.map((d) => [d.offset, d.maxC, d.minC, d.zonkansPct])).toEqual([
+      [1, 14, 6, 20],
+      [2, 12, 12, 90],
+    ]);
   });
 });
 

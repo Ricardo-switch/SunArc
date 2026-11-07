@@ -58,7 +58,7 @@ import { SceneColorStore, colorsFromLamps } from './web/scene-colors.js';
 import { ScenePictures } from './web/scene-pictures.js';
 import { EnergyStore } from './web/energy.js';
 import { partsIn, zonedMidnight, type PowerRow } from './web/today.js';
-import { WeatherLog, type EntityForecast } from './web/weather.js';
+import { WeatherLog, dagenUitUren, type EntityForecast } from './web/weather.js';
 import { Historie, somPerVak } from './web/historie.js';
 import { zetValuta } from './web/valuta.js';
 import { apparaatGegevens } from './web/apparaat-gegevens.js';
@@ -1740,11 +1740,16 @@ const fasenNu = () => {
 /**
  * De hoogste stroom per fase die er met de hand voor een auto op de zekering
  * past (besluit 262): wat hij nu neemt plus de ruimte op de drukste fase; zonder
- * meting per fase de zekering min de marge; zonder aansluiting niets.
+ * meting per fase de zekering min de marge; zonder aansluiting de zekering
+ * die de bewoner bij Energie opgaf, min 2 A; zonder zekering niets.
  */
 function zekeringVoor(id: string): number | null {
   const grid = siteConfig?.grid;
-  if (!grid || !grid.phases.length) return null;
+  if (!grid || !grid.phases.length) {
+    // Zonder stroommeters per fase komt de zekering niet in de regeling (logboek bij issue 149 t/m 153), maar hij geldt wel.
+    const z = connectionStore?.current?.zekering;
+    return z && z !== 'weetniet' ? Math.max(6, z.ampere - 2) : null;
+  }
   const fasen = fasenNu();
   if (!fasen) return Math.min(...grid.phases.map((p) => p.maxA - grid.marginA));
   const a = huisNu('nl')?.opslag?.autos.find((x) => x.id === id);
@@ -1871,12 +1876,14 @@ const weatherLog = logDir === '' ? null : new WeatherLog(logDir);
  * van Home Assistant, zoals de bewoner koos. Van een weerentiteit volgt de
  * dienst de dagverwachting; die komt alleen via een abonnement.
  */
-let entityForecast: { entity: string | null; days: EntityForecast[] } = { entity: null, days: [] };
-client.on('forecast', (entity, days) => {
-  entityForecast = { entity, days: days as EntityForecast[] };
-});
 // Zonder configuratie de tijdzone van de dienst; in de add-on is dat die van Home Assistant (run.sh).
 const weerZone: string = baseConfig?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+let entityForecast: { entity: string | null; days: EntityForecast[] } = { entity: null, days: [] };
+client.on('forecast', (entity, lijst, soort) => {
+  // Geeft de entiteit uren of halve dagen, dan maakt de dienst er zelf dagen van.
+  const days = soort === 'daily' ? (lijst as EntityForecast[]) : dagenUitUren(lijst as EntityForecast[], weerZone);
+  entityForecast = { entity, days };
+});
 const weerBron = (): string | null => {
   const f = functiesNu();
   return f ? volledig(f, functiesKeuzes()).weer.bron : null;
@@ -2051,7 +2058,9 @@ const assistentAan = integratie && sleutel && webPort != null && supervisorToken
 /** Klaarzetten in Home Assistant (besluit 179): tellen wat er staat, nooit een entiteit noemen. */
 async function klaarPunten(lang?: Lang): Promise<KlaarPunt[]> {
   const prefs = (await client.query<{ energy_sources?: { type?: string }[] }>('energy/get_prefs').catch(() => null)) ?? null;
-  const grid = baseConfig?.power.gridPower;
+  // De instellingen zoals ze gelden, met wat de bewoner in de app koos (issue 144): niet alleen het bestand.
+  const nu = siteConfig ?? baseConfig;
+  const grid = nu?.power.gridPower;
   const netWaarde = grid ? Number(allStates.get(grid.id)?.state) : Number.NaN;
   const gevonden = functiesKeuzes();
   return klaarzetten({
@@ -2059,7 +2068,7 @@ async function klaarPunten(lang?: Lang): Promise<KlaarPunt[]> {
     registers: houseRegisters,
     states: allStates,
     netMeter: Number.isFinite(netWaarde),
-    zon: { heeft: baseConfig?.solarProduction != null && Number.isFinite(Number(allStates.get(baseConfig.solarProduction.id)?.state)), intervalS: solarPace.intervalS },
+    zon: { heeft: nu?.solarProduction != null && Number.isFinite(Number(allStates.get(nu.solarProduction.id)?.state)), intervalS: solarPace.intervalS },
     energieDashboard: (prefs?.energy_sources ?? []).some((b) => b.type === 'grid'),
     apparatenOpZon: houseRegisters ? findAppliances(allStates, houseRegisters.entities, houseRegisters.devices).length + vindBuffers().length : 0,
     cameras: new Set((gevonden?.cameras ?? []).map((c) => c.naam)).size,

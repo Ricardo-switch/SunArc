@@ -103,7 +103,7 @@ const WOORDEN = {
     },
     klimaat: { titel: 'Thermostaten en airco’s', klaar: (n: number) => `${telling(n, 'apparaat', 'apparaten')} voor verwarmen of koelen.`, mist: 'Voeg je thermostaat en airco’s toe in Home Assistant, met hun eigen koppeling.' },
     temperatuur: { titel: 'Temperatuur per kamer', klaar: (n: number) => `${telling(n, 'thermometer', 'thermometers')} in een ruimte.`, mist: 'Een thermometer per kamer, in zijn ruimte, of een thermostaat die de kamertemperatuur meldt.' },
-    netmeter: ['De slimme meter', 'De meter geeft wat er van en naar het net gaat.', 'Koppel je slimme meter (P1), liefst lokaal, met het vermogen van en naar het net.'],
+    netmeter: ['De slimme meter', 'De meter geeft wat er van en naar het net gaat.', 'SunArc vindt geen meter voor wat er nu van en naar het net gaat. Staat je slimme meter (P1) al in Home Assistant? Kies hem dan bij Instellingen › Energie › Meters. Zo niet: voeg hem hier toe met zijn koppeling, liefst lokaal, zoals HomeWizard of DSMR.'],
     omvormer: {
       titel: 'De omvormer',
       traag: (min: number) => `Gevonden, maar hij meldt maar eens per ${min} minuten. Lokaal gaat sneller.`,
@@ -161,7 +161,7 @@ const WOORDEN = {
     },
     klimaat: { titel: 'Thermostats and air conditioners', klaar: (n: number) => `${telling(n, 'device', 'devices')} for heating or cooling.`, mist: 'Add your thermostat and air conditioners in Home Assistant, each with its own integration.' },
     temperatuur: { titel: 'Temperature per room', klaar: (n: number) => `${telling(n, 'thermometer', 'thermometers')} in an area.`, mist: 'A thermometer per room, in its area, or a thermostat that reports the room temperature.' },
-    netmeter: ['The smart meter', 'The meter reports what goes to and from the grid.', 'Connect your smart meter (P1), preferably locally, with the power to and from the grid.'],
+    netmeter: ['The smart meter', 'The meter reports what goes to and from the grid.', 'SunArc finds no meter for what goes to and from the grid right now. Is your smart meter (P1) already in Home Assistant? Then pick it at Settings › Energy › Meters. If not, add it here with its integration, preferably a local one such as HomeWizard or DSMR.'],
     omvormer: {
       titel: 'The inverter',
       traag: (min: number) => `Found, but it only reports once every ${min} minutes. Locally is faster.`,

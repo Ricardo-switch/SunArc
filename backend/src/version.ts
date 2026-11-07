@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.142.0';
+export const VERSIE = '0.142.1';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,52 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.142.1',
+    datum: '2026-11-07',
+    opgelost: [
+      'Bij Daken en panelen gingen lengte en breedte van een blok samen omhoog of omlaag zodra de breedte groter werd dan de lengte. Nu blijft elke maat van zichzelf, ook bij een huis van 6 bij 11 meter',
+      'Een plat dak met panelen op rekken bleef op Thuis een puntdak als de kaart een puntdak gaf. Je panelen gaan nu voor',
+      'Klaarzetten vroeg om je slimme meter of omvormer te koppelen, ook als je hem in de app al had gekozen. De melding zegt nu ook wat je moet doen',
+      'Een weerdienst die alleen een verwachting per uur geeft, zoals OpenWeatherMap soms, gaf geen verwachting voor de komende dagen. SunArc maakt er nu zelf dagen van',
+      'Laden met de hand houdt zich aan je hoofdzekering, ook zonder stroommeter per fase',
+    ],
+    en: {
+      opgelost: [
+        'In Roofs and panels, the length and width of a block went up or down together once the width got larger than the length. Each size now stays its own, also for a house of 6 by 11 metres',
+        'A flat roof with panels on racks stayed a pitched roof on Home when the map gave a pitched roof. Your panels now come first',
+        'Getting ready asked you to connect your smart meter or inverter, even if you had already picked it in the app. The message now also says what to do',
+        'A weather service that only gives an hourly forecast, like OpenWeatherMap at times, gave no forecast for the coming days. SunArc now makes days out of it',
+        'Charging by hand keeps to your main fuse, also without a current meter per phase',
+      ],
+    },
+    meldingen: [
+      {
+        code: 'SA-5NPJ',
+        uitkomst: 'opgelost',
+        tekst: 'Lengte en breedte van een blok staan nu los van elkaar: een huis van 6 bij 11 meter kan. Zet bij Daken en panelen › het huis eerst de ene maat en dan de andere.',
+        tekstEn: 'Length and width of a block are now separate: a house of 6 by 11 metres works. In Roofs and panels › the house, set one size and then the other.',
+        href: 'energie.html#panelen',
+        issue: 149,
+      },
+      {
+        code: 'SA-N5QH',
+        uitkomst: 'opgelost',
+        tekst: 'Liggen al je panelen op het huis op rekken, oost-west of plat, dan is het dak op Thuis nu plat, ook als de kaart een puntdak gaf. Klopt het nog niet, kies dan bij Daken en panelen › het huis zelf Plat.',
+        tekstEn: 'If all your panels on the house are on racks, east-west or flat, the roof on Home is now flat, even if the map gave a pitched roof. Still wrong? Pick Flat yourself in Roofs and panels › the house.',
+        href: 'energie.html#panelen',
+        issue: 150,
+      },
+      {
+        code: 'SA-AEB2',
+        uitkomst: 'opgelost',
+        tekst: 'Klaarzetten kijkt nu ook naar de meter die je in de app koos. Mist hij nog: staat je slimme meter al in Home Assistant, kies hem dan bij Instellingen › Energie › Meters. Zo niet, voeg hem in Home Assistant toe met zijn koppeling, zoals HomeWizard of DSMR.',
+        tekstEn: 'Getting ready now also looks at the meter you picked in the app. Still missing? If your smart meter is already in Home Assistant, pick it at Settings › Energy › Meters. If not, add it in Home Assistant with its integration, such as HomeWizard or DSMR.',
+        href: 'klaarzetten.html',
+        issue: 144,
+      },
+    ],
+  },
   {
     versie: '0.142.0',
     datum: '2026-11-07',

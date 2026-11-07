@@ -419,13 +419,17 @@ export function dakenUitOud(o: OudeDaken): Daken {
  * vlakken van het hoofddak (allemaal op rekken, oost-west of plat), anders de
  * voorgestelde dakvorm, het antwoord "plat dak" bij Inrichten of het oude
  * antwoord. Een voorgestelde dakvorm bleef eerst staan als de vlakken
- * veranderden (issue 143): dan bleef Thuis een puntdak tonen.
+ * veranderden (issue 143): dan bleef Thuis een puntdak tonen. Liggen alle
+ * panelen op het hoofddak op rekken, oost-west of plat, dan gaan die voor een
+ * puntdak uit 3D BAG (issue 150): zo liggen panelen alleen op een plat dak.
  */
 export function hoofddakPlat(daken: Daken | null | undefined, ligging: string | null | undefined, inrichtenPlat = false): boolean {
   const huis = daken?.gebouwen?.find((g) => g.soort === 'hoofdhuis');
-  if (huis?.dakBron) return huis.dakvorm === 'plat';
   const hoofd = (daken?.vlakken ?? []).filter((v) => v.plek === 'hoofddak');
-  if (hoofd.length) return hoofd.every((v) => v.opstelling !== 'schuin');
+  const allesPlat = hoofd.length > 0 && hoofd.every((v) => v.opstelling !== 'schuin');
+  if (huis?.dakBron === 'kaart' && allesPlat) return true;
+  if (huis?.dakBron) return huis.dakvorm === 'plat';
+  if (hoofd.length) return allesPlat;
   if (inrichtenPlat) return true;
   if (huis) return huis.dakvorm === 'plat';
   return ligging === 'plat';
