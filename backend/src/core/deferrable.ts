@@ -158,6 +158,8 @@ export interface SunClaim {
    * van een draaiend apparaat (besluit 51), en dat is geen start (besluit 68).
    */
   readonly runningW?: number;
+  /** Zoveel mag hij die al stookt van het net halen voor hij uit zou gaan (een stekker, besluit 264). */
+  readonly marginW?: number;
 }
 
 /** Hoe het de arbiter verging op zijn plek in de volgorde op zon. */

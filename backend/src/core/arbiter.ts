@@ -416,7 +416,7 @@ export function arbitrate(
     if (c.runningW != null) {
       // Een buffer die al stookt (besluit 186): zijn verbruik zit al in wat het
       // net levert. Hij mag door met de tolerantie, en dat is geen start.
-      claims.set(key, { accepted: vrijVoorDraaiend(ctx, allocatedW, c.runningW) >= c.estimatedW, startedBefore: false });
+      claims.set(key, { accepted: vrijVoorDraaiend(ctx, allocatedW, c.runningW) + (c.marginW ?? 0) >= c.estimatedW, startedBefore: false });
       return;
     }
     const startedBefore = startedSomething || claimStarted;

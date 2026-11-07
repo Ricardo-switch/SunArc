@@ -31,7 +31,44 @@ export interface ResidentBuffer {
   readonly klaarOm: { readonly tekst: string; readonly atMs: number; readonly doelC: number } | null;
   /** Tijden voor klaar om; alleen bij een jacuzzi. */
   readonly keuzes: readonly { readonly tekst: string; readonly waarde: number }[];
+  /** Wat hij nu trekt, in W, als hij een eigen meter heeft (een stekker, besluit 264). */
+  readonly vermogenW: number | null;
+  /** Het minimum per dag van een stekker (besluit 267): hoe lang en vóór wanneer, en hoe lang hij nog moet. */
+  readonly minimum: { readonly minuten: number; readonly klok: string; readonly nogMin: number } | null;
 }
+
+/** Een slimme stekker (besluit 264): aan op zon, uit zonder; geen graden. */
+const STEKKER = {
+  nl: {
+    kop: { aan: 'Aan op zon', zouAan: 'Zou nu aangaan', zouUit: 'Zou nu uitgaan', wachtZon: 'Wacht op zon', niets: 'Aan, vraagt niets', minimum: 'Aan voor zijn minimum', zouMinimum: 'Zou nu aangaan voor zijn minimum' },
+    aan: 'Er is genoeg zon over om hem aan te laten.',
+    zouAan: 'Er is genoeg zon over voor hem.',
+    zouUit: 'Er is te weinig zon over: hij haalt nu stroom van het net.',
+    wachtZon: (kw: string | null) => (kw ? `Hij gaat aan zodra er ${kw} kW zon over is.` : 'Hij gaat aan zodra er zon over is.'),
+    niets: 'Hij staat aan, maar trekt nu niets.',
+    onbekend: 'Home Assistant geeft hem nu niet door.',
+    // Het minimum per dag (besluit 267).
+    minimum: (duur: string, by: string) => `Zo staat hij vóór ${by} toch ${duur} aan, ook zonder zon.`,
+    anders: (latest: string, duur: string, by: string) => `Komt die niet, dan gaat hij om ${latest} aan: zo staat hij vóór ${by} toch ${duur} aan.`,
+    gehaald: (duur: string, by: string) => `Zijn ${duur} vóór ${by} heeft hij al.`,
+    duur: (min: number) => (min % 60 === 0 ? `${min / 60} uur` : min > 60 ? `${(min / 60).toLocaleString('nl-NL', { maximumFractionDigits: 2 })} uur` : `${min} minuten`),
+  },
+  en: {
+    kop: { aan: 'On with solar', zouAan: 'Would switch on now', zouUit: 'Would switch off now', wachtZon: 'Waiting for sun', niets: 'On, draws nothing', minimum: 'On for its minimum', zouMinimum: 'Would switch on now for its minimum' },
+    aan: 'There is enough solar to spare to leave it on.',
+    zouAan: 'There is enough solar to spare for it.',
+    zouUit: 'Not enough solar to spare: it is drawing from the grid now.',
+    wachtZon: (kw: string | null) => (kw ? `It switches on as soon as ${kw} kW of solar is to spare.` : 'It switches on as soon as there is solar to spare.'),
+    niets: 'It is on, but draws nothing right now.',
+    onbekend: 'Home Assistant is not reporting it right now.',
+    minimum: (duur: string, by: string) => `That way it is still on for ${duur} before ${by}, even without sun.`,
+    anders: (latest: string, duur: string, by: string) => `If none comes, it switches on at ${latest}: that way it is still on for ${duur} before ${by}.`,
+    gehaald: (duur: string, by: string) => `It already had its ${duur} before ${by}.`,
+    duur: (min: number) => (min % 60 === 0 ? `${min / 60} ${min === 60 ? 'hour' : 'hours'}` : min > 60 ? `${(min / 60).toLocaleString('en-GB', { maximumFractionDigits: 2 })} hours` : `${min} minutes`),
+  },
+} as const;
+
+const kwTekst = (w: number | undefined, lang: Lang) => (w == null ? null : (Math.round(w / 100) / 10).toLocaleString(lang === 'nl' ? 'nl-NL' : 'en-GB', { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
 
 const WOORDEN = {
   nl: {
@@ -142,7 +179,25 @@ export function residentBuffers(config: SiteConfig, list: readonly HeatStoreExpl
     let kop: string;
     let zin: string;
     let bron: ResidentBuffer['bron'] = null;
-    if (e.state === 'unknown') [kop, zin] = [w.kop.onbekend, w.onbekend];
+    const st = STEKKER[lang];
+    if (h.kind === 'stekker') {
+      // Het minimum per dag (besluit 267): hoe lang, vóór wanneer, en of hij het al had.
+      const duur = h.minimum ? st.duur(h.minimum.minutes) : null;
+      const erbij = h.minimum && duur ? (e.latestStartMs != null ? ` ${st.anders(clockIn(e.latestStartMs, config.timezone), duur, h.minimum.by)}` : e.minimumLeftMin == null ? ` ${st.gehaald(duur, h.minimum.by)}` : '') : '';
+      if (e.state === 'unknown') [kop, zin] = [w.kop.onbekend, st.onbekend];
+      else if (e.state === 'full') [kop, zin] = [st.kop.niets, st.niets];
+      else if (e.state === 'would_heat' && e.reason === 'ready_by') {
+        bron = 'net';
+        [kop, zin] = [e.heating ? st.kop.minimum : st.kop.zouMinimum, st.minimum(duur ?? '', h.minimum?.by ?? '')];
+      } else if (e.state === 'would_heat') {
+        bron = 'zon';
+        [kop, zin] = e.heating ? [st.kop.aan, st.aan] : [st.kop.zouAan, st.zouAan];
+      } else if (e.reason === 'surplus_insufficient') [kop, zin] = e.heating ? [st.kop.zouUit, st.zouUit] : [st.kop.wachtZon, `${st.wachtZon(kwTekst(e.needW, lang))}${erbij}`];
+      else if (e.reason === 'stabilisation_active') [kop, zin] = [w.kop.wacht, w.stabilisatie];
+      else if (e.reason === 'failsafe_unreliable_input') [kop, zin] = [w.kop.wacht, w.failsafe];
+      else if (e.reason === 'mode_excludes_action') [kop, zin] = [w.kop.wacht, w.handmatig];
+      else [kop, zin] = [w.kop.wacht, w.zekering];
+    } else if (e.state === 'unknown') [kop, zin] = [w.kop.onbekend, w.onbekend];
     else if (e.state === 'full') [kop, zin] = h.kind === 'jacuzzi' && temp != null ? [w.kop.warm, w.warm(temp, h.minC)] : [w.kop.vol, w.vol(temp)];
     else if (e.state === 'would_heat') {
       bron = e.reason === 'surplus_available' ? 'zon' : 'net';
@@ -172,6 +227,8 @@ export function residentBuffers(config: SiteConfig, list: readonly HeatStoreExpl
         zonC: h.sunC,
         klaarOm: e.readyByMs != null && by ? { tekst: by, atMs: e.readyByMs, doelC: doel ?? h.sunC } : null,
         keuzes: h.kind === 'jacuzzi' ? keuzes(config, nowMs, lang) : [],
+        vermogenW: e.powerW ?? null,
+        minimum: h.kind === 'stekker' && h.minimum ? { minuten: h.minimum.minutes, klok: h.minimum.by, nogMin: e.minimumLeftMin ?? 0 } : null,
       },
     ];
   });

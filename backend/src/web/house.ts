@@ -206,7 +206,8 @@ export interface HouseDevice {
    * de boiler in zijn kamer en de jacuzzi in de tuin.
    */
   readonly warmte?: {
-    readonly soort: 'boiler' | 'jacuzzi';
+    /** Een stekker (besluit 264) heeft geen graden: tempC en doelC zijn dan null. */
+    readonly soort: 'boiler' | 'jacuzzi' | 'stekker';
     readonly tempC: number | null;
     readonly doelC: number | null;
     readonly minC: number;
@@ -576,6 +577,7 @@ const WOORDEN = {
     apparaat: { running: 'draait', would_start: 'zou nu starten', waiting: 'klaargezet', not_ready: 'uit' } as Readonly<Record<string, string>>,
     // Een boiler of jacuzzi (besluit 186).
     buffer: { stookt: 'verwarmt', would_heat: 'zou nu verwarmen', waiting: 'wacht op zon', full: 'warm', unknown: 'niet te lezen' } as Readonly<Record<string, string>>,
+    stekker: { stookt: 'aan', would_heat: 'zou nu aangaan', waiting: 'wacht op zon', full: 'aan, vraagt niets', unknown: 'niet te lezen' } as Readonly<Record<string, string>>,
     // Nog geen melding van het apparaat: dat is iets anders dan kapot (besluit 131).
     meldtNogNiets: 'meldt nog niets',
     live: 'live te bekijken',
@@ -617,6 +619,7 @@ const WOORDEN = {
     doel: (graden: string) => `target ${graden}°`,
     apparaat: { running: 'running', would_start: 'would start now', waiting: 'scheduled', not_ready: 'off' } as Readonly<Record<string, string>>,
     buffer: { stookt: 'heating', would_heat: 'would heat now', waiting: 'waiting for sun', full: 'warm', unknown: 'cannot be read' } as Readonly<Record<string, string>>,
+    stekker: { stookt: 'on', would_heat: 'would switch on now', waiting: 'waiting for sun', full: 'on, draws nothing', unknown: 'cannot be read' } as Readonly<Record<string, string>>,
     meldtNogNiets: 'nothing reported yet',
     live: 'live view',
     nietBereikbaar: 'unreachable',
@@ -984,7 +987,7 @@ function applianceOf(id: string, name: string, state: string | undefined, lang: 
 /** Een boiler of jacuzzi (besluit 186): de temperatuur en wat hij doet. */
 function bufferOf(h: HeatStore, e: HeatStoreExplanation | undefined, lang: Lang): HouseDevice {
   const { id, name } = h;
-  const w = WOORDEN[lang].buffer;
+  const w = h.kind === 'stekker' ? WOORDEN[lang].stekker : WOORDEN[lang].buffer;
   const wat = e == null ? WOORDEN[lang].meldtNogNiets : e.heating ? w['stookt']! : (w[e.state] ?? e.state);
   const temp = e?.temperatureC != null ? Math.round(e.temperatureC) : null;
   return {
@@ -1006,7 +1009,7 @@ function bufferOf(h: HeatStore, e: HeatStoreExplanation | undefined, lang: Lang)
     klimaat: null,
     meetKamer: false,
     warmte: {
-      soort: h.kind === 'jacuzzi' ? 'jacuzzi' : 'boiler',
+      soort: h.kind,
       tempC: temp,
       doelC: e?.targetC != null ? Math.round(e.targetC) : null,
       minC: h.minC,

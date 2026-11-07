@@ -198,7 +198,9 @@ export function leesZonMinuten(tekst: string): { readonly zon: Zon; readonly min
  * (besluit 238). Dezelfde deuren als op de pagina; er komt geen deur bij. De
  * dienst kijkt bij het uitvoeren nog eens of het bij Functies aan staat.
  */
-export const LATER_MAG: ReadonlySet<string> = new Set(['api/licht', 'api/scene', 'api/scherm', 'api/hand', 'api/witgoed']);
+export const LATER_MAG: ReadonlySet<string> = new Set(['api/licht', 'api/scene', 'api/scherm', 'api/hand', 'api/witgoed', 'api/stekker']);
+/** Hoe lang een stekker op zijn moment aan of uit gaat (besluit 266): minuten, of tot een klok. */
+export const STEKKER_DUUR = [30, 60, 120, 180, 240] as const;
 /** Hoe lang klimaat met de hand duurt als hij op zijn moment aangaat. */
 export const HAND_TOT = ['uur1', 'uur2', 'dagdeel', 'doel'] as const;
 export type HandTot = (typeof HAND_TOT)[number];
@@ -229,6 +231,12 @@ export function leesStap(s: unknown): { readonly pad: string; readonly body: Rea
     }
   } else if (pad === 'api/witgoed') {
     if (!isId(b['id'], /^[\w.-]{1,120}$/) || b['start'] !== true) return 'witgoed: id en start';
+  } else if (pad === 'api/stekker') {
+    // Een slimme stekker (besluit 266): aan of uit, voor een aantal minuten of tot een klok.
+    if (!isId(b['id'], /^stekker-[a-z0-9-]{1,40}$/) || typeof b['aan'] !== 'boolean') return 'stekker: id en aan';
+    const duur = b['duurMin'];
+    const klok = b['klok'];
+    if (!(duur !== undefined ? (STEKKER_DUUR as readonly unknown[]).includes(duur) && klok === undefined : typeof klok === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(klok))) return 'stekker: duurMin (30, 60, 120, 180 of 240) of klok (HH:MM)';
   }
   return { pad, body: b };
 }

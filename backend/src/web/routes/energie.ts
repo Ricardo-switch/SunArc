@@ -52,6 +52,12 @@ export async function energieRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
     return true;
   }
 
+  // Een slimme stekker met de hand (besluit 265): de stand, of aan of uit tot een tijd, of terug.
+  if (path === '/api/stekker') {
+    await stekkerRoute(d, req, res, method);
+    return true;
+  }
+
   if (path === '/api/aansluiting') {
     await aansluitingRoute(d, req, res, method);
     return true;
@@ -159,6 +165,46 @@ async function ladenRoute(d: Diensten, req: IncomingMessage, res: ServerResponse
     ...(getal('totMs') != null ? { totMs: getal('totMs')! } : {}),
     ...(getal('pct') != null ? { pct: getal('pct')! } : {}),
   }).catch((e: Error) => ({ ok: false as const, reden: `Home Assistant nam het niet aan: ${e.message}` }));
+  sendJson(res, uit.ok ? 200 : 409, uit.ok ? uit : { fout: uit.reden });
+}
+
+/**
+ * Een slimme stekker met de hand (besluit 265). GET: de stand per stekker, met
+ * `aan` of hier geschakeld kan worden. POST `{ id, aan }` met `duurMin`, `klok`
+ * ("22:00") of `totMs`, of `{ id, terug: true }`.
+ */
+async function stekkerRoute(d: Diensten, req: IncomingMessage, res: ServerResponse, method: string): Promise<void> {
+  const s = d.options.stekkers;
+  if (method !== 'POST') {
+    sendJson(res, 200, { aan: s?.zet != null, stekkers: s ? await s.standen() : [] });
+    return;
+  }
+  if (!s?.zet || !s.terug) {
+    sendJson(res, 503, { fout: 'Een stekker schakelen kan alleen in de add-on' });
+    return;
+  }
+  let body: Record<string, unknown>;
+  try {
+    body = (await readJson(req)) as Record<string, unknown>;
+  } catch (error) {
+    sendJson(res, 400, { fout: (error as Error).message });
+    return;
+  }
+  const id = body?.['id'];
+  if (typeof id !== 'string' || !/^[a-z0-9_-]{1,40}$/.test(id)) {
+    sendJson(res, 400, { fout: 'id is het id van een stekker' });
+    return;
+  }
+  if (body['terug'] === true) {
+    sendJson(res, 200, { ok: await s.terug(id).catch(() => false) });
+    return;
+  }
+  const tot = typeof body['duurMin'] === 'number' ? { duurMin: body['duurMin'] } : typeof body['klok'] === 'string' ? { klok: body['klok'] } : typeof body['totMs'] === 'number' ? { totMs: body['totMs'] } : null;
+  if (typeof body['aan'] !== 'boolean' || tot == null) {
+    sendJson(res, 400, { fout: 'verwacht { id, aan } met duurMin, klok of totMs' });
+    return;
+  }
+  const uit = await s.zet(id, body['aan'], tot).catch((e: Error) => ({ ok: false as const, reden: `Home Assistant nam het niet aan: ${e.message}` }));
   sendJson(res, uit.ok ? 200 : 409, uit.ok ? uit : { fout: uit.reden });
 }
 

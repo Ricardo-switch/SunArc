@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.137.0';
+export const VERSIE = '0.142.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -74,12 +74,90 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.142.0',
+    datum: '2026-11-07',
+    nieuw: ['In het blad van een stekker kies je ook Wanneer: nu, of vast elke dag, op werkdagen of in het weekend om een tijd. Vast komt bij Vast en gepland, en staat ook in het blad'],
+    beter: [
+      'Het blad van een stekker zegt Zet aan of Zet uit, met de stand apart bovenaan; zonder add-on alleen de stand',
+      'Bij Nieuwe taak kies je een scène bij de lampen, onder Wat doen ze, in plaats van los tussen de apparaten',
+    ],
+    en: {
+      nieuw: ['In the sheet of a plug you also pick When: now, or fixed every day, on weekdays or at the weekend at a time. Fixed goes to Fixed and planned, and shows in the sheet too'],
+      beter: [
+        'The sheet of a plug says Switch on or Switch off, with the state on its own at the top; without the add-on only the state',
+        'In New task you pick a scene with the lights, under What do they do, instead of loose between the devices',
+      ],
+    },
+  },
+  {
+    versie: '0.141.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Een slimme stekker op zon schakelt SunArc nu echt, als je hem toeliet: aan als er zon over is, uit als die wegvalt. Wat je zelf aan- of uitzet, laat SunArc met rust',
+      'Een minimum per dag voor een stekker, bij Regeling › Op zon: bijvoorbeeld minstens 2 uur, uiterlijk 22:00. Haalt de zon het niet, dan gaat hij op het laatst aan van het net',
+    ],
+    opgelost: ['Na 22:00 lag "de eerstvolgende keer 22:00" twee dagen vooruit in plaats van één, bijvoorbeeld bij "tot een tijd" in het blad van een stekker'],
+    en: {
+      nieuw: [
+        'SunArc now really switches a smart plug on solar, if you allowed it: on when there is solar to spare, off when it goes. What you switch on or off yourself, SunArc leaves alone',
+        'A daily minimum for a plug, in Control › On solar: for example at least 2 hours, by 22:00 at the latest. If the sun does not make it, it switches on from the grid at the last moment',
+      ],
+      opgelost: ['After 22:00, "the next time it is 22:00" was two days ahead instead of one, for example with "until a time" in the sheet of a plug'],
+    },
+  },
+  {
+    versie: '0.140.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Een slimme stekker op vaste tijden: bij Nieuw in Vast en gepland kies je hem, wanneer (elke dag, werkdagen, een tijd of bij zonsondergang), aan of uit, en hoe lang',
+    ],
+    en: {
+      nieuw: [
+        'A smart plug on fixed times: in New in Fixed and planned you pick it, when (every day, weekdays, a time or at sunset), on or off, and for how long',
+      ],
+    },
+  },
+  {
+    versie: '0.139.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Een slimme stekker met de hand: tik op de kaart bij Apparaten en zet hem aan of uit voor 30 minuten, een of twee uur, of tot een tijd. Daarna staat hij weer zoals hij was',
+      'Per stekker kies je bij Regeling › Op zon of SunArc hem mag aan- en uitzetten; weg is nee',
+      'Wat met de hand aan of uit staat, zie je ook bij Te doen, met Terug',
+    ],
+    en: {
+      nieuw: [
+        'A smart plug by hand: tap its card in Devices and switch it on or off for 30 minutes, one or two hours, or until a time. Then it is back as it was',
+        'For each plug you choose in Control › On solar whether SunArc may switch it on and off; the default is no',
+        'What is on or off by hand also shows in To do, with Back',
+      ],
+    },
+  },
+  {
+    versie: '0.138.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Slimme stekkers: SunArc vindt ze zelf en zegt het bij de bel. Zet er een op zon bij Regeling, dan zie je bij Apparaten wanneer hij aan kan op eigen zon',
+      'Meet de stekker zijn eigen verbruik, dan vraagt de bel om de meter toe te voegen; daarna staat hij bij Opbrengst',
+      'Meet hij zijn vermogen zelf, dan onthoudt SunArc wat hij trekt. Zonder meter vul je het in',
+    ],
+    beter: ['Bij Energie › Meters staan meters per dag, gisteren of maand niet meer tussen die van een apparaat, en twee meters met dezelfde naam krijgen hun id erachter'],
+    en: {
+      nieuw: [
+        'Smart plugs: SunArc finds them itself and tells you at the bell. Put one on solar in Control, and Devices shows when it can be on with your own solar',
+        'If the plug measures its own use, the bell asks you to add the meter; then it shows under Yield',
+        'If it measures its power itself, SunArc remembers what it draws. Without a meter you fill it in',
+      ],
+      beter: ['In Energy › Meters, meters per day, yesterday or month no longer sit among those of a device, and two meters with the same name get their id added'],
+    },
+  },
   {
     versie: '0.137.0',
     datum: '2026-11-07',

@@ -180,6 +180,8 @@ async function inrichten(basis: string): Promise<void> {
     verwarming: { soort: 'warmtepomp', aanvoerC: 35 },
     // SunArc mag de laadpaal bedienen (besluit 262), zodat je laden met de hand kunt proberen.
     laden: { aan: {}, rol: {}, instelling: {}, bedienen: { 'd-laadpaal': true } },
+    // En de ontvochtiger op een slimme stekker (besluit 265).
+    bedienen: { 'stekker-ontvochtiger': true },
   }).catch(() => null);
   for (let i = 0; i < 40; i++) {
     const f = await vraag('/api/functies').catch(() => null);

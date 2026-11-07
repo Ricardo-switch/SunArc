@@ -138,6 +138,16 @@ verwijzing bestaat.
 - **Warmte bewaren:** een boiler of jacuzzi verwarmt op zon tot een doel, houdt
   een ondergrens vast en haalt "klaar om" op tijd, zonder zon in de daluren;
   achteraan in de lijst Op zon, en eerst in de schaduw ([186]).
+- **Slimme stekkers:** SunArc vindt ze zelf en meldt ze, met een melding om
+  hun meter toe te voegen. Op zon gaat een stekker aan zolang er zon over is,
+  met een marge van een vijfde van wat hij trekt, en nooit van het net; zijn
+  vermogen leert de dienst of geeft de bewoner op. Meekijken, nog niet
+  schakelen ([264], 0.138.0). Met de hand aan of uit, met een eind, als de
+  bewoner hem toeliet; daarna weer zoals hij was ([265], 0.139.0). Op vaste
+  tijden bij Nieuw in Vast en gepland ([266], 0.140.0). Op zon met een minimum
+  per dag, en dan schakelt SunArc hem echt als de bewoner hem toeliet; wie zelf
+  schakelt, wint ([267], 0.141.0). Het blad zegt Zet aan of Zet uit, en vast
+  elke dag, op werkdagen of in het weekend kan er meteen in ([268], 0.142.0).
 - **Terugkijken:** Opbrengst rekent per dag, week, maand of jaar met de meters
   en prijzen die de app bewaart, overgenomen uit het Energie-dashboard of zelf
   ingesteld; de cijfers komen uit de statistiek van Home Assistant ([102]).
@@ -846,4 +856,9 @@ verwijzing bestaat.
 [261]: DECISIONS.md#261-wat-kan-bij-jouw-huis-de-kaarten-nagaan-de-bewoner-kiest
 [262]: DECISIONS.md#262-laden-met-de-hand-een-smalle-deur-naar-de-laadpaal
 [263]: DECISIONS.md#263-meldingen-van-de-auto-en-kabel-vergeten-om-een-vaste-tijd
+[264]: DECISIONS.md#264-een-slimme-stekker-als-apparaat-op-zon
+[265]: DECISIONS.md#265-een-slimme-stekker-met-de-hand-een-smalle-deur-per-stekker
+[266]: DECISIONS.md#266-een-slimme-stekker-op-vaste-tijden-bij-vast-en-gepland
+[267]: DECISIONS.md#267-een-slimme-stekker-op-zon-met-een-minimum-en-sunarc-schakelt-hem-echt
+[268]: DECISIONS.md#268-het-stekkerblad-zegt-wat-je-wilt-herhalen-kan-erin-en-scènes-horen-bij-de-lampen
 <!-- links:einde -->

@@ -324,6 +324,8 @@ export class WebServer {
       (this.#d.options.witgoed != null && path === '/api/witgoed') ||
       // Laden met de hand (besluit 262): de laadstroom of pauzeren, alleen bij laadpalen die de bewoner aanzette.
       (this.#d.options.laden != null && path === '/api/laden') ||
+      // Een slimme stekker met de hand (besluit 265): alleen de stekkers die de bewoner toeliet.
+      (this.#d.options.stekkers?.zet != null && path === '/api/stekker') ||
       // Te doen (besluit 216): een herinnering in het eigen bestand, of iets op een lijst van Home Assistant. Een gast niet.
       (this.#d.options.tedoen != null && path === '/api/te-doen') ||
       // Scènes (besluit 100): een eigen smalle deur naast het licht.

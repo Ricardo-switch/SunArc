@@ -113,6 +113,8 @@ export const VOORBEELD_SITE = {
       programDuration: 'sensor.droger_programmaduur',
     },
   ],
+  // De ontvochtiger op een slimme stekker, op zon (besluit 264), minstens twee uur per dag (besluit 267).
+  heatStores: [{ id: 'stekker-ontvochtiger', name: 'Ontvochtiger', kind: 'stekker', control: 'switch', actuator: 'switch.ontvochtiger', power: 'sensor.ontvochtiger_vermogen', estimatedW: 380, minimum: { minutes: 120, by: '22:00' } }],
   grid: {
     phases: [
       { id: 'L1', current: 'sensor.p1_stroom_fase_1', voltage: 'sensor.p1_spanning_fase_1', maxA: 25 },
@@ -205,6 +207,8 @@ const TOESTELLEN: readonly Toestel[] = [
     platform: 'volkswagen_we_connect_id',
     entiteiten: [['sensor.auto_lading', meter('battery', 'Lading')], ['sensor.auto_bereik', meter('distance', 'Bereik')], ['binary_sensor.auto_laadt', meter('battery_charging', 'Laadt')], ['binary_sensor.auto_stekker', meter('plug', 'Stekker')], ['number.auto_laadgrens', meter('', 'Laadgrens')], ['device_tracker.auto', meter('', 'Plek')]],
   },
+  // Een ontvochtiger op een slimme stekker (besluiten 264 en 265): op zon, en met de hand te schakelen.
+  { id: 'd-ontvochtiger', naam: 'Ontvochtiger', ruimte: 'zolder', merk: 'Shelly', model: 'Plug S', platform: 'shelly', entiteiten: [['switch.ontvochtiger'], ['sensor.ontvochtiger_vermogen', meter('power', 'Vermogen')], ['sensor.ontvochtiger_energie', meter('energy', 'Energie')]] },
   { id: 'd-laadpaal', naam: 'Laadpaal', ruimte: 'oprit', merk: 'Easee', platform: 'easee', entiteiten: [['sensor.laadpaal_vermogen', meter('power', 'Vermogen')], ['sensor.laadpaal_status', meter('', 'Status')], ['sensor.laadpaal_stroom_l1', meter('current', 'Stroom L1')], ['number.laadpaal_laadstroom', meter('', 'Laadstroom')], ['switch.laadpaal_laden', meter('', 'Laden')]] },
   {
     id: 'd-p1',
@@ -244,7 +248,7 @@ const ENGELS: Readonly<Record<string, string>> = {
   Sfeerlamp: 'Mood light', 'Thermostaat badkamer': 'Bathroom thermostat', Thuisbatterij: 'Home battery', Tuinverlichting: 'Garden lights', Warmtepomp: 'Heat pump',
   'Op afstand starten': 'Remote start', 'Start of pauze': 'Start or pause', Status: 'Status', Lading: 'Charge', Laadt: 'Charging', 'Stroom fase 1': 'Current phase 1', 'Stroom fase 2': 'Current phase 2', 'Stroom fase 3': 'Current phase 3',
   Bereik: 'Range', Programmaduur: 'Programme duration', 'Afname totaal': 'Import total', 'Opbrengst totaal': 'Production total', 'Teruglevering totaal': 'Export total', Luchtvochtigheid: 'Humidity',
-  Laadstroom: 'Charging current', Laden: 'Charging',
+  Laadstroom: 'Charging current', Laden: 'Charging', Ontvochtiger: 'Dehumidifier', Energie: 'Energy',
   Beweging: 'Motion', Bezoeker: 'Visitor', Stekker: 'Plug', 'Batterij vermogen': 'Battery power', Vermogen: 'Power', Temperatuur: 'Temperature', 'Spanning fase 1': 'Voltage phase 1', 'Spanning fase 2': 'Voltage phase 2', 'Spanning fase 3': 'Voltage phase 3',
   'Temperatuur buiten': 'Outdoor temperature', Thuis: 'Home', Boodschappen: 'Shopping', Melk: 'Milk', Brood: 'Bread', Appels: 'Apples', 'To-do': 'To-do', 'Woonkamer Avond': 'Living room Evening', 'Woonkamer Helder': 'Living room Bright',
 };
@@ -391,6 +395,11 @@ export function staten(klok: Klok, ingrepen: Ingrepen, nuMs: number): HaEntitySt
   const autoW = laadtNu ? laadA * 230 : 0;
   zet('number.laadpaal_laadstroom', 6, { unit_of_measurement: 'A', min: 6, max: 16, step: 1, mode: 'slider' });
   zet('switch.laadpaal_laden', 'on', {});
+  // De ontvochtiger op een slimme stekker: uit, tot iemand hem aanzet (met de hand, besluit 265).
+  const ontvochtigerAan = ingrepen.get('switch.ontvochtiger')?.state === 'on';
+  zet('switch.ontvochtiger', 'off', {});
+  zet('sensor.ontvochtiger_vermogen', ontvochtigerAan ? 380 : 0, { unit_of_measurement: 'W', device_class: 'power', state_class: 'measurement' });
+  zet('sensor.ontvochtiger_energie', 41.2, { unit_of_measurement: 'kWh', device_class: 'energy', state_class: 'total_increasing' });
   zet('binary_sensor.auto_laadt', laadtNu ? 'on' : 'off', { device_class: 'battery_charging' });
   zet('sensor.laadpaal_vermogen', autoW, { unit_of_measurement: 'W', device_class: 'power' });
   zet('sensor.laadpaal_stroom_l1', laadtNu ? laadA + 0.1 : 0, { unit_of_measurement: 'A', device_class: 'current' });

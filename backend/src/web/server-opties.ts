@@ -10,6 +10,7 @@ import type { Sluipverbruik } from './sluipverbruik.js';
 import type { LaadOverzicht } from './laadbeurten.js';
 import type { LaadAdvies } from './laadadvies.js';
 import type { LaadStand, LaadUitkomst, LaadVraag } from './laadhand.js';
+import type { StekkerStand, StekkerTot, StekkerUitkomst } from './stekkerhand.js';
 import type { CameraNu } from './cameras.js';
 import type { AanzetStand } from './assistent-aan.js';
 import type { InHuisStand } from './stem-in-huis.js';
@@ -208,6 +209,12 @@ export interface WebOptions {
   /** Het advies per auto (besluit 259, stap 4): zon over en de goedkoopste uren, alleen als het iets zegt. */
   readonly laadadvies?: () => Readonly<Record<string, LaadAdvies>>;
   /** Laden met de hand (besluit 262): alleen in de add-on. */
+  /** Een slimme stekker met de hand (besluit 265): `zet` en `terug` alleen in de add-on. */
+  readonly stekkers?: {
+    readonly standen: () => Promise<readonly StekkerStand[]>;
+    readonly zet?: (id: string, aan: boolean, tot: StekkerTot) => Promise<StekkerUitkomst>;
+    readonly terug?: (id: string) => Promise<boolean>;
+  };
   readonly laden?: {
     readonly standen: () => Promise<readonly LaadStand[]>;
     readonly zet: (auto: string, v: LaadVraag) => Promise<LaadUitkomst>;

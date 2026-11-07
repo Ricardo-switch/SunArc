@@ -1,6 +1,7 @@
 /**
  * Eén stap van een geplande opdracht uitvoeren, op zijn moment (besluit 218,
- * en sinds besluit 240 ook klimaat met de hand en witgoed). Dezelfde deuren als
+ * en sinds besluit 240 ook klimaat met de hand en witgoed, sinds 266 een
+ * slimme stekker). Dezelfde deuren als
  * op de pagina, alleen wat aan staat: een deur die er niet is (uit bij
  * Functies, of niet in de add-on) geeft null, en dan komt het in het logboek.
  */
@@ -24,6 +25,8 @@ export interface GeplandeDeuren {
   } | null;
   /** Witgoed starten (besluit 238). */
   readonly witgoed?: ((id: string) => Promise<Uitkomst>) | null;
+  /** Een slimme stekker (besluit 266); alleen in de add-on, en alleen als de bewoner hem toeliet. */
+  readonly stekker?: ((id: string, aan: boolean, tot: { readonly duurMin: number } | { readonly klok: string }) => Promise<Uitkomst>) | null;
   readonly tz: string;
 }
 
@@ -39,6 +42,11 @@ export async function voerStapUit(s: Stap, d: GeplandeDeuren, nuMs = Date.now())
   if (s.pad === 'api/scene') return d.scene ? d.scene(s.body) : null;
   if (s.pad === 'api/scherm') return d.scherm ? d.scherm(s.body) : null;
   if (s.pad === 'api/witgoed') return d.witgoed ? d.witgoed(String(s.body['id'])) : null;
+  if (s.pad === 'api/stekker') {
+    if (!d.stekker) return null;
+    const tot = typeof s.body['duurMin'] === 'number' ? { duurMin: s.body['duurMin'] } : { klok: String(s.body['klok']) };
+    return d.stekker(String(s.body['id']), s.body['aan'] === true, tot);
+  }
   if (s.pad === 'api/hand') {
     if (!d.hand) return null;
     const id = String(s.body['id']);

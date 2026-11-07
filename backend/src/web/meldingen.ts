@@ -16,7 +16,9 @@
  * - een nieuwe versie, en een mijlpaal zoals 10, 20 of 30 winterdagen;
  * - de auto (besluit 263): vol, laden gestopt met een fout, kabel vergeten
  *   ('s avonds om de tijd die je koos, als hij te leeg is), en laden met de
- *   hand dat klaar is.
+ *   hand dat klaar is;
+ * - een slimme stekker (besluit 264): gevonden en nog niet op zon, en een
+ *   eigen meter die nog niet bij Energie staat.
  *
  * Wat vanzelf weer goed is, lost zichzelf op en schuift naar Eerder. Een
  * wachttijd houdt kort haperen buiten de lijst. Alles staat in één eigen
@@ -33,7 +35,7 @@ import { metLidwoord } from './kamerwoorden.js';
 
 export const MELDINGEN_FILE = 'meldingen.json';
 
-export type MeldingSoort = 'nieuw' | 'weg' | 'stil' | 'batterij' | 'filter' | 'meter' | 'versie' | 'mijlpaal' | 'comfort' | 'panelen' | 'rook' | 'update' | 'sluip' | 'dak' | 'auto';
+export type MeldingSoort = 'nieuw' | 'weg' | 'stil' | 'batterij' | 'filter' | 'meter' | 'versie' | 'mijlpaal' | 'comfort' | 'panelen' | 'rook' | 'update' | 'sluip' | 'dak' | 'auto' | 'stekker';
 
 export interface Melding {
   /** Vast per onderwerp, zoals `stil:light.hal`: zo komt hetzelfde niet dubbel. */
@@ -113,6 +115,12 @@ export interface MeldingenBron {
    * `dag` en `gisteren` als JJJJ-MM-DD. Weg zonder auto.
    */
   readonly autos?: { readonly lijst: readonly AutoBel[]; readonly minuut: number; readonly dag: string; readonly gisteren: string } | null;
+  /**
+   * De slimme stekkers die de dienst vond (besluit 264): of hij op zon staat, en
+   * zijn kWh-meter als hij die heeft, met of die al bij Energie staat. Weg: nog
+   * niet bekend (de registers zijn er nog niet); dan blijft wat er stond.
+   */
+  readonly stekkers?: readonly { readonly id: string; readonly naam: string; readonly opZon: boolean; readonly meter: string | null; readonly meterErin: boolean }[] | null;
   /** Laden met de hand dat net klaar is (besluit 263): op de tijd of op het %. */
   readonly handKlaar?: readonly { readonly auto: string; readonly naam: string; readonly tot: 'uur' | 'tijd' | 'pct'; readonly pct: number | null; readonly ms: number }[];
 }
@@ -298,6 +306,16 @@ const WOORDEN = {
       handPct: (pct: number) => `Op ${pct}%. De laadpaal kiest weer zelf.`,
       handTijd: (tijd: string) => `Om ${tijd}. De laadpaal kiest weer zelf.`,
     },
+    stekker: {
+      titel: (naam: string) => `Stekker gevonden: ${naam}`,
+      tekst: 'Zet hem op zon, dan kijkt SunArc mee wanneer hij aan kan.',
+      actie: 'Op zon zetten',
+      meter: (naam: string) => `Meter van ${naam} toevoegen`,
+      meterTekst: 'Hij meet zijn eigen verbruik. Voeg de meter toe, dan zie je wat hij gebruikt en hoeveel op eigen zon.',
+      meterActie: 'Toevoegen',
+      meterKlaar: (naam: string) => `Meter van ${naam} staat erbij`,
+      meterKlaarTekst: 'Je ziet hem bij Opbrengst.',
+    },
     om: (tijd: string) => `Om ${tijd}.`,
   },
   en: {
@@ -413,6 +431,16 @@ const WOORDEN = {
       hand: (naam: string) => `${naam}: charging by hand done`,
       handPct: (pct: number) => `At ${pct}%. The charger decides again.`,
       handTijd: (tijd: string) => `At ${tijd}. The charger decides again.`,
+    },
+    stekker: {
+      titel: (naam: string) => `Smart plug found: ${naam}`,
+      tekst: 'Put it on solar, and SunArc watches when it can be on.',
+      actie: 'Put on solar',
+      meter: (naam: string) => `Add the meter of ${naam}`,
+      meterTekst: 'It measures its own use. Add the meter to see what it uses and how much on your own solar.',
+      meterActie: 'Add',
+      meterKlaar: (naam: string) => `Meter of ${naam} added`,
+      meterKlaarTekst: 'You see it under Yield.',
     },
     om: (tijd: string) => `At ${tijd}.`,
   },
@@ -559,6 +587,21 @@ export function wat(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[] {
     }));
   }
   uit.push(...autoMeldingen(bron));
+  // De slimme stekkers (besluit 264): gevonden, en zijn meter erbij.
+  for (const x of bron.stekkers ?? []) {
+    if (!x.opZon) {
+      uit.push(tweetalig((lang) => {
+        const w = WOORDEN[lang].stekker;
+        return { id: `stekker:${x.id}`, soort: 'stekker', aandacht: true, titel: w.titel(x.naam), tekst: w.tekst, actie: { label: w.actie, href: 'regeling.html#opzon' } };
+      }));
+    }
+    if (x.meter && !x.meterErin) {
+      uit.push(tweetalig((lang) => {
+        const w = WOORDEN[lang].stekker;
+        return { id: `stekker-meter:${x.meter}`, soort: 'stekker', aandacht: true, titel: w.meter(x.naam), tekst: w.meterTekst, actie: { label: w.meterActie, href: 'energie.html#meters' }, klaar: { titel: w.meterKlaar(x.naam), tekst: w.meterKlaarTekst } };
+      }));
+    }
+  }
   // Sluipverbruik (besluit 192): één melding per reeks hoge nachten, met de laatste nacht erin.
   const s = bron.sluip;
   if (s) {
@@ -706,6 +749,8 @@ export class MeldingenStore {
     const { bekend, vermist, weg } = wegUit(bron, b.bekend ?? {}, b.vermist ?? {});
     const nuSpeelt = [...wat(bron), ...weg];
     const ids = new Set(nuSpeelt.map((m) => m.id));
+    // Weet de dienst de stekkers nog niet (net gestart), dan blijft staan wat er stond (besluit 264).
+    if (bron.stekkers == null) for (const m of b.meldingen) if (m.soort === 'stekker' && m.opgelostMs == null) ids.add(m.id);
     const meldingen = [...b.meldingen];
     for (const m of nuSpeelt) {
       const i = meldingen.findIndex((x) => x.id === m.id && x.opgelostMs == null);

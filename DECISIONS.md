@@ -46,6 +46,8 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [210. De klimaatbrug: tot stap B via de knoppen van het oude systeem](#210-de-klimaatbrug-tot-stap-b-via-de-knoppen-van-het-oude-systeem)
 - [235. Klimaat met de hand: elk apparaat, via de knop of direct, met een eindtijd](#235-klimaat-met-de-hand-elk-apparaat-via-de-knop-of-direct-met-een-eindtijd)
 - [262. Laden met de hand: een smalle deur naar de laadpaal](#262-laden-met-de-hand-een-smalle-deur-naar-de-laadpaal)
+- [265. Een slimme stekker met de hand: een smalle deur per stekker](#265-een-slimme-stekker-met-de-hand-een-smalle-deur-per-stekker) — *aangevuld door 267*
+- [267. Een slimme stekker op zon met een minimum, en SunArc schakelt hem echt](#267-een-slimme-stekker-op-zon-met-een-minimum-en-sunarc-schakelt-hem-echt)
 
 **Kern en regeling**
 
@@ -79,6 +81,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [176. Apparaten op zon in de voorrang: een lijst Op zon](#176-apparaten-op-zon-in-de-voorrang-een-lijst-op-zon)
 - [186. Warmte bewaren: de boiler en de jacuzzi op zon](#186-warmte-bewaren-de-boiler-en-de-jacuzzi-op-zon)
 - [194. Een huis zonder slimme regeling: de app draait ook zonder zones](#194-een-huis-zonder-slimme-regeling-de-app-draait-ook-zonder-zones)
+- [264. Een slimme stekker als apparaat op zon](#264-een-slimme-stekker-als-apparaat-op-zon)
 
 **Configuratie en onboarding**
 
@@ -257,6 +260,8 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [259. Auto en laadpaal: een eigen pagina, en met de hand laden (ontwerp)](#259-auto-en-laadpaal-een-eigen-pagina-en-met-de-hand-laden-ontwerp)
 - [260. Je dag als eigen stap, en hoe warm per kamer](#260-je-dag-als-eigen-stap-en-hoe-warm-per-kamer)
 - [263. Meldingen van de auto, en kabel vergeten om een vaste tijd](#263-meldingen-van-de-auto-en-kabel-vergeten-om-een-vaste-tijd)
+- [266. Een slimme stekker op vaste tijden, bij Vast en gepland](#266-een-slimme-stekker-op-vaste-tijden-bij-vast-en-gepland)
+- [268. Het stekkerblad zegt wat je wilt, herhalen kan erin, en scènes horen bij de lampen](#268-het-stekkerblad-zegt-wat-je-wilt-herhalen-kan-erin-en-scènes-horen-bij-de-lampen)
 
 **Veiligheid**
 
@@ -12362,6 +12367,203 @@ laatste was eerst de vraag waar de vertrektijd vandaan komt. De bewoner koos:
   telefoon, standaard aan, buiten de nachtrust. Wie al keuzes had, krijgt hem
   ook aan.
 - **Versie 0.137.0.** Daarmee zijn de zes stappen van [259] gebouwd.
+
+---
+
+## 264. Een slimme stekker als apparaat op zon
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+7 november 2026, issue 136 (een idee van een tester met SONOFF-stekkers).
+De bewoner koos: stekkers zelf vinden, een melding als er een gevonden is en
+een om zijn meter toe te voegen, de naam uit Home Assistant met een vast
+stekkericoon als soort, en voorlopig meekijken op zon zoals de rest. Getest
+met de stekker voor de verwarming van het tuinhuis.
+
+*Besluit:*
+
+- **Een stekker is een soort warmte bewaren** (`kind: 'stekker'` bij
+  [186]): aan zolang er zon over is, uit als die wegvalt, met de volgorde op
+  zon, de hoofdzekering en de stabilisatie van de boiler. Maar zonder graden:
+  geen ondergrens, geen klaar om, en **nooit van het net**, ook niet in de
+  goedkoopste uren. Staat hij aan en trekt hij niets, dan "vraagt hij niets".
+- **Vinden** (`findPlugs` in `buffers-vinden.ts`): per apparaat in Home
+  Assistant één schakelaar die geen instelling is, op een apparaat dat een
+  stekker heet (naam of model) of zijn eigen vermogen meet, en verder niets
+  anders is: geen airco, lamp, laadpaal, accu, boiler of witgoed. Alleen
+  `outlet` is te weinig: Tuya noemt elk relais zo (de spiegel in de badkamer).
+  Wat de regeling al bedient, slaat hij over. De naam is die van het
+  apparaat; de soort is het vaste icoon.
+- **Het vermogen:** meet hij het zelf, dan onthoudt de dienst wat hij de
+  laatste keer trok toen hij aan was (`warmtebuffers.json`), en vraagt hij
+  dat bij een start. Zonder meter vult de bewoner het in bij Regeling › Op
+  zon (50 tot 3.680 W); weg is 1.000 W.
+- **De marge:** eenmaal aan mag hij een vijfde van wat hij trekt van het net
+  halen voordat hij uit zou gaan (`PLUG_MARGIN`), bovenop de tolerantie van
+  een draaiend apparaat (51). Zo gaat hij bij een wolkje niet meteen uit.
+- **Twee meldingen bij de bel** (soort `stekker`, niet op de telefoon):
+  *Stekker gevonden*, tot hij op zon staat (dan stil weg); en *Meter van …
+  toevoegen* als hij een kWh-meter heeft die niet bij Energie › Meters staat,
+  met "staat erbij" onder Eerder. Zolang de registers er na een start nog
+  niet zijn, blijft staan wat er stond.
+- **Bij Energie › Meters** telt een meter van gisteren, een week of een maand
+  als een teller die opnieuw begint, niet als apparaat, en krijgen twee meters
+  met dezelfde naam hun id erachter: een stekker geeft de stand, vandaag,
+  gisteren en de maand allemaal dezelfde naam.
+- **Er gaat niets naar Home Assistant.** SunArc zegt alleen wat hij zou doen;
+  schakelen komt in een eigen besluit.
+- **Versie 0.138.0.**
+
+*Nog niet:* met de hand met een eind, vaste tijden bij Vast en gepland, en op
+zon met een minimum per dag. De bewoner koos alle drie, met toestemming per
+stekker zoals bij de laadpaal (262).
+
+---
+
+## 265. Een slimme stekker met de hand: een smalle deur per stekker
+
+*Onderwerp: visie en principes · Status: aangevuld door 267*
+
+7 november 2026, het vervolg op [264]. De bewoner wilde de kaart van een
+stekker aanklikbaar, met functies van een slimme tijdschakelaar: met de hand
+met een eind, vaste tijden en op zon met een minimum. Dit besluit is de eerste
+van de drie, en de schrijfdeur die de andere twee straks ook gebruiken.
+
+*Besluit:*
+
+- **Wat er door de deur mag:** `switch.turn_on` en `turn_off`, zonder velden,
+  op de schakelaar van een stekker die de bewoner toeliet. Het gaat door de
+  bestaande deur van met de hand (`isHandCall`, de lijst `schakelaars`), maar
+  los van de klimaatbrug: de stekkers staan er altijd in als ze toegelaten
+  zijn, of als er nog iets terug moet.
+- **Per stekker toelaten**, zoals de laadpaal (262): bij Regeling › Op zon
+  staat onder elke stekker "SunArc mag hem aan- en uitzetten". Weg is nee.
+  Bewaard bij de antwoorden van de aansluiting (`bedienen`).
+- **Alleen in de add-on** (en het voorbeeldhuis); de NAS laat het blad zien
+  met "kan alleen in de add-on".
+- **Altijd met een eind,** hooguit een dag: 30 minuten, een of twee uur, of
+  tot een tijd. De pagina stuurt de keuze (minuten of een klok); de dienst
+  rekent het eind zelf uit, in de tijdzone van het huis, zodat een telefoon
+  met een andere klok niets uitmaakt.
+- **Daarna terug zoals hij was**, maar alleen als hij nog staat zoals de app
+  hem zette: wie intussen zelf schakelde, wint. Wat terug moet staat in
+  `stekkerhand.json`. Terug kan ook meteen, in het blad en bij Te doen.
+- **De regeling schakelt nog niets:** op zon blijft meekijken (264). Sinds
+  [267] schakelt SunArc een toegelaten stekker op zon wel echt.
+- **Het voorbeeldhuis** krijgt een ontvochtiger op een slimme stekker, op zon
+  en toegelaten, om het te proberen.
+- **Versie 0.139.0.**
+
+*Nog niet:* vaste tijden bij Vast en gepland, en op zon met een minimum per
+dag.
+
+---
+
+## 266. Een slimme stekker op vaste tijden, bij Vast en gepland
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, de tweede tijdschakelaar-functie na [265]. De bewoner vroeg of
+vaste tijden niet beter bij Vast en gepland passen: ja. Daar staan de licht-,
+scherm- en klimaattaken al, met elke dag, werkdagen, gekozen dagen en de zon.
+
+*Besluit:*
+
+- **Bij Nieuw in Vast en gepland** ([240]) staat een slimme stekker die SunArc
+  mag schakelen onder Overig, met het stekkericoon, als soort "Slimme
+  stekkers". Bij Hoe: aan of uit, en hoe lang (30 minuten, 1, 2 of 4 uur).
+  De zin zegt het: "Elke dag om 07:00 gaat de ontvochtiger aan voor vier uur."
+- **De stap** is `api/stekker` met `{ id, aan, duurMin }` of `{ id, aan, klok }`
+  (`LATER_MAG`, nagekeken in `leesStap`). Op zijn moment gaat hij door de deur
+  van met de hand (265): alleen in de add-on, alleen als de bewoner hem
+  toeliet, en daarna weer zoals hij was. Er komt geen deur bij.
+- **Een warmtebron op een stekker** uit Indeling (235) blijft zoals hij was;
+  staat dezelfde stekker er ook als slimme stekker, dan één keer.
+- **Versie 0.140.0.**
+
+*Nog niet:* op zon met een minimum per dag.
+
+---
+
+## 267. Een slimme stekker op zon met een minimum, en SunArc schakelt hem echt
+
+*Onderwerp: visie en principes · Status: geldig*
+
+7 november 2026, de derde tijdschakelaar-functie na [265] en [266]. Gevraagd
+of SunArc een stekker op zon, met een minimum, ook echt mag schakelen, koos de
+bewoner: ja, echt schakelen. Daarmee is dit, na de droger ([238]), de tweede
+keer dat de regeling zelf iets aanzet.
+
+*Besluit:*
+
+- **Wie:** een stekker die op zon staat ([264]) én die de bewoner toeliet
+  ([265], "SunArc mag hem aan- en uitzetten", nu "met de hand, op tijden en op
+  zon"). Zonder toestemming blijft op zon meekijken. Alleen in de add-on (en
+  het voorbeeldhuis); de NAS kijkt mee.
+- **Dezelfde deur** als met de hand: `switch.turn_on` en `turn_off` op die ene
+  schakelaar (`isHandCall`, de lijst `schakelaars`). Er komt geen deur bij; wat
+  SunArc op zon aanzette, staat er ook in, zodat het weer uit kan als de
+  bewoner de toestemming intussen weghaalt.
+- **Aan:** zodra de regeling zegt dat hij aan zou gaan en hij uit staat.
+  **Uit:** alleen wat SunArc zelf aanzette, zodra de regeling zegt dat hij
+  wacht (te weinig zon, failsafe, handmatig). Wat de bewoner zelf aanzette,
+  blijft aan; de kaart zegt dat erbij. Aan zonder iets te trekken ("vraagt
+  niets") blijft aan.
+- **Wie zelf schakelt, wint:** zet iemand een stekker uit die SunArc aanzette,
+  dan laat SunArc hem tot middernacht met rust. Met de hand of op een vaste
+  tijd gaat voor: zolang dat loopt, doet SunArc niets.
+- **Niet steeds aan en uit:** per stekker hooguit eens per tien minuten, met de
+  marge van een vijfde uit [264] en de rust na een start van de regeling.
+- **Een minimum per dag**, bij Regeling › Op zon onder de stekker: minstens een
+  half uur tot acht uur, en **uiterlijk om** (standaard 22:00). Het telt in de
+  24 uur voor die tijd hoe lang hij echt aan was (de dienst onthoudt het in
+  `warmtebuffers.json`). Eerst op zon; haalt de zon het niet, dan gaat hij op
+  het laatste moment van het net aan, met een half uur ruimte, en blijft hij
+  aan tot hij het heeft. Geen goedkope uren: die zouden de zon voor zijn.
+- **Wat de app zegt:** de kaart zegt "Gaat nu aan" in plaats van "zou", "Aan
+  voor zijn minimum" (oranje) als het van het net komt, en bij het wachten
+  "Komt die niet, dan gaat hij om 19:30 aan: zo staat hij vóór 22:00 toch 2
+  uur aan". Het blad zegt dat SunArc hem op zon schakelt en hoe ver hij is.
+- **Bewaard** in `stekkerzon.json`: wat SunArc aanzette en welke stekkers rust
+  hebben, zodat een herstart het niet vergeet.
+- **Gevonden en hersteld:** na 22:00 rekende de dienst "de eerstvolgende keer
+  22:00" twee dagen vooruit in plaats van één (`nextLocalTime`). Dat raakte ook
+  "tot een tijd" in het blad van een stekker en de eindtijd van de droger.
+- **Versie 0.141.0.**
+
+---
+
+## 268. Het stekkerblad zegt wat je wilt, herhalen kan erin, en scènes horen bij de lampen
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, na 0.141.0 op de NAS bekeken. De bewoner vond het blad van een
+stekker nog onduidelijk: bij Wat stond Aan gekozen, en dat leek de stand van de
+stekker, terwijl hij uit stond. Bij Nieuwe taak kon hij de stekker op de NAS
+niet kiezen, en de scènes stonden los tussen de lampen. Gekozen uit drie vragen
+met opties, steeds de aanbevolen.
+
+*Besluit:*
+
+- **De stand apart bovenaan** in het blad, met een stip: "Staat nu uit · 0 W".
+  De vraag heet **Wat wil je?** met **Zet aan** en **Zet uit**.
+- **Op de NAS geen knoppen**, alleen de stand en "Hier kijk je mee. Schakelen
+  kan in SunArc in Home Assistant." Nog niet toegelaten: alleen de uitleg en
+  Naar Regeling. Een stekker bij Nieuwe taak staat er daarom ook alleen in de
+  add-on.
+- **Wanneer in het blad:** Nu, Elke dag, Werkdagen of Weekend, met **Om** een
+  tijd. Nu werkt zoals het was (met "tot een tijd"); vast kent 30 minuten tot 4
+  uur en bewaart een taak bij Vast en gepland, dezelfde als die van Nieuw
+  ([266]). Het blad laat de vaste taken van die stekker zien, met een kruisje
+  om er een weg te halen.
+- **Scènes niet meer bij Wat** in Nieuwe taak. Bij **Wat doen ze** krijgen de
+  lampen naast Aan en Uit een keuze **Of een scène**, met de scènes van hun
+  kamers. Kies je er een, dan start die scène in plaats van dat de lampen los
+  aangaan: "Elke dag om 07:00 start de scène Avond". Los per lamp kent alleen
+  aan en uit.
+- **Op een smal blad** lopen vier keuzes door naar een tweede regel, in plaats
+  van buiten beeld te vallen.
+- **Versie 0.142.0.**
 
 ---
 

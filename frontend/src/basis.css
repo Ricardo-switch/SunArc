@@ -678,6 +678,9 @@ html.sc-voorbeeld #tel .td-keuze { bottom: calc(250px + env(safe-area-inset-bott
 .hand-vraag { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .hand-vraag > span { font-size: 14px; font-weight: 600; color: var(--zacht); }
 .hand-seg > .chip { border: 0; height: 34px; padding: 0 14px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+/* Op een smal blad lopen de knoppen door naar een tweede regel, zodat vier keuzes altijd leesbaar zijn (besluit 268). */
+.hand-laag.op-tel .hand-seg { display: flex; flex-wrap: wrap; width: 100%; }
+.hand-laag.op-tel .hand-seg > .chip { flex: 1 1 auto; padding: 0 10px; }
 .hand-dag { display: flex; flex-direction: column; gap: 4px; }
 .hand-dag .balk24 { position: relative; height: 22px; border-radius: 8px; background: rgb(var(--wit) / 0.06); overflow: hidden; }
 .hand-dag .balk24 i.hand { position: absolute; top: 5px; bottom: 5px; border-radius: 5px; background: linear-gradient(90deg, #f7b548, #ffd27a); }
@@ -692,6 +695,16 @@ html.sc-voorbeeld #tel .td-keuze { bottom: calc(250px + env(safe-area-inset-bott
 .hand-terug { border: 0; background: none; padding: 0; color: var(--zacht); font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; }
 .hand-zet { margin-left: auto; height: 48px; padding: 0 24px; border-radius: 15px; border: 0; background: var(--tekst); color: var(--inkt); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
 .hand-zet:disabled { opacity: 0.4; cursor: default; }
+a.hand-zet { display: inline-flex; align-items: center; text-decoration: none; }
+/* Het blad van een stekker (besluit 268): de stand met een stip, de tijd bij vast, en de vaste taken. */
+.hand-stip { display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; vertical-align: 1px; }
+.hand-om { width: auto; min-width: 110px; }
+.hand-vast { display: flex; flex-direction: column; gap: 6px; }
+.hand-vast > span { font-size: 14px; font-weight: 600; color: var(--zacht); }
+.hand-vast > div { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.05); }
+.hand-vast p { margin: 0; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 14.5px; }
+.hand-vast small { color: var(--gedempt); font-size: 12.5px; }
+.hand-vast button { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 0; background: rgb(var(--wit) / 0.08); color: var(--tekst); font-size: 16px; cursor: pointer; }
 .hand-laag.op-tel .hand-blad { padding: 18px; gap: 12px; }
 .hand-laag.op-tel .hand-vraag { flex-direction: column; align-items: stretch; gap: 6px; }
 .hand-laag.op-tel .hand-zet { flex: 1; }

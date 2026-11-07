@@ -35,6 +35,8 @@ export interface BronInvoer {
   /** De auto's en laden met de hand dat klaar is (besluit 263). */
   readonly autos?: MeldingenBron['autos'];
   readonly handKlaar?: MeldingenBron['handKlaar'];
+  /** De slimme stekkers (besluit 264), of null als de registers er nog niet zijn. */
+  readonly stekkers?: MeldingenBron['stekkers'];
 }
 
 /** De bron voor de bel, of null als bijna alles tegelijk weg is: dan is Home Assistant zelf weg. */
@@ -82,6 +84,7 @@ export function meldingenBron(i: BronInvoer): MeldingenBron | null {
     dak: i.dakAchter ?? null,
     autos: i.autos ?? null,
     handKlaar: i.handKlaar ?? [],
+    stekkers: i.stekkers ?? null,
     winterdagen: i.winterdagen,
     // Wiens comfort er geldt (besluit 147), voor één melding bij een wissel.
     comfort: (() => {

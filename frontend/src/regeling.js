@@ -18,6 +18,12 @@ let aInfo = null;
 let opZon = {};
 /** Apparaten uit de configuratie die de bewoner van zon haalde (besluit 167). */
 let opZonUit = [];
+/** Wat de bewoner opgaf bij een stekker zonder eigen meter (besluit 264), in W. */
+let vermogen = {};
+/** De stekkers die SunArc mag schakelen (besluit 265). */
+let bedienen = new Set();
+/** Hoe lang een stekker per dag minstens aan moet, en uiterlijk wanneer (besluit 267). */
+let minimum = {};
 let zon = null;
 
 async function laadAlles() {
@@ -29,6 +35,9 @@ async function laadAlles() {
     aInfo = a.value;
     opZon = { ...(aInfo.antwoorden?.opZon ?? {}) };
     opZonUit = [...(aInfo.antwoorden?.opZonUit ?? [])];
+    vermogen = { ...(aInfo.antwoorden?.vermogen ?? {}) };
+    bedienen = new Set(aInfo.antwoorden?.bedienen ?? []);
+    minimum = { ...(aInfo.antwoorden?.minimum ?? {}) };
   }
   if (z.status === 'fulfilled') zon = z.value;
   teken();
@@ -95,12 +104,34 @@ function opZonRij(naam, aan, data) {
   return `<div class="regelrij"><div class="l"><b>${esc(naam)}</b><span>${esc(t(aan ? 'regeling.startZon' : 'regeling.startNiet'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('regeling.naamOpZon', { naam }))}" ${data}></button></div>`;
 }
 
+/**
+ * Een slimme stekker (besluit 264): met zijn icoon, aan als er zon over is.
+ * Meet hij zijn vermogen niet zelf, dan vraagt de rij hoeveel hij trekt.
+ */
+function stekkerRij(x) {
+  const aan = opZon[x.id] === true;
+  const veld = aan && !x.meet
+    ? `<label class="veldnaam" style="margin-top: 6px">${esc(t('regeling.stekkerVermogen'))}<input class="invoer" type="number" inputmode="numeric" min="50" max="3680" step="10" data-vermogen="${esc(x.id)}" value="${vermogen[x.id] ?? ''}" placeholder="1000"></label>`
+    : '';
+  // Mag SunArc hem schakelen (besluit 265): met de hand, op tijden en op zon (267); weg is nee.
+  const mag = bedienen.has(x.id);
+  // Minstens zo lang per dag, uiterlijk om (besluit 267): twee velden, elk met zijn eigen naam.
+  const min = minimum[x.id] ?? null;
+  const duren = [30, 60, 120, 180, 240, 360, 480];
+  const keuze = `<option value="">${esc(t('regeling.stekkerMinimumGeen'))}</option>${duren.map((m) => `<option value="${m}"${min?.minuten === m ? ' selected' : ''}>${esc(m < 60 ? t('regeling.minuten', { n: m }) : t(m === 60 ? 'regeling.uur1' : 'regeling.uren', { n: m / 60 }))}</option>`).join('')}`;
+  const minRij = aan
+    ? `<div class="regelrij" style="padding-left: 22px; flex-wrap: wrap; gap: 8px 12px"><label class="veldnaam" style="margin: 0">${esc(t('regeling.stekkerMinimum'))}<select class="invoer" data-minimum="${esc(x.id)}" aria-label="${esc(t('regeling.stekkerMinimumVan', { naam: x.naam }))}">${keuze}</select></label>${min ? `<label class="veldnaam" style="margin: 0">${esc(t('regeling.stekkerUiterlijk'))}<input class="invoer" type="time" step="900" data-uiterlijk="${esc(x.id)}" value="${esc(min.klok)}" aria-label="${esc(t('regeling.stekkerUiterlijkVan', { naam: x.naam }))}"></label>` : ''}<p class="mini" style="margin: 0; flex-basis: 100%">${esc(t(min ? 'regeling.stekkerMinimumUitleg' : 'regeling.stekkerMinimumGeenUitleg'))}</p></div>`
+    : '';
+  const bedien = `<div class="regelrij" style="padding-left: 22px"><div class="l"><b style="font-weight: 500">${esc(t('regeling.stekkerBedienen'))}</b><span>${esc(t(mag ? 'regeling.stekkerBedienenJa' : 'regeling.stekkerBedienenNee'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${mag}" aria-label="${esc(t('regeling.stekkerBedienenVan', { naam: x.naam }))}" data-bedienen="${esc(x.id)}"></button></div>`;
+  return `<div class="regelrij"><div class="l"><b><span aria-hidden="true" style="display: inline-flex; vertical-align: -3px">${iconen.svg('stekker', { grootte: 16 })}</span> ${esc(x.naam)}</b><span>${esc(t(aan ? 'regeling.stekkerZon' : 'regeling.stekkerNiet'))}</span>${veld}</div><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('regeling.naamOpZon', { naam: x.naam }))}" data-opzon="${esc(x.id)}"></button></div>${minRij}${bedien}`;
+}
+
 function opZonVorm() {
   if (!aInfo) return `<p class="klein">${esc(t('algemeen.laden'))}…</p>`;
   const vast = new Set(aInfo.configuratie.apparaten.map((x) => x.id));
   const rijen = [];
   for (const x of aInfo.configuratie.apparaten) rijen.push(opZonRij(x.naam, !opZonUit.includes(x.id), `data-opzon-vast="${esc(x.id)}"`));
-  for (const x of aInfo.gevonden.apparaten) if (!vast.has(x.id)) rijen.push(opZonRij(x.naam, opZon[x.id] === true, `data-opzon="${esc(x.id)}"`));
+  for (const x of aInfo.gevonden.apparaten) if (!vast.has(x.id)) rijen.push(x.soort === 'stekker' ? stekkerRij(x) : opZonRij(x.naam, opZon[x.id] === true, `data-opzon="${esc(x.id)}"`));
   const nu = uitstelbaar().map((x) => `<div class="regelrij"><div class="l"><b>${esc(x.naam)}</b><span>${esc(x.stand)}</span></div></div>`).join('');
   return `<h2 class="kop-2">${esc(t('instellingen.opZon'))}</h2>
     <p class="klein" style="margin: 0">${esc(t('regeling.opZonUitleg'))}</p>
@@ -133,15 +164,49 @@ function tekenNu() {
 /* ------------------------------------------------------------ bewaren */
 
 document.addEventListener('click', (e) => {
-  const knop = e.target.closest('[data-opzon], [data-opzon-vast]');
+  const knop = e.target.closest('[data-opzon], [data-opzon-vast], [data-bedienen]');
   if (!knop || !aInfo) return;
   const aan = knop.getAttribute('aria-checked') !== 'true';
-  if (knop.dataset.opzon) opZon[knop.dataset.opzon] = aan;
+  if (knop.dataset.bedienen) {
+    bedienen = new Set(bedienen);
+    if (aan) bedienen.add(knop.dataset.bedienen);
+    else bedienen.delete(knop.dataset.bedienen);
+  } else if (knop.dataset.opzon) opZon[knop.dataset.opzon] = aan;
   else {
     const id = knop.dataset.opzonVast;
     opZonUit = aan ? opZonUit.filter((x) => x !== id) : [...new Set([...opZonUit, id])];
   }
   teken();
+  bewaar();
+});
+
+// Het vermogen van een stekker zonder eigen meter (besluit 264): bewaard als je het veld verlaat.
+document.addEventListener('change', (e) => {
+  const veld = e.target.closest?.('[data-vermogen]');
+  if (!veld || !aInfo) return;
+  const w = Math.round(Number(veld.value));
+  vermogen = { ...vermogen, [veld.dataset.vermogen]: veld.value === '' ? null : Math.min(3680, Math.max(50, w)) };
+  bewaar();
+});
+
+// Het minimum per dag en uiterlijk om (besluit 267): bewaard zodra je kiest.
+document.addEventListener('change', (e) => {
+  const keuze = e.target.closest?.('[data-minimum]');
+  const klok = e.target.closest?.('[data-uiterlijk]');
+  if ((!keuze && !klok) || !aInfo) return;
+  if (keuze) {
+    const id = keuze.dataset.minimum;
+    minimum = { ...minimum, [id]: keuze.value === '' ? null : { minuten: Number(keuze.value), klok: minimum[id]?.klok ?? '22:00' } };
+  } else {
+    const id = klok.dataset.uiterlijk;
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(klok.value) || !minimum[id]) return;
+    minimum = { ...minimum, [id]: { ...minimum[id], klok: klok.value } };
+  }
+  teken();
+  bewaar();
+});
+
+function bewaar() {
   // De aansluiting bewaart alles samen: de rest zoals het was, ook hoe de panelen liggen.
   const x = aInfo.antwoorden ?? {};
   const body = {
@@ -155,6 +220,10 @@ document.addEventListener('click', (e) => {
     ...(x.elders ? { elders: x.elders } : {}),
     opZon: Object.fromEntries(Object.entries(opZon).filter(([, v]) => typeof v === 'boolean')),
     opZonUit,
+    vermogen,
+    // Per stekker ja of nee (besluit 265): alleen de stekkers die er nu zijn.
+    bedienen: Object.fromEntries((aInfo.gevonden?.apparaten ?? []).filter((x) => x.soort === 'stekker').map((x) => [x.id, bedienen.has(x.id)])),
+    minimum: Object.fromEntries((aInfo.gevonden?.apparaten ?? []).filter((x) => x.soort === 'stekker').map((x) => [x.id, minimum[x.id] ?? null])),
   };
   groep.bewaarStraks(async () => {
     const uit = await groep.stuur('api/aansluiting', body);
@@ -164,7 +233,7 @@ document.addEventListener('click', (e) => {
     }
     return uit;
   });
-});
+}
 
 /* ------------------------------------------------------------ starten */
 

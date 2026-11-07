@@ -76,6 +76,8 @@ import { cameraMelders, camerasNu, laatsteAanUitHistorie } from './web/cameras.j
 import { FunctiesStore, aangebeld, functiesGevonden, functiesVoorstel, getoondeCameras, volledig, type Functies, type FunctiesGevonden } from './web/functies.js';
 import { KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, vindOpslag } from './web/opslag.js';
 import { Laadhand, laadMag } from './web/laadhand.js';
+import { Stekkerhand, stekkerMag, type StekkerBekend, type StekkerTot } from './web/stekkerhand.js';
+import { StekkerZon } from './web/stekkerzon.js';
 import { Laadbeurten } from './web/laadbeurten.js';
 import { laadAdvies, prijzenVooruit, type LaadAdvies } from './web/laadadvies.js';
 import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhases, findPowers, withConnection, type Applied, type ConnectionAnswers } from './web/aansluiting.js';
@@ -83,7 +85,7 @@ import { sunPosition } from './core/sun.js';
 import { hoofddakPlat, panelenVan, type DakVlak } from './web/daken.js';
 import { inNederland } from './web/bag3d.js';
 import { aanvullenUitMeter, achterblijven, meetVlakken, metMeting, opbrengstPerVlak, verdeelDag, type Achter, type MeterGroep, type VlakStand, type Verdeling } from './web/meten-vlakken.js';
-import { findHeatStores } from './web/buffers-vinden.js';
+import { findHeatStores, findPlugs, type FoundHeatStore } from './web/buffers-vinden.js';
 import { kiesLigging, meetLigging, omvormerUitType, type Meting, type PanelenAntwoord } from './web/ligging.js';
 import { alarmSensoren, vindRookmelders } from './web/rookmelders.js';
 import { eigenUpdate, updateView, type UpdateView } from './web/bijwerken.js';
@@ -482,8 +484,22 @@ const client = new HaClient({
   allowStart: (): readonly string[] => witgoed?.knoppen() ?? [],
   // Laden met de hand (besluit 262): de laadpalen die de bewoner aanzette, en wat er nog terug moet. Alleen in de add-on.
   allowLaden: () => (laadhand ? laadMag(laadBedieningenNu(), laadhand.terugzetten) : { stroom: [], schakelaars: [], knoppen: [] }),
-  allowHand: (): { readonly klimaat: readonly string[]; readonly schakelaars: readonly string[] } =>
-    klimaatAan() || (handbediening?.terugzetten.length ?? 0) > 0 ? { klimaat: [...new Set([...HAND_KLIMAAT, ...handKnoppen().map((k) => k.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.thermostaat).map((t) => t.id)])], schakelaars: [...new Set([...handSchakelaars().map((s) => s.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.modus === 'aan').map((t) => t.id)])] } : { klimaat: [], schakelaars: [] },
+  // De slimme stekkers die de bewoner toeliet (besluit 265) gaan door dezelfde deur, los van de klimaatbrug.
+  allowHand: (): { readonly klimaat: readonly string[]; readonly schakelaars: readonly string[] } => {
+    // Zolang de dienst nog opstart, bestaat `stekkerhand` nog niet: dan geen stekkers.
+    const stekkers = (() => {
+      try {
+        // En wat SunArc op zon aanzette (besluit 267): dat moet ook weer uit kunnen.
+        return inHuisMetDeuren ? [...new Set([...stekkerMag(stekkersBekend(), stekkerhand.terugzetten), ...stekkerZon.eigen])] : [];
+      } catch {
+        return [];
+      }
+    })();
+    const klimaat = klimaatAan() || (handbediening?.terugzetten.length ?? 0) > 0
+      ? { klimaat: [...new Set([...HAND_KLIMAAT, ...handKnoppen().map((k) => k.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.thermostaat).map((t) => t.id)])], schakelaars: [...handSchakelaars().map((s) => s.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.modus === 'aan').map((t) => t.id)] }
+      : { klimaat: [], schakelaars: [] };
+    return { klimaat: klimaat.klimaat, schakelaars: [...new Set([...klimaat.schakelaars, ...stekkers])] };
+  },
 });
 
 // De twee verwijzen naar elkaar: de runner duwt besluiten naar de weergave, de
@@ -669,6 +685,48 @@ const laadhand: Laadhand | null = inHuisMetDeuren
       map: logDir !== '' ? logDir : null,
     })
   : null;
+/*
+ * Een slimme stekker met de hand (besluit 265): aan of uit met een eind,
+ * alleen de stekkers die de bewoner toeliet. Schakelen alleen in de add-on;
+ * elders kijkt het blad mee.
+ */
+function stekkersBekend(): StekkerBekend[] {
+  const mag = new Set((connectionStore?.current?.buffers ?? []).filter((b) => b.bedienen === true).map((b) => b.id));
+  return vindBuffers()
+    .filter((b) => b.soort === 'stekker')
+    .map((b) => ({ id: b.id, naam: b.naam, actuator: b.actuator, ...(b.power ? { power: b.power } : {}), mag: mag.has(b.id) }));
+}
+const stekkerhand = new Stekkerhand({
+  state: (id) => allStates.get(id),
+  schakel: (id, aan): Promise<void> => client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: id }),
+  stekkers: stekkersBekend,
+  tijdzone: () => siteConfig?.timezone ?? 'Europe/Amsterdam',
+  map: inHuisMetDeuren && logDir !== '' ? logDir : null,
+});
+/*
+ * Een stekker op zon, echt geschakeld (besluit 267): wat de regeling zegt, zet
+ * SunArc door, alleen bij een stekker die op zon staat en die de bewoner
+ * toeliet, en alleen in de add-on.
+ */
+const stekkerZon = new StekkerZon({
+  state: (id) => allStates.get(id),
+  schakel: (id, aan): Promise<void> => client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: id }),
+  stekkers: stekkersBekend,
+  opZon: () => new Set((siteConfig?.heatStores ?? []).filter((h) => h.kind === 'stekker').map((h) => h.id)),
+  metDeHand: () => new Set(stekkerhand.terugzetten.map((t) => t.id)),
+  aan: () => inHuisMetDeuren,
+  tijdzone: () => siteConfig?.timezone ?? 'Europe/Amsterdam',
+  map: inHuisMetDeuren && logDir !== '' ? logDir : null,
+  write: (r) => console.log(r),
+});
+if (inHuisMetDeuren) {
+  setInterval(() => {
+    stekkerhand.ronde().then(
+      (gedaan) => gedaan.forEach((g) => console.log(`[stekker met de hand] ${g}`)),
+      (e: unknown) => console.warn(`[stekker met de hand] terugzetten lukte niet: ${(e as Error).message}`),
+    );
+  }, 60_000).unref();
+}
 if (laadhand) {
   setInterval(() => {
     laadhand.ronde().then(
@@ -677,6 +735,18 @@ if (laadhand) {
     );
   }, 60_000).unref();
 }
+/**
+ * De boiler en de jacuzzi (besluit 186) en de slimme stekkers (besluit 264),
+ * zoals ze nu in Home Assistant staan. Een schakelaar die de regeling al
+ * bedient, is geen losse stekker.
+ */
+function vindBuffers(): FoundHeatStore[] {
+  if (!houseRegisters) return [];
+  const buffers = findHeatStores(allStates, houseRegisters.entities, houseRegisters.devices);
+  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...buffers.map((b) => b.actuator)]);
+  return [...buffers, ...findPlugs(allStates, houseRegisters.entities, houseRegisters.devices, bekend)];
+}
+
 /** De radiatorknoppen buiten de regeling (besluit 126), met hun kamer: die zet de hand direct (besluit 235). */
 function handKnoppen(): { id: string; naam: string; kamer: string }[] {
   const regeling = new Set((siteConfig?.actuators ?? []).map((a) => a.ref.id));
@@ -936,6 +1006,11 @@ const runner: ShadowRunner | null =
                 void bufferStore?.observe(snapshot.explanation.heatStores);
                 // Wat de regeling zou starten, start SunArc nu echt (besluit 238).
                 void witgoed?.opBesluit(snapshot).catch(() => []);
+                // En een stekker op zon (besluit 267).
+                void stekkerZon.opBesluit(snapshot.explanation.heatStores).then(
+                  (gedaan) => gedaan.forEach((g) => console.log(`[stekker op zon] ${g}`)),
+                  (e: unknown) => console.warn(`[stekker op zon] lukte niet: ${(e as Error).message}`),
+                );
                 web?.publish(snapshot);
                 // De stand van de kamers in het huis hangt aan het besluit.
                 web?.huisVeranderd(false);
@@ -1277,6 +1352,16 @@ function autoBel(timeZone: string): Pick<Parameters<typeof meldingenBron>[0], 'a
     handKlaar: (laadhand?.klaar ?? []).map((k) => ({ ...k, naam: autos.find((a) => a.id === k.auto)?.naam ?? k.auto })),
   };
 }
+/** Wat de bel van de slimme stekkers weet (besluit 264); null zolang de registers er niet zijn. */
+function stekkerBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBron>[0]['stekkers']> | null {
+  if (!houseRegisters) return null;
+  const inRegeling = new Set((cfg.heatStores ?? []).map((h) => h.actuator.id));
+  const gekozen = new Set((connectionStore?.current?.buffers ?? []).filter((b) => b.opZon).map((b) => b.actuator));
+  const meters = energyStore?.current ? new Set(energyStore.current.apparaten.map((a) => a.id)) : null;
+  return vindBuffers()
+    .filter((b) => b.soort === 'stekker')
+    .map((b) => ({ id: b.id, naam: b.naam, opZon: inRegeling.has(b.actuator) || gekozen.has(b.actuator), meter: b.energy ?? null, meterErin: meters == null || (b.energy != null && meters.has(b.energy)) }));
+}
 function meldingenRonde(): void {
   const cfg = siteConfig;
   const h = cfg ? houseReport() : null;
@@ -1301,6 +1386,8 @@ function meldingenRonde(): void {
     sluip: sluipVoorBel(sluipverbruik.laatste(), Date.now(), cfg.timezone),
     // De auto (besluit 263): vol, een fout, kabel vergeten, en laden met de hand dat klaar is.
     ...autoBel(cfg.timezone),
+    // De slimme stekkers (besluit 264): gevonden, en zijn meter bij Energie.
+    stekkers: stekkerBel(cfg),
   });
   if (bron == null) return;
   meldingen.bij(bron);
@@ -1457,6 +1544,11 @@ async function voerGeplandUit(h: Herinnering): Promise<void> {
         }
       : null,
     witgoed: witgoed ? (id) => witgoed!.nuStarten(id) : null,
+    // Een slimme stekker op een vaste tijd (besluit 266): dezelfde deur als met de hand (265).
+    stekker: inHuisMetDeuren ? async (id, aan, tot) => {
+      const r = await stekkerhand.zet(id, aan, tot);
+      return r.ok ? { ok: true } : { ok: false, reden: r.reden };
+    } : null,
     tz: siteConfig?.timezone ?? 'Europe/Amsterdam',
   };
   for (const s of h.opdracht?.stappen ?? []) {
@@ -1969,7 +2061,7 @@ async function klaarPunten(lang?: Lang): Promise<KlaarPunt[]> {
     netMeter: Number.isFinite(netWaarde),
     zon: { heeft: baseConfig?.solarProduction != null && Number.isFinite(Number(allStates.get(baseConfig.solarProduction.id)?.state)), intervalS: solarPace.intervalS },
     energieDashboard: (prefs?.energy_sources ?? []).some((b) => b.type === 'grid'),
-    apparatenOpZon: houseRegisters ? findAppliances(allStates, houseRegisters.entities, houseRegisters.devices).length + findHeatStores(allStates, houseRegisters.entities, houseRegisters.devices).length : 0,
+    apparatenOpZon: houseRegisters ? findAppliances(allStates, houseRegisters.entities, houseRegisters.devices).length + vindBuffers().length : 0,
     cameras: new Set((gevonden?.cameras ?? []).map((c) => c.naam)).size,
     deurbel: (gevonden?.melders ?? []).length > 0,
     rookmelders: houseRegisters ? vindRookmelders(houseRegisters.entities, houseRegisters.devices, allStates).length : 0,
@@ -2229,6 +2321,16 @@ if (webPort != null) {
           },
         }
       : {}),
+    // Een slimme stekker met de hand (besluit 265): de stand overal, schakelen alleen in de add-on.
+    stekkers: {
+      standen: async () =>
+        (await stekkerhand.standen(inHuisMetDeuren)).map((s) => {
+          const gehad = bufferStore?.aanGehad(s.id) ?? null;
+          const min = (siteConfig?.heatStores ?? []).find((h) => h.id === s.id)?.minimum;
+          return { ...s, zon: stekkerZon.stand(s.id), ...(min ? { minimum: { minuten: min.minutes, klok: min.by } } : {}), ...(gehad != null ? { gehadMin: gehad } : {}) };
+        }),
+      ...(inHuisMetDeuren ? { zet: (id: string, aan: boolean, tot: StekkerTot) => stekkerhand.zet(id, aan, tot), terug: (id: string) => stekkerhand.terugNu(id) } : {}),
+    },
     dakenOpbrengst,
     sluipverbruik,
     house: houseReport,
@@ -2492,8 +2594,8 @@ function connectionDoor(store: ConnectionStore, base: NonNullable<typeof baseCon
   const found = () => ({
     fasen: findPhases(allStates.values()),
     apparaten: houseRegisters ? findAppliances(allStates, houseRegisters.entities, houseRegisters.devices) : [],
-    // De boiler en de jacuzzi (besluit 186).
-    buffers: houseRegisters ? findHeatStores(allStates, houseRegisters.entities, houseRegisters.devices) : [],
+    // De boiler en de jacuzzi (besluit 186), en de slimme stekkers (besluit 264).
+    buffers: vindBuffers(),
     // Hoe de panelen liggen (besluit 157): om "klopt" te kunnen bewaren.
     meting: metingNu(),
     omvormerGevonden: omvormerGevonden(),

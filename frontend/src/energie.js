@@ -249,7 +249,9 @@ function meterKeuze(label, plek, rol, soort, leegTekst = t('energie.meterErbij')
   if (!vrij.length) return '';
   const past = vrij.filter((m) => m.rol === rol);
   const rest = vrij.filter((m) => m.rol !== rol);
-  const opt = (m) => `<option value="${esc(m.id)}">${esc(m.naam)}</option>`;
+  // Dezelfde naam twee keer, zoals de stand en de maand van een stekker (besluit 264): dan het id erachter.
+  const dubbel = new Set(vrij.map((m) => m.naam).filter((n, i, alle) => alle.indexOf(n) !== i));
+  const opt = (m) => `<option value="${esc(m.id)}">${esc(dubbel.has(m.naam) ? `${m.naam} (${m.id.replace(/^sensor\./, '')})` : m.naam)}</option>`;
   const lijst = past.length && rest.length ? `<optgroup label="${esc(t('energie.pastHierbij'))}">${past.map(opt).join('')}</optgroup><optgroup label="${esc(t('energie.andereMeters'))}">${rest.map(opt).join('')}</optgroup>` : vrij.map(opt).join('');
   return `<select class="invoer" aria-label="${esc(label)}" data-meer="${plek}"><option value="">${esc(leegTekst)}</option>${lijst}</select>`;
 }

@@ -83,7 +83,7 @@ export function meterRole(id: string, naam: string, soort: 'energy' | 'volume', 
   const text = `${id} ${naam}`.toLowerCase();
   const has = (re: RegExp) => re.test(text);
   // Tellers die opnieuw beginnen, en berekende of geschatte waarden.
-  if (platform === 'utility_meter' || platform === 'forecast_solar' || has(/vandaag|deze maand|dit jaar|today|this[ _]month|this[ _]year|_dag\b|_maand\b|_jaar\b|daily|monthly|yearly|bespaard|saved|verschil|gratis|free|gecombineerd|combined|forecast|prognose|remaining/)) {
+  if (platform === 'utility_meter' || platform === 'forecast_solar' || has(/vandaag|gisteren|deze maand|dit jaar|today|yesterday|this[ _]month|this[ _]year|last[ _](week|month|year)|_dag\b|_maand\b|_jaar\b|_week\b|_month\b|_year\b|daily|weekly|monthly|yearly|bespaard|saved|verschil|gratis|free|gecombineerd|combined|forecast|prognose|remaining/)) {
     return 'periode';
   }
   const export_ = has(/export|teruglever|returned|production_tarif|levering_aan|to_grid/);

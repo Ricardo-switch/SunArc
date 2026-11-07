@@ -24,7 +24,7 @@ import type { HaEntityState } from '../adapters/homeassistant/client.js';
 import type { HaDevice, HaRegistryEntity } from '../adapters/homeassistant/discovery.js';
 import type { SiteConfig } from '../core/model.js';
 import type { Lang } from './assistant.js';
-import { heatStoreConfig, type FoundHeatStore } from './buffers-vinden.js';
+import { PLUG_MAX_W, heatStoreConfig, type FoundHeatStore } from './buffers-vinden.js';
 import { tekening, type Tekening } from './daken-tekening.js';
 import { metMeting, nuPerVlak, type Achter, type VlakStand, type Verdeling } from './meten-vlakken.js';
 import type { SunPosition } from '../core/sun.js';
@@ -123,8 +123,14 @@ export interface ConnectionAnswers {
   /** De stroommeters zoals bij het bewaren gevonden, zodat de regeling ze bij het starten kent. */
   readonly fasen: readonly FoundPhase[];
   readonly apparaten: readonly (FoundAppliance & { readonly opZon: boolean })[];
-  /** De boiler en de jacuzzi (besluit 186): gevonden, en of ze op zon mogen. */
-  readonly buffers?: readonly (FoundHeatStore & { readonly opZon: boolean })[];
+  /**
+   * De boiler en de jacuzzi (besluit 186) en de slimme stekkers (besluit 264):
+   * gevonden, en of ze op zon mogen. `opgegevenW` is wat de bewoner opgaf bij
+   * een stekker zonder eigen meter; `bedienen` of SunArc hem mag schakelen
+   * (besluit 265), weg is nee; `minimum` hoe lang hij per dag minstens aan
+   * moet, en uiterlijk wanneer (besluit 267), weg is alleen op zon.
+   */
+  readonly buffers?: readonly (FoundHeatStore & { readonly opZon: boolean; readonly opgegevenW?: number; readonly bedienen?: boolean; readonly minimum?: StekkerMinimum })[];
   /**
    * Apparaten uit de configuratie die de bewoner uitzette (besluit 167): die
    * starten niet meer op zon. Eerst stond daar alleen "Aan".
@@ -471,7 +477,10 @@ export function withConnection(raw: Record<string, unknown>, answers: Connection
     else delete out['heatStores'];
   }
   const bekend = new Set(buffers.flatMap((h) => [String(h['id']), typeof h['actuator'] === 'string' ? h['actuator'] : String((h['actuator'] as { id?: unknown } | undefined)?.id)]));
-  const nieuw = (answers.buffers ?? []).filter((b) => b.opZon && !bekend.has(b.id) && !bekend.has(b.actuator)).map(heatStoreConfig);
+  const nieuw = (answers.buffers ?? []).filter((b) => b.opZon && !bekend.has(b.id) && !bekend.has(b.actuator)).map((b): Record<string, unknown> => ({
+    ...heatStoreConfig(b.opgegevenW != null ? { ...b, estimatedW: b.opgegevenW } : b),
+    ...(b.soort === 'stekker' && b.minimum ? { minimum: { minutes: b.minimum.minuten, by: b.minimum.klok } } : {}),
+  }));
   if (nieuw.length > 0) {
     out['heatStores'] = [...blijven, ...nieuw];
     for (const b of nieuw) toegevoegd.push(`${String(b['name'])} op zon`);
@@ -480,6 +489,15 @@ export function withConnection(raw: Record<string, unknown>, answers: Connection
 }
 
 /* ------------------------------------------------------------ bewaren */
+
+/** Hoe lang een stekker per dag minstens aan moet, en uiterlijk wanneer (besluit 267). */
+export interface StekkerMinimum {
+  readonly minuten: number;
+  readonly klok: string;
+}
+
+const isMinimum = (v: unknown): v is StekkerMinimum =>
+  typeof v === 'object' && v != null && Number.isInteger((v as StekkerMinimum).minuten) && (v as StekkerMinimum).minuten >= 15 && (v as StekkerMinimum).minuten <= 720 && (v as StekkerMinimum).minuten % 15 === 0 && typeof (v as StekkerMinimum).klok === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test((v as StekkerMinimum).klok);
 
 export type ConnectionCheck = { ok: true; answers: ConnectionAnswers } | { ok: false; reden: string };
 
@@ -550,6 +568,34 @@ export function validateConnection(
     if (typeof v !== 'boolean') return { ok: false, reden: `"op zon" is ja of nee (${id})` };
     if (!found.apparaten.some((a) => a.id === id) && !(found.buffers ?? []).some((b) => b.id === id)) return { ok: false, reden: `onbekend apparaat: ${id}` };
   }
+  // Het vermogen van een stekker zonder eigen meter (besluit 264): wat de bewoner opgaf, of null.
+  const vermogenRaw = (typeof b['vermogen'] === 'object' && b['vermogen'] != null && !Array.isArray(b['vermogen']) ? b['vermogen'] : {}) as Record<string, unknown>;
+  for (const [id, v] of Object.entries(vermogenRaw)) {
+    if (!(found.buffers ?? []).some((x) => x.id === id && x.soort === 'stekker')) return { ok: false, reden: `geen stekker: ${id}` };
+    if (v !== null && !(Number.isInteger(v) && (v as number) >= 50 && (v as number) <= PLUG_MAX_W)) return { ok: false, reden: `het vermogen van een stekker is een heel getal van 50 tot ${PLUG_MAX_W} W` };
+  }
+  // Mag SunArc de stekker schakelen (besluit 265): ja of nee; wat de pagina niet stuurt, blijft.
+  const bedienenRaw = (typeof b['bedienen'] === 'object' && b['bedienen'] != null && !Array.isArray(b['bedienen']) ? b['bedienen'] : {}) as Record<string, unknown>;
+  for (const [id, v] of Object.entries(bedienenRaw)) {
+    if (!(found.buffers ?? []).some((x) => x.id === id && x.soort === 'stekker')) return { ok: false, reden: `geen stekker: ${id}` };
+    if (typeof v !== 'boolean') return { ok: false, reden: `bedienen is ja of nee (${id})` };
+  }
+  // Een minimum per dag (besluit 267): minuten en een klok, of null; wat de pagina niet stuurt, blijft.
+  const minimumRaw = (typeof b['minimum'] === 'object' && b['minimum'] != null && !Array.isArray(b['minimum']) ? b['minimum'] : {}) as Record<string, unknown>;
+  for (const [id, v] of Object.entries(minimumRaw)) {
+    if (!(found.buffers ?? []).some((x) => x.id === id && x.soort === 'stekker')) return { ok: false, reden: `geen stekker: ${id}` };
+    if (v !== null && !isMinimum(v)) return { ok: false, reden: 'een minimum is een kwartier tot twaalf uur (in minuten, per kwartier) en een tijd als "22:00"' };
+  }
+  const minimum = (id: string): StekkerMinimum | undefined => {
+    const v = id in minimumRaw ? minimumRaw[id] : vorige?.buffers?.find((x) => x.id === id)?.minimum;
+    return isMinimum(v) ? { minuten: v.minuten, klok: v.klok } : undefined;
+  };
+  const bedienen = (id: string): boolean => (id in bedienenRaw ? bedienenRaw[id] === true : vorige?.buffers?.find((x) => x.id === id)?.bedienen === true);
+  const opgegeven = (id: string): number | undefined => {
+    const v = id in vermogenRaw ? vermogenRaw[id] : vorige?.buffers?.find((x) => x.id === id)?.opgegevenW;
+    return typeof v === 'number' ? v : undefined;
+  };
+
   // Apparaten uit de configuratie die uit moeten (besluit 167): een lijst namen.
   const uitRaw = b['opZonUit'] ?? [];
   if (!Array.isArray(uitRaw) || uitRaw.length > 20 || uitRaw.some((x) => typeof x !== 'string' || !/^[a-z0-9_-]{1,40}$/.test(x))) return { ok: false, reden: 'opZonUit is een lijst apparaten' };
@@ -609,7 +655,16 @@ export function validateConnection(
       ...(daken.daken ? { daken: daken.daken } : {}),
       fasen: [...found.fasen],
       apparaten: found.apparaten.map((a) => ({ ...a, opZon: opZonRaw[a.id] === true })),
-      ...((found.buffers ?? []).length ? { buffers: found.buffers!.map((b) => ({ ...b, opZon: opZonRaw[b.id] === true })) } : {}),
+      ...((found.buffers ?? []).length
+        ? {
+            buffers: found.buffers!.map((b) => {
+              const w = b.soort === 'stekker' ? opgegeven(b.id) : undefined;
+              const mag = b.soort === 'stekker' && bedienen(b.id);
+              const min = b.soort === 'stekker' ? minimum(b.id) : undefined;
+              return { ...b, opZon: opZonRaw[b.id] === true, ...(w != null ? { opgegevenW: w } : {}), ...(mag ? { bedienen: true } : {}), ...(min ? { minimum: min } : {}) };
+            }),
+          }
+        : {}),
       ...(uitRaw.length ? { opZonUit: [...new Set(uitRaw as string[])] } : {}),
       ...(netmeter ? { netmeter } : {}),
       ...(omvRaw.length ? { omvormers: [...(omvRaw as string[])] } : {}),
@@ -686,12 +741,19 @@ function readAnswers(raw: unknown): ConnectionAnswers | null {
     : [];
   // De boiler en de jacuzzi (besluit 186): alleen wat compleet is.
   const buffers = Array.isArray(r['buffers'])
-    ? (r['buffers'] as (FoundHeatStore & { opZon: boolean })[]).filter(
-        (b) => typeof b?.id === 'string' && typeof b.naam === 'string' && typeof b.actuator === 'string' && (b.soort === 'boiler' || b.soort === 'jacuzzi') && ['switch', 'setpoint', 'diverter'].includes(b.control) && typeof b.estimatedW === 'number',
+    ? (r['buffers'] as (FoundHeatStore & { opZon: boolean; opgegevenW?: number; bedienen?: boolean; minimum?: StekkerMinimum })[]).filter(
+        (b) => typeof b?.id === 'string' && typeof b.naam === 'string' && typeof b.actuator === 'string' && (b.soort === 'boiler' || b.soort === 'jacuzzi' || b.soort === 'stekker') && ['switch', 'setpoint', 'diverter'].includes(b.control) && typeof b.estimatedW === 'number',
       )
     : [];
   const checked = validateConnection(
-    { ...r, opZon: Object.fromEntries([...apparaten, ...buffers].map((a) => [a.id, a.opZon === true])), opZonUit: Array.isArray(r['opZonUit']) ? r['opZonUit'] : [] },
+    {
+      ...r,
+      opZon: Object.fromEntries([...apparaten, ...buffers].map((a) => [a.id, a.opZon === true])),
+      opZonUit: Array.isArray(r['opZonUit']) ? r['opZonUit'] : [],
+      vermogen: Object.fromEntries(buffers.flatMap((b) => (b.soort === 'stekker' && typeof b.opgegevenW === 'number' ? [[b.id, b.opgegevenW]] : []))),
+      bedienen: Object.fromEntries(buffers.flatMap((b) => (b.soort === 'stekker' && b.bedienen === true ? [[b.id, true]] : []))),
+      minimum: Object.fromEntries(buffers.flatMap((b) => (b.soort === 'stekker' && isMinimum(b.minimum) ? [[b.id, b.minimum]] : []))),
+    },
     { fasen, apparaten, buffers },
   );
   return checked.ok ? checked.answers : null;
@@ -753,6 +815,12 @@ export interface ConnectionView {
     readonly elders: Elders;
     readonly opZon: Readonly<Record<string, boolean>>;
     readonly opZonUit: readonly string[];
+    /** Wat de bewoner opgaf bij een stekker zonder eigen meter (besluit 264), in W. */
+    readonly vermogen: Readonly<Record<string, number>>;
+    /** De stekkers die SunArc mag schakelen (besluit 265). */
+    readonly bedienen: readonly string[];
+    /** Het minimum per dag van een stekker (besluit 267). */
+    readonly minimum: Readonly<Record<string, StekkerMinimum>>;
     /** De netmeter en de omvormers die de bewoner koos (testerronde, november 2026). */
     readonly netmeter: Netmeter | null;
     readonly omvormers: readonly string[];
@@ -776,7 +844,7 @@ export interface ConnectionView {
   readonly inGebruik: { readonly netmeter: Netmeter | null; readonly omvormers: readonly string[] };
   /** Hoe de panelen liggen (besluit 157): wat geldt, het voorstel uit de meting, en de dag erbij. */
   readonly ligging: LiggingView;
-  readonly gevonden: { readonly fasen: readonly FoundPhase['id'][]; readonly apparaten: readonly { id: string; naam: string; soort: ApplianceKind | FoundHeatStore['soort'] }[] };
+  readonly gevonden: { readonly fasen: readonly FoundPhase['id'][]; readonly apparaten: readonly { id: string; naam: string; soort: ApplianceKind | FoundHeatStore['soort']; meet?: boolean }[] };
   /** Wat de configuratie van het huis al vastlegt; dat gaat voor. */
   readonly configuratie: {
     readonly zekering: Fuse | null;
@@ -918,7 +986,7 @@ export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): Connect
   const planes = c.base.geometry?.solarPlanes ?? [];
   const brand = c.solar ? solarBrand(c.solar.platform, lang) : null;
   const relevant = (a: ConnectionAnswers | null) =>
-    JSON.stringify(a ? [a.zekering, a.fasen, a.apparaten.filter((x) => x.opZon).map((x) => x.id), (a.buffers ?? []).filter((x) => x.opZon).map((x) => x.id), [...(a.opZonUit ?? [])].sort(), a.netmeter ?? null, a.omvormers ?? []] : null);
+    JSON.stringify(a ? [a.zekering, a.fasen, a.apparaten.filter((x) => x.opZon).map((x) => x.id), (a.buffers ?? []).filter((x) => x.opZon).map((x) => `${x.id}:${x.opgegevenW ?? ''}:${x.minimum ? `${x.minimum.minuten}@${x.minimum.klok}` : ''}`), [...(a.opZonUit ?? [])].sort(), a.netmeter ?? null, a.omvormers ?? []] : null);
   return {
     antwoorden: c.answers
       ? {
@@ -931,6 +999,9 @@ export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): Connect
           elders: c.answers.elders ?? {},
           opZon: Object.fromEntries([...c.answers.apparaten, ...(c.answers.buffers ?? [])].map((a) => [a.id, a.opZon])),
           opZonUit: c.answers.opZonUit ?? [],
+          vermogen: Object.fromEntries((c.answers.buffers ?? []).flatMap((b) => (b.opgegevenW != null ? [[b.id, b.opgegevenW]] : []))),
+          bedienen: (c.answers.buffers ?? []).filter((b) => b.bedienen === true).map((b) => b.id),
+          minimum: Object.fromEntries((c.answers.buffers ?? []).flatMap((b) => (b.minimum ? [[b.id, b.minimum]] : []))),
           netmeter: c.answers.netmeter ?? null,
           omvormers: c.answers.omvormers ?? [],
           daken: c.answers.daken ?? null,
@@ -944,7 +1015,8 @@ export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): Connect
     daken: dakenView(liggingIn, c),
     gevonden: {
       fasen: c.found.fasen.map((f) => f.id),
-      apparaten: [...c.found.apparaten.map(({ id, naam, soort }) => ({ id, naam, soort })), ...(c.found.buffers ?? []).map(({ id, naam, soort }) => ({ id, naam, soort }))],
+      // Bij een stekker of hij zijn vermogen zelf meet (besluit 264): anders vraagt de pagina het.
+      apparaten: [...c.found.apparaten.map(({ id, naam, soort }) => ({ id, naam, soort })), ...(c.found.buffers ?? []).map(({ id, naam, soort, power }) => ({ id, naam, soort, ...(soort === 'stekker' ? { meet: power != null } : {}) }))],
     },
     configuratie: {
       zekering: grid && grid.phases.length > 0 ? { fasen: grid.phases.length === 3 ? 3 : 1, ampere: grid.phases[0]!.maxA } : null,

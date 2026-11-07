@@ -16,8 +16,8 @@
  * telefoon alles onder elkaar. Zeg het kan ook: de dienst leest er een voorstel
  * uit (niets bewaard) en de zin vult zich.
  *
- * Wat kan: licht, scènes, screens, en klimaat met de hand en witgoed als die er
- * zijn. Bewaren gaat naar api/te-doen met actie plan; de dienst rekent het
+ * Wat kan: licht, screens, en klimaat met de hand, slimme stekkers en witgoed
+ * als die er zijn. Een scène kies je bij Hoe, onder de lampen (besluit 268). Bewaren gaat naar api/te-doen met actie plan; de dienst rekent het
  * eerste moment uit. Te doen en Vast en gepland openen het met
  * `plannen.open({ klaar, zeg })`; de boog en de namen van hoe vaak en de zon
  * gebruikt Vast en gepland ook.
@@ -31,7 +31,9 @@
   const en = () => global.taal.code === 'en';
   const STUKKEN = ['wat', 'wanneer', 'hoe', 'klaar'];
   /** De volgorde van de soorten, in een kamer en in de zin. */
-  const SOORTEN = ['licht', 'scherm', 'scene', 'klimaat', 'stekker', 'witgoed'];
+  const SOORTEN = ['licht', 'scherm', 'scene', 'klimaat', 'stekker', 'plug', 'witgoed'];
+  /** Een slimme stekker (besluit 266): zo lang aan of uit, in minuten. */
+  const PLUG_DUUR = { m30: 30, uur1: 60, uur2: 120, uur4: 240 };
   /** Zoveel stappen neemt de dienst in één taak (MAX_STAPPEN in routes/tedoen.ts). */
   const MAX_STAPPEN = 12;
   const IK = {
@@ -40,6 +42,7 @@
     scherm: iconen.binnen('screen'),
     klimaat: iconen.binnen('klimaat'),
     stekker: iconen.binnen('stekker'),
+    plug: iconen.binnen('stekker'),
     witgoed: iconen.binnen('witgoed'),
     mic: iconen.binnen('mic'),
   };
@@ -158,7 +161,7 @@
     st = {
       stuk: 'wat',
       kies: [],
-      hoe: { licht: { aan: true }, scherm: { actie: 'dicht' }, klimaat: null, stekker: { tot: 'uur1' } },
+      hoe: { licht: { aan: true }, scherm: { actie: 'dicht' }, klimaat: null, stekker: { tot: 'uur1' }, plug: { aan: true, tot: 'uur1' } },
       los: {},
       losOpen: [],
       wanneerGekozen: false,
@@ -184,9 +187,9 @@
   }
 
   async function laadBron() {
-    const [h, k, w, z] = await Promise.allSettled([haal('api/huis'), haal('api/hand'), haal('api/witgoed'), haal('api/zon')]);
+    const [h, k, w, z, s] = await Promise.allSettled([haal('api/huis'), haal('api/hand'), haal('api/witgoed'), haal('api/zon'), haal('api/stekker')]);
     const ok = (x) => (x.status === 'fulfilled' ? x.value : null);
-    bron = { huis: ok(h), hand: ok(k), witgoed: ok(w), zon: ok(z) };
+    bron = { huis: ok(h), hand: ok(k), witgoed: ok(w), zon: ok(z), stekker: ok(s) };
     teken();
   }
 
@@ -207,7 +210,6 @@
     const overig = { id: '_overig', naam: t('tk.overig'), items: [] };
     const kamerVan = (naam) => kamers.find((k) => naam && k.naam.toLowerCase() === String(naam).toLowerCase()) ?? overig;
     const zet = (k, item) => k.items.push({ ...item, kamer: k === overig ? '' : k.naam, kamerId: k.id, sleutel: `${item.soort}:${item.id}` });
-    const gezien = new Set();
     for (const e of bron?.huis?.etages ?? []) {
       for (const r of e.ruimtes ?? []) {
         const k = kamers.find((x) => x.id === r.id);
@@ -215,7 +217,6 @@
           if (d.soort === 'licht') zet(k, { soort: 'licht', id: d.id, naam: d.naam });
           else if (d.soort === 'screen') zet(k, { soort: 'scherm', id: d.id, naam: d.naam, half: !!d.scherm?.standKiezen });
         }
-        for (const s of r.scenes ?? []) if (!gezien.has(s.id) && gezien.add(s.id)) zet(k, { soort: 'scene', id: s.id, naam: s.naam });
       }
     }
     const h = bron?.hand;
@@ -223,6 +224,9 @@
       for (const a of h.apparaten ?? []) if ((a.modi ?? []).some((m) => !m.niet)) zet(kamerVan(a.kamer), { soort: 'klimaat', id: a.id, naam: a.naam, klimaat: a });
       for (const s of h.schakelaars ?? []) zet(kamerVan(s.kamer), { soort: 'stekker', id: s.id, naam: s.naam });
     }
+    // De slimme stekkers die SunArc mag schakelen (besluit 266), dubbel met een warmtebron hierboven niet.
+    const alStekker = new Set((h?.aan ? h.schakelaars ?? [] : []).map((s) => s.naam));
+    for (const s of bron?.stekker?.stekkers ?? []) if (s.mag && !alStekker.has(s.naam)) zet(overig, { soort: 'plug', id: s.id, naam: s.naam });
     for (const w of bron?.witgoed?.apparaten ?? []) zet(kamerVan(w.kamer), { soort: 'witgoed', id: w.id, naam: w.naam });
     for (const k of [...kamers, overig]) k.items.sort((a, b) => SOORTEN.indexOf(a.soort) - SOORTEN.indexOf(b.soort));
     const uit = etages.map((e) => ({ ...e, kamers: e.kamers.filter((k) => k.items.length) })).filter((e) => e.kamers.length);
@@ -235,6 +239,24 @@
     const alle = alleItems();
     return st.kies.map((s) => alle.find((i) => i.sleutel === s)).filter(Boolean);
   };
+  /**
+   * De scènes van de kamers met een gekozen lamp (besluit 268): die staan bij Hoe
+   * onder de lampen, niet meer los bij Wat.
+   */
+  function lichtScenes() {
+    const kamers = new Set(gekozen().filter((i) => i.soort === 'licht').map((i) => i.kamerId));
+    const uit = [];
+    const gezien = new Set();
+    for (const e of bron?.huis?.etages ?? []) for (const r of e.ruimtes ?? []) if (kamers.has(r.id)) for (const sc of r.scenes ?? []) if (!gezien.has(sc.id) && gezien.add(sc.id)) uit.push({ id: sc.id, naam: sc.naam });
+    return uit;
+  }
+
+  /** De scène die de lampen samen starten, of null: aan of uit, of los per lamp. */
+  function gekozenScene() {
+    const id = st.losOpen.includes('licht') ? null : st.hoe.licht?.scene;
+    return id ? lichtScenes().find((x) => x.id === id) ?? null : null;
+  }
+
   /** Wat "Hele kamer" kiest: de lampen en de screens. */
   const heelBaar = (i) => i.soort === 'licht' || i.soort === 'scherm';
 
@@ -264,9 +286,12 @@
     if (st.voorstel) return st.voorstel.stappen;
     const lijst = gekozen();
     const uit = [];
+    // Een scène in plaats van de lampen (besluit 268): één stap, en de lampen zelf niet.
+    const scene = gekozenScene();
+    if (scene) uit.push({ pad: 'api/scene', body: { id: scene.id } });
     // Een hele kamer met lampen die allemaal hetzelfde doen: één stap voor de kamer.
     const kamersHeel = new Set();
-    for (const e of huis()) {
+    for (const e of scene ? [] : huis()) {
       for (const k of e.kamers) {
         const lampen = k.items.filter((i) => i.soort === 'licht');
         if (lampen.length > 1 && lampen.every((l) => st.kies.includes(l.sleutel)) && new Set(lampen.map((l) => hoeVan(l).aan !== false)).size === 1 && k.id !== '_overig') {
@@ -277,11 +302,13 @@
     }
     for (const i of lijst) {
       const h = hoeVan(i);
+      if (i.soort === 'licht' && scene) continue;
       if (i.soort === 'licht' && !kamersHeel.has(i.kamerId)) uit.push({ pad: 'api/licht', body: { doel: 'lamp', id: i.id, aan: h.aan !== false } });
       else if (i.soort === 'scherm') uit.push(h.actie === 'half' ? { pad: 'api/scherm', body: { id: i.id, actie: 'stand', standPct: 50 } } : { pad: 'api/scherm', body: { id: i.id, actie: h.actie ?? 'dicht' } });
       else if (i.soort === 'scene') uit.push({ pad: 'api/scene', body: { id: i.id } });
       else if (i.soort === 'klimaat') uit.push({ pad: 'api/hand', body: { id: i.id, modus: h.modus, doelC: h.doelC, tot: h.tot ?? 'doel' } });
       else if (i.soort === 'stekker') uit.push({ pad: 'api/hand', body: { id: i.id, tot: h.tot ?? 'uur1' } });
+      else if (i.soort === 'plug') uit.push({ pad: 'api/stekker', body: { id: i.id, aan: h.aan !== false, duurMin: PLUG_DUUR[h.tot] ?? 60 } });
       else if (i.soort === 'witgoed') uit.push({ pad: 'api/witgoed', body: { id: i.id, start: true } });
     }
     return uit;
@@ -290,12 +317,13 @@
   /** De gekozen apparaten in groepjes die hetzelfde doen, in de volgorde van de soorten. */
   function groepjes() {
     const uit = [];
+    const scene = gekozenScene();
     for (const i of gekozen()) {
       const h = hoeVan(i);
-      const actie = i.soort === 'licht' || i.soort === 'stekker' ? (h.aan === false ? 'uit' : 'aan') : i.soort === 'scherm' ? (h.actie ?? 'dicht') : i.soort === 'klimaat' ? h.modus : 'start';
+      const actie = i.soort === 'licht' && scene ? 'scene' : i.soort === 'licht' || i.soort === 'stekker' || i.soort === 'plug' ? (h.aan === false ? 'uit' : 'aan') : i.soort === 'scherm' ? (h.actie ?? 'dicht') : i.soort === 'klimaat' ? h.modus : 'start';
       const sleutel = `${i.soort}|${actie}|${h.doelC ?? ''}|${h.tot ?? ''}`;
       let g = uit.find((x) => x.sleutel === sleutel);
-      if (!g) uit.push((g = { sleutel, soort: i.soort, actie, hoe: h, items: [] }));
+      if (!g) uit.push((g = { sleutel, soort: i.soort, actie, hoe: h, items: [], ...(actie === 'scene' ? { scene } : {}) }));
       g.items.push(i);
     }
     return uit.sort((a, b) => SOORTEN.indexOf(a.soort) - SOORTEN.indexOf(b.soort));
@@ -322,7 +350,9 @@
     const n = g.items.length > 1 ? 'n' : '1';
     const namen = `<span class="tk-stuk${st.stuk === 'wat' ? ' open' : ''}" data-pl-stuk="wat">${esc(opsom(g.items.map(lidwoord)))}</span>`;
     if (g.soort === 'scene' || g.soort === 'witgoed') return t(`tk.start.${n}`, { namen });
-    const duur = g.soort === 'klimaat' || g.soort === 'stekker' ? t(`tk.duur.${g.hoe.tot ?? (g.soort === 'stekker' ? 'uur1' : 'doel')}`) : '';
+    // Lampen met een scène (besluit 268): "start de scène Avond".
+    if (g.actie === 'scene') return t('tk.start.1', { namen: `<span class="tk-stuk${st.stuk === 'hoe' ? ' open' : ''}" data-pl-stuk="hoe">${esc(t('tk.scene', { naam: g.scene.naam }))}</span>` });
+    const duur = g.soort === 'klimaat' || g.soort === 'stekker' || g.soort === 'plug' ? t(`tk.duur.${g.hoe.tot ?? (g.soort === 'klimaat' ? 'doel' : 'uur1')}`) : '';
     const actie = g.soort === 'klimaat' ? t(`tk.a.${g.actie}.${n}`, { doel: graden(g.hoe.doelC) }) : t(`tk.a.${g.actie}.${n}`);
     const hoe = `<span class="tk-stuk${st.stuk === 'hoe' ? ' open' : ''}" data-pl-stuk="hoe">${esc(actie + duur)}</span>`;
     return t(`tk.gaan.${n}`, { namen, actie: hoe });
@@ -368,11 +398,13 @@
     if (st.voorstel) return st.voorstel.tekst;
     const delen = groepjes().map((g) => {
       const namen = g.items.length > 2 ? t(g.soort === 'licht' ? 'pl.lampen' : g.soort === 'scherm' ? 'pl.schermen' : 'tk.apparaten', { n: g.items.length }) : opsom(g.items.map((i) => i.naam));
+      if (g.actie === 'scene') return t('pl.wat.scene', { naam: g.scene.naam });
       if (g.soort === 'licht') return t(g.actie === 'uit' ? 'pl.wat.lichtUit' : 'pl.wat.lichtAan', { naam: namen });
       if (g.soort === 'scherm') return t(`pl.wat.${g.actie}`, { naam: namen });
       if (g.soort === 'scene') return t('pl.wat.scene', { naam: namen });
       if (g.soort === 'klimaat') return t(g.actie === 'koelen' ? 'pl.wat.koelen' : 'pl.wat.verwarmen', { naam: namen, doel: graden(g.hoe.doelC) });
       if (g.soort === 'stekker') return t('pl.wat.stekker', { naam: namen });
+      if (g.soort === 'plug') return t(g.actie === 'uit' ? 'pl.wat.plugUit' : 'pl.wat.stekker', { naam: namen });
       return t('pl.wat.witgoed', { naam: namen });
     });
     const tekst = groot(delen.map((d, i) => (i ? d.charAt(0).toLowerCase() + d.slice(1) : d)).join(', '));
@@ -431,19 +463,29 @@
   function hoeKnoppen(soort, h, sleutel, item) {
     const at = (veld, waarde) => `data-pl-hoe="${soort}:${veld}:${waarde}"${sleutel ? ` data-pl-sleutel="${esc(sleutel)}"` : ''}`;
     const b = (veld, waarde, tekst, aan) => `<button type="button" ${at(veld, waarde)} aria-pressed="${aan}">${esc(tekst)}</button>`;
-    if (soort === 'licht') return `<div class="tk-seg">${b('aan', '1', t('pl.aan'), h.aan !== false)}${b('aan', '0', t('pl.uit'), h.aan === false)}</div>`;
+    if (soort === 'licht') {
+      // Samen kan ook een scène van hun kamer (besluit 268); los per lamp alleen aan of uit.
+      const scenes = sleutel ? [] : lichtScenes();
+      const sc = sleutel ? null : gekozenScene();
+      const aanUit = `<div class="tk-seg">${b('aan', '1', t('pl.aan'), !sc && h.aan !== false)}${b('aan', '0', t('pl.uit'), !sc && h.aan === false)}</div>`;
+      if (!scenes.length) return aanUit;
+      const keuzes = scenes.map((x) => `<option value="${esc(x.id)}"${sc?.id === x.id ? ' selected' : ''}>${esc(t('tk.sceneOptie', { naam: x.naam }))}</option>`).join('');
+      return `<div class="tk-klimaat">${aanUit}<select class="tk-scene" data-pl-scene aria-label="${esc(t('tk.kiesScene'))}" data-gekozen="${!!sc}"><option value="">${esc(t('tk.ofScene'))}</option>${keuzes}</select></div>`;
+    }
     if (soort === 'scherm') {
       const half = item ? item.half : gekozen().filter((i) => i.soort === 'scherm').every((i) => i.half);
       return `<div class="tk-seg">${['dicht', ...(half ? ['half'] : []), 'open'].map((a) => b('actie', a, t(`pl.${a}`), (h.actie ?? 'dicht') === a)).join('')}</div>`;
     }
     if (soort === 'stekker') return `<div class="tk-seg">${['uur1', 'uur2', 'dagdeel'].map((x) => b('tot', x, t(`pl.tot.${x}`), (h.tot ?? 'uur1') === x)).join('')}</div>`;
+    // Een slimme stekker (besluit 266): aan of uit, en hoe lang; daarna weer zoals hij was.
+    if (soort === 'plug') return `<div class="tk-klimaat"><div class="tk-seg">${b('aan', '1', t('pl.aan'), h.aan !== false)}${b('aan', '0', t('pl.uit'), h.aan === false)}</div><div class="tk-seg">${Object.keys(PLUG_DUUR).map((x) => b('tot', x, t(`pl.tot.${x}`), (h.tot ?? 'uur1') === x)).join('')}</div></div>`;
     return '';
   }
 
   function hoeHtml() {
     const lijst = gekozen();
     const rijen = [];
-    for (const soort of ['licht', 'scherm', 'klimaat', 'stekker']) {
+    for (const soort of ['licht', 'scherm', 'klimaat', 'stekker', 'plug']) {
       const items = lijst.filter((i) => i.soort === soort);
       if (!items.length) continue;
       const namen = opsom(items.map((i) => i.naam));
@@ -709,7 +751,11 @@
         const nu = eerste ? klimaatHoe(eerste) : {};
         const m = veld === 'modus' ? eerste?.klimaat.modi.find((y) => y.modus === waarde) : null;
         st.hoe.klimaat = { ...nu, [veld]: waarde, ...(m?.doelC != null ? { doelC: m.doelC } : {}) };
-      } else st.hoe[soort] = { ...st.hoe[soort], [veld]: waarde };
+      } else {
+        st.hoe[soort] = { ...st.hoe[soort], [veld]: waarde };
+        // Aan of uit bij de lampen: dan geen scène meer.
+        if (soort === 'licht' && veld === 'aan') delete st.hoe.licht.scene;
+      }
     } else if ((x = el('[data-pl-doel]'))) {
       const eerste = gekozen().find((i) => i.soort === 'klimaat');
       if (eerste) {
@@ -724,7 +770,11 @@
         // Weer samen: wat los stond, gaat terug naar de stand van de soort.
         st.losOpen = st.losOpen.filter((s) => s !== soort);
         for (const i of gekozen()) if (i.soort === soort) delete st.los[i.sleutel];
-      } else st.losOpen = [...st.losOpen, soort];
+      } else {
+        st.losOpen = [...st.losOpen, soort];
+        // Los per lamp kent geen scène.
+        if (soort === 'licht') st.hoe.licht = { aan: st.hoe.licht?.aan !== false };
+      }
     } else if ((x = el('[data-pl-wanneer]'))) {
       const k = x.dataset.plWanneer;
       if (k === 'tijd' && st.moment.soort !== 'tijd') st.moment = { soort: 'tijd', uur: 7, minuut: 0 };
@@ -762,6 +812,13 @@
   });
 
   document.addEventListener('change', (e) => {
+    // Een scène voor de lampen (besluit 268), of weer gewoon aan.
+    const scene = e.target.closest?.('[data-pl-scene]');
+    if (scene && st) {
+      zelf();
+      st.hoe.licht = scene.value ? { aan: true, scene: scene.value } : { aan: true };
+      return teken();
+    }
     const tijd = e.target.closest?.('[data-pl-tijd]');
     if (!tijd || !st) return;
     const [u, m] = tijd.value.split(':').map(Number);
