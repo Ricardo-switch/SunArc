@@ -338,6 +338,18 @@ const LADING_IK = {
   auto: iconen.svg('auto'),
   batterij: iconen.svg('batterij'),
 };
+/**
+ * De thuisaccu in de schaduw (besluit 274): laadt hij met zon, dan wat SunArc
+ * zou aanzetten als dat zon over was. Alleen kijken; er gaat niets naar het huis.
+ */
+function accuSchaduwZin() {
+  const a = state?.bewoner?.accu;
+  if (!a) return null;
+  const kw = nl(a.zonKw);
+  const wat = a.zou.length > 1 ? `${a.zou.slice(0, -1).join(', ')} ${t('algemeen.en')} ${a.zou.at(-1)}` : a.zou[0];
+  return a.zou.length ? t('apparaten.accuSchaduw', { kw, wat }) : t('apparaten.accuSchaduwNiets', { kw });
+}
+
 function ladingKaart(soort, o) {
   const w = o.vermogenW;
   const kw = w != null && Math.abs(w) >= 50 ? `${nl(Math.abs(w) / 1000)}<span>${esc(t(soort === 'batterij' && w < 0 ? 'apparaten.kwNaarHuis' : 'apparaten.kwLaden'))}</span>` : '–<span>kW</span>';
@@ -349,7 +361,7 @@ function ladingKaart(soort, o) {
   const pct = o.pct == null ? null : Math.max(0, Math.min(100, o.pct));
   const zin = soort === 'auto'
     ? [o.bereikKm != null ? t('apparaten.bereik', { km: nl(o.bereikKm, 0) }) : '', o.pct == null ? t('apparaten.laadpaal') : ''].filter(Boolean).join(' ')
-    : t('apparaten.batterijKijkt');
+    : accuSchaduwZin() ?? t('apparaten.batterijKijkt');
   // De auto opent zijn eigen pagina (besluit 259, stap 2).
   const el = document.createElement(soort === 'auto' ? 'a' : 'div');
   if (soort === 'auto') el.href = `auto.html#${encodeURIComponent(o.id)}`;

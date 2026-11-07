@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.147.0';
+export const VERSIE = '0.148.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.148.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Laadt je thuisaccu met zon, dan rekent SunArc ernaast uit wat hij zou doen als die zon over was, zoals een airco op zon of de droger. Bij Apparaten staat het bij je accu. Alleen ter vergelijking: er verandert niets aan wat SunArc doet',
+    ],
+    en: {
+      nieuw: [
+        'When your home battery charges from the sun, SunArc works out alongside what it would do if that sun were spare, such as an air conditioner on sun or the dryer. Devices shows it with your battery. Only for comparison: nothing changes in what SunArc does',
+      ],
+    },
+  },
   {
     versie: '0.147.0',
     datum: '2026-11-07',

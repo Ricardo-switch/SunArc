@@ -867,6 +867,8 @@
   'apparaten.bereik': 'Nog {km} km rijden.',
   'apparaten.laadpaal': 'De laadpaal zegt niet hoe vol de auto is.',
   'apparaten.batterijKijkt': 'SunArc kijkt mee en stuurt de batterij niet.',
+  'apparaten.accuSchaduw': 'Laadt {kw} kW met zon. Telde dat als zon over, dan zette SunArc nu ook aan: {wat}. Alleen ter vergelijking; SunArc stuurt de batterij niet.',
+  'apparaten.accuSchaduwNiets': 'Laadt {kw} kW met zon. Telde dat als zon over, dan deed SunArc nu niets anders. SunArc stuurt de batterij niet.',
   'apparaten.thuisbatterij': 'Thuisbatterij',
   'apparaten.stooklijn': 'Stooklijn {doel}',
   'apparaten.water': 'Water {doel}°',

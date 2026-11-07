@@ -82,6 +82,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [186. Warmte bewaren: de boiler en de jacuzzi op zon](#186-warmte-bewaren-de-boiler-en-de-jacuzzi-op-zon)
 - [194. Een huis zonder slimme regeling: de app draait ook zonder zones](#194-een-huis-zonder-slimme-regeling-de-app-draait-ook-zonder-zones)
 - [264. Een slimme stekker als apparaat op zon](#264-een-slimme-stekker-als-apparaat-op-zon)
+- [274. De regeling kijkt in de schaduw mee met de thuisaccu](#274-de-regeling-kijkt-in-de-schaduw-mee-met-de-thuisaccu)
 
 **Configuratie en onboarding**
 
@@ -12730,6 +12731,38 @@ nu de accu kent (besluit 272), kunnen ze er eerlijk bij.
 
 **Bewust niet (nog).** Een lijn tussen de accu en de auto: of de accu de auto
 laadt, meet SunArc niet apart.
+
+## 274. De regeling kijkt in de schaduw mee met de thuisaccu
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+7 november 2026, versie 0.148.0, stap 4 van de thuisaccu-ronde (besluit 271).
+
+**Waarom.** Laadt de accu met zon, dan ziet de netmeter niets terug en denkt
+de regeling dat er geen zon over is. In de praktijk gaat de accu zo vóór
+koelen en verwarmen op zon, terwijl besluit 85 eerst comfort en dan de accu
+zegt. Ricardo koos: wat de accu met zon laadt, telt als zon over voor comfort,
+maar eerst in de schaduw. De stekkers op zon schakelen echt op wat de regeling
+zegt (besluit 267); dat echte besluit mag nog niet veranderen.
+
+**Wat.**
+
+- **Met zon:** de adapter rekent wat de accu's samen met zon laden: wat ze
+  laden min wat er van het net komt, nooit meer dan de zon. Zonder zonmeting
+  telt het niet (`withAccu`, `power.accuZonW`). De kern leest de zon zelf niet.
+- **De schaduw:** vanaf 100 W rekent de kern het besluit nog eens met dat
+  vermogen als zon over (het net zoveel lager), en zet in de uitleg wat hij dan
+  anders zou doen: welke apparaten zouden koelen of verwarmen of aan blijven, en
+  welke apparaten op zon zouden starten of stoken (`explanation.accu`). Het
+  echte besluit, het budget en de commando's blijven precies zoals ze waren.
+- **Zichtbaar** bij Apparaten, op de kaart van de accu: "Laadt 1,5 kW met zon.
+  Telde dat als zon over, dan zette SunArc nu ook aan: …", of dat het niets
+  uitmaakt. De uitleg gaat mee in het logboek, zodat later te zien is hoe vaak
+  het iets had uitgemaakt.
+
+**Bewust niet (nog).** Het echt laten tellen: dat is een keuze na een tijd in de
+schaduw, net als stap B (besluit 64). Doorgeven aan de accu hoeveel er over is
+(besluit 85): SunArc stuurt de accu niet.
 
 ## Wat nog een besluit wacht
 

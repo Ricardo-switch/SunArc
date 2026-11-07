@@ -862,6 +862,8 @@
   'apparaten.bereik': '{km} km of range left.',
   'apparaten.laadpaal': 'The charger does not say how full the car is.',
   'apparaten.batterijKijkt': 'SunArc watches and does not control the battery.',
+  'apparaten.accuSchaduw': 'Charging {kw} kW from the sun. If that counted as spare sun, SunArc would also switch on now: {wat}. Only for comparison; SunArc does not control the battery.',
+  'apparaten.accuSchaduwNiets': 'Charging {kw} kW from the sun. If that counted as spare sun, SunArc would do nothing different now. SunArc does not control the battery.',
   'apparaten.thuisbatterij': 'Home battery',
   'apparaten.stooklijn': 'Heating curve {doel}',
   'apparaten.water': 'Water {doel}°',

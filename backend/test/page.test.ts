@@ -6366,6 +6366,44 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
    * de accu als hij laadt en eruit als hij levert, met een label; ook als hij
    * binnen staat. Bij Opbrengst › Nu Naar de accu en Uit de accu.
    */
+  /*
+   * De thuisaccu in de schaduw (besluit 274): bij Apparaten zegt de kaart van de
+   * accu wat SunArc zou aanzetten als wat hij met zon laadt zon over was.
+   */
+  it('zegt bij de thuisaccu wat SunArc zou doen als zijn zon over was (besluit 274)', async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    let accu: unknown = { zonKw: 1.5, zou: ['Airco woonkamer', 'Droger'] };
+    await context.route(`${baseUrl}/api/state`, async (route) => {
+      const r = await route.fetch();
+      const j = (await r.json()) as { bewoner?: Record<string, unknown> };
+      if (j.bewoner) j.bewoner = { ...j.bewoner, ...(accu ? { accu } : {}) };
+      await route.fulfill({ response: r, json: j });
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    extraOpslag = { batterij: { id: 'sessy', naam: 'Sessy', pct: 64, vermogenW: 1500, stand: 'laadt' }, auto: null, autos: [] };
+    try {
+      await p.goto(`${baseUrl}/apparaten.html#batterij`);
+      const kaart = p.locator('#tel [data-lading="batterij"]');
+      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('Laadt 1,5 kW met zon. Telde dat als zon over, dan zette SunArc nu ook aan: Airco woonkamer en Droger.');
+      // Zou het niets uitmaken, dan zegt hij dat.
+      accu = { zonKw: 0.4, zou: [] };
+      await p.reload();
+      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('Laadt 0,4 kW met zon. Telde dat als zon over, dan deed SunArc nu niets anders.');
+      // Zonder schaduw: zoals altijd.
+      accu = null;
+      await p.reload();
+      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('SunArc kijkt mee en stuurt de batterij niet.');
+      expect(fouten).toEqual([]);
+    } finally {
+      extraOpslag = null;
+      await context.close();
+    }
+  }, 30_000);
+
   it('tekent de stromen van en naar de thuisaccu, op Thuis en bij Opbrengst Nu (besluit 273)', async () => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));

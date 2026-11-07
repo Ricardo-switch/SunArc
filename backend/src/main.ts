@@ -576,6 +576,12 @@ const modelTeller = new Teller({
   dag: () => new Intl.DateTimeFormat('en-CA', { timeZone: siteConfig?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone }).format(new Date()),
 });
 let houseRegisters: HouseRegisters | null = null;
+/** Wat de thuisaccu's samen nu doen, in W: plus is laden (besluit 272, 274); null zonder accu. */
+function accuNuW(): number | null {
+  if (!houseRegisters) return null;
+  const w = accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null).map((a) => a.vermogenW).filter((x): x is number => x != null);
+  return w.length ? w.reduce((s, x) => s + x, 0) : null;
+}
 /** De stroommeter bij hetzelfde apparaat in Home Assistant, zoals bij een airco (besluit 138). */
 function vermogenSensor(entityId: string): string | null {
   const device = houseRegisters?.entities.find((e) => e.entity_id === entityId)?.device_id;
@@ -997,6 +1003,8 @@ const runner: ShadowRunner | null =
         ...(bufferStore && site
           ? { warmte: (nowMs: number) => ({ extra: bufferStore.extra, cheapWindows: cheapWindows(nowMs, site.config.timezone, energyStore?.current?.prijzen ?? null) }) }
           : {}),
+        // De thuisaccu in de schaduw (besluit 274): wat hij met zon laadt, telt daar als zon over.
+        accu: accuNuW,
         ...(webPort == null
           ? {}
           : {
@@ -2324,11 +2332,7 @@ if (webPort != null) {
     laadadvies: laadadviezen,
     // De thuisaccu's (besluit 272): wat ze nu doen, en hun tellers voor Opbrengst.
     accu: {
-      nuW: () => {
-        if (!houseRegisters) return null;
-        const w = accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null).map((a) => a.vermogenW).filter((x): x is number => x != null);
-        return w.length ? w.reduce((s, x) => s + x, 0) : null;
-      },
+      nuW: accuNuW,
       meters: () => {
         const lijst = houseRegisters ? accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null) : [];
         return {

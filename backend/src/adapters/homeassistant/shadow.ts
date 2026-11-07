@@ -99,6 +99,11 @@ export interface ShadowOptions {
    */
   readonly warmte?: (nowMs: number) => { readonly extra: Readonly<Record<string, HeatStoreExtra>>; readonly cheapWindows: SystemState['cheapWindows'] };
   /**
+   * Wat de thuisaccu's samen nu doen, in W: plus is laden (besluit 274). De
+   * schaduw rekent mee wat daarvan met zon laadt; null zonder accu.
+   */
+  readonly accu?: () => number | null;
+  /**
    * Na hoeveel minuten zonder geslaagde evaluatie het proces zichzelf beëindigt.
    *
    * Een dienst die maanden moet doorlopen faalt zelden met een knal; hij blijft
@@ -175,7 +180,8 @@ function describe(command: Command): string {
 const ACTUATOR_STATE_MAX_AGE_MS = 30 * 60_000;
 
 export class ShadowRunner {
-  readonly #options: Required<Omit<ShadowOptions, 'logDir' | 'readyBy' | 'warmte'>> & {
+  readonly #options: Required<Omit<ShadowOptions, 'logDir' | 'readyBy' | 'warmte' | 'accu'>> & {
+    accu?: ShadowOptions['accu'];
     warmte: ShadowOptions['warmte'];
     logDir: string | null;
     readyBy: () => Readonly<Record<string, number>>;
@@ -244,6 +250,7 @@ export class ShadowRunner {
       config: options.config,
       strategies: options.strategies,
       client: options.client,
+      ...(options.accu ? { accu: options.accu } : {}),
       tickSeconds: options.tickSeconds ?? 30,
       debounceMs: options.debounceMs ?? 2_000,
       minIntervalSeconds: options.minIntervalSeconds ?? 15,
@@ -498,9 +505,12 @@ export class ShadowRunner {
     const nowMs = this.#options.now();
     this.#lastEvalMs = nowMs;
     const config = configFrom(this.#config, this.#store);
-    const state = withWarmte(
-      withReadyBy(buildSystemState(config, this.#store, nowMs, this.#own, this.#shadowActuators), this.#options.readyBy()),
-      this.#options.warmte?.(nowMs),
+    const state = withAccu(
+      withWarmte(
+        withReadyBy(buildSystemState(config, this.#store, nowMs, this.#own, this.#shadowActuators), this.#options.readyBy()),
+        this.#options.warmte?.(nowMs),
+      ),
+      this.#options.accu?.() ?? null,
     );
     const decision = decide({
       config,
@@ -762,6 +772,20 @@ function withWarmte(state: SystemState, warmte: ReturnType<NonNullable<ShadowOpt
     heatStores: Object.fromEntries(Object.entries(list).map(([id, h]) => [id, { ...h, ...warmte.extra[id] }])),
     ...(warmte.cheapWindows && warmte.cheapWindows.length > 0 ? { cheapWindows: warmte.cheapWindows } : {}),
   };
+}
+
+/**
+ * Wat de thuisaccu met zon laadt (besluit 274): wat hij laadt, min wat er van het
+ * net komt, en nooit meer dan de zon. Zonder zonmeting is niet te zeggen of het
+ * zon is; dan niets.
+ */
+export function withAccu(state: SystemState, accuW: number | null): SystemState {
+  const zon = state.solarProductionW;
+  const net = state.power.gridPowerW;
+  if (accuW == null || accuW <= 0 || !zon.ok) return state;
+  const vanNet = net.ok ? Math.max(0, net.value) : 0;
+  const zonW = Math.max(0, Math.min(zon.value, accuW - vanNet));
+  return zonW > 0 ? { ...state, power: { ...state.power, accuZonW: Math.round(zonW) } } : state;
 }
 
 /** Zet "klaar voor" van de bewoner bij de uitstelbare apparaten (besluit 101). */

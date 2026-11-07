@@ -120,6 +120,17 @@ export interface ResidentView {
   readonly uitstelbaar: readonly ResidentDeferrable[];
   /** De boiler en de jacuzzi, voor het scherm Apparaten (besluit 186). */
   readonly warmtebuffers: readonly ResidentBuffer[];
+  /** De thuisaccu in de schaduw (besluit 274); weg als hij niet met zon laadt. */
+  readonly accu?: ResidentAccu;
+}
+
+/**
+ * De thuisaccu in de schaduw (besluit 274): wat hij met zon laadt, en wat
+ * SunArc zou aanzetten als dat zon over was, met de namen van de apparaten.
+ */
+export interface ResidentAccu {
+  readonly zonKw: number;
+  readonly zou: readonly string[];
 }
 
 const MODE = {
@@ -470,7 +481,14 @@ export function residentView(config: SiteConfig, snap: DecisionView, lang: Lang 
     besluit: snap.commands.length > 0 ? decisionWords(config, snap.commands, redenen, lang) : null,
     uitstelbaar: residentDeferrables(config, snap.explanation.deferrables ?? [], snap.atMs, lang),
     warmtebuffers: residentBuffers(config, snap.explanation.heatStores ?? [], snap.atMs, lang),
+    ...(snap.explanation.accu ? { accu: residentAccu(config, snap.explanation.accu) } : {}),
   };
+}
+
+/** De namen bij de schaduw van de accu (besluit 274): de apparaten, en wat op zon zou starten. */
+function residentAccu(config: SiteConfig, a: NonNullable<DecisionView['explanation']['accu']>): ResidentAccu {
+  const naam = (id: string) => config.actuators.find((x) => x.id === id)?.name ?? config.deferrables?.find((x) => x.id === id)?.name ?? config.heatStores?.find((x) => x.id === id)?.name ?? id;
+  return { zonKw: round1(a.zonW / 1000), zou: [...a.apparaten, ...a.opZon].map(naam) };
 }
 
 /** De uiterlijke start in woorden: met "klaar voor" berekend, anders de vaste tijd. */

@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.147.0
+## 0.148.0
 
-*7 november 2026 · 0.145.0 – 0.147.0*
+*7 november 2026 · 0.145.0 – 0.148.0*
 
 **Nieuw**
 
+- Laadt je thuisaccu met zon, dan rekent SunArc ernaast uit wat hij zou doen als die zon over was, zoals een airco op zon of de droger. Bij Apparaten staat het bij je accu. Alleen ter vergelijking: er verandert niets aan wat SunArc doet
 - Op Thuis loopt nu een lijn naar je thuisaccu als hij laadt, en eruit naar het huis als hij levert, met erbij hoeveel. Ook als de accu binnen in een kamer staat
 - Bij Opbrengst › Nu staat je thuisaccu in Waar je stroom nu heen gaat: Naar de accu als hij laadt, Uit de accu als hij levert
 - Opbrengst rekent je thuisaccu mee: onder je panelen staat wat hij laadde, waarvan uit de zon, en wat hij aan het huis leverde. In Waar je stroom heen ging staan Uit de accu en Naar de accu
@@ -20,6 +21,7 @@
 
 **New**
 
+- When your home battery charges from the sun, SunArc works out alongside what it would do if that sun were spare, such as an air conditioner on sun or the dryer. Devices shows it with your battery. Only for comparison: nothing changes in what SunArc does
 - On Home a line now runs to your home battery when it charges, and out to the home when it delivers, with how much. Also when the battery stands inside in a room
 - In Yield › Now your home battery shows in Where your power is going now: To the battery when it charges, From the battery when it delivers
 - Yield now counts your home battery: under your panels it shows what it charged, how much of that came from the sun, and what it delivered to the home. Where your power went shows From the battery and To the battery
