@@ -42,6 +42,7 @@ import {
   type FloorId,
   type Layout,
   type LayoutDevice,
+  type LayoutAccu,
   type LayoutAround,
   type Woning,
   type LayoutKnown,
@@ -327,6 +328,8 @@ export interface HouseReport {
   readonly dakEtage: FloorId | null;
   /** Wat er rond het huis is, zoals de bewoner het zei (besluit 157); null: de buitenruimtes zeggen het. */
   readonly rond: LayoutAround | null;
+  /** Waar de thuisaccu staat (besluit 270); null: aan de gevel. */
+  readonly accu: LayoutAccu | null;
   /** Wat voor huis het is (besluit 190): vrijstaand als de bewoner niets koos. */
   readonly woning: Woning;
   /**
@@ -2105,6 +2108,7 @@ export function buildHouse(
     indeling: saved ? 'eigen' : 'voorstel',
     dakEtage,
     rond: layout.rond ?? null,
+    accu: layout.accu ?? null,
     woning: layout.woning ?? 'vrijstaand',
     ligging: huisLigging(config.geometry),
     etages: floors,

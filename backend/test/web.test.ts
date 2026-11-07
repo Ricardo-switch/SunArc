@@ -1420,6 +1420,7 @@ describe('het huis als navigatie (ONTWERP §4)', () => {
       indeling: 'voorstel',
       dakEtage: null,
       rond: null,
+      accu: null,
       woning: 'vrijstaand',
       ligging: null,
       etages: [{ id: 'bg', naam: 'Begane grond', lampenAan: 0, samenvatting: summarize([]), ruimtes: [] }],
@@ -1487,6 +1488,7 @@ describe('licht bedienen (besluit 97)', () => {
     indeling: 'eigen',
     dakEtage: null,
     rond: null,
+    accu: null,
     woning: 'vrijstaand',
     ligging: null,
     etages: [

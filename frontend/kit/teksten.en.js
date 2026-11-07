@@ -417,6 +417,9 @@
   'huis.buiten.voortuin': 'Front garden',
   'huis.buiten.garage': 'Garage',
   'huis.buiten.voordeur': 'Front door',
+  'buiten.accu.laadt': 'charging',
+  'buiten.accu.levert': 'supplying the house',
+  'buiten.accu.rust': 'resting',
 
   // The wall screen when nobody is looking (niemand.js)
   'niemand.rustig': 'All quiet.',
@@ -3084,6 +3087,13 @@
   'indeling.plek.binnen': 'Inside',
   'indeling.plek.buiten': 'Outside',
   'indeling.plek.waar': 'Room or place outside',
+  'indeling.accu.waar': 'Where is {naam}?',
+  'indeling.accu.gevel': 'On the outside wall',
+  'indeling.accu.garage': 'In the garage',
+  'indeling.accu.binnen': 'Inside',
+  'indeling.accu.bewaard': '{naam} is now {waar}.',
+  'indeling.accu.bewaardKamer': '{naam} is now in {kamer}.',
+  'indeling.accu.zin': 'Home battery',
   'indeling.deel.rondAan': '{naam} is on.',
   'indeling.deel.rondUit': '{naam} is off.',
   'indeling.naast.weten': 'Good to know',

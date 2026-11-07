@@ -121,6 +121,18 @@ export type AroundPart = (typeof AROUND_PARTS)[number];
 const AROUND_LATER: readonly AroundPart[] = ['garage', 'carport', 'schuur', 'jacuzzi', 'border', 'allebei'];
 const AROUND_STANDAARD_AAN: readonly AroundPart[] = ['border'];
 
+/**
+ * Waar de thuisaccu staat (besluit 270, idee 123): aan de gevel, in de garage,
+ * of binnen in een kamer. Alleen voor de tekening en de bladen; weg is aan de gevel.
+ */
+export const ACCU_PLEKKEN = ['gevel', 'garage', 'binnen'] as const;
+export type AccuPlek = (typeof ACCU_PLEKKEN)[number];
+export interface LayoutAccu {
+  readonly plek: AccuPlek;
+  /** Alleen binnen: de kamer waar hij staat. */
+  readonly kamer: string | null;
+}
+
 /** Wat voor huis het is (besluit 190), voor de tekening. Weg: vrijstaand. */
 export const WONINGEN = ['vrijstaand', 'rij', 'hoek', 'tweekap', 'appartement'] as const;
 export type Woning = (typeof WONINGEN)[number];
@@ -214,6 +226,8 @@ export interface Layout {
   readonly rond?: LayoutAround;
   /** Wat voor huis het is (besluit 190). Weg: vrijstaand. */
   readonly woning?: Woning;
+  /** Waar de thuisaccu staat (besluit 270). Weg: aan de gevel. */
+  readonly accu?: LayoutAccu;
 }
 
 export interface LayoutKnown {
@@ -494,9 +508,20 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
   // Wat voor huis het is (besluit 190).
   const woning = b['woning'];
   if (woning !== undefined && !WONINGEN.includes(woning as Woning)) return { ok: false, reden: `woning is ${WONINGEN.join(', ')}` };
+  // Waar de thuisaccu staat (besluit 270): binnen in een kamer die bestaat.
+  const accuIn = b['accu'];
+  let accu: LayoutAccu | undefined;
+  if (accuIn !== undefined && accuIn !== null) {
+    const a = (typeof accuIn === 'object' && !Array.isArray(accuIn) ? accuIn : {}) as Record<string, unknown>;
+    const plekA = a['plek'];
+    if (!ACCU_PLEKKEN.includes(plekA as AccuPlek)) return { ok: false, reden: `de thuisaccu staat ${ACCU_PLEKKEN.join(', ')}` };
+    const kamerA = a['kamer'] ?? null;
+    if (plekA === 'binnen' && (typeof kamerA !== 'string' || !kamers.some((k) => k.id === kamerA && k.etage !== OUTSIDE_FLOOR))) return { ok: false, reden: 'binnen staat de thuisaccu in een kamer binnen' };
+    accu = { plek: plekA as AccuPlek, kamer: plekA === 'binnen' ? (kamerA as string) : null };
+  }
   return {
     ok: true,
-    layout: { versie: 1, etages, ...(volgorde ? { volgorde } : {}), kamers, apparaten, verborgen, ...(dak !== undefined ? { dak: dak as FloorId | 'geen' } : {}), ...(rond ? { rond } : {}), ...(woning !== undefined ? { woning: woning as Woning } : {}) },
+    layout: { versie: 1, etages, ...(volgorde ? { volgorde } : {}), kamers, apparaten, verborgen, ...(dak !== undefined ? { dak: dak as FloorId | 'geen' } : {}), ...(rond ? { rond } : {}), ...(woning !== undefined ? { woning: woning as Woning } : {}), ...(accu ? { accu } : {}) },
   };
 }
 

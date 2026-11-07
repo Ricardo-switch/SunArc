@@ -422,6 +422,9 @@
   'huis.buiten.voortuin': 'Voortuin',
   'huis.buiten.garage': 'Garage',
   'huis.buiten.voordeur': 'Voordeur',
+  'buiten.accu.laadt': 'laadt',
+  'buiten.accu.levert': 'levert aan het huis',
+  'buiten.accu.rust': 'in rust',
 
   // De wand als niemand kijkt (niemand.js)
   'niemand.rustig': 'Alles rustig.',
@@ -3089,6 +3092,13 @@
   'indeling.plek.binnen': 'Binnen',
   'indeling.plek.buiten': 'Buiten',
   'indeling.plek.waar': 'Kamer of plek buiten',
+  'indeling.accu.waar': 'Waar staat {naam}?',
+  'indeling.accu.gevel': 'Aan de gevel',
+  'indeling.accu.garage': 'In de garage',
+  'indeling.accu.binnen': 'Binnen',
+  'indeling.accu.bewaard': '{naam} staat nu {waar}.',
+  'indeling.accu.bewaardKamer': '{naam} staat nu in {kamer}.',
+  'indeling.accu.zin': 'Thuisaccu',
   'indeling.deel.rondAan': '{naam} staat aan.',
   'indeling.deel.rondUit': '{naam} staat uit.',
   'indeling.naast.weten': 'Goed om te weten',

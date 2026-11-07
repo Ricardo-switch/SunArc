@@ -257,7 +257,9 @@ verwijzing bestaat.
 - **Buitenruimtes** hebben elk hun plek in de tekening: oprit, tuin, terras,
   voortuin en balkon ([113]). Elk deel dat aan staat en de voordeur zijn ook
   plekken voor apparaten, zonder gebied in Home Assistant als dat er niet is;
-  bij een apparaat staan binnen en buiten apart ([269], 0.143.0).
+  bij een apparaat staan binnen en buiten apart ([269], 0.143.0). De
+  thuisaccu staat in de tekening aan de gevel, in de garage of binnen, zoals
+  de bewoner kiest ([270], 0.144.0).
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over
@@ -864,4 +866,5 @@ verwijzing bestaat.
 [267]: DECISIONS.md#267-een-slimme-stekker-op-zon-met-een-minimum-en-sunarc-schakelt-hem-echt
 [268]: DECISIONS.md#268-het-stekkerblad-zegt-wat-je-wilt-herhalen-kan-erin-en-scènes-horen-bij-de-lampen
 [269]: DECISIONS.md#269-buiten-heeft-echte-plekken-voor-apparaten-ook-zonder-gebied-in-home-assistant
+[270]: DECISIONS.md#270-de-thuisaccu-staat-in-de-tekening-op-de-plek-die-de-bewoner-kiest
 <!-- links:einde -->

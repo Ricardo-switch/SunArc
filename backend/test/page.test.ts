@@ -6197,6 +6197,64 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 45_000);
 
   /*
+   * De thuisaccu op zijn plek (besluit 270, idee 123): aan de gevel, in de
+   * garage, of binnen in een kamer. Bij Buiten kies je het; in de garage staat
+   * hij op Thuis ook in het blad van de garage.
+   */
+  it('zet de thuisaccu in de garage of binnen, en toont hem in het blad van de garage (besluit 270)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5000 };
+    const start = layoutStore.current ? structuredClone(layoutStore.current) : null;
+    const voor = start ?? ((await (await fetch(`${baseUrl}/api/indeling`)).json()) as { voorstel: NonNullable<typeof start> }).voorstel;
+    const rondAlles = { oprit: true, auto: false, voortuin: false, tuin: true, terras: false, balkon: false, tuinhuis: false, garage: true, carport: false, schuur: false, jacuzzi: false, border: false, allebei: false };
+    const { accu: _weg, ...zonder } = voor;
+    expect(await layoutStore.save({ ...zonder, rond: { ...rondAlles, ...voor.rond, garage: true } })).toMatchObject({ ok: true });
+    extraOpslag = { batterij: { id: 'sessy', naam: 'Sessy', pct: 64, vermogenW: 1200, stand: 'laadt' }, auto: null, autos: [] };
+    try {
+      await p.goto(`${baseUrl}/indeling.html#buiten`);
+      const keuze = p.locator('#wand [data-blad] [data-actie="accuplek"]');
+      await keuze.waitFor({ timeout: 15_000 });
+      expect(await keuze.inputValue()).toBe('gevel');
+      expect(await p.locator('#wand [data-blad] label[for="accuplek"]').textContent()).toBe('Waar staat Sessy?');
+      await keuze.selectOption('garage');
+      await expect.poll(() => layoutStore.current?.accu, kort).toEqual({ plek: 'garage', kamer: null });
+
+      // De garage als plek, en op Thuis zijn blad met de accu.
+      await p.locator('#wand [data-blad] [data-plek="garage"]').click(kort);
+      const garage = () => layoutStore.current?.kamers.find((k) => k.buiten?.soort === 'garage');
+      await expect.poll(() => garage()?.id, kort).toBeTruthy();
+      await p.goto(`${baseUrl}/thuis.html`);
+      const tik = p.locator(`svg .sc-tik[data-kamer="${garage()!.id}"]`).locator('visible=true').first();
+      await tik.waitFor({ timeout: 15_000 });
+      await tik.click({ force: true });
+      const vak = p.locator('.bb-auto', { hasText: 'Sessy' }).locator('visible=true').first();
+      await vak.waitFor(kort);
+      expect(await vak.textContent()).toContain('64%');
+      expect(await vak.textContent()).toContain('laadt');
+
+      // Binnen: in een kamer die bestaat.
+      const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
+      const kamer = huis.etages.filter((e) => e.id !== 'buiten').flatMap((e) => e.ruimtes)[0]!;
+      await p.goto(`${baseUrl}/indeling.html#buiten`);
+      await keuze.waitFor({ timeout: 15_000 });
+      await keuze.selectOption(`binnen:${kamer.id}`);
+      await expect.poll(() => layoutStore.current?.accu, kort).toEqual({ plek: 'binnen', kamer: kamer.id });
+      expect(((await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport).accu).toEqual({ plek: 'binnen', kamer: kamer.id });
+      // Een kamer die niet bestaat, of buiten, neemt de dienst niet aan.
+      expect(await layoutStore.save({ ...layoutStore.current!, accu: { plek: 'binnen', kamer: 'bestaat-niet' } })).toMatchObject({ ok: false });
+      expect(fouten).toEqual([]);
+    } finally {
+      extraOpslag = null;
+      if (start) await layoutStore.save(start);
+      await context.close();
+    }
+  }, 45_000);
+
+  /*
    * Inloggen via Home Assistant op een andere site (16 oktober 2026): na het
    * inloggen kom je echt binnen. Het cookie is SameSite=Strict, en ging bij een
    * doorverwijzing vanaf de site van Home Assistant niet mee: dan stond je

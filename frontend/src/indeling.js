@@ -428,6 +428,7 @@ const IK_BUITEN = {
   tuinhuis: '<path d="M4 9h16M5 9v11h14V9M3 9l2-3h14l2 3"/><path d="M10 20v-5h4v5"/>', schuur: '<path d="M4 11l8-6 8 6v9H4z"/><path d="M10 20v-5h4v5"/>',
   terras: '<path d="M3 17h18M6 17v4M18 17v4M5 13h14l-1-5H6z"/>', balkon: '<path d="M4 12h16v8H4zM8 12v8M12 12v8M16 12v8M6 4h12v8"/>',
   jacuzzi: '<path d="M3 12h18v3a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path d="M8 8c0-1.5 1-2 1-3M12 8c0-1.5 1-2 1-3M16 8c0-1.5 1-2 1-3"/>',
+  accu: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M10 2h4"/><path d="M12.5 8.5l-2 4h3l-2 4"/>',
   voordeur: '<path d="M7 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M4 21h16"/><path d="M14 12h.01"/>',
   border: '<path d="M3 20h18"/><path d="M7 20v-5M12 20v-7M17 20v-5"/><circle cx="7" cy="12.5" r="2.5"/><circle cx="12" cy="10" r="2.5"/><circle cx="17" cy="12.5" r="2.5"/>',
 };
@@ -453,11 +454,21 @@ function rondBlad(d) {
   });
   // Een ruimte buiten die bij geen deel hoort: die tekent het huis nergens, dus hier om hem te openen.
   const los = kamers.filter((k) => buitenNu(k).soort !== 'voordeur' && !huismodel.rondom().some(([w, , s]) => s && rond[w] && buitenNu(k).soort === s));
+  // De thuisaccu (besluit 270): aan de gevel, in de garage of binnen in een kamer.
+  const accu = huisData?.opslag?.batterij ?? null;
+  const accuNu = d.accu?.plek === 'binnen' ? `binnen:${d.accu.kamer}` : d.accu?.plek === 'garage' && rond.garage ? 'garage' : 'gevel';
+  const accuRij = accu
+    ? `<div class="rondrij"><i>${S_BUITEN(IK_BUITEN.accu)}</i><div><label class="label" for="accuplek" style="margin: 0">${esc(t('indeling.accu.waar', { naam: accu.naam }))}</label><select class="veld" id="accuplek" data-actie="accuplek" style="margin-top: 4px">
+        <option value="gevel" ${accuNu === 'gevel' ? 'selected' : ''}>${esc(t('indeling.accu.gevel'))}</option>
+        ${rond.garage ? `<option value="garage" ${accuNu === 'garage' ? 'selected' : ''}>${esc(t('indeling.accu.garage'))}</option>` : ''}
+        <optgroup label="${esc(t('indeling.accu.binnen'))}">${d.kamers.filter((x) => !alleBuitenEtage(x)).map((x) => `<option value="binnen:${esc(x.id)}" ${accuNu === `binnen:${x.id}` ? 'selected' : ''}>${esc(x.naam)} (${esc(etageNaam(d, x.etage))})</option>`).join('')}</optgroup>
+      </select></div></div>`
+    : '';
   const deur = `<div class="rondrij"><i>${S_BUITEN(IK_BUITEN.voordeur)}</i><div><b>${esc(voordeur.naam)}</b><span class="zin">${esc(t('indeling.plek.voordeurZin'))}</span>${plekKnop(voordeur)}</div></div>`;
   return `
     <div class="bladkop"><h2 class="kop-2">${esc(t('inr.buitenKop'))}</h2></div>
     <p class="klein" style="margin: 0">${esc(t('inr.buitenZin'))}</p>
-    <div>${deur}${rijen.join('')}</div>
+    <div>${deur}${rijen.join('')}${accuRij}</div>
     <p class="mini" style="margin: 0">${esc(t('indeling.plek.uitleg'))}</p>
     ${los.length ? `<div><span class="label">${esc(t('indeling.deel.ookBuiten'))}</span><div class="chips">${los.map((k) => `<button type="button" class="chip" data-kamer="${esc(k.id)}">${esc(k.naam)} ›</button>`).join('')}</div></div>` : ''}`;
 }
@@ -1241,6 +1252,13 @@ document.addEventListener('change', async (e) => {
     if (!v || v === standaard) delete next.etages[keuze.etage];
     else next.etages[keuze.etage] = v;
     await bewaar(next, t('indeling.etageNaamBewaard'));
+  } else if (el.dataset.actie === 'accuplek') {
+    // Waar de thuisaccu staat (besluit 270); aan de gevel is zonder keuze.
+    if (v === 'gevel') delete next.accu;
+    else next.accu = v === 'garage' ? { plek: 'garage', kamer: null } : { plek: 'binnen', kamer: v.slice(7) };
+    const naam = huisData?.opslag?.batterij?.naam ?? t('indeling.accu.zin');
+    const kamer = v.startsWith('binnen:') ? next.kamers.find((x) => x.id === v.slice(7))?.naam ?? '' : null;
+    await bewaar(next, kamer != null ? t('indeling.accu.bewaardKamer', { naam, kamer }) : t('indeling.accu.bewaard', { naam, waar: t(`indeling.accu.${v}`).toLowerCase() }));
   } else if (el.dataset.actie === 'kamernaam' && k) {
     if (!v) return;
     k.naam = v;

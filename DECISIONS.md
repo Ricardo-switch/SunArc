@@ -263,6 +263,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [266. Een slimme stekker op vaste tijden, bij Vast en gepland](#266-een-slimme-stekker-op-vaste-tijden-bij-vast-en-gepland)
 - [268. Het stekkerblad zegt wat je wilt, herhalen kan erin, en scènes horen bij de lampen](#268-het-stekkerblad-zegt-wat-je-wilt-herhalen-kan-erin-en-scènes-horen-bij-de-lampen)
 - [269. Buiten heeft echte plekken voor apparaten, ook zonder gebied in Home Assistant](#269-buiten-heeft-echte-plekken-voor-apparaten-ook-zonder-gebied-in-home-assistant)
+- [270. De thuisaccu staat in de tekening, op de plek die de bewoner kiest](#270-de-thuisaccu-staat-in-de-tekening-op-de-plek-die-de-bewoner-kiest)
 
 **Veiligheid**
 
@@ -12598,6 +12599,33 @@ in de tekening: buiten het eiland van Thuis liggen de plekken niet vast genoeg
 om er labels aan te hangen. Een slot staat niet in het blad: SunArc leest
 sloten nog niet. De thuisaccu in de garage (issue 123) volgt in een eigen
 versie: aan de gevel, in de garage, of binnen in een gekozen kamer.
+
+## 270. De thuisaccu staat in de tekening, op de plek die de bewoner kiest
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, versie 0.144.0, idee 123; schets `design/app2/Wand-Indeling-Buiten.html#garage`.
+
+**Waarom.** Een tester wil zijn thuisbatterij in de garage zien staan. De app
+tekende de thuisaccu tot nu toe nergens in het huis, alleen als kaart.
+
+**Wat.**
+
+- De plek staat in de indeling (`accu`): aan de gevel (zonder keuze), in de
+  garage, of binnen met de kamer erbij. Binnen neemt de dienst alleen een kamer
+  aan die bestaat en binnen ligt. Het is alleen voor de tekening en de bladen;
+  de regeling leest het niet.
+- Je kiest het bij Kamers en indeling › Buiten, onderaan, als er een
+  thuisaccu is. In de garage kan alleen als de garage aan staat.
+- De tekening zet hem aan de gevel zoals huis 3.0 al kon, plat tegen de
+  voorgevel van de garage naast de kanteldeur, of als witte kast tegen de
+  achterwand van de kamer. De strook zegt hoe vol hij is.
+- In de garage staat hij op Thuis ook in het blad van de garage, met de auto
+  als die in de garage staat.
+
+**Bewust niet (nog).** De stromen van en naar de accu in de tekening; die
+tekent de app nog nergens. Een accu die uit losse sensoren bestaat (issue 145)
+volgt apart.
 
 ## Wat nog een besluit wacht
 

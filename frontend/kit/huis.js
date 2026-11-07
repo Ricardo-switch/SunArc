@@ -721,7 +721,8 @@
      */
     const eiland = eilandVan(model, W, opts);
     /** Waar de batterij staat: op het eiland (huis 3.0) dun aan de zijgevel achteraan, ver van de buitenunit voorin. */
-    const accuPlek = eiland ? { x: W + 0.02, y: 0.12, wand: true } : { x: W + 0.02, y: D - 0.75 };
+    // In de garage (besluit 270): plat tegen de voorgevel van de garage, rechts naast de kanteldeur.
+    const accuPlek = model.batterij?.plek === 'garage' && model.garage ? { x: -1.3, y: -0.5, garage: true } : eiland ? { x: W + 0.02, y: 0.12, wand: true } : { x: W + 0.02, y: D - 0.75 };
 
     /** Waar de kabel van het net het perceel in komt: aan de straat, voor de meterkast. */
     const netStraat = eiland ? [eiland.x0 + 0.45, eiland.yF - 0.28] : voordeur ? [Math.max(0.2, voordeur.x0 - 0.35), D + 1.8] : [-0.6, D + 1.1];
@@ -1208,7 +1209,8 @@
       plek.oprit = [-1.95, D - 0.2, 0.2];
       plek.garage = [-2.0, -1.25, 1.15];
     }
-    if (model.batterij || spook(model, 'batterij')) bouwBatterij(model.batterij, spook(model, 'batterij'));
+    // In de garage zonder eiland komt de accu na de garage, anders tekent die eroverheen.
+    if ((model.batterij || spook(model, 'batterij')) && !(accuPlek.garage && !eiland)) bouwBatterij(model.batterij, spook(model, 'batterij'));
     // Op het eiland (huis 3.0) heeft de tuin een vaste indeling, met het terras erin.
     if (model.tuin && eiland) bouwTuin3(model.tuin);
     else if (model.tuin) bouwTuin(model.tuin);
@@ -1221,6 +1223,7 @@
     if (model.oprit?.camera) bouwCamera(model.oprit.camera);
     // Een losse garage achter de oprit, en een carport boven de auto (besluit 166); ook zonder dak (besluit 193).
     if (model.garage && !eiland) bouwGarage(model.garage);
+    if (model.batterij && accuPlek.garage && !eiland) bouwBatterij(model.batterij, false);
     if (model.oprit?.carport) bouwCarport();
     if (model.net) bouwNet();
 
@@ -1773,6 +1776,19 @@
         const yv = cy + r0 + 0.002;
         huis.push(poly([[cx - 0.035, yv, z0 + 0.14], [cx + 0.035, yv, z0 + 0.14], [cx + 0.035, yv, z0 + bh - 0.1], [cx - 0.035, yv, z0 + bh - 0.1]], 'fill="#9aa7b4"'));
         huis.push(poly([[cx - 0.035, yv + 0.001, z0 + 0.14], [cx + 0.035, yv + 0.001, z0 + 0.14], [cx + 0.035, yv + 0.001, z0 + 0.14 + (bh - 0.24) * pct], [cx - 0.035, yv + 0.001, z0 + 0.14 + (bh - 0.24) * pct]], `fill="${app.aan ? KLEUR.gloed : '#ff9a6b'}" ${app.aan ? 'class="sc-puls"' : ''}`));
+      } else if (app.soort === 'thuisaccu') {
+        // De thuisaccu binnen (besluit 270): een witte kast tegen de achterwand, rechts, met een strook die zegt hoe vol hij is.
+        const ax = Math.max(x0 + 0.1, x1 - 0.42);
+        const az = z0 + 0.04;
+        const ah = Math.max(0.3, Math.min(0.72, (hoog(ax + 0.13) - z0) * 0.7));
+        plek.thuisaccu = [ax + 0.13, 0.1, az + ah];
+        plek.batterij ??= plek.thuisaccu;
+        blok(ax, ax + 0.26, 0.02, 0.18, az, az + ah);
+        huis.push(doos(ax, 0.02, az, 0.26, 0.16, ah, ['#eef2f5', '#e1e7ec', '#c3ccd5']));
+        const vol = Math.max(0.05, Math.min(1, app.vol ?? 0.5));
+        const yv = 0.181;
+        huis.push(poly([[ax + 0.1, yv, az + 0.1], [ax + 0.16, yv, az + 0.1], [ax + 0.16, yv, az + ah - 0.1], [ax + 0.1, yv, az + ah - 0.1]], 'fill="#5c6977"'));
+        huis.push(poly([[ax + 0.1, yv + 0.001, az + 0.1], [ax + 0.16, yv + 0.001, az + 0.1], [ax + 0.16, yv + 0.001, az + 0.1 + (ah - 0.2) * vol], [ax + 0.1, yv + 0.001, az + 0.1 + (ah - 0.2) * vol]], `fill="${KLEUR.mint}" ${app.aan ? 'class="sc-puls"' : ''}`));
       } else if (app.soort === 'tv') {
         huis.push(poly([[x0 + 0.3, 0.03, z0 + 0.45], [x0 + 1.1, 0.03, z0 + 0.45], [x0 + 1.1, 0.03, z0 + 0.9], [x0 + 0.3, 0.03, z0 + 0.9]], `fill="${app.aan ? '#3d6fb0' : '#0b0f14'}" stroke="#2c3642"`));
       } else if (app.soort === 'bank') {
@@ -2146,12 +2162,20 @@
       const { x, y } = accuPlek;
       // Bij de garage staat hij achter het huis: dan eerder getekend.
       const laag = x < 0 ? buitenAchter : buiten;
-      plek.batterij = accuPlek.wand ? [x + 0.12, y + 0.23, 0.9] : [x + 0.32, y + 0.28, 1.0];
+      plek.batterij = accuPlek.garage ? [x + 0.085, y + 0.06, 0.6] : accuPlek.wand ? [x + 0.12, y + 0.23, 0.9] : [x + 0.32, y + 0.28, 1.0];
       if (isSpook) {
         laag.push(`<g opacity="0.7">${poly([[x + 0.3, y, 0], [x + 0.3, y + 0.55, 0], [x + 0.3, y + 0.55, 1.1], [x + 0.3, y, 1.1]], `fill="none" stroke="${KLEUR.mint}" stroke-dasharray="4 4"`)}</g>`);
         return;
       }
       const pct = (b.procent ?? 50) / 100;
+      if (accuPlek.garage) {
+        // In de garage (besluit 270): dun tegen de voorgevel, met de strook naar voren.
+        laag.push(doos(x, y, 0.12, 0.17, 0.06, 0.72, ['#e6ecf1', '#eef2f5', '#cdd6de']));
+        const yv = y + 0.061;
+        laag.push(poly([[x + 0.06, yv, 0.2], [x + 0.11, yv, 0.2], [x + 0.11, yv, 0.76], [x + 0.06, yv, 0.76]], 'fill="#5c6977"'));
+        laag.push(poly([[x + 0.06, yv + 0.001, 0.2], [x + 0.11, yv + 0.001, 0.2], [x + 0.11, yv + 0.001, 0.2 + 0.56 * pct], [x + 0.06, yv + 0.001, 0.2 + 0.56 * pct]], `fill="${KLEUR.mint}" ${b.stand !== 'rust' ? 'class="sc-puls"' : ''}`));
+        return;
+      }
       if (accuPlek.wand) {
         // Aan de muur: dun, iets van de grond, met de strook op de kant die je ziet.
         laag.push(doos(x, y, 0.12, 0.12, 0.46, 0.82, ['#e6ecf1', '#cdd6de', '#eef2f5']));

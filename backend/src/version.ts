@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.143.0';
+export const VERSIE = '0.144.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,30 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.144.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Je thuisaccu staat nu in de tekening, op zijn plek: aan de gevel, in de garage of binnen in een kamer. Je kiest het bij Kamers en indeling › Buiten',
+      'Staat de accu in de garage, dan zie je op Thuis in het blad van de garage hoe vol hij is en wat hij doet, met de auto als die in de garage staat',
+    ],
+    en: {
+      nieuw: [
+        'Your home battery now shows in the drawing, in its place: on the outside wall, in the garage or inside in a room. You pick it in Rooms and layout › Outside',
+        'If the battery is in the garage, the garage sheet on Home shows how full it is and what it does, with the car if it is in the garage',
+      ],
+    },
+    meldingen: [
+      {
+        code: 'SA-XSNV',
+        uitkomst: 'opgelost',
+        tekst: 'Je thuisaccu kan nu in de garage staan, of binnen in een kamer. Kies het bij Kamers en indeling › Buiten, onderaan bij Waar staat je accu.',
+        tekstEn: 'Your home battery can now be in the garage, or inside in a room. Pick it in Rooms and layout › Outside, at the bottom under Where is your battery.',
+        href: 'indeling.html#buiten',
+        issue: 123,
+      },
+    ],
+  },
   {
     versie: '0.143.0',
     datum: '2026-11-07',
