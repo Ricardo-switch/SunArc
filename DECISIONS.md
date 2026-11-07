@@ -268,6 +268,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [270. De thuisaccu staat in de tekening, op de plek die de bewoner kiest](#270-de-thuisaccu-staat-in-de-tekening-op-de-plek-die-de-bewoner-kiest)
 - [271. Een thuisaccu zelf kiezen bij Energie, ook uit losse sensoren](#271-een-thuisaccu-zelf-kiezen-bij-energie-ook-uit-losse-sensoren)
 - [273. De stromen van en naar de thuisaccu in de tekening en bij Nu](#273-de-stromen-van-en-naar-de-thuisaccu-in-de-tekening-en-bij-nu)
+- [275. Meer thuisaccu's samen, met hun maat en wat ze leverden](#275-meer-thuisaccus-samen-met-hun-maat-en-wat-ze-leverden)
 
 **Veiligheid**
 
@@ -12763,6 +12764,37 @@ zegt (besluit 267); dat echte besluit mag nog niet veranderen.
 **Bewust niet (nog).** Het echt laten tellen: dat is een keuze na een tijd in de
 schaduw, net als stap B (besluit 64). Doorgeven aan de accu hoeveel er over is
 (besluit 85): SunArc stuurt de accu niet.
+
+## 275. Meer thuisaccu's samen, met hun maat en wat ze leverden
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, versie 0.149.0, stap 5 van de thuisaccu-ronde (besluit 271).
+
+**Waarom.** Het huis kende één accu: de eerste die paste. Een tweede viel weg.
+En zonder de maat in kWh kon de app niet zeggen hoeveel erin zit of hoe lang hij
+nog kan; weinig koppelingen geven die maat.
+
+**Wat.**
+
+- **Meer accu's:** elke accu die aan staat telt. Op Thuis en bij Apparaten één
+  kaart samen ("2 batterijen"), met bij Apparaten per accu een regel met hoe vol
+  hij is, wat hij doet en met hoeveel. Samen is het vermogen opgeteld, en de
+  lading naar hun maat als elke maat bekend is, anders het gemiddelde
+  (`opslag.batterij` samen, `opslag.batterijen` elk apart). Het verbruik van nu
+  en Opbrengst telden ze al allemaal (besluit 272).
+- **De maat:** bij Energie › Thuisaccu per accu, 1 tot 200 kWh, zoals bij de
+  auto. Daarmee: hoeveel kWh erin zit, hoe laat hij vol is als hij laadt (bij
+  dit vermogen, hooguit een dag vooruit), en hoe lang hij het huis nog voedt als
+  hij levert (hooguit twee dagen). Het zinnetje bij Energie zegt de maat samen.
+- **Wat hij leverde:** bij Wat je huis kan wat de accu deze maand aan het huis
+  leverde, uit Opbrengst; met een stroomprijs ook wat het deel uit eigen zon
+  vanaf 2027 ongeveer waard is, met de prijs van na het salderen zoals bij
+  besluit 230. Tot 2027 levert een accu met salderen weinig op; dat zegt de app
+  niet anders.
+
+**Bewust niet (nog).** Een eigen pagina per accu, zoals de auto. De plek in de
+tekening (besluit 270) geldt voor alle accu's samen.
 
 ## Wat nog een besluit wacht
 

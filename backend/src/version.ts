@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.148.0';
+export const VERSIE = '0.149.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.149.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Meer dan één thuisaccu: ze staan samen op één kaart, met per accu een regel met hoe vol hij is en wat hij doet',
+      'Bij Energie › Thuisaccu vul je de maat van je accu in. Dan zie je hoeveel kWh erin zit, hoe laat hij vol is als hij laadt, en hoe lang hij het huis nog voedt als hij levert',
+      'Bij Wat je huis kan staat wat je accu deze maand aan het huis leverde, en wat dat vanaf 2027 ongeveer waard is',
+    ],
+    en: {
+      nieuw: [
+        'More than one home battery: they share one card, with a line per battery for how full it is and what it does',
+        'In Energy › Home battery you fill in the size of your battery. Then you see how many kWh are in it, when it is full while charging, and how long it can still power the home while delivering',
+        'What your house can do shows what your battery delivered to the home this month, and roughly what that is worth from 2027',
+      ],
+    },
+  },
   {
     versie: '0.148.0',
     datum: '2026-11-07',

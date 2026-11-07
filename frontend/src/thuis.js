@@ -804,9 +804,14 @@ function tekenLading() {
   // Elke kaart een eigen naam voor zijn tekening: een verborgen kaart mag de andere niet kleuren.
   zetKaart('[data-auto]', 'auto', (i) => a ? `${vol(`${kaartKop('auto', a.naam)}${autoMeter(a, autoZin + bereik, `thuis-auto-${i}`)}`)}${tegel({ id: 'auto', naam: a.naam, waarde: a.pct == null ? '–' : `${getal(a.pct, 0)}%`, zin: autoZin + bereik, toon: a.laadt ? 'var(--mint-t)' : '', beeld: ring(a.pct, a.laadt ? 'var(--mint)' : 'var(--net)') })}` : '', !!a);
   zetAdvies();
-  const b = huisData?.opslag?.batterij ?? null;
+  const b0 = huisData?.opslag?.batterij ?? null;
+  // Meer accu's samen (besluit 275): één kaart, met hoeveel het er zijn.
+  const n = huisData?.opslag?.batterijen?.length ?? 0;
+  const b = b0 && n > 1 ? { ...b0, naam: t('apparaten.accuSamen', { n }) } : b0;
   const st = b?.stand;
-  const bZin = st === 'laadt' ? t('thuis.lading.laadtMet', { kw: kw(b.vermogenW) }) : st === 'levert' ? t('thuis.lading.levert', { kw: kw(b.vermogenW) }) : st === 'rust' ? t('thuis.lading.rust') : '';
+  // Met de maat: hoe laat hij vol is, of hoe lang hij het huis nog voedt.
+  const bErbij = b?.volOm ? ` · ${t('apparaten.accuVolOm', { tijd: klokVan(Date.parse(b.volOm)) })}` : b?.urenNog != null ? ` · ${t('apparaten.accuUren', { uren: getal(b.urenNog) })}` : '';
+  const bZin = (st === 'laadt' ? t('thuis.lading.laadtMet', { kw: kw(b.vermogenW) }) : st === 'levert' ? t('thuis.lading.levert', { kw: kw(b.vermogenW) }) : st === 'rust' ? t('thuis.lading.rust') : '') + (st ? bErbij : '');
   const bKleur = st === 'laadt' ? 'var(--zon)' : st === 'levert' ? 'var(--violet)' : 'var(--net)';
   zetKaart('[data-batterij]', 'batterij', b ? `${vol(`${kaartKop('batterij', b.naam)}${lading(b.pct, bKleur, bZin, app.tekstKleur(st === 'rust' || !st ? 'var(--zacht)' : bKleur))}`)}${tegel({ id: 'batterij', naam: b.naam, waarde: b.pct == null ? '–' : `${getal(b.pct, 0)}%`, zin: bZin, toon: st === 'rust' || !st ? '' : app.tekstKleur(bKleur), beeld: staaf(b.pct, st === 'levert' ? 'var(--violet)' : 'var(--mint)') })}` : '', !!b);
   tekenBoiler();

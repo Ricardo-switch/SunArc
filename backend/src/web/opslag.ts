@@ -43,6 +43,17 @@ export interface Thuisbatterij {
   /** Het vermogen in watt: positief is laden, negatief is leveren aan het huis. */
   readonly vermogenW: number | null;
   readonly stand: 'laadt' | 'levert' | 'rust' | null;
+  /*
+   * Met de maat in kWh (besluit 275), alleen als de bewoner hem invulde.
+   */
+  /** De maat in kWh; bij meer accu's samen. */
+  readonly maatKWh?: number;
+  /** Hoeveel kWh er nu in zit. */
+  readonly nogKWh?: number | null;
+  /** Hoe laat hij vol is bij dit vermogen (ISO), als hij laadt. */
+  readonly volOm?: string | null;
+  /** Hoeveel uur hij het huis nog kan voeden bij dit vermogen, als hij levert. */
+  readonly urenNog?: number | null;
 }
 
 /** Waar een auto in de tekening staat (besluit 259, idee 123). */
@@ -104,6 +115,8 @@ export interface AccuInstelling {
   /** Hoeveel hij in totaal laadde en leverde, in kWh. */
   readonly geladen?: string | null;
   readonly geleverd?: string | null;
+  /** De maat in kWh, zoals in de papieren van de accu (besluit 275). */
+  readonly maatKWh?: number | null;
 }
 
 export const ACCU_TEKENS = ['laden', 'leveren'] as const;
@@ -138,6 +151,8 @@ export interface AccuApparaat {
   /** Wat hij nu doet, met het teken toegepast: plus is laden. */
   readonly pct: number | null;
   readonly vermogenW: number | null;
+  /** De maat in kWh, als de bewoner hem invulde (besluit 275). */
+  readonly maatKWh: number | null;
 }
 
 /** Een sensor om uit te kiezen bij Energie › Thuisaccu: een lading, een vermogen of een totaal in kWh. */
@@ -160,7 +175,10 @@ export interface AccuView {
 }
 
 export interface Opslag {
+  /** De thuisaccu, of bij meer accu's ze samen (besluit 275); null zonder. */
   readonly batterij: Thuisbatterij | null;
+  /** Bij meer dan één accu: elk apart (besluit 275). */
+  readonly batterijen?: readonly Thuisbatterij[];
   /** De eerste auto, voor de kaart op Thuis en bij Apparaten; null zonder auto of laadpaal. */
   readonly auto: Auto | null;
   /** Alle auto's (besluit 259); een laadpaal zonder auto telt als auto. */
@@ -447,6 +465,7 @@ interface AccuBron {
   readonly ontlaadVermogen: string | null;
   readonly pct: number | null;
   readonly vermogenW: number | null;
+  readonly maatKWh: number | null;
 }
 
 /**
@@ -505,6 +524,7 @@ function accuBronnen(l: ReturnType<typeof lezer>, states: ReadonlyMap<string, Ha
       ontlaadVermogen,
       pct: lading != null && lading >= 0 && lading <= 100 ? lading : null,
       vermogenW: w == null ? null : Math.round(w) || 0,
+      maatKWh: ins.maatKWh ?? null,
     });
   }
   return lijst;
@@ -570,6 +590,7 @@ export function accuView(registers: Registers, states: ReadonlyMap<string, HaEnt
         ontlaadVermogen: b.ontlaadVermogen,
         pct: b.pct,
         vermogenW: b.vermogenW,
+        maatKWh: b.maatKWh,
       }))
       .sort((x, y) => Number(x.zelf) - Number(y.zelf) || x.naam.localeCompare(y.naam, 'nl')),
     kandidaten,
@@ -614,7 +635,9 @@ export function leesAccu(raw: unknown): { keuze: AccuKeuze | null } | { fout: st
     }
     const teken = i['teken'] ?? null;
     if (teken !== null && !ACCU_TEKENS.includes(teken as AccuTeken)) return { fout: 'thuisaccu: plus is laden of leveren' };
-    const ins = { ...uit, ...(teken ? { teken: teken as AccuTeken } : {}) };
+    const maat = i['maatKWh'] ?? null;
+    if (maat !== null && (typeof maat !== 'number' || !Number.isFinite(maat) || maat < 1 || maat > 200)) return { fout: 'de thuisaccu is 1 tot 200 kWh' };
+    const ins = { ...uit, ...(teken ? { teken: teken as AccuTeken } : {}), ...(maat !== null ? { maatKWh: Math.round((maat as number) * 10) / 10 } : {}) };
     if (Object.keys(ins).length) instelling[id] = ins;
   }
   if (!Object.keys(aan).length && !zelf.length && !Object.keys(instelling).length) return { keuze: null };
@@ -651,14 +674,24 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
     return s == null || s.state === 'unavailable' || s.state === 'unknown' ? null : s.state === 'on';
   };
 
-  /* ---- de thuisbatterij: de eerste die aan staat (besluit 271) ---- */
+  /* ---- de thuisbatterij: elke accu die aan staat, en ze samen (besluit 271, 275) ---- */
   // Wat de bewoner als auto of laadpaal koos, is geen thuisbatterij.
-  const accu = accuBronnen(l, states, keuze, accuKeuze).find((b) => b.aan) ?? null;
-  let batterij: Thuisbatterij | null = null;
-  if (accu) {
-    const w = accu.vermogenW;
-    const stand = w == null ? null : w > RUST_W ? 'laadt' : w < -RUST_W ? 'levert' : 'rust';
-    batterij = { id: accu.bron.device.id, naam: accu.bron.device.name_by_user || 'De batterij', pct: accu.pct, vermogenW: w, stand };
+  const accus = accuBronnen(l, states, keuze, accuKeuze).filter((b) => b.aan);
+  const batterijen = accus.map((a) => accuStand(a.bron.device.id, accus.length === 1 ? a.bron.device.name_by_user || 'De batterij' : naamVanApparaat(a.bron.device), a.pct, a.vermogenW, a.maatKWh, nu));
+  let batterij: Thuisbatterij | null = batterijen[0] ?? null;
+  if (accus.length > 1) {
+    // Samen: het vermogen opgeteld, de lading naar hun maat als elke maat bekend is, anders het gemiddelde.
+    const maten = accus.map((a) => a.maatKWh);
+    const alleMaten = maten.every((m): m is number => m != null);
+    const metPct = accus.filter((a) => a.pct != null);
+    const pct = !metPct.length
+      ? null
+      : alleMaten
+        ? metPct.reduce((s, a) => s + a.pct! * a.maatKWh!, 0) / metPct.reduce((s, a) => s + a.maatKWh!, 0)
+        : metPct.reduce((s, a) => s + a.pct!, 0) / metPct.length;
+    const ws = accus.map((a) => a.vermogenW).filter((w): w is number => w != null);
+    const w = ws.length ? ws.reduce((s, x) => s + x, 0) : null;
+    batterij = accuStand(accus[0]!.bron.device.id, 'De batterijen', pct == null ? null : Math.round(pct), w, alleMaten ? maten.reduce((s, m) => s + m!, 0) : null, nu);
   }
 
   /* ---- de auto's, met hun laadpaal; een laadpaal zonder auto is de auto ---- */
@@ -847,7 +880,31 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
   const autos: Auto[] = wagens.length
     ? wagens.map((w) => maak(w, paalVan(w.id) ?? null, w.naam))
     : palen.map((p) => maak(null, p, palen.length === 1 ? 'De auto' : p.naam));
-  return { opslag: { batterij, auto: autos[0] ?? null, autos }, meters, bedieningen };
+  return { opslag: { batterij, ...(batterijen.length > 1 ? { batterijen } : {}), auto: autos[0] ?? null, autos }, meters, bedieningen };
+}
+
+/**
+ * Wat een accu nu doet (besluit 271, 275): de stand uit het vermogen, en met de
+ * maat ook hoeveel erin zit, hoe laat hij vol is als hij laadt, en hoe lang hij
+ * het huis nog voedt als hij levert.
+ */
+function accuStand(id: string, naam: string, pct: number | null, w: number | null, maat: number | null, nu: Date): Thuisbatterij {
+  const stand = w == null ? null : w > RUST_W ? 'laadt' : w < -RUST_W ? 'levert' : 'rust';
+  const basis: Thuisbatterij = { id, naam, pct, vermogenW: w, stand };
+  if (maat == null) return basis;
+  const nogKWh = pct == null ? null : Math.round((pct / 100) * maat * 10) / 10;
+  let volOm: string | null = null;
+  let urenNog: number | null = null;
+  if (pct != null && w != null && stand === 'laadt' && pct < 100) {
+    const uren = (((100 - pct) / 100) * maat) / (w / 1000);
+    const vijf = 5 * 60_000;
+    if (uren <= 24) volOm = new Date(Math.ceil((nu.getTime() + uren * 3_600_000) / vijf) * vijf).toISOString();
+  }
+  if (nogKWh != null && w != null && stand === 'levert') {
+    const uren = nogKWh / (-w / 1000);
+    urenNog = uren <= 48 ? Math.round(uren * 10) / 10 : null;
+  }
+  return { ...basis, maatKWh: maat, nogKWh, volOm, urenNog };
 }
 
 /** Is evcc er? Dan regelt evcc het laden. */

@@ -350,6 +350,21 @@ function accuSchaduwZin() {
   return a.zou.length ? t('apparaten.accuSchaduw', { kw, wat }) : t('apparaten.accuSchaduwNiets', { kw });
 }
 
+/** Met de maat (besluit 275): hoeveel kWh erin zit, en hoe laat hij vol is of hoe lang hij het huis nog voedt. */
+function accuMaatZin(b) {
+  if (b?.maatKWh == null || b.nogKWh == null) return '';
+  const deel = t('apparaten.accuNog', { nog: nl(b.nogKWh), maat: nl(b.maatKWh, b.maatKWh % 1 ? 1 : 0) });
+  const erbij = b.volOm ? t('apparaten.accuVolOm', { tijd: window.taal.klok(Date.parse(b.volOm)) }) : b.urenNog != null ? t('apparaten.accuUren', { uren: nl(b.urenNog) }) : '';
+  return [deel, erbij].filter(Boolean).join(' · ');
+}
+
+/** Bij meer accu's (besluit 275): elk een regel met hoe vol en wat hij doet. */
+function accuRegels(lijst) {
+  if (!lijst || lijst.length < 2) return '';
+  const doet = (b) => (b.stand === 'laadt' ? t('thuis.lading.laadt') : b.stand === 'levert' ? t('apparaten.levert') : b.stand === 'rust' ? t('thuis.lading.rust') : '');
+  return `<div class="accuregels">${lijst.map((b) => `<div class="accuregel"><b>${esc(b.naam)}</b><span>${esc([b.pct != null ? `${nl(b.pct, 0)}%` : null, doet(b), b.vermogenW != null && Math.abs(b.vermogenW) >= 50 ? `${nl(Math.abs(b.vermogenW) / 1000)} kW` : null].filter(Boolean).join(' · '))}</span></div>`).join('')}</div>`;
+}
+
 function ladingKaart(soort, o) {
   const w = o.vermogenW;
   const kw = w != null && Math.abs(w) >= 50 ? `${nl(Math.abs(w) / 1000)}<span>${esc(t(soort === 'batterij' && w < 0 ? 'apparaten.kwNaarHuis' : 'apparaten.kwLaden'))}</span>` : '–<span>kW</span>';
@@ -361,7 +376,9 @@ function ladingKaart(soort, o) {
   const pct = o.pct == null ? null : Math.max(0, Math.min(100, o.pct));
   const zin = soort === 'auto'
     ? [o.bereikKm != null ? t('apparaten.bereik', { km: nl(o.bereikKm, 0) }) : '', o.pct == null ? t('apparaten.laadpaal') : ''].filter(Boolean).join(' ')
-    : accuSchaduwZin() ?? t('apparaten.batterijKijkt');
+    : [accuMaatZin(o), accuSchaduwZin() ?? t('apparaten.batterijKijkt')].filter(Boolean).join(' ');
+  const lijstAccus = soort === 'batterij' ? huisData?.opslag?.batterijen : null;
+  const naam = lijstAccus?.length > 1 ? t('apparaten.accuSamen', { n: lijstAccus.length }) : o.naam;
   // De auto opent zijn eigen pagina (besluit 259, stap 2).
   const el = document.createElement(soort === 'auto' ? 'a' : 'div');
   if (soort === 'auto') el.href = `auto.html#${encodeURIComponent(o.id)}`;
@@ -369,10 +386,11 @@ function ladingKaart(soort, o) {
   el.dataset.lading = soort;
   el.dataset.actief = String(soort === 'auto' ? !!o.laadt : o.stand === 'laadt' || o.stand === 'levert');
   el.innerHTML = `
-    <div class="kopje"><span class="ik">${LADING_IK[soort]}</span><div><b>${esc(o.naam)}</b><span class="mini">${esc(t(soort === 'auto' ? 'thuis.kaart.auto' : 'apparaten.thuisbatterij'))}</span></div><div class="kw">${kw}</div></div>
+    <div class="kopje"><span class="ik">${LADING_IK[soort]}</span><div><b>${esc(naam)}</b><span class="mini">${esc(t(soort === 'auto' ? 'thuis.kaart.auto' : 'apparaten.thuisbatterij'))}</span></div><div class="kw">${kw}</div></div>
     <div class="stand"><i style="background: ${kleur}"></i>${esc(tekst)}</div>
     <div class="vandaag"><span>${esc(t('apparaten.lading'))}</span><b>${pct == null ? esc(t('apparaten.onbekendKlein')) : `${nl(pct, 0)}%`}</b></div>
     <div class="verdeel"><i style="width: ${pct ?? 0}%; background: ${kleur}"></i></div>
+    ${accuRegels(lijstAccus)}
     ${zin ? `<p class="mini zin">${esc(zin)}</p>` : ''}`;
   return el;
 }

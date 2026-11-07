@@ -419,3 +419,48 @@ describe('Energie › Thuisaccu: zelf kiezen, ook uit losse sensoren (besluit 27
     expect(leesAccu({ zelf: 'homey' })).toHaveProperty('fout');
   });
 });
+
+describe('meer accu’s, met hun maat (besluit 275)', () => {
+  const nu = new Date('2026-11-07T12:00:00Z');
+  const sessy: HaDevice = { id: 'sessy', area_id: null, name: 'Sessy', manufacturer: 'Charged', model: 'Sessy' };
+  const zendure: HaDevice = { id: 'zendure', area_id: null, name: 'Zendure', manufacturer: 'Zendure', model: 'SolarFlow' };
+  const metingen = (sessyW: string, zendureW: string): Meting[] => [
+    { id: 'sensor.sessy_soc', klasse: 'battery', staat: '50', eenheid: '%', platform: 'sessy', apparaat: 'sessy' },
+    { id: 'sensor.sessy_power', klasse: 'power', staat: sessyW, eenheid: 'W', naam: 'Sessy battery power', platform: 'sessy', apparaat: 'sessy' },
+    { id: 'sensor.zendure_soc', klasse: 'battery', staat: '80', eenheid: '%', platform: 'zendure_ha', apparaat: 'zendure' },
+    { id: 'sensor.zendure_power', klasse: 'power', staat: zendureW, eenheid: 'W', naam: 'Zendure battery power', platform: 'zendure_ha', apparaat: 'zendure' },
+  ];
+  const maat = (s: number | null, z: number | null): AccuKeuze => ({ aan: {}, zelf: [], instelling: { ...(s ? { sessy: { maatKWh: s } } : {}), ...(z ? { zendure: { maatKWh: z } } : {}) } });
+
+  it('telt twee accu’s samen, met elk een eigen regel', () => {
+    const { reg, states } = registers([sessy, zendure], metingen('1000', '500'));
+    const o = vindOpslag(reg, states, null, nu, maat(10, 2.5));
+    expect(o.batterijen?.map((b) => [b.naam, b.pct, b.vermogenW, b.stand])).toEqual([['Sessy', 50, 1000, 'laadt'], ['Zendure', 80, 500, 'laadt']]);
+    // Samen: 12,5 kWh, de lading naar hun maat (5 + 2 = 7 kWh is 56%), 1,5 kW laden.
+    expect(o.batterij).toMatchObject({ naam: 'De batterijen', pct: 56, vermogenW: 1500, stand: 'laadt', maatKWh: 12.5, nogKWh: 7 });
+    // Zonder alle maten: het gemiddelde, en geen kWh.
+    const zonder = vindOpslag(reg, states, null, nu, maat(10, null));
+    expect(zonder.batterij).toEqual({ id: 'sessy', naam: 'De batterijen', pct: 65, vermogenW: 1500, stand: 'laadt' });
+    // Eén accu uit: dan is de ander de accu, zonder lijst.
+    const een = vindOpslag(reg, states, null, nu, { ...maat(10, 2.5), aan: { zendure: false } });
+    expect(een.batterijen).toBeUndefined();
+    expect(een.batterij).toMatchObject({ id: 'sessy', pct: 50, maatKWh: 10, nogKWh: 5 });
+  });
+
+  it('zegt met de maat hoe laat hij vol is, en hoe lang hij het huis nog voedt', () => {
+    const { reg, states } = registers([sessy], metingen('2500', '0').slice(0, 2));
+    // De helft van 10 kWh met 2,5 kW: over twee uur vol.
+    expect(vindOpslag(reg, states, null, nu, maat(10, null)).batterij).toMatchObject({ volOm: '2026-11-07T14:00:00.000Z', urenNog: null });
+    const levert = registers([sessy], metingen('-1000', '0').slice(0, 2));
+    // 5 kWh met 1 kW naar het huis: nog vijf uur.
+    expect(vindOpslag(levert.reg, levert.states, null, nu, maat(10, null)).batterij).toMatchObject({ volOm: null, urenNog: 5 });
+    // Zonder maat geen van beide.
+    expect(vindOpslag(reg, states, null, nu).batterij).not.toHaveProperty('volOm');
+  });
+
+  it('neemt de maat aan tussen 1 en 200 kWh', () => {
+    expect(leesAccu({ instelling: { sessy: { maatKWh: 10.04 } } })).toEqual({ keuze: { aan: {}, zelf: [], instelling: { sessy: { maatKWh: 10 } } } });
+    expect(leesAccu({ instelling: { sessy: { maatKWh: 900 } } })).toHaveProperty('fout');
+    expect(leesAccu({ instelling: { sessy: { maatKWh: 'tien' } } })).toHaveProperty('fout');
+  });
+});

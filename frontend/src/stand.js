@@ -159,6 +159,23 @@
    * stroomprijs en wat je voor teruglevering krijgt, plus de terugleverkosten.
    * Per maand: het gemiddelde over het jaar. Een schatting.
    */
+  /**
+   * Een thuisaccu die het huis al heeft (besluit 275): hoe vol, en wat hij deze
+   * maand aan het huis leverde uit Opbrengst; met een stroomprijs ook wat dat
+   * vanaf 2027 ongeveer waard is, zonder salderen.
+   */
+  function accuLeverde(d, accu) {
+    const a = d.opbrengst?.accu;
+    const pct = accu.pct != null ? Math.round(accu.pct) : null;
+    if (!a || a.geleverdKwh < 1) return pct != null ? t('kan.batterij.heeft', { pct }) : t('kan.batterij.gevonden');
+    const p = d.energie?.instellingen?.prijzen;
+    const na2027 = p?.stroom == null ? null : p.stroom - (p.vanaf2027?.vergoeding ?? 0) + (p.vanaf2027?.kosten ?? 0);
+    const zonDeel = a.geladenKwh > 0 ? a.uitZonKwh / a.geladenKwh : 1;
+    const euro = na2027 != null && na2027 > 0 ? Math.round(a.geleverdKwh * zonDeel * na2027) : null;
+    const kwh = global.taal.getal(a.geleverdKwh, 0);
+    return euro != null && euro >= 1 ? t('kan.batterij.leverdeEuro', { kwh, euro }) : t('kan.batterij.leverde', { kwh });
+  }
+
   function batterijSom(d) {
     const a = d.accu;
     const p = d.energie?.instellingen?.prijzen;
@@ -367,7 +384,7 @@
       }),
       // Kosten
       thuisAccu
-        ? { ...teksten('batterij'), groep: 'kosten', stand: meekijk, nu: thuisAccu.pct != null ? t('kan.batterij.heeft', { pct: Math.round(thuisAccu.pct) }) : t('kan.batterij.gevonden'), href: 'apparaten.html#batterij' }
+        ? { ...teksten('batterij'), groep: 'kosten', stand: meekijk, nu: accuLeverde(d, thuisAccu), href: 'apparaten.html#batterij' }
         : { ...teksten('batterij'), groep: 'kosten', stand: 'nodig', label: t('kan.batterij.nodig'), nu: accu ? t('kan.batterij.som', { euro: accu.euro, kwh: global.taal.getal(accu.kwh, accu.kwh % 1 ? 1 : 0) }) : t('kan.idee.batterijZin'), href: 'opbrengst.html', som: accu },
       ...(d.aansluiting?.antwoorden?.tarief !== 'dynamisch' ? [{ ...teksten('goedkoop'), groep: 'kosten', stand: 'nodig', label: t('kan.goedkoop.nodig'), nu: t('kan.goedkoop.nu'), href: 'energie.html#prijzen' }] : []),
       { ...teksten('auto'), groep: 'kosten', stand: 'nodig', label: t('kan.auto.nodig'), nu: t('kan.auto.nu'), href: 'opbrengst.html' },

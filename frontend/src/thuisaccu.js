@@ -28,7 +28,11 @@ const thuisaccu = (() => {
   function kortZin(info) {
     if (!info?.accu) return null;
     const n = aan(info).length;
-    return n ? t('accu.nAccus', { n }) : t('accu.nietsKort');
+    if (!n) return t('accu.nietsKort');
+    // Met de maat erbij als die van elke accu bekend is (besluit 275).
+    const maten = aan(info).map((x) => x.maatKWh);
+    const samen = maten.every((m) => m != null) ? maten.reduce((s, m) => s + m, 0) : null;
+    return samen != null ? t('accu.nAccusMaat', { n, kwh: nl(samen, samen % 1 ? 1 : 0) }) : t('accu.nAccus', { n });
   }
 
   const ik = () => `<span class="ld-ik" style="color: var(--mint)">${iconen.svg('accu')}</span>`;
@@ -92,6 +96,8 @@ const thuisaccu = (() => {
     const weg = x.zelf ? `<button type="button" class="knop" data-accu="weg" data-id="${esc(x.id)}" style="align-self: start">${esc(t('accu.weghalen'))}</button>` : '';
     return `<div class="ld-vraag"><b>${esc(t('accu.welkeSensor'))}</b><div class="ac-sensoren">${ROLLEN.map((r) => sensorKeuze(info, x, r)).join('')}</div></div>
       <div class="ld-vraag"><b>${esc(t('accu.plusKop'))}</b>${teken}<span class="ac-nu"><i style="background: ${nu.kleur}"></i>${esc(nu.zin)}</span></div>
+      <label class="veldnaam">${esc(t('accu.maat'))}<span class="ld-met ac-maat"><input class="invoer" type="number" inputmode="decimal" min="1" max="200" step="0.1" data-accu-maat="${esc(x.id)}" value="${x.maatKWh ?? ''}" placeholder="${esc(t('accu.maatVoorbeeld'))}"><span>kWh</span></span></label>
+      <p class="mini" style="margin-top: -6px">${esc(t('accu.maatUitleg'))}</p>
       <div class="ld-evcc ac-kijkt"><span class="stip" style="background: var(--ijs)"></span><span>${esc(t('accu.kijkt'))}</span></div>${weg}`;
   }
 
@@ -151,6 +157,13 @@ const thuisaccu = (() => {
       k.zelf = [...new Set([...k.zelf, el.value])];
       k.aan[el.value] = true;
       staat.wie = el.value;
+      return true;
+    }
+    if (el.dataset.accuMaat) {
+      const n = Number(el.value.replace(',', '.'));
+      const maat = el.value === '' || !Number.isFinite(n) ? null : Math.min(200, Math.max(1, Math.round(n * 10) / 10));
+      if (maat != null) el.value = String(maat);
+      k.instelling[el.dataset.accuMaat] = { ...(k.instelling[el.dataset.accuMaat] ?? {}), maatKWh: maat };
       return true;
     }
     if (el.dataset.accuSensor) {

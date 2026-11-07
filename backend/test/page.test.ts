@@ -1076,6 +1076,11 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // Een andere sensor kiezen wordt bewaard.
     await wand.locator('[data-accu-sensor="geladen"]').selectOption('sensor.laadplan_controller_discharged_energy');
     await expect.poll(() => connStore.current?.accu?.instelling['homey']?.geladen).toBe('sensor.laadplan_controller_discharged_energy');
+    // De maat (besluit 275): drie Marstek-accu's van 5,12 kWh.
+    await wand.locator('[data-accu-maat]').fill('15.36');
+    await wand.locator('[data-accu-maat]').blur();
+    await expect.poll(() => connStore.current?.accu?.instelling['homey']?.maatKWh).toBe(15.4);
+    await expect.poll(() => wand.locator('[data-delen] .deel[href="#accu"]').textContent()).toContain('1 accu, 15,4 kWh');
     // De wand scrolt niet.
     expect(await wand.locator('[data-vorm]').evaluate((v) => v.scrollHeight - v.clientHeight)).toBeLessThanOrEqual(2);
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-energie-accu.png') });
@@ -6397,6 +6402,47 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       accu = null;
       await p.reload();
       await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('SunArc kijkt mee en stuurt de batterij niet.');
+      expect(fouten).toEqual([]);
+    } finally {
+      extraOpslag = null;
+      await context.close();
+    }
+  }, 30_000);
+
+  /*
+   * Meer accu's en hun maat (besluit 275): bij Apparaten één kaart met per accu
+   * een regel en hoeveel erin zit; bij Wat je huis kan wat hij leverde.
+   */
+  it('toont meer accu’s samen, met hun maat en wat ze leverden (besluit 275)', async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    await context.route((url) => url.pathname === '/api/opbrengst', async (route) => {
+      const r = await route.fetch();
+      const j = (await r.json()) as Record<string, unknown>;
+      await route.fulfill({ response: r, json: j['stroom'] ? { ...j, accu: { geladenKwh: 31, geleverdKwh: 27.5, uitZonKwh: 31, uitNetKwh: 0, bron: 'dashboard' } } : j });
+    });
+    if (energyStore.current == null) await energyStore.save(importFromPrefs(await ENERGY_SOURCE.prefs(), await ENERGY_SOURCE.meters()));
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const twee = [
+      { id: 'sessy', naam: 'Sessy', pct: 50, vermogenW: 1000, stand: 'laadt' as const },
+      { id: 'zendure', naam: 'Zendure', pct: 80, vermogenW: 500, stand: 'laadt' as const },
+    ];
+    extraOpslag = { batterij: { id: 'sessy', naam: 'De batterijen', pct: 56, vermogenW: 1500, stand: 'laadt', maatKWh: 12.5, nogKWh: 7, volOm: new Date(Date.now() + 3 * 3_600_000).toISOString(), urenNog: null }, batterijen: twee, auto: null, autos: [] };
+    try {
+      await p.goto(`${baseUrl}/apparaten.html#batterij`);
+      const kaart = p.locator('#tel [data-lading="batterij"]');
+      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('2 batterijen');
+      expect(await kaart.locator('.accuregel').count()).toBe(2);
+      expect(await kaart.locator('.accuregel').first().textContent()).toBe('Sessy50% · Laadt · 1,0 kW');
+      expect(await kaart.textContent()).toMatch(/Nog 7,0 van 12,5 kWh\. · vol rond \d\d:\d\d/);
+      // Op Thuis: één kaart, samen.
+      await p.goto(`${baseUrl}/huis-kan.html`);
+      await p.getByText('Leverde deze maand 28 kWh aan het huis').locator('visible=true').first().waitFor({ timeout: 10_000 });
+      expect(await p.locator('body').textContent()).not.toContain('undefined');
       expect(fouten).toEqual([]);
     } finally {
       extraOpslag = null;

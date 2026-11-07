@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.148.0
+## 0.149.0
 
-*7 november 2026 · 0.145.0 – 0.148.0*
+*7 november 2026 · 0.145.0 – 0.149.0*
 
 **Nieuw**
 
+- Meer dan één thuisaccu: ze staan samen op één kaart, met per accu een regel met hoe vol hij is en wat hij doet
+- Bij Energie › Thuisaccu vul je de maat van je accu in. Dan zie je hoeveel kWh erin zit, hoe laat hij vol is als hij laadt, en hoe lang hij het huis nog voedt als hij levert
+- Bij Wat je huis kan staat wat je accu deze maand aan het huis leverde, en wat dat vanaf 2027 ongeveer waard is
 - Laadt je thuisaccu met zon, dan rekent SunArc ernaast uit wat hij zou doen als die zon over was, zoals een airco op zon of de droger. Bij Apparaten staat het bij je accu. Alleen ter vergelijking: er verandert niets aan wat SunArc doet
 - Op Thuis loopt nu een lijn naar je thuisaccu als hij laadt, en eruit naar het huis als hij levert, met erbij hoeveel. Ook als de accu binnen in een kamer staat
 - Bij Opbrengst › Nu staat je thuisaccu in Waar je stroom nu heen gaat: Naar de accu als hij laadt, Uit de accu als hij levert
@@ -21,6 +24,9 @@
 
 **New**
 
+- More than one home battery: they share one card, with a line per battery for how full it is and what it does
+- In Energy › Home battery you fill in the size of your battery. Then you see how many kWh are in it, when it is full while charging, and how long it can still power the home while delivering
+- What your house can do shows what your battery delivered to the home this month, and roughly what that is worth from 2027
 - When your home battery charges from the sun, SunArc works out alongside what it would do if that sun were spare, such as an air conditioner on sun or the dryer. Devices shows it with your battery. Only for comparison: nothing changes in what SunArc does
 - On Home a line now runs to your home battery when it charges, and out to the home when it delivers, with how much. Also when the battery stands inside in a room
 - In Yield › Now your home battery shows in Where your power is going now: To the battery when it charges, From the battery when it delivers
