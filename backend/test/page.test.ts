@@ -6255,6 +6255,58 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 45_000);
 
   /*
+   * Het blad van een stekker (7 november 2026, op de wand): Zet uit is meteen
+   * uit, zonder hoe lang of eindtijd. Tot hoe laat is een keuzelijst per
+   * kwartier: een klok vroeg op een Android-wand eerst om het toetsenbord.
+   */
+  it('zet een stekker meteen uit, en kiest de tijd uit een lijst', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5000 };
+    const gestuurd: unknown[] = [];
+    await p.route('**/api/stekker', async (route) => {
+      if (route.request().method() === 'POST') {
+        gestuurd.push(route.request().postDataJSON());
+        await route.fulfill({ json: { ok: true } });
+        return;
+      }
+      await route.fulfill({ json: { aan: true, stekkers: [{ id: 'tuinhuis', naam: 'Tuinhuis', aan: true, vermogenW: 900, mag: true, toegelaten: true, actief: null }] } });
+    });
+    await p.goto(`${baseUrl}/apparaten.html`);
+    await p.waitForFunction(() => typeof (globalThis as unknown as { hand?: unknown }).hand === 'object');
+    await p.evaluate(() => (globalThis as unknown as { hand: { openStekker: (id: string) => Promise<void> } }).hand.openStekker('tuinhuis'));
+    const blad = p.locator('[data-hand]');
+    // Hij staat aan: het blad begint bij Zet uit, zonder hoe lang en zonder balk.
+    await blad.locator('[data-st-aan="uit"][aria-pressed="true"]').waitFor(kort);
+    expect(await blad.locator('[data-st-tot]').count()).toBe(0);
+    expect(await blad.locator('[data-st-zet]').textContent()).toBe('Zet uit');
+    expect(await blad.textContent()).toContain('Gaat meteen uit');
+    await blad.locator('[data-st-zet]').click();
+    await expect.poll(() => gestuurd.length, kort).toBe(1);
+    expect(gestuurd[0]).toEqual({ id: 'tuinhuis', aan: false, meteen: true });
+
+    // Aan tot een tijd: een keuzelijst, geen klok. Eerst is het blad dicht.
+    await blad.waitFor({ state: 'detached', ...kort });
+    await p.evaluate(() => (globalThis as unknown as { hand: { openStekker: (id: string) => Promise<void> } }).hand.openStekker('tuinhuis'));
+    await blad.locator('[data-st-aan="aan"]').click(kort);
+    await blad.locator('[data-st-tot="tijd"]').click(kort);
+    const tijd = blad.locator('select[data-st-tijd]');
+    await tijd.waitFor(kort);
+    expect(await blad.locator('input[type="time"]').count()).toBe(0);
+    expect(await tijd.locator('option').count()).toBeGreaterThanOrEqual(96);
+    await tijd.selectOption('23:45');
+    await expect.poll(() => blad.locator('[data-st-zet]').textContent(), kort).toBe('Zet aan tot 23:45');
+    await blad.locator('[data-st-zet]').click();
+    await expect.poll(() => gestuurd.length, kort).toBe(2);
+    expect(gestuurd[1]).toEqual({ id: 'tuinhuis', aan: true, klok: '23:45' });
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
+  /*
    * Inloggen via Home Assistant op een andere site (16 oktober 2026): na het
    * inloggen kom je echt binnen. Het cookie is SameSite=Strict, en ging bij een
    * doorverwijzing vanaf de site van Home Assistant niet mee: dan stond je

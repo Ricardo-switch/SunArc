@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.144.0
+## 0.144.1
 
-*7 november 2026 · 0.142.1 – 0.144.0*
+*7 november 2026 · 0.142.1 – 0.144.1*
 
 **Nieuw**
 
@@ -14,11 +14,13 @@
 
 **Beter**
 
+- Zet uit bij een stekker zet hem meteen uit, zonder hoe lang of een eindtijd
 - Bij Wat kan bij jouw huis zegt elke kaart Zoekt… zolang SunArc de omtrek en de 3D-kaart nog opvraagt
 - Bij een prijs per uur tellen de uren waarin Home Assistant de kosten nog niet telde tegen je gemiddelde, met "deels geschat" bij Kosten. Over een heel jaar telt wat je boven je verbruik teruglevert tegen de vergoeding
 
 **Opgelost**
 
+- Op een Android-wand kon je de tijd van een stekker pas instellen na een tik op het toetsenbord. Tot hoe laat kies je nu uit een lijst per kwartier, net als Om bij Elke dag
 - Bij Daken en panelen gingen lengte en breedte van een blok samen omhoog of omlaag zodra de breedte groter werd dan de lengte. Nu blijft elke maat van zichzelf, ook bij een huis van 6 bij 11 meter
 - Een plat dak met panelen op rekken bleef op Thuis een puntdak als de kaart een puntdak gaf. Je panelen gaan nu voor
 - Klaarzetten vroeg om je slimme meter of omvormer te koppelen, ook als je hem in de app al had gekozen. De melding zegt nu ook wat je moet doen
@@ -40,11 +42,13 @@
 
 **Improved**
 
+- Switch off on a plug switches it off right away, without how long or an end time
 - In What your house allows, each map says Searching… while SunArc still looks up the outline and the 3D map
 - With an hourly price, hours in which Home Assistant did not count the costs yet count at your average, with "partly estimated" at Costs. Over a whole year, what you export above your use counts at the payment rate
 
 **Fixed**
 
+- On an Android wall panel you could only set the time of a plug after tapping the keyboard. Until when is now picked from a list per quarter of an hour, as is At for Every day
 - In Roofs and panels, the length and width of a block went up or down together once the width got larger than the length. Each size now stays its own, also for a house of 6 by 11 metres
 - A flat roof with panels on racks stayed a pitched roof on Home when the map gave a pitched roof. Your panels now come first
 - Getting ready asked you to connect your smart meter or inverter, even if you had already picked it in the app. The message now also says what to do

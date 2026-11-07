@@ -423,6 +423,8 @@
   'huis.buiten.garage': 'Garage',
   'huis.buiten.voordeur': 'Voordeur',
   'buiten.accu.laadt': 'laadt',
+  'hand.stekkerMeteenUit': 'Gaat meteen uit, en blijft uit tot je hem weer aanzet.',
+  'hand.stekkerMeteenUitZon': 'Op zon kan SunArc hem weer aanzetten.',
   'buiten.accu.levert': 'levert aan het huis',
   'buiten.accu.rust': 'in rust',
 

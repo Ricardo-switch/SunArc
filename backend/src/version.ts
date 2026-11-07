@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.144.0';
+export const VERSIE = '0.144.1';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.144.1',
+    datum: '2026-11-07',
+    opgelost: [
+      'Op een Android-wand kon je de tijd van een stekker pas instellen na een tik op het toetsenbord. Tot hoe laat kies je nu uit een lijst per kwartier, net als Om bij Elke dag',
+    ],
+    beter: ['Zet uit bij een stekker zet hem meteen uit, zonder hoe lang of een eindtijd'],
+    en: {
+      opgelost: ['On an Android wall panel you could only set the time of a plug after tapping the keyboard. Until when is now picked from a list per quarter of an hour, as is At for Every day'],
+      beter: ['Switch off on a plug switches it off right away, without how long or an end time'],
+    },
+  },
   {
     versie: '0.144.0',
     datum: '2026-11-07',

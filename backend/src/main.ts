@@ -2340,7 +2340,7 @@ if (webPort != null) {
           const min = (siteConfig?.heatStores ?? []).find((h) => h.id === s.id)?.minimum;
           return { ...s, zon: stekkerZon.stand(s.id), ...(min ? { minimum: { minuten: min.minutes, klok: min.by } } : {}), ...(gehad != null ? { gehadMin: gehad } : {}) };
         }),
-      ...(inHuisMetDeuren ? { zet: (id: string, aan: boolean, tot: StekkerTot) => stekkerhand.zet(id, aan, tot), terug: (id: string) => stekkerhand.terugNu(id) } : {}),
+      ...(inHuisMetDeuren ? { zet: (id: string, aan: boolean, tot: StekkerTot) => stekkerhand.zet(id, aan, tot), terug: (id: string) => stekkerhand.terugNu(id), uit: (id: string) => stekkerhand.uitNu(id) } : {}),
     },
     dakenOpbrengst,
     sluipverbruik,

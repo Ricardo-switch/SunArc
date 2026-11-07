@@ -418,6 +418,8 @@
   'huis.buiten.garage': 'Garage',
   'huis.buiten.voordeur': 'Front door',
   'buiten.accu.laadt': 'charging',
+  'hand.stekkerMeteenUit': 'Switches off right away, and stays off until you switch it on again.',
+  'hand.stekkerMeteenUitZon': 'On sun, SunArc may switch it on again.',
   'buiten.accu.levert': 'supplying the house',
   'buiten.accu.rust': 'resting',
 

@@ -201,6 +201,12 @@ async function stekkerRoute(d: Diensten, req: IncomingMessage, res: ServerRespon
     sendJson(res, 200, { ok: await s.terug(id).catch(() => false) });
     return;
   }
+  // Uit, meteen en zonder eind (7 november 2026).
+  if (body['aan'] === false && body['meteen'] === true && s.uit) {
+    const uit = await s.uit(id).catch((e: Error) => ({ ok: false as const, reden: `Home Assistant nam het niet aan: ${e.message}` }));
+    sendJson(res, uit.ok ? 200 : 409, uit.ok ? uit : { fout: uit.reden });
+    return;
+  }
   const tot = typeof body['duurMin'] === 'number' ? { duurMin: body['duurMin'] } : typeof body['klok'] === 'string' ? { klok: body['klok'] } : typeof body['totMs'] === 'number' ? { totMs: body['totMs'] } : null;
   if (typeof body['aan'] !== 'boolean' || tot == null) {
     sendJson(res, 400, { fout: 'verwacht { id, aan } met duurMin, klok of totMs' });

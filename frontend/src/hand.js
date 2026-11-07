@@ -218,6 +218,8 @@
     if (!s.toegelaten) return `${kop}<div class="hand-hoe let">${esc(t('hand.stekkerToelaten'))}</div>${zon}<div class="hand-onder"><a class="hand-zet" href="regeling.html#opzon">${esc(t('hand.stekkerNaarRegeling'))}</a></div>`;
 
     const vast = open.wanneer !== 'nu';
+    // Uit, nu: meteen uit, zonder hoe lang (7 november 2026).
+    const meteenUit = !vast && !open.aan;
     const totMs = stekkerTot(open);
     const klok = klokVan(totMs);
     const wat = seg(t('hand.watWil'), [
@@ -236,12 +238,15 @@
       ['werkdagen', t('gp.h.werkdagen'), open.wanneer === 'werkdagen', 'data-st-wanneer'],
       ['weekend', t('gp.h.weekend'), open.wanneer === 'weekend', 'data-st-wanneer'],
     ]);
-    const tijd = !vast && open.tot === 'tijd' ? `<label class="veldnaam">${esc(t('hand.totHoeLaat'))}<input class="invoer" type="time" data-st-tijd value="${esc(open.tijd)}"></label>` : '';
-    const om = vast ? `<div class="hand-vraag"><span>${esc(t('hand.om'))}</span><input class="invoer hand-om" type="time" step="300" data-st-om value="${esc(open.om)}" aria-label="${esc(t('hand.omHoeLaat'))}"></div>` : '';
+    // Een keuzelijst met tijden, geen klok: op een Android-wand ging Instellen pas na het toetsenbord (7 november 2026).
+    const tijd = !meteenUit && !vast && open.tot === 'tijd' ? `<label class="veldnaam">${esc(t('hand.totHoeLaat'))}${tijdKeuze(open.tijd, 'data-st-tijd', true)}</label>` : '';
+    const om = vast ? `<div class="hand-vraag"><span>${esc(t('hand.om'))}</span>${tijdKeuze(open.om, `data-st-om aria-label="${esc(t('hand.omHoeLaat'))}"`, false, 'hand-om')}</div>` : '';
     const duur = t(`tk.duur.${ST_TK[open.tot] ?? 'uur1'}`).trim();
     const hoe = vast
       ? t(open.aan ? 'hand.stekkerVastAan' : 'hand.stekkerVastUit', { wanneer: t(`hand.vast.${open.wanneer}`), klok: open.om, duur })
-      : t('hand.stekkerDaarna', { klok });
+      : meteenUit
+        ? [t('hand.stekkerMeteenUit'), s.zon?.schakelt ? t('hand.stekkerMeteenUitZon') : ''].filter(Boolean).join(' ')
+        : t('hand.stekkerDaarna', { klok });
     const taken = takenVan(s.id);
     const lijst = taken.length
       ? `<div class="hand-vast"><span>${esc(t('hand.stekkerVast'))}</span>${taken.map((g) => `<div><p><b>${esc(g.tekst)}</b><small>${esc([g.opdracht?.herhaal ? t(`gp.h.${g.opdracht.herhaal.soort}`) : '', t('hand.stekkerVolgende', { klok: klokVan(g.ms) })].filter(Boolean).join(' · '))}</small></p><button type="button" data-st-weg="${esc(g.id)}" aria-label="${esc(t('hand.stekkerVastWeg', { naam: g.tekst }))}">×</button></div>`).join('')}</div>`
@@ -249,19 +254,38 @@
     const terugKnop = s.actief && !vast ? `<button type="button" class="hand-terug" data-st-terug>${esc(t('hand.stekkerTerug'))}</button>` : '';
     const knopTekst = vast
       ? t('hand.stekkerBewaar', { wanneer: t(`hand.vast.${open.wanneer}`).toLowerCase(), klok: open.om })
-      : t(open.aan ? 'hand.stekkerZetAan' : 'hand.stekkerZetUit', { klok });
+      : meteenUit
+        ? t('hand.stekkerZetUitKort')
+        : t(open.aan ? 'hand.stekkerZetAan' : 'hand.stekkerZetUit', { klok });
     return `${kop}
       <div class="hand-vraag"><span>${esc(t('hand.watWil'))}</span>${wat}</div>
-      <div class="hand-vraag"><span>${esc(t('hand.hoeLang'))}</span>${lang}</div>
+      ${meteenUit ? '' : `<div class="hand-vraag"><span>${esc(t('hand.hoeLang'))}</span>${lang}</div>`}
       ${tijd}
       <div class="hand-vraag"><span>${esc(t('hand.wanneer'))}</span>${wanneer}</div>
       ${om}
-      ${vast ? '' : dagbalk(totMs, t(open.aan ? 'hand.stekkerBalkAan' : 'hand.stekkerBalkUit', { klok }))}
+      ${vast || meteenUit ? '' : dagbalk(totMs, t(open.aan ? 'hand.stekkerBalkAan' : 'hand.stekkerBalkUit', { klok }))}
       <div class="hand-hoe">${esc(hoe)}</div>
       ${zon}
       ${lijst}
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
       <div class="hand-onder">${terugKnop}<button type="button" class="hand-zet" data-st-zet ${s.mag ? '' : 'disabled'}>${esc(knopTekst)}</button></div>`;
+  }
+
+  /**
+   * Een tijd kiezen uit een lijst per kwartier (7 november 2026): een veld met
+   * een klok vroeg op een Android-wand eerst om het toetsenbord. `vanafNu`
+   * begint bij het volgende kwartier, voor "tot hoe laat".
+   */
+  function tijdKeuze(huidig, attr, vanafNu, klasse = '') {
+    const twee = (n) => String(n).padStart(2, '0');
+    const nu = new Date();
+    const start = vanafNu ? Math.ceil((nu.getHours() * 60 + nu.getMinutes() + 1) / 15) : 0;
+    const tijden = Array.from({ length: 96 }, (_, i) => {
+      const m = ((start + i) % 96) * 15;
+      return `${twee(Math.floor(m / 60))}:${twee(m % 60)}`;
+    });
+    if (huidig && !tijden.includes(huidig)) tijden.unshift(huidig);
+    return `<select class="invoer${klasse ? ` ${klasse}` : ''}" ${attr}>${tijden.map((x) => `<option value="${x}" ${x === huidig ? 'selected' : ''}>${x}</option>`).join('')}</select>`;
   }
 
   /** De vaste taken ophalen, voor de lijst in het blad. */
@@ -477,6 +501,9 @@
     } else if (el('[data-st-zet]') && open.wanneer !== 'nu') {
       const s = stekkerVan(open.st);
       if (s) await bewaarVast(s);
+    } else if (el('[data-st-zet]') && !open.aan) {
+      // Uit is meteen uit, zonder eind (7 november 2026).
+      if (await stuur('api/stekker', { id: open.st, aan: false, meteen: true })) open = null;
     } else if (el('[data-st-zet]')) {
       // De keuze, niet het tijdstip: de dienst rekent het eind zelf uit, ook als de klok van de telefoon afwijkt.
       const wanneer = open.tot === 'tijd' ? { klok: open.tijd } : { duurMin: { m30: 30, u1: 60, u2: 120 }[open.tot] ?? 60 };
