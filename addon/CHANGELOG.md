@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.141.0
+## 0.142.0
 
-*7 november 2026 · 0.138.0 – 0.141.0*
+*7 november 2026 · 0.138.0 – 0.142.0*
 
 **Nieuw**
 
+- In het blad van een stekker kies je ook Wanneer: nu, of vast elke dag, op werkdagen of in het weekend om een tijd. Vast komt bij Vast en gepland, en staat ook in het blad
 - Een slimme stekker op zon schakelt SunArc nu echt, als je hem toeliet: aan als er zon over is, uit als die wegvalt. Wat je zelf aan- of uitzet, laat SunArc met rust
 - Een minimum per dag voor een stekker, bij Regeling › Op zon: bijvoorbeeld minstens 2 uur, uiterlijk 22:00. Haalt de zon het niet, dan gaat hij op het laatst aan van het net
 - Een slimme stekker op vaste tijden: bij Nieuw in Vast en gepland kies je hem, wanneer (elke dag, werkdagen, een tijd of bij zonsondergang), aan of uit, en hoe lang
@@ -18,6 +19,8 @@
 
 **Beter**
 
+- Het blad van een stekker zegt Zet aan of Zet uit, met de stand apart bovenaan; zonder add-on alleen de stand
+- Bij Nieuwe taak kies je een scène bij de lampen, onder Wat doen ze, in plaats van los tussen de apparaten
 - Bij Energie › Meters staan meters per dag, gisteren of maand niet meer tussen die van een apparaat, en twee meters met dezelfde naam krijgen hun id erachter
 
 **Opgelost**
@@ -28,6 +31,7 @@
 
 **New**
 
+- In the sheet of a plug you also pick When: now, or fixed every day, on weekdays or at the weekend at a time. Fixed goes to Fixed and planned, and shows in the sheet too
 - SunArc now really switches a smart plug on solar, if you allowed it: on when there is solar to spare, off when it goes. What you switch on or off yourself, SunArc leaves alone
 - A daily minimum for a plug, in Control › On solar: for example at least 2 hours, by 22:00 at the latest. If the sun does not make it, it switches on from the grid at the last moment
 - A smart plug on fixed times: in New in Fixed and planned you pick it, when (every day, weekdays, a time or at sunset), on or off, and for how long
@@ -40,6 +44,8 @@
 
 **Improved**
 
+- The sheet of a plug says Switch on or Switch off, with the state on its own at the top; without the add-on only the state
+- In New task you pick a scene with the lights, under What do they do, instead of loose between the devices
 - In Energy › Meters, meters per day, yesterday or month no longer sit among those of a device, and two meters with the same name get their id added
 
 **Fixed**

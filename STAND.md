@@ -146,7 +146,8 @@ verwijzing bestaat.
   bewoner hem toeliet; daarna weer zoals hij was ([265], 0.139.0). Op vaste
   tijden bij Nieuw in Vast en gepland ([266], 0.140.0). Op zon met een minimum
   per dag, en dan schakelt SunArc hem echt als de bewoner hem toeliet; wie zelf
-  schakelt, wint ([267], 0.141.0).
+  schakelt, wint ([267], 0.141.0). Het blad zegt Zet aan of Zet uit, en vast
+  elke dag, op werkdagen of in het weekend kan er meteen in ([268], 0.142.0).
 - **Terugkijken:** Opbrengst rekent per dag, week, maand of jaar met de meters
   en prijzen die de app bewaart, overgenomen uit het Energie-dashboard of zelf
   ingesteld; de cijfers komen uit de statistiek van Home Assistant ([102]).
@@ -859,4 +860,5 @@ verwijzing bestaat.
 [265]: DECISIONS.md#265-een-slimme-stekker-met-de-hand-een-smalle-deur-per-stekker
 [266]: DECISIONS.md#266-een-slimme-stekker-op-vaste-tijden-bij-vast-en-gepland
 [267]: DECISIONS.md#267-een-slimme-stekker-op-zon-met-een-minimum-en-sunarc-schakelt-hem-echt
+[268]: DECISIONS.md#268-het-stekkerblad-zegt-wat-je-wilt-herhalen-kan-erin-en-scènes-horen-bij-de-lampen
 <!-- links:einde -->

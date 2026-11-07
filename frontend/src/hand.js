@@ -188,40 +188,113 @@
     return u === 0 ? t('hand.duurMin', { m }) : m === 0 ? t('hand.duurUur', { u }) : t('hand.duurUurMin', { u, m });
   }
 
+  /** Hoe lang, per keuze, in minuten. Herhalen kent geen "tot een tijd", wel vier uur. */
+  const ST_DUUR = { m30: 30, u1: 60, u2: 120, u4: 240 };
+  const ST_TK = { m30: 'm30', u1: 'uur1', u2: 'uur2', u4: 'uur4' };
+  /** De vaste taken bij Vast en gepland (besluit 268): die van een stekker staan in zijn blad. */
+  let stekkerTaken = [];
+  const takenVan = (id) => stekkerTaken.filter((g) => (g.opdracht?.stappen ?? []).some((x) => x.pad === 'api/stekker' && x.body?.id === id));
+
+  /**
+   * Het blad van een slimme stekker (besluit 265, opnieuw in 268): de stand
+   * apart bovenaan, dan wat je wilt (Zet aan of Zet uit), hoe lang, en wanneer:
+   * nu, of vast elke dag, op werkdagen of in het weekend. Vast wordt een taak bij
+   * Vast en gepland. Op de NAS alleen de stand: schakelen kan daar niet.
+   */
   function stekkerBlad(s) {
+    const stip = s.aan == null ? '' : `<i class="hand-stip" style="background: ${s.aan ? 'var(--zon)' : 'var(--net)'}"></i>`;
+    const stand = [
+      s.aan == null ? null : t(s.aan ? 'hand.stekkerNuAan' : 'hand.stekkerNuUit'),
+      s.vermogenW != null ? `${nl(s.vermogenW, 0)} W` : null,
+      s.actief ? t(s.actief.aan ? 'hand.stekkerAanTot' : 'hand.stekkerUitTot', { klok: klokVan(s.actief.totMs) }) : null,
+    ].filter(Boolean).join(' · ');
+    const kop = `<div class="hand-boven"><div><h2>${esc(s.naam)}</h2><p class="nu">${stip}${esc(stand || t('apparaten.stekker'))}</p></div><button type="button" class="sluit" data-hand-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>`;
+    const zonZin = s.zon?.schakelt
+      ? [t('hand.stekkerOpZon'), s.minimum ? t('hand.stekkerMinimum', { duur: duurVan(s.minimum.minuten), klok: s.minimum.klok, gehad: duurVan(s.gehadMin ?? 0) }) : ''].filter(Boolean).join(' ')
+      : '';
+    const zon = zonZin ? `<div class="hand-hoe">${esc(zonZin)}</div>` : '';
+    // Op de NAS, of nog niet toegelaten: alleen de stand en waarom.
+    if (!stekkers?.aan) return `${kop}<div class="hand-hoe let">${esc(t('hand.stekkerAlleenAddon'))}</div>${zon}`;
+    if (!s.toegelaten) return `${kop}<div class="hand-hoe let">${esc(t('hand.stekkerToelaten'))}</div>${zon}<div class="hand-onder"><a class="hand-zet" href="regeling.html#opzon">${esc(t('hand.stekkerNaarRegeling'))}</a></div>`;
+
+    const vast = open.wanneer !== 'nu';
     const totMs = stekkerTot(open);
     const klok = klokVan(totMs);
-    const wat = seg(t('hand.wat'), [
-      ['aan', t('hand.stekkerAanKort'), open.aan, 'data-st-aan'],
-      ['uit', t('hand.stekkerUitKort'), !open.aan, 'data-st-aan'],
+    const wat = seg(t('hand.watWil'), [
+      ['aan', t('hand.stekkerZetAanKort'), open.aan, 'data-st-aan'],
+      ['uit', t('hand.stekkerZetUitKort'), !open.aan, 'data-st-aan'],
     ]);
     const lang = seg(t('hand.hoeLang'), [
       ['m30', t('hand.min30'), open.tot === 'm30', 'data-st-tot'],
       ['u1', t('hand.uur1'), open.tot === 'u1', 'data-st-tot'],
       ['u2', t('hand.uur2'), open.tot === 'u2', 'data-st-tot'],
-      ['tijd', t('hand.totEenTijd'), open.tot === 'tijd', 'data-st-tot'],
+      vast ? ['u4', t('hand.uur4'), open.tot === 'u4', 'data-st-tot'] : ['tijd', t('hand.totEenTijd'), open.tot === 'tijd', 'data-st-tot'],
     ]);
-    const tijd = open.tot === 'tijd' ? `<label class="veldnaam">${esc(t('hand.totHoeLaat'))}<input class="invoer" type="time" data-st-tijd value="${esc(open.tijd)}"></label>` : '';
-    const hoe = !stekkers?.aan
-      ? { let: true, tekst: t('hand.stekkerAlleenAddon') }
-      : !s.toegelaten
-        ? { let: true, tekst: t('hand.stekkerToelaten') }
-        : { tekst: t('hand.stekkerDaarna', { klok }) };
-    // Op zon, echt geschakeld (besluit 267): dat SunArc hem zelf schakelt, en hoe ver hij is met zijn minimum.
-    const zonZin = s.zon?.schakelt
-      ? [t('hand.stekkerOpZon'), s.minimum ? t('hand.stekkerMinimum', { duur: duurVan(s.minimum.minuten), klok: s.minimum.klok, gehad: duurVan(s.gehadMin ?? 0) }) : ''].filter(Boolean).join(' ')
+    const wanneer = seg(t('hand.wanneer'), [
+      ['nu', t('hand.stekkerNu'), open.wanneer === 'nu', 'data-st-wanneer'],
+      ['dag', t('gp.h.dag'), open.wanneer === 'dag', 'data-st-wanneer'],
+      ['werkdagen', t('gp.h.werkdagen'), open.wanneer === 'werkdagen', 'data-st-wanneer'],
+      ['weekend', t('gp.h.weekend'), open.wanneer === 'weekend', 'data-st-wanneer'],
+    ]);
+    const tijd = !vast && open.tot === 'tijd' ? `<label class="veldnaam">${esc(t('hand.totHoeLaat'))}<input class="invoer" type="time" data-st-tijd value="${esc(open.tijd)}"></label>` : '';
+    const om = vast ? `<div class="hand-vraag"><span>${esc(t('hand.om'))}</span><input class="invoer hand-om" type="time" step="300" data-st-om value="${esc(open.om)}" aria-label="${esc(t('hand.omHoeLaat'))}"></div>` : '';
+    const duur = t(`tk.duur.${ST_TK[open.tot] ?? 'uur1'}`).trim();
+    const hoe = vast
+      ? t(open.aan ? 'hand.stekkerVastAan' : 'hand.stekkerVastUit', { wanneer: t(`hand.vast.${open.wanneer}`), klok: open.om, duur })
+      : t('hand.stekkerDaarna', { klok });
+    const taken = takenVan(s.id);
+    const lijst = taken.length
+      ? `<div class="hand-vast"><span>${esc(t('hand.stekkerVast'))}</span>${taken.map((g) => `<div><p><b>${esc(g.tekst)}</b><small>${esc([g.opdracht?.herhaal ? t(`gp.h.${g.opdracht.herhaal.soort}`) : '', t('hand.stekkerVolgende', { klok: klokVan(g.ms) })].filter(Boolean).join(' · '))}</small></p><button type="button" data-st-weg="${esc(g.id)}" aria-label="${esc(t('hand.stekkerVastWeg', { naam: g.tekst }))}">×</button></div>`).join('')}</div>`
       : '';
-    const terugKnop = s.actief ? `<button type="button" class="hand-terug" data-st-terug>${esc(t('hand.stekkerTerug'))}</button>` : '';
-    const toelaten = stekkers?.aan && !s.toegelaten ? `<a class="hand-terug" href="regeling.html#opzon">${esc(t('hand.stekkerNaarRegeling'))}</a>` : '';
-    return `${kopVan(s.naam, stekkerZin(s) || t('apparaten.stekker'))}
-      <div class="hand-vraag"><span>${esc(t('hand.wat'))}</span>${wat}</div>
+    const terugKnop = s.actief && !vast ? `<button type="button" class="hand-terug" data-st-terug>${esc(t('hand.stekkerTerug'))}</button>` : '';
+    const knopTekst = vast
+      ? t('hand.stekkerBewaar', { wanneer: t(`hand.vast.${open.wanneer}`).toLowerCase(), klok: open.om })
+      : t(open.aan ? 'hand.stekkerZetAan' : 'hand.stekkerZetUit', { klok });
+    return `${kop}
+      <div class="hand-vraag"><span>${esc(t('hand.watWil'))}</span>${wat}</div>
       <div class="hand-vraag"><span>${esc(t('hand.hoeLang'))}</span>${lang}</div>
       ${tijd}
-      ${dagbalk(totMs, t(open.aan ? 'hand.stekkerBalkAan' : 'hand.stekkerBalkUit', { klok }))}
-      <div class="hand-hoe${hoe.let ? ' let' : ''}">${esc(hoe.tekst)}</div>
-      ${zonZin ? `<div class="hand-hoe">${esc(zonZin)}</div>` : ''}
+      <div class="hand-vraag"><span>${esc(t('hand.wanneer'))}</span>${wanneer}</div>
+      ${om}
+      ${vast ? '' : dagbalk(totMs, t(open.aan ? 'hand.stekkerBalkAan' : 'hand.stekkerBalkUit', { klok }))}
+      <div class="hand-hoe">${esc(hoe)}</div>
+      ${zon}
+      ${lijst}
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
-      <div class="hand-onder">${terugKnop}${toelaten}<button type="button" class="hand-zet" data-st-zet ${s.mag ? '' : 'disabled'}>${esc(t(open.aan ? 'hand.stekkerZetAan' : 'hand.stekkerZetUit', { klok }))}</button></div>`;
+      <div class="hand-onder">${terugKnop}<button type="button" class="hand-zet" data-st-zet ${s.mag ? '' : 'disabled'}>${esc(knopTekst)}</button></div>`;
+  }
+
+  /** De vaste taken ophalen, voor de lijst in het blad. */
+  async function laadTaken() {
+    try {
+      stekkerTaken = (await haal('api/te-doen'))?.gepland ?? [];
+    } catch {
+      stekkerTaken = [];
+    }
+  }
+
+  /** Een stekker vast elke dag, op werkdagen of in het weekend: een taak bij Vast en gepland (besluit 268). */
+  async function bewaarVast(s) {
+    const [uur, minuut] = String(open.om).split(':').map(Number);
+    const res = await deur('api/te-doen', {
+      actie: 'plan',
+      tekst: t(open.aan ? 'pl.wat.stekker' : 'pl.wat.plugUit', { naam: s.naam }),
+      stappen: [{ pad: 'api/stekker', body: { id: s.id, aan: open.aan, duurMin: ST_DUUR[open.tot] ?? 60 } }],
+      moment: { soort: 'tijd', uur: uur || 0, minuut: minuut || 0 },
+      herhaal: { soort: open.wanneer },
+      overslaanWeg: false,
+      aan: true,
+    });
+    if (!res) return false;
+    if (!res.ok) {
+      fout = (await res.json().catch(() => null))?.fout ?? t('gp.lukteNiet');
+      return false;
+    }
+    fout = '';
+    await laadTaken();
+    open.wanneer = 'nu';
+    open.tot = 'u1';
+    return true;
   }
 
   async function laadStekkers() {
@@ -235,10 +308,10 @@
 
   /** Opent het blad van een stekker; staat hij uit, dan begint het blad bij aan. */
   async function openStekker(id) {
-    await laadStekkers();
+    await Promise.all([laadStekkers(), laadTaken()]);
     const s = stekkerVan(id);
     if (!s) return;
-    open = { st: id, aan: s.actief ? s.actief.aan : s.aan !== true, tot: 'u1', tijd: '22:00' };
+    open = { st: id, aan: s.actief ? s.actief.aan : s.aan !== true, tot: 'u1', tijd: '22:00', wanneer: 'nu', om: '07:00' };
     fout = '';
     teken();
   }
@@ -391,8 +464,19 @@
       if (await stuur('api/witgoed', { id: open.wg.id, start: true })) open = null;
     } else if ((x = el('[data-st-aan]'))) open.aan = x.dataset.stAan === 'aan';
     else if ((x = el('[data-st-tot]'))) open.tot = x.dataset.stTot;
-    else if (el('[data-st-terug]')) {
+    else if ((x = el('[data-st-wanneer]'))) {
+      // Nu kent "tot een tijd", vast kent vier uur: wat er niet bij hoort, wordt een uur.
+      open.wanneer = x.dataset.stWanneer;
+      if ((open.wanneer === 'nu' && open.tot === 'u4') || (open.wanneer !== 'nu' && open.tot === 'tijd')) open.tot = 'u1';
+    } else if ((x = el('[data-st-weg]'))) {
+      const res = await deur('api/te-doen', { actie: 'annuleer', id: x.dataset.stWeg });
+      if (res && !res.ok) fout = (await res.json().catch(() => null))?.fout ?? t('gp.lukteNiet');
+      await laadTaken();
+    } else if (el('[data-st-terug]')) {
       if (await stuur('api/stekker', { id: open.st, terug: true })) open = null;
+    } else if (el('[data-st-zet]') && open.wanneer !== 'nu') {
+      const s = stekkerVan(open.st);
+      if (s) await bewaarVast(s);
     } else if (el('[data-st-zet]')) {
       // De keuze, niet het tijdstip: de dienst rekent het eind zelf uit, ook als de klok van de telefoon afwijkt.
       const wanneer = open.tot === 'tijd' ? { klok: open.tijd } : { duurMin: { m30: 30, u1: 60, u2: 120 }[open.tot] ?? 60 };
@@ -433,8 +517,10 @@
   // De tijd van een stekker: bij het verlaten van het veld, zodat typen niet onderbroken wordt.
   document.addEventListener('change', (e) => {
     const v = e.target.closest?.('[data-st-tijd]');
-    if (!v || !open?.st) return;
-    open.tijd = v.value || open.tijd;
+    const om = e.target.closest?.('[data-st-om]');
+    if ((!v && !om) || !open?.st) return;
+    if (v) open.tijd = v.value || open.tijd;
+    else if (/^\d\d:\d\d$/.test(om.value)) open.om = om.value;
     teken();
   });
 

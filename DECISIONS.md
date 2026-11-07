@@ -261,6 +261,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [260. Je dag als eigen stap, en hoe warm per kamer](#260-je-dag-als-eigen-stap-en-hoe-warm-per-kamer)
 - [263. Meldingen van de auto, en kabel vergeten om een vaste tijd](#263-meldingen-van-de-auto-en-kabel-vergeten-om-een-vaste-tijd)
 - [266. Een slimme stekker op vaste tijden, bij Vast en gepland](#266-een-slimme-stekker-op-vaste-tijden-bij-vast-en-gepland)
+- [268. Het stekkerblad zegt wat je wilt, herhalen kan erin, en scènes horen bij de lampen](#268-het-stekkerblad-zegt-wat-je-wilt-herhalen-kan-erin-en-scènes-horen-bij-de-lampen)
 
 **Veiligheid**
 
@@ -12529,6 +12530,40 @@ keer dat de regeling zelf iets aanzet.
   22:00" twee dagen vooruit in plaats van één (`nextLocalTime`). Dat raakte ook
   "tot een tijd" in het blad van een stekker en de eindtijd van de droger.
 - **Versie 0.141.0.**
+
+---
+
+## 268. Het stekkerblad zegt wat je wilt, herhalen kan erin, en scènes horen bij de lampen
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, na 0.141.0 op de NAS bekeken. De bewoner vond het blad van een
+stekker nog onduidelijk: bij Wat stond Aan gekozen, en dat leek de stand van de
+stekker, terwijl hij uit stond. Bij Nieuwe taak kon hij de stekker op de NAS
+niet kiezen, en de scènes stonden los tussen de lampen. Gekozen uit drie vragen
+met opties, steeds de aanbevolen.
+
+*Besluit:*
+
+- **De stand apart bovenaan** in het blad, met een stip: "Staat nu uit · 0 W".
+  De vraag heet **Wat wil je?** met **Zet aan** en **Zet uit**.
+- **Op de NAS geen knoppen**, alleen de stand en "Hier kijk je mee. Schakelen
+  kan in SunArc in Home Assistant." Nog niet toegelaten: alleen de uitleg en
+  Naar Regeling. Een stekker bij Nieuwe taak staat er daarom ook alleen in de
+  add-on.
+- **Wanneer in het blad:** Nu, Elke dag, Werkdagen of Weekend, met **Om** een
+  tijd. Nu werkt zoals het was (met "tot een tijd"); vast kent 30 minuten tot 4
+  uur en bewaart een taak bij Vast en gepland, dezelfde als die van Nieuw
+  ([266]). Het blad laat de vaste taken van die stekker zien, met een kruisje
+  om er een weg te halen.
+- **Scènes niet meer bij Wat** in Nieuwe taak. Bij **Wat doen ze** krijgen de
+  lampen naast Aan en Uit een keuze **Of een scène**, met de scènes van hun
+  kamers. Kies je er een, dan start die scène in plaats van dat de lampen los
+  aangaan: "Elke dag om 07:00 start de scène Avond". Los per lamp kent alleen
+  aan en uit.
+- **Op een smal blad** lopen vier keuzes door naar een tweede regel, in plaats
+  van buiten beeld te vallen.
+- **Versie 0.142.0.**
 
 ---
 

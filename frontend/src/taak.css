@@ -61,6 +61,10 @@ html.sc-voorbeeld #tel .pl-laag { z-index: 93; }
 .tk-seg { display: flex; padding: 3px; border-radius: 14px; background: rgb(var(--wit) / 0.06); }
 .tk-seg button { flex: 1; min-width: 0; height: 42px; padding: 0 8px; border: 0; border-radius: 11px; background: transparent; color: var(--zacht) !important; font-size: 14.5px; font-weight: 600; white-space: nowrap; }
 .tk-seg button[aria-pressed='true'] { background: rgb(var(--wit) / 0.14); color: var(--tekst) !important; }
+/* Een scène voor de lampen (besluit 268): naast aan en uit, gekozen in dezelfde kleur. */
+.tk-scene { height: 48px; padding: 0 14px; border: 0; border-radius: 14px; background: rgb(var(--wit) / 0.06); color: var(--zacht); font: inherit; font-size: 14.5px; font-weight: 600; }
+.tk-scene[data-gekozen='true'] { background: rgb(var(--wit) / 0.14); color: var(--tekst); }
+.tk-scene option { background: #0b1120; color: #fff; }
 .tk-tijd { align-self: flex-start; height: 58px; padding: 0 16px; border-radius: 15px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.05); color: var(--tekst); font: inherit; font-family: var(--kop); font-size: 34px; color-scheme: dark; }
 .tk-stapper { display: flex; align-items: center; gap: 12px; }
 .tk-stapper button { width: 46px; height: 46px; flex: none; border-radius: 14px; border: 0; background: rgb(var(--wit) / 0.08); font-size: 21px; font-weight: 600; }

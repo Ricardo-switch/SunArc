@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.141.0';
+export const VERSIE = '0.142.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.142.0',
+    datum: '2026-11-07',
+    nieuw: ['In het blad van een stekker kies je ook Wanneer: nu, of vast elke dag, op werkdagen of in het weekend om een tijd. Vast komt bij Vast en gepland, en staat ook in het blad'],
+    beter: [
+      'Het blad van een stekker zegt Zet aan of Zet uit, met de stand apart bovenaan; zonder add-on alleen de stand',
+      'Bij Nieuwe taak kies je een scène bij de lampen, onder Wat doen ze, in plaats van los tussen de apparaten',
+    ],
+    en: {
+      nieuw: ['In the sheet of a plug you also pick When: now, or fixed every day, on weekdays or at the weekend at a time. Fixed goes to Fixed and planned, and shows in the sheet too'],
+      beter: [
+        'The sheet of a plug says Switch on or Switch off, with the state on its own at the top; without the add-on only the state',
+        'In New task you pick a scene with the lights, under What do they do, instead of loose between the devices',
+      ],
+    },
+  },
   {
     versie: '0.141.0',
     datum: '2026-11-07',

@@ -5503,7 +5503,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     // Wat (besluit 244): per kamer, meerdere tegelijk; de airco zonder kamer onder Overig.
     await wiz.locator('[data-pl-kies="licht:light.bank"]').click();
     await wiz.locator('[data-pl-kies="klimaat:climate.zolder"]').click();
-    expect(await wiz.locator('.tk-kamer', { hasText: 'Woonkamer' }).locator('[data-pl-kies]').count()).toBe(3);
+    // De scène staat niet meer bij Wat (besluit 268): de lamp en het screen.
+    expect(await wiz.locator('.tk-kamer', { hasText: 'Woonkamer' }).locator('[data-pl-kies]').count()).toBe(2);
     expect(await zin.textContent()).toBe('Op een moment gaat de lamp bank aan en gaat de airco zolder verwarmen naar 20°.');
     await wiz.locator('[data-pl-verder]').click();
     // Wanneer: om 06:30, op werkdagen.
@@ -5514,6 +5515,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await wiz.locator('[data-pl-verder]').click();
     // Hoe: de airco een halve graad hoger.
     await wiz.locator('[data-pl-doel="1"]').click();
+    expect(await zin.textContent()).toBe('Elke werkdag om 06:30 gaat de lamp bank aan en gaat de airco zolder verwarmen naar 20,5°.');
+    // Een scène bij de lampen (besluit 268): die start in plaats van de lamp; Aan zet het terug.
+    await wiz.locator('[data-pl-scene]').selectOption('scene.avond');
+    expect(await zin.textContent()).toContain('start de scène Avond');
+    await wiz.locator('[data-pl-hoe="licht:aan:1"]').click();
     expect(await zin.textContent()).toBe('Elke werkdag om 06:30 gaat de lamp bank aan en gaat de airco zolder verwarmen naar 20,5°.');
     // Een stuk van de zin opent zijn keuze.
     await zin.locator('[data-pl-stuk="wanneer"]').click();
