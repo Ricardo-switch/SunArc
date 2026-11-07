@@ -107,7 +107,8 @@ const ENERGY_SOURCE: EnergySource = {
     const scale = (t: number) => (new Date(t).getUTCFullYear() < 2026 ? 0.8 : 1);
     const step = period === 'hour' ? 3_600_000 : 86_400_000;
     return Object.fromEntries(
-      ids.map((id) => {
+      // Een statistiek die Home Assistant niet heeft, komt niet terug (issue 128).
+      ids.filter((id) => hourly[id]).map((id) => {
         const rows = [];
         for (let t = startMs; t < endMs; t += step) {
           const h = (new Date(t).getUTCHours() + 2) % 24;
@@ -5262,6 +5263,68 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await context.close();
       await energyStore.save(energieWas);
       if (connStore.current) await connStore.save({ ...connStore.current, tarief: tariefWas });
+    }
+  }, 40_000);
+
+  /*
+   * Issue 128: met een prijs per uur telde Opbrengst stroom en teruglevering
+   * stil als nul als Home Assistant de kosten niet telde. Nu zegt Prijzen dat,
+   * vraagt Prijzen geen gasprijs als Home Assistant het gas telt, en zegt
+   * Opbrengst wat er zonder prijs in het totaal ontbreekt.
+   */
+  it('zegt wat Home Assistant niet telt, en wat er in de kosten ontbreekt', async () => {
+    const context = await browser.newContext({ viewport: { width: 1340, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    if (energyStore.current == null) await energyStore.save(importFromPrefs(await ENERGY_SOURCE.prefs(), await ENERGY_SOURCE.meters()));
+    const energieWas = energyStore.current!;
+    const dynamisch = { prijsEntiteit: 'sensor.zonneplan_current_electricity_tariff', afname: ['sensor.p1_afname_cost'], terug: [] };
+    await energyStore.save({ ...energieWas, prijzen: { ...energieWas.prijzen, stroom: null, dynamisch } });
+    // Eerst telt Home Assistant de kosten niet; daarna wel, ook die van het gas.
+    let inHA: Record<string, unknown> | null = null;
+    await context.route(`${baseUrl}/api/energie*`, async (route) => {
+      if (route.request().method() !== 'GET') return route.continue();
+      const res = await route.fetch();
+      const v = (await res.json()) as { voorstel: { prijzen: Record<string, unknown> } | null; instellingen: unknown };
+      const voorstel = v.voorstel ?? (v.instellingen as typeof v.voorstel);
+      const prijzen = { ...voorstel!.prijzen };
+      if (inHA) prijzen['dynamisch'] = inHA;
+      else delete prijzen['dynamisch'];
+      await route.fulfill({ response: res, json: { ...v, voorstel: { ...voorstel, prijzen }, prijsNu: 0.2345 } });
+    });
+    // Opbrengst zoals bij Erik: alleen het gas had een prijs.
+    await context.route(`${baseUrl}/api/opbrengst?*`, async (route) => {
+      const res = await route.fetch();
+      const v = (await res.json()) as { kosten: Record<string, unknown> };
+      await route.fulfill({ response: res, json: { ...v, kosten: { ...v.kosten, totaal: 15.27, zonderPrijs: ['stroom', 'terug'] } } });
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const wand = (sel: string) => p.locator(`#wand ${sel}`);
+    try {
+      await p.goto(`${baseUrl}/energie.html#prijzen`);
+      const mist = wand('[data-uurkosten-mist]');
+      await mist.waitFor({ timeout: 5000 });
+      expect(await mist.innerText()).toContain('Home Assistant telt de kosten van je stroom niet');
+      expect(await wand('[data-gas-per-uur]').count()).toBe(0);
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-uurkosten-mist.png') });
+      // In Home Assistant gezet: opnieuw kijken, dan is de melding weg en telt het gas zoals Home Assistant.
+      inHA = { ...dynamisch, gas: 'sensor.gas_cost' };
+      // Ook bij teruglevering staat er een, want Home Assistant telt die hier niet per uur.
+      await wand('[data-uurkosten-mist] [data-uurprijs-opnieuw]').click();
+      await wand('[data-gas-per-uur]').waitFor({ timeout: 5000 });
+      expect(await wand('[data-uurkosten-mist]').count()).toBe(0);
+      expect(await wand('[data-prijs="gas"]').count()).toBe(0);
+      await wand(':text("Prijs per uur uit Home Assistant")').first().waitFor({ timeout: 5000 });
+      // Opbrengst zegt wat er in het totaal ontbreekt.
+      await p.goto(`${baseUrl}/opbrengst.html`);
+      await p.locator('#wand', { hasText: 'zonder stroom, zonder teruglevering' }).first().waitFor({ timeout: 10_000 });
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+      await energyStore.save(energieWas);
     }
   }, 40_000);
 

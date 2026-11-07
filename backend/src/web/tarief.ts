@@ -80,6 +80,12 @@ export interface Dynamisch {
   readonly afname: readonly string[];
   /** De vergoeding bij de teruglevering, zoals `sensor.p1_terug_compensation`. */
   readonly terug: readonly string[];
+  /**
+   * De kostenteller van het gas (issue 128): bij Zonneplan, Tibber en Frank
+   * verschilt ook de gasprijs per dag. Zonder teller telt gas tegen de prijs bij
+   * Contract en prijzen.
+   */
+  readonly gas?: string | null;
 }
 
 /** Het salderen stopt op 1 januari 2027, middernacht in Nederland. */
@@ -230,6 +236,7 @@ const WOORDEN = {
     perMaand: (prijs: string) => `${prijs} per maand`,
     nietIngesteld: 'nog niet ingesteld',
     uurprijs: (wat: string) => `${wat}, met de prijs van elk uur, zoals Home Assistant telt`,
+    zoalsHa: (wat: string) => `${wat}, zoals Home Assistant telt`,
   },
   en: {
     stroom: 'Electricity from the grid',
@@ -251,26 +258,52 @@ const WOORDEN = {
     perMaand: (prijs: string) => `${prijs} a month`,
     nietIngesteld: 'not set yet',
     uurprijs: (wat: string) => `${wat}, at the price of each hour, as Home Assistant counts`,
+    zoalsHa: (wat: string) => `${wat}, as Home Assistant counts`,
   },
 } satisfies Record<Lang, unknown>;
 
 /**
- * De kosten bij een dynamisch contract (testerronde, november 2026): stroom en
- * teruglevering zoals de kostentellers van Home Assistant ze telden, met de
- * prijs van elk uur. Gas en de vaste posten blijven zoals uitgerekend. Zonder
- * teller voor de teruglevering blijft die regel ook zoals hij was.
+ * De kosten bij een dynamisch contract (testerronde, november 2026): stroom,
+ * teruglevering en gas (issue 128) zoals de kostentellers van Home Assistant
+ * ze telden, met de prijs van elk uur. De vaste posten blijven zoals
+ * uitgerekend, en zo ook elke regel waar geen teller voor is (null).
  */
-export function metKostentellers(k: Kosten, af: number, terug: number | null, afKwh: number, terugKwh: number, lang: Lang = 'nl'): Kosten {
+export function metKostentellers(
+  k: Kosten,
+  af: number | null,
+  terug: number | null,
+  afKwh: number,
+  terugKwh: number,
+  lang: Lang = 'nl',
+  gas: { readonly euro: number; readonly m3: number } | null = null,
+): Kosten {
   const w = WOORDEN[lang];
   const regels: KostenRegel[] = [
-    { soort: 'stroom', naam: w.stroom, uitleg: w.uurprijs(kwh(afKwh, lang)), euro: r2(af) },
+    ...(af != null
+      ? [{ soort: 'stroom' as const, naam: w.stroom, uitleg: w.uurprijs(kwh(afKwh, lang)), euro: r2(af) }]
+      : k.regels.filter((r) => r.soort === 'stroom' || r.soort === 'normaal' || r.soort === 'dal')),
     ...(terug != null
       ? [{ soort: 'terug' as const, naam: w.terug, uitleg: w.uurprijs(kwh(terugKwh, lang)), euro: r2(-terug) }]
       : k.regels.filter((r) => r.soort === 'terug' || r.soort === 'terug-na')),
-    ...k.regels.filter((r) => r.soort === 'gas' || r.soort === 'vast'),
+    ...(gas != null ? [{ soort: 'gas' as const, naam: w.gas, uitleg: w.zoalsHa(m3(gas.m3, lang)), euro: r2(gas.euro) }] : k.regels.filter((r) => r.soort === 'gas')),
+    ...k.regels.filter((r) => r.soort === 'vast'),
   ];
+  const heeftBedrag = regels.some((r) => r.soort !== 'vast' && r.euro != null);
   const variabel = regels.filter((r) => r.soort !== 'vast').reduce((som, r) => som + (r.euro ?? 0), 0);
-  return { regels, variabel: r2(variabel), vast: k.vast, stroomPerKwh: afKwh > 0 ? af / afKwh : k.stroomPerKwh };
+  return { regels, variabel: heeftBedrag ? r2(variabel) : null, vast: k.vast, stroomPerKwh: af != null && afKwh > 0 ? af / afKwh : k.stroomPerKwh };
+}
+
+/**
+ * Welke regels gebruik hadden maar geen bedrag (issue 128): die tellen in het
+ * totaal als nul, en dat moet erbij staan. Eerst stroom, dan teruglevering, dan gas.
+ */
+export function zonderPrijs(regels: readonly KostenRegel[]): ('stroom' | 'terug' | 'gas')[] {
+  const uit: ('stroom' | 'terug' | 'gas')[] = [];
+  const mist = (soorten: readonly KostenRegel['soort'][]) => regels.some((r) => soorten.includes(r.soort) && r.euro == null);
+  if (mist(['stroom', 'normaal', 'dal'])) uit.push('stroom');
+  if (mist(['terug', 'terug-na'])) uit.push('terug');
+  if (mist(['gas'])) uit.push('gas');
+  return uit;
 }
 
 /** Een vaste post over een periode van zoveel dagen. */

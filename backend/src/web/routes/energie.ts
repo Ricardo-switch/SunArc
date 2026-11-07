@@ -105,7 +105,9 @@ export async function energieRoute(d: Diensten, req: IncomingMessage, res: Serve
   try {
     meters = await energy.source.meters();
     const prefs = await energy.source.prefs();
-    voorstel = importFromPrefs(prefs, meters, (id) => energy.source.entityNumber?.(id) ?? null);
+    // Met de kostentellers zoals Home Assistant ze noemt (issue 128).
+    const kosten = await (energy.source.kostenTellers?.() ?? Promise.resolve(null)).catch(() => null);
+    voorstel = importFromPrefs(prefs, meters, (id) => energy.source.entityNumber?.(id) ?? null, kosten);
     dashboardPrijzen = pricesInPrefs(prefs);
     // Het dashboard zoals Home Assistant het geeft: entiteiten en prijzen, om
     // na te gaan wat het overnemen ervan maakte.

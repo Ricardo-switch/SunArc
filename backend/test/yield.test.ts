@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { HaClient } from '../src/adapters/homeassistant/client.js';
-import { EnergyStore, importFromPrefs, isPrijsPerKwh, meterRole, pricesInPrefs, validateEnergy, type EnergySettings, type EnergySource } from '../src/web/energy.js';
+import { EnergyStore, importFromPrefs, isPrijsPerKwh, metTellersUitHA, meterRole, pricesInPrefs, validateEnergy, type EnergySettings, type EnergySource } from '../src/web/energy.js';
 import { haEnergySource } from '../src/adapters/homeassistant/energy.js';
 import { partsIn, zonedMidnight } from '../src/web/today.js';
 import { periodRange, verdeel, yearStartOf, yieldReport } from '../src/web/yield.js';
@@ -31,6 +31,8 @@ const HOURLY: Record<string, (h: number) => number> = {
   // De kostentellers van Home Assistant bij een prijs per uur (testerronde, november 2026): 's nachts een negatieve prijs.
   'sensor.afname_cost': (h) => (h >= 10 && h < 17 ? 0 : 0.4) * (h < 7 ? -0.05 : 0.3),
   'sensor.terug_compensation': (h) => (h >= 10 && h < 17 ? 1 : 0) * 0.1,
+  // De gaskosten zoals Home Assistant ze telt (issue 128): 0,2 m³ om 7 uur tegen 1,90.
+  'sensor.gas_cost': (h) => (h === 7 ? 0.2 * 1.9 : 0),
 };
 const daily = (id: string) => Array.from({ length: 24 }, (_, h) => HOURLY[id]!(h)).reduce((a, b) => a + b, 0);
 
@@ -53,6 +55,8 @@ function fakeSource(): EnergySource & { calls: string[] } {
       calls.push(period);
       const out: Record<string, { startMs: number; change: number }[]> = {};
       for (const id of ids) {
+        // Een statistiek die Home Assistant niet heeft, komt niet terug.
+        if (!HOURLY[id]) continue;
         const rows: { startMs: number; change: number }[] = [];
         if (period === 'hour') {
           for (let t = startMs; t < endMs; t += 3_600_000) rows.push({ startMs: t, change: HOURLY[id]!(partsIn(t, TZ).h) * scale(t) });
@@ -346,7 +350,7 @@ describe('meters en prijzen in de app', () => {
         { id: 'sensor.samsung_oled_energie', naam: 'Tv' },
       ],
       // Tarief 2 heeft een prijs uit een entiteit: dan de kostentellers van beide tarieven (testerronde, november 2026).
-      prijzen: { stroom: 0.27, teruglevering: null, gas: 1.25, vastPerMaand: null, dynamisch: { prijsEntiteit: 'sensor.prijs', afname: ['sensor.p1_meter_energy_import_tariff_1_cost', 'sensor.p1_meter_energy_import_tariff_2_cost'], terug: [] } },
+      prijzen: { stroom: 0.27, teruglevering: null, gas: 1.25, vastPerMaand: null, dynamisch: { prijsEntiteit: 'sensor.prijs', afname: ['sensor.p1_meter_energy_import_tariff_1_cost', 'sensor.p1_meter_energy_import_tariff_2_cost'], terug: [], gas: 'sensor.gas_meter_gas_cost' } },
     });
     expect(importFromPrefs(null)).toBeNull();
     expect(importFromPrefs({ energy_sources: 'x' })).toBeNull();
@@ -413,7 +417,7 @@ describe('meters en prijzen in de app', () => {
   it('neemt een prijs uit een entiteit over met de stand van nu', () => {
     const only = { energy_sources: [{ type: 'grid', flow_from: [{ stat_energy_from: 'sensor.afname', entity_energy_price: 'input_number.stroomprijs' }] }, { type: 'gas', stat_energy_from: 'sensor.gas', entity_energy_price: 'input_number.gasprijs' }] };
     const prices: Record<string, number> = { 'input_number.stroomprijs': 0.2899, 'input_number.gasprijs': 1.31 };
-    expect(importFromPrefs(only, [], (id) => prices[id] ?? null)?.prijzen).toEqual({ stroom: 0.2899, teruglevering: null, gas: 1.31, vastPerMaand: null, dynamisch: { prijsEntiteit: 'input_number.stroomprijs', afname: ['sensor.afname_cost'], terug: [] } });
+    expect(importFromPrefs(only, [], (id) => prices[id] ?? null)?.prijzen).toEqual({ stroom: 0.2899, teruglevering: null, gas: 1.31, vastPerMaand: null, dynamisch: { prijsEntiteit: 'input_number.stroomprijs', afname: ['sensor.afname_cost'], terug: [], gas: 'sensor.gas_cost' } });
   });
 
   it('bewaart alleen meters en redelijke bedragen, en houdt ze over een herstart', async () => {
@@ -528,6 +532,93 @@ describe('een prijs per uur (testerronde, november 2026)', () => {
     expect(r.kosten.totaal).toBeCloseTo(1.06 - (7 * 1.06) / 6.8, 2);
     // Ook de vergelijking met eerdere dagen rekent met de tellers, niet met alleen het gas.
     expect(r.vergelijk.kosten.at(-1)!.nu).toBeCloseTo(1.06 - (7 * 1.06) / 6.8, 1);
+  });
+});
+
+/*
+ * Issue 128 (Erik, Zonneplan): Opbrengst gaf € 15,27 waar Home Assistant € 7,51
+ * zei. Bij een prijs per uur vond SunArc de kostentellers niet, en zonder vaste
+ * stroomprijs telden stroom en teruglevering stil als nul; het gas telde tegen
+ * één vaste prijs, terwijl Home Assistant de gasprijs van elke dag nam.
+ */
+describe('kosten zoals Home Assistant ze telt (issue 128)', () => {
+  const nu = Date.UTC(2026, 9, 7, 12);
+
+  it('zegt wat er zonder prijs als nul telt, in plaats van het stil weg te laten', async () => {
+    const kwijt = { ...SETTINGS, prijzen: { ...SETTINGS.prijzen, stroom: null, dynamisch: { prijsEntiteit: 'sensor.prijs', afname: ['sensor.weg_cost'], terug: [] } } };
+    const r = (await yieldReport(fakeSource(), kwijt, 'dag', '2026-09-15', TZ, nu))!;
+    expect(r.kosten.regels.find((x) => x.soort === 'stroom')!.euro).toBeNull();
+    // Alleen het gas telt, en de pagina zegt dat stroom en teruglevering ontbreken.
+    expect(r.kosten.totaal).toBeCloseTo(0.26, 2);
+    expect(r.kosten.zonderPrijs).toEqual(['stroom', 'terug']);
+    // Met de tellers ontbreekt er niets.
+    const goed = { ...SETTINGS, prijzen: { ...SETTINGS.prijzen, dynamisch: { prijsEntiteit: 'sensor.prijs', afname: ['sensor.afname_cost'], terug: ['sensor.terug_compensation'] } } };
+    expect((await yieldReport(fakeSource(), goed, 'dag', '2026-09-15', TZ, nu))!.kosten.zonderPrijs).toEqual([]);
+  });
+
+  it('telt bij een prijs per uur ook het gas zoals Home Assistant het telt', async () => {
+    const dyn = { ...SETTINGS, prijzen: { ...SETTINGS.prijzen, gas: 3.2, dynamisch: { prijsEntiteit: 'sensor.prijs', afname: ['sensor.afname_cost'], terug: ['sensor.terug_compensation'], gas: 'sensor.gas_cost' } } };
+    const r = (await yieldReport(fakeSource(), dyn, 'dag', '2026-09-15', TZ, nu))!;
+    const gas = r.kosten.regels.find((x) => x.soort === 'gas')!;
+    // 0,2 m³ tegen 1,90 uit Home Assistant, niet tegen de 3,20 bij Contract en prijzen.
+    expect(gas.euro).toBeCloseTo(0.38, 2);
+    expect(gas.uitleg).toBe('0,2 m³, zoals Home Assistant telt');
+    expect(r.kosten.totaal).toBeCloseTo(1.06 - 0.7 + 0.38, 2);
+    expect(r.vergelijk.kosten.at(-1)!.nu).toBeCloseTo(1.06 - 0.7 + 0.38, 1);
+    // Ook zonder gasprijs in de app.
+    const zonder = { ...dyn, prijzen: { ...dyn.prijzen, gas: null } };
+    expect((await yieldReport(fakeSource(), zonder, 'dag', '2026-09-15', TZ, nu))!.kosten.zonderPrijs).toEqual([]);
+  });
+
+  it('neemt de namen van de kostentellers zoals Home Assistant ze geeft', () => {
+    const prefs = {
+      energy_sources: [
+        { type: 'grid', stat_energy_from: 'sensor.afname', entity_energy_price: 'sensor.zonneplan_current_electricity_tariff', stat_energy_to: 'sensor.terug', entity_energy_price_export: 'sensor.zonneplan_current_electricity_tariff' },
+        { type: 'gas', stat_energy_from: 'sensor.gas', entity_energy_price: 'sensor.zonneplan_current_gas_tariff' },
+      ],
+    };
+    const kosten = { 'sensor.afname': 'sensor.afname_cost_2', 'sensor.terug': 'sensor.terug_compensation', 'sensor.gas': 'sensor.gas_cost' };
+    expect(importFromPrefs(prefs, [], () => 0.23, kosten)!.prijzen.dynamisch).toEqual({
+      prijsEntiteit: 'sensor.zonneplan_current_electricity_tariff',
+      afname: ['sensor.afname_cost_2'],
+      terug: ['sensor.terug_compensation'],
+      gas: 'sensor.gas_cost',
+    });
+    // Maakt Home Assistant er geen (zoals bij een externe statistiek), dan is er geen prijs per uur om over te nemen.
+    expect(importFromPrefs(prefs, [], () => 0.23, { 'sensor.gas': 'sensor.gas_cost' })!.prijzen.dynamisch).toBeUndefined();
+    // De gasprijs is niet de stroomprijs: alleen een gasprijs uit een entiteit maakt geen prijs per uur.
+    const alleenGas = { energy_sources: [{ type: 'gas', stat_energy_from: 'sensor.gas', entity_energy_price: 'sensor.zonneplan_current_gas_tariff' }, { type: 'grid', stat_energy_from: 'sensor.afname', number_energy_price: 0.25 }] };
+    expect(importFromPrefs(alleenGas, [], () => 1.3)!.prijzen.dynamisch).toBeUndefined();
+  });
+
+  it('werkt bewaarde tellers bij met wat Home Assistant nu heeft', async () => {
+    const oud = { ...SETTINGS, prijzen: { ...SETTINGS.prijzen, dynamisch: { prijsEntiteit: 'sensor.prijs', afname: ['sensor.afname_cost'], terug: [] } } };
+    const prefs = { energy_sources: [{ type: 'grid', stat_energy_from: 'sensor.afname', entity_energy_price: 'sensor.prijs', stat_energy_to: 'sensor.terug', entity_energy_price_export: 'sensor.prijs' }, { type: 'gas', stat_energy_from: 'sensor.gas', entity_energy_price: 'sensor.gasprijs' }] };
+    const bron = (kosten: Record<string, string> | null): EnergySource => ({ ...fakeSource(), prefs: async () => prefs, kostenTellers: async () => kosten });
+    const nieuw = await metTellersUitHA(bron({ 'sensor.afname': 'sensor.afname_cost_2', 'sensor.terug': 'sensor.terug_compensation', 'sensor.gas': 'sensor.gas_cost' }), oud);
+    expect(nieuw.prijzen.dynamisch).toEqual({ prijsEntiteit: 'sensor.prijs', afname: ['sensor.afname_cost_2'], terug: ['sensor.terug_compensation'], gas: 'sensor.gas_cost' });
+    // Een ander gas in de app dan in het dashboard: dan niet de gasteller van het dashboard.
+    const anderGas = await metTellersUitHA(bron({ 'sensor.afname': 'sensor.afname_cost', 'sensor.gas': 'sensor.gas_cost' }), { ...oud, gas: 'sensor.ander_gas' });
+    expect(anderGas.prijzen.dynamisch?.gas).toBeUndefined();
+    // Vindt Home Assistant niets, of geeft hij een fout, dan blijft wat bewaard is.
+    expect((await metTellersUitHA(bron({}), oud)).prijzen.dynamisch).toEqual(oud.prijzen.dynamisch);
+    expect((await metTellersUitHA({ ...bron(null), prefs: async () => Promise.reject(new Error('weg')) }, oud)).prijzen.dynamisch).toEqual(oud.prijzen.dynamisch);
+    // Zonder prijs per uur verandert er niets.
+    expect(await metTellersUitHA(bron(null), SETTINGS)).toBe(SETTINGS);
+  });
+
+  it('bewaart de gasteller, en weigert er een die geen entiteit is', () => {
+    const dyn = { prijsEntiteit: 'sensor.prijs', afname: ['sensor.afname_cost'], terug: [], gas: 'sensor.gas_cost' };
+    const ok = validateEnergy({ ...SETTINGS, prijzen: { ...SETTINGS.prijzen, dynamisch: dyn } });
+    expect(ok.ok && ok.settings.prijzen.dynamisch).toEqual(dyn);
+    expect(validateEnergy({ ...SETTINGS, prijzen: { ...SETTINGS.prijzen, dynamisch: { ...dyn, gas: 'geen entiteit' } } }).ok).toBe(false);
+  });
+
+  it('leest de kostentellers uit energy/info', async () => {
+    const client = { query: async (type: string) => (type === 'energy/info' ? { cost_sensors: { 'sensor.afname': 'sensor.afname_cost', 'sensor.raar': 3 } } : null) } as unknown as HaClient;
+    expect(await haEnergySource(client).kostenTellers!()).toEqual({ 'sensor.afname': 'sensor.afname_cost' });
+    const kapot = { query: async () => Promise.reject(new Error('onbekend')) } as unknown as HaClient;
+    expect(await haEnergySource(kapot).kostenTellers!()).toBeNull();
   });
 });
 

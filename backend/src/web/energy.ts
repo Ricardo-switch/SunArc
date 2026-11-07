@@ -118,6 +118,14 @@ export interface EnergySource {
   /** Sensoren met een prijs per kWh, zoals van Zonneplan, Tibber of Frank (issue 119). */
   prijsSensoren?(): readonly PrijsSensor[];
   /**
+   * Per meter de kostenteller die Home Assistant er zelf bij maakte, uit
+   * `energy/info` (issue 128): zo vindt het Energie-dashboard ze ook. De naam
+   * is meestal `<meter>_cost`, maar niet altijd, en bij een externe statistiek
+   * (zoals Zonneplan aanraadt) maakt Home Assistant er geen. Null als Home
+   * Assistant het niet zegt.
+   */
+  kostenTellers?(): Promise<Readonly<Record<string, string>> | null>;
+  /**
    * Wat de omvormers opwekten, per uur of per dag in kWh, uit hun vermogen
    * (Ricardo, 5 november 2026: een zonnemeter in kWh kan achterlopen). Null
    * zonder omvormer; dan telt de zonnemeter.
@@ -148,6 +156,12 @@ export function importFromPrefs(
   prefs: unknown,
   meters: readonly MeterOption[] = [],
   entityNumber: (entityId: string) => number | null = () => null,
+  /**
+   * De kostentellers die Home Assistant maakte, per meter (`energy/info`,
+   * issue 128). Staat een meter er niet in, dan telt Home Assistant er geen
+   * kosten bij. Null: Home Assistant zei het niet, dan de gewone naam.
+   */
+  kostenVan: Readonly<Record<string, string>> | null = null,
 ): EnergySettings | null {
   if (!isRecord(prefs) || !Array.isArray(prefs['energy_sources'])) return null;
   const nameOf = (id: string) => meters.find((m) => m.id === id)?.naam ?? id;
@@ -187,8 +201,10 @@ export function importFromPrefs(
     const vastePrijs = typeof x[`number_energy_price${suffix}`] === 'number';
     if (typeof entiteit !== 'string' && !vastePrijs) return null;
     if (typeof entiteit === 'string') prijsEntiteit ??= entiteit;
-    return `${meter}${achter}`;
+    // De naam die Home Assistant gaf (issue 128); zonder lijst de gewone naam.
+    return kostenVan ? (str(kostenVan[meter]) ?? null) : `${meter}${achter}`;
   };
+  let kostGas: string | null = null;
   for (const src of prefs['energy_sources']) {
     if (!isRecord(src)) continue;
     if (src['type'] === 'grid') {
@@ -216,7 +232,15 @@ export function importFromPrefs(
       const id = str(src['stat_energy_from']);
       if (id && !zon.includes(id)) zon.push(id);
     } else if (src['type'] === 'gas') {
-      gas ??= str(src['stat_energy_from']);
+      const id = str(src['stat_energy_from']);
+      if (gas == null && id) {
+        // Ook de gaskosten zoals Home Assistant ze telt (issue 128). De gasprijs is
+        // niet de stroomprijs (het laadadvies leest die), en gas alleen maakt nog geen prijs per uur.
+        const eerder: { prijsEntiteit: string | null; eigenKosten: boolean } = { prijsEntiteit, eigenKosten };
+        kostGas = teller(src, id, 'stat_cost', '_cost');
+        ({ prijsEntiteit, eigenKosten } = eerder);
+      }
+      gas ??= id;
       gasPrijs ??= priceIn(src);
     }
   }
@@ -241,9 +265,45 @@ export function importFromPrefs(
       gas: gasPrijs,
       vastPerMaand: null,
       // Alleen als elke afnamemeter een teller heeft; anders telt Opbrengst zelf, zoals eerst.
-      ...((prijsEntiteit || eigenKosten) && kostAf.length === afname.length && afname.length ? { dynamisch: { prijsEntiteit, afname: kostAf, terug: kostTerug.length === terug.length ? kostTerug : [] } } : {}),
+      ...((prijsEntiteit || eigenKosten) && kostAf.length === afname.length && afname.length
+        ? { dynamisch: { prijsEntiteit, afname: kostAf, terug: kostTerug.length === terug.length ? kostTerug : [], ...(kostGas ? { gas: kostGas } : {}) } }
+        : {}),
     },
   };
+}
+
+/**
+ * Bij een prijs per uur de kostentellers zoals Home Assistant ze nu heeft
+ * (issue 128). Bewaard zijn de namen van toen de bewoner de uurprijs overnam;
+ * een teller kan sindsdien anders heten of er pas later bij zijn gekomen, zoals
+ * die voor teruglevering of gas. Vindt Home Assistant er nu een, dan telt die;
+ * anders blijft wat bewaard is. Zonder prijs per uur verandert er niets.
+ */
+export function metHuidigeTellers(s: EnergySettings, nu: Dynamisch | null | undefined): EnergySettings {
+  const dyn = s.prijzen.dynamisch;
+  if (!dyn || !nu) return s;
+  const gas = nu.gas && s.gas != null ? nu.gas : (dyn.gas ?? null);
+  const bijgewerkt: Dynamisch = {
+    prijsEntiteit: dyn.prijsEntiteit ?? nu.prijsEntiteit,
+    afname: nu.afname.length ? nu.afname : dyn.afname,
+    terug: nu.terug.length ? nu.terug : dyn.terug,
+    ...(gas ? { gas } : {}),
+  };
+  return { ...s, prijzen: { ...s.prijzen, dynamisch: bijgewerkt } };
+}
+
+/** Haalt het dashboard en de kostentellers op en werkt de tellers bij; bij een fout blijft alles zoals het was. */
+export async function metTellersUitHA(source: EnergySource, s: EnergySettings): Promise<EnergySettings> {
+  if (!s.prijzen.dynamisch) return s;
+  try {
+    const [prefs, kosten] = await Promise.all([source.prefs(), source.kostenTellers?.() ?? Promise.resolve(null)]);
+    const nu = importFromPrefs(prefs, [], () => null, kosten);
+    // De gasteller hoort bij hetzelfde gas als in de app; anders past het bedrag niet bij de m³.
+    const dyn = nu?.prijzen.dynamisch;
+    return metHuidigeTellers(s, dyn && nu?.gas !== s.gas ? { ...dyn, gas: null } : dyn);
+  } catch {
+    return s;
+  }
 }
 
 /**
@@ -404,8 +464,11 @@ export function validateEnergy(body: unknown): EnergyCheck {
     const pe = d['prijsEntiteit'] ?? null;
     const af = lijst(d['afname']);
     const tr = lijst(d['terug'] ?? []);
-    if (!af || !af.length || !tr || (pe !== null && (typeof pe !== 'string' || !STAT_ID.test(pe)))) return { ok: false, reden: 'prijzen.dynamisch is { prijsEntiteit, afname, terug } met entiteiten uit Home Assistant' };
-    dynamisch = { prijsEntiteit: pe as string | null, afname: af, terug: tr };
+    const ga = d['gas'] ?? null;
+    if (!af || !af.length || !tr || (pe !== null && (typeof pe !== 'string' || !STAT_ID.test(pe))) || (ga !== null && str(ga) == null)) {
+      return { ok: false, reden: 'prijzen.dynamisch is { prijsEntiteit, afname, terug, gas? } met entiteiten uit Home Assistant' };
+    }
+    dynamisch = { prijsEntiteit: pe as string | null, afname: af, terug: tr, ...(ga ? { gas: ga as string } : {}) };
   }
   const prijzen: EnergyPrices = {
     ...enkel,

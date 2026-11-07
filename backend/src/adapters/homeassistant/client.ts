@@ -28,6 +28,8 @@ const READ_COMMANDS: ReadonlySet<string> = new Set([
   // Opbrengst (besluit 102): het Energie-dashboard en de statistiek van de
   // meters. Ook dat is lezen.
   'energy/get_prefs',
+  // Welke kostentellers Home Assistant zelf maakte, per meter (issue 128).
+  'energy/info',
   'recorder/list_statistic_ids',
   'recorder/statistics_during_period',
   // De stem van het huis (besluit 141): welke talen en stemmen Piper heeft.

@@ -54,6 +54,16 @@ export function haEnergySource(
       const nu = (x: PrijsSensor) => (/current|huidig|now|nu\b|actue/i.test(`${x.id} ${x.naam}`) ? 0 : 1);
       return lijst.sort((a, b) => nu(a) - nu(b) || a.naam.localeCompare(b.naam, 'nl')).slice(0, 5);
     },
+    async kostenTellers() {
+      try {
+        const info = await client.query<{ cost_sensors?: unknown }>('energy/info');
+        const k = info?.cost_sensors;
+        if (k == null || typeof k !== 'object' || Array.isArray(k)) return null;
+        return Object.fromEntries(Object.entries(k as Record<string, unknown>).filter((e): e is [string, string] => typeof e[1] === 'string'));
+      } catch {
+        return null;
+      }
+    },
     async prefs() {
       try {
         return await client.query<unknown>('energy/get_prefs');

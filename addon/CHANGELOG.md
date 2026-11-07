@@ -17,6 +17,7 @@
 - Laden met de hand houdt zich aan je hoofdzekering, ook zonder stroommeter per fase
 - Liggen er panelen op het huis én op de garage, dan stroomt de zon op Thuis nu ook van de garage
 - Koos je bij Inrichten een plat dak, dan bleef het huis soms een puntdak. Plat dak bij Inrichten gaat nu voor, ook voor de dakvorm uit de kaart
+- Met een prijs per uur telde Opbrengst stroom en teruglevering soms niet mee, en gas tegen één vaste prijs. Nu telt het zoals Home Assistant, ook het gas. Ontbreekt er een prijs, dan staat bij Kosten wat er niet in zit
 
 *English*
 
@@ -33,6 +34,7 @@
 - Charging by hand keeps to your main fuse, also without a current meter per phase
 - With panels on the house and on the garage, the sun on Home now also flows from the garage
 - If you picked a flat roof in Set up, the house sometimes kept a pitched roof. A flat roof in Set up now comes first, also over the roof shape from the map
+- With an hourly price, Energy sometimes left out electricity and export, and counted gas at one fixed price. It now counts as Home Assistant does, gas included. If a price is missing, Costs says what is not included
 
 ## 0.142.0
 

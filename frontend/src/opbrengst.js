@@ -119,7 +119,9 @@ function cijfers(r, klein = false) {
   const k = r.kosten;
   const stroom = `<div class="cijfer"><div class="mini">${esc(t('opbrengst.stroomGebruikt'))}</div><div class="getal">${getal(s.verbruikKwh)}<small>kWh</small></div><div class="klein">${esc(r.heeft.zon ? t('opbrengst.vanNetRest', { kwh: getal(s.vanNetKwh) }) : t('opbrengst.vanNet'))}</div></div>`;
   const vast = k.regels.find((x) => x.soort === 'vast');
-  const kostenOnder = [r.dekking ? t('opbrengst.gemetenDagen', { n: r.dekking.dagen }) : k.vorige != null ? `${r.periode.vorigeNaam} ${euro(k.vorige)}` : '', vast?.euro == null ? t('opbrengst.zonderVast') : ''].filter(Boolean).join(', ');
+  // Wat zonder prijs als nul telt, staat erbij (issue 128): eerst stroom, teruglevering en gas, dan de vaste kosten.
+  const zonder = [...(k.zonderPrijs ?? []).map((x) => t(`opbrengst.zonder.${x}`)), ...(vast?.euro == null ? [t('opbrengst.zonderVast')] : [])];
+  const kostenOnder = [r.dekking ? t('opbrengst.gemetenDagen', { n: r.dekking.dagen }) : k.vorige != null ? `${r.periode.vorigeNaam} ${euro(k.vorige)}` : '', ...zonder].filter(Boolean).join(', ');
   const kosten = k.totaal == null ? '' : `<div class="cijfer"><div class="mini">${esc(t('opbrengst.kosten'))}</div><div class="getal">${euro(k.totaal)}</div><div class="klein">${esc(kostenOnder)}</div></div>`;
   const gas = r.gas ? `<div class="cijfer"><div class="mini">${esc(t('opbrengst.gas'))}</div><div class="getal">${getal(r.gas.m3)}<small>m³</small></div><div class="klein">${r.gas.vorigeM3 != null ? `${esc(r.periode.vorigeNaam)} ${getal(r.gas.vorigeM3)} m³` : ''}</div></div>` : '';
   if (klein) {
