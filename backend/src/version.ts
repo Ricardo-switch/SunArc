@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.144.1';
+export const VERSIE = '0.144.2';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,24 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.144.2',
+    datum: '2026-11-07',
+    opgelost: ['Nam je bij Daken en panelen de richting en helling over uit de 3D-kaart, dan stond er Zelf ingesteld. Nu staat er uit de 3D-kaart, zolang het vlak met de kaart klopt'],
+    beter: [
+      'Wijkt de helling uit de meting af van de 3D-kaart, dan zegt het vlak dat de 3D-kaart voor de helling nauwkeuriger is',
+      'Bij Te doen staat wat met de hand loopt nu in de kolom Vast en gepland, niet meer los erboven. Een stekker die met de hand aan staat, zegt daar Zet uit in plaats van Terug',
+      'Elke taak bij Vast en gepland op Te doen heeft naast de schakelaar een × om hem weg te halen',
+    ],
+    en: {
+      opgelost: ['If you took the direction and tilt from the 3D map in Roofs and panels, it said Set by you. It now says from the 3D map, as long as the face matches the map'],
+      beter: [
+        'If the tilt from the measurement differs from the 3D map, the face says the 3D map is more accurate for the tilt',
+        'In To do, what runs by hand now shows in the Fixed and planned column, no longer on its own above it. A plug switched on by hand says Switch off there instead of Back',
+        'Every task in Fixed and planned on To do has an × next to the switch to remove it',
+      ],
+    },
+  },
   {
     versie: '0.144.1',
     datum: '2026-11-07',

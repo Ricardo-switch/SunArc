@@ -5515,6 +5515,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await p.locator('#wand .td-vast .td-taak', { hasText: 'Screens dicht' }).locator('[data-td-gp-aan]').click();
     await expect.poll(() => gestuurd.length).toBe(1);
     expect(gestuurd.shift()).toEqual({ actie: 'aanpassen', id: 'g1', aan: false });
+    // Weghalen met × (7 november 2026), na een vraag.
+    p.once('dialog', (d) => void d.accept());
+    await p.locator('#wand .td-vast .td-taak', { hasText: 'Badkamer licht aan' }).locator('[data-td-gp-weg]').click();
+    await expect.poll(() => gestuurd.length).toBe(1);
+    expect(gestuurd.shift()).toEqual({ actie: 'annuleer', id: 'g2' });
     await regel.click();
     await p.waitForURL(/gepland\.html$/);
     const wand = p.locator('#wand [data-gp]');

@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.144.1
+## 0.144.2
 
-*7 november 2026 · 0.142.1 – 0.144.1*
+*7 november 2026 · 0.142.1 – 0.144.2*
 
 **Nieuw**
 
@@ -14,12 +14,16 @@
 
 **Beter**
 
+- Wijkt de helling uit de meting af van de 3D-kaart, dan zegt het vlak dat de 3D-kaart voor de helling nauwkeuriger is
+- Bij Te doen staat wat met de hand loopt nu in de kolom Vast en gepland, niet meer los erboven. Een stekker die met de hand aan staat, zegt daar Zet uit in plaats van Terug
+- Elke taak bij Vast en gepland op Te doen heeft naast de schakelaar een × om hem weg te halen
 - Zet uit bij een stekker zet hem meteen uit, zonder hoe lang of een eindtijd
 - Bij Wat kan bij jouw huis zegt elke kaart Zoekt… zolang SunArc de omtrek en de 3D-kaart nog opvraagt
 - Bij een prijs per uur tellen de uren waarin Home Assistant de kosten nog niet telde tegen je gemiddelde, met "deels geschat" bij Kosten. Over een heel jaar telt wat je boven je verbruik teruglevert tegen de vergoeding
 
 **Opgelost**
 
+- Nam je bij Daken en panelen de richting en helling over uit de 3D-kaart, dan stond er Zelf ingesteld. Nu staat er uit de 3D-kaart, zolang het vlak met de kaart klopt
 - Op een Android-wand kon je de tijd van een stekker pas instellen na een tik op het toetsenbord. Tot hoe laat kies je nu uit een lijst per kwartier, net als Om bij Elke dag
 - Bij Daken en panelen gingen lengte en breedte van een blok samen omhoog of omlaag zodra de breedte groter werd dan de lengte. Nu blijft elke maat van zichzelf, ook bij een huis van 6 bij 11 meter
 - Een plat dak met panelen op rekken bleef op Thuis een puntdak als de kaart een puntdak gaf. Je panelen gaan nu voor
@@ -42,12 +46,16 @@
 
 **Improved**
 
+- If the tilt from the measurement differs from the 3D map, the face says the 3D map is more accurate for the tilt
+- In To do, what runs by hand now shows in the Fixed and planned column, no longer on its own above it. A plug switched on by hand says Switch off there instead of Back
+- Every task in Fixed and planned on To do has an × next to the switch to remove it
 - Switch off on a plug switches it off right away, without how long or an end time
 - In What your house allows, each map says Searching… while SunArc still looks up the outline and the 3D map
 - With an hourly price, hours in which Home Assistant did not count the costs yet count at your average, with "partly estimated" at Costs. Over a whole year, what you export above your use counts at the payment rate
 
 **Fixed**
 
+- If you took the direction and tilt from the 3D map in Roofs and panels, it said Set by you. It now says from the 3D map, as long as the face matches the map
 - On an Android wall panel you could only set the time of a plug after tapping the keyboard. Until when is now picked from a list per quarter of an hour, as is At for Every day
 - In Roofs and panels, the length and width of a block went up or down together once the width got larger than the length. Each size now stays its own, also for a house of 6 by 11 metres
 - A flat roof with panels on racks stayed a pitched roof on Home when the map gave a pitched roof. Your panels now come first

@@ -529,8 +529,8 @@
   function nuHtml() {
     const klimaat = (data?.apparaten ?? []).filter((a) => a.actief).map((a) => `<div class="nu-regel"><span class="ik">${IK.klimaat}</span><div><b>${esc(a.naam)}</b><span>${esc(nuZin(a))}</span></div><button type="button" data-nu-terug="${esc(a.id)}">${esc(t('hand.terugKort'))}</button></div>`);
     const wit = uitstelbaar.filter((d) => d.kanKiezen).map((d) => `<a class="nu-regel" href="apparaten.html#wg-${encodeURIComponent(d.id)}"><span class="ik">${IK.witgoed}</span><div><b>${esc(t('witgoed.opZon', { naam: d.naam }))}</b><span>${esc(d.klaarVoor ? t('witgoed.klaarVoorKort', { klok: d.klaarVoor }) : t('witgoed.geenHaastKort'))}</span></div><em>${esc(t('witgoed.aanpassen'))}</em></a>`);
-    // Een stekker met de hand (besluit 265), met Terug.
-    const stek = (stekkers?.stekkers ?? []).filter((s) => s.actief).map((s) => `<div class="nu-regel"><span class="ik">${iconen.svg('stekker')}</span><div><b>${esc(s.naam)}</b><span>${esc(t(s.actief.aan ? 'hand.stekkerAanTot' : 'hand.stekkerUitTot', { klok: klokVan(s.actief.totMs) }))}</span></div>${stekkers?.aan ? `<button type="button" data-nu-stekker="${esc(s.id)}">${esc(t('hand.terugKort'))}</button>` : ''}</div>`);
+    // Een stekker met de hand (besluit 265): aan met de hand zegt Zet uit, uit met de hand Zet aan (7 november 2026).
+    const stek = (stekkers?.stekkers ?? []).filter((s) => s.actief).map((s) => `<div class="nu-regel"><span class="ik">${iconen.svg('stekker')}</span><div><b>${esc(s.naam)}</b><span>${esc(t(s.actief.aan ? 'hand.stekkerAanTot' : 'hand.stekkerUitTot', { klok: klokVan(s.actief.totMs) }))}</span></div>${stekkers?.aan ? `<button type="button" data-nu-stekker="${esc(s.id)}" data-nu-aan="${s.actief.aan}">${esc(t(s.actief.aan ? 'hand.stekkerZetUitKort' : 'hand.stekkerZetAanKort'))}</button>` : ''}</div>`);
     return [...klimaat, ...stek, ...wit].join('');
   }
   document.addEventListener('click', async (e) => {
@@ -539,7 +539,8 @@
     if (!k && !s) return;
     (k ?? s).disabled = true;
     if (k) await stuur('api/hand', { id: k.dataset.nuTerug, terug: true });
-    else await stuur('api/stekker', { id: s.dataset.nuStekker, terug: true });
+    // Aan met de hand: meteen uit. Uit met de hand: terug zoals hij was, dus weer aan.
+    else await stuur('api/stekker', s.dataset.nuAan === 'true' ? { id: s.dataset.nuStekker, aan: false, meteen: true } : { id: s.dataset.nuStekker, terug: true });
   });
   // De tijd van een stekker: bij het verlaten van het veld, zodat typen niet onderbroken wordt.
   document.addEventListener('change', (e) => {

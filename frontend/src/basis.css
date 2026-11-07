@@ -555,6 +555,10 @@ html.sc-stil::view-transition-group(*), html.sc-stil::view-transition-old(*), ht
 .td-taak .td-wat span { font-size: 12.5px; }
 .td-taak.uit { opacity: 0.5; }
 .td-taak .schakelaar { width: 42px; height: 26px; }
+.td-taak-knoppen { display: flex; align-items: center; gap: 6px; }
+.td-taak-weg { width: 32px; height: 32px; border-radius: 10px; border: 0; background: rgb(var(--wit) / 0.06); color: var(--gedempt); font-size: 18px; line-height: 1; cursor: pointer; }
+.td-nu { margin: 0 0 4px; }
+.td-nu .nu-regel { padding: 10px 12px; gap: 10px; }
 /* + Nieuw: twee wegen en zeg het, onder de knop. */
 .td-keuze-achter { position: fixed; inset: 0; z-index: 7; background: rgb(5 9 18 / 0.45); }
 .td-keuze { position: absolute; right: 0; top: 66px; z-index: 8; width: 520px; padding: 14px; border-radius: 26px; background: rgb(var(--nacht) / 0.98); border: 1px solid var(--glas-rand); box-shadow: 0 30px 80px rgb(0 0 0 / 0.55); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

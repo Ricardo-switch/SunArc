@@ -164,7 +164,7 @@
    * je dag als kleine boog, en de taken die komen, elk met een schakelaar om te
    * pauzeren. Een tik op de boog of op alles opent de eigen pagina.
    */
-  function vastGeplandHtml(lijst) {
+  function vastGeplandHtml(lijst, nu = '') {
     const p = global.plannen;
     const vandaag = lijst.filter((g) => dagenVan(g.ms) <= 0);
     const gedaan = lijst.filter((g) => g.opdracht?.laatstMs && dagenVan(g.opdracht.laatstMs) === 0 && dagenVan(g.ms) > 0);
@@ -178,12 +178,13 @@
         const h = g.opdracht?.herhaal ?? { soort: 'een' };
         const z = g.opdracht?.moment ? (p?.zonNaam(g.opdracht.moment) ?? '') : '';
         const vaak = h.soort === 'een' ? dagKort(g.ms) : (p?.herhaalNaam(h) ?? '');
-        return `<div class="td-taak${aan ? '' : ' uit'}"><b class="td-taak-uur${z ? ' zon' : ''}">${esc(klok(g.ms))}</b><div class="td-wat"><b>${esc(g.tekst)}</b><span>${esc([z, vaak].filter(Boolean).join(' · '))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('gp.aanLabel', { wat: g.tekst }))}" data-td-gp-aan="${esc(g.id)}"></button></div>`;
+        // Met een wisknop naast de schakelaar (7 november 2026): uit is pauzeren, × haalt hem weg.
+        return `<div class="td-taak${aan ? '' : ' uit'}"><b class="td-taak-uur${z ? ' zon' : ''}">${esc(klok(g.ms))}</b><div class="td-wat"><b>${esc(g.tekst)}</b><span>${esc([z, vaak].filter(Boolean).join(' · '))}</span></div><span class="td-taak-knoppen"><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('gp.aanLabel', { wat: g.tekst }))}" data-td-gp-aan="${esc(g.id)}"></button><button type="button" class="td-taak-weg" data-td-gp-weg="${esc(g.id)}" aria-label="${esc(t('hand.stekkerVastWeg', { naam: g.tekst }))}">×</button></span></div>`;
       })
       .join('');
     return `<section class="glas tdp-vak td-vast">
         <h2>${esc(t('tedoen.vastGeplandKop'))}<a class="td-gepland" href="gepland.html">${esc(t('tedoen.alles'))} ›</a></h2>
-        ${boog}${regels || `<p class="mini">${esc(t('tedoen.geenTaken'))}</p>`}
+        ${nu ? `<div class="nu-regels td-nu">${nu}</div>` : ''}${boog}${regels || `<p class="mini">${esc(t('tedoen.geenTaken'))}</p>`}
       </section>`;
   }
 
@@ -289,14 +290,15 @@
     const nu = global.hand?.nuHtml() ?? '';
     // Drie kolommen (besluit 245): herinneringen met de lijsten eronder, Vast en gepland, en de agenda.
     const n = bronnenVan().size;
-    return `${kop}${nu ? `<div class="nu-regels">${nu}</div>` : ''}<div class="tdp-drie">
+    // Wat met de hand loopt, staat in de kolom Vast en gepland (7 november 2026), niet meer los erboven.
+    return `${kop}<div class="tdp-drie">
       <section class="glas tdp-vak">
         <h2>${esc(t('tedoen.herinneringen'))}<em>${data.herinneringen.length || ''}</em></h2>
         ${data.herinneringen.map(herinneringHtml).join('') || `<p class="mini">${esc(t('tedoen.geenHerinneringen'))}</p>`}
         <form class="td-erbij" data-td-nieuw><input type="text" maxlength="160" placeholder="${esc(t('tedoen.nieuw'))}" aria-label="${esc(t('tedoen.nieuwLabel'))}"></form>
         ${lijstenHtml()}
       </section>
-      ${vastGeplandHtml(data.gepland ?? [])}
+      ${vastGeplandHtml(data.gepland ?? [], nu)}
       <section class="glas tdp-vak">
         <h2>${esc(t('tedoen.agenda'))}${n || data.bewoner ? `<button type="button" class="tdp-agendas" data-td-agendas aria-expanded="${agendasOpen}">${esc(t('tedoen.agendasN', { n }))} ${agendasOpen ? '‹' : '›'}</button>` : `<em>${esc(t('tedoen.tweeWeken'))}</em>`}</h2>
         ${agendaHtml()}
@@ -366,7 +368,7 @@
   }
 
   document.addEventListener('click', (e) => {
-    const el = e.target.closest?.('[data-tedoen], [data-td-keuzeknop], [data-td-keuzedicht], [data-td-keuze], [data-td-agendas], [data-td-lijsttab], [data-td-gp-aan], [data-td-gedaan], [data-td-item], [data-td-later], [data-td-opruim]');
+    const el = e.target.closest?.('[data-tedoen], [data-td-keuzeknop], [data-td-keuzedicht], [data-td-keuze], [data-td-agendas], [data-td-lijsttab], [data-td-gp-aan], [data-td-gp-weg], [data-td-gedaan], [data-td-item], [data-td-later], [data-td-opruim]');
     if (!el) return;
     // De agenda's openklappen, en een andere lijst kiezen (besluit 245).
     if (el.matches('[data-td-agendas]')) {
@@ -394,6 +396,11 @@
     if (el.matches('[data-td-gp-aan]')) {
       const g = (data?.gepland ?? []).find((x) => x.id === el.dataset.tdGpAan);
       return g ? void stuur({ actie: 'aanpassen', id: g.id, aan: g.opdracht?.aan === false }) : undefined;
+    }
+    if (el.matches('[data-td-gp-weg]')) {
+      const g = (data?.gepland ?? []).find((x) => x.id === el.dataset.tdGpWeg);
+      if (!g || !global.confirm(t('tedoen.taakWegVraag', { wat: g.tekst }))) return undefined;
+      return void stuur({ actie: 'annuleer', id: g.id });
     }
     if (el.matches('[data-td-gedaan]')) return void stuur({ actie: 'gedaan', id: el.dataset.tdGedaan }).then(sluitMoment);
     if (el.matches('[data-td-later]')) return void stuur({ actie: 'later', id: el.dataset.tdId, minuten: Number(el.dataset.tdLater) }).then(sluitMoment);
