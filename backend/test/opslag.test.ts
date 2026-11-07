@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { HaEntityState } from '../src/adapters/homeassistant/client.js';
 import type { HaDevice, HaRegistryEntity } from '../src/adapters/homeassistant/discovery.js';
-import { autoApparaten, laadBedieningen, laadMeters, ladenView, leesLaden, vindOpslag, type LadenKeuze } from '../src/web/opslag.js';
+import { accuView, autoApparaten, laadBedieningen, laadMeters, ladenView, leesAccu, leesLaden, vindOpslag, type AccuKeuze, type LadenKeuze } from '../src/web/opslag.js';
 
 type Meting = { id: string; klasse?: string; staat: string; eenheid?: string; naam?: string; platform: string; apparaat: string; extra?: Record<string, unknown>; sinds?: string };
 
@@ -330,5 +330,92 @@ describe('wat de pagina Auto laat zien (besluit 259, stap 2)', () => {
   it('zegt dat de auto weg is, en sinds wanneer', () => {
     const weg = auto.map((m) => (m.id.startsWith('device_tracker.') ? { ...m, staat: 'not_home', sinds: '2026-11-06T07:10:00Z' } : m.id.startsWith('binary_sensor.') ? { ...m, staat: 'off' } : m));
     expect(huis([tesla], weg, null, nu).auto).toMatchObject({ thuis: false, wegSinds: '2026-11-06T07:10:00Z', kabelSinds: null, aangesloten: false });
+  });
+});
+
+describe('Energie › Thuisaccu: zelf kiezen, ook uit losse sensoren (besluit 271, issue 145)', () => {
+  // Drie Marstek-accu's via Homey, zoals in issue 145: één apparaat met losse sensoren.
+  const homey: HaDevice = { id: 'homey', area_id: null, name: 'Laadplan Controller', manufacturer: 'Athom', model: 'Homey Pro' };
+  const sensoren = (w = '-800'): Meting[] => [
+    { id: 'sensor.laadplan_controller_battery', klasse: 'battery', staat: '64', eenheid: '%', platform: 'homey', apparaat: 'homey' },
+    { id: 'sensor.laadplan_controller_power', klasse: 'power', staat: w, eenheid: 'W', platform: 'homey', apparaat: 'homey' },
+    { id: 'sensor.laadplan_controller_charged_energy', klasse: 'energy', staat: '812.4', eenheid: 'kWh', platform: 'homey', apparaat: 'homey' },
+    { id: 'sensor.laadplan_controller_discharged_energy', klasse: 'energy', staat: '734', eenheid: 'kWh', platform: 'homey', apparaat: 'homey' },
+  ];
+  const view = (keuze: AccuKeuze | null, laden: LadenKeuze | null = null, w?: string) => {
+    const { reg, states } = registers([knop, homey], [knopBatterij, ...sensoren(w)]);
+    return accuView(reg, states, keuze, laden);
+  };
+  const zelf: AccuKeuze = { aan: {}, zelf: ['homey'], instelling: {} };
+
+  it('vindt de accu van Homey niet vanzelf, maar biedt hem aan om te kiezen', () => {
+    const v = view(null);
+    expect(v.apparaten).toEqual([]);
+    expect(v.kandidaten).toEqual([{ id: 'homey', naam: 'Laadplan Controller' }]);
+    // Een knop met een batterijtje is geen accu om te kiezen; de sensoren van Homey staan klaar.
+    expect(v.sensoren.filter((x) => x.apparaat === 'homey').map((x) => x.soort).sort()).toEqual(['energie', 'energie', 'lading', 'vermogen']);
+    expect(huis([homey], sensoren()).batterij).toBeNull();
+  });
+
+  it('neemt hem als accu als de bewoner hem kiest, met zijn sensoren en het goede teken', () => {
+    const [a] = view(zelf).apparaten;
+    expect(a).toMatchObject({
+      id: 'homey',
+      naam: 'Laadplan Controller',
+      zelf: true,
+      aan: true,
+      teken: 'laden',
+      pct: 64,
+      vermogenW: -800,
+      sensoren: {
+        lading: 'sensor.laadplan_controller_battery',
+        vermogen: 'sensor.laadplan_controller_power',
+        geladen: 'sensor.laadplan_controller_charged_energy',
+        geleverd: 'sensor.laadplan_controller_discharged_energy',
+      },
+      gekozen: [],
+    });
+    const { reg, states } = registers([homey], sensoren());
+    expect(vindOpslag(reg, states, null, new Date(), zelf).batterij).toEqual({ id: 'homey', naam: 'De batterij', pct: 64, vermogenW: -800, stand: 'levert' });
+    // Niet meer te kiezen: hij staat er al.
+    expect(view(zelf).kandidaten).toEqual([]);
+  });
+
+  it('draait het teken om als plus leveren is, en neemt gekozen sensoren boven wat hij vond', () => {
+    const om: AccuKeuze = { aan: {}, zelf: ['homey'], instelling: { homey: { teken: 'leveren', geladen: 'sensor.laadplan_controller_discharged_energy' } } };
+    const [a] = view(om, null, '800').apparaten;
+    expect(a).toMatchObject({ teken: 'leveren', vermogenW: -800, gekozen: ['geladen'] });
+    expect(a!.sensoren.geladen).toBe('sensor.laadplan_controller_discharged_energy');
+  });
+
+  it('laat een uitgezette accu weg op Thuis, en een gekozen accu weg bij Auto en laadpaal', () => {
+    const { reg, states } = registers([homey], sensoren());
+    expect(vindOpslag(reg, states, null, new Date(), { ...zelf, aan: { homey: false } }).batterij).toBeNull();
+    expect(ladenView(reg, states, null).kandidaten).toEqual([{ id: 'homey', naam: 'Laadplan Controller' }]);
+    expect(ladenView(reg, states, null, zelf).kandidaten).toEqual([]);
+    // Wat de bewoner als auto koos, is geen accu.
+    expect(view(zelf, { aan: {}, rol: { homey: 'auto' }, instelling: {} }).apparaten).toEqual([]);
+  });
+
+  it('vindt bij een Sessy vanzelf de lading en het vermogen', () => {
+    const sessy: HaDevice = { id: 'sessy', area_id: null, name: 'Sessy', manufacturer: 'Charged', model: 'Sessy' };
+    const { reg, states } = registers([sessy], [
+      { id: 'sensor.sessy_state_of_charge', klasse: 'battery', staat: '78', eenheid: '%', platform: 'sessy', apparaat: 'sessy' },
+      { id: 'sensor.sessy_power', klasse: 'power', staat: '1800', eenheid: 'W', naam: 'Sessy battery power', platform: 'sessy', apparaat: 'sessy' },
+    ]);
+    expect(accuView(reg, states, null).apparaten).toEqual([
+      expect.objectContaining({ id: 'sessy', zelf: false, pct: 78, vermogenW: 1800, sensoren: { lading: 'sensor.sessy_state_of_charge', vermogen: 'sensor.sessy_power', geladen: null, geleverd: null } }),
+    ]);
+  });
+
+  it('leest wat de pagina stuurt, en weigert wat niet klopt', () => {
+    expect(leesAccu(null)).toEqual({ keuze: null });
+    expect(leesAccu({ aan: {}, zelf: [], instelling: {} })).toEqual({ keuze: null });
+    expect(leesAccu({ zelf: ['homey', 'homey'], instelling: { homey: { vermogen: 'sensor.laadplan_controller_power', teken: 'leveren', lading: null } } })).toEqual({
+      keuze: { aan: {}, zelf: ['homey'], instelling: { homey: { vermogen: 'sensor.laadplan_controller_power', teken: 'leveren' } } },
+    });
+    expect(leesAccu({ instelling: { homey: { vermogen: 'switch.iets' } } })).toHaveProperty('fout');
+    expect(leesAccu({ instelling: { homey: { teken: 'soms' } } })).toHaveProperty('fout');
+    expect(leesAccu({ zelf: 'homey' })).toHaveProperty('fout');
   });
 });

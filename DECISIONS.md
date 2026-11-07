@@ -264,6 +264,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [268. Het stekkerblad zegt wat je wilt, herhalen kan erin, en scènes horen bij de lampen](#268-het-stekkerblad-zegt-wat-je-wilt-herhalen-kan-erin-en-scènes-horen-bij-de-lampen)
 - [269. Buiten heeft echte plekken voor apparaten, ook zonder gebied in Home Assistant](#269-buiten-heeft-echte-plekken-voor-apparaten-ook-zonder-gebied-in-home-assistant)
 - [270. De thuisaccu staat in de tekening, op de plek die de bewoner kiest](#270-de-thuisaccu-staat-in-de-tekening-op-de-plek-die-de-bewoner-kiest)
+- [271. Een thuisaccu zelf kiezen bij Energie, ook uit losse sensoren](#271-een-thuisaccu-zelf-kiezen-bij-energie-ook-uit-losse-sensoren)
 
 **Veiligheid**
 
@@ -12626,6 +12627,46 @@ tekende de thuisaccu tot nu toe nergens in het huis, alleen als kaart.
 **Bewust niet (nog).** De stromen van en naar de accu in de tekening; die
 tekent de app nog nergens. Een accu die uit losse sensoren bestaat (issue 145)
 volgt apart.
+
+## 271. Een thuisaccu zelf kiezen bij Energie, ook uit losse sensoren
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, versie 0.145.0, issue 145; schets `design/app2/Wand-Energie-Accu.html`,
+onderzoek `docs/thuisaccu-onderzoek.md`.
+
+**Waarom.** Een tester heeft drie Marstek-accu's die Homey stuurt. Ze komen in
+Home Assistant binnen als één apparaat "Laadplan Controller" met losse
+sensoren, en SunArc herkende ze niet: geen klasse `energy_storage`, geen
+koppeling uit de lijst, geen naam die op een accu lijkt. Er was nergens een
+plek om een accu zelf aan te wijzen. Ricardo koos na het onderzoek de hele
+volgorde: zelf kiezen, de accu in de cijfers, de stromen tekenen, de regeling
+laat hem meekijken, meer accu's met hun maat, en meldingen; elk een versie.
+
+**Wat (stap 1).**
+
+- Een eigen deel **Energie › Thuisaccu**, naast Auto en laadpaal en net zo
+  opgebouwd. Links wat de app vond, elk met een schakelaar, en zelf een
+  apparaat kiezen. Te kiezen zijn apparaten die een vermogen of energie meten,
+  met een lading in % of allebei; geen knopje met een batterij, geen auto,
+  laadpaal of evcc.
+- Rechts per accu **welke sensor wat is**: hoe vol (%), het vermogen van nu,
+  totaal geladen en totaal geleverd (kWh). De sensoren van het apparaat staan
+  eerst, daarna de andere van dezelfde soort. "Laat SunArc kiezen" is wat de
+  app zelf vindt.
+- **Wat plus betekent** bij het vermogen: laden (zoals de meeste) of leveren
+  (zoals een Powerwall). Eronder wat de accu nu doet, met die keuze
+  toegepast, zodat je ziet of het klopt. Met aparte sensoren voor laden en
+  ontladen doet het teken er niet toe.
+- Bewaard in `aansluiting.json` als `accu`: `aan` per apparaat, `zelf` voor wat
+  de bewoner koos, en per accu de `instelling`. Een gekozen accu is geen auto
+  of laadpaal meer, en staat niet meer als kandidaat bij Auto en laadpaal.
+- De kaart op Thuis, bij Apparaten, in de tekening en "Waar staat je accu?"
+  nemen de eerste accu die aan staat, met de gekozen sensoren.
+- SunArc kijkt alleen; hij stuurt de accu niet (besluit 85, 182).
+
+**Bewust niet (nog).** De maat in kWh en meer accu's samen op één kaart komen
+in stap 5; de cijfers in Opbrengst in stap 2.
 
 ## Wat nog een besluit wacht
 

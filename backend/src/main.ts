@@ -74,7 +74,7 @@ import type { TeDoenDienst } from './web/routes/tedoen.js';
 import { spraakKeuzes, type SpraakKeuze } from './web/functies.js';
 import { cameraMelders, camerasNu, laatsteAanUitHistorie } from './web/cameras.js';
 import { FunctiesStore, aangebeld, functiesGevonden, functiesVoorstel, getoondeCameras, volledig, type Functies, type FunctiesGevonden } from './web/functies.js';
-import { KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, vindOpslag } from './web/opslag.js';
+import { accuView, KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, vindOpslag } from './web/opslag.js';
 import { Laadhand, laadMag } from './web/laadhand.js';
 import { Stekkerhand, stekkerMag, type StekkerBekend, type StekkerTot } from './web/stekkerhand.js';
 import { StekkerZon } from './web/stekkerzon.js';
@@ -1722,7 +1722,7 @@ const huisNu = (lang: Lang) => {
   const isPlat = huis != null && hoofddakPlat(a?.daken, a?.panelen?.ligging, layoutStore?.current?.dak === 'geen');
   const plat0 = !isPlat || !huis ? huis : huis.ligging ? { ...huis, ligging: { ...huis.ligging, plat: true } } : { ...huis, dakPlat: true };
   // De auto's en laadpalen met de keuzes bij Energie (besluit 259), uit alle standen: een kabel of bereik telt niet als iets in huis.
-  const plat = plat0 && houseRegisters ? { ...plat0, opslag: vindOpslag(houseRegisters, allStates, a?.laden ?? null) } : plat0;
+  const plat = plat0 && houseRegisters ? { ...plat0, opslag: vindOpslag(houseRegisters, allStates, a?.laden ?? null, new Date(), a?.accu ?? null) } : plat0;
   huisBewaard.set(lang, { sleutel, atMs: Date.now(), huis: plat });
   return plat;
 };
@@ -2637,7 +2637,9 @@ function connectionDoor(store: ConnectionStore, base: NonNullable<typeof baseCon
         zonNu: location ? sunPosition(Date.now(), location.latDeg, location.lonDeg) : null,
         grenzen: grenzenGevonden(),
         // Auto en laadpaal (besluit 259): wat Home Assistant heeft, met de keuzes van nu.
-        laden: houseRegisters ? ladenView(houseRegisters, allStates, store.current?.laden ?? null) : null,
+        laden: houseRegisters ? ladenView(houseRegisters, allStates, store.current?.laden ?? null, store.current?.accu ?? null) : null,
+        // Energie › Thuisaccu (besluit 271): de accu's, met de sensoren om uit te kiezen.
+        accu: houseRegisters ? accuView(houseRegisters, allStates, store.current?.accu ?? null, store.current?.laden ?? null) : null,
         inGebruik: {
           netmeter: siteConfig?.power.gridPower ? { afname: siteConfig.power.gridPower.id, terug: siteConfig.power.gridExport?.id ?? null } : null,
           omvormers: siteConfig?.solarProduction ? [siteConfig.solarProduction.id, ...(siteConfig.solarExtra ?? []).map((p) => p.id)] : [],

@@ -47,7 +47,7 @@ import { FunctiesStore, functiesGevonden } from '../src/web/functies.js';
 import { LightSwitch } from '../src/web/lights.js';
 import { UitstelStore } from '../src/web/uitstel.js';
 import { STANDAARD_TEL, VoorkeurenStore } from '../src/web/voorkeuren.js';
-import type { Opslag } from '../src/web/opslag.js';
+import { accuView, type Opslag } from '../src/web/opslag.js';
 import { WeatherLog } from '../src/web/weather.js';
 import { EnergyStore, importFromPrefs, type EnergySource } from '../src/web/energy.js';
 import { THERMISCH_FILE, type ThermischRapport } from '../src/web/thermisch.js';
@@ -289,6 +289,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
   let uitstel: UitstelStore;
   let energyStore: EnergyStore;
   let connStore: ConnectionStore;
+  let accuHuis: { reg: Parameters<typeof accuView>[0]; states: Parameters<typeof accuView>[1] };
   let functiesStore: FunctiesStore;
   const sessions = new SessionStore();
   let sessionId = '';
@@ -330,6 +331,23 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     bewonersStore = new BewonersStore(dir);
     // De testgebruiker is een scherm (besluit 147): anders vraagt elke pagina eerst "wie ben je?".
     await bewonersStore.save(startBewoners);
+    // Drie Marstek-accu's via Homey (issue 145): één apparaat met losse sensoren, niet vanzelf herkend.
+    accuHuis = (() => {
+      const meting = (id: string, klasse: string, staat: string, eenheid: string, naam: string) => ({ id, klasse, staat, eenheid, naam });
+      const m = [
+        meting('sensor.laadplan_controller_battery', 'battery', '64', '%', 'Laadplan Controller battery'),
+        meting('sensor.laadplan_controller_power', 'power', '800', 'W', 'Laadplan Controller power'),
+        meting('sensor.laadplan_controller_charged_energy', 'energy', '812.4', 'kWh', 'Laadplan Controller charged energy'),
+        meting('sensor.laadplan_controller_discharged_energy', 'energy', '734', 'kWh', 'Laadplan Controller discharged energy'),
+      ];
+      return {
+        reg: {
+          devices: [{ id: 'homey', area_id: null, name: 'Laadplan Controller', manufacturer: 'Athom', model: 'Homey Pro' }],
+          entities: m.map((x) => ({ entity_id: x.id, device_id: 'homey', platform: 'homey', original_device_class: x.klasse, original_name: x.naam })),
+        },
+        states: new Map(m.map((x) => [x.id, { entity_id: x.id, state: x.staat, attributes: { unit_of_measurement: x.eenheid, friendly_name: x.naam, device_class: x.klasse }, last_changed: '', last_updated: '' }])),
+      };
+    })();
     const connFound = {
       fasen: [{ id: 'L1', current: 'sensor.p1_meter_current_phase_1' }] as FoundPhase[],
       apparaten: [
@@ -564,6 +582,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
                 solar: { naam: 'Zonnepanelen', intervalS: 61, platform: 'solaredge_modbus_multi' },
                 kaart: true,
                 nederland: true,
+                // Energie › Thuisaccu (besluit 271): een accu via Homey met losse sensoren, zoals issue 145.
+                accu: accuView(accuHuis.reg, accuHuis.states, connStore.current?.accu ?? null),
               }),
           },
           // De kaart (besluit 254 en 5 november 2026): een nagemaakte plek, OpenStreetMap en 3D BAG; er gaat niets naar buiten.
@@ -1019,6 +1039,53 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     expect(teVol).toEqual([]);
     await context.close();
   }, 60_000);
+
+  /*
+   * Energie › Thuisaccu (besluit 271, issue 145): een accu via Homey zelf
+   * kiezen, zien welke sensor wat is, het teken omdraaien, en dat het bewaard
+   * wordt. Op de wand zonder te scrollen.
+   */
+  it('kiest bij Energie › Thuisaccu een accu van Homey, met zijn sensoren en het teken', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const wand = p.locator('#wand');
+    await p.goto(`${baseUrl}/energie.html#accu`);
+    await wand.locator('[data-vorm] h2', { hasText: 'Thuisaccu' }).waitFor();
+    expect(await wand.locator('[data-delen] .deel[href="#accu"]').textContent()).toContain('niets gevonden');
+    expect(await wand.locator('[data-vorm] .ld-leeg').textContent()).toContain('Nog geen thuisaccu gevonden');
+    // Zelf kiezen: het apparaat van Homey.
+    await wand.locator('[data-accu-kies]').selectOption('homey');
+    const rij = wand.locator('.ld-rij', { hasText: 'Laadplan Controller' });
+    await rij.waitFor();
+    expect(await rij.textContent()).toContain('Zelf gekozen · lading, vermogen, geladen en geleverd');
+    await expect.poll(() => connStore.current?.accu?.zelf).toEqual(['homey']);
+    expect(await wand.locator('[data-delen] .deel[href="#accu"]').textContent()).toContain('1 accu');
+    // De sensoren die hij vond, met wat ze nu zeggen.
+    expect(await wand.locator('[data-accu-sensor="lading"]').inputValue()).toBe('sensor.laadplan_controller_battery');
+    expect(await wand.locator('.ac-sensor', { hasText: 'Hoe vol' }).textContent()).toContain('64%');
+    expect(await wand.locator('[data-accu-sensor="geleverd"]').inputValue()).toBe('sensor.laadplan_controller_discharged_energy');
+    expect(await wand.locator('.ac-nu').textContent()).toContain('Nu 0,8 kW: de accu laadt.');
+    // Plus is leveren: dan levert hij.
+    await wand.locator('[data-accu="teken"][data-waarde="leveren"]').click();
+    await expect.poll(() => wand.locator('.ac-nu').textContent()).toContain('Nu −0,8 kW: de accu levert aan het huis.');
+    await expect.poll(() => connStore.current?.accu?.instelling['homey']?.teken).toBe('leveren');
+    // Een andere sensor kiezen wordt bewaard.
+    await wand.locator('[data-accu-sensor="geladen"]').selectOption('sensor.laadplan_controller_discharged_energy');
+    await expect.poll(() => connStore.current?.accu?.instelling['homey']?.geladen).toBe('sensor.laadplan_controller_discharged_energy');
+    // De wand scrolt niet.
+    expect(await wand.locator('[data-vorm]').evaluate((v) => v.scrollHeight - v.clientHeight)).toBeLessThanOrEqual(2);
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-energie-accu.png') });
+    // Weghalen: dan is hij weer te kiezen.
+    await wand.locator('[data-accu="weg"]').click();
+    await wand.locator('[data-accu-kies]').waitFor();
+    await expect.poll(() => connStore.current?.accu ?? null).toBeNull();
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
 
   /*
    * Meters en prijzen in ontwerp 2 (besluiten 102 en 104): overnemen uit het

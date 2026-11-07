@@ -60,6 +60,16 @@
   .ld-evcc b { color: var(--tekst); }
   .ld-leeg { display: flex; flex-direction: column; gap: 10px; align-items: start; max-width: 480px; }
   .ld-leeg b { font-size: 17px; }
+  /* Thuisaccu (besluit 271, schets Wand-Energie-Accu): welke sensor wat is, twee aan twee. */
+  .ac-sensoren { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 12px; }
+  .ac-sensor { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .ac-sensor .veldnaam { display: flex; flex-direction: row; align-items: baseline; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--zacht); margin: 0; }
+  .ac-sensor .veldnaam em { font-style: normal; margin-left: auto; color: var(--gedempt); font-weight: 600; }
+  .ac-sensor select { min-width: 0; width: 100%; }
+  .ac-nu { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--zacht); }
+  .ac-nu i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .ac-waar { margin-left: auto; font-size: 14px; font-weight: 700; color: var(--ijs-t); }
+  #tel .ac-sensoren { grid-template-columns: minmax(0, 1fr); }
 
   /* Zonnepanelen 3.0 (besluit 187, schets Wand-Energie-Panelen-3). */
   .pan3 { display: flex; flex-direction: column; gap: 10px; min-height: 0; flex: 1; }
@@ -366,6 +376,7 @@
   <script src="rondleiding.js"></script>
   <script src="vermogens.js"></script>
   <script src="laden.js"></script>
+  <script src="thuisaccu.js"></script>
   <script src="energie.js"></script>
 </body>
 </html>

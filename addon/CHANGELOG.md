@@ -1,5 +1,21 @@
 # Wat is er nieuw · What is new
 
+## 0.145.0
+
+*7 november 2026*
+
+**Nieuw**
+
+- Bij Energie staat nu Thuisaccu. Je ziet welke accu SunArc vond, en je kiest er zelf een als hij er niet bij staat, ook als hij via Homey binnenkomt met losse sensoren
+- Per accu kies je welke sensor zegt hoe vol hij is, wat hij nu laadt of levert, en hoeveel hij in totaal laadde en leverde. Je kiest ook of plus laden of leveren is, en ziet meteen wat de accu nu doet
+
+*English*
+
+**New**
+
+- Energy now has Home battery. You see which battery SunArc found, and you choose one yourself if it is not listed, also when it comes in through Homey with separate sensors
+- For each battery you choose which sensor says how full it is, what it is charging or delivering now, and how much it charged and delivered in total. You also choose whether plus is charging or delivering, and see right away what the battery is doing
+
 ## 0.144.2
 
 *7 november 2026 · 0.142.1 – 0.144.2*

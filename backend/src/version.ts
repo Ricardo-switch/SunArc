@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.144.2';
+export const VERSIE = '0.145.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,30 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.145.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Bij Energie staat nu Thuisaccu. Je ziet welke accu SunArc vond, en je kiest er zelf een als hij er niet bij staat, ook als hij via Homey binnenkomt met losse sensoren',
+      'Per accu kies je welke sensor zegt hoe vol hij is, wat hij nu laadt of levert, en hoeveel hij in totaal laadde en leverde. Je kiest ook of plus laden of leveren is, en ziet meteen wat de accu nu doet',
+    ],
+    en: {
+      nieuw: [
+        'Energy now has Home battery. You see which battery SunArc found, and you choose one yourself if it is not listed, also when it comes in through Homey with separate sensors',
+        'For each battery you choose which sensor says how full it is, what it is charging or delivering now, and how much it charged and delivered in total. You also choose whether plus is charging or delivering, and see right away what the battery is doing',
+      ],
+    },
+    meldingen: [
+      {
+        code: 'SA-DP9Z',
+        uitkomst: 'opgelost',
+        tekst: 'Je kiest je accu nu zelf bij Energie › Thuisaccu: kies het apparaat Laadplan Controller, en daarna welke sensor de lading, het vermogen en de totalen zijn.',
+        tekstEn: 'You now choose your battery yourself in Energy › Home battery: pick the Laadplan Controller device, then which sensor is the charge, the power and the totals.',
+        href: 'energie.html#accu',
+        issue: 145,
+      },
+    ],
+  },
   {
     versie: '0.144.2',
     datum: '2026-11-07',
