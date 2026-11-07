@@ -1,8 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.142.1
+## 0.143.0
 
-*7 november 2026*
+*7 november 2026 · 0.142.1 – 0.143.0*
+
+**Nieuw**
+
+- Buiten heeft nu echte plekken voor apparaten, ook zonder gebied in Home Assistant: de voordeur altijd, en elk deel rond het huis dat aan staat, zoals de oprit, de garage en de tuin. Bij Kamers en indeling › Buiten zie je per plek hoeveel apparaten er hangen
+- Bij een apparaat kies je een kamer binnen of een plek buiten, apart onder elkaar. Een plek die er nog niet was, komt erbij als je bewaart
+- Op Thuis opent een tik op de voordeur zijn blad, met de lampen en de camera
 
 **Beter**
 
@@ -21,6 +27,12 @@
 - Met een prijs per uur telde Opbrengst stroom en teruglevering soms niet mee, en gas tegen één vaste prijs. Nu telt het zoals Home Assistant, ook het gas. Ontbreekt er een prijs, dan staat bij Kosten wat er niet in zit
 
 *English*
+
+**New**
+
+- Outside now has real places for devices, also without an area in Home Assistant: the front door always, and every part around the house that is on, such as the driveway, the garage and the garden. Rooms and layout › Outside shows how many devices each place has
+- For a device you pick a room inside or a place outside, listed apart. A place that did not exist yet is added when you save
+- On Home, tapping the front door opens its sheet, with the lights and the camera
 
 **Improved**
 

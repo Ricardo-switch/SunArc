@@ -66,6 +66,8 @@ describe('het voorstel uit Home Assistant', () => {
     // Een eigen soort voor een dakterras en een carport, en een tuinhuis uit een zone (besluit 167).
     expect(outsideFromNames({ naam: 'Dakterras', zones: [] }, [])).toEqual({ soort: 'dakterras', auto: false, tuinhuis: false });
     expect(outsideFromNames({ naam: 'Carport', zones: [] }, [])).toEqual({ soort: 'carport', auto: true, tuinhuis: false });
+    // De voordeur is een plek buiten (besluit 269, issue 153).
+    expect(outsideFromNames({ naam: 'Voordeur', zones: [] }, [])).toEqual({ soort: 'voordeur', auto: false, tuinhuis: false });
     expect(outsideFromNames({ naam: 'Achtertuin', zones: [{ id: 'z', naam: 'Schuurtje achter', soort: 'tuinhuis' }] }, [])).toMatchObject({ soort: 'tuin', tuinhuis: true });
     // Een voortuin heeft zijn eigen plek in de tekening (besluit 113).
     expect(outsideFromNames({ naam: 'Voortuin', zones: [] }, []).soort).toBe('voortuin');

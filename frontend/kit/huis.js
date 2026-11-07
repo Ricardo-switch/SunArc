@@ -3122,6 +3122,12 @@
       const pts = huisje ? [[v.x0, v.y1, 0], [v.x1, v.y1, 0], [v.x1, v.y0, 0], [v.x1, v.y0, v.h], [v.x0, v.y0, v.h], [v.x0, v.y1, v.h]] : [[v.x0, v.y0, 0], [v.x1, v.y0, 0], [v.x1, v.y1, 0], [v.x0, v.y1, 0]];
       tik({ id: model.tuin.id, naam: zone.naam }, pts, ` data-zone="${esc(zone.id)}"`);
     }
+    // De voordeur (besluit 269): een plek buiten, om op te tikken aan de gevel rond de deur en de bel.
+    if (voordeur && model.voordeur?.id) {
+      const vlak = [[voordeur.x0 - 0.08, D + 0.01, 0], [voordeur.x1 + 0.22, D + 0.01, 0], [voordeur.x1 + 0.22, D + 0.01, 1.32], [voordeur.x0 - 0.08, D + 0.01, 1.32]];
+      if (model.voordeur.gekozen) buiten.push(poly(vlak, `fill="${KLEUR.ijs}" fill-opacity="0.08" stroke="${KLEUR.ijs}" stroke-width="2" stroke-dasharray="7 5"`));
+      tik({ id: model.voordeur.id, naam: model.voordeur.naam }, vlak);
+    }
 
     /*
      * De feestdagen (25 oktober 2026), alleen bij het hele huis: een pompoen bij

@@ -262,6 +262,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [263. Meldingen van de auto, en kabel vergeten om een vaste tijd](#263-meldingen-van-de-auto-en-kabel-vergeten-om-een-vaste-tijd)
 - [266. Een slimme stekker op vaste tijden, bij Vast en gepland](#266-een-slimme-stekker-op-vaste-tijden-bij-vast-en-gepland)
 - [268. Het stekkerblad zegt wat je wilt, herhalen kan erin, en scènes horen bij de lampen](#268-het-stekkerblad-zegt-wat-je-wilt-herhalen-kan-erin-en-scènes-horen-bij-de-lampen)
+- [269. Buiten heeft echte plekken voor apparaten, ook zonder gebied in Home Assistant](#269-buiten-heeft-echte-plekken-voor-apparaten-ook-zonder-gebied-in-home-assistant)
 
 **Veiligheid**
 
@@ -12566,6 +12567,37 @@ met opties, steeds de aanbevolen.
 - **Versie 0.142.0.**
 
 ---
+
+## 269. Buiten heeft echte plekken voor apparaten, ook zonder gebied in Home Assistant
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, versie 0.143.0, issues 152 en 153; schets `design/app2/Wand-Indeling-Buiten.html`.
+
+**Waarom.** Een tester kon zijn buitenlampen en camera's nergens kwijt: de tuin,
+de voordeur en de oprit zijn geen kamer, en een deel rond het huis kreeg alleen
+apparaten als Home Assistant er een gebied voor had. Bij een apparaat koos je
+alleen uit kamers.
+
+**Wat.**
+
+- Elk deel rond het huis dat aan staat, is een plek voor apparaten. Een plek is
+  een ruimte op de etage Buiten met een soort; heeft Home Assistant er geen
+  gebied voor, dan maakt de app hem aan (`haGebied: null`) zodra je hem opent of
+  er een apparaat heen zet. Er komt geen gebied in Home Assistant bij.
+- De voordeur is er altijd, als vaste plek bovenaan bij Rond het huis, zonder
+  schakelaar. `voordeur` is een nieuwe soort buiten (`OUTSIDE_KINDS`); een
+  gebied dat Voordeur heet, gaat vanzelf naar Buiten.
+- Bij een apparaat staan binnen en buiten apart in de keuzelijst; een plek die
+  er nog niet was, staat er ook in en komt erbij als je bewaart.
+- Op Thuis en in de indeling is de voordeur aan te tikken: aan de gevel rond de
+  deur en de bel. Op Thuis opent hij het blad buiten, zoals de garage.
+
+**Bewust niet (nog).** Het aantal per plek staat in het lijstje, niet als label
+in de tekening: buiten het eiland van Thuis liggen de plekken niet vast genoeg
+om er labels aan te hangen. Een slot staat niet in het blad: SunArc leest
+sloten nog niet. De thuisaccu in de garage (issue 123) volgt in een eigen
+versie: aan de gevel, in de garage, of binnen in een gekozen kamer.
 
 ## Wat nog een besluit wacht
 

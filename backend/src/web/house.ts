@@ -1652,7 +1652,7 @@ function slug(text: string, taken: ReadonlySet<string>): string {
   return id;
 }
 
-const OUTSIDE = /tuin|oprit|terras|buiten|schuur|carport|balkon|veranda/i;
+const OUTSIDE = /tuin|oprit|terras|buiten|schuur|carport|balkon|veranda|voordeur|front door/i;
 
 /**
  * Een voorstel voor de soort van een kamer zonder eigen keuze (besluit 119),
@@ -1698,7 +1698,9 @@ export function roomTypeFromNames(room: Pick<LayoutRoom, 'naam' | 'zones' | 'eta
  */
 export function outsideFromNames(room: Pick<LayoutRoom, 'naam' | 'zones'>, devices: readonly Pick<HouseDevice, 'naam'>[]): LayoutOutside {
   const n = room.naam;
-  const soort: LayoutOutside['soort'] = /carport/i.test(n)
+  const soort: LayoutOutside['soort'] = /voordeur|front door/i.test(n)
+    ? 'voordeur'
+    : /carport/i.test(n)
     ? 'carport'
     : /oprit/i.test(n)
       ? 'oprit'

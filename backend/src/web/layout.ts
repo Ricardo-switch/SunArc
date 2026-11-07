@@ -81,8 +81,11 @@ export interface LayoutZone {
  * Wat een buitenruimte is, voor de tekening van het huis (besluit 109). Een
  * tuinhuis geeft zijn lampen aan het tuinhuis in de tuin (besluit 157); een
  * losse garage aan de garage achter de oprit (besluit 166).
+ *
+ * De voordeur kwam erbij in besluit 269 (issue 153): geen kamer, wel een plek
+ * aan de voorgevel, voor de deurbel, de lamp en de camera.
  */
-export const OUTSIDE_KINDS = ['oprit', 'tuin', 'voortuin', 'terras', 'balkon', 'tuinhuis', 'garage', 'zijtuin', 'dakterras', 'carport'] as const;
+export const OUTSIDE_KINDS = ['oprit', 'tuin', 'voortuin', 'terras', 'balkon', 'tuinhuis', 'garage', 'zijtuin', 'dakterras', 'carport', 'voordeur'] as const;
 export type OutsideKind = (typeof OUTSIDE_KINDS)[number];
 /**
  * Wat een deel van een buitenruimte is (besluit 167): een eigen lijst, zoals

@@ -25,7 +25,7 @@
     }
     return uit;
   }
-  const VOOR = ['oprit', 'carport', 'voortuin', 'garage'];
+  const VOOR = ['voordeur', 'oprit', 'carport', 'voortuin', 'garage'];
   const isBuiten = (huis, id) => ruimtes(huis).some((r) => r.id === id);
 
   const ICOON = {

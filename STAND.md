@@ -255,7 +255,9 @@ verwijzing bestaat.
   de grens van de installatie, en het weer komt van Buienradar of van elke
   weerentiteit van Home Assistant ([111]), alleen van een weerdienst ([113]).
 - **Buitenruimtes** hebben elk hun plek in de tekening: oprit, tuin, terras,
-  voortuin en balkon ([113]).
+  voortuin en balkon ([113]). Elk deel dat aan staat en de voordeur zijn ook
+  plekken voor apparaten, zonder gebied in Home Assistant als dat er niet is;
+  bij een apparaat staan binnen en buiten apart ([269], 0.143.0).
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over
@@ -861,4 +863,5 @@ verwijzing bestaat.
 [266]: DECISIONS.md#266-een-slimme-stekker-op-vaste-tijden-bij-vast-en-gepland
 [267]: DECISIONS.md#267-een-slimme-stekker-op-zon-met-een-minimum-en-sunarc-schakelt-hem-echt
 [268]: DECISIONS.md#268-het-stekkerblad-zegt-wat-je-wilt-herhalen-kan-erin-en-scènes-horen-bij-de-lampen
+[269]: DECISIONS.md#269-buiten-heeft-echte-plekken-voor-apparaten-ook-zonder-gebied-in-home-assistant
 <!-- links:einde -->

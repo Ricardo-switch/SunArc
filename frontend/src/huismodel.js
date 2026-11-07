@@ -156,7 +156,7 @@
   /** Wat een buitenruimte uit zijn naam is, zoals de dienst het voorstelt (besluiten 109 en 167). */
   function buitenUitNaam(naam) {
     const n = naam ?? '';
-    return /carport/i.test(n) ? 'carport' : /oprit|driveway/i.test(n) ? 'oprit' : /voortuin|front garden|front yard/i.test(n) ? 'voortuin' : /zijtuin|side garden/i.test(n) ? 'zijtuin' : /dakterras|roof terrace/i.test(n) ? 'dakterras' : /terras|veranda|patio|terrace/i.test(n) ? 'terras' : /balkon|balcony/i.test(n) ? 'balkon' : /tuinhuis|schuur|shed/i.test(n) ? 'tuinhuis' : /garage/i.test(n) ? 'garage' : /tuin|garden|yard/i.test(n) ? 'tuin' : null;
+    return /voordeur|front door/i.test(n) ? 'voordeur' : /carport/i.test(n) ? 'carport' : /oprit|driveway/i.test(n) ? 'oprit' : /voortuin|front garden|front yard/i.test(n) ? 'voortuin' : /zijtuin|side garden/i.test(n) ? 'zijtuin' : /dakterras|roof terrace/i.test(n) ? 'dakterras' : /terras|veranda|patio|terrace/i.test(n) ? 'terras' : /balkon|balcony/i.test(n) ? 'balkon' : /tuinhuis|schuur|shed/i.test(n) ? 'tuinhuis' : /garage/i.test(n) ? 'garage' : /tuin|garden|yard/i.test(n) ? 'tuin' : null;
   }
   /** Een deel van een buitenruimte uit zijn naam (besluit 167). */
   function buitenZoneUitNaam(naam) {
@@ -190,6 +190,7 @@
     let balkon = null;
     let voortuin = null;
     let garage = null;
+    let voordeur = null;
     // De lampen van een ruimte die het tuinhuis is, horen bij het tuinhuis in de tuin.
     const huisjes = ruimtes.filter((r) => soortBuiten(r).soort === 'tuinhuis');
     const huisjeLampen = huisjes.flatMap((r) => (r.apparaten ?? []).filter((a) => a.soort === 'licht'));
@@ -211,6 +212,11 @@
       }
       if (b.soort === 'balkon' || b.soort === 'dakterras') {
         balkon ??= { id: r.id, naam: r.naam, lampAan };
+        continue;
+      }
+      // De voordeur (besluit 269): geen kamer, wel een plek aan de voorgevel.
+      if (b.soort === 'voordeur') {
+        voordeur ??= { id: r.id, naam: r.naam, lampAan };
         continue;
       }
       // Een losse garage achter de oprit (besluit 166).
@@ -286,7 +292,7 @@
       garage = rond.garage ? (garage ?? leeg(global.t('huis.buiten.garage'))) : null;
       if (oprit) oprit = { ...oprit, carport: !!rond.carport };
     }
-    return { oprit, tuin, terras, balkon, voortuin, garage };
+    return { oprit, tuin, terras, balkon, voortuin, garage, voordeur };
   }
 
   /**
@@ -406,7 +412,8 @@
       ...(woning === 'appartement' ? { gebouw: { onder: 2, boven: 1 } } : {}),
       buitenRuimtes,
       ...delen,
-      voordeur: { deurbel: bel || belZiet ? { beweging: !!belZiet?.meting.beweging.nu } : null },
+      // De voordeur met zijn plek uit de indeling (besluit 269), om op te tikken.
+      voordeur: { ...(delen.voordeur ?? {}), deurbel: bel || belZiet ? { beweging: !!belZiet?.meting.beweging.nu } : null },
       buitenunit: aircos.length ? { aan: aircos.some((a) => a.aan || ACTIEF.test(a.klimaat?.actieCode ?? '')), aantal: aircos.length } : null,
       piekW,
       panelen: aantalPanelen ?? (piekW > 0 ? Math.max(1, Math.round(piekW / 400)) : 0),
@@ -562,7 +569,7 @@
   }
 
   /** Wat een buitenruimte is (besluit 167): een eigen lijst, zoals Soort kamer binnen. */
-  const BUITEN_SOORTEN = soorten('buiten', ['tuin', 'voortuin', 'zijtuin', 'oprit', 'carport', 'terras', 'balkon', 'dakterras', 'tuinhuis', 'garage']);
+  const BUITEN_SOORTEN = soorten('buiten', ['tuin', 'voortuin', 'zijtuin', 'oprit', 'carport', 'terras', 'balkon', 'dakterras', 'tuinhuis', 'garage', 'voordeur']);
   /** De delen van een buitenruimte (besluit 167). Een tuinhuis tekent het huisje in de tuin. */
   const BUITEN_ZONES = soorten('buitenZone', ['gazon', 'border', 'terras', 'tuinhuis', 'overstek', 'moestuin', 'vijver', 'pad', 'speelplek', 'oprit', 'carport']);
   global.huismodel = { KAMER_SOORTEN, ZONE_SOORTEN, BUITEN_SOORTEN, BUITEN_ZONES, buitenUitNaam, buitenZoneUitNaam, thermostaten, cvThermostaat, isKetelKoppeling, ACTIEF,

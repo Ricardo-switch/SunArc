@@ -44,6 +44,7 @@ Te bekijken als overzicht op claude.ai (privé): <https://claude.ai/artifact/19g
 | `Wand-Assistent` | |
 | `Wand-Indeling` (kamers en indeling, de bewerkstand) | |
 | `Wand-Indeling-Groep` (Kamers en indeling als groep zoals Energie: `#buiten` met wat er rond het huis is, `#los`; besluit 193) | `Tel-Indeling-Groep` (de lijst, `#deel`, `#buiten`) |
+| `Wand-Indeling-Buiten` (buiten als echte plekken, ook zonder gebied in Home Assistant: op elke plek wat er hangt, de voordeur erbij; `#garage` met de auto en de thuisaccu, `#voordeur`, `#apparaat` kies binnen of buiten; issues 152, 153 en 123, schets 7 november 2026, nog niet besloten) | |
 | `Wand-Leren` (leren, meekijken, regelen per apparaat) | |
 | `Wand-Uitleg` (de rondleiding de eerste keer) | |
 | `Wand-Inrichten-Panelen` (hoe de panelen liggen: voorstel, `#aanpassen`, `#wachten`; besluit 157) | `Panelen-Tel` |

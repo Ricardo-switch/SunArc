@@ -6129,6 +6129,74 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 30_000);
 
   /*
+   * Buiten als echte plekken (besluit 269, issues 152 en 153): de voordeur is er
+   * altijd, en elk deel rond het huis dat aan staat kan apparaten hebben, ook
+   * zonder gebied in Home Assistant. De app maakt de plek aan als je hem opent
+   * of er een apparaat heen zet. Op Thuis opent een tik op de voordeur zijn blad.
+   */
+  it('maakt buiten plekken voor apparaten, ook zonder gebied in Home Assistant, met de voordeur (besluit 269)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5000 };
+    // Zonder eigen indeling (deze test alleen): het voorstel uit Home Assistant.
+    const start = layoutStore.current ? structuredClone(layoutStore.current) : null;
+    const voor = start ?? ((await (await fetch(`${baseUrl}/api/indeling`)).json()) as { voorstel: NonNullable<typeof start> }).voorstel;
+    // Een garage die aan staat, maar zonder ruimte; en nog geen voordeur.
+    const weg = new Set(voor.kamers.filter((k) => k.etage === 'buiten' && (k.buiten?.soort === 'garage' || k.buiten?.soort === 'voordeur' || /garage|voordeur/i.test(k.naam))).map((k) => k.id));
+    const rondAlles = { oprit: true, auto: false, voortuin: false, tuin: true, terras: false, balkon: false, tuinhuis: false, garage: true, carport: false, schuur: false, jacuzzi: false, border: false, allebei: false };
+    const opgeslagen = await layoutStore.save({
+      ...voor,
+      rond: { ...rondAlles, ...voor.rond, garage: true },
+      kamers: voor.kamers.filter((k) => !weg.has(k.id)),
+      apparaten: Object.fromEntries(Object.entries(voor.apparaten).filter(([, a]) => !weg.has(a.kamer))),
+    });
+    expect(opgeslagen).toMatchObject({ ok: true });
+    try {
+      await p.goto(`${baseUrl}/indeling.html#buiten`);
+      const deur = p.locator('#wand [data-blad] [data-plek="voordeur"]');
+      await deur.waitFor({ timeout: 15_000 });
+      expect(await p.locator('#wand [data-blad] [data-plek="garage"]').count()).toBe(1);
+      expect(await p.locator('#wand [data-blad]').textContent()).toContain('Heeft Home Assistant er een gebied voor');
+      // De voordeur openen maakt de plek aan, zonder gebied in Home Assistant.
+      await deur.click();
+      const plek = (soort: string) => layoutStore.current?.kamers.find((k) => k.buiten?.soort === soort);
+      await expect.poll(() => plek('voordeur')?.naam, kort).toBe('Voordeur');
+      expect(plek('voordeur')).toMatchObject({ etage: 'buiten', haGebied: null, zones: [] });
+      await expect.poll(() => p.locator('#wand [data-actie="kamernaam"]').inputValue(kort), kort).toBe('Voordeur');
+
+      // Een apparaat naar de garage, die nog geen ruimte had: binnen en buiten staan apart.
+      const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
+      const kamer = huis.etages.filter((e) => e.id !== 'buiten').flatMap((e) => e.ruimtes).find((r) => r.apparaten.length > 0)!;
+      const dev = kamer.apparaten[0]!;
+      await p.goto(`${baseUrl}/indeling.html#${encodeURIComponent(kamer.id)}`);
+      await p.waitForLoadState('networkidle');
+      await p.locator(`#wand [data-blad] [data-app="${dev.id}"]`).first().click({ timeout: 15_000 });
+      const keuze = p.locator('#wand [data-app-kamer]');
+      await keuze.waitFor(kort);
+      expect(await keuze.locator('optgroup').evaluateAll((g) => g.map((x) => x.getAttribute('label')))).toEqual(['Binnen', 'Buiten']);
+      expect(await keuze.locator('optgroup[label="Buiten"] option').allTextContents()).toEqual(expect.arrayContaining(['Voordeur', 'Garage']));
+      await keuze.selectOption('plek:garage');
+      await p.locator('#wand [data-app-bewaar]').click(kort);
+      await expect.poll(() => plek('garage')?.naam, kort).toBe('Garage');
+      await expect.poll(() => layoutStore.current?.apparaten[dev.id]?.kamer, kort).toBe(plek('garage')!.id);
+
+      // Op Thuis: een tik op de voordeur opent zijn blad.
+      await p.goto(`${baseUrl}/thuis.html`);
+      const tik = p.locator(`svg .sc-tik[data-kamer="${plek('voordeur')!.id}"]`).locator('visible=true').first();
+      await tik.waitFor({ timeout: 15_000 });
+      await tik.click({ force: true });
+      await p.locator('.weerkop h2', { hasText: 'Voordeur' }).locator('visible=true').first().waitFor(kort);
+      expect(fouten).toEqual([]);
+    } finally {
+      if (start) await layoutStore.save(start);
+      await context.close();
+    }
+  }, 45_000);
+
+  /*
    * Inloggen via Home Assistant op een andere site (16 oktober 2026): na het
    * inloggen kom je echt binnen. Het cookie is SameSite=Strict, en ging bij een
    * doorverwijzing vanaf de site van Home Assistant niet mee: dan stond je

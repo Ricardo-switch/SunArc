@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.142.1';
+export const VERSIE = '0.143.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,40 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.143.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Buiten heeft nu echte plekken voor apparaten, ook zonder gebied in Home Assistant: de voordeur altijd, en elk deel rond het huis dat aan staat, zoals de oprit, de garage en de tuin. Bij Kamers en indeling › Buiten zie je per plek hoeveel apparaten er hangen',
+      'Bij een apparaat kies je een kamer binnen of een plek buiten, apart onder elkaar. Een plek die er nog niet was, komt erbij als je bewaart',
+      'Op Thuis opent een tik op de voordeur zijn blad, met de lampen en de camera',
+    ],
+    en: {
+      nieuw: [
+        'Outside now has real places for devices, also without an area in Home Assistant: the front door always, and every part around the house that is on, such as the driveway, the garage and the garden. Rooms and layout › Outside shows how many devices each place has',
+        'For a device you pick a room inside or a place outside, listed apart. A place that did not exist yet is added when you save',
+        'On Home, tapping the front door opens its sheet, with the lights and the camera',
+      ],
+    },
+    meldingen: [
+      {
+        code: 'SA-T6UM',
+        uitkomst: 'opgelost',
+        tekst: 'De tuin is nu een plek buiten, ook zonder gebied in Home Assistant. Zet bij Kamers en indeling › Buiten de voortuin of tuin aan en tik op Apparaten erbij. Of kies bij een lamp of camera de plek onder Buiten.',
+        tekstEn: 'The garden is now a place outside, also without an area in Home Assistant. In Rooms and layout › Outside, switch on the front or back garden and tap Add devices. Or pick the place under Outside for a light or camera.',
+        href: 'indeling.html#buiten',
+        issue: 152,
+      },
+      {
+        code: 'SA-TGGY',
+        uitkomst: 'opgelost',
+        tekst: 'De voordeur staat nu altijd bij Kamers en indeling › Buiten, en de oprit ook als hij aan staat. Kies daar Apparaten erbij, of kies bij een camera of lamp de plek onder Buiten.',
+        tekstEn: 'The front door is now always in Rooms and layout › Outside, and the driveway too when it is on. Pick Add devices there, or pick the place under Outside for a camera or light.',
+        href: 'indeling.html#buiten',
+        issue: 153,
+      },
+    ],
+  },
   {
     versie: '0.142.1',
     datum: '2026-11-07',
