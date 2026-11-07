@@ -89,6 +89,7 @@ export const NIEUW: readonly Nieuw[] = [
       'Klaarzetten vroeg om je slimme meter of omvormer te koppelen, ook als je hem in de app al had gekozen. De melding zegt nu ook wat je moet doen',
       'Een weerdienst die alleen een verwachting per uur geeft, zoals OpenWeatherMap soms, gaf geen verwachting voor de komende dagen. SunArc maakt er nu zelf dagen van',
       'Laden met de hand houdt zich aan je hoofdzekering, ook zonder stroommeter per fase',
+      'Liggen er panelen op het huis én op de garage, dan stroomt de zon op Thuis nu ook van de garage',
     ],
     en: {
       opgelost: [
@@ -97,6 +98,7 @@ export const NIEUW: readonly Nieuw[] = [
         'Getting ready asked you to connect your smart meter or inverter, even if you had already picked it in the app. The message now also says what to do',
         'A weather service that only gives an hourly forecast, like OpenWeatherMap at times, gave no forecast for the coming days. SunArc now makes days out of it',
         'Charging by hand keeps to your main fuse, also without a current meter per phase',
+        'With panels on the house and on the garage, the sun on Home now also flows from the garage',
       ],
     },
     meldingen: [
@@ -123,6 +125,14 @@ export const NIEUW: readonly Nieuw[] = [
         tekstEn: 'Getting ready now also looks at the meter you picked in the app. Still missing? If your smart meter is already in Home Assistant, pick it at Settings › Energy › Meters. If not, add it in Home Assistant with its integration, such as HomeWizard or DSMR.',
         href: 'klaarzetten.html',
         issue: 144,
+      },
+      {
+        code: 'SA-VZEZ',
+        uitkomst: 'opgelost',
+        tekst: 'Liggen er panelen op het huis én op de garage, dan heeft elk dak op Thuis nu zijn eigen stroom. Hoe dikker de lijn, hoe meer panelen op dat dak.',
+        tekstEn: 'With panels on the house and on the garage, each roof on Home now has its own flow. The thicker the line, the more panels on that roof.',
+        href: 'thuis.html',
+        issue: 151,
       },
     ],
   },

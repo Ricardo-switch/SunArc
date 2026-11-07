@@ -4415,6 +4415,34 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
    * geeft met `controle` elk meubel en apparaat als blok; geen meubel mag door
    * een apparaat, een ander meubel, een muur of het dak.
    */
+  it('laat de zon ook van de garage stromen als er op het huis en de garage panelen liggen (issue 151)', async () => {
+    const context = await browser.newContext({ viewport: { width: 800, height: 600 } });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/manifest.webmanifest`);
+    await p.setContent(`<!doctype html><body><script src="${baseUrl}/kit/iconen.js"></script><script src="${baseUrl}/kit/huis.js"></script></body>`);
+    await p.waitForFunction('window.huis != null');
+    const telling = await p.evaluate(() => {
+      const w = globalThis as unknown as { huis: { svg: (m: unknown, o: unknown) => string } };
+      const etages = [{ naam: 'bg', kamers: [{ id: 'w', naam: 'Woonkamer', gewicht: 1, inrichting: 'woonkamer', apparaten: [] }] }, { naam: 'dak', dak: true, kamers: [] }];
+      const tel = (zon: Record<string, number>, garage: Record<string, unknown>) => {
+        const svg = w.huis.svg({ tijd: 'dag', etages, zon: { aandeel: 0.8, ...zon }, garage, stromen: [{ van: 'zon', naar: 'huis', sterkte: 0.8 }] }, { breedte: 700, hoogte: 520 });
+        return (svg.match(/class="sc-stroom"/g) ?? []).length;
+      };
+      return {
+        allebei: tel({ panelen: 8 }, { panelen: 6 }),
+        achterEnGarage: tel({ panelen: 0, panelenLinks: 8 }, { panelen: 6 }),
+        alleenHuis: tel({ panelen: 8 }, {}),
+        alleenGarage: tel({ panelen: 0 }, { panelen: 6 }),
+      };
+    });
+    await context.close();
+    expect(fouten).toEqual([]);
+    expect(telling).toEqual({ allebei: 2, achterEnGarage: 2, alleenHuis: 1, alleenGarage: 1 });
+  });
+
   it('richt elke soort kamer in zonder dat een meubel ergens doorheen steekt', async () => {
     const context = await browser.newContext({ viewport: { width: 1400, height: 1000 } });
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());

@@ -11,6 +11,7 @@
 - Klaarzetten vroeg om je slimme meter of omvormer te koppelen, ook als je hem in de app al had gekozen. De melding zegt nu ook wat je moet doen
 - Een weerdienst die alleen een verwachting per uur geeft, zoals OpenWeatherMap soms, gaf geen verwachting voor de komende dagen. SunArc maakt er nu zelf dagen van
 - Laden met de hand houdt zich aan je hoofdzekering, ook zonder stroommeter per fase
+- Liggen er panelen op het huis én op de garage, dan stroomt de zon op Thuis nu ook van de garage
 
 *English*
 
@@ -21,6 +22,7 @@
 - Getting ready asked you to connect your smart meter or inverter, even if you had already picked it in the app. The message now also says what to do
 - A weather service that only gives an hourly forecast, like OpenWeatherMap at times, gave no forecast for the coming days. SunArc now makes days out of it
 - Charging by hand keeps to your main fuse, also without a current meter per phase
+- With panels on the house and on the garage, the sun on Home now also flows from the garage
 
 ## 0.142.0
 

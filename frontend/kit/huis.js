@@ -1227,7 +1227,23 @@
     /* ---- stromen ---- */
     const hub = [W + 0.25, D + 0.35, 0.02];
     const voetPaneel = [W + 0.12, D - 0.2, zt - 0.05];
-    for (const s of model.stromen ?? []) {
+    /*
+     * Panelen op het huis én op de garage (issue 151): elk dak een eigen
+     * stroom, zo dik als zijn deel van de panelen. Eerst kwam de zon alleen van
+     * het huis, en van de garage alleen als daar de enige panelen lagen.
+     */
+    const nHuis = (model.zon?.panelen ?? 0) + (model.zon?.panelenLinks ?? 0);
+    const nGarage = model.garage?.panelen ?? 0;
+    const zonGarage = nHuis > 0 && nGarage > 0 ? nGarage / (nHuis + nGarage) : 0;
+    const alleStromen = (model.stromen ?? []).flatMap((s) => {
+      if (s.van !== 'zon' || !zonGarage) return [s];
+      const sterkte = s.sterkte ?? 0.5;
+      return [
+        { ...s, sterkte: sterkte * (1 - zonGarage) },
+        { ...s, van: 'zonGarage', sterkte: sterkte * zonGarage },
+      ];
+    });
+    for (const s of alleStromen) {
       // Zon goud, terug naar het net groen, van het net violet, uit de batterij blauw (huis 3.0).
       const kleur = s.naar === 'net' ? KLEUR.mint : s.van === 'net' ? KLEUR.violet : s.van === 'batterij' ? KLEUR.ijs : KLEUR.zon;
       const pad = route(s.van, s.naar);
@@ -1263,7 +1279,7 @@
       const mk = voordeur ? plek.meterkast : null;
       const voorlangs = D + 0.14;
       // Liggen de panelen alleen op de garage (huis 3.0), dan komt de zon van daar.
-      if (van === 'zon' && model.garage?.panelen && model.zon?.panelen === 0) pts.push([-1.6, -1.25, 1.15], [-1.12, -1.25, 1.15], [-1.12, -1.25, 0.02], [-1.12, D + 0.35, 0.02], hub);
+      if ((van === 'zon' && nGarage > 0 && nHuis === 0) || van === 'zonGarage') pts.push([-1.6, -1.25, 1.15], [-1.12, -1.25, 1.15], [-1.12, -1.25, 0.02], [-1.12, D + 0.35, 0.02], hub);
       else if (van === 'zon') pts.push(voetPaneel, [W + 0.12, D + 0.02, zt - 0.05], [W + 0.12, D + 0.02, 0.05], hub);
       else if (van === 'batterij') pts.push([accuPlek.x + 0.18, accuY, 0.4], [accuPlek.x + 0.18, accuY, 0.02], ...(accuPlek.x < 0 ? [[accuPlek.x + 0.18, D + 0.35, 0.02]] : []), hub);
       // In de wereld (huis 3.0) loopt de kabel zichtbaar onder de grond, in de doorsnede.
