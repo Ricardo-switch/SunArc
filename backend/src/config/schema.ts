@@ -1444,6 +1444,20 @@ export function parseSiteConfig(
         if (control === 'setpoint' && temperature == null) p.error(join(path, 'temperature'), 'een doeltemperatuur zonder meting kan niet');
         if (stekker && control !== 'switch') p.error(join(path, 'control'), 'een stekker gaat aan en uit (switch)');
         if (stekker && temperature != null) p.error(join(path, 'temperature'), 'een stekker heeft geen temperatuur');
+        // Een minimum per dag (besluit 267): minuten, en de tijd waarvoor.
+        let minimum: { minutes: number; by: string } | null = null;
+        const minRaw = h['minimum'];
+        if (minRaw !== undefined) {
+          const m = minRaw as Record<string, unknown> | null;
+          if (!stekker) p.error(join(path, 'minimum'), 'alleen bij een stekker');
+          else if (typeof m !== 'object' || m == null || Array.isArray(m)) p.error(join(path, 'minimum'), 'moet een object zijn');
+          else {
+            const minutes = num(p, m, join(path, 'minimum'), 'minutes', { min: 15, max: 1200 });
+            const by = m['by'];
+            if (typeof by !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(by)) p.error(join(join(path, 'minimum'), 'by'), 'een tijd als "22:00"');
+            else if (minutes != null) minimum = { minutes: Math.round(minutes), by };
+          }
+        }
         if (id && name && kind && control && actuator) {
           heatStores.push({
             id,
@@ -1458,6 +1472,7 @@ export function parseSiteConfig(
             ...(temperature ? { temperature } : {}),
             ...(power ? { power } : {}),
             ...(legionellaC != null ? { legionellaC } : {}),
+            ...(minimum ? { minimum } : {}),
           });
         }
       });

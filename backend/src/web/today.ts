@@ -158,8 +158,11 @@ export function nextLocalTime(nowMs: number, hhmm: string, timeZone: string): nu
     const guess = Date.UTC(p.y, p.m - 1, p.d, h, mi);
     return guess - offsetAt(guess - offsetAt(guess, timeZone), timeZone);
   };
-  const today = at(startOfLocalDay(nowMs, timeZone));
-  return today > nowMs ? today : at(startOfLocalDay(nowMs + 26 * 3_600_000, timeZone));
+  const begin = startOfLocalDay(nowMs, timeZone);
+  const today = at(begin);
+  // Morgen: midden op de volgende dag, dan telt een dag van 23 of 25 uur niet mee.
+  // Vanaf nu 26 uur verder viel na 22:00 op overmorgen.
+  return today > nowMs ? today : at(startOfLocalDay(begin + 36 * 3_600_000, timeZone));
 }
 
 /** Middernacht van de dag waarin `nowMs` valt, in de tijdzone van de installatie. */

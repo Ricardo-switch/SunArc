@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.140.0';
+export const VERSIE = '0.141.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.141.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Een slimme stekker op zon schakelt SunArc nu echt, als je hem toeliet: aan als er zon over is, uit als die wegvalt. Wat je zelf aan- of uitzet, laat SunArc met rust',
+      'Een minimum per dag voor een stekker, bij Regeling › Op zon: bijvoorbeeld minstens 2 uur, uiterlijk 22:00. Haalt de zon het niet, dan gaat hij op het laatst aan van het net',
+    ],
+    opgelost: ['Na 22:00 lag "de eerstvolgende keer 22:00" twee dagen vooruit in plaats van één, bijvoorbeeld bij "tot een tijd" in het blad van een stekker'],
+    en: {
+      nieuw: [
+        'SunArc now really switches a smart plug on solar, if you allowed it: on when there is solar to spare, off when it goes. What you switch on or off yourself, SunArc leaves alone',
+        'A daily minimum for a plug, in Control › On solar: for example at least 2 hours, by 22:00 at the latest. If the sun does not make it, it switches on from the grid at the last moment',
+      ],
+      opgelost: ['After 22:00, "the next time it is 22:00" was two days ahead instead of one, for example with "until a time" in the sheet of a plug'],
+    },
+  },
   {
     versie: '0.140.0',
     datum: '2026-11-07',

@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.140.0
+## 0.141.0
 
-*7 november 2026 · 0.138.0 – 0.140.0*
+*7 november 2026 · 0.138.0 – 0.141.0*
 
 **Nieuw**
 
+- Een slimme stekker op zon schakelt SunArc nu echt, als je hem toeliet: aan als er zon over is, uit als die wegvalt. Wat je zelf aan- of uitzet, laat SunArc met rust
+- Een minimum per dag voor een stekker, bij Regeling › Op zon: bijvoorbeeld minstens 2 uur, uiterlijk 22:00. Haalt de zon het niet, dan gaat hij op het laatst aan van het net
 - Een slimme stekker op vaste tijden: bij Nieuw in Vast en gepland kies je hem, wanneer (elke dag, werkdagen, een tijd of bij zonsondergang), aan of uit, en hoe lang
 - Een slimme stekker met de hand: tik op de kaart bij Apparaten en zet hem aan of uit voor 30 minuten, een of twee uur, of tot een tijd. Daarna staat hij weer zoals hij was
 - Per stekker kies je bij Regeling › Op zon of SunArc hem mag aan- en uitzetten; weg is nee
@@ -18,10 +20,16 @@
 
 - Bij Energie › Meters staan meters per dag, gisteren of maand niet meer tussen die van een apparaat, en twee meters met dezelfde naam krijgen hun id erachter
 
+**Opgelost**
+
+- Na 22:00 lag "de eerstvolgende keer 22:00" twee dagen vooruit in plaats van één, bijvoorbeeld bij "tot een tijd" in het blad van een stekker
+
 *English*
 
 **New**
 
+- SunArc now really switches a smart plug on solar, if you allowed it: on when there is solar to spare, off when it goes. What you switch on or off yourself, SunArc leaves alone
+- A daily minimum for a plug, in Control › On solar: for example at least 2 hours, by 22:00 at the latest. If the sun does not make it, it switches on from the grid at the last moment
 - A smart plug on fixed times: in New in Fixed and planned you pick it, when (every day, weekdays, a time or at sunset), on or off, and for how long
 - A smart plug by hand: tap its card in Devices and switch it on or off for 30 minutes, one or two hours, or until a time. Then it is back as it was
 - For each plug you choose in Control › On solar whether SunArc may switch it on and off; the default is no
@@ -33,6 +41,10 @@
 **Improved**
 
 - In Energy › Meters, meters per day, yesterday or month no longer sit among those of a device, and two meters with the same name get their id added
+
+**Fixed**
+
+- After 22:00, "the next time it is 22:00" was two days ahead instead of one, for example with "until a time" in the sheet of a plug
 
 ## 0.137.0
 

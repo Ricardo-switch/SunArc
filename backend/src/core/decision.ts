@@ -141,9 +141,11 @@ export interface HeatStoreExplanation {
   readonly powerW?: number;
   /** Bij een stekker die op zon wacht (besluit 264): hoeveel zon hij vraagt om aan te gaan, in W. */
   readonly needW?: number;
-  /** "Klaar om" en de start die daarvoor uiterlijk nodig is. */
+  /** "Klaar om" en de start die daarvoor uiterlijk nodig is; bij een stekker het minimum (besluit 267). */
   readonly readyByMs?: number;
   readonly latestStartMs?: number;
+  /** Bij een stekker met een minimum (besluit 267): hoeveel minuten hij nog aan moet. */
+  readonly minimumLeftMin?: number;
 }
 
 export type Command =

@@ -9,6 +9,8 @@
  * - **Legionella:** wanneer de boiler voor het laatst warm genoeg was. Dat
  *   moet een herstart overleven, anders is de week na elke update opnieuw vol.
  * - **Vol:** wanneer een boiler zonder temperatuur voor het laatst vol was.
+ * - **Aan:** wanneer een stekker aan was (besluit 267), de laatste twee dagen:
+ *   daaruit volgt hoe lang hij nog moet voor zijn minimum.
  *
  * En de goedkoopste uren voor de kern: de daluren van het contract, als het er
  * een met een daltarief is. Dynamische prijzen komen met stap E.
@@ -22,6 +24,7 @@ import type { SiteConfig } from '../core/model.js';
 import type { HeatStoreExtra } from '../core/state.js';
 import { HEATING_W } from '../core/warmtebuffer.js';
 import { isDal, type Tarieven } from './tarief.js';
+import { nextLocalTime } from './today.js';
 
 export const BUFFERS_FILE = 'warmtebuffers.json';
 
@@ -30,6 +33,17 @@ const WINDOW_MS = 10 * 60_000;
 const MAX_AHEAD_MS = 7 * 24 * 3_600_000;
 /** Zo ver vooruit kijkt de kern naar de goedkoopste uren. */
 const CHEAP_AHEAD_MS = 36 * 3_600_000;
+/** Zo lang onthoudt hij wanneer een stekker aan was: genoeg voor het minimum van een dag. */
+const AAN_BEWAREN_MS = 48 * 3_600_000;
+const DAG_MS = 24 * 3_600_000;
+
+type Stuk = { readonly van: number; readonly tot: number };
+
+/** Hoe lang hij aan was tussen `van` en `tot`, uit de stukken en wat nu nog loopt. */
+export function aanTussen(stukken: readonly Stuk[], sinds: number | null, van: number, tot: number): number {
+  const alle = sinds != null ? [...stukken, { van: sinds, tot }] : stukken;
+  return alle.reduce((n, s) => n + Math.max(0, Math.min(s.tot, tot) - Math.max(s.van, van)), 0);
+}
 
 interface Bewaard {
   readonly klaarOm: Readonly<Record<string, { readonly atMs: number; readonly targetC: number }>>;
@@ -37,6 +51,9 @@ interface Bewaard {
   readonly vol: Readonly<Record<string, number>>;
   /** Wat een stekker trok toen hij aan was (besluit 264), in W. */
   readonly vermogen?: Readonly<Record<string, number>>;
+  /** Wanneer een stekker aan was (besluit 267): afgesloten stukken, en sinds wanneer hij nu aan is. */
+  readonly aan?: Readonly<Record<string, readonly Stuk[]>>;
+  readonly aanSinds?: Readonly<Record<string, number>>;
 }
 
 export interface BufferOptions {
@@ -81,7 +98,13 @@ export class BufferStore {
           (e): e is [string, { atMs: number; targetC: number }] => known.has(e[0]) && typeof e[1] === 'object' && e[1] != null && isGetal(e[1].atMs) && isGetal(e[1].targetC),
         ),
       );
-      this.#current = { klaarOm, legionella: tijden(raw['legionella']), vol: tijden(raw['vol']), vermogen: tijden(raw['vermogen']) };
+      const aanRaw = typeof raw['aan'] === 'object' && raw['aan'] != null ? (raw['aan'] as Record<string, unknown>) : {};
+      const aan = Object.fromEntries(
+        Object.entries(aanRaw).flatMap(([id, v]): [string, Stuk[]][] =>
+          known.has(id) && Array.isArray(v) ? [[id, v.filter((s): s is Stuk => typeof s === 'object' && s != null && isGetal(s.van) && isGetal(s.tot) && s.tot >= s.van)]] : [],
+        ),
+      );
+      this.#current = { klaarOm, legionella: tijden(raw['legionella']), vol: tijden(raw['vol']), vermogen: tijden(raw['vermogen']), aan, aanSinds: tijden(raw['aanSinds']) };
     } catch {
       this.#current = { klaarOm: {}, legionella: {}, vol: {} };
     }
@@ -97,9 +120,28 @@ export class BufferStore {
           legionellaAtMs: this.#current.legionella[h.id] ?? null,
           lastFullMs: this.#current.vol[h.id] ?? null,
           learnedW: this.#current.vermogen?.[h.id] ?? null,
+          minimum: this.#minimum(h),
         },
       ]),
     );
+  }
+
+  /** Het minimum van een stekker (besluit 267): wanneer het uiterlijk moet, en hoe lang hij nog moet. */
+  #minimum(h: NonNullable<SiteConfig['heatStores']>[number]): { atMs: number; remainingMs: number } | null {
+    if (h.kind !== 'stekker' || h.minimum == null) return null;
+    const t = this.#now();
+    const atMs = nextLocalTime(t, h.minimum.by, this.#options.config.timezone);
+    const gehad = aanTussen(this.#current.aan?.[h.id] ?? [], this.#current.aanSinds?.[h.id] ?? null, atMs - DAG_MS, t);
+    return { atMs, remainingMs: Math.max(0, h.minimum.minutes * 60_000 - gehad) };
+  }
+
+  /** Hoe lang een stekker aan was in de 24 uur voor zijn minimum, in minuten; voor het blad. */
+  aanGehad(id: string): number | null {
+    const h = (this.#options.config.heatStores ?? []).find((x) => x.id === id);
+    if (h?.kind !== 'stekker' || h.minimum == null) return null;
+    const t = this.#now();
+    const atMs = nextLocalTime(t, h.minimum.by, this.#options.config.timezone);
+    return Math.floor(aanTussen(this.#current.aan?.[h.id] ?? [], this.#current.aanSinds?.[h.id] ?? null, atMs - DAG_MS, t) / 60_000);
   }
 
   /** `{ id, klaarOm: epoch-ms, doelC? }` zet klaar om, `klaarOm: null` haalt het weg. */
@@ -140,6 +182,8 @@ export class BufferStore {
     const legionella = { ...this.#current.legionella };
     const vol = { ...this.#current.vol };
     const vermogen = { ...this.#current.vermogen };
+    const aan: Record<string, readonly Stuk[]> = { ...this.#current.aan };
+    const aanSinds: Record<string, number> = { ...this.#current.aanSinds };
     let changed = false;
     for (const e of explanations ?? []) {
       const h = (this.#options.config.heatStores ?? []).find((x) => x.id === e.id);
@@ -162,10 +206,22 @@ export class BufferStore {
           changed = true;
         }
       }
+      // Wanneer een stekker aan was (besluit 267): alleen bij een wissel, dus zelden schrijven.
+      if (h.kind === 'stekker') {
+        const sinds = aanSinds[h.id];
+        if (e.heating && sinds == null) {
+          aanSinds[h.id] = t;
+          changed = true;
+        } else if (!e.heating && sinds != null) {
+          aan[h.id] = [...(aan[h.id] ?? []).filter((s) => s.tot > t - AAN_BEWAREN_MS), { van: sinds, tot: t }];
+          delete aanSinds[h.id];
+          changed = true;
+        }
+      }
     }
     const klaarOm = Object.fromEntries(Object.entries(this.#current.klaarOm).filter(([, k]) => k.atMs > t));
     if (Object.keys(klaarOm).length !== Object.keys(this.#current.klaarOm).length) changed = true;
-    if (changed) await this.#save({ klaarOm, legionella, vol, vermogen });
+    if (changed) await this.#save({ klaarOm, legionella, vol, vermogen, aan, aanSinds });
   }
 
   #writing: Promise<void> = Promise.resolve();

@@ -404,6 +404,12 @@ export interface HeatStore {
   readonly heatRateCPerHour: number;
   /** Eens per week tot deze temperatuur, tegen legionella. Weg: niet. */
   readonly legionellaC?: number;
+  /**
+   * Bij een stekker (besluit 267): minstens zo veel minuten aan in de 24 uur
+   * voor `by` ("22:00"). Haalt hij dat met zon niet, dan gaat hij op het
+   * laatst van het net aan. Weg: alleen op zon.
+   */
+  readonly minimum?: { readonly minutes: number; readonly by: string };
 }
 
 /** Een plek in de volgorde op zon (besluit 176): een zone, een uitstelbaar apparaat of een warmtebuffer (besluit 186). */

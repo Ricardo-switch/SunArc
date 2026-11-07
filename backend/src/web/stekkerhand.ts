@@ -15,6 +15,7 @@
 
 import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import type { StekkerZonStand } from './stekkerzon.js';
 import { nextLocalTime } from './today.js';
 
 export const STEKKER_BESTAND = 'stekkerhand.json';
@@ -56,6 +57,11 @@ export interface StekkerStand {
   /** Toegelaten bij Regeling, ook als de deur er hier niet is. */
   readonly toegelaten: boolean;
   readonly actief: { readonly aan: boolean; readonly totMs: number } | null;
+  /** Op zon, echt geschakeld (besluit 267): of SunArc hem schakelt, hem aanzette, of met rust laat. */
+  readonly zon?: StekkerZonStand;
+  /** Zijn minimum per dag (besluit 267), en hoe lang hij daarvoor al aan was, in minuten; weg zonder minimum. */
+  readonly minimum?: { readonly minuten: number; readonly klok: string };
+  readonly gehadMin?: number;
 }
 
 interface Toestand {

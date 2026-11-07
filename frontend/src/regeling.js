@@ -22,6 +22,8 @@ let opZonUit = [];
 let vermogen = {};
 /** De stekkers die SunArc mag schakelen (besluit 265). */
 let bedienen = new Set();
+/** Hoe lang een stekker per dag minstens aan moet, en uiterlijk wanneer (besluit 267). */
+let minimum = {};
 let zon = null;
 
 async function laadAlles() {
@@ -35,6 +37,7 @@ async function laadAlles() {
     opZonUit = [...(aInfo.antwoorden?.opZonUit ?? [])];
     vermogen = { ...(aInfo.antwoorden?.vermogen ?? {}) };
     bedienen = new Set(aInfo.antwoorden?.bedienen ?? []);
+    minimum = { ...(aInfo.antwoorden?.minimum ?? {}) };
   }
   if (z.status === 'fulfilled') zon = z.value;
   teken();
@@ -110,10 +113,17 @@ function stekkerRij(x) {
   const veld = aan && !x.meet
     ? `<label class="veldnaam" style="margin-top: 6px">${esc(t('regeling.stekkerVermogen'))}<input class="invoer" type="number" inputmode="numeric" min="50" max="3680" step="10" data-vermogen="${esc(x.id)}" value="${vermogen[x.id] ?? ''}" placeholder="1000"></label>`
     : '';
-  // Mag SunArc hem schakelen (besluit 265): met de hand, en straks op tijd; weg is nee.
+  // Mag SunArc hem schakelen (besluit 265): met de hand, op tijden en op zon (267); weg is nee.
   const mag = bedienen.has(x.id);
+  // Minstens zo lang per dag, uiterlijk om (besluit 267): twee velden, elk met zijn eigen naam.
+  const min = minimum[x.id] ?? null;
+  const duren = [30, 60, 120, 180, 240, 360, 480];
+  const keuze = `<option value="">${esc(t('regeling.stekkerMinimumGeen'))}</option>${duren.map((m) => `<option value="${m}"${min?.minuten === m ? ' selected' : ''}>${esc(m < 60 ? t('regeling.minuten', { n: m }) : t(m === 60 ? 'regeling.uur1' : 'regeling.uren', { n: m / 60 }))}</option>`).join('')}`;
+  const minRij = aan
+    ? `<div class="regelrij" style="padding-left: 22px; flex-wrap: wrap; gap: 8px 12px"><label class="veldnaam" style="margin: 0">${esc(t('regeling.stekkerMinimum'))}<select class="invoer" data-minimum="${esc(x.id)}" aria-label="${esc(t('regeling.stekkerMinimumVan', { naam: x.naam }))}">${keuze}</select></label>${min ? `<label class="veldnaam" style="margin: 0">${esc(t('regeling.stekkerUiterlijk'))}<input class="invoer" type="time" step="900" data-uiterlijk="${esc(x.id)}" value="${esc(min.klok)}" aria-label="${esc(t('regeling.stekkerUiterlijkVan', { naam: x.naam }))}"></label>` : ''}<p class="mini" style="margin: 0; flex-basis: 100%">${esc(t(min ? 'regeling.stekkerMinimumUitleg' : 'regeling.stekkerMinimumGeenUitleg'))}</p></div>`
+    : '';
   const bedien = `<div class="regelrij" style="padding-left: 22px"><div class="l"><b style="font-weight: 500">${esc(t('regeling.stekkerBedienen'))}</b><span>${esc(t(mag ? 'regeling.stekkerBedienenJa' : 'regeling.stekkerBedienenNee'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${mag}" aria-label="${esc(t('regeling.stekkerBedienenVan', { naam: x.naam }))}" data-bedienen="${esc(x.id)}"></button></div>`;
-  return `<div class="regelrij"><div class="l"><b><span aria-hidden="true" style="display: inline-flex; vertical-align: -3px">${iconen.svg('stekker', { grootte: 16 })}</span> ${esc(x.naam)}</b><span>${esc(t(aan ? 'regeling.stekkerZon' : 'regeling.stekkerNiet'))}</span>${veld}</div><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('regeling.naamOpZon', { naam: x.naam }))}" data-opzon="${esc(x.id)}"></button></div>${bedien}`;
+  return `<div class="regelrij"><div class="l"><b><span aria-hidden="true" style="display: inline-flex; vertical-align: -3px">${iconen.svg('stekker', { grootte: 16 })}</span> ${esc(x.naam)}</b><span>${esc(t(aan ? 'regeling.stekkerZon' : 'regeling.stekkerNiet'))}</span>${veld}</div><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('regeling.naamOpZon', { naam: x.naam }))}" data-opzon="${esc(x.id)}"></button></div>${minRij}${bedien}`;
 }
 
 function opZonVorm() {
@@ -179,6 +189,23 @@ document.addEventListener('change', (e) => {
   bewaar();
 });
 
+// Het minimum per dag en uiterlijk om (besluit 267): bewaard zodra je kiest.
+document.addEventListener('change', (e) => {
+  const keuze = e.target.closest?.('[data-minimum]');
+  const klok = e.target.closest?.('[data-uiterlijk]');
+  if ((!keuze && !klok) || !aInfo) return;
+  if (keuze) {
+    const id = keuze.dataset.minimum;
+    minimum = { ...minimum, [id]: keuze.value === '' ? null : { minuten: Number(keuze.value), klok: minimum[id]?.klok ?? '22:00' } };
+  } else {
+    const id = klok.dataset.uiterlijk;
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(klok.value) || !minimum[id]) return;
+    minimum = { ...minimum, [id]: { ...minimum[id], klok: klok.value } };
+  }
+  teken();
+  bewaar();
+});
+
 function bewaar() {
   // De aansluiting bewaart alles samen: de rest zoals het was, ook hoe de panelen liggen.
   const x = aInfo.antwoorden ?? {};
@@ -196,6 +223,7 @@ function bewaar() {
     vermogen,
     // Per stekker ja of nee (besluit 265): alleen de stekkers die er nu zijn.
     bedienen: Object.fromEntries((aInfo.gevonden?.apparaten ?? []).filter((x) => x.soort === 'stekker').map((x) => [x.id, bedienen.has(x.id)])),
+    minimum: Object.fromEntries((aInfo.gevonden?.apparaten ?? []).filter((x) => x.soort === 'stekker').map((x) => [x.id, minimum[x.id] ?? null])),
   };
   groep.bewaarStraks(async () => {
     const uit = await groep.stuur('api/aansluiting', body);

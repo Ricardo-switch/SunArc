@@ -180,7 +180,7 @@ export interface SystemState {
 }
 
 /** Wat de dienst bij een buffer onthoudt en bij elk besluit toevoegt (besluit 186). */
-export type HeatStoreExtra = Pick<HeatStoreState, 'readyBy' | 'legionellaAtMs' | 'lastFullMs' | 'learnedW'>;
+export type HeatStoreExtra = Pick<HeatStoreState, 'readyBy' | 'legionellaAtMs' | 'lastFullMs' | 'learnedW' | 'minimum'>;
 
 export interface HeatStoreState {
   /** De watertemperatuur; `missing` als er geen meter is. */
@@ -203,6 +203,11 @@ export interface HeatStoreState {
    * was en echt iets vroeg, in W, zoals de dienst het zag. Null: nog nooit gezien.
    */
   readonly learnedW?: number | null;
+  /**
+   * Bij een stekker met een minimum (besluit 267): wanneer het uiterlijk moet,
+   * en hoe lang hij daarvoor nog aan moet, in ms. Null of weg: geen minimum.
+   */
+  readonly minimum?: { readonly atMs: number; readonly remainingMs: number } | null;
 }
 
 export interface DeferrableState {

@@ -181,6 +181,13 @@
     ].filter(Boolean).join(' · ');
   }
 
+  /** "2 uur", "1 u 20", "45 min". */
+  function duurVan(min) {
+    const u = Math.floor(min / 60);
+    const m = Math.round(min % 60);
+    return u === 0 ? t('hand.duurMin', { m }) : m === 0 ? t('hand.duurUur', { u }) : t('hand.duurUurMin', { u, m });
+  }
+
   function stekkerBlad(s) {
     const totMs = stekkerTot(open);
     const klok = klokVan(totMs);
@@ -200,6 +207,10 @@
       : !s.toegelaten
         ? { let: true, tekst: t('hand.stekkerToelaten') }
         : { tekst: t('hand.stekkerDaarna', { klok }) };
+    // Op zon, echt geschakeld (besluit 267): dat SunArc hem zelf schakelt, en hoe ver hij is met zijn minimum.
+    const zonZin = s.zon?.schakelt
+      ? [t('hand.stekkerOpZon'), s.minimum ? t('hand.stekkerMinimum', { duur: duurVan(s.minimum.minuten), klok: s.minimum.klok, gehad: duurVan(s.gehadMin ?? 0) }) : ''].filter(Boolean).join(' ')
+      : '';
     const terugKnop = s.actief ? `<button type="button" class="hand-terug" data-st-terug>${esc(t('hand.stekkerTerug'))}</button>` : '';
     const toelaten = stekkers?.aan && !s.toegelaten ? `<a class="hand-terug" href="regeling.html#opzon">${esc(t('hand.stekkerNaarRegeling'))}</a>` : '';
     return `${kopVan(s.naam, stekkerZin(s) || t('apparaten.stekker'))}
@@ -208,6 +219,7 @@
       ${tijd}
       ${dagbalk(totMs, t(open.aan ? 'hand.stekkerBalkAan' : 'hand.stekkerBalkUit', { klok }))}
       <div class="hand-hoe${hoe.let ? ' let' : ''}">${esc(hoe.tekst)}</div>
+      ${zonZin ? `<div class="hand-hoe">${esc(zonZin)}</div>` : ''}
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
       <div class="hand-onder">${terugKnop}${toelaten}<button type="button" class="hand-zet" data-st-zet ${s.mag ? '' : 'disabled'}>${esc(t(open.aan ? 'hand.stekkerZetAan' : 'hand.stekkerZetUit', { klok }))}</button></div>`;
   }

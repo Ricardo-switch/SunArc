@@ -77,6 +77,7 @@ import { FunctiesStore, aangebeld, functiesGevonden, functiesVoorstel, getoondeC
 import { KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, vindOpslag } from './web/opslag.js';
 import { Laadhand, laadMag } from './web/laadhand.js';
 import { Stekkerhand, stekkerMag, type StekkerBekend, type StekkerTot } from './web/stekkerhand.js';
+import { StekkerZon } from './web/stekkerzon.js';
 import { Laadbeurten } from './web/laadbeurten.js';
 import { laadAdvies, prijzenVooruit, type LaadAdvies } from './web/laadadvies.js';
 import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhases, findPowers, withConnection, type Applied, type ConnectionAnswers } from './web/aansluiting.js';
@@ -488,7 +489,8 @@ const client = new HaClient({
     // Zolang de dienst nog opstart, bestaat `stekkerhand` nog niet: dan geen stekkers.
     const stekkers = (() => {
       try {
-        return inHuisMetDeuren ? stekkerMag(stekkersBekend(), stekkerhand.terugzetten) : [];
+        // En wat SunArc op zon aanzette (besluit 267): dat moet ook weer uit kunnen.
+        return inHuisMetDeuren ? [...new Set([...stekkerMag(stekkersBekend(), stekkerhand.terugzetten), ...stekkerZon.eigen])] : [];
       } catch {
         return [];
       }
@@ -700,6 +702,22 @@ const stekkerhand = new Stekkerhand({
   stekkers: stekkersBekend,
   tijdzone: () => siteConfig?.timezone ?? 'Europe/Amsterdam',
   map: inHuisMetDeuren && logDir !== '' ? logDir : null,
+});
+/*
+ * Een stekker op zon, echt geschakeld (besluit 267): wat de regeling zegt, zet
+ * SunArc door, alleen bij een stekker die op zon staat en die de bewoner
+ * toeliet, en alleen in de add-on.
+ */
+const stekkerZon = new StekkerZon({
+  state: (id) => allStates.get(id),
+  schakel: (id, aan): Promise<void> => client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: id }),
+  stekkers: stekkersBekend,
+  opZon: () => new Set((siteConfig?.heatStores ?? []).filter((h) => h.kind === 'stekker').map((h) => h.id)),
+  metDeHand: () => new Set(stekkerhand.terugzetten.map((t) => t.id)),
+  aan: () => inHuisMetDeuren,
+  tijdzone: () => siteConfig?.timezone ?? 'Europe/Amsterdam',
+  map: inHuisMetDeuren && logDir !== '' ? logDir : null,
+  write: (r) => console.log(r),
 });
 if (inHuisMetDeuren) {
   setInterval(() => {
@@ -988,6 +1006,11 @@ const runner: ShadowRunner | null =
                 void bufferStore?.observe(snapshot.explanation.heatStores);
                 // Wat de regeling zou starten, start SunArc nu echt (besluit 238).
                 void witgoed?.opBesluit(snapshot).catch(() => []);
+                // En een stekker op zon (besluit 267).
+                void stekkerZon.opBesluit(snapshot.explanation.heatStores).then(
+                  (gedaan) => gedaan.forEach((g) => console.log(`[stekker op zon] ${g}`)),
+                  (e: unknown) => console.warn(`[stekker op zon] lukte niet: ${(e as Error).message}`),
+                );
                 web?.publish(snapshot);
                 // De stand van de kamers in het huis hangt aan het besluit.
                 web?.huisVeranderd(false);
@@ -2300,7 +2323,12 @@ if (webPort != null) {
       : {}),
     // Een slimme stekker met de hand (besluit 265): de stand overal, schakelen alleen in de add-on.
     stekkers: {
-      standen: () => stekkerhand.standen(inHuisMetDeuren),
+      standen: async () =>
+        (await stekkerhand.standen(inHuisMetDeuren)).map((s) => {
+          const gehad = bufferStore?.aanGehad(s.id) ?? null;
+          const min = (siteConfig?.heatStores ?? []).find((h) => h.id === s.id)?.minimum;
+          return { ...s, zon: stekkerZon.stand(s.id), ...(min ? { minimum: { minuten: min.minutes, klok: min.by } } : {}), ...(gehad != null ? { gehadMin: gehad } : {}) };
+        }),
       ...(inHuisMetDeuren ? { zet: (id: string, aan: boolean, tot: StekkerTot) => stekkerhand.zet(id, aan, tot), terug: (id: string) => stekkerhand.terugNu(id) } : {}),
     },
     dakenOpbrengst,

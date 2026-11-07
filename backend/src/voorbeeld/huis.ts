@@ -113,8 +113,8 @@ export const VOORBEELD_SITE = {
       programDuration: 'sensor.droger_programmaduur',
     },
   ],
-  // De ontvochtiger op een slimme stekker, op zon (besluit 264).
-  heatStores: [{ id: 'stekker-ontvochtiger', name: 'Ontvochtiger', kind: 'stekker', control: 'switch', actuator: 'switch.ontvochtiger', power: 'sensor.ontvochtiger_vermogen', estimatedW: 380 }],
+  // De ontvochtiger op een slimme stekker, op zon (besluit 264), minstens twee uur per dag (besluit 267).
+  heatStores: [{ id: 'stekker-ontvochtiger', name: 'Ontvochtiger', kind: 'stekker', control: 'switch', actuator: 'switch.ontvochtiger', power: 'sensor.ontvochtiger_vermogen', estimatedW: 380, minimum: { minutes: 120, by: '22:00' } }],
   grid: {
     phases: [
       { id: 'L1', current: 'sensor.p1_stroom_fase_1', voltage: 'sensor.p1_spanning_fase_1', maxA: 25 },

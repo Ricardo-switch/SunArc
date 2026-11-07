@@ -46,7 +46,8 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [210. De klimaatbrug: tot stap B via de knoppen van het oude systeem](#210-de-klimaatbrug-tot-stap-b-via-de-knoppen-van-het-oude-systeem)
 - [235. Klimaat met de hand: elk apparaat, via de knop of direct, met een eindtijd](#235-klimaat-met-de-hand-elk-apparaat-via-de-knop-of-direct-met-een-eindtijd)
 - [262. Laden met de hand: een smalle deur naar de laadpaal](#262-laden-met-de-hand-een-smalle-deur-naar-de-laadpaal)
-- [265. Een slimme stekker met de hand: een smalle deur per stekker](#265-een-slimme-stekker-met-de-hand-een-smalle-deur-per-stekker)
+- [265. Een slimme stekker met de hand: een smalle deur per stekker](#265-een-slimme-stekker-met-de-hand-een-smalle-deur-per-stekker) — *aangevuld door 267*
+- [267. Een slimme stekker op zon met een minimum, en SunArc schakelt hem echt](#267-een-slimme-stekker-op-zon-met-een-minimum-en-sunarc-schakelt-hem-echt)
 
 **Kern en regeling**
 
@@ -12420,7 +12421,7 @@ stekker zoals bij de laadpaal (262).
 
 ## 265. Een slimme stekker met de hand: een smalle deur per stekker
 
-*Onderwerp: visie en principes · Status: geldig*
+*Onderwerp: visie en principes · Status: aangevuld door 267*
 
 7 november 2026, het vervolg op [264]. De bewoner wilde de kaart van een
 stekker aanklikbaar, met functies van een slimme tijdschakelaar: met de hand
@@ -12446,7 +12447,8 @@ van de drie, en de schrijfdeur die de andere twee straks ook gebruiken.
 - **Daarna terug zoals hij was**, maar alleen als hij nog staat zoals de app
   hem zette: wie intussen zelf schakelde, wint. Wat terug moet staat in
   `stekkerhand.json`. Terug kan ook meteen, in het blad en bij Te doen.
-- **De regeling schakelt nog niets:** op zon blijft meekijken (264).
+- **De regeling schakelt nog niets:** op zon blijft meekijken (264). Sinds
+  [267] schakelt SunArc een toegelaten stekker op zon wel echt.
 - **Het voorbeeldhuis** krijgt een ontvochtiger op een slimme stekker, op zon
   en toegelaten, om het te proberen.
 - **Versie 0.139.0.**
@@ -12479,6 +12481,54 @@ scherm- en klimaattaken al, met elke dag, werkdagen, gekozen dagen en de zon.
 - **Versie 0.140.0.**
 
 *Nog niet:* op zon met een minimum per dag.
+
+---
+
+## 267. Een slimme stekker op zon met een minimum, en SunArc schakelt hem echt
+
+*Onderwerp: visie en principes · Status: geldig*
+
+7 november 2026, de derde tijdschakelaar-functie na [265] en [266]. Gevraagd
+of SunArc een stekker op zon, met een minimum, ook echt mag schakelen, koos de
+bewoner: ja, echt schakelen. Daarmee is dit, na de droger ([238]), de tweede
+keer dat de regeling zelf iets aanzet.
+
+*Besluit:*
+
+- **Wie:** een stekker die op zon staat ([264]) én die de bewoner toeliet
+  ([265], "SunArc mag hem aan- en uitzetten", nu "met de hand, op tijden en op
+  zon"). Zonder toestemming blijft op zon meekijken. Alleen in de add-on (en
+  het voorbeeldhuis); de NAS kijkt mee.
+- **Dezelfde deur** als met de hand: `switch.turn_on` en `turn_off` op die ene
+  schakelaar (`isHandCall`, de lijst `schakelaars`). Er komt geen deur bij; wat
+  SunArc op zon aanzette, staat er ook in, zodat het weer uit kan als de
+  bewoner de toestemming intussen weghaalt.
+- **Aan:** zodra de regeling zegt dat hij aan zou gaan en hij uit staat.
+  **Uit:** alleen wat SunArc zelf aanzette, zodra de regeling zegt dat hij
+  wacht (te weinig zon, failsafe, handmatig). Wat de bewoner zelf aanzette,
+  blijft aan; de kaart zegt dat erbij. Aan zonder iets te trekken ("vraagt
+  niets") blijft aan.
+- **Wie zelf schakelt, wint:** zet iemand een stekker uit die SunArc aanzette,
+  dan laat SunArc hem tot middernacht met rust. Met de hand of op een vaste
+  tijd gaat voor: zolang dat loopt, doet SunArc niets.
+- **Niet steeds aan en uit:** per stekker hooguit eens per tien minuten, met de
+  marge van een vijfde uit [264] en de rust na een start van de regeling.
+- **Een minimum per dag**, bij Regeling › Op zon onder de stekker: minstens een
+  half uur tot acht uur, en **uiterlijk om** (standaard 22:00). Het telt in de
+  24 uur voor die tijd hoe lang hij echt aan was (de dienst onthoudt het in
+  `warmtebuffers.json`). Eerst op zon; haalt de zon het niet, dan gaat hij op
+  het laatste moment van het net aan, met een half uur ruimte, en blijft hij
+  aan tot hij het heeft. Geen goedkope uren: die zouden de zon voor zijn.
+- **Wat de app zegt:** de kaart zegt "Gaat nu aan" in plaats van "zou", "Aan
+  voor zijn minimum" (oranje) als het van het net komt, en bij het wachten
+  "Komt die niet, dan gaat hij om 19:30 aan: zo staat hij vóór 22:00 toch 2
+  uur aan". Het blad zegt dat SunArc hem op zon schakelt en hoe ver hij is.
+- **Bewaard** in `stekkerzon.json`: wat SunArc aanzette en welke stekkers rust
+  hebben, zodat een herstart het niet vergeet.
+- **Gevonden en hersteld:** na 22:00 rekende de dienst "de eerstvolgende keer
+  22:00" twee dagen vooruit in plaats van één (`nextLocalTime`). Dat raakte ook
+  "tot een tijd" in het blad van een stekker en de eindtijd van de droger.
+- **Versie 0.141.0.**
 
 ---
 

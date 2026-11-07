@@ -144,7 +144,9 @@ verwijzing bestaat.
   vermogen leert de dienst of geeft de bewoner op. Meekijken, nog niet
   schakelen ([264], 0.138.0). Met de hand aan of uit, met een eind, als de
   bewoner hem toeliet; daarna weer zoals hij was ([265], 0.139.0). Op vaste
-  tijden bij Nieuw in Vast en gepland ([266], 0.140.0).
+  tijden bij Nieuw in Vast en gepland ([266], 0.140.0). Op zon met een minimum
+  per dag, en dan schakelt SunArc hem echt als de bewoner hem toeliet; wie zelf
+  schakelt, wint ([267], 0.141.0).
 - **Terugkijken:** Opbrengst rekent per dag, week, maand of jaar met de meters
   en prijzen die de app bewaart, overgenomen uit het Energie-dashboard of zelf
   ingesteld; de cijfers komen uit de statistiek van Home Assistant ([102]).
@@ -856,4 +858,5 @@ verwijzing bestaat.
 [264]: DECISIONS.md#264-een-slimme-stekker-als-apparaat-op-zon
 [265]: DECISIONS.md#265-een-slimme-stekker-met-de-hand-een-smalle-deur-per-stekker
 [266]: DECISIONS.md#266-een-slimme-stekker-op-vaste-tijden-bij-vast-en-gepland
+[267]: DECISIONS.md#267-een-slimme-stekker-op-zon-met-een-minimum-en-sunarc-schakelt-hem-echt
 <!-- links:einde -->

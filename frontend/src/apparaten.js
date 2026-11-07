@@ -166,18 +166,24 @@ function tank(b) {
 function stekkerKaart(b) {
   const aan = b.stookt;
   // Zoals bij de airco's: op zon of wachtend op zon geel, aan zonder zon gloed.
-  const kleur = aan && b.stand === 'waiting' ? 'var(--gloed)' : b.stand === 'would_heat' || b.stand === 'waiting' ? 'var(--zon)' : 'var(--net)';
+  const kleur = (aan && b.stand === 'waiting') || b.bron === 'net' ? 'var(--gloed)' : b.stand === 'would_heat' || b.stand === 'waiting' ? 'var(--zon)' : 'var(--net)';
   const kw = b.vermogenW != null && b.vermogenW >= 5 ? `${nl(b.vermogenW / 1000)}<span>${esc(t('apparaten.kwNu'))}</span>` : '';
   const el = document.createElement('section');
   el.className = 'glas app';
   el.dataset.actief = String(aan || b.stand === 'would_heat');
   // Met de hand (besluit 265): in zonkleur, met tot wanneer.
-  const metHand = hand.stekker(b.id)?.actief;
+  const st = hand.stekker(b.id);
+  const metHand = st?.actief;
+  // Op zon, echt geschakeld (besluit 267): dan zegt de kop wat er nu gebeurt, niet wat zou.
+  const zon = st?.zon;
+  const kop = zon?.schakelt && b.stand === 'would_heat' && !aan ? t('apparaten.stekkerGaatAan') : zon?.vanSunArc && aan && b.stand === 'waiting' ? t('apparaten.stekkerGaatUit') : b.kop;
+  const zin = zon?.rustTot ? t('apparaten.stekkerRust') : zon?.schakelt && aan && !zon.vanSunArc && b.stand === 'waiting' ? `${b.zin} ${t('apparaten.stekkerZelfAan')}` : b.zin;
+  const etiket = zon?.schakelt ? 'apparaten.stekkerSchakelt' : st?.toegelaten ? 'apparaten.stekkerMag' : 'apparaten.kijktMee';
   el.innerHTML = `
     <div class="kopje"><span class="ik">${iconen.svg('stekker')}</span><div><b>${esc(b.naam)}</b><span class="mini">${esc(t('apparaten.stekker'))}</span></div><div class="kw">${kw}</div></div>
-    <div class="stand"><i style="background: ${kleur}"></i>${esc(b.kop)}</div>
-    ${metHand ? `<p class="mini zin" style="color: var(--zon-t); font-weight: 600">${esc(t(metHand.aan ? 'hand.stekkerAanTot' : 'hand.stekkerUitTot', { klok: klokVan(metHand.totMs) }))}</p>` : `<p class="mini zin">${esc(b.zin)}</p>`}
-    <p class="mini etiket">${esc(t(aan ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit'))} · ${esc(t(hand.stekker(b.id)?.toegelaten ? 'apparaten.stekkerMag' : 'apparaten.kijktMee'))}</p>`;
+    <div class="stand"><i style="background: ${kleur}"></i>${esc(kop)}</div>
+    ${metHand ? `<p class="mini zin" style="color: var(--zon-t); font-weight: 600">${esc(t(metHand.aan ? 'hand.stekkerAanTot' : 'hand.stekkerUitTot', { klok: klokVan(metHand.totMs) }))}</p>` : `<p class="mini zin">${esc(zin)}</p>`}
+    <p class="mini etiket">${esc(t(aan ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit'))} · ${esc(t(etiket))}</p>`;
   return stekkerBlad(el, b.id, b.naam);
 }
 

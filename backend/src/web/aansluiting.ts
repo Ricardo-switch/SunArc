@@ -127,9 +127,10 @@ export interface ConnectionAnswers {
    * De boiler en de jacuzzi (besluit 186) en de slimme stekkers (besluit 264):
    * gevonden, en of ze op zon mogen. `opgegevenW` is wat de bewoner opgaf bij
    * een stekker zonder eigen meter; `bedienen` of SunArc hem mag schakelen
-   * (besluit 265), weg is nee.
+   * (besluit 265), weg is nee; `minimum` hoe lang hij per dag minstens aan
+   * moet, en uiterlijk wanneer (besluit 267), weg is alleen op zon.
    */
-  readonly buffers?: readonly (FoundHeatStore & { readonly opZon: boolean; readonly opgegevenW?: number; readonly bedienen?: boolean })[];
+  readonly buffers?: readonly (FoundHeatStore & { readonly opZon: boolean; readonly opgegevenW?: number; readonly bedienen?: boolean; readonly minimum?: StekkerMinimum })[];
   /**
    * Apparaten uit de configuratie die de bewoner uitzette (besluit 167): die
    * starten niet meer op zon. Eerst stond daar alleen "Aan".
@@ -476,7 +477,10 @@ export function withConnection(raw: Record<string, unknown>, answers: Connection
     else delete out['heatStores'];
   }
   const bekend = new Set(buffers.flatMap((h) => [String(h['id']), typeof h['actuator'] === 'string' ? h['actuator'] : String((h['actuator'] as { id?: unknown } | undefined)?.id)]));
-  const nieuw = (answers.buffers ?? []).filter((b) => b.opZon && !bekend.has(b.id) && !bekend.has(b.actuator)).map((b) => heatStoreConfig(b.opgegevenW != null ? { ...b, estimatedW: b.opgegevenW } : b));
+  const nieuw = (answers.buffers ?? []).filter((b) => b.opZon && !bekend.has(b.id) && !bekend.has(b.actuator)).map((b): Record<string, unknown> => ({
+    ...heatStoreConfig(b.opgegevenW != null ? { ...b, estimatedW: b.opgegevenW } : b),
+    ...(b.soort === 'stekker' && b.minimum ? { minimum: { minutes: b.minimum.minuten, by: b.minimum.klok } } : {}),
+  }));
   if (nieuw.length > 0) {
     out['heatStores'] = [...blijven, ...nieuw];
     for (const b of nieuw) toegevoegd.push(`${String(b['name'])} op zon`);
@@ -485,6 +489,15 @@ export function withConnection(raw: Record<string, unknown>, answers: Connection
 }
 
 /* ------------------------------------------------------------ bewaren */
+
+/** Hoe lang een stekker per dag minstens aan moet, en uiterlijk wanneer (besluit 267). */
+export interface StekkerMinimum {
+  readonly minuten: number;
+  readonly klok: string;
+}
+
+const isMinimum = (v: unknown): v is StekkerMinimum =>
+  typeof v === 'object' && v != null && Number.isInteger((v as StekkerMinimum).minuten) && (v as StekkerMinimum).minuten >= 15 && (v as StekkerMinimum).minuten <= 720 && (v as StekkerMinimum).minuten % 15 === 0 && typeof (v as StekkerMinimum).klok === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test((v as StekkerMinimum).klok);
 
 export type ConnectionCheck = { ok: true; answers: ConnectionAnswers } | { ok: false; reden: string };
 
@@ -567,6 +580,16 @@ export function validateConnection(
     if (!(found.buffers ?? []).some((x) => x.id === id && x.soort === 'stekker')) return { ok: false, reden: `geen stekker: ${id}` };
     if (typeof v !== 'boolean') return { ok: false, reden: `bedienen is ja of nee (${id})` };
   }
+  // Een minimum per dag (besluit 267): minuten en een klok, of null; wat de pagina niet stuurt, blijft.
+  const minimumRaw = (typeof b['minimum'] === 'object' && b['minimum'] != null && !Array.isArray(b['minimum']) ? b['minimum'] : {}) as Record<string, unknown>;
+  for (const [id, v] of Object.entries(minimumRaw)) {
+    if (!(found.buffers ?? []).some((x) => x.id === id && x.soort === 'stekker')) return { ok: false, reden: `geen stekker: ${id}` };
+    if (v !== null && !isMinimum(v)) return { ok: false, reden: 'een minimum is een kwartier tot twaalf uur (in minuten, per kwartier) en een tijd als "22:00"' };
+  }
+  const minimum = (id: string): StekkerMinimum | undefined => {
+    const v = id in minimumRaw ? minimumRaw[id] : vorige?.buffers?.find((x) => x.id === id)?.minimum;
+    return isMinimum(v) ? { minuten: v.minuten, klok: v.klok } : undefined;
+  };
   const bedienen = (id: string): boolean => (id in bedienenRaw ? bedienenRaw[id] === true : vorige?.buffers?.find((x) => x.id === id)?.bedienen === true);
   const opgegeven = (id: string): number | undefined => {
     const v = id in vermogenRaw ? vermogenRaw[id] : vorige?.buffers?.find((x) => x.id === id)?.opgegevenW;
@@ -637,7 +660,8 @@ export function validateConnection(
             buffers: found.buffers!.map((b) => {
               const w = b.soort === 'stekker' ? opgegeven(b.id) : undefined;
               const mag = b.soort === 'stekker' && bedienen(b.id);
-              return { ...b, opZon: opZonRaw[b.id] === true, ...(w != null ? { opgegevenW: w } : {}), ...(mag ? { bedienen: true } : {}) };
+              const min = b.soort === 'stekker' ? minimum(b.id) : undefined;
+              return { ...b, opZon: opZonRaw[b.id] === true, ...(w != null ? { opgegevenW: w } : {}), ...(mag ? { bedienen: true } : {}), ...(min ? { minimum: min } : {}) };
             }),
           }
         : {}),
@@ -717,7 +741,7 @@ function readAnswers(raw: unknown): ConnectionAnswers | null {
     : [];
   // De boiler en de jacuzzi (besluit 186): alleen wat compleet is.
   const buffers = Array.isArray(r['buffers'])
-    ? (r['buffers'] as (FoundHeatStore & { opZon: boolean; opgegevenW?: number; bedienen?: boolean })[]).filter(
+    ? (r['buffers'] as (FoundHeatStore & { opZon: boolean; opgegevenW?: number; bedienen?: boolean; minimum?: StekkerMinimum })[]).filter(
         (b) => typeof b?.id === 'string' && typeof b.naam === 'string' && typeof b.actuator === 'string' && (b.soort === 'boiler' || b.soort === 'jacuzzi' || b.soort === 'stekker') && ['switch', 'setpoint', 'diverter'].includes(b.control) && typeof b.estimatedW === 'number',
       )
     : [];
@@ -728,6 +752,7 @@ function readAnswers(raw: unknown): ConnectionAnswers | null {
       opZonUit: Array.isArray(r['opZonUit']) ? r['opZonUit'] : [],
       vermogen: Object.fromEntries(buffers.flatMap((b) => (b.soort === 'stekker' && typeof b.opgegevenW === 'number' ? [[b.id, b.opgegevenW]] : []))),
       bedienen: Object.fromEntries(buffers.flatMap((b) => (b.soort === 'stekker' && b.bedienen === true ? [[b.id, true]] : []))),
+      minimum: Object.fromEntries(buffers.flatMap((b) => (b.soort === 'stekker' && isMinimum(b.minimum) ? [[b.id, b.minimum]] : []))),
     },
     { fasen, apparaten, buffers },
   );
@@ -794,6 +819,8 @@ export interface ConnectionView {
     readonly vermogen: Readonly<Record<string, number>>;
     /** De stekkers die SunArc mag schakelen (besluit 265). */
     readonly bedienen: readonly string[];
+    /** Het minimum per dag van een stekker (besluit 267). */
+    readonly minimum: Readonly<Record<string, StekkerMinimum>>;
     /** De netmeter en de omvormers die de bewoner koos (testerronde, november 2026). */
     readonly netmeter: Netmeter | null;
     readonly omvormers: readonly string[];
@@ -959,7 +986,7 @@ export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): Connect
   const planes = c.base.geometry?.solarPlanes ?? [];
   const brand = c.solar ? solarBrand(c.solar.platform, lang) : null;
   const relevant = (a: ConnectionAnswers | null) =>
-    JSON.stringify(a ? [a.zekering, a.fasen, a.apparaten.filter((x) => x.opZon).map((x) => x.id), (a.buffers ?? []).filter((x) => x.opZon).map((x) => `${x.id}:${x.opgegevenW ?? ''}`), [...(a.opZonUit ?? [])].sort(), a.netmeter ?? null, a.omvormers ?? []] : null);
+    JSON.stringify(a ? [a.zekering, a.fasen, a.apparaten.filter((x) => x.opZon).map((x) => x.id), (a.buffers ?? []).filter((x) => x.opZon).map((x) => `${x.id}:${x.opgegevenW ?? ''}:${x.minimum ? `${x.minimum.minuten}@${x.minimum.klok}` : ''}`), [...(a.opZonUit ?? [])].sort(), a.netmeter ?? null, a.omvormers ?? []] : null);
   return {
     antwoorden: c.answers
       ? {
@@ -974,6 +1001,7 @@ export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): Connect
           opZonUit: c.answers.opZonUit ?? [],
           vermogen: Object.fromEntries((c.answers.buffers ?? []).flatMap((b) => (b.opgegevenW != null ? [[b.id, b.opgegevenW]] : []))),
           bedienen: (c.answers.buffers ?? []).filter((b) => b.bedienen === true).map((b) => b.id),
+          minimum: Object.fromEntries((c.answers.buffers ?? []).flatMap((b) => (b.minimum ? [[b.id, b.minimum]] : []))),
           netmeter: c.answers.netmeter ?? null,
           omvormers: c.answers.omvormers ?? [],
           daken: c.answers.daken ?? null,
