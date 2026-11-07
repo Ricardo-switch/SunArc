@@ -93,7 +93,10 @@ export const NIEUW: readonly Nieuw[] = [
       'Koos je bij Inrichten een plat dak, dan bleef het huis soms een puntdak. Plat dak bij Inrichten gaat nu voor, ook voor de dakvorm uit de kaart',
       'Met een prijs per uur telde Opbrengst stroom en teruglevering soms niet mee, en gas tegen één vaste prijs. Nu telt het zoals Home Assistant, ook het gas. Ontbreekt er een prijs, dan staat bij Kosten wat er niet in zit',
     ],
-    beter: ['Bij Wat kan bij jouw huis zegt elke kaart Zoekt… zolang SunArc de omtrek en de 3D-kaart nog opvraagt'],
+    beter: [
+      'Bij Wat kan bij jouw huis zegt elke kaart Zoekt… zolang SunArc de omtrek en de 3D-kaart nog opvraagt',
+      'Bij een prijs per uur tellen de uren waarin Home Assistant de kosten nog niet telde tegen je gemiddelde, met "deels geschat" bij Kosten. Over een heel jaar telt wat je boven je verbruik teruglevert tegen de vergoeding',
+    ],
     en: {
       opgelost: [
         'In Roofs and panels, the length and width of a block went up or down together once the width got larger than the length. Each size now stays its own, also for a house of 6 by 11 metres',
@@ -105,7 +108,10 @@ export const NIEUW: readonly Nieuw[] = [
         'If you picked a flat roof in Set up, the house sometimes kept a pitched roof. A flat roof in Set up now comes first, also over the roof shape from the map',
         'With an hourly price, Energy sometimes left out electricity and export, and counted gas at one fixed price. It now counts as Home Assistant does, gas included. If a price is missing, Costs says what is not included',
       ],
-      beter: ['In What your house allows, each map says Searching… while SunArc still looks up the outline and the 3D map'],
+      beter: [
+        'In What your house allows, each map says Searching… while SunArc still looks up the outline and the 3D map',
+        'With an hourly price, hours in which Home Assistant did not count the costs yet count at your average, with "partly estimated" at Costs. Over a whole year, what you export above your use counts at the payment rate',
+      ],
     },
     meldingen: [
       {

@@ -614,6 +614,53 @@ describe('kosten zoals Home Assistant ze telt (issue 128)', () => {
     expect(validateEnergy({ ...SETTINGS, prijzen: { ...SETTINGS.prijzen, dynamisch: { ...dyn, gas: 'geen entiteit' } } }).ok).toBe(false);
   });
 
+  /** Home Assistant telt de kosten pas vanaf `vanMs`: de kostentellers hebben daarvoor geen rijen. */
+  const telVanaf = (vanMs: number): EnergySource => {
+    const bron = fakeSource();
+    return {
+      ...bron,
+      async changes(ids, startMs, endMs, period) {
+        const uit = await bron.changes(ids, startMs, endMs, period);
+        return Object.fromEntries(Object.entries(uit).map(([id, rijen]) => [id, /_cost|_compensation/.test(id) ? rijen.filter((r) => r.startMs >= vanMs) : rijen]));
+      },
+    };
+  };
+  const perUur = { ...SETTINGS, prijzen: { ...SETTINGS.prijzen, stroom: null, dynamisch: { prijsEntiteit: 'sensor.prijs', afname: ['sensor.afname_cost'], terug: ['sensor.terug_compensation'] } } };
+
+  it('telt de uren waarin Home Assistant nog niet telde tegen het gemiddelde, en zegt dat het deels geschat is', async () => {
+    // Pas vanaf 12 uur 's middags: 's ochtends 7 uur × 0,4 kWh tegen -0,05 en 3 uur tegen 0,30 vallen erbuiten.
+    const r = (await yieldReport(telVanaf(zonedMidnight(2026, 9, 15, TZ) + 12 * 3_600_000), perUur, 'dag', '2026-09-15', TZ, nu))!;
+    const stroom = r.kosten.regels.find((x) => x.soort === 'stroom')!;
+    // Geteld: 7 avonduren × 0,4 kWh tegen 0,30 = 0,84 voor 2,8 kWh; de andere 4 kWh tegen dat gemiddelde (0,30).
+    expect(stroom.euro).toBeCloseTo(0.84 + 4 * 0.3, 2);
+    expect(stroom.uitleg).toBe('2,8 kWh, met de prijs van elk uur, zoals Home Assistant telt; 4 kWh geschat tegen je gemiddelde');
+    // De teruglevering telde Home Assistant vanaf 12 uur helemaal (10 tot 17 uur: 5 van de 7 uren); de rest gesaldeerd tegen 0,30.
+    const terug = r.kosten.regels.find((x) => x.soort === 'terug')!;
+    expect(terug.euro).toBeCloseTo(-(5 * 0.1) - 2 * 0.3, 2);
+    expect(r.kosten.geschat).toEqual(['stroom', 'terug']);
+    expect(r.kosten.zonderPrijs).toEqual([]);
+    // Telt Home Assistant de hele dag, dan is er niets geschat.
+    expect((await yieldReport(fakeSource(), perUur, 'dag', '2026-09-15', TZ, nu))!.kosten.geschat).toEqual([]);
+  });
+
+  it('rekent een maand waarin Home Assistant halverwege begon te tellen ook in de vergelijking zo', async () => {
+    const r = (await yieldReport(telVanaf(zonedMidnight(2026, 9, 16, TZ)), perUur, 'maand', '2026-09-01', TZ, nu))!;
+    expect(r.kosten.geschat).toContain('stroom');
+    // Dezelfde maand in de vergelijking: per dag geteld of geschat, niet alleen de helft die Home Assistant telde.
+    expect(r.vergelijk.kosten.at(-1)!.nu).toBeCloseTo(r.kosten.totaal!, 0);
+    // Augustus telde Home Assistant nog niet: helemaal tegen de prijs bij Contract en prijzen, en zonder die prijs geen bedrag.
+    expect(r.vergelijk.kosten.at(-2)!.nu).toBeCloseTo(daily('sensor.gas') * 31 * 1.3, 1);
+  });
+
+  it('telt over een heel jaar wat je boven je verbruik teruglevert tegen de vergoeding', async () => {
+    const jaar = { ...perUur, prijzen: { ...perUur.prijzen, teruglevering: 0.05 } };
+    const r = (await yieldReport(fakeSource(), jaar, 'jaar', '2026-09-15', TZ, nu))!;
+    const terug = r.kosten.regels.find((x) => x.soort === 'terug')!;
+    // Per dag 6,8 kWh van het net en 7 terug: 0,2 kWh boven je verbruik, tegen 0,05 in plaats van 0,10.
+    expect(terug.euro).toBeCloseTo(-(0.7 * 365) + 0.2 * 365 * 0.05, 1);
+    expect(terug.uitleg).toContain('73 kWh boven je verbruik × € 0,05');
+  });
+
   it('leest de kostentellers uit energy/info', async () => {
     const client = { query: async (type: string) => (type === 'energy/info' ? { cost_sensors: { 'sensor.afname': 'sensor.afname_cost', 'sensor.raar': 3 } } : null) } as unknown as HaClient;
     expect(await haEnergySource(client).kostenTellers!()).toEqual({ 'sensor.afname': 'sensor.afname_cost' });

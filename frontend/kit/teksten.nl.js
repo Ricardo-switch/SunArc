@@ -896,6 +896,7 @@
   'opbrengst.vanNet': 'van het net',
   'opbrengst.gemetenDagen': { one: 'over 1 gemeten dag', other: 'over {n} gemeten dagen' },
   'opbrengst.zonderVast': 'zonder vaste kosten',
+  'opbrengst.deelsGeschat': 'deels geschat',
   'opbrengst.zonder.stroom': 'zonder stroom',
   'opbrengst.zonder.terug': 'zonder teruglevering',
   'opbrengst.zonder.gas': 'zonder gas',

@@ -5297,7 +5297,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await context.route(`${baseUrl}/api/opbrengst?*`, async (route) => {
       const res = await route.fetch();
       const v = (await res.json()) as { kosten: Record<string, unknown> };
-      await route.fulfill({ response: res, json: { ...v, kosten: { ...v.kosten, totaal: 15.27, zonderPrijs: ['stroom', 'terug'] } } });
+      await route.fulfill({ response: res, json: { ...v, kosten: { ...v.kosten, totaal: 15.27, zonderPrijs: ['stroom', 'terug'], geschat: ['gas'] } } });
     });
     const p = await context.newPage();
     const fouten: string[] = [];
@@ -5320,7 +5320,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await wand(':text("Prijs per uur uit Home Assistant")').first().waitFor({ timeout: 5000 });
       // Opbrengst zegt wat er in het totaal ontbreekt.
       await p.goto(`${baseUrl}/opbrengst.html`);
-      await p.locator('#wand', { hasText: 'zonder stroom, zonder teruglevering' }).first().waitFor({ timeout: 10_000 });
+      await p.locator('#wand', { hasText: 'deels geschat, zonder stroom, zonder teruglevering' }).first().waitFor({ timeout: 10_000 });
       expect(fouten).toEqual([]);
     } finally {
       await context.close();

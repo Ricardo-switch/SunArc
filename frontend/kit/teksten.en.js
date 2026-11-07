@@ -891,6 +891,7 @@
   'opbrengst.vanNet': 'from the grid',
   'opbrengst.gemetenDagen': { one: 'over 1 measured day', other: 'over {n} measured days' },
   'opbrengst.zonderVast': 'without fixed costs',
+  'opbrengst.deelsGeschat': 'partly estimated',
   'opbrengst.zonder.stroom': 'without electricity',
   'opbrengst.zonder.terug': 'without export',
   'opbrengst.zonder.gas': 'without gas',

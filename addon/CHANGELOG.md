@@ -7,6 +7,7 @@
 **Beter**
 
 - Bij Wat kan bij jouw huis zegt elke kaart Zoekt… zolang SunArc de omtrek en de 3D-kaart nog opvraagt
+- Bij een prijs per uur tellen de uren waarin Home Assistant de kosten nog niet telde tegen je gemiddelde, met "deels geschat" bij Kosten. Over een heel jaar telt wat je boven je verbruik teruglevert tegen de vergoeding
 
 **Opgelost**
 
@@ -24,6 +25,7 @@
 **Improved**
 
 - In What your house allows, each map says Searching… while SunArc still looks up the outline and the 3D map
+- With an hourly price, hours in which Home Assistant did not count the costs yet count at your average, with "partly estimated" at Costs. Over a whole year, what you export above your use counts at the payment rate
 
 **Fixed**
 
