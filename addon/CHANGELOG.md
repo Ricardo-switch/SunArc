@@ -4,6 +4,10 @@
 
 *7 november 2026*
 
+**Beter**
+
+- Bij Wat kan bij jouw huis zegt elke kaart Zoekt… zolang SunArc de omtrek en de 3D-kaart nog opvraagt
+
 **Opgelost**
 
 - Bij Daken en panelen gingen lengte en breedte van een blok samen omhoog of omlaag zodra de breedte groter werd dan de lengte. Nu blijft elke maat van zichzelf, ook bij een huis van 6 bij 11 meter
@@ -12,8 +16,13 @@
 - Een weerdienst die alleen een verwachting per uur geeft, zoals OpenWeatherMap soms, gaf geen verwachting voor de komende dagen. SunArc maakt er nu zelf dagen van
 - Laden met de hand houdt zich aan je hoofdzekering, ook zonder stroommeter per fase
 - Liggen er panelen op het huis én op de garage, dan stroomt de zon op Thuis nu ook van de garage
+- Koos je bij Inrichten een plat dak, dan bleef het huis soms een puntdak. Plat dak bij Inrichten gaat nu voor, ook voor de dakvorm uit de kaart
 
 *English*
+
+**Improved**
+
+- In What your house allows, each map says Searching… while SunArc still looks up the outline and the 3D map
 
 **Fixed**
 
@@ -23,6 +32,7 @@
 - A weather service that only gives an hourly forecast, like OpenWeatherMap at times, gave no forecast for the coming days. SunArc now makes days out of it
 - Charging by hand keeps to your main fuse, also without a current meter per phase
 - With panels on the house and on the garage, the sun on Home now also flows from the garage
+- If you picked a flat roof in Set up, the house sometimes kept a pitched roof. A flat roof in Set up now comes first, also over the roof shape from the map
 
 ## 0.142.0
 

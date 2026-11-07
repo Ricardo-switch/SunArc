@@ -1718,7 +1718,9 @@ const huisNu = (lang: Lang) => {
     : null;
   // Een plat dak op het hoofdhuis (issue 131): zoals de bewoner het opgaf bij Daken en panelen of Inrichten (143).
   const a = connectionStore?.current;
-  const plat0 = huis?.ligging && hoofddakPlat(a?.daken, a?.panelen?.ligging, layoutStore?.current?.dak === 'geen') ? { ...huis, ligging: { ...huis.ligging, plat: true } } : huis;
+  // Ook zonder bekende ligging (geen voorgevel): dan alleen dat het dak plat is, anders bleef het een puntdak.
+  const isPlat = huis != null && hoofddakPlat(a?.daken, a?.panelen?.ligging, layoutStore?.current?.dak === 'geen');
+  const plat0 = !isPlat || !huis ? huis : huis.ligging ? { ...huis, ligging: { ...huis.ligging, plat: true } } : { ...huis, dakPlat: true };
   // De auto's en laadpalen met de keuzes bij Energie (besluit 259), uit alle standen: een kabel of bereik telt niet als iets in huis.
   const plat = plat0 && houseRegisters ? { ...plat0, opslag: vindOpslag(houseRegisters, allStates, a?.laden ?? null) } : plat0;
   huisBewaard.set(lang, { sleutel, atMs: Date.now(), huis: plat });

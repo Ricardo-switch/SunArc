@@ -411,6 +411,7 @@
       piekW,
       panelen: aantalPanelen ?? (piekW > 0 ? Math.max(1, Math.round(piekW / 400)) : 0),
       ligging: huis?.ligging ?? null,
+      ...(huis?.dakPlat ? { dakPlat: true } : {}),
     };
   }
 
@@ -555,6 +556,8 @@
       garage: tek.garage && e.garage ? { ...tek.garage, panelen: e.garage } : tek.garage,
       // Hoe het huis ligt (besluit 205): de nok en de helling, en de voorgevel voor de zon.
       ...(tek.ligging ? { dak: { nok: tek.ligging.nok, ...(tek.ligging.hellingDeg ? { hellingDeg: tek.ligging.hellingDeg } : {}), ...(tek.ligging.plat ? { plat: true } : {}) }, voorgevelDeg: tek.ligging.voorgevelDeg } : {}),
+      // Een plat dak zonder bekende ligging (7 november 2026): wel plat, de rest zoals eerst.
+      ...(!tek.ligging && tek.dakPlat ? { dak: { plat: true } } : {}),
     };
   }
 

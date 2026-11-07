@@ -77,6 +77,9 @@ describe('een plat dak op het hoofdhuis (issue 131)', () => {
     // Zonder vlakken op het hoofddak: plat dak bij Inrichten.
     expect(hoofddakPlat({ vlakken: [], voorgevelDeg: 180, omvormerW: null, gebouwen: [huis('zadel')] }, null, true)).toBe(true);
     expect(hoofddakPlat(null, 'voorkant', true)).toBe(true);
+    // Plat dak bij Inrichten gaat voor een puntdak uit 3D BAG, een voorstel en schuine vlakken (7 november 2026).
+    expect(hoofddakPlat({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [huis('zadel', 'kaart')] }, null, true)).toBe(true);
+    expect(hoofddakPlat({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [huis('zadel')] }, null, true)).toBe(true);
   });
 
   it('leest een blok dat de bewoner zelf neerzette (stap 2b)', () => {

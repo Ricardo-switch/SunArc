@@ -651,6 +651,8 @@ const dakvlakken = (() => {
       const naam = t(`daken.wk.${bron}`);
       if (bron === 'bag3d' && !d.nederland) return wkRegel(bron, naam, esc(t('daken.wk.bag3dBuiten')), wkStand('nee', t('daken.wk.nietHier')), ' uit');
       if (!d.kaart) return wkRegel(bron, naam, esc(t('daken.wk.wachtZin')), wkStand('nog', t('daken.wk.wacht')), ' uit');
+      // Tijdens het kijken zegt elke kaart dat hij zoekt (Ricardo, 7 november 2026).
+      if (s.kaart === 'bezig') return wkRegel(bron, naam, esc(t(`daken.wk.${bron}Zoekt`)), wkStand('bezig', t('daken.wk.zoekt')));
       const stand = ks?.[bron];
       if (stand == null) return wkRegel(bron, naam, esc(t(`daken.wk.${bron}Zin`)), wkStand('nog', t('daken.wk.nog')));
       if (stand === 'huis') {

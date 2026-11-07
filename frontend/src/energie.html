@@ -141,6 +141,10 @@
   .wk-half { color: var(--zon-t); } .wk-half i { background: var(--zon-t); }
   .wk-nee { color: var(--gloed-t); } .wk-nee i { background: var(--gloed-t); }
   .wk-nog { color: var(--gedempt); } .wk-nog i { background: transparent; box-shadow: inset 0 0 0 1.5px var(--gedempt); }
+  /* Zoekt (7 november 2026): zolang de kaarten nog antwoorden, knippert het bolletje. */
+  .wk-bezig { color: var(--zon-t); } .wk-bezig i { background: var(--zon-t); animation: wk-knipper 1s ease-in-out infinite; }
+  @keyframes wk-knipper { 50% { opacity: 0.25; transform: scale(0.7); } }
+  @media (prefers-reduced-motion: reduce) { .wk-bezig i { animation: none; } }
   .wk-kies { height: 30px; padding: 0 12px; border-radius: 10px; border: 0; background: rgb(var(--wit) / 0.08); color: var(--tekst); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
   .wk-gebruik { height: 30px; padding: 0 6px; color: var(--zon-t); font-size: 12.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
   .wk-gebruik svg { width: 14px; height: 14px; }

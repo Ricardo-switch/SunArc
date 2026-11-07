@@ -781,10 +781,19 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await venster.locator('[data-kk-dicht]').first().click();
     await venster.waitFor({ state: 'detached' });
     await wand.locator('[data-dak-kaart]').click();
+    // Zolang de kaarten nog antwoorden, zegt elke kaart dat hij zoekt (7 november 2026).
+    await p.route('**/api/daken-kaart', async (route) => {
+      await new Promise((r) => setTimeout(r, 800));
+      await route.continue();
+    });
     await venster.locator('[data-kk-kaart]').click();
-    // Wat kan bij jouw huis (6 november 2026): eerst zien wat de kaarten vonden, dan zelf kiezen.
     const wk = wand.locator('.wk');
+    await expect.poll(() => wk.locator('.wk-regel .wk-bezig').count(), { timeout: 2_000 }).toBe(2);
+    expect(await wk.locator('.wk-regel', { hasText: 'Plattegrond' }).textContent()).toContain('Zoekt de omtrek van je huis');
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-kaartzoekt.png') });
+    // Wat kan bij jouw huis (6 november 2026): eerst zien wat de kaarten vonden, dan zelf kiezen.
     await wk.locator('.wk-regel', { hasText: '3D-kaart van Nederland' }).locator('[data-dak-bron="bag3d"]').waitFor({ timeout: 5_000 });
+    await p.unroute('**/api/daken-kaart');
     expect(await wk.locator('.wk-regel', { hasText: 'Plattegrond' }).textContent()).toContain('Je huis staat erin');
     expect(await wk.locator('.wk-regel', { hasText: 'Zelf tekenen' }).textContent()).toContain('In gebruik');
     await expect.poll(() => connStore.current?.daken?.kaartStand, { timeout: 5_000 }).toMatchObject({ osm: 'huis', bag3d: 'huis' });
