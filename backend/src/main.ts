@@ -74,7 +74,7 @@ import type { TeDoenDienst } from './web/routes/tedoen.js';
 import { spraakKeuzes, type SpraakKeuze } from './web/functies.js';
 import { cameraMelders, camerasNu, laatsteAanUitHistorie } from './web/cameras.js';
 import { FunctiesStore, aangebeld, functiesGevonden, functiesVoorstel, getoondeCameras, volledig, type Functies, type FunctiesGevonden } from './web/functies.js';
-import { accuView, KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, vindOpslag } from './web/opslag.js';
+import { accusNu, accuView, KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, vindOpslag } from './web/opslag.js';
 import { Laadhand, laadMag } from './web/laadhand.js';
 import { Stekkerhand, stekkerMag, type StekkerBekend, type StekkerTot } from './web/stekkerhand.js';
 import { StekkerZon } from './web/stekkerzon.js';
@@ -2322,6 +2322,21 @@ if (webPort != null) {
     historie: historieVan,
     laadbeurten: (auto: string) => laadbeurten.van(auto),
     laadadvies: laadadviezen,
+    // De thuisaccu's (besluit 272): wat ze nu doen, en hun tellers voor Opbrengst.
+    accu: {
+      nuW: () => {
+        if (!houseRegisters) return null;
+        const w = accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null).map((a) => a.vermogenW).filter((x): x is number => x != null);
+        return w.length ? w.reduce((s, x) => s + x, 0) : null;
+      },
+      meters: () => {
+        const lijst = houseRegisters ? accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null) : [];
+        return {
+          geladen: lijst.flatMap((a) => (a.sensoren.geladen ? [a.sensoren.geladen] : [])),
+          geleverd: lijst.flatMap((a) => (a.sensoren.geleverd ? [a.sensoren.geleverd] : [])),
+        };
+      },
+    },
     // Laden met de hand (besluit 262): alleen in de add-on; de NAS laat het blad zonder knoppen zien.
     ...(laadhand
       ? {

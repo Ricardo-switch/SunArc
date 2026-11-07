@@ -149,6 +149,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [230. Een thuisbatterij op je eigen uren](#230-een-thuisbatterij-op-je-eigen-uren)
 - [231. Hoe je huis warmte vasthoudt: het thermisch model leert en laat zien](#231-hoe-je-huis-warmte-vasthoudt-het-thermisch-model-leert-en-laat-zien)
 - [251. Een prijs per uur: de kosten zoals Home Assistant ze telt](#251-een-prijs-per-uur-de-kosten-zoals-home-assistant-ze-telt)
+- [272. De thuisaccu telt mee in de cijfers](#272-de-thuisaccu-telt-mee-in-de-cijfers)
 
 **Weergave**
 
@@ -12667,6 +12668,41 @@ laat hem meekijken, meer accu's met hun maat, en meldingen; elk een versie.
 
 **Bewust niet (nog).** De maat in kWh en meer accu's samen op één kaart komen
 in stap 5; de cijfers in Opbrengst in stap 2.
+
+## 272. De thuisaccu telt mee in de cijfers
+
+*Onderwerp: meten, data en analyse · Status: geldig*
+
+7 november 2026, versie 0.146.0, stap 2 van de thuisaccu-ronde (besluit 271).
+
+**Waarom.** SunArc rekende het verbruik als zon plus net, en zelf gebruikt als
+opgewekt min terug. Met een accu telde laden dan als verbruik, en wat hij 's
+avonds leverde telde nergens: overdag te veel, 's avonds te weinig, en de zon
+per apparaat klopte niet. Wat het net kostte klopte wel.
+
+**Wat.**
+
+- **Nu:** het verbruik is zon plus net min wat de accu's samen laden (plus is
+  laden, min is leveren). Het staat als `accuKw` bij de stromen van nu.
+- **Opbrengst, per uur:** wat de accu laadt, komt eerst uit de zon die niet
+  terugging, de rest van het net; wat hij levert, gebruikt het huis. Het
+  verbruik is van het net plus de zon plus uit de accu, min wat erin ging. Het
+  deel zon in wat eruit komt, is het deel zon in wat erin ging, over de periode.
+  Eigen zon is direct van het dak plus dat deel van de accu. "Zelf gebruikt"
+  bij de panelen blijft opgewekt min terug: ook wat de accu in ging, is van jou.
+- **De tellers:** eerst de accu in het Energie-dashboard van Home Assistant
+  (`stat_energy_to` is geladen, `stat_energy_from` geleverd), anders de
+  sensoren voor totaal geladen en geleverd bij Energie › Thuisaccu. Ze worden
+  niet bewaard, maar voor elke som opgehaald.
+- **Op de pagina:** onder de panelen een regel met wat de accu laadde, waarvan
+  uit de zon, en wat hij leverde; in Waar je stroom heen ging een bron Uit de
+  accu en een bestemming Naar de accu, in ijsblauw.
+- Zonder slimme meter rekent de accu niet mee: dan is niet te zeggen wat er
+  terugging. Het net en de kosten veranderen niet.
+
+**Bewust niet (nog).** De accu in de tekening van Thuis en in Opbrengst › Nu
+volgt in stap 3; de regeling in stap 4. Het sluipverbruik met een accu
+(besluit 192) blijft zoals het was.
 
 ## Wat nog een besluit wacht
 

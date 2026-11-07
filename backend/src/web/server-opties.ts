@@ -217,6 +217,15 @@ export interface WebOptions {
     /** Meteen uit, zonder eind. */
     readonly uit?: (id: string) => Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }>;
   };
+  /**
+   * De thuisaccu's die aan staan (besluit 272): samen wat ze nu laden (plus) of
+   * leveren (min), en hun tellers in kWh voor Opbrengst als het
+   * Energie-dashboard van Home Assistant geen accu heeft.
+   */
+  readonly accu?: {
+    readonly nuW: () => number | null;
+    readonly meters: () => { readonly geladen: readonly string[]; readonly geleverd: readonly string[] };
+  };
   readonly laden?: {
     readonly standen: () => Promise<readonly LaadStand[]>;
     readonly zet: (auto: string, v: LaadVraag) => Promise<LaadUitkomst>;

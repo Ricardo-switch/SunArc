@@ -3158,6 +3158,41 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await context.close();
   }, 30_000);
 
+  /*
+   * De thuisaccu in Opbrengst (besluit 272): wat hij laadde en leverde onder de
+   * panelen, en in het stroombeeld uit en naar de accu. De som zelf staat in
+   * yield.test.ts; hier hoe de pagina hem toont.
+   */
+  it('toont bij Opbrengst wat de thuisaccu laadde en leverde', async () => {
+    if (energyStore.current == null) await energyStore.save(importFromPrefs(await ENERGY_SOURCE.prefs(), await ENERGY_SOURCE.meters()));
+    const context = await browser.newContext({ viewport: { width: 1340, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    await context.route((url) => url.pathname === '/api/opbrengst', async (route) => {
+      const r = await route.fetch();
+      const j = (await r.json()) as { stromen?: { van: string; naar: string; kwh: number }[]; accu?: unknown };
+      if (j.stromen) {
+        j.accu = { geladenKwh: 31, geleverdKwh: 27.5, uitZonKwh: 29, uitNetKwh: 2, bron: 'dashboard' };
+        j.stromen = [...j.stromen, { van: 'accu', naar: 'rest', kwh: 27.5 }, { van: 'zon', naar: 'naarAccu', kwh: 29 }, { van: 'net', naar: 'naarAccu', kwh: 2 }];
+      }
+      await route.fulfill({ response: r, json: j });
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/opbrengst.html`);
+    const wand = p.locator('#wand');
+    await wand.locator('.accuregel').waitFor({ timeout: 10_000 });
+    expect(await wand.locator('.accuregel').textContent()).toBe('De accu laadde 31,0 kWh, waarvan 29,0 kWh uit de zon, en leverde 27,5 kWh aan het huis.');
+    await wand.locator('[data-sankey] svg text', { hasText: 'Uit de accu' }).waitFor();
+    await wand.locator('[data-sankey] svg text', { hasText: 'Naar de accu' }).waitFor();
+    expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-opbrengst-accu.png') });
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
   it('toont zonder verbinding de laatste stand, grijs', async () => {
     const context = await browser.newContext({ viewport: { width: 1340, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));

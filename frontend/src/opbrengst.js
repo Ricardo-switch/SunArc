@@ -29,6 +29,8 @@ const euro = (n) => `${taal.valuta()} ${nl(n, 2)}`;
 const ZON = '#F7B548';
 const NET = '#9AAABB';
 const TERUG = '#6EE7B7';
+/** De thuisaccu (besluit 272): ijsblauw, zoals de lijn uit de batterij in de tekening. */
+const ACCU = '#6FD3FF';
 const KLEUREN = ['#6FD3FF', '#8FD9FF', '#FFB088', '#C4BCFF', '#9EE6FF', '#FFD08A'];
 
 /** Het sluipverbruik (besluit 192): een kaart naar zijn eigen scherm, met vannacht erop. */
@@ -147,6 +149,12 @@ function dakNaam(v, alle) {
   return `${plek} ${richting.toLowerCase()}`;
 }
 
+/** De thuisaccu in deze periode (besluit 272): wat hij laadde, waarvan uit de zon, en wat hij leverde. */
+function accuRegel(a) {
+  if (!a || (a.geladenKwh < 0.1 && a.geleverdKwh < 0.1)) return '';
+  return `<p class="mini accuregel" style="margin: 8px 0 0"><i style="background: ${ACCU}"></i>${esc(t('opbrengst.accu.regel', { geladen: getal(a.geladenKwh), zon: getal(a.uitZonKwh), geleverd: getal(a.geleverdKwh) }))}</p>`;
+}
+
 function panelen(r) {
   if (!r.zon || r.geschat) return '';
   const z = r.zon;
@@ -172,6 +180,7 @@ function panelen(r) {
     <div class="verdeel" style="height: 10px; margin-top: 12px"><i style="width: ${zelf.toFixed(1)}%; background: var(--zon)"></i><i style="width: ${(100 - zelf).toFixed(1)}%; background: var(--mint)"></i></div>
     <div class="klein" style="margin-top: 8px; display: flex; justify-content: space-between"><span>${z.opgewektKwh > 0 ? taal.html('opbrengst.zelfPct', { kwh: getal(z.zelfKwh), pct: Math.round(zelf) }) : esc(t('opbrengst.zelf', { kwh: getal(z.zelfKwh) }))}</span><span>${esc(t('opbrengst.naarNet', { kwh: getal(z.terugKwh) }))}</span></div>
     ${z.besteDag ? `<p class="mini" style="margin: 8px 0 0">${esc(t('opbrengst.besteDag', { dag: z.besteDag.label, kwh: getal(z.besteDag.kwh) }))}</p>` : ''}
+    ${accuRegel(r.accu)}
     ${verwachtRegel(r.verwacht, r.periode.soort)}
   </section>`;
 }
@@ -224,9 +233,11 @@ function stroomModel(r) {
   const totaal = stroom.reduce((t, s) => t + s.kwh, 0);
   const perDoel = new Map();
   for (const s of stroom) perDoel.set(s.naar, (perDoel.get(s.naar) ?? 0) + s.kwh);
-  const klein = new Set([...perDoel].filter(([id, k]) => !['terug', 'rest', 'altijd'].includes(id) && k < totaal * 0.02).map(([id]) => id));
+  const klein = new Set([...perDoel].filter(([id, k]) => !['terug', 'rest', 'altijd', 'naarAccu'].includes(id) && k < totaal * 0.02).map(([id]) => id));
   if (klein.size === 1) klein.clear();
   stroom = stroom.map((s) => (klein.has(s.naar) ? { ...s, naar: 'overig' } : s));
+  // Het deel zon in wat uit de accu kwam (besluit 272): het deel zon in wat erin ging.
+  const accuZon = r.accu?.geladenKwh > 0 ? r.accu.uitZonKwh / r.accu.geladenKwh : 1;
   // De zon per dakvlak, naar hun aandeel in deze periode (besluit 254).
   const vlakken = (daken?.vlakken ?? []).filter((v) => v.kWh > 0);
   const dakSom = vlakken.reduce((t, v) => t + v.kWh, 0);
@@ -235,12 +246,14 @@ function stroomModel(r) {
     : [{ id: 'zon', naam: t('vandaag.zon'), deel: 1, kleur: ZON }];
   const st = stroom.flatMap((s) => (s.van === 'zon' ? zonDelen.map((z) => ({ van: z.id, naar: s.naar, kwh: s.kwh * z.deel })) : [s]));
   const van = (id, kant) => st.filter((s) => s[kant] === id).reduce((t, s) => t + s.kwh, 0);
-  const zonIn = (id) => st.filter((s) => s.naar === id && s.van !== 'net').reduce((t, s) => t + s.kwh, 0);
+  const zonIn = (id) => st.filter((s) => s.naar === id && s.van !== 'net').reduce((t, s) => t + s.kwh * (s.van === 'accu' ? accuZon : 1), 0);
   const netEuro = kostenVan(r, ['stroom', 'normaal', 'dal']);
   const terugEuro = kostenVan(r, ['terug', 'terug-na']);
   const bronnen = [
     ...zonDelen.map((z) => ({ ...z, regels: [{ t: `${getal(van(z.id, 'van'))} kWh` }] })),
     { id: 'net', naam: t('opbrengst.net'), kleur: NET, regels: [{ t: `${getal(van('net', 'van'))} kWh` }, ...(netEuro != null ? [{ t: euro(netEuro), vet: true }] : [])] },
+    // Uit de thuisaccu (besluit 272), als hij iets leverde.
+    ...(van('accu', 'van') > 0.05 ? [{ id: 'accu', naam: t('opbrengst.accu.uit'), kleur: ACCU, regels: [{ t: `${getal(van('accu', 'van'))} kWh` }] }] : []),
   ];
   const namen = new Map(r.apparaten.map((a) => [a.id, a.rest ? t('opbrengst.rest') : kort(a.naam)]));
   const zonRegel = (id) => {
@@ -249,13 +262,14 @@ function stroomModel(r) {
     return [{ t: r.heeft.zon && !r.geschat ? t('opbrengst.stromen.kwhZon', { kwh: getal(k), pct }) : `${getal(k)} kWh` }];
   };
   const ids = [...new Set(st.map((s) => s.naar))];
-  const volgorde = (id) => (id === 'terug' ? 4 : id === 'altijd' ? 3 : id === 'rest' ? 2 : id === 'overig' ? 1 : 0);
+  const volgorde = (id) => (id === 'terug' ? 5 : id === 'naarAccu' ? 4 : id === 'altijd' ? 3 : id === 'rest' ? 2 : id === 'overig' ? 1 : 0);
   ids.sort((a, b) => volgorde(a) - volgorde(b) || van(b, 'naar') - van(a, 'naar'));
   const doelen = ids.map((id, i) => {
     if (id === 'terug') {
       return { id, naam: r.geschat ? t('opbrengst.naarHetNetGeschat') : t('opbrengst.naarHetNet'), kleur: TERUG, regels: [{ t: `${getal(van(id, 'naar'))} kWh` }, ...(terugEuro != null && terugEuro < 0 ? [{ t: `+ ${euro(-terugEuro)}`, vet: true, kleur: 'var(--mint-t)' }] : [])] };
     }
     if (id === 'altijd') return { id, naam: t('opbrengst.stromen.altijd'), kleur: '#FFB39F', regels: zonRegel(id) };
+    if (id === 'naarAccu') return { id, naam: t('opbrengst.accu.naar'), kleur: ACCU, regels: zonRegel(id) };
     if (id === 'overig') return { id, naam: t('opbrengst.stromen.overig'), kleur: 'rgba(233,239,246,0.55)', regels: zonRegel(id) };
     return { id, naam: namen.get(id) ?? id, kleur: id === 'rest' ? NET : KLEUREN[i % KLEUREN.length], regels: zonRegel(id) };
   });

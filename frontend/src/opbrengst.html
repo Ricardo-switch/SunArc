@@ -99,6 +99,9 @@
     @keyframes klop { 0% { box-shadow: 0 0 0 0 rgb(110 231 183 / 0.55); } 70% { box-shadow: 0 0 0 9px rgb(110 231 183 / 0); } 100% { box-shadow: 0 0 0 0 rgb(110 231 183 / 0); } }
     @media (prefers-reduced-motion: reduce) { .livelabel i { animation: none; } }
     .dakopval { margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: rgba(255, 138, 107, 0.08); border: 1px solid rgba(255, 138, 107, 0.25); font-size: 13px; color: var(--zacht); line-height: 1.45; }
+    /* De thuisaccu in deze periode (besluit 272): een stip in de kleur van de accu. */
+    .accuregel { display: flex; gap: 8px; align-items: baseline; }
+    .accuregel i { width: 8px; height: 8px; border-radius: 50%; flex: none; transform: translateY(-1px); }
   </style>
 </head>
 <body class="lucht lucht-dag">

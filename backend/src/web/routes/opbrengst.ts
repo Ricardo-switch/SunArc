@@ -10,7 +10,7 @@ import type { SiteConfig } from '../../core/model.js';
 import { todayInLang } from '../today.js';
 import { SolarHistory, learnSolar } from '../solar-learn.js';
 import { PERIODS, periodRange, yearStartOf, yieldReport, type PeriodKind, type YieldReport } from '../yield.js';
-import { metTellersUitHA } from '../energy.js';
+import { accuInPrefs, metTellersUitHA, type AccuMeters } from '../energy.js';
 import { partsIn, zonedMidnight } from '../today.js';
 import type { AskContext, Lang } from '../assistant.js';
 import { sunReport } from '../sun.js';
@@ -307,6 +307,19 @@ export async function expectedIn(d: Diensten, vanMs: number, totMs: number, time
   return expectedTotal(expectedAndActual(weather.log.expected, weather.log.current, d.solar.current, binnen));
 }
 
+/**
+ * De tellers van de thuisaccu voor Opbrengst (besluit 272): eerst de accu in
+ * het Energie-dashboard van Home Assistant, anders wat Energie › Thuisaccu
+ * zegt. Leeg zonder accu.
+ */
+async function accuMetersVan(d: Diensten): Promise<{ accu?: AccuMeters }> {
+  const energy = d.options.energy;
+  const uitHA = energy ? accuInPrefs(await energy.source.prefs().catch(() => null)) : null;
+  if (uitHA) return { accu: uitHA };
+  const m = d.options.accu?.meters();
+  return m && (m.geladen.length || m.geleverd.length) ? { accu: { geladen: m.geladen, geleverd: m.geleverd, bron: 'sensoren' } } : {};
+}
+
 /** Rekent één periode uit, één keer tegelijk per periode, en bewaart hem. */
 export function yieldCompute(d: Diensten, key: string, soort: PeriodKind, datum: string, now: number, lang: Lang = 'nl'): Promise<YieldReport | null> {
   const busy = d.yieldBusy.get(key);
@@ -315,7 +328,9 @@ export function yieldCompute(d: Diensten, key: string, soort: PeriodKind, datum:
   const config = d.config()!;
   const settings = energy.store.current!;
   // Bij een prijs per uur de kostentellers zoals Home Assistant ze nu heeft (issue 128).
+  // De thuisaccu (besluit 272): uit het Energie-dashboard, anders de sensoren bij Energie › Thuisaccu.
   const job = metTellersUitHA(energy.source, settings)
+    .then(async (s) => ({ ...s, ...(await accuMetersVan(d)) }))
     .then((s) => yieldReport(energy.source, s, soort, datum, config.timezone, now, lang))
     .then((report) => {
       if (report != null) {

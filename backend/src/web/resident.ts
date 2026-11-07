@@ -47,6 +47,8 @@ export interface ResidentFlows {
   readonly huisKw: number | null;
   /** Wat SunArc voor de airco's op zon gepland heeft. */
   readonly geplandKw: number;
+  /** De thuisaccu (besluit 272): plus laadt hij, min levert hij aan het huis; weg zonder accu. */
+  readonly accuKw?: number;
   /**
    * Zonder slimme meter (besluit 196): wat er van de zon over is, geschat als
    * de zon min de airco's en een gewoon huis. Alleen dan staat het erin.
@@ -369,7 +371,7 @@ export function residentHeadline(config: SiteConfig, snap: DecisionView, rooms: 
   return { boven, titel: kies(zonOp ? s.zon : s.rustig[deel], snap.atMs), zin };
 }
 
-export function residentFlows(snap: DecisionView, metMeter = true): ResidentFlows {
+export function residentFlows(snap: DecisionView, metMeter = true, accuW: number | null = null): ResidentFlows {
   const e = snap.explanation;
   const zonKw = e.solarProductionW == null ? null : round1(Math.max(0, e.solarProductionW) / 1000);
   // Zonder slimme meter is het net onbekend (besluit 196): niet "0 kW van het net", maar wat er geschat over is.
@@ -380,10 +382,12 @@ export function residentFlows(snap: DecisionView, metMeter = true): ResidentFlow
   }
   // -0 wordt 0: "0 kW terug" bestaat niet.
   const netKw = round1(e.budget.gridPowerW / 1000) || 0;
-  const verbruikKw = zonKw == null ? null : Math.max(0, round1(zonKw + netKw));
+  // Met een thuisaccu (besluit 272): wat hij laadt, gebruikt het huis niet; wat hij levert wel.
+  const accuKw = accuW == null ? null : round1(accuW / 1000) || 0;
+  const verbruikKw = zonKw == null ? null : Math.max(0, round1(zonKw + netKw - (accuKw ?? 0)));
   const aircoKw = round1((e.budget.reclaimableW ?? 0) / 1000);
   const huisKw = verbruikKw == null ? null : Math.max(0, round1(verbruikKw - aircoKw));
-  return { zonKw, netKw, verbruikKw, aircoKw, huisKw, geplandKw: round1((e.budget.allocatedW ?? 0) / 1000) };
+  return { zonKw, netKw, verbruikKw, aircoKw, huisKw, geplandKw: round1((e.budget.allocatedW ?? 0) / 1000), ...(accuKw != null ? { accuKw } : {}) };
 }
 
 export function residentDevices(config: SiteConfig, snap: DecisionView, lang: Lang = 'nl'): { apparaten: ResidentDevice[]; rust: string | null } {
@@ -450,7 +454,7 @@ export function decisionWords(
   return { wat: commands.map((c) => describeCommand(config, c, lang)), waarom: redenen.map(why) };
 }
 
-export function residentView(config: SiteConfig, snap: DecisionView, lang: Lang = 'nl', shadow = true): ResidentView {
+export function residentView(config: SiteConfig, snap: DecisionView, lang: Lang = 'nl', shadow = true, accuW: number | null = null): ResidentView {
   const kamers = residentRooms(config, snap, lang, shadow);
   const { apparaten, rust } = residentDevices(config, snap, lang);
   const touched = new Set(snap.commands.flatMap((c) => ('actuatorId' in c ? [c.actuatorId] : [])));
@@ -460,7 +464,7 @@ export function residentView(config: SiteConfig, snap: DecisionView, lang: Lang 
   return {
     kamers,
     kop: residentHeadline(config, snap, kamers, lang, shadow),
-    stromen: residentFlows(snap, config.power?.gridPower != null),
+    stromen: residentFlows(snap, config.power?.gridPower != null, accuW),
     apparaten,
     rust,
     besluit: snap.commands.length > 0 ? decisionWords(config, snap.commands, redenen, lang) : null,

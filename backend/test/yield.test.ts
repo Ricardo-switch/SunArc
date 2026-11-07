@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { HaClient } from '../src/adapters/homeassistant/client.js';
-import { EnergyStore, importFromPrefs, isPrijsPerKwh, metTellersUitHA, meterRole, pricesInPrefs, validateEnergy, type EnergySettings, type EnergySource } from '../src/web/energy.js';
+import { accuInPrefs, EnergyStore, importFromPrefs, isPrijsPerKwh, metTellersUitHA, meterRole, pricesInPrefs, validateEnergy, type EnergySettings, type EnergySource } from '../src/web/energy.js';
 import { haEnergySource } from '../src/adapters/homeassistant/energy.js';
 import { partsIn, zonedMidnight } from '../src/web/today.js';
 import { periodRange, verdeel, yearStartOf, yieldReport } from '../src/web/yield.js';
@@ -33,6 +33,9 @@ const HOURLY: Record<string, (h: number) => number> = {
   'sensor.terug_compensation': (h) => (h >= 10 && h < 17 ? 1 : 0) * 0.1,
   // De gaskosten zoals Home Assistant ze telt (issue 128): 0,2 m³ om 7 uur tegen 1,90.
   'sensor.gas_cost': (h) => (h === 7 ? 0.2 * 1.9 : 0),
+  // Een thuisaccu (besluit 272): laadt van 10 tot 13 uur, levert 's avonds van 19 tot 22 uur.
+  'sensor.accu_geladen': (h) => (h >= 10 && h < 13 ? 0.5 : 0),
+  'sensor.accu_geleverd': (h) => (h >= 19 && h < 22 ? 0.4 : 0),
 };
 const daily = (id: string) => Array.from({ length: 24 }, (_, h) => HOURLY[id]!(h)).reduce((a, b) => a + b, 0);
 
@@ -204,6 +207,49 @@ describe('panelen zonder slimme meter (besluit 196)', () => {
     const snap = { atMs: 0, explanation: { solarProductionW: 1500, budget: { gridPowerW: 0, reclaimableW: 300, allocatedW: 0 } }, commands: [], accepted: [], rejected: [], observed: {} } as unknown as DecisionView;
     expect(residentFlows(snap, false)).toEqual({ zonKw: 1.5, netKw: null, verbruikKw: null, aircoKw: 0.3, huisKw: null, geplandKw: 0, overKw: 0.8, geschat: true });
     expect(residentFlows(snap)).toMatchObject({ netKw: 0, verbruikKw: 1.5 });
+  });
+
+  it('telt de thuisaccu mee in het verbruik van nu (besluit 272)', () => {
+    const snap = { atMs: 0, explanation: { solarProductionW: 3000, budget: { gridPowerW: -500, reclaimableW: 0, allocatedW: 0 } }, commands: [], accepted: [], rejected: [], observed: {} } as unknown as DecisionView;
+    // 3 kW zon, 0,5 terug, 1,5 in de accu: het huis gebruikt 1 kW.
+    expect(residentFlows(snap, true, 1500)).toMatchObject({ zonKw: 3, netKw: -0.5, verbruikKw: 1, accuKw: 1.5 });
+    // 's Avonds: 0,2 van het net en 1 kW uit de accu.
+    const avond = { ...snap, explanation: { solarProductionW: 0, budget: { gridPowerW: 200, reclaimableW: 0, allocatedW: 0 } } } as unknown as DecisionView;
+    expect(residentFlows(avond, true, -1000)).toMatchObject({ verbruikKw: 1.2, accuKw: -1 });
+    // Zonder accu staat er niets van.
+    expect(residentFlows(snap)).not.toHaveProperty('accuKw');
+  });
+});
+
+describe('een dag met een thuisaccu (besluit 272)', () => {
+  const MET = { ...SETTINGS, accu: { geladen: ['sensor.accu_geladen'], geleverd: ['sensor.accu_geleverd'], bron: 'sensoren' as const } };
+
+  it('rekent wat de accu laadde en leverde mee in het verbruik en de eigen zon', async () => {
+    const r = (await yieldReport(fakeSource(), MET, 'dag', '2026-09-15', TZ, Date.UTC(2026, 9, 7, 12)))!;
+    // 13,8 zonder accu; 1,5 kWh ging de accu in, 1,2 kwam eruit.
+    expect(r.stroom).toMatchObject({ verbruikKwh: 13.5, vanNetKwh: 6.8, terugKwh: 7, eigenZonKwh: 6.7, eigenZonPct: 50 });
+    // Wat de zon niet terugleverde blijft 7 kWh, ook al ging een deel de accu in.
+    expect(r.zon).toMatchObject({ zelfKwh: 7, zelfPct: 50 });
+    expect(r.accu).toEqual({ geladenKwh: 1.5, geleverdKwh: 1.2, uitZonKwh: 1.5, uitNetKwh: 0, bron: 'sensoren' });
+    // De airco draaide om 20 uur half op de accu.
+    expect(r.apparaten[0]).toMatchObject({ id: 'sensor.airco', kwh: 1.2, zonKwh: 1.1, netKwh: 0.1, accuKwh: 0.1 });
+    // De sankey telt op: zon is zelf plus terug, uit de accu is wat hij leverde, naar de accu wat hij laadde.
+    const van = (src: string) => r.stromen.filter((s) => s.van === src).reduce((a, s) => a + s.kwh, 0);
+    const naar = (doel: string) => r.stromen.filter((s) => s.naar === doel).reduce((a, s) => a + s.kwh, 0);
+    expect(van('zon')).toBeCloseTo(14, 0);
+    expect(van('accu')).toBeCloseTo(1.2, 1);
+    expect(naar('naarAccu')).toBeCloseTo(1.5, 1);
+    // Zonder accu-tellers alles zoals eerst.
+    const zonder = (await yieldReport(fakeSource(), SETTINGS, 'dag', '2026-09-15', TZ, Date.UTC(2026, 9, 7, 12)))!;
+    expect(zonder.accu).toBeNull();
+    expect(zonder.stroom.verbruikKwh).toBe(13.8);
+  });
+
+  it('neemt de accu uit het Energie-dashboard van Home Assistant', () => {
+    const prefs = { energy_sources: [{ type: 'grid', flow_from: [], flow_to: [] }, { type: 'battery', stat_energy_from: 'sensor.sessy_geleverd', stat_energy_to: 'sensor.sessy_geladen', stat_rate: 'sensor.sessy_power' }] };
+    expect(accuInPrefs(prefs)).toEqual({ geladen: ['sensor.sessy_geladen'], geleverd: ['sensor.sessy_geleverd'], bron: 'dashboard' });
+    expect(accuInPrefs({ energy_sources: [{ type: 'solar', stat_energy_from: 'sensor.zon' }] })).toBeNull();
+    expect(accuInPrefs(null)).toBeNull();
   });
 });
 

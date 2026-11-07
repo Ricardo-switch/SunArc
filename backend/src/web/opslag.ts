@@ -510,6 +510,23 @@ function accuBronnen(l: ReturnType<typeof lezer>, states: ReadonlyMap<string, Ha
   return lijst;
 }
 
+/** Een accu die aan staat, met wat hij nu doet en zijn sensoren (besluit 272). */
+export interface AccuNu {
+  readonly id: string;
+  readonly naam: string;
+  readonly pct: number | null;
+  /** Plus is laden, min is leveren aan het huis. */
+  readonly vermogenW: number | null;
+  readonly sensoren: Readonly<Record<AccuRol, string | null>>;
+}
+
+/** De accu's die aan staan (besluit 272): voor het verbruik van nu en de tellers in Opbrengst. */
+export function accusNu(registers: Registers, states: ReadonlyMap<string, HaEntityState>, laden: LadenKeuze | null, keuze: AccuKeuze | null): AccuNu[] {
+  return accuBronnen(lezer(registers, states), states, laden, keuze)
+    .filter((b) => b.aan)
+    .map((b) => ({ id: b.bron.device.id, naam: naamVanApparaat(b.bron.device), pct: b.pct, vermogenW: b.vermogenW, sensoren: b.sensoren }));
+}
+
 /** De sensoren om uit te kiezen: een lading in %, een vermogen, of een totaal in kWh (besluit 271). */
 function accuSensoren(registers: Registers, states: ReadonlyMap<string, HaEntityState>, klasse: (e: HaRegistryEntity) => string | null): AccuSensor[] {
   const uit: AccuSensor[] = [];

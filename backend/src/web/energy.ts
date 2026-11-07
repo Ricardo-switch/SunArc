@@ -50,6 +50,21 @@ export interface EnergySettings {
   readonly gas: string | null;
   readonly apparaten: readonly EnergyDevice[];
   readonly prijzen: EnergyPrices;
+  /**
+   * De thuisaccu (besluit 272): wat erin ging en eruit kwam, in kWh. Niet
+   * bewaard: de dienst zet het erbij voor elke som, uit de accu in het
+   * Energie-dashboard van Home Assistant, anders uit de sensoren bij
+   * Energie › Thuisaccu.
+   */
+  readonly accu?: AccuMeters;
+}
+
+/** De tellers van de thuisaccu (besluit 272): totaal geladen en totaal geleverd. */
+export interface AccuMeters {
+  readonly geladen: readonly string[];
+  readonly geleverd: readonly string[];
+  /** Waar ze vandaan komen. */
+  readonly bron: 'dashboard' | 'sensoren';
 }
 
 /** Een meter om uit te kiezen, uit de statistiek van Home Assistant. */
@@ -322,6 +337,24 @@ export interface DashboardPrice {
    * als een euro. Zo stond het op 7 oktober in dit huis.
    */
   readonly kostenIsMeter: boolean;
+}
+
+/**
+ * De accu's in het Energie-dashboard van Home Assistant (besluit 272): wat erin
+ * ging (`stat_energy_to`) en wat eruit kwam (`stat_energy_from`). Null zonder.
+ */
+export function accuInPrefs(prefs: unknown): AccuMeters | null {
+  if (!isRecord(prefs) || !Array.isArray(prefs['energy_sources'])) return null;
+  const geladen: string[] = [];
+  const geleverd: string[] = [];
+  for (const src of prefs['energy_sources']) {
+    if (!isRecord(src) || src['type'] !== 'battery') continue;
+    const naar = str(src['stat_energy_to']);
+    const van = str(src['stat_energy_from']);
+    if (naar && !geladen.includes(naar)) geladen.push(naar);
+    if (van && !geleverd.includes(van)) geleverd.push(van);
+  }
+  return geladen.length || geleverd.length ? { geladen, geleverd, bron: 'dashboard' } : null;
 }
 
 export function pricesInPrefs(prefs: unknown): DashboardPrice[] {

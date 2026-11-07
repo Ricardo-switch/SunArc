@@ -160,7 +160,8 @@ export class Diensten {
     const loc = this.options.location?.() ?? null;
     const zon = loc ? sunPosition(Date.now(), loc.latDeg, loc.lonDeg) : null;
     const metZon = zon ? { ...snapshot, zonNu: zonNuVan(zon.elevationDeg, zon.azimuthDeg) } : snapshot;
-    return { ...snapshot, bewoner: residentView(config, metZon, taal) };
+    // Met de thuisaccu (besluit 272): het verbruik van nu klopt pas als zijn laden en leveren meetellen.
+    return { ...snapshot, bewoner: residentView(config, metZon, taal, true, this.options.accu?.nuW() ?? null) };
   }
 
   /**

@@ -1,20 +1,30 @@
 # Wat is er nieuw · What is new
 
-## 0.145.0
+## 0.146.0
 
-*7 november 2026*
+*7 november 2026 · 0.145.0 – 0.146.0*
 
 **Nieuw**
 
+- Opbrengst rekent je thuisaccu mee: onder je panelen staat wat hij laadde, waarvan uit de zon, en wat hij aan het huis leverde. In Waar je stroom heen ging staan Uit de accu en Naar de accu
 - Bij Energie staat nu Thuisaccu. Je ziet welke accu SunArc vond, en je kiest er zelf een als hij er niet bij staat, ook als hij via Homey binnenkomt met losse sensoren
 - Per accu kies je welke sensor zegt hoe vol hij is, wat hij nu laadt of levert, en hoeveel hij in totaal laadde en leverde. Je kiest ook of plus laden of leveren is, en ziet meteen wat de accu nu doet
+
+**Opgelost**
+
+- Met een thuisaccu klopte het verbruik niet: wat de accu laadde telde als verbruik, en wat hij leverde telde nergens. Nu klopt het verbruik van nu, per uur en per apparaat
 
 *English*
 
 **New**
 
+- Yield now counts your home battery: under your panels it shows what it charged, how much of that came from the sun, and what it delivered to the home. Where your power went shows From the battery and To the battery
 - Energy now has Home battery. You see which battery SunArc found, and you choose one yourself if it is not listed, also when it comes in through Homey with separate sensors
 - For each battery you choose which sensor says how full it is, what it is charging or delivering now, and how much it charged and delivered in total. You also choose whether plus is charging or delivering, and see right away what the battery is doing
+
+**Fixed**
+
+- With a home battery the use was wrong: what the battery charged counted as use, and what it delivered counted nowhere. The use now adds up, right now, per hour and per device
 
 ## 0.144.2
 
