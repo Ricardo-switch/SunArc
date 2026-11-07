@@ -266,6 +266,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [269. Buiten heeft echte plekken voor apparaten, ook zonder gebied in Home Assistant](#269-buiten-heeft-echte-plekken-voor-apparaten-ook-zonder-gebied-in-home-assistant)
 - [270. De thuisaccu staat in de tekening, op de plek die de bewoner kiest](#270-de-thuisaccu-staat-in-de-tekening-op-de-plek-die-de-bewoner-kiest)
 - [271. Een thuisaccu zelf kiezen bij Energie, ook uit losse sensoren](#271-een-thuisaccu-zelf-kiezen-bij-energie-ook-uit-losse-sensoren)
+- [273. De stromen van en naar de thuisaccu in de tekening en bij Nu](#273-de-stromen-van-en-naar-de-thuisaccu-in-de-tekening-en-bij-nu)
 
 **Veiligheid**
 
@@ -12703,6 +12704,32 @@ per apparaat klopte niet. Wat het net kostte klopte wel.
 **Bewust niet (nog).** De accu in de tekening van Thuis en in Opbrengst › Nu
 volgt in stap 3; de regeling in stap 4. Het sluipverbruik met een accu
 (besluit 192) blijft zoals het was.
+
+## 273. De stromen van en naar de thuisaccu in de tekening en bij Nu
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, versie 0.147.0, stap 3 van de thuisaccu-ronde (besluit 271).
+
+**Waarom.** De tekening kon al lijnen van en naar de accu trekken (huis 3.0),
+maar niemand gaf ze door. Besluit 270 liet ze bewust weg; nu het verbruik van
+nu de accu kent (besluit 272), kunnen ze er eerlijk bij.
+
+**Wat.**
+
+- **Op Thuis:** laadt de accu, dan een lijn naar de accu, van de zon als die er
+  is en anders van het net, in de kleur van die bron. Levert hij, dan een
+  ijsblauwe lijn uit de accu naar het huis, of naar de kamer die op zon koelt.
+  Een label bij de accu zegt hoeveel kW, met "de accu laadt" of "uit de accu".
+- **Binnen in een kamer** komt de lijn uit de kast tegen de achterwand, over de
+  vloer naar de voorgevel en langs de gevel naar beneden.
+- **Opbrengst › Nu:** wat de accu laadt komt eerst uit de zon, de rest van het
+  net, en staat rechts als Naar de accu; wat hij levert staat links als Uit de
+  accu en verdeelt zich over de apparaten zoals de zon en het net.
+- De dikte volgt het vermogen, zoals bij de andere stromen.
+
+**Bewust niet (nog).** Een lijn tussen de accu en de auto: of de accu de auto
+laadt, meet SunArc niet apart.
 
 ## Wat nog een besluit wacht
 

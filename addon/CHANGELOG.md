@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.146.0
+## 0.147.0
 
-*7 november 2026 · 0.145.0 – 0.146.0*
+*7 november 2026 · 0.145.0 – 0.147.0*
 
 **Nieuw**
 
+- Op Thuis loopt nu een lijn naar je thuisaccu als hij laadt, en eruit naar het huis als hij levert, met erbij hoeveel. Ook als de accu binnen in een kamer staat
+- Bij Opbrengst › Nu staat je thuisaccu in Waar je stroom nu heen gaat: Naar de accu als hij laadt, Uit de accu als hij levert
 - Opbrengst rekent je thuisaccu mee: onder je panelen staat wat hij laadde, waarvan uit de zon, en wat hij aan het huis leverde. In Waar je stroom heen ging staan Uit de accu en Naar de accu
 - Bij Energie staat nu Thuisaccu. Je ziet welke accu SunArc vond, en je kiest er zelf een als hij er niet bij staat, ook als hij via Homey binnenkomt met losse sensoren
 - Per accu kies je welke sensor zegt hoe vol hij is, wat hij nu laadt of levert, en hoeveel hij in totaal laadde en leverde. Je kiest ook of plus laden of leveren is, en ziet meteen wat de accu nu doet
@@ -18,6 +20,8 @@
 
 **New**
 
+- On Home a line now runs to your home battery when it charges, and out to the home when it delivers, with how much. Also when the battery stands inside in a room
+- In Yield › Now your home battery shows in Where your power is going now: To the battery when it charges, From the battery when it delivers
 - Yield now counts your home battery: under your panels it shows what it charged, how much of that came from the sun, and what it delivered to the home. Where your power went shows From the battery and To the battery
 - Energy now has Home battery. You see which battery SunArc found, and you choose one yourself if it is not listed, also when it comes in through Homey with separate sensors
 - For each battery you choose which sensor says how full it is, what it is charging or delivering now, and how much it charged and delivered in total. You also choose whether plus is charging or delivering, and see right away what the battery is doing

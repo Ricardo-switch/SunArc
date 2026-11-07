@@ -415,8 +415,14 @@ function nuModel() {
   const netW = (st.netKw ?? 0) * 1000;
   const vanNet = Math.max(0, netW);
   const terug = Math.max(0, -netW);
-  const verbruik = st.verbruikKw != null ? st.verbruikKw * 1000 : Math.max(0, zonW + netW);
-  const zonHuis = Math.max(0, Math.min(verbruik, zonW - terug));
+  // De thuisaccu (besluit 273): wat hij laadt komt eerst uit de zon, wat hij levert gaat naar het huis.
+  const accuW = (st.accuKw ?? 0) * 1000;
+  const laden = Math.max(0, accuW);
+  const leveren = Math.max(0, -accuW);
+  const verbruik = st.verbruikKw != null ? st.verbruikKw * 1000 : Math.max(0, zonW + netW - accuW);
+  const ladenZon = Math.min(laden, Math.max(0, zonW - terug));
+  const zonHuis = Math.max(0, Math.min(verbruik, zonW - terug - ladenZon));
+  const uitAccu = Math.min(leveren, Math.max(0, verbruik - zonHuis));
   // De grootste apparaten van nu, samen nooit meer dan het huis; een meter die meer zegt dan het huis is geen apparaat.
   let ruimte = verbruik;
   const apps = [...live.apparaten].filter((d) => d.w <= verbruik * 1.05).sort((x, y) => y.w - x.w).slice(0, 5).map((d) => {
@@ -433,6 +439,7 @@ function nuModel() {
     ...(altijd >= 30 ? [{ id: 'altijd', naam: t('opbrengst.stromen.altijd'), w: altijd, kleur: '#FFB39F' }] : []),
   ];
   const zonDeel = verbruik > 0 ? zonHuis / verbruik : 0;
+  const accuDeel = verbruik > 0 ? uitAccu / verbruik : 0;
   // De zon per dakvlak, naar wat elk vlak nu levert (besluit 254).
   const dk = liveDaken?.daken;
   const nu = dk?.nu ?? {};
@@ -444,17 +451,28 @@ function nuModel() {
   const stromen = [];
   for (const d of doelen) {
     for (const z of zonDelen) if (zonDeel > 0) stromen.push({ van: z.id, naar: d.id, kwh: d.w * zonDeel * z.deel });
-    if (zonDeel < 1) stromen.push({ van: 'net', naar: d.id, kwh: d.w * (1 - zonDeel) });
+    if (accuDeel > 0) stromen.push({ van: 'accu', naar: d.id, kwh: d.w * accuDeel });
+    if (zonDeel + accuDeel < 1) stromen.push({ van: 'net', naar: d.id, kwh: d.w * (1 - zonDeel - accuDeel) });
+  }
+  // Naar de accu: uit de zon, de rest van het net.
+  if (laden >= 30) {
+    for (const z of zonDelen) if (ladenZon > 0) stromen.push({ van: z.id, naar: 'naarAccu', kwh: ladenZon * z.deel });
+    if (laden - ladenZon >= 30) stromen.push({ van: 'net', naar: 'naarAccu', kwh: laden - ladenZon });
   }
   if (terug >= 30) for (const z of zonDelen) stromen.push({ van: z.id, naar: 'terug', kwh: terug * z.deel });
   const van = (id) => stromen.filter((s) => s.van === id).reduce((t, s) => t + s.kwh, 0);
   const naar = (id) => stromen.filter((s) => s.naar === id).reduce((t, s) => t + s.kwh, 0);
-  const zonNaar = (id) => stromen.filter((s) => s.naar === id && s.van !== 'net').reduce((t, s) => t + s.kwh, 0);
+  const zonNaar = (id) => stromen.filter((s) => s.naar === id && s.van !== 'net' && s.van !== 'accu').reduce((t, s) => t + s.kwh, 0);
   return {
     zonW, vanNet, terug, verbruik, zonHuis, apps,
-    bronnen: [...zonDelen.map((z) => ({ ...z, regels: [{ t: `${kw(van(z.id))} kW` }] })), { id: 'net', naam: t('opbrengst.net'), kleur: NET, regels: [{ t: `${kw(van('net'))} kW` }] }],
+    bronnen: [
+      ...zonDelen.map((z) => ({ ...z, regels: [{ t: `${kw(van(z.id))} kW` }] })),
+      { id: 'net', naam: t('opbrengst.net'), kleur: NET, regels: [{ t: `${kw(van('net'))} kW` }] },
+      ...(uitAccu >= 30 ? [{ id: 'accu', naam: t('opbrengst.accu.uit'), kleur: ACCU, regels: [{ t: `${kw(uitAccu)} kW` }] }] : []),
+    ],
     doelen: [
       ...doelen.map((d) => ({ id: d.id, naam: d.naam, kleur: d.kleur, regels: [{ t: zonW > 0 ? t('opbrengst.nu.kwZon', { kw: kw(naar(d.id)), pct: naar(d.id) > 0 ? Math.round((zonNaar(d.id) / naar(d.id)) * 100) : 0 }) : `${kw(naar(d.id))} kW` }] })),
+      ...(laden >= 30 ? [{ id: 'naarAccu', naam: t('opbrengst.accu.naar'), kleur: ACCU, regels: [{ t: `${kw(laden)} kW` }] }] : []),
       ...(terug >= 30 ? [{ id: 'terug', naam: t('opbrengst.naarHetNet'), kleur: TERUG, regels: [{ t: `${kw(terug)} kW` }] }] : []),
     ],
     stromen,

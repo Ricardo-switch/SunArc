@@ -194,6 +194,8 @@
   'thuis.sluip.kanErbij': 'possible with a smart meter',
   'thuis.label.vanNet': '{kw} kW from the grid',
   'thuis.label.terug': '{kw} kW to the grid',
+  'thuis.label.accuLaadt': 'battery charging',
+  'thuis.label.accuLevert': 'from the battery',
   'thuis.label.nietsNet': 'Nothing from the grid',
   'thuis.stromen.kop': 'Where the power goes now',
   'thuis.stromen.zon': 'Sun',

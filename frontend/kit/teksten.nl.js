@@ -199,6 +199,8 @@
   'thuis.sluip.kanErbij': 'kan erbij met een slimme meter',
   'thuis.label.vanNet': '{kw} kW van het net',
   'thuis.label.terug': '{kw} kW terug',
+  'thuis.label.accuLaadt': 'de accu laadt',
+  'thuis.label.accuLevert': 'uit de accu',
   'thuis.label.nietsNet': 'Niets van het net',
   'thuis.stromen.kop': 'Waar de stroom nu heen gaat',
   'thuis.stromen.zon': 'Zon',

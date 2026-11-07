@@ -1259,6 +1259,17 @@
     function route(van, naar) {
       const pts = [];
       const accuY = accuPlek.y + 0.3;
+      /**
+       * Een thuisaccu binnen (besluit 273): van de kast tegen de achterwand over
+       * de vloer naar de voorgevel, en langs de gevel naar beneden.
+       */
+      const accuBinnen = !model.batterij && plek.thuisaccu
+        ? () => {
+            const [tx, , tz] = plek.thuisaccu;
+            const vloer = Math.max(0.03, tz - 0.62);
+            return [[tx, 0.2, vloer + 0.02], [tx, D + 0.02, vloer + 0.02], ...(vloer > 0.1 ? [[tx, D + 0.02, 0.03]] : [])];
+          }
+        : null;
       /** In de wereld (huis 3.0): van de straat onder de grond, in de doorsnede, naar de meterkast. */
       const ondergronds = () => {
         const mkp = voordeur ? plek.meterkast : null;
@@ -1284,6 +1295,7 @@
       // Liggen de panelen alleen op de garage (huis 3.0), dan komt de zon van daar.
       if ((van === 'zon' && nGarage > 0 && nHuis === 0) || van === 'zonGarage') pts.push([-1.6, -1.25, 1.15], [-1.12, -1.25, 1.15], [-1.12, -1.25, 0.02], [-1.12, D + 0.35, 0.02], hub);
       else if (van === 'zon') pts.push(voetPaneel, [W + 0.12, D + 0.02, zt - 0.05], [W + 0.12, D + 0.02, 0.05], hub);
+      else if (van === 'batterij' && accuBinnen) pts.push(...accuBinnen(), [W + 0.02, D + 0.02, 0.03], hub);
       else if (van === 'batterij') pts.push([accuPlek.x + 0.18, accuY, 0.4], [accuPlek.x + 0.18, accuY, 0.02], ...(accuPlek.x < 0 ? [[accuPlek.x + 0.18, D + 0.35, 0.02]] : []), hub);
       // In de wereld (huis 3.0) loopt de kabel zichtbaar onder de grond, in de doorsnede.
       else if (van === 'net' && eiland) pts.push(...ondergronds());
@@ -1300,7 +1312,8 @@
         if (doel && doel.z0 > 0.1) pts.push([x, D + 0.02, 0.03], [x, D + 0.02, doel.z0 + 0.03]);
         return pts;
       }
-      if (naar === 'batterij') pts.push(...(accuPlek.x < 0 ? [[accuPlek.x + 0.18, D + 0.35, 0.02]] : []), [accuPlek.x + 0.18, accuY, 0.02], [accuPlek.x + 0.18, accuY, 0.4]);
+      if (naar === 'batterij' && accuBinnen) pts.push([W + 0.02, D + 0.02, 0.03], ...accuBinnen().reverse());
+      else if (naar === 'batterij') pts.push(...(accuPlek.x < 0 ? [[accuPlek.x + 0.18, D + 0.35, 0.02]] : []), [accuPlek.x + 0.18, accuY, 0.02], [accuPlek.x + 0.18, accuY, 0.4]);
       else if (naar === 'auto') pts.push([W + 0.25, D + 0.35, 0.02], [-0.95, D + 0.35, 0.02], [-0.95, D + 0.1, 0.4]);
       // Terug naar het net: dezelfde weg andersom, door het huis naar de meterkast en via de voortuin naar de straat.
       else if (naar === 'net' && eiland) pts.push([W - 0.05, D + 0.3, 0.03], ...ondergronds().reverse());

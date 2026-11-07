@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.146.0';
+export const VERSIE = '0.147.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.147.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Op Thuis loopt nu een lijn naar je thuisaccu als hij laadt, en eruit naar het huis als hij levert, met erbij hoeveel. Ook als de accu binnen in een kamer staat',
+      'Bij Opbrengst › Nu staat je thuisaccu in Waar je stroom nu heen gaat: Naar de accu als hij laadt, Uit de accu als hij levert',
+    ],
+    en: {
+      nieuw: [
+        'On Home a line now runs to your home battery when it charges, and out to the home when it delivers, with how much. Also when the battery stands inside in a room',
+        'In Yield › Now your home battery shows in Where your power is going now: To the battery when it charges, From the battery when it delivers',
+      ],
+    },
+  },
   {
     versie: '0.146.0',
     datum: '2026-11-07',

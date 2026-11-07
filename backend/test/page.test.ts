@@ -6362,6 +6362,71 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 45_000);
 
   /*
+   * De stromen van en naar de thuisaccu (besluit 273): op Thuis een lijn naar
+   * de accu als hij laadt en eruit als hij levert, met een label; ook als hij
+   * binnen staat. Bij Opbrengst › Nu Naar de accu en Uit de accu.
+   */
+  it('tekent de stromen van en naar de thuisaccu, op Thuis en bij Opbrengst Nu (besluit 273)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    // Eerst laadt hij 1,5 kW met zon; daarna levert hij 1 kW 's avonds.
+    let stromen: Record<string, unknown> = { zonKw: 3, netKw: -0.5, verbruikKw: 1, aircoKw: 0, huisKw: 1, geplandKw: 0, accuKw: 1.5 };
+    await context.route(`${baseUrl}/api/state`, async (route) => {
+      const r = await route.fetch();
+      const j = (await r.json()) as { bewoner?: { stromen?: unknown } };
+      if (j.bewoner) j.bewoner.stromen = stromen;
+      await route.fulfill({ response: r, json: j });
+    });
+    let binnen: { plek: 'binnen'; kamer: string } | null = null;
+    await context.route(`${baseUrl}/api/huis`, async (route) => {
+      const r = await route.fetch();
+      const j = (await r.json()) as HouseReport;
+      await route.fulfill({ response: r, json: binnen ? { ...j, accu: binnen } : j });
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    extraOpslag = { batterij: { id: 'sessy', naam: 'Sessy', pct: 64, vermogenW: 1500, stand: 'laadt' }, auto: null, autos: [] };
+    const huisSvg = p.locator('#wand svg.sc-huis').first();
+    // Een stroom is een stippellijn; 's avonds zonder beweging, dus zonder zijn klasse.
+    const lijnIn = (kleur: string) => huisSvg.locator(`polyline[stroke-dasharray="1 11"][stroke="${kleur}"]`).count();
+    try {
+      await p.goto(`${baseUrl}/thuis.html`);
+      await huisSvg.locator('text', { hasText: 'de accu laadt' }).waitFor({ timeout: 15_000 });
+      expect(await huisSvg.textContent()).toContain('1,5 kW');
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-thuis-accu-laadt.png') });
+      // Hij levert: een ijsblauwe lijn uit de accu.
+      stromen = { zonKw: 0, netKw: 0.2, verbruikKw: 1.2, aircoKw: 0, huisKw: 1.2, geplandKw: 0, accuKw: -1 };
+      extraOpslag = { batterij: { id: 'sessy', naam: 'Sessy', pct: 40, vermogenW: -1000, stand: 'levert' }, auto: null, autos: [] };
+      await p.reload();
+      await huisSvg.locator('text', { hasText: 'uit de accu' }).waitFor({ timeout: 15_000 });
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-thuis-accu-levert.png') });
+      expect(await lijnIn('#6FD3FF')).toBeGreaterThan(0);
+      // Binnen in een kamer: de lijn komt uit de kast in die kamer.
+      const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
+      binnen = { plek: 'binnen', kamer: huis.etages.filter((e) => e.id !== 'buiten').flatMap((e) => e.ruimtes)[0]!.id };
+      await p.reload();
+      await huisSvg.locator('text', { hasText: 'uit de accu' }).waitFor({ timeout: 15_000 });
+      expect(await lijnIn('#6FD3FF')).toBeGreaterThan(0);
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-thuis-accu-binnen.png') });
+      // Opbrengst › Nu: uit de accu als bron.
+      await p.goto(`${baseUrl}/opbrengst.html`);
+      const wand = p.locator('#wand');
+      await wand.locator('[data-soort="nu"]').click();
+      await wand.locator('[data-sankey] svg text', { hasText: 'Uit de accu' }).waitFor({ timeout: 10_000 });
+      // En als hij laadt: naar de accu als bestemming.
+      stromen = { zonKw: 3, netKw: -0.5, verbruikKw: 1, aircoKw: 0, huisKw: 1, geplandKw: 0, accuKw: 1.5 };
+      await wand.locator('[data-sankey] svg text', { hasText: 'Naar de accu' }).waitFor({ timeout: 10_000 });
+      expect(await wand.locator('[data-sankey]').textContent()).toContain('1,5 kW');
+      expect(fouten).toEqual([]);
+    } finally {
+      extraOpslag = null;
+      await context.close();
+    }
+  }, 60_000);
+
+  /*
    * Het blad van een stekker (7 november 2026, op de wand): Zet uit is meteen
    * uit, zonder hoe lang of eindtijd. Tot hoe laat is een keuzelijst per
    * kwartier: een klok vroeg op een Android-wand eerst om het toetsenbord.
