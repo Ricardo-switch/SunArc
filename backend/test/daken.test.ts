@@ -71,9 +71,15 @@ describe('een plat dak op het hoofdhuis (issue 131)', () => {
     // Wat de bewoner of 3D BAG gaf, blijft.
     expect(hoofddakPlat({ vlakken: rek, voorgevelDeg: 180, omvormerW: null, gebouwen: [huis('zadel', 'bewoner')] }, null)).toBe(false);
     expect(hoofddakPlat({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [huis('plat', 'kaart')] }, null)).toBe(true);
+    // Een puntdak uit 3D BAG, maar alle panelen op het hoofddak op rekken: plat (issue 150).
+    expect(hoofddakPlat({ vlakken: rek, voorgevelDeg: 180, omvormerW: null, gebouwen: [huis('zadel', 'kaart')] }, null)).toBe(true);
+    expect(hoofddakPlat({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [huis('zadel', 'kaart')] }, null)).toBe(false);
     // Zonder vlakken op het hoofddak: plat dak bij Inrichten.
     expect(hoofddakPlat({ vlakken: [], voorgevelDeg: 180, omvormerW: null, gebouwen: [huis('zadel')] }, null, true)).toBe(true);
     expect(hoofddakPlat(null, 'voorkant', true)).toBe(true);
+    // Plat dak bij Inrichten gaat voor een puntdak uit 3D BAG, een voorstel en schuine vlakken (7 november 2026).
+    expect(hoofddakPlat({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [huis('zadel', 'kaart')] }, null, true)).toBe(true);
+    expect(hoofddakPlat({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [huis('zadel')] }, null, true)).toBe(true);
   });
 
   it('leest een blok dat de bewoner zelf neerzette (stap 2b)', () => {

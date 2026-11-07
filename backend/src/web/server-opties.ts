@@ -214,6 +214,8 @@ export interface WebOptions {
     readonly standen: () => Promise<readonly StekkerStand[]>;
     readonly zet?: (id: string, aan: boolean, tot: StekkerTot) => Promise<StekkerUitkomst>;
     readonly terug?: (id: string) => Promise<boolean>;
+    /** Meteen uit, zonder eind. */
+    readonly uit?: (id: string) => Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }>;
   };
   readonly laden?: {
     readonly standen: () => Promise<readonly LaadStand[]>;

@@ -105,7 +105,9 @@ export async function energieRoute(d: Diensten, req: IncomingMessage, res: Serve
   try {
     meters = await energy.source.meters();
     const prefs = await energy.source.prefs();
-    voorstel = importFromPrefs(prefs, meters, (id) => energy.source.entityNumber?.(id) ?? null);
+    // Met de kostentellers zoals Home Assistant ze noemt (issue 128).
+    const kosten = await (energy.source.kostenTellers?.() ?? Promise.resolve(null)).catch(() => null);
+    voorstel = importFromPrefs(prefs, meters, (id) => energy.source.entityNumber?.(id) ?? null, kosten);
     dashboardPrijzen = pricesInPrefs(prefs);
     // Het dashboard zoals Home Assistant het geeft: entiteiten en prijzen, om
     // na te gaan wat het overnemen ervan maakte.
@@ -197,6 +199,12 @@ async function stekkerRoute(d: Diensten, req: IncomingMessage, res: ServerRespon
   }
   if (body['terug'] === true) {
     sendJson(res, 200, { ok: await s.terug(id).catch(() => false) });
+    return;
+  }
+  // Uit, meteen en zonder eind (7 november 2026).
+  if (body['aan'] === false && body['meteen'] === true && s.uit) {
+    const uit = await s.uit(id).catch((e: Error) => ({ ok: false as const, reden: `Home Assistant nam het niet aan: ${e.message}` }));
+    sendJson(res, uit.ok ? 200 : 409, uit.ok ? uit : { fout: uit.reden });
     return;
   }
   const tot = typeof body['duurMin'] === 'number' ? { duurMin: body['duurMin'] } : typeof body['klok'] === 'string' ? { klok: body['klok'] } : typeof body['totMs'] === 'number' ? { totMs: body['totMs'] } : null;

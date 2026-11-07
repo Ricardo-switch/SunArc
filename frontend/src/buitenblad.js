@@ -25,7 +25,7 @@
     }
     return uit;
   }
-  const VOOR = ['oprit', 'carport', 'voortuin', 'garage'];
+  const VOOR = ['voordeur', 'oprit', 'carport', 'voortuin', 'garage'];
   const isBuiten = (huis, id) => ruimtes(huis).some((r) => r.id === id);
 
   const ICOON = {
@@ -72,6 +72,14 @@
     return `<div class="bb-auto${a.laadt ? ' laadt' : ''}"><div class="bb-autokop"><i class="bb-ik">${ik(ICOON.auto)}</i><b>${esc(a.naam ?? t('buiten.auto'))}</b><span class="bb-pct">${pct == null ? '–' : `${Math.round(pct)}%`}</span></div>${pct == null ? '' : `<div class="bb-balk"><i style="width: ${pct}%"></i></div>`}${zin ? `<small>${esc(zin)}</small>` : ''}</div>`;
   }
 
+  /** De thuisaccu in de garage (besluit 270): hoe vol, en wat hij doet. */
+  function accuVak(b) {
+    if (!b) return '';
+    const pct = b.pct == null ? null : Math.max(0, Math.min(100, b.pct));
+    const zin = b.stand ? t(`buiten.accu.${b.stand}`) : '';
+    return `<div class="bb-auto${b.stand === 'laadt' ? ' laadt' : ''}"><div class="bb-autokop"><i class="bb-ik">${ik(iconen.binnen('batterij'))}</i><b>${esc(b.naam)}</b><span class="bb-pct">${pct == null ? '–' : `${Math.round(pct)}%`}</span></div>${pct == null ? '' : `<div class="bb-balk"><i style="width: ${pct}%"></i></div>`}${zin ? `<small>${esc(zin)}</small>` : ''}</div>`;
+  }
+
   /** Het blad van één deel: een ruimte buiten, of een zone daarin. */
   function deelHtml(huis, kamerId, zoneId) {
     const r = ruimtes(huis).find((x) => x.id === kamerId);
@@ -87,6 +95,11 @@
     // Wat er nog meer is: de auto, een camera, de garagedeur, en de andere zones.
     const meer = [];
     if (!zone && ['oprit', 'carport'].includes(r.buitenSoort)) meer.push(autoVak(huis?.opslag?.auto));
+    // In de garage: de auto die er staat, en de thuisaccu als hij daar staat (besluit 270).
+    if (!zone && r.buitenSoort === 'garage') {
+      for (const a of (huis?.opslag?.autos ?? []).filter((x) => x.plek === 'garage')) meer.push(autoVak(a));
+      if (huis?.accu?.plek === 'garage') meer.push(accuVak(huis?.opslag?.batterij));
+    }
     if (!zone) {
       for (const c of (r.apparaten ?? []).filter((d) => d.soort === 'camera')) meer.push(linkRij(ICOON.camera, c.naam, t('buiten.camera'), `href="kamer.html#${encodeURIComponent(r.id)}"`));
       for (const d of (huis?.toegang ?? []).filter((x) => x.kamerId === r.id)) {

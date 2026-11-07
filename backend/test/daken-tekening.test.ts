@@ -109,6 +109,19 @@ describe('blokken van de bewoner (stap 2b)', () => {
     expect(m.midden[0]).toBeCloseTo(2, 1);
   });
 
+  it('wisselt lengte en breedte niet om als de breedte groter wordt (issue 149)', () => {
+    // Het huis 6 lang langs 90° en 11 breed: zo zet de stapper het neer, met de eerste rand langs de lengte.
+    const tk = tekening({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [gebouw({ omtrek: rechthoek(6, 11, 90), bron: 'bewoner' })] });
+    const m = tk.gebouwen[0]!.maat;
+    expect(m.lengte).toBeCloseTo(6, 1);
+    expect(m.breedte).toBeCloseTo(11, 1);
+    expect(m.asDeg).toBe(90);
+    // Een gebouw uit de kaart houdt de langste kant als lengte.
+    const kaart = tekening({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [gebouw({ omtrek: rechthoek(6, 11, 90), bron: 'kaart' })] }).gebouwen[0]!.maat;
+    expect(kaart.lengte).toBeCloseTo(11, 1);
+    expect(kaart.asDeg).toBe(0);
+  });
+
   it('houdt een blok van de bewoner, ook zonder vlakken erop', () => {
     const tuin = gebouw({ id: 'tuinhuis', soort: 'tuinhuis', bron: 'bewoner', omtrek: rechthoek(3, 3, 0, [0, -15]), dakvorm: 'zadel' });
     const g = gebouwenNu({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [gebouw(), tuin] });

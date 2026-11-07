@@ -10,6 +10,7 @@ import type { SiteConfig } from '../../core/model.js';
 import { todayInLang } from '../today.js';
 import { SolarHistory, learnSolar } from '../solar-learn.js';
 import { PERIODS, periodRange, yearStartOf, yieldReport, type PeriodKind, type YieldReport } from '../yield.js';
+import { metTellersUitHA } from '../energy.js';
 import { partsIn, zonedMidnight } from '../today.js';
 import type { AskContext, Lang } from '../assistant.js';
 import { sunReport } from '../sun.js';
@@ -313,7 +314,9 @@ export function yieldCompute(d: Diensten, key: string, soort: PeriodKind, datum:
   const energy = d.options.energy!;
   const config = d.config()!;
   const settings = energy.store.current!;
-  const job = yieldReport(energy.source, settings, soort, datum, config.timezone, now, lang)
+  // Bij een prijs per uur de kostentellers zoals Home Assistant ze nu heeft (issue 128).
+  const job = metTellersUitHA(energy.source, settings)
+    .then((s) => yieldReport(energy.source, s, soort, datum, config.timezone, now, lang))
     .then((report) => {
       if (report != null) {
         // Hooguit honderd periodes; de oudste eruit.

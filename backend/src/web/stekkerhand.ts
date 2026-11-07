@@ -155,6 +155,21 @@ export class Stekkerhand {
     return { ok: true, terug };
   }
 
+  /**
+   * Meteen uit, zonder eind (7 november 2026): de bewoner wil hem gewoon uit.
+   * Wat er met de hand liep, vervalt; er gaat later niets terug.
+   */
+  async uitNu(id: string): Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }> {
+    await this.#laad();
+    const s = this.#d.stekkers().find((x) => x.id === id);
+    if (!s) return { ok: false, reden: 'die stekker kent SunArc niet' };
+    if (!s.mag) return { ok: false, reden: 'zet bij Regeling › Op zon aan dat SunArc deze stekker mag bedienen' };
+    await this.#d.schakel(s.actuator, false);
+    this.#terug = this.#terug.filter((x) => x.id !== id);
+    await this.#bewaar();
+    return { ok: true };
+  }
+
   /** Nu terug zoals hij was, op verzoek van de bewoner. */
   async terugNu(id: string): Promise<boolean> {
     await this.#laad();

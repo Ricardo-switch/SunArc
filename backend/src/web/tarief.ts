@@ -80,6 +80,12 @@ export interface Dynamisch {
   readonly afname: readonly string[];
   /** De vergoeding bij de teruglevering, zoals `sensor.p1_terug_compensation`. */
   readonly terug: readonly string[];
+  /**
+   * De kostenteller van het gas (issue 128): bij Zonneplan, Tibber en Frank
+   * verschilt ook de gasprijs per dag. Zonder teller telt gas tegen de prijs bij
+   * Contract en prijzen.
+   */
+  readonly gas?: string | null;
 }
 
 /** Het salderen stopt op 1 januari 2027, middernacht in Nederland. */
@@ -199,6 +205,11 @@ export interface Kosten {
   readonly vast: number | null;
   /** Wat een kWh van het net gemiddeld kostte, voor de kosten per apparaat. */
   readonly stroomPerKwh: number | null;
+  /**
+   * Welke regels deels geschat zijn (issue 128): Home Assistant telde de
+   * kosten een deel van de tijd niet, en dat deel telt tegen je gemiddelde.
+   */
+  readonly geschat?: readonly ('stroom' | 'terug' | 'gas')[];
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -230,6 +241,9 @@ const WOORDEN = {
     perMaand: (prijs: string) => `${prijs} per maand`,
     nietIngesteld: 'nog niet ingesteld',
     uurprijs: (wat: string) => `${wat}, met de prijs van elk uur, zoals Home Assistant telt`,
+    zoalsHa: (wat: string) => `${wat}, zoals Home Assistant telt`,
+    deels: (uitleg: string, open: string) => `${uitleg}; ${open} geschat tegen je gemiddelde`,
+    boven: (uitleg: string, boven: string, prijs: string) => `${uitleg}; ${boven} boven je verbruik × ${prijs}`,
   },
   en: {
     stroom: 'Electricity from the grid',
@@ -251,26 +265,135 @@ const WOORDEN = {
     perMaand: (prijs: string) => `${prijs} a month`,
     nietIngesteld: 'not set yet',
     uurprijs: (wat: string) => `${wat}, at the price of each hour, as Home Assistant counts`,
+    zoalsHa: (wat: string) => `${wat}, as Home Assistant counts`,
+    deels: (uitleg: string, open: string) => `${uitleg}; ${open} estimated at your average`,
+    boven: (uitleg: string, boven: string, prijs: string) => `${uitleg}; ${boven} above your use × ${prijs}`,
   },
 } satisfies Record<Lang, unknown>;
 
 /**
- * De kosten bij een dynamisch contract (testerronde, november 2026): stroom en
- * teruglevering zoals de kostentellers van Home Assistant ze telden, met de
- * prijs van elk uur. Gas en de vaste posten blijven zoals uitgerekend. Zonder
- * teller voor de teruglevering blijft die regel ook zoals hij was.
+ * Wat de kostentellers van Home Assistant telden, over de uren (of dagen)
+ * waarin ze telden (issue 128). Null: geen teller, of hij telde in die tijd
+ * nog niet. Met de kWh en m³ van precies die uren.
  */
-export function metKostentellers(k: Kosten, af: number, terug: number | null, afKwh: number, terugKwh: number, lang: Lang = 'nl'): Kosten {
+export interface Tellers {
+  readonly af: number | null;
+  readonly afKwh: number;
+  readonly terug: number | null;
+  readonly terugKwh: number;
+  readonly gas: number | null;
+  readonly gasM3: number;
+}
+
+/** Wat Home Assistant niet telde: het gebruik van de andere uren. */
+export type Open = Pick<Gebruik, 'afNormaal' | 'afDal' | 'terugNormaal' | 'terugDal' | 'terugNa' | 'gasM3'>;
+
+const KLEIN = 1e-9;
+const somVan = (regels: readonly KostenRegel[]) => (regels.some((r) => r.euro == null) ? null : regels.reduce((t, r) => t + r.euro!, 0));
+
+/**
+ * De kosten bij een prijs per uur (testerronde, november 2026; mengvorm,
+ * issue 128): stroom, teruglevering en gas zoals de kostentellers van Home
+ * Assistant ze telden. De uren waarin Home Assistant nog niet telde, tellen
+ * tegen je gemiddelde (dat van de uren die hij wel telde, anders de prijs bij
+ * Contract en prijzen) en heten dan deels geschat. Wat
+ * Home Assistant niet kent, komt uit de app: de vaste posten, en over een heel
+ * jaar wat je boven je verbruik teruglevert, tegen de vergoeding. Zonder
+ * teller precies `kostenVan`.
+ *
+ * `g` is het gebruik over de hele periode, `open` het deel zonder teller.
+ */
+export function kostenMetTellers(
+  p: Tarieven,
+  g: Gebruik,
+  open: Open,
+  t: Tellers,
+  heeft: { readonly net: boolean; readonly terug: boolean; readonly gas: boolean },
+  lang: Lang = 'nl',
+): Kosten {
+  if (t.af == null && t.terug == null && t.gas == null) return kostenVan(p, g, heeft, lang);
   const w = WOORDEN[lang];
-  const regels: KostenRegel[] = [
-    { soort: 'stroom', naam: w.stroom, uitleg: w.uurprijs(kwh(afKwh, lang)), euro: r2(af) },
-    ...(terug != null
-      ? [{ soort: 'terug' as const, naam: w.terug, uitleg: w.uurprijs(kwh(terugKwh, lang)), euro: r2(-terug) }]
-      : k.regels.filter((r) => r.soort === 'terug' || r.soort === 'terug-na')),
-    ...k.regels.filter((r) => r.soort === 'gas' || r.soort === 'vast'),
-  ];
+  const afGemiddeld = t.af != null && t.afKwh > KLEIN ? t.af / t.afKwh : null;
+  const gasGemiddeld = t.gas != null && t.gasM3 > KLEIN ? t.gas / t.gasM3 : null;
+  // Het deel zonder teller, tegen je gemiddelde: dat van de uren die Home Assistant wel telde,
+  // anders de prijs bij Contract en prijzen. De vaste posten over de hele periode.
+  const prijzen: Tarieven = {
+    ...p,
+    ...(t.af != null ? { stroom: afGemiddeld ?? p.stroom, stroomDal: null } : {}),
+    gas: gasGemiddeld ?? p.gas,
+  };
+  const k = kostenVan(prijzen, { ...open, dagen: g.dagen, heelJaar: false }, heeft, lang);
+  const van = (soorten: readonly KostenRegel['soort'][]) => k.regels.filter((r) => soorten.includes(r.soort));
+  const geschat: ('stroom' | 'terug' | 'gas')[] = [];
+  const regels: KostenRegel[] = [];
+
+  // Stroom van het net.
+  const openAf = open.afNormaal + open.afDal;
+  if (t.af != null) {
+    const deels = openAf > KLEIN;
+    const rest = deels ? somVan(van(['stroom', 'normaal', 'dal'])) : 0;
+    if (deels) geschat.push('stroom');
+    const uitleg = w.uurprijs(kwh(t.afKwh, lang));
+    regels.push({ soort: 'stroom', naam: w.stroom, uitleg: deels ? w.deels(uitleg, kwh(openAf, lang)) : uitleg, euro: rest == null ? null : r2(t.af + rest) });
+  } else regels.push(...van(['stroom', 'normaal', 'dal']));
+
+  // Teruglevering: zolang er gesaldeerd wordt de regel `terug`, daarna apart.
+  const openTerug = open.terugNormaal + open.terugDal;
+  let terugKwh = openTerug;
+  if (t.terug != null) {
+    const deels = openTerug > KLEIN;
+    const rest = deels ? somVan(van(['terug'])) : 0;
+    if (deels) geschat.push('terug');
+    terugKwh = t.terugKwh + openTerug;
+    const uitleg = w.uurprijs(kwh(t.terugKwh, lang));
+    regels.push({ soort: 'terug', naam: w.terug, uitleg: deels ? w.deels(uitleg, kwh(openTerug, lang)) : uitleg, euro: rest == null ? null : r2(-t.terug + rest) });
+    regels.push(...van(['terug-na']));
+  } else regels.push(...van(['terug', 'terug-na']));
+
+  // Over een heel jaar: wat je meer teruglevert dan je verbruikt, krijg je tegen de vergoeding, niet tegen de prijs van het uur.
+  const boven = g.heelJaar && p.salderen !== false && p.teruglevering != null ? Math.max(0, g.terugNormaal + g.terugDal - (g.afNormaal + g.afDal)) : 0;
+  const i = regels.findIndex((r) => r.soort === 'terug');
+  const terugRegel = i >= 0 ? regels[i]! : null;
+  if (boven > KLEIN && terugRegel?.euro != null && terugKwh > KLEIN) {
+    const perKwh = -terugRegel.euro / terugKwh;
+    const minder = Math.max(0, perKwh - p.teruglevering!) * Math.min(boven, terugKwh);
+    regels[i] = { ...terugRegel, uitleg: w.boven(terugRegel.uitleg, kwh(boven, lang), eur(p.teruglevering!, lang)), euro: r2(terugRegel.euro + minder) };
+  }
+
+  // Gas.
+  if (t.gas != null) {
+    const deels = open.gasM3 > KLEIN;
+    const rest = deels ? somVan(van(['gas'])) : 0;
+    if (deels) geschat.push('gas');
+    const uitleg = w.zoalsHa(m3(t.gasM3, lang));
+    regels.push({ soort: 'gas', naam: w.gas, uitleg: deels ? w.deels(uitleg, m3(open.gasM3, lang)) : uitleg, euro: rest == null ? null : r2(t.gas + rest) });
+  } else regels.push(...van(['gas']));
+
+  regels.push(...van(['vast']));
+  const heeftBedrag = regels.some((r) => r.soort !== 'vast' && r.euro != null);
   const variabel = regels.filter((r) => r.soort !== 'vast').reduce((som, r) => som + (r.euro ?? 0), 0);
-  return { regels, variabel: r2(variabel), vast: k.vast, stroomPerKwh: afKwh > 0 ? af / afKwh : k.stroomPerKwh };
+  const af = g.afNormaal + g.afDal;
+  const stroomEuro = regels.find((r) => r.soort === 'stroom')?.euro ?? null;
+  return {
+    regels,
+    variabel: heeftBedrag ? r2(variabel) : null,
+    vast: k.vast,
+    stroomPerKwh: t.af != null && stroomEuro != null && af > KLEIN ? stroomEuro / af : (afGemiddeld ?? k.stroomPerKwh),
+    ...(geschat.length ? { geschat } : {}),
+  };
+}
+
+/**
+ * Welke regels gebruik hadden maar geen bedrag (issue 128): die tellen in het
+ * totaal als nul, en dat moet erbij staan. Eerst stroom, dan teruglevering, dan gas.
+ */
+export function zonderPrijs(regels: readonly KostenRegel[]): ('stroom' | 'terug' | 'gas')[] {
+  const uit: ('stroom' | 'terug' | 'gas')[] = [];
+  const mist = (soorten: readonly KostenRegel['soort'][]) => regels.some((r) => soorten.includes(r.soort) && r.euro == null);
+  if (mist(['stroom', 'normaal', 'dal'])) uit.push('stroom');
+  if (mist(['terug', 'terug-na'])) uit.push('terug');
+  if (mist(['gas'])) uit.push('gas');
+  return uit;
 }
 
 /** Een vaste post over een periode van zoveel dagen. */

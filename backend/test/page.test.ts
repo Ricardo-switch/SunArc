@@ -107,7 +107,8 @@ const ENERGY_SOURCE: EnergySource = {
     const scale = (t: number) => (new Date(t).getUTCFullYear() < 2026 ? 0.8 : 1);
     const step = period === 'hour' ? 3_600_000 : 86_400_000;
     return Object.fromEntries(
-      ids.map((id) => {
+      // Een statistiek die Home Assistant niet heeft, komt niet terug (issue 128).
+      ids.filter((id) => hourly[id]).map((id) => {
         const rows = [];
         for (let t = startMs; t < endMs; t += step) {
           const h = (new Date(t).getUTCHours() + 2) % 24;
@@ -781,10 +782,19 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await venster.locator('[data-kk-dicht]').first().click();
     await venster.waitFor({ state: 'detached' });
     await wand.locator('[data-dak-kaart]').click();
+    // Zolang de kaarten nog antwoorden, zegt elke kaart dat hij zoekt (7 november 2026).
+    await p.route('**/api/daken-kaart', async (route) => {
+      await new Promise((r) => setTimeout(r, 800));
+      await route.continue();
+    });
     await venster.locator('[data-kk-kaart]').click();
-    // Wat kan bij jouw huis (6 november 2026): eerst zien wat de kaarten vonden, dan zelf kiezen.
     const wk = wand.locator('.wk');
+    await expect.poll(() => wk.locator('.wk-regel .wk-bezig').count(), { timeout: 2_000 }).toBe(2);
+    expect(await wk.locator('.wk-regel', { hasText: 'Plattegrond' }).textContent()).toContain('Zoekt de omtrek van je huis');
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-kaartzoekt.png') });
+    // Wat kan bij jouw huis (6 november 2026): eerst zien wat de kaarten vonden, dan zelf kiezen.
     await wk.locator('.wk-regel', { hasText: '3D-kaart van Nederland' }).locator('[data-dak-bron="bag3d"]').waitFor({ timeout: 5_000 });
+    await p.unroute('**/api/daken-kaart');
     expect(await wk.locator('.wk-regel', { hasText: 'Plattegrond' }).textContent()).toContain('Je huis staat erin');
     expect(await wk.locator('.wk-regel', { hasText: 'Zelf tekenen' }).textContent()).toContain('In gebruik');
     await expect.poll(() => connStore.current?.daken?.kaartStand, { timeout: 5_000 }).toMatchObject({ osm: 'huis', bag3d: 'huis' });
@@ -4415,6 +4425,34 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
    * geeft met `controle` elk meubel en apparaat als blok; geen meubel mag door
    * een apparaat, een ander meubel, een muur of het dak.
    */
+  it('laat de zon ook van de garage stromen als er op het huis en de garage panelen liggen (issue 151)', async () => {
+    const context = await browser.newContext({ viewport: { width: 800, height: 600 } });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/manifest.webmanifest`);
+    await p.setContent(`<!doctype html><body><script src="${baseUrl}/kit/iconen.js"></script><script src="${baseUrl}/kit/huis.js"></script></body>`);
+    await p.waitForFunction('window.huis != null');
+    const telling = await p.evaluate(() => {
+      const w = globalThis as unknown as { huis: { svg: (m: unknown, o: unknown) => string } };
+      const etages = [{ naam: 'bg', kamers: [{ id: 'w', naam: 'Woonkamer', gewicht: 1, inrichting: 'woonkamer', apparaten: [] }] }, { naam: 'dak', dak: true, kamers: [] }];
+      const tel = (zon: Record<string, number>, garage: Record<string, unknown>) => {
+        const svg = w.huis.svg({ tijd: 'dag', etages, zon: { aandeel: 0.8, ...zon }, garage, stromen: [{ van: 'zon', naar: 'huis', sterkte: 0.8 }] }, { breedte: 700, hoogte: 520 });
+        return (svg.match(/class="sc-stroom"/g) ?? []).length;
+      };
+      return {
+        allebei: tel({ panelen: 8 }, { panelen: 6 }),
+        achterEnGarage: tel({ panelen: 0, panelenLinks: 8 }, { panelen: 6 }),
+        alleenHuis: tel({ panelen: 8 }, {}),
+        alleenGarage: tel({ panelen: 0 }, { panelen: 6 }),
+      };
+    });
+    await context.close();
+    expect(fouten).toEqual([]);
+    expect(telling).toEqual({ allebei: 2, achterEnGarage: 2, alleenHuis: 1, alleenGarage: 1 });
+  });
+
   it('richt elke soort kamer in zonder dat een meubel ergens doorheen steekt', async () => {
     const context = await browser.newContext({ viewport: { width: 1400, height: 1000 } });
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
@@ -5229,6 +5267,68 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 40_000);
 
   /*
+   * Issue 128: met een prijs per uur telde Opbrengst stroom en teruglevering
+   * stil als nul als Home Assistant de kosten niet telde. Nu zegt Prijzen dat,
+   * vraagt Prijzen geen gasprijs als Home Assistant het gas telt, en zegt
+   * Opbrengst wat er zonder prijs in het totaal ontbreekt.
+   */
+  it('zegt wat Home Assistant niet telt, en wat er in de kosten ontbreekt', async () => {
+    const context = await browser.newContext({ viewport: { width: 1340, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    if (energyStore.current == null) await energyStore.save(importFromPrefs(await ENERGY_SOURCE.prefs(), await ENERGY_SOURCE.meters()));
+    const energieWas = energyStore.current!;
+    const dynamisch = { prijsEntiteit: 'sensor.zonneplan_current_electricity_tariff', afname: ['sensor.p1_afname_cost'], terug: [] };
+    await energyStore.save({ ...energieWas, prijzen: { ...energieWas.prijzen, stroom: null, dynamisch } });
+    // Eerst telt Home Assistant de kosten niet; daarna wel, ook die van het gas.
+    let inHA: Record<string, unknown> | null = null;
+    await context.route(`${baseUrl}/api/energie*`, async (route) => {
+      if (route.request().method() !== 'GET') return route.continue();
+      const res = await route.fetch();
+      const v = (await res.json()) as { voorstel: { prijzen: Record<string, unknown> } | null; instellingen: unknown };
+      const voorstel = v.voorstel ?? (v.instellingen as typeof v.voorstel);
+      const prijzen = { ...voorstel!.prijzen };
+      if (inHA) prijzen['dynamisch'] = inHA;
+      else delete prijzen['dynamisch'];
+      await route.fulfill({ response: res, json: { ...v, voorstel: { ...voorstel, prijzen }, prijsNu: 0.2345 } });
+    });
+    // Opbrengst zoals bij Erik: alleen het gas had een prijs.
+    await context.route(`${baseUrl}/api/opbrengst?*`, async (route) => {
+      const res = await route.fetch();
+      const v = (await res.json()) as { kosten: Record<string, unknown> };
+      await route.fulfill({ response: res, json: { ...v, kosten: { ...v.kosten, totaal: 15.27, zonderPrijs: ['stroom', 'terug'], geschat: ['gas'] } } });
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const wand = (sel: string) => p.locator(`#wand ${sel}`);
+    try {
+      await p.goto(`${baseUrl}/energie.html#prijzen`);
+      const mist = wand('[data-uurkosten-mist]');
+      await mist.waitFor({ timeout: 5000 });
+      expect(await mist.innerText()).toContain('Home Assistant telt de kosten van je stroom niet');
+      expect(await wand('[data-gas-per-uur]').count()).toBe(0);
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-uurkosten-mist.png') });
+      // In Home Assistant gezet: opnieuw kijken, dan is de melding weg en telt het gas zoals Home Assistant.
+      inHA = { ...dynamisch, gas: 'sensor.gas_cost' };
+      // Ook bij teruglevering staat er een, want Home Assistant telt die hier niet per uur.
+      await wand('[data-uurkosten-mist] [data-uurprijs-opnieuw]').click();
+      await wand('[data-gas-per-uur]').waitFor({ timeout: 5000 });
+      expect(await wand('[data-uurkosten-mist]').count()).toBe(0);
+      expect(await wand('[data-prijs="gas"]').count()).toBe(0);
+      await wand(':text("Prijs per uur uit Home Assistant")').first().waitFor({ timeout: 5000 });
+      // Opbrengst zegt wat er in het totaal ontbreekt.
+      await p.goto(`${baseUrl}/opbrengst.html`);
+      await p.locator('#wand', { hasText: 'deels geschat, zonder stroom, zonder teruglevering' }).first().waitFor({ timeout: 10_000 });
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+      await energyStore.save(energieWas);
+    }
+  }, 40_000);
+
+  /*
    * De valuta van het huis (testerronde, november 2026): zegt Home Assistant
    * dollar, dan staan de bedragen en de prijsvelden in dollar.
    */
@@ -5415,6 +5515,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await p.locator('#wand .td-vast .td-taak', { hasText: 'Screens dicht' }).locator('[data-td-gp-aan]').click();
     await expect.poll(() => gestuurd.length).toBe(1);
     expect(gestuurd.shift()).toEqual({ actie: 'aanpassen', id: 'g1', aan: false });
+    // Weghalen met × (7 november 2026), na een vraag.
+    p.once('dialog', (d) => void d.accept());
+    await p.locator('#wand .td-vast .td-taak', { hasText: 'Badkamer licht aan' }).locator('[data-td-gp-weg]').click();
+    await expect.poll(() => gestuurd.length).toBe(1);
+    expect(gestuurd.shift()).toEqual({ actie: 'annuleer', id: 'g2' });
     await regel.click();
     await p.waitForURL(/gepland\.html$/);
     const wand = p.locator('#wand [data-gp]');
@@ -6025,6 +6130,184 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     expect(await tel.locator('[data-blad] select[data-bkoppel], [data-blad] [data-nieuwe-kamer]').count()).toBe(0);
     expect(fouten).toEqual([]);
     if (voor) await layoutStore.save(voor);
+    await context.close();
+  }, 30_000);
+
+  /*
+   * Buiten als echte plekken (besluit 269, issues 152 en 153): de voordeur is er
+   * altijd, en elk deel rond het huis dat aan staat kan apparaten hebben, ook
+   * zonder gebied in Home Assistant. De app maakt de plek aan als je hem opent
+   * of er een apparaat heen zet. Op Thuis opent een tik op de voordeur zijn blad.
+   */
+  it('maakt buiten plekken voor apparaten, ook zonder gebied in Home Assistant, met de voordeur (besluit 269)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5000 };
+    // Zonder eigen indeling (deze test alleen): het voorstel uit Home Assistant.
+    const start = layoutStore.current ? structuredClone(layoutStore.current) : null;
+    const voor = start ?? ((await (await fetch(`${baseUrl}/api/indeling`)).json()) as { voorstel: NonNullable<typeof start> }).voorstel;
+    // Een garage die aan staat, maar zonder ruimte; en nog geen voordeur.
+    const weg = new Set(voor.kamers.filter((k) => k.etage === 'buiten' && (k.buiten?.soort === 'garage' || k.buiten?.soort === 'voordeur' || /garage|voordeur/i.test(k.naam))).map((k) => k.id));
+    const rondAlles = { oprit: true, auto: false, voortuin: false, tuin: true, terras: false, balkon: false, tuinhuis: false, garage: true, carport: false, schuur: false, jacuzzi: false, border: false, allebei: false };
+    const opgeslagen = await layoutStore.save({
+      ...voor,
+      rond: { ...rondAlles, ...voor.rond, garage: true },
+      kamers: voor.kamers.filter((k) => !weg.has(k.id)),
+      apparaten: Object.fromEntries(Object.entries(voor.apparaten).filter(([, a]) => !weg.has(a.kamer))),
+    });
+    expect(opgeslagen).toMatchObject({ ok: true });
+    try {
+      await p.goto(`${baseUrl}/indeling.html#buiten`);
+      const deur = p.locator('#wand [data-blad] [data-plek="voordeur"]');
+      await deur.waitFor({ timeout: 15_000 });
+      expect(await p.locator('#wand [data-blad] [data-plek="garage"]').count()).toBe(1);
+      expect(await p.locator('#wand [data-blad]').textContent()).toContain('Heeft Home Assistant er een gebied voor');
+      // De voordeur openen maakt de plek aan, zonder gebied in Home Assistant.
+      await deur.click();
+      const plek = (soort: string) => layoutStore.current?.kamers.find((k) => k.buiten?.soort === soort);
+      await expect.poll(() => plek('voordeur')?.naam, kort).toBe('Voordeur');
+      expect(plek('voordeur')).toMatchObject({ etage: 'buiten', haGebied: null, zones: [] });
+      await expect.poll(() => p.locator('#wand [data-actie="kamernaam"]').inputValue(kort), kort).toBe('Voordeur');
+
+      // Een apparaat naar de garage, die nog geen ruimte had: binnen en buiten staan apart.
+      const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
+      const kamer = huis.etages.filter((e) => e.id !== 'buiten').flatMap((e) => e.ruimtes).find((r) => r.apparaten.length > 0)!;
+      const dev = kamer.apparaten[0]!;
+      await p.goto(`${baseUrl}/indeling.html#${encodeURIComponent(kamer.id)}`);
+      await p.waitForLoadState('networkidle');
+      await p.locator(`#wand [data-blad] [data-app="${dev.id}"]`).first().click({ timeout: 15_000 });
+      const keuze = p.locator('#wand [data-app-kamer]');
+      await keuze.waitFor(kort);
+      expect(await keuze.locator('optgroup').evaluateAll((g) => g.map((x) => x.getAttribute('label')))).toEqual(['Binnen', 'Buiten']);
+      expect(await keuze.locator('optgroup[label="Buiten"] option').allTextContents()).toEqual(expect.arrayContaining(['Voordeur', 'Garage']));
+      await keuze.selectOption('plek:garage');
+      await p.locator('#wand [data-app-bewaar]').click(kort);
+      await expect.poll(() => plek('garage')?.naam, kort).toBe('Garage');
+      await expect.poll(() => layoutStore.current?.apparaten[dev.id]?.kamer, kort).toBe(plek('garage')!.id);
+
+      // Op Thuis: een tik op de voordeur opent zijn blad.
+      await p.goto(`${baseUrl}/thuis.html`);
+      const tik = p.locator(`svg .sc-tik[data-kamer="${plek('voordeur')!.id}"]`).locator('visible=true').first();
+      await tik.waitFor({ timeout: 15_000 });
+      await tik.click({ force: true });
+      await p.locator('.weerkop h2', { hasText: 'Voordeur' }).locator('visible=true').first().waitFor(kort);
+      expect(fouten).toEqual([]);
+    } finally {
+      if (start) await layoutStore.save(start);
+      await context.close();
+    }
+  }, 45_000);
+
+  /*
+   * De thuisaccu op zijn plek (besluit 270, idee 123): aan de gevel, in de
+   * garage, of binnen in een kamer. Bij Buiten kies je het; in de garage staat
+   * hij op Thuis ook in het blad van de garage.
+   */
+  it('zet de thuisaccu in de garage of binnen, en toont hem in het blad van de garage (besluit 270)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5000 };
+    const start = layoutStore.current ? structuredClone(layoutStore.current) : null;
+    const voor = start ?? ((await (await fetch(`${baseUrl}/api/indeling`)).json()) as { voorstel: NonNullable<typeof start> }).voorstel;
+    const rondAlles = { oprit: true, auto: false, voortuin: false, tuin: true, terras: false, balkon: false, tuinhuis: false, garage: true, carport: false, schuur: false, jacuzzi: false, border: false, allebei: false };
+    const { accu: _weg, ...zonder } = voor;
+    expect(await layoutStore.save({ ...zonder, rond: { ...rondAlles, ...voor.rond, garage: true } })).toMatchObject({ ok: true });
+    extraOpslag = { batterij: { id: 'sessy', naam: 'Sessy', pct: 64, vermogenW: 1200, stand: 'laadt' }, auto: null, autos: [] };
+    try {
+      await p.goto(`${baseUrl}/indeling.html#buiten`);
+      const keuze = p.locator('#wand [data-blad] [data-actie="accuplek"]');
+      await keuze.waitFor({ timeout: 15_000 });
+      expect(await keuze.inputValue()).toBe('gevel');
+      expect(await p.locator('#wand [data-blad] label[for="accuplek"]').textContent()).toBe('Waar staat Sessy?');
+      await keuze.selectOption('garage');
+      await expect.poll(() => layoutStore.current?.accu, kort).toEqual({ plek: 'garage', kamer: null });
+
+      // De garage als plek, en op Thuis zijn blad met de accu.
+      await p.locator('#wand [data-blad] [data-plek="garage"]').click(kort);
+      const garage = () => layoutStore.current?.kamers.find((k) => k.buiten?.soort === 'garage');
+      await expect.poll(() => garage()?.id, kort).toBeTruthy();
+      await p.goto(`${baseUrl}/thuis.html`);
+      const tik = p.locator(`svg .sc-tik[data-kamer="${garage()!.id}"]`).locator('visible=true').first();
+      await tik.waitFor({ timeout: 15_000 });
+      await tik.click({ force: true });
+      const vak = p.locator('.bb-auto', { hasText: 'Sessy' }).locator('visible=true').first();
+      await vak.waitFor(kort);
+      expect(await vak.textContent()).toContain('64%');
+      expect(await vak.textContent()).toContain('laadt');
+
+      // Binnen: in een kamer die bestaat.
+      const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
+      const kamer = huis.etages.filter((e) => e.id !== 'buiten').flatMap((e) => e.ruimtes)[0]!;
+      await p.goto(`${baseUrl}/indeling.html#buiten`);
+      await keuze.waitFor({ timeout: 15_000 });
+      await keuze.selectOption(`binnen:${kamer.id}`);
+      await expect.poll(() => layoutStore.current?.accu, kort).toEqual({ plek: 'binnen', kamer: kamer.id });
+      expect(((await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport).accu).toEqual({ plek: 'binnen', kamer: kamer.id });
+      // Een kamer die niet bestaat, of buiten, neemt de dienst niet aan.
+      expect(await layoutStore.save({ ...layoutStore.current!, accu: { plek: 'binnen', kamer: 'bestaat-niet' } })).toMatchObject({ ok: false });
+      expect(fouten).toEqual([]);
+    } finally {
+      extraOpslag = null;
+      if (start) await layoutStore.save(start);
+      await context.close();
+    }
+  }, 45_000);
+
+  /*
+   * Het blad van een stekker (7 november 2026, op de wand): Zet uit is meteen
+   * uit, zonder hoe lang of eindtijd. Tot hoe laat is een keuzelijst per
+   * kwartier: een klok vroeg op een Android-wand eerst om het toetsenbord.
+   */
+  it('zet een stekker meteen uit, en kiest de tijd uit een lijst', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5000 };
+    const gestuurd: unknown[] = [];
+    await p.route('**/api/stekker', async (route) => {
+      if (route.request().method() === 'POST') {
+        gestuurd.push(route.request().postDataJSON());
+        await route.fulfill({ json: { ok: true } });
+        return;
+      }
+      await route.fulfill({ json: { aan: true, stekkers: [{ id: 'tuinhuis', naam: 'Tuinhuis', aan: true, vermogenW: 900, mag: true, toegelaten: true, actief: null }] } });
+    });
+    await p.goto(`${baseUrl}/apparaten.html`);
+    await p.waitForFunction(() => typeof (globalThis as unknown as { hand?: unknown }).hand === 'object');
+    await p.evaluate(() => (globalThis as unknown as { hand: { openStekker: (id: string) => Promise<void> } }).hand.openStekker('tuinhuis'));
+    const blad = p.locator('[data-hand]');
+    // Hij staat aan: het blad begint bij Zet uit, zonder hoe lang en zonder balk.
+    await blad.locator('[data-st-aan="uit"][aria-pressed="true"]').waitFor(kort);
+    expect(await blad.locator('[data-st-tot]').count()).toBe(0);
+    expect(await blad.locator('[data-st-zet]').textContent()).toBe('Zet uit');
+    expect(await blad.textContent()).toContain('Gaat meteen uit');
+    await blad.locator('[data-st-zet]').click();
+    await expect.poll(() => gestuurd.length, kort).toBe(1);
+    expect(gestuurd[0]).toEqual({ id: 'tuinhuis', aan: false, meteen: true });
+
+    // Aan tot een tijd: een keuzelijst, geen klok. Eerst is het blad dicht.
+    await blad.waitFor({ state: 'detached', ...kort });
+    await p.evaluate(() => (globalThis as unknown as { hand: { openStekker: (id: string) => Promise<void> } }).hand.openStekker('tuinhuis'));
+    await blad.locator('[data-st-aan="aan"]').click(kort);
+    await blad.locator('[data-st-tot="tijd"]').click(kort);
+    const tijd = blad.locator('select[data-st-tijd]');
+    await tijd.waitFor(kort);
+    expect(await blad.locator('input[type="time"]').count()).toBe(0);
+    expect(await tijd.locator('option').count()).toBeGreaterThanOrEqual(96);
+    await tijd.selectOption('23:45');
+    await expect.poll(() => blad.locator('[data-st-zet]').textContent(), kort).toBe('Zet aan tot 23:45');
+    await blad.locator('[data-st-zet]').click();
+    await expect.poll(() => gestuurd.length, kort).toBe(2);
+    expect(gestuurd[1]).toEqual({ id: 'tuinhuis', aan: true, klok: '23:45' });
+    expect(fouten).toEqual([]);
     await context.close();
   }, 30_000);
 

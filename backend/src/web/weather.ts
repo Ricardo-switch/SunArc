@@ -156,6 +156,48 @@ export interface EntityForecast {
 }
 
 /**
+ * Dagen uit een verwachting per uur of per halve dag, voor een weerentiteit
+ * die geen dagen geeft (OpenWeatherMap soms). Per dag de hoogste en laagste
+ * temperatuur en de grootste kans op regen; de bewolking en het weer uit de
+ * uren van 8 tot 20 uur, of uit de hele dag als die er niet zijn.
+ */
+export function dagenUitUren(uren: readonly EntityForecast[], tz: string): EntityForecast[] {
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+  const perDag = new Map<string, { t: number; h: number; f: EntityForecast }[]>();
+  for (const f of uren) {
+    const t = Date.parse(f.datetime);
+    if (!Number.isFinite(t)) continue;
+    const p = partsIn(t, tz);
+    const dag = `${p.y}-${p.m}-${p.d}`;
+    perDag.set(dag, [...(perDag.get(dag) ?? []), { t, h: p.h, f }]);
+  }
+  const uit: EntityForecast[] = [];
+  for (const rij of perDag.values()) {
+    const p = partsIn(rij[0]!.t, tz);
+    const overdag = rij.filter((x) => x.h >= 8 && x.h < 20);
+    const kern = overdag.length > 0 ? overdag : rij;
+    const getallen = (k: keyof EntityForecast, uit: typeof rij) => uit.map((x) => num(x.f[k])).filter((v): v is number => v != null);
+    const temp = getallen('temperature', rij);
+    const laag = [...getallen('templow', rij), ...temp];
+    const regen = getallen('precipitation_probability', rij);
+    const wolken = getallen('cloud_coverage', kern);
+    const tel = new Map<string, number>();
+    for (const x of kern) if (x.f.condition) tel.set(x.f.condition, (tel.get(x.f.condition) ?? 0) + 1);
+    const condition = [...tel.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    uit.push({
+      // Het midden van de dag, zodat hij bij forecastFromEntity op de goede dag valt.
+      datetime: new Date(zonedMidnight(p.y, p.m, p.d, tz) + 12 * 3_600_000).toISOString(),
+      condition,
+      temperature: temp.length ? Math.max(...temp) : null,
+      templow: laag.length ? Math.min(...laag) : null,
+      precipitation_probability: regen.length ? Math.max(...regen) : null,
+      cloud_coverage: wolken.length ? Math.round(wolken.reduce((a, b) => a + b, 0) / wolken.length) : null,
+    });
+  }
+  return uit;
+}
+
+/**
  * Het weer van nu en de komende dagen uit een weerentiteit van Home Assistant
  * (besluit 111), in dezelfde vorm als Buienradar: dag 0 is nu, 1 is morgen.
  * De zonkans is 100 min de bewolking, of anders een schatting uit de toestand.

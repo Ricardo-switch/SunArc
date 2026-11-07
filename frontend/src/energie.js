@@ -330,8 +330,13 @@ function prijzenVorm() {
       </div>
     </div>`).join('');
   const erbij = VOORSTELLEN.filter((x) => !p.vast.some((v) => v.naam.toLowerCase() === x.naam.toLowerCase()));
+  // Wat Home Assistant nu per uur telt (issue 128), uit het voorstel: met een prijs per uur daarin telt hij de stroom.
+  // Antwoordde Home Assistant niet, dan weet de pagina het niet en zegt hij niets.
+  const nuInHA = eInfo && !eInfo.fout ? eInfo.voorstel?.prijzen?.dynamisch ?? null : undefined;
+  // Telt Home Assistant ook het gas, en is het hetzelfde gas, dan is een vaste gasprijs niet nodig.
+  const gasPerUur = !!(p.dynamisch && nuInHA?.gas && eInfo.voorstel?.gas === e.gas);
   // Bij een prijs per uur is een vaste stroomprijs niet nodig (issue 126).
-  const mist = p.stroom == null && !p.dynamisch ? t('energie.mistStroom') : e.gas && p.gas == null ? t('energie.mistGas') : '';
+  const mist = p.stroom == null && !p.dynamisch ? t('energie.mistStroom') : e.gas && p.gas == null && !gasPerUur ? t('energie.mistGas') : '';
   // Een prijs per uur (testerronde, november 2026): Opbrengst rekent dan met de kostentellers van Home Assistant.
   const dynKan = !p.dynamisch ? eInfo?.voorstel?.prijzen?.dynamisch ?? null : null;
   // Kent Home Assistant de prijs per uur nog niet, dan zegt het hier wat er mist en welke sensor hem al geeft (issue 119).
@@ -339,7 +344,11 @@ function prijzenVorm() {
   const uurprijsMist = a?.tarief === 'dynamisch' && !p.dynamisch && !dynKan
     ? `<div class="melding" data-uurprijs-mist><span class="stip" style="background: var(--gloed)"></span><span>${esc(t('energie.uurprijsMist'))}${sensor ? ` ${esc(t(sensor.prijs != null ? 'energie.uurprijsSensor' : 'energie.uurprijsSensorZonder', { naam: sensor.naam, prijs: sensor.prijs != null ? taal.geld(sensor.prijs, 2) : '' }))}` : ''} ${app.inHA() ? `<button type="button" class="knop-tekst" data-uurprijs-ha>${esc(t('energie.uurprijsOpenHA'))}</button> ` : ''}<button type="button" class="knop-tekst" data-uurprijs-opnieuw>${esc(t('energie.uurprijsOpnieuw'))}</button></span></div>`
     : '';
-  const uurprijs = p.dynamisch
+  // Per uur aan, maar Home Assistant telt de kosten van de stroom niet (issue 128): dan telt Opbrengst ze ook niet.
+  const uurkostenMist = p.dynamisch && nuInHA === null;
+  const uurprijs = uurkostenMist
+    ? `<div class="melding" data-uurkosten-mist><span class="stip" style="background: var(--gloed)"></span><span>${esc(t('energie.uurkostenMist'))} ${app.inHA() ? `<button type="button" class="knop-tekst" data-uurprijs-ha>${esc(t('energie.uurprijsOpenHA'))}</button> ` : ''}<button type="button" class="knop-tekst" data-uurprijs-opnieuw>${esc(t('energie.uurprijsOpnieuw'))}</button> <button type="button" class="knop-tekst" data-uurprijs-uit>${esc(t('energie.uurprijsUit'))}</button></span></div>`
+    : p.dynamisch
     ? `<div class="melding"><span class="stip" style="background: var(--mint)"></span><span>${esc(eInfo?.prijsNu != null ? t('energie.uurprijsAan', { prijs: taal.geld(eInfo.prijsNu, 2) }) : t('energie.uurprijsAanZonder'))} <button type="button" class="knop-tekst" data-uurprijs-uit>${esc(t('energie.uurprijsUit'))}</button></span></div>`
     : dynKan
       ? `<div class="melding"><span class="stip" style="background: var(--gloed)"></span><span>${esc(t('energie.uurprijsKan'))} <button type="button" class="knop-tekst" data-uurprijs>${esc(t('energie.uurprijsOvernemen'))}</button></span></div>`
@@ -370,7 +379,9 @@ function prijzenVorm() {
       <p class="mini">${esc(t('energie.dynamischUitleg'))}</p>
       ${uurprijs}
       <label class="veldnaam">${esc(t('energie.contractStart'))}<input class="invoer" type="date" data-contract value="${esc(p.contractStart ?? '')}" min="2000-01-01" max="2100-12-31"></label>
-      <p class="mini">${esc(t('energie.contractUitleg'))}</p>`)}${blok(t('energie.stroomKop'), stroomBlok)}${e.gas ? blok(t('energie.gasKop'), `${bedragVeld(t('energie.perM3'), 'gas', p.gas, nl(1.36, 2), '0', true)}<p class="mini">${esc(t('energie.gasTotaal'))}</p>`) : ''}`, `${blok(t('energie.teruglevering'), terugBlok)}${blok(t('energie.vasteKosten'), `${posten || `<p class="uitleg">${esc(t('energie.geenPosten'))}</p>`}
+      <p class="mini">${esc(t('energie.contractUitleg'))}</p>`)}${blok(t('energie.stroomKop'), stroomBlok)}${e.gas ? blok(t('energie.gasKop'), gasPerUur
+      ? `<div class="melding" data-gas-per-uur><span class="stip" style="background: var(--mint)"></span><span>${esc(t('energie.gasPerUur'))}</span></div>`
+      : `${bedragVeld(t('energie.perM3'), 'gas', p.gas, nl(1.36, 2), '0', true)}<p class="mini">${esc(t('energie.gasTotaal'))}</p>`) : ''}`, `${blok(t('energie.teruglevering'), terugBlok)}${blok(t('energie.vasteKosten'), `${posten || `<p class="uitleg">${esc(t('energie.geenPosten'))}</p>`}
       <div class="meterchips">${erbij.map((x) => `<button type="button" data-vast-erbij="${esc(x.naam)}">+ ${esc(x.naam)}</button>`).join('')}<button type="button" data-vast-erbij="">${esc(t('energie.anderePost'))}</button></div>
       <p class="mini">${esc(t('energie.postUitleg'))}</p>`)}`)}`;
 }

@@ -350,6 +350,17 @@ describe('een stekker met de hand (besluit 265)', async () => {
     expect(await uit.h.ronde()).toEqual([`switch.${P} aan`]);
   });
 
+  it('zet hem meteen uit zonder eind: wat met de hand liep vervalt, en er gaat niets terug (7 november 2026)', async () => {
+    const { h, geschakeld, verder } = huis(true, 'off');
+    await h.zet('stekker-tuinhuis', true, T0 + UUR);
+    expect(await h.uitNu('stekker-tuinhuis')).toEqual({ ok: true });
+    expect((await h.standen())[0]).toMatchObject({ aan: false, actief: null });
+    verder(2 * UUR);
+    expect(await h.ronde()).toEqual([]);
+    expect(geschakeld).toEqual([[`switch.${P}`, true], [`switch.${P}`, false]]);
+    expect(await huis(false).h.uitNu('stekker-tuinhuis')).toMatchObject({ ok: false });
+  });
+
   it('alleen als de bewoner hem toeliet, met een eind binnen een dag; en de standen zonder deur kijken mee', async () => {
     expect(await huis(false).h.zet('stekker-tuinhuis', true, T0 + UUR)).toMatchObject({ ok: false });
     const { h } = huis();

@@ -28,6 +28,8 @@ const READ_COMMANDS: ReadonlySet<string> = new Set([
   // Opbrengst (besluit 102): het Energie-dashboard en de statistiek van de
   // meters. Ook dat is lezen.
   'energy/get_prefs',
+  // Welke kostentellers Home Assistant zelf maakte, per meter (issue 128).
+  'energy/info',
   'recorder/list_statistic_ids',
   'recorder/statistics_during_period',
   // De stem van het huis (besluit 141): welke talen en stemmen Piper heeft.
@@ -396,8 +398,8 @@ export declare interface HaClient {
   on(event: 'stateChanged', listener: (state: HaEntityState) => void): this;
   on(event: 'disconnected', listener: (reason: string) => void): this;
   on(event: 'error', listener: (error: Error) => void): this;
-  /** De dagverwachting van de gevolgde weerentiteit (besluit 111). */
-  on(event: 'forecast', listener: (entityId: string | null, forecast: unknown[]) => void): this;
+  /** De verwachting van de gevolgde weerentiteit (besluit 111): per dag, of per uur of halve dag als de entiteit geen dagen geeft. */
+  on(event: 'forecast', listener: (entityId: string | null, forecast: unknown[], soort: ForecastSoort) => void): this;
 }
 
 export class HaClient extends EventEmitter {
@@ -583,8 +585,9 @@ export class HaClient extends EventEmitter {
         }
         // De verwachting van een weerentiteit (besluit 111): alleen lezen.
         if (this.#forecastSub != null && msg['id'] === this.#forecastSub) {
-          const ev = msg['event'] as { forecast?: unknown } | undefined;
-          if (Array.isArray(ev?.forecast)) this.emit('forecast', this.#forecastEntity, ev.forecast);
+          const ev = msg['event'] as { type?: unknown; forecast?: unknown } | undefined;
+          const soort: ForecastSoort = ev?.type === 'hourly' || ev?.type === 'twice_daily' ? ev.type : 'daily';
+          if (Array.isArray(ev?.forecast)) this.emit('forecast', this.#forecastEntity, ev.forecast, soort);
           return;
         }
         if (msg['id'] !== this.#subscriptionId) return;
@@ -623,9 +626,24 @@ export class HaClient extends EventEmitter {
   }
 
   async #followForecast(): Promise<void> {
-    const id = this.#nextId;
-    this.#forecastSub = id;
-    await this.#command({ type: 'weather/subscribe_forecast', entity_id: this.#forecastEntity, forecast_type: 'daily' });
+    // Niet elke weerentiteit geeft dagen: OpenWeatherMap geeft er soms alleen uren (logboek bij issue 149 t/m 153).
+    // Dan de halve dagen, en anders de uren; de dienst maakt daar zelf dagen van.
+    let fout: unknown = null;
+    for (const soort of ['daily', 'twice_daily', 'hourly'] as const) {
+      const id = this.#nextId;
+      this.#forecastSub = id;
+      try {
+        await this.#command({ type: 'weather/subscribe_forecast', entity_id: this.#forecastEntity, forecast_type: soort });
+        return;
+      } catch (e) {
+        fout = e;
+        if (this.#forecastSub === id) this.#forecastSub = null;
+        if (!/not support/i.test((e as Error).message ?? '')) break;
+      }
+    }
+    // Een mislukte poging telt als gevolgd: niet elke minuut opnieuw proberen en het logboek vullen.
+    this.#forecastSub ??= -1;
+    throw fout;
   }
 
   async #subscribe(): Promise<number> {
@@ -949,6 +967,8 @@ export interface SpraakEvent {
 
 /** Iets dat Home Assistant teruggeeft op een vraag zonder dat er iets verandert, of null. */
 export type HaAntwoord = Readonly<Record<string, unknown>> | null;
+/** Hoe een weerentiteit zijn verwachting geeft: per dag, per halve dag of per uur. */
+export type ForecastSoort = 'daily' | 'twice_daily' | 'hourly';
 
 /** Een lopende spraakopdracht: geluid erin, klaar, of stoppen. */
 export interface Gesprek {

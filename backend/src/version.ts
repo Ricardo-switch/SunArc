@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.142.0';
+export const VERSIE = '0.144.2';
 
 export interface Nieuw {
   readonly versie: string;
@@ -74,12 +74,176 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.144.2',
+    datum: '2026-11-07',
+    opgelost: ['Nam je bij Daken en panelen de richting en helling over uit de 3D-kaart, dan stond er Zelf ingesteld. Nu staat er uit de 3D-kaart, zolang het vlak met de kaart klopt'],
+    beter: [
+      'Wijkt de helling uit de meting af van de 3D-kaart, dan zegt het vlak dat de 3D-kaart voor de helling nauwkeuriger is',
+      'Bij Te doen staat wat met de hand loopt nu in de kolom Vast en gepland, niet meer los erboven. Een stekker die met de hand aan staat, zegt daar Zet uit in plaats van Terug',
+      'Elke taak bij Vast en gepland op Te doen heeft naast de schakelaar een × om hem weg te halen',
+    ],
+    en: {
+      opgelost: ['If you took the direction and tilt from the 3D map in Roofs and panels, it said Set by you. It now says from the 3D map, as long as the face matches the map'],
+      beter: [
+        'If the tilt from the measurement differs from the 3D map, the face says the 3D map is more accurate for the tilt',
+        'In To do, what runs by hand now shows in the Fixed and planned column, no longer on its own above it. A plug switched on by hand says Switch off there instead of Back',
+        'Every task in Fixed and planned on To do has an × next to the switch to remove it',
+      ],
+    },
+  },
+  {
+    versie: '0.144.1',
+    datum: '2026-11-07',
+    opgelost: [
+      'Op een Android-wand kon je de tijd van een stekker pas instellen na een tik op het toetsenbord. Tot hoe laat kies je nu uit een lijst per kwartier, net als Om bij Elke dag',
+    ],
+    beter: ['Zet uit bij een stekker zet hem meteen uit, zonder hoe lang of een eindtijd'],
+    en: {
+      opgelost: ['On an Android wall panel you could only set the time of a plug after tapping the keyboard. Until when is now picked from a list per quarter of an hour, as is At for Every day'],
+      beter: ['Switch off on a plug switches it off right away, without how long or an end time'],
+    },
+  },
+  {
+    versie: '0.144.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Je thuisaccu staat nu in de tekening, op zijn plek: aan de gevel, in de garage of binnen in een kamer. Je kiest het bij Kamers en indeling › Buiten',
+      'Staat de accu in de garage, dan zie je op Thuis in het blad van de garage hoe vol hij is en wat hij doet, met de auto als die in de garage staat',
+    ],
+    en: {
+      nieuw: [
+        'Your home battery now shows in the drawing, in its place: on the outside wall, in the garage or inside in a room. You pick it in Rooms and layout › Outside',
+        'If the battery is in the garage, the garage sheet on Home shows how full it is and what it does, with the car if it is in the garage',
+      ],
+    },
+    meldingen: [
+      {
+        code: 'SA-XSNV',
+        uitkomst: 'opgelost',
+        tekst: 'Je thuisaccu kan nu in de garage staan, of binnen in een kamer. Kies het bij Kamers en indeling › Buiten, onderaan bij Waar staat je accu.',
+        tekstEn: 'Your home battery can now be in the garage, or inside in a room. Pick it in Rooms and layout › Outside, at the bottom under Where is your battery.',
+        href: 'indeling.html#buiten',
+        issue: 123,
+      },
+    ],
+  },
+  {
+    versie: '0.143.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Buiten heeft nu echte plekken voor apparaten, ook zonder gebied in Home Assistant: de voordeur altijd, en elk deel rond het huis dat aan staat, zoals de oprit, de garage en de tuin. Bij Kamers en indeling › Buiten zie je per plek hoeveel apparaten er hangen',
+      'Bij een apparaat kies je een kamer binnen of een plek buiten, apart onder elkaar. Een plek die er nog niet was, komt erbij als je bewaart',
+      'Op Thuis opent een tik op de voordeur zijn blad, met de lampen en de camera',
+    ],
+    en: {
+      nieuw: [
+        'Outside now has real places for devices, also without an area in Home Assistant: the front door always, and every part around the house that is on, such as the driveway, the garage and the garden. Rooms and layout › Outside shows how many devices each place has',
+        'For a device you pick a room inside or a place outside, listed apart. A place that did not exist yet is added when you save',
+        'On Home, tapping the front door opens its sheet, with the lights and the camera',
+      ],
+    },
+    meldingen: [
+      {
+        code: 'SA-T6UM',
+        uitkomst: 'opgelost',
+        tekst: 'De tuin is nu een plek buiten, ook zonder gebied in Home Assistant. Zet bij Kamers en indeling › Buiten de voortuin of tuin aan en tik op Apparaten erbij. Of kies bij een lamp of camera de plek onder Buiten.',
+        tekstEn: 'The garden is now a place outside, also without an area in Home Assistant. In Rooms and layout › Outside, switch on the front or back garden and tap Add devices. Or pick the place under Outside for a light or camera.',
+        href: 'indeling.html#buiten',
+        issue: 152,
+      },
+      {
+        code: 'SA-TGGY',
+        uitkomst: 'opgelost',
+        tekst: 'De voordeur staat nu altijd bij Kamers en indeling › Buiten, en de oprit ook als hij aan staat. Kies daar Apparaten erbij, of kies bij een camera of lamp de plek onder Buiten.',
+        tekstEn: 'The front door is now always in Rooms and layout › Outside, and the driveway too when it is on. Pick Add devices there, or pick the place under Outside for a camera or light.',
+        href: 'indeling.html#buiten',
+        issue: 153,
+      },
+    ],
+  },
+  {
+    versie: '0.142.1',
+    datum: '2026-11-07',
+    opgelost: [
+      'Bij Daken en panelen gingen lengte en breedte van een blok samen omhoog of omlaag zodra de breedte groter werd dan de lengte. Nu blijft elke maat van zichzelf, ook bij een huis van 6 bij 11 meter',
+      'Een plat dak met panelen op rekken bleef op Thuis een puntdak als de kaart een puntdak gaf. Je panelen gaan nu voor',
+      'Klaarzetten vroeg om je slimme meter of omvormer te koppelen, ook als je hem in de app al had gekozen. De melding zegt nu ook wat je moet doen',
+      'Een weerdienst die alleen een verwachting per uur geeft, zoals OpenWeatherMap soms, gaf geen verwachting voor de komende dagen. SunArc maakt er nu zelf dagen van',
+      'Laden met de hand houdt zich aan je hoofdzekering, ook zonder stroommeter per fase',
+      'Liggen er panelen op het huis én op de garage, dan stroomt de zon op Thuis nu ook van de garage',
+      'Koos je bij Inrichten een plat dak, dan bleef het huis soms een puntdak. Plat dak bij Inrichten gaat nu voor, ook voor de dakvorm uit de kaart',
+      'Met een prijs per uur telde Opbrengst stroom en teruglevering soms niet mee, en gas tegen één vaste prijs. Nu telt het zoals Home Assistant, ook het gas. Ontbreekt er een prijs, dan staat bij Kosten wat er niet in zit',
+    ],
+    beter: [
+      'Bij Wat kan bij jouw huis zegt elke kaart Zoekt… zolang SunArc de omtrek en de 3D-kaart nog opvraagt',
+      'Bij een prijs per uur tellen de uren waarin Home Assistant de kosten nog niet telde tegen je gemiddelde, met "deels geschat" bij Kosten. Over een heel jaar telt wat je boven je verbruik teruglevert tegen de vergoeding',
+    ],
+    en: {
+      opgelost: [
+        'In Roofs and panels, the length and width of a block went up or down together once the width got larger than the length. Each size now stays its own, also for a house of 6 by 11 metres',
+        'A flat roof with panels on racks stayed a pitched roof on Home when the map gave a pitched roof. Your panels now come first',
+        'Getting ready asked you to connect your smart meter or inverter, even if you had already picked it in the app. The message now also says what to do',
+        'A weather service that only gives an hourly forecast, like OpenWeatherMap at times, gave no forecast for the coming days. SunArc now makes days out of it',
+        'Charging by hand keeps to your main fuse, also without a current meter per phase',
+        'With panels on the house and on the garage, the sun on Home now also flows from the garage',
+        'If you picked a flat roof in Set up, the house sometimes kept a pitched roof. A flat roof in Set up now comes first, also over the roof shape from the map',
+        'With an hourly price, Energy sometimes left out electricity and export, and counted gas at one fixed price. It now counts as Home Assistant does, gas included. If a price is missing, Costs says what is not included',
+      ],
+      beter: [
+        'In What your house allows, each map says Searching… while SunArc still looks up the outline and the 3D map',
+        'With an hourly price, hours in which Home Assistant did not count the costs yet count at your average, with "partly estimated" at Costs. Over a whole year, what you export above your use counts at the payment rate',
+      ],
+    },
+    meldingen: [
+      {
+        code: 'SA-5NPJ',
+        uitkomst: 'opgelost',
+        tekst: 'Lengte en breedte van een blok staan nu los van elkaar: een huis van 6 bij 11 meter kan. Zet bij Daken en panelen › het huis eerst de ene maat en dan de andere.',
+        tekstEn: 'Length and width of a block are now separate: a house of 6 by 11 metres works. In Roofs and panels › the house, set one size and then the other.',
+        href: 'energie.html#panelen',
+        issue: 149,
+      },
+      {
+        code: 'SA-N5QH',
+        uitkomst: 'opgelost',
+        tekst: 'Liggen al je panelen op het huis op rekken, oost-west of plat, dan is het dak op Thuis nu plat, ook als de kaart een puntdak gaf. Klopt het nog niet, kies dan bij Daken en panelen › het huis zelf Plat.',
+        tekstEn: 'If all your panels on the house are on racks, east-west or flat, the roof on Home is now flat, even if the map gave a pitched roof. Still wrong? Pick Flat yourself in Roofs and panels › the house.',
+        href: 'energie.html#panelen',
+        issue: 150,
+      },
+      {
+        code: 'SA-AEB2',
+        uitkomst: 'opgelost',
+        tekst: 'Klaarzetten kijkt nu ook naar de meter die je in de app koos. Mist hij nog: staat je slimme meter al in Home Assistant, kies hem dan bij Instellingen › Energie › Meters. Zo niet, voeg hem in Home Assistant toe met zijn koppeling, zoals HomeWizard of DSMR.',
+        tekstEn: 'Getting ready now also looks at the meter you picked in the app. Still missing? If your smart meter is already in Home Assistant, pick it at Settings › Energy › Meters. If not, add it in Home Assistant with its integration, such as HomeWizard or DSMR.',
+        href: 'klaarzetten.html',
+        issue: 144,
+      },
+      {
+        code: 'SA-VZEZ',
+        uitkomst: 'opgelost',
+        tekst: 'Liggen er panelen op het huis én op de garage, dan heeft elk dak op Thuis nu zijn eigen stroom. Hoe dikker de lijn, hoe meer panelen op dat dak.',
+        tekstEn: 'With panels on the house and on the garage, each roof on Home now has its own flow. The thicker the line, the more panels on that roof.',
+        href: 'thuis.html',
+        issue: 151,
+      },
+      {
+        code: 'SA-Z33A',
+        uitkomst: 'opgelost',
+        tekst: 'Bij een prijs per uur telt Opbrengst stroom, teruglevering en gas nu zoals Home Assistant. Staat bij Kosten nog "zonder stroom", dan telt Home Assistant de kosten van je stroom niet; bij Contract en prijzen staat wat je daar instelt.',
+        tekstEn: 'With an hourly price, Energy now counts electricity, export and gas as Home Assistant does. If Costs still says "without electricity", Home Assistant does not count the costs of your electricity; Contract and prices says what to set there.',
+        href: 'energie.html#prijzen',
+        issue: 128,
+      },
+    ],
+  },
   {
     versie: '0.142.0',
     datum: '2026-11-07',

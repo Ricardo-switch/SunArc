@@ -17,7 +17,7 @@ const dakvlakken = (() => {
   /** Hoe een nieuw vlak begint, per plek: de opstelling en de helling. */
   const BEGIN = { hoofddak: ['schuin', 40], dwarskap: ['schuin', 45], uitbouw: ['oostwest', 10], garage: ['rek', 15], carport: ['schuin', 10], tuinhuis: ['schuin', 25], grond: ['rek', 30], gevel: ['schuin', 90] };
   const HELLINGEN = { schuin: [20, 30, 35, 40, 45, 50], rek: [10, 15, 20, 30, 35], oostwest: [5, 10, 15, 20] };
-  const STANDKLEUR = { gemeten: '#6ee7b7', bewoner: '#6fd3ff', schatting: '#f7b548' };
+  const STANDKLEUR = { gemeten: '#6ee7b7', kaart: '#6ee7b7', bewoner: '#6fd3ff', schatting: '#f7b548' };
   const METERKLEUR = ['#f7b548', '#6fd3ff', '#a99cff', '#6ee7b7', '#ff8a6b', '#f3d48a', '#9cc0e4', '#d98c3a'];
   const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const RICHTINGEN = ['n', 'no', 'o', 'zo', 'z', 'zw', 'w', 'nw'];
@@ -53,21 +53,36 @@ const dakvlakken = (() => {
   }
   const letter = (v, kleur) => `<span class="dk-letter" style="background: ${kleur}">${esc(v.letter)}</span>`;
 
+  /**
+   * Waar een vlak vandaan komt, zoals de bewoner het ziet (7 november 2026):
+   * overgenomen uit de 3D-kaart is bewaard als zelf ingesteld, maar zolang het
+   * met de kaart klopt, zegt het label "uit de 3D-kaart".
+   */
+  function standVan(d, v) {
+    if (v.bron !== 'bewoner' || !d) return v.bron;
+    const k = kaartDakvlak(d, v);
+    return k && hoek(k.azimuthDeg, v.azimuthDeg) <= 5 && Math.abs(k.tiltDeg - v.tiltDeg) <= 3 ? 'kaart' : v.bron;
+  }
+
   /** Het kopje boven de lijst: hoe zeker het samen is. */
-  function chip(vlakken, achter) {
+  function chip(vlakken, achter, d) {
     if (!vlakken.length) return '';
     if (achter) return `<span class="pan-chip dk-chipmis">${esc(t('daken.achter.chip'))}</span>`;
     if (vlakken.some((v) => v.bron === 'schatting')) return `<span class="pan-chip leert">${esc(t('daken.chip.schatting'))}</span>`;
-    if (vlakken.every((v) => v.bron === 'gemeten')) return `<span class="pan-chip gemeten">${esc(t('panelen3.chip.gemeten'))}</span>`;
+    const standen = vlakken.map((v) => standVan(d, v));
+    if (standen.every((x) => x === 'gemeten')) return `<span class="pan-chip gemeten">${esc(t('panelen3.chip.gemeten'))}</span>`;
+    if (standen.every((x) => x === 'kaart')) return `<span class="pan-chip gemeten">${esc(t('daken.chip.kaart'))}</span>`;
+    if (standen.every((x) => x === 'gemeten' || x === 'kaart')) return `<span class="pan-chip gemeten">${esc(t('daken.chip.gemetenKaart'))}</span>`;
     return `<span class="pan-chip zelf">${esc(t('panelen3.chip.zelf'))}</span>`;
   }
 
   /* ---------------------------------------------- de schermen */
 
-  function kaartje(v, _i, alle) {
+  function kaartje(v, _i, alle, d = null) {
+    const stand = standVan(d, v);
     return `<button type="button" class="dk-vlak" data-dak-open="${esc(v.letter)}" aria-label="${esc(t('daken.open', { letter: v.letter, naam: naam(v, alle) }))}">
-      ${letter(v, STANDKLEUR[v.bron])}
-      <span><b>${esc(naam(v, alle))}</b><small>${esc(waar(v))} · <em class="dk-stand ${v.bron}">${esc(t(`daken.stand.${v.bron}`))}</em></small></span>
+      ${letter(v, STANDKLEUR[stand])}
+      <span><b>${esc(naam(v, alle))}</b><small>${esc(waar(v))} · <em class="dk-stand ${stand}">${esc(t(`daken.stand.${stand}`))}</em></small></span>
       <span class="dk-rechts"><b>${esc(kWp(piek(v)))}</b> kWp<br>${esc(t('daken.nKeer', { n: panelen(v), wp: wp(v.wpPerPaneel) }))}</span>
     </button>`;
   }
@@ -79,7 +94,7 @@ const dakvlakken = (() => {
     const samen = vlakken.reduce((s, v) => s + piek(v), 0);
     const helder = o.helderW;
     const lijst = vlakken.length
-      ? `<div class="dk-lijst">${vlakken.map(kaartje).join('')}</div>
+      ? `<div class="dk-lijst">${vlakken.map((v, i, alle) => kaartje(v, i, alle, d)).join('')}</div>
         <div class="dk-som">
           <div class="pan-feit"><small>${esc(t('daken.panelen'))}</small><b>${n}</b></div>
           <div class="pan-feit"><small>${esc(t('daken.samen'))}</small><b>${esc(kWp(samen))} kWp</b></div>
@@ -127,6 +142,15 @@ const dakvlakken = (() => {
 
   /** Wat de meting over het hoofddak zegt, naast dit vlak (besluit 157). */
   function metingBij(d, v) {
+    const zin = metingZin(d, v);
+    if (!zin) return '';
+    // Wijkt de helling van de meting af van de 3D-kaart, dan zegt het blad welke nauwkeuriger is (7 november 2026).
+    const k = kaartDakvlak(d, v);
+    const m = d.vlakMeting?.[v.letter] ?? (d.meting ?? []).find((x) => hoek(x.azimuthDeg, v.azimuthDeg) <= 30);
+    const tip = k && m && Math.abs(k.tiltDeg - m.tiltDeg) > 5 ? `<p class="mini" style="margin: 4px 0 0">${esc(t('daken.meting.hellingKaart'))}</p>` : '';
+    return tip ? zin.replace(/<\/div>$/, `${tip}</div>`) : zin;
+  }
+  function metingZin(d, v) {
     // De meting per dakvlak (stap 4): wat de meting voor dit vlak vond.
     const eigen = d.vlakMeting?.[v.letter];
     if (eigen && v.opstelling !== 'plat') {
@@ -428,7 +452,7 @@ const dakvlakken = (() => {
       ${nok ? `<div class="dk-rij">${nok}</div>` : ''}
       ${maatVeld(g)}
       <p class="mini">${esc(t('daken.gebouwUitleg'))}</p>
-      ${op.length ? `<div class="dk-lijst">${op.map((v, i) => kaartje(v, i, d.vlakken)).join('')}</div>` : ''}
+      ${op.length ? `<div class="dk-lijst">${op.map((v, i) => kaartje(v, i, d.vlakken, d)).join('')}</div>` : ''}
       <div class="dk-voet"><button type="button" class="lig-knop zacht" data-dak-scherm="alle">${esc(t('daken.alle'))}</button>${g.soort !== 'hoofdhuis' && g.bron === 'kaart' ? `<button type="button" class="lig-link dk-weg" data-dak-gebouwweg="${esc(g.id)}">${esc(t('daken.hoortNiet'))}</button>` : g.soort !== 'hoofdhuis' && g.bron === 'bewoner' ? `<button type="button" class="lig-link dk-weg" data-dak-blokweg="${esc(g.id)}">${esc(t('daken.blok.weg'))}</button>` : ''}</div>`;
   }
 
@@ -651,6 +675,8 @@ const dakvlakken = (() => {
       const naam = t(`daken.wk.${bron}`);
       if (bron === 'bag3d' && !d.nederland) return wkRegel(bron, naam, esc(t('daken.wk.bag3dBuiten')), wkStand('nee', t('daken.wk.nietHier')), ' uit');
       if (!d.kaart) return wkRegel(bron, naam, esc(t('daken.wk.wachtZin')), wkStand('nog', t('daken.wk.wacht')), ' uit');
+      // Tijdens het kijken zegt elke kaart dat hij zoekt (Ricardo, 7 november 2026).
+      if (s.kaart === 'bezig') return wkRegel(bron, naam, esc(t(`daken.wk.${bron}Zoekt`)), wkStand('bezig', t('daken.wk.zoekt')));
       const stand = ks?.[bron];
       if (stand == null) return wkRegel(bron, naam, esc(t(`daken.wk.${bron}Zin`)), wkStand('nog', t('daken.wk.nog')));
       if (stand === 'huis') {
@@ -780,7 +806,7 @@ const dakvlakken = (() => {
     // Van boven of het huis (besluit 254): standaard van boven.
     const wissel = `<span class="dk-wissel" role="group">${['boven', 'huis'].map((z) => `<button type="button" data-dak-zicht="${z}" aria-pressed="${(s.zicht ?? 'boven') === z}">${esc(t(`daken.zicht.${z}`))}</button>`).join('')}</span>`;
     return `<div class="pan3 dk">
-      <div class="pan-kop"><h2 class="kop-2">${esc(t('daken.titel'))}</h2>${chip(vlakken, d?.achter && s.achterGezien !== `${d.achter.letter}:${d.achter.wanneer}`)}${d ? `${wissel}<button type="button" class="pil dk-vraag" data-dak-uitleg aria-label="${esc(t('daken.uitleg'))}" title="${esc(t('daken.uitleg'))}">?</button>` : ''}</div>
+      <div class="pan-kop"><h2 class="kop-2">${esc(t('daken.titel'))}</h2>${chip(vlakken, d?.achter && s.achterGezien !== `${d.achter.letter}:${d.achter.wanneer}`, d)}${d ? `${wissel}<button type="button" class="pil dk-vraag" data-dak-uitleg aria-label="${esc(t('daken.uitleg'))}" title="${esc(t('daken.uitleg'))}">?</button>` : ''}</div>
       <div class="pan-veld">
         ${d ? podium(d, s) : ''}
         <div class="pan-rechts">${rechts}</div>

@@ -156,7 +156,7 @@
   /** Wat een buitenruimte uit zijn naam is, zoals de dienst het voorstelt (besluiten 109 en 167). */
   function buitenUitNaam(naam) {
     const n = naam ?? '';
-    return /carport/i.test(n) ? 'carport' : /oprit|driveway/i.test(n) ? 'oprit' : /voortuin|front garden|front yard/i.test(n) ? 'voortuin' : /zijtuin|side garden/i.test(n) ? 'zijtuin' : /dakterras|roof terrace/i.test(n) ? 'dakterras' : /terras|veranda|patio|terrace/i.test(n) ? 'terras' : /balkon|balcony/i.test(n) ? 'balkon' : /tuinhuis|schuur|shed/i.test(n) ? 'tuinhuis' : /garage/i.test(n) ? 'garage' : /tuin|garden|yard/i.test(n) ? 'tuin' : null;
+    return /voordeur|front door/i.test(n) ? 'voordeur' : /carport/i.test(n) ? 'carport' : /oprit|driveway/i.test(n) ? 'oprit' : /voortuin|front garden|front yard/i.test(n) ? 'voortuin' : /zijtuin|side garden/i.test(n) ? 'zijtuin' : /dakterras|roof terrace/i.test(n) ? 'dakterras' : /terras|veranda|patio|terrace/i.test(n) ? 'terras' : /balkon|balcony/i.test(n) ? 'balkon' : /tuinhuis|schuur|shed/i.test(n) ? 'tuinhuis' : /garage/i.test(n) ? 'garage' : /tuin|garden|yard/i.test(n) ? 'tuin' : null;
   }
   /** Een deel van een buitenruimte uit zijn naam (besluit 167). */
   function buitenZoneUitNaam(naam) {
@@ -190,6 +190,7 @@
     let balkon = null;
     let voortuin = null;
     let garage = null;
+    let voordeur = null;
     // De lampen van een ruimte die het tuinhuis is, horen bij het tuinhuis in de tuin.
     const huisjes = ruimtes.filter((r) => soortBuiten(r).soort === 'tuinhuis');
     const huisjeLampen = huisjes.flatMap((r) => (r.apparaten ?? []).filter((a) => a.soort === 'licht'));
@@ -211,6 +212,11 @@
       }
       if (b.soort === 'balkon' || b.soort === 'dakterras') {
         balkon ??= { id: r.id, naam: r.naam, lampAan };
+        continue;
+      }
+      // De voordeur (besluit 269): geen kamer, wel een plek aan de voorgevel.
+      if (b.soort === 'voordeur') {
+        voordeur ??= { id: r.id, naam: r.naam, lampAan };
         continue;
       }
       // Een losse garage achter de oprit (besluit 166).
@@ -286,7 +292,7 @@
       garage = rond.garage ? (garage ?? leeg(global.t('huis.buiten.garage'))) : null;
       if (oprit) oprit = { ...oprit, carport: !!rond.carport };
     }
-    return { oprit, tuin, terras, balkon, voortuin, garage };
+    return { oprit, tuin, terras, balkon, voortuin, garage, voordeur };
   }
 
   /**
@@ -363,13 +369,18 @@
     const buitenRuimtes = [];
     const etages = [];
     let kelder = null;
+    // De thuisaccu (besluit 270): aan de gevel, in de garage, of binnen in een kamer.
+    const accu = huis?.opslag?.batterij ?? null;
+    const accuVol = accu?.pct == null ? 0.5 : Math.max(0.05, Math.min(1, accu.pct / 100));
+    const accuBinnen = accu && huis?.accu?.plek === 'binnen' ? huis.accu.kamer : null;
     for (const e of [...(huis?.etages ?? [])].reverse()) {
       const kamers = [];
       for (const r of e.ruimtes ?? []) {
         if (isBuiten(e, r)) buitenRuimtes.push(r);
         else {
           const k = kamer(r, e);
-          if (k) kamers.push(k);
+          if (k && r.id === accuBinnen) kamers.push({ ...k, apparaten: [...(k.apparaten ?? []), { soort: 'thuisaccu', vol: accuVol, aan: accu.stand === 'laadt' || accu.stand === 'levert' }] });
+          else if (k) kamers.push(k);
         }
       }
       // In de wereld van huis 3.0 (`kelderOnder`) ligt de kelder opengewerkt in de grond (besluit 187).
@@ -406,11 +417,15 @@
       ...(woning === 'appartement' ? { gebouw: { onder: 2, boven: 1 } } : {}),
       buitenRuimtes,
       ...delen,
-      voordeur: { deurbel: bel || belZiet ? { beweging: !!belZiet?.meting.beweging.nu } : null },
+      // De voordeur met zijn plek uit de indeling (besluit 269), om op te tikken.
+      voordeur: { ...(delen.voordeur ?? {}), deurbel: bel || belZiet ? { beweging: !!belZiet?.meting.beweging.nu } : null },
+      // Binnen staat hij in zijn kamer; in de garage alleen als die er is, anders aan de gevel.
+      batterij: accu && !accuBinnen ? { procent: Math.round(accuVol * 100), stand: accu.stand ?? 'rust', ...(huis?.accu?.plek === 'garage' && delen.garage ? { plek: 'garage' } : {}) } : null,
       buitenunit: aircos.length ? { aan: aircos.some((a) => a.aan || ACTIEF.test(a.klimaat?.actieCode ?? '')), aantal: aircos.length } : null,
       piekW,
       panelen: aantalPanelen ?? (piekW > 0 ? Math.max(1, Math.round(piekW / 400)) : 0),
       ligging: huis?.ligging ?? null,
+      ...(huis?.dakPlat ? { dakPlat: true } : {}),
     };
   }
 
@@ -547,6 +562,7 @@
       ...(tek.gebouw ? { gebouw: tek.gebouw } : {}),
       voordeur: tek.voordeur,
       buitenunit: tek.buitenunit,
+      batterij: tek.batterij,
       oprit: tek.oprit && e.carport && tek.oprit.carport ? { ...tek.oprit, carport: { panelen: e.carport } } : tek.oprit,
       tuin: tek.tuin && e.tuinhuis ? { ...tek.tuin, tuinhuisPanelen: e.tuinhuis } : tek.tuin,
       terras: tek.terras,
@@ -555,11 +571,13 @@
       garage: tek.garage && e.garage ? { ...tek.garage, panelen: e.garage } : tek.garage,
       // Hoe het huis ligt (besluit 205): de nok en de helling, en de voorgevel voor de zon.
       ...(tek.ligging ? { dak: { nok: tek.ligging.nok, ...(tek.ligging.hellingDeg ? { hellingDeg: tek.ligging.hellingDeg } : {}), ...(tek.ligging.plat ? { plat: true } : {}) }, voorgevelDeg: tek.ligging.voorgevelDeg } : {}),
+      // Een plat dak zonder bekende ligging (7 november 2026): wel plat, de rest zoals eerst.
+      ...(!tek.ligging && tek.dakPlat ? { dak: { plat: true } } : {}),
     };
   }
 
   /** Wat een buitenruimte is (besluit 167): een eigen lijst, zoals Soort kamer binnen. */
-  const BUITEN_SOORTEN = soorten('buiten', ['tuin', 'voortuin', 'zijtuin', 'oprit', 'carport', 'terras', 'balkon', 'dakterras', 'tuinhuis', 'garage']);
+  const BUITEN_SOORTEN = soorten('buiten', ['tuin', 'voortuin', 'zijtuin', 'oprit', 'carport', 'terras', 'balkon', 'dakterras', 'tuinhuis', 'garage', 'voordeur']);
   /** De delen van een buitenruimte (besluit 167). Een tuinhuis tekent het huisje in de tuin. */
   const BUITEN_ZONES = soorten('buitenZone', ['gazon', 'border', 'terras', 'tuinhuis', 'overstek', 'moestuin', 'vijver', 'pad', 'speelplek', 'oprit', 'carport']);
   global.huismodel = { KAMER_SOORTEN, ZONE_SOORTEN, BUITEN_SOORTEN, BUITEN_ZONES, buitenUitNaam, buitenZoneUitNaam, thermostaten, cvThermostaat, isKetelKoppeling, ACTIEF,

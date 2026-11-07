@@ -42,6 +42,7 @@ import {
   type FloorId,
   type Layout,
   type LayoutDevice,
+  type LayoutAccu,
   type LayoutAround,
   type Woning,
   type LayoutKnown,
@@ -327,6 +328,8 @@ export interface HouseReport {
   readonly dakEtage: FloorId | null;
   /** Wat er rond het huis is, zoals de bewoner het zei (besluit 157); null: de buitenruimtes zeggen het. */
   readonly rond: LayoutAround | null;
+  /** Waar de thuisaccu staat (besluit 270); null: aan de gevel. */
+  readonly accu: LayoutAccu | null;
   /** Wat voor huis het is (besluit 190): vrijstaand als de bewoner niets koos. */
   readonly woning: Woning;
   /**
@@ -1652,7 +1655,7 @@ function slug(text: string, taken: ReadonlySet<string>): string {
   return id;
 }
 
-const OUTSIDE = /tuin|oprit|terras|buiten|schuur|carport|balkon|veranda/i;
+const OUTSIDE = /tuin|oprit|terras|buiten|schuur|carport|balkon|veranda|voordeur|front door/i;
 
 /**
  * Een voorstel voor de soort van een kamer zonder eigen keuze (besluit 119),
@@ -1698,7 +1701,9 @@ export function roomTypeFromNames(room: Pick<LayoutRoom, 'naam' | 'zones' | 'eta
  */
 export function outsideFromNames(room: Pick<LayoutRoom, 'naam' | 'zones'>, devices: readonly Pick<HouseDevice, 'naam'>[]): LayoutOutside {
   const n = room.naam;
-  const soort: LayoutOutside['soort'] = /carport/i.test(n)
+  const soort: LayoutOutside['soort'] = /voordeur|front door/i.test(n)
+    ? 'voordeur'
+    : /carport/i.test(n)
     ? 'carport'
     : /oprit/i.test(n)
       ? 'oprit'
@@ -2103,6 +2108,7 @@ export function buildHouse(
     indeling: saved ? 'eigen' : 'voorstel',
     dakEtage,
     rond: layout.rond ?? null,
+    accu: layout.accu ?? null,
     woning: layout.woning ?? 'vrijstaand',
     ligging: huisLigging(config.geometry),
     etages: floors,

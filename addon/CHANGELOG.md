@@ -1,5 +1,71 @@
 # Wat is er nieuw · What is new
 
+## 0.144.2
+
+*7 november 2026 · 0.142.1 – 0.144.2*
+
+**Nieuw**
+
+- Je thuisaccu staat nu in de tekening, op zijn plek: aan de gevel, in de garage of binnen in een kamer. Je kiest het bij Kamers en indeling › Buiten
+- Staat de accu in de garage, dan zie je op Thuis in het blad van de garage hoe vol hij is en wat hij doet, met de auto als die in de garage staat
+- Buiten heeft nu echte plekken voor apparaten, ook zonder gebied in Home Assistant: de voordeur altijd, en elk deel rond het huis dat aan staat, zoals de oprit, de garage en de tuin. Bij Kamers en indeling › Buiten zie je per plek hoeveel apparaten er hangen
+- Bij een apparaat kies je een kamer binnen of een plek buiten, apart onder elkaar. Een plek die er nog niet was, komt erbij als je bewaart
+- Op Thuis opent een tik op de voordeur zijn blad, met de lampen en de camera
+
+**Beter**
+
+- Wijkt de helling uit de meting af van de 3D-kaart, dan zegt het vlak dat de 3D-kaart voor de helling nauwkeuriger is
+- Bij Te doen staat wat met de hand loopt nu in de kolom Vast en gepland, niet meer los erboven. Een stekker die met de hand aan staat, zegt daar Zet uit in plaats van Terug
+- Elke taak bij Vast en gepland op Te doen heeft naast de schakelaar een × om hem weg te halen
+- Zet uit bij een stekker zet hem meteen uit, zonder hoe lang of een eindtijd
+- Bij Wat kan bij jouw huis zegt elke kaart Zoekt… zolang SunArc de omtrek en de 3D-kaart nog opvraagt
+- Bij een prijs per uur tellen de uren waarin Home Assistant de kosten nog niet telde tegen je gemiddelde, met "deels geschat" bij Kosten. Over een heel jaar telt wat je boven je verbruik teruglevert tegen de vergoeding
+
+**Opgelost**
+
+- Nam je bij Daken en panelen de richting en helling over uit de 3D-kaart, dan stond er Zelf ingesteld. Nu staat er uit de 3D-kaart, zolang het vlak met de kaart klopt
+- Op een Android-wand kon je de tijd van een stekker pas instellen na een tik op het toetsenbord. Tot hoe laat kies je nu uit een lijst per kwartier, net als Om bij Elke dag
+- Bij Daken en panelen gingen lengte en breedte van een blok samen omhoog of omlaag zodra de breedte groter werd dan de lengte. Nu blijft elke maat van zichzelf, ook bij een huis van 6 bij 11 meter
+- Een plat dak met panelen op rekken bleef op Thuis een puntdak als de kaart een puntdak gaf. Je panelen gaan nu voor
+- Klaarzetten vroeg om je slimme meter of omvormer te koppelen, ook als je hem in de app al had gekozen. De melding zegt nu ook wat je moet doen
+- Een weerdienst die alleen een verwachting per uur geeft, zoals OpenWeatherMap soms, gaf geen verwachting voor de komende dagen. SunArc maakt er nu zelf dagen van
+- Laden met de hand houdt zich aan je hoofdzekering, ook zonder stroommeter per fase
+- Liggen er panelen op het huis én op de garage, dan stroomt de zon op Thuis nu ook van de garage
+- Koos je bij Inrichten een plat dak, dan bleef het huis soms een puntdak. Plat dak bij Inrichten gaat nu voor, ook voor de dakvorm uit de kaart
+- Met een prijs per uur telde Opbrengst stroom en teruglevering soms niet mee, en gas tegen één vaste prijs. Nu telt het zoals Home Assistant, ook het gas. Ontbreekt er een prijs, dan staat bij Kosten wat er niet in zit
+
+*English*
+
+**New**
+
+- Your home battery now shows in the drawing, in its place: on the outside wall, in the garage or inside in a room. You pick it in Rooms and layout › Outside
+- If the battery is in the garage, the garage sheet on Home shows how full it is and what it does, with the car if it is in the garage
+- Outside now has real places for devices, also without an area in Home Assistant: the front door always, and every part around the house that is on, such as the driveway, the garage and the garden. Rooms and layout › Outside shows how many devices each place has
+- For a device you pick a room inside or a place outside, listed apart. A place that did not exist yet is added when you save
+- On Home, tapping the front door opens its sheet, with the lights and the camera
+
+**Improved**
+
+- If the tilt from the measurement differs from the 3D map, the face says the 3D map is more accurate for the tilt
+- In To do, what runs by hand now shows in the Fixed and planned column, no longer on its own above it. A plug switched on by hand says Switch off there instead of Back
+- Every task in Fixed and planned on To do has an × next to the switch to remove it
+- Switch off on a plug switches it off right away, without how long or an end time
+- In What your house allows, each map says Searching… while SunArc still looks up the outline and the 3D map
+- With an hourly price, hours in which Home Assistant did not count the costs yet count at your average, with "partly estimated" at Costs. Over a whole year, what you export above your use counts at the payment rate
+
+**Fixed**
+
+- If you took the direction and tilt from the 3D map in Roofs and panels, it said Set by you. It now says from the 3D map, as long as the face matches the map
+- On an Android wall panel you could only set the time of a plug after tapping the keyboard. Until when is now picked from a list per quarter of an hour, as is At for Every day
+- In Roofs and panels, the length and width of a block went up or down together once the width got larger than the length. Each size now stays its own, also for a house of 6 by 11 metres
+- A flat roof with panels on racks stayed a pitched roof on Home when the map gave a pitched roof. Your panels now come first
+- Getting ready asked you to connect your smart meter or inverter, even if you had already picked it in the app. The message now also says what to do
+- A weather service that only gives an hourly forecast, like OpenWeatherMap at times, gave no forecast for the coming days. SunArc now makes days out of it
+- Charging by hand keeps to your main fuse, also without a current meter per phase
+- With panels on the house and on the garage, the sun on Home now also flows from the garage
+- If you picked a flat roof in Set up, the house sometimes kept a pitched roof. A flat roof in Set up now comes first, also over the roof shape from the map
+- With an hourly price, Energy sometimes left out electricity and export, and counted gas at one fixed price. It now counts as Home Assistant does, gas included. If a price is missing, Costs says what is not included
+
 ## 0.142.0
 
 *7 november 2026 · 0.138.0 – 0.142.0*
