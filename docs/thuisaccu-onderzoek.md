@@ -1,6 +1,8 @@
 # Thuisaccu: wat werkt, wat mist, wat de testers vragen
 
-Onderzoek van 7 november 2026, op beta (0.144.2). Alleen gelezen, niets gebouwd.
+Onderzoek van 7 november 2026, op beta (0.144.2). Ricardo koos daarna alle
+voorstellen; gebouwd in 0.145.0 tot 0.150.0, besluiten 271 tot 276 in
+`DECISIONS.md`. Hieronder het onderzoek zoals het was.
 
 ## In het kort
 

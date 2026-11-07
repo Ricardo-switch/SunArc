@@ -1360,6 +1360,20 @@ function autoBel(timeZone: string): Pick<Parameters<typeof meldingenBron>[0], 'a
     handKlaar: (laadhand?.klaar ?? []).map((k) => ({ ...k, naam: autos.find((a) => a.id === k.auto)?.naam ?? k.auto })),
   };
 }
+/** Wat de bel van de thuisaccu's weet (besluit 276); null zonder accu. */
+function accuBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBron>[0]['accus']> | null {
+  if (!houseRegisters) return null;
+  const lijst = accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null);
+  if (!lijst.length) return null;
+  const p = partsIn(Date.now(), cfg.timezone);
+  const e = runner?.latest?.explanation;
+  const netW = e && cfg.power.gridPower ? e.budget.gridPowerW : null;
+  return {
+    lijst: lijst.map((a) => ({ id: a.id, naam: a.naam, pct: a.pct, fout: a.fout, stilSindsMs: a.stilSindsMs })),
+    terugW: netW == null ? null : Math.max(0, -netW),
+    dag: `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`,
+  };
+}
 /** Wat de bel van de slimme stekkers weet (besluit 264); null zolang de registers er niet zijn. */
 function stekkerBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBron>[0]['stekkers']> | null {
   if (!houseRegisters) return null;
@@ -1394,6 +1408,8 @@ function meldingenRonde(): void {
     sluip: sluipVoorBel(sluipverbruik.laatste(), Date.now(), cfg.timezone),
     // De auto (besluit 263): vol, een fout, kabel vergeten, en laden met de hand dat klaar is.
     ...autoBel(cfg.timezone),
+    // De thuisaccu (besluit 276): stil, een fout, of vol terwijl de zon naar het net gaat.
+    accus: accuBel(cfg),
     // De slimme stekkers (besluit 264): gevonden, en zijn meter bij Energie.
     stekkers: stekkerBel(cfg),
   });

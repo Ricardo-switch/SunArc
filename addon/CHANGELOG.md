@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.149.0
+## 0.150.0
 
-*7 november 2026 · 0.145.0 – 0.149.0*
+*7 november 2026 · 0.145.0 – 0.150.0*
 
 **Nieuw**
 
+- Meldingen over je thuisaccu: als hij een half uur niets meer zegt, als hij een fout meldt, en als hij vol is terwijl de zon naar het net gaat. Op je telefoon komen ze overdag, als je Onderhoud aan hebt bij Jij
 - Meer dan één thuisaccu: ze staan samen op één kaart, met per accu een regel met hoe vol hij is en wat hij doet
 - Bij Energie › Thuisaccu vul je de maat van je accu in. Dan zie je hoeveel kWh erin zit, hoe laat hij vol is als hij laadt, en hoe lang hij het huis nog voedt als hij levert
 - Bij Wat je huis kan staat wat je accu deze maand aan het huis leverde, en wat dat vanaf 2027 ongeveer waard is
@@ -16,6 +17,10 @@
 - Bij Energie staat nu Thuisaccu. Je ziet welke accu SunArc vond, en je kiest er zelf een als hij er niet bij staat, ook als hij via Homey binnenkomt met losse sensoren
 - Per accu kies je welke sensor zegt hoe vol hij is, wat hij nu laadt of levert, en hoeveel hij in totaal laadde en leverde. Je kiest ook of plus laden of leveren is, en ziet meteen wat de accu nu doet
 
+**Beter**
+
+- Een thuisaccu die even niets zegt, blijft in beeld in plaats van te verdwijnen
+
 **Opgelost**
 
 - Met een thuisaccu klopte het verbruik niet: wat de accu laadde telde als verbruik, en wat hij leverde telde nergens. Nu klopt het verbruik van nu, per uur en per apparaat
@@ -24,6 +29,7 @@
 
 **New**
 
+- Notifications about your home battery: when it has said nothing for half an hour, when it reports a fault, and when it is full while the sun goes to the grid. On your phone they arrive during the day, if you have Maintenance on in You
 - More than one home battery: they share one card, with a line per battery for how full it is and what it does
 - In Energy › Home battery you fill in the size of your battery. Then you see how many kWh are in it, when it is full while charging, and how long it can still power the home while delivering
 - What your house can do shows what your battery delivered to the home this month, and roughly what that is worth from 2027
@@ -33,6 +39,10 @@
 - Yield now counts your home battery: under your panels it shows what it charged, how much of that came from the sun, and what it delivered to the home. Where your power went shows From the battery and To the battery
 - Energy now has Home battery. You see which battery SunArc found, and you choose one yourself if it is not listed, also when it comes in through Homey with separate sensors
 - For each battery you choose which sensor says how full it is, what it is charging or delivering now, and how much it charged and delivered in total. You also choose whether plus is charging or delivering, and see right away what the battery is doing
+
+**Improved**
+
+- A home battery that goes quiet for a moment stays in view instead of disappearing
 
 **Fixed**
 

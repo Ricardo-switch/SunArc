@@ -269,6 +269,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [271. Een thuisaccu zelf kiezen bij Energie, ook uit losse sensoren](#271-een-thuisaccu-zelf-kiezen-bij-energie-ook-uit-losse-sensoren)
 - [273. De stromen van en naar de thuisaccu in de tekening en bij Nu](#273-de-stromen-van-en-naar-de-thuisaccu-in-de-tekening-en-bij-nu)
 - [275. Meer thuisaccu's samen, met hun maat en wat ze leverden](#275-meer-thuisaccus-samen-met-hun-maat-en-wat-ze-leverden)
+- [276. Meldingen over de thuisaccu](#276-meldingen-over-de-thuisaccu)
 
 **Veiligheid**
 
@@ -12795,6 +12796,31 @@ nog kan; weinig koppelingen geven die maat.
 
 **Bewust niet (nog).** Een eigen pagina per accu, zoals de auto. De plek in de
 tekening (besluit 270) geldt voor alle accu's samen.
+
+## 276. Meldingen over de thuisaccu
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, versie 0.150.0, stap 6 van de thuisaccu-ronde (besluit 271).
+
+**Waarom.** De accu had geen enkele melding: niet als hij niets meer zei, niet
+bij een fout, en niet als hij vol was terwijl de zon toch naar het net ging.
+Die drie stonden in het onderzoek, en Ricardo koos alle voorstellen.
+
+**Wat.**
+
+- **Zegt niets meer:** de lading en het vermogen zeggen al een half uur niets;
+  elke keer een eigen melding, weg zodra de lading weer binnenkomt.
+- **Een fout:** een stand van de accu met error, fault, fout, storing of alarm
+  (niet "no fault" of "ok"); weg als de fout weg is.
+- **Vol met zon over:** op 99% of meer terwijl er minstens 500 W naar het net
+  gaat, hooguit één keer per dag, zonder rode stip: een goed moment voor de
+  wasmachine of de vaatwasser, met een tik naar Op zon.
+- **Op de telefoon** horen ze bij Onderhoud: overdag, en alleen als de bewoner
+  dat koos bij Jij. Bij de bel altijd.
+- Een accu die even niets zegt, blijft herkend: de herkenning kijkt naar een
+  sensor met de klasse batterij, ook zonder getal. Eerst viel hij dan weg, en
+  kon er geen melding komen.
 
 ## Wat nog een besluit wacht
 

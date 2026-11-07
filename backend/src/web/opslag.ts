@@ -372,8 +372,10 @@ function lezer(registers: Registers, states: ReadonlyMap<string, HaEntityState>)
   /** Een laadpaal: een koppeling voor laadpalen, of een merk van laadpalen dat een vermogen, stroom of energie meet. */
   const isLaadpaal = (a: Apparaat) =>
     !nooit(a) && (LAADPAAL_KOPPELING.test(a.platform) || (LAADPAAL_MERK.test(merk(a)) && (heeft(a, 'power') || heeft(a, 'current') || heeft(a, 'energy'))));
+  // Een sensor met de klasse batterij, ook als hij even niets zegt (besluit 276): anders viel een stille accu weg.
+  const heeftLading = (a: Apparaat) => pctVan(a) != null || a.entiteiten.some((e) => e.entity_id.startsWith('sensor.') && klasse(e) === 'battery');
   const isBatterij = (a: Apparaat) =>
-    !isEvcc(a) && !isAuto(a) && !isLaadpaal(a) && pctVan(a) != null && (heeft(a, 'energy_storage') || BATTERIJ_KOPPELING.test(a.platform) || BATTERIJ_TYPE.test(merk(a)));
+    !isEvcc(a) && !isAuto(a) && !isLaadpaal(a) && heeftLading(a) && (heeft(a, 'energy_storage') || BATTERIJ_KOPPELING.test(a.platform) || BATTERIJ_TYPE.test(merk(a)));
   return { klasse, apparaten, merk, heeft, naamVan, pctVan, isEvcc, isAuto, isLaadpaal, isBatterij };
 }
 
@@ -484,7 +486,8 @@ function accuBronnen(l: ReturnType<typeof lezer>, states: ReadonlyMap<string, Ha
     const ins = keuze?.instelling[a.device.id] ?? {};
     const sensoren = (k: string) => a.entiteiten.filter((e) => e.entity_id.startsWith('sensor.') && klasse(e) === k);
     // De lading: een sensor met de klasse batterij in procenten.
-    const ladingVan = sensoren('battery').find((e) => states.get(e.entity_id)?.attributes['unit_of_measurement'] === '%')?.entity_id ?? null;
+    // Zegt hij niets, dan staat er geen eenheid bij: dan de eerste met de klasse batterij (besluit 276).
+    const ladingVan = (sensoren('battery').find((e) => states.get(e.entity_id)?.attributes['unit_of_measurement'] === '%') ?? sensoren('battery')[0])?.entity_id ?? null;
     // Het vermogen: bij voorkeur van de batterij zelf, niet dat van de panelen of het net.
     const p = sensoren('power');
     const eigen = p.filter((e) => /batter|accu|charge|laad/.test(naamVan(e)));
@@ -538,13 +541,33 @@ export interface AccuNu {
   /** Plus is laden, min is leveren aan het huis. */
   readonly vermogenW: number | null;
   readonly sensoren: Readonly<Record<AccuRol, string | null>>;
+  /** Wat de accu zegt bij een fout, zoals "fault"; null zonder (besluit 276). */
+  readonly fout: string | null;
+  /** Sinds wanneer de lading en het vermogen niets zeggen (epoch-ms); null als hij iets zegt (besluit 276). */
+  readonly stilSindsMs: number | null;
 }
 
 /** De accu's die aan staan (besluit 272): voor het verbruik van nu en de tellers in Opbrengst. */
 export function accusNu(registers: Registers, states: ReadonlyMap<string, HaEntityState>, laden: LadenKeuze | null, keuze: AccuKeuze | null): AccuNu[] {
-  return accuBronnen(lezer(registers, states), states, laden, keuze)
+  const l = lezer(registers, states);
+  const leeg = (id: string | null) => {
+    const s = id ? states.get(id) : undefined;
+    return !s || s.state === 'unavailable' || s.state === 'unknown' || s.state === '';
+  };
+  return accuBronnen(l, states, laden, keuze)
     .filter((b) => b.aan)
-    .map((b) => ({ id: b.bron.device.id, naam: naamVanApparaat(b.bron.device), pct: b.pct, vermogenW: b.vermogenW, sensoren: b.sensoren }));
+    .map((b) => {
+      // Een fout: een stand van de accu met error, fault, fout, storing of alarm.
+      const fout = b.bron.entiteiten
+        .filter((e) => e.entity_id.startsWith('sensor.') && !['power', 'energy', 'battery'].includes(l.klasse(e) ?? '') && /status|state|stand|mode|fault|error|fout|alarm/.test(l.naamVan(e)))
+        .map((e) => String(states.get(e.entity_id)?.state ?? '').toLowerCase())
+        .find((s) => /error|fault|fout|storing|alarm/.test(s) && !/no.?(error|fault|alarm)|geen|none|^ok$|normal/.test(s)) ?? null;
+      // Niets meer: de lading en het vermogen (als hij dat heeft) zeggen allebei niets.
+      const lading = b.sensoren.lading;
+      const stil = lading != null && leeg(lading) && (b.sensoren.vermogen == null || leeg(b.sensoren.vermogen));
+      const sinds = stil ? Date.parse(states.get(lading)?.last_changed ?? '') : NaN;
+      return { id: b.bron.device.id, naam: naamVanApparaat(b.bron.device), pct: b.pct, vermogenW: b.vermogenW, sensoren: b.sensoren, fout, stilSindsMs: stil ? (Number.isFinite(sinds) ? sinds : 0) : null };
+    });
 }
 
 /** De sensoren om uit te kiezen: een lading in %, een vermogen, of een totaal in kWh (besluit 271). */

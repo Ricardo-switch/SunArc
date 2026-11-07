@@ -34,6 +34,8 @@ export interface BronInvoer {
   readonly dakAchter?: NonNullable<MeldingenBron['dak']> | null;
   /** De auto's en laden met de hand dat klaar is (besluit 263). */
   readonly autos?: MeldingenBron['autos'];
+  /** De thuisaccu's (besluit 276). */
+  readonly accus?: MeldingenBron['accus'];
   readonly handKlaar?: MeldingenBron['handKlaar'];
   /** De slimme stekkers (besluit 264), of null als de registers er nog niet zijn. */
   readonly stekkers?: MeldingenBron['stekkers'];
@@ -83,6 +85,7 @@ export function meldingenBron(i: BronInvoer): MeldingenBron | null {
     sluip: i.sluip ?? null,
     dak: i.dakAchter ?? null,
     autos: i.autos ?? null,
+    accus: i.accus ?? null,
     handKlaar: i.handKlaar ?? [],
     stekkers: i.stekkers ?? null,
     winterdagen: i.winterdagen,

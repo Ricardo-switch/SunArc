@@ -15,6 +15,8 @@
  * - de panelen zijn gemeten: kijk of de ligging klopt (besluit 157);
  * - een nieuwe versie, en een mijlpaal zoals 10, 20 of 30 winterdagen;
  * - de auto (besluit 263): vol, laden gestopt met een fout, kabel vergeten
+ * - de thuisaccu (besluit 276): zegt niets meer, meldt een fout, of is vol
+ *   terwijl de zon naar het net gaat
  *   ('s avonds om de tijd die je koos, als hij te leeg is), en laden met de
  *   hand dat klaar is;
  * - een slimme stekker (besluit 264): gevonden en nog niet op zon, en een
@@ -35,7 +37,7 @@ import { metLidwoord } from './kamerwoorden.js';
 
 export const MELDINGEN_FILE = 'meldingen.json';
 
-export type MeldingSoort = 'nieuw' | 'weg' | 'stil' | 'batterij' | 'filter' | 'meter' | 'versie' | 'mijlpaal' | 'comfort' | 'panelen' | 'rook' | 'update' | 'sluip' | 'dak' | 'auto' | 'stekker';
+export type MeldingSoort = 'nieuw' | 'weg' | 'stil' | 'batterij' | 'filter' | 'meter' | 'versie' | 'mijlpaal' | 'comfort' | 'panelen' | 'rook' | 'update' | 'sluip' | 'dak' | 'auto' | 'stekker' | 'accu';
 
 export interface Melding {
   /** Vast per onderwerp, zoals `stil:light.hal`: zo komt hetzelfde niet dubbel. */
@@ -121,9 +123,29 @@ export interface MeldingenBron {
    * niet bekend (de registers zijn er nog niet); dan blijft wat er stond.
    */
   readonly stekkers?: readonly { readonly id: string; readonly naam: string; readonly opZon: boolean; readonly meter: string | null; readonly meterErin: boolean }[] | null;
+  /**
+   * De thuisaccu's (besluit 276): hoe vol, een fout, sinds wanneer ze niets
+   * zeggen, en hoeveel er nu naar het net gaat. Weg zonder accu.
+   */
+  readonly accus?: { readonly lijst: readonly AccuBel[]; readonly terugW: number | null; readonly dag: string } | null;
   /** Laden met de hand dat net klaar is (besluit 263): op de tijd of op het %. */
   readonly handKlaar?: readonly { readonly auto: string; readonly naam: string; readonly tot: 'uur' | 'tijd' | 'pct'; readonly pct: number | null; readonly ms: number }[];
 }
+
+/** Wat de bel van een thuisaccu weet (besluit 276). */
+export interface AccuBel {
+  readonly id: string;
+  readonly naam: string;
+  readonly pct: number | null;
+  readonly fout: string | null;
+  readonly stilSindsMs: number | null;
+}
+
+/** Zo lang mag een accu niets zeggen voor er een melding komt (besluit 276). */
+export const ACCU_STIL_MS = 30 * 60_000;
+/** Vol, en minstens zoveel naar het net: dan is het een goed moment voor een apparaat (besluit 276). */
+export const ACCU_VOL_PCT = 99;
+export const ACCU_VOL_TERUG_W = 500;
 
 /** Wat de bel van een auto weet (besluit 263). */
 export interface AutoBel {
@@ -306,6 +328,20 @@ const WOORDEN = {
       handPct: (pct: number) => `Op ${pct}%. De laadpaal kiest weer zelf.`,
       handTijd: (tijd: string) => `Om ${tijd}. De laadpaal kiest weer zelf.`,
     },
+    accu: {
+      stil: (naam: string) => `${naam} zegt niets meer`,
+      stilTekst: 'Home Assistant krijgt al een half uur geen lading of vermogen van de accu. Kijk of hij aan staat en verbinding heeft.',
+      stilKlaar: (naam: string) => `${naam} zegt weer iets`,
+      stilKlaarTekst: 'De lading komt weer binnen.',
+      fout: (naam: string) => `Fout bij ${naam}`,
+      foutTekst: (stand: string) => `De accu meldt een fout (${stand}). Kijk in de app van de accu.`,
+      foutKlaar: (naam: string) => `${naam}: weer goed`,
+      foutKlaarTekst: 'De fout is weg.',
+      vol: (naam: string) => `${naam} is vol`,
+      volTekst: 'De zon gaat nu naar het net. Een goed moment voor de wasmachine of de vaatwasser.',
+      volKlaar: (naam: string) => `${naam} was vol`,
+      volKlaarTekst: 'Vandaag vol geweest, met zon over.',
+    },
     stekker: {
       titel: (naam: string) => `Stekker gevonden: ${naam}`,
       tekst: 'Zet hem op zon, dan kijkt SunArc mee wanneer hij aan kan.',
@@ -431,6 +467,20 @@ const WOORDEN = {
       hand: (naam: string) => `${naam}: charging by hand done`,
       handPct: (pct: number) => `At ${pct}%. The charger decides again.`,
       handTijd: (tijd: string) => `At ${tijd}. The charger decides again.`,
+    },
+    accu: {
+      stil: (naam: string) => `${naam} has gone quiet`,
+      stilTekst: 'Home Assistant has had no charge or power from the battery for half an hour. Check that it is on and connected.',
+      stilKlaar: (naam: string) => `${naam} is back`,
+      stilKlaarTekst: 'The charge is coming in again.',
+      fout: (naam: string) => `Fault on ${naam}`,
+      foutTekst: (stand: string) => `The battery reports a fault (${stand}). Check the battery’s app.`,
+      foutKlaar: (naam: string) => `${naam}: fine again`,
+      foutKlaarTekst: 'The fault has gone.',
+      vol: (naam: string) => `${naam} is full`,
+      volTekst: 'The sun is now going to the grid. A good moment for the washing machine or the dishwasher.',
+      volKlaar: (naam: string) => `${naam} was full`,
+      volKlaarTekst: 'Full today, with sun to spare.',
     },
     stekker: {
       titel: (naam: string) => `Smart plug found: ${naam}`,
@@ -587,6 +637,7 @@ export function wat(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[] {
     }));
   }
   uit.push(...autoMeldingen(bron));
+  uit.push(...accuMeldingen(bron));
   // De slimme stekkers (besluit 264): gevonden, en zijn meter erbij.
   for (const x of bron.stekkers ?? []) {
     if (!x.opZon) {
@@ -609,6 +660,43 @@ export function wat(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[] {
       const w = WOORDEN[lang];
       return { id: 'sluip', soort: 'sluip', aandacht: true, titel: s.nachten > 1 ? w.sluip.reeks(s.nachten) : w.sluip.titel(s.bovenW), tekst: w.sluip.tekst(s.w, s.gewoonW), actie: { label: w.bekijk, href: 'sluipverbruik.html' }, klaar: { titel: w.sluip.klaar, tekst: w.sluip.klaarTekst } };
     }));
+  }
+  return uit;
+}
+
+/**
+ * De thuisaccu (besluit 276). Elk een eigen id: per keer stil, per fout, en
+ * vol hooguit één keer per dag.
+ *
+ * - **stil:** de lading en het vermogen zeggen al een half uur niets;
+ * - **fout:** een stand van de accu met een fout; weg als die weg is;
+ * - **vol:** op 99% of meer terwijl er minstens 500 W naar het net gaat.
+ */
+function accuMeldingen(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[] {
+  const uit: (Nieuwe & { en: MeldingWoorden })[] = [];
+  const a = bron.accus;
+  if (!a) return uit;
+  const href = 'apparaten.html#batterij';
+  for (const x of a.lijst) {
+    if (x.stilSindsMs != null && bron.nu - x.stilSindsMs >= ACCU_STIL_MS) {
+      uit.push(tweetalig((lang) => {
+        const w = WOORDEN[lang];
+        return { id: `accu-stil:${x.id}:${x.stilSindsMs}`, soort: 'accu', aandacht: true, titel: w.accu.stil(x.naam), tekst: w.accu.stilTekst, actie: { label: w.bekijk, href }, klaar: { titel: w.accu.stilKlaar(x.naam), tekst: w.accu.stilKlaarTekst } };
+      }));
+    }
+    if (x.fout) {
+      const stand = x.fout;
+      uit.push(tweetalig((lang) => {
+        const w = WOORDEN[lang];
+        return { id: `accu-fout:${x.id}:${stand}`, soort: 'accu', aandacht: true, titel: w.accu.fout(x.naam), tekst: w.accu.foutTekst(stand), actie: { label: w.bekijk, href }, klaar: { titel: w.accu.foutKlaar(x.naam), tekst: w.accu.foutKlaarTekst } };
+      }));
+    }
+    if (x.pct != null && x.pct >= ACCU_VOL_PCT && a.terugW != null && a.terugW >= ACCU_VOL_TERUG_W) {
+      uit.push(tweetalig((lang) => {
+        const w = WOORDEN[lang];
+        return { id: `accu-vol:${x.id}:${a.dag}`, soort: 'accu', aandacht: false, titel: w.accu.vol(x.naam), tekst: w.accu.volTekst, actie: { label: w.bekijk, href: 'regeling.html#opzon' }, klaar: { titel: w.accu.volKlaar(x.naam), tekst: w.accu.volKlaarTekst } };
+      }));
+    }
   }
   return uit;
 }

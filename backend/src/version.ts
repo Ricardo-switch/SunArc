@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.149.0';
+export const VERSIE = '0.150.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -74,12 +74,26 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.150.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Meldingen over je thuisaccu: als hij een half uur niets meer zegt, als hij een fout meldt, en als hij vol is terwijl de zon naar het net gaat. Op je telefoon komen ze overdag, als je Onderhoud aan hebt bij Jij',
+    ],
+    beter: ['Een thuisaccu die even niets zegt, blijft in beeld in plaats van te verdwijnen'],
+    en: {
+      nieuw: [
+        'Notifications about your home battery: when it has said nothing for half an hour, when it reports a fault, and when it is full while the sun goes to the grid. On your phone they arrive during the day, if you have Maintenance on in You',
+      ],
+      beter: ['A home battery that goes quiet for a moment stays in view instead of disappearing'],
+    },
+  },
   {
     versie: '0.149.0',
     datum: '2026-11-07',

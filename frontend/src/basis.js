@@ -1425,6 +1425,8 @@
     update: ['blauw', iconen.binnen('update')],
     // De auto (besluit 263): vol, een fout, kabel vergeten, met de hand klaar.
     auto: ['blauw', iconen.binnen('auto')],
+    // De thuisaccu (besluit 276): stil, een fout, of vol met zon over.
+    accu: ['blauw', iconen.binnen('accu')],
     panelen: ['geel', iconen.binnen('panelen')],
     // Een dakvlak dat achterblijft (besluit 254, stap 5).
     dak: ['geel', iconen.binnen('panelen')],
