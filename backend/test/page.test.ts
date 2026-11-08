@@ -6443,10 +6443,15 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
     let accu: unknown = { zonKw: 1.5, zou: ['Airco woonkamer', 'Droger'] };
     await context.route(`${baseUrl}/api/state`, async (route) => {
-      const r = await route.fetch();
-      const j = (await r.json()) as { bewoner?: Record<string, unknown> };
-      if (j.bewoner) j.bewoner = { ...j.bewoner, ...(accu ? { accu } : {}) };
-      await route.fulfill({ response: r, json: j });
+      // Een verzoek dat nog loopt als de test de browser sluit, mag stil wegvallen (CI 8-11: "Response has been disposed").
+      try {
+        const r = await route.fetch();
+        const j = (await r.json()) as { bewoner?: Record<string, unknown> };
+        if (j.bewoner) j.bewoner = { ...j.bewoner, ...(accu ? { accu } : {}) };
+        await route.fulfill({ response: r, json: j });
+      } catch {
+        // De pagina is al dicht.
+      }
     });
     const p = await context.newPage();
     const fouten: string[] = [];
