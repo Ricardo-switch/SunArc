@@ -239,15 +239,22 @@ export interface LaadApparaat {
 export type LaadPauze =
   /** Een schakelaar: aan is laden, of bij een pauzeknop aan is pauze. */
   | { readonly soort: 'schakelaar'; readonly id: string; readonly omgekeerd: boolean }
-  | { readonly soort: 'knoppen'; readonly pauze: string; readonly hervat: string };
+  | { readonly soort: 'knoppen'; readonly pauze: string; readonly hervat: string }
+  /** Easee: de opdracht `pause` of `resume` van de eigen dienst, op het apparaat (besluit 277). */
+  | { readonly soort: 'easee'; readonly apparaat: string };
 
 /** Wat er aan een auto te bedienen is, en waarmee (stap 5, besluit 262). */
 export interface LaadBediening {
   readonly auto: string;
   /** Het apparaat met de knoppen: de laadpaal, anders de auto zelf. */
   readonly apparaat: string | null;
-  /** De hoogste laadstroom in A: het getal in Home Assistant, met zijn bereik en stap. */
-  readonly stroom: { readonly id: string; readonly min: number; readonly max: number; readonly stap: number; readonly nuA: number | null } | null;
+  /**
+   * De hoogste laadstroom in A: het getal in Home Assistant, met zijn bereik en
+   * stap. Bij Easee (besluit 277) gaat het zetten via de eigen dienst op het
+   * apparaat `easee`, en is `id` de sensor die de stroom van nu zegt (die staat
+   * in Home Assistant standaard uit; dan is `nuA` null).
+   */
+  readonly stroom: { readonly id: string; readonly min: number; readonly max: number; readonly stap: number; readonly nuA: number | null; readonly easee?: string } | null;
   readonly pauze: LaadPauze | null;
   /** Of het mag: de bewoner zette het aan bij Energie, en evcc regelt het niet. */
   readonly mag: boolean;
@@ -301,6 +308,8 @@ const STROOM_ZET = /dynamic|charg|laad|current|stroom|amp/;
 const GEEN_STROOM_ZET = /circuit|fallback|offline|fase|phase|min/;
 /** Een schakelaar of knop om te laden of te pauzeren; niet het klimaat, de klep of een schema van de auto. */
 const LAAD_KNOP = /charg|laad|pause|pauze|resume|hervat/;
+/** Zo hoog gaat de eigen dienst van Easee (besluit 277). */
+export const EASEE_MAX_A = 32;
 const GEEN_LAAD_KNOP = /climat|klimaat|heat|verwarm|defrost|sentry|cabin|lock|slot|seat|stoel|steering|stuur|light|licht|port|klep|update|smart|schedul|gepland|precondition|boost|restart|reboot|herstart/;
 /** Klassen die bij laden horen: een apparaat zonder geen ervan is geen kandidaat. */
 const LAAD_KLASSEN = new Set(['battery', 'distance', 'power', 'current', 'energy', 'plug', 'battery_charging']);
@@ -874,6 +883,7 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
 
   /** De stroom om te zetten en hoe hij pauzeert, van één apparaat. */
   function bedieningVan(a: Apparaat): { stroom: LaadBediening['stroom']; pauze: LaadPauze | null } {
+    if (a.platform === 'easee') return easeeBediening(a);
     const getallen = a.entiteiten.filter((e) => e.entity_id.startsWith('number.') && String(states.get(e.entity_id)?.attributes['unit_of_measurement'] ?? '') === 'A');
     const nummer = getallen.find((e) => STROOM_ZET.test(naamVan(e)) && !GEEN_STROOM_ZET.test(naamVan(e))) ?? (getallen.length === 1 ? getallen[0] : undefined);
     let stroom: LaadBediening['stroom'] = null;
@@ -898,6 +908,26 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
       if (p && h) pauze = { soort: 'knoppen', pauze: p.entity_id, hervat: h.entity_id };
     }
     return { stroom, pauze };
+  }
+
+  /**
+   * Easee (besluit 277): geen getal om te zetten, maar de eigen dienst
+   * `easee.set_charger_dynamic_limit` en `easee.action_command` op het apparaat.
+   * Alleen een laadpaal, geen Equalizer. De stroom van nu en de grens van de
+   * laadpaal staan in sensoren die Home Assistant standaard uit zet; zonder
+   * grens kan Easee tot 32 A.
+   */
+  function easeeBediening(a: Apparaat): { stroom: LaadBediening['stroom']; pauze: LaadPauze | null } {
+    if (/equalizer/i.test(l.merk(a))) return { stroom: null, pauze: null };
+    const sleutel = (e: HaRegistryEntity, k: string) => e.translation_key === k || e.entity_id.endsWith(`_${k}`);
+    const sensor = (k: string) => a.entiteiten.find((e) => e.entity_id.startsWith('sensor.') && sleutel(e, k));
+    const nu = sensor('dynamic_charger_limit');
+    const grens = getal(states.get(sensor('max_charger_limit')?.entity_id ?? ''));
+    const max = grens != null && grens >= 6 && grens <= EASEE_MAX_A ? grens : EASEE_MAX_A;
+    return {
+      stroom: { id: nu?.entity_id ?? `sensor.easee_${a.device.id}_dynamic_charger_limit`, min: 6, max, stap: 1, nuA: nu ? getal(states.get(nu.entity_id)) : null, easee: a.device.id },
+      pauze: { soort: 'easee', apparaat: a.device.id },
+    };
   }
 
   const autos: Auto[] = wagens.length

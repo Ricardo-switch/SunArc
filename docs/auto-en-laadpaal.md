@@ -315,8 +315,15 @@ lijst in `client.ts`). Laden wordt er een, naar het voorbeeld van `isHandCall`:
 - **Het voorbeeldhuis:** de laadpaal heeft `number.laadpaal_laadstroom` (6 tot
   16 A) en `switch.laadpaal_laden`, en laadt met die stroom; bedienen staat
   daar aan.
-- **Nog niet:** de eigen dienst van Easee, de stand van evcc, de balk van de
-  dag in het blad (zon, goedkope uren, tot wanneer), en de assistent.
+- **Easee (0.151.0, besluit 277):** geen getal maar de eigen dienst op het
+  apparaat: `set_charger_dynamic_limit` met een levensduur tot het eind
+  (hooguit 18 uur, daarna vernieuwd zolang het met de hand duurt) en
+  `action_command` met `pause` of `resume`. De stroom van nu en de grens komen
+  uit de sensoren `dynamic_charger_limit` en `max_charger_limit`, die Home
+  Assistant standaard uit zet; zonder grens tot 32 A, zonder stroom van nu terug
+  naar de grens.
+- **Nog niet:** de stand van evcc, de balk van de dag in het blad (zon,
+  goedkope uren, tot wanneer), en de assistent.
 
 ## Stap 6: wat er gebouwd is (0.137.0, besluit 263)
 

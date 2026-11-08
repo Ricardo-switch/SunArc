@@ -483,7 +483,7 @@ const client = new HaClient({
   // Witgoed starten (ronde 5, besluit 238): alleen de startknop van een droger of vaatwasser, alleen in de add-on.
   allowStart: (): readonly string[] => witgoed?.knoppen() ?? [],
   // Laden met de hand (besluit 262): de laadpalen die de bewoner aanzette, en wat er nog terug moet. Alleen in de add-on.
-  allowLaden: () => (laadhand ? laadMag(laadBedieningenNu(), laadhand.terugzetten) : { stroom: [], schakelaars: [], knoppen: [] }),
+  allowLaden: () => (laadhand ? laadMag(laadBedieningenNu(), laadhand.terugzetten) : { stroom: [], schakelaars: [], knoppen: [], easee: [] }),
   // De slimme stekkers die de bewoner toeliet (besluit 265) gaan door dezelfde deur, los van de klimaatbrug.
   allowHand: (): { readonly klimaat: readonly string[]; readonly schakelaars: readonly string[] } => {
     // Zolang de dienst nog opstart, bestaat `stekkerhand` nog niet: dan geen stekkers.
@@ -685,6 +685,7 @@ const laadhand: Laadhand | null = inHuisMetDeuren
       zetStroom: (id, a): Promise<void> => client.callService('number', 'set_value', { value: a }, { entity_id: id }),
       schakel: (id, aan): Promise<void> => client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: id }),
       druk: (id): Promise<void> => client.callService('button', 'press', {}, { entity_id: id }),
+      easee: (apparaat, dienst, data): Promise<void> => client.callService('easee', dienst, { device_id: apparaat, ...data }, {}),
       auto: (id) => huisNu('nl')?.opslag?.autos.find((a) => a.id === id) ?? null,
       bediening: (id) => laadBedieningenNu().find((b) => b.auto === id) ?? null,
       zekeringA: (id) => zekeringVoor(id),

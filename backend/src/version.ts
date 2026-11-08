@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.150.0';
+export const VERSIE = '0.151.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.151.0',
+    datum: '2026-11-08',
+    nieuw: [
+      'Een laadpaal van Easee bedien je nu ook met de hand: de laadstroom, of pauzeren, altijd met een eind. Valt SunArc stil, dan gaat de laadpaal op het eind vanzelf terug',
+    ],
+    beter: ['Zet je in Home Assistant bij je Easee de sensor voor de dynamische laadstroom aan (die staat standaard uit), dan zie je ook op welke stroom hij nu staat'],
+    en: {
+      nieuw: ['You can now control an Easee charger by hand too: the charging current, or pause, always with an end. If SunArc stops, the charger goes back by itself at the end'],
+      beter: ['If you turn on the sensor for the dynamic charging current of your Easee in Home Assistant (it is off by default), you also see what current it is set to now'],
+    },
+  },
   {
     versie: '0.150.0',
     datum: '2026-11-07',

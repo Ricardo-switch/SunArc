@@ -48,6 +48,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [262. Laden met de hand: een smalle deur naar de laadpaal](#262-laden-met-de-hand-een-smalle-deur-naar-de-laadpaal)
 - [265. Een slimme stekker met de hand: een smalle deur per stekker](#265-een-slimme-stekker-met-de-hand-een-smalle-deur-per-stekker) — *aangevuld door 267*
 - [267. Een slimme stekker op zon met een minimum, en SunArc schakelt hem echt](#267-een-slimme-stekker-op-zon-met-een-minimum-en-sunarc-schakelt-hem-echt)
+- [277. Easee met de hand, via de eigen dienst van Easee](#277-easee-met-de-hand-via-de-eigen-dienst-van-easee)
 
 **Kern en regeling**
 
@@ -12821,6 +12822,47 @@ Die drie stonden in het onderzoek, en Ricardo koos alle voorstellen.
 - Een accu die even niets zegt, blijft herkend: de herkenning kijkt naar een
   sensor met de klasse batterij, ook zonder getal. Eerst viel hij dan weg, en
   kon er geen melding komen.
+
+## 277. Easee met de hand, via de eigen dienst van Easee
+
+*Onderwerp: visie en principes · Status: geldig*
+
+8 november 2026, versie 0.151.0, de rest van stap 5 van [259]. Besluit 262
+liet de eigen dienst van Easee open. De koppeling van Easee (HACS,
+`nordicopen/easee_hass`) heeft geen getal om te zetten: de stroom staat in
+sensoren die Home Assistant standaard uit zet, en zetten gaat via een dienst op
+het apparaat. Ricardo koos pauzeren erbij en de levensduur van Easee als
+vangnet.
+
+*Besluit:*
+
+- **Wat er door de deur mag** (`isLaadCall` in `client.ts`, zonder target, op
+  één apparaat uit de lijst): `easee.set_charger_dynamic_limit` met precies
+  `device_id`, `current` binnen het bereik en `time_to_live` van 0 tot 1080
+  minuten; en `easee.action_command` met precies `device_id` en `pause` of
+  `resume`. Verder niets: geen grens van de laadpaal of de groep, geen schema,
+  geen herstart, geen toegang.
+- **Alleen als de bewoner het toeliet**, zoals bij 262: de schakelaar "SunArc
+  mag … bedienen" bij Energie, alleen in de add-on, niet met evcc in huis. Een
+  Equalizer is geen laadpaal om te bedienen.
+- **Het bereik:** 6 A tot de grens van de laadpaal uit de sensor
+  `max_charger_limit`, en zonder die sensor tot 32 A (zo ver gaat de dienst);
+  nooit boven wat er op de zekering past.
+- **Het vangnet:** elke stroom gaat met een levensduur tot het eind, hooguit 18
+  uur. Valt SunArc stil, dan gaat Easee zelf terug. Duurt het met de hand langer,
+  dan zet SunArc hem een half uur voor het eind van de levensduur opnieuw, maar
+  alleen als hij nog staat zoals de app hem zette.
+- **Terug:** naar de stroom van daarvoor, zonder levensduur. Zegt Easee niet
+  waar hij op stond (de sensor staat uit), dan stond hij op zijn grens, en dan
+  gaat hij daarheen terug. Wie intussen zelf iets verzette, wint, maar dat ziet
+  SunArc alleen met de sensor aan.
+- **Pauzeren** gaat met `pause` en `resume`; of hij stilstaat zegt de auto,
+  zoals bij een paar knoppen.
+- **Versie 0.151.0.**
+
+*Nog niet:* de stand van evcc, de balk van de dag in het blad, en de assistent.
+
+---
 
 ## Wat nog een besluit wacht
 

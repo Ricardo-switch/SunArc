@@ -28,6 +28,11 @@ export const LAAD_BESTAND = 'laadhand.json';
 export const LAAD_MAX_MS = 48 * 3_600_000;
 
 export type LaadTot = 'uur' | 'tijd' | 'pct' | 'kabel';
+export type EaseeDienst = 'set_charger_dynamic_limit' | 'action_command';
+/** Zo lang mag de levensduur bij Easee hooguit zijn, in minuten (18 uur). */
+export const EASEE_TTL_MAX = 1080;
+/** Zo lang voor het eind van de levensduur zet SunArc hem opnieuw, als het met de hand langer duurt. */
+const EASEE_VERNIEUW_MS = 30 * 60_000;
 
 /** Wat er op het eind terug moet, per auto. */
 export interface LaadTerug {
@@ -36,8 +41,12 @@ export interface LaadTerug {
   readonly totMs: number;
   /** Bij `pct`: tot hoeveel procent. */
   readonly pct?: number;
-  /** De stroom die de app zette, en wat er daarvoor stond. */
-  readonly stroom?: { readonly id: string; readonly gezet: number; readonly was: number };
+  /**
+   * De stroom die de app zette, en wat er daarvoor stond. Bij Easee (besluit
+   * 277) ook het apparaat en tot wanneer de levensduur loopt die Easee zelf
+   * bewaakt: valt SunArc stil, dan gaat de laadpaal op die tijd vanzelf terug.
+   */
+  readonly stroom?: { readonly id: string; readonly gezet: number; readonly was: number; readonly easee?: string; readonly vangnetMs?: number };
   /** De app pauzeerde het laden. */
   readonly pauze?: LaadPauze;
   readonly sindsMs: number;
@@ -52,6 +61,8 @@ export interface LaadDeur {
   readonly zetStroom: (id: string, a: number) => Promise<void>;
   readonly schakel: (id: string, aan: boolean) => Promise<void>;
   readonly druk: (id: string) => Promise<void>;
+  /** De eigen dienst van Easee op een apparaat (besluit 277). */
+  readonly easee?: (apparaat: string, dienst: EaseeDienst, data: Readonly<Record<string, unknown>>) => Promise<void>;
   readonly auto: (id: string) => Auto | null;
   readonly bediening: (id: string) => LaadBediening | null;
   /** De hoogste stroom per fase die nu op de zekering past, of null zonder aansluiting. */
@@ -170,10 +181,16 @@ export class Laadhand {
       if (doel < s.min || doel > s.max) return { ok: false, reden: `de laadpaal kan ${s.min} tot ${s.max} A` };
       const zekering = this.#d.zekeringA?.(id) ?? null;
       if (zekering != null && doel > zekering) return { ok: false, reden: `meer dan ${Math.floor(zekering)} A past nu niet op je zekering` };
-      const was = eerder?.stroom?.was ?? s.nuA;
+      // Zegt Easee niet waar hij op staat (de sensor staat standaard uit), dan stond hij op zijn grens.
+      const was = eerder?.stroom?.was ?? s.nuA ?? (s.easee ? s.max : null);
       if (was == null) return { ok: false, reden: 'Home Assistant zegt niet op welke stroom de laadpaal nu staat' };
-      if (s.nuA !== doel) await this.#d.zetStroom(s.id, doel);
-      stroom = { id: s.id, gezet: doel, was };
+      if (s.easee) {
+        const vangnetMs = await this.#easeeStroom(s.easee, doel, eind.totMs, nu);
+        stroom = { id: s.id, gezet: doel, was, easee: s.easee, vangnetMs };
+      } else {
+        if (s.nuA !== doel) await this.#d.zetStroom(s.id, doel);
+        stroom = { id: s.id, gezet: doel, was };
+      }
       // Was hij met de hand gepauzeerd, dan laadt hij nu weer.
       if (eerder?.pauze) await this.#pauzeer(eerder.pauze, false);
     }
@@ -214,7 +231,53 @@ export class Laadhand {
 
   async #pauzeer(p: LaadPauze, stil: boolean): Promise<void> {
     if (p.soort === 'schakelaar') await this.#d.schakel(p.id, p.omgekeerd ? stil : !stil);
+    else if (p.soort === 'easee') await this.#easee(p.apparaat, 'action_command', { action_command: stil ? 'pause' : 'resume' });
     else await this.#d.druk(stil ? p.pauze : p.hervat);
+  }
+
+  async #easee(apparaat: string, dienst: EaseeDienst, data: Readonly<Record<string, unknown>>): Promise<void> {
+    if (!this.#d.easee) throw new Error('Easee bedienen kan hier niet');
+    await this.#d.easee(apparaat, dienst, data);
+  }
+
+  /**
+   * De stroom bij Easee, met een levensduur tot het eind (hooguit 18 uur). Geeft
+   * terug tot wanneer Easee hem vasthoudt; daarna valt hij vanzelf terug.
+   */
+  async #easeeStroom(apparaat: string, a: number, totMs: number, nu: number): Promise<number> {
+    const minuten = Math.max(1, Math.min(EASEE_TTL_MAX, Math.ceil((totMs - nu) / 60_000)));
+    await this.#easee(apparaat, 'set_charger_dynamic_limit', { current: a, time_to_live: minuten });
+    return nu + minuten * 60_000;
+  }
+
+  /**
+   * Duurt het met de hand langer dan de levensduur bij Easee, dan zet SunArc
+   * hem op tijd opnieuw; maar alleen als hij nog staat zoals de app hem zette.
+   */
+  async #vernieuwEasee(nu: number): Promise<boolean> {
+    let anders = false;
+    const lijst: LaadTerug[] = [];
+    for (const t of this.#terug) {
+      const s = t.stroom;
+      if (!s?.easee || s.vangnetMs == null || t.totMs <= s.vangnetMs || s.vangnetMs - nu > EASEE_VERNIEUW_MS) {
+        lijst.push(t);
+        continue;
+      }
+      const staat = getal(this.#d.state(s.id));
+      if (staat != null && staat !== s.gezet) {
+        lijst.push(t);
+        continue;
+      }
+      try {
+        const vangnetMs = await this.#easeeStroom(s.easee, s.gezet, t.totMs, nu);
+        lijst.push({ ...t, stroom: { ...s, vangnetMs } });
+        anders = true;
+      } catch {
+        lijst.push(t);
+      }
+    }
+    this.#terug = lijst;
+    return anders;
   }
 
   /** Terug naar de laadpaal: nu meteen, voor deze auto. */
@@ -232,6 +295,7 @@ export class Laadhand {
   async ronde(): Promise<string[]> {
     await this.#laad();
     const nu = this.#nu();
+    if (await this.#vernieuwEasee(nu)) await this.#bewaar();
     const klaar = this.#terug.filter((t) => {
       if (t.totMs <= nu) return true;
       const a = this.#d.auto(t.auto);
@@ -261,7 +325,14 @@ export class Laadhand {
   /** Terug, maar alleen wat nog staat zoals de app het zette; met `altijd` (de bewoner vraagt het) ook anders. */
   async #zetTerug(t: LaadTerug, altijd = false): Promise<string[]> {
     const gedaan: string[] = [];
-    if (t.stroom) {
+    if (t.stroom?.easee) {
+      // Bij Easee zonder sensor weten we niet wat er staat: dan terug naar wat er was, zonder levensduur.
+      const nu = getal(this.#d.state(t.stroom.id));
+      if ((altijd || nu == null || nu === t.stroom.gezet) && nu !== t.stroom.was) {
+        await this.#easee(t.stroom.easee, 'set_charger_dynamic_limit', { current: t.stroom.was, time_to_live: 0 });
+        gedaan.push(`${t.auto} terug naar ${t.stroom.was} A`);
+      }
+    } else if (t.stroom) {
       const nu = getal(this.#d.state(t.stroom.id));
       if ((altijd || nu === t.stroom.gezet) && nu !== t.stroom.was) {
         await this.#d.zetStroom(t.stroom.id, t.stroom.was);
@@ -314,6 +385,16 @@ export interface LaadMag {
   readonly stroom: readonly { readonly id: string; readonly min: number; readonly max: number }[];
   readonly schakelaars: readonly string[];
   readonly knoppen: readonly string[];
+  /** Easee (besluit 277): per apparaat het bereik van de stroom, en of pauzeren mag. */
+  readonly easee: readonly EaseeMag[];
+}
+
+export interface EaseeMag {
+  readonly apparaat: string;
+  /** Het bereik van de stroom, of null als alleen pauzeren mag. */
+  readonly min: number | null;
+  readonly max: number | null;
+  readonly pauze: boolean;
 }
 
 /** De entiteiten van de laadpalen die mogen, en wat er nog terug moet. */
@@ -321,23 +402,31 @@ export function laadMag(bedieningen: readonly LaadBediening[], terug: readonly L
   const stroom = new Map<string, { id: string; min: number; max: number }>();
   const schakelaars = new Set<string>();
   const knoppen = new Set<string>();
-  const bereik = (id: string, ...waarden: number[]) => {
+  const easee = new Map<string, EaseeMag>();
+  const eenEasee = (apparaat: string): EaseeMag => easee.get(apparaat) ?? { apparaat, min: null, max: null, pauze: false };
+  const bereik = (id: string, easeeVan: string | undefined, ...waarden: number[]) => {
+    if (easeeVan) {
+      const was = eenEasee(easeeVan);
+      easee.set(easeeVan, { ...was, min: Math.min(...waarden, was.min ?? Infinity), max: Math.max(...waarden, was.max ?? -Infinity) });
+      return;
+    }
     const was = stroom.get(id);
     stroom.set(id, { id, min: Math.min(...waarden, was?.min ?? Infinity), max: Math.max(...waarden, was?.max ?? -Infinity) });
   };
   const pauze = (p: LaadPauze) => {
     if (p.soort === 'schakelaar') schakelaars.add(p.id);
+    else if (p.soort === 'easee') easee.set(p.apparaat, { ...eenEasee(p.apparaat), pauze: true });
     else [p.pauze, p.hervat].forEach((k) => knoppen.add(k));
   };
   for (const b of bedieningen) {
     if (!b.mag) continue;
-    if (b.stroom) bereik(b.stroom.id, b.stroom.min, b.stroom.max);
+    if (b.stroom) bereik(b.stroom.id, b.stroom.easee, b.stroom.min, b.stroom.max);
     if (b.pauze) pauze(b.pauze);
   }
   // Wat terug moet, mag ook als het bedienen intussen uit ging: terug naar wat er stond, ook onder 6 A.
   for (const t of terug) {
-    if (t.stroom) bereik(t.stroom.id, t.stroom.was, t.stroom.gezet);
+    if (t.stroom) bereik(t.stroom.id, t.stroom.easee, t.stroom.was, t.stroom.gezet);
     if (t.pauze) pauze(t.pauze);
   }
-  return { stroom: [...stroom.values()], schakelaars: [...schakelaars], knoppen: [...knoppen] };
+  return { stroom: [...stroom.values()], schakelaars: [...schakelaars], knoppen: [...knoppen], easee: [...easee.values()] };
 }

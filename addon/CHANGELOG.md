@@ -1,5 +1,27 @@
 # Wat is er nieuw · What is new
 
+## 0.151.0
+
+*8 november 2026*
+
+**Nieuw**
+
+- Een laadpaal van Easee bedien je nu ook met de hand: de laadstroom, of pauzeren, altijd met een eind. Valt SunArc stil, dan gaat de laadpaal op het eind vanzelf terug
+
+**Beter**
+
+- Zet je in Home Assistant bij je Easee de sensor voor de dynamische laadstroom aan (die staat standaard uit), dan zie je ook op welke stroom hij nu staat
+
+*English*
+
+**New**
+
+- You can now control an Easee charger by hand too: the charging current, or pause, always with an end. If SunArc stops, the charger goes back by itself at the end
+
+**Improved**
+
+- If you turn on the sensor for the dynamic charging current of your Easee in Home Assistant (it is off by default), you also see what current it is set to now
+
 ## 0.150.0
 
 *7 november 2026 · 0.145.0 – 0.150.0*
