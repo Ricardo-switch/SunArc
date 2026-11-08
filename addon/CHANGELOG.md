@@ -1,5 +1,41 @@
 # Wat is er nieuw · What is new
 
+## 0.157.1
+
+*8 november 2026 · 0.156.2 – 0.157.1*
+
+**Nieuw**
+
+- De stand van het huis zegt wat er meespeelt: de airco springt bij, iets gaat met de hand, niemand is thuis, vakantie, of het is nog Dag omdat er licht brandt. Op de wand in de knop rechtsboven, op de telefoon naast de begroeting
+- Het blad van de stand toont de dag als balk met de dagdelen en hun temperatuur, en alles wat er nu meespeelt
+
+**Beter**
+
+- Zet "Handmatig koelen" in Home Assistant het huis op Handmatig, dan zegt de stand dat, met sinds wanneer
+- Bij vakantie zegt de stand sinds wanneer
+- Een scène in een vaste taak zegt nu in welke kamer hij hoort, en bij Aanpassen welke lampen hij zet
+
+**Opgelost**
+
+- Kiest Home Assistant de stand Voorverwarmen, dan zegt Thuis dat nu ook, in plaats van Automatisch
+
+*English*
+
+**New**
+
+- The mode of the house says what plays a part: the air conditioner helps out, something runs by hand, nobody is home, holiday, or it is still Day because a light is on. On the wall in the button at the top right, on the phone next to the greeting
+- The mode sheet shows the day as a bar with the parts of the day and their temperature, and everything that plays a part now
+
+**Improved**
+
+- If "Handmatig koelen" (cooling by hand) in Home Assistant sets the house to Manual, the mode now says so, with since when
+- On holiday the mode says since when
+- A scene in a fixed task now says which room it belongs to, and under Edit which lights it sets
+
+**Fixed**
+
+- If Home Assistant picks the Preheat mode, Home now says so too, instead of Automatic
+
 ## 0.156.1
 
 *8 november 2026 · 0.151.0 – 0.156.1*

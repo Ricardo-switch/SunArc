@@ -552,6 +552,7 @@ html.sc-stil::view-transition-group(*), html.sc-stil::view-transition-old(*), ht
 .td-taak-uur { font-family: var(--kop); font-size: 16px; font-weight: 600; }
 .td-taak-uur.zon { color: var(--zon-t); }
 .td-taak .td-wat b { font-size: 14px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.td-taak .td-wat b small.waar { font-size: inherit; font-weight: 500; color: var(--gedempt); }
 .td-taak .td-wat span { font-size: 12.5px; }
 .td-taak.uit { opacity: 0.5; }
 .td-taak .schakelaar { width: 42px; height: 26px; }

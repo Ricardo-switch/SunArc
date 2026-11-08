@@ -401,6 +401,8 @@ export interface WebOptions {
   };
   /** De gegevens van een apparaat om te delen bij een melding (testerronde, november 2026): zonder namen of adressen. */
   readonly apparaatGegevens?: (entityId: string) => ApparaatGegevens | null;
+  /** Een entiteit uit Home Assistant voor de stand (besluit 287): stand, naam en sinds wanneer. Alleen lezen. */
+  readonly toestand?: (entityId: string) => { readonly state: string; readonly naam: string | null; readonly sindsMs: number | null } | null;
   /** SunArc opnieuw starten (testerronde, november 2026); `run.sh` en Docker starten hem weer. Weg: kan niet. */
   readonly herstart?: () => void;
   /**

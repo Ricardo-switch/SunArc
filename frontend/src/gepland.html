@@ -42,6 +42,8 @@
   .gp-regel .uur { font-family: var(--kop); font-size: 20px; font-weight: 600; }
   .gp-regel .uur small { display: block; font-family: var(--romp); font-size: 11.5px; font-weight: 600; color: var(--gedempt); margin-top: 1px; }
   .gp-regel b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gp-regel b small.waar { font-size: inherit; font-weight: 500; color: var(--gedempt); }
+  .gp-waarde b small { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--gedempt); }
   .gp-regel span.hoe { display: block; font-size: 13px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .gp-regel span.hoe em { font-style: normal; color: var(--zon-t); }
   .gp-regel.gedaan { opacity: 0.45; }
@@ -100,6 +102,8 @@
   #tel .gp-regel { grid-template-columns: 54px minmax(0, 1fr) auto; }
   #tel .gp-regel > svg { display: none; }
   #tel .gp-regel .uur { font-size: 18px; }
+  /* De kamer van een scène past niet altijd op één regel: dan twee. */
+  #tel .gp-regel b { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
   #tel .gp-achter { position: fixed; inset: 0; background: rgba(4, 8, 16, 0.6); z-index: 60; }
   #tel .gp-blad { position: fixed; inset: auto 8px 8px 8px; max-height: 88vh; overflow-y: auto; border-radius: 26px; display: flex; flex-direction: column; background: rgb(var(--nacht)); z-index: 61; }
   #tel .gp-blad[hidden] { display: none; }

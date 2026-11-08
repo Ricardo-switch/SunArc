@@ -137,7 +137,20 @@
    * Thuis op de telefoon, opnieuw (besluit 159, schets Thuis-Tel): de stand
    * naast de begroeting, zodat de knoppen bovenin op één regel passen.
    */
-  #tel .groetregel { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  #tel .groetregel { display: flex; align-items: center; gap: 10px; }
+  #tel .groetrechts { margin-left: auto; }
+  /*
+   * De stand als regel naast de begroeting (besluit 286): altijd, met een stip
+   * in de kleur van wat er meespeelt. De begroeting maakt plaats als het krap is.
+   */
+  #tel .groetregel .groet { flex: 0 1 auto; }
+  #tel .standregel { flex: 0 1 auto; min-width: 0; display: inline-flex; align-items: center; gap: 7px; padding: 0; border: 0; background: none; color: var(--zacht); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  #tel .standregel[hidden] { display: none; }
+  #tel .standregel::before { content: '·'; color: var(--gedempt); margin-right: 3px; }
+  #tel .standregel > span:not(.stip) { overflow: hidden; text-overflow: ellipsis; }
+  #tel .standregel i { font-style: normal; color: var(--gedempt); font-size: 17px; line-height: 1; }
+  .standregel.speelt, button.pil[data-modus] .wat.speelt { color: color-mix(in srgb, var(--k) 70%, var(--tekst)); }
+  .standstip { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--k); box-shadow: 0 0 0 4px color-mix(in srgb, var(--k) 22%, transparent); }
   #tel .groetregel .groet { margin-bottom: 0; min-width: 0; }
   #tel .groetregel .pil { height: 28px; font-size: 12.5px; padding: 0 11px; flex: none; }
   #tel .groetrechts { display: flex; gap: 8px; align-items: center; flex: none; }
@@ -499,11 +512,52 @@
   /* Een kaart erbij, of favorieten kiezen: een blad van onderen, op de wand in het midden. */
   .kies-achter { position: fixed; inset: 0; background: rgba(4, 8, 16, 0.62); z-index: 40; }
   /* De stand van het huis (besluit 167): de standen onder elkaar, de huidige omlijnd. */
-  button.pil[data-modus] { border: 0; color: var(--tekst); font-family: inherit; cursor: pointer; }
+  button.pil[data-modus] { border: 0; color: var(--tekst); font-family: inherit; cursor: pointer; gap: 8px; max-width: 360px; white-space: nowrap; }
+  button.pil[data-modus] .wat { color: var(--zacht); font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
   .modusrij { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 14px; border: 1px solid transparent; }
   .modusrij b { font-size: 15px; }
   .modusrij span { font-size: 13px; color: var(--gedempt); line-height: 1.4; }
   .modusrij.nu { border-color: rgb(var(--wit) / 0.3); background: rgb(var(--wit) / 0.06); }
+  /*
+   * Het blad van de stand (besluit 286, schets Wand-Thuis-Stand): links de stand
+   * van nu met de dag als balk en wat er meespeelt, rechts de standen. Op de
+   * telefoon onder elkaar.
+   */
+  html:not(.tel-stand) .kiesblad.standblad[data-blad='modus'] { width: min(800px, 94vw); }
+  .standblad .sb-kolommen { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 0 28px; }
+  html.tel-stand .standblad .sb-kolommen { grid-template-columns: minmax(0, 1fr); }
+  .standblad .modusrij { padding: 7px 12px; border-radius: 12px; }
+  .standblad .modusrij b { font-size: 14.5px; }
+  .standblad .modusrij span { font-size: 12.5px; }
+  .sb-held { display: flex; align-items: baseline; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+  .sb-held .standstip { align-self: center; width: 12px; height: 12px; box-shadow: 0 0 0 5px color-mix(in srgb, var(--k) 22%, transparent); }
+  .sb-held b { font-family: var(--kop); font-size: 40px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+  html.tel-stand .sb-held b { font-size: 34px; }
+  .sb-held > span:last-child { font-size: 14px; color: var(--zacht); }
+  .sb-balk { position: relative; margin: 18px 0 4px; padding-bottom: 22px; }
+  .sb-delen { position: relative; height: 52px; border-radius: 14px; overflow: hidden; background: rgb(var(--wit) / 0.04); }
+  .sb-deel { position: absolute; top: 0; bottom: 0; box-sizing: border-box; padding: 6px 8px; background: color-mix(in srgb, var(--k) 20%, transparent); border-right: 2px solid rgb(var(--nacht)); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; overflow: hidden; white-space: nowrap; }
+  .sb-deel b { font-size: 13px; font-weight: 700; color: color-mix(in srgb, var(--k) 65%, white); }
+  .sb-deel span { font-size: 12.5px; color: var(--zacht); }
+  .sb-deel.plat { flex-direction: row; gap: 10px; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--k) 22%, transparent) 0 10px, color-mix(in srgb, var(--k) 12%, transparent) 10px 20px); }
+  .sb-deel.verlengd { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--k) 30%, transparent) 0 6px, transparent 6px 12px); }
+  .sb-nu { position: absolute; top: -6px; height: 64px; width: 2px; margin-left: -1px; background: #ffd27a; border-radius: 1px; box-shadow: 0 0 10px rgba(255, 210, 122, 0.7); }
+  .sb-nu em { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 11.5px; font-weight: 700; color: #ffd27a; }
+  .sb-uren { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; }
+  .sb-uren i { position: absolute; font-style: normal; font-size: 11px; color: var(--gedempt); transform: translateX(-50%); }
+  .sb-uren i:first-child { transform: none; }
+  .sb-uren i:last-child { transform: translateX(-100%); }
+  .sb-bij { margin: 2px 0 0; font-size: 12px; color: var(--gedempt); }
+  .sb-mee { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 0 12px; align-items: center; padding: 10px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
+  .sb-mee:first-of-type { border-top: 0; }
+  .sb-mee .ik { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--k) 16%, transparent); color: var(--k); }
+  .sb-mee .ik svg { width: 20px; height: 20px; }
+  .sb-mee b { display: block; font-size: 15px; }
+  .sb-mee small { display: block; font-size: 13px; color: var(--gedempt); line-height: 1.35; margin-top: 1px; }
+  .sb-mee .waarde { font-family: var(--kop); font-size: 16px; font-weight: 600; color: color-mix(in srgb, var(--k) 70%, white); white-space: nowrap; }
+  .sb-noot { margin: 8px 0 0; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
+  /* In het lichte thema: de kleuren met de tekstkleur gemengd, niet met wit. */
+  html.sc-licht .sb-deel b, html.sc-licht .sb-mee .waarde { color: color-mix(in srgb, var(--k) 60%, var(--tekst)); }
   .kiesblad { position: fixed; z-index: 41; display: flex; flex-direction: column; padding: 12px 18px 18px; border-radius: 26px; background: rgb(var(--nacht) / 0.98); border: 1px solid var(--glas-rand); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5); overflow: auto; overscroll-behavior: contain; }
   .kiesblad[hidden] { display: none; }
   html.tel-stand .kiesblad { left: 8px; right: 8px; bottom: 8px; max-height: 84vh; }
@@ -692,7 +746,7 @@
           <a class="pil telknop" href="instellingen.html" data-t-aria-label="nav.instellingen" data-tandwiel></a>
         </span>
       </div>
-      <div class="titel"><div class="groetregel"><span class="groet" data-groet></span><span class="groetrechts"><button type="button" class="pil" data-modus aria-haspopup="dialog" data-t-aria-label="thuis.modus.kop" hidden></button><button type="button" class="wie" data-wie aria-haspopup="dialog" hidden></button></span></div><h1 class="kop-1" data-kop><span data-t="algemeen.laden"></span></h1><p class="lead" data-zin></p></div>
+      <div class="titel"><div class="groetregel"><span class="groet" data-groet></span><button type="button" class="standregel" data-modus aria-haspopup="dialog" data-t-aria-label="thuis.modus.kop" hidden></button><span class="groetrechts"><button type="button" class="wie" data-wie aria-haspopup="dialog" hidden></button></span></div><h1 class="kop-1" data-kop><span data-t="algemeen.laden"></span></h1><p class="lead" data-zin></p></div>
     </div>
     <div class="podium" id="podium-tel"></div>
     <section class="glas stromen" data-stromen data-t-aria-label="thuis.stromen.kop" hidden></section>

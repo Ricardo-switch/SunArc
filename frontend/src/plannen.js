@@ -82,6 +82,19 @@
     return ms > Date.now() ? t('gp.vandaagOm', { klok: klok(ms) }) : t('gp.morgenRond', { klok: klok(ms + 86_400_000) });
   }
 
+  /** De kamer van de scènes in een geplande taak ("Slaapkamer"); leeg zonder scène (8 november 2026). */
+  /** Staat de kamer al in de naam ("Scène Woonkamer Avond"), dan niet nog eens. */
+  const inNaam = (g, kamer) => (g.tekst ?? '').toLowerCase().includes(kamer.toLowerCase());
+  const sceneKamer = (g) => [...new Set((g.scenes ?? []).map((s) => s.kamer))].filter((k) => !inNaam(g, k)).join(', ');
+
+  /** Per scène de kamer met de lampen die hij zet: "Slaapkamer: Nachtkastje links en Nachtkastje rechts". */
+  function sceneLampen(g) {
+    const lijst = new Intl.ListFormat(taal.code === 'en' ? 'en-GB' : 'nl-NL', { type: 'conjunction' });
+    return (g.scenes ?? [])
+      .filter((s) => s.lampen.length || !inNaam(g, s.kamer))
+      .map((s) => (!s.lampen.length ? s.kamer : s.lampen.length > 4 ? t('gp.sceneLampenVeel', { kamer: s.kamer, n: s.lampen.length }) : t('gp.sceneLampen', { kamer: s.kamer, lampen: lijst.format(s.lampen) })));
+  }
+
   /**
    * De dag als boog, net als het logo: de zon van opkomst tot ondergang, nu, en
    * de opdrachten van vandaag op hun moment. Groot op Vast en gepland, klein op
@@ -832,5 +845,5 @@
   });
   addEventListener('resize', () => st && teken());
 
-  global.plannen = { open, sluit, isOpen: () => st != null, boog, herhaalNaam, zonNaam, stapperTekst, voorproef };
+  global.plannen = { open, sluit, isOpen: () => st != null, boog, herhaalNaam, zonNaam, stapperTekst, voorproef, sceneKamer, sceneLampen };
 })(window);

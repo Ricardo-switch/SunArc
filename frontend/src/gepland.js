@@ -12,7 +12,9 @@
 const { esc, haal, deur, telStand } = app;
 const { klok } = taal;
 // De boog en de namen van hoe vaak en de zon staan in plannen.js, met de nieuwe taak (besluit 244).
-const { herhaalNaam, zonNaam, stapperTekst } = plannen;
+const { herhaalNaam, zonNaam, stapperTekst, sceneKamer, sceneLampen } = plannen;
+/** De naam van een taak, met bij een scène de kamer erachter (8 november 2026). */
+const naamHtml = (g) => `${esc(g.tekst)}${sceneKamer(g) ? `<small class="waar"> · ${esc(sceneKamer(g))}</small>` : ''}`;
 const boog = (lijst, tel) => plannen.boog(lijst, { tel }, zon);
 const voorproef = (m) => plannen.voorproef(m, zon);
 
@@ -64,7 +66,7 @@ function regel(g, gedaan = false) {
   const klein = gedaan ? t('gp.gedaan') : !aan(g) ? t('gp.gepauzeerd') : dagWoord(g.ms);
   const ms = gedaan ? g.opdracht.laatstMs : g.ms;
   const cls = ['gp-regel', gedaan ? 'gedaan' : '', !aan(g) ? 'uit' : '', open?.id === g.id ? 'gekozen' : ''].filter(Boolean).join(' ');
-  return `<div class="${cls}" data-gp-open="${esc(g.id)}" role="button" tabindex="0">${icoon(g)}<div class="uur">${esc(klok(ms))}<small>${esc(klein)}</small></div><div><b>${esc(g.tekst)}</b><span class="hoe">${hoe(g)}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${aan(g)}" aria-label="${esc(t('gp.aanLabel', { wat: g.tekst }))}" data-gp-aan="${esc(g.id)}"></button></div>`;
+  return `<div class="${cls}" data-gp-open="${esc(g.id)}" role="button" tabindex="0">${icoon(g)}<div class="uur">${esc(klok(ms))}<small>${esc(klein)}</small></div><div><b>${naamHtml(g)}</b><span class="hoe">${hoe(g)}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${aan(g)}" aria-label="${esc(t('gp.aanLabel', { wat: g.tekst }))}" data-gp-aan="${esc(g.id)}"></button></div>`;
 }
 
 /* ------------------------------------------------------------ Aanpassen */
@@ -82,7 +84,7 @@ function blad(g) {
   const dagen = h.soort === 'dagen' ? `<div class="gp-dagen">${[1, 2, 3, 4, 5, 6, 7].map((d) => `<button type="button" data-gp-dag="${d}" aria-pressed="${(h.dagen ?? []).includes(d)}">${esc(t(`gp.d${d}`))}</button>`).join('')}</div>` : '';
   return `<div class="boven"><h2>${esc(g.tekst)}</h2><button class="schakelaar" type="button" role="switch" aria-checked="${open.aan}" aria-label="${esc(t('gp.aan'))}" data-gp-blad-aan></button><button class="sluit" type="button" data-gp-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
     <div class="gp-kolom">
-      <div class="gp-vraag"><span>${esc(t('gp.wat'))}</span><div class="gp-waarde"><b>${esc(g.tekst)}</b></div></div>
+      <div class="gp-vraag"><span>${esc(t('gp.wat'))}</span><div class="gp-waarde"><b>${esc(g.tekst)}${sceneLampen(g).map((r) => `<small>${esc(r)}</small>`).join('')}</b></div></div>
       <div class="gp-vraag"><span>${esc(t('gp.wanneer'))}</span><div class="chips seg">${seg}</div>${wanneer}</div>
     </div>
     <div class="gp-kolom">

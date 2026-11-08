@@ -1,0 +1,66 @@
+/*
+ * De stand van het huis met wat er meespeelt (schets, 8 november 2026): de regel
+ * naast de begroeting en het blad. Voor Wand-Thuis-Stand en Tel-Thuis-Stand;
+ * stand-meldingen.js tekent de inhoud.
+ */
+body { margin: 0; background: #0b1424; }
+.scherm { position: relative; overflow: hidden; background: #0b1424 0 0 no-repeat; }
+.groet, .kop-1, .lead { position: absolute; margin: 0; }
+.groet { font-size: 15px; font-weight: 600; color: var(--zacht); display: flex; align-items: center; white-space: nowrap; }
+.groet .sep { margin: 0 8px; color: var(--gedempt); }
+
+/* De stand als regel, geen knop: een stip in de kleur van wat er meespeelt. */
+.standregel { display: inline-flex; align-items: center; gap: 7px; padding: 0; border: 0; background: none; color: var(--zacht); font: inherit; cursor: pointer; }
+.standregel b { color: var(--tekst); font-weight: 700; }
+.standregel.speelt { color: color-mix(in srgb, var(--k) 70%, white); }
+.standregel .stip { width: 8px; height: 8px; border-radius: 50%; background: var(--k); box-shadow: 0 0 0 4px color-mix(in srgb, var(--k) 22%, transparent); }
+.standregel i { font-style: normal; color: var(--gedempt); font-size: 17px; line-height: 1; margin-left: 1px; }
+
+/* Het blad, zoals het kiesblad van Thuis, maar breder met twee kolommen. */
+.sb-achter { position: absolute; inset: 0; background: rgba(4, 8, 16, 0.55); z-index: 40; }
+.sb-achter[hidden], .kiesblad[hidden] { display: none; }
+.kiesblad { position: absolute; z-index: 41; display: flex; flex-direction: column; padding: 18px 22px; border-radius: 26px; background: rgb(var(--nacht) / 0.98); border: 1px solid var(--glas-rand); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5); box-sizing: border-box; }
+.kiesblad .bladkop { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 6px; }
+.kiesblad .bladkop .knop { height: 38px; padding: 0 14px; font-size: 14px; }
+.kiesblad .bladkop .knop-licht { color: var(--op-accent); }
+.kiesblad h3 { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); margin: 16px 0 4px; }
+.sb-kolommen { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 0 28px; }
+.sb-links, .sb-rechts { min-width: 0; }
+
+.sb-held { display: flex; align-items: baseline; gap: 10px; margin-top: 4px; }
+.sb-held b { font-family: var(--kop); font-size: 40px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.sb-held > span:last-child { font-size: 14px; color: var(--zacht); }
+.sb-stip { align-self: center; width: 12px; height: 12px; border-radius: 50%; background: var(--k); box-shadow: 0 0 0 5px color-mix(in srgb, var(--k) 22%, transparent); flex: none; }
+
+/* De dag als balk: elk dagdeel zijn kleur, met de temperatuur in de woonkamer. */
+.sb-balk { position: relative; margin: 18px 0 4px; padding-bottom: 22px; }
+.sb-delen { position: relative; height: 52px; border-radius: 14px; overflow: hidden; background: rgb(var(--wit) / 0.04); }
+.sb-deel { position: absolute; top: 0; bottom: 0; box-sizing: border-box; padding: 8px 10px; background: color-mix(in srgb, var(--k) 20%, transparent); border-right: 2px solid rgb(var(--nacht)); display: flex; flex-direction: column; justify-content: center; overflow: hidden; white-space: nowrap; }
+.sb-deel:not(.plat) { align-items: center; text-align: center; }
+.sb-bij { margin: 2px 0 0; font-size: 12px; color: var(--gedempt); }
+.sb-deel b { font-size: 13px; font-weight: 700; color: color-mix(in srgb, var(--k) 65%, white); }
+.sb-deel span { font-size: 12.5px; color: var(--zacht); }
+.sb-deel.plat { flex-direction: row; align-items: center; gap: 10px; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--k) 22%, transparent) 0 10px, color-mix(in srgb, var(--k) 12%, transparent) 10px 20px); }
+.sb-deel.verlengd { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--k) 30%, transparent) 0 6px, transparent 6px 12px); }
+.sb-nu { position: absolute; top: -6px; height: 64px; width: 2px; margin-left: -1px; background: #ffd27a; border-radius: 1px; box-shadow: 0 0 10px rgba(255, 210, 122, 0.7); }
+.sb-nu em { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 11.5px; font-weight: 700; color: #ffd27a; }
+.sb-uren { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; }
+.sb-uren i { position: absolute; font-style: normal; font-size: 11px; color: var(--gedempt); transform: translateX(-50%); }
+.sb-uren i:first-child { transform: none; }
+.sb-uren i:last-child { transform: translateX(-100%); }
+
+/* Wat er meespeelt: een regel met een waarde, geen bubbels. */
+.sb-mee { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 0 12px; align-items: center; padding: 10px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
+.sb-mee:first-of-type { border-top: 0; }
+.sb-mee .ik { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--k) 16%, transparent); color: var(--k); }
+.sb-mee .ik svg { width: 20px; height: 20px; }
+.sb-mee b { display: block; font-size: 15px; }
+.sb-mee small { display: block; font-size: 13px; color: var(--gedempt); line-height: 1.35; margin-top: 1px; }
+.sb-mee .waarde { font-family: var(--kop); font-size: 16px; font-weight: 600; color: color-mix(in srgb, var(--k) 70%, white); white-space: nowrap; }
+.sb-noot { margin: 8px 0 0; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
+
+.modusrij { display: flex; flex-direction: column; gap: 1px; padding: 7px 12px; border-radius: 12px; border: 1px solid transparent; }
+.modusrij b { font-size: 14.5px; }
+.modusrij span { font-size: 12.5px; color: var(--gedempt); line-height: 1.35; }
+.modusrij.nu { border-color: rgb(var(--wit) / 0.3); background: rgb(var(--wit) / 0.06); }
+.sb-nog { margin: 10px 0 0; }

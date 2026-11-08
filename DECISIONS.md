@@ -278,6 +278,9 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [279. De balk van de dag in het blad Laden](#279-de-balk-van-de-dag-in-het-blad-laden)
 - [282. Voorverwarmen krijgt een eigen temperatuur, bij Dagdelen](#282-voorverwarmen-krijgt-een-eigen-temperatuur-bij-dagdelen)
 - [284. Het stroombeeld noemt elk apparaat; bij Jaar hele euro's](#284-het-stroombeeld-noemt-elk-apparaat-bij-jaar-hele-euros)
+- [285. Een geplande scène noemt zijn kamer en lampen](#285-een-geplande-scène-noemt-zijn-kamer-en-lampen)
+- [286. De stand van het huis zegt wat er meespeelt](#286-de-stand-van-het-huis-zegt-wat-er-meespeelt)
+- [287. Handmatig koelen en vakantie bij de stand](#287-handmatig-koelen-en-vakantie-bij-de-stand)
 
 **Veiligheid**
 
@@ -13093,6 +13096,110 @@ apparaten die op dat moment minstens 30 W vragen, en dat blijft zo.
   brachten de echte stand en overschreven wat de test nabootste, waardoor de
   controle in CI sinds 0.155.0 telkens op een andere accutest viel.
 - **Versie 0.156.1.**
+
+---
+
+## 285. Een geplande scène noemt zijn kamer en lampen
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.156.2. Ricardo: bij een scène in een vaste taak zie
+je niet meer om welke lamp het gaat.
+
+*Waarom:* een taak bewaart alleen zijn naam, "Scène Nachtlampje". Hue haalt de
+naam van de groep van de scène af (besluit 100), dus de kamer staat er niet in.
+Bij Hoe koos je de scène bij de lampen van een kamer; daarna was dat weg.
+
+*Besluit:*
+
+- **De dienst zoekt het op bij het lezen,** niet bij het bewaren: bij elke
+  geplande taak met een scène geeft `/api/te-doen` de kamer en de lampen mee
+  (`scenes`). Zo hebben ook taken van voor deze versie het, en een hernoemde
+  lamp klopt meteen. Het huis wordt alleen gelezen als er een scène gepland
+  staat.
+- **De lampen zijn die van zijn Hue-groep,** waar ze ook staan. Een scène van
+  Home Assistant zelf noemt zijn lampen niet in het huis; die krijgt alleen
+  zijn kamer.
+- **In de lijst** bij Vast en gepland en Te doen de kamer achter de naam
+  ("Scène Nachtlampje · Slaapkamer"), niet als de kamer al in de naam staat.
+  Op de telefoon mag de naam dan over twee regels.
+- **In Aanpassen** onder Wat de kamer met de lampen: "Slaapkamer: Nachtkastje
+  links en Nachtkastje rechts", boven de vier lampen het aantal.
+- **De stand op Thuis** zei "Automatisch" als Home Assistant voorverwarmen had
+  gekozen; nu zegt hij Voorverwarmen.
+- **Versie 0.156.2.**
+
+---
+
+## 286. De stand van het huis zegt wat er meespeelt
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.157.0. Ricardo: "zoek uit voor de dagdelen en
+standen wat thuis allemaal kan melden"; daarna de schetsen Wand-Thuis-Stand en
+Tel-Thuis-Stand, met zijn keuzes.
+
+*Waarom:* Thuis zei alleen "Automatisch", of de stand die in Home Assistant
+gekozen was. Wat de regeling verder wist, stond nergens: dat de airco
+bijspringt, dat iets met de hand gaat, dat het huis vanzelf op Afwezig ging, of
+dat het na 22:00 nog Dag is omdat er licht brandt. Op de telefoon stond de stand
+er alleen als hij afweek, dus daar was het blad meestal niet te openen.
+
+*Besluit:*
+
+- **De dienst zegt het** (`stand-nu.ts`, in `api/state` als `bewoner.stand`):
+  de stand, wat er meespeelt in een korte en een lange vorm, het blad, en de
+  dag als balk. Nederlands en Engels, met tests. De pagina tekent alleen.
+- **Vier meldingen, één tegelijk in de knop, het belangrijkste eerst:** met de
+  hand (uit de app, of een apparaat dat iemand zelf bediende, zoals de Nest met
+  zijn timer), bijspringen (de regel heat-assist zet een airco aan), vakantie
+  en afwezig (vanzelf: niemand thuis; of gekozen), en nog Dag door licht. Het
+  blad noemt ze allemaal, met tot of sinds wanneer.
+- **Op de wand de knop rechtsboven** met de melding erin: "Dag · de airco
+  springt bij", met een stip in de kleur ervan. **Op de telefoon een regel naast
+  de begroeting**, altijd: zonder melding "Dag tot 22:00".
+- **Het blad:** links de stand van nu met de dag als balk (de dagdelen met de
+  graden van de kamer waar het om gaat, nu als streep, afwezig en vakantie de
+  hele dag hetzelfde, een verlengde dag gestreept) en wat er meespeelt; rechts
+  de standen zoals eerst. Op de telefoon onder elkaar.
+- **In de schaduw "zou bijspringen"**, tenzij de airco echt al verwarmt
+  (besluit 124).
+- **"Sinds" alleen als de dienst het begin zag.** Speelde iets al toen de dienst
+  begon te kijken (na een herstart), dan staat er geen tijd.
+- **Versie 0.157.0.**
+
+*Nog niet:* "Handmatig koelen" in Home Assistant heet nog gewoon Handmatig, en
+vakantie heeft geen einddatum (Home Assistant kent er geen). *Achteraf:* allebei
+dezelfde dag, in besluit 287.
+
+---
+
+## 287. Handmatig koelen en vakantie bij de stand
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.157.1. Volgt op besluit 286; Ricardo: "kunnen we die
+laatste 2 punten die je noemt nog toevoegen?"
+
+*Waarom:* zette "Handmatig koelen" bij de koelstrategie in Home Assistant het
+huis op Handmatig, dan zei Thuis alleen "Handmatig, gekozen in Home Assistant",
+alsof iemand de stand zelf koos. En bij vakantie stond niet tot of sinds wanneer.
+
+*Besluit:*
+
+- **Handmatig door een knop** (`mode.handsOffWhen`): de stand zegt welke knop
+  het is en sinds wanneer, uit Home Assistant. Bij koelen "Handmatig · koelen
+  met de hand", in het blad "In Home Assistant staat "Koel strategie" op
+  "Handmatig koelen". Zolang regelt het huis niets." Een andere knop met zijn
+  eigen stand. Gewoon Handmatig gekozen blijft "gekozen in Home Assistant".
+- **Vakantie zegt sinds wanneer:** "Vakantie · sinds di 3 nov", of vandaag de
+  klok. Home Assistant kent geen einddatum (dit huis heeft er geen datumveld
+  voor). Een eind kiezen in SunArc kan pas als SunArc de stand mag zetten
+  (stap B).
+- **Hoe:** de dienst leest de stand, de naam en sinds wanneer van een entiteit
+  uit de toestanden die hij al bijhoudt (`toestand`). Alleen lezen. Dit "sinds"
+  komt uit Home Assistant, dus het klopt ook na een herstart.
+- **Versie 0.157.1.**
 
 ---
 

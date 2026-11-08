@@ -122,6 +122,10 @@ verwijzing bestaat.
   voorverwarmen, want zijn piepje maakt de slapers wakker ([281]). Per kamer
   aan of uit, na hoeveel minuten stoken en vanaf hoeveel graden te koud, bij
   Regeling › Klimaat ([283]).
+- **De stand op Thuis** zegt wat er meespeelt: met de hand, bijspringen,
+  vakantie of afwezig, en nog Dag door licht. Op de wand in de knop, op de
+  telefoon naast de begroeting; het blad met de dag als balk ([286]). Handmatig
+  zegt welke knop in Home Assistant het doet, vakantie sinds wanneer ([287]).
 - **Bij zon over:** eerst comfort, dan de batterij, dan de auto. Laadpaal en
   batterij stuurt SunArc niet zelf ([85]). Wat er na comfort over is,
   gaat in de volgorde van de lijst Op zon: kamers die op zon voorkoelen of
@@ -153,6 +157,7 @@ verwijzing bestaat.
   per dag, en dan schakelt SunArc hem echt als de bewoner hem toeliet; wie zelf
   schakelt, wint ([267], 0.141.0). Het blad zegt Zet aan of Zet uit, en vast
   elke dag, op werkdagen of in het weekend kan er meteen in ([268], 0.142.0).
+  Een geplande scène noemt zijn kamer en, bij Aanpassen, zijn lampen ([285], 0.156.2).
 - **Terugkijken:** Opbrengst rekent per dag, week, maand of jaar met de meters
   en prijzen die de app bewaart, overgenomen uit het Energie-dashboard of zelf
   ingesteld; de cijfers komen uit de statistiek van Home Assistant ([102]).
@@ -889,4 +894,7 @@ verwijzing bestaat.
 [282]: DECISIONS.md#282-voorverwarmen-krijgt-een-eigen-temperatuur-bij-dagdelen
 [283]: DECISIONS.md#283-bijspringen-per-kamer-bij-regeling--klimaat
 [284]: DECISIONS.md#284-het-stroombeeld-noemt-elk-apparaat-bij-jaar-hele-euros
+[285]: DECISIONS.md#285-een-geplande-scène-noemt-zijn-kamer-en-lampen
+[286]: DECISIONS.md#286-de-stand-van-het-huis-zegt-wat-er-meespeelt
+[287]: DECISIONS.md#287-handmatig-koelen-en-vakantie-bij-de-stand
 <!-- links:einde -->

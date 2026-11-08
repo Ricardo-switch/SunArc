@@ -11,7 +11,8 @@ import { leesHerhaal, leesPlanTijd, leesZonMinuten, volgendeMoment, volgendeZon,
 import type { Diensten } from '../src/web/diensten.js';
 import type { Bedienbaar } from '../src/web/opdracht.js';
 import { herhaalZin, momentZin, planZin } from '../src/web/routes/gepland.js';
-import { leesAanpassing } from '../src/web/routes/tedoen.js';
+import { leesAanpassing, scenesVan } from '../src/web/routes/tedoen.js';
+import type { HouseReport } from '../src/web/house.js';
 import { Herinneringen, type GeplandeOpdracht } from '../src/web/tedoen.js';
 
 const TZ = 'Europe/Amsterdam';
@@ -162,5 +163,36 @@ describe('vast en gepland bewaren (besluit 234)', () => {
     expect(typeof leesAanpassing({ moment: { soort: 'tijd', uur: 25, minuut: 0 } })).toBe('string');
     expect(typeof leesAanpassing({ herhaal: { soort: 'dagen', dagen: [] } })).toBe('string');
     expect(typeof leesAanpassing({ aan: 'ja' })).toBe('string');
+  });
+});
+
+describe('een geplande scène met zijn kamer en lampen (8 november 2026)', () => {
+  const lamp = (id: string, naam: string, groepen: string[], haNaam = naam) => ({ id, naam, haNaam, soort: 'licht', groepen });
+  const huis = {
+    etages: [
+      {
+        ruimtes: [
+          {
+            naam: 'Slaapkamer',
+            scenes: [{ id: 'scene.slaapkamer_nachtlampje', naam: 'Nachtlampje', groep: 'Slaapkamer' }],
+            apparaten: [lamp('light.links', 'Nachtkastje links', ['Slaapkamer']), lamp('light.rechts', 'Nachtkastje rechts', ['Slaapkamer']), { id: 'climate.x', naam: 'Airco', haNaam: 'Airco', soort: 'klimaat', groepen: [] }],
+          },
+          { naam: 'Overloop', scenes: [{ id: 'scene.ha_eigen', naam: 'Eigen', groep: null }], apparaten: [lamp('light.overloop', 'Overloop', ['Slaapkamer'])] },
+        ],
+      },
+    ],
+  } as unknown as HouseReport;
+
+  it('noemt de kamer en de lampen van de Hue-groep, ook in een andere kamer', () => {
+    expect(scenesVan(huis, [{ pad: 'api/scene', body: { id: 'scene.slaapkamer_nachtlampje' } }])).toEqual([
+      { id: 'scene.slaapkamer_nachtlampje', naam: 'Nachtlampje', kamer: 'Slaapkamer', lampen: ['Nachtkastje links', 'Nachtkastje rechts', 'Overloop'] },
+    ]);
+  });
+
+  it('een scène zonder Hue-groep alleen met zijn kamer; geen scène of geen huis: niets', () => {
+    expect(scenesVan(huis, [{ pad: 'api/scene', body: { id: 'scene.ha_eigen' } }])).toEqual([{ id: 'scene.ha_eigen', naam: 'Eigen', kamer: 'Overloop', lampen: [] }]);
+    expect(scenesVan(huis, STAP)).toEqual([]);
+    expect(scenesVan(null, [{ pad: 'api/scene', body: { id: 'scene.slaapkamer_nachtlampje' } }])).toEqual([]);
+    expect(scenesVan(huis, [{ pad: 'api/scene', body: { id: 'scene.weg' } }])).toEqual([]);
   });
 });

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.156.1';
+export const VERSIE = '0.157.1';
 
 export interface Nieuw {
   readonly versie: string;
@@ -74,12 +74,50 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.157.1',
+    datum: '2026-11-08',
+    beter: [
+      'Zet "Handmatig koelen" in Home Assistant het huis op Handmatig, dan zegt de stand dat, met sinds wanneer',
+      'Bij vakantie zegt de stand sinds wanneer',
+    ],
+    en: {
+      beter: [
+        'If "Handmatig koelen" (cooling by hand) in Home Assistant sets the house to Manual, the mode now says so, with since when',
+        'On holiday the mode says since when',
+      ],
+    },
+  },
+  {
+    versie: '0.157.0',
+    datum: '2026-11-08',
+    nieuw: [
+      'De stand van het huis zegt wat er meespeelt: de airco springt bij, iets gaat met de hand, niemand is thuis, vakantie, of het is nog Dag omdat er licht brandt. Op de wand in de knop rechtsboven, op de telefoon naast de begroeting',
+      'Het blad van de stand toont de dag als balk met de dagdelen en hun temperatuur, en alles wat er nu meespeelt',
+    ],
+    en: {
+      nieuw: [
+        'The mode of the house says what plays a part: the air conditioner helps out, something runs by hand, nobody is home, holiday, or it is still Day because a light is on. On the wall in the button at the top right, on the phone next to the greeting',
+        'The mode sheet shows the day as a bar with the parts of the day and their temperature, and everything that plays a part now',
+      ],
+    },
+  },
+  {
+    versie: '0.156.2',
+    datum: '2026-11-08',
+    beter: ['Een scène in een vaste taak zegt nu in welke kamer hij hoort, en bij Aanpassen welke lampen hij zet'],
+    opgelost: ['Kiest Home Assistant de stand Voorverwarmen, dan zegt Thuis dat nu ook, in plaats van Automatisch'],
+    en: {
+      beter: ['A scene in a fixed task now says which room it belongs to, and under Edit which lights it sets'],
+      opgelost: ['If Home Assistant picks the Preheat mode, Home now says so too, instead of Automatic'],
+    },
+  },
   {
     versie: '0.156.1',
     datum: '2026-11-08',
