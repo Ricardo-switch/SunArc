@@ -82,6 +82,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [186. Warmte bewaren: de boiler en de jacuzzi op zon](#186-warmte-bewaren-de-boiler-en-de-jacuzzi-op-zon)
 - [194. Een huis zonder slimme regeling: de app draait ook zonder zones](#194-een-huis-zonder-slimme-regeling-de-app-draait-ook-zonder-zones)
 - [264. Een slimme stekker als apparaat op zon](#264-een-slimme-stekker-als-apparaat-op-zon)
+- [274. De regeling kijkt in de schaduw mee met de thuisaccu](#274-de-regeling-kijkt-in-de-schaduw-mee-met-de-thuisaccu)
 
 **Configuratie en onboarding**
 
@@ -149,6 +150,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [230. Een thuisbatterij op je eigen uren](#230-een-thuisbatterij-op-je-eigen-uren)
 - [231. Hoe je huis warmte vasthoudt: het thermisch model leert en laat zien](#231-hoe-je-huis-warmte-vasthoudt-het-thermisch-model-leert-en-laat-zien)
 - [251. Een prijs per uur: de kosten zoals Home Assistant ze telt](#251-een-prijs-per-uur-de-kosten-zoals-home-assistant-ze-telt)
+- [272. De thuisaccu telt mee in de cijfers](#272-de-thuisaccu-telt-mee-in-de-cijfers)
 
 **Weergave**
 
@@ -264,6 +266,10 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [268. Het stekkerblad zegt wat je wilt, herhalen kan erin, en scènes horen bij de lampen](#268-het-stekkerblad-zegt-wat-je-wilt-herhalen-kan-erin-en-scènes-horen-bij-de-lampen)
 - [269. Buiten heeft echte plekken voor apparaten, ook zonder gebied in Home Assistant](#269-buiten-heeft-echte-plekken-voor-apparaten-ook-zonder-gebied-in-home-assistant)
 - [270. De thuisaccu staat in de tekening, op de plek die de bewoner kiest](#270-de-thuisaccu-staat-in-de-tekening-op-de-plek-die-de-bewoner-kiest)
+- [271. Een thuisaccu zelf kiezen bij Energie, ook uit losse sensoren](#271-een-thuisaccu-zelf-kiezen-bij-energie-ook-uit-losse-sensoren)
+- [273. De stromen van en naar de thuisaccu in de tekening en bij Nu](#273-de-stromen-van-en-naar-de-thuisaccu-in-de-tekening-en-bij-nu)
+- [275. Meer thuisaccu's samen, met hun maat en wat ze leverden](#275-meer-thuisaccus-samen-met-hun-maat-en-wat-ze-leverden)
+- [276. Meldingen over de thuisaccu](#276-meldingen-over-de-thuisaccu)
 
 **Veiligheid**
 
@@ -12626,6 +12632,195 @@ tekende de thuisaccu tot nu toe nergens in het huis, alleen als kaart.
 **Bewust niet (nog).** De stromen van en naar de accu in de tekening; die
 tekent de app nog nergens. Een accu die uit losse sensoren bestaat (issue 145)
 volgt apart.
+
+## 271. Een thuisaccu zelf kiezen bij Energie, ook uit losse sensoren
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, versie 0.145.0, issue 145; schets `design/app2/Wand-Energie-Accu.html`,
+onderzoek `docs/thuisaccu-onderzoek.md`.
+
+**Waarom.** Een tester heeft drie Marstek-accu's die Homey stuurt. Ze komen in
+Home Assistant binnen als één apparaat "Laadplan Controller" met losse
+sensoren, en SunArc herkende ze niet: geen klasse `energy_storage`, geen
+koppeling uit de lijst, geen naam die op een accu lijkt. Er was nergens een
+plek om een accu zelf aan te wijzen. Ricardo koos na het onderzoek de hele
+volgorde: zelf kiezen, de accu in de cijfers, de stromen tekenen, de regeling
+laat hem meekijken, meer accu's met hun maat, en meldingen; elk een versie.
+
+**Wat (stap 1).**
+
+- Een eigen deel **Energie › Thuisaccu**, naast Auto en laadpaal en net zo
+  opgebouwd. Links wat de app vond, elk met een schakelaar, en zelf een
+  apparaat kiezen. Te kiezen zijn apparaten die een vermogen of energie meten,
+  met een lading in % of allebei; geen knopje met een batterij, geen auto,
+  laadpaal of evcc.
+- Rechts per accu **welke sensor wat is**: hoe vol (%), het vermogen van nu,
+  totaal geladen en totaal geleverd (kWh). De sensoren van het apparaat staan
+  eerst, daarna de andere van dezelfde soort. "Laat SunArc kiezen" is wat de
+  app zelf vindt.
+- **Wat plus betekent** bij het vermogen: laden (zoals de meeste) of leveren
+  (zoals een Powerwall). Eronder wat de accu nu doet, met die keuze
+  toegepast, zodat je ziet of het klopt. Met aparte sensoren voor laden en
+  ontladen doet het teken er niet toe.
+- Bewaard in `aansluiting.json` als `accu`: `aan` per apparaat, `zelf` voor wat
+  de bewoner koos, en per accu de `instelling`. Een gekozen accu is geen auto
+  of laadpaal meer, en staat niet meer als kandidaat bij Auto en laadpaal.
+- De kaart op Thuis, bij Apparaten, in de tekening en "Waar staat je accu?"
+  nemen de eerste accu die aan staat, met de gekozen sensoren.
+- SunArc kijkt alleen; hij stuurt de accu niet (besluit 85, 182).
+
+**Bewust niet (nog).** De maat in kWh en meer accu's samen op één kaart komen
+in stap 5; de cijfers in Opbrengst in stap 2.
+
+## 272. De thuisaccu telt mee in de cijfers
+
+*Onderwerp: meten, data en analyse · Status: geldig*
+
+7 november 2026, versie 0.146.0, stap 2 van de thuisaccu-ronde (besluit 271).
+
+**Waarom.** SunArc rekende het verbruik als zon plus net, en zelf gebruikt als
+opgewekt min terug. Met een accu telde laden dan als verbruik, en wat hij 's
+avonds leverde telde nergens: overdag te veel, 's avonds te weinig, en de zon
+per apparaat klopte niet. Wat het net kostte klopte wel.
+
+**Wat.**
+
+- **Nu:** het verbruik is zon plus net min wat de accu's samen laden (plus is
+  laden, min is leveren). Het staat als `accuKw` bij de stromen van nu.
+- **Opbrengst, per uur:** wat de accu laadt, komt eerst uit de zon die niet
+  terugging, de rest van het net; wat hij levert, gebruikt het huis. Het
+  verbruik is van het net plus de zon plus uit de accu, min wat erin ging. Het
+  deel zon in wat eruit komt, is het deel zon in wat erin ging, over de periode.
+  Eigen zon is direct van het dak plus dat deel van de accu. "Zelf gebruikt"
+  bij de panelen blijft opgewekt min terug: ook wat de accu in ging, is van jou.
+- **De tellers:** eerst de accu in het Energie-dashboard van Home Assistant
+  (`stat_energy_to` is geladen, `stat_energy_from` geleverd), anders de
+  sensoren voor totaal geladen en geleverd bij Energie › Thuisaccu. Ze worden
+  niet bewaard, maar voor elke som opgehaald.
+- **Op de pagina:** onder de panelen een regel met wat de accu laadde, waarvan
+  uit de zon, en wat hij leverde; in Waar je stroom heen ging een bron Uit de
+  accu en een bestemming Naar de accu, in ijsblauw.
+- Zonder slimme meter rekent de accu niet mee: dan is niet te zeggen wat er
+  terugging. Het net en de kosten veranderen niet.
+
+**Bewust niet (nog).** De accu in de tekening van Thuis en in Opbrengst › Nu
+volgt in stap 3; de regeling in stap 4. Het sluipverbruik met een accu
+(besluit 192) blijft zoals het was.
+
+## 273. De stromen van en naar de thuisaccu in de tekening en bij Nu
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, versie 0.147.0, stap 3 van de thuisaccu-ronde (besluit 271).
+
+**Waarom.** De tekening kon al lijnen van en naar de accu trekken (huis 3.0),
+maar niemand gaf ze door. Besluit 270 liet ze bewust weg; nu het verbruik van
+nu de accu kent (besluit 272), kunnen ze er eerlijk bij.
+
+**Wat.**
+
+- **Op Thuis:** laadt de accu, dan een lijn naar de accu, van de zon als die er
+  is en anders van het net, in de kleur van die bron. Levert hij, dan een
+  ijsblauwe lijn uit de accu naar het huis, of naar de kamer die op zon koelt.
+  Een label bij de accu zegt hoeveel kW, met "de accu laadt" of "uit de accu".
+- **Binnen in een kamer** komt de lijn uit de kast tegen de achterwand, over de
+  vloer naar de voorgevel en langs de gevel naar beneden.
+- **Opbrengst › Nu:** wat de accu laadt komt eerst uit de zon, de rest van het
+  net, en staat rechts als Naar de accu; wat hij levert staat links als Uit de
+  accu en verdeelt zich over de apparaten zoals de zon en het net.
+- De dikte volgt het vermogen, zoals bij de andere stromen.
+
+**Bewust niet (nog).** Een lijn tussen de accu en de auto: of de accu de auto
+laadt, meet SunArc niet apart.
+
+## 274. De regeling kijkt in de schaduw mee met de thuisaccu
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+7 november 2026, versie 0.148.0, stap 4 van de thuisaccu-ronde (besluit 271).
+
+**Waarom.** Laadt de accu met zon, dan ziet de netmeter niets terug en denkt
+de regeling dat er geen zon over is. In de praktijk gaat de accu zo vóór
+koelen en verwarmen op zon, terwijl besluit 85 eerst comfort en dan de accu
+zegt. Ricardo koos: wat de accu met zon laadt, telt als zon over voor comfort,
+maar eerst in de schaduw. De stekkers op zon schakelen echt op wat de regeling
+zegt (besluit 267); dat echte besluit mag nog niet veranderen.
+
+**Wat.**
+
+- **Met zon:** de adapter rekent wat de accu's samen met zon laden: wat ze
+  laden min wat er van het net komt, nooit meer dan de zon. Zonder zonmeting
+  telt het niet (`withAccu`, `power.accuZonW`). De kern leest de zon zelf niet.
+- **De schaduw:** vanaf 100 W rekent de kern het besluit nog eens met dat
+  vermogen als zon over (het net zoveel lager), en zet in de uitleg wat hij dan
+  anders zou doen: welke apparaten zouden koelen of verwarmen of aan blijven, en
+  welke apparaten op zon zouden starten of stoken (`explanation.accu`). Het
+  echte besluit, het budget en de commando's blijven precies zoals ze waren.
+- **Zichtbaar** bij Apparaten, op de kaart van de accu: "Laadt 1,5 kW met zon.
+  Telde dat als zon over, dan zette SunArc nu ook aan: …", of dat het niets
+  uitmaakt. De uitleg gaat mee in het logboek, zodat later te zien is hoe vaak
+  het iets had uitgemaakt.
+
+**Bewust niet (nog).** Het echt laten tellen: dat is een keuze na een tijd in de
+schaduw, net als stap B (besluit 64). Doorgeven aan de accu hoeveel er over is
+(besluit 85): SunArc stuurt de accu niet.
+
+## 275. Meer thuisaccu's samen, met hun maat en wat ze leverden
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, versie 0.149.0, stap 5 van de thuisaccu-ronde (besluit 271).
+
+**Waarom.** Het huis kende één accu: de eerste die paste. Een tweede viel weg.
+En zonder de maat in kWh kon de app niet zeggen hoeveel erin zit of hoe lang hij
+nog kan; weinig koppelingen geven die maat.
+
+**Wat.**
+
+- **Meer accu's:** elke accu die aan staat telt. Op Thuis en bij Apparaten één
+  kaart samen ("2 batterijen"), met bij Apparaten per accu een regel met hoe vol
+  hij is, wat hij doet en met hoeveel. Samen is het vermogen opgeteld, en de
+  lading naar hun maat als elke maat bekend is, anders het gemiddelde
+  (`opslag.batterij` samen, `opslag.batterijen` elk apart). Het verbruik van nu
+  en Opbrengst telden ze al allemaal (besluit 272).
+- **De maat:** bij Energie › Thuisaccu per accu, 1 tot 200 kWh, zoals bij de
+  auto. Daarmee: hoeveel kWh erin zit, hoe laat hij vol is als hij laadt (bij
+  dit vermogen, hooguit een dag vooruit), en hoe lang hij het huis nog voedt als
+  hij levert (hooguit twee dagen). Het zinnetje bij Energie zegt de maat samen.
+- **Wat hij leverde:** bij Wat je huis kan wat de accu deze maand aan het huis
+  leverde, uit Opbrengst; met een stroomprijs ook wat het deel uit eigen zon
+  vanaf 2027 ongeveer waard is, met de prijs van na het salderen zoals bij
+  besluit 230. Tot 2027 levert een accu met salderen weinig op; dat zegt de app
+  niet anders.
+
+**Bewust niet (nog).** Een eigen pagina per accu, zoals de auto. De plek in de
+tekening (besluit 270) geldt voor alle accu's samen.
+
+## 276. Meldingen over de thuisaccu
+
+*Onderwerp: weergave · Status: geldig*
+
+7 november 2026, versie 0.150.0, stap 6 van de thuisaccu-ronde (besluit 271).
+
+**Waarom.** De accu had geen enkele melding: niet als hij niets meer zei, niet
+bij een fout, en niet als hij vol was terwijl de zon toch naar het net ging.
+Die drie stonden in het onderzoek, en Ricardo koos alle voorstellen.
+
+**Wat.**
+
+- **Zegt niets meer:** de lading en het vermogen zeggen al een half uur niets;
+  elke keer een eigen melding, weg zodra de lading weer binnenkomt.
+- **Een fout:** een stand van de accu met error, fault, fout, storing of alarm
+  (niet "no fault" of "ok"); weg als de fout weg is.
+- **Vol met zon over:** op 99% of meer terwijl er minstens 500 W naar het net
+  gaat, hooguit één keer per dag, zonder rode stip: een goed moment voor de
+  wasmachine of de vaatwasser, met een tik naar Op zon.
+- **Op de telefoon** horen ze bij Onderhoud: overdag, en alleen als de bewoner
+  dat koos bij Jij. Bij de bel altijd.
+- Een accu die even niets zegt, blijft herkend: de herkenning kijkt naar een
+  sensor met de klasse batterij, ook zonder getal. Eerst viel hij dan weg, en
+  kon er geen melding komen.
 
 ## Wat nog een besluit wacht
 

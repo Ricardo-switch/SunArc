@@ -47,7 +47,7 @@ import { FunctiesStore, functiesGevonden } from '../src/web/functies.js';
 import { LightSwitch } from '../src/web/lights.js';
 import { UitstelStore } from '../src/web/uitstel.js';
 import { STANDAARD_TEL, VoorkeurenStore } from '../src/web/voorkeuren.js';
-import type { Opslag } from '../src/web/opslag.js';
+import { accuView, type Opslag } from '../src/web/opslag.js';
 import { WeatherLog } from '../src/web/weather.js';
 import { EnergyStore, importFromPrefs, type EnergySource } from '../src/web/energy.js';
 import { THERMISCH_FILE, type ThermischRapport } from '../src/web/thermisch.js';
@@ -289,6 +289,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
   let uitstel: UitstelStore;
   let energyStore: EnergyStore;
   let connStore: ConnectionStore;
+  let accuHuis: { reg: Parameters<typeof accuView>[0]; states: Parameters<typeof accuView>[1] };
   let functiesStore: FunctiesStore;
   const sessions = new SessionStore();
   let sessionId = '';
@@ -330,6 +331,23 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     bewonersStore = new BewonersStore(dir);
     // De testgebruiker is een scherm (besluit 147): anders vraagt elke pagina eerst "wie ben je?".
     await bewonersStore.save(startBewoners);
+    // Drie Marstek-accu's via Homey (issue 145): één apparaat met losse sensoren, niet vanzelf herkend.
+    accuHuis = (() => {
+      const meting = (id: string, klasse: string, staat: string, eenheid: string, naam: string) => ({ id, klasse, staat, eenheid, naam });
+      const m = [
+        meting('sensor.laadplan_controller_battery', 'battery', '64', '%', 'Laadplan Controller battery'),
+        meting('sensor.laadplan_controller_power', 'power', '800', 'W', 'Laadplan Controller power'),
+        meting('sensor.laadplan_controller_charged_energy', 'energy', '812.4', 'kWh', 'Laadplan Controller charged energy'),
+        meting('sensor.laadplan_controller_discharged_energy', 'energy', '734', 'kWh', 'Laadplan Controller discharged energy'),
+      ];
+      return {
+        reg: {
+          devices: [{ id: 'homey', area_id: null, name: 'Laadplan Controller', manufacturer: 'Athom', model: 'Homey Pro' }],
+          entities: m.map((x) => ({ entity_id: x.id, device_id: 'homey', platform: 'homey', original_device_class: x.klasse, original_name: x.naam })),
+        },
+        states: new Map(m.map((x) => [x.id, { entity_id: x.id, state: x.staat, attributes: { unit_of_measurement: x.eenheid, friendly_name: x.naam, device_class: x.klasse }, last_changed: '', last_updated: '' }])),
+      };
+    })();
     const connFound = {
       fasen: [{ id: 'L1', current: 'sensor.p1_meter_current_phase_1' }] as FoundPhase[],
       apparaten: [
@@ -564,6 +582,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
                 solar: { naam: 'Zonnepanelen', intervalS: 61, platform: 'solaredge_modbus_multi' },
                 kaart: true,
                 nederland: true,
+                // Energie › Thuisaccu (besluit 271): een accu via Homey met losse sensoren, zoals issue 145.
+                accu: accuView(accuHuis.reg, accuHuis.states, connStore.current?.accu ?? null),
               }),
           },
           // De kaart (besluit 254 en 5 november 2026): een nagemaakte plek, OpenStreetMap en 3D BAG; er gaat niets naar buiten.
@@ -1019,6 +1039,58 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     expect(teVol).toEqual([]);
     await context.close();
   }, 60_000);
+
+  /*
+   * Energie › Thuisaccu (besluit 271, issue 145): een accu via Homey zelf
+   * kiezen, zien welke sensor wat is, het teken omdraaien, en dat het bewaard
+   * wordt. Op de wand zonder te scrollen.
+   */
+  it('kiest bij Energie › Thuisaccu een accu van Homey, met zijn sensoren en het teken', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const wand = p.locator('#wand');
+    await p.goto(`${baseUrl}/energie.html#accu`);
+    await wand.locator('[data-vorm] h2', { hasText: 'Thuisaccu' }).waitFor();
+    expect(await wand.locator('[data-delen] .deel[href="#accu"]').textContent()).toContain('niets gevonden');
+    expect(await wand.locator('[data-vorm] .ld-leeg').textContent()).toContain('Nog geen thuisaccu gevonden');
+    // Zelf kiezen: het apparaat van Homey.
+    await wand.locator('[data-accu-kies]').selectOption('homey');
+    const rij = wand.locator('.ld-rij', { hasText: 'Laadplan Controller' });
+    await rij.waitFor();
+    expect(await rij.textContent()).toContain('Zelf gekozen · lading, vermogen, geladen en geleverd');
+    await expect.poll(() => connStore.current?.accu?.zelf).toEqual(['homey']);
+    expect(await wand.locator('[data-delen] .deel[href="#accu"]').textContent()).toContain('1 accu');
+    // De sensoren die hij vond, met wat ze nu zeggen.
+    expect(await wand.locator('[data-accu-sensor="lading"]').inputValue()).toBe('sensor.laadplan_controller_battery');
+    expect(await wand.locator('.ac-sensor', { hasText: 'Hoe vol' }).textContent()).toContain('64%');
+    expect(await wand.locator('[data-accu-sensor="geleverd"]').inputValue()).toBe('sensor.laadplan_controller_discharged_energy');
+    expect(await wand.locator('.ac-nu').textContent()).toContain('Nu 0,8 kW: de accu laadt.');
+    // Plus is leveren: dan levert hij.
+    await wand.locator('[data-accu="teken"][data-waarde="leveren"]').click();
+    await expect.poll(() => wand.locator('.ac-nu').textContent()).toContain('Nu −0,8 kW: de accu levert aan het huis.');
+    await expect.poll(() => connStore.current?.accu?.instelling['homey']?.teken).toBe('leveren');
+    // Een andere sensor kiezen wordt bewaard.
+    await wand.locator('[data-accu-sensor="geladen"]').selectOption('sensor.laadplan_controller_discharged_energy');
+    await expect.poll(() => connStore.current?.accu?.instelling['homey']?.geladen).toBe('sensor.laadplan_controller_discharged_energy');
+    // De maat (besluit 275): drie Marstek-accu's van 5,12 kWh.
+    await wand.locator('[data-accu-maat]').fill('15.36');
+    await wand.locator('[data-accu-maat]').blur();
+    await expect.poll(() => connStore.current?.accu?.instelling['homey']?.maatKWh).toBe(15.4);
+    await expect.poll(() => wand.locator('[data-delen] .deel[href="#accu"]').textContent()).toContain('1 accu, 15,4 kWh');
+    // De wand scrolt niet.
+    expect(await wand.locator('[data-vorm]').evaluate((v) => v.scrollHeight - v.clientHeight)).toBeLessThanOrEqual(2);
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-energie-accu.png') });
+    // Weghalen: dan is hij weer te kiezen.
+    await wand.locator('[data-accu="weg"]').click();
+    await wand.locator('[data-accu-kies]').waitFor();
+    await expect.poll(() => connStore.current?.accu ?? null).toBeNull();
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
 
   /*
    * Meters en prijzen in ontwerp 2 (besluiten 102 en 104): overnemen uit het
@@ -3087,6 +3159,41 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await p.locator('#tel [data-telinhoud] h2', { hasText: 'Waar je stroom nu heen gaat' }).waitFor();
     expect(await p.evaluate<boolean>('document.documentElement.scrollWidth <= innerWidth + 1')).toBe(true);
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-opbrengst-nu-tel.png'), fullPage: true });
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
+  /*
+   * De thuisaccu in Opbrengst (besluit 272): wat hij laadde en leverde onder de
+   * panelen, en in het stroombeeld uit en naar de accu. De som zelf staat in
+   * yield.test.ts; hier hoe de pagina hem toont.
+   */
+  it('toont bij Opbrengst wat de thuisaccu laadde en leverde', async () => {
+    if (energyStore.current == null) await energyStore.save(importFromPrefs(await ENERGY_SOURCE.prefs(), await ENERGY_SOURCE.meters()));
+    const context = await browser.newContext({ viewport: { width: 1340, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    await context.route((url) => url.pathname === '/api/opbrengst', async (route) => {
+      const r = await route.fetch();
+      const j = (await r.json()) as { stromen?: { van: string; naar: string; kwh: number }[]; accu?: unknown };
+      if (j.stromen) {
+        j.accu = { geladenKwh: 31, geleverdKwh: 27.5, uitZonKwh: 29, uitNetKwh: 2, bron: 'dashboard' };
+        j.stromen = [...j.stromen, { van: 'accu', naar: 'rest', kwh: 27.5 }, { van: 'zon', naar: 'naarAccu', kwh: 29 }, { van: 'net', naar: 'naarAccu', kwh: 2 }];
+      }
+      await route.fulfill({ response: r, json: j });
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/opbrengst.html`);
+    const wand = p.locator('#wand');
+    await wand.locator('.accuregel').waitFor({ timeout: 10_000 });
+    expect(await wand.locator('.accuregel').textContent()).toBe('De accu laadde 31,0 kWh, waarvan 29,0 kWh uit de zon, en leverde 27,5 kWh aan het huis.');
+    await wand.locator('[data-sankey] svg text', { hasText: 'Uit de accu' }).waitFor();
+    await wand.locator('[data-sankey] svg text', { hasText: 'Naar de accu' }).waitFor();
+    expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-opbrengst-accu.png') });
     expect(fouten).toEqual([]);
     await context.close();
   }, 30_000);
@@ -6192,8 +6299,9 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await p.goto(`${baseUrl}/thuis.html`);
       const tik = p.locator(`svg .sc-tik[data-kamer="${plek('voordeur')!.id}"]`).locator('visible=true').first();
       await tik.waitFor({ timeout: 15_000 });
-      await tik.click({ force: true });
-      await p.locator('.weerkop h2', { hasText: 'Voordeur' }).locator('visible=true').first().waitFor(kort);
+      // Thuis tekent het huis opnieuw bij elke nieuwe stand: dan is het vlak van zonet weg. Opnieuw zoeken en tikken.
+      const voordeur = p.locator('.weerkop h2', { hasText: 'Voordeur' }).locator('visible=true').first();
+      await expect.poll(async () => (await voordeur.isVisible()) || (await tik.click({ force: true, timeout: 2000 }).then(() => voordeur.waitFor({ timeout: 2000 })).then(() => true, () => false)), { timeout: 15_000 }).toBe(true);
       expect(fouten).toEqual([]);
     } finally {
       if (start) await layoutStore.save(start);
@@ -6235,9 +6343,9 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await p.goto(`${baseUrl}/thuis.html`);
       const tik = p.locator(`svg .sc-tik[data-kamer="${garage()!.id}"]`).locator('visible=true').first();
       await tik.waitFor({ timeout: 15_000 });
-      await tik.click({ force: true });
       const vak = p.locator('.bb-auto', { hasText: 'Sessy' }).locator('visible=true').first();
-      await vak.waitFor(kort);
+      // Thuis tekent het huis opnieuw bij elke nieuwe stand: dan is het vlak van zonet weg. Opnieuw zoeken en tikken.
+      await expect.poll(async () => (await vak.isVisible()) || (await tik.click({ force: true, timeout: 2000 }).then(() => vak.waitFor({ timeout: 2000 })).then(() => true, () => false)), { timeout: 15_000 }).toBe(true);
       expect(await vak.textContent()).toContain('64%');
       expect(await vak.textContent()).toContain('laadt');
 
@@ -6258,6 +6366,150 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await context.close();
     }
   }, 45_000);
+
+  /*
+   * De stromen van en naar de thuisaccu (besluit 273): op Thuis een lijn naar
+   * de accu als hij laadt en eruit als hij levert, met een label; ook als hij
+   * binnen staat. Bij Opbrengst › Nu Naar de accu en Uit de accu.
+   */
+  /*
+   * De thuisaccu in de schaduw (besluit 274): bij Apparaten zegt de kaart van de
+   * accu wat SunArc zou aanzetten als wat hij met zon laadt zon over was.
+   */
+  it('zegt bij de thuisaccu wat SunArc zou doen als zijn zon over was (besluit 274)', async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    let accu: unknown = { zonKw: 1.5, zou: ['Airco woonkamer', 'Droger'] };
+    await context.route(`${baseUrl}/api/state`, async (route) => {
+      const r = await route.fetch();
+      const j = (await r.json()) as { bewoner?: Record<string, unknown> };
+      if (j.bewoner) j.bewoner = { ...j.bewoner, ...(accu ? { accu } : {}) };
+      await route.fulfill({ response: r, json: j });
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    extraOpslag = { batterij: { id: 'sessy', naam: 'Sessy', pct: 64, vermogenW: 1500, stand: 'laadt' }, auto: null, autos: [] };
+    try {
+      await p.goto(`${baseUrl}/apparaten.html#batterij`);
+      const kaart = p.locator('#tel [data-lading="batterij"]');
+      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('Laadt 1,5 kW met zon. Telde dat als zon over, dan zette SunArc nu ook aan: Airco woonkamer en Droger.');
+      // Zou het niets uitmaken, dan zegt hij dat.
+      accu = { zonKw: 0.4, zou: [] };
+      await p.reload();
+      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('Laadt 0,4 kW met zon. Telde dat als zon over, dan deed SunArc nu niets anders.');
+      // Zonder schaduw: zoals altijd.
+      accu = null;
+      await p.reload();
+      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('SunArc kijkt mee en stuurt de batterij niet.');
+      expect(fouten).toEqual([]);
+    } finally {
+      extraOpslag = null;
+      await context.close();
+    }
+  }, 30_000);
+
+  /*
+   * Meer accu's en hun maat (besluit 275): bij Apparaten één kaart met per accu
+   * een regel en hoeveel erin zit; bij Wat je huis kan wat hij leverde.
+   */
+  it('toont meer accu’s samen, met hun maat en wat ze leverden (besluit 275)', async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    await context.route((url) => url.pathname === '/api/opbrengst', async (route) => {
+      const r = await route.fetch();
+      const j = (await r.json()) as Record<string, unknown>;
+      await route.fulfill({ response: r, json: j['stroom'] ? { ...j, accu: { geladenKwh: 31, geleverdKwh: 27.5, uitZonKwh: 31, uitNetKwh: 0, bron: 'dashboard' } } : j });
+    });
+    if (energyStore.current == null) await energyStore.save(importFromPrefs(await ENERGY_SOURCE.prefs(), await ENERGY_SOURCE.meters()));
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const twee = [
+      { id: 'sessy', naam: 'Sessy', pct: 50, vermogenW: 1000, stand: 'laadt' as const },
+      { id: 'zendure', naam: 'Zendure', pct: 80, vermogenW: 500, stand: 'laadt' as const },
+    ];
+    extraOpslag = { batterij: { id: 'sessy', naam: 'De batterijen', pct: 56, vermogenW: 1500, stand: 'laadt', maatKWh: 12.5, nogKWh: 7, volOm: new Date(Date.now() + 3 * 3_600_000).toISOString(), urenNog: null }, batterijen: twee, auto: null, autos: [] };
+    try {
+      await p.goto(`${baseUrl}/apparaten.html#batterij`);
+      const kaart = p.locator('#tel [data-lading="batterij"]');
+      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('2 batterijen');
+      expect(await kaart.locator('.accuregel').count()).toBe(2);
+      expect(await kaart.locator('.accuregel').first().textContent()).toBe('Sessy50% · Laadt · 1,0 kW');
+      expect(await kaart.textContent()).toMatch(/Nog 7,0 van 12,5 kWh\. · vol rond \d\d:\d\d/);
+      // Op Thuis: één kaart, samen.
+      await p.goto(`${baseUrl}/huis-kan.html`);
+      await p.getByText('Leverde deze maand 28 kWh aan het huis').locator('visible=true').first().waitFor({ timeout: 10_000 });
+      expect(await p.locator('body').textContent()).not.toContain('undefined');
+      expect(fouten).toEqual([]);
+    } finally {
+      extraOpslag = null;
+      await context.close();
+    }
+  }, 30_000);
+
+  it('tekent de stromen van en naar de thuisaccu, op Thuis en bij Opbrengst Nu (besluit 273)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    // Eerst laadt hij 1,5 kW met zon; daarna levert hij 1 kW 's avonds.
+    let stromen: Record<string, unknown> = { zonKw: 3, netKw: -0.5, verbruikKw: 1, aircoKw: 0, huisKw: 1, geplandKw: 0, accuKw: 1.5 };
+    await context.route(`${baseUrl}/api/state`, async (route) => {
+      const r = await route.fetch();
+      const j = (await r.json()) as { bewoner?: { stromen?: unknown } };
+      if (j.bewoner) j.bewoner.stromen = stromen;
+      await route.fulfill({ response: r, json: j });
+    });
+    let binnen: { plek: 'binnen'; kamer: string } | null = null;
+    await context.route(`${baseUrl}/api/huis`, async (route) => {
+      const r = await route.fetch();
+      const j = (await r.json()) as HouseReport;
+      await route.fulfill({ response: r, json: binnen ? { ...j, accu: binnen } : j });
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    extraOpslag = { batterij: { id: 'sessy', naam: 'Sessy', pct: 64, vermogenW: 1500, stand: 'laadt' }, auto: null, autos: [] };
+    const huisSvg = p.locator('#wand svg.sc-huis').first();
+    // Een stroom is een stippellijn; 's avonds zonder beweging, dus zonder zijn klasse.
+    const lijnIn = (kleur: string) => huisSvg.locator(`polyline[stroke-dasharray="1 11"][stroke="${kleur}"]`).count();
+    try {
+      await p.goto(`${baseUrl}/thuis.html`);
+      await huisSvg.locator('text', { hasText: 'de accu laadt' }).waitFor({ timeout: 15_000 });
+      expect(await huisSvg.textContent()).toContain('1,5 kW');
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-thuis-accu-laadt.png') });
+      // Hij levert: een ijsblauwe lijn uit de accu.
+      stromen = { zonKw: 0, netKw: 0.2, verbruikKw: 1.2, aircoKw: 0, huisKw: 1.2, geplandKw: 0, accuKw: -1 };
+      extraOpslag = { batterij: { id: 'sessy', naam: 'Sessy', pct: 40, vermogenW: -1000, stand: 'levert' }, auto: null, autos: [] };
+      await p.reload();
+      await huisSvg.locator('text', { hasText: 'uit de accu' }).waitFor({ timeout: 15_000 });
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-thuis-accu-levert.png') });
+      expect(await lijnIn('#6FD3FF')).toBeGreaterThan(0);
+      // Binnen in een kamer: de lijn komt uit de kast in die kamer.
+      const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
+      binnen = { plek: 'binnen', kamer: huis.etages.filter((e) => e.id !== 'buiten').flatMap((e) => e.ruimtes)[0]!.id };
+      await p.reload();
+      await huisSvg.locator('text', { hasText: 'uit de accu' }).waitFor({ timeout: 15_000 });
+      expect(await lijnIn('#6FD3FF')).toBeGreaterThan(0);
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-thuis-accu-binnen.png') });
+      // Opbrengst › Nu: uit de accu als bron.
+      await p.goto(`${baseUrl}/opbrengst.html`);
+      const wand = p.locator('#wand');
+      await wand.locator('[data-soort="nu"]').click();
+      await wand.locator('[data-sankey] svg text', { hasText: 'Uit de accu' }).waitFor({ timeout: 10_000 });
+      // En als hij laadt: naar de accu als bestemming.
+      stromen = { zonKw: 3, netKw: -0.5, verbruikKw: 1, aircoKw: 0, huisKw: 1, geplandKw: 0, accuKw: 1.5 };
+      await wand.locator('[data-sankey] svg text', { hasText: 'Naar de accu' }).waitFor({ timeout: 10_000 });
+      expect(await wand.locator('[data-sankey]').textContent()).toContain('1,5 kW');
+      expect(fouten).toEqual([]);
+    } finally {
+      extraOpslag = null;
+      await context.close();
+    }
+  }, 60_000);
 
   /*
    * Het blad van een stekker (7 november 2026, op de wand): Zet uit is meteen

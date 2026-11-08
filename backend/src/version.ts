@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.144.2';
+export const VERSIE = '0.150.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -74,12 +74,104 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.150.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Meldingen over je thuisaccu: als hij een half uur niets meer zegt, als hij een fout meldt, en als hij vol is terwijl de zon naar het net gaat. Op je telefoon komen ze overdag, als je Onderhoud aan hebt bij Jij',
+    ],
+    beter: ['Een thuisaccu die even niets zegt, blijft in beeld in plaats van te verdwijnen'],
+    en: {
+      nieuw: [
+        'Notifications about your home battery: when it has said nothing for half an hour, when it reports a fault, and when it is full while the sun goes to the grid. On your phone they arrive during the day, if you have Maintenance on in You',
+      ],
+      beter: ['A home battery that goes quiet for a moment stays in view instead of disappearing'],
+    },
+  },
+  {
+    versie: '0.149.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Meer dan één thuisaccu: ze staan samen op één kaart, met per accu een regel met hoe vol hij is en wat hij doet',
+      'Bij Energie › Thuisaccu vul je de maat van je accu in. Dan zie je hoeveel kWh erin zit, hoe laat hij vol is als hij laadt, en hoe lang hij het huis nog voedt als hij levert',
+      'Bij Wat je huis kan staat wat je accu deze maand aan het huis leverde, en wat dat vanaf 2027 ongeveer waard is',
+    ],
+    en: {
+      nieuw: [
+        'More than one home battery: they share one card, with a line per battery for how full it is and what it does',
+        'In Energy › Home battery you fill in the size of your battery. Then you see how many kWh are in it, when it is full while charging, and how long it can still power the home while delivering',
+        'What your house can do shows what your battery delivered to the home this month, and roughly what that is worth from 2027',
+      ],
+    },
+  },
+  {
+    versie: '0.148.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Laadt je thuisaccu met zon, dan rekent SunArc ernaast uit wat hij zou doen als die zon over was, zoals een airco op zon of de droger. Bij Apparaten staat het bij je accu. Alleen ter vergelijking: er verandert niets aan wat SunArc doet',
+    ],
+    en: {
+      nieuw: [
+        'When your home battery charges from the sun, SunArc works out alongside what it would do if that sun were spare, such as an air conditioner on sun or the dryer. Devices shows it with your battery. Only for comparison: nothing changes in what SunArc does',
+      ],
+    },
+  },
+  {
+    versie: '0.147.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Op Thuis loopt nu een lijn naar je thuisaccu als hij laadt, en eruit naar het huis als hij levert, met erbij hoeveel. Ook als de accu binnen in een kamer staat',
+      'Bij Opbrengst › Nu staat je thuisaccu in Waar je stroom nu heen gaat: Naar de accu als hij laadt, Uit de accu als hij levert',
+    ],
+    en: {
+      nieuw: [
+        'On Home a line now runs to your home battery when it charges, and out to the home when it delivers, with how much. Also when the battery stands inside in a room',
+        'In Yield › Now your home battery shows in Where your power is going now: To the battery when it charges, From the battery when it delivers',
+      ],
+    },
+  },
+  {
+    versie: '0.146.0',
+    datum: '2026-11-07',
+    nieuw: ['Opbrengst rekent je thuisaccu mee: onder je panelen staat wat hij laadde, waarvan uit de zon, en wat hij aan het huis leverde. In Waar je stroom heen ging staan Uit de accu en Naar de accu'],
+    opgelost: [
+      'Met een thuisaccu klopte het verbruik niet: wat de accu laadde telde als verbruik, en wat hij leverde telde nergens. Nu klopt het verbruik van nu, per uur en per apparaat',
+    ],
+    en: {
+      nieuw: ['Yield now counts your home battery: under your panels it shows what it charged, how much of that came from the sun, and what it delivered to the home. Where your power went shows From the battery and To the battery'],
+      opgelost: ['With a home battery the use was wrong: what the battery charged counted as use, and what it delivered counted nowhere. The use now adds up, right now, per hour and per device'],
+    },
+  },
+  {
+    versie: '0.145.0',
+    datum: '2026-11-07',
+    nieuw: [
+      'Bij Energie staat nu Thuisaccu. Je ziet welke accu SunArc vond, en je kiest er zelf een als hij er niet bij staat, ook als hij via Homey binnenkomt met losse sensoren',
+      'Per accu kies je welke sensor zegt hoe vol hij is, wat hij nu laadt of levert, en hoeveel hij in totaal laadde en leverde. Je kiest ook of plus laden of leveren is, en ziet meteen wat de accu nu doet',
+    ],
+    en: {
+      nieuw: [
+        'Energy now has Home battery. You see which battery SunArc found, and you choose one yourself if it is not listed, also when it comes in through Homey with separate sensors',
+        'For each battery you choose which sensor says how full it is, what it is charging or delivering now, and how much it charged and delivered in total. You also choose whether plus is charging or delivering, and see right away what the battery is doing',
+      ],
+    },
+    meldingen: [
+      {
+        code: 'SA-DP9Z',
+        uitkomst: 'opgelost',
+        tekst: 'Je kiest je accu nu zelf bij Energie › Thuisaccu: kies het apparaat Laadplan Controller, en daarna welke sensor de lading, het vermogen en de totalen zijn.',
+        tekstEn: 'You now choose your battery yourself in Energy › Home battery: pick the Laadplan Controller device, then which sensor is the charge, the power and the totals.',
+        href: 'energie.html#accu',
+        issue: 145,
+      },
+    ],
+  },
   {
     versie: '0.144.2',
     datum: '2026-11-07',

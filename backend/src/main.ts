@@ -74,7 +74,7 @@ import type { TeDoenDienst } from './web/routes/tedoen.js';
 import { spraakKeuzes, type SpraakKeuze } from './web/functies.js';
 import { cameraMelders, camerasNu, laatsteAanUitHistorie } from './web/cameras.js';
 import { FunctiesStore, aangebeld, functiesGevonden, functiesVoorstel, getoondeCameras, volledig, type Functies, type FunctiesGevonden } from './web/functies.js';
-import { KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, vindOpslag } from './web/opslag.js';
+import { accusNu, accuView, KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, vindOpslag } from './web/opslag.js';
 import { Laadhand, laadMag } from './web/laadhand.js';
 import { Stekkerhand, stekkerMag, type StekkerBekend, type StekkerTot } from './web/stekkerhand.js';
 import { StekkerZon } from './web/stekkerzon.js';
@@ -576,6 +576,12 @@ const modelTeller = new Teller({
   dag: () => new Intl.DateTimeFormat('en-CA', { timeZone: siteConfig?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone }).format(new Date()),
 });
 let houseRegisters: HouseRegisters | null = null;
+/** Wat de thuisaccu's samen nu doen, in W: plus is laden (besluit 272, 274); null zonder accu. */
+function accuNuW(): number | null {
+  if (!houseRegisters) return null;
+  const w = accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null).map((a) => a.vermogenW).filter((x): x is number => x != null);
+  return w.length ? w.reduce((s, x) => s + x, 0) : null;
+}
 /** De stroommeter bij hetzelfde apparaat in Home Assistant, zoals bij een airco (besluit 138). */
 function vermogenSensor(entityId: string): string | null {
   const device = houseRegisters?.entities.find((e) => e.entity_id === entityId)?.device_id;
@@ -997,6 +1003,8 @@ const runner: ShadowRunner | null =
         ...(bufferStore && site
           ? { warmte: (nowMs: number) => ({ extra: bufferStore.extra, cheapWindows: cheapWindows(nowMs, site.config.timezone, energyStore?.current?.prijzen ?? null) }) }
           : {}),
+        // De thuisaccu in de schaduw (besluit 274): wat hij met zon laadt, telt daar als zon over.
+        accu: accuNuW,
         ...(webPort == null
           ? {}
           : {
@@ -1352,6 +1360,20 @@ function autoBel(timeZone: string): Pick<Parameters<typeof meldingenBron>[0], 'a
     handKlaar: (laadhand?.klaar ?? []).map((k) => ({ ...k, naam: autos.find((a) => a.id === k.auto)?.naam ?? k.auto })),
   };
 }
+/** Wat de bel van de thuisaccu's weet (besluit 276); null zonder accu. */
+function accuBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBron>[0]['accus']> | null {
+  if (!houseRegisters) return null;
+  const lijst = accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null);
+  if (!lijst.length) return null;
+  const p = partsIn(Date.now(), cfg.timezone);
+  const e = runner?.latest?.explanation;
+  const netW = e && cfg.power.gridPower ? e.budget.gridPowerW : null;
+  return {
+    lijst: lijst.map((a) => ({ id: a.id, naam: a.naam, pct: a.pct, fout: a.fout, stilSindsMs: a.stilSindsMs })),
+    terugW: netW == null ? null : Math.max(0, -netW),
+    dag: `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`,
+  };
+}
 /** Wat de bel van de slimme stekkers weet (besluit 264); null zolang de registers er niet zijn. */
 function stekkerBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBron>[0]['stekkers']> | null {
   if (!houseRegisters) return null;
@@ -1386,6 +1408,8 @@ function meldingenRonde(): void {
     sluip: sluipVoorBel(sluipverbruik.laatste(), Date.now(), cfg.timezone),
     // De auto (besluit 263): vol, een fout, kabel vergeten, en laden met de hand dat klaar is.
     ...autoBel(cfg.timezone),
+    // De thuisaccu (besluit 276): stil, een fout, of vol terwijl de zon naar het net gaat.
+    accus: accuBel(cfg),
     // De slimme stekkers (besluit 264): gevonden, en zijn meter bij Energie.
     stekkers: stekkerBel(cfg),
   });
@@ -1722,7 +1746,7 @@ const huisNu = (lang: Lang) => {
   const isPlat = huis != null && hoofddakPlat(a?.daken, a?.panelen?.ligging, layoutStore?.current?.dak === 'geen');
   const plat0 = !isPlat || !huis ? huis : huis.ligging ? { ...huis, ligging: { ...huis.ligging, plat: true } } : { ...huis, dakPlat: true };
   // De auto's en laadpalen met de keuzes bij Energie (besluit 259), uit alle standen: een kabel of bereik telt niet als iets in huis.
-  const plat = plat0 && houseRegisters ? { ...plat0, opslag: vindOpslag(houseRegisters, allStates, a?.laden ?? null) } : plat0;
+  const plat = plat0 && houseRegisters ? { ...plat0, opslag: vindOpslag(houseRegisters, allStates, a?.laden ?? null, new Date(), a?.accu ?? null) } : plat0;
   huisBewaard.set(lang, { sleutel, atMs: Date.now(), huis: plat });
   return plat;
 };
@@ -2322,6 +2346,17 @@ if (webPort != null) {
     historie: historieVan,
     laadbeurten: (auto: string) => laadbeurten.van(auto),
     laadadvies: laadadviezen,
+    // De thuisaccu's (besluit 272): wat ze nu doen, en hun tellers voor Opbrengst.
+    accu: {
+      nuW: accuNuW,
+      meters: () => {
+        const lijst = houseRegisters ? accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null) : [];
+        return {
+          geladen: lijst.flatMap((a) => (a.sensoren.geladen ? [a.sensoren.geladen] : [])),
+          geleverd: lijst.flatMap((a) => (a.sensoren.geleverd ? [a.sensoren.geleverd] : [])),
+        };
+      },
+    },
     // Laden met de hand (besluit 262): alleen in de add-on; de NAS laat het blad zonder knoppen zien.
     ...(laadhand
       ? {
@@ -2637,7 +2672,9 @@ function connectionDoor(store: ConnectionStore, base: NonNullable<typeof baseCon
         zonNu: location ? sunPosition(Date.now(), location.latDeg, location.lonDeg) : null,
         grenzen: grenzenGevonden(),
         // Auto en laadpaal (besluit 259): wat Home Assistant heeft, met de keuzes van nu.
-        laden: houseRegisters ? ladenView(houseRegisters, allStates, store.current?.laden ?? null) : null,
+        laden: houseRegisters ? ladenView(houseRegisters, allStates, store.current?.laden ?? null, store.current?.accu ?? null) : null,
+        // Energie › Thuisaccu (besluit 271): de accu's, met de sensoren om uit te kiezen.
+        accu: houseRegisters ? accuView(houseRegisters, allStates, store.current?.accu ?? null, store.current?.laden ?? null) : null,
         inGebruik: {
           netmeter: siteConfig?.power.gridPower ? { afname: siteConfig.power.gridPower.id, terug: siteConfig.power.gridExport?.id ?? null } : null,
           omvormers: siteConfig?.solarProduction ? [siteConfig.solarProduction.id, ...(siteConfig.solarExtra ?? []).map((p) => p.id)] : [],

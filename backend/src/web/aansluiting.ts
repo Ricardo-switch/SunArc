@@ -29,7 +29,7 @@ import { tekening, type Tekening } from './daken-tekening.js';
 import { metMeting, nuPerVlak, type Achter, type VlakStand, type Verdeling } from './meten-vlakken.js';
 import type { SunPosition } from '../core/sun.js';
 import { leesDaken, piekVan, type Daken, type DakVlak, type KaartDakvlak, type KaartStand } from './daken.js';
-import { leesLaden, type LadenKeuze, type LadenView } from './opslag.js';
+import { leesAccu, leesLaden, type AccuKeuze, type AccuView, type LadenKeuze, type LadenView } from './opslag.js';
 import { VOORKANT_ZON, aantalVan, dakUitAanpassing, dakUitMeting, dakenNu, liggingView, type Dak, type LiggingView, type Meting, type VoorkantZon } from './ligging.js';
 
 export const CONNECTION_FILE = 'aansluiting.json';
@@ -149,6 +149,11 @@ export interface ConnectionAnswers {
    * per auto de accu, de laadpaal en de plek. Weg of null: wat de app vond.
    */
   readonly laden?: LadenKeuze | null;
+  /**
+   * Energie › Thuisaccu (besluit 271): wat de bewoner uitzette of zelf koos,
+   * en per accu welke sensor wat is. Weg of null: wat de app vond.
+   */
+  readonly accu?: AccuKeuze | null;
 }
 
 export interface Netmeter {
@@ -641,6 +646,10 @@ export function validateConnection(
   const laden = leesLaden(b['laden'] === undefined ? (vorige?.laden ?? null) : b['laden']);
   if ('fout' in laden) return { ok: false, reden: laden.fout };
 
+  // Energie › Thuisaccu (besluit 271): niet meegestuurd blijft zoals het was.
+  const accu = leesAccu(b['accu'] === undefined ? (vorige?.accu ?? null) : b['accu']);
+  if ('fout' in accu) return { ok: false, reden: accu.fout };
+
   return {
     ok: true,
     answers: {
@@ -669,6 +678,7 @@ export function validateConnection(
       ...(netmeter ? { netmeter } : {}),
       ...(omvRaw.length ? { omvormers: [...(omvRaw as string[])] } : {}),
       ...(laden.keuze ? { laden: laden.keuze } : {}),
+      ...(accu.keuze ? { accu: accu.keuze } : {}),
     },
   };
 }
@@ -828,9 +838,13 @@ export interface ConnectionView {
     readonly daken: Daken | null;
     /** Auto en laadpaal (besluit 259), zoals bewaard, of null. */
     readonly laden: LadenKeuze | null;
+    /** Energie › Thuisaccu (besluit 271), zoals bewaard, of null. */
+    readonly accu: AccuKeuze | null;
   } | null;
   /** Auto en laadpaal (besluit 259): wat de app vond en wat er te kiezen is; null zonder Home Assistant. */
   readonly laden: LadenView | null;
+  /** Energie › Thuisaccu (besluit 271): de accu's en wat er te kiezen is; null zonder Home Assistant. */
+  readonly accu: AccuView | null;
   /**
    * Daken en panelen (besluit 254): elk vlak, bewaard of uit wat er al was,
    * met wat de meting over het hoofddak zegt en de meters om uit te kiezen.
@@ -967,6 +981,8 @@ export interface ConnectionContext {
   readonly grenzen?: Readonly<Record<string, number>>;
   /** Auto en laadpaal (besluit 259), uit Home Assistant met de keuzes van nu. */
   readonly laden?: LadenView | null;
+  /** Energie › Thuisaccu (besluit 271), uit Home Assistant met de keuzes van nu. */
+  readonly accu?: AccuView | null;
 }
 
 export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): ConnectionView {
@@ -1006,9 +1022,11 @@ export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): Connect
           omvormers: c.answers.omvormers ?? [],
           daken: c.answers.daken ?? null,
           laden: c.answers.laden ?? null,
+          accu: c.answers.accu ?? null,
         }
       : null,
     laden: c.laden ?? null,
+    accu: c.accu ?? null,
     vermogens: c.found.vermogens ?? [],
     inGebruik: c.inGebruik ?? { netmeter: null, omvormers: [] },
     ligging: liggingView(liggingIn, lang),

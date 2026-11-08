@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
 
 import { exampleSite } from './site.js';
 import { decide } from '../src/core/decide.js';
+import { withAccu } from '../src/adapters/homeassistant/shadow.js';
 import {
   comfort,
   createHeatAssist,
@@ -1001,5 +1002,32 @@ describe('voorrang bij koelen en bij verwarmen (besluit 134)', () => {
       zones: exampleSite.zones.map((z) => (z.id === 'zolder' ? { ...z, priorityByAction: { cool: 1 } } : z.id === 'woonkamer' ? { ...z, priorityByAction: { cool: 2 } } : z)),
     };
     expect(wie(zolderEerst)[0]).toBe('ac-zolder');
+  });
+});
+
+describe('de thuisaccu in de schaduw (besluit 274)', () => {
+  it('rekent wat de accu met zon laadt als zon over, alleen in de uitleg', () => {
+    // De accu neemt alle zon op: het net staat op nul, en de woonkamer is warm.
+    const state = buildState({ gridPowerW: 0, livingRoomC: 24.0 });
+    const echt = run(state);
+    expect(echt.commands.filter((c) => c.kind === 'setAction' && c.action === 'cool')).toHaveLength(0);
+    expect(echt.explanation.accu).toBeUndefined();
+    // Met 1.500 W in de accu zou de woonkamer koelen; het echte besluit blijft hetzelfde.
+    const met = run({ ...state, power: { ...state.power, accuZonW: 1500 } });
+    expect(met.commands).toEqual(echt.commands);
+    expect(met.explanation.budget).toEqual(echt.explanation.budget);
+    expect(met.explanation.accu).toEqual({ zonW: 1500, apparaten: ['ac-woonkamer'], opZon: [] });
+    // Een paar watt is ruis: dan geen schaduw.
+    expect(run({ ...state, power: { ...state.power, accuZonW: 60 } }).explanation.accu).toBeUndefined();
+  });
+
+  it('weet wat de accu met zon laadt: niet wat van het net komt, en nooit meer dan de zon', () => {
+    const state = (net: number, zon: number | null) => ({ ...buildState({ gridPowerW: net }), solarProductionW: zon == null ? unavailable<number>('missing') : value(zon, NOW) });
+    expect(withAccu(state(0, 3000), 1500).power.accuZonW).toBe(1500);
+    expect(withAccu(state(500, 3000), 1500).power.accuZonW).toBe(1000);
+    expect(withAccu(state(0, 400), 1500).power.accuZonW).toBe(400);
+    expect(withAccu(state(0, null), 1500).power.accuZonW).toBeUndefined();
+    expect(withAccu(state(0, 3000), -800).power.accuZonW).toBeUndefined();
+    expect(withAccu(state(0, 3000), null).power.accuZonW).toBeUndefined();
   });
 });

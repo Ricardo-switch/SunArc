@@ -56,7 +56,8 @@ export type MeldingGroep = 'rook' | 'regeling' | 'onderhoud' | 'versie' | 'sluip
 export function groepVan(soort: MeldingSoort): MeldingGroep | null {
   if (soort === 'rook') return 'rook';
   if (soort === 'stil' || soort === 'meter') return 'regeling';
-  if (soort === 'batterij' || soort === 'filter') return 'onderhoud';
+  // De thuisaccu (besluit 276) hoort bij onderhoud: overdag, en alleen als je dat koos.
+  if (soort === 'batterij' || soort === 'filter' || soort === 'accu') return 'onderhoud';
   if (soort === 'update') return 'versie';
   if (soort === 'sluip') return 'sluip';
   if (soort === 'auto') return 'auto';

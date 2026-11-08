@@ -72,6 +72,13 @@ export interface PowerState {
   /** Netvermogen in W. Negatief bij teruglevering. */
   readonly gridPowerW: Reading<number>;
   /**
+   * Wat de thuisaccu nu met zon laadt, in W (besluit 274). De adapter rekent
+   * het uit het vermogen van de accu, de zon en het net; de kern rekent er
+   * alleen een schaduw mee: wat hij zou doen als dat zon over was. Het budget
+   * van het echte besluit verandert er niet door. Weglaten is geen accu.
+   */
+  readonly accuZonW?: number;
+  /**
    * Stroom en spanning per fase, op `GridPhase.id` (besluit 78). Alleen als de
    * configuratie een aansluiting kent; weglaten is "niet gemeten".
    */

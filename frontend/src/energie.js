@@ -42,6 +42,8 @@ const dakStaat = { scherm: 'alle', concept: null, origineel: null, genomen: fals
 let vorigDeel = null;
 /** Auto en laadpaal (besluit 259, laden.js): welk apparaat rechts openstaat. */
 const ladenStaat = { wie: null };
+/** Thuisaccu (besluit 271, thuisaccu.js): welke accu rechts openstaat. */
+const accuStaat = { wie: null };
 
 const leeg = () => ({ versie: 1, bron: 'zelf', net: { afname: [], teruglevering: [] }, zon: [], gas: null, apparaten: [], prijzen: { stroom: null, teruglevering: null, gas: null, vastPerMaand: null } });
 /** Tarief 1 van een slimme meter is het daltarief (zelfde regel als de dienst, tarief.ts). */
@@ -87,6 +89,8 @@ async function laadAlles() {
       opZonUit: [...(x?.opZonUit ?? [])],
       // Auto en laadpaal (besluit 259): wat de bewoner uitzette of zelf koos, en per auto de instelling.
       laden: JSON.parse(JSON.stringify(x?.laden ?? { aan: {}, rol: {}, instelling: {} })),
+      // Thuisaccu (besluit 271): wat de bewoner uitzette of zelf koos, en per accu welke sensor wat is.
+      accu: JSON.parse(JSON.stringify(x?.accu ?? { aan: {}, zelf: [], instelling: {} })),
     };
   }
   if (ei.status === 'fulfilled') {
@@ -136,6 +140,8 @@ function delen() {
     { id: 'verwarming', titel: t('energie.verwarming'), zin: soort ? (a.verwarming.aanvoerC ? t('energie.aanvoer', { soort, c: a.verwarming.aanvoerC }) : soort) : t('instellingen.nogKiezen'), stand: !aInfo ? null : a.verwarming.soort ? 'goed' : 'leeg' },
     // Auto en laadpaal (besluit 259): niets gevonden mist niet; niet elk huis heeft een auto.
     { id: 'auto', titel: t('laden.titel'), zin: laden.kortZin(aInfo) ?? '…', stand: !aInfo ? null : (aInfo.laden?.apparaten ?? []).some((x) => x.aan) ? 'goed' : 'leeg' },
+    // Thuisaccu (besluit 271): net als de auto mist niets als het huis er geen heeft.
+    { id: 'accu', titel: t('accu.titel'), zin: thuisaccu.kortZin(aInfo) ?? '…', stand: !aInfo ? null : (aInfo.accu?.apparaten ?? []).some((x) => x.aan) ? 'goed' : 'leeg' },
   ];
 }
 
@@ -413,7 +419,7 @@ function verwarmingVorm() {
 /* Ernaast */
 
 /** Per deel hoeveel punten er bij "Waarvoor dit nodig is" staan (energie.naast.<deel>.<n>). */
-const NAAST = { panelen: 2, aansluiting: 2, meters: 2, prijzen: 3, verwarming: 2, auto: 2 };
+const NAAST = { panelen: 2, aansluiting: 2, meters: 2, prijzen: 3, verwarming: 2, auto: 2, accu: 2 };
 
 function naast(id) {
   const deel = NAAST[id] ? id : 'panelen';
@@ -446,6 +452,7 @@ function tekenNu() {
     prijzen: () => (e ? prijzenVorm() : wacht),
     verwarming: () => (a ? verwarmingVorm() : wacht),
     auto: () => (a ? laden.vorm(aInfo, a, ladenStaat) : wacht),
+    accu: () => (a ? thuisaccu.vorm(aInfo, a, accuStaat) : wacht),
   }[nu]?.() ?? wacht;
   // Een eigen voorvoegsel per scherm voor de namen in de tekening van boven (besluit 254): wand en telefoon staan allebei in de pagina.
   // Wat schuift (de rechterkolom van Daken en panelen) houdt zijn plek bij opnieuw tekenen (6 november 2026).
@@ -471,7 +478,7 @@ function bewaarAansluiting(ookEnergie = false, zonOok = false) {
   groep.bewaarStraks(async () => {
     const opZon = Object.fromEntries(Object.entries(a.opZon).filter(([, v]) => typeof v === 'boolean'));
     // De netmeter en de omvormers alleen als ze hier gekozen zijn; anders houdt de dienst wat er stond.
-    const uit = await groep.stuur('api/aansluiting', { panelen: a.panelen, zekering: a.zekering, tarief: a.tarief, verwarming: a.verwarming, voorkantZon: a.voorkantZon, dak: a.dak, elders: a.elders, daken: a.daken, opZon, opZonUit: a.opZonUit, netmeter: a.netmeter, omvormers: a.omvormers, laden: a.laden });
+    const uit = await groep.stuur('api/aansluiting', { panelen: a.panelen, zekering: a.zekering, tarief: a.tarief, verwarming: a.verwarming, voorkantZon: a.voorkantZon, dak: a.dak, elders: a.elders, daken: a.daken, opZon, opZonUit: a.opZonUit, netmeter: a.netmeter, omvormers: a.omvormers, laden: a.laden, accu: a.accu });
     if (uit?.ok) {
       aInfo = uit.antwoord;
       // Het dak zoals de dienst het bewaarde: "klopt" en "aanpassen" worden een gewoon dak.
@@ -706,7 +713,7 @@ document.addEventListener('click', async (ev) => {
   if (!knop || knop.disabled) return;
   // Auto en laadpaal (besluit 259).
   if (a) {
-    const wat = laden.klik(knop, aInfo, a, ladenStaat);
+    const wat = laden.klik(knop, aInfo, a, ladenStaat) || thuisaccu.klik(knop, aInfo, a, accuStaat);
     if (wat === 'teken') return teken();
     if (wat) {
       teken();
@@ -874,7 +881,7 @@ document.addEventListener('change', (ev) => {
   if (dak === 'teken') return teken();
   if (dak) return bewaarDaken(dak);
   // Auto en laadpaal (besluit 259).
-  if (a && laden.verander(t, aInfo, a, ladenStaat)) {
+  if (a && (laden.verander(t, aInfo, a, ladenStaat) || thuisaccu.verander(t, aInfo, a, accuStaat))) {
     teken();
     return bewaarAansluiting();
   }

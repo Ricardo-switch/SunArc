@@ -127,6 +127,20 @@ export const HEAT_STORE_REASONS = [
 ] as const;
 export type HeatStoreReason = (typeof HEAT_STORE_REASONS)[number];
 
+/**
+ * De thuisaccu in de schaduw (besluit 274): wat de regeling anders zou doen als
+ * wat de accu met zon laadt als zon over telde. Alleen om te zien; er gaat
+ * niets van naar het huis.
+ */
+export interface AccuSchaduw {
+  /** Wat de accu nu met zon laadt, in W. */
+  readonly zonW: number;
+  /** De apparaten (actuatorId) die dan zouden koelen of verwarmen, of aan zouden blijven. */
+  readonly apparaten: readonly string[];
+  /** De uitstelbare apparaten en warmtebuffers (id) die dan zouden starten of stoken. */
+  readonly opZon: readonly string[];
+}
+
 export interface HeatStoreExplanation {
   readonly id: string;
   readonly state: HeatStoreStateCode;
@@ -231,6 +245,8 @@ export interface Explanation {
    * als de configuratie er een kent, zodat het logboek anders niet verandert.
    */
   readonly deferrables?: readonly DeferrableExplanation[];
+  /** De thuisaccu in de schaduw (besluit 274); alleen als hij met zon laadt. */
+  readonly accu?: AccuSchaduw;
   /** Wat de warmtebuffers nu zouden doen (besluit 186). Alleen als de configuratie er een kent. */
   readonly heatStores?: readonly HeatStoreExplanation[];
   /**

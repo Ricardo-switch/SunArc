@@ -43,6 +43,17 @@ export interface Thuisbatterij {
   /** Het vermogen in watt: positief is laden, negatief is leveren aan het huis. */
   readonly vermogenW: number | null;
   readonly stand: 'laadt' | 'levert' | 'rust' | null;
+  /*
+   * Met de maat in kWh (besluit 275), alleen als de bewoner hem invulde.
+   */
+  /** De maat in kWh; bij meer accu's samen. */
+  readonly maatKWh?: number;
+  /** Hoeveel kWh er nu in zit. */
+  readonly nogKWh?: number | null;
+  /** Hoe laat hij vol is bij dit vermogen (ISO), als hij laadt. */
+  readonly volOm?: string | null;
+  /** Hoeveel uur hij het huis nog kan voeden bij dit vermogen, als hij levert. */
+  readonly urenNog?: number | null;
 }
 
 /** Waar een auto in de tekening staat (besluit 259, idee 123). */
@@ -90,8 +101,84 @@ export interface Auto {
   readonly fout: string | null;
 }
 
+/**
+ * Energie › Thuisaccu (besluit 271, issue 145): per accu welke sensor wat is.
+ * Weg of null: wat de app zelf vond. Elk is een entiteit uit Home Assistant.
+ */
+export interface AccuInstelling {
+  /** De lading in procenten. */
+  readonly lading?: string | null;
+  /** Het vermogen van nu, in W of kW. */
+  readonly vermogen?: string | null;
+  /** Wat plus betekent bij het vermogen: laden (zoals de meeste) of leveren (zoals een Powerwall). */
+  readonly teken?: AccuTeken | null;
+  /** Hoeveel hij in totaal laadde en leverde, in kWh. */
+  readonly geladen?: string | null;
+  readonly geleverd?: string | null;
+  /** De maat in kWh, zoals in de papieren van de accu (besluit 275). */
+  readonly maatKWh?: number | null;
+}
+
+export const ACCU_TEKENS = ['laden', 'leveren'] as const;
+export type AccuTeken = (typeof ACCU_TEKENS)[number];
+export const ACCU_ROLLEN = ['lading', 'vermogen', 'geladen', 'geleverd'] as const;
+export type AccuRol = (typeof ACCU_ROLLEN)[number];
+
+/** De keuzes bij Energie › Thuisaccu (besluit 271), in `aansluiting.json`. */
+export interface AccuKeuze {
+  /** Per apparaat aan of uit; weg is aan, voor wat de app vond. */
+  readonly aan: Readonly<Record<string, boolean>>;
+  /** Apparaten die de bewoner zelf als accu koos, zoals een apparaat van Homey. */
+  readonly zelf: readonly string[];
+  readonly instelling: Readonly<Record<string, AccuInstelling>>;
+}
+
+/** Een accu op de pagina Energie › Thuisaccu (besluit 271). */
+export interface AccuApparaat {
+  readonly id: string;
+  readonly naam: string;
+  readonly merk: string | null;
+  readonly aan: boolean;
+  /** Zelf gekozen: de app vond hem niet vanzelf. */
+  readonly zelf: boolean;
+  /** Welke sensor nu welke rol heeft: gekozen, of wat de app zelf vond. */
+  readonly sensoren: Readonly<Record<AccuRol, string | null>>;
+  /** Welke rollen de bewoner zelf koos. */
+  readonly gekozen: readonly AccuRol[];
+  readonly teken: AccuTeken;
+  /** Apart laden en ontladen, zoals een Huawei: dan doet het teken er niet toe. */
+  readonly ontlaadVermogen: string | null;
+  /** Wat hij nu doet, met het teken toegepast: plus is laden. */
+  readonly pct: number | null;
+  readonly vermogenW: number | null;
+  /** De maat in kWh, als de bewoner hem invulde (besluit 275). */
+  readonly maatKWh: number | null;
+}
+
+/** Een sensor om uit te kiezen bij Energie › Thuisaccu: een lading, een vermogen of een totaal in kWh. */
+export interface AccuSensor {
+  readonly id: string;
+  readonly naam: string;
+  readonly soort: 'lading' | 'vermogen' | 'energie';
+  /** Het apparaat waar hij onder staat, of null. */
+  readonly apparaat: string | null;
+  readonly staat: number | null;
+  readonly eenheid: string;
+}
+
+/** Energie › Thuisaccu (besluit 271): wat gevonden is, en wat er te kiezen is. */
+export interface AccuView {
+  readonly apparaten: readonly AccuApparaat[];
+  /** Andere apparaten die een lading of een vermogen met energie meten, om zelf te kiezen. */
+  readonly kandidaten: readonly { readonly id: string; readonly naam: string }[];
+  readonly sensoren: readonly AccuSensor[];
+}
+
 export interface Opslag {
+  /** De thuisaccu, of bij meer accu's ze samen (besluit 275); null zonder. */
   readonly batterij: Thuisbatterij | null;
+  /** Bij meer dan één accu: elk apart (besluit 275). */
+  readonly batterijen?: readonly Thuisbatterij[];
   /** De eerste auto, voor de kaart op Thuis en bij Apparaten; null zonder auto of laadpaal. */
   readonly auto: Auto | null;
   /** Alle auto's (besluit 259); een laadpaal zonder auto telt als auto. */
@@ -285,8 +372,10 @@ function lezer(registers: Registers, states: ReadonlyMap<string, HaEntityState>)
   /** Een laadpaal: een koppeling voor laadpalen, of een merk van laadpalen dat een vermogen, stroom of energie meet. */
   const isLaadpaal = (a: Apparaat) =>
     !nooit(a) && (LAADPAAL_KOPPELING.test(a.platform) || (LAADPAAL_MERK.test(merk(a)) && (heeft(a, 'power') || heeft(a, 'current') || heeft(a, 'energy'))));
+  // Een sensor met de klasse batterij, ook als hij even niets zegt (besluit 276): anders viel een stille accu weg.
+  const heeftLading = (a: Apparaat) => pctVan(a) != null || a.entiteiten.some((e) => e.entity_id.startsWith('sensor.') && klasse(e) === 'battery');
   const isBatterij = (a: Apparaat) =>
-    !isEvcc(a) && !isAuto(a) && !isLaadpaal(a) && pctVan(a) != null && (heeft(a, 'energy_storage') || BATTERIJ_KOPPELING.test(a.platform) || BATTERIJ_TYPE.test(merk(a)));
+    !isEvcc(a) && !isAuto(a) && !isLaadpaal(a) && heeftLading(a) && (heeft(a, 'energy_storage') || BATTERIJ_KOPPELING.test(a.platform) || BATTERIJ_TYPE.test(merk(a)));
   return { klasse, apparaten, merk, heeft, naamVan, pctVan, isEvcc, isAuto, isLaadpaal, isBatterij };
 }
 
@@ -333,10 +422,12 @@ function watVan(a: Apparaat, l: ReturnType<typeof lezer>, states: ReadonlyMap<st
 }
 
 /** De auto's en laadpalen: wat de app vond en wat de bewoner zelf koos (besluit 259). */
-function laadApparaten(l: ReturnType<typeof lezer>, states: ReadonlyMap<string, HaEntityState>, keuze: LadenKeuze | null): { lijst: (LaadApparaat & { readonly bron: Apparaat })[]; evcc: Apparaat[] } {
+function laadApparaten(l: ReturnType<typeof lezer>, states: ReadonlyMap<string, HaEntityState>, keuze: LadenKeuze | null, alsAccu: ReadonlySet<string> = new Set()): { lijst: (LaadApparaat & { readonly bron: Apparaat })[]; evcc: Apparaat[] } {
   const rolZelf = keuze?.rol ?? {};
   const lijst: (LaadApparaat & { readonly bron: Apparaat })[] = [];
   for (const a of l.apparaten) {
+    // Wat de bewoner zelf als thuisaccu koos (besluit 271), is geen auto of laadpaal.
+    if (alsAccu.has(a.device.id) && rolZelf[a.device.id] == null) continue;
     const gevonden: LaadRol | null = l.isAuto(a) ? 'auto' : l.isLaadpaal(a) ? 'laadpaal' : null;
     const rol = rolZelf[a.device.id] ?? gevonden;
     if (!rol) continue;
@@ -360,9 +451,220 @@ function laadApparaten(l: ReturnType<typeof lezer>, states: ReadonlyMap<string, 
   return { lijst, evcc: l.apparaten.filter(l.isEvcc) };
 }
 
-/** De thuisbatterij en de auto's in Home Assistant, met de keuzes van de bewoner (besluit 259). */
-export function vindOpslag(registers: Registers, states: ReadonlyMap<string, HaEntityState>, keuze: LadenKeuze | null = null, nu: Date = new Date()): Opslag {
-  return opslagMet(registers, states, keuze, nu).opslag;
+/** De thuisbatterij en de auto's in Home Assistant, met de keuzes van de bewoner (besluit 259, 271). */
+export function vindOpslag(registers: Registers, states: ReadonlyMap<string, HaEntityState>, keuze: LadenKeuze | null = null, nu: Date = new Date(), accuKeuze: AccuKeuze | null = null): Opslag {
+  return opslagMet(registers, states, keuze, nu, accuKeuze).opslag;
+}
+
+/** Een accu met de sensoren die gelden: gekozen, of wat de app vond (besluit 271). */
+interface AccuBron {
+  readonly bron: Apparaat;
+  readonly zelf: boolean;
+  readonly aan: boolean;
+  readonly sensoren: Record<AccuRol, string | null>;
+  readonly gekozen: AccuRol[];
+  readonly teken: AccuTeken;
+  readonly ontlaadVermogen: string | null;
+  readonly pct: number | null;
+  readonly vermogenW: number | null;
+  readonly maatKWh: number | null;
+}
+
+/**
+ * De accu's: wat de app vond en wat de bewoner zelf koos (besluit 271). Wat
+ * hij als auto of laadpaal koos, is geen accu. Per accu geldt een gekozen
+ * sensor boven wat de app vond.
+ */
+function accuBronnen(l: ReturnType<typeof lezer>, states: ReadonlyMap<string, HaEntityState>, laden: LadenKeuze | null, keuze: AccuKeuze | null): AccuBron[] {
+  const { klasse, naamVan } = l;
+  const zelf = new Set(keuze?.zelf ?? []);
+  const lijst: AccuBron[] = [];
+  for (const a of l.apparaten) {
+    if (laden?.rol[a.device.id] != null) continue;
+    const gevonden = l.isBatterij(a);
+    if (!gevonden && !zelf.has(a.device.id)) continue;
+    const ins = keuze?.instelling[a.device.id] ?? {};
+    const sensoren = (k: string) => a.entiteiten.filter((e) => e.entity_id.startsWith('sensor.') && klasse(e) === k);
+    // De lading: een sensor met de klasse batterij in procenten.
+    // Zegt hij niets, dan staat er geen eenheid bij: dan de eerste met de klasse batterij (besluit 276).
+    const ladingVan = (sensoren('battery').find((e) => states.get(e.entity_id)?.attributes['unit_of_measurement'] === '%') ?? sensoren('battery')[0])?.entity_id ?? null;
+    // Het vermogen: bij voorkeur van de batterij zelf, niet dat van de panelen of het net.
+    const p = sensoren('power');
+    const eigen = p.filter((e) => /batter|accu|charge|laad/.test(naamVan(e)));
+    const laad = eigen.find((e) => /(?<!dis)charg|(?<!ont)laad/.test(naamVan(e)) && !/discharg|ontlaad/.test(naamVan(e)));
+    const ontlaad = eigen.find((e) => /discharg|ontlaad/.test(naamVan(e)));
+    const gevondenVermogen = laad?.entity_id ?? (ontlaad ? null : (eigen[0] ?? (p.length === 1 ? p[0] : undefined))?.entity_id ?? null);
+    // Totaal geladen en geleverd in kWh, aan de naam.
+    const e = sensoren('energy');
+    const uit = /discharg|ontla|export|output|geleverd|delivered|from.?batt|uit\b/;
+    const geleverdVan = e.find((x) => uit.test(naamVan(x)))?.entity_id ?? null;
+    const geladenVan = e.find((x) => !uit.test(naamVan(x)) && /charg|laad|import|input|to.?batt|in\b/.test(naamVan(x)))?.entity_id ?? null;
+    const sensorenNu: Record<AccuRol, string | null> = {
+      lading: ins.lading ?? ladingVan,
+      vermogen: ins.vermogen ?? gevondenVermogen,
+      geladen: ins.geladen ?? geladenVan,
+      geleverd: ins.geleverd ?? geleverdVan,
+    };
+    const gekozen = ACCU_ROLLEN.filter((r) => ins[r] != null);
+    const teken: AccuTeken = ins.teken ?? (LEVEREN_POSITIEF.test(a.platform) ? 'leveren' : 'laden');
+    // Apart laden en ontladen alleen zolang de bewoner geen vermogen koos.
+    const ontlaadVermogen = ins.vermogen == null && ontlaad ? ontlaad.entity_id : null;
+    let w: number | null = null;
+    if (ontlaadVermogen) {
+      w = (sensorenNu.vermogen ? (watt(states.get(sensorenNu.vermogen)) ?? 0) : 0) - (watt(states.get(ontlaadVermogen)) ?? 0);
+    } else if (sensorenNu.vermogen) {
+      const n = watt(states.get(sensorenNu.vermogen));
+      w = n == null ? null : teken === 'leveren' ? -n : n;
+    }
+    const lading = sensorenNu.lading ? getal(states.get(sensorenNu.lading)) : null;
+    lijst.push({
+      bron: a,
+      zelf: !gevonden,
+      aan: keuze?.aan[a.device.id] ?? true,
+      sensoren: sensorenNu,
+      gekozen,
+      teken,
+      ontlaadVermogen,
+      pct: lading != null && lading >= 0 && lading <= 100 ? lading : null,
+      vermogenW: w == null ? null : Math.round(w) || 0,
+      maatKWh: ins.maatKWh ?? null,
+    });
+  }
+  return lijst;
+}
+
+/** Een accu die aan staat, met wat hij nu doet en zijn sensoren (besluit 272). */
+export interface AccuNu {
+  readonly id: string;
+  readonly naam: string;
+  readonly pct: number | null;
+  /** Plus is laden, min is leveren aan het huis. */
+  readonly vermogenW: number | null;
+  readonly sensoren: Readonly<Record<AccuRol, string | null>>;
+  /** Wat de accu zegt bij een fout, zoals "fault"; null zonder (besluit 276). */
+  readonly fout: string | null;
+  /** Sinds wanneer de lading en het vermogen niets zeggen (epoch-ms); null als hij iets zegt (besluit 276). */
+  readonly stilSindsMs: number | null;
+}
+
+/** De accu's die aan staan (besluit 272): voor het verbruik van nu en de tellers in Opbrengst. */
+export function accusNu(registers: Registers, states: ReadonlyMap<string, HaEntityState>, laden: LadenKeuze | null, keuze: AccuKeuze | null): AccuNu[] {
+  const l = lezer(registers, states);
+  const leeg = (id: string | null) => {
+    const s = id ? states.get(id) : undefined;
+    return !s || s.state === 'unavailable' || s.state === 'unknown' || s.state === '';
+  };
+  return accuBronnen(l, states, laden, keuze)
+    .filter((b) => b.aan)
+    .map((b) => {
+      // Een fout: een stand van de accu met error, fault, fout, storing of alarm.
+      const fout = b.bron.entiteiten
+        .filter((e) => e.entity_id.startsWith('sensor.') && !['power', 'energy', 'battery'].includes(l.klasse(e) ?? '') && /status|state|stand|mode|fault|error|fout|alarm/.test(l.naamVan(e)))
+        .map((e) => String(states.get(e.entity_id)?.state ?? '').toLowerCase())
+        .find((s) => /error|fault|fout|storing|alarm/.test(s) && !/no.?(error|fault|alarm)|geen|none|^ok$|normal/.test(s)) ?? null;
+      // Niets meer: de lading en het vermogen (als hij dat heeft) zeggen allebei niets.
+      const lading = b.sensoren.lading;
+      const stil = lading != null && leeg(lading) && (b.sensoren.vermogen == null || leeg(b.sensoren.vermogen));
+      const sinds = stil ? Date.parse(states.get(lading)?.last_changed ?? '') : NaN;
+      return { id: b.bron.device.id, naam: naamVanApparaat(b.bron.device), pct: b.pct, vermogenW: b.vermogenW, sensoren: b.sensoren, fout, stilSindsMs: stil ? (Number.isFinite(sinds) ? sinds : 0) : null };
+    });
+}
+
+/** De sensoren om uit te kiezen: een lading in %, een vermogen, of een totaal in kWh (besluit 271). */
+function accuSensoren(registers: Registers, states: ReadonlyMap<string, HaEntityState>, klasse: (e: HaRegistryEntity) => string | null): AccuSensor[] {
+  const uit: AccuSensor[] = [];
+  for (const e of registers.entities) {
+    if (e.disabled_by || !e.entity_id.startsWith('sensor.')) continue;
+    const k = klasse(e);
+    const s = states.get(e.entity_id);
+    const eenheid = String(s?.attributes['unit_of_measurement'] ?? '');
+    const soort = k === 'battery' && eenheid === '%' ? 'lading' : k === 'power' ? 'vermogen' : k === 'energy' ? 'energie' : null;
+    if (!soort) continue;
+    const naam = String(s?.attributes['friendly_name'] ?? e.name ?? e.original_name ?? e.entity_id);
+    uit.push({ id: e.entity_id, naam, soort, apparaat: e.device_id ?? null, staat: getal(s), eenheid });
+  }
+  return uit.sort((a, b) => a.naam.localeCompare(b.naam, 'nl')).slice(0, 800);
+}
+
+/** Energie › Thuisaccu (besluit 271): de accu's, de apparaten om zelf te kiezen, en de sensoren. */
+export function accuView(registers: Registers, states: ReadonlyMap<string, HaEntityState>, keuze: AccuKeuze | null, laden: LadenKeuze | null = null): AccuView {
+  const l = lezer(registers, states);
+  const bronnen = accuBronnen(l, states, laden, keuze);
+  const al = new Set(bronnen.map((b) => b.bron.device.id));
+  // Kiezen kan uit apparaten die een vermogen of energie meten, met een lading in % of allebei; geen knopje
+  // met een batterij, geen auto, laadpaal of evcc.
+  const kandidaten = l.apparaten
+    .filter((a) => !al.has(a.device.id) && laden?.rol[a.device.id] == null && !l.isEvcc(a) && !l.isAuto(a) && !l.isLaadpaal(a))
+    .filter((a) => (l.heeft(a, 'power') || l.heeft(a, 'energy')) && (l.pctVan(a) != null || (l.heeft(a, 'power') && l.heeft(a, 'energy'))))
+    .map((a) => ({ id: a.device.id, naam: naamVanApparaat(a.device) }))
+    .sort((x, y) => x.naam.localeCompare(y.naam, 'nl'))
+    .slice(0, 300);
+  return {
+    apparaten: bronnen
+      .map((b) => ({
+        id: b.bron.device.id,
+        naam: naamVanApparaat(b.bron.device),
+        merk: b.bron.device.manufacturer?.trim() || b.bron.platform || null,
+        aan: b.aan,
+        zelf: b.zelf,
+        sensoren: b.sensoren,
+        gekozen: b.gekozen,
+        teken: b.teken,
+        ontlaadVermogen: b.ontlaadVermogen,
+        pct: b.pct,
+        vermogenW: b.vermogenW,
+        maatKWh: b.maatKWh,
+      }))
+      .sort((x, y) => Number(x.zelf) - Number(y.zelf) || x.naam.localeCompare(y.naam, 'nl')),
+    kandidaten,
+    sensoren: accuSensoren(registers, states, l.klasse),
+  };
+}
+
+/** Een entiteit uit Home Assistant, zoals de pagina hem stuurt. */
+const ENTITEIT = /^sensor\.[a-z0-9_]{1,160}$/;
+
+/**
+ * Leest de keuzes van Energie › Thuisaccu (besluit 271) zoals de pagina ze
+ * stuurt: alleen vormen. Wat Home Assistant niet kent, telt nergens mee.
+ */
+export function leesAccu(raw: unknown): { keuze: AccuKeuze | null } | { fout: string } {
+  if (raw == null) return { keuze: null };
+  if (typeof raw !== 'object' || Array.isArray(raw)) return { fout: 'thuisaccu: verwacht een object' };
+  const r = raw as Record<string, unknown>;
+  const obj = (v: unknown) => (v == null ? {} : typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : null);
+  const aanRaw = obj(r['aan']);
+  const insRaw = obj(r['instelling']);
+  const zelfRaw = r['zelf'] ?? [];
+  if (!aanRaw || !insRaw || !Array.isArray(zelfRaw)) return { fout: 'thuisaccu: aan en instelling zijn per apparaat, zelf is een lijst' };
+  if (Object.keys(aanRaw).length > 40 || Object.keys(insRaw).length > 20 || zelfRaw.length > 10) return { fout: 'thuisaccu: te veel apparaten' };
+  const aan: Record<string, boolean> = {};
+  for (const [id, v] of Object.entries(aanRaw)) {
+    if (!ID.test(id) || typeof v !== 'boolean') return { fout: 'thuisaccu: aan is per apparaat ja of nee' };
+    aan[id] = v;
+  }
+  if (zelfRaw.some((x) => typeof x !== 'string' || !ID.test(x))) return { fout: 'thuisaccu: zelf is een lijst van apparaten' };
+  const zelf = [...new Set(zelfRaw as string[])];
+  const instelling: Record<string, AccuInstelling> = {};
+  for (const [id, v] of Object.entries(insRaw)) {
+    const i = obj(v);
+    if (!ID.test(id) || !i) return { fout: 'thuisaccu: onbekende instelling' };
+    const uit: Record<string, string> = {};
+    for (const rol of ACCU_ROLLEN) {
+      const s = i[rol] ?? null;
+      if (s === null) continue;
+      if (typeof s !== 'string' || !ENTITEIT.test(s)) return { fout: `thuisaccu: ${rol} is een sensor uit Home Assistant` };
+      uit[rol] = s;
+    }
+    const teken = i['teken'] ?? null;
+    if (teken !== null && !ACCU_TEKENS.includes(teken as AccuTeken)) return { fout: 'thuisaccu: plus is laden of leveren' };
+    const maat = i['maatKWh'] ?? null;
+    if (maat !== null && (typeof maat !== 'number' || !Number.isFinite(maat) || maat < 1 || maat > 200)) return { fout: 'de thuisaccu is 1 tot 200 kWh' };
+    const ins = { ...uit, ...(teken ? { teken: teken as AccuTeken } : {}), ...(maat !== null ? { maatKWh: Math.round((maat as number) * 10) / 10 } : {}) };
+    if (Object.keys(ins).length) instelling[id] = ins;
+  }
+  if (!Object.keys(aan).length && !zelf.length && !Object.keys(instelling).length) return { keuze: null };
+  return { keuze: { aan, zelf, instelling } };
 }
 
 /** Per auto de meter van zijn laadvermogen, voor de laadbeurten uit de statistiek (besluit 259, stap 3). */
@@ -382,7 +684,7 @@ export function laadBedieningen(registers: Registers, states: ReadonlyMap<string
   return opslagMet(registers, states, keuze, new Date()).bedieningen;
 }
 
-function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntityState>, keuze: LadenKeuze | null, nu: Date): { opslag: Opslag; meters: LaadMeter[]; bedieningen: LaadBediening[] } {
+function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntityState>, keuze: LadenKeuze | null, nu: Date, accuKeuze: AccuKeuze | null = null): { opslag: Opslag; meters: LaadMeter[]; bedieningen: LaadBediening[] } {
   const meters: LaadMeter[] = [];
   const bedieningen: LaadBediening[] = [];
   const evccErIs = l0(registers, states);
@@ -395,30 +697,28 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
     return s == null || s.state === 'unavailable' || s.state === 'unknown' ? null : s.state === 'on';
   };
 
-  /* ---- de thuisbatterij ---- */
+  /* ---- de thuisbatterij: elke accu die aan staat, en ze samen (besluit 271, 275) ---- */
   // Wat de bewoner als auto of laadpaal koos, is geen thuisbatterij.
-  const accu = l.apparaten.find((a) => l.isBatterij(a) && keuze?.rol[a.device.id] == null) ?? null;
-  let batterij: Thuisbatterij | null = null;
-  if (accu) {
-    const p = vermogens(accu);
-    // Bij voorkeur een vermogen van de batterij zelf, niet dat van de panelen of het net.
-    const eigen = p.filter((e) => /batter|accu|charge|laad/.test(naamVan(e)));
-    let w: number | null = null;
-    const laad = eigen.find((e) => /(?<!dis)charg|(?<!ont)laad/.test(naamVan(e)) && !/discharg|ontlaad/.test(naamVan(e)));
-    const ontlaad = eigen.find((e) => /discharg|ontlaad/.test(naamVan(e)));
-    if (laad || ontlaad) {
-      w = (laad ? (watt(states.get(laad.entity_id)) ?? 0) : 0) - (ontlaad ? (watt(states.get(ontlaad.entity_id)) ?? 0) : 0);
-    } else {
-      const een = eigen[0] ?? (p.length === 1 ? p[0] : undefined);
-      const n = een ? watt(states.get(een.entity_id)) : null;
-      w = n == null ? null : LEVEREN_POSITIEF.test(accu.platform) ? -n : n;
-    }
-    const stand = w == null ? null : w > RUST_W ? 'laadt' : w < -RUST_W ? 'levert' : 'rust';
-    batterij = { id: accu.device.id, naam: accu.device.name_by_user || 'De batterij', pct: pctVan(accu), vermogenW: w == null ? null : Math.round(w), stand };
+  const accus = accuBronnen(l, states, keuze, accuKeuze).filter((b) => b.aan);
+  const batterijen = accus.map((a) => accuStand(a.bron.device.id, accus.length === 1 ? a.bron.device.name_by_user || 'De batterij' : naamVanApparaat(a.bron.device), a.pct, a.vermogenW, a.maatKWh, nu));
+  let batterij: Thuisbatterij | null = batterijen[0] ?? null;
+  if (accus.length > 1) {
+    // Samen: het vermogen opgeteld, de lading naar hun maat als elke maat bekend is, anders het gemiddelde.
+    const maten = accus.map((a) => a.maatKWh);
+    const alleMaten = maten.every((m): m is number => m != null);
+    const metPct = accus.filter((a) => a.pct != null);
+    const pct = !metPct.length
+      ? null
+      : alleMaten
+        ? metPct.reduce((s, a) => s + a.pct! * a.maatKWh!, 0) / metPct.reduce((s, a) => s + a.maatKWh!, 0)
+        : metPct.reduce((s, a) => s + a.pct!, 0) / metPct.length;
+    const ws = accus.map((a) => a.vermogenW).filter((w): w is number => w != null);
+    const w = ws.length ? ws.reduce((s, x) => s + x, 0) : null;
+    batterij = accuStand(accus[0]!.bron.device.id, 'De batterijen', pct == null ? null : Math.round(pct), w, alleMaten ? maten.reduce((s, m) => s + m!, 0) : null, nu);
   }
 
   /* ---- de auto's, met hun laadpaal; een laadpaal zonder auto is de auto ---- */
-  const { lijst } = laadApparaten(l, states, keuze);
+  const { lijst } = laadApparaten(l, states, keuze, new Set(accuKeuze?.zelf ?? []));
   const wagens = lijst.filter((x) => x.aan && x.rol === 'auto');
   const palen = lijst.filter((x) => x.aan && x.rol === 'laadpaal');
   const instelling = (id: string): AutoInstelling => keuze?.instelling[id] ?? { accuKWh: null, laadpaal: null, plek: null };
@@ -603,7 +903,31 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
   const autos: Auto[] = wagens.length
     ? wagens.map((w) => maak(w, paalVan(w.id) ?? null, w.naam))
     : palen.map((p) => maak(null, p, palen.length === 1 ? 'De auto' : p.naam));
-  return { opslag: { batterij, auto: autos[0] ?? null, autos }, meters, bedieningen };
+  return { opslag: { batterij, ...(batterijen.length > 1 ? { batterijen } : {}), auto: autos[0] ?? null, autos }, meters, bedieningen };
+}
+
+/**
+ * Wat een accu nu doet (besluit 271, 275): de stand uit het vermogen, en met de
+ * maat ook hoeveel erin zit, hoe laat hij vol is als hij laadt, en hoe lang hij
+ * het huis nog voedt als hij levert.
+ */
+function accuStand(id: string, naam: string, pct: number | null, w: number | null, maat: number | null, nu: Date): Thuisbatterij {
+  const stand = w == null ? null : w > RUST_W ? 'laadt' : w < -RUST_W ? 'levert' : 'rust';
+  const basis: Thuisbatterij = { id, naam, pct, vermogenW: w, stand };
+  if (maat == null) return basis;
+  const nogKWh = pct == null ? null : Math.round((pct / 100) * maat * 10) / 10;
+  let volOm: string | null = null;
+  let urenNog: number | null = null;
+  if (pct != null && w != null && stand === 'laadt' && pct < 100) {
+    const uren = (((100 - pct) / 100) * maat) / (w / 1000);
+    const vijf = 5 * 60_000;
+    if (uren <= 24) volOm = new Date(Math.ceil((nu.getTime() + uren * 3_600_000) / vijf) * vijf).toISOString();
+  }
+  if (nogKWh != null && w != null && stand === 'levert') {
+    const uren = nogKWh / (-w / 1000);
+    urenNog = uren <= 48 ? Math.round(uren * 10) / 10 : null;
+  }
+  return { ...basis, maatKWh: maat, nogKWh, volOm, urenNog };
 }
 
 /** Is evcc er? Dan regelt evcc het laden. */
@@ -613,10 +937,11 @@ function l0(registers: Registers, states: ReadonlyMap<string, HaEntityState>): b
 }
 
 /** Energie › Auto en laadpaal (besluit 259): gevonden, zelf gekozen, evcc, en wat er nog te kiezen is. */
-export function ladenView(registers: Registers, states: ReadonlyMap<string, HaEntityState>, keuze: LadenKeuze | null): LadenView {
+export function ladenView(registers: Registers, states: ReadonlyMap<string, HaEntityState>, keuze: LadenKeuze | null, accuKeuze: AccuKeuze | null = null): LadenView {
   const l = lezer(registers, states);
-  const { lijst, evcc } = laadApparaten(l, states, keuze);
-  const al = new Set([...lijst.map((x) => x.id), ...evcc.map((a) => a.device.id)]);
+  const alsAccu = new Set(accuKeuze?.zelf ?? []);
+  const { lijst, evcc } = laadApparaten(l, states, keuze, alsAccu);
+  const al = new Set([...lijst.map((x) => x.id), ...evcc.map((a) => a.device.id), ...alsAccu]);
   // Kiezen kan uit apparaten die iets meten wat bij laden hoort; geen thuisbatterij.
   const kandidaten = l.apparaten
     .filter((a) => !al.has(a.device.id) && !l.isBatterij(a) && a.entiteiten.some((e) => LAAD_KLASSEN.has(l.klasse(e) ?? '')))

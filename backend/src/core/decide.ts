@@ -14,6 +14,7 @@ import { heatStoreClaims, heatStoreDecisions } from './warmtebuffer.js';
 import { buildContext } from './context.js';
 import type { DecisionContext } from './context.js';
 import type {
+  AccuSchaduw,
   Decision,
   Explanation,
   Intent,
@@ -119,7 +120,39 @@ function explain(
   };
 }
 
-export function decide({ config, state, strategies }: DecideOptions): Decision {
+/** Onder dit vermogen rekent de schaduw van de accu niet: een paar watt is ruis (besluit 274). */
+const ACCU_SCHADUW_W = 100;
+
+/**
+ * Het besluit, met de thuisaccu in de schaduw erbij (besluit 274): laadt de accu
+ * met zon, dan rekent de regeling nog eens alsof dat zon over was, en zet in de
+ * uitleg wat hij dan anders zou doen. Het echte besluit verandert niet.
+ */
+export function decide(options: DecideOptions): Decision {
+  const besluit = decideKern(options);
+  const accuZonW = options.state.power.accuZonW ?? 0;
+  if (accuZonW < ACCU_SCHADUW_W) return besluit;
+  const { state } = options;
+  const grid = state.power.gridPowerW;
+  const { accuZonW: _weg, ...power } = state.power;
+  const alsZon = decideKern({ ...options, state: { ...state, power: { ...power, gridPowerW: grid.ok ? { ...grid, value: grid.value - accuZonW } : grid } } });
+  return { ...besluit, explanation: { ...besluit.explanation, accu: verschilMetAccu(besluit, alsZon, accuZonW) } };
+}
+
+/** Wat de schaduw met de accu anders doet dan het echte besluit (besluit 274). */
+function verschilMetAccu(echt: Decision, schaduw: Decision, zonW: number): AccuSchaduw {
+  const acties = (d: Decision) => new Map(d.commands.flatMap((c) => (c.kind === 'setAction' ? [[c.actuatorId, c.action] as const] : [])));
+  const nu = acties(echt);
+  const zou = acties(schaduw);
+  const aan = (a: string | undefined) => a === 'heat' || a === 'cool';
+  // Zou aangaan, of zou aanblijven waar het echte besluit hem uitzet.
+  const apparaten = [...new Set([...zou].filter(([id, a]) => aan(a) && !aan(nu.get(id))).map(([id]) => id).concat([...nu].filter(([id, a]) => a === 'off' && !zou.has(id)).map(([id]) => id)))];
+  const startEcht = new Set([...(echt.explanation.deferrables ?? []).filter((d) => d.state === 'would_start').map((d) => d.id), ...(echt.explanation.heatStores ?? []).filter((h) => h.state === 'would_heat').map((h) => h.id)]);
+  const opZon = [...(schaduw.explanation.deferrables ?? []).filter((d) => d.state === 'would_start').map((d) => d.id), ...(schaduw.explanation.heatStores ?? []).filter((h) => h.state === 'would_heat').map((h) => h.id)].filter((id) => !startEcht.has(id));
+  return { zonW: Math.round(zonW), apparaten: apparaten.sort(), opZon: opZon.sort() };
+}
+
+function decideKern({ config, state, strategies }: DecideOptions): Decision {
   const ctx = buildContext(config, state);
 
   // Handen af. Geen voorstellen, dus ook geen afschakelronde: de arbiter laat

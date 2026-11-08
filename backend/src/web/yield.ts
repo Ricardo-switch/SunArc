@@ -15,7 +15,12 @@
  *   uur uit het aandeel eigen zon in dat uur: draaide de airco om 13:00 op een
  *   uur met 80% eigen zon, dan telt 80% van dat uur als zon. Een schatting,
  *   maar een eerlijke: dezelfde regel voor elk apparaat;
- * - **rest van het huis** is wat de apparaten met een eigen meter niet verklaren.
+ * - **rest van het huis** is wat de apparaten met een eigen meter niet verklaren;
+ * - **een thuisaccu** (besluit 272): wat erin gaat, komt eerst uit de zon die
+ *   niet terugging, de rest van het net; wat eruit komt, gebruikt het huis. Het
+ *   verbruik is dan van het net plus de zon plus uit de accu, min wat erin ging.
+ *   Het deel zon in wat eruit komt, is het deel zon in wat erin ging, over de
+ *   hele periode.
  *
  * De pagina tekent; rekenen gebeurt hier (besluit 94).
  */
@@ -41,6 +46,8 @@ export interface YieldDevice {
   readonly kosten: number | null;
   /** Geen eigen meter: wat de andere niet verklaren. */
   readonly rest?: true;
+  /** Wat daarvan uit de thuisaccu kwam (besluit 272); al meegeteld in zon en net. */
+  readonly accuKwh?: number;
 }
 
 export interface YieldBucket {
@@ -117,9 +124,20 @@ export interface YieldReport {
     readonly bespaardEuro: number | null;
   } | null;
   readonly gas: { readonly m3: number; readonly kwh: number; readonly vorigeM3: number | null } | null;
+  /**
+   * De thuisaccu (besluit 272): wat erin ging, waarvan uit de zon en van het
+   * net, en wat eruit kwam. Null zonder tellers van een accu.
+   */
+  readonly accu: {
+    readonly geladenKwh: number;
+    readonly geleverdKwh: number;
+    readonly uitZonKwh: number;
+    readonly uitNetKwh: number;
+    readonly bron: 'dashboard' | 'sensoren';
+  } | null;
   readonly apparaten: readonly YieldDevice[];
-  /** De sankey: knopen en stromen in kWh, op schaal te tekenen. */
-  readonly stromen: readonly { readonly van: 'zon' | 'net' | 'gas'; readonly naar: string; readonly kwh: number }[];
+  /** De sankey: knopen en stromen in kWh, op schaal te tekenen; `naarAccu` is wat de accu laadde. */
+  readonly stromen: readonly { readonly van: 'zon' | 'net' | 'gas' | 'accu'; readonly naar: string; readonly kwh: number }[];
   readonly perBucket: readonly YieldBucket[];
   readonly vergelijk: YieldCompare;
   readonly verschil: Readonly<Record<keyof YieldCompare, YieldDelta>>;
@@ -461,7 +479,9 @@ export async function yieldReport(
   const deviceIds = s.apparaten.map((a) => a.id);
   // Bij een dynamisch contract ook de kostentellers van Home Assistant (testerronde, november 2026).
   const dyn = s.prijzen.dynamisch ?? null;
-  const all = [...s.net.afname, ...s.net.teruglevering, ...s.zon, ...(s.gas ? [s.gas] : []), ...deviceIds, ...(dyn ? [...dyn.afname, ...dyn.terug, ...(dyn.gas ? [dyn.gas] : [])] : [])];
+  // De thuisaccu (besluit 272): wat erin ging en eruit kwam.
+  const accuIds = s.accu ? [...s.accu.geladen, ...s.accu.geleverd] : [];
+  const all = [...new Set([...s.net.afname, ...s.net.teruglevering, ...s.zon, ...(s.gas ? [s.gas] : []), ...deviceIds, ...(dyn ? [...dyn.afname, ...dyn.terug, ...(dyn.gas ? [dyn.gas] : [])] : []), ...accuIds])];
 
   // Per uur, of per dag voor een heel jaar: fijn genoeg om zon per apparaat toe te rekenen.
   // Panelen zonder slimme meter (besluit 196): zelf gebruikt en terug zijn geschat, en dat
@@ -481,16 +501,36 @@ export async function yieldReport(
   const zon = opgewektPerVak(sumBy(rows, s.zon), uitOmvormer);
   const gas = s.gas ? sumBy(rows, [s.gas]) : new Map<number, number>();
   const hasSun = s.zon.length > 0 || uitOmvormer != null;
+  // Zonder slimme meter rekent de accu niet mee: dan is niet te zeggen wat er terugging.
+  const metAccu = s.accu != null && !geschat && (s.accu.geladen.length > 0 || s.accu.geleverd.length > 0);
+  const accuIn = metAccu ? sumBy(rows, s.accu!.geladen) : new Map<number, number>();
+  const accuUit = metAccu ? sumBy(rows, s.accu!.geleverd) : new Map<number, number>();
+  // Het deel zon in wat de accu laadde, over de hele periode: dat deel van wat eruit komt, was zon.
+  let zonInAccu = 0;
+  let allesInAccu = 0;
+  for (const [t, k] of accuIn) {
+    const inK = Math.max(0, k);
+    const over = hasSun ? Math.max(0, (zon.get(t) ?? 0) - (terug.get(t) ?? 0)) : 0;
+    zonInAccu += Math.min(inK, over);
+    allesInAccu += inK;
+  }
+  const accuZon = allesInAccu > 0 ? zonInAccu / allesInAccu : 1;
   const basisKwh = (BASIS_ZONDER_METER_W / 1000) * (stap / 3_600_000);
   let terugGeschat = 0;
 
   const times = [...new Set([...afname.keys(), ...terug.keys(), ...zon.keys(), ...gas.keys(), ...deviceIds.flatMap((id) => (rows[id] ?? []).map((r) => r.startMs))])].sort((a, b) => a - b);
-  const dev = new Map(s.apparaten.map((a) => [a.id, { zon: 0, net: 0 }]));
+  const dev = new Map(s.apparaten.map((a) => [a.id, { zon: 0, net: 0, accu: 0 }]));
   const devRows = new Map(s.apparaten.map((a) => [a.id, new Map((rows[a.id] ?? []).map((r) => [r.startMs, Math.max(0, r.change)]))]));
   const buckets = new Map<string, { zon: number; net: number; gas: number }>();
+  // Wat het huis van eigen zon gebruikte, ook via de accu; en wat de zon niet terugleverde.
   let selfTotal = 0;
+  let zonZelf = 0;
   let restZon = 0;
   let restNet = 0;
+  let restAccu = 0;
+  let accuZonIn = 0;
+  let accuNetIn = 0;
+  let accuUitTotaal = 0;
   // Telt de meter van het net in een uur meer terug dan de zonnemeter opwekte,
   // dan loopt een van de twee achter. Dat tekort schuift door naar het volgende
   // uur, zodat zelf gebruikt plus terug gelijk blijft aan opgewekt (opgelost
@@ -507,9 +547,24 @@ export async function yieldReport(
     const self = geschat ? Math.min(z, nodig) : hasSun ? Math.max(0, z - tr - tekort) : 0;
     tekort = hasSun && !geschat ? Math.max(0, tr + tekort - z) : 0;
     if (geschat) terugGeschat += z - self;
-    const use = a + self;
-    const share = geschat ? (nodig > 0 ? self / nodig : 0) : use > 0 ? self / use : 0;
-    selfTotal += self;
+    // De accu (besluit 272): laden eerst uit de zon die over was, de rest van het net; leveren gaat naar het huis.
+    const inK = Math.max(0, accuIn.get(t) ?? 0);
+    const zonNaarAccu = Math.min(inK, self);
+    const netNaarAccu = Math.min(a, inK - zonNaarAccu);
+    const uitK = Math.max(0, accuUit.get(t) ?? 0);
+    const zonDirect = self - zonNaarAccu;
+    const netDirect = a - netNaarAccu;
+    accuZonIn += zonNaarAccu;
+    accuNetIn += netNaarAccu;
+    accuUitTotaal += uitK;
+    const use = netDirect + zonDirect + uitK;
+    // Per kWh in dit uur: welk deel direct zon, uit de accu, en van het net.
+    const sZon = geschat ? (nodig > 0 ? self / nodig : 0) : use > 0 ? zonDirect / use : 0;
+    const sAccu = use > 0 ? uitK / use : 0;
+    const share = sZon + sAccu * accuZon;
+    const eigen = zonDirect + uitK * accuZon;
+    selfTotal += eigen;
+    zonZelf += self;
     let devUse = 0;
     for (const [id, m] of devRows) {
       const k = m.get(t) ?? 0;
@@ -517,16 +572,18 @@ export async function yieldReport(
       const acc = dev.get(id)!;
       acc.zon += k * share;
       acc.net += k * (1 - share);
+      acc.accu += k * sAccu;
     }
     // Wat de apparaten niet verklaren; nooit negatief, ook niet bij een meter die achterloopt.
     // Zonder meter is alleen de zon bekend: wat hij buiten de apparaten dekte.
     const rest = geschat ? Math.max(0, self - devUse * share) : Math.max(0, use - devUse);
     restZon += geschat ? rest : rest * share;
     restNet += geschat ? 0 : rest * (1 - share);
+    restAccu += geschat ? 0 : rest * sAccu;
     const key = bucketKey(kind, t, tz, lang);
     const b = buckets.get(key) ?? { zon: 0, net: 0, gas: 0 };
-    b.zon += self;
-    b.net += a;
+    b.zon += eigen;
+    b.net += use - eigen;
     b.gas += gas.get(t) ?? 0;
     buckets.set(key, b);
   }
@@ -535,7 +592,8 @@ export async function yieldReport(
   const terugKwh = geschat ? terugGeschat : total(terug);
   const zonKwh = total(zon);
   const gasM3 = total(gas);
-  const use = afnameKwh + selfTotal;
+  // Het verbruik van het huis: van het net en eigen zon, plus uit de accu, min wat erin ging (besluit 272).
+  const use = afnameKwh + zonZelf - accuZonIn - accuNetIn + accuUitTotaal;
   // De kosten (besluit 110): normaal en dal, salderen of niet, de vaste posten
   // over de dagen die er al waren.
   // Begint de meting later dan de periode, dan tellen de vaste kosten vanaf de
@@ -571,7 +629,7 @@ export async function yieldReport(
 
   const apparaten: YieldDevice[] = s.apparaten.map((a) => {
     const v = dev.get(a.id)!;
-    return { id: a.id, naam: a.naam, kwh: r1(v.zon + v.net), zonKwh: r1(v.zon), netKwh: r1(v.net), kosten: stroomPrijs == null ? null : r2(v.net * stroomPrijs) };
+    return { id: a.id, naam: a.naam, kwh: r1(v.zon + v.net), zonKwh: r1(v.zon), netKwh: r1(v.net), kosten: stroomPrijs == null ? null : r2(v.net * stroomPrijs), ...(metAccu ? { accuKwh: r1(v.accu) } : {}) };
   });
   apparaten.push({
     id: 'rest',
@@ -581,14 +639,22 @@ export async function yieldReport(
     netKwh: r1(restNet),
     kosten: stroomPrijs == null ? null : r2(restNet * stroomPrijs),
     rest: true,
+    ...(metAccu ? { accuKwh: r1(restAccu) } : {}),
   });
 
   const stromen: YieldReport['stromen'][number][] = [];
   for (const d of apparaten) {
-    if (d.zonKwh > 0) stromen.push({ van: 'zon', naar: d.id, kwh: d.zonKwh });
+    // Met een accu (besluit 272): wat eruit kwam apart, en zon en net zonder dat deel.
+    const uitAccu = d.accuKwh ?? 0;
+    const zonKwh = r1(Math.max(0, d.zonKwh - uitAccu * accuZon));
+    const netKwh = r1(Math.max(0, d.netKwh - uitAccu * (1 - accuZon)));
+    if (zonKwh > 0) stromen.push({ van: 'zon', naar: d.id, kwh: zonKwh });
+    if (uitAccu > 0) stromen.push({ van: 'accu', naar: d.id, kwh: uitAccu });
     // Zonder meter weet het huis niet wat er van het net kwam: alleen de zon in het schema.
-    if (d.netKwh > 0 && !geschat) stromen.push({ van: 'net', naar: d.id, kwh: d.netKwh });
+    if (netKwh > 0 && !geschat) stromen.push({ van: 'net', naar: d.id, kwh: netKwh });
   }
+  if (accuZonIn > 0.05) stromen.push({ van: 'zon', naar: 'naarAccu', kwh: r1(accuZonIn) });
+  if (accuNetIn > 0.05) stromen.push({ van: 'net', naar: 'naarAccu', kwh: r1(accuNetIn) });
   if (terugKwh > 0) stromen.push({ van: 'zon', naar: 'terug', kwh: r1(terugKwh) });
   if (gasM3 > 0) stromen.push({ van: 'gas', naar: 'cv', kwh: r1(gasM3 * GAS_KWH_PER_M3) });
 
@@ -627,15 +693,16 @@ export async function yieldReport(
     zon: hasSun
       ? {
           opgewektKwh: r1(zonKwh),
-          zelfKwh: r1(selfTotal),
+          zelfKwh: r1(zonZelf),
           terugKwh: r1(terugKwh),
-          zelfPct: zonKwh > 0 ? Math.round((selfTotal / zonKwh) * 100) : null,
+          zelfPct: zonKwh > 0 ? Math.round((zonZelf / zonKwh) * 100) : null,
           besteDag,
           vorigeKwh: prev(vergelijk.zon),
           bespaardEuro: stroomPrijs == null ? null : r2(selfTotal * stroomPrijs),
         }
       : null,
     gas: s.gas ? { m3: r2(gasM3), kwh: r1(gasM3 * GAS_KWH_PER_M3), vorigeM3: prev(vergelijk.gas) } : null,
+    accu: metAccu ? { geladenKwh: r1(accuZonIn + accuNetIn), geleverdKwh: r1(accuUitTotaal), uitZonKwh: r1(accuZonIn), uitNetKwh: r1(accuNetIn), bron: s.accu!.bron } : null,
     apparaten,
     stromen,
     perBucket,
@@ -696,12 +763,14 @@ async function compareSeries(source: EnergySource, s: EnergySettings, kind: Peri
   const period = kind === 'dag' ? 'day' : kind === 'week' ? 'week' : 'month';
   // Bij een prijs per uur ook de kostentellers van Home Assistant (issue 126).
   const dyn = s.prijzen.dynamisch ?? null;
-  const ids = [...s.net.afname, ...s.net.teruglevering, ...s.zon, ...(s.gas ? [s.gas] : []), ...(dyn ? [...dyn.afname, ...dyn.terug, ...(dyn.gas ? [dyn.gas] : [])] : [])];
+  const ids = [...new Set([...s.net.afname, ...s.net.teruglevering, ...s.zon, ...(s.gas ? [s.gas] : []), ...(dyn ? [...dyn.afname, ...dyn.terug, ...(dyn.gas ? [dyn.gas] : [])] : []), ...(s.accu ? [...s.accu.geladen, ...s.accu.geleverd] : [])])];
   const from = kind === 'jaar' ? starts[0]!.ms : yearBack(starts[0]!.ms);
   const rows = await source.changes(ids, from, range.endMs, period);
   // Opgewekt uit de omvormers per dag, als die er zijn (5 november 2026).
   const uitOmvormer = await (source.opgewekt?.(from, range.endMs, 'day') ?? Promise.resolve(null)).catch(() => null);
   const sums = { afname: sumBy(rows, s.net.afname), terug: sumBy(rows, s.net.teruglevering), zon: opgewektPerVak(sumBy(rows, s.zon), uitOmvormer), gas: s.gas ? sumBy(rows, [s.gas]) : new Map<number, number>() };
+  // De thuisaccu (besluit 272): het verbruik is ook wat eruit kwam, min wat erin ging.
+  const accuSom = s.accu && s.zon.length + (uitOmvormer ? 1 : 0) > 0 ? { in: sumBy(rows, s.accu.geladen), uit: sumBy(rows, s.accu.geleverd) } : null;
   const tm = tariefMeters(s);
   const dalSums = tm.perMeter ? { afname: sumBy(rows, s.net.afname.filter((id) => tm.dal.has(id))), terug: sumBy(rows, s.net.teruglevering.filter((id) => tm.dal.has(id))) } : null;
   // Bij een prijs per uur de kosten per dag (issue 128): telde Home Assistant pas
@@ -734,7 +803,7 @@ async function compareSeries(source: EnergySource, s: EnergySettings, kind: Peri
     const tr = between(sums.terug, a, b) ?? 0;
     const zo = between(sums.zon, a, b);
     const ga = between(sums.gas, a, b);
-    const self = zo == null ? 0 : Math.max(0, zo - tr);
+    const self = zo == null ? 0 : Math.max(0, zo - tr) + (accuSom ? (between(accuSom.uit, a, b) ?? 0) - (between(accuSom.in, a, b) ?? 0) : 0);
     const v = verdeel(s, af ?? 0, dalSums ? (between(dalSums.afname, a, b) ?? 0) : null, tr, dalSums ? (between(dalSums.terug, a, b) ?? 0) : null, a, b, tz);
     return {
       stroom: af == null ? null : r1(af + self),

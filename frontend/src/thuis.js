@@ -82,6 +82,11 @@ function huisModel() {
   if (zonKw > 0.05) stromen.push({ van: 'zon', naar: koelend ? `kamer:${koelend.naam}` : 'huis', sterkte: Math.min(1, zonKw / 3) });
   if (netKw < -0.05) stromen.push({ van: 'zon', naar: 'net', sterkte: Math.min(1, -netKw / 3) });
   if (netKw > 0.05) stromen.push({ van: 'net', naar: 'huis', sterkte: Math.min(1, netKw / 3) });
+  // De thuisaccu (besluit 273): laden met zon als die er is, anders van het net; leveren gaat naar het huis.
+  const accuKw = s.accuKw ?? 0;
+  const metAccu = !!huisData?.opslag?.batterij;
+  if (metAccu && accuKw > 0.05) stromen.push({ van: zonKw > 0.05 ? 'zon' : 'net', naar: 'batterij', sterkte: Math.min(1, accuKw / 3) });
+  if (metAccu && accuKw < -0.05) stromen.push({ van: 'batterij', naar: koelend ? `kamer:${koelend.naam}` : 'huis', sterkte: Math.min(1, -accuKw / 3) });
 
   const labels = [];
   // Zonder slimme meter (besluit 196): bij de panelen wat er geschat over is, en geen label bij het net.
@@ -92,6 +97,8 @@ function huisModel() {
   // Een tik op de panelen zelf opent ook De zon op je daken, niet de zolder.
   const dakenTik = daken > 1;
   if (zonKw > 0.05) labels.push({ bij: 'panelen', titel: `${getal(zonKw)} kW`, groot: true, toon: 'zon', regels: [t('thuis.label.panelen'), ...dakRegel, ...over], dx: 64, dy: -70, ...(daken > 1 ? { tik: 'daken', tikLabel: t('daken.nu.kop') } : {}) });
+  // Bij de accu wat hij nu doet (besluit 273): laden in goud, leveren in ijsblauw, zoals de lijn.
+  if (metAccu && Math.abs(accuKw) > 0.05) labels.push({ bij: 'batterij', titel: `${getal(Math.abs(accuKw))} kW`, toon: accuKw > 0 ? 'zon' : 'ijs', regels: [t(accuKw > 0 ? 'thuis.label.accuLaadt' : 'thuis.label.accuLevert')], dx: 54, dy: -40 });
   // Van het net in violet, terug in groen: dezelfde kleur als de lijn (besluit 187).
   if (!s.geschat) labels.push({ bij: 'net', titel: netKw > 0.05 ? t('thuis.label.vanNet', { kw: getal(netKw) }) : netKw < -0.05 ? t('thuis.label.terug', { kw: getal(-netKw) }) : t('thuis.label.nietsNet'), toon: netKw > 0.05 ? 'violet' : 'mint', dx: 40, dy: 64 });
 
@@ -797,9 +804,14 @@ function tekenLading() {
   // Elke kaart een eigen naam voor zijn tekening: een verborgen kaart mag de andere niet kleuren.
   zetKaart('[data-auto]', 'auto', (i) => a ? `${vol(`${kaartKop('auto', a.naam)}${autoMeter(a, autoZin + bereik, `thuis-auto-${i}`)}`)}${tegel({ id: 'auto', naam: a.naam, waarde: a.pct == null ? '–' : `${getal(a.pct, 0)}%`, zin: autoZin + bereik, toon: a.laadt ? 'var(--mint-t)' : '', beeld: ring(a.pct, a.laadt ? 'var(--mint)' : 'var(--net)') })}` : '', !!a);
   zetAdvies();
-  const b = huisData?.opslag?.batterij ?? null;
+  const b0 = huisData?.opslag?.batterij ?? null;
+  // Meer accu's samen (besluit 275): één kaart, met hoeveel het er zijn.
+  const n = huisData?.opslag?.batterijen?.length ?? 0;
+  const b = b0 && n > 1 ? { ...b0, naam: t('apparaten.accuSamen', { n }) } : b0;
   const st = b?.stand;
-  const bZin = st === 'laadt' ? t('thuis.lading.laadtMet', { kw: kw(b.vermogenW) }) : st === 'levert' ? t('thuis.lading.levert', { kw: kw(b.vermogenW) }) : st === 'rust' ? t('thuis.lading.rust') : '';
+  // Met de maat: hoe laat hij vol is, of hoe lang hij het huis nog voedt.
+  const bErbij = b?.volOm ? ` · ${t('apparaten.accuVolOm', { tijd: klokVan(Date.parse(b.volOm)) })}` : b?.urenNog != null ? ` · ${t('apparaten.accuUren', { uren: getal(b.urenNog) })}` : '';
+  const bZin = (st === 'laadt' ? t('thuis.lading.laadtMet', { kw: kw(b.vermogenW) }) : st === 'levert' ? t('thuis.lading.levert', { kw: kw(b.vermogenW) }) : st === 'rust' ? t('thuis.lading.rust') : '') + (st ? bErbij : '');
   const bKleur = st === 'laadt' ? 'var(--zon)' : st === 'levert' ? 'var(--violet)' : 'var(--net)';
   zetKaart('[data-batterij]', 'batterij', b ? `${vol(`${kaartKop('batterij', b.naam)}${lading(b.pct, bKleur, bZin, app.tekstKleur(st === 'rust' || !st ? 'var(--zacht)' : bKleur))}`)}${tegel({ id: 'batterij', naam: b.naam, waarde: b.pct == null ? '–' : `${getal(b.pct, 0)}%`, zin: bZin, toon: st === 'rust' || !st ? '' : app.tekstKleur(bKleur), beeld: staaf(b.pct, st === 'levert' ? 'var(--violet)' : 'var(--mint)') })}` : '', !!b);
   tekenBoiler();

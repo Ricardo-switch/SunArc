@@ -29,6 +29,7 @@
     verwarming: ['var(--gloed)', iconen.binnen('verwarming')],
     // Auto en laadpaal bij Energie (besluit 259).
     auto: ['var(--mint)', iconen.binnen('auto')],
+    accu: ['var(--mint)', iconen.binnen('accu')],
     dagdelen: ['var(--ijs)', iconen.binnen('dagdelen')],
     voorrang: ['var(--violet)', iconen.binnen('voorrang')],
     // Terug naar standaard (besluit 204): een pijl die terugdraait.
