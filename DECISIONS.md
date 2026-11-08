@@ -281,6 +281,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [285. Een geplande scène noemt zijn kamer en lampen](#285-een-geplande-scène-noemt-zijn-kamer-en-lampen)
 - [286. De stand van het huis zegt wat er meespeelt](#286-de-stand-van-het-huis-zegt-wat-er-meespeelt)
 - [287. Handmatig koelen en vakantie bij de stand](#287-handmatig-koelen-en-vakantie-bij-de-stand)
+- [288. Je huis op maat: vorm, etages, kamers als vakken en de plek van apparaten](#288-je-huis-op-maat-vorm-etages-kamers-als-vakken-en-de-plek-van-apparaten)
 
 **Veiligheid**
 
@@ -13200,6 +13201,57 @@ alsof iemand de stand zelf koos. En bij vakantie stond niet tot of sinds wanneer
   uit de toestanden die hij al bijhoudt (`toestand`). Alleen lezen. Dit "sinds"
   komt uit Home Assistant, dus het klopt ook na een herstart.
 - **Versie 0.157.1.**
+
+---
+
+## 288. Je huis op maat: vorm, etages, kamers als vakken en de plek van apparaten
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, stap 1 (nog geen versie). Ricardo: "we gaan je huis beter
+ontwerpen, ook ter voorbereiding om straks hetzelfde principe om de kaart
+omtrek of 3d BAG op het huisontwerp toe te passen"; daarna de schets
+Wand-Huis-Ontwerp (standen vorm, zonder, etages, kamers, lijnen, hal,
+apparaten) en zijn keuzes: "laten we het zo bouwen".
+
+*Waarom:* een kamer had in de app geen vorm en geen plek, alleen een etage en
+een volgorde; het poppenhuis zet de kamers daarom op een rij. De gebouwen bij
+Daken en panelen hebben wel een omtrek in meters. Zonder vorm per kamer kan het
+huis op Thuis nooit op echte maat getekend worden.
+
+*Besluit:*
+
+- **Kamers en indeling wordt de groep Je huis**, met vier delen die op elkaar
+  bouwen: Huisontwerp (de gebouwen van boven), Etages (het huis opzij, met
+  hoogtes), Kamers (per etage van boven) en Apparaten indelen (op de
+  plattegrond, met een plek). Buiten en Verborgen blijven. De etages zijn
+  geen losse delen meer: bij Kamers kies je de etage, en een tik op een kamer
+  opent het bekende blad met Kamer en Verwarmen en koelen.
+- **Eén set gebouwen voor Daken en panelen en Huisontwerp.** Wat je op de ene
+  plek vindt of verschuift, staat meteen op de andere. De plattegrond en de
+  3D-kaart vullen elkaar aan: de omtrek uit de ene, hoogte en dak uit de
+  andere. Zonder kaart: woningtype, dakvorm en maten als geschat blok, de
+  helling uit de meting van de panelen. Zelf tekenen kan altijd, met blokken.
+- **Kamers zijn vakken.** Elk vak deel je met één lijn in tweeën, dwars of
+  overlangs, dus de kamers sluiten altijd op elkaar aan. Vakken met dezelfde
+  kamer zijn één ruimte, zonder muur ertussen: een woonkamer kan als een L of U
+  om een hal heen lopen ("Ruimte erin"). Een vak mag een eigen naam hebben
+  zonder kamer in Home Assistant (toilet, overloop). Je begint met een
+  indeling die past bij je kamers, of zet de lijnen zelf.
+- **Zones zijn een lijn in een kamer,** te verschuiven; geen muur, de kamer
+  houdt één temperatuur.
+- **Een apparaat krijgt een plek in zijn kamer.** Zonder plek kiest de
+  tekening er een.
+- **Stap 1, de opslag** (`huisvorm.ts`): in de indeling `plattegrond` (per
+  etage, per gebouw een boom van vakken, in meters langs de assen van het
+  gebouw: u langs de voorgevel, v naar achter), `etageMaten` (hoogte en op
+  welke gebouwen), per kamer `zoneAs` en `zoneGrenzen`, per apparaat `plek`;
+  bij een gebouw `hoogteGoot`, `hoogteNok` en `lagen`. Een kamer die
+  verdwijnt of verhuist laat zijn vak leeg, zonder het bewaren te blokkeren.
+- **Bouwvolgorde:** 1 opslag, 2 de groep Je huis, 3 Huisontwerp, 4 Etages,
+  5 Kamers, 6 Apparaten met hun plek. Elke stap een versie op beta; samen naar
+  main als Je huis af is. Het huis op Thuis op echte maat is daarna een eigen
+  ronde.
 
 ---
 

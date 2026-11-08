@@ -89,6 +89,16 @@ describe('een plat dak op het hoofdhuis (issue 131)', () => {
     expect(leesDaken({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [{ ...g, bron: 'buurman' }] })).toHaveProperty('fout');
   });
 
+  it('leest de hoogte van een gebouw, en weigert een nok onder de goot (besluit 288)', () => {
+    const g = { id: 'huis', soort: 'hoofdhuis', bron: 'kaart', omtrek: [[0, 0], [10, 0], [10, 9]], dakvorm: 'zadel', nokDeg: 90 };
+    const r = leesDaken({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [{ ...g, hoogteGoot: 6.34, hoogteNok: 10.2, lagen: 3 }] });
+    expect('daken' in r && r.daken?.gebouwen?.[0]).toMatchObject({ hoogteGoot: 6.3, hoogteNok: 10.2, lagen: 3 });
+    expect(leesDaken({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [{ ...g, hoogteGoot: 6, hoogteNok: 4 }] })).toHaveProperty('fout');
+    expect(leesDaken({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [{ ...g, lagen: 2.5 }] })).toHaveProperty('fout');
+    const zonder = leesDaken({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [g] });
+    expect('daken' in zonder && zonder.daken?.gebouwen?.[0]).not.toHaveProperty('hoogteGoot');
+  });
+
   it('leest wie de dakvorm gaf, en laat iets anders weg', () => {
     const g = { id: 'huis', soort: 'hoofdhuis', bron: 'kaart', omtrek: [[0, 0], [10, 0], [10, 9]], dakvorm: 'plat', nokDeg: 0 };
     const r = leesDaken({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [{ ...g, dakBron: 'bewoner' }] });
