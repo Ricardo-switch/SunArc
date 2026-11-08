@@ -88,6 +88,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [274. De regeling kijkt in de schaduw mee met de thuisaccu](#274-de-regeling-kijkt-in-de-schaduw-mee-met-de-thuisaccu)
 - [281. De airco springt niet bij tijdens voorverwarmen](#281-de-airco-springt-niet-bij-tijdens-voorverwarmen)
 - [283. Bijspringen per kamer, bij Regeling › Klimaat](#283-bijspringen-per-kamer-bij-regeling--klimaat)
+- [289. Helpen bij de cv: los van de kamer, en de airco draait door tot zijn kamer warm is](#289-helpen-bij-de-cv-los-van-de-kamer-en-de-airco-draait-door-tot-zijn-kamer-warm-is)
 
 **Configuratie en onboarding**
 
@@ -13297,6 +13298,90 @@ huis op Thuis nooit op echte maat getekend worden.
   rondje opent het apparaat. Zonder tekening van boven blijft de lijst.
   Hiermee is Je huis af (stap 1 tot 6); het huis op Thuis op echte maat is de
   volgende ronde.
+
+---
+
+## 289. Helpen bij de cv: los van de kamer, en de airco draait door tot zijn kamer warm is
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+8 november 2026, nog geen versie: gekozen, nog niet geschetst of gebouwd.
+Ricardo: "de verwarmings assistant ben ik nog niet tevreden over. dit staat nu
+bij woonkamer maar zolder niet", en later: "uiteindelijk moet de regeling kunnen
+bepalen of het efficienter is om de airco mee te laten draaien", "we hoeven niet
+perse het oude systeem te kopieren, het mag ook beter als dat kan". Zijn keuzes
+staan hieronder.
+
+*Waarom:*
+
+- **Zolder kan nooit helpen.** Bijspringen (besluit 283) werkt per zone, en
+  alleen in een zone met een hoofdverwarming én een airco. Zolder heeft alleen
+  `ac-zolder`, dus de instelling staat er niet en de regeling slaat zolder over.
+  In de schaduw stond zolder op 7 november om zes uur op 17,7° bij een doel van
+  19,5°, en er gebeurde niets. Het oude systeem liet de zolder-airco wél
+  meedoen zolang de assist liep, met een eigen grens (aan onder 18°, uit boven
+  18,5°). De app is dat bij de overstap kwijtgeraakt.
+- **Elke beurt is te kort.** In het schaduwlogboek van 1 tot 8 november sprong
+  de woonkamer-airco 1 tot 3 keer per dag bij, steeds 15 tot 22 minuten, meestal
+  precies de kortste beurt (`minRunMinutes` 15). Elke beurt eindigde omdat de
+  ketel stopte, terwijl de kamer nog 0,4 tot 0,9° onder het doel van 20° zat. Na
+  de beurt staat de airco 5 minuten op standby en gaat dan uit, tot de ketel
+  weer aanslaat. Het aantal starts valt mee, maar een warmtepomp die steeds
+  zijn kortste beurt maakt, verliest bij elke start. Op 8 november schoot de
+  kamer juist door, naar 20,9°. De echte airco's stonden die week uit, dus hoe
+  vaak ze zelf aan en uit gaan (de compressor) is nog niet gemeten.
+- **Met deze prijzen is de airco bijna altijd goedkoper dan gas.** Gas kost
+  € 1,37 per m³, en een ketel haalt ongeveer 8,8 kWh warmte uit een m³: zo'n
+  16 ct per kWh warmte. Stroom kost € 0,27. Een airco geeft ongeveer 3,5 kWh
+  warmte per kWh stroom bij 7° buiten (8 ct), 2,8 bij 0° (10 ct) en 2,2 bij −7°
+  (12 ct). Gelijk is het pas bij 1,75, ongeveer −15° buiten. Zon maakt het tot
+  2027 niet goedkoper, want met salderen is een kWh van de panelen evenveel
+  waard als een kWh van het net. De winst zit dus vooral in het vermijden van
+  korte beurten, niet in het kiezen van het uur.
+- **De airco in de kamer van de Nest werkt op de ketel terug.** Verwarmt hij de
+  woonkamer, dan stopt de Nest eerder, en krijgen de radiatoren in de andere
+  kamers minder. Daarom blijft de ketel de basis (zie hieronder) en is "de
+  airco eerst" een latere stap.
+- **Wat er al is en goed is.** Op zon is er dezelfde stabilisatie als in het
+  oude systeem: starten vanaf 1.000 W over, doordraaien vanaf 600 W, stoppen
+  boven 50 W van het net, en 5 minuten rust na elke schakeling, zodat nooit twee
+  airco's tegelijk starten (`power.stabilisationMinutes`). Bijspringen valt daar
+  ook onder. De piep (besluit 281) geldt al voor elke airco: bijspringen start
+  niets in nacht, afwezig, vakantie en voorverwarmen, dus ook niet op zolder.
+
+*Besluit:*
+
+- **Een eigen blok "Helpen bij de cv" bij Regeling › Klimaat,** met elke airco
+  die kan verwarmen, per airco aan of uit. Het blok onder de woonkamer vervalt.
+  Een helper hoort niet meer bij de zone van de cv-thermostaat: hij helpt de
+  hoofdverwarming van het huis.
+- **De ketel blijft de basis; de airco helpt, slimmer.** Starten zoals nu: de
+  ketel stookt al een paar minuten en de kamer van die airco is te koud. Daarbij
+  komt dat de airco goedkoper moet zijn dan de ketel, op dat moment, met de prijs
+  van stroom en gas en de buitentemperatuur.
+- **Elke airco kijkt naar zijn eigen kamer.** De zolder-airco naar zolder, de
+  woonkamer-airco naar de woonkamer.
+- **Stoppen als zijn eigen kamer warm is,** niet als de ketel stopt.
+- **De pomp sparen: minstens 30 minuten aan, daarna minstens 15 minuten uit**
+  (nu 15 en 5).
+- **Rekenen: eerst een tabel per buitentemperatuur, later leren.** Het
+  thermisch model meet al hoe snel een airco zijn kamer verwarmt (woonkamer
+  ongeveer 1° per uur, besluit 231). Met de stroommeter van de airco
+  (`sensor.air_conditioning_*_energy_current`) wordt dat later de warmte per kWh
+  van dit huis in plaats van de tabel.
+- **Zichtbaar op twee plekken.** Bij de instelling een regel per airco: hoe
+  vaak en hoe lang hij vandaag hielp, en wat warmte van de airco kost tegen de
+  ketel ("Airco 9 ct per kWh warmte, ketel 16 ct"). Alleen oranje als hij
+  pendelt. Bij het apparaat een dagbalk met wanneer de ketel stookte en wanneer
+  de airco hielp. Geen melding op de telefoon.
+
+*Nog uit te werken in de schets:* de ingestelde temperatuur van de airco
+bijsturen met het verschil tussen zijn eigen meter en die in de kamer, zodat hij
+rustig doordraait en zichzelf niet steeds uitzet. Met de stroommeter is te zien
+of dat lukt. Verder: hoe het blok eruitziet op wand en telefoon, en wat er
+gebeurt met de drempels per kamer uit `comfort.json` (`bijspringen`, besluit
+283). De airco's echt sturen kan pas in stap B (de schrijfgrens); tot dan is
+het alleen in de schaduw te zien.
 
 ---
 

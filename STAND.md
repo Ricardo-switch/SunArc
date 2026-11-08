@@ -121,7 +121,10 @@ verwijzing bestaat.
   achterloopt, maar niet 's nachts, bij afwezig, op vakantie of tijdens
   voorverwarmen, want zijn piepje maakt de slapers wakker ([281]). Per kamer
   aan of uit, na hoeveel minuten stoken en vanaf hoeveel graden te koud, bij
-  Regeling › Klimaat ([283]).
+  Regeling › Klimaat ([283]). Gekozen, nog niet gebouwd: een eigen blok
+  "Helpen bij de cv" met elke airco, ook zolder. Elke airco kijkt naar zijn
+  eigen kamer, helpt alleen als hij goedkoper is dan de ketel, draait door tot
+  zijn kamer warm is, minstens 30 minuten aan en 15 uit ([289]).
 - **De stand op Thuis** zegt wat er meespeelt: met de hand, bijspringen,
   vakantie of afwezig, en nog Dag door licht. Op de wand in de knop, op de
   telefoon naast de begroeting; het blad met de dag als balk ([286]). Handmatig
@@ -905,4 +908,5 @@ verwijzing bestaat.
 [286]: DECISIONS.md#286-de-stand-van-het-huis-zegt-wat-er-meespeelt
 [287]: DECISIONS.md#287-handmatig-koelen-en-vakantie-bij-de-stand
 [288]: DECISIONS.md#288-je-huis-op-maat-vorm-etages-kamers-als-vakken-en-de-plek-van-apparaten
+[289]: DECISIONS.md#289-helpen-bij-de-cv-los-van-de-kamer-en-de-airco-draait-door-tot-zijn-kamer-warm-is
 <!-- links:einde -->
