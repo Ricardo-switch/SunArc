@@ -14,6 +14,7 @@ import { startOfLocalDay } from '../today.js';
 import type { AgendaKeus } from '../voorkeuren.js';
 import type { Diensten, Verzoek } from '../diensten.js';
 import type { Stap } from '../brein.js';
+import type { HouseReport } from '../house.js';
 import { leesStap, type Herhaal, type Moment } from '../gepland.js';
 import {
   afvalBak,
@@ -77,7 +78,7 @@ export interface Overzicht {
   readonly bewoner?: boolean;
   readonly herinneringen: readonly (Herinnering & { readonly eigen: boolean })[];
   /** Wat de dienst later doet (besluit 218): licht, scènes en schermen op een tijd. */
-  readonly gepland?: readonly Herinnering[];
+  readonly gepland?: readonly (Herinnering & { readonly scenes?: readonly GeplandeScene[] })[];
   readonly lijsten: readonly { readonly soort: LijstSoort; readonly id: string; readonly naam: string; readonly items: readonly LijstItem[] }[];
   /** `wie`: op de wand, van welke bewoner die thuis is deze eigen afspraak is (besluit 219). */
   readonly afspraken: readonly (Afspraak & { readonly afval?: string; readonly wie?: string })[];
@@ -124,8 +125,45 @@ export async function overzicht(d: Diensten, t: TeDoenDienst, wie: Visitor | nul
   const afspraken = leesAfspraken(agenda, (id) => (id === keus.afval ? 'afval' : id === keus.gezin ? 'gezin' : 'eigen'), tz).map((a) =>
     a.bron === 'afval' ? { ...a, afval: afvalSoort(a.tekst) } : vanWie.has(a.agenda) ? { ...a, wie: vanWie.get(a.agenda)! } : a,
   );
-  void d;
-  return { aan: true, bewoner, herinneringen, gepland: await t.herinneringen.gepland(), lijsten, afspraken, speelt, agendas: t.namen?.(ids) ?? {} };
+  const alle = await t.herinneringen.gepland();
+  // Het huis alleen opvragen als er een scène gepland staat.
+  const huis = alle.some((g) => g.opdracht?.stappen.some((s) => s.pad === 'api/scene')) ? (d.options.house?.() ?? null) : null;
+  const gepland = alle.map((g) => {
+    const scenes = scenesVan(huis, g.opdracht?.stappen ?? []);
+    return scenes.length ? { ...g, scenes } : g;
+  });
+  return { aan: true, bewoner, herinneringen, gepland, lijsten, afspraken, speelt, agendas: t.namen?.(ids) ?? {} };
+}
+
+/** Een scène in een geplande taak: in welke kamer, en welke lampen hij zet. */
+export interface GeplandeScene {
+  readonly id: string;
+  readonly naam: string;
+  readonly kamer: string;
+  /** De lampen van zijn Hue-groep, waar ze ook staan; leeg als dat niet bekend is (een scène van Home Assistant zelf). */
+  readonly lampen: readonly string[];
+}
+
+/**
+ * De scènes van een geplande taak met hun kamer en lampen (8 november 2026):
+ * "Scène Nachtlampje" zegt niet welke lamp het is. Een Hue-scène hoort bij een
+ * Hue-kamer of -zone; de lampen in die groep zijn de lampen die hij zet.
+ */
+export function scenesVan(huis: HouseReport | null, stappen: readonly Stap[]): readonly GeplandeScene[] {
+  const ids = stappen.filter((s) => s.pad === 'api/scene' && typeof s.body['id'] === 'string').map((s) => String(s.body['id']));
+  if (!huis || !ids.length) return [];
+  const laag = (s: string) => s.trim().toLowerCase();
+  const ruimtes = huis.etages.flatMap((e) => e.ruimtes);
+  const uit: GeplandeScene[] = [];
+  for (const id of new Set(ids)) {
+    const ruimte = ruimtes.find((r) => r.scenes.some((sc) => sc.id === id));
+    const sc = ruimte?.scenes.find((x) => x.id === id);
+    if (!ruimte || !sc) continue;
+    const groep = sc.groep ? laag(sc.groep) : null;
+    const lampen = groep == null ? [] : ruimtes.flatMap((r) => r.apparaten).filter((a) => a.soort === 'licht' && (laag(a.haNaam) === groep || a.groepen.some((g) => laag(g) === groep))).map((a) => a.naam);
+    uit.push({ id, naam: sc.naam, kamer: ruimte.naam, lampen: [...new Set(lampen)] });
+  }
+  return uit;
 }
 
 /** De routes van te doen. */

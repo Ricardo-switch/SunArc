@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.156.1';
+export const VERSIE = '0.156.2';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,16 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.156.2',
+    datum: '2026-11-08',
+    beter: ['Een scène in een vaste taak zegt nu in welke kamer hij hoort, en bij Aanpassen welke lampen hij zet'],
+    opgelost: ['Kiest Home Assistant de stand Voorverwarmen, dan zegt Thuis dat nu ook, in plaats van Automatisch'],
+    en: {
+      beter: ['A scene in a fixed task now says which room it belongs to, and under Edit which lights it sets'],
+      opgelost: ['If Home Assistant picks the Preheat mode, Home now says so too, instead of Automatic'],
+    },
+  },
   {
     versie: '0.156.1',
     datum: '2026-11-08',

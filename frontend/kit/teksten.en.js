@@ -4270,6 +4270,8 @@
   'gp.aanLabel': '{wat} on',
   'gp.aan': 'On',
   'gp.wat': 'What',
+  'gp.sceneLampen': '{kamer}: {lampen}',
+  'gp.sceneLampenVeel': '{kamer}: {n} lights',
   'gp.wanneer': 'When',
   'gp.tijd': 'At a time',
   'gp.op': 'Sunrise',

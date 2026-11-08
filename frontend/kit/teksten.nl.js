@@ -4275,6 +4275,8 @@
   'gp.aanLabel': '{wat} aan',
   'gp.aan': 'Aan',
   'gp.wat': 'Wat',
+  'gp.sceneLampen': '{kamer}: {lampen}',
+  'gp.sceneLampenVeel': '{kamer}: {n} lampen',
   'gp.wanneer': 'Wanneer',
   'gp.tijd': 'Om een tijd',
   'gp.op': 'Zonsopkomst',

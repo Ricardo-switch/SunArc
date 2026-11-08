@@ -194,7 +194,7 @@ function tekenNu() {
   zet('[data-kop]', kop.titel ?? t('thuis.hetHuis'));
   zet('[data-zin]', kop.zin ?? '');
   tekenWeerknop();
-  const modus = e.modeSource === 'schedule' ? 'automatisch' : ['dag', 'nacht', 'afwezig', 'vakantie', 'handmatig'].includes(e.mode) ? e.mode : 'automatisch';
+  const modus = e.modeSource === 'schedule' ? 'automatisch' : ['voorverwarmen', 'dag', 'nacht', 'afwezig', 'vakantie', 'handmatig'].includes(e.mode) ? e.mode : 'automatisch';
   $$('[data-modus]').forEach((el) => (el.innerHTML = `${esc(t(`thuis.stand.${modus}`))} <span aria-hidden="true" style="color: var(--gedempt)">▾</span>`));
   // Op de telefoon alleen een stand die afwijkt (besluit 136): anders past de bel er niet naast.
   $$('#tel [data-modus]').forEach((el) => (el.hidden = modus === 'automatisch'));

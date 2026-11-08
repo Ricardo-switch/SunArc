@@ -179,7 +179,7 @@
         const z = g.opdracht?.moment ? (p?.zonNaam(g.opdracht.moment) ?? '') : '';
         const vaak = h.soort === 'een' ? dagKort(g.ms) : (p?.herhaalNaam(h) ?? '');
         // Met een wisknop naast de schakelaar (7 november 2026): uit is pauzeren, × haalt hem weg.
-        return `<div class="td-taak${aan ? '' : ' uit'}"><b class="td-taak-uur${z ? ' zon' : ''}">${esc(klok(g.ms))}</b><div class="td-wat"><b>${esc(g.tekst)}</b><span>${esc([z, vaak].filter(Boolean).join(' · '))}</span></div><span class="td-taak-knoppen"><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('gp.aanLabel', { wat: g.tekst }))}" data-td-gp-aan="${esc(g.id)}"></button><button type="button" class="td-taak-weg" data-td-gp-weg="${esc(g.id)}" aria-label="${esc(t('hand.stekkerVastWeg', { naam: g.tekst }))}">×</button></span></div>`;
+        return `<div class="td-taak${aan ? '' : ' uit'}"><b class="td-taak-uur${z ? ' zon' : ''}">${esc(klok(g.ms))}</b><div class="td-wat"><b>${esc(g.tekst)}${p?.sceneKamer(g) ? `<small class="waar"> · ${esc(p.sceneKamer(g))}</small>` : ''}</b><span>${esc([z, vaak].filter(Boolean).join(' · '))}</span></div><span class="td-taak-knoppen"><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('gp.aanLabel', { wat: g.tekst }))}" data-td-gp-aan="${esc(g.id)}"></button><button type="button" class="td-taak-weg" data-td-gp-weg="${esc(g.id)}" aria-label="${esc(t('hand.stekkerVastWeg', { naam: g.tekst }))}">×</button></span></div>`;
       })
       .join('');
     return `<section class="glas tdp-vak td-vast">

@@ -278,6 +278,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [279. De balk van de dag in het blad Laden](#279-de-balk-van-de-dag-in-het-blad-laden)
 - [282. Voorverwarmen krijgt een eigen temperatuur, bij Dagdelen](#282-voorverwarmen-krijgt-een-eigen-temperatuur-bij-dagdelen)
 - [284. Het stroombeeld noemt elk apparaat; bij Jaar hele euro's](#284-het-stroombeeld-noemt-elk-apparaat-bij-jaar-hele-euros)
+- [285. Een geplande scène noemt zijn kamer en lampen](#285-een-geplande-scène-noemt-zijn-kamer-en-lampen)
 
 **Veiligheid**
 
@@ -13093,6 +13094,38 @@ apparaten die op dat moment minstens 30 W vragen, en dat blijft zo.
   brachten de echte stand en overschreven wat de test nabootste, waardoor de
   controle in CI sinds 0.155.0 telkens op een andere accutest viel.
 - **Versie 0.156.1.**
+
+---
+
+## 285. Een geplande scène noemt zijn kamer en lampen
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.156.2. Ricardo: bij een scène in een vaste taak zie
+je niet meer om welke lamp het gaat.
+
+*Waarom:* een taak bewaart alleen zijn naam, "Scène Nachtlampje". Hue haalt de
+naam van de groep van de scène af (besluit 100), dus de kamer staat er niet in.
+Bij Hoe koos je de scène bij de lampen van een kamer; daarna was dat weg.
+
+*Besluit:*
+
+- **De dienst zoekt het op bij het lezen,** niet bij het bewaren: bij elke
+  geplande taak met een scène geeft `/api/te-doen` de kamer en de lampen mee
+  (`scenes`). Zo hebben ook taken van voor deze versie het, en een hernoemde
+  lamp klopt meteen. Het huis wordt alleen gelezen als er een scène gepland
+  staat.
+- **De lampen zijn die van zijn Hue-groep,** waar ze ook staan. Een scène van
+  Home Assistant zelf noemt zijn lampen niet in het huis; die krijgt alleen
+  zijn kamer.
+- **In de lijst** bij Vast en gepland en Te doen de kamer achter de naam
+  ("Scène Nachtlampje · Slaapkamer"), niet als de kamer al in de naam staat.
+  Op de telefoon mag de naam dan over twee regels.
+- **In Aanpassen** onder Wat de kamer met de lampen: "Slaapkamer: Nachtkastje
+  links en Nachtkastje rechts", boven de vier lampen het aantal.
+- **De stand op Thuis** zei "Automatisch" als Home Assistant voorverwarmen had
+  gekozen; nu zegt hij Voorverwarmen.
+- **Versie 0.156.2.**
 
 ---
 

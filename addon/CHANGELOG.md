@@ -1,5 +1,27 @@
 # Wat is er nieuw · What is new
 
+## 0.156.2
+
+*8 november 2026*
+
+**Beter**
+
+- Een scène in een vaste taak zegt nu in welke kamer hij hoort, en bij Aanpassen welke lampen hij zet
+
+**Opgelost**
+
+- Kiest Home Assistant de stand Voorverwarmen, dan zegt Thuis dat nu ook, in plaats van Automatisch
+
+*English*
+
+**Improved**
+
+- A scene in a fixed task now says which room it belongs to, and under Edit which lights it sets
+
+**Fixed**
+
+- If Home Assistant picks the Preheat mode, Home now says so too, instead of Automatic
+
 ## 0.156.1
 
 *8 november 2026 · 0.151.0 – 0.156.1*
