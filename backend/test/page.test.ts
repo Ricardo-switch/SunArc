@@ -6182,8 +6182,9 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
 
     await p.goto(`${baseUrl}/indeling.html#${encodeURIComponent(a.id)}`);
     await p.locator('#wand [data-actie="kamernaam"]').waitFor({ timeout: 10_000 });
-    // Je huis als groep (besluit 193, 288): Kamers, Apparaten indelen, Buiten en Verborgen; Kamers gekozen met de etage van de kamer bovenin.
-    expect(await p.locator('#wand [data-delen] .deel:not(.erbij)').count()).toBe(4);
+    // Je huis als groep (besluit 193, 288): Huisontwerp, Kamers, Apparaten indelen, Buiten en Verborgen; Kamers gekozen met de etage van de kamer bovenin.
+    expect(await p.locator('#wand [data-delen] .deel:not(.erbij)').count()).toBe(5);
+    expect(await p.locator('#wand [data-delen] .deel[href="#vorm"]').count()).toBe(1);
     expect(new URL(p.url()).hash).toBe('#kamers');
     expect(await p.locator('#wand [data-delen] .deel.nu').getAttribute('href')).toBe('#kamers');
     expect(await p.locator(`#wand [data-etage-knop="${a.etage}"]`).getAttribute('aria-pressed')).toBe('true');

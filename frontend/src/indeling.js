@@ -36,6 +36,61 @@ let meldingFout = false;
 /** Waar een gesleept apparaat nu boven hangt: de kamer gloeit. */
 let sleepDoel = null;
 
+/*
+ * Huisontwerp (besluit 288, stap 3): de gebouwen van boven, dezelfde als bij
+ * Daken en panelen. De tekening en de kaart werken zoals daar (dakvlakken.js,
+ * dakbediening.js); bewaren gaat langs `api/huisvorm`, dat alleen de daken
+ * met hun gebouwen bewaart en de rest van de aansluiting laat staan.
+ */
+const dakStaat = { scherm: 'alle', concept: null, origineel: null, zicht: 'boven', gebouw: null, kandidaat: null, kaart: null };
+const dakBed = dakbediening.maak({ daken: () => aans?.daken ?? null, staat: dakStaat, bewaar: bewaarHuisvorm, teken: () => teken() });
+
+async function bewaarHuisvorm(w) {
+  const d = aans?.daken;
+  if (!d || w.geen) return;
+  const oud = aans.antwoorden?.daken ?? null;
+  const gebouwen = w.gebouwen ?? dakvlakken.gebouwenUit(d);
+  const kaartStand = w.kaartStand ?? oud?.kaartStand ?? d.kaartStand ?? null;
+  // Het dak uit 3D BAG blijft bewaard zolang het hoofdhuis daaruit komt.
+  const uitBag = gebouwen.some((g) => g.soort === 'hoofdhuis' && g.bron === 'kaart' && g.kaart === 'bag3d');
+  const kaartDak = !uitBag ? null : w.kaartDak !== undefined ? w.kaartDak : (oud?.kaartDak ?? d.kaartDak ?? null);
+  const daken = { vlakken: w.vlakken ?? d.vlakken.map(dakvlakken.kaal), voorgevelDeg: d.voorgevelDeg, omvormerW: d.omvormerW, gebouwen, omgeving: w.omgeving ?? d.tekening?.omgeving ?? [], ...(oud?.grenzen ? { grenzen: oud.grenzen } : {}), ...(kaartStand ? { kaartStand } : {}), ...(kaartDak?.length ? { kaartDak } : {}) };
+  // Meteen zo laten zien; de dienst tekent het daarna precies.
+  aans = { ...aans, daken: { ...d, ...(w.tekening ? { tekening: w.tekening } : {}), kaartStand, kaartDak } };
+  teken();
+  await naBewaren();
+  return inDeRij(async () => {
+    try {
+      const res = await deur('api/huisvorm', { daken });
+      if (res === null) return;
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) return zeg(res.status === 403 ? t('indeling.beheerder') : (body.fout ?? t('indeling.nietBewaard')), true);
+      aans = body;
+      zeg(t('huisvorm.bewaard'));
+      await laadHuis();
+    } catch {
+      zeg(t('indeling.geenVerbinding'), true);
+    }
+    teken();
+  });
+}
+
+/** Hoe het huis getekend is, in een paar woorden: waar de vorm vandaan komt en hoeveel gebouwen. */
+function vormZin() {
+  const gebouwen = aans?.daken?.tekening?.gebouwen ?? [];
+  const huis = gebouwen.find((g) => g.soort === 'hoofdhuis');
+  if (!huis) return t('indeling.nogLeeg');
+  const bron = huis.bron === 'kaart' ? (huis.kaart === 'bag3d' ? 'kaart3d' : 'plattegrond') : huis.bron === 'bewoner' ? 'zelf' : 'geschat';
+  return `${t(`huisvorm.bron.${bron}`)}, ${t('huisvorm.gebouwenAantal', { n: gebouwen.length })}`;
+}
+
+/** Wat voor huis het is (besluit 190), bij Huisontwerp: dezelfde keuze als bij Inrichten. */
+function woningKeuze(d) {
+  const nu = d.woning ?? 'vrijstaand';
+  const knop = (w) => `<button type="button" class="chip${w === nu ? ' aan' : ''}" data-woning="${w}" aria-pressed="${w === nu}">${esc(t(`inr.woning.${w}`))}</button>`;
+  return `<div class="dk-veld"><small>${esc(t('huisvorm.woning'))}</small><div class="chips">${['vrijstaand', 'rij', 'hoek', 'tweekap', 'appartement'].map(knop).join('')}</div></div>`;
+}
+
 async function laadAlles() {
   const [i, h, z, s, a] = await Promise.allSettled([haal('api/indeling'), haal('api/huis'), haal('api/zon'), haal('api/state'), haal('api/aansluiting')]);
   if (i.status === 'fulfilled') info = i.value;
@@ -67,9 +122,9 @@ async function laadHuis() {
  * De delen van Je huis (besluit 288): Kamers (met de etage bovenin), Apparaten
  * indelen (`los`), Buiten en Verborgen. De etages zijn geen losse delen meer.
  */
-const DEEL_VAST = ['kamers', 'los', 'verborgen', 'buiten'];
+const DEEL_VAST = ['vorm', 'kamers', 'los', 'verborgen', 'buiten'];
 /** Wat voor deel: de kamers van een etage, Buiten, of een lijst. */
-const deelSoort = (id) => (id === 'buiten' ? 'buiten' : id === 'los' || id === 'verborgen' ? id : 'etage');
+const deelSoort = (id) => (id === 'buiten' ? 'buiten' : id === 'los' || id === 'verborgen' || id === 'vorm' ? id : 'etage');
 const opAdres = (id) => `${location.pathname}${location.search}#${encodeURIComponent(id)}`;
 /** De etages binnen, van boven naar beneden. */
 const etagesBinnen = () => (info?.etages ?? []).map((e) => e.id).filter((id) => id !== 'buiten');
@@ -116,6 +171,10 @@ function volgDeel(nu) {
   const soort = deelSoort(nu);
   if (soort === 'etage') Object.assign(keuze, { etage: standaardEtage(concept()), kamer: null, apparaat: null, blad: 'etage' });
   else if (soort === 'buiten') Object.assign(keuze, { etage: 'buiten', kamer: null, apparaat: null, blad: 'etage' });
+  else if (soort === 'vorm') {
+    Object.assign(keuze, { kamer: null, apparaat: null, blad: 'vorm' });
+    Object.assign(dakStaat, { scherm: 'alle', gebouw: null, kandidaat: null });
+  }
   else Object.assign(keuze, { kamer: null, apparaat: null, blad: 'apparaat' });
 }
 
@@ -160,8 +219,11 @@ function delen(d) {
   const binnen = etagesBinnen();
   const kamers = d.kamers.filter((k) => binnen.includes(k.etage));
   const buiten = buitenZin(d);
+  const huis = aans?.daken?.tekening?.gebouwen?.find((g) => g.soort === 'hoofdhuis');
   return [
     { kop: t('indeling.kopOpMaat') },
+    // Huisontwerp (besluit 288, stap 3): alleen als de aansluiting er is, want daar staan de gebouwen.
+    ...(aans?.daken ? [{ id: 'vorm', titel: t('huisvorm.titel'), zin: vormZin(), stand: huis && huis.bron !== 'schatting' ? 'goed' : null, icoon: 'dak' }] : []),
     { id: 'kamers', titel: t('indeling.deel.kamers'), zin: kamers.length ? t('indeling.deel.kamersZin', { kamers: t('instellingen.kamers', { n: kamers.length }), etages: t('indeling.etagesAantal', { n: binnen.length }) }) : t('indeling.nogLeeg'), stand: kamers.length ? 'goed' : 'leeg', icoon: 'kamers' },
     { id: 'los', titel: t('indeling.deel.apparatenIndelen'), zin: t('indeling.deel.losZin', { n: los.length }), stand: los.length ? 'mist' : 'goed', icoon: 'apparaten' },
     { kop: t('indeling.kopRond') },
@@ -332,11 +394,14 @@ function tekenNu() {
   $$('[data-binnen]').forEach((el) => {
     el.classList.toggle('lijstdeel', soort === 'los' || soort === 'verborgen');
     el.classList.toggle('alleenblad', soort === 'nieuw');
+    el.classList.toggle('heeldeel', soort === 'vorm');
   });
   if (soort === 'etage' || soort === 'buiten') tekenPodium(d);
   $$('[data-lijst]').forEach((el) => (el.innerHTML = soort === 'los' || soort === 'verborgen' ? lijstVan(d, soort) : ''));
   // Niet opnieuw opbouwen terwijl iemand typt.
-  for (const el of $$('[data-blad]')) if (!(el.contains(document.activeElement) && document.activeElement.matches('input'))) el.innerHTML = blad(d);
+  // Huisontwerp tekent zijn eigen podium en blad; de ids in de tekening per scherm apart, zoals bij Energie.
+  const vormHtml = soort === 'vorm' ? dakvlakken.vorm(aans?.daken ?? null, dakStaat, { huis: true, woning: woningKeuze(d) }) : null;
+  for (const [i, el] of $$('[data-blad]').entries()) if (!(el.contains(document.activeElement) && document.activeElement.matches('input'))) el.innerHTML = vormHtml != null ? vormHtml.replaceAll('dkid-', `dk${i}-`) : blad(d);
   $$('[data-bak]').forEach((el) => {
     el.innerHTML = bak();
     el.classList.toggle('leeg', !(huisData?.zonderRuimte ?? []).length);
@@ -1081,7 +1146,7 @@ document.addEventListener('click', async (e) => {
     netGesleept = false;
     return;
   }
-  const el = e.target.closest('button, [data-kamer], [data-bron-open]');
+  const el = e.target.closest('button, [data-kamer], [data-bron-open], [data-dak-dakvlak], [data-dak-kandidaat], [data-dak-gebouw]');
   if (!el || el.disabled) return;
   await naBewaren();
   const d = concept();
@@ -1089,6 +1154,14 @@ document.addEventListener('click', async (e) => {
   // Een knop in een bronkaart gaat voor de kaart zelf.
   if (el.matches('[data-bron-open]') && e.target.closest('button')) return;
   if (await bronKlik(el)) return;
+  // Huisontwerp (besluit 288): de tekening van boven en zijn blad.
+  if (deelSoort(keuze.deel) === 'vorm' && (await dakBed.klik(el))) return;
+  if (el.dataset.woning) {
+    const next = concept();
+    next.woning = el.dataset.woning;
+    await bewaar(next, t('huisvorm.woningBewaard', { woning: t(`inr.woning.${el.dataset.woning}`) }));
+    return;
+  }
   if (el.dataset.kamer) kiesKamer(el.dataset.kamer);
   else if (el.dataset.etageKnop) kiesEtage(el.dataset.etageKnop);
   else if (el.hasAttribute('data-etage-erbij')) kies({ kamer: null, apparaat: null, blad: 'nieuweEtage' });

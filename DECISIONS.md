@@ -13256,6 +13256,15 @@ huis op Thuis nooit op echte maat getekend worden.
   als balk bovenin, met + Etage), Apparaten indelen, en rond het huis Buiten
   en Verborgen. Oude adressen met een kamer of etage openen Kamers op die
   etage. Een apparaat slepen naar een etage bovenin opent die etage.
+- **Stap 3, versie 0.159.0:** Huisontwerp bovenaan Je huis: de tekening van
+  boven en de gebouwen van Daken en panelen (`dakvlakken.vorm` met `huis`),
+  met wat kan bij jouw huis, het woningtype, en per gebouw dak, maat en hoogte
+  (goot, nok, bouwlagen; geschat tot de bewoner of de 3D-kaart het zegt). 3D
+  BAG geeft de hoogte uit `b3_h_dak_min`, `b3_h_dak_max`, `b3_h_maaiveld` en
+  `b3_bouwlagen`. Bewaren gaat langs de nieuwe deur `api/huisvorm`, die alleen
+  de daken bewaart: de panelen, zekering en prijzen blijven staan. Het slepen,
+  de kaart en het venster staan in `dakbediening.js`, de opmaak in `daken.css`
+  (eerst in energie.html); Energie gebruikt de bediening nog uit eigen code.
 
 ---
 

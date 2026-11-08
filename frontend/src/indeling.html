@@ -7,6 +7,7 @@
 <title>Je huis · SunArc</title>
 <link rel="stylesheet" href="kit/kit.css">
 <link rel="stylesheet" href="basis.css">
+<link rel="stylesheet" href="daken.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b1424">
 <link rel="icon" href="icoon-192.png?v=sunarc">
@@ -44,6 +45,11 @@
   .binnen:not(.lijstdeel) [data-lijst] { display: none; }
   #wand .binnen.alleenblad { grid-template-columns: minmax(0, 540px); }
   #wand .binnen.alleenblad .links { display: none; }
+  /* Huisontwerp (besluit 288): de tekening van boven met haar eigen blad, over de hele breedte. */
+  #wand .binnen.heeldeel { grid-template-columns: minmax(0, 1fr); }
+  .binnen.heeldeel .links { display: none; }
+  #wand .binnen.heeldeel .blad { padding: 0; background: none; border: 0; overflow: visible; display: flex; flex-direction: column; }
+  #tel .binnen.heeldeel .blad { padding-top: 0; border-top: 0; }
   .bak.leeg { display: none; }
   .applijst { display: flex; flex-direction: column; gap: 6px; }
   .applijst .app { padding: 10px 12px; border: 1px solid transparent; border-radius: 14px; background: rgb(var(--wit) / 0.045); }
@@ -260,6 +266,8 @@
   <script src="basis.js"></script>
   <script src="groep.js"></script>
   <script src="huismodel.js"></script>
+  <script src="dakvlakken.js"></script>
+  <script src="dakbediening.js"></script>
   <script src="indeling.js"></script>
 </body>
 </html>

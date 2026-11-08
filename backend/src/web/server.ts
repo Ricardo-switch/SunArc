@@ -297,6 +297,8 @@ export class WebServer {
       (this.#d.options.energy != null && path === '/api/energie') ||
       // De zon en je aansluiting (besluit 103): alleen antwoorden, naar een eigen bestand.
       (this.#d.options.connection != null && path === '/api/aansluiting') ||
+      // De vorm van het huis (besluit 288): alleen de daken met hun gebouwen.
+      (this.#d.options.connection != null && path === '/api/huisvorm') ||
       // De gevels op de kaart (21 oktober 2026): niets bewaren, alleen een vraag aan OpenStreetMap.
       (this.#d.options.location != null && path === '/api/gevel-kaart') ||
       // Het huis van boven uit de kaart (besluit 254): alleen het vak gaat naar OpenStreetMap.

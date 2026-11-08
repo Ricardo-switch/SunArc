@@ -1,14 +1,24 @@
 # Wat is er nieuw · What is new
 
-## 0.158.0
+## 0.159.0
 
-*8 november 2026*
+*8 november 2026 · 0.158.0 – 0.159.0*
+
+**Nieuw**
+
+- Je huis › Huisontwerp: de gebouwen van boven, dezelfde als bij Daken en panelen. Kies waar je huis vandaan komt, wat voor huis het is, en per gebouw het dak, de maat en de hoogte tot goot en nok
+- Uit de 3D-kaart van Nederland komen nu ook de hoogte en het aantal bouwlagen van je huis
 
 **Beter**
 
 - Kamers en indeling heet nu Je huis: Kamers met de etages bovenin, Apparaten indelen, en rond het huis Buiten en Verborgen. Een etage erbij zet je met + Etage
 
 *English*
+
+**New**
+
+- Your home › House design: the buildings from above, the same as under Roofs and panels. Choose where your house comes from, what type of house it is, and per building the roof, the size and the height to gutter and ridge
+- The 3D map of the Netherlands now also gives the height and number of storeys of your house
 
 **Improved**
 
