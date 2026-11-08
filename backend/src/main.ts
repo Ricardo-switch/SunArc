@@ -2602,6 +2602,14 @@ if (webPort != null) {
     herstart,
     // Deel apparaatgegevens (testerronde, november 2026): alleen het soort apparaat, geen namen.
     apparaatGegevens: (id) => (houseRegisters ? apparaatGegevens(id, allStates, houseRegisters.entities, houseRegisters.devices) : null),
+    // De stand (besluit 287): welke knop het huis op Handmatig zet, en sinds wanneer het vakantie is.
+    toestand: (id) => {
+      const s = allStates.get(id);
+      if (!s) return null;
+      const naam = s.attributes['friendly_name'];
+      const sinds = Date.parse(s.last_changed);
+      return { state: s.state, naam: typeof naam === 'string' ? naam : null, sindsMs: Number.isFinite(sinds) ? sinds : null };
+    },
     // De camera's bekijken (besluit 106): alleen lezen, alleen met inlog.
     camera: {
       base: httpBase(url!),

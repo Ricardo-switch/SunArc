@@ -10,7 +10,8 @@
  *
  * Eén melding tegelijk in de knop (wand) en de regel (telefoon), het
  * belangrijkste eerst: met de hand, bijspringen, vakantie, afwezig, licht. Het
- * blad noemt ze allemaal.
+ * blad noemt ze allemaal. Sinds besluit 287 ook welke knop in Home Assistant
+ * het huis op Handmatig zet ("Handmatig koelen"), en sinds wanneer het vakantie is.
  */
 
 import type { Mode, SiteConfig, Zone } from '../core/model.js';
@@ -84,6 +85,11 @@ export interface StandOpties {
   readonly kiesInHa?: boolean;
   /** Wanneer elke melding begon; de dienst houdt het bij tussen de besluiten. */
   readonly geheugen?: Map<string, number>;
+  /**
+   * Een entiteit in Home Assistant: zijn stand, zijn naam, en sinds wanneer hij
+   * zo staat. Voor de knop die Handmatig maakt, en sinds wanneer het vakantie is.
+   */
+  readonly toestand?: (entityId: string) => { readonly state: string; readonly naam: string | null; readonly sindsMs: number | null } | null;
 }
 
 const W = {
@@ -119,6 +125,16 @@ const W = {
     vakWat: 'Zo zuinig mogelijk',
     vakHoe: (ha: boolean) => (ha ? 'Tot je hem in Home Assistant terugzet.' : 'Tot je hem terugzet.'),
     vakKort: 'Vakantie',
+    vakKortSinds: (d: string) => `Vakantie sinds ${d}`,
+    // Handmatig door een knop in Home Assistant, zoals "Handmatig koelen"
+    koelKnop: 'koelen met de hand',
+    koelKort: 'Koelen met de hand',
+    koelWat: 'Koelen met de hand',
+    knopKnop: (st: string) => `${st} in Home Assistant`,
+    knopHoe: (naam: string | null, st: string) => `In Home Assistant staat ${naam ? `"${naam}"` : 'een knop'} op "${st}". Zolang regelt het huis niets.`,
+    knopNoot: 'Zet je hem in Home Assistant terug, dan regelt het huis weer zelf.',
+    knopOnder: (st: string) => `door "${st}" in Home Assistant`,
+    dag: (ms: number, tz: string) => new Intl.DateTimeFormat('nl-NL', { timeZone: tz, weekday: 'short', day: 'numeric', month: 'short' }).format(ms).replace(/\./g, ''),
     afwKnop: 'niemand thuis',
     afwKort: 'Niemand thuis',
     afwWat: 'Iedereen is weg',
@@ -161,6 +177,15 @@ const W = {
     vakWat: 'As economical as possible',
     vakHoe: (ha: boolean) => (ha ? 'Until you set it back in Home Assistant.' : 'Until you set it back.'),
     vakKort: 'Holiday',
+    vakKortSinds: (d: string) => `Holiday since ${d}`,
+    koelKnop: 'cooling by hand',
+    koelKort: 'Cooling by hand',
+    koelWat: 'Cooling by hand',
+    knopKnop: (st: string) => `${st} in Home Assistant`,
+    knopHoe: (naam: string | null, st: string) => `In Home Assistant ${naam ? `"${naam}"` : 'a switch'} is set to "${st}". Meanwhile the house controls nothing.`,
+    knopNoot: 'Set it back in Home Assistant and the house controls itself again.',
+    knopOnder: (st: string) => `by "${st}" in Home Assistant`,
+    dag: (ms: number, tz: string) => new Intl.DateTimeFormat('en-GB', { timeZone: tz, weekday: 'short', day: 'numeric', month: 'short' }).format(ms).replace(/,/g, ''),
     afwKnop: 'nobody home',
     afwKort: 'Nobody home',
     afwWat: 'Everyone is out',
@@ -265,10 +290,41 @@ export function standNu(config: SiteConfig, snap: DecisionView, lang: Lang = 'nl
     return t != null ? w.graden(t) : w.niet;
   };
   const hoofd = kamerVoorBalk(config, bij.map((i) => i.zoneId));
+  // Sinds wanneer, uit Home Assistant: vandaag de klok, anders de dag ("ma 3 nov").
+  const sindsTekst = (ms: number): string => {
+    const d = partsIn(ms, tz);
+    return d.y === p.y && d.m === p.m && d.d === p.d ? klokVan(ms) : w.dag(ms, tz);
+  };
+  // Handmatig door een knop in Home Assistant (zoals "Handmatig koelen"): zeg welke, en sinds wanneer.
+  const handKnop = e.mode === 'handmatig' ? (config.mode?.handsOffWhen ?? []).find((b) => o.toestand?.(b.ref.id)?.state === b.state) : undefined;
+  let knopMelding: (typeof meldingen)[number] | null = null;
+  if (handKnop) {
+    const t = o.toestand!(handKnop.ref.id)!;
+    const koel = /koel|cool/i.test(handKnop.state);
+    knopMelding = {
+      soort: 'hand',
+      wat: koel ? w.koelWat : handKnop.state,
+      hoe: w.knopHoe(t.naam, handKnop.state),
+      waarde: t.sindsMs != null ? w.sinds(sindsTekst(t.sindsMs)) : '',
+      knop: koel ? w.koelKnop : w.knopKnop(handKnop.state),
+      kort: koel ? w.koelKort : handKnop.state,
+    };
+    meldingen.push(knopMelding);
+  }
   if (e.mode === 'vakantie') {
     const sleutel = 'vakantie';
     actief.add(sleutel);
-    meldingen.push({ soort: 'vakantie', wat: w.vakWat, hoe: w.vakHoe(kiesInHa), waarde: temp(hoofd, 'vakantie'), knop: kiesInHa ? w.gekozenHa : w.gekozen, kort: w.vakKort });
+    // Home Assistant kent geen einddatum voor vakantie, wel sinds wanneer de stand zo staat.
+    const vanaf = config.mode ? (o.toestand?.(config.mode.select.id)?.sindsMs ?? null) : null;
+    const d = vanaf != null ? sindsTekst(vanaf) : null;
+    meldingen.push({
+      soort: 'vakantie',
+      wat: w.vakWat,
+      hoe: d ? `${cap(w.sinds(d))}. ${w.vakHoe(kiesInHa)}` : w.vakHoe(kiesInHa),
+      waarde: temp(hoofd, 'vakantie'),
+      knop: d ? w.sinds(d) : kiesInHa ? w.gekozenHa : w.gekozen,
+      kort: d ? w.vakKortSinds(d) : w.vakKort,
+    });
   } else if (e.mode === 'afwezig') {
     const sleutel = 'afwezig';
     actief.add(sleutel);
@@ -293,10 +349,11 @@ export function standNu(config: SiteConfig, snap: DecisionView, lang: Lang = 'nl
   const volgende = volgendeWissel(config, p.h);
   const knop = eerste?.knop ?? (auto ? w.tot(klok(volgende.uur)) : kiesInHa ? w.gekozenHa : w.gekozen);
   const kort = eerste?.kort ?? (auto ? w.kortTot(naam, klok(volgende.uur)) : w.kortGekozen(naam));
-  const onder = licht ? w.onderLicht(klok(s.nightFromHour)) : auto && e.mode === 'afwezig' ? w.onderNiemand : auto ? w.onderAuto(klok(volgende.uur), w.stand[volgende.stand].toLowerCase()) : kiesInHa ? w.gekozenHa : w.gekozen;
+  const onder = licht ? w.onderLicht(klok(s.nightFromHour)) : auto && e.mode === 'afwezig' ? w.onderNiemand : auto ? w.onderAuto(klok(volgende.uur), w.stand[volgende.stand].toLowerCase()) : handKnop ? w.knopOnder(handKnop.state) : kiesInHa ? w.gekozenHa : w.gekozen;
 
   let noot: string | null = null;
-  if (eerste?.soort === 'hand') noot = w.handNoot;
+  if (knopMelding && eerste === knopMelding) noot = w.knopNoot;
+  else if (eerste?.soort === 'hand') noot = w.handNoot;
   else if (eerste?.soort === 'bijspringen') {
     const z = config.zones.find((x) => x.id === bij[0]!.zoneId);
     noot = w.bijNoot(z?.heatAssist?.startDelayMinutes ?? HEAT_ASSIST_DEFAULTS.startDelayMinutes, w.graden(z?.heatAssist?.minShortfallC ?? HEAT_ASSIST_DEFAULTS.minShortfallC));

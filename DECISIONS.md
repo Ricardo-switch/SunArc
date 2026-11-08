@@ -280,6 +280,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [284. Het stroombeeld noemt elk apparaat; bij Jaar hele euro's](#284-het-stroombeeld-noemt-elk-apparaat-bij-jaar-hele-euros)
 - [285. Een geplande scène noemt zijn kamer en lampen](#285-een-geplande-scène-noemt-zijn-kamer-en-lampen)
 - [286. De stand van het huis zegt wat er meespeelt](#286-de-stand-van-het-huis-zegt-wat-er-meespeelt)
+- [287. Handmatig koelen en vakantie bij de stand](#287-handmatig-koelen-en-vakantie-bij-de-stand)
 
 **Veiligheid**
 
@@ -13168,7 +13169,37 @@ er alleen als hij afweek, dus daar was het blad meestal niet te openen.
 - **Versie 0.157.0.**
 
 *Nog niet:* "Handmatig koelen" in Home Assistant heet nog gewoon Handmatig, en
-vakantie heeft geen einddatum (Home Assistant kent er geen).
+vakantie heeft geen einddatum (Home Assistant kent er geen). *Achteraf:* allebei
+dezelfde dag, in besluit 287.
+
+---
+
+## 287. Handmatig koelen en vakantie bij de stand
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.157.1. Volgt op besluit 286; Ricardo: "kunnen we die
+laatste 2 punten die je noemt nog toevoegen?"
+
+*Waarom:* zette "Handmatig koelen" bij de koelstrategie in Home Assistant het
+huis op Handmatig, dan zei Thuis alleen "Handmatig, gekozen in Home Assistant",
+alsof iemand de stand zelf koos. En bij vakantie stond niet tot of sinds wanneer.
+
+*Besluit:*
+
+- **Handmatig door een knop** (`mode.handsOffWhen`): de stand zegt welke knop
+  het is en sinds wanneer, uit Home Assistant. Bij koelen "Handmatig · koelen
+  met de hand", in het blad "In Home Assistant staat "Koel strategie" op
+  "Handmatig koelen". Zolang regelt het huis niets." Een andere knop met zijn
+  eigen stand. Gewoon Handmatig gekozen blijft "gekozen in Home Assistant".
+- **Vakantie zegt sinds wanneer:** "Vakantie · sinds di 3 nov", of vandaag de
+  klok. Home Assistant kent geen einddatum (dit huis heeft er geen datumveld
+  voor). Een eind kiezen in SunArc kan pas als SunArc de stand mag zetten
+  (stap B).
+- **Hoe:** de dienst leest de stand, de naam en sinds wanneer van een entiteit
+  uit de toestanden die hij al bijhoudt (`toestand`). Alleen lezen. Dit "sinds"
+  komt uit Home Assistant, dus het klopt ook na een herstart.
+- **Versie 0.157.1.**
 
 ---
 

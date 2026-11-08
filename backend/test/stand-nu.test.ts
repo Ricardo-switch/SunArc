@@ -120,6 +120,28 @@ describe('de stand van het huis (besluit 286)', () => {
     expect(s.meldingen[0]!.hoe).toBe('Op 21°, daarna weer zoals het was.');
   });
 
+  it('Handmatig door "Handmatig koelen" in Home Assistant: zegt welke knop, en sinds wanneer (besluit 287)', () => {
+    const toestand = (id: string) => (id === 'input_select.koel_strategie' ? { state: 'Handmatig koelen', naam: 'Koel strategie', sindsMs: om(14, 20) } : null);
+    const s = standNu(config, view(om(15), { mode: 'handmatig', modeSource: 'override' }), 'nl', { geheugen: vers(), toestand });
+    expect(s).toMatchObject({ soort: 'hand', knop: 'koelen met de hand', kort: 'Koelen met de hand', onder: 'door "Handmatig koelen" in Home Assistant' });
+    expect(s.meldingen[0]).toEqual({ soort: 'hand', wat: 'Koelen met de hand', hoe: 'In Home Assistant staat "Koel strategie" op "Handmatig koelen". Zolang regelt het huis niets.', waarde: 'sinds 14:20' });
+    expect(s.noot).toBe('Zet je hem in Home Assistant terug, dan regelt het huis weer zelf.');
+    // Gewoon Handmatig gekozen, zonder die knop: zoals eerst.
+    const gekozen = standNu(config, view(om(15), { mode: 'handmatig', modeSource: 'override' }), 'nl', { geheugen: vers(), toestand: () => ({ state: 'Automatisch', naam: null, sindsMs: null }) });
+    expect(gekozen).toMatchObject({ soort: null, knop: 'gekozen in Home Assistant', kort: 'Handmatig, gekozen' });
+  });
+
+  it('vakantie zegt sinds wanneer, uit Home Assistant; een einddatum kent Home Assistant niet (besluit 287)', () => {
+    const toestand = (id: string) => (id === 'input_select.verwarming_modus' ? { state: 'vakantie', naam: 'Verwarming modus', sindsMs: Date.UTC(2026, 10, 3, 8) } : null);
+    const s = standNu(config, view(om(22, 40), { mode: 'vakantie', modeSource: 'override' }), 'nl', { geheugen: vers(), toestand });
+    expect(s).toMatchObject({ soort: 'vakantie', knop: 'sinds di 3 nov', kort: 'Vakantie sinds di 3 nov' });
+    expect(s.meldingen[0]!.hoe).toBe('Sinds di 3 nov. Tot je hem in Home Assistant terugzet.');
+    // Vandaag begonnen: de klok.
+    const vandaag = standNu(config, view(om(22, 40), { mode: 'vakantie', modeSource: 'override' }), 'nl', { geheugen: vers(), toestand: () => ({ state: 'vakantie', naam: null, sindsMs: om(9, 5) }) });
+    expect(vandaag.knop).toBe('sinds 09:05');
+    expect(standNu(config, view(om(22, 40), { mode: 'vakantie', modeSource: 'override' }), 'en', { geheugen: vers(), toestand }).kort).toBe('Holiday since Tue 3 Nov');
+  });
+
   it('in het Engels', () => {
     const s = standNu(config, view(om(10, 15)), 'en', { geheugen: new Map() });
     expect(s).toMatchObject({ naam: 'Day', knop: 'until 22:00', kort: 'Day until 22:00' });

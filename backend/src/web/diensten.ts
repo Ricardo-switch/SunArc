@@ -165,6 +165,7 @@ export class Diensten {
     const hand = this.options.hand;
     const stand = {
       hand: hand?.hand.terugzetten ?? [],
+      ...(this.options.toestand ? { toestand: this.options.toestand } : {}),
       naamVan: (id: string) => config.actuators.find((a) => a.ref.id === id)?.name ?? hand?.schakelaars().find((s) => s.id === id)?.naam ?? null,
       lampenAan: () => {
         const ids = new Set(config.schedule.eveningExtensionLights.map((r) => r.id));

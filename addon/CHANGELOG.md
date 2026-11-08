@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.157.0
+## 0.157.1
 
-*8 november 2026 · 0.156.2 – 0.157.0*
+*8 november 2026 · 0.156.2 – 0.157.1*
 
 **Nieuw**
 
@@ -11,6 +11,8 @@
 
 **Beter**
 
+- Zet "Handmatig koelen" in Home Assistant het huis op Handmatig, dan zegt de stand dat, met sinds wanneer
+- Bij vakantie zegt de stand sinds wanneer
 - Een scène in een vaste taak zegt nu in welke kamer hij hoort, en bij Aanpassen welke lampen hij zet
 
 **Opgelost**
@@ -26,6 +28,8 @@
 
 **Improved**
 
+- If "Handmatig koelen" (cooling by hand) in Home Assistant sets the house to Manual, the mode now says so, with since when
+- On holiday the mode says since when
 - A scene in a fixed task now says which room it belongs to, and under Edit which lights it sets
 
 **Fixed**

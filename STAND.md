@@ -124,7 +124,8 @@ verwijzing bestaat.
   Regeling › Klimaat ([283]).
 - **De stand op Thuis** zegt wat er meespeelt: met de hand, bijspringen,
   vakantie of afwezig, en nog Dag door licht. Op de wand in de knop, op de
-  telefoon naast de begroeting; het blad met de dag als balk ([286]).
+  telefoon naast de begroeting; het blad met de dag als balk ([286]). Handmatig
+  zegt welke knop in Home Assistant het doet, vakantie sinds wanneer ([287]).
 - **Bij zon over:** eerst comfort, dan de batterij, dan de auto. Laadpaal en
   batterij stuurt SunArc niet zelf ([85]). Wat er na comfort over is,
   gaat in de volgorde van de lijst Op zon: kamers die op zon voorkoelen of
@@ -895,4 +896,5 @@ verwijzing bestaat.
 [284]: DECISIONS.md#284-het-stroombeeld-noemt-elk-apparaat-bij-jaar-hele-euros
 [285]: DECISIONS.md#285-een-geplande-scène-noemt-zijn-kamer-en-lampen
 [286]: DECISIONS.md#286-de-stand-van-het-huis-zegt-wat-er-meespeelt
+[287]: DECISIONS.md#287-handmatig-koelen-en-vakantie-bij-de-stand
 <!-- links:einde -->
