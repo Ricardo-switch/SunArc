@@ -144,7 +144,9 @@ const proefmeldingen: (string | null)[] = [];
 let extraOpslag: Opslag | null = null;
 /** Laden met de hand (besluit 262): wat de pagina stuurde, en wat er nu met de hand loopt. */
 const ladenGestuurd: unknown[] = [];
-let ladenActief: { stroomA: number | null; pauze: boolean; tot: 'uur' | 'tijd' | 'pct' | 'kabel'; totMs: number; pct: number | null } | null = null;
+/** Met evcc in huis (besluit 278): de stand van het laadpunt, of null zonder evcc. */
+let ladenEvcc: string | null = null;
+let ladenActief: { stroomA: number | null; pauze: boolean; stand: string | null; tot: 'uur' | 'tijd' | 'pct' | 'kabel'; totMs: number; pct: number | null } | null = null;
 /** De plek van het testhuis voor de kaart (5 november 2026), in Utrecht. */
 const KAART_PLEK = { lat: 52.0907, lon: 5.1214 } as const;
 /** Een nagemaakt kaartvak van 3D BAG rond die plek: het huis met een zadeldak (nok noord-zuid), en een buur 12 meter oostelijk. */
@@ -459,10 +461,14 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
           }),
           // Laden met de hand (besluit 262): de Easee mag, van 6 tot 16 A, en kan pauzeren.
           laden: {
-            standen: async () => [{ auto: 'tesla', stroom: { min: 6, max: 16, stap: 1, nuA: ladenActief?.stroomA ?? 5 }, pauze: true, mag: true, evcc: false, zekeringA: 20, actief: ladenActief }],
-            zet: async (auto: string, v: { stroomA?: number; pauze?: boolean; tot: 'uur' | 'tijd' | 'pct' | 'kabel'; totMs?: number; pct?: number }) => {
+            standen: async () => [
+              ladenEvcc != null
+                ? { auto: 'tesla', stroom: null, pauze: false, mag: false, evcc: true, zekeringA: 20, evccStand: { opties: ['off', 'pv', 'minpv', 'now'], nu: ladenActief?.stand ?? ladenEvcc }, evccMag: true, actief: ladenActief }
+                : { auto: 'tesla', stroom: { min: 6, max: 16, stap: 1, nuA: ladenActief?.stroomA ?? 5 }, pauze: true, mag: true, evcc: false, zekeringA: 20, evccStand: null, evccMag: false, actief: ladenActief },
+            ],
+            zet: async (auto: string, v: { stroomA?: number; pauze?: boolean; stand?: string; tot: 'uur' | 'tijd' | 'pct' | 'kabel'; totMs?: number; pct?: number }) => {
               ladenGestuurd.push({ auto, ...v });
-              ladenActief = { stroomA: v.stroomA ?? null, pauze: v.pauze === true, tot: v.tot, totMs: Date.now() + 3_600_000, pct: v.pct ?? null };
+              ladenActief = { stroomA: v.stroomA ?? null, pauze: v.pauze === true, stand: v.stand ?? null, tot: v.tot, totMs: Date.now() + 3_600_000, pct: v.pct ?? null };
               return { ok: true as const, terug: { auto, tot: v.tot, totMs: ladenActief.totMs, sindsMs: Date.now() } };
             },
             terug: async (auto: string) => {
@@ -4159,6 +4165,28 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await w.evaluate('(() => { const h = document.querySelector("[data-held]"); return h.scrollHeight <= h.clientHeight + 1; })()')).toBe(true);
       expect(await w.locator('#wand .instellen').getAttribute('href')).toBe('energie.html#auto');
       await wand.close();
+      // Met evcc in huis (besluit 278): het blad zet de stand van evcc, met een eind, en daarna weer Zon.
+      ladenEvcc = 'pv';
+      await p.reload();
+      await expect.poll(() => regel.textContent(), { timeout: 10_000 }).toContain('evcc · Zon');
+      await regel.click();
+      await laadBlad.waitFor();
+      expect(await laadBlad.locator('[data-laden-stand]').allTextContents()).toEqual(['Uit', 'Zon', 'Min + zon', 'Snel']);
+      expect(await laadBlad.locator('[data-laden-stand="now"]').getAttribute('aria-pressed')).toBe('true');
+      expect(await laadBlad.textContent()).toContain('Gaat de kabel eruit, dan zet SunArc evcc weer op Zon.');
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-auto-evcc.png') });
+      await laadBlad.locator('[data-laden-tot="uur"]').click();
+      await laadBlad.locator('[data-laden-zetstand]').click();
+      await expect.poll(() => ladenGestuurd.length).toBe(4);
+      expect(ladenGestuurd[3]).toEqual({ auto: 'tesla', stand: 'now', tot: 'uur' });
+      await expect.poll(() => regel.textContent()).toContain('Met de hand · Snel tot');
+      await regel.click();
+      await laadBlad.locator('[data-laden-terug]').click();
+      await expect.poll(() => ladenGestuurd.length).toBe(5);
+      expect(ladenGestuurd[4]).toEqual({ auto: 'tesla', terug: true });
+      ladenEvcc = null;
+      await p.reload();
+      await expect.poll(() => regel.textContent(), { timeout: 10_000 }).toContain('De laadpaal kiest zelf');
       // In het menu licht Apparaten op; de weg terug gaat daarheen.
       expect(await p.locator('#tabs [aria-current="page"]').count()).toBe(1);
       if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-auto.png'), fullPage: true });

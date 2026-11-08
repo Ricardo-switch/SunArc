@@ -350,13 +350,20 @@ const hoogste = (s) => Math.min(s.stroom.max, s.zekeringA ?? Infinity);
 /** "Tot een tijd": drie uur vooruit, op het hele uur. */
 const tijdKeuze = () => Math.ceil((Date.now() + 3 * 3_600_000) / 3_600_000) * 3_600_000;
 
+/** De naam van een stand van evcc (besluit 278). */
+const standNaam = (x) => t(`evcc.stand.${x}`);
+/** Met evcc: alleen de stand, als evcc er een zegt bij deze auto. */
+const metStand = (s) => s?.evcc && s.evccStand != null;
+
 /** Wat er nu met de hand loopt, of wat de laadpaal doet, in een paar woorden. */
 function ladenNuZin(a, s) {
   const x = s?.actief;
   if (x) {
     const tot = x.tot === 'pct' ? t('auto.laden.totPctKort', { pct: x.pct }) : x.tot === 'kabel' ? t('auto.laden.totKabelKort') : t('auto.laden.totKlokKort', { tijd: klokVan(x.totMs) });
+    if (x.stand) return t('auto.laden.handStand', { stand: standNaam(x.stand), tot });
     return x.pauze ? t('auto.laden.handPauze', { tot }) : t('auto.laden.handStroom', { a: x.stroomA, tot });
   }
+  if (metStand(s)) return [s.evccStand.nu ? t('auto.laden.evccNu', { stand: standNaam(s.evccStand.nu) }) : '', a.kabelSinds ? t('auto.laden.kabelSinds', { tijd: geweest(a.kabelSinds) }) : ''].filter(Boolean).join(' · ');
   const a0 = nuA(a, s);
   const delen = [t('auto.laden.paalZelf'), a0 != null ? `${a0} A` : '', a.kabelSinds ? t('auto.laden.kabelSinds', { tijd: geweest(a.kabelSinds) }) : ''];
   return delen.filter(Boolean).join(' · ');
@@ -365,14 +372,14 @@ function ladenNuZin(a, s) {
 /** Op de wand: een rij in de kaart van de laadpaal die het blad opent (de wand scrolt nooit). */
 function ladenRij(a) {
   const s = standVan(a.id);
-  if (!s || (!s.stroom && !s.pauze)) return '';
+  if (!s || (!s.stroom && !s.pauze && !metStand(s))) return '';
   return `<button type="button" class="regel ladenrij" data-laden-open><span>${esc(t('auto.laden.kop'))}</span><b>${esc(ladenNuZin(a, s))} ›</b></button>`;
 }
 
 /** De regel die het blad opent, op de telefoon onder het advies. */
 function ladenRegel(a) {
   const s = standVan(a.id);
-  if (!s || (!s.stroom && !s.pauze)) return '';
+  if (!s || (!s.stroom && !s.pauze && !metStand(s))) return '';
   return `<button type="button" class="glas kaart ladenregel" data-laden-open><div><b>${esc(t('auto.laden.kop'))}</b><span>${esc(ladenNuZin(a, s))}</span></div><span class="pijl" aria-hidden="true">›</span></button>`;
 }
 
@@ -388,6 +395,8 @@ function openBlad(a) {
     tot: x?.tot ?? 'kabel',
     totMs: x?.tot === 'tijd' ? x.totMs : tijdKeuze(),
     pct: x?.pct ?? pctStart,
+    // Met evcc: de stand die nu met de hand staat, anders Snel als hij nu niet al snel laadt.
+    stand: metStand(s) ? (x?.stand ?? (s.evccStand.nu === 'now' ? (s.evccStand.opties.includes('pv') ? 'pv' : 'smart') : 'now')) : null,
   };
   ladenFout = '';
   tekenBlad();
@@ -396,16 +405,44 @@ function openBlad(a) {
 /** Waarom er niets te bedienen is: de NAS, evcc, of nog niet aangezet bij Energie. */
 function nietZin(s, a) {
   if (!laden?.aan) return t('auto.laden.alleenAddon');
+  if (metStand(s)) {
+    if (!s.evccMag) return t('auto.laden.nietAanEvcc');
+    if (a.thuis === false || a.aangesloten === false) return t('auto.laden.geenKabel');
+    return '';
+  }
   if (s.evcc) return t('laden.bedienenEvcc');
   if (!s.mag) return t('auto.laden.nietAan');
   if (a.thuis === false || a.aangesloten === false) return t('auto.laden.geenKabel');
   return '';
 }
 
+/** Met evcc (besluit 278): de stand kiezen, hoe lang, en daarna weer de stand van daarvoor. */
+function standBladHtml(a, s, kop, niet) {
+  const b = blad;
+  const kanRegel = `<p class="kan">${esc(t('auto.laden.evccKan', { standen: s.evccStand.opties.map(standNaam).join(', ') }))} <a href="energie.html#auto">${esc(t('auto.laden.instellen'))}</a></p>`;
+  if (niet) return `${kop}<div class="hand-hoe">${esc(niet)}</div>${kanRegel}`;
+  const knop = (x) => `<button type="button" data-laden-stand="${esc(x)}" aria-pressed="${b.stand === x}">${esc(standNaam(x))}</button>`;
+  const stand = `<div class="vraag"><span>${esc(t('auto.laden.stand'))}</span><div class="seg">${s.evccStand.opties.map(knop).join('')}</div></div>`;
+  const keus = (w, tekst) => `<button type="button" data-laden-tot="${w}" aria-pressed="${b.tot === w}" ${w === 'pct' && a.pct == null ? 'disabled' : ''}>${esc(tekst)}</button>`;
+  const totPct = b.tot === 'pct' && b.pct != null
+    ? `<div class="tot-pct"><button type="button" data-laden-pct="-5" aria-label="${esc(t('auto.laden.lager'))}">−</button><b>${b.pct}%</b><button type="button" data-laden-pct="5" aria-label="${esc(t('auto.laden.hoger'))}" ${b.pct >= (a.laadgrens ?? 100) ? 'disabled' : ''}>+</button></div>`
+    : '';
+  const lang = `<div class="vraag"><span>${esc(t('auto.laden.hoeLang'))}</span><div class="seg">${keus('uur', t('auto.laden.uur'))}${keus('tijd', t('auto.laden.totTijd', { tijd: klokVan(b.totMs) }))}${keus('pct', t('auto.laden.totPct'))}${keus('kabel', t('auto.laden.totKabel'))}</div>${totPct}</div>`;
+  const actief = s.actief;
+  // Daarna weer de stand van nu (loopt er al iets met de hand, dan staat dat al vast en zegt de knop Terug het).
+  const naar = s.evccStand.nu ? standNaam(s.evccStand.nu) : 'evcc';
+  const na = b.tot === 'kabel' ? t('auto.laden.naStandKabel', { stand: naar }) : b.tot === 'pct' ? t('auto.laden.naStandPct', { pct: b.pct, stand: naar }) : t('auto.laden.naStandTijd', { tijd: klokVan(b.tot === 'uur' ? Date.now() + 3_600_000 : b.totMs), stand: naar });
+  const hoe = [actief?.stand ? '' : na, t('auto.laden.zelfWint')].filter(Boolean).join(' ');
+  const links = actief?.stand ? `<button type="button" class="hand-terug" data-laden-terug>${esc(t('auto.laden.terugEvcc', { stand: 'evcc' }))}</button>` : '';
+  const zet = b.stand ? `<button type="button" class="hand-zet" data-laden-zetstand>${esc(actief?.stand === b.stand ? t('hand.bewaar') : t('auto.laden.zetStand', { stand: standNaam(b.stand) }))}</button>` : '';
+  return `${kop}${stand}${lang}<div class="hand-hoe">${esc(hoe)}</div>${ladenFout ? `<p class="hand-fout">${esc(ladenFout)}</p>` : ''}${kanRegel}<div class="hand-onder">${links}${zet}</div>`;
+}
+
 function bladHtml(a, s) {
   const b = blad;
   const niet = nietZin(s, a);
   const kop = `<div class="hand-boven"><div><h2>${esc(t('auto.laden.kop'))}</h2><p class="nu">${esc(ladenNuZin(a, s))}</p></div><button type="button" class="sluit" data-laden-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>`;
+  if (metStand(s)) return standBladHtml(a, s, kop, niet);
   const kan = [s.stroom ? t('laden.paalKan', { min: s.stroom.min, max: s.stroom.max }) : '', s.pauze ? t('auto.laden.kanPauze') : ''].filter(Boolean).join(' ');
   const kanRegel = `<p class="kan">${esc(`${a.paalNaam ?? a.naam}: ${kan}`)} <a href="energie.html#auto">${esc(t('auto.laden.instellen'))}</a></p>`;
   if (niet) return `${kop}<div class="hand-hoe">${esc(niet)}</div>${kanRegel}`;
@@ -491,6 +528,11 @@ document.addEventListener('click', async (e) => {
   if (el('[data-laden-sluit]')) blad = null;
   else if ((x = el('[data-laden-stroom]')) && s?.stroom) blad.stroomA = Math.max(s.stroom.min, Math.min(hoogste(s), blad.stroomA + Number(x.dataset.ladenStroom) * s.stroom.stap));
   else if ((x = el('[data-laden-tot]'))) blad.tot = x.dataset.ladenTot;
+  else if ((x = el('[data-laden-stand]'))) blad.stand = x.dataset.ladenStand;
+  else if (el('[data-laden-zetstand]')) {
+    const ok = await stuurLaden({ auto: blad.auto, stand: blad.stand, tot: blad.tot, ...(blad.tot === 'tijd' ? { totMs: blad.totMs } : {}), ...(blad.tot === 'pct' ? { pct: blad.pct } : {}) });
+    if (ok) blad = null;
+  }
   else if ((x = el('[data-laden-pct]')) && a?.pct != null) blad.pct = Math.max(Math.ceil((a.pct + 1) / 5) * 5, Math.min(a.laadgrens ?? 100, blad.pct + Number(x.dataset.ladenPct)));
   else if (el('[data-laden-terug]')) {
     if (await stuurLaden({ auto: blad.auto, terug: true })) blad = null;

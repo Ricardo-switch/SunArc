@@ -337,6 +337,9 @@ export function isHandCall(
  * target: `easee.set_charger_dynamic_limit` met `device_id`, `current` binnen
  * het bereik en `time_to_live` van 0 tot 1080 minuten; of
  * `easee.action_command` met `device_id` en alleen `pause` of `resume`.
+ *
+ * evcc (besluit 278): `select.select_option` op de keuzelijst met de stand van
+ * een laadpunt dat de bewoner toeliet, alleen met een stand die evcc kent.
  */
 export function isLaadCall(
   domain: string,
@@ -357,6 +360,11 @@ export function isLaadCall(
   }
   if (domain === 'switch' && mag.schakelaars.includes(id)) return (service === 'turn_on' || service === 'turn_off') && keys.length === 0;
   if (domain === 'button' && mag.knoppen.includes(id)) return service === 'press' && keys.length === 0;
+  if (domain === 'select' && service === 'select_option') {
+    const s = (mag.selects ?? []).find((x) => x.id === id);
+    const o = data['option'];
+    return s != null && keys.length === 1 && keys[0] === 'option' && typeof o === 'string' && s.opties.includes(o);
+  }
   return false;
 }
 
@@ -366,6 +374,8 @@ export interface LaadMagDeur {
   readonly schakelaars: readonly string[];
   readonly knoppen: readonly string[];
   readonly easee?: readonly { readonly apparaat: string; readonly min: number | null; readonly max: number | null; readonly pauze: boolean }[];
+  /** evcc (besluit 278): per keuzelijst de standen die mogen. */
+  readonly selects?: readonly { readonly id: string; readonly opties: readonly string[] }[];
 }
 
 function isEaseeCall(service: string, data: Record<string, unknown>, target: Record<string, unknown>, mag: NonNullable<LaadMagDeur['easee']>): boolean {
@@ -479,7 +489,7 @@ export class HaClient extends EventEmitter {
       allowKnoppen: options.allowKnoppen ?? (() => ({ entiteiten: [], opties: [] })),
       allowHand: options.allowHand ?? (() => ({ klimaat: [], schakelaars: [] })),
       allowStart: options.allowStart ?? (() => []),
-      allowLaden: options.allowLaden ?? (() => ({ stroom: [], schakelaars: [], knoppen: [], easee: [] })),
+      allowLaden: options.allowLaden ?? (() => ({ stroom: [], schakelaars: [], knoppen: [], easee: [], selects: [] })),
       allowAiTask: options.allowAiTask ?? false,
       allowListen: options.allowListen ?? false,
       allowTodo: options.allowTodo ?? false,

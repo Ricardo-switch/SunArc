@@ -49,6 +49,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [265. Een slimme stekker met de hand: een smalle deur per stekker](#265-een-slimme-stekker-met-de-hand-een-smalle-deur-per-stekker) — *aangevuld door 267*
 - [267. Een slimme stekker op zon met een minimum, en SunArc schakelt hem echt](#267-een-slimme-stekker-op-zon-met-een-minimum-en-sunarc-schakelt-hem-echt)
 - [277. Easee met de hand, via de eigen dienst van Easee](#277-easee-met-de-hand-via-de-eigen-dienst-van-easee)
+- [278. De stand van evcc met de hand](#278-de-stand-van-evcc-met-de-hand)
 
 **Kern en regeling**
 
@@ -12861,6 +12862,41 @@ vangnet.
 - **Versie 0.151.0.**
 
 *Nog niet:* de stand van evcc, de balk van de dag in het blad, en de assistent.
+
+---
+
+## 278. De stand van evcc met de hand
+
+*Onderwerp: visie en principes · Status: geldig*
+
+8 november 2026, versie 0.152.0. Besluit 259 koos: met evcc in huis zet SunArc
+de stand van evcc, niet de laadpaal zelf, zodat ze elkaar niet tegenwerken.
+Besluit 262 liet dat open. Ricardo koos alle vier de standen.
+
+*Besluit:*
+
+- **Welke stand:** de keuzelijst van een laadpunt van evcc (HACS,
+  `evcc_intg`) met de standen die evcc kent: `off`, `pv`, `minpv` en `now`
+  (Uit, Zon, Min + zon, Snel), of `off`, `smart` en `now` als evcc een slimme
+  stand heeft. Een andere keuzelijst van evcc (zoals de fasen) telt niet.
+- **Welke auto:** is er één laadpunt, dan hoort hij bij elke auto; zijn het er
+  meer, dan het laadpunt met de naam van de auto of de laadpaal erin. Anders
+  geen, en dan blijft het in evcc zelf.
+- **Wat er door de deur mag** (`isLaadCall` in `client.ts`):
+  `select.select_option` op die keuzelijst, met precies `option` en alleen een
+  stand die evcc kent. Een laadstroom of pauze gaat met evcc nog altijd niet
+  door de deur.
+- **Alleen als de bewoner het toeliet:** bij Energie › Auto en laadpaal per
+  laadpunt "SunArc mag de stand van … zetten"; weg is nee. Alleen in de add-on.
+- **Altijd met een eind**, zoals 262: een uur, tot een tijd, tot een % of tot de
+  kabel eruit gaat, hooguit twee dagen. Daarna terug naar de stand van
+  daarvoor, maar alleen als hij nog staat zoals de app hem zette: wie intussen
+  in evcc zelf een stand koos, wint.
+- **Het blad Laden** op de pagina Auto toont met evcc de stand in plaats van de
+  stroom, met hoe lang en wat er daarna gebeurt.
+- **Versie 0.152.0.**
+
+*Nog niet:* de balk van de dag in het blad, en de assistent.
 
 ---
 

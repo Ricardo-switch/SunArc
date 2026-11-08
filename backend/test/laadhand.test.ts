@@ -52,7 +52,7 @@ describe('laden met de hand (besluit 262)', () => {
     const uit = await l.zet('tesla', { stroomA: 8, tot: 'uur' });
     expect(uit).toMatchObject({ ok: true, terug: { stroom: { id: 'number.easee_stroom', gezet: 8, was: 6 }, totMs: t0 + 3_600_000 } });
     expect(h.gedaan).toEqual(['number.easee_stroom=8']);
-    expect((await l.stand('tesla'))?.actief).toEqual({ stroomA: 8, pauze: false, tot: 'uur', totMs: t0 + 3_600_000, pct: null });
+    expect((await l.stand('tesla'))?.actief).toEqual({ stroomA: 8, pauze: false, stand: null, tot: 'uur', totMs: t0 + 3_600_000, pct: null });
     expect(await l.ronde()).toEqual([]);
     h.later(3_600_000);
     expect(await l.ronde()).toEqual(['number.easee_stroom terug naar 6 A']);
@@ -217,6 +217,69 @@ describe('Easee via de eigen dienst (besluit 277)', () => {
     // Niet toegelaten: niets.
     const niet = laadMag([{ ...easeeBediening(), mag: false }], []);
     expect(isLaadCall('easee', 'action_command', { device_id: 'dev1', action_command: 'pause' }, {}, niet)).toBe(false);
+  });
+});
+
+describe('de stand van evcc met de hand (besluit 278)', () => {
+  const STAND = { id: 'select.evcc_garage_mode', apparaat: 'evcc', naam: 'Garage', opties: ['off', 'pv', 'minpv', 'now'], nu: 'pv' };
+  function evccDeur(o: { mag?: boolean } = {}) {
+    const gekozen: string[] = [];
+    let staat = 'pv';
+    let nu = t0;
+    const d: LaadDeur = {
+      state: (id) => (id === STAND.id ? { state: staat } : undefined),
+      zetStroom: async () => undefined,
+      schakel: async () => undefined,
+      druk: async () => undefined,
+      kies: async (id, optie) => {
+        gekozen.push(`${id}=${optie}`);
+        staat = optie;
+      },
+      auto: () => autoVan(),
+      bediening: () => bedieningVan({ mag: false, evcc: true, evccStand: { ...STAND, nu: staat }, evccMag: o.mag ?? true }),
+      zekeringA: () => 20,
+      nu: () => nu,
+      map: null,
+    };
+    return { d, gekozen, later: (ms: number) => (nu += ms), zelf: (x: string) => (staat = x) };
+  }
+
+  it('zet de stand tot een tijd, en daarna terug naar de stand van daarvoor', async () => {
+    const h = evccDeur();
+    const l = new Laadhand(h.d);
+    expect(await l.zet('tesla', { stand: 'now', tot: 'uur' })).toMatchObject({ ok: true, terug: { evcc: { id: STAND.id, gezet: 'now', was: 'pv' } } });
+    expect(h.gekozen).toEqual(['select.evcc_garage_mode=now']);
+    expect((await l.stand('tesla'))?.actief).toMatchObject({ stand: 'now', stroomA: null });
+    expect((await l.stand('tesla'))?.evccStand).toEqual({ opties: STAND.opties, nu: 'now' });
+    h.later(3_600_000);
+    expect(await l.ronde()).toEqual(['tesla terug naar pv']);
+    expect(h.gekozen.at(-1)).toBe('select.evcc_garage_mode=pv');
+  });
+
+  it('laat wie in evcc zelf iets koos winnen, en zet niets zonder toestemming', async () => {
+    const h = evccDeur();
+    const l = new Laadhand(h.d);
+    await l.zet('tesla', { stand: 'now', tot: 'uur' });
+    h.zelf('minpv');
+    h.later(3_600_000);
+    expect(await l.ronde()).toEqual([]);
+    const niet = new Laadhand(evccDeur({ mag: false }).d);
+    expect(await niet.zet('tesla', { stand: 'now', tot: 'uur' })).toMatchObject({ ok: false, reden: expect.stringContaining('stand van evcc mag zetten') });
+    expect(await l.zet('tesla', { stand: 'snel', tot: 'uur' })).toEqual({ ok: false, reden: 'evcc kent off, pv, minpv, now' });
+    // De stroom of pauzeren blijft met evcc in evcc zelf.
+    expect(await l.zet('tesla', { stroomA: 8, tot: 'uur' })).toEqual({ ok: false, reden: 'evcc regelt het laden; zet het in evcc' });
+  });
+
+  it('de deur laat alleen een stand die evcc kent op die keuzelijst door', () => {
+    const b = bedieningVan({ mag: false, evcc: true, evccStand: STAND, evccMag: true });
+    const mag = laadMag([b], []);
+    expect(mag.selects).toEqual([{ id: STAND.id, opties: STAND.opties }]);
+    expect(mag.stroom).toEqual([]);
+    expect(isLaadCall('select', 'select_option', { option: 'now' }, { entity_id: STAND.id }, mag)).toBe(true);
+    expect(isLaadCall('select', 'select_option', { option: 'boost' }, { entity_id: STAND.id }, mag)).toBe(false);
+    expect(isLaadCall('select', 'select_option', { option: 'now' }, { entity_id: 'select.iets_anders' }, mag)).toBe(false);
+    expect(isLaadCall('select', 'select_next', {}, { entity_id: STAND.id }, mag)).toBe(false);
+    expect(isLaadCall('select', 'select_option', { option: 'now' }, { entity_id: STAND.id }, laadMag([{ ...b, evccMag: false }], []))).toBe(false);
   });
 });
 

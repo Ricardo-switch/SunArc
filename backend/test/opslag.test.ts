@@ -144,6 +144,27 @@ describe('meer auto’s en laadpalen, en wat de bewoner koos (besluit 259)', () 
     expect(laadBedieningen(eqReg.reg, eqReg.states, keuze)[0]).toMatchObject({ stroom: null, pauze: null, mag: false });
   });
 
+  it('vindt de stand van een laadpunt van evcc, en of SunArc hem mag zetten (besluit 278)', () => {
+    const evcc: HaDevice = { id: 'evcc', area_id: null, name: 'Garage', manufacturer: 'evcc', model: 'Loadpoint' };
+    const stand = (opties: string[], staat = 'pv'): Meting => ({ id: 'select.evcc_garage_mode', staat, platform: 'evcc_intg', apparaat: 'evcc', extra: { options: opties } });
+    const keuze: LadenKeuze = { aan: {}, rol: {}, instelling: {}, bedienen: { evcc: true } };
+    const r = registers([tesla, easee, evcc], [...metingen.filter((m) => m.apparaat !== 'kia'), stand(['off', 'pv', 'minpv', 'now'])]);
+    expect(laadBedieningen(r.reg, r.states, keuze)[0]).toMatchObject({
+      mag: false,
+      evcc: true,
+      evccStand: { id: 'select.evcc_garage_mode', apparaat: 'evcc', opties: ['off', 'pv', 'minpv', 'now'], nu: 'pv' },
+      evccMag: true,
+    });
+    expect(laadBedieningen(r.reg, r.states, null)[0]).toMatchObject({ evccMag: false });
+    expect(ladenView(r.reg, r.states, keuze).evcc).toEqual([{ id: 'evcc', naam: 'Garage', kanBedienen: true, bedienen: true }]);
+    // Met een slimme stand ook; een andere keuzelijst van evcc (bijvoorbeeld de fasen) is geen stand.
+    const slim = registers([tesla, easee, evcc], [...metingen.filter((m) => m.apparaat !== 'kia'), stand(['off', 'smart', 'now'], 'smart')]);
+    expect(laadBedieningen(slim.reg, slim.states, keuze)[0]).toMatchObject({ evccStand: { opties: ['off', 'smart', 'now'], nu: 'smart' } });
+    const fasen = registers([tesla, easee, evcc], [...metingen.filter((m) => m.apparaat !== 'kia'), { ...stand(['0', '1', '3'], '3'), id: 'select.evcc_garage_phases' }]);
+    expect(laadBedieningen(fasen.reg, fasen.states, keuze)[0]).toMatchObject({ evccStand: null, evccMag: false });
+    expect(ladenView(fasen.reg, fasen.states, keuze).evcc).toEqual([{ id: 'evcc', naam: 'Garage', kanBedienen: false, bedienen: false }]);
+  });
+
   it('weet per auto wat SunArc met de hand mag bedienen (besluit 262)', () => {
     // Een laadpaal met een getal voor de stroom en een laadschakelaar (zoals Wallbox).
     const alsWallbox = (m: Meting): Meting => (m.apparaat === 'easee' ? { ...m, platform: 'wallbox' } : m);

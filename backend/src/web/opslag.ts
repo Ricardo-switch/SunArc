@@ -260,6 +260,24 @@ export interface LaadBediening {
   readonly mag: boolean;
   /** evcc regelt het laden; dan bedient SunArc de laadpaal niet zelf. */
   readonly evcc: boolean;
+  /**
+   * Met evcc: de stand van het laadpunt van deze auto (besluit 278), met de
+   * standen die evcc kent; en of SunArc hem mag zetten (bij Energie toegelaten).
+   */
+  readonly evccStand?: EvccStand | null;
+  readonly evccMag?: boolean;
+}
+
+/** Een laadpunt van evcc met zijn stand (besluit 278). */
+export interface EvccStand {
+  /** De keuzelijst met de stand, bijvoorbeeld `select.evcc_garage_mode`. */
+  readonly id: string;
+  /** Het apparaat van het laadpunt, voor de toestemming bij Energie. */
+  readonly apparaat: string;
+  readonly naam: string;
+  /** Wat evcc kent: off, pv, minpv, now, of off, smart, now. */
+  readonly opties: readonly string[];
+  readonly nu: string | null;
 }
 
 /** Energie › Auto en laadpaal (besluit 259): wat gevonden is, en wat er nog te kiezen is. */
@@ -267,8 +285,8 @@ export interface LadenView {
   readonly apparaten: readonly LaadApparaat[];
   /** Andere apparaten die iets meten wat bij laden hoort, om zelf te kiezen. */
   readonly kandidaten: readonly { readonly id: string; readonly naam: string }[];
-  /** De laadpunten van evcc, als evcc er is. */
-  readonly evcc: readonly { readonly id: string; readonly naam: string }[];
+  /** De laadpunten van evcc, als evcc er is; met een stand kan SunArc die zetten als het mag (besluit 278). */
+  readonly evcc: readonly { readonly id: string; readonly naam: string; readonly kanBedienen: boolean; readonly bedienen: boolean }[];
   readonly instelling: Readonly<Record<string, AutoInstelling>>;
 }
 
@@ -698,6 +716,7 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
   const bedieningen: LaadBediening[] = [];
   const evccErIs = l0(registers, states);
   const l = lezer(registers, states);
+  const standen = evccErIs ? evccStanden(l, states) : [];
   const { klasse, naamVan, pctVan } = l;
   const vermogens = (a: Apparaat) => a.entiteiten.filter((e) => e.entity_id.startsWith('sensor.') && klasse(e) === 'power');
   const aanUit = (a: Apparaat, k: string): boolean | null => {
@@ -826,6 +845,7 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
       pauze: metKnop?.pauze ?? null,
       mag: !evccErIs && metKnop != null && keuze?.bedienen?.[metKnop.a.device.id] === true,
       evcc: evccErIs,
+      ...(evccErIs ? evccDeel(evccVoor(standen, naam, paal?.device.name, wagen?.device.name)) : {}),
     });
     return {
       id,
@@ -879,6 +899,11 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
     if (uren > 72) return null;
     const vijf = 5 * 60_000;
     return new Date(Math.ceil((nu.getTime() + uren * 3_600_000) / vijf) * vijf).toISOString();
+  }
+
+  /** Met evcc: het laadpunt van de auto, en of SunArc de stand mag zetten (besluit 278). */
+  function evccDeel(x: EvccStand | null): { evccStand: EvccStand | null; evccMag: boolean } {
+    return { evccStand: x, evccMag: x != null && keuze?.bedienen?.[x.apparaat] === true };
   }
 
   /** De stroom om te zetten en hoe hij pauzeert, van één apparaat. */
@@ -961,6 +986,31 @@ function accuStand(id: string, naam: string, pct: number | null, w: number | nul
 }
 
 /** Is evcc er? Dan regelt evcc het laden. */
+/** De standen van evcc die een stand zijn: off, pv, minpv en now, of off, smart en now. */
+const EVCC_STAND = /^(off|pv|minpv|now|smart)$/;
+
+/** Per laadpunt van evcc de keuzelijst met zijn stand (besluit 278). */
+function evccStanden(l: ReturnType<typeof lezer>, states: ReadonlyMap<string, HaEntityState>): EvccStand[] {
+  return l.apparaten.filter(l.isEvcc).flatMap((a) =>
+    a.entiteiten.flatMap((e) => {
+      if (!e.entity_id.startsWith('select.')) return [];
+      const s = states.get(e.entity_id);
+      const opties = Array.isArray(s?.attributes['options']) ? (s.attributes['options'] as unknown[]).filter((x): x is string => typeof x === 'string') : [];
+      if (!opties.includes('now') || !opties.includes('off') || !(opties.includes('pv') || opties.includes('smart')) || !opties.every((x) => EVCC_STAND.test(x))) return [];
+      const nu = s?.state && opties.includes(s.state) ? s.state : null;
+      return [{ id: e.entity_id, apparaat: a.device.id, naam: naamVanApparaat(a.device), opties, nu }];
+    }),
+  );
+}
+
+/** Welk laadpunt van evcc bij een auto hoort: het enige, of het laadpunt met de naam van de auto of de laadpaal. */
+function evccVoor(standen: readonly EvccStand[], ...namen: (string | null | undefined)[]): EvccStand | null {
+  if (standen.length <= 1) return standen[0] ?? null;
+  const woorden = namen.filter((n): n is string => !!n && n.trim().length >= 3).map((n) => n.trim().toLowerCase());
+  const raak = standen.filter((x) => woorden.some((w) => `${x.naam} ${x.id}`.toLowerCase().includes(w)));
+  return raak.length === 1 ? raak[0]! : null;
+}
+
 function l0(registers: Registers, states: ReadonlyMap<string, HaEntityState>): boolean {
   const l = lezer(registers, states);
   return l.apparaten.some(l.isEvcc);
@@ -981,7 +1031,10 @@ export function ladenView(registers: Registers, states: ReadonlyMap<string, HaEn
   return {
     apparaten: lijst.map(({ bron: _b, ...x }) => x),
     kandidaten,
-    evcc: evcc.map((a) => ({ id: a.device.id, naam: naamVanApparaat(a.device) })),
+    evcc: evcc.map((a) => {
+      const kan = evccStanden(l, states).some((x) => x.apparaat === a.device.id);
+      return { id: a.device.id, naam: naamVanApparaat(a.device), kanBedienen: kan, bedienen: kan && keuze?.bedienen?.[a.device.id] === true };
+    }),
     instelling: keuze?.instelling ?? {},
   };
 }

@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.151.0
+## 0.152.0
 
-*8 november 2026*
+*8 november 2026 · 0.151.0 – 0.152.0*
 
 **Nieuw**
 
+- Met evcc in huis zet je de stand van evcc met de hand: Uit, Zon, Min + zon of Snel, tot een tijd, een % of tot de kabel eruit gaat. Daarna staat evcc weer zoals daarvoor
+- Bij Energie › Auto en laadpaal kies je per laadpunt van evcc of SunArc de stand mag zetten
 - Een laadpaal van Easee bedien je nu ook met de hand: de laadstroom, of pauzeren, altijd met een eind. Valt SunArc stil, dan gaat de laadpaal op het eind vanzelf terug
 
 **Beter**
@@ -16,6 +18,8 @@
 
 **New**
 
+- With evcc in your home you set the evcc mode by hand: Off, Solar, Min + solar or Fast, until a time, a % or until the cable comes out. After that evcc is back as it was
+- In Energy › Car and charger you choose per evcc charge point whether SunArc may set the mode
 - You can now control an Easee charger by hand too: the charging current, or pause, always with an end. If SunArc stops, the charger goes back by itself at the end
 
 **Improved**

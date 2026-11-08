@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.151.0';
+export const VERSIE = '0.152.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.152.0',
+    datum: '2026-11-08',
+    nieuw: [
+      'Met evcc in huis zet je de stand van evcc met de hand: Uit, Zon, Min + zon of Snel, tot een tijd, een % of tot de kabel eruit gaat. Daarna staat evcc weer zoals daarvoor',
+      'Bij Energie › Auto en laadpaal kies je per laadpunt van evcc of SunArc de stand mag zetten',
+    ],
+    en: {
+      nieuw: [
+        'With evcc in your home you set the evcc mode by hand: Off, Solar, Min + solar or Fast, until a time, a % or until the cable comes out. After that evcc is back as it was',
+        'In Energy › Car and charger you choose per evcc charge point whether SunArc may set the mode',
+      ],
+    },
+  },
   {
     versie: '0.151.0',
     datum: '2026-11-08',

@@ -322,8 +322,13 @@ lijst in `client.ts`). Laden wordt er een, naar het voorbeeld van `isHandCall`:
   uit de sensoren `dynamic_charger_limit` en `max_charger_limit`, die Home
   Assistant standaard uit zet; zonder grens tot 32 A, zonder stroom van nu terug
   naar de grens.
-- **Nog niet:** de stand van evcc, de balk van de dag in het blad (zon,
-  goedkope uren, tot wanneer), en de assistent.
+- **evcc (0.152.0, besluit 278):** de keuzelijst met de stand van een laadpunt
+  (`off`, `pv`, `minpv`, `now`, of `off`, `smart`, `now`), per laadpunt toe te
+  laten bij Energie; met een eind en daarna terug naar de stand van daarvoor.
+  Eén laadpunt hoort bij elke auto, bij meer het laadpunt met de naam van de
+  auto of de laadpaal.
+- **Nog niet:** de balk van de dag in het blad (zon, goedkope uren, tot
+  wanneer), en de assistent.
 
 ## Stap 6: wat er gebouwd is (0.137.0, besluit 263)
 
