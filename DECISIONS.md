@@ -279,6 +279,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [282. Voorverwarmen krijgt een eigen temperatuur, bij Dagdelen](#282-voorverwarmen-krijgt-een-eigen-temperatuur-bij-dagdelen)
 - [284. Het stroombeeld noemt elk apparaat; bij Jaar hele euro's](#284-het-stroombeeld-noemt-elk-apparaat-bij-jaar-hele-euros)
 - [285. Een geplande scène noemt zijn kamer en lampen](#285-een-geplande-scène-noemt-zijn-kamer-en-lampen)
+- [286. De stand van het huis zegt wat er meespeelt](#286-de-stand-van-het-huis-zegt-wat-er-meespeelt)
 
 **Veiligheid**
 
@@ -13126,6 +13127,48 @@ Bij Hoe koos je de scène bij de lampen van een kamer; daarna was dat weg.
 - **De stand op Thuis** zei "Automatisch" als Home Assistant voorverwarmen had
   gekozen; nu zegt hij Voorverwarmen.
 - **Versie 0.156.2.**
+
+---
+
+## 286. De stand van het huis zegt wat er meespeelt
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.157.0. Ricardo: "zoek uit voor de dagdelen en
+standen wat thuis allemaal kan melden"; daarna de schetsen Wand-Thuis-Stand en
+Tel-Thuis-Stand, met zijn keuzes.
+
+*Waarom:* Thuis zei alleen "Automatisch", of de stand die in Home Assistant
+gekozen was. Wat de regeling verder wist, stond nergens: dat de airco
+bijspringt, dat iets met de hand gaat, dat het huis vanzelf op Afwezig ging, of
+dat het na 22:00 nog Dag is omdat er licht brandt. Op de telefoon stond de stand
+er alleen als hij afweek, dus daar was het blad meestal niet te openen.
+
+*Besluit:*
+
+- **De dienst zegt het** (`stand-nu.ts`, in `api/state` als `bewoner.stand`):
+  de stand, wat er meespeelt in een korte en een lange vorm, het blad, en de
+  dag als balk. Nederlands en Engels, met tests. De pagina tekent alleen.
+- **Vier meldingen, één tegelijk in de knop, het belangrijkste eerst:** met de
+  hand (uit de app, of een apparaat dat iemand zelf bediende, zoals de Nest met
+  zijn timer), bijspringen (de regel heat-assist zet een airco aan), vakantie
+  en afwezig (vanzelf: niemand thuis; of gekozen), en nog Dag door licht. Het
+  blad noemt ze allemaal, met tot of sinds wanneer.
+- **Op de wand de knop rechtsboven** met de melding erin: "Dag · de airco
+  springt bij", met een stip in de kleur ervan. **Op de telefoon een regel naast
+  de begroeting**, altijd: zonder melding "Dag tot 22:00".
+- **Het blad:** links de stand van nu met de dag als balk (de dagdelen met de
+  graden van de kamer waar het om gaat, nu als streep, afwezig en vakantie de
+  hele dag hetzelfde, een verlengde dag gestreept) en wat er meespeelt; rechts
+  de standen zoals eerst. Op de telefoon onder elkaar.
+- **In de schaduw "zou bijspringen"**, tenzij de airco echt al verwarmt
+  (besluit 124).
+- **"Sinds" alleen als de dienst het begin zag.** Speelde iets al toen de dienst
+  begon te kijken (na een herstart), dan staat er geen tijd.
+- **Versie 0.157.0.**
+
+*Nog niet:* "Handmatig koelen" in Home Assistant heet nog gewoon Handmatig, en
+vakantie heeft geen einddatum (Home Assistant kent er geen).
 
 ---
 

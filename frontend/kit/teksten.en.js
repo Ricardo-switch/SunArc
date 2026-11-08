@@ -224,6 +224,8 @@
   'thuis.modus.nuAuto': 'Now **{stand}**, from the times of day.',
   'thuis.modus.nuHA': 'Now **{stand}**, chosen in Home Assistant.',
   'thuis.modus.om': 'At {uur}:00 {stand}.',
+  'thuis.modus.mee': 'What plays a part',
+  'thuis.modus.standen': 'The modes',
   'thuis.modus.nogNiet': 'You cannot choose here yet. The mode currently drives your heating through Home Assistant, and SunArc only watches. Until the house controls itself, set it in Home Assistant.',
 
   // Maintenance

@@ -185,6 +185,38 @@ function apparaatVan(actuatorId) {
 
 /* ------------------------------------------------------------ tekenen */
 
+/** De kleur van wat er meespeelt bij de stand (besluit 286). */
+const STAND_KLEUR = { hand: 'var(--mint)', bijspringen: 'var(--gloed)', licht: 'var(--zon)', afwezig: 'var(--ijs)', vakantie: 'var(--violet)' };
+
+/**
+ * De stand van het huis (besluit 286): op de wand in de knop rechtsboven, met
+ * wat er meespeelt ("Dag · de airco springt bij"); op de telefoon als regel
+ * naast de begroeting. Zonder melding de stand en tot wanneer.
+ */
+function tekenStand(e) {
+  const st = state?.bewoner?.stand;
+  const pijl = '<span aria-hidden="true" style="color: var(--gedempt)">▾</span>';
+  if (!st) {
+    // Een dienst van voor deze versie: zoals het was.
+    const modus = e.modeSource === 'schedule' ? 'automatisch' : ['voorverwarmen', 'dag', 'nacht', 'afwezig', 'vakantie', 'handmatig'].includes(e.mode) ? e.mode : 'automatisch';
+    $$('#wand [data-modus]').forEach((el) => (el.innerHTML = `${esc(t(`thuis.stand.${modus}`))} ${pijl}`));
+    $$('#tel [data-modus]').forEach((el) => (el.hidden = true));
+    return;
+  }
+  const kleur = st.soort ? STAND_KLEUR[st.soort] : null;
+  const stip = kleur ? '<span class="standstip" aria-hidden="true"></span>' : '';
+  $$('#wand [data-modus]').forEach((el) => {
+    el.style.setProperty('--k', kleur ?? 'var(--zacht)');
+    el.innerHTML = `${stip}<b>${esc(st.naam)}</b><span class="wat${kleur ? ' speelt' : ''}">· ${esc(st.knop)}</span>${pijl}`;
+  });
+  $$('#tel [data-modus]').forEach((el) => {
+    el.hidden = false;
+    el.style.setProperty('--k', kleur ?? 'var(--zacht)');
+    el.classList.toggle('speelt', !!kleur);
+    el.innerHTML = `${stip}<span>${esc(st.kort)}</span><i aria-hidden="true">›</i>`;
+  });
+}
+
 function tekenNu() {
   app.schaal();
   if (!state || !huisData) return;
@@ -194,10 +226,7 @@ function tekenNu() {
   zet('[data-kop]', kop.titel ?? t('thuis.hetHuis'));
   zet('[data-zin]', kop.zin ?? '');
   tekenWeerknop();
-  const modus = e.modeSource === 'schedule' ? 'automatisch' : ['voorverwarmen', 'dag', 'nacht', 'afwezig', 'vakantie', 'handmatig'].includes(e.mode) ? e.mode : 'automatisch';
-  $$('[data-modus]').forEach((el) => (el.innerHTML = `${esc(t(`thuis.stand.${modus}`))} <span aria-hidden="true" style="color: var(--gedempt)">▾</span>`));
-  // Op de telefoon alleen een stand die afwijkt (besluit 136): anders past de bel er niet naast.
-  $$('#tel [data-modus]').forEach((el) => (el.hidden = modus === 'automatisch'));
+  tekenStand(e);
 
   const model = huisModel();
   lucht(model.tijd, model.seizoen, model.wolken);
@@ -1204,6 +1233,43 @@ const STANDEN = ['automatisch', 'voorverwarmen', 'dag', 'nacht', 'afwezig', 'vak
 /** Wat een stand doet; bij Automatisch met de uren van de dagdelen, als die er zijn. */
 const standUitleg = (id, d) => (id === 'automatisch' && d ? t('thuis.standUitleg.automatischUren', { voorverwarmen: d.voorverwarmen, dag: d.dag, nacht: d.nacht }) : t(`thuis.standUitleg.${id}`));
 let dagdelen = null;
+
+/** Iconen bij wat er meespeelt (besluit 286). */
+const STAND_IK = {
+  hand: '<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-1a1.5 1.5 0 0 1 3 0v4a6 6 0 0 1-6 6h-1a5 5 0 0 1-4.2-2.3L4 14.5a1.5 1.5 0 0 1 2.4-1.8L8 14"/>',
+  bijspringen: '<rect x="3" y="5" width="18" height="8" rx="2"/><path d="M7 17c0 1.5 1 2 1 3M12 17c0 1.5 1 2 1 3M17 17c0 1.5 1 2 1 3"/>',
+  licht: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/>',
+  afwezig: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M15 15h-6"/>',
+  vakantie: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/>',
+};
+const STAND_DEEL_KLEUR = { nacht: 'var(--violet)', voorverwarmen: 'var(--zon)', dag: 'var(--ijs)' };
+
+/**
+ * Het linkerdeel van het blad (besluit 286): de stand van nu met de dag als
+ * balk, en wat er meespeelt. Alles kant-en-klaar uit de dienst (stand-nu.ts).
+ */
+function standNuHtml(st) {
+  const kleur = st.soort ? STAND_KLEUR[st.soort] : 'rgb(var(--wit) / 0.35)';
+  const pct = (u) => `${(u / 24) * 100}%`;
+  const b = st.balk;
+  let delen;
+  if (b.plat) delen = `<div class="sb-deel plat" style="left: 0; width: 100%; --k: ${kleur}"><b>${esc(b.plat.naam)}</b>${b.plat.temp ? `<span>${esc(b.plat.temp)}</span>` : ''}</div>`;
+  else {
+    // Een naam alleen waar hij past: niet in een dagdeel korter dan vier uur.
+    delen = b.delen.map((d) => `<div class="sb-deel" style="left: ${pct(d.van)}; width: ${pct(d.tot - d.van)}; --k: ${STAND_DEEL_KLEUR[d.stand]}"${d.tot - d.van < 4 ? ` title="${esc(`${d.naam} ${d.temp}`)}"` : ''}>${d.tot - d.van >= 4 ? `<b>${esc(d.naam)}</b><span>${esc(d.temp)}</span>` : ''}</div>`).join('');
+    // Er brandt nog licht: de dag loopt gestreept door, van het begin van de nacht tot nu.
+    const nachtVan = b.delen.find((d) => d.stand === 'nacht' && d.van > 12)?.van ?? null;
+    if (b.verlengdTot != null && nachtVan != null) delen += `<div class="sb-deel verlengd" style="left: ${pct(nachtVan)}; width: ${pct(Math.max(0, b.verlengdTot - nachtVan))}; --k: var(--ijs)"></div>`;
+  }
+  const uren = [0, 6, 12, 18, 24].map((u) => `<i style="left: ${pct(u)}">${String(u).padStart(2, '0')}:00</i>`).join('');
+  const balk = `<div class="sb-balk"><div class="sb-delen">${delen}</div><div class="sb-nu" style="left: ${pct(b.nu)}"><em>${esc(t('thuis.nuKlein'))}</em></div><div class="sb-uren">${uren}</div></div><p class="sb-bij">${esc(b.uitleg)}</p>`;
+  const mee = st.meldingen.map((m) => `<div class="sb-mee" style="--k: ${STAND_KLEUR[m.soort]}"><span class="ik"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${STAND_IK[m.soort]}</svg></span><span><b>${esc(m.wat)}</b><small>${esc(m.hoe)}</small></span><span class="waarde">${esc(m.waarde)}</span></div>`).join('');
+  return `<div class="sb-held"><span class="standstip" style="--k: ${kleur}"></span><b>${esc(st.naam)}</b><span>${esc(st.onder)}</span></div>
+    ${balk}
+    ${mee ? `<h3>${esc(t('thuis.modus.mee'))}</h3>${mee}` : ''}
+    ${st.noot ? `<p class="sb-noot">${esc(st.noot)}</p>` : ''}`;
+}
+
 async function openModus() {
   const el = document.querySelector('[data-kiesblad]');
   if (!el || !state) return;
@@ -1220,10 +1286,14 @@ async function openModus() {
     : vet('thuis.modus.nuHA', { stand: naam(e.mode) });
   el.dataset.blad = 'modus';
   el.setAttribute('aria-label', t('thuis.modus.kop'));
-  el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(t('thuis.modus.kop'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
-    <p class="klein" style="margin: 0 0 4px">${zin}</p>
-    ${STANDEN.map((id) => `<div class="modusrij${id === nu ? ' nu' : ''}" ${id === nu ? 'aria-current="true"' : ''}><b>${esc(naam(id))}${id === nu ? `<span class="mini"> · ${esc(t('thuis.nuKlein'))}</span>` : ''}</b><span>${esc(standUitleg(id, dagdelen))}</span></div>`).join('')}
-    <p class="mini" style="margin: 10px 0 0">${esc(t('thuis.modus.nogNiet'))}</p>`;
+  const kop = `<div class="bladkop"><h2 class="kop-2">${esc(t('thuis.modus.kop'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>`;
+  const lijst = STANDEN.map((id) => `<div class="modusrij${id === nu ? ' nu' : ''}" ${id === nu ? 'aria-current="true"' : ''}><b>${esc(naam(id))}${id === nu ? `<span class="mini"> · ${esc(t('thuis.nuKlein'))}</span>` : ''}</b><span>${esc(standUitleg(id, dagdelen))}</span></div>`).join('');
+  const nogNiet = `<p class="mini" style="margin: 10px 0 0">${esc(t('thuis.modus.nogNiet'))}</p>`;
+  const st = state.bewoner?.stand;
+  el.classList.toggle('standblad', !!st);
+  el.innerHTML = st
+    ? `${kop}<div class="sb-kolommen"><div>${standNuHtml(st)}</div><div><h3>${esc(t('thuis.modus.standen'))}</h3>${lijst}${nogNiet}</div></div>`
+    : `${kop}<p class="klein" style="margin: 0 0 4px">${zin}</p>${lijst}${nogNiet}`;
   document.querySelector('[data-kies-achter]').hidden = false;
   el.hidden = false;
   el.querySelector('button')?.focus();

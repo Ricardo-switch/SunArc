@@ -229,6 +229,8 @@
   'thuis.modus.nuAuto': 'Nu **{stand}**, uit de dagdelen.',
   'thuis.modus.nuHA': 'Nu **{stand}**, gekozen in Home Assistant.',
   'thuis.modus.om': 'Om {uur}:00 {stand}.',
+  'thuis.modus.mee': 'Wat er meespeelt',
+  'thuis.modus.standen': 'De standen',
   'thuis.modus.nogNiet': 'Kiezen kan hier nog niet. De stand stuurt nu je verwarming via Home Assistant, en SunArc kijkt alleen mee. Tot het huis zelf regelt, zet je hem in Home Assistant.',
 
   // Onderhoud

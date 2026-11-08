@@ -22,6 +22,7 @@ import { SHORT, cap, residentRooms, withArticle, type DecisionView, type Lang, t
 import { clockIn, nextLocalTime, partsIn } from './today.js';
 import { residentBuffers, type ResidentBuffer } from './buffers-bewoner.js';
 import { BASIS_ZONDER_METER_W } from './energy.js';
+import { standNu, type ResidentStand, type StandOpties } from './stand-nu.js';
 
 export interface ResidentHeadline {
   /** "Nu · Dag", met "(gekozen)" als de bewoner de modus koos. */
@@ -122,6 +123,8 @@ export interface ResidentView {
   readonly warmtebuffers: readonly ResidentBuffer[];
   /** De thuisaccu in de schaduw (besluit 274); weg als hij niet met zon laadt. */
   readonly accu?: ResidentAccu;
+  /** De stand van het huis met wat er meespeelt (besluit 286). */
+  readonly stand?: ResidentStand;
 }
 
 /**
@@ -465,7 +468,7 @@ export function decisionWords(
   return { wat: commands.map((c) => describeCommand(config, c, lang)), waarom: redenen.map(why) };
 }
 
-export function residentView(config: SiteConfig, snap: DecisionView, lang: Lang = 'nl', shadow = true, accuW: number | null = null): ResidentView {
+export function residentView(config: SiteConfig, snap: DecisionView, lang: Lang = 'nl', shadow = true, accuW: number | null = null, stand: Omit<StandOpties, 'shadow'> | null = null): ResidentView {
   const kamers = residentRooms(config, snap, lang, shadow);
   const { apparaten, rust } = residentDevices(config, snap, lang);
   const touched = new Set(snap.commands.flatMap((c) => ('actuatorId' in c ? [c.actuatorId] : [])));
@@ -482,6 +485,7 @@ export function residentView(config: SiteConfig, snap: DecisionView, lang: Lang 
     uitstelbaar: residentDeferrables(config, snap.explanation.deferrables ?? [], snap.atMs, lang),
     warmtebuffers: residentBuffers(config, snap.explanation.heatStores ?? [], snap.atMs, lang),
     ...(snap.explanation.accu ? { accu: residentAccu(config, snap.explanation.accu) } : {}),
+    ...(stand ? { stand: standNu(config, snap, lang, { ...stand, shadow }) } : {}),
   };
 }
 

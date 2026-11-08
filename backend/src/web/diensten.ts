@@ -161,7 +161,18 @@ export class Diensten {
     const zon = loc ? sunPosition(Date.now(), loc.latDeg, loc.lonDeg) : null;
     const metZon = zon ? { ...snapshot, zonNu: zonNuVan(zon.elevationDeg, zon.azimuthDeg) } : snapshot;
     // Met de thuisaccu (besluit 272): het verbruik van nu klopt pas als zijn laden en leveren meetellen.
-    return { ...snapshot, bewoner: residentView(config, metZon, taal, true, this.options.accu?.nuW() ?? null) };
+    // De stand met wat er meespeelt (besluit 286): met de hand uit de app, en de lampen van de langere avond pas als dat nodig is.
+    const hand = this.options.hand;
+    const stand = {
+      hand: hand?.hand.terugzetten ?? [],
+      naamVan: (id: string) => config.actuators.find((a) => a.ref.id === id)?.name ?? hand?.schakelaars().find((s) => s.id === id)?.naam ?? null,
+      lampenAan: () => {
+        const ids = new Set(config.schedule.eveningExtensionLights.map((r) => r.id));
+        const huis = this.options.house?.(taal) ?? null;
+        return (huis?.etages ?? []).flatMap((e) => e.ruimtes).flatMap((r) => r.apparaten).filter((a) => a.soort === 'licht' && a.aan && ids.has(a.id)).map((a) => a.naam);
+      },
+    };
+    return { ...snapshot, bewoner: residentView(config, metZon, taal, true, this.options.accu?.nuW() ?? null, stand) };
   }
 
   /**
