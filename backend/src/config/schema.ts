@@ -44,6 +44,7 @@ import {
   type ThermalMass,
   type Zone,
 } from '../core/model.js';
+import { HEAT_ASSIST_DEFAULTS } from '../core/strategies/heatAssist.js';
 import { STANDAARD_DAGDELEN, STANDAARD_WARM } from './standaard.js';
 
 /** De schemaversie die deze code begrijpt. */
@@ -777,6 +778,17 @@ function zone(
     }
   }
 
+  // Bijspringen per zone (besluit 283); weg is de standaard van heat-assist.
+  const haPath = join(path, 'heatAssist');
+  const haRaw = value['heatAssist'] === undefined ? null : blockOf(p, value['heatAssist'], haPath);
+  const heatAssist: Zone['heatAssist'] | null = haRaw
+    ? {
+        enabled: boolOr(p, haRaw, haPath, 'enabled', true),
+        startDelayMinutes: numOr(p, haRaw, haPath, 'startDelayMinutes', HEAT_ASSIST_DEFAULTS.startDelayMinutes, { min: 0, max: 120 }),
+        minShortfallC: numOr(p, haRaw, haPath, 'minShortfallC', HEAT_ASSIST_DEFAULTS.minShortfallC, { min: 0.1, max: 5 }),
+      }
+    : null;
+
   const parsed = setpoints(p, value['setpoints'], join(path, 'setpoints'));
   const points = parsed == null ? null : fitted(p, parsed, path, actuatorIds, actuators);
 
@@ -828,6 +840,7 @@ function zone(
     buffering,
     setpoints: points,
     ...(comfortMaxC == null ? {} : { comfortMaxC }),
+    ...(heatAssist ? { heatAssist } : {}),
   };
 }
 

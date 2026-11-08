@@ -87,6 +87,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [264. Een slimme stekker als apparaat op zon](#264-een-slimme-stekker-als-apparaat-op-zon)
 - [274. De regeling kijkt in de schaduw mee met de thuisaccu](#274-de-regeling-kijkt-in-de-schaduw-mee-met-de-thuisaccu)
 - [281. De airco springt niet bij tijdens voorverwarmen](#281-de-airco-springt-niet-bij-tijdens-voorverwarmen)
+- [283. Bijspringen per kamer, bij Regeling › Klimaat](#283-bijspringen-per-kamer-bij-regeling--klimaat)
 
 **Configuratie en onboarding**
 
@@ -13027,6 +13028,42 @@ Nest om zes uur een graad hoger gaan.
 - **De standaard** (besluit 204) is 19° bij voorverwarmen, zoals
   `STANDAARD_WARM` al zei; terug naar standaard zet het ook zo.
 - **Versie 0.155.0.**
+
+---
+
+## 283. Bijspringen per kamer, bij Regeling › Klimaat
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+8 november 2026, versie 0.156.0. Ricardo: de knop voor de airco-assist "zit
+volgens mij nog niet in de app", het laatste wat ontbrak; gekozen: bij Regeling
+per kamer.
+
+*Waarom:* heat-assist stond altijd aan, met vaste drempels in de code (5
+minuten stoken, 0,5° te koud). Het oude systeem had er een schakelaar voor
+(`input_boolean.airco_toestaan`) en eigen getallen
+(`input_number.airco_assist_start_na_min` 5, `airco_assist_delta_min` 0,3). In
+de app was het niet te zien en niet te kiezen, en de schaduw sprong later bij
+dan het oude systeem.
+
+*Besluit:*
+
+- **Per zone in de configuratie:** `heatAssist` met `enabled`,
+  `startDelayMinutes` en `minShortfallC`. Weg is aan, met de standaard van
+  heat-assist (5 minuten, 0,5°, besluit 204). Heat-assist leest het per zone.
+- **In de app bij Regeling › Klimaat,** onder een kamer met een hoofdverwarming
+  en een airco die kan verwarmen: "Bijspringen als de verwarming het niet
+  bijhoudt", met een schakelaar, en als die aan staat na hoeveel minuten stoken
+  (1 tot 30) en vanaf hoeveel graden te koud (0,1 tot 2, in tienden). Niet bij
+  Comfort in de kamer: daar is op de wand geen ruimte (besluit 282).
+- **Bewaard in `comfort.json`** als `bijspringen` per zone, van het huis.
+  Bewaren bij Comfort laat het staan, en een kamer wordt er geen comfort uit de
+  app door: de helpers van het oude systeem blijven voor die kamer gelden.
+- **Wie mag:** de beheerder, net als de rest van Regeling (`/api/bijspringen`).
+- **Versie 0.156.0.**
+
+*Voor dit huis:* op de NAS staat de woonkamer op aan, 5 minuten en 0,3°, zoals
+het oude systeem.
 
 ---
 

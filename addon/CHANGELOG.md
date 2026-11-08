@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.155.0
+## 0.156.0
 
-*8 november 2026 · 0.151.0 – 0.155.0*
+*8 november 2026 · 0.151.0 – 0.156.0*
 
 **Nieuw**
 
+- Bij Regeling › Klimaat kies je per kamer of de airco bijspringt als de verwarming het niet bijhoudt, en wanneer: na hoeveel minuten stoken en vanaf hoeveel graden te koud
 - Voorverwarmen heeft een eigen temperatuur per kamer, bij Comfort › Dagdelen. Tot je er een kiest, wordt het net zo warm als overdag
 - Laden met de hand kan ook met een zin tegen de assistent: "laad de auto met 10 ampère tot zes uur", "pauzeer het laden", "laad weer" of "laat de laadpaal zelf kiezen". Met evcc: "laad snel" of "laad op zon". Alleen als het bij Energie › Auto en laadpaal is toegelaten
 - In het blad Laden zie je de komende 24 uur: de zon die naar verwachting over is, de prijs per uur met de goedkoopste uren, tot wanneer je met de hand laadt, en wanneer de auto op zijn laadgrens is. Tik op de balk om tot een andere tijd te kiezen
@@ -22,6 +23,7 @@
 
 **New**
 
+- In Control › Climate you choose per room whether the air conditioner helps out when the heating falls behind, and when: after how many minutes of heating and from how many degrees too cold
 - Preheating has its own temperature per room, in Comfort › Times of day. Until you choose one, it gets as warm as during the day
 - Charging by hand also works with a sentence to the assistant: "charge the car at 10 amps until six", "pause charging", "resume charging" or "let the charger decide". With evcc: "charge fast" or "charge on solar". Only when allowed in Energy › Car and charger
 - The Charging sheet shows the next 24 hours: the sun expected to be spare, the price per hour with the cheapest hours, until when you charge by hand, and when the car reaches its charge limit. Tap the bar to choose another time

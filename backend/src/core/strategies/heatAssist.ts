@@ -77,6 +77,12 @@ export function createHeatAssist(
         if (temperatureC == null || heatTargetC == null) continue;
         if (demand !== 'heat') continue;
 
+        // Per zone uit de app (besluit 283): uit, of eigen drempels; weg is de standaard.
+        const eigen = zone.heatAssist;
+        if (eigen && !eigen.enabled) continue;
+        const delay = eigen?.startDelayMinutes ?? startDelayMinutes;
+        const shortfall = eigen?.minShortfallC ?? minShortfallC;
+
         // Stookt de hoofdverwarming van deze zone al lang genoeg?
         //
         // Rapporteert het apparaat niet of het levert, dan gebeurt hier niets.
@@ -88,11 +94,11 @@ export function createHeatAssist(
           if (actuator.role !== 'primary') return false;
           const s = ctx.state.actuators[id];
           if (!s) return false;
-          return producingMinutes(s, ctx.nowMs) >= startDelayMinutes;
+          return producingMinutes(s, ctx.nowMs) >= delay;
         });
         if (!primarySettled) continue;
 
-        if (heatTargetC - temperatureC < minShortfallC) continue;
+        if (heatTargetC - temperatureC < shortfall - 1e-9) continue;
 
         for (const actuatorId of zone.actuatorIds) {
           const actuator = actuatorById(ctx.config, actuatorId);

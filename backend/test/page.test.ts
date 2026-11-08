@@ -180,7 +180,7 @@ import { readFileSync } from 'node:fs';
 import { parseSiteConfig } from '../src/config/schema.js';
 import { defaultStrategies } from '../src/index.js';
 import { NIEUW, VERSIE, eersteVan } from '../src/version.js';
-import { comfortView, controleerComfort, withComfort, type Comfort } from '../src/web/comfort.js';
+import { bijspringenView, comfortView, controleerBijspringen, controleerComfort, withComfort, type Comfort } from '../src/web/comfort.js';
 import type { SiteConfig } from '../src/core/model.js';
 
 /* Comfort (besluit 130): in het geheugen, met hetzelfde schema als de dienst. */
@@ -192,11 +192,28 @@ const comfortDeur = {
   save: async (body: unknown) => {
     const c = controleerComfort(body, configNu);
     if (!c.ok) return { ok: false as const, status: 400, reden: c.reden };
-    const checked = parseSiteConfig(withComfort(rauweConfig, c.comfort).raw, { knownStrategies: defaultStrategies().ids });
+    // Bijspringen (besluit 283) komt van Regeling: dat blijft, net als in de dienst.
+    const nieuw: Comfort = { ...c.comfort, ...(comfortNu?.bijspringen ? { bijspringen: comfortNu.bijspringen } : {}) };
+    const checked = parseSiteConfig(withComfort(rauweConfig, nieuw).raw, { knownStrategies: defaultStrategies().ids });
     if (!checked.ok) return { ok: false as const, status: 400, reden: checked.problems[0]?.message ?? 'past niet' };
-    comfortNu = c.comfort;
+    comfortNu = nieuw;
     configNu = checked.config;
     return { ok: true as const, view: comfortView(configNu, comfortNu) };
+  },
+};
+/* Bijspringen per kamer (besluit 283), bij Regeling › Klimaat: in hetzelfde comfort. */
+const bijspringenDeur = {
+  view: () => bijspringenView(configNu),
+  save: async (body: unknown) => {
+    const c = controleerBijspringen(body, configNu);
+    if (!c.ok) return { ok: false as const, status: 400, reden: c.reden };
+    const huidig = comfortNu ?? { versie: 1 as const, kamers: {} };
+    const nieuw: Comfort = { ...huidig, bijspringen: { ...huidig.bijspringen, [c.zone]: c.waarde } };
+    const checked = parseSiteConfig(withComfort(rauweConfig, nieuw).raw, { knownStrategies: defaultStrategies().ids });
+    if (!checked.ok) return { ok: false as const, status: 400, reden: checked.problems[0]?.message ?? 'past niet' };
+    comfortNu = nieuw;
+    configNu = checked.config;
+    return { ok: true as const, view: bijspringenView(configNu) };
   },
 };
 
@@ -412,6 +429,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
           configNow: () => configNu,
           // Wiens comfort (besluit 147): dat van wie er kijkt, of van wie er gevraagd wordt.
           comfort: { view: (wie, bewoner) => comfortVanBewoner(configNu, comfortNu, bewonersStore.current, wie, bewoner).view, save: comfortDeur.save },
+          bijspringen: bijspringenDeur,
           latest: () => live,
           divergence: () => review.latest,
           logDir: dir,
@@ -1311,6 +1329,24 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await rij.waitFor({ timeout: 10_000 });
     expect(await rij.textContent()).toContain('helpt op zon');
     expect(await rij.getAttribute('href')).toBe(`indeling.html#${encodeURIComponent(kamer.id)}/warmte`);
+    // Bijspringen (besluit 283): onder de kamer een schakelaar; aan met de twee getallen, en meteen in de regeling.
+    const bijZone = bijspringenView(configNu).zones[0];
+    if (bijZone) {
+      const schakel = p.locator(`#wand [data-bij-aan="${bijZone.zoneId}"]`);
+      await schakel.waitFor();
+      expect(await schakel.getAttribute('aria-checked')).toBe('true');
+      await p.locator(`#wand [data-bij="${bijZone.zoneId}:vanafC:-0.1"]`).click();
+      await expect.poll(() => configNu.zones.find((z) => z.id === bijZone.zoneId)?.heatAssist?.minShortfallC, { timeout: 5_000 }).toBe(0.4);
+      expect(await p.locator('#wand [data-vorm]').textContent()).toContain('vanaf 0,4° te koud');
+      expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-bijspringen.png') });
+      await schakel.click();
+      await expect.poll(() => configNu.zones.find((z) => z.id === bijZone.zoneId)?.heatAssist?.enabled, { timeout: 5_000 }).toBe(false);
+      expect(await p.locator(`#wand [data-bij="${bijZone.zoneId}:naMin:1"]`).count()).toBe(0);
+      // Terug zoals het was, voor de andere tests.
+      await schakel.click();
+      await expect.poll(() => configNu.zones.find((z) => z.id === bijZone.zoneId)?.heatAssist?.enabled, { timeout: 5_000 }).toBe(true);
+    }
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-regeling.png') });
     expect(fouten).toEqual([]);
     await context.close();

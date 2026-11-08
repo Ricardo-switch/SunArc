@@ -25,9 +25,11 @@ let bedienen = new Set();
 /** Hoe lang een stekker per dag minstens aan moet, en uiterlijk wanneer (besluit 267). */
 let minimum = {};
 let zon = null;
+/** Bijspringen per kamer (besluit 283): waar de airco de verwarming helpt, en wanneer. */
+let bij = null;
 
 async function laadAlles() {
-  const [s, d, h, a, z] = await Promise.allSettled([haal('api/site'), haal('api/divergence'), haal('api/huis'), haal('api/aansluiting'), haal('api/zon')]);
+  const [s, d, h, a, z, b] = await Promise.allSettled([haal('api/site'), haal('api/divergence'), haal('api/huis'), haal('api/aansluiting'), haal('api/zon'), haal('api/bijspringen')]);
   if (s.status === 'fulfilled') site = s.value;
   if (d.status === 'fulfilled') terugblik = d.value;
   if (h.status === 'fulfilled') huisData = h.value;
@@ -40,6 +42,7 @@ async function laadAlles() {
     minimum = { ...(aInfo.antwoorden?.minimum ?? {}) };
   }
   if (z.status === 'fulfilled') zon = z.value;
+  if (b.status === 'fulfilled') bij = b.value;
   teken();
 }
 
@@ -69,6 +72,23 @@ const actiefIn = (r) => (r.apparaten ?? []).filter((a) => a.soort === 'klimaat' 
 const kamersMee = () => binnenKamers().filter((r) => actiefIn(r).length);
 const naarKamer = (r) => `indeling.html#${encodeURIComponent(r.id)}/warmte`;
 
+/**
+ * Bijspringen (besluit 283): onder een kamer waar een airco de verwarming kan
+ * helpen een schakelaar, en als die aan staat na hoeveel minuten stoken en
+ * vanaf hoeveel graden te koud.
+ */
+function bijspringenRij(r) {
+  const z = bij?.zones?.find((x) => x.zoneId === r.zoneId);
+  if (!z) return '';
+  const wie = z.apparaten.join(` ${t('algemeen.en')} `);
+  const zin = z.aan ? t('regeling.bij.aan', { wie, min: z.naMin, graden: `${nl(z.vanafC, 1)}°` }) : t('regeling.bij.uit', { wie });
+  const stap = (veld, stapje, label, tekst) => `<div class="bijstap"><span>${esc(label)}</span><button type="button" data-bij="${esc(z.zoneId)}:${veld}:-${stapje}" aria-label="${esc(t('regeling.bij.minder', { wat: label }))}">−</button><b>${esc(tekst)}</b><button type="button" data-bij="${esc(z.zoneId)}:${veld}:${stapje}" aria-label="${esc(t('regeling.bij.meer', { wat: label }))}">+</button></div>`;
+  const getallen = z.aan
+    ? `<div class="regelrij bijgetallen" style="padding-left: 22px">${stap('naMin', 1, t('regeling.bij.na'), t('regeling.bij.minuten', { n: z.naMin }))}${stap('vanafC', 0.1, t('regeling.bij.vanaf'), t('regeling.bij.graden', { graden: `${nl(z.vanafC, 1)}°` }))}</div>`
+    : '';
+  return `<div class="regelrij" style="padding-left: 22px"><div class="l"><b style="font-weight: 500">${esc(t('regeling.bij.titel'))}</b><span>${esc(zin)}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${z.aan}" aria-label="${esc(t('regeling.bij.van', { kamer: r.naam }))}" data-bij-aan="${esc(z.zoneId)}"></button></div>${getallen}`;
+}
+
 function klimaatVorm() {
   const winter = terugblik?.dataset?.seizoenen?.find((x) => x.seizoen === 'winter');
   const van = terugblik?.dataset?.vanMs ?? terugblik?.vanMs;
@@ -78,7 +98,7 @@ function klimaatVorm() {
         // Kamers die meedoen met deze (besluit 142), erbij genoemd.
         const mee = binnenKamers().filter((x) => x.meedoenMet?.kamerId === r.id).map((x) => x.naam);
         const wat = actiefIn(r).map((a) => t(ROL_ZIN[a.klimaat.rol], { naam: a.naam })).join(', ');
-        return `<a class="regelrij kamerrij" href="${naarKamer(r)}"><div class="l"><b>${esc([r.naam, ...mee].join(` ${t('algemeen.en')} `))}</b><span>${esc(wat)}</span></div><span class="pijl" aria-hidden="true">›</span></a>`;
+        return `<a class="regelrij kamerrij" href="${naarKamer(r)}"><div class="l"><b>${esc([r.naam, ...mee].join(` ${t('algemeen.en')} `))}</b><span>${esc(wat)}</span></div><span class="pijl" aria-hidden="true">›</span></a>${bijspringenRij(r)}`;
       }).join('')
     : '';
   const nietMee = binnenKamers().filter((r) => !actiefIn(r).length && !r.meedoenMet);
@@ -162,6 +182,32 @@ function tekenNu() {
 }
 
 /* ------------------------------------------------------------ bewaren */
+
+// Bijspringen per kamer (besluit 283): meteen bewaard, per kamer.
+document.addEventListener('click', (e) => {
+  const knop = e.target.closest('[data-bij-aan], [data-bij]');
+  if (!knop || !bij) return;
+  const id = knop.dataset.bijAan ?? knop.dataset.bij.split(':')[0];
+  const z = bij.zones.find((x) => x.zoneId === id);
+  if (!z) return;
+  const nieuw = { zone: id, aan: z.aan, naMin: z.naMin, vanafC: z.vanafC };
+  if (knop.dataset.bijAan) nieuw.aan = !z.aan;
+  else {
+    const [, veld, stap] = knop.dataset.bij.split(':');
+    const { min, max } = bij.bereik[veld];
+    nieuw[veld] = Math.round(Math.min(max, Math.max(min, z[veld] + Number(stap))) * 10) / 10;
+  }
+  bij = { ...bij, zones: bij.zones.map((x) => (x.zoneId === id ? { ...x, ...nieuw } : x)) };
+  teken();
+  groep.bewaarStraks(async () => {
+    const uit = await groep.stuur('api/bijspringen', nieuw);
+    if (uit?.ok) {
+      bij = uit.antwoord;
+      teken();
+    }
+    return uit;
+  });
+});
 
 document.addEventListener('click', (e) => {
   const knop = e.target.closest('[data-opzon], [data-opzon-vast], [data-bedienen]');

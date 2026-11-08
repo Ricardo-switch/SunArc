@@ -306,6 +306,32 @@ describe('heat-assist startvertraging', () => {
     ).toBe(true);
   });
 
+  describe('per zone uit de app (besluit 283)', () => {
+    const met = (heatAssist: NonNullable<SiteConfig['zones'][number]['heatAssist']>): SiteConfig => ({
+      ...exampleSite,
+      zones: exampleSite.zones.map((z) => (z.id === 'woonkamer' ? { ...z, heatAssist } : z)),
+    });
+    const assistIn = (config: SiteConfig, state: SystemState) =>
+      decide({ config, state, strategies: defaultStrategies() }).proposed.some(
+        (i) => i.strategyId === 'heat-assist' && i.actuatorId === 'ac-woonkamer',
+      );
+
+    it('springt niet bij als het voor de kamer uit staat', () => {
+      expect(assistIn(met({ enabled: false, startDelayMinutes: 5, minShortfallC: 0.5 }), winterish({ producingFor: 30 }))).toBe(false);
+    });
+
+    it('volgt de eigen drempels: al bij 0,3 graad te koud, pas na tien minuten', () => {
+      const krap = buildState({
+        gridPowerW: 1500,
+        livingRoomC: 19.7, // 0,3 onder het doel: onder de standaard van 0,5
+        actuators: { nest: actuator('heat', { setpointC: 20, producingFor: 7 }) },
+      });
+      expect(assistIn(exampleSite, krap)).toBe(false);
+      expect(assistIn(met({ enabled: true, startDelayMinutes: 5, minShortfallC: 0.3 }), krap)).toBe(true);
+      expect(assistIn(met({ enabled: true, startDelayMinutes: 10, minShortfallC: 0.3 }), krap)).toBe(false);
+    });
+  });
+
   it('respecteert een aangepaste startvertraging', () => {
     const strict = new StrategyRegistry().register(
       comfort,

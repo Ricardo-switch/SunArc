@@ -36,6 +36,30 @@ export async function bewonersRoutes(d: Diensten, v: Verzoek): Promise<boolean> 
     return true;
   }
 
+  // Bijspringen per kamer (besluit 283), bij Regeling › Klimaat.
+  if (path === '/api/bijspringen') {
+    const bijspringen = d.options.bijspringen;
+    if (bijspringen == null) {
+      sendJson(res, 503, { wachten: 'bijspringen kan pas met een configuratie en een logmap' });
+      return true;
+    }
+    if (method !== 'POST') {
+      sendJson(res, 200, bijspringen.view());
+      return true;
+    }
+    let body: unknown;
+    try {
+      body = await readJson(req);
+    } catch (error) {
+      sendJson(res, 400, { fout: (error as Error).message });
+      return true;
+    }
+    const result = await bijspringen.save(body);
+    if (result.ok) sendJson(res, 200, result.view);
+    else sendJson(res, result.status, { fout: result.reden });
+    return true;
+  }
+
   if (path === '/api/bewoners') {
     const bewoners = d.options.bewoners;
     if (bewoners == null) {

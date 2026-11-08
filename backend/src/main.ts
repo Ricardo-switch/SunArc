@@ -47,7 +47,7 @@ import { buildHouse, houseBeforeSetup, knownForLayout, proposeLayout, type House
 import { LayoutStore, herstelMeedoen, withLayoutNames, type Layout } from './web/layout.js';
 import { noteSensors, readLayoutFile, withMeasurement } from './web/meten.js';
 import { configUitDeApp } from './web/config-uit-app.js';
-import { ComfortStore, controleerComfort, type Comfort, type ComfortRoom, type ComfortView } from './web/comfort.js';
+import { bijspringenView, ComfortStore, controleerBijspringen, controleerComfort, type Comfort, type ComfortRoom, type ComfortView } from './web/comfort.js';
 import { BewonersStore, GEEN_BEWONERS, bewonersView, comfortVanBewoner, gastStand, persoonsAccount, herken as herkenBewoner, hoofdVan, leesActie, namenVoorExport, personenUit, profielenVan, vasthoudenVoorbij, voerUit, zonderVasthoudenVan, type Bewoners, type Wie } from './web/bewoners.js';
 import { BACKUP_DIR, OPNIEUW_STARTEN, beginOpnieuw, bewaarBackup, bewaardeBackups, leesBackup, maakBackup, zetTerug } from './web/gegevens.js';
 import { entiteitenLijst, type AnalyseExtra } from './web/export.js';
@@ -2458,7 +2458,8 @@ if (webPort != null) {
               let bewoners = b;
               if (doel.id == null || doel.id === hoofdVan(b)?.id) {
                 // Het comfort van het huis, van de hoofdgebruiker; de eigen comforts blijven.
-                comfort = { ...check.comfort, ...(huidig?.profielen ? { profielen: huidig.profielen } : {}) };
+                // Bijspringen (besluit 283) komt van Regeling, niet van deze pagina: dat blijft ook.
+                comfort = { ...check.comfort, ...(huidig?.profielen ? { profielen: huidig.profielen } : {}), ...(huidig?.bijspringen ? { bijspringen: huidig.bijspringen } : {}) };
               } else {
                 // Een eigen comfort (besluit 147): alleen de doelen en het plafond per kamer.
                 const eigen: Record<string, ComfortRoom> = Object.fromEntries(Object.entries(check.comfort.kamers).map(([k, v]) => [k, { modi: v.modi, ...(v.nooitWarmerC !== undefined ? { nooitWarmerC: v.nooitWarmerC } : {}) }]));
@@ -2472,6 +2473,23 @@ if (webPort != null) {
               if (bewoners !== b) await bewonersStore!.save(bewoners);
               siteConfig = met.config;
               return { ok: true as const, view: comfortVoor(wie, doel.id).view };
+            },
+          },
+          // Bijspringen per kamer (besluit 283): van het huis, dus wie het comfort van het huis mag aanpassen.
+          bijspringen: {
+            view: () => bijspringenView(siteConfig!),
+            // Wie mag, toetst de route: de beheerder, net als de rest van Regeling.
+            save: async (body: unknown) => {
+              const check = controleerBijspringen(body, siteConfig!);
+              if (!check.ok) return { ok: false as const, status: 400, reden: check.reden };
+              const huidig = comfortStore.current ?? { versie: 1 as const, kamers: {} };
+              const comfort: Comfort = { ...huidig, bijspringen: { ...huidig.bijspringen, [check.zone]: check.waarde } };
+              const met = await configWithComfort(comfort);
+              if (!met.ok) return { ok: false as const, status: 400, reden: `past niet in de regeling: ${met.reden}` };
+              if (runner && !runner.setConfig(met.config, allStates.values())) return { ok: false as const, status: 409, reden: 'de regeling kon het niet overnemen; het gaat in na de volgende start' };
+              await comfortStore.save(comfort);
+              siteConfig = met.config;
+              return { ok: true as const, view: bijspringenView(met.config) };
             },
           },
         }
