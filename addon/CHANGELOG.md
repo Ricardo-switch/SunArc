@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.160.0
+## 0.161.0
 
-*8 november 2026 · 0.158.0 – 0.160.0*
+*8 november 2026 · 0.158.0 – 0.161.0*
 
 **Nieuw**
 
+- Je huis › Kamers: elke etage van boven, op de maat van je huis, met de kamers als vakken. Kies een indeling die past bij je kamers, of deel een vak met een lijn en sleep de lijn op zijn plek
+- Een ruimte erin: zet een hal of trap tegen een muur, en de kamer eromheen blijft één ruimte, ook als een L of U. Een vak kan ook een eigen naam hebben, zoals het toilet
+- Zones van een kamer staan als lijn in de plattegrond, om te verschuiven
 - Je huis › Etages: je huis opzij doorgesneden, met elke etage op zijn hoogte, het schuine dak met het lage deel, en de goot en nok. Tik een etage aan voor zijn hoogte, of hij onder het schuine dak ligt, en op welke gebouwen hij ligt
 - Etages zegt of het aantal etages klopt met de bouwlagen van je huis
 - Je huis › Huisontwerp: de gebouwen van boven, dezelfde als bij Daken en panelen. Kies waar je huis vandaan komt, wat voor huis het is, en per gebouw het dak, de maat en de hoogte tot goot en nok
@@ -19,6 +22,9 @@
 
 **New**
 
+- Your home › Rooms: every floor from above, at the size of your house, with the rooms as boxes. Choose a layout that fits your rooms, or split a box with a line and drag the line into place
+- A space inside: put a hall or stairs against a wall, and the room around it stays one space, also as an L or U. A box can also have its own name, such as the toilet
+- A room's zones show as a line in the floor plan, to slide
 - Your home › Floors: your house in cross-section, with every floor at its height, the sloping roof with its low part, and the gutter and ridge. Tap a floor for its height, whether it is under the sloping roof, and which buildings it lies on
 - Floors tells you whether the number of floors matches the storeys of your house
 - Your home › House design: the buildings from above, the same as under Roofs and panels. Choose where your house comes from, what type of house it is, and per building the roof, the size and the height to gutter and ridge

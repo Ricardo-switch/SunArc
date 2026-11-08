@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.160.0';
+export const VERSIE = '0.161.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.161.0',
+    datum: '2026-11-08',
+    nieuw: [
+      'Je huis › Kamers: elke etage van boven, op de maat van je huis, met de kamers als vakken. Kies een indeling die past bij je kamers, of deel een vak met een lijn en sleep de lijn op zijn plek',
+      'Een ruimte erin: zet een hal of trap tegen een muur, en de kamer eromheen blijft één ruimte, ook als een L of U. Een vak kan ook een eigen naam hebben, zoals het toilet',
+      'Zones van een kamer staan als lijn in de plattegrond, om te verschuiven',
+    ],
+    en: {
+      nieuw: [
+        'Your home › Rooms: every floor from above, at the size of your house, with the rooms as boxes. Choose a layout that fits your rooms, or split a box with a line and drag the line into place',
+        'A space inside: put a hall or stairs against a wall, and the room around it stays one space, also as an L or U. A box can also have its own name, such as the toilet',
+        'A room\'s zones show as a line in the floor plan, to slide',
+      ],
+    },
+  },
   {
     versie: '0.160.0',
     datum: '2026-11-08',

@@ -13275,6 +13275,18 @@ huis op Thuis nooit op echte maat getekend worden.
   welke gebouwen hij ligt (de begane grond standaard op huis en uitbouw), en
   hoger, lager en + Etage. Zijn de bouwlagen niet geschat, dan zegt een regel
   of ze kloppen met het aantal etages boven de grond.
+- **Stap 5, versie 0.161.0:** Kamers toont de etage van boven, op de maat
+  van de gebouwen (`huisvorm.plattegrond` in de kit, de gebouwen in de assen
+  van het hoofdhuis), met de kamers als vakken. Zolang er niets bewaard is,
+  staat er een voorstel uit de kamers; Kies een indeling geeft naast elkaar,
+  voor en achter, hal opzij en gang in het midden (de keuken in de uitbouw,
+  een garage in de garage). Een vak tik je aan: kamer, eigen naam of leeg,
+  dwars of overlangs delen, de lijn ervoor schuiven (ook slepen in de
+  tekening, per 10 cm), een ruimte erin tegen een muur (2,4 bij 2,6 meter,
+  de rest blijft de kamer eromheen), samenvoegen met een leeg of los buurvak.
+  Kamers zonder plek staan bovenaan om in een vak te zetten. Zones zet je in
+  de tekening; elke lijn schuift. Een apparaat sleep je naar een vak met een
+  kamer. Zonder tekening van boven blijft het poppenhuis.
 
 ---
 

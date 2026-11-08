@@ -4949,8 +4949,9 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await rij.scrollIntoViewIfNeeded();
     await p.waitForTimeout(300);
     const appId = (await rij.getAttribute('data-app'))!;
-    const andere = p.locator(`#wand .sc-tik[data-kamer]:not([data-kamer="${vol.id}"]):not([data-kamer="__nieuw"])`).first();
-    const naarKamer = (await andere.getAttribute('data-kamer'))!;
+    // In de plattegrond (besluit 288) is elke kamer een vak.
+    const andere = p.locator(`#wand [data-vak-kamer-id]:not([data-vak-kamer-id="${vol.id}"])`).first();
+    const naarKamer = (await andere.getAttribute('data-vak-kamer-id'))!;
     const van = (await rij.boundingBox())!;
     const naar = (await andere.boundingBox())!;
     const [x0, y0] = [Math.round(van.x + 30), Math.round(van.y + van.height / 2)];
@@ -6209,7 +6210,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     let van: { x: number; y: number; width: number; height: number } | null = null;
     await expect.poll(async () => (van = await rij.boundingBox()), kort).not.toBeNull();
     van = van!;
-    const naar = (await p.locator(`#wand .sc-tik[data-kamer="${b.id}"]`).boundingBox())!;
+    const naar = (await p.locator(`#wand [data-vak-kamer-id="${b.id}"]`).first().boundingBox())!;
     await p.mouse.down();
     await p.mouse.move(van.x - 40, van.y + 10, { steps: 4 });
     await p.mouse.move(naar.x + naar.width / 2, naar.y + naar.height / 2, { steps: 8 });
@@ -6340,6 +6341,35 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await context.close();
   }, 30_000);
 
+  /* Je huis › Kamers als vakken (besluit 288, stap 5): een indeling kiezen, een vak aantikken, een ruimte erin. */
+  it('deelt een etage in met vakken: een indeling, een vak en een ruimte erin', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5000 };
+    const voor = layoutStore.current ? structuredClone(layoutStore.current) : null;
+    await p.goto(`${baseUrl}/indeling.html#kamers`);
+    await p.locator('#wand svg.sc-plattegrond [data-vak]').first().waitFor({ timeout: 10_000 });
+    const etage = (await p.locator('#wand [data-etage-knop][aria-pressed="true"]').getAttribute('data-etage-knop'))!;
+    // Een indeling kiezen bewaart de vakken van deze etage.
+    await p.locator('#wand [data-sjabloon="0"]').click(kort);
+    await expect.poll(() => Object.keys(layoutStore.current?.plattegrond?.[etage] ?? {}).length, kort).toBeGreaterThan(0);
+    // Een vak met een kamer aantikken, en er een ruimte in zetten tegen de rechtermuur.
+    const vak = p.locator('#wand svg.sc-plattegrond [data-vak-kamer-id]').first();
+    const id = (await vak.getAttribute('data-vak'))!;
+    await vak.click(kort);
+    await p.locator('#wand [data-ruimte-erin="rechts"]').click(kort);
+    const [gebouw, pad] = id.split(':');
+    await expect.poll(() => JSON.stringify(layoutStore.current?.plattegrond?.[etage]?.[gebouw!] ?? null), kort).toContain('"as":"u"');
+    await p.locator(`#wand svg.sc-plattegrond [data-vak="${gebouw}:${pad}bab"]`).waitFor(kort);
+    expect(fouten).toEqual([]);
+    if (voor) await layoutStore.save(voor);
+    await context.close();
+  }, 30_000);
+
   /*
    * Je huis als groep (besluit 193, 288): op de telefoon eerst de lijst,
    * Kamers als eigen scherm met de etages bovenin, en terug naar de lijst. Bij Buiten wat er rond
@@ -6367,7 +6397,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await tel.locator('[data-deelkop]', { hasText: 'Kamers' }).waitFor(kort);
     await tel.locator('[data-etage-knop="bg"][aria-pressed="true"]').waitFor(kort);
     expect(await lijst.isVisible()).toBe(false);
-    await tel.locator('#podium-tel svg.sc-huis').waitFor(kort);
+    await tel.locator('#podium-tel svg.sc-huis, #podium-tel svg.sc-plattegrond').first().waitFor(kort);
     await tel.locator('[data-blad] [data-actie="etagenaam"]').waitFor(kort);
     expect(await tel.locator('[data-terug]').textContent()).toContain('Je huis');
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-indeling-tel.png'), fullPage: true });

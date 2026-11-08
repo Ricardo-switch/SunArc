@@ -66,6 +66,22 @@
   .klopt.anders .vink { background: var(--ijs); }
   .blad .twee { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end; }
   .sc-doorsnede [data-etage-kies]:focus-visible { outline: 2px solid var(--ijs); }
+  /* Kamers als vakken (besluit 288, stap 5): de indelingen om te kiezen, wat nog geen plek heeft, en de zonelijnen. */
+  .keus { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .keuze-indeling { display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px 6px 8px; border-radius: 14px; background: rgb(var(--wit) / 0.05); border: 1.5px solid transparent; color: var(--tekst); font: inherit; cursor: pointer; text-align: left; }
+  .keuze-indeling:hover, .keuze-indeling:focus-visible { border-color: rgb(110 231 183 / 0.6); }
+  .keuze-indeling .pl { display: block; height: 92px; }
+  .keuze-indeling .pl svg { width: 100%; height: 100%; }
+  .keuze-indeling b { font-size: 13px; margin: 0 4px; }
+  .strook { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 14px; border: 1px dashed rgb(247 181 72 / 0.5); background: rgb(247 181 72 / 0.05); }
+  .strook .uitleg { font-size: 12.5px; color: var(--gedempt); line-height: 1.35; }
+  .strook .uitleg b { display: block; font-size: 14px; color: var(--tekst); }
+  .terugblad { align-self: flex-start; border: 0; background: none; color: var(--zacht); font: inherit; font-size: 13.5px; font-weight: 700; padding: 0; cursor: pointer; }
+  .zonelijn { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; font-size: 13px; color: var(--zacht); }
+  .voorstel { margin: 0; color: var(--ijs-t); }
+  details.ander summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--ijs-t); padding: 6px 0; }
+  details.ander[open] summary { margin-bottom: 8px; }
+  .sc-plattegrond [data-vak]:focus-visible { outline: 2px solid var(--ijs); }
   .bak.leeg { display: none; }
   .applijst { display: flex; flex-direction: column; gap: 6px; }
   .applijst .app { padding: 10px 12px; border: 1px solid transparent; border-radius: 14px; background: rgb(var(--wit) / 0.045); }

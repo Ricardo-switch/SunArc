@@ -28,7 +28,7 @@ let state = null;
  * Wat er gekozen is: het deel uit het adres (een etage, `los`, `verborgen` of
  * `nieuw`), de etage, en daarin een kamer of een apparaat, of een ander blad.
  */
-const keuze = { deel: null, etage: null, kamer: null, apparaat: null, blad: 'etage' };
+const keuze = { deel: null, etage: null, kamer: null, apparaat: null, blad: 'etage', vak: null };
 /** De indelingen van voor elke wijziging, voor "Ongedaan maken". */
 const vorige = [];
 let melding = '';
@@ -222,6 +222,276 @@ function etageMaatBlad(d) {
     <div class="dk-voet"><button type="button" class="lig-link" data-etage-erbij>${esc(t('indeling.etagePlus'))}</button></div>`;
 }
 
+/*
+ * Kamers als vakken (besluit 288, stap 5): per etage de gebouwen van boven,
+ * elk vak een kamer, een eigen naam of leeg. Een vak deel je met een lijn,
+ * een lijn schuif je, een ruimte zet je tegen een muur, twee vakken voeg je
+ * samen. De boom per gebouw staat in `plattegrond` van de indeling.
+ */
+/**
+ * De vakken van een etage per gebouw: zoals bewaard, of anders het eerste
+ * voorstel dat bij de kamers past. Zo staat er nooit een leeg huis, en is er
+ * altijd een kamer om een apparaat naartoe te slepen.
+ */
+function etageBomen(d, etage) {
+  const bewaard = d.plattegrond?.[etage];
+  if (bewaard) return bewaard;
+  const gebouwen = (etageGebouwenKaal(d, etage) ?? []).filter((g) => g.actief);
+  const kamers = d.kamers.filter((k) => k.etage === etage).map((k) => ({ id: k.id, soort: kamerSoort(k) }));
+  return huisvorm.indelingen(kamers, gebouwen)[0]?.bomen ?? {};
+}
+/** De gebouwen van een etage zonder vakken, om de voorstellen op te maken. */
+function etageGebouwenKaal(d, etage) {
+  const vg = aans?.daken?.voorgevelDeg ?? 180;
+  const hoofd = hoofdGebouw();
+  if (!hoofd?.maat) return null;
+  const kh = huisvorm.kaderUitMaat(hoofd.maat, vg);
+  const op = etageOpVan(d, etage);
+  return binnenGebouwen()
+    .filter((g) => g.maat)
+    .map((g) => {
+      const k = huisvorm.kaderUitMaat(g.maat, vg);
+      return { id: g.id, soort: g.soort, naam: t(`daken.gebouw.${g.soort}`), breed: k.breed, diep: k.diep, m: huisvorm.naarHoofd(k, kh), actief: op.includes(g.id) };
+    });
+}
+/** De gebouwen van een etage in de assen van het hoofdhuis, met hun vakken; null zonder tekening van boven. */
+function etageGebouwen(d, etage, boomVoor = null) {
+  const kaal = etageGebouwenKaal(d, etage);
+  if (!kaal) return null;
+  const bomen = etageBomen(d, etage);
+  return kaal.map((g) => ({ ...g, boom: boomVoor?.gebouw === g.id ? boomVoor.boom : (bomen[g.id] ?? {}) }));
+}
+const kamerSoort = (k) => k.soort ?? huis.soortVan?.(k.naam) ?? null;
+/** Kamers op een etage die in geen vak staan. */
+function zonderPlek(d, etage) {
+  const geplaatst = new Set();
+  for (const boom of Object.values(etageBomen(d, etage))) for (const v of huisvorm.vakkenIn(boom, { u: 0, v: 0, breed: 1, diep: 1 }).vakken) if (v.blad.kamer) geplaatst.add(v.blad.kamer);
+  return d.kamers.filter((k) => k.etage === etage && !geplaatst.has(k.id));
+}
+/** Het gekozen vak: het gebouw, het pad, de knoop, zijn rechthoek en de ouder. */
+function vakNu(d) {
+  if (!keuze.vak) return null;
+  const [gid, pad = ''] = keuze.vak.split(':');
+  const g = (etageGebouwen(d, keuze.etage) ?? []).find((x) => x.id === gid && x.actief);
+  if (!g) return null;
+  const boom = g.boom;
+  const node = huisvorm.knoop(boom, pad);
+  if (!node || huisvorm.isSnede(node)) return null;
+  const R = { u: 0, v: 0, breed: g.breed, diep: g.diep };
+  const r = huisvorm.rectVan(boom, pad, R);
+  const ouderPad = pad.slice(0, -1);
+  const ouder = pad ? huisvorm.knoop(boom, ouderPad) : null;
+  return { g, gid, pad, boom, node, r, R, ouder, ouderPad };
+}
+/** Een nieuwe boom voor een gebouw op de gekozen etage bewaren. */
+function zetBoom(gid, boom, gedaan, vakDaarna) {
+  const next = concept();
+  next.plattegrond = { ...(next.plattegrond ?? {}), [keuze.etage]: { ...etageBomen(next, keuze.etage), [gid]: boom } };
+  if (vakDaarna !== undefined) keuze.vak = vakDaarna;
+  return bewaar(next, gedaan);
+}
+
+/** Het podium van Kamers: de plattegrond van de etage. */
+function tekenPlattegrond(d, el, maat, boomVoor = null) {
+  const gebouwen = etageGebouwen(d, keuze.etage, boomVoor);
+  const kamers = Object.fromEntries(d.kamers.map((k) => [k.id, { naam: k.naam, soort: kamerSoort(k) }]));
+  const zones = d.kamers
+    .filter((k) => k.etage === keuze.etage && k.zoneAs && k.zoneGrenzen?.length)
+    .map((k) => {
+      const g = gebouwen.find((x) => x.actief && huisvorm.vakkenIn(x.boom, { u: 0, v: 0, breed: 1, diep: 1 }).vakken.some((v) => v.blad.kamer === k.id));
+      return g ? { gebouw: g.id, kamer: k.id, as: k.zoneAs, grenzen: k.zoneGrenzen, namen: k.zones.map((z) => z.naam) } : null;
+    })
+    .filter(Boolean);
+  el.innerHTML = huisvorm.plattegrond(
+    { beschrijving: t('kamers.beschrijving', { etage: etageNaam(d, keuze.etage) }), gebouwen, kamers, kies: keuze.vak, doel: sleepDoel, zones, tekst: { leeg: t('kamers.leeg'), nietInHa: t('kamers.nietInHa'), straat: t('kamers.straat') } },
+    maat,
+  );
+}
+
+/** Een tik bij Kamers als vakken; waar als hij hier is afgehandeld. */
+async function vakKlik(el, d) {
+  if (el.dataset.vak) {
+    keuze.vak = keuze.vak === el.dataset.vak ? null : el.dataset.vak;
+    Object.assign(keuze, { kamer: null, apparaat: null, blad: 'etage' });
+    teken();
+    return true;
+  }
+  if (el.hasAttribute('data-vak-terug')) {
+    keuze.vak = null;
+    teken();
+    return true;
+  }
+  if (el.dataset.sjabloon != null) {
+    const gebouwen = (etageGebouwen(d, keuze.etage) ?? []).filter((g) => g.actief);
+    const kamers = d.kamers.filter((k) => k.etage === keuze.etage).map((k) => ({ id: k.id, soort: kamerSoort(k) }));
+    const x = huisvorm.indelingen(kamers, gebouwen)[Number(el.dataset.sjabloon)];
+    if (!x) return true;
+    const next = concept();
+    next.plattegrond = { ...(next.plattegrond ?? {}), [keuze.etage]: x.bomen };
+    keuze.vak = null;
+    await bewaar(next, t('kamers.indelingGekozen'));
+    return true;
+  }
+  if (el.dataset.plaatsKamer) {
+    let v = vakNu(d);
+    if (!v) {
+      // Geen vak gekozen: het eerste lege vak.
+      for (const g of (etageGebouwen(d, keuze.etage) ?? []).filter((x) => x.actief)) {
+        const leeg = huisvorm.vakkenIn(g.boom, { u: 0, v: 0, breed: g.breed, diep: g.diep }).vakken.find((x) => !x.blad.kamer && !x.blad.naam);
+        if (leeg) {
+          keuze.vak = `${g.id}:${leeg.pad}`;
+          v = vakNu(d);
+          break;
+        }
+      }
+    }
+    if (!v) return zeg(t('kamers.eerstVak'), true), true;
+    const k = d.kamers.find((x) => x.id === el.dataset.plaatsKamer);
+    await zetBoom(v.gid, huisvorm.vervang(v.boom, v.pad, { kamer: el.dataset.plaatsKamer }), t('kamers.staatHier', { naam: k?.naam ?? '' }));
+    return true;
+  }
+  const v = vakNu(d);
+  if (!v) return false;
+  if (el.dataset.vakKamer != null) {
+    const id = el.dataset.vakKamer;
+    const k = d.kamers.find((x) => x.id === id);
+    await zetBoom(v.gid, huisvorm.vervang(v.boom, v.pad, id ? { kamer: id } : {}), id ? t('kamers.staatHier', { naam: k?.naam ?? '' }) : t('kamers.isLeeg'));
+    return true;
+  }
+  if (el.dataset.vakDeel) {
+    const as = el.dataset.vakDeel;
+    const lengte = as === 'u' ? v.r.breed : v.r.diep;
+    const op = Math.round((lengte / 2) * 10) / 10;
+    await zetBoom(v.gid, huisvorm.vervang(v.boom, v.pad, { as, op, a: { ...v.node }, b: {} }), t('kamers.gedeeld'), `${v.gid}:${v.pad}b`);
+    return true;
+  }
+  if (el.dataset.lijnStap && v.ouder) {
+    const rOuder = huisvorm.rectVan(v.boom, v.ouderPad, v.R);
+    const lengte = v.ouder.as === 'u' ? rOuder.breed : rOuder.diep;
+    const op = huisvorm.lijnOp(Math.round((v.ouder.op + Number(el.dataset.lijnStap) * 0.1) * 10) / 10, lengte);
+    await zetBoom(v.gid, huisvorm.vervang(v.boom, v.ouderPad, { ...v.ouder, op: Math.round(op * 100) / 100 }), t('kamers.lijnBewaard', { m: m1(op) }));
+    return true;
+  }
+  if (el.hasAttribute('data-vak-samen') && v.ouder) {
+    await zetBoom(v.gid, huisvorm.vervang(v.boom, v.ouderPad, { ...v.node }), t('kamers.samenGedaan'), `${v.gid}:${v.ouderPad}`);
+    return true;
+  }
+  if (el.dataset.ruimteErin) {
+    const wand = el.dataset.ruimteErin;
+    const nieuw = huisvorm.ruimteErin(v.node, v.r, wand, 2.4, 2.6, {});
+    await zetBoom(v.gid, huisvorm.vervang(v.boom, v.pad, nieuw), t('kamers.ruimteGezet'), `${v.gid}:${v.pad}${huisvorm.ruimtePad(wand)}`);
+    return true;
+  }
+  if (el.dataset.zonesTeken) {
+    const k = d.kamers.find((x) => x.id === el.dataset.zonesTeken);
+    const b = kamerVak(d, k?.id);
+    if (!k || !b) return true;
+    const n = k.zones.length;
+    const grenzen = Array.from({ length: n - 1 }, (_, i) => Math.round((b.v0 + ((b.v1 - b.v0) * (i + 1)) / n) * 10) / 10);
+    await zetZones(k.id, 'v', grenzen, t('kamers.zonesGezet'));
+    return true;
+  }
+  if (el.dataset.zonesWeg) {
+    await zetZones(el.dataset.zonesWeg, null, null, t('kamers.zonesWegGedaan'));
+    return true;
+  }
+  const km = v.node.kamer ? d.kamers.find((x) => x.id === v.node.kamer) : null;
+  if (km && el.hasAttribute('data-zone-as')) {
+    const b = kamerVak(d, km.id);
+    if (!b) return true;
+    const as = km.zoneAs === 'v' ? 'u' : 'v';
+    const [a0, a1] = as === 'v' ? [b.v0, b.v1] : [b.u0, b.u1];
+    const n = km.zones.length;
+    await zetZones(km.id, as, Array.from({ length: n - 1 }, (_, i) => Math.round((a0 + ((a1 - a0) * (i + 1)) / n) * 10) / 10), t('kamers.zonesGezet'));
+    return true;
+  }
+  if (km && el.dataset.zoneGrens != null && km.zoneGrenzen) {
+    const i = Number(el.dataset.zoneGrens);
+    const g = [...km.zoneGrenzen];
+    const vorige = i > 0 ? g[i - 1] + 0.3 : -Infinity;
+    const volgende = i < g.length - 1 ? g[i + 1] - 0.3 : Infinity;
+    g[i] = Math.min(volgende, Math.max(vorige, Math.round((g[i] + Number(el.dataset.d) * 0.1) * 10) / 10));
+    await zetZones(km.id, km.zoneAs, g, t('kamers.zonesGezet'));
+    return true;
+  }
+  return false;
+}
+
+/** Kies een indeling: voorbeeldjes die passen bij de kamers van deze etage. */
+function indelingKeuze(d) {
+  const gebouwen = (etageGebouwen(d, keuze.etage) ?? []).filter((g) => g.actief);
+  const kamers = d.kamers.filter((k) => k.etage === keuze.etage).map((k) => ({ id: k.id, soort: kamerSoort(k) }));
+  const lijst = huisvorm.indelingen(kamers, gebouwen);
+  if (!lijst.length) return '';
+  const namen = Object.fromEntries(d.kamers.map((k) => [k.id, { naam: k.naam, soort: kamerSoort(k) }]));
+  const plaatje = (x) => huisvorm.plattegrond({ klein: true, gebouwen: gebouwen.map((g) => ({ ...g, boom: x.bomen[g.id] ?? {} })), kamers: namen }, { breedte: 140, hoogte: 92 });
+  return `<div><span class="label">${esc(t('kamers.kiesIndeling'))}</span><div class="keus">${lijst.map((x, i) => `<button type="button" class="keuze-indeling" data-sjabloon="${i}"><span class="pl">${plaatje(x)}</span><b>${esc(t(`kamers.indeling.${x.naam}`))}</b></button>`).join('')}</div></div>
+    <p class="mini" style="margin: 0">${esc(t('kamers.indelingZin'))}</p>`;
+}
+
+/** Wat nog geen plek heeft op deze etage: tik erop met een vak gekozen. */
+function zonderPlekStrook(d) {
+  const los = zonderPlek(d, keuze.etage);
+  if (!los.length) return '';
+  return `<div class="strook"><div class="uitleg"><b>${esc(t('kamers.zonderPlek', { n: los.length }))}</b>${esc(t(keuze.vak ? 'kamers.zonderPlekTik' : 'kamers.zonderPlekKies'))}</div><div class="chips">${los.map((k) => `<button type="button" class="chip zon" data-plaats-kamer="${esc(k.id)}">${esc(k.naam)}</button>`).join('')}</div></div>`;
+}
+
+/** Het blad van een gekozen vak. */
+function vakBlad(d, v) {
+  const km = v.node.kamer ? d.kamers.find((k) => k.id === v.node.kamer) : null;
+  const m2 = nl(Math.round(v.r.breed * v.r.diep), 0);
+  const kamers = d.kamers.filter((k) => k.etage === keuze.etage);
+  const chip = (id, naam, aan) => `<button type="button" class="chip${aan ? ' aan' : ''}" data-vak-kamer="${esc(id)}" aria-pressed="${aan}">${esc(naam)}</button>`;
+  const lijn = v.ouder
+    ? `<div><span class="label">${esc(t(v.ouder.as === 'u' ? 'kamers.lijnLinks' : 'kamers.lijnVoor'))}</span><div class="dk-stapper"><button type="button" data-lijn-stap="-1" aria-label="${esc(t('kamers.lijnMin'))}">−</button><b>${m1(v.ouder.op)} m</b><button type="button" data-lijn-stap="1" aria-label="${esc(t('kamers.lijnPlus'))}">+</button></div></div>`
+    : '';
+  const zus = v.ouder ? huisvorm.knoop(v.boom, v.ouderPad + (v.pad.endsWith('a') ? 'b' : 'a')) : null;
+  const samen = zus && !huisvorm.isSnede(zus) ? `<button type="button" class="knop" data-vak-samen>${esc(t('kamers.samen'))}</button>` : '';
+  const zonesKnop = km && km.zones.length > 1 ? zonesInPlattegrond(km) : '';
+  return `<button type="button" class="terugblad" data-vak-terug>‹ ${esc(etageNaam(d, keuze.etage))}</button>
+    <div class="bladkop"><h3 class="kop-3">${esc(km?.naam ?? v.node.naam ?? t('kamers.vak'))}</h3><span class="mini">${m1(v.r.breed)} × ${m1(v.r.diep)} m · ${m2} m²</span></div>
+    <div><span class="label">${esc(t('kamers.watHier'))}</span><div class="chips">${kamers.map((k) => chip(k.id, k.naam, v.node.kamer === k.id)).join('')}${chip('', t('kamers.leeg'), !v.node.kamer && !v.node.naam)}</div></div>
+    <div><label class="label" for="vaknaam">${esc(t('kamers.eigenNaam'))}</label><input class="veld" id="vaknaam" data-vak-naam value="${esc(v.node.naam ?? '')}" placeholder="${esc(t('kamers.eigenNaamVoorbeeld'))}" maxlength="30"></div>
+    ${km ? `<button type="button" class="kamerrij" data-kamer="${esc(km.id)}">${esc(t('kamers.instellen', { naam: km.naam }))}<span>›</span></button>` : ''}
+    <div><span class="label">${esc(t('kamers.delen'))}</span><div class="rijknoppen"><button type="button" class="knop" data-vak-deel="v">${esc(t('kamers.dwars'))}</button><button type="button" class="knop" data-vak-deel="u">${esc(t('kamers.overlangs'))}</button>${samen}</div></div>
+    ${lijn}
+    <div><span class="label">${esc(t('kamers.ruimteErin'))}</span><div class="chips">${['voor', 'achter', 'links', 'rechts'].map((w) => `<button type="button" class="chip" data-ruimte-erin="${w}">${esc(t(`kamers.wand.${w}`))}</button>`).join('')}</div></div>
+    ${zonesKnop}
+    <p class="mini" style="margin: 0">${esc(t('kamers.vakUitleg'))}</p>`;
+}
+
+/** De zones van een kamer als lijn in de plattegrond (besluit 288): aanzetten, en de lijnen schuiven. */
+function zonesInPlattegrond(k) {
+  if (!k.zoneAs || !k.zoneGrenzen?.length) return `<div><span class="label">${esc(t('kamers.zones'))}</span><button type="button" class="knop" data-zones-teken="${esc(k.id)}">${esc(t('kamers.zonesTeken'))}</button></div>`;
+  const regels = k.zoneGrenzen.map((g, i) => `<div class="zonelijn"><span>${esc(k.zones[i]?.naam ?? '')} | ${esc(k.zones[i + 1]?.naam ?? '')}</span><div class="dk-stapper"><button type="button" data-zone-grens="${i}" data-d="-1" aria-label="${esc(t('kamers.lijnMin'))}">−</button><b>${m1(g)} m</b><button type="button" data-zone-grens="${i}" data-d="1" aria-label="${esc(t('kamers.lijnPlus'))}">+</button></div></div>`).join('');
+  return `<div><span class="label">${esc(t('kamers.zones'))}</span>${regels}<div class="rijknoppen"><button type="button" class="knop" data-zone-as>${esc(t(k.zoneAs === 'v' ? 'kamers.zonesOverlangs' : 'kamers.zonesDwars'))}</button><button type="button" class="knop" data-zones-weg="${esc(k.id)}">${esc(t('kamers.zonesWeg'))}</button></div></div>`;
+}
+
+/** De rechthoek om alle vakken van een kamer in een gebouw: daar komen de zonelijnen in. */
+function kamerVak(d, kid) {
+  for (const g of etageGebouwen(d, keuze.etage) ?? []) {
+    if (!g.actief) continue;
+    const vs = huisvorm.vakkenIn(g.boom, { u: 0, v: 0, breed: g.breed, diep: g.diep }).vakken.filter((v) => v.blad.kamer === kid);
+    if (!vs.length) continue;
+    const u0 = Math.min(...vs.map((v) => v.r.u));
+    const v0 = Math.min(...vs.map((v) => v.r.v));
+    return { g, u0, v0, u1: Math.max(...vs.map((v) => v.r.u + v.r.breed)), v1: Math.max(...vs.map((v) => v.r.v + v.r.diep)) };
+  }
+  return null;
+}
+/** De zonelijnen van een kamer bewaren. */
+function zetZones(kid, as, grenzen, gedaan) {
+  const next = concept();
+  const k = next.kamers.find((x) => x.id === kid);
+  if (!k) return null;
+  if (as) Object.assign(k, { zoneAs: as, zoneGrenzen: grenzen });
+  else {
+    delete k.zoneAs;
+    delete k.zoneGrenzen;
+  }
+  return bewaar(next, gedaan);
+}
+
 /** De maat van een etage bewaren: zijn hoogte of de gebouwen waar hij op ligt. */
 function zetEtageMaat(id, wat) {
   const next = concept();
@@ -313,6 +583,7 @@ function adresOmzetten(d) {
 /** Een ander deel gekozen (in de lijst, of Vorige en Volgende): opnieuw beginnen in dat deel. */
 function volgDeel(nu) {
   keuze.deel = nu;
+  keuze.vak = null;
   bronVorm = null;
   const soort = deelSoort(nu);
   if (soort === 'etage' || soort === 'etages') Object.assign(keuze, { etage: standaardEtage(concept()), kamer: null, apparaat: null, blad: 'etage' });
@@ -327,7 +598,7 @@ function volgDeel(nu) {
 /** Een andere etage bij Kamers: bovenin gekozen, of na een etage erbij. */
 function kiesEtage(id) {
   bronVorm = null;
-  Object.assign(keuze, { deel: 'kamers', etage: id, kamer: null, apparaat: null, blad: 'etage' });
+  Object.assign(keuze, { deel: 'kamers', etage: id, kamer: null, apparaat: null, blad: 'etage', vak: null });
   if (decodeURIComponent(location.hash.slice(1)) !== 'kamers') history.replaceState(null, '', opAdres('kamers'));
   teken();
 }
@@ -600,6 +871,8 @@ function tekenPodium(d) {
   const maat = { breedte: el.clientWidth || (app.telStand() ? 370 : 470), hoogte: el.clientHeight || (app.telStand() ? 260 : 430) };
   if (deelSoort(keuze.deel) === 'etages') return tekenDoorsnede(d, el, maat);
   if (keuze.etage === 'buiten') return tekenBuiten(el, maat);
+  // Kamers als vakken (besluit 288, stap 5), als het huis van boven bekend is.
+  if (etageGebouwen(d, keuze.etage)) return tekenPlattegrond(d, el, maat);
   const ruimte = (k) => ruimteVan(k.id) ?? { id: k.id, naam: k.naam, apparaten: [], zones: k.zones };
   const binnen = d.kamers.filter((k) => k.etage === keuze.etage && !alleBuitenEtage(k));
   // Bij het indelen alleen de naam en de temperatuur: geen zin over wat de kamer doet.
@@ -646,7 +919,15 @@ function blad(d) {
   if (keuze.blad === 'verbergen' && keuze.apparaat) return verbergBlad(toestelVan(keuze.apparaat));
   if (keuze.blad === 'weghalen' && k) return weghaalBlad(k);
   if (keuze.blad === 'kamer' && k) return keuze.tab === 'warmte' && !alleBuitenEtage(k) ? warmteBlad(d, k) : kamerBlad(d, k);
-  return keuze.etage === 'buiten' ? rondBlad(d) : etageBlad(d);
+  if (keuze.etage === 'buiten') return rondBlad(d);
+  // Kamers als vakken (besluit 288): het gekozen vak, of Kies een indeling en wat nog geen plek heeft.
+  if (etageGebouwen(d, keuze.etage)) {
+    const v = vakNu(d);
+    if (v) return `${zonderPlekStrook(d)}${vakBlad(d, v)}`;
+    const leeg = !d.plattegrond?.[keuze.etage];
+    return `${zonderPlekStrook(d)}${leeg ? `<p class="mini voorstel">${esc(t('kamers.voorstel'))}</p>${indelingKeuze(d)}` : ''}${etageBlad(d)}${leeg ? '' : `<details class="ander"><summary>${esc(t('kamers.andereIndeling'))}</summary>${indelingKeuze(d)}</details>`}`;
+  }
+  return etageBlad(d);
 }
 
 /** Het apparaat dat in de lijst gekozen is, of het bovenste. */
@@ -1297,7 +1578,7 @@ document.addEventListener('click', async (e) => {
     netGesleept = false;
     return;
   }
-  const el = e.target.closest('button, [data-kamer], [data-bron-open], [data-dak-dakvlak], [data-dak-kandidaat], [data-dak-gebouw], [data-etage-kies]');
+  const el = e.target.closest('button, [data-kamer], [data-bron-open], [data-dak-dakvlak], [data-dak-kandidaat], [data-dak-gebouw], [data-etage-kies], [data-vak]');
   if (!el || el.disabled) return;
   await naBewaren();
   const d = concept();
@@ -1315,6 +1596,8 @@ document.addEventListener('click', async (e) => {
   }
   if (el.dataset.kamer) kiesKamer(el.dataset.kamer);
   else if (el.dataset.etageKnop) kiesEtage(el.dataset.etageKnop);
+  // Kamers als vakken (besluit 288, stap 5).
+  else if (await vakKlik(el, d)) return;
   // Etages (besluit 288): een laag kiezen, zijn hoogte, en waar hij op ligt.
   else if (el.dataset.etageMaat || el.dataset.etageKies) kies({ etage: el.dataset.etageMaat || el.dataset.etageKies, kamer: null, apparaat: null, blad: 'etage' });
   else if (el.dataset.etageHoogte) {
@@ -1503,6 +1786,15 @@ async function kamerErbij(naam) {
 document.addEventListener('change', async (e) => {
   const el = e.target;
   await naBewaren();
+  // Een eigen naam voor een vak (besluit 288), zoals het toilet of de overloop.
+  if (el.hasAttribute('data-vak-naam')) {
+    const d = concept();
+    const v = d && vakNu(d);
+    if (!v) return;
+    const naam = el.value.trim().replace(/\s+/g, ' ').slice(0, 30);
+    await zetBoom(v.gid, huisvorm.vervang(v.boom, v.pad, naam ? { naam } : {}), naam ? t('kamers.naamGezet', { naam }) : t('kamers.isLeeg'));
+    return;
+  }
   // Het apparaat van een bron: pas bewaard bij Toevoegen (besluit 132).
   if (el.hasAttribute('data-bron-apparaat') && bronVorm) {
     bronVorm.apparaat = el.value || null;
@@ -1640,7 +1932,8 @@ document.addEventListener('pointermove', (e) => {
   sleep.kaart.style.left = `${e.clientX}px`;
   sleep.kaart.style.top = `${e.clientY}px`;
   const onder = document.elementFromPoint(e.clientX, e.clientY);
-  const kamer = onder?.closest('.sc-tik[data-kamer], .kamerrij[data-kamer]')?.dataset.kamer ?? null;
+  const doelEl = onder?.closest('.sc-tik[data-kamer], .kamerrij[data-kamer], [data-vak-kamer-id]');
+  const kamer = doelEl?.dataset.kamer ?? doelEl?.dataset.vakKamerId ?? null;
   const doel = kamer === '__nieuw' ? null : kamer;
   if (doel !== sleepDoel) {
     sleepDoel = doel;
@@ -1667,6 +1960,63 @@ document.addEventListener('pointermove', (e) => {
     }
   }
 });
+/*
+ * Een lijn in de plattegrond slepen (besluit 288): tijdens het slepen tekent
+ * de plattegrond zich opnieuw met de lijn op zijn nieuwe plek, per 10 cm; bij
+ * loslaten bewaart de pagina.
+ */
+let lijnSleep = null;
+document.addEventListener('pointerdown', (e) => {
+  const el = e.target.closest('[data-lijn]');
+  if (!el) return;
+  const d = concept();
+  const svg = el.closest('svg');
+  const ctm = svg?.getScreenCTM()?.inverse();
+  if (!d || !ctm) return;
+  const [gid, pad = ''] = el.dataset.lijn.split(':');
+  const g = (etageGebouwen(d, keuze.etage) ?? []).find((x) => x.id === gid);
+  const node = g && huisvorm.knoop(g.boom, pad);
+  if (!g || !huisvorm.isSnede(node)) return;
+  const [a, b, c, dd, ee, f] = el.dataset.m.split(',').map(Number);
+  const S = Number(svg.dataset.s);
+  const ox = Number(svg.dataset.ox);
+  const oy = Number(svg.dataset.oy);
+  const r = huisvorm.rectVan(g.boom, pad, { u: 0, v: 0, breed: g.breed, diep: g.diep });
+  const uv = (ev) => {
+    const p = new DOMPoint(ev.clientX, ev.clientY).matrixTransform(ctm);
+    const X = (p.x - ox) / S - ee;
+    const Y = (oy - p.y) / S - f;
+    const det = a * dd - c * b;
+    return [(X * dd - c * Y) / det, (a * Y - b * X) / det];
+  };
+  lijnSleep = { gid, pad, node, r, uv, boom: g.boom, el: document.getElementById(app.telStand() ? 'podium-tel' : 'podium-wand'), op: node.op, bewogen: false };
+  e.preventDefault();
+});
+document.addEventListener('pointermove', (e) => {
+  if (!lijnSleep) return;
+  const [u, v] = lijnSleep.uv(e);
+  const { node, r } = lijnSleep;
+  const ruw = node.as === 'u' ? u - r.u : v - r.v;
+  const op = huisvorm.lijnOp(Math.round(ruw * 10) / 10, node.as === 'u' ? r.breed : r.diep);
+  if (op === lijnSleep.op) return;
+  lijnSleep.op = op;
+  lijnSleep.bewogen = true;
+  lijnSleep.nieuw = huisvorm.vervang(lijnSleep.boom, lijnSleep.pad, { ...node, op });
+  const d = concept();
+  const el = lijnSleep.el;
+  if (d && el) tekenPlattegrond(d, el, { breedte: el.clientWidth || 470, hoogte: el.clientHeight || 430 }, { gebouw: lijnSleep.gid, boom: lijnSleep.nieuw });
+});
+document.addEventListener('pointerup', async () => {
+  if (!lijnSleep) return;
+  const s = lijnSleep;
+  lijnSleep = null;
+  if (!s.bewogen) return;
+  netGesleept = true;
+  setTimeout(() => (netGesleept = false), 0);
+  await naBewaren();
+  await zetBoom(s.gid, s.nieuw, t('kamers.lijnBewaard', { m: m1(s.op) }));
+});
+
 function eindeSleep() {
   if (!sleep) return null;
   const s = sleep;
