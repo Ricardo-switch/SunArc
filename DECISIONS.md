@@ -13298,6 +13298,15 @@ huis op Thuis nooit op echte maat getekend worden.
   rondje opent het apparaat. Zonder tekening van boven blijft de lijst.
   Hiermee is Je huis af (stap 1 tot 6); het huis op Thuis op echte maat is de
   volgende ronde.
+- **Het huis op Thuis op echte maat, gepauzeerd (8 november 2026).** Plan met
+  Ricardo's keuzes: opengewerkt met lage binnenmuren, vanaf de straat schuin
+  van rechtsvoor, in huis.js (het eiland en de rest blijven), eerst een
+  schets. Gedaan: de rekenkern en tekenmotor `frontend/kit/huis3d.js` met
+  tests, en de schets Wand-Huis-Maat (het voorbeeldhuis, `#jouw`, `#avond`).
+  De app gebruikt het nog niet. Open bij de schets: de vloeren erboven dekken
+  de kamers achterin, de namen van boven zweven in de zolder, de panelen en
+  het eiland ontbreken. Ricardo: "voorlopig wil ik dit allemaal even
+  pauzeren". Verder bij stap 3 (het huis op maat in huis.js) als hij het zegt.
 
 ---
 
