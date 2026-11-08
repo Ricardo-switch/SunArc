@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.161.0
+## 0.162.0
 
-*8 november 2026 · 0.158.0 – 0.161.0*
+*8 november 2026 · 0.158.0 – 0.162.0*
 
 **Nieuw**
 
+- Je huis › Apparaten indelen: je apparaten als rondjes op de plattegrond van elke etage. Sleep er een naar zijn plek, in een andere kamer of ergens anders in dezelfde kamer; heeft de kamer zones in de tekening, dan kiest de plek ook de zone
 - Je huis › Kamers: elke etage van boven, op de maat van je huis, met de kamers als vakken. Kies een indeling die past bij je kamers, of deel een vak met een lijn en sleep de lijn op zijn plek
 - Een ruimte erin: zet een hal of trap tegen een muur, en de kamer eromheen blijft één ruimte, ook als een L of U. Een vak kan ook een eigen naam hebben, zoals het toilet
 - Zones van een kamer staan als lijn in de plattegrond, om te verschuiven
@@ -22,6 +23,7 @@
 
 **New**
 
+- Your home › Arrange devices: your devices as circles on the floor plan of every floor. Drag one to its place, into another room or somewhere else in the same room; if the room has zones in the drawing, the place picks the zone too
 - Your home › Rooms: every floor from above, at the size of your house, with the rooms as boxes. Choose a layout that fits your rooms, or split a box with a line and drag the line into place
 - A space inside: put a hall or stairs against a wall, and the room around it stays one space, also as an L or U. A box can also have its own name, such as the toilet
 - A room's zones show as a line in the floor plan, to slide

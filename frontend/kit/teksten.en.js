@@ -3189,6 +3189,8 @@
   'huisvorm.titel': 'House design',
   // Rooms as boxes (decision 288, step 5): per floor from above, every box a room.
   'kamers.beschrijving': '{etage} from above, with the rooms',
+  // Devices in their place (decision 288, step 6).
+  'apparaten.sleepUitleg': 'Drag a device to its place: into another room, or somewhere else in the same room. Where the circle is, it shows in the drawing.',
   'kamers.leeg': 'Still empty',
   'kamers.nietInHa': 'not in HA',
   'kamers.straat': 'STREET',

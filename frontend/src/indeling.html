@@ -82,6 +82,9 @@
   details.ander summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--ijs-t); padding: 6px 0; }
   details.ander[open] summary { margin-bottom: 8px; }
   .sc-plattegrond [data-vak]:focus-visible { outline: 2px solid var(--ijs); }
+  .sc-plattegrond .pl-app { touch-action: none; }
+  .sc-plattegrond .pl-app.sleept { opacity: 0.35; }
+  .sc-plattegrond .pl-app:focus-visible circle { stroke: var(--ijs); stroke-width: 3; }
   .bak.leeg { display: none; }
   .applijst { display: flex; flex-direction: column; gap: 6px; }
   .applijst .app { padding: 10px 12px; border: 1px solid transparent; border-radius: 14px; background: rgb(var(--wit) / 0.045); }

@@ -3194,6 +3194,8 @@
   'huisvorm.titel': 'Huisontwerp',
   // Kamers als vakken (besluit 288, stap 5): per etage van boven, elk vak een kamer.
   'kamers.beschrijving': '{etage} van boven, met de kamers',
+  // Apparaten op hun plek (besluit 288, stap 6).
+  'apparaten.sleepUitleg': 'Sleep een apparaat naar zijn plek: in een andere kamer, of ergens anders in dezelfde kamer. Waar het rondje staat, staat het in de tekening.',
   'kamers.leeg': 'Nog leeg',
   'kamers.nietInHa': 'niet in HA',
   'kamers.straat': 'STRAAT',

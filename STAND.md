@@ -270,11 +270,13 @@ verwijzing bestaat.
   bij een apparaat staan binnen en buiten apart ([269], 0.143.0). De
   thuisaccu staat in de tekening aan de gevel, in de garage of binnen, zoals
   de bewoner kiest ([270], 0.144.0).
-- **Je huis op maat** (in aanbouw): Kamers en indeling wordt een groep met
-  Huisontwerp, Etages, Kamers en Apparaten indelen, op dezelfde gebouwen als
-  Daken en panelen. Kamers zijn vakken die je met lijnen deelt, vakken met
-  dezelfde kamer zijn één ruimte, zones een lijn, en elk apparaat een plek;
-  de groep heet al zo (0.158.0), Huisontwerp met hoogte uit de 3D-kaart (0.159.0), Etages opzij (0.160.0), Kamers als vakken van boven (0.161.0, [288]).
+- **Je huis op maat**: de groep Je huis (vroeger Kamers en indeling) heeft
+  Huisontwerp, op dezelfde gebouwen als Daken en panelen en met de hoogte uit
+  de 3D-kaart; Etages, het huis opzij met elke etage op zijn hoogte; Kamers,
+  elke etage van boven met de kamers als vakken die je met lijnen deelt (een
+  ruimte erin maakt van de kamer eromheen een L of U, zones zijn een lijn); en
+  Apparaten indelen, elk apparaat op zijn plek in de plattegrond
+  (0.158.0–0.162.0, [288]).
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over

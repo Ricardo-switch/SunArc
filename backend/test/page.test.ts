@@ -6370,6 +6370,38 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await context.close();
   }, 30_000);
 
+  /* Je huis › Apparaten indelen (besluit 288, stap 6): een apparaat naar een plek in een andere kamer slepen. */
+  it('zet een apparaat op zijn plek in de plattegrond', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5000 };
+    const voor = layoutStore.current ? structuredClone(layoutStore.current) : null;
+    await p.goto(`${baseUrl}/indeling.html#los`);
+    const punt = p.locator('#wand svg.sc-plattegrond g[data-app]').first();
+    await punt.waitFor({ timeout: 10_000 });
+    const id = (await punt.getAttribute('data-app'))!;
+    const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { ruimtes: { id: string; apparaten: { id: string }[] }[] }[] };
+    const van = huisNu.etages.flatMap((e) => e.ruimtes).find((r) => r.apparaten.some((a) => a.id === id))!.id;
+    const doel = p.locator(`#wand svg.sc-plattegrond [data-vak-kamer-id]:not([data-vak-kamer-id="${van}"])`).first();
+    const naar = (await doel.getAttribute('data-vak-kamer-id'))!;
+    const a = (await punt.boundingBox())!;
+    const b = (await doel.boundingBox())!;
+    await p.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
+    await p.mouse.down();
+    await p.mouse.move(a.x + 30, a.y + 20, { steps: 4 });
+    await p.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 10 });
+    await p.mouse.up();
+    await expect.poll(() => layoutStore.current?.apparaten[id]?.kamer, kort).toBe(naar);
+    expect(layoutStore.current?.apparaten[id]?.plek).toMatchObject({ gebouw: expect.any(String) });
+    expect(fouten).toEqual([]);
+    if (voor) await layoutStore.save(voor);
+    await context.close();
+  }, 30_000);
+
   /*
    * Je huis als groep (besluit 193, 288): op de telefoon eerst de lijst,
    * Kamers als eigen scherm met de etages bovenin, en terug naar de lijst. Bij Buiten wat er rond

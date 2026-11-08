@@ -13287,6 +13287,16 @@ huis op Thuis nooit op echte maat getekend worden.
   Kamers zonder plek staan bovenaan om in een vak te zetten. Zones zet je in
   de tekening; elke lijn schuift. Een apparaat sleep je naar een vak met een
   kamer. Zonder tekening van boven blijft het poppenhuis.
+- **Stap 6, versie 0.162.0:** Apparaten indelen toont de plattegrond met de
+  etagebalk, en elk apparaat als rondje met zijn icoon: op zijn bewaarde plek,
+  of anders langs de achterwand van het grootste vak van zijn kamer. Een
+  rondje of een apparaat uit de lijst sleep je naar een vak met een kamer:
+  dan bewaart de pagina de kamer én de plek (`plek` in meters in het
+  gebouw), en als de kamer zones in de tekening heeft ook de zone die daar
+  ligt. Naar een andere kamer zonder plek valt de oude plek weg. Tik op een
+  rondje opent het apparaat. Zonder tekening van boven blijft de lijst.
+  Hiermee is Je huis af (stap 1 tot 6); het huis op Thuis op echte maat is de
+  volgende ronde.
 
 ---
 

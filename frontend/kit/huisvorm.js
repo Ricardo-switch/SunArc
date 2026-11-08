@@ -366,7 +366,7 @@
         const kies = model.kies === `${g.id}:${v.pad}`;
         const doel = model.doel != null && v.blad.kamer === model.doel;
         const leeg = !km && !v.blad.naam;
-        out += `<polygon points="${poly(g, v.r)}" fill="rgb(${tint} / ${kies || doel ? 0.32 : km ? 0.17 : 0.06})" ${klein ? '' : `data-vak="${esc(`${g.id}:${v.pad}`)}"${km ? ` data-vak-kamer-id="${esc(v.blad.kamer)}"` : ''} role="button" tabindex="0" style="cursor: pointer"`}${klein ? '' : ` aria-label="${esc(km?.naam ?? v.blad.naam ?? t.leeg ?? '')}"`}/>`;
+        out += `<polygon points="${poly(g, v.r)}" fill="rgb(${tint} / ${kies || doel ? 0.32 : km ? 0.17 : 0.06})" ${klein ? '' : `data-vak="${esc(`${g.id}:${v.pad}`)}"${km ? ` data-vak-kamer-id="${esc(v.blad.kamer)}"` : ''} data-m="${[g.m.a, g.m.b, g.m.c, g.m.d, g.m.e, g.m.f].join(',')}" role="button" tabindex="0" style="cursor: pointer"`}${klein ? '' : ` aria-label="${esc(km?.naam ?? v.blad.naam ?? t.leeg ?? '')}"`}/>`;
         if (leeg && !klein) out += `<polygon points="${poly(g, v.r, Math.min(0.25, v.r.breed / 6, v.r.diep / 6))}" fill="none" stroke="rgb(247 181 72 / 0.7)" stroke-width="1.6" stroke-dasharray="6 5" pointer-events="none"/>`;
         if (kies || doel) out += `<polygon points="${poly(g, v.r, 0.06)}" fill="none" stroke="${doel ? '#6ee7b7' : '#6fd3ff'}" stroke-width="3" pointer-events="none"/>`;
       }
@@ -438,6 +438,14 @@
       });
     }
     out += namen.join('');
+    // Apparaten (stap 6): een rondje met hun icoon op hun plek; aan te tikken en te slepen.
+    for (const a of model.apparaten ?? []) {
+      const g = model.gebouwen.find((x) => x.id === a.gebouw);
+      if (!g) continue;
+      const [x, y] = P(g, a.u, a.v);
+      const r = a.gekozen ? 15 : 13;
+      out += `<g class="pl-app${a.gekozen ? ' gekozen' : ''}" data-app="${esc(a.id)}" data-naam="${esc(a.naam)}" role="button" tabindex="0" aria-label="${esc(a.naam)}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" style="cursor: grab; color: ${a.kleur ?? '#eef3f7'}"><circle r="${r}" fill="#13213a" stroke="${a.gekozen ? '#6fd3ff' : 'rgb(255 255 255 / 0.35)'}" stroke-width="${a.gekozen ? 2.5 : 1.2}"/>${(a.ik ?? '').replace('<svg ', `<svg x="-9" y="-9" width="18" height="18" `)}</g>`;
+    }
     // De voordeur en de straat.
     if (!klein && t.straat) out += `<text x="${W / 2}" y="${H - 8}" text-anchor="middle" ${FONT} font-size="11" font-weight="700" letter-spacing="2" fill="rgb(255 255 255 / 0.35)">${esc(t.straat)}</text>`;
     return out + '</svg>';
