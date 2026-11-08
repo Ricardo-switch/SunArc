@@ -110,6 +110,33 @@
   .laadblad .tot-pct b { text-align: center; font-family: var(--kop); font-size: 26px; font-weight: 600; }
   .laadblad .tot-pct span { font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
   .laadblad .kan { margin: 0; }
+  /* De balk van de dag (besluit 279): zon over, de prijs per uur, tot wanneer. */
+  .laadblad .dagbalk { margin: 4px 0 10px; }
+  .laadblad .dagbalk svg { display: block; width: 100%; height: auto; overflow: visible; cursor: pointer; touch-action: manipulation; }
+  .laadblad .dagbalk .zonvorm { fill: url(#dagzon); }
+  .laadblad .dagbalk .prijs { fill: rgb(154 170 187 / 0.28); }
+  .laadblad .dagbalk .prijs.goedkoop { fill: var(--ijs); }
+  .laadblad .dagbalk .lijn { stroke: rgb(var(--wit) / 0.18); }
+  .laadblad .dagbalk .hand { fill: rgb(var(--wit) / 0.07); stroke: rgb(var(--wit) / 0.55); stroke-width: 1.2; }
+  .laadblad .dagbalk .eind { stroke: var(--tekst); stroke-width: 2; }
+  .laadblad .dagbalk .eind-pil { fill: var(--tekst); }
+  .laadblad .dagbalk .eind-t { fill: var(--inkt); font-size: 10.5px; font-weight: 700; }
+  .laadblad .dagbalk .vol { fill: var(--glas-donker, #0e1726); stroke: var(--mint); stroke-width: 2; }
+  .laadblad .dagbalk .vol-v { stroke: var(--mint); stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .laadblad .dagbalk .nu-l { stroke: var(--tekst); stroke-width: 1.5; stroke-dasharray: 2 3; }
+  .laadblad .dagbalk .as { fill: var(--gedempt); font-size: 10.5px; font-weight: 600; }
+  .laadblad .dagbalk .as.nu { fill: var(--tekst); }
+  .laadblad .dagbalk .legenda { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; font-size: 11.5px; color: var(--gedempt); }
+  /* Op de wand past het blad zonder scrollen: kleiner getal, lagere knoppen, de balk lager. */
+  .hand-laag:not(.op-tel) .laadblad .stroom button { width: 44px; height: 44px; }
+  .hand-laag:not(.op-tel) .laadblad .stroom .getal b { font-size: 44px; }
+  .hand-laag:not(.op-tel) .laadblad .seg button { height: 32px; }
+  .hand-laag:not(.op-tel) .laadblad .dagbalk { margin: 0 0 4px; }
+  .hand-laag:not(.op-tel) .laadblad .dagbalk .legenda { margin-top: 2px; }
+  .hand-laag:not(.op-tel) .laadblad .stroom .getal span { font-size: 12px; }
+  .hand-laag:not(.op-tel) .laadblad.hand-blad { gap: 10px; padding-top: 16px; padding-bottom: 16px; }
+  .hand-laag:not(.op-tel) .laadblad .hand-hoe { padding: 10px 14px; font-size: 13px; line-height: 1.45; }
+  .laadblad .dagbalk .legenda i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
   .laadblad .kan a { color: var(--zacht); }
 
   /* Rechts: de laadpaal en wat je instelde. */

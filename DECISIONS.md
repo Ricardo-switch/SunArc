@@ -272,6 +272,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [273. De stromen van en naar de thuisaccu in de tekening en bij Nu](#273-de-stromen-van-en-naar-de-thuisaccu-in-de-tekening-en-bij-nu)
 - [275. Meer thuisaccu's samen, met hun maat en wat ze leverden](#275-meer-thuisaccus-samen-met-hun-maat-en-wat-ze-leverden)
 - [276. Meldingen over de thuisaccu](#276-meldingen-over-de-thuisaccu)
+- [279. De balk van de dag in het blad Laden](#279-de-balk-van-de-dag-in-het-blad-laden)
 
 **Veiligheid**
 
@@ -12897,6 +12898,36 @@ Besluit 262 liet dat open. Ricardo koos alle vier de standen.
 - **Versie 0.152.0.**
 
 *Nog niet:* de balk van de dag in het blad, en de assistent.
+
+---
+
+## 279. De balk van de dag in het blad Laden
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.153.0, de rest van stap 5 van [259] (schets Tel-Auto
+`#dag` en `#dag-avond`, door Ricardo goedgekeurd).
+
+*Besluit:*
+
+- **Wat:** bij Hoe lang in het blad Laden de komende 24 uur per uur: boven de
+  lijn de zon die naar verwachting over is voor de auto, onder de lijn de prijs
+  per uur met de goedkoopste uren uit het advies in ijs, wit omrand de tijd met
+  de hand tot het eind, en een vinkje waar de auto op zijn laadgrens is. Een
+  tik op de balk kiest Tot het hele uur het dichtst bij de tik. Ook in het blad
+  met de stand van evcc.
+- **De zon is een schatting** (`laaddag.ts`): wat de panelen bij een heldere
+  lucht leveren (`clearSkyW`, zonder het geleerde deel), maal het deel van de
+  heldere lucht op de grond dat Open-Meteo dat uur verwacht, min het huis zonder
+  de auto: ruwweg twee keer het sluipverbruik, minstens 300 W. Omgerekend naar
+  ampère per fase. Daarom staat er "verwacht" bij.
+- **Wat er niet is, staat er niet:** zonder ligging of verwachting geen zon,
+  zonder prijs per uur geen prijzen, zonder allebei geen balk.
+- **Op de wand** breder en lager getekend, met een kleiner getal en lagere
+  knoppen, zodat het blad niet scrolt (besluit 104).
+- **Versie 0.153.0.**
+
+*Nog niet:* de assistent die laden met de hand doet.
 
 ---
 

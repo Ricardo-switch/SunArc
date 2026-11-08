@@ -16,6 +16,7 @@
  * stap 5 (docs/auto-en-laadpaal.md).
  */
 
+import type { LaadDag } from './laaddag.js';
 import type { Auto } from './opslag.js';
 
 /** De netspanning per fase, zoals de rekenregels hem nemen (W = A × 230 × fasen). */
@@ -73,6 +74,8 @@ export interface GoedkoopAdvies {
 export interface LaadAdvies {
   readonly zon: ZonAdvies | null;
   readonly goedkoop: GoedkoopAdvies | null;
+  /** De balk van de dag in het blad Laden (besluit 279); main zet hem erbij. */
+  readonly dag?: LaadDag | null;
 }
 
 export interface AdviesContext {

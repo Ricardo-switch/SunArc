@@ -327,8 +327,11 @@ lijst in `client.ts`). Laden wordt er een, naar het voorbeeld van `isHandCall`:
   laten bij Energie; met een eind en daarna terug naar de stand van daarvoor.
   Eén laadpunt hoort bij elke auto, bij meer het laadpunt met de naam van de
   auto of de laadpaal.
-- **Nog niet:** de balk van de dag in het blad (zon, goedkope uren, tot
-  wanneer), en de assistent.
+- **De balk van de dag (0.153.0, besluit 279):** `laaddag.ts` geeft per auto
+  24 uur met de zon over (verwacht, in A per fase), de prijs, de goedkoopste
+  uren en vol om; `main.ts` zet hem als `dag` bij het advies. Het blad tekent
+  hem bij Hoe lang; een tik kiest Tot hh:00.
+- **Nog niet:** de assistent.
 
 ## Stap 6: wat er gebouwd is (0.137.0, besluit 263)
 

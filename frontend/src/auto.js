@@ -402,6 +402,84 @@ function openBlad(a) {
   tekenBlad();
 }
 
+/*
+ * De balk van de dag (besluit 279; schets Tel-Auto #dag): de komende 24 uur met
+ * de zon die naar verwachting over is, de prijs per uur met de goedkoopste uren,
+ * de tijd met de hand tot het eind, en waar de auto op zijn laadgrens is. Een
+ * tik op de balk kiest "Tot hh:00".
+ */
+const DAG_UUR = 3_600_000;
+function dagBalk(a, b) {
+  const d = adviezen?.[a.id]?.dag;
+  if (!d?.uren?.length) return '';
+  // Op de wand breder en lager: het blad scrolt daar nooit.
+  const tel = app.telStand();
+  const DAG_W = tel ? 340 : 460;
+  const H = tel ? 92 : 68;
+  const lijn = tel ? 44 : 32;
+  const zonHoog = tel ? 36 : 26;
+  const prijsHoog = tel ? 30 : 14;
+  const n = d.uren.length;
+  const uur = DAG_W / n;
+  const xVan = (ms) => Math.max(0, Math.min(DAG_W, ((ms - d.vanMs) / DAG_UUR) * uur));
+  const metZon = d.uren.some((u) => u.zonA != null);
+  const prijzen = d.uren.map((u) => u.prijs).filter((p) => p != null);
+  const metPrijs = prijzen.length > 0;
+  let h = '<defs><linearGradient id="dagzon" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7B548" stop-opacity="0.85"/><stop offset="1" stop-color="#F7B548" stop-opacity="0.15"/></linearGradient></defs>';
+  if (metZon) {
+    const maxA = Math.max(10, ...d.uren.map((u) => u.zonA ?? 0));
+    const pt = d.uren.map((u, i) => `${(i * uur + uur / 2).toFixed(1)} ${(lijn - ((u.zonA ?? 0) / maxA) * zonHoog).toFixed(1)}`);
+    h += `<path class="zonvorm" d="M0 ${lijn} L${pt.join(' L')} L${DAG_W} ${lijn} Z"/>`;
+  }
+  if (metPrijs) {
+    const lo = Math.min(...prijzen);
+    const hi = Math.max(...prijzen);
+    d.uren.forEach((u, i) => {
+      if (u.prijs == null) return;
+      const hoog = 6 + (hi > lo ? (u.prijs - lo) / (hi - lo) : 0.5) * prijsHoog;
+      h += `<rect class="prijs${u.goedkoop ? ' goedkoop' : ''}" x="${(i * uur + 1).toFixed(1)}" y="${lijn + 3}" width="${(uur - 2).toFixed(1)}" height="${hoog.toFixed(1)}" rx="2"/>`;
+    });
+  }
+  // Met de hand: van nu tot het eind dat in het blad staat (tot de kabel eruit gaat en tot een % hebben geen vaste tijd).
+  const eindMs = b.tot === 'uur' ? d.nuMs + DAG_UUR : b.tot === 'tijd' ? b.totMs : null;
+  if (eindMs != null && eindMs > d.nuMs) {
+    const x0 = xVan(d.nuMs);
+    const x = xVan(eindMs);
+    h += `<rect class="hand" x="${(x0 + 0.5).toFixed(1)}" y="2" width="${Math.max(1, x - x0 - 1).toFixed(1)}" height="${H - 14}" rx="7"/>`;
+    h += `<line class="eind" x1="${x.toFixed(1)}" y1="0" x2="${x.toFixed(1)}" y2="${H - 10}"/>`;
+    const px = Math.max(29, Math.min(DAG_W - 29, x));
+    h += `<rect class="eind-pil" x="${(px - 29).toFixed(1)}" y="-14" width="58" height="17" rx="8.5"/><text class="eind-t" x="${px.toFixed(1)}" y="-2" text-anchor="middle">${esc(t('auto.laden.dag.tot', { tijd: klokVan(eindMs) }))}</text>`;
+  }
+  if (d.volOmMs != null) {
+    const x = xVan(d.volOmMs).toFixed(1);
+    h += `<circle class="vol" cx="${x}" cy="${lijn}" r="6.5"/><path class="vol-v" d="M${(Number(x) - 3).toFixed(1)} ${lijn} l2 2 l4 -4"/>`;
+  }
+  h += `<line class="lijn" x1="0" y1="${lijn}" x2="${DAG_W}" y2="${lijn}"/>`;
+  h += `<line class="nu-l" x1="${xVan(d.nuMs).toFixed(1)}" y1="4" x2="${xVan(d.nuMs).toFixed(1)}" y2="${H - 12}"/>`;
+  for (let i = 0; i <= n; i += 6) {
+    const anker = i === 0 ? 'start' : i === n ? 'end' : 'middle';
+    h += `<text class="as${i === 0 ? ' nu' : ''}" x="${(i * uur).toFixed(1)}" y="${H}" text-anchor="${anker}">${esc(i === 0 ? t('auto.laden.dag.nu') : klokVan(d.vanMs + i * DAG_UUR))}</text>`;
+  }
+  const legenda = [
+    metZon ? `<span><i style="background: var(--zon)"></i>${esc(t('auto.laden.dag.zon'))}</span>` : '',
+    d.uren.some((u) => u.goedkoop) ? `<span><i style="background: var(--ijs)"></i>${esc(t('auto.laden.dag.goedkoop'))}</span>` : '',
+    metPrijs && !d.uren.some((u) => u.goedkoop) ? `<span><i style="background: rgb(154 170 187 / 0.5)"></i>${esc(t('auto.laden.dag.prijs'))}</span>` : '',
+    d.volOmMs != null ? `<span><i style="background: transparent; border: 1.5px solid var(--mint); border-radius: 50%"></i>${esc(t('auto.laden.dag.vol', { pct: d.laadgrens ?? 100 }))}</span>` : '',
+  ].join('');
+  return `<div class="dagbalk"><svg viewBox="0 -16 ${DAG_W} ${H + 18}" role="img" aria-label="${esc(t('auto.laden.dag.label'))}" data-laden-dag>${h}</svg><div class="legenda">${legenda}</div></div>`;
+}
+
+/** Een tik op de balk: tot het hele uur het dichtst bij de tik, minstens het uur van straks. */
+function dagTik(e, svg) {
+  const d = blad ? adviezen?.[blad.auto]?.dag : null;
+  if (!d) return;
+  const r = svg.getBoundingClientRect();
+  const deel = (e.clientX - r.left) / Math.max(1, r.width);
+  const k = Math.max(1, Math.min(d.uren.length, Math.round(deel * d.uren.length)));
+  blad.tot = 'tijd';
+  blad.totMs = d.vanMs + k * DAG_UUR;
+}
+
 /** Waarom er niets te bedienen is: de NAS, evcc, of nog niet aangezet bij Energie. */
 function nietZin(s, a) {
   if (!laden?.aan) return t('auto.laden.alleenAddon');
@@ -427,12 +505,13 @@ function standBladHtml(a, s, kop, niet) {
   const totPct = b.tot === 'pct' && b.pct != null
     ? `<div class="tot-pct"><button type="button" data-laden-pct="-5" aria-label="${esc(t('auto.laden.lager'))}">−</button><b>${b.pct}%</b><button type="button" data-laden-pct="5" aria-label="${esc(t('auto.laden.hoger'))}" ${b.pct >= (a.laadgrens ?? 100) ? 'disabled' : ''}>+</button></div>`
     : '';
-  const lang = `<div class="vraag"><span>${esc(t('auto.laden.hoeLang'))}</span><div class="seg">${keus('uur', t('auto.laden.uur'))}${keus('tijd', t('auto.laden.totTijd', { tijd: klokVan(b.totMs) }))}${keus('pct', t('auto.laden.totPct'))}${keus('kabel', t('auto.laden.totKabel'))}</div>${totPct}</div>`;
+  const balk = dagBalk(a, b);
+  const lang = `<div class="vraag"><span>${esc(t('auto.laden.hoeLang'))}</span>${balk}<div class="seg">${keus('uur', t('auto.laden.uur'))}${keus('tijd', t('auto.laden.totTijd', { tijd: klokVan(b.totMs) }))}${keus('pct', t('auto.laden.totPct'))}${keus('kabel', t('auto.laden.totKabel'))}</div>${totPct}</div>`;
   const actief = s.actief;
   // Daarna weer de stand van nu (loopt er al iets met de hand, dan staat dat al vast en zegt de knop Terug het).
   const naar = s.evccStand.nu ? standNaam(s.evccStand.nu) : 'evcc';
   const na = b.tot === 'kabel' ? t('auto.laden.naStandKabel', { stand: naar }) : b.tot === 'pct' ? t('auto.laden.naStandPct', { pct: b.pct, stand: naar }) : t('auto.laden.naStandTijd', { tijd: klokVan(b.tot === 'uur' ? Date.now() + 3_600_000 : b.totMs), stand: naar });
-  const hoe = [actief?.stand ? '' : na, t('auto.laden.zelfWint')].filter(Boolean).join(' ');
+  const hoe = [actief?.stand ? '' : na, t('auto.laden.zelfWint'), balk ? t('auto.laden.dag.tik') : ''].filter(Boolean).join(' ');
   const links = actief?.stand ? `<button type="button" class="hand-terug" data-laden-terug>${esc(t('auto.laden.terugEvcc', { stand: 'evcc' }))}</button>` : '';
   const zet = b.stand ? `<button type="button" class="hand-zet" data-laden-zetstand>${esc(actief?.stand === b.stand ? t('hand.bewaar') : t('auto.laden.zetStand', { stand: standNaam(b.stand) }))}</button>` : '';
   return `${kop}${stand}${lang}<div class="hand-hoe">${esc(hoe)}</div>${ladenFout ? `<p class="hand-fout">${esc(ladenFout)}</p>` : ''}${kanRegel}<div class="hand-onder">${links}${zet}</div>`;
@@ -464,9 +543,10 @@ function bladHtml(a, s) {
   const totPct = b.tot === 'pct' && b.pct != null
     ? `<div class="tot-pct"><button type="button" data-laden-pct="-5" aria-label="${esc(t('auto.laden.lager'))}">−</button><b>${b.pct}%</b><button type="button" data-laden-pct="5" aria-label="${esc(t('auto.laden.hoger'))}" ${b.pct >= (a.laadgrens ?? 100) ? 'disabled' : ''}>+</button><span>${esc(t('auto.laden.pctUitleg', { grens: a.laadgrens ?? 100 }))}</span></div>`
     : '';
-  const lang = `<div class="vraag"><span>${esc(t('auto.laden.hoeLang'))}</span><div class="seg">${keus('uur', t('auto.laden.uur'))}${keus('tijd', t('auto.laden.totTijd', { tijd: klokVan(b.totMs) }))}${keus('pct', t('auto.laden.totPct'))}${keus('kabel', t('auto.laden.totKabel'))}</div>${totPct}</div>`;
+  const balk = dagBalk(a, b);
+  const lang = `<div class="vraag"><span>${esc(t('auto.laden.hoeLang'))}</span>${balk}<div class="seg">${keus('uur', t('auto.laden.uur'))}${keus('tijd', t('auto.laden.totTijd', { tijd: klokVan(b.totMs) }))}${keus('pct', t('auto.laden.totPct'))}${keus('kabel', t('auto.laden.totKabel'))}</div>${totPct}</div>`;
   const na = b.tot === 'kabel' ? t('auto.laden.naKabel') : b.tot === 'pct' ? t('auto.laden.naPct', { pct: b.pct }) : t('auto.laden.naTijd', { tijd: klokVan(b.tot === 'uur' ? Date.now() + 3_600_000 : b.totMs) });
-  const hoe = [s.zekeringA != null && b.stroomA != null ? t('auto.laden.zekeringZin', { a: Math.floor(s.zekeringA) }) : '', na, t('auto.laden.geenWolk')].filter(Boolean).join(' ');
+  const hoe = [s.zekeringA != null && b.stroomA != null ? t('auto.laden.zekeringZin', { a: Math.floor(s.zekeringA) }) : '', na, t('auto.laden.geenWolk'), balk ? t('auto.laden.dag.tik') : ''].filter(Boolean).join(' ');
   const actief = s.actief;
   const links = actief ? `<button type="button" class="hand-terug" data-laden-terug>${esc(t('auto.laden.terug'))}</button>` : s.pauze ? `<button type="button" class="hand-terug" data-laden-pauze ${b.tot === 'pct' ? 'disabled' : ''}>${esc(t('auto.laden.pauzeer'))}</button>` : '';
   const zet = b.stroomA != null ? `<button type="button" class="hand-zet" data-laden-zet>${esc(actief && !actief.pauze && actief.stroomA === b.stroomA ? t('hand.bewaar') : t('auto.laden.laadMet', { a: b.stroomA }))}</button>` : '';
@@ -528,6 +608,7 @@ document.addEventListener('click', async (e) => {
   if (el('[data-laden-sluit]')) blad = null;
   else if ((x = el('[data-laden-stroom]')) && s?.stroom) blad.stroomA = Math.max(s.stroom.min, Math.min(hoogste(s), blad.stroomA + Number(x.dataset.ladenStroom) * s.stroom.stap));
   else if ((x = el('[data-laden-tot]'))) blad.tot = x.dataset.ladenTot;
+  else if ((x = el('[data-laden-dag]'))) dagTik(e, x);
   else if ((x = el('[data-laden-stand]'))) blad.stand = x.dataset.ladenStand;
   else if (el('[data-laden-zetstand]')) {
     const ok = await stuurLaden({ auto: blad.auto, stand: blad.stand, tot: blad.tot, ...(blad.tot === 'tijd' ? { totMs: blad.totMs } : {}), ...(blad.tot === 'pct' ? { pct: blad.pct } : {}) });

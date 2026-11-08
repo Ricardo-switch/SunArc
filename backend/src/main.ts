@@ -81,7 +81,9 @@ import { StekkerZon } from './web/stekkerzon.js';
 import { Laadbeurten } from './web/laadbeurten.js';
 import { laadAdvies, prijzenVooruit, type LaadAdvies } from './web/laadadvies.js';
 import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhases, findPowers, withConnection, type Applied, type ConnectionAnswers } from './web/aansluiting.js';
-import { sunPosition } from './core/sun.js';
+import { clearSkyOnPlaneWm2, sunPosition } from './core/sun.js';
+import { laadDag, zonVerwachtW } from './web/laaddag.js';
+import { clearSkyW } from './web/sun.js';
 import { hoofddakPlat, panelenVan, type DakVlak } from './web/daken.js';
 import { inNederland } from './web/bag3d.js';
 import { aanvullenUitMeter, achterblijven, meetVlakken, metMeting, opbrengstPerVlak, verdeelDag, type Achter, type MeterGroep, type VlakStand, type Verdeling } from './web/meten-vlakken.js';
@@ -1798,7 +1800,26 @@ const laadadviezen = (): Record<string, LaadAdvies> => {
   const prijzen = prijsStaat ? prijzenVooruit(prijsStaat.attributes, prijsStaat.state, eenheid, nuMs) : [];
   const nu = prijsStaat ? Number(prijsStaat.state) : NaN;
   const prijsNu = Number.isFinite(nu) ? nu / (/mwh/i.test(eenheid ?? '') ? 1000 : /ct|cent/i.test(eenheid ?? '') ? 100 : 1) : null;
-  return Object.fromEntries(autos.map((a) => [a.id, laadAdvies(a, { nuMs, netW, fasen, prijzen, prijsNu })]));
+  // De balk van de dag (besluit 279): de zon die naar verwachting over is, de prijs en de goedkoopste uren.
+  const g = siteConfig.geometry;
+  const plek = location;
+  const zonW = (ms: number): number | null =>
+    g && plek && g.solarPlanes.length
+      ? zonVerwachtW(
+          ms,
+          openMeteo.latest?.uren ?? null,
+          (t) => clearSkyW(g, plek, t, null),
+          (t) => clearSkyOnPlaneWm2(sunPosition(t, plek.latDeg, plek.lonDeg), { azimuthDeg: 180, tiltDeg: 0 }),
+        )
+      : null;
+  // Het huis zonder de auto overdag: ruwweg twee keer het sluipverbruik, minstens 300 W.
+  const huisW = Math.max(300, 2 * (sluipverbruik.laatste()?.gewoonW ?? 200));
+  return Object.fromEntries(
+    autos.map((a) => {
+      const advies = laadAdvies(a, { nuMs, netW, fasen, prijzen, prijsNu });
+      return [a.id, { ...advies, dag: laadDag(a, { nuMs, prijzen, goedkoop: advies.goedkoop, zonW, huisW }) }];
+    }),
+  );
 };
 
 /** Het huis, met de stand in woorden in de taal van de app; zonder taal Nederlands. */

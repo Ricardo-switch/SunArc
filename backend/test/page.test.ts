@@ -484,6 +484,18 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
               tesla: {
                 zon: { soort: 'meer', kW: 1.8, nuA: 5, metA: 8, fasen: 3, overA: 16, zekering: { fasen: 3, ampere: 25 } },
                 goedkoop: { van: new Date(van).toISOString(), tot: new Date(van + 3 * 3_600_000).toISOString(), prijs: 0.14, prijsNu: 0.3, uren: 3, totPct: 80, kosten: 4.6, nietNodig: false },
+                // De balk van de dag (besluit 279): zon de eerste vijf uur, de prijs per uur, drie goedkope uren, vol over twee uur.
+                dag: (() => {
+                  const nuMs = Date.now();
+                  const vanMs = Math.floor(nuMs / 3_600_000) * 3_600_000;
+                  return {
+                    vanMs,
+                    nuMs,
+                    uren: Array.from({ length: 24 }, (_, i) => ({ vanMs: vanMs + i * 3_600_000, zonA: i < 5 ? 8 - i : 0, prijs: i >= 13 && i < 16 ? 0.14 : 0.3, goedkoop: i >= 13 && i < 16 })),
+                    volOmMs: nuMs + 2 * 3_600_000,
+                    laadgrens: 80,
+                  };
+                })(),
               },
             };
           },
@@ -4132,6 +4144,21 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await laadBlad.locator('.getal b').textContent()).toBe('8A');
       expect(await laadBlad.textContent()).toContain('Op je zekering past nu tot 20 A per fase voor de auto.');
       expect(await laadBlad.locator('.hand-onder').textContent()).toContain('Terug naar de laadpaal');
+      // De balk van de dag (besluit 279): zon, de goedkoopste uren, vol om; een tik kiest de tijd.
+      const balk = laadBlad.locator('.dagbalk');
+      expect(await balk.locator('.prijs.goedkoop').count()).toBe(3);
+      expect(await balk.locator('.zonvorm').count()).toBe(1);
+      expect(await balk.locator('.vol').count()).toBe(1);
+      expect(await balk.locator('.legenda').textContent()).toBe('Zon over (verwacht)GoedkoopstOp 80%');
+      expect(await laadBlad.textContent()).toContain('Tik op de balk voor een andere tijd.');
+      const vak = await balk.locator('svg').boundingBox();
+      // Een kwart van de breedte: zes uur vooruit, op het hele uur.
+      await p.mouse.click(vak!.x + vak!.width * 0.25, vak!.y + vak!.height / 2);
+      const zes = new Date(Math.floor(Date.now() / 3_600_000) * 3_600_000 + 6 * 3_600_000);
+      const klok = `${String(zes.getUTCHours()).padStart(2, '0')}:00`;
+      expect(await laadBlad.locator('[data-laden-tot="tijd"]').getAttribute('aria-pressed')).toBe('true');
+      expect(await laadBlad.locator('[data-laden-tot="tijd"]').textContent()).toBe(`Tot ${klok}`);
+      expect(await balk.locator('.eind-t').textContent()).toBe(`tot ${klok}`);
       await laadBlad.locator('[data-laden-stroom="1"]').click();
       await laadBlad.locator('[data-laden-tot="pct"]').click();
       expect(await laadBlad.locator('.tot-pct b').textContent()).toBe('75%');
@@ -4160,6 +4187,12 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await w.evaluate('(() => { const r = document.querySelector("[data-rechts]"); return r.scrollHeight <= r.clientHeight + 1; })()')).toBe(true);
       // Op de wand staat Laden als rij in de kaart van de laadpaal (besluit 262).
       expect(await w.locator('#wand .ladenrij').textContent()).toContain('Laden');
+      // Het blad met de balk van de dag past op de wand zonder te scrollen (besluit 279).
+      await w.locator('#wand .ladenrij').click();
+      await w.locator('[data-ladenlaag] .dagbalk').waitFor();
+      expect(await w.evaluate('(() => { const r = document.querySelector("[data-ladenlaag] .laadblad"); const b = r.getBoundingClientRect(); return r.scrollHeight <= r.clientHeight + 1 && b.bottom <= innerHeight + 1 && b.top >= -1; })()')).toBe(true);
+      if (process.env.HEMS_PAGE_SHOT) await w.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-wand-laden.png') });
+      await w.locator('[data-laden-sluit].sluit').click();
       // Links de auto met het advies eronder, ook zonder te scrollen.
       await expect.poll(() => w.locator('#wand .advies > div').count()).toBe(2);
       expect(await w.evaluate('(() => { const h = document.querySelector("[data-held]"); return h.scrollHeight <= h.clientHeight + 1; })()')).toBe(true);
