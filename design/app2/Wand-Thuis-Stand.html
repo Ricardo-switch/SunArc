@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wand · Thuis, de stand met wat er meespeelt (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="stand-meldingen.css">
+<style>
+  /*
+   * De stand van het huis met wat er meespeelt, op de wand (schets, 8 november
+   * 2026). Uitleg en standen in stand-meldingen.js. De knop "Automatisch"
+   * rechtsboven is weg: de stand staat als regel naast de begroeting.
+   */
+  .scherm { width: 1280px; height: 800px; background-size: 1280px 800px; }
+  .groet { left: 98px; top: 108px; }
+  .kop-1 { left: 98px; top: 132px; width: 380px; font-size: 46px; }
+  .lead { left: 98px; top: 238px; width: 370px; font-size: 17px; line-height: 1.45; max-width: none; }
+  .kiesblad { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 780px; }
+</style>
+</head>
+<body data-scherm="wand">
+  <div class="scherm">
+    <span class="groet" data-groet></span>
+    <h1 class="kop-1" data-kop></h1>
+    <p class="lead" data-zin></p>
+    <div class="sb-achter" data-achter hidden></div>
+    <aside class="kiesblad" data-blad hidden></aside>
+  </div>
+  <script src="stand-meldingen.js"></script>
+</body>
+</html>

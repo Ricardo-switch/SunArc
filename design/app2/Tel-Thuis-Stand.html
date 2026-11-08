@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Thuis, de stand met wat er meespeelt (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="stand-meldingen.css">
+<style>
+  /*
+   * De stand van het huis met wat er meespeelt, op de telefoon (schets, 8
+   * november 2026). Uitleg en standen in stand-meldingen.js. Nu staat de stand
+   * op de telefoon alleen als hij afwijkt; hier altijd, kort, naast de
+   * begroeting. Het blad komt van onderen, met alles onder elkaar.
+   */
+  .scherm { width: 390px; height: 844px; background-size: 390px 844px; }
+  .groet { left: 18px; top: 72px; }
+  .kop-1 { left: 18px; top: 94px; width: 354px; font-size: 32px; }
+  .lead { left: 18px; top: 165px; width: 354px; font-size: 15px; line-height: 1.45; max-width: none; }
+  .scherm[data-moment='avond'] .lead { top: 133px; }
+  .kiesblad { left: 8px; right: 8px; bottom: 8px; max-height: 88%; overflow: auto; padding: 12px 18px 18px; }
+  .kiesblad::before { content: ''; display: block; width: 44px; height: 5px; border-radius: 3px; background: rgb(var(--wit) / 0.2); margin: 0 auto 10px; flex: none; }
+  .sb-kolommen { grid-template-columns: minmax(0, 1fr); }
+  .sb-held b { font-size: 34px; }
+  .sb-deel { padding: 6px 7px; }
+  .sb-deel b { font-size: 12px; }
+  .sb-deel span { font-size: 11.5px; }
+</style>
+</head>
+<body data-scherm="tel">
+  <div class="scherm">
+    <span class="groet" data-groet></span>
+    <h1 class="kop-1" data-kop></h1>
+    <p class="lead" data-zin></p>
+    <div class="sb-achter" data-achter hidden></div>
+    <aside class="kiesblad" data-blad hidden></aside>
+  </div>
+  <script src="stand-meldingen.js"></script>
+</body>
+</html>
