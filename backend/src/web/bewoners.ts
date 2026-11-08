@@ -21,7 +21,7 @@ import { join } from 'node:path';
 import type { HaEntityState } from '../adapters/homeassistant/client.js';
 import type { ComfortProfile, OccupancySource, ProfileHold, ProfileZone, SetpointPair } from '../core/model.js';
 import type { SiteConfig } from '../core/model.js';
-import { comfortView, comfortViewVoorProfiel, type Comfort, type ComfortRoom, type ComfortView } from './comfort.js';
+import { comfortView, comfortViewVoorProfiel, doelenVanKamer, type Comfort, type ComfortRoom, type ComfortView } from './comfort.js';
 
 export const BEWONERS_FILE = 'bewoners.json';
 
@@ -199,19 +199,15 @@ export function alsScherm(b: Bewoners, account: Account, nowMs: number): Bewoner
 
 /**
  * De doelen van een eigen comfort, zoals de kern ze per zone wil. Net als bij
- * het comfort van het huis volgt voorverwarmen de dag.
+ * het comfort van het huis volgt voorverwarmen de dag, tenzij het een eigen
+ * temperatuur heeft (besluit 282).
  */
 export function profielZones(kamers: Readonly<Record<string, ComfortRoom>>, zones?: ReadonlySet<string>): Record<string, ProfileZone> {
   const uit: Record<string, ProfileZone> = {};
   for (const [zone, kamer] of Object.entries(kamers)) {
     // Een kamer die niet meer meedoet in de regeling (besluit 138): overslaan, maar bewaard houden voor als hij terugkomt.
     if (zones != null && !zones.has(zone)) continue;
-    const setpoints: Record<string, SetpointPair> = {};
-    for (const [m, pair] of Object.entries(kamer.modi)) {
-      if (pair == null) continue;
-      setpoints[m] = { ...(pair.heat != null ? { heat: pair.heat } : {}), ...(pair.cool != null ? { cool: pair.cool } : {}) };
-      if (m === 'dag' && pair.heat != null) setpoints['voorverwarmen'] = { heat: pair.heat };
-    }
+    const setpoints = doelenVanKamer(kamer.modi, {}) as Record<string, SetpointPair>;
     uit[zone] = { setpoints, ...(kamer.nooitWarmerC !== undefined ? { comfortMaxC: kamer.nooitWarmerC } : {}) };
   }
   return uit;

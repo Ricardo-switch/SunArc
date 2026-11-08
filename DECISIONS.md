@@ -48,6 +48,9 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [262. Laden met de hand: een smalle deur naar de laadpaal](#262-laden-met-de-hand-een-smalle-deur-naar-de-laadpaal)
 - [265. Een slimme stekker met de hand: een smalle deur per stekker](#265-een-slimme-stekker-met-de-hand-een-smalle-deur-per-stekker) — *aangevuld door 267*
 - [267. Een slimme stekker op zon met een minimum, en SunArc schakelt hem echt](#267-een-slimme-stekker-op-zon-met-een-minimum-en-sunarc-schakelt-hem-echt)
+- [277. Easee met de hand, via de eigen dienst van Easee](#277-easee-met-de-hand-via-de-eigen-dienst-van-easee)
+- [278. De stand van evcc met de hand](#278-de-stand-van-evcc-met-de-hand)
+- [280. Laden met de hand met een zin](#280-laden-met-de-hand-met-een-zin)
 
 **Kern en regeling**
 
@@ -83,6 +86,8 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [194. Een huis zonder slimme regeling: de app draait ook zonder zones](#194-een-huis-zonder-slimme-regeling-de-app-draait-ook-zonder-zones)
 - [264. Een slimme stekker als apparaat op zon](#264-een-slimme-stekker-als-apparaat-op-zon)
 - [274. De regeling kijkt in de schaduw mee met de thuisaccu](#274-de-regeling-kijkt-in-de-schaduw-mee-met-de-thuisaccu)
+- [281. De airco springt niet bij tijdens voorverwarmen](#281-de-airco-springt-niet-bij-tijdens-voorverwarmen)
+- [283. Bijspringen per kamer, bij Regeling › Klimaat](#283-bijspringen-per-kamer-bij-regeling--klimaat)
 
 **Configuratie en onboarding**
 
@@ -270,6 +275,9 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [273. De stromen van en naar de thuisaccu in de tekening en bij Nu](#273-de-stromen-van-en-naar-de-thuisaccu-in-de-tekening-en-bij-nu)
 - [275. Meer thuisaccu's samen, met hun maat en wat ze leverden](#275-meer-thuisaccus-samen-met-hun-maat-en-wat-ze-leverden)
 - [276. Meldingen over de thuisaccu](#276-meldingen-over-de-thuisaccu)
+- [279. De balk van de dag in het blad Laden](#279-de-balk-van-de-dag-in-het-blad-laden)
+- [282. Voorverwarmen krijgt een eigen temperatuur, bij Dagdelen](#282-voorverwarmen-krijgt-een-eigen-temperatuur-bij-dagdelen)
+- [284. Het stroombeeld noemt elk apparaat; bij Jaar hele euro's](#284-het-stroombeeld-noemt-elk-apparaat-bij-jaar-hele-euros)
 
 **Veiligheid**
 
@@ -12821,6 +12829,272 @@ Die drie stonden in het onderzoek, en Ricardo koos alle voorstellen.
 - Een accu die even niets zegt, blijft herkend: de herkenning kijkt naar een
   sensor met de klasse batterij, ook zonder getal. Eerst viel hij dan weg, en
   kon er geen melding komen.
+
+## 277. Easee met de hand, via de eigen dienst van Easee
+
+*Onderwerp: visie en principes · Status: geldig*
+
+8 november 2026, versie 0.151.0, de rest van stap 5 van [259]. Besluit 262
+liet de eigen dienst van Easee open. De koppeling van Easee (HACS,
+`nordicopen/easee_hass`) heeft geen getal om te zetten: de stroom staat in
+sensoren die Home Assistant standaard uit zet, en zetten gaat via een dienst op
+het apparaat. Ricardo koos pauzeren erbij en de levensduur van Easee als
+vangnet.
+
+*Besluit:*
+
+- **Wat er door de deur mag** (`isLaadCall` in `client.ts`, zonder target, op
+  één apparaat uit de lijst): `easee.set_charger_dynamic_limit` met precies
+  `device_id`, `current` binnen het bereik en `time_to_live` van 0 tot 1080
+  minuten; en `easee.action_command` met precies `device_id` en `pause` of
+  `resume`. Verder niets: geen grens van de laadpaal of de groep, geen schema,
+  geen herstart, geen toegang.
+- **Alleen als de bewoner het toeliet**, zoals bij 262: de schakelaar "SunArc
+  mag … bedienen" bij Energie, alleen in de add-on, niet met evcc in huis. Een
+  Equalizer is geen laadpaal om te bedienen.
+- **Het bereik:** 6 A tot de grens van de laadpaal uit de sensor
+  `max_charger_limit`, en zonder die sensor tot 32 A (zo ver gaat de dienst);
+  nooit boven wat er op de zekering past.
+- **Het vangnet:** elke stroom gaat met een levensduur tot het eind, hooguit 18
+  uur. Valt SunArc stil, dan gaat Easee zelf terug. Duurt het met de hand langer,
+  dan zet SunArc hem een half uur voor het eind van de levensduur opnieuw, maar
+  alleen als hij nog staat zoals de app hem zette.
+- **Terug:** naar de stroom van daarvoor, zonder levensduur. Zegt Easee niet
+  waar hij op stond (de sensor staat uit), dan stond hij op zijn grens, en dan
+  gaat hij daarheen terug. Wie intussen zelf iets verzette, wint, maar dat ziet
+  SunArc alleen met de sensor aan.
+- **Pauzeren** gaat met `pause` en `resume`; of hij stilstaat zegt de auto,
+  zoals bij een paar knoppen.
+- **Versie 0.151.0.**
+
+*Nog niet:* de stand van evcc, de balk van de dag in het blad, en de assistent.
+
+---
+
+## 278. De stand van evcc met de hand
+
+*Onderwerp: visie en principes · Status: geldig*
+
+8 november 2026, versie 0.152.0. Besluit 259 koos: met evcc in huis zet SunArc
+de stand van evcc, niet de laadpaal zelf, zodat ze elkaar niet tegenwerken.
+Besluit 262 liet dat open. Ricardo koos alle vier de standen.
+
+*Besluit:*
+
+- **Welke stand:** de keuzelijst van een laadpunt van evcc (HACS,
+  `evcc_intg`) met de standen die evcc kent: `off`, `pv`, `minpv` en `now`
+  (Uit, Zon, Min + zon, Snel), of `off`, `smart` en `now` als evcc een slimme
+  stand heeft. Een andere keuzelijst van evcc (zoals de fasen) telt niet.
+- **Welke auto:** is er één laadpunt, dan hoort hij bij elke auto; zijn het er
+  meer, dan het laadpunt met de naam van de auto of de laadpaal erin. Anders
+  geen, en dan blijft het in evcc zelf.
+- **Wat er door de deur mag** (`isLaadCall` in `client.ts`):
+  `select.select_option` op die keuzelijst, met precies `option` en alleen een
+  stand die evcc kent. Een laadstroom of pauze gaat met evcc nog altijd niet
+  door de deur.
+- **Alleen als de bewoner het toeliet:** bij Energie › Auto en laadpaal per
+  laadpunt "SunArc mag de stand van … zetten"; weg is nee. Alleen in de add-on.
+- **Altijd met een eind**, zoals 262: een uur, tot een tijd, tot een % of tot de
+  kabel eruit gaat, hooguit twee dagen. Daarna terug naar de stand van
+  daarvoor, maar alleen als hij nog staat zoals de app hem zette: wie intussen
+  in evcc zelf een stand koos, wint.
+- **Het blad Laden** op de pagina Auto toont met evcc de stand in plaats van de
+  stroom, met hoe lang en wat er daarna gebeurt.
+- **Versie 0.152.0.**
+
+*Nog niet:* de balk van de dag in het blad, en de assistent.
+
+---
+
+## 279. De balk van de dag in het blad Laden
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.153.0, de rest van stap 5 van [259] (schets Tel-Auto
+`#dag` en `#dag-avond`, door Ricardo goedgekeurd).
+
+*Besluit:*
+
+- **Wat:** bij Hoe lang in het blad Laden de komende 24 uur per uur: boven de
+  lijn de zon die naar verwachting over is voor de auto, onder de lijn de prijs
+  per uur met de goedkoopste uren uit het advies in ijs, wit omrand de tijd met
+  de hand tot het eind, en een vinkje waar de auto op zijn laadgrens is. Een
+  tik op de balk kiest Tot het hele uur het dichtst bij de tik. Ook in het blad
+  met de stand van evcc.
+- **De zon is een schatting** (`laaddag.ts`): wat de panelen bij een heldere
+  lucht leveren (`clearSkyW`, zonder het geleerde deel), maal het deel van de
+  heldere lucht op de grond dat Open-Meteo dat uur verwacht, min het huis zonder
+  de auto: ruwweg twee keer het sluipverbruik, minstens 300 W. Omgerekend naar
+  ampère per fase. Daarom staat er "verwacht" bij.
+- **Wat er niet is, staat er niet:** zonder ligging of verwachting geen zon,
+  zonder prijs per uur geen prijzen, zonder allebei geen balk.
+- **Op de wand** breder en lager getekend, met een kleiner getal en lagere
+  knoppen, zodat het blad niet scrolt (besluit 104).
+- **Versie 0.153.0.**
+
+*Nog niet:* de assistent die laden met de hand doet.
+
+---
+
+## 280. Laden met de hand met een zin
+
+*Onderwerp: visie en principes · Status: geldig*
+
+8 november 2026, versie 0.154.0, het laatste stuk van stap 5 van [259].
+Ricardo koos: alles wat het blad Laden kan, ook met een zin.
+
+*Besluit:*
+
+- **Wat de assistent verstaat** (`laadzin.ts`): een stroom ("laad de auto met
+  10 ampère"), snel (de hoogste stroom die past), pauzeren, weer laden na een
+  pauze met de hand, en terug naar de laadpaal of evcc; met evcc de stand
+  (snel, op zon, min + zon, slim, laden uit). Met een eind: tot een tijd, tot
+  een %, een uur, over een tijd, of anders tot de kabel eruit gaat. In het
+  Nederlands en het Engels.
+- **Door dezelfde deur:** de assistent maakt een stap voor `/api/laden`, en de
+  pagina stuurt hem, met dezelfde inlog en dezelfde regels als het blad. Er
+  komt geen nieuwe deur naar Home Assistant bij.
+- **Alleen wat toegelaten is:** een auto waarvan de bewoner bij Energie toeliet
+  dat SunArc de laadpaal of de stand van evcc mag bedienen; anders zegt het
+  huis waar je dat aanzet. Alleen in de add-on, niet via Assist van Home
+  Assistant (zoals bij licht en schermen).
+- **Eerlijk:** buiten het bereik van de laadpaal of boven de zekering zegt het
+  huis wat kan; op zon laden zonder evcc kiest de laadpaal zelf; met evcc gaat
+  een stroom niet; bij meer auto's vraagt het welke. Een vraag ("hoe laat is de
+  auto vol?") is geen opdracht.
+- **"Doe maar terug"** zet het laden terug naar de laadpaal of evcc.
+- **Versie 0.154.0.**
+
+---
+
+## 281. De airco springt niet bij tijdens voorverwarmen
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+8 november 2026, versie 0.154.1. Gevonden bij het nalopen van de schaduw op de
+NAS.
+
+*Waarom:* in de week van 2 tot 8 november was de schaduw het voor 96,5% eens met
+het oude systeem over de airco in de woonkamer. Bijna al het verschil zat elke
+ochtend tussen 06:05 en ongeveer 06:40: heat-assist wilde de airco laten
+bijspringen, op ongeveer 1 kW van het net, en het oude systeem liet hem uit. De
+YAML-versie stopt de assist bewust buiten de dagstand (`hard_stop` als
+`effectieve_modus != 'dag'`). Ricardo (8 november): de airco's hebben een piepje
+dat niet uit kan, en daar wil hij om zes uur niet wakker van worden.
+
+*Besluit:*
+
+- **Voorverwarmen telt voor heat-assist als een rustige stand,** net als nacht,
+  afwezig en vakantie. De ketel doet dan het voorverwarmen alleen; vanaf de
+  dagstand springt de airco weer bij als de zone achterloopt.
+- **Geen instelling.** Het oude systeem deed het zo, en een airco die in de
+  ochtend aanslaat maakt in elk huis geluid in slaaptijd. Wie het anders wil,
+  vraagt erom; dan komt er een schakelaar.
+- **Pv-surplus blijft zoals het was:** op zon mag een airco ook tijdens
+  voorverwarmen draaien, maar om zes uur is er geen zon.
+- **Versie 0.154.1.**
+
+*Nog niet:* in de app is voorverwarmen even warm als de dag (20°, "voorverwarmen
+volgt de dag"), in het oude systeem 19°. Vanaf 9 november houdt het oude systeem
+weer 19° aan, nadat de sync in Home Assistant de oude stand van de Nest niet
+meer overneemt. Daardoor zal de Nest in de schaduw tijdens voorverwarmen een
+graad verschillen. Of voorverwarmen een eigen temperatuur in de app krijgt, is
+nog niet gekozen. *Achteraf:* dat kreeg het dezelfde dag, in besluit 282.
+
+---
+
+## 282. Voorverwarmen krijgt een eigen temperatuur, bij Dagdelen
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.155.0. Volgt op besluit 281; Ricardo: "ja doe maar".
+
+*Waarom:* in de app volgde voorverwarmen de dag (besluit 130): de kamer werd
+'s ochtends al net zo warm als overdag. Het oude systeem heeft een eigen
+temperatuur voor voorverwarmen, in dit huis 19° tegen 20° overdag. Zonder die
+keuze in de app verschilt de schaduw daar elke ochtend, en na stap B zou de
+Nest om zes uur een graad hoger gaan.
+
+*Besluit:*
+
+- **Een eigen dagdeel in comfort:** `voorverwarmen` naast dag, nacht, afwezig
+  en vakantie, alleen verwarmen. Koelen tijdens voorverwarmen weigert de dienst.
+- **Zonder eigen getal volgt het de dag,** zoals voorheen. Een `comfort.json`
+  van voor deze versie verandert dus niet. Het eigen comfort van een bewoner
+  (besluit 147) zet voorverwarmen niet zelf en volgt altijd zijn dag.
+- **Bij Dagdelen, niet in de kamer.** Een derde balk in het kamervak paste op de
+  wand niet (94 pixels te veel, en de wand scrolt nooit, besluit 104). Bij
+  Dagdelen staat de tijd van voorverwarmen al, en daar was ruimte: onder de
+  balk van de dag per kamer die kan verwarmen een − en + en Niet.
+- **De standaard** (besluit 204) is 19° bij voorverwarmen, zoals
+  `STANDAARD_WARM` al zei; terug naar standaard zet het ook zo.
+- **Versie 0.155.0.**
+
+---
+
+## 283. Bijspringen per kamer, bij Regeling › Klimaat
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+8 november 2026, versie 0.156.0. Ricardo: de knop voor de airco-assist "zit
+volgens mij nog niet in de app", het laatste wat ontbrak; gekozen: bij Regeling
+per kamer.
+
+*Waarom:* heat-assist stond altijd aan, met vaste drempels in de code (5
+minuten stoken, 0,5° te koud). Het oude systeem had er een schakelaar voor
+(`input_boolean.airco_toestaan`) en eigen getallen
+(`input_number.airco_assist_start_na_min` 5, `airco_assist_delta_min` 0,3). In
+de app was het niet te zien en niet te kiezen, en de schaduw sprong later bij
+dan het oude systeem.
+
+*Besluit:*
+
+- **Per zone in de configuratie:** `heatAssist` met `enabled`,
+  `startDelayMinutes` en `minShortfallC`. Weg is aan, met de standaard van
+  heat-assist (5 minuten, 0,5°, besluit 204). Heat-assist leest het per zone.
+- **In de app bij Regeling › Klimaat,** onder een kamer met een hoofdverwarming
+  en een airco die kan verwarmen: "Bijspringen als de verwarming het niet
+  bijhoudt", met een schakelaar, en als die aan staat na hoeveel minuten stoken
+  (1 tot 30) en vanaf hoeveel graden te koud (0,1 tot 2, in tienden). Niet bij
+  Comfort in de kamer: daar is op de wand geen ruimte (besluit 282).
+- **Bewaard in `comfort.json`** als `bijspringen` per zone, van het huis.
+  Bewaren bij Comfort laat het staan, en een kamer wordt er geen comfort uit de
+  app door: de helpers van het oude systeem blijven voor die kamer gelden.
+- **Wie mag:** de beheerder, net als de rest van Regeling (`/api/bijspringen`).
+- **Versie 0.156.0.**
+
+*Voor dit huis:* op de NAS staat de woonkamer op aan, 5 minuten en 0,3°, zoals
+het oude systeem.
+
+---
+
+## 284. Het stroombeeld noemt elk apparaat; bij Jaar hele euro's
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.156.1. Ricardo: de airco's en slimme stekkers stonden
+bij Opbrengst alleen bij Jaar, niet bij Nu, Dag, Week en Maand; en bij Jaar
+viel het bedrag buiten zijn vak.
+
+*Waarom:* het stroombeeld (besluit 255) zette alles onder de 2% samen onder
+Overig. Over een jaar haalde de airco in de woonkamer 11%, deze maand 0,6 van
+106 kWh: dan stond hij er niet met zijn naam. De dienst gaf de apparaten wel
+mee; alleen het beeld liet ze weg. Bij Nu is het anders: daar staan de
+apparaten die op dat moment minstens 30 W vragen, en dat blijft zo.
+
+*Besluit:*
+
+- **Elk apparaat met een eigen meter met zijn naam,** hoe klein ook. Pas boven
+  de zes gaan de kleinste samen onder Overig (de vijf grootste blijven), zodat
+  het beeld op de wand leesbaar blijft.
+- **Bij Jaar hele euro's,** overal op de pagina: € 1.735 in plaats van
+  € 1.734,56. Bij de kortere periodes blijven de centen.
+- **De paginatests van de thuisaccu** krijgen geen live updates meer: die
+  brachten de echte stand en overschreven wat de test nabootste, waardoor de
+  controle in CI sinds 0.155.0 telkens op een andere accutest viel.
+- **Versie 0.156.1.**
+
+---
 
 ## Wat nog een besluit wacht
 

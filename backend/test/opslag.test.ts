@@ -113,8 +113,62 @@ describe('meer auto’s en laadpalen, en wat de bewoner koos (besluit 259)', () 
     { id: 'sensor.knop_batterij', klasse: 'battery', staat: '80', eenheid: '%', platform: 'zha', apparaat: 'knop' },
   ];
 
+  it('bedient Easee via de eigen dienst, met de stroom uit de sensoren (besluit 277)', () => {
+    const echt = metingen.filter((m) => m.apparaat !== 'kia' && !/^(number|switch)\.easee/.test(m.id));
+    const keuze: LadenKeuze = { aan: {}, rol: {}, instelling: {}, bedienen: { easee: true } };
+    // De sensoren voor de stroom staan in Home Assistant standaard uit: dan geen stroom van nu, en tot 32 A.
+    const zonder = registers([tesla, easee], echt);
+    expect(laadBedieningen(zonder.reg, zonder.states, keuze)[0]).toEqual({
+      auto: 'tesla',
+      apparaat: 'easee',
+      stroom: { id: 'sensor.easee_easee_dynamic_charger_limit', min: 6, max: 32, stap: 1, nuA: null, easee: 'easee' },
+      pauze: { soort: 'easee', apparaat: 'easee' },
+      mag: true,
+      evcc: false,
+    });
+    // Aangezet: de stroom van nu, en de grens van de laadpaal.
+    const met = registers([tesla, easee], [
+      ...echt,
+      { id: 'sensor.easee_dynamic_charger_limit', klasse: 'current', staat: '10', eenheid: 'A', naam: 'Dynamic charger limit', platform: 'easee', apparaat: 'easee' },
+      { id: 'sensor.easee_max_charger_limit', klasse: 'current', staat: '16', eenheid: 'A', naam: 'Max charger limit', platform: 'easee', apparaat: 'easee' },
+      { id: 'switch.easee_smart_charging', staat: 'off', naam: 'Smart charging', platform: 'easee', apparaat: 'easee' },
+    ]);
+    expect(laadBedieningen(met.reg, met.states, keuze)[0]).toMatchObject({
+      stroom: { id: 'sensor.easee_dynamic_charger_limit', min: 6, max: 16, nuA: 10, easee: 'easee' },
+      pauze: { soort: 'easee', apparaat: 'easee' },
+    });
+    expect(ladenView(met.reg, met.states, keuze).apparaten.find((x) => x.id === 'easee')).toMatchObject({ kanBedienen: true, bedienen: true });
+    // Een Equalizer van Easee is geen laadpaal om te bedienen.
+    const eq: HaDevice = { ...easee, model: 'Equalizer' };
+    const eqReg = registers([tesla, eq], echt);
+    expect(laadBedieningen(eqReg.reg, eqReg.states, keuze)[0]).toMatchObject({ stroom: null, pauze: null, mag: false });
+  });
+
+  it('vindt de stand van een laadpunt van evcc, en of SunArc hem mag zetten (besluit 278)', () => {
+    const evcc: HaDevice = { id: 'evcc', area_id: null, name: 'Garage', manufacturer: 'evcc', model: 'Loadpoint' };
+    const stand = (opties: string[], staat = 'pv'): Meting => ({ id: 'select.evcc_garage_mode', staat, platform: 'evcc_intg', apparaat: 'evcc', extra: { options: opties } });
+    const keuze: LadenKeuze = { aan: {}, rol: {}, instelling: {}, bedienen: { evcc: true } };
+    const r = registers([tesla, easee, evcc], [...metingen.filter((m) => m.apparaat !== 'kia'), stand(['off', 'pv', 'minpv', 'now'])]);
+    expect(laadBedieningen(r.reg, r.states, keuze)[0]).toMatchObject({
+      mag: false,
+      evcc: true,
+      evccStand: { id: 'select.evcc_garage_mode', apparaat: 'evcc', opties: ['off', 'pv', 'minpv', 'now'], nu: 'pv' },
+      evccMag: true,
+    });
+    expect(laadBedieningen(r.reg, r.states, null)[0]).toMatchObject({ evccMag: false });
+    expect(ladenView(r.reg, r.states, keuze).evcc).toEqual([{ id: 'evcc', naam: 'Garage', kanBedienen: true, bedienen: true }]);
+    // Met een slimme stand ook; een andere keuzelijst van evcc (bijvoorbeeld de fasen) is geen stand.
+    const slim = registers([tesla, easee, evcc], [...metingen.filter((m) => m.apparaat !== 'kia'), stand(['off', 'smart', 'now'], 'smart')]);
+    expect(laadBedieningen(slim.reg, slim.states, keuze)[0]).toMatchObject({ evccStand: { opties: ['off', 'smart', 'now'], nu: 'smart' } });
+    const fasen = registers([tesla, easee, evcc], [...metingen.filter((m) => m.apparaat !== 'kia'), { ...stand(['0', '1', '3'], '3'), id: 'select.evcc_garage_phases' }]);
+    expect(laadBedieningen(fasen.reg, fasen.states, keuze)[0]).toMatchObject({ evccStand: null, evccMag: false });
+    expect(ladenView(fasen.reg, fasen.states, keuze).evcc).toEqual([{ id: 'evcc', naam: 'Garage', kanBedienen: false, bedienen: false }]);
+  });
+
   it('weet per auto wat SunArc met de hand mag bedienen (besluit 262)', () => {
-    const { reg, states } = registers([tesla, easee], metingen.filter((m) => m.apparaat !== 'kia'));
+    // Een laadpaal met een getal voor de stroom en een laadschakelaar (zoals Wallbox).
+    const alsWallbox = (m: Meting): Meting => (m.apparaat === 'easee' ? { ...m, platform: 'wallbox' } : m);
+    const { reg, states } = registers([tesla, easee], metingen.filter((m) => m.apparaat !== 'kia').map(alsWallbox));
     const keuze: LadenKeuze = { aan: {}, rol: {}, instelling: {}, bedienen: { easee: true } };
     expect(laadBedieningen(reg, states, keuze)).toEqual([
       {
@@ -131,19 +185,19 @@ describe('meer auto’s en laadpalen, en wat de bewoner koos (besluit 259)', () 
     expect(ladenView(reg, states, keuze).apparaten.find((x) => x.id === 'easee')).toMatchObject({ kanBedienen: true, bedienen: true });
     // Met evcc in huis bedient SunArc de laadpaal niet zelf.
     const evcc: HaDevice = { id: 'evcc', area_id: null, name: 'Garage', manufacturer: 'evcc', model: 'Loadpoint' };
-    const met = registers([tesla, easee, evcc], [...metingen.filter((m) => m.apparaat !== 'kia'), { id: 'select.evcc_garage_mode', staat: 'pv', platform: 'evcc_intg', apparaat: 'evcc' }]);
+    const met = registers([tesla, easee, evcc], [...metingen.filter((m) => m.apparaat !== 'kia').map(alsWallbox), { id: 'select.evcc_garage_mode', staat: 'pv', platform: 'evcc_intg', apparaat: 'evcc' }]);
     expect(laadBedieningen(met.reg, met.states, keuze)[0]).toMatchObject({ mag: false, evcc: true });
     // Een pauzeknop die aan is als hij stilstaat, en een paar knoppen.
     const knoppen = registers([easee], [
-      { id: 'switch.wallbox_pause', staat: 'off', naam: 'Pause', platform: 'easee', apparaat: 'easee' },
-      { id: 'sensor.easee_power', klasse: 'power', staat: '0', eenheid: 'W', platform: 'easee', apparaat: 'easee' },
+      { id: 'switch.wallbox_pause', staat: 'off', naam: 'Pause', platform: 'wallbox', apparaat: 'easee' },
+      { id: 'sensor.easee_power', klasse: 'power', staat: '0', eenheid: 'W', platform: 'wallbox', apparaat: 'easee' },
     ]);
     expect(laadBedieningen(knoppen.reg, knoppen.states)[0]!.pauze).toEqual({ soort: 'schakelaar', id: 'switch.wallbox_pause', omgekeerd: true });
     const paar = registers([easee], [
-      { id: 'button.ohme_pause_charge', staat: 'unknown', naam: 'Pause charge', platform: 'easee', apparaat: 'easee' },
-      { id: 'button.ohme_resume_charge', staat: 'unknown', naam: 'Resume charge', platform: 'easee', apparaat: 'easee' },
-      { id: 'button.ohme_restart', staat: 'unknown', naam: 'Restart', platform: 'easee', apparaat: 'easee' },
-      { id: 'sensor.easee_power', klasse: 'power', staat: '0', eenheid: 'W', platform: 'easee', apparaat: 'easee' },
+      { id: 'button.ohme_pause_charge', staat: 'unknown', naam: 'Pause charge', platform: 'wallbox', apparaat: 'easee' },
+      { id: 'button.ohme_resume_charge', staat: 'unknown', naam: 'Resume charge', platform: 'wallbox', apparaat: 'easee' },
+      { id: 'button.ohme_restart', staat: 'unknown', naam: 'Restart', platform: 'wallbox', apparaat: 'easee' },
+      { id: 'sensor.easee_power', klasse: 'power', staat: '0', eenheid: 'W', platform: 'wallbox', apparaat: 'easee' },
     ]);
     expect(laadBedieningen(paar.reg, paar.states)[0]!.pauze).toEqual({ soort: 'knoppen', pauze: 'button.ohme_pause_charge', hervat: 'button.ohme_resume_charge' });
     // Bewaren: alleen ja telt, per apparaat.

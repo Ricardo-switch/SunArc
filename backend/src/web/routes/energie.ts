@@ -163,6 +163,7 @@ async function ladenRoute(d: Diensten, req: IncomingMessage, res: ServerResponse
   const uit = await laden.zet(auto, {
     tot,
     ...(body['pauze'] === true ? { pauze: true } : {}),
+    ...(typeof body['stand'] === 'string' ? { stand: body['stand'] } : {}),
     ...(getal('stroomA') != null ? { stroomA: getal('stroomA')! } : {}),
     ...(getal('totMs') != null ? { totMs: getal('totMs')! } : {}),
     ...(getal('pct') != null ? { pct: getal('pct')! } : {}),

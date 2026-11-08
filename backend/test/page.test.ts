@@ -144,7 +144,9 @@ const proefmeldingen: (string | null)[] = [];
 let extraOpslag: Opslag | null = null;
 /** Laden met de hand (besluit 262): wat de pagina stuurde, en wat er nu met de hand loopt. */
 const ladenGestuurd: unknown[] = [];
-let ladenActief: { stroomA: number | null; pauze: boolean; tot: 'uur' | 'tijd' | 'pct' | 'kabel'; totMs: number; pct: number | null } | null = null;
+/** Met evcc in huis (besluit 278): de stand van het laadpunt, of null zonder evcc. */
+let ladenEvcc: string | null = null;
+let ladenActief: { stroomA: number | null; pauze: boolean; stand: string | null; tot: 'uur' | 'tijd' | 'pct' | 'kabel'; totMs: number; pct: number | null } | null = null;
 /** De plek van het testhuis voor de kaart (5 november 2026), in Utrecht. */
 const KAART_PLEK = { lat: 52.0907, lon: 5.1214 } as const;
 /** Een nagemaakt kaartvak van 3D BAG rond die plek: het huis met een zadeldak (nok noord-zuid), en een buur 12 meter oostelijk. */
@@ -178,7 +180,7 @@ import { readFileSync } from 'node:fs';
 import { parseSiteConfig } from '../src/config/schema.js';
 import { defaultStrategies } from '../src/index.js';
 import { NIEUW, VERSIE, eersteVan } from '../src/version.js';
-import { comfortView, controleerComfort, withComfort, type Comfort } from '../src/web/comfort.js';
+import { bijspringenView, comfortView, controleerBijspringen, controleerComfort, withComfort, type Comfort } from '../src/web/comfort.js';
 import type { SiteConfig } from '../src/core/model.js';
 
 /* Comfort (besluit 130): in het geheugen, met hetzelfde schema als de dienst. */
@@ -190,11 +192,28 @@ const comfortDeur = {
   save: async (body: unknown) => {
     const c = controleerComfort(body, configNu);
     if (!c.ok) return { ok: false as const, status: 400, reden: c.reden };
-    const checked = parseSiteConfig(withComfort(rauweConfig, c.comfort).raw, { knownStrategies: defaultStrategies().ids });
+    // Bijspringen (besluit 283) komt van Regeling: dat blijft, net als in de dienst.
+    const nieuw: Comfort = { ...c.comfort, ...(comfortNu?.bijspringen ? { bijspringen: comfortNu.bijspringen } : {}) };
+    const checked = parseSiteConfig(withComfort(rauweConfig, nieuw).raw, { knownStrategies: defaultStrategies().ids });
     if (!checked.ok) return { ok: false as const, status: 400, reden: checked.problems[0]?.message ?? 'past niet' };
-    comfortNu = c.comfort;
+    comfortNu = nieuw;
     configNu = checked.config;
     return { ok: true as const, view: comfortView(configNu, comfortNu) };
+  },
+};
+/* Bijspringen per kamer (besluit 283), bij Regeling › Klimaat: in hetzelfde comfort. */
+const bijspringenDeur = {
+  view: () => bijspringenView(configNu),
+  save: async (body: unknown) => {
+    const c = controleerBijspringen(body, configNu);
+    if (!c.ok) return { ok: false as const, status: 400, reden: c.reden };
+    const huidig = comfortNu ?? { versie: 1 as const, kamers: {} };
+    const nieuw: Comfort = { ...huidig, bijspringen: { ...huidig.bijspringen, [c.zone]: c.waarde } };
+    const checked = parseSiteConfig(withComfort(rauweConfig, nieuw).raw, { knownStrategies: defaultStrategies().ids });
+    if (!checked.ok) return { ok: false as const, status: 400, reden: checked.problems[0]?.message ?? 'past niet' };
+    comfortNu = nieuw;
+    configNu = checked.config;
+    return { ok: true as const, view: bijspringenView(configNu) };
   },
 };
 
@@ -410,6 +429,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
           configNow: () => configNu,
           // Wiens comfort (besluit 147): dat van wie er kijkt, of van wie er gevraagd wordt.
           comfort: { view: (wie, bewoner) => comfortVanBewoner(configNu, comfortNu, bewonersStore.current, wie, bewoner).view, save: comfortDeur.save },
+          bijspringen: bijspringenDeur,
           latest: () => live,
           divergence: () => review.latest,
           logDir: dir,
@@ -459,10 +479,14 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
           }),
           // Laden met de hand (besluit 262): de Easee mag, van 6 tot 16 A, en kan pauzeren.
           laden: {
-            standen: async () => [{ auto: 'tesla', stroom: { min: 6, max: 16, stap: 1, nuA: ladenActief?.stroomA ?? 5 }, pauze: true, mag: true, evcc: false, zekeringA: 20, actief: ladenActief }],
-            zet: async (auto: string, v: { stroomA?: number; pauze?: boolean; tot: 'uur' | 'tijd' | 'pct' | 'kabel'; totMs?: number; pct?: number }) => {
+            standen: async () => [
+              ladenEvcc != null
+                ? { auto: 'tesla', stroom: null, pauze: false, mag: false, evcc: true, zekeringA: 20, evccStand: { opties: ['off', 'pv', 'minpv', 'now'], nu: ladenActief?.stand ?? ladenEvcc }, evccMag: true, actief: ladenActief }
+                : { auto: 'tesla', stroom: { min: 6, max: 16, stap: 1, nuA: ladenActief?.stroomA ?? 5 }, pauze: true, mag: true, evcc: false, zekeringA: 20, evccStand: null, evccMag: false, actief: ladenActief },
+            ],
+            zet: async (auto: string, v: { stroomA?: number; pauze?: boolean; stand?: string; tot: 'uur' | 'tijd' | 'pct' | 'kabel'; totMs?: number; pct?: number }) => {
               ladenGestuurd.push({ auto, ...v });
-              ladenActief = { stroomA: v.stroomA ?? null, pauze: v.pauze === true, tot: v.tot, totMs: Date.now() + 3_600_000, pct: v.pct ?? null };
+              ladenActief = { stroomA: v.stroomA ?? null, pauze: v.pauze === true, stand: v.stand ?? null, tot: v.tot, totMs: Date.now() + 3_600_000, pct: v.pct ?? null };
               return { ok: true as const, terug: { auto, tot: v.tot, totMs: ladenActief.totMs, sindsMs: Date.now() } };
             },
             terug: async (auto: string) => {
@@ -478,6 +502,18 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
               tesla: {
                 zon: { soort: 'meer', kW: 1.8, nuA: 5, metA: 8, fasen: 3, overA: 16, zekering: { fasen: 3, ampere: 25 } },
                 goedkoop: { van: new Date(van).toISOString(), tot: new Date(van + 3 * 3_600_000).toISOString(), prijs: 0.14, prijsNu: 0.3, uren: 3, totPct: 80, kosten: 4.6, nietNodig: false },
+                // De balk van de dag (besluit 279): zon de eerste vijf uur, de prijs per uur, drie goedkope uren, vol over twee uur.
+                dag: (() => {
+                  const nuMs = Date.now();
+                  const vanMs = Math.floor(nuMs / 3_600_000) * 3_600_000;
+                  return {
+                    vanMs,
+                    nuMs,
+                    uren: Array.from({ length: 24 }, (_, i) => ({ vanMs: vanMs + i * 3_600_000, zonA: i < 5 ? 8 - i : 0, prijs: i >= 13 && i < 16 ? 0.14 : 0.3, goedkoop: i >= 13 && i < 16 })),
+                    volOmMs: nuMs + 2 * 3_600_000,
+                    laadgrens: 80,
+                  };
+                })(),
               },
             };
           },
@@ -1071,7 +1107,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     expect(await wand.locator('.ac-nu').textContent()).toContain('Nu 0,8 kW: de accu laadt.');
     // Plus is leveren: dan levert hij.
     await wand.locator('[data-accu="teken"][data-waarde="leveren"]').click();
-    await expect.poll(() => wand.locator('.ac-nu').textContent()).toContain('Nu −0,8 kW: de accu levert aan het huis.');
+    // Bewaren en opnieuw tekenen duurt in CI soms langer dan een seconde (8 november 2026).
+    await expect.poll(() => wand.locator('.ac-nu').textContent(), { timeout: 5_000 }).toContain('Nu −0,8 kW: de accu levert aan het huis.');
     await expect.poll(() => connStore.current?.accu?.instelling['homey']?.teken).toBe('leveren');
     // Een andere sensor kiezen wordt bewaard.
     await wand.locator('[data-accu-sensor="geladen"]').selectOption('sensor.laadplan_controller_discharged_energy');
@@ -1293,6 +1330,24 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await rij.waitFor({ timeout: 10_000 });
     expect(await rij.textContent()).toContain('helpt op zon');
     expect(await rij.getAttribute('href')).toBe(`indeling.html#${encodeURIComponent(kamer.id)}/warmte`);
+    // Bijspringen (besluit 283): onder de kamer een schakelaar; aan met de twee getallen, en meteen in de regeling.
+    const bijZone = bijspringenView(configNu).zones[0];
+    if (bijZone) {
+      const schakel = p.locator(`#wand [data-bij-aan="${bijZone.zoneId}"]`);
+      await schakel.waitFor();
+      expect(await schakel.getAttribute('aria-checked')).toBe('true');
+      await p.locator(`#wand [data-bij="${bijZone.zoneId}:vanafC:-0.1"]`).click();
+      await expect.poll(() => configNu.zones.find((z) => z.id === bijZone.zoneId)?.heatAssist?.minShortfallC, { timeout: 5_000 }).toBe(0.4);
+      expect(await p.locator('#wand [data-vorm]').textContent()).toContain('vanaf 0,4° te koud');
+      expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-bijspringen.png') });
+      await schakel.click();
+      await expect.poll(() => configNu.zones.find((z) => z.id === bijZone.zoneId)?.heatAssist?.enabled, { timeout: 5_000 }).toBe(false);
+      expect(await p.locator(`#wand [data-bij="${bijZone.zoneId}:naMin:1"]`).count()).toBe(0);
+      // Terug zoals het was, voor de andere tests.
+      await schakel.click();
+      await expect.poll(() => configNu.zones.find((z) => z.id === bijZone.zoneId)?.heatAssist?.enabled, { timeout: 5_000 }).toBe(true);
+    }
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-regeling.png') });
     expect(fouten).toEqual([]);
     await context.close();
@@ -2224,6 +2279,16 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await wand.locator('[data-delen] .deel', { hasText: /^\s*Dagdelen/ }).click();
     await wand.locator('[data-uur="dag:1"]').click();
     await expect.poll(() => configNu.schedule.dayFromHour, { timeout: 5_000 }).toBe(exampleSite.schedule.dayFromHour + 1);
+    // Voorverwarmen per kamer (besluit 282): een halve graad lager dan overdag, los van de dag.
+    const voor = wand.locator(`[data-voor-kamer="${zone.id}"]`);
+    await voor.waitFor();
+    const voorNu = comfortView(configNu, comfortNu).kamers[0]!.modi.voorverwarmen.heat!;
+    await voor.locator(`[data-voor="${zone.id}:-0.5"]`).click();
+    await expect.poll(() => comfortNu?.kamers[zone.id]?.modi.voorverwarmen?.heat, { timeout: 5_000 }).toBe(voorNu - 0.5);
+    expect(configNu.zones[0]!.setpoints.voorverwarmen.heat).toBe(voorNu - 0.5);
+    expect(configNu.zones[0]!.setpoints.dag.heat).toBe(20.5);
+    expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1')).toBe(true);
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-dagdelen.png') });
     expect(fouten).toEqual([]);
     await context.close();
   }, 30_000);
@@ -3018,6 +3083,50 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await context.close();
     }
   }, 40_000);
+
+  /*
+   * Een apparaat met een eigen meter staat in het stroombeeld met zijn naam,
+   * ook als het in deze periode weinig gebruikte (8 november 2026): eerst viel
+   * alles onder de 2% onder Overig, en stonden de airco's alleen bij Jaar.
+   */
+  it('noemt in het stroombeeld elk apparaat met een meter, ook een klein', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    await context.route((url) => url.pathname.endsWith('/api/opbrengst'), async (route) => {
+      try {
+        const r = await route.fetch();
+        const j = (await r.json()) as { apparaten: Record<string, unknown>[]; stromen: Record<string, unknown>[] };
+        // Twee kleine: eerst gingen die samen onder Overig (één klein bleef staan).
+        j.apparaten = [...j.apparaten, { id: 'sensor.stekker', naam: 'Stekker tuinhuis', kwh: 0.1, zonKwh: 0, netKwh: 0.1, kosten: 0.03 }, { id: 'sensor.bureau', naam: 'Stekker bureau', kwh: 0.1, zonKwh: 0, netKwh: 0.1, kosten: 0.03 }];
+        j.stromen = [...j.stromen, { van: 'net', naar: 'sensor.stekker', kwh: 0.1 }, { van: 'net', naar: 'sensor.bureau', kwh: 0.1 }];
+        // Bij Jaar een bedrag van duizenden euro's, zoals in een echt huis.
+        const k = (j as unknown as { kosten?: { totaal?: number | null } }).kosten;
+        if (new URL(route.request().url()).searchParams.get('soort') === 'jaar' && k?.totaal != null) k.totaal = 1734.56;
+        await route.fulfill({ response: r, json: j });
+      } catch {
+        // De pagina is al dicht.
+      }
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/opbrengst.html`);
+    const schema = p.locator('#wand [data-sankey]');
+    await schema.locator('svg text', { hasText: 'Stekker tuinhuis' }).waitFor({ timeout: 10_000 });
+    await schema.locator('svg text', { hasText: 'Stekker bureau' }).waitFor();
+    expect(await schema.textContent()).not.toContain('Overig');
+    // Bij Jaar hele euro's (8 november 2026): met centen paste een bedrag van duizenden euro's niet.
+    await p.locator('#wand [data-soort="jaar"]').click();
+    await schema.locator('svg text', { hasText: 'Stekker bureau' }).waitFor({ timeout: 10_000 });
+    await expect.poll(() => p.locator('#wand').textContent(), { timeout: 5_000 }).not.toMatch(/€ [\d.]+,\d\d/);
+    const teBreed = await p.locator('#wand .cijfer .getal').evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent));
+    expect(teBreed).toEqual([]);
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-jaar.png') });
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
 
   it('toont het sluipverbruik onder Opbrengst (besluit 192)', async () => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
@@ -4126,6 +4235,21 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await laadBlad.locator('.getal b').textContent()).toBe('8A');
       expect(await laadBlad.textContent()).toContain('Op je zekering past nu tot 20 A per fase voor de auto.');
       expect(await laadBlad.locator('.hand-onder').textContent()).toContain('Terug naar de laadpaal');
+      // De balk van de dag (besluit 279): zon, de goedkoopste uren, vol om; een tik kiest de tijd.
+      const balk = laadBlad.locator('.dagbalk');
+      expect(await balk.locator('.prijs.goedkoop').count()).toBe(3);
+      expect(await balk.locator('.zonvorm').count()).toBe(1);
+      expect(await balk.locator('.vol').count()).toBe(1);
+      expect(await balk.locator('.legenda').textContent()).toBe('Zon over (verwacht)GoedkoopstOp 80%');
+      expect(await laadBlad.textContent()).toContain('Tik op de balk voor een andere tijd.');
+      const vak = await balk.locator('svg').boundingBox();
+      // Een kwart van de breedte: zes uur vooruit, op het hele uur.
+      await p.mouse.click(vak!.x + vak!.width * 0.25, vak!.y + vak!.height / 2);
+      const zes = new Date(Math.floor(Date.now() / 3_600_000) * 3_600_000 + 6 * 3_600_000);
+      const klok = `${String(zes.getUTCHours()).padStart(2, '0')}:00`;
+      expect(await laadBlad.locator('[data-laden-tot="tijd"]').getAttribute('aria-pressed')).toBe('true');
+      expect(await laadBlad.locator('[data-laden-tot="tijd"]').textContent()).toBe(`Tot ${klok}`);
+      expect(await balk.locator('.eind-t').textContent()).toBe(`tot ${klok}`);
       await laadBlad.locator('[data-laden-stroom="1"]').click();
       await laadBlad.locator('[data-laden-tot="pct"]').click();
       expect(await laadBlad.locator('.tot-pct b').textContent()).toBe('75%');
@@ -4154,11 +4278,39 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await w.evaluate('(() => { const r = document.querySelector("[data-rechts]"); return r.scrollHeight <= r.clientHeight + 1; })()')).toBe(true);
       // Op de wand staat Laden als rij in de kaart van de laadpaal (besluit 262).
       expect(await w.locator('#wand .ladenrij').textContent()).toContain('Laden');
+      // Het blad met de balk van de dag past op de wand zonder te scrollen (besluit 279).
+      await w.locator('#wand .ladenrij').click();
+      await w.locator('[data-ladenlaag] .dagbalk').waitFor();
+      expect(await w.evaluate('(() => { const r = document.querySelector("[data-ladenlaag] .laadblad"); const b = r.getBoundingClientRect(); return r.scrollHeight <= r.clientHeight + 1 && b.bottom <= innerHeight + 1 && b.top >= -1; })()')).toBe(true);
+      if (process.env.HEMS_PAGE_SHOT) await w.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-wand-laden.png') });
+      await w.locator('[data-laden-sluit].sluit').click();
       // Links de auto met het advies eronder, ook zonder te scrollen.
       await expect.poll(() => w.locator('#wand .advies > div').count()).toBe(2);
       expect(await w.evaluate('(() => { const h = document.querySelector("[data-held]"); return h.scrollHeight <= h.clientHeight + 1; })()')).toBe(true);
       expect(await w.locator('#wand .instellen').getAttribute('href')).toBe('energie.html#auto');
       await wand.close();
+      // Met evcc in huis (besluit 278): het blad zet de stand van evcc, met een eind, en daarna weer Zon.
+      ladenEvcc = 'pv';
+      await p.reload();
+      await expect.poll(() => regel.textContent(), { timeout: 10_000 }).toContain('evcc · Zon');
+      await regel.click();
+      await laadBlad.waitFor();
+      expect(await laadBlad.locator('[data-laden-stand]').allTextContents()).toEqual(['Uit', 'Zon', 'Min + zon', 'Snel']);
+      expect(await laadBlad.locator('[data-laden-stand="now"]').getAttribute('aria-pressed')).toBe('true');
+      expect(await laadBlad.textContent()).toContain('Gaat de kabel eruit, dan zet SunArc evcc weer op Zon.');
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-auto-evcc.png') });
+      await laadBlad.locator('[data-laden-tot="uur"]').click();
+      await laadBlad.locator('[data-laden-zetstand]').click();
+      await expect.poll(() => ladenGestuurd.length).toBe(4);
+      expect(ladenGestuurd[3]).toEqual({ auto: 'tesla', stand: 'now', tot: 'uur' });
+      await expect.poll(() => regel.textContent()).toContain('Met de hand · Snel tot');
+      await regel.click();
+      await laadBlad.locator('[data-laden-terug]').click();
+      await expect.poll(() => ladenGestuurd.length).toBe(5);
+      expect(ladenGestuurd[4]).toEqual({ auto: 'tesla', terug: true });
+      ladenEvcc = null;
+      await p.reload();
+      await expect.poll(() => regel.textContent(), { timeout: 10_000 }).toContain('De laadpaal kiest zelf');
       // In het menu licht Apparaten op; de weg terug gaat daarheen.
       expect(await p.locator('#tabs [aria-current="page"]').count()).toBe(1);
       if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-auto.png'), fullPage: true });
@@ -6380,12 +6532,19 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    // Geen live updates (8 november 2026): die brengen de echte stand en overschrijven wat deze test nabootst.
+    await context.route((url) => url.href.startsWith(baseUrl) && url.pathname.endsWith('/api/events'), (route) => route.abort());
     let accu: unknown = { zonKw: 1.5, zou: ['Airco woonkamer', 'Droger'] };
     await context.route(`${baseUrl}/api/state`, async (route) => {
-      const r = await route.fetch();
-      const j = (await r.json()) as { bewoner?: Record<string, unknown> };
-      if (j.bewoner) j.bewoner = { ...j.bewoner, ...(accu ? { accu } : {}) };
-      await route.fulfill({ response: r, json: j });
+      // Een verzoek dat nog loopt als de test de browser sluit, mag stil wegvallen (CI 8-11: "Response has been disposed").
+      try {
+        const r = await route.fetch();
+        const j = (await r.json()) as { bewoner?: Record<string, unknown> };
+        if (j.bewoner) j.bewoner = { ...j.bewoner, ...(accu ? { accu } : {}) };
+        await route.fulfill({ response: r, json: j });
+      } catch {
+        // De pagina is al dicht.
+      }
     });
     const p = await context.newPage();
     const fouten: string[] = [];
@@ -6455,6 +6614,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    // Geen live updates (8 november 2026): die brengen de echte stand en overschrijven wat deze test nabootst.
+    await context.route((url) => url.href.startsWith(baseUrl) && url.pathname.endsWith('/api/events'), (route) => route.abort());
     // Eerst laadt hij 1,5 kW met zon; daarna levert hij 1 kW 's avonds.
     let stromen: Record<string, unknown> = { zonKw: 3, netKw: -0.5, verbruikKw: 1, aircoKw: 0, huisKw: 1, geplandKw: 0, accuKw: 1.5 };
     await context.route(`${baseUrl}/api/state`, async (route) => {

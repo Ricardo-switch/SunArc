@@ -12,7 +12,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { parseSiteConfig } from '../src/config/schema.js';
 import { defaultStrategies } from '../src/index.js';
-import { COMFORT_FILE, ComfortStore, comfortView, controleerComfort, withComfort, type Comfort } from '../src/web/comfort.js';
+import { bijspringenView, COMFORT_FILE, ComfortStore, comfortView, controleerBijspringen, controleerComfort, withComfort, type Comfort } from '../src/web/comfort.js';
 import { exampleSite, exampleSitePath } from './site.js';
 
 const raw = JSON.parse(readFileSync(exampleSitePath, 'utf-8')) as Record<string, unknown>;
@@ -64,6 +64,44 @@ describe('comfort uit de app (besluit 130)', () => {
     const ander = exampleSite.zones[1]!;
     expect(checked.config.zones.find((x) => x.id === ander.id)!.setpoints).toEqual(ander.setpoints);
     expect(comfortView(checked.config, c.comfort).kamers[0]!.uitApp).toBe(true);
+  });
+
+  it('geeft voorverwarmen een eigen temperatuur, alleen voor verwarmen (besluit 282)', () => {
+    // Het dagdeel staat vóór de dag in het object: de dag mag het niet overschrijven.
+    const c = controleerComfort({ kamers: { [zone.id]: { modi: { voorverwarmen: { heat: 19, cool: null }, dag: { heat: 20.5, cool: 23 } } } } }, exampleSite);
+    if (!c.ok) throw new Error(c.reden);
+    const checked = parseSiteConfig(withComfort(raw, c.comfort).raw, { knownStrategies: defaultStrategies().ids });
+    if (!checked.ok) throw new Error(JSON.stringify(checked.problems[0]));
+    const z = checked.config.zones.find((x) => x.id === zone.id)!;
+    expect(z.setpoints.voorverwarmen).toEqual({ heat: 19 });
+    expect(z.setpoints.dag).toMatchObject({ heat: 20.5 });
+    expect(comfortView(checked.config, c.comfort).kamers[0]!.modi.voorverwarmen).toEqual({ heat: 19, cool: null });
+    // Koelen tijdens voorverwarmen bestaat niet.
+    expect(controleerComfort({ kamers: { [zone.id]: { modi: { voorverwarmen: { heat: 19, cool: 24 } } } } }, exampleSite).ok).toBe(false);
+  });
+
+  it('zet bijspringen per kamer, los van het comfort van de kamer (besluit 283)', () => {
+    const v = bijspringenView(exampleSite);
+    const z = v.zones[0]!;
+    expect(z.apparaten.length).toBeGreaterThan(0);
+    expect(z).toMatchObject({ aan: true, naMin: 5, vanafC: 0.5 });
+    const c = controleerBijspringen({ zone: z.zoneId, aan: true, naMin: 5, vanafC: 0.3 }, exampleSite);
+    if (!c.ok) throw new Error(c.reden);
+    const met = withComfort(raw, { versie: 1, kamers: {}, bijspringen: { [c.zone]: c.waarde } });
+    const checked = parseSiteConfig(met.raw, { knownStrategies: defaultStrategies().ids });
+    if (!checked.ok) throw new Error(JSON.stringify(checked.problems[0]));
+    expect(checked.config.zones.find((x) => x.id === z.zoneId)!.heatAssist).toEqual({ enabled: true, startDelayMinutes: 5, minShortfallC: 0.3 });
+    expect(bijspringenView(checked.config).zones[0]).toMatchObject({ vanafC: 0.3 });
+    // Het comfort van de kamer blijft zoals het bestand zegt.
+    expect(comfortView(checked.config, null).kamers.find((k) => k.id === z.zoneId)!.uitApp).toBe(false);
+    for (const fout of [
+      { zone: 'kelder', aan: true, naMin: 5, vanafC: 0.3 },
+      { zone: z.zoneId, aan: 'ja', naMin: 5, vanafC: 0.3 },
+      { zone: z.zoneId, aan: true, naMin: 0, vanafC: 0.3 },
+      { zone: z.zoneId, aan: true, naMin: 5, vanafC: 0.25 },
+    ]) {
+      expect(controleerBijspringen(fout, exampleSite).ok, JSON.stringify(fout)).toBe(false);
+    }
   });
 
   it('gaat voor de helpers van het oude systeem, alleen voor de kamers uit de app (besluit 143)', () => {

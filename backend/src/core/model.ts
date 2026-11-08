@@ -213,6 +213,21 @@ export interface Zone {
    * Weglaten betekent: geen plafond, en dan is het gedrag zoals het was.
    */
   readonly comfortMaxC?: number;
+  /**
+   * Bijspringen per zone (besluit 283): of de airco de hoofdverwarming helpt
+   * als die het niet bijhoudt, en wanneer. Weg is: aan, met de standaard van
+   * heat-assist.
+   */
+  readonly heatAssist?: ZoneHeatAssist;
+}
+
+/** Bijspringen in één zone (besluit 283). */
+export interface ZoneHeatAssist {
+  readonly enabled: boolean;
+  /** Hoe lang de hoofdverwarming onafgebroken moet stoken, in minuten. */
+  readonly startDelayMinutes: number;
+  /** Hoeveel de zone minstens onder het doel moet zitten, in °C. */
+  readonly minShortfallC: number;
 }
 
 /**

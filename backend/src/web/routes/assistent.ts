@@ -14,6 +14,7 @@ import type { SiteConfig } from '../../core/model.js';
 import { uitspraak } from '../uitspraak.js';
 import { afsluiter, begrijp, isHalf, isRuis, MAX_TEKST, verbeter } from '../woordzoeker.js';
 import { bedienbaar, herkenOpdracht, kiesUit, schermVaag, type Bedienbaar, type Herkend, type Opdracht, type Optie } from '../opdracht.js';
+import { herkenLaden, isLadenZin, ladenAutos } from '../laadzin.js';
 import { controleerZin, inEigenWoorden, PROEF_MS, WACHT_MS, type Vraag } from '../taalmodel.js';
 import { dagRegels, deelVan, denk, herkenDelen, isTerug, samen, terugVan, type Deel, type Situatie, type Stap } from '../brein.js';
 import type { Fact } from '../assistant.js';
@@ -253,6 +254,13 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
         if (g) return stuur({ body: g, terug: null });
       }
       // Meer in één zin (besluit 213): "screens dicht en de lamp aan", elk deel apart.
+      // Laden met de hand met een zin (besluit 280): alleen in de add-on, en alleen wat bij Energie toegelaten is.
+      if (lijst && d.options.laden && isLadenZin(tekst)) {
+        const autos = ladenAutos(await d.options.laden.standen().catch(() => []), d.options.house?.()?.opslag?.autos ?? []);
+        const l = herkenLaden(tekst, autos, lang, Date.now(), config.timezone);
+        if (l?.ok) return stuur(await bedienAntwoord(l.deel, tekst, lang, woorden, lijst));
+        if (l) return stuur({ body: { vraag: 'bedien', taal: lang, kamer: null, antwoord: l.antwoord, feiten: [], gesproken: uitspraak(l.antwoord, lang), ...(l.keuze ? { keuze: l.keuze } : {}) }, terug: null });
+      }
       const delen = lijst ? herkenDelen(tekst, lijst, lang, url.searchParams.get('scherm')) : null;
       if (delen && lijst) return stuur(await bedienAntwoord(samen(delen.map(deelVan)), tekst, lang, woorden, lijst));
       const herkend = lijst ? herkenOpdracht(tekst, lijst, lang, url.searchParams.get('scherm')) : null;

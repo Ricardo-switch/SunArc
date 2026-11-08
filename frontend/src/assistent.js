@@ -117,6 +117,8 @@ const IK = {
   licht: ['lamp', iconen.svg('licht')],
   scene: ['violet', iconen.svg('scene')],
   scherm: ['', iconen.svg('screen')],
+  // Laden met de hand met een zin (besluit 280).
+  laden: ['zon', iconen.svg('auto')],
 };
 
 /** Wachten op zon: per kamer wat er nodig is en wat er over is. */

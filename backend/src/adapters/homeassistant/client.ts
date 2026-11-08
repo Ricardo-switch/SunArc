@@ -147,7 +147,7 @@ export interface HaClientOptions {
    */
   readonly allowStart?: () => readonly string[];
   /** Laden met de hand (besluit 262): de laadstroom, de laadschakelaar en de pauzeknoppen van laadpalen die mogen. */
-  readonly allowLaden?: () => { readonly stroom: readonly { readonly id: string; readonly min: number; readonly max: number }[]; readonly schakelaars: readonly string[]; readonly knoppen: readonly string[] };
+  readonly allowLaden?: () => LaadMagDeur;
   /**
    * Of deze client een AI-taak van Home Assistant om een tekst mag vragen
    * (besluit 148): precies `ai_task.generate_data`, via `generateData`, met
@@ -332,14 +332,23 @@ export function isHandCall(
  * Laden met de hand (besluit 262): de hoogste laadstroom op één getal uit de
  * lijst, binnen zijn bereik; een laadschakelaar aan of uit; een pauze- of
  * hervatknop. Precies die velden, op één entiteit.
+ *
+ * Easee (besluit 277): de eigen dienst op één apparaat uit de lijst, zonder
+ * target: `easee.set_charger_dynamic_limit` met `device_id`, `current` binnen
+ * het bereik en `time_to_live` van 0 tot 1080 minuten; of
+ * `easee.action_command` met `device_id` en alleen `pause` of `resume`.
+ *
+ * evcc (besluit 278): `select.select_option` op de keuzelijst met de stand van
+ * een laadpunt dat de bewoner toeliet, alleen met een stand die evcc kent.
  */
 export function isLaadCall(
   domain: string,
   service: string,
   data: Record<string, unknown>,
   target: Record<string, unknown>,
-  mag: { readonly stroom: readonly { readonly id: string; readonly min: number; readonly max: number }[]; readonly schakelaars: readonly string[]; readonly knoppen: readonly string[] },
+  mag: LaadMagDeur,
 ): boolean {
+  if (domain === 'easee') return isEaseeCall(service, data, target, mag.easee ?? []);
   if (Object.keys(target).some((k) => k !== 'entity_id')) return false;
   const id = target['entity_id'];
   if (typeof id !== 'string' || !id.startsWith(`${domain}.`)) return false;
@@ -351,6 +360,47 @@ export function isLaadCall(
   }
   if (domain === 'switch' && mag.schakelaars.includes(id)) return (service === 'turn_on' || service === 'turn_off') && keys.length === 0;
   if (domain === 'button' && mag.knoppen.includes(id)) return service === 'press' && keys.length === 0;
+  if (domain === 'select' && service === 'select_option') {
+    const s = (mag.selects ?? []).find((x) => x.id === id);
+    const o = data['option'];
+    return s != null && keys.length === 1 && keys[0] === 'option' && typeof o === 'string' && s.opties.includes(o);
+  }
+  return false;
+}
+
+/** Wat de deur van laden doorlaat (besluit 262, 277). */
+export interface LaadMagDeur {
+  readonly stroom: readonly { readonly id: string; readonly min: number; readonly max: number }[];
+  readonly schakelaars: readonly string[];
+  readonly knoppen: readonly string[];
+  readonly easee?: readonly { readonly apparaat: string; readonly min: number | null; readonly max: number | null; readonly pauze: boolean }[];
+  /** evcc (besluit 278): per keuzelijst de standen die mogen. */
+  readonly selects?: readonly { readonly id: string; readonly opties: readonly string[] }[];
+}
+
+function isEaseeCall(service: string, data: Record<string, unknown>, target: Record<string, unknown>, mag: NonNullable<LaadMagDeur['easee']>): boolean {
+  if (Object.keys(target).length > 0) return false;
+  const e = mag.find((x) => x.apparaat === data['device_id']);
+  if (!e) return false;
+  const keys = Object.keys(data).sort().join(',');
+  if (service === 'set_charger_dynamic_limit') {
+    const a = data['current'];
+    const ttl = data['time_to_live'];
+    return (
+      keys === 'current,device_id,time_to_live' &&
+      e.min != null &&
+      e.max != null &&
+      typeof a === 'number' &&
+      Number.isFinite(a) &&
+      a >= e.min &&
+      a <= e.max &&
+      typeof ttl === 'number' &&
+      Number.isInteger(ttl) &&
+      ttl >= 0 &&
+      ttl <= 1080
+    );
+  }
+  if (service === 'action_command') return keys === 'action_command,device_id' && e.pauze && (data['action_command'] === 'pause' || data['action_command'] === 'resume');
   return false;
 }
 
@@ -408,7 +458,7 @@ export class HaClient extends EventEmitter {
     allowKnoppen: () => { readonly entiteiten: readonly string[]; readonly opties: readonly string[] };
     allowHand: () => { readonly klimaat: readonly string[]; readonly schakelaars: readonly string[] };
     allowStart: () => readonly string[];
-    allowLaden: () => { readonly stroom: readonly { readonly id: string; readonly min: number; readonly max: number }[]; readonly schakelaars: readonly string[]; readonly knoppen: readonly string[] };
+    allowLaden: () => LaadMagDeur;
     allowNotify: boolean;
     allowWrites: boolean;
     allowLights: boolean;
@@ -439,7 +489,7 @@ export class HaClient extends EventEmitter {
       allowKnoppen: options.allowKnoppen ?? (() => ({ entiteiten: [], opties: [] })),
       allowHand: options.allowHand ?? (() => ({ klimaat: [], schakelaars: [] })),
       allowStart: options.allowStart ?? (() => []),
-      allowLaden: options.allowLaden ?? (() => ({ stroom: [], schakelaars: [], knoppen: [] })),
+      allowLaden: options.allowLaden ?? (() => ({ stroom: [], schakelaars: [], knoppen: [], easee: [], selects: [] })),
       allowAiTask: options.allowAiTask ?? false,
       allowListen: options.allowListen ?? false,
       allowTodo: options.allowTodo ?? false,

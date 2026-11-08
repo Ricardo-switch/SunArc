@@ -102,7 +102,11 @@ const laden = (() => {
     const kop = `<div class="kopregel"><h2 class="kop-2">${esc(t('laden.titel'))}</h2></div>`;
     if (!info?.laden) return `${kop}<p class="uitleg">${esc(t('laden.geenHA'))}</p>`;
     const x = lijst(info);
-    const evcc = info.laden.evcc.length ? `<div class="ld-evcc"><span class="stip" style="background: var(--ijs)"></span><span><b>${esc(t('laden.evccKop'))}</b> ${esc(t('laden.evccZin'))}</span></div>` : '';
+    const evccMag = info.laden.evcc
+      .filter((p) => p.kanBedienen)
+      .map((p) => `<div class="ld-schakel"><div><b>${esc(t('laden.evccMag', { naam: p.naam }))}</b><span class="mini">${esc(t('laden.evccMagZin'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${p.bedienen === true}" aria-label="${esc(t('laden.evccMag', { naam: p.naam }))}" data-laad="bedienen" data-id="${esc(p.id)}"></button></div>`)
+      .join('');
+    const evcc = info.laden.evcc.length ? `<div class="ld-evcc"><span class="stip" style="background: var(--ijs)"></span><span><b>${esc(t('laden.evccKop'))}</b> ${esc(t('laden.evccZin'))}</span></div>${evccMag}` : '';
     if (!x.length) {
       return `${kop}${evcc}<div class="ld-leeg"><b>${esc(t('laden.nietsKop'))}</b><p class="uitleg">${esc(t('laden.nietsZin'))}</p>${kiezen(info, t('laden.eenKiezen'))}</div>`;
     }

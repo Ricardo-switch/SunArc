@@ -25,9 +25,12 @@ let perDak = false;
 const getal = (n) => nl(n, Math.abs(n) >= 100 ? 0 : 1);
 /** Een meternaam zoals de bewoner hem zegt: "Airco woonkamer", niet "Airconditioning woonkamer". */
 const kort = (naam) => String(naam).replace(/^airconditioning\b/i, t('vandaag.airco')).replace(/\s+(energie|energy|verbruik|kwh)$/i, '');
-const euro = (n) => `${taal.valuta()} ${nl(n, 2)}`;
+/** Bij Jaar in hele euro's (Ricardo, 8 november 2026): met centen paste het bedrag niet in zijn vak. */
+const euro = (n) => `${taal.valuta()} ${nl(n, keuze.soort === 'jaar' ? 0 : 2)}`;
 const ZON = '#F7B548';
 const NET = '#9AAABB';
+/** Zoveel apparaten met hun naam in het stroombeeld; meer gaan samen onder Overig. */
+const MAX_APPARATEN = 6;
 const TERUG = '#6EE7B7';
 /** De thuisaccu (besluit 272): ijsblauw, zoals de lijn uit de batterij in de tekening. */
 const ACCU = '#6FD3FF';
@@ -222,19 +225,24 @@ function altijdAan(r) {
 /**
  * Het stroombeeld (schets Wand-Opbrengst-Stromen, 5 november 2026): de zon per
  * dakvlak als die er zijn, het net met wat het kostte; rechts de apparaten, de
- * rest van het huis, Altijd aan en terug met wat het opbracht. Wat kleiner is
- * dan 2%, samen onder Overig.
+ * rest van het huis, Altijd aan en terug met wat het opbracht. Meer dan zes
+ * apparaten: de kleinste samen onder Overig.
  */
 function stroomModel(r) {
   let stroom = r.stromen.filter((s) => s.van !== 'gas' && s.kwh > 0.05);
   if (!stroom.length) return null;
   const altijd = altijdAan(r);
   if (altijd) stroom = stroom.flatMap((s) => (s.naar === 'rest' ? [{ ...s, kwh: s.kwh * (1 - altijd.deel) }, { ...s, naar: 'altijd', kwh: s.kwh * altijd.deel }] : [s]));
-  const totaal = stroom.reduce((t, s) => t + s.kwh, 0);
   const perDoel = new Map();
   for (const s of stroom) perDoel.set(s.naar, (perDoel.get(s.naar) ?? 0) + s.kwh);
-  const klein = new Set([...perDoel].filter(([id, k]) => !['terug', 'rest', 'altijd', 'naarAccu'].includes(id) && k < totaal * 0.02).map(([id]) => id));
-  if (klein.size === 1) klein.clear();
+  /*
+   * Een apparaat met een eigen meter staat er met zijn naam, ook als het in
+   * deze periode weinig gebruikte (Ricardo, 8 november 2026: de airco's en
+   * stekkers stonden alleen bij Jaar; op een dag vielen ze onder de 2%). Pas
+   * boven de zes gaan de kleinste samen onder Overig, zodat het leesbaar blijft.
+   */
+  const apparaten = [...perDoel].filter(([id]) => !['terug', 'rest', 'altijd', 'naarAccu'].includes(id)).sort((a, b) => b[1] - a[1]);
+  const klein = new Set(apparaten.length > MAX_APPARATEN ? apparaten.slice(MAX_APPARATEN - 1).map(([id]) => id) : []);
   stroom = stroom.map((s) => (klein.has(s.naar) ? { ...s, naar: 'overig' } : s));
   // Het deel zon in wat uit de accu kwam (besluit 272): het deel zon in wat erin ging.
   const accuZon = r.accu?.geladenKwh > 0 ? r.accu.uitZonKwh / r.accu.geladenKwh : 1;

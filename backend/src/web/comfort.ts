@@ -19,12 +19,33 @@ import { join } from 'node:path';
 import type { SiteConfig } from '../core/model.js';
 import { zonePriorityFor } from '../core/voorrang.js';
 import { STANDAARD_DAGDELEN, STANDAARD_KOEL, STANDAARD_PLAFOND_BOVEN, STANDAARD_WARM } from '../config/standaard.js';
+import { HEAT_ASSIST_DEFAULTS } from '../core/strategies/heatAssist.js';
 
 export const COMFORT_FILE = 'comfort.json';
 
-/** De dagdelen die de bewoner per kamer zet; voorverwarmen volgt de dag. */
-export const COMFORT_MODES = ['dag', 'nacht', 'afwezig', 'vakantie'] as const;
+/**
+ * De dagdelen die de bewoner per kamer zet. Voorverwarmen heeft een eigen
+ * temperatuur, alleen voor verwarmen (besluit 282); zet de app er niets, dan
+ * volgt het de dag, zoals voor die tijd.
+ */
+export const COMFORT_MODES = ['dag', 'voorverwarmen', 'nacht', 'afwezig', 'vakantie'] as const;
 export type ComfortMode = (typeof COMFORT_MODES)[number];
+
+/**
+ * De doelen van een kamer voor de configuratie: elk dagdeel dat de app noemt,
+ * en voorverwarmen gelijk aan de dag als de app voorverwarmen niet noemt.
+ * Anders verwarmt het 's ochtends naar een oud doel.
+ */
+export function doelenVanKamer(modi: ComfortRoom['modi'], setpoints: Record<string, unknown>): Record<string, unknown> {
+  const uit = { ...setpoints };
+  for (const m of COMFORT_MODES) {
+    const pair = modi[m];
+    if (pair == null) continue;
+    uit[m] = { ...(pair.heat != null ? { heat: pair.heat } : {}), ...(pair.cool != null && m !== 'voorverwarmen' ? { cool: pair.cool } : {}) };
+  }
+  if (modi.voorverwarmen == null && modi.dag?.heat != null) uit['voorverwarmen'] = { heat: modi.dag.heat };
+  return uit;
+}
 
 /** Grenzen voor de keuzes in de app, binnen wat het schema toestaat (5 tot 35). */
 export const COMFORT_RANGE = { verwarmen: { min: 5, max: 28 }, koelen: { min: 16, max: 32 }, plafond: { min: 20, max: 32 } } as const;
@@ -77,7 +98,24 @@ export interface Comfort {
   readonly profielen?: Readonly<Record<string, Readonly<Record<string, ComfortRoom>>>>;
   readonly voorrang?: ComfortVoorrang;
   readonly dagdelen?: { readonly voorverwarmen: number; readonly dag: number; readonly nacht: number };
+  /**
+   * Bijspringen per zone (besluit 283), van het huis: gezet bij Regeling ›
+   * Klimaat. Weg is: aan, met de standaard van heat-assist.
+   */
+  readonly bijspringen?: Readonly<Record<string, Bijspringen>>;
 }
+
+/** Of de airco in een zone de hoofdverwarming helpt, en wanneer (besluit 283). */
+export interface Bijspringen {
+  readonly aan: boolean;
+  /** Na zoveel minuten onafgebroken stoken. */
+  readonly naMin: number;
+  /** Vanaf zoveel graden onder het doel. */
+  readonly vanafC: number;
+}
+
+/** De keuzes in de app: minuten in hele minuten, graden in tienden. */
+export const BIJSPRINGEN_BEREIK = { naMin: { min: 1, max: 30 }, vanafC: { min: 0.1, max: 2 } } as const;
 
 /* ------------------------------------------------------------- de weergave */
 
@@ -206,12 +244,7 @@ export function comfortViewVoorProfiel(config: SiteConfig, kamers: Readonly<Reco
   const zones = config.zones.map((z) => {
     const k = kamers[z.id];
     if (k == null) return z;
-    const setpoints = { ...z.setpoints };
-    for (const m of COMFORT_MODES) {
-      const pair = k.modi[m];
-      if (pair == null) continue;
-      setpoints[m] = { ...(pair.heat != null ? { heat: pair.heat } : {}), ...(pair.cool != null ? { cool: pair.cool } : {}) };
-    }
+    const setpoints = doelenVanKamer(k.modi, z.setpoints) as typeof z.setpoints;
     const { comfortMaxC: _plafond, ...rest } = z;
     const plafond = k.nooitWarmerC === undefined ? z.comfortMaxC : k.nooitWarmerC;
     return { ...rest, setpoints, ...(plafond != null ? { comfortMaxC: plafond } : {}) };
@@ -233,14 +266,7 @@ export function withComfort(raw: Record<string, unknown>, comfort: Comfort | nul
     const id = String(zone['id'] ?? '');
     const kamer = comfort.kamers[id];
     if (kamer == null) return zone;
-    const setpoints = { ...((zone['setpoints'] as Record<string, unknown> | undefined) ?? {}) };
-    for (const m of COMFORT_MODES) {
-      const pair = kamer.modi[m];
-      if (pair == null) continue;
-      setpoints[m] = { ...(pair.heat != null ? { heat: pair.heat } : {}), ...(pair.cool != null ? { cool: pair.cool } : {}) };
-      // Voorverwarmen volgt de dag: anders verwarmt het 's ochtends naar een oud doel.
-      if (m === 'dag' && pair.heat != null) setpoints['voorverwarmen'] = { heat: pair.heat };
-    }
+    const setpoints = doelenVanKamer(kamer.modi, (zone['setpoints'] as Record<string, unknown> | undefined) ?? {});
     const uit: Record<string, unknown> = { ...zone, setpoints };
     if (kamer.nooitWarmerC !== undefined) {
       if (kamer.nooitWarmerC == null) delete uit['comfortMaxC'];
@@ -251,7 +277,12 @@ export function withComfort(raw: Record<string, unknown>, comfort: Comfort | nul
     if (kamer.opZonC != null) uit['buffering'] = { ...((zone['buffering'] as Record<string, unknown> | undefined) ?? {}), enabled: kamer.opZonC > 0, bandC: kamer.opZonC };
     toegevoegd.push(`comfort van ${String(zone['name'] ?? id)}`);
     return uit;
+  }).map((zone) => {
+    // Bijspringen per zone (besluit 283): los van het comfort van de kamer.
+    const b = comfort.bijspringen?.[String(zone['id'] ?? '')];
+    return b ? { ...zone, heatAssist: { enabled: b.aan, startDelayMinutes: b.naMin, minShortfallC: b.vanafC } } : zone;
   });
+  if (comfort.bijspringen && Object.keys(comfort.bijspringen).length) toegevoegd.push('bijspringen per kamer');
   // Voorrang per richting (besluit 134): de plek in de lijst wordt de voorrang.
   const metVoorrang = comfort.voorrang
     ? nieuweZones.map((zone) => {
@@ -317,6 +348,7 @@ export function controleerComfort(body: unknown, config: SiteConfig): ComfortChe
       const pair = (p ?? {}) as Record<string, unknown>;
       const heat = pair['heat'] ?? null;
       const cool = pair['cool'] ?? null;
+      if (m === 'voorverwarmen' && cool !== null) return { ok: false, reden: `${zone.name}, voorverwarmen: dat is alleen verwarmen` };
       if (heat !== null && (!halve(heat) || heat < COMFORT_RANGE.verwarmen.min || heat > COMFORT_RANGE.verwarmen.max)) {
         return { ok: false, reden: `${zone.name}, ${m}: verwarmen gaat van ${COMFORT_RANGE.verwarmen.min} tot ${COMFORT_RANGE.verwarmen.max}°, in halve graden` };
       }
@@ -381,6 +413,52 @@ export function controleerComfort(body: unknown, config: SiteConfig): ComfortChe
     dagdelen = { voorverwarmen: v, dag: dg, nacht: n };
   }
   return { ok: true, comfort: { versie: 1, kamers, ...(voorrang ? { voorrang } : {}), ...(dagdelen ? { dagdelen } : {}) } };
+}
+
+/* ------------------------------------------------------------ bijspringen */
+
+/** Bijspringen per zone zoals de app het toont (besluit 283). */
+export interface BijspringenZone extends Bijspringen {
+  readonly zoneId: string;
+  /** De airco's die bijspringen, op naam. */
+  readonly apparaten: readonly string[];
+}
+
+/**
+ * De zones waar bijspringen kan: een hoofdverwarming die stookt en een
+ * airco die mag helpen, allebei met verwarmen. Met wat er nu geldt.
+ */
+export interface BijspringenView {
+  readonly zones: readonly BijspringenZone[];
+  readonly bereik: typeof BIJSPRINGEN_BEREIK;
+  readonly standaard: Bijspringen;
+}
+
+export function bijspringenView(config: SiteConfig): BijspringenView {
+  const standaard = { aan: true, naMin: HEAT_ASSIST_DEFAULTS.startDelayMinutes, vanafC: HEAT_ASSIST_DEFAULTS.minShortfallC };
+  const zones = config.zones.flatMap((z): BijspringenZone[] => {
+    const devices = z.actuatorIds.map((id) => config.actuators.find((a) => a.id === id)).filter((a) => a != null);
+    const helpers = devices.filter((a) => a.role === 'assist' && a.capabilities.canHeat);
+    if (!helpers.length || !devices.some((a) => a.role === 'primary' && a.capabilities.canHeat)) return [];
+    const h = z.heatAssist;
+    return [{ zoneId: z.id, apparaten: helpers.map((a) => a.name), aan: h?.enabled ?? standaard.aan, naMin: h?.startDelayMinutes ?? standaard.naMin, vanafC: h?.minShortfallC ?? standaard.vanafC }];
+  });
+  return { zones, bereik: BIJSPRINGEN_BEREIK, standaard };
+}
+
+/** Eén zone uit wat de pagina stuurt: `{ zone, aan, naMin, vanafC }`. */
+export function controleerBijspringen(body: unknown, config: SiteConfig): { ok: true; zone: string; waarde: Bijspringen } | { ok: false; reden: string } {
+  if (typeof body !== 'object' || body == null || Array.isArray(body)) return { ok: false, reden: 'verwacht een object' };
+  const b = body as Record<string, unknown>;
+  const zone = b['zone'];
+  if (typeof zone !== 'string' || !bijspringenView(config).zones.some((z) => z.zoneId === zone)) return { ok: false, reden: 'in die kamer kan niets bijspringen' };
+  if (typeof b['aan'] !== 'boolean') return { ok: false, reden: 'aan is ja of nee' };
+  const naMin = b['naMin'];
+  const vanafC = b['vanafC'];
+  const { naMin: m, vanafC: c } = BIJSPRINGEN_BEREIK;
+  if (typeof naMin !== 'number' || !Number.isInteger(naMin) || naMin < m.min || naMin > m.max) return { ok: false, reden: `na ${m.min} tot ${m.max} minuten, in hele minuten` };
+  if (typeof vanafC !== 'number' || Math.abs(Math.round(vanafC * 10) - vanafC * 10) > 1e-9 || vanafC < c.min || vanafC > c.max) return { ok: false, reden: `vanaf ${c.min} tot ${c.max} graden, in tienden` };
+  return { ok: true, zone, waarde: { aan: b['aan'], naMin, vanafC } };
 }
 
 /* -------------------------------------------------------------- bewaren */

@@ -13,7 +13,15 @@
    * Dezelfde auto als meter, daaronder het advies, Laden als één regel die
    * het blad van onderen opent, en de laadbeurten van deze week.
    * Standen: (zonder) de pagina; #laden het blad Laden open.
+   *   #dag        het blad met de balk van de dag (8 november 2026): de komende
+   *               24 uur met zon over, de goedkoopste uren en tot wanneer; een
+   *               tik op de balk kiest de tijd. Middag, laden op zon tot 18:00.
+   *   #dag-avond  's avonds: geen zon, pauzeren tot de goedkoopste uren.
    */
+  .dagbalk { margin: 2px 0 10px; }
+  .dagbalk svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .dagbalk .uitleg-balk { display: flex; gap: 14px; margin-top: 6px; font-size: 11px; color: var(--gedempt); }
+  .dagbalk .uitleg-balk i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
   .tel { position: relative; overflow: hidden; }
   .inhoud { padding: 16px 16px 110px; display: flex; flex-direction: column; gap: 12px; }
   .kop { display: flex; align-items: center; justify-content: space-between; }
@@ -116,9 +124,9 @@
       <div class="schaal"><i></i><b></b></div>
       <div class="schaal-as"><span>6 A</span><span style="color: var(--zon-t); font-weight: 600">op zon tot 9 A</span><span>16 A</span></div>
     </div>
-    <div class="vraag"><span>HOE LANG</span><div class="seg" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px"><button type="button">1 uur</button><button type="button">Tot 18:00</button><button type="button">Tot een %</button><button type="button" aria-pressed="true">Tot de kabel eruit is</button></div></div>
-    <div class="hoe">Zonder de auto gebruikt je huis nu <b>1 A per fase</b>. Met 8 A blijft er 16 A over op je zekering van 3 × 25 A. Vol tot 80% om ± 16:20.</div>
-    <div class="onder"><button class="terug" type="button">Pauzeer</button><button class="zet" type="button">Laad met 8 A</button></div>
+    <div class="vraag"><span>HOE LANG</span><div class="dagbalk" data-dagbalk hidden></div><div class="seg" data-tot style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px"><button type="button">1 uur</button><button type="button">Tot 18:00</button><button type="button">Tot een %</button><button type="button" aria-pressed="true">Tot de kabel eruit is</button></div></div>
+    <div class="hoe" data-hoe>Zonder de auto gebruikt je huis nu <b>1 A per fase</b>. Met 8 A blijft er 16 A over op je zekering van 3 × 25 A. Vol tot 80% om ± 16:20.</div>
+    <div class="onder"><button class="terug" type="button" data-terug>Pauzeer</button><button class="zet" type="button" data-zet>Laad met 8 A</button></div>
   </aside>
 </div>
 <script src="../../frontend/kit/iconen.js"></script>
@@ -139,7 +147,77 @@
   const BEURTEN = [['Vandaag', '11:20 – nu', 8.4, 0.71, 0.27], ['Woensdag', '18:05 – 23:40', 22.1, 0.12, 0.27], ['Maandag', '10:45 – 15:30', 17.6, 0.88, 0.27], ['Zondag', '02:00 – 05:10 · goedkoop', 14.8, 0, 0.14]];
   const nl = (n, d = 1) => n.toLocaleString('nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d });
   $('[data-lijst]').innerHTML = BEURTEN.map(([dag, tijd, k, z, p]) => `<div class="beurt"><div><b>${dag}</b><span>${tijd}</span></div><span class="kwh">${nl(k)} kWh</span><span class="eur">€ ${nl(k * (1 - z) * p, 2)}</span><div class="zonbalk"><i style="width: ${z * 100}%"></i></div></div>`).join('');
-  if (stand === 'laden') document.querySelectorAll('[data-blad]').forEach((el) => (el.hidden = false));
+  if (stand === 'laden' || stand.startsWith('dag')) document.querySelectorAll('[data-blad]').forEach((el) => (el.hidden = false));
+
+  /*
+   * De balk van de dag (8 november 2026): de komende 24 uur, per uur. Boven de
+   * lijn de zon die over is (hoog = meer ampère op zon), onder de lijn de prijs
+   * met de goedkoopste uren in ijs. Wit is de tijd met de hand, tot het eind;
+   * het autootje is waar hij op de laadgrens is. Een tik op een uur kiest
+   * "Tot hh:00".
+   */
+  function dagbalk({ van, zonA, prijs, goedkoop, tot, vol, pauze }) {
+    const W = 340, uur = W / 24, H = 92, lijn = 44;
+    const maxA = 10, minP = 0.12, maxP = 0.4;
+    let h = '';
+    // De zon over: een vloeiende vorm boven de lijn.
+    const pt = zonA.map((a, i) => [i * uur + uur / 2, lijn - (a / maxA) * 36]);
+    const zonPad = `M0 ${lijn} L${pt.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L')} L${W} ${lijn} Z`;
+    h += `<defs><linearGradient id="zonv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7B548" stop-opacity="0.85"/><stop offset="1" stop-color="#F7B548" stop-opacity="0.15"/></linearGradient></defs>`;
+    h += `<path d="${zonPad}" fill="url(#zonv)"/>`;
+    // De prijs per uur als staafjes onder de lijn; de goedkoopste uren in ijs.
+    prijs.forEach((p, i) => {
+      const hoog = 6 + ((p - minP) / (maxP - minP)) * 30;
+      const g = goedkoop.includes(i);
+      h += `<rect x="${(i * uur + 1).toFixed(1)}" y="${lijn + 3}" width="${(uur - 2).toFixed(1)}" height="${hoog.toFixed(1)}" rx="2" fill="${g ? '#6FD3FF' : 'rgba(154,170,187,0.28)'}" ${g ? '' : ''}/>`;
+    });
+    // Met de hand: van nu tot het eind, wit omrand.
+    if (tot != null) {
+      const x = tot * uur;
+      h += `<rect x="0.5" y="2" width="${(x - 1).toFixed(1)}" height="${H - 14}" rx="7" fill="rgba(255,255,255,${pauze ? 0.05 : 0.07})" stroke="rgba(255,255,255,0.55)" stroke-width="1.2" ${pauze ? 'stroke-dasharray="4 3"' : ''}/>`;
+      h += `<line x1="${x}" y1="0" x2="${x}" y2="${H - 10}" stroke="#fff" stroke-width="2"/>`;
+      h += `<rect x="${x - 29}" y="-14" width="58" height="17" rx="8.5" fill="#fff"/><text x="${x}" y="-2" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0b1424">tot ${String((van + tot) % 24).padStart(2, '0')}:00</text>`;
+    }
+    // Waar hij op de laadgrens is.
+    if (vol != null) {
+      const x = vol * uur;
+      h += `<circle cx="${x}" cy="${lijn}" r="6.5" fill="#0e1726" stroke="#7CF2B5" stroke-width="2"/><path d="M${x - 3} ${lijn} l2 2 l4 -4" stroke="#7CF2B5" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    // Nu, en de uren eronder.
+    h += `<line x1="0" y1="${lijn}" x2="${W}" y2="${lijn}" stroke="rgba(255,255,255,0.18)"/>`;
+    for (let i = 0; i <= 24; i += 6) {
+      const klok = (van + i) % 24;
+      h += `<text x="${i === 0 ? 0 : i === 24 ? W : i * uur}" y="${H}" text-anchor="${i === 0 ? 'start' : i === 24 ? 'end' : 'middle'}" font-size="10.5" font-weight="600" fill="${i === 0 ? '#EEF3F7' : '#7F8E9C'}">${i === 0 ? 'nu' : `${String(klok).padStart(2, '0')}:00`}</text>`;
+    }
+    const legenda = `<div class="uitleg-balk"><span><i style="background: #F7B548"></i>Zon over</span><span><i style="background: #6FD3FF"></i>Goedkoopst</span><span><i style="background: transparent; border: 1.5px solid #7CF2B5; border-radius: 50%"></i>Op 80%</span></div>`;
+    return `<svg viewBox="0 -16 ${W} ${H + 18}" role="img" aria-label="De komende 24 uur">${h}</svg>${legenda}`;
+  }
+
+  if (stand === 'dag') {
+    // 13:00, zon tot een uur of zes; met de hand 8 A tot 18:00, op 80% om ± 15:20.
+    const zonA = [9, 8, 7, 5, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 5, 7, 8, 9];
+    const prijs = [0.22, 0.21, 0.24, 0.28, 0.34, 0.38, 0.36, 0.31, 0.27, 0.24, 0.2, 0.17, 0.16, 0.14, 0.14, 0.15, 0.17, 0.23, 0.27, 0.25, 0.2, 0.17, 0.16, 0.18];
+    $('[data-dagbalk]').hidden = false;
+    $('[data-dagbalk]').innerHTML = dagbalk({ van: 13, zonA, prijs, goedkoop: [13, 14, 15], tot: 5, vol: 2.33 });
+    $('[data-tot]').innerHTML = '<button type="button">1 uur</button><button type="button" aria-pressed="true">Tot 18:00</button><button type="button">Tot een %</button><button type="button">Tot de kabel eruit is</button>';
+    $('[data-hoe]').innerHTML = 'Tot een uur of vijf is er zon over voor <b>8 A</b>. Op 80% om ± 15:20; om 18:00 kiest de laadpaal weer zelf. Tik op de balk voor een andere tijd.';
+  }
+  if (stand === 'dag-avond') {
+    // 20:00, geen zon meer; pauzeren tot 02:00, dan de goedkoopste uren.
+    $('.blad .nu').textContent = 'Nu kiest de laadpaal zelf · 16 A · € 0,36 per kWh';
+    const zonA = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 5, 7, 8, 9, 9, 8, 7, 5, 3, 1, 0];
+    const prijs = [0.36, 0.31, 0.27, 0.24, 0.2, 0.17, 0.14, 0.14, 0.15, 0.17, 0.23, 0.27, 0.25, 0.2, 0.17, 0.16, 0.18, 0.22, 0.21, 0.24, 0.28, 0.34, 0.38, 0.36];
+    $('[data-dagbalk]').hidden = false;
+    $('[data-dagbalk]').innerHTML = dagbalk({ van: 20, zonA, prijs, goedkoop: [6, 7, 8], tot: 6, vol: 8.6, pauze: true });
+    $('[data-tot]').innerHTML = '<button type="button">1 uur</button><button type="button" aria-pressed="true">Tot 02:00</button><button type="button">Tot een %</button><button type="button">Tot de kabel eruit is</button>';
+    $('[data-hoe]').innerHTML = 'Tot 02:00 gepauzeerd, dan laadt hij in de goedkoopste uren: <b>€ 0,14</b> in plaats van € 0,36. Op 80% om ± 04:40.';
+    $('.stroom .getal').innerHTML = '<b>16<small>A</small></b><span>11 kW · in de goedkoopste uren</span>';
+    $('.schaal-as').innerHTML = '<span>6 A</span><span>geen zon meer</span><span>16 A</span>';
+    $('.schaal i').style.width = '0';
+    $('.schaal b').style.left = '100%';
+    $('[data-terug]').textContent = 'Laad nu';
+    $('[data-zet]').textContent = 'Pauzeer tot 02:00';
+  }
 </script>
 </body>
 </html>

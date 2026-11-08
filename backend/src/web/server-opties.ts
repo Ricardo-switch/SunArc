@@ -40,7 +40,7 @@ import type { TeDoenDienst } from './routes/tedoen.js';
 import type { LuisterDeur } from './luisterpost.js';
 import type { Location } from './sun.js';
 import type { ForecastDay, HourColumns, WeatherLog } from './weather.js';
-import type { ComfortView } from './comfort.js';
+import type { BijspringenView, ComfortView } from './comfort.js';
 import type { HouseReport } from './house.js';
 import type { Lang } from './assistant.js';
 import type { Layout, LayoutStore } from './layout.js';
@@ -114,6 +114,14 @@ export interface WebOptions {
     /** Het comfort van een bewoner (besluit 147); null is van wie er kijkt, of de hoofdgebruiker. */
     readonly view: (wie: Wie, bewoner: string | null) => ComfortView;
     readonly save: (body: unknown, wie: Wie, bewoner: string | null) => Promise<{ readonly ok: true; readonly view: ComfortView } | { readonly ok: false; readonly status: number; readonly reden: string }>;
+  };
+  /**
+   * Bijspringen per kamer (besluit 283), bij Regeling › Klimaat: waar de airco
+   * de hoofdverwarming mag helpen, en wanneer. Zonder dit bestaat de route niet.
+   */
+  readonly bijspringen?: {
+    readonly view: () => BijspringenView;
+    readonly save: (body: unknown) => Promise<{ readonly ok: true; readonly view: BijspringenView } | { readonly ok: false; readonly status: number; readonly reden: string }>;
   };
   /**
    * Bewoners (besluit 147): wie hier woont, op volgorde, en wat een bewoner

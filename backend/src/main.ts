@@ -47,7 +47,7 @@ import { buildHouse, houseBeforeSetup, knownForLayout, proposeLayout, type House
 import { LayoutStore, herstelMeedoen, withLayoutNames, type Layout } from './web/layout.js';
 import { noteSensors, readLayoutFile, withMeasurement } from './web/meten.js';
 import { configUitDeApp } from './web/config-uit-app.js';
-import { ComfortStore, controleerComfort, type Comfort, type ComfortRoom, type ComfortView } from './web/comfort.js';
+import { bijspringenView, ComfortStore, controleerBijspringen, controleerComfort, type Comfort, type ComfortRoom, type ComfortView } from './web/comfort.js';
 import { BewonersStore, GEEN_BEWONERS, bewonersView, comfortVanBewoner, gastStand, persoonsAccount, herken as herkenBewoner, hoofdVan, leesActie, namenVoorExport, personenUit, profielenVan, vasthoudenVoorbij, voerUit, zonderVasthoudenVan, type Bewoners, type Wie } from './web/bewoners.js';
 import { BACKUP_DIR, OPNIEUW_STARTEN, beginOpnieuw, bewaarBackup, bewaardeBackups, leesBackup, maakBackup, zetTerug } from './web/gegevens.js';
 import { entiteitenLijst, type AnalyseExtra } from './web/export.js';
@@ -81,7 +81,9 @@ import { StekkerZon } from './web/stekkerzon.js';
 import { Laadbeurten } from './web/laadbeurten.js';
 import { laadAdvies, prijzenVooruit, type LaadAdvies } from './web/laadadvies.js';
 import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhases, findPowers, withConnection, type Applied, type ConnectionAnswers } from './web/aansluiting.js';
-import { sunPosition } from './core/sun.js';
+import { clearSkyOnPlaneWm2, sunPosition } from './core/sun.js';
+import { laadDag, zonVerwachtW } from './web/laaddag.js';
+import { clearSkyW } from './web/sun.js';
 import { hoofddakPlat, panelenVan, type DakVlak } from './web/daken.js';
 import { inNederland } from './web/bag3d.js';
 import { aanvullenUitMeter, achterblijven, meetVlakken, metMeting, opbrengstPerVlak, verdeelDag, type Achter, type MeterGroep, type VlakStand, type Verdeling } from './web/meten-vlakken.js';
@@ -483,7 +485,7 @@ const client = new HaClient({
   // Witgoed starten (ronde 5, besluit 238): alleen de startknop van een droger of vaatwasser, alleen in de add-on.
   allowStart: (): readonly string[] => witgoed?.knoppen() ?? [],
   // Laden met de hand (besluit 262): de laadpalen die de bewoner aanzette, en wat er nog terug moet. Alleen in de add-on.
-  allowLaden: () => (laadhand ? laadMag(laadBedieningenNu(), laadhand.terugzetten) : { stroom: [], schakelaars: [], knoppen: [] }),
+  allowLaden: () => (laadhand ? laadMag(laadBedieningenNu(), laadhand.terugzetten) : { stroom: [], schakelaars: [], knoppen: [], easee: [], selects: [] }),
   // De slimme stekkers die de bewoner toeliet (besluit 265) gaan door dezelfde deur, los van de klimaatbrug.
   allowHand: (): { readonly klimaat: readonly string[]; readonly schakelaars: readonly string[] } => {
     // Zolang de dienst nog opstart, bestaat `stekkerhand` nog niet: dan geen stekkers.
@@ -685,6 +687,8 @@ const laadhand: Laadhand | null = inHuisMetDeuren
       zetStroom: (id, a): Promise<void> => client.callService('number', 'set_value', { value: a }, { entity_id: id }),
       schakel: (id, aan): Promise<void> => client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: id }),
       druk: (id): Promise<void> => client.callService('button', 'press', {}, { entity_id: id }),
+      easee: (apparaat, dienst, data): Promise<void> => client.callService('easee', dienst, { device_id: apparaat, ...data }, {}),
+      kies: (id, optie): Promise<void> => client.callService('select', 'select_option', { option: optie }, { entity_id: id }),
       auto: (id) => huisNu('nl')?.opslag?.autos.find((a) => a.id === id) ?? null,
       bediening: (id) => laadBedieningenNu().find((b) => b.auto === id) ?? null,
       zekeringA: (id) => zekeringVoor(id),
@@ -1796,7 +1800,26 @@ const laadadviezen = (): Record<string, LaadAdvies> => {
   const prijzen = prijsStaat ? prijzenVooruit(prijsStaat.attributes, prijsStaat.state, eenheid, nuMs) : [];
   const nu = prijsStaat ? Number(prijsStaat.state) : NaN;
   const prijsNu = Number.isFinite(nu) ? nu / (/mwh/i.test(eenheid ?? '') ? 1000 : /ct|cent/i.test(eenheid ?? '') ? 100 : 1) : null;
-  return Object.fromEntries(autos.map((a) => [a.id, laadAdvies(a, { nuMs, netW, fasen, prijzen, prijsNu })]));
+  // De balk van de dag (besluit 279): de zon die naar verwachting over is, de prijs en de goedkoopste uren.
+  const g = siteConfig.geometry;
+  const plek = location;
+  const zonW = (ms: number): number | null =>
+    g && plek && g.solarPlanes.length
+      ? zonVerwachtW(
+          ms,
+          openMeteo.latest?.uren ?? null,
+          (t) => clearSkyW(g, plek, t, null),
+          (t) => clearSkyOnPlaneWm2(sunPosition(t, plek.latDeg, plek.lonDeg), { azimuthDeg: 180, tiltDeg: 0 }),
+        )
+      : null;
+  // Het huis zonder de auto overdag: ruwweg twee keer het sluipverbruik, minstens 300 W.
+  const huisW = Math.max(300, 2 * (sluipverbruik.laatste()?.gewoonW ?? 200));
+  return Object.fromEntries(
+    autos.map((a) => {
+      const advies = laadAdvies(a, { nuMs, netW, fasen, prijzen, prijsNu });
+      return [a.id, { ...advies, dag: laadDag(a, { nuMs, prijzen, goedkoop: advies.goedkoop, zonW, huisW }) }];
+    }),
+  );
 };
 
 /** Het huis, met de stand in woorden in de taal van de app; zonder taal Nederlands. */
@@ -2435,7 +2458,8 @@ if (webPort != null) {
               let bewoners = b;
               if (doel.id == null || doel.id === hoofdVan(b)?.id) {
                 // Het comfort van het huis, van de hoofdgebruiker; de eigen comforts blijven.
-                comfort = { ...check.comfort, ...(huidig?.profielen ? { profielen: huidig.profielen } : {}) };
+                // Bijspringen (besluit 283) komt van Regeling, niet van deze pagina: dat blijft ook.
+                comfort = { ...check.comfort, ...(huidig?.profielen ? { profielen: huidig.profielen } : {}), ...(huidig?.bijspringen ? { bijspringen: huidig.bijspringen } : {}) };
               } else {
                 // Een eigen comfort (besluit 147): alleen de doelen en het plafond per kamer.
                 const eigen: Record<string, ComfortRoom> = Object.fromEntries(Object.entries(check.comfort.kamers).map(([k, v]) => [k, { modi: v.modi, ...(v.nooitWarmerC !== undefined ? { nooitWarmerC: v.nooitWarmerC } : {}) }]));
@@ -2449,6 +2473,23 @@ if (webPort != null) {
               if (bewoners !== b) await bewonersStore!.save(bewoners);
               siteConfig = met.config;
               return { ok: true as const, view: comfortVoor(wie, doel.id).view };
+            },
+          },
+          // Bijspringen per kamer (besluit 283): van het huis, dus wie het comfort van het huis mag aanpassen.
+          bijspringen: {
+            view: () => bijspringenView(siteConfig!),
+            // Wie mag, toetst de route: de beheerder, net als de rest van Regeling.
+            save: async (body: unknown) => {
+              const check = controleerBijspringen(body, siteConfig!);
+              if (!check.ok) return { ok: false as const, status: 400, reden: check.reden };
+              const huidig = comfortStore.current ?? { versie: 1 as const, kamers: {} };
+              const comfort: Comfort = { ...huidig, bijspringen: { ...huidig.bijspringen, [check.zone]: check.waarde } };
+              const met = await configWithComfort(comfort);
+              if (!met.ok) return { ok: false as const, status: 400, reden: `past niet in de regeling: ${met.reden}` };
+              if (runner && !runner.setConfig(met.config, allStates.values())) return { ok: false as const, status: 409, reden: 'de regeling kon het niet overnemen; het gaat in na de volgende start' };
+              await comfortStore.save(comfort);
+              siteConfig = met.config;
+              return { ok: true as const, view: bijspringenView(met.config) };
             },
           },
         }

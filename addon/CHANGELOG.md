@@ -1,5 +1,51 @@
 # Wat is er nieuw · What is new
 
+## 0.156.1
+
+*8 november 2026 · 0.151.0 – 0.156.1*
+
+**Nieuw**
+
+- Bij Regeling › Klimaat kies je per kamer of de airco bijspringt als de verwarming het niet bijhoudt, en wanneer: na hoeveel minuten stoken en vanaf hoeveel graden te koud
+- Voorverwarmen heeft een eigen temperatuur per kamer, bij Comfort › Dagdelen. Tot je er een kiest, wordt het net zo warm als overdag
+- Laden met de hand kan ook met een zin tegen de assistent: "laad de auto met 10 ampère tot zes uur", "pauzeer het laden", "laad weer" of "laat de laadpaal zelf kiezen". Met evcc: "laad snel" of "laad op zon". Alleen als het bij Energie › Auto en laadpaal is toegelaten
+- In het blad Laden zie je de komende 24 uur: de zon die naar verwachting over is, de prijs per uur met de goedkoopste uren, tot wanneer je met de hand laadt, en wanneer de auto op zijn laadgrens is. Tik op de balk om tot een andere tijd te kiezen
+- Met evcc in huis zet je de stand van evcc met de hand: Uit, Zon, Min + zon of Snel, tot een tijd, een % of tot de kabel eruit gaat. Daarna staat evcc weer zoals daarvoor
+- Bij Energie › Auto en laadpaal kies je per laadpunt van evcc of SunArc de stand mag zetten
+- Een laadpaal van Easee bedien je nu ook met de hand: de laadstroom, of pauzeren, altijd met een eind. Valt SunArc stil, dan gaat de laadpaal op het eind vanzelf terug
+
+**Beter**
+
+- Tijdens voorverwarmen in de ochtend springt de airco niet meer bij, zodat zijn piepje niemand wakker maakt. Voorverwarmen doet dan alleen de ketel; overdag helpt de airco weer mee
+- Zet je in Home Assistant bij je Easee de sensor voor de dynamische laadstroom aan (die staat standaard uit), dan zie je ook op welke stroom hij nu staat
+
+**Opgelost**
+
+- Bij Opbrengst staan de airco's en slimme stekkers met een eigen meter nu ook bij Dag, Week en Maand in het stroombeeld, niet alleen bij Jaar
+- Bij Jaar staan de bedragen in hele euro's, zodat ze in hun vak passen
+
+*English*
+
+**New**
+
+- In Control › Climate you choose per room whether the air conditioner helps out when the heating falls behind, and when: after how many minutes of heating and from how many degrees too cold
+- Preheating has its own temperature per room, in Comfort › Times of day. Until you choose one, it gets as warm as during the day
+- Charging by hand also works with a sentence to the assistant: "charge the car at 10 amps until six", "pause charging", "resume charging" or "let the charger decide". With evcc: "charge fast" or "charge on solar". Only when allowed in Energy › Car and charger
+- The Charging sheet shows the next 24 hours: the sun expected to be spare, the price per hour with the cheapest hours, until when you charge by hand, and when the car reaches its charge limit. Tap the bar to choose another time
+- With evcc in your home you set the evcc mode by hand: Off, Solar, Min + solar or Fast, until a time, a % or until the cable comes out. After that evcc is back as it was
+- In Energy › Car and charger you choose per evcc charge point whether SunArc may set the mode
+- You can now control an Easee charger by hand too: the charging current, or pause, always with an end. If SunArc stops, the charger goes back by itself at the end
+
+**Improved**
+
+- During preheating in the morning the air conditioner no longer helps out, so its beep wakes no one. The boiler preheats on its own; during the day the air conditioner helps again
+- If you turn on the sensor for the dynamic charging current of your Easee in Home Assistant (it is off by default), you also see what current it is set to now
+
+**Fixed**
+
+- In Energy the air conditioners and smart plugs with their own meter now also show in the flow diagram for Day, Week and Month, not only for Year
+- For Year the amounts are in whole euros, so they fit in their box
+
 ## 0.150.0
 
 *7 november 2026 · 0.145.0 – 0.150.0*

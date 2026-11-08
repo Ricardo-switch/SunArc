@@ -315,8 +315,25 @@ lijst in `client.ts`). Laden wordt er een, naar het voorbeeld van `isHandCall`:
 - **Het voorbeeldhuis:** de laadpaal heeft `number.laadpaal_laadstroom` (6 tot
   16 A) en `switch.laadpaal_laden`, en laadt met die stroom; bedienen staat
   daar aan.
-- **Nog niet:** de eigen dienst van Easee, de stand van evcc, de balk van de
-  dag in het blad (zon, goedkope uren, tot wanneer), en de assistent.
+- **Easee (0.151.0, besluit 277):** geen getal maar de eigen dienst op het
+  apparaat: `set_charger_dynamic_limit` met een levensduur tot het eind
+  (hooguit 18 uur, daarna vernieuwd zolang het met de hand duurt) en
+  `action_command` met `pause` of `resume`. De stroom van nu en de grens komen
+  uit de sensoren `dynamic_charger_limit` en `max_charger_limit`, die Home
+  Assistant standaard uit zet; zonder grens tot 32 A, zonder stroom van nu terug
+  naar de grens.
+- **evcc (0.152.0, besluit 278):** de keuzelijst met de stand van een laadpunt
+  (`off`, `pv`, `minpv`, `now`, of `off`, `smart`, `now`), per laadpunt toe te
+  laten bij Energie; met een eind en daarna terug naar de stand van daarvoor.
+  Eén laadpunt hoort bij elke auto, bij meer het laadpunt met de naam van de
+  auto of de laadpaal.
+- **De balk van de dag (0.153.0, besluit 279):** `laaddag.ts` geeft per auto
+  24 uur met de zon over (verwacht, in A per fase), de prijs, de goedkoopste
+  uren en vol om; `main.ts` zet hem als `dag` bij het advies. Het blad tekent
+  hem bij Hoe lang; een tik kiest Tot hh:00.
+- **De assistent (0.154.0, besluit 280):** `laadzin.ts` maakt van een zin een
+  stap voor `/api/laden` (stroom, snel, pauze, weer, terug; met evcc de stand),
+  met een eind; alleen voor wat bij Energie toegelaten is. Stap 5 is daarmee af.
 
 ## Stap 6: wat er gebouwd is (0.137.0, besluit 263)
 

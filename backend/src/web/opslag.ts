@@ -239,20 +239,45 @@ export interface LaadApparaat {
 export type LaadPauze =
   /** Een schakelaar: aan is laden, of bij een pauzeknop aan is pauze. */
   | { readonly soort: 'schakelaar'; readonly id: string; readonly omgekeerd: boolean }
-  | { readonly soort: 'knoppen'; readonly pauze: string; readonly hervat: string };
+  | { readonly soort: 'knoppen'; readonly pauze: string; readonly hervat: string }
+  /** Easee: de opdracht `pause` of `resume` van de eigen dienst, op het apparaat (besluit 277). */
+  | { readonly soort: 'easee'; readonly apparaat: string };
 
 /** Wat er aan een auto te bedienen is, en waarmee (stap 5, besluit 262). */
 export interface LaadBediening {
   readonly auto: string;
   /** Het apparaat met de knoppen: de laadpaal, anders de auto zelf. */
   readonly apparaat: string | null;
-  /** De hoogste laadstroom in A: het getal in Home Assistant, met zijn bereik en stap. */
-  readonly stroom: { readonly id: string; readonly min: number; readonly max: number; readonly stap: number; readonly nuA: number | null } | null;
+  /**
+   * De hoogste laadstroom in A: het getal in Home Assistant, met zijn bereik en
+   * stap. Bij Easee (besluit 277) gaat het zetten via de eigen dienst op het
+   * apparaat `easee`, en is `id` de sensor die de stroom van nu zegt (die staat
+   * in Home Assistant standaard uit; dan is `nuA` null).
+   */
+  readonly stroom: { readonly id: string; readonly min: number; readonly max: number; readonly stap: number; readonly nuA: number | null; readonly easee?: string } | null;
   readonly pauze: LaadPauze | null;
   /** Of het mag: de bewoner zette het aan bij Energie, en evcc regelt het niet. */
   readonly mag: boolean;
   /** evcc regelt het laden; dan bedient SunArc de laadpaal niet zelf. */
   readonly evcc: boolean;
+  /**
+   * Met evcc: de stand van het laadpunt van deze auto (besluit 278), met de
+   * standen die evcc kent; en of SunArc hem mag zetten (bij Energie toegelaten).
+   */
+  readonly evccStand?: EvccStand | null;
+  readonly evccMag?: boolean;
+}
+
+/** Een laadpunt van evcc met zijn stand (besluit 278). */
+export interface EvccStand {
+  /** De keuzelijst met de stand, bijvoorbeeld `select.evcc_garage_mode`. */
+  readonly id: string;
+  /** Het apparaat van het laadpunt, voor de toestemming bij Energie. */
+  readonly apparaat: string;
+  readonly naam: string;
+  /** Wat evcc kent: off, pv, minpv, now, of off, smart, now. */
+  readonly opties: readonly string[];
+  readonly nu: string | null;
 }
 
 /** Energie › Auto en laadpaal (besluit 259): wat gevonden is, en wat er nog te kiezen is. */
@@ -260,8 +285,8 @@ export interface LadenView {
   readonly apparaten: readonly LaadApparaat[];
   /** Andere apparaten die iets meten wat bij laden hoort, om zelf te kiezen. */
   readonly kandidaten: readonly { readonly id: string; readonly naam: string }[];
-  /** De laadpunten van evcc, als evcc er is. */
-  readonly evcc: readonly { readonly id: string; readonly naam: string }[];
+  /** De laadpunten van evcc, als evcc er is; met een stand kan SunArc die zetten als het mag (besluit 278). */
+  readonly evcc: readonly { readonly id: string; readonly naam: string; readonly kanBedienen: boolean; readonly bedienen: boolean }[];
   readonly instelling: Readonly<Record<string, AutoInstelling>>;
 }
 
@@ -301,6 +326,8 @@ const STROOM_ZET = /dynamic|charg|laad|current|stroom|amp/;
 const GEEN_STROOM_ZET = /circuit|fallback|offline|fase|phase|min/;
 /** Een schakelaar of knop om te laden of te pauzeren; niet het klimaat, de klep of een schema van de auto. */
 const LAAD_KNOP = /charg|laad|pause|pauze|resume|hervat/;
+/** Zo hoog gaat de eigen dienst van Easee (besluit 277). */
+export const EASEE_MAX_A = 32;
 const GEEN_LAAD_KNOP = /climat|klimaat|heat|verwarm|defrost|sentry|cabin|lock|slot|seat|stoel|steering|stuur|light|licht|port|klep|update|smart|schedul|gepland|precondition|boost|restart|reboot|herstart/;
 /** Klassen die bij laden horen: een apparaat zonder geen ervan is geen kandidaat. */
 const LAAD_KLASSEN = new Set(['battery', 'distance', 'power', 'current', 'energy', 'plug', 'battery_charging']);
@@ -689,6 +716,7 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
   const bedieningen: LaadBediening[] = [];
   const evccErIs = l0(registers, states);
   const l = lezer(registers, states);
+  const standen = evccErIs ? evccStanden(l, states) : [];
   const { klasse, naamVan, pctVan } = l;
   const vermogens = (a: Apparaat) => a.entiteiten.filter((e) => e.entity_id.startsWith('sensor.') && klasse(e) === 'power');
   const aanUit = (a: Apparaat, k: string): boolean | null => {
@@ -817,6 +845,7 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
       pauze: metKnop?.pauze ?? null,
       mag: !evccErIs && metKnop != null && keuze?.bedienen?.[metKnop.a.device.id] === true,
       evcc: evccErIs,
+      ...(evccErIs ? evccDeel(evccVoor(standen, naam, paal?.device.name, wagen?.device.name)) : {}),
     });
     return {
       id,
@@ -872,8 +901,14 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
     return new Date(Math.ceil((nu.getTime() + uren * 3_600_000) / vijf) * vijf).toISOString();
   }
 
+  /** Met evcc: het laadpunt van de auto, en of SunArc de stand mag zetten (besluit 278). */
+  function evccDeel(x: EvccStand | null): { evccStand: EvccStand | null; evccMag: boolean } {
+    return { evccStand: x, evccMag: x != null && keuze?.bedienen?.[x.apparaat] === true };
+  }
+
   /** De stroom om te zetten en hoe hij pauzeert, van één apparaat. */
   function bedieningVan(a: Apparaat): { stroom: LaadBediening['stroom']; pauze: LaadPauze | null } {
+    if (a.platform === 'easee') return easeeBediening(a);
     const getallen = a.entiteiten.filter((e) => e.entity_id.startsWith('number.') && String(states.get(e.entity_id)?.attributes['unit_of_measurement'] ?? '') === 'A');
     const nummer = getallen.find((e) => STROOM_ZET.test(naamVan(e)) && !GEEN_STROOM_ZET.test(naamVan(e))) ?? (getallen.length === 1 ? getallen[0] : undefined);
     let stroom: LaadBediening['stroom'] = null;
@@ -898,6 +933,26 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
       if (p && h) pauze = { soort: 'knoppen', pauze: p.entity_id, hervat: h.entity_id };
     }
     return { stroom, pauze };
+  }
+
+  /**
+   * Easee (besluit 277): geen getal om te zetten, maar de eigen dienst
+   * `easee.set_charger_dynamic_limit` en `easee.action_command` op het apparaat.
+   * Alleen een laadpaal, geen Equalizer. De stroom van nu en de grens van de
+   * laadpaal staan in sensoren die Home Assistant standaard uit zet; zonder
+   * grens kan Easee tot 32 A.
+   */
+  function easeeBediening(a: Apparaat): { stroom: LaadBediening['stroom']; pauze: LaadPauze | null } {
+    if (/equalizer/i.test(l.merk(a))) return { stroom: null, pauze: null };
+    const sleutel = (e: HaRegistryEntity, k: string) => e.translation_key === k || e.entity_id.endsWith(`_${k}`);
+    const sensor = (k: string) => a.entiteiten.find((e) => e.entity_id.startsWith('sensor.') && sleutel(e, k));
+    const nu = sensor('dynamic_charger_limit');
+    const grens = getal(states.get(sensor('max_charger_limit')?.entity_id ?? ''));
+    const max = grens != null && grens >= 6 && grens <= EASEE_MAX_A ? grens : EASEE_MAX_A;
+    return {
+      stroom: { id: nu?.entity_id ?? `sensor.easee_${a.device.id}_dynamic_charger_limit`, min: 6, max, stap: 1, nuA: nu ? getal(states.get(nu.entity_id)) : null, easee: a.device.id },
+      pauze: { soort: 'easee', apparaat: a.device.id },
+    };
   }
 
   const autos: Auto[] = wagens.length
@@ -931,6 +986,31 @@ function accuStand(id: string, naam: string, pct: number | null, w: number | nul
 }
 
 /** Is evcc er? Dan regelt evcc het laden. */
+/** De standen van evcc die een stand zijn: off, pv, minpv en now, of off, smart en now. */
+const EVCC_STAND = /^(off|pv|minpv|now|smart)$/;
+
+/** Per laadpunt van evcc de keuzelijst met zijn stand (besluit 278). */
+function evccStanden(l: ReturnType<typeof lezer>, states: ReadonlyMap<string, HaEntityState>): EvccStand[] {
+  return l.apparaten.filter(l.isEvcc).flatMap((a) =>
+    a.entiteiten.flatMap((e) => {
+      if (!e.entity_id.startsWith('select.')) return [];
+      const s = states.get(e.entity_id);
+      const opties = Array.isArray(s?.attributes['options']) ? (s.attributes['options'] as unknown[]).filter((x): x is string => typeof x === 'string') : [];
+      if (!opties.includes('now') || !opties.includes('off') || !(opties.includes('pv') || opties.includes('smart')) || !opties.every((x) => EVCC_STAND.test(x))) return [];
+      const nu = s?.state && opties.includes(s.state) ? s.state : null;
+      return [{ id: e.entity_id, apparaat: a.device.id, naam: naamVanApparaat(a.device), opties, nu }];
+    }),
+  );
+}
+
+/** Welk laadpunt van evcc bij een auto hoort: het enige, of het laadpunt met de naam van de auto of de laadpaal. */
+function evccVoor(standen: readonly EvccStand[], ...namen: (string | null | undefined)[]): EvccStand | null {
+  if (standen.length <= 1) return standen[0] ?? null;
+  const woorden = namen.filter((n): n is string => !!n && n.trim().length >= 3).map((n) => n.trim().toLowerCase());
+  const raak = standen.filter((x) => woorden.some((w) => `${x.naam} ${x.id}`.toLowerCase().includes(w)));
+  return raak.length === 1 ? raak[0]! : null;
+}
+
 function l0(registers: Registers, states: ReadonlyMap<string, HaEntityState>): boolean {
   const l = lezer(registers, states);
   return l.apparaten.some(l.isEvcc);
@@ -951,7 +1031,10 @@ export function ladenView(registers: Registers, states: ReadonlyMap<string, HaEn
   return {
     apparaten: lijst.map(({ bron: _b, ...x }) => x),
     kandidaten,
-    evcc: evcc.map((a) => ({ id: a.device.id, naam: naamVanApparaat(a.device) })),
+    evcc: evcc.map((a) => {
+      const kan = evccStanden(l, states).some((x) => x.apparaat === a.device.id);
+      return { id: a.device.id, naam: naamVanApparaat(a.device), kanBedienen: kan, bedienen: kan && keuze?.bedienen?.[a.device.id] === true };
+    }),
     instelling: keuze?.instelling ?? {},
   };
 }

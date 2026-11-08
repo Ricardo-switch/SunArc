@@ -117,6 +117,11 @@ verwijzing bestaat.
 - **Comfort** mag koelen boven een plafond, ook op netstroom ([50]). Een zone
   met meer kamers koelt op de warmste en verwarmt op de koudste ([81]); bij twee
   meters in één kamer kiest de bewoner ([95]).
+- **Bijspringen:** de airco helpt de ketel als die lang stookt en de kamer
+  achterloopt, maar niet 's nachts, bij afwezig, op vakantie of tijdens
+  voorverwarmen, want zijn piepje maakt de slapers wakker ([281]). Per kamer
+  aan of uit, na hoeveel minuten stoken en vanaf hoeveel graden te koud, bij
+  Regeling › Klimaat ([283]).
 - **Bij zon over:** eerst comfort, dan de batterij, dan de auto. Laadpaal en
   batterij stuurt SunArc niet zelf ([85]). Wat er na comfort over is,
   gaat in de volgorde van de lijst Op zon: kamers die op zon voorkoelen of
@@ -267,7 +272,7 @@ verwijzing bestaat.
 - **Het jaar in Opbrengst** begint op de startdatum van het contract ([116]).
 - **Een prijs per uur** (Zonneplan, Tibber): Opbrengst rekent met de kostentellers van Home Assistant, en Energie toont de prijs van nu ([251]).
 - **Daken en panelen, elk vlak apart**: van boven met de omtrek uit de kaart, dakvorm per gebouw, de meting per vlak, een grens per omvormer, per vlak op Thuis en in Opbrengst, een vlak dat achterblijft, een korte stap in Inrichten en een eigen rondleiding ([254]); de kaart is experimenteel, met 3D BAG naast OpenStreetMap ([256]); wat kan bij jouw huis zegt per kaart wat hij vond, en de bewoner kiest ([261]); zelf tekenen met blokken die je sleept, draait en op maat maakt, en de helling uit de 3D-kaart naast de meting ([254], [256]).
-- **Opbrengst in drie kolommen**, met een stroombeeld dat de zon per dakvlak, de kosten, terug, Altijd aan en gas apart laat zien; opgewekt komt uit de omvormer ([255]).
+- **Opbrengst in drie kolommen**, met een stroombeeld dat de zon per dakvlak, de kosten, terug, Altijd aan en gas apart laat zien; opgewekt komt uit de omvormer ([255]). Elk apparaat met een meter staat er met zijn naam, pas boven de zes de kleinste samen onder Overig; bij Jaar hele euro's ([284]).
 - **Drie fouten van testers opgelost**: het gevoel kent de zones van nu, Meten met kan echt uit (en kiest geen watertemperatuur), en een plat dak op Thuis ([257]).
 - **Je dag en hoe warm** in Inrichten: eerst een eigen stap met de dag als balk (voorverwarmen, overdag en 's nachts, te schuiven), dan per kamer overdag en 's nachts, verwarmen en koelen, elk getal aan te tikken; het hele huis is wat de meeste kamers hebben, en een kamer volgt het tot hij een eigen getal krijgt ([260]).
 - **De hoofdzekering** stel je in de app in, en die gaat voor de configuratie
@@ -315,7 +320,9 @@ verwijzing bestaat.
   mag op zon opwarmen, en Wat je huis kan zegt in welke kamers iets werkt
   ([132]).
 - **Comfort** zegt per dagdeel wanneer het aan- en uitgaat, wat er op zon
-  gebeurt, en per kamer of koelen van het net mag ([133]).
+  gebeurt, en per kamer of koelen van het net mag ([133]). Hoe warm elke kamer
+  bij voorverwarmen wordt, staat bij Dagdelen; zonder eigen getal volgt het de
+  dag ([282]).
 - **Voorrang** geldt per richting, koelen en verwarmen; **Hoe voelt het** geeft
   een antwoord en een voorstel ([134]); sinds [147] vraagt ook dat een inlog.
 - **Vrijgeven:** het werk gaat naar `beta`; de CI zet `stable` voor de NAS
@@ -384,7 +391,7 @@ verwijzing bestaat.
   vanzelf bij ([162]). Per account kies je eenvoudig of uitgebreid, grotere
   letters en minder beweging ([164]). Om te kiezen ook de auto, de
   thuisbatterij, deze maand en de deurbel, als het huis ze heeft ([182]).
-- **Auto en laadpaal (alle zes stappen gebouwd, 0.131.0 tot 0.137.0):** Energie › Auto en laadpaal herkent auto's, laadpalen en evcc, met een schakelaar per apparaat, zelf kiezen, en per auto de accu, de laadpaal en de plek (ook de garage, idee 123); het klimaat van een auto telt niet als klimaat in huis (melding 132). De pagina Auto toont de auto als meter, met laden, stroom per fase, laadgrens, vol om, kabel en onderweg; de Thuis-kaart en Apparaten openen hem (0.132.0). De laadbeurten van de laatste week staan erop, met kWh, kosten en het deel eigen zon, uit de statistiek van Home Assistant (0.133.0). Het advies staat onder de auto en als eigen kaart op Thuis boven de auto: meer of minder stroom op zon, binnen de laadpaal en de zekering, of beginnen met de kabel erin; met een prijs per uur de goedkoopste uren (0.135.0). Laden met de hand: de hoogste stroom of pauzeren, met een eind, door een eigen smalle deur, alleen als de bewoner het bij Energie toeliet ([262], 0.136.0). Meldingen: vol, een fout van de laadpaal, met de hand klaar, en kabel vergeten met een vaste avondcheck per auto; op de telefoon de keuze De auto ([263], 0.137.0); het bouwplan staat in `docs/auto-en-laadpaal.md` ([259]).
+- **Auto en laadpaal (alle zes stappen gebouwd, 0.131.0 tot 0.137.0):** Energie › Auto en laadpaal herkent auto's, laadpalen en evcc, met een schakelaar per apparaat, zelf kiezen, en per auto de accu, de laadpaal en de plek (ook de garage, idee 123); het klimaat van een auto telt niet als klimaat in huis (melding 132). De pagina Auto toont de auto als meter, met laden, stroom per fase, laadgrens, vol om, kabel en onderweg; de Thuis-kaart en Apparaten openen hem (0.132.0). De laadbeurten van de laatste week staan erop, met kWh, kosten en het deel eigen zon, uit de statistiek van Home Assistant (0.133.0). Het advies staat onder de auto en als eigen kaart op Thuis boven de auto: meer of minder stroom op zon, binnen de laadpaal en de zekering, of beginnen met de kabel erin; met een prijs per uur de goedkoopste uren (0.135.0). Laden met de hand: de hoogste stroom of pauzeren, met een eind, door een eigen smalle deur, alleen als de bewoner het bij Energie toeliet ([262], 0.136.0); bij Easee via de eigen dienst, met de levensduur van Easee als vangnet ([277], 0.151.0); met evcc de stand van evcc ([278], 0.152.0); in het blad de balk van de dag met zon over, de prijs per uur en tot wanneer ([279], 0.153.0); en met een zin tegen de assistent ([280], 0.154.0). Meldingen: vol, een fout van de laadpaal, met de hand klaar, en kabel vergeten met een vaste avondcheck per auto; op de telefoon de keuze De auto ([263], 0.137.0); het bouwplan staat in `docs/auto-en-laadpaal.md` ([259]).
 - **Thuisaccu (ronde van zes stappen, onderzoek in `docs/thuisaccu-onderzoek.md`):** Energie › Thuisaccu toont de gevonden accu's met een schakelaar; je kiest er zelf een, ook een apparaat van Homey met losse sensoren, en per accu welke sensor de lading, het vermogen en de totalen zijn, en wat plus betekent ([271], 0.145.0). Het verbruik van nu en Opbrengst rekenen de accu mee, uit het Energie-dashboard of de gekozen tellers; het stroombeeld heeft Uit de accu en Naar de accu ([272], 0.146.0). Op Thuis en bij Opbrengst › Nu lopen de stromen van en naar de accu, ook als hij binnen staat ([273], 0.147.0). De regeling rekent in de schaduw wat hij zou doen als wat de accu met zon laadt zon over was; het echte besluit verandert niet ([274], 0.148.0). Meer accu's staan samen op één kaart met per accu een regel; met de maat zegt de app hoeveel erin zit, hoe laat hij vol is of hoe lang hij nog voedt, en Wat je huis kan zegt wat hij leverde ([275], 0.149.0). Meldingen als hij niets meer zegt, bij een fout, en als hij vol is met zon over ([276], 0.150.0).
 - **Een profiel per bewoner** (Jij, bovenaan Instellingen): je thema op je
   eigen apparaten (donker, licht of zoals je telefoon; een scherm blijft
@@ -874,4 +881,12 @@ verwijzing bestaat.
 [274]: DECISIONS.md#274-de-regeling-kijkt-in-de-schaduw-mee-met-de-thuisaccu
 [275]: DECISIONS.md#275-meer-thuisaccus-samen-met-hun-maat-en-wat-ze-leverden
 [276]: DECISIONS.md#276-meldingen-over-de-thuisaccu
+[277]: DECISIONS.md#277-easee-met-de-hand-via-de-eigen-dienst-van-easee
+[278]: DECISIONS.md#278-de-stand-van-evcc-met-de-hand
+[279]: DECISIONS.md#279-de-balk-van-de-dag-in-het-blad-laden
+[280]: DECISIONS.md#280-laden-met-de-hand-met-een-zin
+[281]: DECISIONS.md#281-de-airco-springt-niet-bij-tijdens-voorverwarmen
+[282]: DECISIONS.md#282-voorverwarmen-krijgt-een-eigen-temperatuur-bij-dagdelen
+[283]: DECISIONS.md#283-bijspringen-per-kamer-bij-regeling--klimaat
+[284]: DECISIONS.md#284-het-stroombeeld-noemt-elk-apparaat-bij-jaar-hele-euros
 <!-- links:einde -->
