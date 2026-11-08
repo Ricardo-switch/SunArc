@@ -1107,7 +1107,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     expect(await wand.locator('.ac-nu').textContent()).toContain('Nu 0,8 kW: de accu laadt.');
     // Plus is leveren: dan levert hij.
     await wand.locator('[data-accu="teken"][data-waarde="leveren"]').click();
-    await expect.poll(() => wand.locator('.ac-nu').textContent()).toContain('Nu −0,8 kW: de accu levert aan het huis.');
+    // Bewaren en opnieuw tekenen duurt in CI soms langer dan een seconde (8 november 2026).
+    await expect.poll(() => wand.locator('.ac-nu').textContent(), { timeout: 5_000 }).toContain('Nu −0,8 kW: de accu levert aan het huis.');
     await expect.poll(() => connStore.current?.accu?.instelling['homey']?.teken).toBe('leveren');
     // Een andere sensor kiezen wordt bewaard.
     await wand.locator('[data-accu-sensor="geladen"]').selectOption('sensor.laadplan_controller_discharged_energy');
@@ -3082,6 +3083,50 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await context.close();
     }
   }, 40_000);
+
+  /*
+   * Een apparaat met een eigen meter staat in het stroombeeld met zijn naam,
+   * ook als het in deze periode weinig gebruikte (8 november 2026): eerst viel
+   * alles onder de 2% onder Overig, en stonden de airco's alleen bij Jaar.
+   */
+  it('noemt in het stroombeeld elk apparaat met een meter, ook een klein', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    await context.route((url) => url.pathname.endsWith('/api/opbrengst'), async (route) => {
+      try {
+        const r = await route.fetch();
+        const j = (await r.json()) as { apparaten: Record<string, unknown>[]; stromen: Record<string, unknown>[] };
+        // Twee kleine: eerst gingen die samen onder Overig (één klein bleef staan).
+        j.apparaten = [...j.apparaten, { id: 'sensor.stekker', naam: 'Stekker tuinhuis', kwh: 0.1, zonKwh: 0, netKwh: 0.1, kosten: 0.03 }, { id: 'sensor.bureau', naam: 'Stekker bureau', kwh: 0.1, zonKwh: 0, netKwh: 0.1, kosten: 0.03 }];
+        j.stromen = [...j.stromen, { van: 'net', naar: 'sensor.stekker', kwh: 0.1 }, { van: 'net', naar: 'sensor.bureau', kwh: 0.1 }];
+        // Bij Jaar een bedrag van duizenden euro's, zoals in een echt huis.
+        const k = (j as unknown as { kosten?: { totaal?: number | null } }).kosten;
+        if (new URL(route.request().url()).searchParams.get('soort') === 'jaar' && k?.totaal != null) k.totaal = 1734.56;
+        await route.fulfill({ response: r, json: j });
+      } catch {
+        // De pagina is al dicht.
+      }
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/opbrengst.html`);
+    const schema = p.locator('#wand [data-sankey]');
+    await schema.locator('svg text', { hasText: 'Stekker tuinhuis' }).waitFor({ timeout: 10_000 });
+    await schema.locator('svg text', { hasText: 'Stekker bureau' }).waitFor();
+    expect(await schema.textContent()).not.toContain('Overig');
+    // Bij Jaar hele euro's (8 november 2026): met centen paste een bedrag van duizenden euro's niet.
+    await p.locator('#wand [data-soort="jaar"]').click();
+    await schema.locator('svg text', { hasText: 'Stekker bureau' }).waitFor({ timeout: 10_000 });
+    await expect.poll(() => p.locator('#wand').textContent(), { timeout: 5_000 }).not.toMatch(/€ [\d.]+,\d\d/);
+    const teBreed = await p.locator('#wand .cijfer .getal').evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent));
+    expect(teBreed).toEqual([]);
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-jaar.png') });
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
 
   it('toont het sluipverbruik onder Opbrengst (besluit 192)', async () => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
@@ -6487,6 +6532,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    // Geen live updates (8 november 2026): die brengen de echte stand en overschrijven wat deze test nabootst.
+    await context.route((url) => url.href.startsWith(baseUrl) && url.pathname.endsWith('/api/events'), (route) => route.abort());
     let accu: unknown = { zonKw: 1.5, zou: ['Airco woonkamer', 'Droger'] };
     await context.route(`${baseUrl}/api/state`, async (route) => {
       // Een verzoek dat nog loopt als de test de browser sluit, mag stil wegvallen (CI 8-11: "Response has been disposed").
@@ -6567,6 +6614,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    // Geen live updates (8 november 2026): die brengen de echte stand en overschrijven wat deze test nabootst.
+    await context.route((url) => url.href.startsWith(baseUrl) && url.pathname.endsWith('/api/events'), (route) => route.abort());
     // Eerst laadt hij 1,5 kW met zon; daarna levert hij 1 kW 's avonds.
     let stromen: Record<string, unknown> = { zonKw: 3, netKw: -0.5, verbruikKw: 1, aircoKw: 0, huisKw: 1, geplandKw: 0, accuKw: 1.5 };
     await context.route(`${baseUrl}/api/state`, async (route) => {

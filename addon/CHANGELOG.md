@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.156.0
+## 0.156.1
 
-*8 november 2026 · 0.151.0 – 0.156.0*
+*8 november 2026 · 0.151.0 – 0.156.1*
 
 **Nieuw**
 
@@ -18,6 +18,11 @@
 
 - Tijdens voorverwarmen in de ochtend springt de airco niet meer bij, zodat zijn piepje niemand wakker maakt. Voorverwarmen doet dan alleen de ketel; overdag helpt de airco weer mee
 - Zet je in Home Assistant bij je Easee de sensor voor de dynamische laadstroom aan (die staat standaard uit), dan zie je ook op welke stroom hij nu staat
+
+**Opgelost**
+
+- Bij Opbrengst staan de airco's en slimme stekkers met een eigen meter nu ook bij Dag, Week en Maand in het stroombeeld, niet alleen bij Jaar
+- Bij Jaar staan de bedragen in hele euro's, zodat ze in hun vak passen
 
 *English*
 
@@ -35,6 +40,11 @@
 
 - During preheating in the morning the air conditioner no longer helps out, so its beep wakes no one. The boiler preheats on its own; during the day the air conditioner helps again
 - If you turn on the sensor for the dynamic charging current of your Easee in Home Assistant (it is off by default), you also see what current it is set to now
+
+**Fixed**
+
+- In Energy the air conditioners and smart plugs with their own meter now also show in the flow diagram for Day, Week and Month, not only for Year
+- For Year the amounts are in whole euros, so they fit in their box
 
 ## 0.150.0
 

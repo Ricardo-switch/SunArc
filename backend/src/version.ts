@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.156.0';
+export const VERSIE = '0.156.1';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.156.1',
+    datum: '2026-11-08',
+    opgelost: [
+      'Bij Opbrengst staan de airco\'s en slimme stekkers met een eigen meter nu ook bij Dag, Week en Maand in het stroombeeld, niet alleen bij Jaar',
+      'Bij Jaar staan de bedragen in hele euro\'s, zodat ze in hun vak passen',
+    ],
+    en: {
+      opgelost: [
+        'In Energy the air conditioners and smart plugs with their own meter now also show in the flow diagram for Day, Week and Month, not only for Year',
+        'For Year the amounts are in whole euros, so they fit in their box',
+      ],
+    },
+  },
   {
     versie: '0.156.0',
     datum: '2026-11-08',

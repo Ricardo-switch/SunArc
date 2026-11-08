@@ -277,6 +277,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [276. Meldingen over de thuisaccu](#276-meldingen-over-de-thuisaccu)
 - [279. De balk van de dag in het blad Laden](#279-de-balk-van-de-dag-in-het-blad-laden)
 - [282. Voorverwarmen krijgt een eigen temperatuur, bij Dagdelen](#282-voorverwarmen-krijgt-een-eigen-temperatuur-bij-dagdelen)
+- [284. Het stroombeeld noemt elk apparaat; bij Jaar hele euro's](#284-het-stroombeeld-noemt-elk-apparaat-bij-jaar-hele-euros)
 
 **Veiligheid**
 
@@ -13064,6 +13065,34 @@ dan het oude systeem.
 
 *Voor dit huis:* op de NAS staat de woonkamer op aan, 5 minuten en 0,3°, zoals
 het oude systeem.
+
+---
+
+## 284. Het stroombeeld noemt elk apparaat; bij Jaar hele euro's
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.156.1. Ricardo: de airco's en slimme stekkers stonden
+bij Opbrengst alleen bij Jaar, niet bij Nu, Dag, Week en Maand; en bij Jaar
+viel het bedrag buiten zijn vak.
+
+*Waarom:* het stroombeeld (besluit 255) zette alles onder de 2% samen onder
+Overig. Over een jaar haalde de airco in de woonkamer 11%, deze maand 0,6 van
+106 kWh: dan stond hij er niet met zijn naam. De dienst gaf de apparaten wel
+mee; alleen het beeld liet ze weg. Bij Nu is het anders: daar staan de
+apparaten die op dat moment minstens 30 W vragen, en dat blijft zo.
+
+*Besluit:*
+
+- **Elk apparaat met een eigen meter met zijn naam,** hoe klein ook. Pas boven
+  de zes gaan de kleinste samen onder Overig (de vijf grootste blijven), zodat
+  het beeld op de wand leesbaar blijft.
+- **Bij Jaar hele euro's,** overal op de pagina: € 1.735 in plaats van
+  € 1.734,56. Bij de kortere periodes blijven de centen.
+- **De paginatests van de thuisaccu** krijgen geen live updates meer: die
+  brachten de echte stand en overschreven wat de test nabootste, waardoor de
+  controle in CI sinds 0.155.0 telkens op een andere accutest viel.
+- **Versie 0.156.1.**
 
 ---
 
