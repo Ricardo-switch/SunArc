@@ -6299,8 +6299,9 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await p.goto(`${baseUrl}/thuis.html`);
       const tik = p.locator(`svg .sc-tik[data-kamer="${plek('voordeur')!.id}"]`).locator('visible=true').first();
       await tik.waitFor({ timeout: 15_000 });
-      await tik.click({ force: true });
-      await p.locator('.weerkop h2', { hasText: 'Voordeur' }).locator('visible=true').first().waitFor(kort);
+      // Thuis tekent het huis opnieuw bij elke nieuwe stand: dan is het vlak van zonet weg. Opnieuw zoeken en tikken.
+      const voordeur = p.locator('.weerkop h2', { hasText: 'Voordeur' }).locator('visible=true').first();
+      await expect.poll(async () => (await voordeur.isVisible()) || (await tik.click({ force: true, timeout: 2000 }).then(() => voordeur.waitFor({ timeout: 2000 })).then(() => true, () => false)), { timeout: 15_000 }).toBe(true);
       expect(fouten).toEqual([]);
     } finally {
       if (start) await layoutStore.save(start);
@@ -6342,9 +6343,9 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await p.goto(`${baseUrl}/thuis.html`);
       const tik = p.locator(`svg .sc-tik[data-kamer="${garage()!.id}"]`).locator('visible=true').first();
       await tik.waitFor({ timeout: 15_000 });
-      await tik.click({ force: true });
       const vak = p.locator('.bb-auto', { hasText: 'Sessy' }).locator('visible=true').first();
-      await vak.waitFor(kort);
+      // Thuis tekent het huis opnieuw bij elke nieuwe stand: dan is het vlak van zonet weg. Opnieuw zoeken en tikken.
+      await expect.poll(async () => (await vak.isVisible()) || (await tik.click({ force: true, timeout: 2000 }).then(() => vak.waitFor({ timeout: 2000 })).then(() => true, () => false)), { timeout: 15_000 }).toBe(true);
       expect(await vak.textContent()).toContain('64%');
       expect(await vak.textContent()).toContain('laadt');
 
