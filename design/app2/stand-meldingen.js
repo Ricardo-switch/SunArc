@@ -5,10 +5,13 @@
  * begroeting, de kop en de stand-knop: die tekent dit bestand per stand.
  *
  * Wat anders is dan nu:
- * - De stand staat naast de begroeting, als een regel en niet als knop rechtsboven:
- *   "Goedemorgen · Dag · de airco springt bij". Op de telefoon ook, dus daar is
- *   de stand voortaan altijd te openen (nu alleen als hij afwijkt).
- * - Speelt er iets mee, dan zegt de regel dat, met een stip in de kleur ervan.
+ * - Op de wand blijft de knop rechtsboven, met erin wat er speelt: "Dag · de
+ *   airco springt bij" (Ricardo, 8 november). De woorden staan in
+ *   stand-achtergrond.mjs, dat de echte knop zo laat tekenen.
+ * - Op de telefoon staat de stand als regel naast de begroeting: "Goedemorgen ·
+ *   De airco springt bij". Daar is de stand voortaan altijd te openen (nu
+ *   alleen als hij afwijkt). Zonder iets bijzonders: "Dag tot 22:00".
+ * - Speelt er iets mee, dan zegt de knop of regel dat, met een stip in de kleur ervan.
  *   Eén ding tegelijk, het belangrijkste eerst: met de hand, bijspringen,
  *   vakantie, afwezig, er brandt nog licht.
  * - Het blad zegt bovenaan de stand van nu met de dag als balk, daaronder wat er
@@ -36,7 +39,7 @@
   const STANDEN = {
     bijspringen: {
       moment: 'ochtend', nu: 10.25, groet: 'Goedemorgen',
-      stand: 'Dag', melding: 'de airco springt bij', kort: 'De airco springt bij', kleur: 'var(--gloed)',
+      stand: 'Dag', kort: 'De airco springt bij', kleur: 'var(--gloed)',
       kop: 'De woonkamer wordt verwarmd', zin: 'Het is er 20,1°, het doel is 20,5°. De ketel houdt het niet bij, de airco helpt.',
       onder: 'uit de dagdelen · om 22:00 nacht',
       mee: [
@@ -46,7 +49,7 @@
     },
     gewoon: {
       moment: 'ochtend', nu: 10.25, groet: 'Goedemorgen',
-      stand: 'Dag', melding: 'tot 22:00', kort: 'Dag tot 22:00', kleur: null,
+      stand: 'Dag', kort: 'Dag tot 22:00', kleur: null,
       kop: 'De woonkamer wordt verwarmd', zin: 'Het is er 20,8°, het doel is 20,5°. Zolder: wacht: pauzeert even na het uitgaan.',
       onder: 'uit de dagdelen · om 22:00 nacht',
       mee: [],
@@ -54,7 +57,7 @@
     },
     hand: {
       moment: 'ochtend', nu: 10.25, groet: 'Goedemorgen',
-      stand: 'Dag', melding: 'airco zolder met de hand tot 12:00', kort: 'Airco zolder tot 12:00', kleur: 'var(--mint)',
+      stand: 'Dag', kort: 'Airco zolder tot 12:00', kleur: 'var(--mint)',
       kop: 'De woonkamer wordt verwarmd', zin: 'Het is er 20,8°, het doel is 20,5°. Zolder: met de hand op 21°, tot 12:00.',
       onder: 'uit de dagdelen · om 22:00 nacht',
       mee: [
@@ -65,7 +68,7 @@
     },
     licht: {
       moment: 'avond', nu: 22.67, groet: 'Goedenavond', verlengd: true,
-      stand: 'Dag', melding: 'langer, er brandt licht', kort: 'Nog Dag: er brandt licht', kleur: 'var(--zon)',
+      stand: 'Dag', kort: 'Nog Dag: er brandt licht', kleur: 'var(--zon)',
       kop: 'De woonkamer is fris', zin: 'Het is er 19,4°, het doel is 20,5°.',
       onder: 'langer dan 22:00 · daarna nacht',
       mee: [
@@ -75,7 +78,7 @@
     },
     afwezig: {
       moment: 'avond', nu: 22.67, groet: 'Goedenavond', plat: { naam: 'Afwezig', temp: '16°', kleur: 'var(--ijs)' },
-      stand: 'Afwezig', melding: 'niemand thuis', kort: 'Niemand thuis', kleur: 'var(--ijs)',
+      stand: 'Afwezig', kort: 'Niemand thuis', kleur: 'var(--ijs)',
       kop: 'Rustige avond', zin: 'Niemand thuis: zuiniger tot iemand terug is.',
       onder: 'vanzelf · niemand thuis',
       mee: [
@@ -85,7 +88,7 @@
     },
     vakantie: {
       moment: 'avond', nu: 22.67, groet: 'Goedenavond', plat: { naam: 'Vakantie', temp: '12°', kleur: 'var(--violet)' },
-      stand: 'Vakantie', melding: 'gekozen in Home Assistant', kort: 'Vakantie', kleur: 'var(--violet)',
+      stand: 'Vakantie', kort: 'Vakantie', kleur: 'var(--violet)',
       kop: 'Rustige avond', zin: 'Langer weg: zo zuinig mogelijk.',
       onder: 'gekozen in Home Assistant',
       mee: [
@@ -157,13 +160,16 @@
     const scherm = document.body.dataset.scherm;
     const delen = location.hash.slice(1).split('-').filter(Boolean);
     const open = delen.includes('blad');
-    const s = STANDEN[delen.find((d) => d !== 'blad') ?? 'bijspringen'] ?? STANDEN.bijspringen;
+    const naam = STANDEN[delen.find((d) => d !== 'blad')] ? delen.find((d) => d !== 'blad') : 'bijspringen';
+    const s = STANDEN[naam];
     const vlak = document.querySelector('.scherm');
-    vlak.style.backgroundImage = `url('screens/Stand-achtergrond-${scherm}-${s.moment}.png')`;
+    // Op de wand zit de stand in de knop rechtsboven: die staat per stand in de achtergrond (stand-achtergrond.mjs).
+    vlak.style.backgroundImage = `url('screens/Stand-achtergrond-${scherm}-${scherm === 'wand' ? naam : s.moment}.png')`;
     // 's Avonds is de kop op de telefoon één regel: daar staat de zin hoger.
     vlak.dataset.moment = s.moment;
-    const regel = scherm === 'tel' ? s.kort : `<b>${s.stand}</b> · ${s.melding}`;
-    document.querySelector('[data-groet]').innerHTML = `${s.groet}<span class="sep">·</span><button type="button" class="standregel${s.kleur ? ' speelt' : ''}" style="--k: ${s.kleur ?? 'var(--zacht)'}">${s.kleur ? '<span class="stip"></span>' : ''}<span>${regel}</span><i>›</i></button>`;
+    document.querySelector('[data-groet]').innerHTML = scherm === 'wand'
+      ? s.groet
+      : `${s.groet}<span class="sep">·</span><button type="button" class="standregel${s.kleur ? ' speelt' : ''}" style="--k: ${s.kleur ?? 'var(--zacht)'}">${s.kleur ? '<span class="stip"></span>' : ''}<span>${s.kort}</span><i>›</i></button>`;
     document.querySelector('[data-kop]').textContent = s.kop;
     document.querySelector('[data-zin]').textContent = s.zin;
     const b = document.querySelector('[data-blad]');
