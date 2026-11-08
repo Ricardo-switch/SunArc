@@ -273,8 +273,8 @@ verwijzing bestaat.
 - **Je huis op maat** (in aanbouw): Kamers en indeling wordt een groep met
   Huisontwerp, Etages, Kamers en Apparaten indelen, op dezelfde gebouwen als
   Daken en panelen. Kamers zijn vakken die je met lijnen deelt, vakken met
-  dezelfde kamer zijn één ruimte, zones een lijn, en elk apparaat een plek. Nu
-  alleen de opslag ([288]).
+  dezelfde kamer zijn één ruimte, zones een lijn, en elk apparaat een plek;
+  de groep heet al zo (0.158.0, [288]).
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over

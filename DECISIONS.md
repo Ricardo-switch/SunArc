@@ -13252,6 +13252,10 @@ huis op Thuis nooit op echte maat getekend worden.
   5 Kamers, 6 Apparaten met hun plek. Elke stap een versie op beta; samen naar
   main als Je huis af is. Het huis op Thuis op echte maat is daarna een eigen
   ronde.
+- **Stap 2, versie 0.158.0:** de groep heet Je huis, met Kamers (de etages
+  als balk bovenin, met + Etage), Apparaten indelen, en rond het huis Buiten
+  en Verborgen. Oude adressen met een kamer of etage openen Kamers op die
+  etage. Een apparaat slepen naar een etage bovenin opent die etage.
 
 ---
 

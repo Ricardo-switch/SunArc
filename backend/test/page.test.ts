@@ -1857,7 +1857,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         // Deel 4: Wat je huis kan, Indeling, Inrichten en het begin.
         ['huis-kan.html', /What your house can do[\s\S]*Comfort[\s\S]*What the house learns first[\s\S]*On solar/],
         ['voortgang.html', /How far your house is[\s\S]*Fully working/],
-        ['indeling.html', /Rooms and layout[\s\S]*(Add a floor|Name of the floor)/],
+        ['indeling.html', /Your home[\s\S]*(Add a floor|Name of the floor)/],
         ['inrichten.html', /Welcome[\s\S]*home\.[\s\S]*Always says why/],
         ['inrichten.html#warmte', /What heats and cools\?/],
         ['inrichten.html#apparaat', /What each device can do/],
@@ -6182,10 +6182,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
 
     await p.goto(`${baseUrl}/indeling.html#${encodeURIComponent(a.id)}`);
     await p.locator('#wand [data-actie="kamernaam"]').waitFor({ timeout: 10_000 });
-    // Als groep, net als Energie (besluit 193): de vier etages met Buiten, Nog in te delen en Verborgen, en de etage van de kamer gekozen.
-    expect(await p.locator('#wand [data-delen] .deel:not(.erbij)').count()).toBe(6);
-    expect(new URL(p.url()).hash).toBe(`#${encodeURIComponent(a.etage)}`);
-    expect(await p.locator('#wand [data-delen] .deel.nu').getAttribute('href')).toBe(`#${encodeURIComponent(a.etage)}`);
+    // Je huis als groep (besluit 193, 288): Kamers, Apparaten indelen, Buiten en Verborgen; Kamers gekozen met de etage van de kamer bovenin.
+    expect(await p.locator('#wand [data-delen] .deel:not(.erbij)').count()).toBe(4);
+    expect(new URL(p.url()).hash).toBe('#kamers');
+    expect(await p.locator('#wand [data-delen] .deel.nu').getAttribute('href')).toBe('#kamers');
+    expect(await p.locator(`#wand [data-etage-knop="${a.etage}"]`).getAttribute('aria-pressed')).toBe('true');
     // De wand scrolt niet.
     expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
 
@@ -6269,11 +6270,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await p.locator('#wand [data-ongedaan]').click(kort);
     await expect.poll(() => layoutStore.current?.apparaten['cover.screen']?.gevel, kort).toBeUndefined();
 
-    // Een etage toevoegen, verschuiven en weer weghalen (besluit 112).
-    await p.locator('#wand [data-delen] .deel.erbij').click(kort);
+    // Een etage toevoegen, verschuiven en weer weghalen (besluit 112), met + Etage bovenin Kamers (besluit 288).
+    await p.locator('#wand [data-etage-erbij]').click(kort);
     await p.locator('#wand [data-etage-vast]', { hasText: 'Kelder' }).click(kort);
     await expect.poll(() => layoutStore.current?.volgorde?.at(-1), kort).toBe('kelder');
-    await p.locator('#wand [data-delen] .deel.nu', { hasText: 'Kelder' }).waitFor(kort);
+    await p.locator('#wand [data-etage-knop="kelder"][aria-pressed="true"]').waitFor(kort);
     await p.locator('#wand [data-etage-schuif="-1"]').click(kort);
     await expect.poll(() => layoutStore.current?.volgorde?.at(-2), kort).toBe('kelder');
     await p.locator('#wand [data-etage-weg]').click(kort);
@@ -6313,12 +6314,12 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 30_000);
 
   /*
-   * Kamers en indeling als groep (besluit 193): op de telefoon eerst de lijst,
-   * een etage als eigen scherm met terug naar de lijst. Bij Buiten wat er rond
+   * Je huis als groep (besluit 193, 288): op de telefoon eerst de lijst,
+   * Kamers als eigen scherm met de etages bovenin, en terug naar de lijst. Bij Buiten wat er rond
    * het huis is, zoals bij Inrichten: de garage en de carport gaan aan en staan
    * in de tekening, ook zonder dak.
    */
-  it('opent Kamers en indeling op de telefoon met een keuzepagina, en zet buiten een garage en carport aan', async () => {
+  it('opent Je huis op de telefoon met een keuzepagina, en zet buiten een garage en carport aan', async () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
@@ -6331,16 +6332,17 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await p.goto(`${baseUrl}/indeling.html`);
     // Eerst alleen de lijst.
     const lijst = tel.locator('[data-delen]');
-    await lijst.locator('.deel', { hasText: 'Begane grond' }).waitFor({ timeout: 10_000 });
+    await lijst.locator('.deel', { hasText: 'Kamers' }).waitFor({ timeout: 10_000 });
     expect(await tel.locator('[data-vorm]').isVisible()).toBe(false);
-    expect(await lijst.locator('.deel.erbij').count()).toBe(1);
-    // Een etage opent als eigen scherm, met de tekening en het blad.
-    await lijst.locator('.deel', { hasText: 'Begane grond' }).click();
-    await tel.locator('[data-deelkop]', { hasText: 'Begane grond' }).waitFor(kort);
+    expect(await lijst.locator('.deel.erbij').count()).toBe(0);
+    // Kamers opent als eigen scherm, met de begane grond gekozen, de tekening en het blad.
+    await lijst.locator('.deel', { hasText: 'Kamers' }).click();
+    await tel.locator('[data-deelkop]', { hasText: 'Kamers' }).waitFor(kort);
+    await tel.locator('[data-etage-knop="bg"][aria-pressed="true"]').waitFor(kort);
     expect(await lijst.isVisible()).toBe(false);
     await tel.locator('#podium-tel svg.sc-huis').waitFor(kort);
     await tel.locator('[data-blad] [data-actie="etagenaam"]').waitFor(kort);
-    expect(await tel.locator('[data-terug]').textContent()).toContain('Kamers en indeling');
+    expect(await tel.locator('[data-terug]').textContent()).toContain('Je huis');
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-indeling-tel.png'), fullPage: true });
     // Terug naar de lijst.
     await tel.locator('[data-terug]').click();
@@ -6364,7 +6366,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       // En op de wand: Buiten, en Nog in te delen.
       const wand = await context.newPage();
       await wand.setViewportSize({ width: 1280, height: 800 });
-      for (const deel of ['buiten', 'los', 'bg']) {
+      for (const deel of ['buiten', 'los', 'kamers']) {
         await wand.goto(`${baseUrl}/indeling.html#${deel}`);
         await wand.waitForLoadState('networkidle');
         await wand.waitForTimeout(400);

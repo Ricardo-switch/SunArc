@@ -1,5 +1,19 @@
 # Wat is er nieuw · What is new
 
+## 0.158.0
+
+*8 november 2026*
+
+**Beter**
+
+- Kamers en indeling heet nu Je huis: Kamers met de etages bovenin, Apparaten indelen, en rond het huis Buiten en Verborgen. Een etage erbij zet je met + Etage
+
+*English*
+
+**Improved**
+
+- Rooms and layout is now called Your home: Rooms with the floors on top, Arrange devices, and around the house Outside and Hidden. Add a floor with + Floor
+
 ## 0.157.1
 
 *8 november 2026 · 0.156.2 – 0.157.1*

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="only dark">
-<title>Kamers en indeling · SunArc</title>
+<title>Je huis · SunArc</title>
 <link rel="stylesheet" href="kit/kit.css">
 <link rel="stylesheet" href="basis.css">
 <link rel="manifest" href="manifest.webmanifest">
@@ -14,7 +14,7 @@
 <script>(function () { var d = document.documentElement, w0 = 0, h0 = 0, t = {}, m = matchMedia('(prefers-color-scheme: light)'); try { t = JSON.parse(localStorage.getItem('sc-thema')) || {}; } catch (e) {} function k() { var eigen = d.classList.contains('tel-stand') || !t.scherm, c = eigen ? t.kleur : t.wandKleur; var licht = eigen && (t.thema === 'licht' || (t.thema === 'systeem' && m.matches)), tc = document.querySelector('meta[name="theme-color"]'); d.classList.toggle('sc-licht', licht); if (tc) tc.setAttribute('content', licht ? '#e9eff6' : '#0b1424'); if (c && c !== 'lucht') d.setAttribute('data-kleur', c); else d.removeAttribute('data-kleur'); } window.scThema = function (n) { if (n) { t = n; try { localStorage.setItem('sc-thema', JSON.stringify(n)); } catch (e) {} } k(); }; function s() { var a = document.activeElement; if (w0 === innerWidth && innerHeight < h0 && a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) return; w0 = innerWidth; h0 = innerHeight; var b = Math.min(1700, Math.max(1280, Math.round(800 * innerWidth / innerHeight))); d.classList.toggle('tel-stand', innerHeight > innerWidth || innerWidth < 560); d.style.setProperty('--wandbreedte', b + 'px'); d.style.setProperty('--wandschaal', Math.min(innerWidth / b, innerHeight / 800)); k(); } s(); addEventListener('resize', s); m.addEventListener('change', k); })();</script>
 <style>
   /*
-   * Kamers en indeling als groep (besluit 193, schets Wand-Indeling-Groep), net
+   * Je huis als groep (besluit 193 en 288, schetsen Wand-Indeling-Groep en Wand-Huis-Ontwerp), net
    * als Energie: links de delen (de etages, Buiten, wat nog geen plek heeft en
    * wat verborgen is), rechts het gekozen deel. Een etage is de tekening zonder
    * dak met het blad ernaast, en eronder de strook met wat nog in te delen is.
@@ -26,6 +26,12 @@
   .vormkop h2 { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .vormkop .mini { margin: 0; white-space: nowrap; }
   .vormkop [data-ongedaan] { margin-left: auto; flex: none; white-space: nowrap; }
+  /* De etages bovenin Kamers (besluit 288): één balk; boven een knop blijven hangen met een apparaat opent die etage. */
+  .vormkop .etagevak { margin-left: auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .vormkop .etagevak:not([hidden]) ~ [data-ongedaan] { margin-left: 0; }
+  #wand .vormkop:has(.etagevak:not([hidden])) h2 { flex: none; }
+  #wand .vormkop:has(.etagevak:not([hidden])) .mini { overflow: hidden; text-overflow: ellipsis; }
+  .etagebalk [data-etage-knop].doel { outline: 2px dashed var(--mint); outline-offset: -2px; }
   #wand .vormvak .vorm { padding: 18px 24px 0; gap: 12px; }
   #wand .binnen { flex: 1 1 0; display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; min-height: 0; }
   #wand .links { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
@@ -179,6 +185,8 @@
   #tel .groepkop .status { text-align: left; }
   #tel .vorm { padding: 16px; gap: 12px; }
   #tel .vormkop h2 { font-size: 26px; flex: 1; }
+  #tel .vormkop { flex-wrap: wrap; }
+  #tel .vormkop .etagevak { order: 3; flex: 1 0 100%; margin-left: 0; }
   /* Wat het deel bevat, staat al in de lijst; op de telefoon is er alleen plek voor de naam en Ongedaan maken. */
   #tel .vormkop .mini { display: none; }
   #tel .binnen, #tel .links { display: flex; flex-direction: column; gap: 12px; }
@@ -204,7 +212,7 @@
         <nav class="glas delen schuift" data-t-aria-label="indeling.delen" data-delen></nav>
         <div class="glas vormvak" data-waarvoor-vak>
           <section class="vorm" data-vorm>
-          <div class="vormkop"><h2 class="kop-2" data-deelkop></h2><span class="mini" data-deelzin></span><button type="button" class="knop" data-ongedaan disabled data-t="indeling.ongedaan"></button></div>
+          <div class="vormkop"><h2 class="kop-2" data-deelkop></h2><span class="mini" data-deelzin></span><div class="etagevak" data-etagebalk hidden></div><button type="button" class="knop" data-ongedaan disabled data-t="indeling.ongedaan"></button></div>
           <div class="binnen" data-binnen>
             <div class="links">
               <div class="podium" id="podium-wand"></div>
@@ -228,7 +236,7 @@
       <span class="samen" data-samen></span>
       <nav class="glas delen" data-t-aria-label="indeling.delen" data-delen></nav>
       <section class="glas vorm" data-vorm>
-          <div class="vormkop"><h2 class="kop-2" data-deelkop></h2><span class="mini" data-deelzin></span><button type="button" class="knop" data-ongedaan disabled data-t="indeling.ongedaan"></button></div>
+          <div class="vormkop"><h2 class="kop-2" data-deelkop></h2><span class="mini" data-deelzin></span><div class="etagevak" data-etagebalk hidden></div><button type="button" class="knop" data-ongedaan disabled data-t="indeling.ongedaan"></button></div>
           <div class="binnen" data-binnen>
             <div class="links">
               <div class="podium" id="podium-tel"></div>
