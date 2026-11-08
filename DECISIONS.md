@@ -13265,6 +13265,16 @@ huis op Thuis nooit op echte maat getekend worden.
   de daken bewaart: de panelen, zekering en prijzen blijven staan. Het slepen,
   de kaart en het venster staan in `dakbediening.js`, de opmaak in `daken.css`
   (eerst in energie.html); Energie gebruikt de bediening nog uit eigen code.
+- **Stap 4, versie 0.160.0:** Etages na Huisontwerp: het huis opzij
+  (`frontend/kit/huisvorm.js`, `doorsnede`), met de etages op hun hoogte, de
+  etage onder het schuine dak tot de nok met het deel onder 1,5 meter
+  gearceerd, een kelder onder de grond en de uitbouw achter. Goot en nok komen
+  van het hoofdhuis als ze niet geschat zijn, anders uit de etages; een etage
+  is 2,8 meter (een kelder 2,4) tot de bewoner het verandert. Een laag tik je
+  aan in de tekening of de lijst; daar de naam, de hoogte, het schuine dak, op
+  welke gebouwen hij ligt (de begane grond standaard op huis en uitbouw), en
+  hoger, lager en + Etage. Zijn de bouwlagen niet geschat, dan zegt een regel
+  of ze kloppen met het aantal etages boven de grond.
 
 ---
 

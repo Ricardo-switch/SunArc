@@ -6182,8 +6182,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
 
     await p.goto(`${baseUrl}/indeling.html#${encodeURIComponent(a.id)}`);
     await p.locator('#wand [data-actie="kamernaam"]').waitFor({ timeout: 10_000 });
-    // Je huis als groep (besluit 193, 288): Huisontwerp, Kamers, Apparaten indelen, Buiten en Verborgen; Kamers gekozen met de etage van de kamer bovenin.
-    expect(await p.locator('#wand [data-delen] .deel:not(.erbij)').count()).toBe(5);
+    // Je huis als groep (besluit 193, 288): Huisontwerp, Etages, Kamers, Apparaten indelen, Buiten en Verborgen; Kamers gekozen met de etage van de kamer bovenin.
+    expect(await p.locator('#wand [data-delen] .deel:not(.erbij)').count()).toBe(6);
     expect(await p.locator('#wand [data-delen] .deel[href="#vorm"]').count()).toBe(1);
     expect(new URL(p.url()).hash).toBe('#kamers');
     expect(await p.locator('#wand [data-delen] .deel.nu').getAttribute('href')).toBe('#kamers');
@@ -6310,6 +6310,32 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     expect(await zoneLijst.locator('option').allTextContents()).not.toContain('Zithoek');
     await zoneLijst.selectOption('tuinhuis');
     await expect.poll(() => layoutStore.current?.kamers.find((k) => k.id === tuin.id)?.zones.find((z) => z.naam === 'Border')?.soort, kort).toBe('tuinhuis');
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
+  /* Je huis › Etages (besluit 288, stap 4): het huis opzij, een laag aantikken en zijn hoogte bewaren. */
+  it('toont de etages opzij en bewaart de hoogte van een etage', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5000 };
+    await p.goto(`${baseUrl}/indeling.html#etages`);
+    await p.locator('#wand svg.sc-doorsnede [data-etage-kies]').first().waitFor({ timeout: 10_000 });
+    const etage = (await p.locator('#wand svg.sc-doorsnede [data-etage-kies]').last().getAttribute('data-etage-kies'))!;
+    await p.locator(`#wand svg.sc-doorsnede [data-etage-kies="${etage}"]`).click(kort);
+    await p.locator(`#wand .etagerij.nu[data-etage-maat="${etage}"]`).waitFor(kort);
+    const plus = p.locator('#wand [data-etage-hoogte="1"]');
+    if (await plus.count()) {
+      const voor = layoutStore.current?.etageMaten?.[etage]?.hoogte ?? null;
+      await plus.click(kort);
+      await expect.poll(() => layoutStore.current?.etageMaten?.[etage]?.hoogte, kort).toBe(Math.round(((voor ?? 2.8) + 0.1) * 10) / 10);
+      await p.locator('#wand [data-ongedaan]').click(kort);
+      await expect.poll(() => layoutStore.current?.etageMaten?.[etage]?.hoogte ?? null, kort).toBe(voor);
+    }
     expect(fouten).toEqual([]);
     await context.close();
   }, 30_000);

@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.159.0
+## 0.160.0
 
-*8 november 2026 · 0.158.0 – 0.159.0*
+*8 november 2026 · 0.158.0 – 0.160.0*
 
 **Nieuw**
 
+- Je huis › Etages: je huis opzij doorgesneden, met elke etage op zijn hoogte, het schuine dak met het lage deel, en de goot en nok. Tik een etage aan voor zijn hoogte, of hij onder het schuine dak ligt, en op welke gebouwen hij ligt
+- Etages zegt of het aantal etages klopt met de bouwlagen van je huis
 - Je huis › Huisontwerp: de gebouwen van boven, dezelfde als bij Daken en panelen. Kies waar je huis vandaan komt, wat voor huis het is, en per gebouw het dak, de maat en de hoogte tot goot en nok
 - Uit de 3D-kaart van Nederland komen nu ook de hoogte en het aantal bouwlagen van je huis
 
@@ -17,6 +19,8 @@
 
 **New**
 
+- Your home › Floors: your house in cross-section, with every floor at its height, the sloping roof with its low part, and the gutter and ridge. Tap a floor for its height, whether it is under the sloping roof, and which buildings it lies on
+- Floors tells you whether the number of floors matches the storeys of your house
 - Your home › House design: the buildings from above, the same as under Roofs and panels. Choose where your house comes from, what type of house it is, and per building the roof, the size and the height to gutter and ridge
 - The 3D map of the Netherlands now also gives the height and number of storeys of your house
 

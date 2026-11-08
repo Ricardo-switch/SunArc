@@ -84,6 +84,152 @@ function vormZin() {
   return `${t(`huisvorm.bron.${bron}`)}, ${t('huisvorm.gebouwenAantal', { n: gebouwen.length })}`;
 }
 
+/*
+ * Etages (besluit 288, stap 4): het huis opzij met de etages op hun hoogte.
+ * De goot en de nok komen van het hoofdhuis (Huisontwerp of de 3D-kaart),
+ * anders uit de etages; de hoogte per etage uit `etageMaten`, anders 2,8 meter
+ * (een kelder 2,4). De etage onder het schuine dak loopt tot de nok.
+ */
+const gebouwenNu = () => aans?.daken?.tekening?.gebouwen ?? [];
+const hoofdGebouw = () => gebouwenNu().find((g) => g.soort === 'hoofdhuis') ?? null;
+/** Gebouwen waar een etage op kan liggen: het hoofdhuis, een uitbouw, een garage of iets anders aan het huis. */
+const binnenGebouwen = () => gebouwenNu().filter((g) => ['hoofdhuis', 'uitbouw', 'garage', 'anders'].includes(g.soort));
+const m1 = (x) => nl(Math.round(x * 10) / 10, 1);
+
+/** Hoe diep een gebouw is, van de voorgevel naar achter: de kant van zijn rechthoek die haaks op de straat staat. */
+function gebouwDiep(g) {
+  if (!g?.maat) return 9;
+  const u = (((aans?.daken?.voorgevelDeg ?? 180) + 270) % 360) % 180;
+  const verschil = Math.abs((((g.maat.asDeg - u) % 180) + 180) % 180);
+  return Math.min(verschil, 180 - verschil) < 45 ? g.maat.breedte : g.maat.lengte;
+}
+
+/** De etages van onder naar boven, elk met van en tot in meters, en de goot en nok van het huis. */
+function etageLagen(d) {
+  const v = volgordeVan(d);
+  const grond = v.includes('bg') ? v.indexOf('bg') : v.length - 1;
+  const g = hoofdGebouw();
+  const h = g ? dakvlakken.hoogteVan(g) : null;
+  const dakvorm = g?.dakvorm ?? 'zadel';
+  const schuin = dakvorm !== 'plat';
+  const dakId = schuin ? (huisData?.dakEtage ?? (d.dak && d.dak !== 'geen' ? d.dak : null)) : null;
+  const hoog = (id, kelder) => d.etageMaten?.[id]?.hoogte ?? (kelder ? 2.4 : 2.8);
+  const etages = [];
+  let z = 0;
+  for (let i = grond; i >= 0; i--) {
+    const id = v[i];
+    const m = hoog(id, false);
+    etages.push({ id, naam: etageNaam(d, id), van: z, tot: z + m, dak: id === dakId, hoogte: m });
+    z += m;
+  }
+  let k = 0;
+  for (let i = grond + 1; i < v.length; i++) {
+    const id = v[i];
+    const m = hoog(id, true);
+    etages.unshift({ id, naam: etageNaam(d, id), van: k - m, tot: k, dak: false, kelder: true, hoogte: m });
+    k -= m;
+  }
+  const vol = etages.filter((e) => e.van >= 0 && !e.dak);
+  const top = vol.length ? Math.max(...vol.map((e) => e.tot)) : 2.8;
+  const goot = h && !h.geschat ? h.goot : schuin ? top + 0.6 : top + 0.3;
+  const nok = !schuin ? goot : h && !h.geschat ? Math.max(goot, h.nok) : goot + 3.5;
+  for (const e of etages) {
+    if (!e.dak) continue;
+    e.tot = Math.max(e.van + 1, nok);
+    e.hoogte = Math.round((e.tot - e.van) * 10) / 10;
+  }
+  const kaart = g?.bron === 'kaart' && g?.kaart === 'bag3d';
+  return { etages, goot, nok, dakvorm, schuin, lagen: h && !h.geschat ? h.lagen : null, kaart, diep: gebouwDiep(g) };
+}
+
+/** Op welke gebouwen een etage ligt: zoals bewaard, of de begane grond op het huis en de uitbouw, de rest op het huis. */
+function etageOpVan(d, id) {
+  const gekozen = d.etageMaten?.[id]?.op;
+  if (gekozen) return gekozen;
+  const v = volgordeVan(d);
+  const grond = v.includes('bg') ? 'bg' : v[v.length - 1];
+  return binnenGebouwen().filter((g) => g.soort === 'hoofdhuis' || (id === grond && g.soort === 'uitbouw')).map((g) => g.id);
+}
+
+/** Etages in de lijst links: hoeveel, en of het klopt met de bouwlagen. */
+function etagesZin(d) {
+  const L = etageLagen(d);
+  const boven = L.etages.filter((e) => e.van >= 0).length;
+  const n = t('indeling.etagesAantal', { n: L.etages.length });
+  if (L.lagen == null) return n;
+  return L.lagen === boven ? `${n}, ${t(L.kaart ? 'etages.zinKaart' : 'etages.zinKlopt')}` : `${n}, ${t('etages.zinAnders', { n: L.lagen })}`;
+}
+
+/** Klopt het aantal etages met de bouwlagen van het huis? Alleen als die niet geschat zijn. */
+function kloptRegel(L) {
+  if (L.lagen == null) return '';
+  const boven = L.etages.filter((e) => e.van >= 0).length;
+  if (L.lagen === boven) return `<div class="klopt"><span class="vink" aria-hidden="true">✓</span><div><b>${esc(t('etages.klopt', { n: boven }))}</b>${esc(t(L.kaart ? 'etages.kloptKaart' : 'etages.kloptZelf'))}</div></div>`;
+  return `<div class="klopt anders"><span class="vink" aria-hidden="true">!</span><div><b>${esc(t('etages.anders', { lagen: L.lagen, n: boven }))}</b>${esc(t('etages.andersZin'))}</div></div>`;
+}
+
+/** Wat een etage is, in een paar woorden: onder de grond, onder het dak, of op welke gebouwen. */
+function etageWat(d, e) {
+  if (e.kelder) return t('etages.onderGrond');
+  if (e.dak) return t('etages.onderDak');
+  const op = etageOpVan(d, e.id);
+  const namen = binnenGebouwen().filter((g) => op.includes(g.id)).map((g) => t(`daken.gebouw.${g.soort}`).toLowerCase());
+  return namen.length ? t('etages.op', { wat: namen.join(t('etages.en')) }) : '';
+}
+
+/** Het huis opzij, in het podium. */
+function tekenDoorsnede(d, el, maat) {
+  const L = etageLagen(d);
+  const ub = gebouwenNu().find((g) => g.soort === 'uitbouw');
+  const grond = L.etages.find((e) => e.van === 0);
+  const ubOp = ub && grond && etageOpVan(d, grond.id).includes(ub.id);
+  el.innerHTML = huisvorm.doorsnede(
+    {
+      beschrijving: t('etages.beschrijving', { n: L.etages.length }),
+      diep: L.diep,
+      goot: L.goot,
+      nok: L.nok,
+      dakvorm: L.dakvorm,
+      etages: L.etages.map((e) => ({ ...e, gekozen: e.id === keuze.etage, zin: e.dak ? t('etages.onderDak') : t('etages.hoog', { m: m1(e.hoogte) }) })),
+      uitbouw: ubOp ? { diep: Math.min(ub.maat?.lengte ?? 3, ub.maat?.breedte ?? 3), hoogte: dakvlakken.hoogteVan(ub).goot, naam: t('daken.gebouw.uitbouw') } : null,
+      tekst: { goot: t('etages.goot', { m: m1(L.goot) }), nok: t('etages.nok', { m: m1(L.nok) }), voor: t('etages.voor'), achter: t('etages.achter') },
+    },
+    maat,
+  );
+}
+
+/** Het blad van Etages: de lagen, en van de gekozen etage de naam, hoogte, het dak en waar hij op ligt. */
+function etageMaatBlad(d) {
+  const L = etageLagen(d);
+  const id = keuze.etage;
+  const e = L.etages.find((x) => x.id === id);
+  if (!e) return '';
+  const rij = (x) => `<button type="button" class="etagerij${x.id === id ? ' nu' : ''}" data-etage-maat="${esc(x.id)}" aria-pressed="${x.id === id}"><span><b>${esc(x.naam)}</b><small>${esc(etageWat(d, x))}</small></span><em>${m1(x.hoogte)} m</em></button>`;
+  const standaard = info.etages.find((x) => x.id === id)?.standaardNaam ?? id;
+  const hoogte = e.dak
+    ? `<p class="klein" style="margin: 0">${esc(t('etages.totNok', { m: m1(e.hoogte) }))}</p>`
+    : `<div class="dk-stapper"><button type="button" data-etage-hoogte="-1" aria-label="${esc(t('etages.lager'))}">−</button><b>${m1(e.hoogte)} m</b><button type="button" data-etage-hoogte="1" aria-label="${esc(t('etages.hoger'))}">+</button></div>`;
+  const op = etageOpVan(d, id);
+  const gebouwen = binnenGebouwen();
+  const opKeuze = gebouwen.length > 1 && !e.dak ? `<div><span class="label">${esc(t('etages.ligtOp'))}</span><div class="chips">${gebouwen.map((g) => `<button type="button" class="chip${op.includes(g.id) ? ' aan' : ''}" data-etage-op="${esc(g.id)}" aria-pressed="${op.includes(g.id)}">${esc(t(`daken.gebouw.${g.soort}`))}</button>`).join('')}</div></div>` : '';
+  const kamers = d.kamers.filter((k) => k.etage === id).length;
+  return `${kloptRegel(L)}
+    <div class="etagerijen">${[...L.etages].reverse().map(rij).join('')}</div>
+    <div class="twee"><div><label class="label" for="etagenaam-${esc(id)}">${esc(t('indeling.etageNaam'))}</label><input class="veld" id="etagenaam-${esc(id)}" data-actie="etagenaam" value="${esc(d.etages[id] ?? '')}" placeholder="${esc(standaard)}" maxlength="40"></div><div><span class="label">${esc(t('etages.hoogte'))}</span>${hoogte}</div></div>
+    ${e.kelder ? '' : `<div><span class="label">${esc(t('indeling.schuinDak'))}</span><div class="chips" role="group" aria-label="${esc(t('indeling.schuinDakLabel'))}">${[[true, t('functies.ja')], [false, t('functies.nee')]].map(([w, x]) => `<button type="button" class="chip" data-dak="${w}" aria-pressed="${e.dak === w}">${esc(x)}</button>`).join('')}</div></div>`}
+    ${opKeuze}
+    ${etageSchuiven(d, id, kamers)}
+    <div class="dk-voet"><button type="button" class="lig-link" data-etage-erbij>${esc(t('indeling.etagePlus'))}</button></div>`;
+}
+
+/** De maat van een etage bewaren: zijn hoogte of de gebouwen waar hij op ligt. */
+function zetEtageMaat(id, wat) {
+  const next = concept();
+  const nu = next.etageMaten?.[id] ?? {};
+  next.etageMaten = { ...(next.etageMaten ?? {}), [id]: { ...nu, ...wat } };
+  return bewaar(next, t('etages.bewaard', { naam: etageNaam(next, id) }));
+}
+
 /** Wat voor huis het is (besluit 190), bij Huisontwerp: dezelfde keuze als bij Inrichten. */
 function woningKeuze(d) {
   const nu = d.woning ?? 'vrijstaand';
@@ -122,9 +268,9 @@ async function laadHuis() {
  * De delen van Je huis (besluit 288): Kamers (met de etage bovenin), Apparaten
  * indelen (`los`), Buiten en Verborgen. De etages zijn geen losse delen meer.
  */
-const DEEL_VAST = ['vorm', 'kamers', 'los', 'verborgen', 'buiten'];
+const DEEL_VAST = ['vorm', 'etages', 'kamers', 'los', 'verborgen', 'buiten'];
 /** Wat voor deel: de kamers van een etage, Buiten, of een lijst. */
-const deelSoort = (id) => (id === 'buiten' ? 'buiten' : id === 'los' || id === 'verborgen' || id === 'vorm' ? id : 'etage');
+const deelSoort = (id) => (id === 'buiten' ? 'buiten' : ['los', 'verborgen', 'vorm', 'etages'].includes(id) ? id : 'etage');
 const opAdres = (id) => `${location.pathname}${location.search}#${encodeURIComponent(id)}`;
 /** De etages binnen, van boven naar beneden. */
 const etagesBinnen = () => (info?.etages ?? []).map((e) => e.id).filter((id) => id !== 'buiten');
@@ -169,7 +315,7 @@ function volgDeel(nu) {
   keuze.deel = nu;
   bronVorm = null;
   const soort = deelSoort(nu);
-  if (soort === 'etage') Object.assign(keuze, { etage: standaardEtage(concept()), kamer: null, apparaat: null, blad: 'etage' });
+  if (soort === 'etage' || soort === 'etages') Object.assign(keuze, { etage: standaardEtage(concept()), kamer: null, apparaat: null, blad: 'etage' });
   else if (soort === 'buiten') Object.assign(keuze, { etage: 'buiten', kamer: null, apparaat: null, blad: 'etage' });
   else if (soort === 'vorm') {
     Object.assign(keuze, { kamer: null, apparaat: null, blad: 'vorm' });
@@ -224,6 +370,7 @@ function delen(d) {
     { kop: t('indeling.kopOpMaat') },
     // Huisontwerp (besluit 288, stap 3): alleen als de aansluiting er is, want daar staan de gebouwen.
     ...(aans?.daken ? [{ id: 'vorm', titel: t('huisvorm.titel'), zin: vormZin(), stand: huis && huis.bron !== 'schatting' ? 'goed' : null, icoon: 'dak' }] : []),
+    { id: 'etages', titel: t('etages.titel'), zin: etagesZin(d), stand: 'goed', icoon: 'etages' },
     { id: 'kamers', titel: t('indeling.deel.kamers'), zin: kamers.length ? t('indeling.deel.kamersZin', { kamers: t('instellingen.kamers', { n: kamers.length }), etages: t('indeling.etagesAantal', { n: binnen.length }) }) : t('indeling.nogLeeg'), stand: kamers.length ? 'goed' : 'leeg', icoon: 'kamers' },
     { id: 'los', titel: t('indeling.deel.apparatenIndelen'), zin: t('indeling.deel.losZin', { n: los.length }), stand: los.length ? 'mist' : 'goed', icoon: 'apparaten' },
     { kop: t('indeling.kopRond') },
@@ -395,8 +542,9 @@ function tekenNu() {
     el.classList.toggle('lijstdeel', soort === 'los' || soort === 'verborgen');
     el.classList.toggle('alleenblad', soort === 'nieuw');
     el.classList.toggle('heeldeel', soort === 'vorm');
+    el.classList.toggle('etagesdeel', soort === 'etages');
   });
-  if (soort === 'etage' || soort === 'buiten') tekenPodium(d);
+  if (soort === 'etage' || soort === 'buiten' || soort === 'etages') tekenPodium(d);
   $$('[data-lijst]').forEach((el) => (el.innerHTML = soort === 'los' || soort === 'verborgen' ? lijstVan(d, soort) : ''));
   // Niet opnieuw opbouwen terwijl iemand typt.
   // Huisontwerp tekent zijn eigen podium en blad; de ids in de tekening per scherm apart, zoals bij Energie.
@@ -450,6 +598,7 @@ async function etageErbij(id, naam, waar) {
 function tekenPodium(d) {
   const el = document.getElementById(app.telStand() ? 'podium-tel' : 'podium-wand');
   const maat = { breedte: el.clientWidth || (app.telStand() ? 370 : 470), hoogte: el.clientHeight || (app.telStand() ? 260 : 430) };
+  if (deelSoort(keuze.deel) === 'etages') return tekenDoorsnede(d, el, maat);
   if (keuze.etage === 'buiten') return tekenBuiten(el, maat);
   const ruimte = (k) => ruimteVan(k.id) ?? { id: k.id, naam: k.naam, apparaten: [], zones: k.zones };
   const binnen = d.kamers.filter((k) => k.etage === keuze.etage && !alleBuitenEtage(k));
@@ -483,7 +632,9 @@ function tekenBuiten(el, maat) {
 
 function blad(d) {
   const soort = deelSoort(keuze.deel);
-  if (soort === 'etage' && keuze.blad === 'nieuweEtage') return nieuweEtageBlad(d);
+  if ((soort === 'etage' || soort === 'etages') && keuze.blad === 'nieuweEtage') return nieuweEtageBlad(d);
+  // Etages (besluit 288, stap 4).
+  if (soort === 'etages') return etageMaatBlad(d);
   // Nog in te delen en Verborgen (besluit 193): het gekozen apparaat uit de lijst, of het bovenste.
   if (soort === 'los' || soort === 'verborgen') {
     const id = lijstKeuze(soort);
@@ -1146,7 +1297,7 @@ document.addEventListener('click', async (e) => {
     netGesleept = false;
     return;
   }
-  const el = e.target.closest('button, [data-kamer], [data-bron-open], [data-dak-dakvlak], [data-dak-kandidaat], [data-dak-gebouw]');
+  const el = e.target.closest('button, [data-kamer], [data-bron-open], [data-dak-dakvlak], [data-dak-kandidaat], [data-dak-gebouw], [data-etage-kies]');
   if (!el || el.disabled) return;
   await naBewaren();
   const d = concept();
@@ -1164,6 +1315,17 @@ document.addEventListener('click', async (e) => {
   }
   if (el.dataset.kamer) kiesKamer(el.dataset.kamer);
   else if (el.dataset.etageKnop) kiesEtage(el.dataset.etageKnop);
+  // Etages (besluit 288): een laag kiezen, zijn hoogte, en waar hij op ligt.
+  else if (el.dataset.etageMaat || el.dataset.etageKies) kies({ etage: el.dataset.etageMaat || el.dataset.etageKies, kamer: null, apparaat: null, blad: 'etage' });
+  else if (el.dataset.etageHoogte) {
+    const L = etageLagen(d);
+    const e = L.etages.find((x) => x.id === keuze.etage);
+    if (e) await zetEtageMaat(e.id, { hoogte: Math.min(8, Math.max(1.5, Math.round((e.hoogte + Number(el.dataset.etageHoogte) * 0.1) * 10) / 10)) });
+  } else if (el.dataset.etageOp) {
+    const op = etageOpVan(d, keuze.etage);
+    const g = el.dataset.etageOp;
+    await zetEtageMaat(keuze.etage, { op: op.includes(g) ? op.filter((x) => x !== g) : [...op, g] });
+  }
   else if (el.hasAttribute('data-etage-erbij')) kies({ kamer: null, apparaat: null, blad: 'nieuweEtage' });
   else if (el.dataset.plek) await plekOpenen(el.dataset.plek);
   else if (el.dataset.app) {
