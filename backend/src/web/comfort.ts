@@ -22,9 +22,29 @@ import { STANDAARD_DAGDELEN, STANDAARD_KOEL, STANDAARD_PLAFOND_BOVEN, STANDAARD_
 
 export const COMFORT_FILE = 'comfort.json';
 
-/** De dagdelen die de bewoner per kamer zet; voorverwarmen volgt de dag. */
-export const COMFORT_MODES = ['dag', 'nacht', 'afwezig', 'vakantie'] as const;
+/**
+ * De dagdelen die de bewoner per kamer zet. Voorverwarmen heeft een eigen
+ * temperatuur, alleen voor verwarmen (besluit 282); zet de app er niets, dan
+ * volgt het de dag, zoals voor die tijd.
+ */
+export const COMFORT_MODES = ['dag', 'voorverwarmen', 'nacht', 'afwezig', 'vakantie'] as const;
 export type ComfortMode = (typeof COMFORT_MODES)[number];
+
+/**
+ * De doelen van een kamer voor de configuratie: elk dagdeel dat de app noemt,
+ * en voorverwarmen gelijk aan de dag als de app voorverwarmen niet noemt.
+ * Anders verwarmt het 's ochtends naar een oud doel.
+ */
+export function doelenVanKamer(modi: ComfortRoom['modi'], setpoints: Record<string, unknown>): Record<string, unknown> {
+  const uit = { ...setpoints };
+  for (const m of COMFORT_MODES) {
+    const pair = modi[m];
+    if (pair == null) continue;
+    uit[m] = { ...(pair.heat != null ? { heat: pair.heat } : {}), ...(pair.cool != null && m !== 'voorverwarmen' ? { cool: pair.cool } : {}) };
+  }
+  if (modi.voorverwarmen == null && modi.dag?.heat != null) uit['voorverwarmen'] = { heat: modi.dag.heat };
+  return uit;
+}
 
 /** Grenzen voor de keuzes in de app, binnen wat het schema toestaat (5 tot 35). */
 export const COMFORT_RANGE = { verwarmen: { min: 5, max: 28 }, koelen: { min: 16, max: 32 }, plafond: { min: 20, max: 32 } } as const;
@@ -206,12 +226,7 @@ export function comfortViewVoorProfiel(config: SiteConfig, kamers: Readonly<Reco
   const zones = config.zones.map((z) => {
     const k = kamers[z.id];
     if (k == null) return z;
-    const setpoints = { ...z.setpoints };
-    for (const m of COMFORT_MODES) {
-      const pair = k.modi[m];
-      if (pair == null) continue;
-      setpoints[m] = { ...(pair.heat != null ? { heat: pair.heat } : {}), ...(pair.cool != null ? { cool: pair.cool } : {}) };
-    }
+    const setpoints = doelenVanKamer(k.modi, z.setpoints) as typeof z.setpoints;
     const { comfortMaxC: _plafond, ...rest } = z;
     const plafond = k.nooitWarmerC === undefined ? z.comfortMaxC : k.nooitWarmerC;
     return { ...rest, setpoints, ...(plafond != null ? { comfortMaxC: plafond } : {}) };
@@ -233,14 +248,7 @@ export function withComfort(raw: Record<string, unknown>, comfort: Comfort | nul
     const id = String(zone['id'] ?? '');
     const kamer = comfort.kamers[id];
     if (kamer == null) return zone;
-    const setpoints = { ...((zone['setpoints'] as Record<string, unknown> | undefined) ?? {}) };
-    for (const m of COMFORT_MODES) {
-      const pair = kamer.modi[m];
-      if (pair == null) continue;
-      setpoints[m] = { ...(pair.heat != null ? { heat: pair.heat } : {}), ...(pair.cool != null ? { cool: pair.cool } : {}) };
-      // Voorverwarmen volgt de dag: anders verwarmt het 's ochtends naar een oud doel.
-      if (m === 'dag' && pair.heat != null) setpoints['voorverwarmen'] = { heat: pair.heat };
-    }
+    const setpoints = doelenVanKamer(kamer.modi, (zone['setpoints'] as Record<string, unknown> | undefined) ?? {});
     const uit: Record<string, unknown> = { ...zone, setpoints };
     if (kamer.nooitWarmerC !== undefined) {
       if (kamer.nooitWarmerC == null) delete uit['comfortMaxC'];
@@ -317,6 +325,7 @@ export function controleerComfort(body: unknown, config: SiteConfig): ComfortChe
       const pair = (p ?? {}) as Record<string, unknown>;
       const heat = pair['heat'] ?? null;
       const cool = pair['cool'] ?? null;
+      if (m === 'voorverwarmen' && cool !== null) return { ok: false, reden: `${zone.name}, voorverwarmen: dat is alleen verwarmen` };
       if (heat !== null && (!halve(heat) || heat < COMFORT_RANGE.verwarmen.min || heat > COMFORT_RANGE.verwarmen.max)) {
         return { ok: false, reden: `${zone.name}, ${m}: verwarmen gaat van ${COMFORT_RANGE.verwarmen.min} tot ${COMFORT_RANGE.verwarmen.max}°, in halve graden` };
       }

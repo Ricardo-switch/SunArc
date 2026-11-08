@@ -2242,6 +2242,16 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await wand.locator('[data-delen] .deel', { hasText: /^\s*Dagdelen/ }).click();
     await wand.locator('[data-uur="dag:1"]').click();
     await expect.poll(() => configNu.schedule.dayFromHour, { timeout: 5_000 }).toBe(exampleSite.schedule.dayFromHour + 1);
+    // Voorverwarmen per kamer (besluit 282): een halve graad lager dan overdag, los van de dag.
+    const voor = wand.locator(`[data-voor-kamer="${zone.id}"]`);
+    await voor.waitFor();
+    const voorNu = comfortView(configNu, comfortNu).kamers[0]!.modi.voorverwarmen.heat!;
+    await voor.locator(`[data-voor="${zone.id}:-0.5"]`).click();
+    await expect.poll(() => comfortNu?.kamers[zone.id]?.modi.voorverwarmen?.heat, { timeout: 5_000 }).toBe(voorNu - 0.5);
+    expect(configNu.zones[0]!.setpoints.voorverwarmen.heat).toBe(voorNu - 0.5);
+    expect(configNu.zones[0]!.setpoints.dag.heat).toBe(20.5);
+    expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1')).toBe(true);
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-dagdelen.png') });
     expect(fouten).toEqual([]);
     await context.close();
   }, 30_000);

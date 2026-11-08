@@ -318,7 +318,9 @@ verwijzing bestaat.
   mag op zon opwarmen, en Wat je huis kan zegt in welke kamers iets werkt
   ([132]).
 - **Comfort** zegt per dagdeel wanneer het aan- en uitgaat, wat er op zon
-  gebeurt, en per kamer of koelen van het net mag ([133]).
+  gebeurt, en per kamer of koelen van het net mag ([133]). Hoe warm elke kamer
+  bij voorverwarmen wordt, staat bij Dagdelen; zonder eigen getal volgt het de
+  dag ([282]).
 - **Voorrang** geldt per richting, koelen en verwarmen; **Hoe voelt het** geeft
   een antwoord en een voorstel ([134]); sinds [147] vraagt ook dat een inlog.
 - **Vrijgeven:** het werk gaat naar `beta`; de CI zet `stable` voor de NAS
@@ -882,4 +884,5 @@ verwijzing bestaat.
 [279]: DECISIONS.md#279-de-balk-van-de-dag-in-het-blad-laden
 [280]: DECISIONS.md#280-laden-met-de-hand-met-een-zin
 [281]: DECISIONS.md#281-de-airco-springt-niet-bij-tijdens-voorverwarmen
+[282]: DECISIONS.md#282-voorverwarmen-krijgt-een-eigen-temperatuur-bij-dagdelen
 <!-- links:einde -->

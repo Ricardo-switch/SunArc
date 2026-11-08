@@ -275,6 +275,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [275. Meer thuisaccu's samen, met hun maat en wat ze leverden](#275-meer-thuisaccus-samen-met-hun-maat-en-wat-ze-leverden)
 - [276. Meldingen over de thuisaccu](#276-meldingen-over-de-thuisaccu)
 - [279. De balk van de dag in het blad Laden](#279-de-balk-van-de-dag-in-het-blad-laden)
+- [282. Voorverwarmen krijgt een eigen temperatuur, bij Dagdelen](#282-voorverwarmen-krijgt-een-eigen-temperatuur-bij-dagdelen)
 
 **Veiligheid**
 
@@ -12996,7 +12997,36 @@ volgt de dag"), in het oude systeem 19°. Vanaf 9 november houdt het oude systee
 weer 19° aan, nadat de sync in Home Assistant de oude stand van de Nest niet
 meer overneemt. Daardoor zal de Nest in de schaduw tijdens voorverwarmen een
 graad verschillen. Of voorverwarmen een eigen temperatuur in de app krijgt, is
-nog niet gekozen.
+nog niet gekozen. *Achteraf:* dat kreeg het dezelfde dag, in besluit 282.
+
+---
+
+## 282. Voorverwarmen krijgt een eigen temperatuur, bij Dagdelen
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, versie 0.155.0. Volgt op besluit 281; Ricardo: "ja doe maar".
+
+*Waarom:* in de app volgde voorverwarmen de dag (besluit 130): de kamer werd
+'s ochtends al net zo warm als overdag. Het oude systeem heeft een eigen
+temperatuur voor voorverwarmen, in dit huis 19° tegen 20° overdag. Zonder die
+keuze in de app verschilt de schaduw daar elke ochtend, en na stap B zou de
+Nest om zes uur een graad hoger gaan.
+
+*Besluit:*
+
+- **Een eigen dagdeel in comfort:** `voorverwarmen` naast dag, nacht, afwezig
+  en vakantie, alleen verwarmen. Koelen tijdens voorverwarmen weigert de dienst.
+- **Zonder eigen getal volgt het de dag,** zoals voorheen. Een `comfort.json`
+  van voor deze versie verandert dus niet. Het eigen comfort van een bewoner
+  (besluit 147) zet voorverwarmen niet zelf en volgt altijd zijn dag.
+- **Bij Dagdelen, niet in de kamer.** Een derde balk in het kamervak paste op de
+  wand niet (94 pixels te veel, en de wand scrolt nooit, besluit 104). Bij
+  Dagdelen staat de tijd van voorverwarmen al, en daar was ruimte: onder de
+  balk van de dag per kamer die kan verwarmen een − en + en Niet.
+- **De standaard** (besluit 204) is 19° bij voorverwarmen, zoals
+  `STANDAARD_WARM` al zei; terug naar standaard zet het ook zo.
+- **Versie 0.155.0.**
 
 ---
 

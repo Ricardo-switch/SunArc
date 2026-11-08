@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.154.1
+## 0.155.0
 
-*8 november 2026 · 0.151.0 – 0.154.1*
+*8 november 2026 · 0.151.0 – 0.155.0*
 
 **Nieuw**
 
+- Voorverwarmen heeft een eigen temperatuur per kamer, bij Comfort › Dagdelen. Tot je er een kiest, wordt het net zo warm als overdag
 - Laden met de hand kan ook met een zin tegen de assistent: "laad de auto met 10 ampère tot zes uur", "pauzeer het laden", "laad weer" of "laat de laadpaal zelf kiezen". Met evcc: "laad snel" of "laad op zon". Alleen als het bij Energie › Auto en laadpaal is toegelaten
 - In het blad Laden zie je de komende 24 uur: de zon die naar verwachting over is, de prijs per uur met de goedkoopste uren, tot wanneer je met de hand laadt, en wanneer de auto op zijn laadgrens is. Tik op de balk om tot een andere tijd te kiezen
 - Met evcc in huis zet je de stand van evcc met de hand: Uit, Zon, Min + zon of Snel, tot een tijd, een % of tot de kabel eruit gaat. Daarna staat evcc weer zoals daarvoor
@@ -21,6 +22,7 @@
 
 **New**
 
+- Preheating has its own temperature per room, in Comfort › Times of day. Until you choose one, it gets as warm as during the day
 - Charging by hand also works with a sentence to the assistant: "charge the car at 10 amps until six", "pause charging", "resume charging" or "let the charger decide". With evcc: "charge fast" or "charge on solar". Only when allowed in Energy › Car and charger
 - The Charging sheet shows the next 24 hours: the sun expected to be spare, the price per hour with the cheapest hours, until when you charge by hand, and when the car reaches its charge limit. Tap the bar to choose another time
 - With evcc in your home you set the evcc mode by hand: Off, Solar, Min + solar or Fast, until a time, a % or until the cable comes out. After that evcc is back as it was

@@ -66,6 +66,20 @@ describe('comfort uit de app (besluit 130)', () => {
     expect(comfortView(checked.config, c.comfort).kamers[0]!.uitApp).toBe(true);
   });
 
+  it('geeft voorverwarmen een eigen temperatuur, alleen voor verwarmen (besluit 282)', () => {
+    // Het dagdeel staat vóór de dag in het object: de dag mag het niet overschrijven.
+    const c = controleerComfort({ kamers: { [zone.id]: { modi: { voorverwarmen: { heat: 19, cool: null }, dag: { heat: 20.5, cool: 23 } } } } }, exampleSite);
+    if (!c.ok) throw new Error(c.reden);
+    const checked = parseSiteConfig(withComfort(raw, c.comfort).raw, { knownStrategies: defaultStrategies().ids });
+    if (!checked.ok) throw new Error(JSON.stringify(checked.problems[0]));
+    const z = checked.config.zones.find((x) => x.id === zone.id)!;
+    expect(z.setpoints.voorverwarmen).toEqual({ heat: 19 });
+    expect(z.setpoints.dag).toMatchObject({ heat: 20.5 });
+    expect(comfortView(checked.config, c.comfort).kamers[0]!.modi.voorverwarmen).toEqual({ heat: 19, cool: null });
+    // Koelen tijdens voorverwarmen bestaat niet.
+    expect(controleerComfort({ kamers: { [zone.id]: { modi: { voorverwarmen: { heat: 19, cool: 24 } } } } }, exampleSite).ok).toBe(false);
+  });
+
   it('gaat voor de helpers van het oude systeem, alleen voor de kamers uit de app (besluit 143)', () => {
     const helpers = { [zone.id]: { dag: { heat: 'input_number.oud' } }, ander: { dag: { heat: 'input_number.ander' } } };
     const metHelpers = { ...raw, migration: { ...((raw['migration'] as Record<string, unknown>) ?? {}), setpoints: helpers } };

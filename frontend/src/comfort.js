@@ -29,7 +29,7 @@ const MIN = 10;
 const MAX = 30;
 const pct = (c) => ((Math.max(MIN, Math.min(MAX, c)) - MIN) / (MAX - MIN)) * 100;
 const graden = (c) => `${nl(c, Number.isInteger(c) ? 0 : 1)}°`;
-const MODI = ['dag', 'nacht', 'afwezig', 'vakantie'];
+const MODI = ['dag', 'voorverwarmen', 'nacht', 'afwezig', 'vakantie'];
 /** Een nieuw doel als je verwarmen of koelen aanzet in een dagdeel: de standaard voor een nieuw huis (besluit 204). */
 const nieuw = (soort, m) => (soort === 'heat' ? comfort.standaard.warm : comfort.standaard.koel)[m];
 /** Een kamer op de standaard (besluit 204): verwarmen in elk dagdeel als hij dat kan, koelen alleen overdag. */
@@ -38,7 +38,7 @@ function standaardModi(k) {
   // Binnen wat de apparaten kunnen: een thermostaat die pas bij 16° begint, krijgt 16° voor weg.
   const binnen = (v, r) => (r ? Math.min(r[1], Math.max(r[0], v)) : v);
   const warm = (m) => (k.kanVerwarmen ? binnen(s.warm[m], k.haalbaar?.verwarmen) : null);
-  return { dag: { heat: warm('dag'), cool: k.kanKoelen ? binnen(s.koel.dag, k.haalbaar?.koelen) : null }, nacht: { heat: warm('nacht'), cool: null }, afwezig: { heat: warm('afwezig'), cool: null }, vakantie: { heat: warm('vakantie'), cool: null } };
+  return { dag: { heat: warm('dag'), cool: k.kanKoelen ? binnen(s.koel.dag, k.haalbaar?.koelen) : null }, voorverwarmen: { heat: warm(vanHetHuis() ? 'voorverwarmen' : 'dag'), cool: null }, nacht: { heat: warm('nacht'), cool: null }, afwezig: { heat: warm('afwezig'), cool: null }, vakantie: { heat: warm('vakantie'), cool: null } };
 }
 const opStandaard = (k) => k.nooitWarmerC == null && MODI.every((m) => k.modi[m].heat === standaardModi(k)[m].heat && k.modi[m].cool === standaardModi(k)[m].cool);
 const dagdelenStandaard = () => ['voorverwarmen', 'dag', 'nacht'].every((x) => comfort.dagdelen[x] === comfort.standaard.dagdelen[x]);
@@ -88,7 +88,7 @@ function wanneer(m) {
   const uren = (a, b) => t('instellingen.van', { van: `${a}:00`, tot: `${b}:00` });
   return { dag: uren(d.dag, d.nacht), nacht: uren(d.nacht, d.voorverwarmen), afwezig: t('comfort.wanneer.afwezig'), vakantie: t('comfort.wanneer.vakantie') }[m];
 }
-const NAAM = Object.fromEntries(MODI.map((m) => [m, t(`comfort.naam.${m}`)]));
+const NAAM = Object.fromEntries(MODI.filter((m) => m !== 'voorverwarmen').map((m) => [m, t(`comfort.naam.${m}`)]));
 
 /** Tot waar het op zon mag, per soort, of null (besluit 133). */
 function zonGrens(k, m, soort) {
@@ -177,7 +177,7 @@ function zonEnNet(k) {
 function kamerVorm(k) {
   const pz = state?.explanation?.perZone?.find((z) => z.zoneId === k.id);
   const nu = pz?.temperatureC;
-  // Overdag en 's nachts; afwezig en vakantie hebben hun eigen deel (besluit 133).
+  // Overdag en 's nachts; afwezig en vakantie hebben hun eigen deel (besluit 133), voorverwarmen staat bij Dagdelen (besluit 282).
   const banden = ['dag', 'nacht'].map((m) => band(k, m)).join('');
   // Hoe het nu gaat, bovenin het kamervak (besluit 163): daar komt ook wat het huis leerde.
   const kort = state?.bewoner?.kamers?.find((x) => x.zoneId === k.id)?.kort;
@@ -195,7 +195,7 @@ function standaardVorm() {
   const warm = comfort.kamers.some((k) => k.kanVerwarmen);
   const koel = comfort.kamers.some((k) => k.kanKoelen);
   const regels = [
-    warm ? t('comfort.std.warm', { dag: graden(s.warm.dag), nacht: graden(s.warm.nacht) }) : '',
+    warm ? t(vanHetHuis() ? 'comfort.std.warmVoor' : 'comfort.std.warm', { dag: graden(s.warm.dag), voor: graden(s.warm.voorverwarmen), nacht: graden(s.warm.nacht) }) : '',
     koel ? t('comfort.std.koel', { dag: graden(s.koel.dag) }) : '',
     warm ? t('comfort.std.weg', { weg: graden(s.warm.afwezig), vakantie: graden(s.warm.vakantie) }) : '',
     vanHetHuis() ? t('comfort.std.dagdelen', { voor: s.dagdelen.voorverwarmen, dag: s.dagdelen.dag, nacht: s.dagdelen.nacht }) : '',
@@ -227,7 +227,27 @@ function dagdelenVorm() {
   return `<h2 class="kop-2">${esc(t('instellingen.dagdelen'))}</h2>
     <p class="klein" style="margin: 0">${esc(t('comfort.dagdelenUitleg'))}</p>
     <div class="uren">${uur('voorverwarmen')}${uur('dag')}${uur('nacht')}</div>
-    ${dagbalk()}`;
+    ${dagbalk()}
+    ${voorverwarmenPerKamer()}`;
+}
+
+/**
+ * Hoe warm elke kamer 's ochtends wordt (besluit 282): een eigen temperatuur
+ * per kamer, alleen verwarmen. Hier bij de dagdelen, want in de kamer past op
+ * de wand geen derde balk.
+ */
+function voorverwarmenPerKamer() {
+  const kamers = comfort.kamers.filter((k) => k.kanVerwarmen);
+  if (!kamers.length) return '';
+  const rij = (k) => {
+    const v = k.modi.voorverwarmen?.heat ?? null;
+    const stapper = v != null
+      ? `<div class="stapper"><button type="button" data-voor="${esc(k.id)}:-0.5" aria-label="${esc(t('comfort.lager'))}">−</button><b>${graden(v)}</b><button type="button" data-voor="${esc(k.id)}:0.5" aria-label="${esc(t('comfort.hoger'))}">+</button><button type="button" class="geen" data-voor="${esc(k.id)}:uit">${esc(t('comfort.niet'))}</button></div>`
+      : `<div class="keuze" role="group" aria-label="${esc(k.naam)}"><button type="button" aria-pressed="true">${esc(t('comfort.niet'))}</button><button type="button" data-voor="${esc(k.id)}:aan" aria-pressed="false">${esc(t('comfort.voor.aan'))}</button></div>`;
+    return `<div data-voor-kamer="${esc(k.id)}"><span class="label" style="font-size: 14.5px; font-weight: 600; display: block; margin-bottom: 6px">${esc(k.naam)}</span>${stapper}</div>`;
+  };
+  return `<span class="label" style="font-size: 14.5px; font-weight: 600; margin-top: 6px">${esc(t('comfort.voor.titel'))}</span>
+    <div class="uren">${kamers.map(rij).join('')}</div>`;
 }
 
 /** Zonder slimme regeling (besluit 194): wat comfort per kamer zou doen, en hoe het erbij komt. */
@@ -368,9 +388,15 @@ document.addEventListener('change', (e) => {
 
 /* ------------------------------------------------------------ bewaren */
 
+/** Het eigen comfort van een bewoner zet voorverwarmen niet zelf; het volgt de dag (besluit 282). */
+function zonderVoorverwarmen(modi) {
+  const { voorverwarmen: _weg, ...rest } = modi;
+  return rest;
+}
+
 function bewaar() {
   const body = {
-    kamers: Object.fromEntries(comfort.kamers.map((k) => [k.id, { modi: k.modi, nooitWarmerC: k.nooitWarmerC, voorrang: k.voorrang, opZonC: k.opZonC }])),
+    kamers: Object.fromEntries(comfort.kamers.map((k) => [k.id, { modi: vanHetHuis() ? k.modi : zonderVoorverwarmen(k.modi), nooitWarmerC: k.nooitWarmerC, voorrang: k.voorrang, opZonC: k.opZonC }])),
     dagdelen: comfort.dagdelen,
     ...(comfort.voorrang
       ? {
@@ -567,6 +593,14 @@ document.addEventListener('click', (e) => {
     comfort.voorrang = { ...comfort.voorrang, [richting]: l };
   } else if (knop.hasAttribute('data-voorrang-voorstel')) {
     comfort.voorrang = { ...comfort.voorrang, ...voorrangVoorstel() };
+  } else if (knop.dataset.voor) {
+    // Voorverwarmen per kamer (besluit 282).
+    const [id, wat] = knop.dataset.voor.split(':');
+    const x = comfort.kamers.find((y) => y.id === id);
+    if (!x) return;
+    if (wat === 'uit') x.modi = { ...x.modi, voorverwarmen: { heat: null, cool: null } };
+    else if (wat === 'aan') zet(x, 'voorverwarmen', 'heat', nieuw('heat', 'voorverwarmen'));
+    else zet(x, 'voorverwarmen', 'heat', (x.modi.voorverwarmen?.heat ?? nieuw('heat', 'voorverwarmen')) + Number(wat));
   } else if (knop.dataset.uur) {
     const [sleutel, stap] = knop.dataset.uur.split(':');
     const d = { ...comfort.dagdelen, [sleutel]: Math.max(0, Math.min(23, comfort.dagdelen[sleutel] + Number(stap))) };
