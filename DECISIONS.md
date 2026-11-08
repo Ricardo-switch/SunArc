@@ -50,6 +50,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [267. Een slimme stekker op zon met een minimum, en SunArc schakelt hem echt](#267-een-slimme-stekker-op-zon-met-een-minimum-en-sunarc-schakelt-hem-echt)
 - [277. Easee met de hand, via de eigen dienst van Easee](#277-easee-met-de-hand-via-de-eigen-dienst-van-easee)
 - [278. De stand van evcc met de hand](#278-de-stand-van-evcc-met-de-hand)
+- [280. Laden met de hand met een zin](#280-laden-met-de-hand-met-een-zin)
 
 **Kern en regeling**
 
@@ -12928,6 +12929,37 @@ Besluit 262 liet dat open. Ricardo koos alle vier de standen.
 - **Versie 0.153.0.**
 
 *Nog niet:* de assistent die laden met de hand doet.
+
+---
+
+## 280. Laden met de hand met een zin
+
+*Onderwerp: visie en principes · Status: geldig*
+
+8 november 2026, versie 0.154.0, het laatste stuk van stap 5 van [259].
+Ricardo koos: alles wat het blad Laden kan, ook met een zin.
+
+*Besluit:*
+
+- **Wat de assistent verstaat** (`laadzin.ts`): een stroom ("laad de auto met
+  10 ampère"), snel (de hoogste stroom die past), pauzeren, weer laden na een
+  pauze met de hand, en terug naar de laadpaal of evcc; met evcc de stand
+  (snel, op zon, min + zon, slim, laden uit). Met een eind: tot een tijd, tot
+  een %, een uur, over een tijd, of anders tot de kabel eruit gaat. In het
+  Nederlands en het Engels.
+- **Door dezelfde deur:** de assistent maakt een stap voor `/api/laden`, en de
+  pagina stuurt hem, met dezelfde inlog en dezelfde regels als het blad. Er
+  komt geen nieuwe deur naar Home Assistant bij.
+- **Alleen wat toegelaten is:** een auto waarvan de bewoner bij Energie toeliet
+  dat SunArc de laadpaal of de stand van evcc mag bedienen; anders zegt het
+  huis waar je dat aanzet. Alleen in de add-on, niet via Assist van Home
+  Assistant (zoals bij licht en schermen).
+- **Eerlijk:** buiten het bereik van de laadpaal of boven de zekering zegt het
+  huis wat kan; op zon laden zonder evcc kiest de laadpaal zelf; met evcc gaat
+  een stroom niet; bij meer auto's vraagt het welke. Een vraag ("hoe laat is de
+  auto vol?") is geen opdracht.
+- **"Doe maar terug"** zet het laden terug naar de laadpaal of evcc.
+- **Versie 0.154.0.**
 
 ---
 

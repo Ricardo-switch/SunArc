@@ -331,7 +331,9 @@ lijst in `client.ts`). Laden wordt er een, naar het voorbeeld van `isHandCall`:
   24 uur met de zon over (verwacht, in A per fase), de prijs, de goedkoopste
   uren en vol om; `main.ts` zet hem als `dag` bij het advies. Het blad tekent
   hem bij Hoe lang; een tik kiest Tot hh:00.
-- **Nog niet:** de assistent.
+- **De assistent (0.154.0, besluit 280):** `laadzin.ts` maakt van een zin een
+  stap voor `/api/laden` (stroom, snel, pauze, weer, terug; met evcc de stand),
+  met een eind; alleen voor wat bij Energie toegelaten is. Stap 5 is daarmee af.
 
 ## Stap 6: wat er gebouwd is (0.137.0, besluit 263)
 

@@ -145,6 +145,9 @@ export function terugVan(stappen: readonly Stap[], b: Bedienbaar): Stap[] | null
       else if (body['actie'] === 'open' || body['actie'] === 'dicht') uit.push({ pad: 'api/scherm', body: { id: scherm.id, actie: body['actie'] === 'open' ? 'dicht' : 'open', standPct: null } });
     } else if (s.pad === 'api/klimaat') {
       if (!uit.some((x) => x.pad === 'api/klimaat')) uit.push({ pad: 'api/klimaat', body: { terug: true } });
+    } else if (s.pad === 'api/laden' && body['terug'] !== true && typeof body['auto'] === 'string') {
+      // Laden met de hand (besluit 280): terug naar de laadpaal of evcc.
+      uit.push({ pad: 'api/laden', body: { auto: body['auto'], terug: true } });
     }
   }
   for (const l of lampen.values()) uit.push(lampZoals(l));

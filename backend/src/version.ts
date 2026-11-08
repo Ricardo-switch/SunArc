@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.153.0';
+export const VERSIE = '0.154.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.154.0',
+    datum: '2026-11-08',
+    nieuw: [
+      'Laden met de hand kan ook met een zin tegen de assistent: "laad de auto met 10 ampère tot zes uur", "pauzeer het laden", "laad weer" of "laat de laadpaal zelf kiezen". Met evcc: "laad snel" of "laad op zon". Alleen als het bij Energie › Auto en laadpaal is toegelaten',
+    ],
+    en: {
+      nieuw: [
+        'Charging by hand also works with a sentence to the assistant: "charge the car at 10 amps until six", "pause charging", "resume charging" or "let the charger decide". With evcc: "charge fast" or "charge on solar". Only when allowed in Energy › Car and charger',
+      ],
+    },
+  },
   {
     versie: '0.153.0',
     datum: '2026-11-08',
