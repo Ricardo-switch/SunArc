@@ -117,6 +117,9 @@ verwijzing bestaat.
 - **Comfort** mag koelen boven een plafond, ook op netstroom ([50]). Een zone
   met meer kamers koelt op de warmste en verwarmt op de koudste ([81]); bij twee
   meters in één kamer kiest de bewoner ([95]).
+- **Bijspringen:** de airco helpt de ketel als die lang stookt en de kamer
+  achterloopt, maar niet 's nachts, bij afwezig, op vakantie of tijdens
+  voorverwarmen, want zijn piepje maakt de slapers wakker ([281]).
 - **Bij zon over:** eerst comfort, dan de batterij, dan de auto. Laadpaal en
   batterij stuurt SunArc niet zelf ([85]). Wat er na comfort over is,
   gaat in de volgorde van de lijst Op zon: kamers die op zon voorkoelen of
@@ -878,4 +881,5 @@ verwijzing bestaat.
 [278]: DECISIONS.md#278-de-stand-van-evcc-met-de-hand
 [279]: DECISIONS.md#279-de-balk-van-de-dag-in-het-blad-laden
 [280]: DECISIONS.md#280-laden-met-de-hand-met-een-zin
+[281]: DECISIONS.md#281-de-airco-springt-niet-bij-tijdens-voorverwarmen
 <!-- links:einde -->

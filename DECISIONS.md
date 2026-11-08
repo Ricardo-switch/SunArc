@@ -86,6 +86,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [194. Een huis zonder slimme regeling: de app draait ook zonder zones](#194-een-huis-zonder-slimme-regeling-de-app-draait-ook-zonder-zones)
 - [264. Een slimme stekker als apparaat op zon](#264-een-slimme-stekker-als-apparaat-op-zon)
 - [274. De regeling kijkt in de schaduw mee met de thuisaccu](#274-de-regeling-kijkt-in-de-schaduw-mee-met-de-thuisaccu)
+- [281. De airco springt niet bij tijdens voorverwarmen](#281-de-airco-springt-niet-bij-tijdens-voorverwarmen)
 
 **Configuratie en onboarding**
 
@@ -12960,6 +12961,42 @@ Ricardo koos: alles wat het blad Laden kan, ook met een zin.
   auto vol?") is geen opdracht.
 - **"Doe maar terug"** zet het laden terug naar de laadpaal of evcc.
 - **Versie 0.154.0.**
+
+---
+
+## 281. De airco springt niet bij tijdens voorverwarmen
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+8 november 2026, versie 0.154.1. Gevonden bij het nalopen van de schaduw op de
+NAS.
+
+*Waarom:* in de week van 2 tot 8 november was de schaduw het voor 96,5% eens met
+het oude systeem over de airco in de woonkamer. Bijna al het verschil zat elke
+ochtend tussen 06:05 en ongeveer 06:40: heat-assist wilde de airco laten
+bijspringen, op ongeveer 1 kW van het net, en het oude systeem liet hem uit. De
+YAML-versie stopt de assist bewust buiten de dagstand (`hard_stop` als
+`effectieve_modus != 'dag'`). Ricardo (8 november): de airco's hebben een piepje
+dat niet uit kan, en daar wil hij om zes uur niet wakker van worden.
+
+*Besluit:*
+
+- **Voorverwarmen telt voor heat-assist als een rustige stand,** net als nacht,
+  afwezig en vakantie. De ketel doet dan het voorverwarmen alleen; vanaf de
+  dagstand springt de airco weer bij als de zone achterloopt.
+- **Geen instelling.** Het oude systeem deed het zo, en een airco die in de
+  ochtend aanslaat maakt in elk huis geluid in slaaptijd. Wie het anders wil,
+  vraagt erom; dan komt er een schakelaar.
+- **Pv-surplus blijft zoals het was:** op zon mag een airco ook tijdens
+  voorverwarmen draaien, maar om zes uur is er geen zon.
+- **Versie 0.154.1.**
+
+*Nog niet:* in de app is voorverwarmen even warm als de dag (20°, "voorverwarmen
+volgt de dag"), in het oude systeem 19°. Vanaf 9 november houdt het oude systeem
+weer 19° aan, nadat de sync in Home Assistant de oude stand van de Nest niet
+meer overneemt. Daardoor zal de Nest in de schaduw tijdens voorverwarmen een
+graad verschillen. Of voorverwarmen een eigen temperatuur in de app krijgt, is
+nog niet gekozen.
 
 ---
 

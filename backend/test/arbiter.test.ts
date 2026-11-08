@@ -295,6 +295,17 @@ describe('heat-assist startvertraging', () => {
     expect(assistProposed(state)).toBe(false);
   });
 
+  it('springt niet bij tijdens voorverwarmen, want de airco piept (besluit 281)', () => {
+    const cold = { ...winterish({ producingFor: 30 }), modeOverride: 'voorverwarmen' as const };
+    cold.zones = { ...cold.zones, woonkamer: { temperatureC: value(17.0, NOW) } };
+    const decision = run(cold);
+    expect(decision.explanation.mode).toBe('voorverwarmen');
+    expect(assistProposed(cold)).toBe(false);
+    expect(
+      decision.proposed.some((i) => i.strategyId === 'comfort' && i.actuatorId === 'nest'),
+    ).toBe(true);
+  });
+
   it('respecteert een aangepaste startvertraging', () => {
     const strict = new StrategyRegistry().register(
       comfort,

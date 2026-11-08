@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.154.0
+## 0.154.1
 
-*8 november 2026 · 0.151.0 – 0.154.0*
+*8 november 2026 · 0.151.0 – 0.154.1*
 
 **Nieuw**
 
@@ -14,6 +14,7 @@
 
 **Beter**
 
+- Tijdens voorverwarmen in de ochtend springt de airco niet meer bij, zodat zijn piepje niemand wakker maakt. Voorverwarmen doet dan alleen de ketel; overdag helpt de airco weer mee
 - Zet je in Home Assistant bij je Easee de sensor voor de dynamische laadstroom aan (die staat standaard uit), dan zie je ook op welke stroom hij nu staat
 
 *English*
@@ -28,6 +29,7 @@
 
 **Improved**
 
+- During preheating in the morning the air conditioner no longer helps out, so its beep wakes no one. The boiler preheats on its own; during the day the air conditioner helps again
 - If you turn on the sensor for the dynamic charging current of your Easee in Home Assistant (it is off by default), you also see what current it is set to now
 
 ## 0.150.0

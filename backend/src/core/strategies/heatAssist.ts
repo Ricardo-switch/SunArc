@@ -45,8 +45,15 @@ export const HEAT_ASSIST_DEFAULTS: HeatAssistOptions = {
   minShortfallC: 0.5,
 };
 
-/** Modi waarin bijstoken niet aan de orde is. */
-const PASSIVE_MODES = new Set(['nacht', 'vakantie', 'afwezig']);
+/**
+ * Modi waarin bijstoken niet aan de orde is.
+ *
+ * Voorverwarmen hoort erbij (besluit 281), net als in de YAML-versie, die de
+ * assist alleen in de dagstand toeliet. Een airco piept bij het aanslaan, en
+ * om zes uur 's ochtends maakt dat de slapers wakker. Voorverwarmen doet dan
+ * alleen de ketel.
+ */
+const PASSIVE_MODES = new Set(['nacht', 'vakantie', 'afwezig', 'voorverwarmen']);
 
 export function createHeatAssist(
   options: Partial<HeatAssistOptions> = {},
