@@ -8,7 +8,7 @@ import { runInNewContext } from 'node:vm';
 
 import { describe, expect, it } from 'vitest';
 
-type Gebouw = { id: string; soort: string; breed: number; diep: number; m: object; dakvorm: string; nokAs?: string; goot: number; nok?: number; gootAchter?: number; nokOp?: number };
+type Gebouw = { id: string; soort: string; breed: number; diep: number; m: object; dakvorm: string; nokAs?: string; goot: number; nok?: number | undefined; gootAchter?: number | undefined; nokOp?: number | undefined };
 type Kit = {
   dakHoogte: (g: Gebouw, u: number, v: number) => number;
   bruikbaar: (g: Gebouw, z: number) => { u0: number; u1: number; v0: number; v1: number };
