@@ -165,36 +165,6 @@ export interface BagGebouw {
   readonly omtrek: Xy[];
   readonly dak: BagDak;
   readonly afstand: number;
-  /** De hoogte boven de grond (besluit 288, Je huis): de goot, de nok en het aantal bouwlagen, als 3D BAG ze kent. */
-  readonly hoogte?: BagHoogte;
-}
-
-export interface BagHoogte {
-  readonly goot: number | null;
-  readonly nok: number | null;
-  readonly lagen: number | null;
-}
-
-/**
- * De hoogte uit de kenmerken van een gebouw: het laagste en hoogste punt van
- * het dak min de grond, en de bouwlagen. Wat er niet staat of niet klopt, is null.
- */
-export function hoogteUit(a: Readonly<Record<string, unknown>> | undefined): BagHoogte | undefined {
-  if (!a) return undefined;
-  const getal = (k: string) => (typeof a[k] === 'number' && Number.isFinite(a[k]) ? (a[k] as number) : null);
-  const grond = getal('b3_h_maaiveld') ?? 0;
-  const tot = (k: string, max: number) => {
-    const h = getal(k);
-    if (h == null) return null;
-    const m = Math.round((h - grond) * 10) / 10;
-    return m >= 1 && m <= max ? m : null;
-  };
-  const goot = tot('b3_h_dak_min', 40);
-  const nok0 = tot('b3_h_dak_max', 60);
-  const nok = nok0 != null && (goot == null || nok0 >= goot) ? nok0 : null;
-  const l = getal('b3_bouwlagen');
-  const lagen = l != null && Number.isInteger(l) && l >= 1 && l <= 20 ? l : null;
-  return goot == null && nok == null && lagen == null ? undefined : { goot, nok, lagen };
 }
 
 /**
@@ -237,8 +207,7 @@ export function bagHuisEnOmgeving(cj: CityJson, x: number, y: number): { huis: B
         }
       }
     }
-    const hoogte = hoogteUit(o.attributes);
-    alle.push({ omtrek, dak: dakUitVlakken(vlakken), afstand: Math.round(afstand * 10) / 10, erin: binnenRing(0, 0, omtrek), ...(hoogte ? { hoogte } : {}) });
+    alle.push({ omtrek, dak: dakUitVlakken(vlakken), afstand: Math.round(afstand * 10) / 10, erin: binnenRing(0, 0, omtrek) });
   }
   const huis = alle.find((g) => g.erin) ?? [...alle].sort((a, b) => a.afstand - b.afstand).find((g) => g.afstand <= 40);
   if (!huis) return null;

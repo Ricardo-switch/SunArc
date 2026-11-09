@@ -56,8 +56,6 @@ export const DOOR_ROLES: Readonly<Record<string, Role>> = {
   '/api/indeling': 'beheerder',
   '/api/energie': 'beheerder',
   '/api/aansluiting': 'beheerder',
-  // De vorm van het huis (besluit 288), bij Je huis.
-  '/api/huisvorm': 'beheerder',
   // Bijspringen per kamer (besluit 283), bij Regeling: net als de rest van Regeling.
   '/api/bijspringen': 'beheerder',
   // De gevels opmeten op de kaart (21 oktober 2026): stuurt de ligging naar OpenStreetMap.

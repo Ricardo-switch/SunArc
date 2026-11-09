@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.162.0';
+export const VERSIE = '0.163.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -81,70 +81,14 @@ export const OP_MAIN: readonly string[] = [
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
   {
-    versie: '0.162.0',
-    datum: '2026-11-08',
-    nieuw: [
-      'Je huis › Apparaten indelen: je apparaten als rondjes op de plattegrond van elke etage. Sleep er een naar zijn plek, in een andere kamer of ergens anders in dezelfde kamer; heeft de kamer zones in de tekening, dan kiest de plek ook de zone',
-    ],
-    en: {
-      nieuw: [
-        'Your home › Arrange devices: your devices as circles on the floor plan of every floor. Drag one to its place, into another room or somewhere else in the same room; if the room has zones in the drawing, the place picks the zone too',
-      ],
-    },
-  },
-  {
-    versie: '0.161.0',
-    datum: '2026-11-08',
-    nieuw: [
-      'Je huis › Kamers: elke etage van boven, op de maat van je huis, met de kamers als vakken. Kies een indeling die past bij je kamers, of deel een vak met een lijn en sleep de lijn op zijn plek',
-      'Een ruimte erin: zet een hal of trap tegen een muur, en de kamer eromheen blijft één ruimte, ook als een L of U. Een vak kan ook een eigen naam hebben, zoals het toilet',
-      'Zones van een kamer staan als lijn in de plattegrond, om te verschuiven',
-    ],
-    en: {
-      nieuw: [
-        'Your home › Rooms: every floor from above, at the size of your house, with the rooms as boxes. Choose a layout that fits your rooms, or split a box with a line and drag the line into place',
-        'A space inside: put a hall or stairs against a wall, and the room around it stays one space, also as an L or U. A box can also have its own name, such as the toilet',
-        'A room\'s zones show as a line in the floor plan, to slide',
-      ],
-    },
-  },
-  {
-    versie: '0.160.0',
-    datum: '2026-11-08',
-    nieuw: [
-      'Je huis › Etages: je huis opzij doorgesneden, met elke etage op zijn hoogte, het schuine dak met het lage deel, en de goot en nok. Tik een etage aan voor zijn hoogte, of hij onder het schuine dak ligt, en op welke gebouwen hij ligt',
-      'Etages zegt of het aantal etages klopt met de bouwlagen van je huis',
-    ],
-    en: {
-      nieuw: [
-        'Your home › Floors: your house in cross-section, with every floor at its height, the sloping roof with its low part, and the gutter and ridge. Tap a floor for its height, whether it is under the sloping roof, and which buildings it lies on',
-        'Floors tells you whether the number of floors matches the storeys of your house',
-      ],
-    },
-  },
-  {
-    versie: '0.159.0',
-    datum: '2026-11-08',
-    nieuw: [
-      'Je huis › Huisontwerp: de gebouwen van boven, dezelfde als bij Daken en panelen. Kies waar je huis vandaan komt, wat voor huis het is, en per gebouw het dak, de maat en de hoogte tot goot en nok',
-      'Uit de 3D-kaart van Nederland komen nu ook de hoogte en het aantal bouwlagen van je huis',
-    ],
-    en: {
-      nieuw: [
-        'Your home › House design: the buildings from above, the same as under Roofs and panels. Choose where your house comes from, what type of house it is, and per building the roof, the size and the height to gutter and ridge',
-        'The 3D map of the Netherlands now also gives the height and number of storeys of your house',
-      ],
-    },
-  },
-  {
-    versie: '0.158.0',
-    datum: '2026-11-08',
+    versie: '0.163.0',
+    datum: '2026-11-09',
     beter: [
-      'Kamers en indeling heet nu Je huis: Kamers met de etages bovenin, Apparaten indelen, en rond het huis Buiten en Verborgen. Een etage erbij zet je met + Etage',
+      'Kamers en indeling werkt weer zoals je gewend bent. Je huis, met het huisontwerp, de etages en de kamers als vakken, komt later terug',
     ],
     en: {
       beter: [
-        'Rooms and layout is now called Your home: Rooms with the floors on top, Arrange devices, and around the house Outside and Hidden. Add a floor with + Floor',
+        'Rooms and layout works as you are used to again. Your home, with the house design, the floors and the rooms as boxes, will come back later',
       ],
     },
   },

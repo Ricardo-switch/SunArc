@@ -13307,6 +13307,15 @@ huis op Thuis nooit op echte maat getekend worden.
   de kamers achterin, de namen van boven zweven in de zolder, de panelen en
   het eiland ontbreken. Ricardo: "voorlopig wil ik dit allemaal even
   pauzeren". Verder bij stap 3 (het huis op maat in huis.js) als hij het zegt.
+- **Teruggedraaid op beta, versie 0.163.0 (9 november 2026).** Ricardo wil Je
+  huis nog niet mee naar main. Beta is één lijn, dus alles van Je huis (stap 1
+  tot 6 en het huis in 3D) staat op de branch `je-huis` (tot en met 697f36a)
+  en is op beta teruggedraaid met één commit: Kamers en indeling werkt weer
+  zoals in 0.157.1. De schets Wand-Huis-Ontwerp en dit besluit blijven op
+  beta. Wat op de NAS in Je huis was ingevuld (vakken, etagehoogtes, de
+  hoogte van gebouwen) valt bij de volgende keer bewaren weg. Terugzetten:
+  de branch `je-huis` samenvoegen met beta, of de terugdraai-commit zelf
+  terugdraaien, en dan de versie ophogen.
 
 ---
 

@@ -65,10 +65,6 @@
     deur: ['var(--mint)', iconen.binnen('deur')],
     kelder: ['var(--mint)', iconen.binnen('kelder')],
     buiten: ['var(--mint)', iconen.binnen('buiten')],
-    // Je huis (besluit 288): Kamers met de etage bovenin, en Apparaten indelen.
-    kamers: ['var(--mint)', iconen.binnen('kamers')],
-    etages: ['var(--mint)', iconen.binnen('etages')],
-    apparaten: ['var(--zon)', iconen.binnen('apparaten')],
     los: ['var(--zon)', iconen.binnen('los')],
     verborgen: ['var(--zacht)', iconen.binnen('verborgen')],
   };

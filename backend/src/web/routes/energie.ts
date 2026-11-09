@@ -8,8 +8,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { validateConnection } from '../aansluiting.js';
 import { importFromPrefs, pricesInPrefs, type DashboardPrice, type MeterOption } from '../energy.js';
-import { alBinnen, bagHuisEnOmgeving, haalBagVak, inNederland, naarRd, type BagDak, type BagDakvlak, type BagHoogte } from '../bag3d.js';
-import { leesDaken, type Dakvorm, type KaartStandWoord } from '../daken.js';
+import { alBinnen, bagHuisEnOmgeving, haalBagVak, inNederland, naarRd, type BagDak, type BagDakvlak } from '../bag3d.js';
+import type { Dakvorm, KaartStandWoord } from '../daken.js';
 import { gevelsUitOmtrek, haalKaart, haalOmtrek, heeftGebouwen, huisEnOmgeving, kaartVak, voorkantUitKaart } from '../kaart.js';
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
@@ -60,12 +60,6 @@ export async function energieRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
 
   if (path === '/api/aansluiting') {
     await aansluitingRoute(d, req, res, method);
-    return true;
-  }
-
-  // Je huis › Huisontwerp (besluit 288): alleen de daken met hun gebouwen, de rest van de aansluiting blijft.
-  if (path === '/api/huisvorm' && method === 'POST') {
-    await huisvormRoute(d, req, res);
     return true;
   }
 
@@ -249,49 +243,6 @@ export async function aansluitingRoute(d: Diensten, req: IncomingMessage, res: S
 }
 
 /**
- * De vorm van het huis bewaren (besluit 288): `{ daken }`, zoals bij de
- * aansluiting, maar zonder de rest mee te sturen. Huisontwerp en Daken en
- * panelen werken zo op dezelfde gebouwen, en een tik in Je huis raakt de
- * panelen, de zekering of de prijzen nooit.
- */
-export async function huisvormRoute(d: Diensten, req: IncomingMessage, res: ServerResponse): Promise<void> {
-  const connection = d.options.connection;
-  if (connection == null) {
-    sendJson(res, 503, { wachten: 'De aansluiting staat niet aan' });
-    return;
-  }
-  let body: unknown;
-  try {
-    body = await readJson(req);
-  } catch (error) {
-    sendJson(res, 400, { fout: (error as Error).message });
-    return;
-  }
-  const raw = typeof body === 'object' && body != null && !Array.isArray(body) ? (body as Record<string, unknown>)['daken'] : undefined;
-  if (raw === undefined) {
-    sendJson(res, 400, { fout: 'verwacht { daken }' });
-    return;
-  }
-  const daken = leesDaken(raw);
-  if ('fout' in daken) {
-    sendJson(res, 400, { fout: daken.fout });
-    return;
-  }
-  const nu = connection.store.current;
-  if (nu) await connection.store.save({ ...nu, daken: daken.daken });
-  else {
-    // Nog geen antwoorden: dan alleen de daken, zoals de aansluiting ze zou bewaren.
-    const checked = validateConnection({ daken: raw }, connection.found(), null);
-    if (!checked.ok) {
-      sendJson(res, 400, { fout: checked.reden });
-      return;
-    }
-    await connection.store.save(checked.answers);
-  }
-  sendJson(res, 200, connection.view(taalVan(new URL(req.url ?? '/', 'http://localhost').searchParams.get('taal') ?? req.headers['x-taal'])));
-}
-
-/**
  * De gevels opmeten op de kaart (21 oktober 2026): de omtrek van het huis in
  * OpenStreetMap, en daaruit de voorkant die het dichtst bij `nuDeg` ligt.
  * Alleen na een tik van de beheerder; niets bewaard behalve een dag de omtrek.
@@ -345,8 +296,6 @@ export interface UitKaart {
   readonly hoofdhuis?: readonly (readonly [number, number])[];
   readonly omgeving?: readonly (readonly (readonly [number, number])[])[];
   readonly dak?: { readonly dakvorm: Dakvorm; readonly nokDeg: number; readonly hellingDeg: number | null; readonly vlakken: readonly BagDakvlak[] };
-  /** De hoogte uit 3D BAG (besluit 288): goot, nok en bouwlagen. */
-  readonly hoogte?: BagHoogte;
 }
 
 /**
@@ -386,13 +335,11 @@ export async function dakenKaartRoute(d: Diensten, res: ServerResponse): Promise
       hoofdhuis: uitBag.huis.omtrek,
       omgeving: [...uitBag.omgeving.map((g) => g.omtrek), ...erbij].slice(0, 20),
       dak: { dakvorm: dak.dakvorm, nokDeg: dak.nokDeg, hellingDeg: dak.hellingDeg, vlakken: dak.vlakken },
-      // De hoogte (besluit 288): goot, nok en bouwlagen, voor Je huis.
-      ...(uitBag.huis.hoogte ? { hoogte: uitBag.huis.hoogte } : {}),
     };
   }
   const bronnen = { osm: kaartOsm, bag3d: kaartBag };
   if (kaartBag.stand === 'huis') {
-    sendJson(res, 200, { hoofdhuis: kaartBag.hoofdhuis, omgeving: kaartBag.omgeving, bron: 'bag3d', dak: kaartBag.dak, ...(kaartBag.hoogte ? { hoogte: kaartBag.hoogte } : {}), bronnen });
+    sendJson(res, 200, { hoofdhuis: kaartBag.hoofdhuis, omgeving: kaartBag.omgeving, bron: 'bag3d', dak: kaartBag.dak, bronnen });
     return;
   }
   if (kaartOsm.stand === 'huis') {

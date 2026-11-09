@@ -90,14 +90,6 @@ export interface Gebouw {
    * dak). Weg: een voorstel, dat de vlakken erop volgt.
    */
   readonly dakBron?: 'bewoner' | 'kaart';
-  /**
-   * De hoogte (besluit 288, Je huis): tot de goot en tot de nok in meters
-   * boven de grond, en het aantal bouwlagen. Uit 3D BAG of van de bewoner;
-   * weg: geschat uit de etages.
-   */
-  readonly hoogteGoot?: number;
-  readonly hoogteNok?: number;
-  readonly lagen?: number;
 }
 
 export interface Daken {
@@ -233,12 +225,7 @@ function leesGebouwen(x: unknown): Gebouw[] | { fout: string } {
     }
     const kaart = r['kaart'] === 'bag3d' || r['kaart'] === 'osm' ? r['kaart'] : null;
     const dakBron = r['dakBron'] === 'bewoner' || r['dakBron'] === 'kaart' ? r['dakBron'] : null;
-    // De hoogte (besluit 288): een goot van 1 tot 40 meter, een nok niet lager dan de goot, 1 tot 20 lagen.
-    const goot = r['hoogteGoot'] == null ? null : getal(r['hoogteGoot'], 1, 40) ? Math.round((r['hoogteGoot'] as number) * 10) / 10 : undefined;
-    const nok = r['hoogteNok'] == null ? null : getal(r['hoogteNok'], 1, 60) && (goot == null || (r['hoogteNok'] as number) >= goot) ? Math.round((r['hoogteNok'] as number) * 10) / 10 : undefined;
-    const lagen = r['lagen'] == null ? null : Number.isInteger(r['lagen']) && getal(r['lagen'], 1, 20) ? (r['lagen'] as number) : undefined;
-    if (goot === undefined || nok === undefined || lagen === undefined) return { fout: `gebouw ${id}: de goot is 1 tot 40 meter, de nok niet lager, en 1 tot 20 lagen` };
-    uit.push({ id, soort: r['soort'] as GebouwSoort, bron: r['bron'] as Gebouw['bron'], omtrek, dakvorm: r['dakvorm'] as Dakvorm, nokDeg: r['nokDeg'] as number, ...(kaart && r['bron'] === 'kaart' ? { kaart } : {}), ...(dakBron ? { dakBron } : {}), ...(goot != null ? { hoogteGoot: goot } : {}), ...(nok != null ? { hoogteNok: nok } : {}), ...(lagen != null ? { lagen } : {}) });
+    uit.push({ id, soort: r['soort'] as GebouwSoort, bron: r['bron'] as Gebouw['bron'], omtrek, dakvorm: r['dakvorm'] as Dakvorm, nokDeg: r['nokDeg'] as number, ...(kaart && r['bron'] === 'kaart' ? { kaart } : {}), ...(dakBron ? { dakBron } : {}) });
   }
   return uit;
 }

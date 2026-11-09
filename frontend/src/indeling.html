@@ -4,10 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="only dark">
-<title>Je huis · SunArc</title>
+<title>Kamers en indeling · SunArc</title>
 <link rel="stylesheet" href="kit/kit.css">
 <link rel="stylesheet" href="basis.css">
-<link rel="stylesheet" href="daken.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b1424">
 <link rel="icon" href="icoon-192.png?v=sunarc">
@@ -15,7 +14,7 @@
 <script>(function () { var d = document.documentElement, w0 = 0, h0 = 0, t = {}, m = matchMedia('(prefers-color-scheme: light)'); try { t = JSON.parse(localStorage.getItem('sc-thema')) || {}; } catch (e) {} function k() { var eigen = d.classList.contains('tel-stand') || !t.scherm, c = eigen ? t.kleur : t.wandKleur; var licht = eigen && (t.thema === 'licht' || (t.thema === 'systeem' && m.matches)), tc = document.querySelector('meta[name="theme-color"]'); d.classList.toggle('sc-licht', licht); if (tc) tc.setAttribute('content', licht ? '#e9eff6' : '#0b1424'); if (c && c !== 'lucht') d.setAttribute('data-kleur', c); else d.removeAttribute('data-kleur'); } window.scThema = function (n) { if (n) { t = n; try { localStorage.setItem('sc-thema', JSON.stringify(n)); } catch (e) {} } k(); }; function s() { var a = document.activeElement; if (w0 === innerWidth && innerHeight < h0 && a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) return; w0 = innerWidth; h0 = innerHeight; var b = Math.min(1700, Math.max(1280, Math.round(800 * innerWidth / innerHeight))); d.classList.toggle('tel-stand', innerHeight > innerWidth || innerWidth < 560); d.style.setProperty('--wandbreedte', b + 'px'); d.style.setProperty('--wandschaal', Math.min(innerWidth / b, innerHeight / 800)); k(); } s(); addEventListener('resize', s); m.addEventListener('change', k); })();</script>
 <style>
   /*
-   * Je huis als groep (besluit 193 en 288, schetsen Wand-Indeling-Groep en Wand-Huis-Ontwerp), net
+   * Kamers en indeling als groep (besluit 193, schets Wand-Indeling-Groep), net
    * als Energie: links de delen (de etages, Buiten, wat nog geen plek heeft en
    * wat verborgen is), rechts het gekozen deel. Een etage is de tekening zonder
    * dak met het blad ernaast, en eronder de strook met wat nog in te delen is.
@@ -27,12 +26,6 @@
   .vormkop h2 { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .vormkop .mini { margin: 0; white-space: nowrap; }
   .vormkop [data-ongedaan] { margin-left: auto; flex: none; white-space: nowrap; }
-  /* De etages bovenin Kamers (besluit 288): één balk; boven een knop blijven hangen met een apparaat opent die etage. */
-  .vormkop .etagevak { margin-left: auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
-  .vormkop .etagevak:not([hidden]) ~ [data-ongedaan] { margin-left: 0; }
-  #wand .vormkop:has(.etagevak:not([hidden])) h2 { flex: none; }
-  #wand .vormkop:has(.etagevak:not([hidden])) .mini { overflow: hidden; text-overflow: ellipsis; }
-  .etagebalk [data-etage-knop].doel { outline: 2px dashed var(--mint); outline-offset: -2px; }
   #wand .vormvak .vorm { padding: 18px 24px 0; gap: 12px; }
   #wand .binnen { flex: 1 1 0; display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; min-height: 0; }
   #wand .links { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
@@ -45,46 +38,6 @@
   .binnen:not(.lijstdeel) [data-lijst] { display: none; }
   #wand .binnen.alleenblad { grid-template-columns: minmax(0, 540px); }
   #wand .binnen.alleenblad .links { display: none; }
-  /* Huisontwerp (besluit 288): de tekening van boven met haar eigen blad, over de hele breedte. */
-  #wand .binnen.heeldeel { grid-template-columns: minmax(0, 1fr); }
-  .binnen.heeldeel .links { display: none; }
-  #wand .binnen.heeldeel .blad { padding: 0; background: none; border: 0; overflow: visible; display: flex; flex-direction: column; }
-  #tel .binnen.heeldeel .blad { padding-top: 0; border-top: 0; }
-  /* Etages (besluit 288, stap 4): de lagen als regels, en of het klopt met de bouwlagen. */
-  .etagerijen { display: flex; flex-direction: column; gap: 2px; }
-  .etagerij { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; border: 0; background: none; color: var(--tekst); font: inherit; text-align: left; cursor: pointer; }
-  .etagerij span { display: flex; flex-direction: column; min-width: 0; }
-  .etagerij b { font-size: 14.5px; font-weight: 600; }
-  .etagerij small { font-size: 12px; color: var(--gedempt); }
-  .etagerij em { font-style: normal; font-size: 13px; font-weight: 700; color: var(--zacht); font-variant-numeric: tabular-nums; }
-  .etagerij.nu { background: rgb(111 211 255 / 0.12); box-shadow: inset 0 0 0 1.5px rgb(111 211 255 / 0.5); }
-  .klopt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 14px; background: rgb(110 231 183 / 0.08); border: 1px solid rgb(110 231 183 / 0.25); font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
-  .klopt b { display: block; color: var(--mint-t); font-size: 14px; }
-  .klopt .vink { width: 22px; height: 22px; border-radius: 50%; background: var(--mint); color: var(--inkt); display: grid; place-items: center; font-weight: 800; font-size: 13px; flex: none; }
-  .klopt.anders { background: rgb(111 211 255 / 0.07); border-color: rgb(111 211 255 / 0.25); }
-  .klopt.anders b { color: var(--ijs-t); }
-  .klopt.anders .vink { background: var(--ijs); }
-  .blad .twee { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end; }
-  .sc-doorsnede [data-etage-kies]:focus-visible { outline: 2px solid var(--ijs); }
-  /* Kamers als vakken (besluit 288, stap 5): de indelingen om te kiezen, wat nog geen plek heeft, en de zonelijnen. */
-  .keus { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .keuze-indeling { display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px 6px 8px; border-radius: 14px; background: rgb(var(--wit) / 0.05); border: 1.5px solid transparent; color: var(--tekst); font: inherit; cursor: pointer; text-align: left; }
-  .keuze-indeling:hover, .keuze-indeling:focus-visible { border-color: rgb(110 231 183 / 0.6); }
-  .keuze-indeling .pl { display: block; height: 92px; }
-  .keuze-indeling .pl svg { width: 100%; height: 100%; }
-  .keuze-indeling b { font-size: 13px; margin: 0 4px; }
-  .strook { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 14px; border: 1px dashed rgb(247 181 72 / 0.5); background: rgb(247 181 72 / 0.05); }
-  .strook .uitleg { font-size: 12.5px; color: var(--gedempt); line-height: 1.35; }
-  .strook .uitleg b { display: block; font-size: 14px; color: var(--tekst); }
-  .terugblad { align-self: flex-start; border: 0; background: none; color: var(--zacht); font: inherit; font-size: 13.5px; font-weight: 700; padding: 0; cursor: pointer; }
-  .zonelijn { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; font-size: 13px; color: var(--zacht); }
-  .voorstel { margin: 0; color: var(--ijs-t); }
-  details.ander summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--ijs-t); padding: 6px 0; }
-  details.ander[open] summary { margin-bottom: 8px; }
-  .sc-plattegrond [data-vak]:focus-visible { outline: 2px solid var(--ijs); }
-  .sc-plattegrond .pl-app { touch-action: none; }
-  .sc-plattegrond .pl-app.sleept { opacity: 0.35; }
-  .sc-plattegrond .pl-app:focus-visible circle { stroke: var(--ijs); stroke-width: 3; }
   .bak.leeg { display: none; }
   .applijst { display: flex; flex-direction: column; gap: 6px; }
   .applijst .app { padding: 10px 12px; border: 1px solid transparent; border-radius: 14px; background: rgb(var(--wit) / 0.045); }
@@ -226,8 +179,6 @@
   #tel .groepkop .status { text-align: left; }
   #tel .vorm { padding: 16px; gap: 12px; }
   #tel .vormkop h2 { font-size: 26px; flex: 1; }
-  #tel .vormkop { flex-wrap: wrap; }
-  #tel .vormkop .etagevak { order: 3; flex: 1 0 100%; margin-left: 0; }
   /* Wat het deel bevat, staat al in de lijst; op de telefoon is er alleen plek voor de naam en Ongedaan maken. */
   #tel .vormkop .mini { display: none; }
   #tel .binnen, #tel .links { display: flex; flex-direction: column; gap: 12px; }
@@ -253,7 +204,7 @@
         <nav class="glas delen schuift" data-t-aria-label="indeling.delen" data-delen></nav>
         <div class="glas vormvak" data-waarvoor-vak>
           <section class="vorm" data-vorm>
-          <div class="vormkop"><h2 class="kop-2" data-deelkop></h2><span class="mini" data-deelzin></span><div class="etagevak" data-etagebalk hidden></div><button type="button" class="knop" data-ongedaan disabled data-t="indeling.ongedaan"></button></div>
+          <div class="vormkop"><h2 class="kop-2" data-deelkop></h2><span class="mini" data-deelzin></span><button type="button" class="knop" data-ongedaan disabled data-t="indeling.ongedaan"></button></div>
           <div class="binnen" data-binnen>
             <div class="links">
               <div class="podium" id="podium-wand"></div>
@@ -277,7 +228,7 @@
       <span class="samen" data-samen></span>
       <nav class="glas delen" data-t-aria-label="indeling.delen" data-delen></nav>
       <section class="glas vorm" data-vorm>
-          <div class="vormkop"><h2 class="kop-2" data-deelkop></h2><span class="mini" data-deelzin></span><div class="etagevak" data-etagebalk hidden></div><button type="button" class="knop" data-ongedaan disabled data-t="indeling.ongedaan"></button></div>
+          <div class="vormkop"><h2 class="kop-2" data-deelkop></h2><span class="mini" data-deelzin></span><button type="button" class="knop" data-ongedaan disabled data-t="indeling.ongedaan"></button></div>
           <div class="binnen" data-binnen>
             <div class="links">
               <div class="podium" id="podium-tel"></div>
@@ -298,12 +249,9 @@
   <script src="kit/taal.js"></script>
   <script src="kit/nav.js"></script>
   <script src="kit/huis.js"></script>
-  <script src="kit/huisvorm.js"></script>
   <script src="basis.js"></script>
   <script src="groep.js"></script>
   <script src="huismodel.js"></script>
-  <script src="dakvlakken.js"></script>
-  <script src="dakbediening.js"></script>
   <script src="indeling.js"></script>
 </body>
 </html>

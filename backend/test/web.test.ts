@@ -418,26 +418,6 @@ describe('De zon en je aansluiting (besluit 103)', () => {
     const { base } = await start({});
     expect((await fetch(`${base}/api/aansluiting`, { method: 'POST', headers: JSON_HEADERS, body: '{}' })).status).toBe(405);
     expect(DOOR_ROLES['/api/aansluiting']).toBe('beheerder');
-    expect((await fetch(`${base}/api/huisvorm`, { method: 'POST', headers: JSON_HEADERS, body: '{}' })).status).toBe(405);
-    expect(DOOR_ROLES['/api/huisvorm']).toBe('beheerder');
-  });
-
-  it('bewaart bij Je huis alleen de vorm, en laat de rest van de aansluiting staan (besluit 288)', async () => {
-    const logDir = await mkdtemp(join(tmpdir(), 'hems-huisvorm-'));
-    cleanups.push(() => rm(logDir, { recursive: true, force: true }));
-    const store = new ConnectionStore(logDir);
-    const view = () =>
-      connectionView({ base: exampleSite, found, applied: { toegevoegd: [], overgeslagen: [] }, answersAtStart: null, answers: store.current, solar: null });
-    const { base } = await start({ connection: { store, view, found: () => found } });
-    await fetch(`${base}/api/aansluiting`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ zekering: { fasen: 1, ampere: 35 }, opZon: { droger: true } }) });
-    const huis = { id: 'huis', soort: 'hoofdhuis', bron: 'bewoner', omtrek: [[0, 0], [10, 0], [10, 8.4], [0, 8.4]], dakvorm: 'zadel', nokDeg: 90, hoogteGoot: 6.3, hoogteNok: 10.2, lagen: 3 };
-    const uit = await fetch(`${base}/api/huisvorm`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ daken: { vlakken: [], voorgevelDeg: 180, omvormerW: null, gebouwen: [huis] } }) });
-    expect(uit.status).toBe(200);
-    expect(store.current?.zekering).toEqual({ fasen: 1, ampere: 35 });
-    expect(store.current?.daken?.gebouwen?.[0]).toMatchObject({ hoogteGoot: 6.3, hoogteNok: 10.2, lagen: 3 });
-    const fout = await fetch(`${base}/api/huisvorm`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ daken: { vlakken: [], voorgevelDeg: 180, omvormerW: null, gebouwen: [{ ...huis, hoogteNok: 2 }] } }) });
-    expect(fout.status).toBe(400);
-    expect((await fetch(`${base}/api/huisvorm`, { method: 'POST', headers: JSON_HEADERS, body: '{}' })).status).toBe(400);
   });
 });
 

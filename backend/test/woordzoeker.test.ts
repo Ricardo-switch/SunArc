@@ -58,7 +58,7 @@ describe('woordzoeker in het Engels (besluit 185, stap 9 deel 6)', () => {
     expect(en('How do I sign out?')).toBe('toegang.html');
     expect(en('Where are the cameras?')).toBe('functies.html');
     const b = begrijp('Where do I change the layout?', config, 'en');
-    expect(b.soort === 'app' && b.link.label).toBe('Go to Your home');
+    expect(b.soort === 'app' && b.link.label).toBe('Go to Rooms and layout');
   });
 
   it('geeft Engelse voorbeelden die het zelf verstaat', () => {

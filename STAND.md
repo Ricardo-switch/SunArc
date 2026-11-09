@@ -273,13 +273,10 @@ verwijzing bestaat.
   bij een apparaat staan binnen en buiten apart ([269], 0.143.0). De
   thuisaccu staat in de tekening aan de gevel, in de garage of binnen, zoals
   de bewoner kiest ([270], 0.144.0).
-- **Je huis op maat**: de groep Je huis (vroeger Kamers en indeling) heeft
-  Huisontwerp, op dezelfde gebouwen als Daken en panelen en met de hoogte uit
-  de 3D-kaart; Etages, het huis opzij met elke etage op zijn hoogte; Kamers,
-  elke etage van boven met de kamers als vakken die je met lijnen deelt (een
-  ruimte erin maakt van de kamer eromheen een L of U, zones zijn een lijn); en
-  Apparaten indelen, elk apparaat op zijn plek in de plattegrond
-  (0.158.0–0.162.0, [288]).
+- **Je huis op maat staat stil**: Huisontwerp, Etages, Kamers als vakken en
+  apparaten op hun plek zijn gebouwd (0.158.0–0.162.0), maar op beta
+  teruggedraaid in 0.163.0 en bewaard op de branch `je-huis`; het huis op
+  Thuis op echte maat is gepauzeerd ([288]).
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over

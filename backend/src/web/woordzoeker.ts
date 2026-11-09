@@ -78,13 +78,13 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     zwak: ['kamer toevoegen', 'kamers', 'ruimte*', 'tuin', 'oprit', 'terras', 'balkon', 'voortuin', 'zolder toevoegen', 'kelder', 'rooms', 'add a room', 'garden', 'driveway', 'patio', 'balcony', 'basement'],
     nl: {
       antwoord:
-        'De indeling pas je aan bij Instellingen, onder Je huis. Daar sleep je een apparaat naar een andere kamer, voeg je een etage toe of haal je er een weg, en kies je wat er buiten is, zoals een tuin of een oprit.',
-      label: 'Naar Je huis',
+        'De indeling pas je aan bij Instellingen, onder Indeling. Daar sleep je een apparaat naar een andere kamer, voeg je een etage toe of haal je er een weg, en kies je wat er buiten is, zoals een tuin of een oprit.',
+      label: 'Naar Indeling',
     },
     en: {
       antwoord:
-        'You change the layout under Settings, Your home. Drag a device to another room, add or remove a floor, and choose what is outside, such as a garden or a driveway.',
-      label: 'Go to Your home',
+        'You change the layout under Settings, Rooms and layout. Drag a device to another room, add or remove a floor, and choose what is outside, such as a garden or a driveway.',
+      label: 'Go to Rooms and layout',
     },
   },
   {
