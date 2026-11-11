@@ -37,6 +37,11 @@ export interface SchakelaarKeuze {
   readonly knoppen?: Readonly<Record<string, string>>;
   /** Wat hij vraagt als hij aan staat, in W, door de bewoner ingevuld (besluit 298); alleen zonder eigen meter. */
   readonly vermogenW?: number;
+  /**
+   * De slimme stekker die erbij hoort (besluit 300), op zijn id: de kachel in
+   * het tuinhuis gaat aan en uit met IR, en de stekker geeft de stroom en meet.
+   */
+  readonly stekker?: string;
 }
 
 export interface SchakelaarKeuzes {
@@ -72,6 +77,8 @@ export interface GevondenSchakelaar {
   readonly zonderCode: number;
   /** De sensor met zijn vermogen, of null zonder meter. */
   readonly meet: string | null;
+  /** Een temperatuur op hetzelfde apparaat, zoals bij een IR-afstandsbediening met sensor (besluit 300). */
+  readonly temperatuur: string | null;
   /** Zegt hij niet terug of hij aan staat (klik-aan-klik-uit, IR)? Dan is de stand wat SunArc het laatst stuurde. */
   readonly aanname: boolean;
   /** Een IR-afstandsbediening. */
@@ -127,6 +134,7 @@ export function vindSchakelaars(
     const metCode = knoppen.filter((k) => k.code !== false);
     if (!metCode.length) continue;
     const meet = mine.find((x) => x.entity_id.startsWith('sensor.') && (klasseVan(x, states) === 'power' || /^k?W$/.test(eenheid(x.entity_id, states))))?.entity_id ?? null;
+    const temperatuur = mine.find((x) => x.entity_id.startsWith('sensor.') && klasseVan(x, states) === 'temperature')?.entity_id ?? null;
     const platform = schakelaars[0]!.platform ?? '';
     uit.push({
       id: deviceId,
@@ -138,6 +146,7 @@ export function vindSchakelaars(
       knoppen: metCode,
       zonderCode: knoppen.length - metCode.length,
       meet,
+      temperatuur,
       aanname: ir || platform === 'rfxtrx' || schakelaars.some((x) => states.get(x.entity_id)?.attributes['assumed_state'] === true),
       ir,
     });
@@ -168,6 +177,8 @@ export interface SchakelaarView extends GevondenSchakelaar {
    * bewoner invulde zolang een knop aan staat; null als dat niet te zeggen is.
    */
   readonly nuW: number | null;
+  /** De temperatuur van nu op het apparaat zelf, of null (besluit 300). */
+  readonly temperatuurC: number | null;
 }
 
 /** Wat een schakelaar nu vraagt: de meter, of het ingevulde vermogen als hij aan staat. */
@@ -178,6 +189,8 @@ export function nuVermogenW(g: GevondenSchakelaar, k: SchakelaarKeuze | null, st
     if (!Number.isFinite(n)) return null;
     return Math.round(n * (String(s?.attributes['unit_of_measurement'] ?? '') === 'kW' ? 1000 : 1));
   }
+  // Met een stekker erbij meet de stekker (besluit 300): die telt al mee, niet dubbel.
+  if (k?.stekker) return null;
   if (k?.vermogenW == null) return null;
   return g.knoppen.some((x) => states.get(x.id)?.state === 'on') ? k.vermogenW : 0;
 }
@@ -185,7 +198,8 @@ export function nuVermogenW(g: GevondenSchakelaar, k: SchakelaarKeuze | null, st
 export function schakelaarViews(gevonden: readonly GevondenSchakelaar[], keuzes: SchakelaarKeuzes, states: ReadonlyMap<string, HaEntityState> = new Map()): SchakelaarView[] {
   return gevonden.filter((g) => !keuzes.geen.includes(g.id)).map((g) => {
     const keuze = keuzes.apparaten[g.id] ?? null;
-    return { ...g, keuze, nuW: nuVermogenW(g, keuze, states) };
+    const c = g.temperatuur ? Number(states.get(g.temperatuur)?.state) : NaN;
+    return { ...g, keuze, nuW: nuVermogenW(g, keuze, states), temperatuurC: Number.isFinite(c) ? c : null };
   });
 }
 
@@ -248,7 +262,11 @@ export function leesSchakelaarKeuze(body: unknown):
   const w = b['vermogenW'];
   if (w != null && w !== '' && !(typeof w === 'number' && Number.isInteger(w) && w >= 1 && w <= 10_000)) return { ok: false, reden: 'vermogenW is een heel getal van 1 tot 10.000 W' };
   const vermogenW = typeof w === 'number' ? w : undefined;
-  return { ok: true, id, keuze: { wat: wat as SchakelaarWat, naam, kamer, mag, ...(knoppen && Object.keys(knoppen).length ? { knoppen } : {}), ...(vermogenW != null ? { vermogenW } : {}) } };
+  // De stekker erbij (besluit 300): het id van een stekker, of leeg.
+  const st = b['stekker'];
+  if (st != null && st !== '' && !(typeof st === 'string' && /^[a-z0-9_-]{1,40}$/.test(st))) return { ok: false, reden: 'stekker is het id van een stekker' };
+  const stekker = typeof st === 'string' && st ? st : undefined;
+  return { ok: true, id, keuze: { wat: wat as SchakelaarWat, naam, kamer, mag, ...(knoppen && Object.keys(knoppen).length ? { knoppen } : {}), ...(vermogenW != null ? { vermogenW } : {}), ...(stekker ? { stekker } : {}) } };
 }
 
 function leesKeuzes(raw: unknown): SchakelaarKeuzes {

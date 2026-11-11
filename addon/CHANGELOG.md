@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.170.0
+## 0.171.0
 
-*11 november 2026 · 0.163.0 – 0.170.0*
+*11 november 2026 · 0.163.0 – 0.171.0*
 
 **Nieuw**
 
+- Een kachel of ventilator achter een schakelaar staat bij Apparaten › Klimaat, met de temperatuur van het apparaat zelf, zoals een IR-afstandsbediening met sensor
+- Bij Apparaat toevoegen kies je welke slimme stekker erbij hoort: die meet wat de kachel gebruikt en staat dan bij de kachel, niet meer los bij Stekkers
 - Het kinderslot van een thermostaat of droger zet je in zijn blad: onderaan staat "Op de thermostaat" of "Op de droger", met een schakelaar die meteen gaat
 - Bij Apparaten opent een tik bij elk apparaat zijn blad: een lamp (aan, uit en helderheid), de boiler, de jacuzzi, de thuisaccu en een schakelaar, zoals al bij een airco, stekker en witgoed
 - Bij een schakelaar zonder meter vul je het vermogen in; staat hij aan, dan telt hij mee bij Opbrengst › Nu
@@ -44,6 +46,8 @@
 
 **New**
 
+- A heater or fan behind a switch is in Devices › Climate, with the temperature of the device itself, like an IR remote with a sensor
+- In Add a device you choose which smart plug belongs with it: it measures what the heater uses and is then shown with the heater, no longer on its own in Plugs
 - You set the child lock of a thermostat or dryer in its sheet: at the bottom is "On the thermostat" or "On the dryer", with a switch that takes effect at once
 - In Devices, tapping any device opens its sheet: a light (on, off and brightness), the boiler, the hot tub, the home battery and a switch, as already for an air conditioner, plug and appliance
 - For a switch without a meter you enter its power; when it is on, it counts in Energy › Now

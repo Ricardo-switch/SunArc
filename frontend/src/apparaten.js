@@ -552,6 +552,19 @@ async function schakelLamp(id, aan) {
 
 /* --------------------------------------------- een schakelaar (297) */
 
+/** Een kachel of ventilator achter een schakelaar staat bij Klimaat (besluit 300). */
+const KLIMAAT_WAT = new Set(['kachel', 'ventilator']);
+/** De stekkers die bij een schakelaar horen: die staan bij hem, niet nog eens bij Stekkers. */
+const stekkersBijSchakelaar = () => new Set((schakelaarData?.schakelaars ?? []).map((x) => x.keuze?.stekker).filter(Boolean));
+
+/** De stekker bij een schakelaar, als regel: de stroom en wat hij trekt; een tik opent zijn blad. */
+function stekkerRegel(s) {
+  const st = s.keuze?.stekker ? hand.stekker(s.keuze.stekker) : null;
+  if (!st) return '';
+  const wat = [t(st.aan ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit'), st.vermogenW != null && st.vermogenW >= 5 ? `${nl(st.vermogenW / 1000)} kW` : null].filter(Boolean).join(' · ');
+  return `<div class="lamp${st.aan ? ' aan' : ''}"><button type="button" class="lnaam" data-stekkerblad="${esc(st.id)}">${esc(t('apparaten.stroomVia', { naam: st.naam }))}<small>${esc(wat)}</small></button><span class="pijl" aria-hidden="true">›</span></div>`;
+}
+
 /** Het icoon bij wat er aan een schakelaar hangt. */
 const WAT_IK = { lamp: 'lamp', kachel: 'warm', ventilator: 'ventilatie', pomp: 'vocht', boiler: 'boiler', fietslader: 'stekker', anders: 'apparaat' };
 /** Wat je net tikte bij een schakelaar, tot Home Assistant het doorgeeft. */
@@ -584,12 +597,15 @@ function knopRijen(s) {
 
 function schakelaarKaart(s) {
   const mag = schakelaarData?.bedienen === true && s.keuze?.mag === 'hand';
-  const rijen = knopRijen(s);
+  const rijen = knopRijen(s) + stekkerRegel(s);
+  const st = s.keuze?.stekker ? hand.stekker(s.keuze.stekker) : null;
+  const kw = st?.vermogenW != null ? `${nl(st.vermogenW / 1000)}<span>${esc(t('apparaten.kwNu'))}</span>` : s.nuW != null ? `${nl(s.nuW / 1000)}<span>${esc(t(s.meet ? 'apparaten.kwNu' : 'apparaten.kwIngevuld'))}</span>` : '';
   const el = document.createElement('section');
   el.className = 'glas app';
   el.dataset.actief = String(s.knoppen.some((k) => (knopWens.has(k.id) ? knopWens.get(k.id) : k.aan === true)));
   el.innerHTML = `
-    <div class="kopje"><span class="ik" style="background: rgba(201, 211, 220, 0.14)">${iconen.svg(WAT_IK[s.keuze.wat] ?? 'apparaat')}</span><div><b>${esc(s.keuze.naam || s.naam)}</b><span class="mini">${esc(t(`toev.wat.${s.keuze.wat}`))} · ${esc(t('apparaten.via', { via: s.model ?? s.koppeling }))}</span></div><div class="kw">${s.nuW != null ? `${nl(s.nuW / 1000)}<span>${esc(t(s.meet ? 'apparaten.kwNu' : 'apparaten.kwIngevuld'))}</span>` : ''}</div></div>
+    <div class="kopje"><span class="ik" style="background: rgba(201, 211, 220, 0.14)">${iconen.svg(WAT_IK[s.keuze.wat] ?? 'apparaat')}</span><div><b>${esc(s.keuze.naam || s.naam)}</b><span class="mini">${esc(t(`toev.wat.${s.keuze.wat}`))} · ${esc(t('apparaten.via', { via: s.model ?? s.koppeling }))}</span></div><div class="kw">${kw}</div></div>
+    ${s.temperatuurC != null ? `<div class="stand"><i style="background: var(--mint)"></i>${esc(t('apparaten.hetIsEr', { c: nl(s.temperatuurC, 1) }))}</div>` : ''}
     <div class="knoprijen">${rijen}</div>
     ${mag ? '' : `<p class="mini etiket">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}`;
   return metBlad(el, `schakelaar:${s.id}`, s.keuze.naam || s.naam);
@@ -662,7 +678,7 @@ function schakelaarBlad(id) {
   return {
     naam: s.keuze.naam || s.naam,
     zin: [t(`toev.wat.${s.keuze.wat}`), t('apparaten.via', { via: s.model ?? s.koppeling })].join(' · '),
-    html: `<div class="knoprijen vrij-knoppen">${knopRijen(s)}</div>${s.nuW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(s.nuW / 1000)} kW</b>`) : ''}${!s.meet && s.keuze.vermogenW != null ? `<p class="hand-hoe">${esc(t('apparaten.ingevuldZin', { w: s.keuze.vermogenW }))}</p>` : ''}${mag ? '' : `<p class="hand-hoe">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}${onder([[`toevoegen.html#s-${encodeURIComponent(s.id)}`, t('apparaten.blad.instellen')]])}`,
+    html: `${s.temperatuurC != null ? regel(t('apparaten.blad.nu'), `<b>${nl(s.temperatuurC, 1)}°</b>`) : ''}<div class="knoprijen vrij-knoppen">${knopRijen(s)}${stekkerRegel(s)}</div>${s.nuW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(s.nuW / 1000)} kW</b>`) : ''}${!s.meet && s.keuze.vermogenW != null ? `<p class="hand-hoe">${esc(t('apparaten.ingevuldZin', { w: s.keuze.vermogenW }))}</p>` : ''}${mag ? '' : `<p class="hand-hoe">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}${onder([[`toevoegen.html#s-${encodeURIComponent(s.id)}`, t('apparaten.blad.instellen')]])}`,
   };
 }
 
@@ -745,6 +761,12 @@ let gekozenSoort = (() => {
 })();
 
 document.addEventListener('click', (e) => {
+  // De stekker bij een schakelaar opent zijn eigen blad (besluit 300).
+  const stBlad = e.target.closest('[data-stekkerblad]');
+  if (stBlad) {
+    void hand.openStekker(stBlad.dataset.stekkerblad);
+    return;
+  }
   const knop = e.target.closest('[data-knop]');
   if (knop && !knop.disabled) {
     void schakelKnop(knop.dataset.knop, knop.getAttribute('aria-checked') !== 'true');
@@ -805,13 +827,16 @@ function kaartenPerSoort() {
     klimaat: klimaat().map(klimaatKaart),
     witgoed: lijst.map(kaart),
     water: buffers.filter((b) => b.soort !== 'stekker').map(bufferKaart),
-    stekkers: buffers.filter((b) => b.soort === 'stekker').map(bufferKaart),
+    // Een stekker die bij een schakelaar hoort (besluit 300), staat bij die schakelaar.
+    stekkers: buffers.filter((b) => b.soort === 'stekker' && !stekkersBijSchakelaar().has(b.id)).map(bufferKaart),
     auto: (opslag.autos ?? (opslag.auto ? [opslag.auto] : [])).map((x) => ladingKaart('auto', x)),
     energie: opslag.batterij ? [ladingKaart('batterij', opslag.batterij)] : [],
     // Een schakelaar met iets anders dan een lamp (besluit 297); een lamp staat bij Licht.
-    schakelaars: (schakelaarData?.schakelaars ?? []).filter((x) => x.keuze && x.keuze.wat !== 'lamp').map(schakelaarKaart),
+    schakelaars: (schakelaarData?.schakelaars ?? []).filter((x) => x.keuze && x.keuze.wat !== 'lamp' && !KLIMAAT_WAT.has(x.keuze.wat)).map(schakelaarKaart),
   };
-  for (const a of gevonden) (per[soortVanGevonden(a.soort)] ??= []).push(nietOpZon(a));
+  // Een kachel of ventilator achter een schakelaar bij Klimaat (besluit 300).
+  per.klimaat.push(...(schakelaarData?.schakelaars ?? []).filter((x) => x.keuze && KLIMAAT_WAT.has(x.keuze.wat)).map(schakelaarKaart));
+  for (const a of gevonden) if (!stekkersBijSchakelaar().has(a.id)) (per[soortVanGevonden(a.soort)] ??= []).push(nietOpZon(a));
   for (const s of Object.keys(per)) per[s] = [...per[s].filter((k) => k.dataset.actief === 'true'), ...per[s].filter((k) => k.dataset.actief !== 'true')];
   return per;
 }
@@ -865,7 +890,7 @@ function tekenNu() {
   // Hoeveel er nieuw gevonden is, zoals het scherm Toevoegen het telt (besluit 293).
   const opZonKeuze = aansluiting?.antwoorden?.opZon ?? {};
   const vast = new Set((aansluiting?.configuratie?.apparaten ?? []).map((x) => x.id));
-  const nieuw = (schakelaarData?.schakelaars ?? []).filter((x) => !x.keuze).length + (huisData?.zonderRuimte ?? []).length + (aansluiting?.gevonden?.apparaten ?? []).filter((d) => opZonKeuze[d.id] !== true && !vast.has(d.id)).length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
+  const nieuw = (schakelaarData?.schakelaars ?? []).filter((x) => !x.keuze).length + (huisData?.zonderRuimte ?? []).length + (aansluiting?.gevonden?.apparaten ?? []).filter((d) => opZonKeuze[d.id] !== true && !vast.has(d.id) && !stekkersBijSchakelaar().has(d.id)).length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
   $$('[data-nieuw-tel]').forEach((el) => {
     el.hidden = nieuw === 0;
     el.textContent = String(nieuw);

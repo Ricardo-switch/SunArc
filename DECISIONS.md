@@ -293,6 +293,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [297. Schakelaars: vinden, instellen bij Toevoegen, en met de hand schakelen](#297-schakelaars-vinden-instellen-bij-toevoegen-en-met-de-hand-schakelen)
 - [298. Een blad voor elk apparaat, en het vermogen invullen bij een schakelaar](#298-een-blad-voor-elk-apparaat-en-het-vermogen-invullen-bij-een-schakelaar)
 - [299. Het kinderslot in het blad van een thermostaat of witgoed](#299-het-kinderslot-in-het-blad-van-een-thermostaat-of-witgoed)
+- [300. Een kachel uit meer delen: IR-knoppen, de stekker en de temperatuur](#300-een-kachel-uit-meer-delen-ir-knoppen-de-stekker-en-de-temperatuur)
 
 **Veiligheid**
 
@@ -13789,6 +13790,34 @@ de droger.
   `switch.turn_on` en `turn_off` zonder velden, alleen op een kinderslot dat
   het huis zo vond, alleen in de add-on, voor wie in huis woont. Op de NAS
   kijkt het blad mee.
+
+---
+
+## 300. Een kachel uit meer delen: IR-knoppen, de stekker en de temperatuur
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.171.0: stap 4 van [293], vierde deel. Ricardo koos
+dat de kachel in het tuinhuis één apparaat wordt ("zet het erbij"): een
+IR-afstandsbediening (HOBEIAN ZG-IR01) met twee geleerde knoppen en een
+temperatuur, en een slimme stekker (Sonoff S60) die de stroom geeft en meet.
+
+*Besluit:*
+
+- **Bij Apparaat toevoegen,** bij alles behalve een lamp: "Hoort erbij" met de
+  slimme stekker die de stroom geeft. SunArc stelt de stekker voor die een
+  woord uit de naam of het gebied deelt ("tuinhuis"). Heeft het apparaat zelf
+  een temperatuur, dan staat die erbij. Met een stekker meet de stekker; het
+  vermogen invullen ([298]) is dan niet nodig.
+- **Een kachel of ventilator** staat bij Apparaten › Klimaat, niet bij
+  Schakelaars, met "Het is er 6,3°" van het apparaat zelf, de knoppen met hun
+  naam, en "Stroom via …" met de stekker; een tik daarop opent het blad van
+  de stekker ([265]). Wat hij trekt komt van de meter van de stekker.
+- **De stekker staat niet nog eens los** bij Stekkers of bij Nieuw gevonden,
+  en telt niet dubbel bij Opbrengst.
+- **De regeling** doet er nog niets mee: een kachel achter IR is nog geen
+  klimaatapparaat dat de regeling stuurt. De stekker op zon blijft zoals hij
+  was ([290]).
 
 ---
 

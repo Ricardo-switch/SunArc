@@ -112,6 +112,22 @@ describe('schakelaars vinden (besluit 297)', () => {
     expect(kinderslotVan('climate.bestaat_niet', entities, slotStates)).toBeNull();
   });
 
+  it('maakt van een IR-afstandsbediening met stekker en temperatuur één kachel (besluit 300)', () => {
+    const tempStates = new Map(states);
+    tempStates.set('sensor.heater_tuinhuis_temperature', { ...states.get('sensor.heater_tuinhuis_temperature')!, state: '6.3', attributes: { device_class: 'temperature' } });
+    const ir = vindSchakelaars(tempStates, entities, devices, new Set(['switch.smart_plug_verwarming_tuinhuis'])).find((g) => g.id === 'ir')!;
+    expect(ir.temperatuur).toBe('sensor.heater_tuinhuis_temperature');
+    const k = leesSchakelaarKeuze({ id: 'ir', wat: 'kachel', naam: 'Kachel tuinhuis', stekker: 'stekker-verwarming-tuinhuis', vermogenW: 2000 });
+    expect(k.ok).toBe(true);
+    if (!k.ok || typeof k.keuze !== 'object') return;
+    const v = schakelaarViews([ir], metKeuze(GEEN_KEUZES, 'ir', k.keuze), tempStates)[0]!;
+    expect(v.temperatuurC).toBe(6.3);
+    expect(v.keuze!.stekker).toBe('stekker-verwarming-tuinhuis');
+    // De stekker meet: het ingevulde vermogen telt dan niet nog eens.
+    expect(v.nuW).toBeNull();
+    expect(leesSchakelaarKeuze({ id: 'ir', wat: 'kachel', stekker: '../x' }).ok).toBe(false);
+  });
+
   it('weigert een keuze die niet klopt', () => {
     expect(leesSchakelaarKeuze({ id: 'shelly', wat: 'raket' }).ok).toBe(false);
     expect(leesSchakelaarKeuze({ id: 'shelly', wat: 'lamp', mag: 'alles' }).ok).toBe(false);

@@ -17,6 +17,16 @@ let huisData = null;
 let aansluiting = null;
 /** De schakelaars met de keuzes (besluit 297), en of SunArc ze hier kan bedienen. */
 let schakelaars = [];
+/** De slimme stekkers (besluit 300), om er een bij een kachel te kiezen. */
+let stekkers = [];
+/** Wat bij Klimaat komt in plaats van bij Schakelaars (besluit 300). */
+const KLIMAAT_WAT = new Set(['kachel', 'ventilator']);
+
+/** Een stekker die bij deze schakelaar lijkt te horen: een woord van vier letters of meer uit de naam of het gebied. */
+function stekkerVoorstel(s) {
+  const woorden = `${s.naam} ${s.gebied ?? ''}`.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 4 && !/heater|switch|remote|smart|plug/.test(w));
+  return stekkers.find((st) => woorden.some((w) => st.naam.toLowerCase().includes(w)))?.id ?? '';
+}
 let schakelaarsMagBedienen = false;
 /** Wat de bewoner in het paneel aan het kiezen is, tot hij bewaart. */
 let concept = null;
@@ -72,7 +82,9 @@ function nieuwGevonden() {
   const opZon = aansluiting?.antwoorden?.opZon ?? {};
   // Wat al in de configuratie op zon staat (zoals een droger uit het bestand), is niet nieuw: Regeling toont het al (besluit 296).
   const vast = new Set((aansluiting?.configuratie?.apparaten ?? []).map((x) => x.id));
-  for (const d of aansluiting?.gevonden?.apparaten ?? []) if (opZon[d.id] !== true && !vast.has(d.id)) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.nietOpZon', href: 'regeling.html#opzon' });
+  // Een stekker die al bij een schakelaar hoort (besluit 300), is niet nieuw.
+  const bijSchakelaar = new Set(schakelaars.map((x) => x.keuze?.stekker).filter(Boolean));
+  for (const d of aansluiting?.gevonden?.apparaten ?? []) if (opZon[d.id] !== true && !vast.has(d.id) && !bijSchakelaar.has(d.id)) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.nietOpZon', href: 'regeling.html#opzon' });
   for (const d of aansluiting?.laden?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: d.rol, zin: 'toev.uit', href: 'energie.html#auto' });
   for (const d of aansluiting?.accu?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: 'accu', zin: 'toev.uit', href: 'energie.html#accu' });
   return uit;
@@ -93,11 +105,15 @@ const kamers = () => (huisData?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).m
 function paneel(s) {
   if (!concept || concept.id !== s.id) {
     const k = s.keuze;
-    concept = { id: s.id, wat: k?.wat ?? null, naam: k?.naam ?? '', kamer: k?.kamer ?? '', mag: k?.mag ?? 'kijken', knoppen: { ...(k?.knoppen ?? {}) }, vermogenW: k?.vermogenW != null ? String(k.vermogenW) : '' };
+    concept = { id: s.id, wat: k?.wat ?? null, naam: k?.naam ?? '', kamer: k?.kamer ?? '', mag: k?.mag ?? 'kijken', knoppen: { ...(k?.knoppen ?? {}) }, vermogenW: k?.vermogenW != null ? String(k.vermogenW) : '', stekker: k ? k.stekker ?? '' : stekkerVoorstel(s) };
   }
   const c = concept;
   const keuzes = WAT.map(([w, icoon]) => `<button type="button" class="watkeuze" data-wat="${w}" aria-pressed="${c.wat === w}">${iconen.svg(icoon)}<span>${esc(t(`toev.wat.${w}`))}</span></button>`).join('');
-  const onder = c.wat ? t(c.wat === 'lamp' ? 'toev.watLamp' : 'toev.watAnders') : '';
+  const onder = c.wat ? t(c.wat === 'lamp' ? 'toev.watLamp' : KLIMAAT_WAT.has(c.wat) ? 'toev.watKlimaat' : 'toev.watAnders') : '';
+  // Hoort erbij (besluit 300): de stekker die de stroom geeft en meet, en de temperatuur van het apparaat zelf.
+  const erbij = c.wat && c.wat !== 'lamp' && (stekkers.length || s.temperatuurC != null)
+    ? `<div class="stap"><b>${esc(t('toev.hoortErbij'))}</b><div>${stekkers.length ? `<select class="invoer" data-stekker aria-label="${esc(t('toev.stekker'))}"><option value="">${esc(t('toev.geenStekker'))}</option>${stekkers.map((st) => `<option value="${esc(st.id)}" ${c.stekker === st.id ? 'selected' : ''}>${esc(t('toev.stekkerNaam', { naam: st.naam }))}</option>`).join('')}</select><p class="onder">${esc(t('toev.stekkerUitleg'))}</p>` : ''}${s.temperatuurC != null ? `<p class="onder">${esc(t('toev.temperatuur', { c: String(s.temperatuurC).replace('.', ',') }))}</p>` : ''}</div></div>`
+    : '';
   const knoppen = s.knoppen.length > 1
     ? `<div class="stap"><b>${esc(t('toev.knoppen'))}${s.zonderCode ? `<small>${esc(t('toev.zonderCode', { n: s.zonderCode }))}</small>` : ''}</b><div class="knoppen">${s.knoppen.map((k, i) => `<label class="knoplabel"><span>${esc(t('toev.knop', { n: i + 1 }))}</span><input type="text" maxlength="60" data-knop="${esc(k.id)}" value="${esc(c.knoppen[k.id] ?? '')}" placeholder="${esc(t('toev.knopNaam'))}"></label>`).join('')}</div></div>`
     : '';
@@ -108,10 +124,11 @@ function paneel(s) {
     <div class="wie"><span class="ik">${iconen.svg(s.ir ? 'warm' : 'apparaat')}</span><div><h2>${esc(s.naam)}</h2><small>${esc([schakelaarZin(s), s.model ?? s.koppeling, meet].filter(Boolean).join(' · '))}</small></div></div>
     <div class="stap"><b>${esc(t(s.ir ? 'toev.watBedient' : 'toev.watAan'))}</b><div><div class="watkeuzes" role="group">${keuzes}</div>${onder ? `<p class="onder">${esc(onder)}</p>` : ''}</div></div>
     ${knoppen}
+    ${erbij}
     <div class="stap"><b>${esc(t('toev.naam'))}</b><input type="text" class="invoer" maxlength="60" data-naam value="${esc(c.naam)}" placeholder="${esc(s.naam)}"></div>
     <div class="stap"><b>${esc(t('toev.waar'))}</b><select class="invoer" data-kamer>${opties}</select></div>
-    ${s.meet ? '' : `<div class="stap"><b>${esc(t('toev.vermogen'))}<small>${esc(t('toev.vermogenKlein'))}</small></b><div><input type="number" class="invoer" min="1" max="10000" step="1" inputmode="numeric" data-vermogen value="${esc(c.vermogenW)}" placeholder="W"><p class="onder">${esc(t('toev.vermogenUitleg'))}</p></div></div>`}
-    <div class="stap"><b>${esc(t('toev.watMag'))}</b><div><div class="seg" role="group"><button type="button" data-mag="kijken" aria-pressed="${c.mag === 'kijken'}">${esc(t('toev.kijken'))}</button><button type="button" data-mag="hand" aria-pressed="${c.mag === 'hand'}">${esc(t('toev.hand'))}</button></div><p class="onder">${esc(t(s.meet ? 'toev.opZonLater' : 'toev.opZonNiet'))}</p></div></div>
+    ${s.meet || c.stekker ? '' : `<div class="stap"><b>${esc(t('toev.vermogen'))}<small>${esc(t('toev.vermogenKlein'))}</small></b><div><input type="number" class="invoer" min="1" max="10000" step="1" inputmode="numeric" data-vermogen value="${esc(c.vermogenW)}" placeholder="W"><p class="onder">${esc(t('toev.vermogenUitleg'))}</p></div></div>`}
+    <div class="stap"><b>${esc(t('toev.watMag'))}</b><div><div class="seg" role="group"><button type="button" data-mag="kijken" aria-pressed="${c.mag === 'kijken'}">${esc(t('toev.kijken'))}</button><button type="button" data-mag="hand" aria-pressed="${c.mag === 'hand'}">${esc(t('toev.hand'))}</button></div><p class="onder">${esc(t(s.meet || c.stekker ? 'toev.opZonLater' : 'toev.opZonNiet'))}</p></div></div>
     ${let_}
     <p class="fout" data-fout aria-live="polite"></p>
     <div class="klaar"><button type="button" class="knop hoofd" data-bewaar ${c.wat ? '' : 'disabled'}>${esc(t(s.keuze ? 'toev.bewaar' : 'toev.voegToe'))}</button>${s.keuze ? `<button type="button" class="stil" data-weg>${esc(t('toev.weg'))}</button>` : `<button type="button" class="stil" data-geen>${esc(t('toev.geen'))}</button>`}</div>`;
@@ -150,7 +167,7 @@ document.addEventListener('click', (e) => {
   else if (doel.dataset.mag) concept.mag = doel.dataset.mag;
   else if (doel.hasAttribute('data-geen')) return void bewaar({ id: concept.id, geen: true });
   else if (doel.hasAttribute('data-weg')) return void bewaar({ id: concept.id, weg: true });
-  else if (doel.hasAttribute('data-bewaar')) return void bewaar({ id: concept.id, wat: concept.wat, naam: concept.naam, kamer: concept.kamer || null, mag: concept.mag, knoppen: concept.knoppen, vermogenW: /^\d+$/.test(String(concept.vermogenW).trim()) ? Number(concept.vermogenW) : null });
+  else if (doel.hasAttribute('data-bewaar')) return void bewaar({ id: concept.id, wat: concept.wat, naam: concept.naam, kamer: concept.kamer || null, mag: concept.mag, knoppen: concept.knoppen, vermogenW: !concept.stekker && /^\d+$/.test(String(concept.vermogenW).trim()) ? Number(concept.vermogenW) : null, stekker: concept.stekker || null });
   teken();
 });
 document.addEventListener('input', (e) => {
@@ -160,6 +177,10 @@ document.addEventListener('input', (e) => {
   else if (el.matches('[data-kamer]')) concept.kamer = el.value;
   else if (el.matches('[data-knop]')) concept.knoppen[el.dataset.knop] = el.value;
   else if (el.matches('[data-vermogen]')) concept.vermogenW = el.value;
+  else if (el.matches('[data-stekker]')) {
+    concept.stekker = el.value;
+    teken();
+  }
 });
 
 /* ------------------------------------------------------------ tekenen */
@@ -194,7 +215,8 @@ function teken() {
 }
 
 async function laad() {
-  const [h, a, s] = await Promise.allSettled([haal('api/huis'), haal('api/aansluiting'), haal('api/schakelaars')]);
+  const [h, a, s, st] = await Promise.allSettled([haal('api/huis'), haal('api/aansluiting'), haal('api/schakelaars'), haal('api/stekker')]);
+  if (st.status === 'fulfilled') stekkers = (st.value?.stekkers ?? []).map((x) => ({ id: x.id, naam: x.naam }));
   if (h.status === 'fulfilled') huisData = h.value;
   if (a.status === 'fulfilled') aansluiting = a.value;
   if (s.status === 'fulfilled') {

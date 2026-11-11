@@ -212,6 +212,9 @@ const TOESTELLEN: readonly Toestel[] = [
   { id: 'd-ontvochtiger', naam: 'Ontvochtiger', ruimte: 'zolder', merk: 'Shelly', model: 'Plug S', platform: 'shelly', entiteiten: [['switch.ontvochtiger'], ['sensor.ontvochtiger_vermogen', meter('power', 'Vermogen')], ['sensor.ontvochtiger_energie', meter('energy', 'Energie')]] },
   // Schakelaars (besluit 297): een Shelly 1 mini zonder meter achter de lamp in de tuin, en klik-aan-klik-uit via RFXCOM zonder ruimte.
   { id: 'd-shelly-tuin', naam: 'Shelly 1 mini Gen3', ruimte: 'tuin', merk: 'Shelly', model: 'Shelly 1 Mini Gen3', platform: 'shelly', entiteiten: [['switch.shelly1minig3_tuin']] },
+  // Een IR-afstandsbediening met temperatuur voor de kachel in het tuinhuis, en de stekker die de stroom geeft (besluit 300).
+  { id: 'd-ir', naam: 'Heater tuinhuis', ruimte: 'tuin', merk: 'HOBEIAN', model: 'Smart IR remote switch', platform: 'mqtt', entiteiten: [['switch.heater_tuinhuis_switch1'], ['switch.heater_tuinhuis_switch2'], ['switch.heater_tuinhuis_switch3'], ['select.heater_tuinhuis_switch1_on'], ['select.heater_tuinhuis_switch2_on'], ['select.heater_tuinhuis_switch3_on'], ['infrared.heater_tuinhuis_ir_emitter'], ['sensor.heater_tuinhuis_temperature', meter('temperature', 'Temperatuur')]] },
+  { id: 'd-stekker-kachel', naam: 'Stekker kachel tuinhuis', ruimte: 'tuin', merk: 'SONOFF', model: 'Zigbee smart plug', platform: 'mqtt', entiteiten: [['switch.stekker_kachel_tuinhuis'], ['sensor.stekker_kachel_tuinhuis_vermogen', meter('power', 'Vermogen')]] },
   { id: 'd-kaku', naam: 'AC 0x01a2b3c4:1', ruimte: null, model: 'AC', platform: 'rfxtrx', entiteiten: [['switch.ac_0x01a2b3c4_1']] },
   { id: 'd-laadpaal', naam: 'Laadpaal', ruimte: 'oprit', merk: 'Easee', platform: 'easee', entiteiten: [['sensor.laadpaal_vermogen', meter('power', 'Vermogen')], ['sensor.laadpaal_status', meter('', 'Status')], ['sensor.laadpaal_stroom_l1', meter('current', 'Stroom L1')], ['number.laadpaal_laadstroom', meter('', 'Laadstroom')], ['switch.laadpaal_laden', meter('', 'Laden')]] },
   {
@@ -403,6 +406,12 @@ export function staten(klok: Klok, ingrepen: Ingrepen, nuMs: number): HaEntitySt
   zet('number.laadpaal_laadstroom', 6, { unit_of_measurement: 'A', min: 6, max: 16, step: 1, mode: 'slider' });
   zet('switch.laadpaal_laden', 'on', {});
   // De schakelaars (besluit 297): uit, tot iemand ze aanzet; klik-aan-klik-uit zegt zijn stand niet terug.
+  for (const n of [1, 2, 3]) zet(`switch.heater_tuinhuis_switch${n}`, ingrepen.get(`switch.heater_tuinhuis_switch${n}`)?.state === 'on' ? 'on' : 'off', { assumed_state: true });
+  for (const n of [1, 2, 3]) zet(`select.heater_tuinhuis_switch${n}_on`, n <= 2 ? 'registered' : 'unregistered', {});
+  zet('sensor.heater_tuinhuis_temperature', 6.3, { unit_of_measurement: '°C', device_class: 'temperature', state_class: 'measurement' });
+  const kachelAan = ingrepen.get('switch.stekker_kachel_tuinhuis')?.state === 'on';
+  zet('switch.stekker_kachel_tuinhuis', kachelAan ? 'on' : 'off', {});
+  zet('sensor.stekker_kachel_tuinhuis_vermogen', kachelAan ? 1850 : 0, { unit_of_measurement: 'W', device_class: 'power', state_class: 'measurement' });
   zet('switch.shelly1minig3_tuin', ingrepen.get('switch.shelly1minig3_tuin')?.state === 'on' ? 'on' : 'off', {});
   zet('switch.ac_0x01a2b3c4_1', ingrepen.get('switch.ac_0x01a2b3c4_1')?.state === 'on' ? 'on' : 'off', { assumed_state: true });
   // De ontvochtiger op een slimme stekker: uit, tot iemand hem aanzet (met de hand, besluit 265).

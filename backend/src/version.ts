@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.170.0';
+export const VERSIE = '0.171.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.171.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Een kachel of ventilator achter een schakelaar staat bij Apparaten › Klimaat, met de temperatuur van het apparaat zelf, zoals een IR-afstandsbediening met sensor',
+      'Bij Apparaat toevoegen kies je welke slimme stekker erbij hoort: die meet wat de kachel gebruikt en staat dan bij de kachel, niet meer los bij Stekkers',
+    ],
+    en: {
+      nieuw: [
+        'A heater or fan behind a switch is in Devices › Climate, with the temperature of the device itself, like an IR remote with a sensor',
+        'In Add a device you choose which smart plug belongs with it: it measures what the heater uses and is then shown with the heater, no longer on its own in Plugs',
+      ],
+    },
+  },
   {
     versie: '0.170.0',
     datum: '2026-11-11',
