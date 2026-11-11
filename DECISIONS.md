@@ -295,6 +295,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [299. Het kinderslot in het blad van een thermostaat of witgoed](#299-het-kinderslot-in-het-blad-van-een-thermostaat-of-witgoed)
 - [300. Een kachel uit meer delen: IR-knoppen, de stekker en de temperatuur](#300-een-kachel-uit-meer-delen-ir-knoppen-de-stekker-en-de-temperatuur)
 - [301. Een laadpaal uit losse sensoren](#301-een-laadpaal-uit-losse-sensoren)
+- [302. De fasekaart: hoe vol elke fase is](#302-de-fasekaart-hoe-vol-elke-fase-is)
 
 **Veiligheid**
 
@@ -13847,6 +13848,42 @@ Een laadpaal via Modbus heeft geen apparaat, alleen losse sensoren.
 - **Eerst alleen kijken:** bedienen via Modbus (een stroom zetten, pauzeren)
   kan nog niet.
 - **De melding SA-EXA6** (issue 160) krijgt het antwoord in de app.
+
+---
+
+## 302. De fasekaart: hoe vol elke fase is
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.173.0: stap 7 van de testerronde, na de schetsen
+Wand-Fasekaart en Tel-Fasekaart.
+
+*Waarom:* SunArc houdt elke fase onder de zekering min een marge ([78]), maar
+de bewoner zag nergens hoe vol een fase is. Met een laadpaal, een warmtepomp
+of een oven op één fase is dat de vraag "kan dit er nog bij?". Het huis
+krijgt eind 2026 zelf 3 × 25 A.
+
+*Besluit:*
+
+- **Een kaart om te kiezen** bij Thuis aanpassen, zoals de auto en de
+  batterij ([182]), niet standaard: per fase een balk tot de zekering, met een
+  streep waar SunArc onder blijft, de stroom nu, en een zin met de fase die het
+  krapst is. Op de smalle tegel van de wand het hoogste nu en drie staafjes.
+  Kleur: groen, geel vanaf twee derde, oranje vanaf 88% van de zekering.
+- **Een tik opent een blad** (op Thuis zelf, zoals bij Apparaten, [298]): de
+  fasen nu, de dag per kwartier met alle fasen in één grafiek (de zekering en
+  de grens erin), het hoogste van vandaag per fase met de tijd, en wat SunArc
+  doet als het krap wordt.
+- **Geen melding** op de telefoon als een fase bijna vol is: SunArc zet dan
+  zelf niets bij aan. De kaart zegt het wel ("Bijna vol op L2") binnen 1 A van
+  de grens.
+- **Waar het vandaan komt:** de stroom nu uit het laatste besluit (dezelfde
+  fasen als de arbiter); de dag uit de historie van Home Assistant van de
+  stroommeters per fase, hooguit elke vijf minuten opgehaald
+  (`/api/fasen`, alleen lezen).
+- **Zonder stroommeter per fase** staat het totaal tegen wat de aansluiting
+  samen kan (uit de zekering bij Energie), met "Meter per fase mist" en de weg
+  naar Energie › Aansluiting. Zonder zekering biedt Kaart toevoegen hem niet aan.
 
 ---
 

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · De fasekaart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="fasekaart.css">
+<style>
+  /*
+   * De fasekaart op de wand (schets, 11 november 2026; testerronde stap 7).
+   * Links de kaart zoals hij tussen de kaarten op Thuis staat; rechts het blad
+   * dat een tik erop opent: de fasen nu, de dag per fase, de pieken, en wat
+   * SunArc doet als het krap wordt. Standen in fasekaart.js: (zonder), #krap,
+   * #een, #geen.
+   */
+  main { position: relative; padding: 22px 26px 20px 22px; display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 20px; min-height: 0; }
+  .links { display: flex; flex-direction: column; gap: 12px; }
+  .links h1 { margin: 0 0 4px; font-size: 40px; }
+  .links .lead { font-size: 15px; margin: 0 0 6px; max-width: none; }
+  .blad { padding: 22px 26px 20px; border-radius: 26px; background: #0e1828; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  .ander { opacity: 0.45; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-avond">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="links">
+      <div><h1 class="kop-1">Thuis</h1><p class="lead">De kaart tussen de andere kaarten; een tik opent het blad.</p></div>
+      <div id="kaart"></div>
+      <div class="glas kaart ander"><div class="kop"><span class="ik" id="ik-auto"></span><h2 class="kop-3">Elektrische auto</h2><span class="pijl">›</span></div><p class="fzin">Laadt 2,8 kW · 57%</p></div>
+      <div class="glas kaart ander"><div class="kop"><span class="ik" id="ik-maand"></span><h2 class="kop-3">Deze maand</h2><span class="pijl">›</span></div><p class="fzin">€ 41 · 38% eigen zon</p></div>
+    </div>
+    <section class="glas blad" id="blad"></section>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="fasekaart.js"></script>
+<script>
+  nav.balk(document.getElementById('balk'), 'thuis');
+  const s = fasekaart.stand(location.hash.slice(1));
+  document.getElementById('kaart').innerHTML = fasekaart.kaart(s);
+  document.getElementById('blad').innerHTML = fasekaart.blad(s, 760);
+  document.getElementById('ik-auto').innerHTML = iconen.svg('auto');
+  document.getElementById('ik-maand').innerHTML = iconen.svg('opbrengst');
+</script>
+</body>
+</html>
