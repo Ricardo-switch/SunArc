@@ -58,6 +58,51 @@ export async function energieRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
     return true;
   }
 
+  // Schakelaars (besluit 297): de lijst en de keuzes, en met de hand aan of uit.
+  if (path === '/api/schakelaars' && d.options.schakelaars) {
+    const s = d.options.schakelaars;
+    if (method !== 'POST') {
+      sendJson(res, 200, { schakelaars: s.lijst(), bedienen: s.zet != null });
+      return true;
+    }
+    let body: unknown;
+    try {
+      body = await readJson(req);
+    } catch (error) {
+      sendJson(res, 400, { fout: (error as Error).message });
+      return true;
+    }
+    const uit = await s.bewaar(body);
+    sendJson(res, uit.ok ? 200 : 400, uit.ok ? { ok: true, schakelaars: s.lijst() } : { fout: uit.reden });
+    return true;
+  }
+  if (path === '/api/schakelaar' && d.options.schakelaars) {
+    const zet = d.options.schakelaars.zet;
+    if (method !== 'POST') {
+      sendJson(res, 405, { fout: 'een schakelaar zet je met een POST' });
+      return true;
+    }
+    if (!zet) {
+      sendJson(res, 503, { fout: 'Een schakelaar bedienen kan alleen in de add-on' });
+      return true;
+    }
+    let body: Record<string, unknown>;
+    try {
+      body = (await readJson(req)) as Record<string, unknown>;
+    } catch (error) {
+      sendJson(res, 400, { fout: (error as Error).message });
+      return true;
+    }
+    const knop = body?.['knop'];
+    if (typeof knop !== 'string' || !/^switch\.[a-z0-9_]+$/.test(knop) || typeof body['aan'] !== 'boolean') {
+      sendJson(res, 400, { fout: 'verwacht { knop: "switch.…", aan }' });
+      return true;
+    }
+    const uit = await zet(knop, body['aan']);
+    sendJson(res, uit.ok ? 200 : 409, uit.ok ? uit : { fout: uit.reden });
+    return true;
+  }
+
   if (path === '/api/aansluiting') {
     await aansluitingRoute(d, req, res, method);
     return true;

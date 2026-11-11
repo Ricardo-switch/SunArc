@@ -89,6 +89,7 @@ import { hoofddakPlat, panelenVan, type DakVlak } from './web/daken.js';
 import { inNederland } from './web/bag3d.js';
 import { aanvullenUitMeter, achterblijven, meetVlakken, metMeting, opbrengstPerVlak, verdeelDag, type Achter, type MeterGroep, type VlakStand, type Verdeling } from './web/meten-vlakken.js';
 import { findHeatStores, findPlugs, type FoundHeatStore } from './web/buffers-vinden.js';
+import { GEEN_KEUZES, SchakelaarStore, lampSchakelaars, leesSchakelaarKeuze, metKeuze, schakelaarViews, schakelaarsMag, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
 import { kiesLigging, meetLigging, omvormerUitType, type Meting, type PanelenAntwoord } from './web/ligging.js';
 import { alarmSensoren, vindRookmelders } from './web/rookmelders.js';
 import { eigenUpdate, updateView, type UpdateView } from './web/bijwerken.js';
@@ -516,7 +517,15 @@ const client = new HaClient({
     const klimaat = klimaatAan() || (handbediening?.terugzetten.length ?? 0) > 0
       ? { klimaat: [...new Set([...HAND_KLIMAAT, ...handKnoppen().map((k) => k.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.thermostaat).map((t) => t.id)])], schakelaars: [...handSchakelaars().map((s) => s.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.modus === 'aan').map((t) => t.id)] }
       : { klimaat: [], schakelaars: [] };
-    return { klimaat: klimaat.klimaat, schakelaars: [...new Set([...klimaat.schakelaars, ...stekkers])] };
+    // Schakelaars die de bewoner met de hand toeliet (besluit 297): dezelfde deur, alleen in de add-on.
+    const relais = (() => {
+      try {
+        return inHuisMetDeuren ? schakelaarsMag(vindSchakelaarsNu(), schakelaarKeuzes()) : [];
+      } catch {
+        return [];
+      }
+    })();
+    return { klimaat: klimaat.klimaat, schakelaars: [...new Set([...klimaat.schakelaars, ...stekkers, ...relais])] };
   },
 });
 
@@ -772,6 +781,19 @@ function vindBuffers(): FoundHeatStore[] {
   const buffers = findHeatStores(allStates, houseRegisters.entities, houseRegisters.devices);
   const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...buffers.map((b) => b.actuator)]);
   return [...buffers, ...findPlugs(allStates, houseRegisters.entities, houseRegisters.devices, bekend)];
+}
+/*
+ * Schakelaars (besluit 297): een relais zoals een Shelly 1 mini, klik-aan-klik-uit
+ * of de knoppen van een IR-afstandsbediening. Wat het huis al kent (de regeling,
+ * een boiler, een stekker), telt niet mee. De keuzes staan in een eigen bestand.
+ */
+const schakelaarStore = logDir !== '' ? new SchakelaarStore(logDir) : null;
+await schakelaarStore?.load();
+const schakelaarKeuzes = (): SchakelaarKeuzes => schakelaarStore?.current ?? GEEN_KEUZES;
+function vindSchakelaarsNu(): GevondenSchakelaar[] {
+  if (!houseRegisters) return [];
+  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...vindBuffers().map((b) => b.actuator)]);
+  return vindSchakelaars(allStates, houseRegisters.entities, houseRegisters.devices, bekend);
 }
 
 /** De radiatorknoppen buiten de regeling (besluit 126), met hun kamer: die zet de hand direct (besluit 235). */
@@ -1783,7 +1805,7 @@ const HUIS_HOOGUIT_MS = 10_000;
 /** Per taal (besluit 185): de stand en de samenvatting staan erin in woorden. */
 const huisBewaard = new Map<Lang, { sleutel: readonly unknown[]; atMs: number; huis: ReturnType<typeof buildHouse> | null }>();
 const huisNu = (lang: Lang) => {
-  const sleutel = [huisVersie, houseRegisters, siteConfig, runner?.latest, layoutStore?.current, functiesStore?.current, connectionStore?.current];
+  const sleutel = [huisVersie, houseRegisters, siteConfig, runner?.latest, layoutStore?.current, functiesStore?.current, connectionStore?.current, schakelaarStore?.current];
   const b = huisBewaard.get(lang);
   if (b && Date.now() - b.atMs < HUIS_HOOGUIT_MS && b.sleutel.every((x, i) => x === sleutel[i])) return b.huis;
   const huis = siteConfig && houseRegisters
@@ -1800,6 +1822,8 @@ const huisNu = (lang: Lang) => {
         // Wanneer een batterij of filter een melding geeft (besluit 149).
         functiesStore?.current?.meldingen,
         lang,
+        // Lampen achter een schakelaar (besluit 297): bij het licht van hun kamer.
+        lampSchakelaars(vindSchakelaarsNu(), schakelaarKeuzes()),
       )
     : null;
   // Een plat dak op het hoofdhuis (issue 131): zoals de bewoner het opgaf bij Daken en panelen of Inrichten (143).
@@ -1918,7 +1942,13 @@ if (startup.lights.withoutIngress) {
 const lightSwitch = startup.lights.enabled
   ? new LightSwitch({
       house: houseReport,
-      call: (service, entityIds, data) => client.callService('light', service, data, { entity_id: [...entityIds] }),
+      call: async (service, entityIds, data) => {
+        // Een lamp achter een schakelaar (besluit 297) is een `switch.`: die gaat los aan of uit, zonder helderheid.
+        const lampen = entityIds.filter((id) => id.startsWith('light.'));
+        const relais = entityIds.filter((id) => id.startsWith('switch.'));
+        if (lampen.length) await client.callService('light', service, data, { entity_id: lampen });
+        for (const id of relais) await client.callService('switch', service, {}, { entity_id: id });
+      },
       callScene: (sceneId) => client.callService('scene', 'turn_on', {}, { entity_id: sceneId }),
     })
   : null;
@@ -2449,6 +2479,31 @@ if (webPort != null) {
         }
       : {}),
     // Een slimme stekker met de hand (besluit 265): de stand overal, schakelen alleen in de add-on.
+    schakelaars: {
+      lijst: () => schakelaarViews(vindSchakelaarsNu(), schakelaarKeuzes()),
+      bewaar: async (body) => {
+        if (!schakelaarStore) return { ok: false as const, reden: 'er is geen map om de keuze te bewaren' };
+        const k = leesSchakelaarKeuze(body);
+        if (!k.ok) return k;
+        if (!vindSchakelaarsNu().some((g) => g.id === k.id) && k.keuze !== 'weg') return { ok: false as const, reden: 'die schakelaar kent het huis niet' };
+        await schakelaarStore.save(metKeuze(schakelaarStore.current, k.id, k.keuze));
+        return { ok: true as const };
+      },
+      // Met de hand aan of uit (besluit 297): alleen in de add-on, alleen een knop die de bewoner toeliet.
+      ...(inHuisMetDeuren
+        ? {
+            zet: async (knop: string, aan: boolean) => {
+              if (!schakelaarsMag(vindSchakelaarsNu(), schakelaarKeuzes()).includes(knop)) return { ok: false as const, reden: 'deze schakelaar mag SunArc niet bedienen' };
+              try {
+                await client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: knop });
+                return { ok: true as const };
+              } catch (e) {
+                return { ok: false as const, reden: `Home Assistant nam het niet aan: ${(e as Error).message}` };
+              }
+            },
+          }
+        : {}),
+    },
     stekkers: {
       standen: async () =>
         (await stekkerhand.standen(inHuisMetDeuren)).map((s) => {

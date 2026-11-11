@@ -290,6 +290,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [294. Apparaten in soorten gebouwd, met alle lampen per kamer](#294-apparaten-in-soorten-gebouwd-met-alle-lampen-per-kamer)
 - [295. Apparaat toevoegen, een eigen scherm](#295-apparaat-toevoegen-een-eigen-scherm)
 - [296. De soorten op Apparaten filteren in plaats van springen](#296-de-soorten-op-apparaten-filteren-in-plaats-van-springen)
+- [297. Schakelaars: vinden, instellen bij Toevoegen, en met de hand schakelen](#297-schakelaars-vinden-instellen-bij-toevoegen-en-met-de-hand-schakelen)
 
 **Veiligheid**
 
@@ -13680,6 +13681,49 @@ springt", en gekozen: filteren.
   als klimaat die je dan naar de locatie brengt in huis". Wat al een eigen
   blad of pagina heeft (een airco of thermostaat met de hand, witgoed, een
   stekker, de auto), houdt dat: daar bedien je het al.
+
+---
+
+## 297. Schakelaars: vinden, instellen bij Toevoegen, en met de hand schakelen
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.168.0: de derde stap van [293], voor de meldingen
+157 (Shelly 1 mini), 161 (klik-aan-klik-uit via RFXCOM) en de
+IR-afstandsbediening in het tuinhuis.
+
+*Besluit:*
+
+- **Vinden** (`web/schakelaars.ts`): een apparaat in Home Assistant met een
+  `switch.` zonder vaste rol, van een koppeling die echte schakelaars levert
+  (Shelly, RFXCOM, Zigbee2MQTT, ZHA, Tuya, Tasmota, ESPHome en zo). Niet:
+  software (Adaptive Lighting, AdGuard, de NAS, de router), instellingen (een
+  kinderslot, een lampje, de jetstand), een brug of coördinator, een apparaat
+  dat iets anders is (klimaat, een lamp, een scherm), en wat het huis al kent
+  (de regeling, een boiler, een stekker). Bij een IR-afstandsbediening alleen
+  de knoppen met een geleerde code. Klik-aan-klik-uit en IR zeggen niet terug
+  of iets aan staat: de app zegt dan "laatst gestuurd".
+- **Instellen bij Apparaat toevoegen:** een schakelaar staat bij Nieuw
+  gevonden, en onder de soort Schakelaars. Je kiest wat hij aanzet (lamp,
+  kachel, ventilator, pomp, boiler, fietslader, anders), de naam (bij meer
+  knoppen per knop), de kamer (of zoals in Home Assistant), en alleen kijken
+  of met de hand. "Dit is geen apparaat" haalt hem uit de lijst. Bewaard in
+  een eigen bestand `schakelaars.json` (`/api/schakelaars`, de beheerder).
+- **Een lamp** wordt een gewone lamp in zijn kamer: op Thuis, in de kamer en
+  bij Apparaten › Licht, met "via" en het model. Hij gaat aan en uit door de
+  deur van het licht (`/api/licht`, [97]); de dienst zet dan `switch.turn_on`
+  of `turn_off` op die schakelaar. Het huis volgt daarom ook `switch.`.
+- **Iets anders** staat bij Apparaten › Schakelaars, met per knop of hij aan
+  staat en een schakelaar (`/api/schakelaar`, de bewoner).
+- **De deur naar Home Assistant** is die van een stekker met de hand ([265]):
+  `switch.turn_on` en `turn_off` zonder velden, alleen op een schakelaar die
+  de bewoner met de hand toeliet, alleen in de add-on. Op de NAS kijkt de app
+  mee.
+- **Een lamp zonder kamer** bij Apparaten › Licht schakelde niet (de deur
+  zocht alleen in kamers); nu wel.
+- **Nog niet:** het vermogen invullen bij een schakelaar zonder meter, de
+  bladen per apparaat, het kinderslot, de IR-afstandsbediening samen met de
+  stekker en de temperatuur als één kachel, en losse sensoren. Dat is stap 4.
 
 ---
 

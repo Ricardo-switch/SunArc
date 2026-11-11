@@ -507,7 +507,9 @@ describe('het voorstel uit Home Assistant', () => {
     expect(lampsFor(house, { soort: 'huis', id: null })).toContain('light.hue_badkamer');
     expect(lampsFor(house, { soort: 'lamp', id: 'light.sfeerverlichting' })).toEqual(['light.sfeerverlichting']);
     expect(lampsFor(house, { soort: 'lamp', id: 'cover.screen' })).toBeNull();
-    expect(lampsFor(house, { soort: 'lamp', id: 'light.zwerver' })).toBeNull();
+    // Een lamp zonder kamer schakelt ook, vanuit Apparaten › Licht (besluit 297).
+    expect(lampsFor(house, { soort: 'lamp', id: 'light.zwerver' })).toEqual(['light.zwerver']);
+    expect(lampsFor(house, { soort: 'lamp', id: 'light.bestaat_niet' })).toBeNull();
     expect(lampsFor(house, { soort: 'etage', id: 'kelder' })).toBeNull();
   });
 

@@ -209,6 +209,9 @@ const TOESTELLEN: readonly Toestel[] = [
   },
   // Een ontvochtiger op een slimme stekker (besluiten 264 en 265): op zon, en met de hand te schakelen.
   { id: 'd-ontvochtiger', naam: 'Ontvochtiger', ruimte: 'zolder', merk: 'Shelly', model: 'Plug S', platform: 'shelly', entiteiten: [['switch.ontvochtiger'], ['sensor.ontvochtiger_vermogen', meter('power', 'Vermogen')], ['sensor.ontvochtiger_energie', meter('energy', 'Energie')]] },
+  // Schakelaars (besluit 297): een Shelly 1 mini zonder meter achter de lamp in de tuin, en klik-aan-klik-uit via RFXCOM zonder ruimte.
+  { id: 'd-shelly-tuin', naam: 'Shelly 1 mini Gen3', ruimte: 'tuin', merk: 'Shelly', model: 'Shelly 1 Mini Gen3', platform: 'shelly', entiteiten: [['switch.shelly1minig3_tuin']] },
+  { id: 'd-kaku', naam: 'AC 0x01a2b3c4:1', ruimte: null, model: 'AC', platform: 'rfxtrx', entiteiten: [['switch.ac_0x01a2b3c4_1']] },
   { id: 'd-laadpaal', naam: 'Laadpaal', ruimte: 'oprit', merk: 'Easee', platform: 'easee', entiteiten: [['sensor.laadpaal_vermogen', meter('power', 'Vermogen')], ['sensor.laadpaal_status', meter('', 'Status')], ['sensor.laadpaal_stroom_l1', meter('current', 'Stroom L1')], ['number.laadpaal_laadstroom', meter('', 'Laadstroom')], ['switch.laadpaal_laden', meter('', 'Laden')]] },
   {
     id: 'd-p1',
@@ -395,6 +398,9 @@ export function staten(klok: Klok, ingrepen: Ingrepen, nuMs: number): HaEntitySt
   const autoW = laadtNu ? laadA * 230 : 0;
   zet('number.laadpaal_laadstroom', 6, { unit_of_measurement: 'A', min: 6, max: 16, step: 1, mode: 'slider' });
   zet('switch.laadpaal_laden', 'on', {});
+  // De schakelaars (besluit 297): uit, tot iemand ze aanzet; klik-aan-klik-uit zegt zijn stand niet terug.
+  zet('switch.shelly1minig3_tuin', ingrepen.get('switch.shelly1minig3_tuin')?.state === 'on' ? 'on' : 'off', {});
+  zet('switch.ac_0x01a2b3c4_1', ingrepen.get('switch.ac_0x01a2b3c4_1')?.state === 'on' ? 'on' : 'off', { assumed_state: true });
   // De ontvochtiger op een slimme stekker: uit, tot iemand hem aanzet (met de hand, besluit 265).
   const ontvochtigerAan = ingrepen.get('switch.ontvochtiger')?.state === 'on';
   zet('switch.ontvochtiger', 'off', {});

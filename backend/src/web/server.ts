@@ -330,6 +330,9 @@ export class WebServer {
       (this.#d.options.laden != null && path === '/api/laden') ||
       // Een slimme stekker met de hand (besluit 265): alleen de stekkers die de bewoner toeliet.
       (this.#d.options.stekkers?.zet != null && path === '/api/stekker') ||
+      // Schakelaars (besluit 297): de keuze naar een eigen bestand, en aan of uit alleen als de bewoner dat toeliet.
+      (this.#d.options.schakelaars != null && path === '/api/schakelaars') ||
+      (this.#d.options.schakelaars?.zet != null && path === '/api/schakelaar') ||
       // Te doen (besluit 216): een herinnering in het eigen bestand, of iets op een lijst van Home Assistant. Een gast niet.
       (this.#d.options.tedoen != null && path === '/api/te-doen') ||
       // Scènes (besluit 100): een eigen smalle deur naast het licht.

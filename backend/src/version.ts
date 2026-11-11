@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.167.1';
+export const VERSIE = '0.168.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,28 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.168.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Schakelaars: een Shelly, klik-aan-klik-uit of de knoppen van een IR-afstandsbediening vindt SunArc nu, en je stelt ze in bij Apparaat toevoegen: wat hij aanzet, de naam, waar, en of je hem met de hand mag schakelen',
+      'Een lamp achter een schakelaar staat bij het licht van zijn kamer, op Thuis en bij Apparaten › Licht, met waarlangs',
+      'Een schakelaar met iets anders, zoals een pomp of kachel, staat bij Apparaten › Schakelaars, met een schakelaar per knop',
+    ],
+    opgelost: [
+      'Een lamp zonder kamer bij Apparaten › Licht schakelde niet',
+    ],
+    en: {
+      nieuw: [
+        'Switches: SunArc now finds a Shelly, KlikAanKlikUit or the buttons of an IR remote, and you set them up in Add a device: what it switches, the name, where, and whether it may be switched by hand',
+        'A light behind a switch is with the lights of its room, on Home and in Devices › Lights, with what it goes through',
+        'A switch with something else, like a pump or heater, is in Devices › Switches, with a switch per button',
+      ],
+      opgelost: [
+        'A light without a room in Devices › Lights did not switch',
+      ],
+    },
+  },
   {
     versie: '0.167.1',
     datum: '2026-11-11',

@@ -26,13 +26,16 @@ let vandaag = null;
 let zon = null;
 let aansluiting = null;
 let huisData = null;
+/** De schakelaars met de keuzes van de bewoner (besluit 297), en of SunArc ze hier kan bedienen. */
+let schakelaarData = null;
 let opbrengst = null;
 /** Het antwoord op de laatste keuze per apparaat, tot het volgende besluit het overneemt. */
 const gezegd = new Map();
 
 async function laadAlles() {
-  const [s, v, z, a, h, o] = await Promise.allSettled([haal('api/state'), haal('api/vandaag'), haal('api/zon'), haal('api/aansluiting'), haal('api/huis'), haal('api/opbrengst?soort=dag')]);
+  const [s, v, z, a, h, o, sch] = await Promise.allSettled([haal('api/state'), haal('api/vandaag'), haal('api/zon'), haal('api/aansluiting'), haal('api/huis'), haal('api/opbrengst?soort=dag'), haal('api/schakelaars')]);
   if (h.status === 'fulfilled') huisData = h.value;
+  if (sch.status === 'fulfilled') schakelaarData = sch.value;
   if (o.status === 'fulfilled') opbrengst = o.value;
   if (s.status === 'fulfilled') state = s.value;
   if (v.status === 'fulfilled') vandaag = v.value;
@@ -468,10 +471,10 @@ function tekenZonchip() {
 /* ------------------------------------------------- de soorten (293) */
 
 /** De soorten, in deze volgorde op de pagina; een lege soort staat er niet. */
-const SOORTEN = ['klimaat', 'licht', 'water', 'witgoed', 'auto', 'energie', 'stekkers'];
-const SOORT_IK = { klimaat: 'airco', licht: 'lamp', water: 'boiler', witgoed: 'witgoed', auto: 'auto', energie: 'batterij', stekkers: 'stekker' };
+const SOORTEN = ['klimaat', 'licht', 'water', 'witgoed', 'auto', 'energie', 'stekkers', 'schakelaars'];
+const SOORT_IK = { klimaat: 'airco', licht: 'lamp', water: 'boiler', witgoed: 'witgoed', auto: 'auto', energie: 'batterij', stekkers: 'stekker', schakelaars: 'apparaat' };
 /** Het vlak achter het icoon van de soort, als r, g, b. */
-const SOORT_VLAK = { klimaat: '111, 211, 255', licht: '247, 181, 72', water: '255, 122, 77', witgoed: '110, 231, 183', auto: '143, 134, 255', energie: '110, 231, 183', stekkers: '201, 211, 220' };
+const SOORT_VLAK = { klimaat: '111, 211, 255', licht: '247, 181, 72', water: '255, 122, 77', witgoed: '110, 231, 183', auto: '143, 134, 255', energie: '110, 231, 183', stekkers: '201, 211, 220', schakelaars: '201, 211, 220' };
 /** Wat de dienst vond maar nog niet op zon staat: een stekker, een boiler of jacuzzi, of witgoed. */
 const soortVanGevonden = (s) => (s === 'stekker' ? 'stekkers' : s === 'boiler' || s === 'jacuzzi' ? 'water' : 'witgoed');
 
@@ -523,7 +526,7 @@ function kamerVak({ id: kamer, naam, lampen }) {
       const op = lampAan(d);
       // Een tik op de naam opent de lamp in zijn kamer (besluit 296); zonder kamer gaat hij naar Indeling.
       const plek = kamer ? `kamer.html#${encodeURIComponent(kamer)}/${encodeURIComponent(d.id)}` : 'indeling.html#los';
-      return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><a class="lnaam" href="${plek}">${esc(d.naam)}</a><button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
+      return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><a class="lnaam" href="${plek}">${esc(d.naam)}${d.via ? `<small>${esc(t('apparaten.via', { via: d.via }))}</small>` : ''}</a><button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
     })
     .join('');
   const el = document.createElement('div');
@@ -544,6 +547,62 @@ async function schakelLamp(id, aan) {
   for (const ms of [800, 2500]) setTimeout(() => void laadAlles(), ms);
   setTimeout(() => {
     lampWens.delete(id);
+    teken();
+  }, 6000);
+}
+
+/* --------------------------------------------- een schakelaar (297) */
+
+/** Het icoon bij wat er aan een schakelaar hangt. */
+const WAT_IK = { lamp: 'lamp', kachel: 'warm', ventilator: 'ventilatie', pomp: 'vocht', boiler: 'boiler', fietslader: 'stekker', anders: 'apparaat' };
+/** Wat je net tikte bij een schakelaar, tot Home Assistant het doorgeeft. */
+const knopWens = new Map();
+
+/** De naam van een knop: wat de bewoner koos, anders de naam van het apparaat (met een nummer bij meer knoppen). */
+function knopNaam(s, knop, i) {
+  const eigen = s.keuze?.knoppen?.[knop.id]?.trim();
+  if (eigen) return eigen;
+  const basis = s.keuze?.naam?.trim() || s.naam;
+  return s.knoppen.length > 1 ? `${basis} ${i + 1}` : basis;
+}
+
+/**
+ * Een schakelaar met iets anders dan een lamp (besluit 297): per knop of hij
+ * aan staat, met een schakelaar als de bewoner met de hand toeliet en SunArc
+ * hier mag schakelen (in de add-on).
+ */
+function schakelaarKaart(s) {
+  const mag = schakelaarData?.bedienen === true && s.keuze?.mag === 'hand';
+  const rijen = s.knoppen
+    .map((k, i) => {
+      const aan = knopWens.has(k.id) ? knopWens.get(k.id) : k.aan === true;
+      const stand = `${t(aan ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit')}${s.aanname ? ` · ${t('apparaten.laatstGestuurd')}` : ''}`;
+      const knop = mag ? `<button type="button" class="schakel${aan ? '' : ' uit'}" role="switch" aria-checked="${aan}" aria-label="${esc(t('apparaten.lampAanUit', { naam: knopNaam(s, k, i) }))}" data-knop="${esc(k.id)}"></button>` : '';
+      return `<div class="lamp${aan ? ' aan' : ''}"><span class="lnaam">${esc(s.knoppen.length > 1 ? knopNaam(s, k, i) : stand)}${s.knoppen.length > 1 ? `<small>${esc(stand)}</small>` : ''}</span>${knop}</div>`;
+    })
+    .join('');
+  const el = document.createElement('section');
+  el.className = 'glas app';
+  el.dataset.actief = String(s.knoppen.some((k) => (knopWens.has(k.id) ? knopWens.get(k.id) : k.aan === true)));
+  el.innerHTML = `
+    <div class="kopje"><span class="ik" style="background: rgba(201, 211, 220, 0.14)">${iconen.svg(WAT_IK[s.keuze.wat] ?? 'apparaat')}</span><div><b>${esc(s.keuze.naam || s.naam)}</b><span class="mini">${esc(t(`toev.wat.${s.keuze.wat}`))} · ${esc(t('apparaten.via', { via: s.model ?? s.koppeling }))}</span></div><div class="kw"></div></div>
+    <div class="knoprijen">${rijen}</div>
+    ${mag ? '' : `<p class="mini etiket">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}`;
+  return el;
+}
+
+/** Een schakelaar met de hand aan of uit (besluit 297), door dezelfde deur als een stekker. */
+async function schakelKnop(knop, aan) {
+  knopWens.set(knop, aan);
+  teken();
+  try {
+    await deur('api/schakelaar', { knop, aan });
+  } catch {
+    // Geen verbinding: de stand van Home Assistant komt vanzelf terug.
+  }
+  for (const ms of [800, 2500]) setTimeout(() => void laadAlles(), ms);
+  setTimeout(() => {
+    knopWens.delete(knop);
     teken();
   }, 6000);
 }
@@ -589,6 +648,11 @@ let gekozenSoort = (() => {
 })();
 
 document.addEventListener('click', (e) => {
+  const knop = e.target.closest('[data-knop]');
+  if (knop && !knop.disabled) {
+    void schakelKnop(knop.dataset.knop, knop.getAttribute('aria-checked') !== 'true');
+    return;
+  }
   const lamp = e.target.closest('[data-lamp]');
   if (lamp && !lamp.disabled) {
     void schakelLamp(lamp.dataset.lamp, lamp.getAttribute('aria-checked') !== 'true');
@@ -646,6 +710,8 @@ function kaartenPerSoort() {
     stekkers: buffers.filter((b) => b.soort === 'stekker').map(bufferKaart),
     auto: (opslag.autos ?? (opslag.auto ? [opslag.auto] : [])).map((x) => ladingKaart('auto', x)),
     energie: opslag.batterij ? [ladingKaart('batterij', opslag.batterij)] : [],
+    // Een schakelaar met iets anders dan een lamp (besluit 297); een lamp staat bij Licht.
+    schakelaars: (schakelaarData?.schakelaars ?? []).filter((x) => x.keuze && x.keuze.wat !== 'lamp').map(schakelaarKaart),
   };
   for (const a of gevonden) (per[soortVanGevonden(a.soort)] ??= []).push(nietOpZon(a));
   for (const s of Object.keys(per)) per[s] = [...per[s].filter((k) => k.dataset.actief === 'true'), ...per[s].filter((k) => k.dataset.actief !== 'true')];
@@ -662,7 +728,7 @@ function tekenNu() {
   const aantal = {};
   for (const box of $$('[data-apparaten]')) {
     // Een knop met focus niet onder de vinger weghalen.
-    if (box.contains(document.activeElement) && document.activeElement !== document.body && !document.activeElement.matches('[data-lamp]')) continue;
+    if (box.contains(document.activeElement) && document.activeElement !== document.body && !document.activeElement.matches('[data-lamp], [data-knop]')) continue;
     const per = kaartenPerSoort();
     zouSamen(Object.values(per).flat(), box.closest('#wand, #tel'));
     const blokken = [];
@@ -699,7 +765,7 @@ function tekenNu() {
   // Hoeveel er nieuw gevonden is, zoals het scherm Toevoegen het telt (besluit 293).
   const opZonKeuze = aansluiting?.antwoorden?.opZon ?? {};
   const vast = new Set((aansluiting?.configuratie?.apparaten ?? []).map((x) => x.id));
-  const nieuw = (huisData?.zonderRuimte ?? []).length + (aansluiting?.gevonden?.apparaten ?? []).filter((d) => opZonKeuze[d.id] !== true && !vast.has(d.id)).length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
+  const nieuw = (schakelaarData?.schakelaars ?? []).filter((x) => !x.keuze).length + (huisData?.zonderRuimte ?? []).length + (aansluiting?.gevonden?.apparaten ?? []).filter((d) => opZonKeuze[d.id] !== true && !vast.has(d.id)).length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
   $$('[data-nieuw-tel]').forEach((el) => {
     el.hidden = nieuw === 0;
     el.textContent = String(nieuw);

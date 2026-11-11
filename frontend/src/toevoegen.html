@@ -40,6 +40,43 @@
   .soort b { font-size: 16.5px; font-weight: 600; align-self: end; }
   .soort span { font-size: 13px; color: var(--gedempt); line-height: 1.35; align-self: start; }
   .uitleg { margin: auto 0 0; padding-top: 12px; border-top: 1px solid rgb(var(--wit) / 0.07); font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+  /* Een schakelaar instellen (besluit 297): wat hij aanzet, de naam, waar, en wat SunArc mag. */
+  .paneel[hidden] { display: none; }
+  .paneel { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+  .paneel .wie { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 2px 14px; align-items: center; }
+  .paneel .wie .ik { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); }
+  .paneel .wie .ik svg { width: 26px; height: 26px; }
+  .paneel .wie h2 { margin: 0; font-family: var(--kop); font-size: 24px; font-weight: 600; }
+  .paneel .wie small { font-size: 13px; color: var(--gedempt); }
+  .stap { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 14px; align-items: center; padding-top: 12px; border-top: 1px solid rgb(var(--wit) / 0.07); }
+  .stap > b { font-size: 15px; font-weight: 600; align-self: start; padding-top: 10px; }
+  .stap > b small { display: block; font-size: 12.5px; font-weight: 500; color: var(--gedempt); margin-top: 2px; }
+  .watkeuzes { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+  .watkeuze { height: auto; min-height: 64px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px 9px; border-radius: 14px; background: rgb(var(--wit) / 0.045); border: 1px solid rgb(var(--wit) / 0.07); font: inherit; font-size: 13px; font-weight: 600; color: var(--zacht); cursor: pointer; }
+  .paneel .watkeuze svg { width: 26px; height: 26px; flex: none; }
+  .paneel .watkeuze[aria-pressed='true'] { background: rgba(247, 181, 72, 0.12); border-color: var(--zon); color: var(--tekst); }
+  .onder { margin: 6px 0 0; font-size: 13px; color: var(--zacht); }
+  .invoer { height: 46px; width: 100%; box-sizing: border-box; padding: 0 14px; border-radius: 13px; background: rgb(var(--wit) / 0.06); border: 1px solid var(--glas-rand); color: var(--tekst); font: inherit; font-size: 15.5px; font-weight: 600; }
+  .knoppen { display: flex; flex-direction: column; gap: 8px; }
+  .knoplabel { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 14px; color: var(--zacht); }
+  .knoplabel input { height: 40px; padding: 0 12px; border-radius: 11px; background: rgb(var(--wit) / 0.06); border: 1px solid var(--glas-rand); color: var(--tekst); font: inherit; font-weight: 600; }
+  .seg { display: inline-grid; grid-auto-flow: column; gap: 3px; padding: 3px; border-radius: 13px; background: rgb(var(--wit) / 0.06); }
+  .seg button { height: 38px; padding: 0 18px; border: 0; border-radius: 10px; background: none; color: var(--zacht); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .seg button[aria-pressed='true'] { background: var(--tekst); color: var(--tegen); }
+  .let { margin: 0; padding: 11px 14px; border-radius: 14px; background: rgba(111, 211, 255, 0.07); border: 1px solid rgba(111, 211, 255, 0.18); font-size: 13.5px; color: var(--zacht); line-height: 1.4; }
+  .fout { margin: 0; font-size: 13.5px; color: var(--gloed-t); }
+  .fout:empty { display: none; }
+  .klaar { display: flex; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid rgb(var(--wit) / 0.07); margin-top: auto; }
+  .klaar .hoofd { height: 48px; padding: 0 26px; border: 0; border-radius: 14px; background: var(--tekst); color: var(--tegen); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .klaar .hoofd:disabled { opacity: 0.35; cursor: default; }
+  .klaar .stil { margin-left: auto; border: 0; background: none; color: var(--gedempt); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .lijst { display: flex; flex-direction: column; }
+  .rij.nu { background: rgb(var(--wit) / 0.1); }
+  #tel .paneel { padding: 16px; border-radius: 22px; }
+  #tel .stap { grid-template-columns: 1fr; gap: 8px; }
+  #tel .stap > b { padding-top: 0; }
+  #tel .watkeuzes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  #tel .klaar { margin-top: 4px; }
   /* De telefoon. */
   #tel .inhoud { padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 14px; }
   #tel h2 { margin: 6px 2px 0; font-size: 15px; font-weight: 700; color: var(--zacht); }
@@ -66,9 +103,12 @@
           <div data-nieuw></div>
         </section>
         <section class="glas vorm">
-          <div><h2 data-t="toev.watWil"></h2><p class="lead" data-t="toev.watWilLead"></p></div>
-          <div class="soorten" data-soorten></div>
-          <p class="uitleg" data-t="toev.straks"></p>
+          <div class="paneel" data-rechts hidden></div>
+          <div data-kiezen style="display: contents">
+            <div><h2 data-t="toev.watWil"></h2><p class="lead" data-t="toev.watWilLead"></p></div>
+            <div class="soorten" data-soorten></div>
+            <p class="uitleg" data-t="toev.straks"></p>
+          </div>
         </section>
       </div>
     </main>
@@ -78,11 +118,14 @@
     <div class="inhoud">
       <a class="terug" href="apparaten.html">‹ <span data-t="nav.apparaten"></span></a>
       <h1 class="kop-1" style="font-size: 30px" data-t="toev.titelKort"></h1>
-      <h2 data-t="toev.nieuwHa"></h2>
-      <div class="glas gevonden" data-nieuw></div>
-      <h2 data-t="toev.ofZelf"></h2>
-      <div class="soorten" data-soorten></div>
-      <p class="uitleg" data-t="toev.straks"></p>
+      <div class="glas paneel" data-rechts hidden></div>
+      <div data-kiezen style="display: contents">
+        <h2 data-t="toev.nieuwHa"></h2>
+        <div class="glas gevonden" data-nieuw></div>
+        <h2 data-t="toev.ofZelf"></h2>
+        <div class="soorten" data-soorten></div>
+        <p class="uitleg" data-t="toev.straks"></p>
+      </div>
     </div>
     <nav class="tabs" id="tabs" data-t-aria-label="nav.hoofdmenu"></nav>
   </div>

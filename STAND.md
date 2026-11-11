@@ -509,11 +509,14 @@ verwijzing bestaat.
   kaart met wat het doet, vraagt en vandaag op zon deed ([140]). Sinds 0.166.0
   in soorten, met bovenaan een rij om te springen, alle lampen per kamer met
   een schakelaar, en het zonblok met de strook bovenaan ([294]); een tik op een
-  soort toont alleen die soort ([296]). Toevoegen is
+  soort toont alleen die soort ([296]). Schakelaars (een Shelly, klik-aan-klik-uit,
+  IR) stel je in bij Toevoegen; een lamp komt bij zijn kamer, de rest bij
+  Schakelaars, met de hand door de deur van een stekker ([297]). Toevoegen is
   een eigen scherm met wat nieuw gevonden is en de soorten ([295]). Gekozen, nog
-  niet gebouwd: Schakelaars als eigen soort, kiezen in Toevoegen zelf, losse
+  niet gebouwd: losse
   sensoren, een apparaat uit meer delen (IR-afstandsbediening met stekker),
-  alleen echte meters behalve bij klimaat, en het kinderslot in het blad ([293]).
+  het vermogen invullen bij een schakelaar, een blad voor elk apparaat, en het
+  kinderslot in het blad ([293]).
 - **De assistent** is een gesprek: het huis begroet je, leest zijn antwoord
   voor met Piper uit Home Assistant, en vraagt of het nog iets kan doen
   ([141]). Hij zegt eerst het antwoord, kort en warm, spreekt eenheden en
@@ -923,4 +926,5 @@ verwijzing bestaat.
 [294]: DECISIONS.md#294-apparaten-in-soorten-gebouwd-met-alle-lampen-per-kamer
 [295]: DECISIONS.md#295-apparaat-toevoegen-een-eigen-scherm
 [296]: DECISIONS.md#296-de-soorten-op-apparaten-filteren-in-plaats-van-springen
+[297]: DECISIONS.md#297-schakelaars-vinden-instellen-bij-toevoegen-en-met-de-hand-schakelen
 <!-- links:einde -->

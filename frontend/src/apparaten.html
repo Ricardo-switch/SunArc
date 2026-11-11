@@ -59,6 +59,11 @@
   .lamp.aan .lik { background: rgba(247, 181, 72, 0.18); opacity: 1; }
   .lik svg { width: 18px; height: 18px; }
   .lnaam { font-size: 14.5px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; text-decoration: none; }
+  .lnaam small { display: block; font-size: 12px; font-weight: 500; color: var(--gedempt); overflow: hidden; text-overflow: ellipsis; }
+  /* Een schakelaar (besluit 297): per knop een regel, zoals een lamp. */
+  .knoprijen { display: flex; flex-direction: column; }
+  .knoprijen .lamp { grid-template-columns: minmax(0, 1fr) auto; min-height: 42px; }
+  .knoprijen .lamp:first-child { border-top: 0; }
   /* Een kaart die naar zijn plek in huis gaat (besluit 296), zoals een klimaatkaart. */
   .app[data-plek] { cursor: pointer; }
   .schakel { width: 44px; height: 26px; border-radius: 999px; border: 0; padding: 0; background: var(--mint); position: relative; flex: none; cursor: pointer; }

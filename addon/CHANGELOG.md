@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.167.1
+## 0.168.0
 
-*11 november 2026 · 0.163.0 – 0.167.1*
+*11 november 2026 · 0.163.0 – 0.168.0*
 
 **Nieuw**
 
+- Schakelaars: een Shelly, klik-aan-klik-uit of de knoppen van een IR-afstandsbediening vindt SunArc nu, en je stelt ze in bij Apparaat toevoegen: wat hij aanzet, de naam, waar, en of je hem met de hand mag schakelen
+- Een lamp achter een schakelaar staat bij het licht van zijn kamer, op Thuis en bij Apparaten › Licht, met waarlangs
+- Een schakelaar met iets anders, zoals een pomp of kachel, staat bij Apparaten › Schakelaars, met een schakelaar per knop
 - Apparaat toevoegen is een eigen scherm bij Apparaten: links wat SunArc nieuw vond en nog niet is ingedeeld, rechts zelf kiezen per soort
 - Apparaten staat nu in soorten: Klimaat, Licht, Warm water en bad, Witgoed, Auto en laden, Thuisaccu en Stekkers, met bovenaan een rij om naar een soort te springen
 - Alle lampen staan bij Apparaten › Licht, per kamer, met een schakelaar om ze snel aan of uit te zetten
@@ -29,6 +32,7 @@
 
 **Opgelost**
 
+- Een lamp zonder kamer bij Apparaten › Licht schakelde niet
 - Toevoegen noemde een droger uit de configuratie "nog niet op zon", terwijl hij bij Regeling al op zon stond
 - Een stekker die je van zon haalde, zei nog "Wacht op zon" tot SunArc opnieuw startte
 - Bij een stekker of boiler stond "0.8 kW" met een punt in plaats van een komma
@@ -37,6 +41,9 @@
 
 **New**
 
+- Switches: SunArc now finds a Shelly, KlikAanKlikUit or the buttons of an IR remote, and you set them up in Add a device: what it switches, the name, where, and whether it may be switched by hand
+- A light behind a switch is with the lights of its room, on Home and in Devices › Lights, with what it goes through
+- A switch with something else, like a pump or heater, is in Devices › Switches, with a switch per button
 - Add a device is a screen of its own in Devices: on the left what SunArc newly found and is not placed yet, on the right choose yourself by kind
 - Devices is now grouped by kind: Climate, Lights, Hot water and bath, Appliances, Car and charging, Home battery and Plugs, with a row at the top to jump to a kind
 - All lights are in Devices › Lights, per room, each with a switch to turn it on or off quickly
@@ -60,6 +67,7 @@
 
 **Fixed**
 
+- A light without a room in Devices › Lights did not switch
 - Add called a dryer from the configuration "not on sun yet", while Control already had it on sun
 - A plug you took off solar still said "Waiting for sun" until SunArc restarted
 - A plug or boiler showed "0.8 kW" with a point instead of a comma in Dutch
