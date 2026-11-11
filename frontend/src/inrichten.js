@@ -1725,7 +1725,7 @@ function accountStap() {
  * kaarten om aan of uit te zetten; 's nachts uit en de taal. Dezelfde indeling
  * als op je telefoon (niet dubbel). Daaronder elk scherm.
  */
-const WAND_KAARTEN = ['favorieten', 'vandaag', 'apparaat', 'gevoel', 'morgen', 'auto', 'batterij', 'maand', 'deurbel', 'boiler', 'sluip', 'tedoen'];
+const WAND_KAARTEN = ['favorieten', 'vandaag', 'apparaat', 'gevoel', 'morgen', 'auto', 'batterij', 'maand', 'deurbel', 'boiler', 'sluip', 'fasen', 'tedoen'];
 function wandStap() {
   const schermen = d.bewoners?.schermen ?? [];
   const inlog = d.sessie?.toegang === 'sessions';

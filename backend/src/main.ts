@@ -58,7 +58,8 @@ import { VoorkeurenStore } from './web/voorkeuren.js';
 import { SceneColorStore, colorsFromLamps } from './web/scene-colors.js';
 import { ScenePictures } from './web/scene-pictures.js';
 import { EnergyStore } from './web/energy.js';
-import { partsIn, zonedMidnight, type PowerRow } from './web/today.js';
+import { partsIn, startOfLocalDay, zonedMidnight, type PowerRow } from './web/today.js';
+import { faseHistorie, fasenView, type FasePunt, type FasenView } from './web/fasen.js';
 import { WeatherLog, dagenUitUren, type EntityForecast } from './web/weather.js';
 import { Historie, somPerVak } from './web/historie.js';
 import { zetValuta } from './web/valuta.js';
@@ -1909,6 +1910,39 @@ function zekeringVoor(id: string): number | null {
   // Nooit boven de zekering zelf: bij teruglevering loopt er op een fase soms minder dan de auto neemt.
   return Math.floor(Math.min(nuA + Math.min(...fasen.map((f) => f.grensA - f.stroomA)), ...fasen.map((f) => f.grensA)));
 }
+/**
+ * De fasekaart (besluit 302): de stroom per fase nu, en de dag uit de historie
+ * van Home Assistant. Die historie hooguit elke vijf minuten opnieuw; de stand
+ * van nu komt elke keer uit het laatste besluit.
+ */
+let faseDag: { startMs: number; opMs: number; punten: Map<string, FasePunt[]> } = { startMs: 0, opMs: 0, punten: new Map() };
+async function fasenNuView(): Promise<FasenView> {
+  const grid = siteConfig?.grid ?? null;
+  const nuMs = Date.now();
+  const startMs = startOfLocalDay(nuMs, siteConfig?.timezone ?? 'Europe/Amsterdam');
+  const e = runner?.latest?.explanation ?? null;
+  const ids = grid?.phases.map((p) => p.current.id) ?? [];
+  if (ids.length && (faseDag.startMs !== startMs || nuMs - faseDag.opMs > 5 * 60_000)) {
+    try {
+      // Vanaf een uur voor middernacht: de stand van toen geldt ook om middernacht.
+      const antwoord = await client.query('history/history_during_period', { start_time: new Date(startMs - 3_600_000).toISOString(), entity_ids: ids, minimal_response: true, no_attributes: true, significant_changes_only: false });
+      faseDag = { startMs, opMs: nuMs, punten: faseHistorie(antwoord) };
+    } catch {
+      // Zonder historie: alleen de stand van nu; over vijf minuten weer.
+      faseDag = faseDag.startMs === startMs ? { ...faseDag, opMs: nuMs } : { startMs, opMs: nuMs, punten: new Map() };
+    }
+  }
+  const z = connectionStore?.current?.zekering;
+  return fasenView({
+    grid: grid ? { phases: grid.phases.map((p) => ({ id: p.id, current: p.current.id, maxA: p.maxA })), marginA: grid.marginA } : null,
+    nu: e?.phases?.map((p) => ({ id: p.id, currentA: p.currentA, bron: p.bron })) ?? null,
+    historie: faseDag.punten,
+    dagStartMs: startMs,
+    nuMs,
+    zekering: z && z !== 'weetniet' ? z : null,
+    netW: e && siteConfig?.power.gridPower ? e.budget.gridPowerW : null,
+  });
+}
 const laadadviezen = (): Record<string, LaadAdvies> => {
   const autos = huisNu('nl')?.opslag?.autos ?? [];
   if (!autos.length || !siteConfig) return {};
@@ -2497,6 +2531,8 @@ if (webPort != null) {
     historie: historieVan,
     laadbeurten: (auto: string) => laadbeurten.van(auto),
     laadadvies: laadadviezen,
+    // De fasekaart (besluit 302): alleen lezen.
+    fasen: fasenNuView,
     // De thuisaccu's (besluit 272): wat ze nu doen, en hun tellers voor Opbrengst.
     accu: {
       nuW: accuNuW,

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.172.1';
+export const VERSIE = '0.173.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.173.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'De kaart Aansluiting op Thuis, te kiezen bij Thuis aanpassen: per fase hoe vol hij is tegen de zekering, en welke het krapst is',
+      'Een tik op de kaart opent een blad met de stroom per fase van vandaag in één grafiek, het hoogste per fase en wat SunArc doet als het krap wordt',
+    ],
+    en: {
+      nieuw: [
+        'The Connection card on Home, to choose in Customize Home: per phase how full it is against the fuse, and which one is tightest',
+        'Tapping the card opens a sheet with today’s current per phase in one graph, the highest per phase, and what SunArc does when it gets tight',
+      ],
+    },
+  },
   {
     versie: '0.172.1',
     datum: '2026-11-11',

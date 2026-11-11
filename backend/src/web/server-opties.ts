@@ -6,6 +6,7 @@
 
 import type { Achter } from './meten-vlakken.js';
 import { VERSIE } from '../version.js';
+import type { FasenView } from './fasen.js';
 import type { Sluipverbruik } from './sluipverbruik.js';
 import type { LaadOverzicht } from './laadbeurten.js';
 import type { LaadAdvies } from './laadadvies.js';
@@ -227,6 +228,8 @@ export interface WebOptions {
   readonly laadbeurten?: (auto: string) => Promise<LaadOverzicht | null>;
   /** Het advies per auto (besluit 259, stap 4): zon over en de goedkoopste uren, alleen als het iets zegt. */
   readonly laadadvies?: () => Readonly<Record<string, LaadAdvies>>;
+  /** De fasekaart (besluit 302): de stroom per fase nu, de dag en de piek. */
+  readonly fasen?: () => Promise<FasenView>;
   /** Laden met de hand (besluit 262): alleen in de add-on. */
   /**
    * Schakelaars (besluit 297): wat gevonden is met de keuzes van de bewoner,

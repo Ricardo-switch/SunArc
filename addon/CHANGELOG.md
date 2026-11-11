@@ -1,5 +1,21 @@
 # Wat is er nieuw · What is new
 
+## 0.173.0
+
+*11 november 2026*
+
+**Nieuw**
+
+- De kaart Aansluiting op Thuis, te kiezen bij Thuis aanpassen: per fase hoe vol hij is tegen de zekering, en welke het krapst is
+- Een tik op de kaart opent een blad met de stroom per fase van vandaag in één grafiek, het hoogste per fase en wat SunArc doet als het krap wordt
+
+*English*
+
+**New**
+
+- The Connection card on Home, to choose in Customize Home: per phase how full it is against the fuse, and which one is tightest
+- Tapping the card opens a sheet with today’s current per phase in one graph, the highest per phase, and what SunArc does when it gets tight
+
 ## 0.172.1
 
 *11 november 2026 · 0.163.0 – 0.172.1*

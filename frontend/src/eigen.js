@@ -27,7 +27,7 @@
     maxFavorieten: 12,
   };
   /** De kaarten met een korte uitleg bij Kaart toevoegen; de zinnen in teksten.*.js (eigen.kort.<kaart>, besluit 185). */
-  const KORT = new Set(['kamers', 'favorieten', 'straks', 'apparaat', 'gevoel', 'vandaag', 'morgen', 'auto', 'batterij', 'maand', 'deurbel', 'boiler', 'sluip', 'tedoen']);
+  const KORT = new Set(['kamers', 'favorieten', 'straks', 'apparaat', 'gevoel', 'vandaag', 'morgen', 'auto', 'batterij', 'maand', 'deurbel', 'boiler', 'sluip', 'fasen', 'tedoen']);
   const S = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   const ICOON = {
     kamers: S(iconen.binnen('thuis')),
@@ -47,6 +47,8 @@
     boiler: S(iconen.binnen('boiler')),
     // Het sluipverbruik (besluit 192): de maan, want het gaat om de nacht.
     sluip: S(iconen.binnen('sluip')),
+    // De fasekaart (besluit 302): het icoon van de aansluiting.
+    fasen: S(iconen.binnen('aansluiting')),
     // Te doen (besluit 217): het icoon van de tab.
     tedoen: S(iconen.binnen('tedoen')),
     lamp: S(iconen.binnen('lamp')),
