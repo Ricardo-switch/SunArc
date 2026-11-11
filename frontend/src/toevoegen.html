@@ -81,13 +81,14 @@
   .lijst .rij .stil { grid-row: 1 / 3; grid-column: 3; border: 0; background: none; color: var(--gedempt); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
   .lijst .rij small a { color: inherit; }
   .rij.nu { background: rgb(var(--wit) / 0.1); }
-  #tel .paneel { padding: 16px; border-radius: 22px; }
+  /* Op de telefoon schuift het paneel met de pagina mee, en blijft Toevoegen boven de tabs (11 november 2026). */
+  #tel .paneel { padding: 16px; border-radius: 22px; flex: none; min-height: auto; overflow: visible; overscroll-behavior: auto; touch-action: auto; }
   #tel .stap { grid-template-columns: 1fr; gap: 8px; }
   #tel .stap > b { padding-top: 0; }
   #tel .watkeuzes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   #tel .klaar { margin-top: 4px; }
   /* De telefoon. */
-  #tel .inhoud { padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 14px; }
+  #tel .inhoud { padding: 18px 16px 130px; display: flex; flex-direction: column; gap: 14px; }
   #tel h2 { margin: 6px 2px 0; font-size: 15px; font-weight: 700; color: var(--zacht); }
   #tel .gevonden { padding: 4px; align-self: stretch; max-height: none; overflow: visible; overscroll-behavior: auto; }
   #tel .soorten { grid-template-columns: 1fr 1fr; }

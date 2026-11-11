@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.172.0
+## 0.172.1
 
-*11 november 2026 · 0.163.0 – 0.172.0*
+*11 november 2026 · 0.163.0 – 0.172.1*
 
 **Nieuw**
 
@@ -38,6 +38,7 @@
 
 **Opgelost**
 
+- Bij Apparaat toevoegen op de telefoon schoof een schakelaar instellen niet mee, en zat Toevoegen achter de balk onderaan
 - Een lamp zonder kamer bij Apparaten › Licht schakelde niet
 - Toevoegen noemde een droger uit de configuratie "nog niet op zon", terwijl hij bij Regeling al op zon stond
 - Een stekker die je van zon haalde, zei nog "Wacht op zon" tot SunArc opnieuw startte
@@ -79,6 +80,7 @@
 
 **Fixed**
 
+- In Add a device on the phone, setting up a switch did not scroll, and Add was behind the bar at the bottom
 - A light without a room in Devices › Lights did not switch
 - Add called a dryer from the configuration "not on sun yet", while Control already had it on sun
 - A plug you took off solar still said "Waiting for sun" until SunArc restarted
