@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.168.0';
+export const VERSIE = '0.169.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.169.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Bij Apparaten opent een tik bij elk apparaat zijn blad: een lamp (aan, uit en helderheid), de boiler, de jacuzzi, de thuisaccu en een schakelaar, zoals al bij een airco, stekker en witgoed',
+      'Bij een schakelaar zonder meter vul je het vermogen in; staat hij aan, dan telt hij mee bij Opbrengst › Nu',
+    ],
+    en: {
+      nieuw: [
+        'In Devices, tapping any device opens its sheet: a light (on, off and brightness), the boiler, the hot tub, the home battery and a switch, as already for an air conditioner, plug and appliance',
+        'For a switch without a meter you enter its power; when it is on, it counts in Energy › Now',
+      ],
+    },
+  },
   {
     versie: '0.168.0',
     datum: '2026-11-11',

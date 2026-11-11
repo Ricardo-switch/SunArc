@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.168.0
+## 0.169.0
 
-*11 november 2026 · 0.163.0 – 0.168.0*
+*11 november 2026 · 0.163.0 – 0.169.0*
 
 **Nieuw**
 
+- Bij Apparaten opent een tik bij elk apparaat zijn blad: een lamp (aan, uit en helderheid), de boiler, de jacuzzi, de thuisaccu en een schakelaar, zoals al bij een airco, stekker en witgoed
+- Bij een schakelaar zonder meter vul je het vermogen in; staat hij aan, dan telt hij mee bij Opbrengst › Nu
 - Schakelaars: een Shelly, klik-aan-klik-uit of de knoppen van een IR-afstandsbediening vindt SunArc nu, en je stelt ze in bij Apparaat toevoegen: wat hij aanzet, de naam, waar, en of je hem met de hand mag schakelen
 - Een lamp achter een schakelaar staat bij het licht van zijn kamer, op Thuis en bij Apparaten › Licht, met waarlangs
 - Een schakelaar met iets anders, zoals een pomp of kachel, staat bij Apparaten › Schakelaars, met een schakelaar per knop
@@ -41,6 +43,8 @@
 
 **New**
 
+- In Devices, tapping any device opens its sheet: a light (on, off and brightness), the boiler, the hot tub, the home battery and a switch, as already for an air conditioner, plug and appliance
+- For a switch without a meter you enter its power; when it is on, it counts in Energy › Now
 - Switches: SunArc now finds a Shelly, KlikAanKlikUit or the buttons of an IR remote, and you set them up in Add a device: what it switches, the name, where, and whether it may be switched by hand
 - A light behind a switch is with the lights of its room, on Home and in Devices › Lights, with what it goes through
 - A switch with something else, like a pump or heater, is in Devices › Switches, with a switch per button

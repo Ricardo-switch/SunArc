@@ -93,7 +93,7 @@ const kamers = () => (huisData?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).m
 function paneel(s) {
   if (!concept || concept.id !== s.id) {
     const k = s.keuze;
-    concept = { id: s.id, wat: k?.wat ?? null, naam: k?.naam ?? '', kamer: k?.kamer ?? '', mag: k?.mag ?? 'kijken', knoppen: { ...(k?.knoppen ?? {}) } };
+    concept = { id: s.id, wat: k?.wat ?? null, naam: k?.naam ?? '', kamer: k?.kamer ?? '', mag: k?.mag ?? 'kijken', knoppen: { ...(k?.knoppen ?? {}) }, vermogenW: k?.vermogenW != null ? String(k.vermogenW) : '' };
   }
   const c = concept;
   const keuzes = WAT.map(([w, icoon]) => `<button type="button" class="watkeuze" data-wat="${w}" aria-pressed="${c.wat === w}">${iconen.svg(icoon)}<span>${esc(t(`toev.wat.${w}`))}</span></button>`).join('');
@@ -110,6 +110,7 @@ function paneel(s) {
     ${knoppen}
     <div class="stap"><b>${esc(t('toev.naam'))}</b><input type="text" class="invoer" maxlength="60" data-naam value="${esc(c.naam)}" placeholder="${esc(s.naam)}"></div>
     <div class="stap"><b>${esc(t('toev.waar'))}</b><select class="invoer" data-kamer>${opties}</select></div>
+    ${s.meet ? '' : `<div class="stap"><b>${esc(t('toev.vermogen'))}<small>${esc(t('toev.vermogenKlein'))}</small></b><div><input type="number" class="invoer" min="1" max="10000" step="1" inputmode="numeric" data-vermogen value="${esc(c.vermogenW)}" placeholder="W"><p class="onder">${esc(t('toev.vermogenUitleg'))}</p></div></div>`}
     <div class="stap"><b>${esc(t('toev.watMag'))}</b><div><div class="seg" role="group"><button type="button" data-mag="kijken" aria-pressed="${c.mag === 'kijken'}">${esc(t('toev.kijken'))}</button><button type="button" data-mag="hand" aria-pressed="${c.mag === 'hand'}">${esc(t('toev.hand'))}</button></div><p class="onder">${esc(t(s.meet ? 'toev.opZonLater' : 'toev.opZonNiet'))}</p></div></div>
     ${let_}
     <p class="fout" data-fout aria-live="polite"></p>
@@ -149,7 +150,7 @@ document.addEventListener('click', (e) => {
   else if (doel.dataset.mag) concept.mag = doel.dataset.mag;
   else if (doel.hasAttribute('data-geen')) return void bewaar({ id: concept.id, geen: true });
   else if (doel.hasAttribute('data-weg')) return void bewaar({ id: concept.id, weg: true });
-  else if (doel.hasAttribute('data-bewaar')) return void bewaar({ id: concept.id, wat: concept.wat, naam: concept.naam, kamer: concept.kamer || null, mag: concept.mag, knoppen: concept.knoppen });
+  else if (doel.hasAttribute('data-bewaar')) return void bewaar({ id: concept.id, wat: concept.wat, naam: concept.naam, kamer: concept.kamer || null, mag: concept.mag, knoppen: concept.knoppen, vermogenW: /^\d+$/.test(String(concept.vermogenW).trim()) ? Number(concept.vermogenW) : null });
   teken();
 });
 document.addEventListener('input', (e) => {
@@ -158,6 +159,7 @@ document.addEventListener('input', (e) => {
   if (el.matches('[data-naam]')) concept.naam = el.value;
   else if (el.matches('[data-kamer]')) concept.kamer = el.value;
   else if (el.matches('[data-knop]')) concept.knoppen[el.dataset.knop] = el.value;
+  else if (el.matches('[data-vermogen]')) concept.vermogenW = el.value;
 });
 
 /* ------------------------------------------------------------ tekenen */
@@ -184,7 +186,7 @@ function teken() {
     a.lastElementChild.textContent = t(rechts != null ? 'toev.titelKort' : 'nav.apparaten');
   });
   // Wie aan het typen was, blijft in hetzelfde veld.
-  if (focus) $$(`[data-rechts] ${focus.knop ? `[data-knop="${focus.knop}"]` : focus.naam != null ? '[data-naam]' : '[data-kamer]'}`).find((x) => x.offsetParent)?.focus();
+  if (focus) $$(`[data-rechts] ${focus.knop ? `[data-knop="${focus.knop}"]` : focus.naam != null ? '[data-naam]' : focus.vermogen != null ? '[data-vermogen]' : '[data-kamer]'}`).find((x) => x.offsetParent)?.focus();
   const tegels = SOORTEN.filter(([id]) => id !== 'schakelaars' || schakelaars.length > 0)
     .map(([id, icoon, vlak, href]) => `<a class="soort" href="${href}" data-soort="${id}"><span class="ik" style="background: rgba(${vlak}, 0.14)">${iconen.svg(icoon)}</span><b>${esc(t(`apparaten.soort.${id}`))}</b><span>${esc(t(`toev.soort.${id}`))}</span></a>`)
     .join('');

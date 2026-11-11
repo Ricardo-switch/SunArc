@@ -395,13 +395,15 @@ const kw = (w) => nl(w / 1000, w >= 10_000 ? 0 : w >= 1000 ? 1 : 2);
 
 async function laadNu() {
   const dakenOud = !liveDaken || Date.now() - liveDaken.at > 30_000;
-  const [s, h, a] = await Promise.allSettled([haal('api/state'), haal('api/huis'), dakenOud ? haal('api/aansluiting') : Promise.resolve(null)]);
+  const [s, h, a, sch] = await Promise.allSettled([haal('api/state'), haal('api/huis'), dakenOud ? haal('api/aansluiting') : Promise.resolve(null), haal('api/schakelaars')]);
   if (a.status === 'fulfilled' && a.value) liveDaken = { at: Date.now(), daken: a.value.daken ?? null };
   const st = s.status === 'fulfilled' ? s.value?.bewoner?.stromen ?? null : null;
   // De apparaten met een eigen meter die nu stroom vragen.
   const apparaten = h.status === 'fulfilled'
     ? (h.value?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).flatMap((r) => (r.apparaten ?? []).filter((d) => typeof d.vermogenW === 'number' && d.vermogenW >= 30).map((d) => ({ id: d.id, naam: d.naam, w: d.vermogenW }))))
     : [];
+  // Schakelaars (besluit 298): met hun meter, of met het ingevulde vermogen als ze aan staan.
+  if (sch.status === 'fulfilled') for (const x of sch.value?.schakelaars ?? []) if (x.keuze && x.nuW != null && x.nuW >= 30) apparaten.push({ id: `sch-${x.id}`, naam: x.keuze.naam || x.naam, w: x.nuW });
   live = st ? { st, apparaten, at: Date.now() } : null;
   if (!live) melding = s.status === 'rejected' ? t('kamer.geenVerbinding') : t('opbrengst.nu.wachten');
   teken();

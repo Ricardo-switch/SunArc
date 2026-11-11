@@ -236,8 +236,8 @@ function bufferKaart(b) {
     }
     el.append(blok);
   }
-  // Een tik op de kaart (niet op een keuze) opent de boiler of jacuzzi in zijn kamer (besluit 296).
-  return naarPlek(el, plekVan(b.id, b.actuator), t('apparaten.openIn', { naam: b.naam }));
+  // Een tik op de kaart (niet op een keuze) opent het blad van de boiler of jacuzzi (besluit 298).
+  return metBlad(el, `buffer:${b.id}`, b.naam);
 }
 
 async function kiesKlaarOm(b, optie, groep, knop, antwoord) {
@@ -404,8 +404,8 @@ function ladingKaart(soort, o) {
     <div class="verdeel"><i style="width: ${pct ?? 0}%; background: ${kleur}"></i></div>
     ${accuRegels(lijstAccus)}
     ${zin ? `<p class="mini zin">${esc(zin)}</p>` : ''}`;
-  // De thuisaccu gaat naar zijn eigen deel bij Energie (besluit 296); de auto heeft zijn pagina al.
-  if (soort === 'batterij') return naarPlek(el, 'energie.html#accu', t('apparaten.openIn', { naam }));
+  // De thuisaccu opent zijn blad (besluit 298); de auto heeft zijn eigen pagina.
+  if (soort === 'batterij') return metBlad(el, 'accu', naam);
   return el;
 }
 
@@ -479,9 +479,9 @@ const SOORT_VLAK = { klimaat: '111, 211, 255', licht: '247, 181, 72', water: '25
 const soortVanGevonden = (s) => (s === 'stekker' ? 'stekkers' : s === 'boiler' || s === 'jacuzzi' ? 'water' : 'witgoed');
 
 /**
- * Waar een apparaat in huis staat (besluit 296): de kamer met dat apparaat
- * open, net als een klimaatkaart; daar bedien je het. Null als het huis het in
- * geen kamer kent.
+ * Waar een apparaat in huis staat: de kamer met dat apparaat open. In het blad
+ * (besluit 298) als tweede weg, naast bedienen in het blad zelf. Null als het
+ * huis het in geen kamer kent.
  */
 function plekVan(...ids) {
   for (const e of huisData?.etages ?? []) {
@@ -493,13 +493,12 @@ function plekVan(...ids) {
   return null;
 }
 
-/** Een kaart die naar zijn plek gaat: een tik of Enter, behalve op een knop erin. */
-function naarPlek(el, href, naam) {
-  if (!href) return el;
-  el.dataset.plek = href;
+/** Een kaart die zijn blad opent (besluit 298): een tik of Enter, behalve op een knop erin. */
+function metBlad(el, sleutel, naam) {
+  el.dataset.vrij = sleutel;
   el.tabIndex = 0;
-  el.setAttribute('role', 'link');
-  el.setAttribute('aria-label', naam);
+  el.setAttribute('role', 'button');
+  el.setAttribute('aria-label', t('apparaten.openIn', { naam }));
   return el;
 }
 
@@ -524,9 +523,9 @@ function kamerVak({ id: kamer, naam, lampen }) {
   const rijen = lampen
     .map((d) => {
       const op = lampAan(d);
-      // Een tik op de naam opent de lamp in zijn kamer (besluit 296); zonder kamer gaat hij naar Indeling.
-      const plek = kamer ? `kamer.html#${encodeURIComponent(kamer)}/${encodeURIComponent(d.id)}` : 'indeling.html#los';
-      return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><a class="lnaam" href="${plek}">${esc(d.naam)}${d.via ? `<small>${esc(t('apparaten.via', { via: d.via }))}</small>` : ''}</a><button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
+      // Een tik op de naam opent het blad van de lamp (besluit 298).
+      void kamer;
+      return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><button type="button" class="lnaam" data-vrij="lamp:${esc(d.id)}" aria-label="${esc(t('apparaten.openIn', { naam: d.naam }))}">${esc(d.naam)}${d.via ? `<small>${esc(t('apparaten.via', { via: d.via }))}</small>` : ''}</button><button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
     })
     .join('');
   const el = document.createElement('div');
@@ -571,9 +570,9 @@ function knopNaam(s, knop, i) {
  * aan staat, met een schakelaar als de bewoner met de hand toeliet en SunArc
  * hier mag schakelen (in de add-on).
  */
-function schakelaarKaart(s) {
+function knopRijen(s) {
   const mag = schakelaarData?.bedienen === true && s.keuze?.mag === 'hand';
-  const rijen = s.knoppen
+  return s.knoppen
     .map((k, i) => {
       const aan = knopWens.has(k.id) ? knopWens.get(k.id) : k.aan === true;
       const stand = `${t(aan ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit')}${s.aanname ? ` · ${t('apparaten.laatstGestuurd')}` : ''}`;
@@ -581,15 +580,113 @@ function schakelaarKaart(s) {
       return `<div class="lamp${aan ? ' aan' : ''}"><span class="lnaam">${esc(s.knoppen.length > 1 ? knopNaam(s, k, i) : stand)}${s.knoppen.length > 1 ? `<small>${esc(stand)}</small>` : ''}</span>${knop}</div>`;
     })
     .join('');
+}
+
+function schakelaarKaart(s) {
+  const mag = schakelaarData?.bedienen === true && s.keuze?.mag === 'hand';
+  const rijen = knopRijen(s);
   const el = document.createElement('section');
   el.className = 'glas app';
   el.dataset.actief = String(s.knoppen.some((k) => (knopWens.has(k.id) ? knopWens.get(k.id) : k.aan === true)));
   el.innerHTML = `
-    <div class="kopje"><span class="ik" style="background: rgba(201, 211, 220, 0.14)">${iconen.svg(WAT_IK[s.keuze.wat] ?? 'apparaat')}</span><div><b>${esc(s.keuze.naam || s.naam)}</b><span class="mini">${esc(t(`toev.wat.${s.keuze.wat}`))} · ${esc(t('apparaten.via', { via: s.model ?? s.koppeling }))}</span></div><div class="kw"></div></div>
+    <div class="kopje"><span class="ik" style="background: rgba(201, 211, 220, 0.14)">${iconen.svg(WAT_IK[s.keuze.wat] ?? 'apparaat')}</span><div><b>${esc(s.keuze.naam || s.naam)}</b><span class="mini">${esc(t(`toev.wat.${s.keuze.wat}`))} · ${esc(t('apparaten.via', { via: s.model ?? s.koppeling }))}</span></div><div class="kw">${s.nuW != null ? `${nl(s.nuW / 1000)}<span>${esc(t(s.meet ? 'apparaten.kwNu' : 'apparaten.kwIngevuld'))}</span>` : ''}</div></div>
     <div class="knoprijen">${rijen}</div>
     ${mag ? '' : `<p class="mini etiket">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}`;
-  return el;
+  return metBlad(el, `schakelaar:${s.id}`, s.keuze.naam || s.naam);
 }
+
+/* ------------------------------------------ het blad van elk apparaat (298) */
+
+/** Een regel in een blad: links wat, rechts de waarde of een knop. */
+const regel = (wat, rechts) => `<div class="vrij-rij"><span>${esc(wat)}</span>${rechts}</div>`;
+const onder = (links) => `<div class="hand-onder">${links.map(([href, tekst]) => `<a class="hand-terug" href="${href}">${esc(tekst)}</a>`).join('')}</div>`;
+
+/** Een lamp, in een kamer of zonder kamer, met de naam van zijn kamer. */
+function vindLamp(id) {
+  for (const e of huisData?.etages ?? []) for (const r of e.ruimtes ?? []) {
+    const d = (r.apparaten ?? []).find((x) => x.id === id && x.soort === 'licht');
+    if (d) return { d, kamer: r };
+  }
+  const los = (huisData?.zonderRuimte ?? []).find((x) => x.id === id);
+  return los ? { d: los, kamer: null } : null;
+}
+
+function lampBlad(id) {
+  const v = vindLamp(id);
+  if (!v) return null;
+  const { d, kamer } = v;
+  const mag = huisData?.lichtBedienen === true;
+  const op = lampAan(d);
+  const zin = [kamer?.naam ?? t('apparaten.zonderKamer'), t(op ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit'), d.via ? t('apparaten.via', { via: d.via }) : null].filter(Boolean).join(' · ');
+  const schakel = `<button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button>`;
+  const helder = mag && d.dimbaar ? regel(t('apparaten.blad.helder'), `<input type="range" min="1" max="100" step="1" value="${d.helderheidPct ?? 100}" data-helder="${esc(d.id)}" aria-label="${esc(t('apparaten.blad.helder'))}">`) : '';
+  const plek = kamer ? `kamer.html#${encodeURIComponent(kamer.id)}/${encodeURIComponent(d.id)}` : 'indeling.html#los';
+  return {
+    naam: d.naam,
+    zin,
+    html: `${regel(t('apparaten.blad.aan'), schakel)}${helder}${mag ? '' : `<p class="hand-hoe">${esc(t('kamer.lichtUit'))}</p>`}${onder([[plek, t(kamer ? 'apparaten.blad.inKamer' : 'apparaten.kiesKamer')]])}`,
+  };
+}
+
+function bufferBlad(id) {
+  const b = (state?.bewoner?.warmtebuffers ?? []).find((x) => x.id === id);
+  if (!b) return null;
+  const temp = b.temperatuurC == null ? null : regel(t('apparaten.blad.nu'), `<b>${nl(b.temperatuurC, 0)}°</b>`);
+  const kw = b.vermogenW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(b.vermogenW / 1000)} kW</b>`) : '';
+  const kamer = plekVan(b.id, b.actuator);
+  return {
+    naam: b.naam,
+    zin: b.kop,
+    html: `<p class="hand-hoe">${esc(b.zin)}</p>${temp ?? ''}${kw}${onder([...(kamer ? [[kamer, t('apparaten.blad.inKamer')]] : []), ['regeling.html#opzon', t('apparaten.blad.instellen')]])}`,
+  };
+}
+
+function accuBlad() {
+  const o = huisData?.opslag?.batterij;
+  if (!o) return null;
+  const lijst = huisData?.opslag?.batterijen;
+  const naam = lijst?.length > 1 ? t('apparaten.accuSamen', { n: lijst.length }) : o.naam;
+  const doet = o.stand === 'laadt' ? t('thuis.lading.laadt') : o.stand === 'levert' ? t('apparaten.levert') : o.stand === 'rust' ? t('thuis.lading.rust') : t('apparaten.onbekend');
+  const w = o.vermogenW;
+  return {
+    naam,
+    zin: doet,
+    html: `${regel(t('apparaten.lading'), `<b>${o.pct == null ? esc(t('apparaten.onbekendKlein')) : `${nl(o.pct, 0)}%`}</b>`)}${w != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(Math.abs(w) / 1000)} kW</b>`) : ''}${accuRegels(lijst)}${[accuMaatZin(o), accuSchaduwZin() ?? t('apparaten.batterijKijkt')].filter(Boolean).map((z) => `<p class="hand-hoe">${esc(z)}</p>`).join('')}${onder([['energie.html#accu', t('apparaten.blad.instellen')]])}`,
+  };
+}
+
+function schakelaarBlad(id) {
+  const s = (schakelaarData?.schakelaars ?? []).find((x) => x.id === id);
+  if (!s?.keuze) return null;
+  const mag = schakelaarData?.bedienen === true && s.keuze.mag === 'hand';
+  return {
+    naam: s.keuze.naam || s.naam,
+    zin: [t(`toev.wat.${s.keuze.wat}`), t('apparaten.via', { via: s.model ?? s.koppeling })].join(' · '),
+    html: `<div class="knoprijen vrij-knoppen">${knopRijen(s)}</div>${s.nuW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(s.nuW / 1000)} kW</b>`) : ''}${!s.meet && s.keuze.vermogenW != null ? `<p class="hand-hoe">${esc(t('apparaten.ingevuldZin', { w: s.keuze.vermogenW }))}</p>` : ''}${mag ? '' : `<p class="hand-hoe">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}${onder([[`toevoegen.html#s-${encodeURIComponent(s.id)}`, t('apparaten.blad.instellen')]])}`,
+  };
+}
+
+/** Het blad bij een sleutel als "lamp:light.x", "buffer:boiler", "accu" of "schakelaar:id". */
+function vrijBlad(sleutel) {
+  const [soort, ...rest] = sleutel.split(':');
+  const id = rest.join(':');
+  if (soort === 'lamp') return lampBlad(id);
+  if (soort === 'buffer') return bufferBlad(id);
+  if (soort === 'accu') return accuBlad();
+  if (soort === 'schakelaar') return schakelaarBlad(id);
+  return null;
+}
+const openVrijBlad = (sleutel) => hand.openVrij(sleutel, () => vrijBlad(sleutel));
+
+/** De helderheid van een lamp, zodra je de schuif loslaat; door dezelfde deur als een kamer. */
+document.addEventListener('change', (e) => {
+  const el = e.target.closest?.('[data-helder]');
+  if (!el) return;
+  lampWens.set(el.dataset.helder, true);
+  void deur('api/licht', { doel: 'lamp', id: el.dataset.helder, aan: true, helderheidPct: Number(el.value) }).catch(() => null);
+  for (const ms of [800, 2500]) setTimeout(() => void laadAlles(), ms);
+  setTimeout(() => lampWens.delete(el.dataset.helder), 6000);
+});
 
 /** Een schakelaar met de hand aan of uit (besluit 297), door dezelfde deur als een stekker. */
 async function schakelKnop(knop, aan) {
@@ -658,10 +755,11 @@ document.addEventListener('click', (e) => {
     void schakelLamp(lamp.dataset.lamp, lamp.getAttribute('aria-checked') !== 'true');
     return;
   }
-  // Een kaart die naar zijn plek gaat (besluit 296), behalve een tik op een knop of keuze erin.
-  const kaart = e.target.closest('.app[data-plek]');
-  if (kaart && !e.target.closest('button, a, input, select')) {
-    location.href = kaart.dataset.plek;
+  // Het blad van een apparaat (besluit 298): de naam van een lamp, of een kaart buiten een knop of keuze.
+  const naam = e.target.closest('button[data-vrij]');
+  const kaart = e.target.closest('.app[data-vrij]');
+  if (naam || (kaart && !e.target.closest('button, a, input, select'))) {
+    openVrijBlad((naam ?? kaart).dataset.vrij);
     return;
   }
   const naar = e.target.closest('[data-naar]');
@@ -762,6 +860,8 @@ function tekenNu() {
     box.scrollTop = top;
   }
   tekenSoortenRij(soortenNu, aantal);
+  // Een open blad volgt wat er verandert, zoals een lamp die aan ging.
+  hand.verfris();
   // Hoeveel er nieuw gevonden is, zoals het scherm Toevoegen het telt (besluit 293).
   const opZonKeuze = aansluiting?.antwoorden?.opZon ?? {};
   const vast = new Set((aansluiting?.configuratie?.apparaten ?? []).map((x) => x.id));
@@ -821,8 +921,11 @@ document.addEventListener('keydown', (e) => {
     openBlad(k);
     return;
   }
-  // Naar zijn plek (besluit 296), alleen als de kaart zelf de focus heeft.
-  if (e.key === 'Enter' && e.target.matches?.('.app[data-plek]')) location.href = e.target.dataset.plek;
+  // Het blad (besluit 298), alleen als de kaart zelf de focus heeft.
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.app[data-vrij]')) {
+    e.preventDefault();
+    openVrijBlad(e.target.dataset.vrij);
+  }
 });
 
 setInterval(() => void laadAlles(), 60_000);

@@ -2480,7 +2480,7 @@ if (webPort != null) {
       : {}),
     // Een slimme stekker met de hand (besluit 265): de stand overal, schakelen alleen in de add-on.
     schakelaars: {
-      lijst: () => schakelaarViews(vindSchakelaarsNu(), schakelaarKeuzes()),
+      lijst: () => schakelaarViews(vindSchakelaarsNu(), schakelaarKeuzes(), allStates),
       bewaar: async (body) => {
         if (!schakelaarStore) return { ok: false as const, reden: 'er is geen map om de keuze te bewaren' };
         const k = leesSchakelaarKeuze(body);

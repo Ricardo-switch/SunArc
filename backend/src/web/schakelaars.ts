@@ -35,6 +35,8 @@ export interface SchakelaarKeuze {
   readonly mag: 'kijken' | 'hand';
   /** Bij meer knoppen (een IR-afstandsbediening): de naam per knop. */
   readonly knoppen?: Readonly<Record<string, string>>;
+  /** Wat hij vraagt als hij aan staat, in W, door de bewoner ingevuld (besluit 298); alleen zonder eigen meter. */
+  readonly vermogenW?: number;
 }
 
 export interface SchakelaarKeuzes {
@@ -146,10 +148,30 @@ export function vindSchakelaars(
 /** Hoe de app een schakelaar laat zien: wat hij vond, met wat de bewoner koos. */
 export interface SchakelaarView extends GevondenSchakelaar {
   readonly keuze: SchakelaarKeuze | null;
+  /**
+   * Wat hij nu vraagt, in W (besluit 298): uit zijn eigen meter, anders wat de
+   * bewoner invulde zolang een knop aan staat; null als dat niet te zeggen is.
+   */
+  readonly nuW: number | null;
 }
 
-export function schakelaarViews(gevonden: readonly GevondenSchakelaar[], keuzes: SchakelaarKeuzes): SchakelaarView[] {
-  return gevonden.filter((g) => !keuzes.geen.includes(g.id)).map((g) => ({ ...g, keuze: keuzes.apparaten[g.id] ?? null }));
+/** Wat een schakelaar nu vraagt: de meter, of het ingevulde vermogen als hij aan staat. */
+export function nuVermogenW(g: GevondenSchakelaar, k: SchakelaarKeuze | null, states: ReadonlyMap<string, HaEntityState>): number | null {
+  if (g.meet) {
+    const s = states.get(g.meet);
+    const n = Number(s?.state);
+    if (!Number.isFinite(n)) return null;
+    return Math.round(n * (String(s?.attributes['unit_of_measurement'] ?? '') === 'kW' ? 1000 : 1));
+  }
+  if (k?.vermogenW == null) return null;
+  return g.knoppen.some((x) => states.get(x.id)?.state === 'on') ? k.vermogenW : 0;
+}
+
+export function schakelaarViews(gevonden: readonly GevondenSchakelaar[], keuzes: SchakelaarKeuzes, states: ReadonlyMap<string, HaEntityState> = new Map()): SchakelaarView[] {
+  return gevonden.filter((g) => !keuzes.geen.includes(g.id)).map((g) => {
+    const keuze = keuzes.apparaten[g.id] ?? null;
+    return { ...g, keuze, nuW: nuVermogenW(g, keuze, states) };
+  });
 }
 
 /** De naam van een knop in de app: wat de bewoner koos, anders de naam van het apparaat (en bij meer knoppen een nummer). */
@@ -207,7 +229,11 @@ export function leesSchakelaarKeuze(body: unknown):
       if (v.trim()) knoppen[k] = v.trim().slice(0, 60);
     }
   }
-  return { ok: true, id, keuze: { wat: wat as SchakelaarWat, naam, kamer, mag, ...(knoppen && Object.keys(knoppen).length ? { knoppen } : {}) } };
+  // Het vermogen als hij aan staat (besluit 298): een heel getal in W, van 1 tot 10 kW; leeg is weg.
+  const w = b['vermogenW'];
+  if (w != null && w !== '' && !(typeof w === 'number' && Number.isInteger(w) && w >= 1 && w <= 10_000)) return { ok: false, reden: 'vermogenW is een heel getal van 1 tot 10.000 W' };
+  const vermogenW = typeof w === 'number' ? w : undefined;
+  return { ok: true, id, keuze: { wat: wat as SchakelaarWat, naam, kamer, mag, ...(knoppen && Object.keys(knoppen).length ? { knoppen } : {}), ...(vermogenW != null ? { vermogenW } : {}) } };
 }
 
 function leesKeuzes(raw: unknown): SchakelaarKeuzes {

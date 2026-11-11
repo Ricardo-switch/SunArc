@@ -291,6 +291,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [295. Apparaat toevoegen, een eigen scherm](#295-apparaat-toevoegen-een-eigen-scherm)
 - [296. De soorten op Apparaten filteren in plaats van springen](#296-de-soorten-op-apparaten-filteren-in-plaats-van-springen)
 - [297. Schakelaars: vinden, instellen bij Toevoegen, en met de hand schakelen](#297-schakelaars-vinden-instellen-bij-toevoegen-en-met-de-hand-schakelen)
+- [298. Een blad voor elk apparaat, en het vermogen invullen bij een schakelaar](#298-een-blad-voor-elk-apparaat-en-het-vermogen-invullen-bij-een-schakelaar)
 
 **Veiligheid**
 
@@ -13724,6 +13725,41 @@ IR-afstandsbediening in het tuinhuis.
 - **Nog niet:** het vermogen invullen bij een schakelaar zonder meter, de
   bladen per apparaat, het kinderslot, de IR-afstandsbediening samen met de
   stekker en de temperatuur als één kachel, en losse sensoren. Dat is stap 4.
+
+---
+
+## 298. Een blad voor elk apparaat, en het vermogen invullen bij een schakelaar
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.169.0: stap 4 van [293], de eerste twee delen.
+Ricardo, na de Pi bekeken: "de losse vensters in apparaten werken sneller dan
+naar de locatie. Doe dit voor alle apparaten ipv naar de locatie te gaan", en
+over het vermogen: "dan geef je de gebruiker toch de mogelijkheid om meer
+inzicht te geven bij opbrengst".
+
+*Besluit:*
+
+- **Een tik opent het blad van het apparaat,** bij elk apparaat op Apparaten:
+  een lamp (de naam), de boiler of jacuzzi, de thuisaccu en een schakelaar.
+  Het blad komt van rechts op de wand en van onderen op de telefoon, zoals het
+  blad van een airco, stekker of witgoed ([238], [265]). Dit vervangt de weg
+  naar de kamer uit [296]; in het blad staat de kamer als tweede weg.
+- **Het blad van een lamp:** aan of uit, en de helderheid als hij dimt, door
+  de deur van het licht ([97]). Een lamp zonder kamer heeft "Kies een kamer".
+- **De boiler of jacuzzi:** wat hij doet, de temperatuur en het vermogen nu,
+  met Instellen naar Regeling › Op zon. **De thuisaccu:** lading, vermogen,
+  wat erin zit en wat SunArc ermee zou doen, met Instellen naar Energie.
+  **Een schakelaar:** per knop aan of uit (als het mag), het vermogen, met
+  Instellen naar Apparaat toevoegen.
+- **Het vermogen invullen** ([293] zei: alleen echte meters; dat is
+  teruggedraaid): bij een schakelaar zonder eigen meter vul je in wat hij
+  vraagt als hij aan staat, in W, niet verplicht. Staat een knop aan, dan telt
+  dat mee bij Opbrengst › Nu en staat het op de kaart als "kW, ingevuld". Een
+  schakelaar met een eigen meter gebruikt de meter. Het ingevulde vermogen van
+  een stekker ([264]) blijft.
+- **In `hand.js` een vrij blad** (`openVrij`), dat de pagina zelf vult; het
+  ververst met de pagina mee.
 
 ---
 

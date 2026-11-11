@@ -410,15 +410,38 @@
     }
     // Niet 'tel': die klasse is in kit.css het telefoonframe van de schetsen, 390 breed (2 november 2026).
     laag.classList.toggle('op-tel', telStand());
-    const naam = open.wg ? open.wg.naam : open.st ? stekkerVan(open.st)?.naam ?? '' : vind(open.id)?.naam ?? '';
+    // Een vrij blad (besluit 298): de pagina zegt de naam, de zin en wat erin staat.
+    const vrij = open.vrij ? open.vrij() : null;
+    if (open.vrij && !vrij) {
+      open = null;
+      laag.remove();
+      return;
+    }
+    const naam = vrij ? vrij.naam : open.wg ? open.wg.naam : open.st ? stekkerVan(open.st)?.naam ?? '' : vind(open.id)?.naam ?? '';
     laag.setAttribute('aria-label', naam);
     const st = open.st ? stekkerVan(open.st) : null;
-    const inhoud = open.wg ? witgoedBlad(open.wg) : open.st ? (st ? stekkerBlad(st) : '') : (() => {
+    const inhoud = vrij ? `${kopVan(vrij.naam, vrij.zin)}${vrij.html}` : open.wg ? witgoedBlad(open.wg) : open.st ? (st ? stekkerBlad(st) : '') : (() => {
       const a = vind(open.id);
       return a ? blad(a, true) : '';
     })();
     laag.innerHTML = `<div class="hand-achter" data-hand-sluit></div><div class="hand-vel"><section class="glas hand-blad">${inhoud}</section></div>`;
-    global.dispatchEvent(new CustomEvent('handblad', { detail: { id: open.wg ? open.wg.id : open.st ?? open.id } }));
+    global.dispatchEvent(new CustomEvent('handblad', { detail: { id: open.wg ? open.wg.id : open.st ?? open.vrijId ?? open.id } }));
+  }
+
+  /**
+   * Een vrij blad (besluit 298): voor een lamp, de boiler, de thuisaccu of een
+   * schakelaar bij Apparaten. `maak` geeft `{ naam, zin, html }` (of null: dan
+   * gaat het dicht) en wordt bij elk verversen opnieuw gevraagd; de knoppen
+   * erin handelt de pagina zelf af.
+   */
+  function openVrij(id, maak) {
+    open = { vrij: maak, vrijId: id };
+    fout = '';
+    teken();
+  }
+  /** Het open vrije blad opnieuw tekenen, als er iets veranderde. */
+  function verfris() {
+    if (open?.vrij) teken();
   }
 
   /** Begint een klimaatapparaat: wat er met de hand staat, wat het nu doet (een airco die koelt), of het doel van zijn knop. */
@@ -591,5 +614,5 @@
     }
   });
 
-  global.hand = { laad, laadNu, nuHtml, openen, inPlek, openWitgoed, openStekker, laadStekkers, stekker: stekkerVan, stekkerZin, bij, data: () => data, nuZin, sluit: () => { open = null; teken(); } };
+  global.hand = { laad, laadNu, nuHtml, openen, inPlek, openWitgoed, openStekker, openVrij, verfris, vrijOpen: () => open?.vrijId ?? null, laadStekkers, stekker: stekkerVan, stekkerZin, bij, data: () => data, nuZin, sluit: () => { open = null; teken(); } };
 })(window);

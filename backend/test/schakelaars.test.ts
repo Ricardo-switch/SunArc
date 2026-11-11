@@ -86,6 +86,22 @@ describe('schakelaars vinden (besluit 297)', () => {
     expect(metKeuze(k, 'spiegel', 'weg').geen).toEqual([]);
   });
 
+  it('telt het ingevulde vermogen alleen als hij aan staat, en een meter altijd (besluit 298)', () => {
+    const k = leesSchakelaarKeuze({ id: 'kaku', wat: 'pomp', naam: 'Vijverpomp', vermogenW: 120 });
+    expect(k.ok && typeof k.keuze === 'object' && k.keuze.vermogenW).toBe(120);
+    if (!k.ok || typeof k.keuze !== 'object') return;
+    const keuzes = metKeuze(GEEN_KEUZES, 'kaku', k.keuze);
+    // klik-aan-klik-uit staat aan: dan het ingevulde vermogen.
+    expect(schakelaarViews(gevonden, keuzes, states).find((v) => v.id === 'kaku')!.nuW).toBe(120);
+    const uit = new Map(states);
+    uit.set('switch.ac_0x01a2b3c4_1', { ...states.get('switch.ac_0x01a2b3c4_1')!, state: 'off' });
+    expect(schakelaarViews(gevonden, keuzes, uit).find((v) => v.id === 'kaku')!.nuW).toBe(0);
+    // Zonder ingevuld vermogen en zonder meter weet hij het niet.
+    expect(schakelaarViews(gevonden, GEEN_KEUZES, states).find((v) => v.id === 'shelly')!.nuW).toBeNull();
+    expect(leesSchakelaarKeuze({ id: 'kaku', wat: 'pomp', vermogenW: 0 }).ok).toBe(false);
+    expect(leesSchakelaarKeuze({ id: 'kaku', wat: 'pomp', vermogenW: 2.5 }).ok).toBe(false);
+  });
+
   it('weigert een keuze die niet klopt', () => {
     expect(leesSchakelaarKeuze({ id: 'shelly', wat: 'raket' }).ok).toBe(false);
     expect(leesSchakelaarKeuze({ id: 'shelly', wat: 'lamp', mag: 'alles' }).ok).toBe(false);

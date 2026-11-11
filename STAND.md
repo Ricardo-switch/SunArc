@@ -511,12 +511,13 @@ verwijzing bestaat.
   een schakelaar, en het zonblok met de strook bovenaan ([294]); een tik op een
   soort toont alleen die soort ([296]). Schakelaars (een Shelly, klik-aan-klik-uit,
   IR) stel je in bij Toevoegen; een lamp komt bij zijn kamer, de rest bij
-  Schakelaars, met de hand door de deur van een stekker ([297]). Toevoegen is
+  Schakelaars, met de hand door de deur van een stekker ([297]). Een tik opent
+  bij elk apparaat zijn blad, en bij een schakelaar zonder meter vul je het
+  vermogen in voor Opbrengst › Nu ([298]). Toevoegen is
   een eigen scherm met wat nieuw gevonden is en de soorten ([295]). Gekozen, nog
   niet gebouwd: losse
   sensoren, een apparaat uit meer delen (IR-afstandsbediening met stekker),
-  het vermogen invullen bij een schakelaar, een blad voor elk apparaat, en het
-  kinderslot in het blad ([293]).
+  en het kinderslot in het blad ([293]).
 - **De assistent** is een gesprek: het huis begroet je, leest zijn antwoord
   voor met Piper uit Home Assistant, en vraagt of het nog iets kan doen
   ([141]). Hij zegt eerst het antwoord, kort en warm, spreekt eenheden en
@@ -927,4 +928,5 @@ verwijzing bestaat.
 [295]: DECISIONS.md#295-apparaat-toevoegen-een-eigen-scherm
 [296]: DECISIONS.md#296-de-soorten-op-apparaten-filteren-in-plaats-van-springen
 [297]: DECISIONS.md#297-schakelaars-vinden-instellen-bij-toevoegen-en-met-de-hand-schakelen
+[298]: DECISIONS.md#298-een-blad-voor-elk-apparaat-en-het-vermogen-invullen-bij-een-schakelaar
 <!-- links:einde -->
