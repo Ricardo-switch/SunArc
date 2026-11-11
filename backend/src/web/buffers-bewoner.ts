@@ -51,7 +51,7 @@ const STEKKER = {
     minimum: (duur: string, by: string) => `Zo staat hij vóór ${by} toch ${duur} aan, ook zonder zon.`,
     anders: (latest: string, duur: string, by: string) => `Komt die niet, dan gaat hij om ${latest} aan: zo staat hij vóór ${by} toch ${duur} aan.`,
     gehaald: (duur: string, by: string) => `Zijn ${duur} vóór ${by} heeft hij al.`,
-    duur: (min: number) => (min % 60 === 0 ? `${min / 60} uur` : min > 60 ? `${(min / 60).toLocaleString('nl-NL', { maximumFractionDigits: 2 })} uur` : `${min} minuten`),
+    duur: (min: number) => (min % 60 === 0 ? `${min / 60} uur` : min > 60 ? `${String(Math.round((min / 60) * 100) / 100).replace('.', ',')} uur` : `${min} minuten`),
   },
   en: {
     kop: { aan: 'On with solar', zouAan: 'Would switch on now', zouUit: 'Would switch off now', wachtZon: 'Waiting for sun', niets: 'On, draws nothing', minimum: 'On for its minimum', zouMinimum: 'Would switch on now for its minimum' },
@@ -68,7 +68,8 @@ const STEKKER = {
   },
 } as const;
 
-const kwTekst = (w: number | undefined, lang: Lang) => (w == null ? null : (Math.round(w / 100) / 10).toLocaleString(lang === 'nl' ? 'nl-NL' : 'en-GB', { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
+// Met de hand een komma (10 november 2026): Node in de add-on (Alpine) kent alleen Engelse getallen, en gaf "0.8 kW".
+const kwTekst = (w: number | undefined, lang: Lang) => (w == null ? null : lang === 'nl' ? (Math.round(w / 100) / 10).toFixed(1).replace('.', ',') : (Math.round(w / 100) / 10).toFixed(1));
 
 const WOORDEN = {
   nl: {

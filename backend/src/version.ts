@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.157.1';
+export const VERSIE = '0.172.1';
 
 export interface Nieuw {
   readonly versie: string;
@@ -74,12 +74,244 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.172.1',
+    datum: '2026-11-11',
+    opgelost: [
+      'Bij Apparaat toevoegen op de telefoon schoof een schakelaar instellen niet mee, en zat Toevoegen achter de balk onderaan',
+    ],
+    en: {
+      opgelost: [
+        'In Add a device on the phone, setting up a switch did not scroll, and Add was behind the bar at the bottom',
+      ],
+    },
+  },
+  {
+    versie: '0.172.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Een laadpaal uit losse sensoren, zoals via Modbus: bij Apparaat toevoegen › Losse sensoren zoek je zijn sensoren en vink je ze aan; daarna staat hij bij Energie › Auto en laadpaal als elke andere laadpaal',
+    ],
+    meldingen: [
+      {
+        code: 'SA-EXA6',
+        uitkomst: 'opgelost',
+        tekst: 'Een laadpaal via Modbus, zoals je NexBlue Edge Max, voeg je nu toe bij Apparaat toevoegen › Losse sensoren. Zoek op nexblue en vink het vermogen, de stroom en de stand aan.',
+        tekstEn: 'A charger via Modbus, like your NexBlue Edge Max, can now be added in Add a device › Separate sensors. Search for nexblue and tick the power, current and state.',
+        href: 'toevoegen.html#losse',
+        issue: 160,
+      },
+    ],
+    en: {
+      nieuw: [
+        'A charger from separate sensors, like via Modbus: in Add a device › Separate sensors you search for its sensors and tick them; then it is in Energy › Car and charger like any other charger',
+      ],
+    },
+  },
+  {
+    versie: '0.171.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Een kachel of ventilator achter een schakelaar staat bij Apparaten › Klimaat, met de temperatuur van het apparaat zelf, zoals een IR-afstandsbediening met sensor',
+      'Bij Apparaat toevoegen kies je welke slimme stekker erbij hoort: die meet wat de kachel gebruikt en staat dan bij de kachel, niet meer los bij Stekkers',
+    ],
+    en: {
+      nieuw: [
+        'A heater or fan behind a switch is in Devices › Climate, with the temperature of the device itself, like an IR remote with a sensor',
+        'In Add a device you choose which smart plug belongs with it: it measures what the heater uses and is then shown with the heater, no longer on its own in Plugs',
+      ],
+    },
+  },
+  {
+    versie: '0.170.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Het kinderslot van een thermostaat of droger zet je in zijn blad: onderaan staat "Op de thermostaat" of "Op de droger", met een schakelaar die meteen gaat',
+    ],
+    en: {
+      nieuw: [
+        'You set the child lock of a thermostat or dryer in its sheet: at the bottom is "On the thermostat" or "On the dryer", with a switch that takes effect at once',
+      ],
+    },
+  },
+  {
+    versie: '0.169.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Bij Apparaten opent een tik bij elk apparaat zijn blad: een lamp (aan, uit en helderheid), de boiler, de jacuzzi, de thuisaccu en een schakelaar, zoals al bij een airco, stekker en witgoed',
+      'Bij een schakelaar zonder meter vul je het vermogen in; staat hij aan, dan telt hij mee bij Opbrengst › Nu',
+    ],
+    en: {
+      nieuw: [
+        'In Devices, tapping any device opens its sheet: a light (on, off and brightness), the boiler, the hot tub, the home battery and a switch, as already for an air conditioner, plug and appliance',
+        'For a switch without a meter you enter its power; when it is on, it counts in Energy › Now',
+      ],
+    },
+  },
+  {
+    versie: '0.168.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Schakelaars: een Shelly, klik-aan-klik-uit of de knoppen van een IR-afstandsbediening vindt SunArc nu, en je stelt ze in bij Apparaat toevoegen: wat hij aanzet, de naam, waar, en of je hem met de hand mag schakelen',
+      'Een lamp achter een schakelaar staat bij het licht van zijn kamer, op Thuis en bij Apparaten › Licht, met waarlangs',
+      'Een schakelaar met iets anders, zoals een pomp of kachel, staat bij Apparaten › Schakelaars, met een schakelaar per knop',
+    ],
+    opgelost: [
+      'Een lamp zonder kamer bij Apparaten › Licht schakelde niet',
+    ],
+    meldingen: [
+      {
+        code: 'SA-6JGB',
+        uitkomst: 'opgelost',
+        tekst: 'Een Shelly 1 mini zonder meter vindt SunArc nu. Je stelt hem in bij Apparaten › Toevoegen: kies wat hij aanzet, zoals een lamp, en of je hem met de hand mag schakelen.',
+        tekstEn: 'SunArc now finds a Shelly 1 mini without a meter. Set it up in Devices › Add: pick what it switches, like a light, and whether it may be switched by hand.',
+        href: 'toevoegen.html',
+        issue: 157,
+      },
+      {
+        code: 'SA-EMC4',
+        uitkomst: 'opgelost',
+        tekst: 'Klik-aan-klik-uit via RFXCOM vindt SunArc nu. Je stelt elke ontvanger in bij Apparaten › Toevoegen: kies Lamp, een naam en de kamer. Zijn stand is wat SunArc het laatst stuurde.',
+        tekstEn: 'SunArc now finds KlikAanKlikUit via RFXCOM. Set up each receiver in Devices › Add: pick Light, a name and the room. Its state is what SunArc last sent.',
+        href: 'toevoegen.html',
+        issue: 161,
+      },
+    ],
+    en: {
+      nieuw: [
+        'Switches: SunArc now finds a Shelly, KlikAanKlikUit or the buttons of an IR remote, and you set them up in Add a device: what it switches, the name, where, and whether it may be switched by hand',
+        'A light behind a switch is with the lights of its room, on Home and in Devices › Lights, with what it goes through',
+        'A switch with something else, like a pump or heater, is in Devices › Switches, with a switch per button',
+      ],
+      opgelost: [
+        'A light without a room in Devices › Lights did not switch',
+      ],
+    },
+  },
+  {
+    versie: '0.167.1',
+    datum: '2026-11-11',
+    beter: [
+      'Bij Apparaten toont een tik op een soort alleen die soort, in plaats van naar zijn plek in een lange lijst te springen; Alles toont weer alles, en je keuze blijft staan',
+      'Bij een slimme stekker zegt het blad duidelijker waar je hem met de hand schakelt: in de add-on, met Toestaan',
+    ],
+    opgelost: [
+      'Toevoegen noemde een droger uit de configuratie "nog niet op zon", terwijl hij bij Regeling al op zon stond',
+    ],
+    en: {
+      beter: [
+        'In Devices, tapping a kind now shows only that kind instead of jumping to it in one long list; All shows everything again, and your choice stays',
+        'For a smart plug the sheet says more clearly where you switch it by hand: in the add-on, with Allow',
+      ],
+      opgelost: [
+        'Add called a dryer from the configuration "not on sun yet", while Control already had it on sun',
+      ],
+    },
+  },
+  {
+    versie: '0.167.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Apparaat toevoegen is een eigen scherm bij Apparaten: links wat SunArc nieuw vond en nog niet is ingedeeld, rechts zelf kiezen per soort',
+    ],
+    beter: [
+      'Op de knop Toevoegen staat hoeveel er nieuw gevonden is',
+    ],
+    en: {
+      nieuw: [
+        'Add a device is a screen of its own in Devices: on the left what SunArc newly found and is not placed yet, on the right choose yourself by kind',
+      ],
+      beter: [
+        'The Add button shows how many were newly found',
+      ],
+    },
+  },
+  {
+    versie: '0.166.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Apparaten staat nu in soorten: Klimaat, Licht, Warm water en bad, Witgoed, Auto en laden, Thuisaccu en Stekkers, met bovenaan een rij om naar een soort te springen',
+      'Alle lampen staan bij Apparaten › Licht, per kamer, met een schakelaar om ze snel aan of uit te zetten',
+    ],
+    beter: [
+      'Hoeveel zon er over is en waar de stroom heen gaat, staat in één blok bovenaan, met een knop Toevoegen ernaast',
+    ],
+    en: {
+      nieuw: [
+        'Devices is now grouped by kind: Climate, Lights, Hot water and bath, Appliances, Car and charging, Home battery and Plugs, with a row at the top to jump to a kind',
+        'All lights are in Devices › Lights, per room, each with a switch to turn it on or off quickly',
+      ],
+      beter: [
+        'How much sun is to spare and where the electricity goes now is one block at the top, with an Add button next to it',
+      ],
+    },
+  },
+  {
+    versie: '0.165.0',
+    datum: '2026-11-11',
+    nieuw: [
+      "Helpen bij de cv, een eigen deel bij Regeling: per airco aan of uit, wat warmte van de airco kost tegen de ketel, en wat hij vandaag hielp",
+      'Elke airco kijkt naar zijn eigen kamer, dus ook de zolder-airco helpt nu als de ketel het niet bijhoudt',
+    ],
+    beter: [
+      'Een airco helpt alleen als hij goedkoper is dan de ketel, en stopt pas als zijn kamer op temperatuur is, ook als de ketel al stopte',
+      'Eenmaal aan helpt een airco minstens een half uur, en daarna rust hij een kwartier: dat spaart de pomp',
+      'Een radiatorknop of de thermostaat van een gasketel kun je niet meer op zon zetten: de warmte komt van gas',
+    ],
+    en: {
+      nieuw: [
+        'Helping the boiler, a section of its own in Control: each air conditioner on or off, what its heat costs against the boiler, and how it helped today',
+        'Each air conditioner looks at its own room, so the attic one now helps too when the boiler cannot keep up',
+      ],
+      beter: [
+        'An air conditioner only helps when it is cheaper than the boiler, and stops only when its room is at temperature, even if the boiler already stopped',
+        'Once on, an air conditioner helps for at least half an hour and then rests for a quarter: that spares the pump',
+        'A radiator valve or the thermostat of a gas boiler can no longer be put on solar: the heat comes from gas',
+      ],
+    },
+  },
+  {
+    versie: '0.164.0',
+    datum: '2026-11-11',
+    beter: [
+      'Een slimme stekker heeft bij Regeling › Op zon nog één schakelaar: op zon betekent dat SunArc hem echt aan- en uitzet',
+      'Met de hand schakelen sta je toe in het blad van de stekker zelf, met Toestaan, en daar kan het ook weer weg',
+      'Op zon aan- of uitzetten gaat meteen in, zonder SunArc opnieuw te starten',
+    ],
+    opgelost: [
+      'Een stekker die je van zon haalde, zei nog "Wacht op zon" tot SunArc opnieuw startte',
+      'Bij een stekker of boiler stond "0.8 kW" met een punt in plaats van een komma',
+    ],
+    en: {
+      beter: [
+        'A smart plug has one switch left in Control › On solar: on solar means SunArc really switches it on and off',
+        'You allow switching by hand in the plug sheet itself, with Allow, and you can take it back there too',
+        'Putting something on solar, or taking it off, works straight away, without restarting SunArc',
+      ],
+      opgelost: [
+        'A plug you took off solar still said "Waiting for sun" until SunArc restarted',
+        'A plug or boiler showed "0.8 kW" with a point instead of a comma in Dutch',
+      ],
+    },
+  },
+  {
+    versie: '0.163.0',
+    datum: '2026-11-09',
+    beter: [
+      'Kamers en indeling werkt weer zoals je gewend bent. Je huis, met het huisontwerp, de etages en de kamers als vakken, komt later terug',
+    ],
+    en: {
+      beter: [
+        'Rooms and layout works as you are used to again. Your home, with the house design, the floors and the rooms as boxes, will come back later',
+      ],
+    },
+  },
   {
     versie: '0.157.1',
     datum: '2026-11-08',

@@ -45,6 +45,13 @@ export const DOOR_ROLES: Readonly<Record<string, Role>> = {
   '/api/laden': 'bewoner',
   // Een slimme stekker met de hand (besluit 265): voor wie in huis woont.
   '/api/stekker': 'bewoner',
+  // Een schakelaar met de hand (besluit 297): ook voor wie in huis woont; wat hij is, kiest de beheerder.
+  '/api/schakelaar': 'bewoner',
+  '/api/schakelaars': 'beheerder',
+  // Het kinderslot van een thermostaat of droger (besluit 299): voor wie in huis woont.
+  '/api/kinderslot': 'bewoner',
+  // Een laadpaal uit losse sensoren (besluit 301): kiezen doet de beheerder.
+  '/api/losse-laadpaal': 'beheerder',
   // Te doen (besluit 216): voor wie in huis woont, en de wand.
   '/api/te-doen': 'bewoner',
   // Hoe het voelt mag zonder inlog (besluit 134): het verandert niets aan het huis.
@@ -58,6 +65,8 @@ export const DOOR_ROLES: Readonly<Record<string, Role>> = {
   '/api/aansluiting': 'beheerder',
   // Bijspringen per kamer (besluit 283), bij Regeling: net als de rest van Regeling.
   '/api/bijspringen': 'beheerder',
+  // Helpen bij de cv (besluit 292), bij Regeling: net als de rest van Regeling.
+  '/api/helpen': 'beheerder',
   // De gevels opmeten op de kaart (21 oktober 2026): stuurt de ligging naar OpenStreetMap.
   '/api/gevel-kaart': 'beheerder',
   '/api/daken-kaart': 'beheerder',

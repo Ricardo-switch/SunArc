@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Apparaat toevoegen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Apparaat toevoegen op de telefoon (schets, 11 november 2026). Dezelfde
+   * stappen als Wand-Apparaat-Toevoegen, onder elkaar. Toevoegen staat vast
+   * onderaan, boven de tabs.
+   *
+   * Standen: (zonder) nieuw gevonden en zelf kiezen; #shelly de Shelly 1 mini;
+   * #laadpaal de NexBlue met losse sensoren.
+   */
+  body { margin: 0; width: 390px; min-height: 844px; }
+  .tel .tabs { position: fixed; }
+  .scherm { padding: 18px 16px 180px; display: flex; flex-direction: column; gap: 14px; }
+  .terugje { font-size: 14px; font-weight: 600; color: var(--zacht); }
+  .kop h1 { margin: 2px 0 0; font-size: 30px; }
+  h2 { margin: 6px 2px 0; font-size: 15px; font-weight: 700; color: var(--zacht); }
+  .lijst { border-radius: 20px; padding: 2px 14px; }
+  .rij { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 1px 12px; align-items: center; padding: 11px 0; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .rij:first-child { border-top: 0; }
+  .rij .ik { grid-row: 1 / 3; width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); }
+  .rij .ik svg { width: 21px; height: 21px; }
+  .rij b { font-size: 15px; font-weight: 600; }
+  .rij small { grid-column: 2; font-size: 12.5px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rij .pijl { grid-row: 1 / 3; grid-column: 3; color: var(--gedempt); font-size: 20px; }
+  .rij.verborgen { grid-template-columns: minmax(0, 1fr) auto; font-size: 13px; color: var(--gedempt); }
+  .soorten { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .soort { display: flex; flex-direction: column; gap: 3px; padding: 14px; border-radius: 18px; background: var(--glas); border: 1px solid var(--glas-rand); }
+  .soort .ik { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; margin-bottom: 8px; }
+  .soort .ik svg { width: 24px; height: 24px; }
+  .soort b { font-size: 15.5px; font-weight: 600; }
+  .soort span { font-size: 12.5px; color: var(--gedempt); line-height: 1.35; }
+  .soort.zoek { border-style: dashed; background: none; }
+  .uitleg { margin: 0 2px; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
+
+  .wie { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 2px 12px; align-items: center; }
+  .wie .ik { grid-row: 1 / 3; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); }
+  .wie .ik svg { width: 25px; height: 25px; }
+  .wie b { font-family: var(--kop); font-size: 21px; font-weight: 600; }
+  .wie small { font-size: 12.5px; color: var(--gedempt); }
+  .vak { border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .vak > b { font-size: 15px; font-weight: 600; }
+  .vak > p { margin: 0; font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+  .keuzes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .keuze { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 2px 8px; border-radius: 13px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.07); font-size: 12px; font-weight: 600; color: var(--zacht); }
+  .keuze svg { width: 22px; height: 22px; }
+  .keuze.aan { background: rgba(247, 181, 72, 0.12); border-color: var(--zon); color: var(--tekst); }
+  .regel { display: flex; justify-content: space-between; align-items: center; min-height: 44px; border-top: 1px solid rgba(255, 255, 255, 0.07); font-size: 15px; }
+  .regel:first-of-type { border-top: 0; }
+  .regel span { color: var(--gedempt); font-size: 14px; }
+  .regel b { font-weight: 600; }
+  .regel b i { font-style: normal; color: var(--gedempt); margin-left: 6px; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px; padding: 3px; border-radius: 13px; background: rgba(255, 255, 255, 0.06); }
+  .seg span { height: 38px; display: grid; place-items: center; border-radius: 10px; font-size: 13.5px; font-weight: 700; color: var(--zacht); }
+  .seg span.aan { background: var(--tekst); color: var(--inkt); }
+  .seg span.niet { color: rgba(255, 255, 255, 0.28); }
+  .sensor { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 10px; padding: 9px 0; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .sensor:first-of-type { border-top: 0; }
+  .sensor b { font-size: 14.5px; font-weight: 600; }
+  .sensor code { grid-column: 1; font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sensor .w { grid-row: 1 / 3; grid-column: 2; align-self: center; font-weight: 700; font-size: 14px; }
+  .sensor .w i { font-style: normal; color: var(--mint); margin-left: 6px; }
+  .sensor .w.dim { color: var(--gedempt); font-weight: 600; }
+  .vast { position: fixed; left: 16px; right: 16px; bottom: 92px; z-index: 4; }
+  .vast button { width: 100%; height: 52px; border: 0; border-radius: 16px; background: var(--tekst); color: var(--inkt); font-size: 16px; font-weight: 700; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); }
+
+  .tegel { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding: 12px 14px; border-radius: 18px; background: rgba(247, 181, 72, 0.06); border: 1px solid rgba(247, 181, 72, 0.18); }
+  .tegel .ik { grid-row: 1 / 3; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; }
+  .tegel .ik svg { width: 20px; height: 20px; }
+  .tegel .wie { display: block; }
+  .tegel .wie b { display: block; font-family: var(--romp); font-size: 15px; font-weight: 600; }
+  .tegel .wie small { display: none; }
+  .tegel .schakel { grid-row: 1 / 3; grid-column: 3; }
+  .tegel .tstand { grid-column: 2; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--zacht); }
+  .tegel .tstand .stip { width: 7px; height: 7px; }
+  .tegel .tstand .meter { font-weight: 500; color: var(--gedempt); }
+  .tegel .tstand .meter::before { content: '· '; }
+  .dim { color: var(--gedempt); font-weight: 500; }
+  .schakel { width: 46px; height: 28px; border-radius: 999px; background: var(--mint); position: relative; }
+  .schakel::after { content: ''; position: absolute; right: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+</style>
+</head>
+<body class="lucht lucht-dag">
+<div class="tel">
+  <div class="scherm" id="scherm"></div>
+  <nav class="tabs" id="tabs" aria-label="Hoofdmenu"></nav>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="apparaten-soorten.js"></script>
+<script>
+  nav.tabs(document.getElementById('tabs'), 'apparaten');
+  const toon = location.hash.slice(1) || 'kiezen';
+  const { ik, SOORTEN, GEVONDEN, AAN_SCHAKELAAR } = schets;
+  const scherm = document.getElementById('scherm');
+  const knop = (tekst) => `<div class="vast"><button>${tekst}</button></div>`;
+
+  if (toon === 'kiezen') {
+    scherm.innerHTML = `
+      <div class="kop"><span class="terugje">‹ Apparaten</span><h1 class="kop-1">Toevoegen</h1></div>
+      <h2>Nieuw gevonden in Home Assistant</h2>
+      <div class="glas lijst">
+        ${GEVONDEN.map((g) => `<div class="rij"><span class="ik">${ik(g.icoon)}</span><b>${g.naam}</b><small>${g.waar ?? 'geen ruimte'} · ${g.koppeling} · ${g.wat.toLowerCase()}</small><span class="pijl">›</span></div>`).join('')}
+        <div class="rij verborgen"><span>Geen apparaat, verborgen</span><b>6 ›</b></div>
+      </div>
+      <h2>Of kies zelf</h2>
+      <div class="soorten">${SOORTEN.map((s) => `<div class="soort"><span class="ik" style="background: rgba(${s.kleur}, 0.14)">${ik(s.icoon)}</span><b>${s.naam}</b><span>${s.wat}</span></div>`).join('')}<div class="soort zoek"><span class="ik" style="background: rgba(255, 255, 255, 0.06)">${ik('oog')}</span><b>Zoeken</b><span>Alles uit Home Assistant</span></div></div>
+      <p class="uitleg">Staat het niet als apparaat in Home Assistant, zoals een laadpaal via Modbus? Dan kies je losse sensoren.</p>`;
+  }
+
+  if (toon === 'shelly') {
+    scherm.innerHTML = `
+      <span class="terugje">‹ Toevoegen</span>
+      <div class="wie"><span class="ik">${ik('apparaat')}</span><b>Shelly 1 mini Gen3</b><small>Schakelaar · Shelly · geen meter</small></div>
+      <div class="glas vak"><b>Wat zet hij aan?</b><div class="keuzes">${AAN_SCHAKELAAR.map(([icoon, naam]) => `<span class="keuze${naam === 'Lamp' ? ' aan' : ''}">${ik(icoon)}${naam}</span>`).join('')}</div><p>Een lamp komt bij Licht, en bij het licht van de Schuur op Thuis en in je scènes.</p></div>
+      <div class="glas vak" style="gap: 0; padding: 4px 14px">
+        <div class="regel"><span>Naam</span><b>Lamp schuur</b></div>
+        <div class="regel"><span>Waar</span><b>Schuur<i>›</i></b></div>
+      </div>
+      <div class="glas vak"><b>Wat mag SunArc?</b><div class="seg"><span>Alleen kijken</span><span class="aan">Met de hand</span><span class="niet">Op zon</span></div><p>Op zon kan niet: deze schakelaar meet niet wat hij gebruikt.</p></div>
+      <h2>Zo komt hij erbij</h2>
+      ${schets.tegel(schets.APPARATEN.find((a) => a.naam === 'Lamp schuur'), SOORTEN[1])}
+      ${knop('Toevoegen')}`;
+  }
+
+  if (toon === 'laadpaal') {
+    const rij = (rol, id, w, vink = true) => `<div class="sensor"><b>${rol}</b><code>${id}</code><span class="w${vink ? '' : ' dim'}">${w}${vink ? '<i>✓</i>' : ''}</span></div>`;
+    scherm.innerHTML = `
+      <span class="terugje">‹ Auto en laden</span>
+      <div class="kop"><h1 class="kop-1" style="font-size: 26px">Laadpaal</h1></div>
+      <div class="glas vak"><b>Uit Home Assistant</b><div class="seg" style="grid-template-columns: 1fr 1fr"><span>Een apparaat</span><span class="aan">Losse sensoren</span></div><p>Geen laadpaal als apparaat gevonden. Via Modbus staan de sensoren los; SunArc zocht op "nexblue".</p></div>
+      <div class="glas vak" style="gap: 0">
+        ${rij('Vermogen nu', 'sensor.nexblue_power', '1,4 kW')}
+        ${rij('Laadt hij?', 'sensor.nexblue_charging_state', 'Charging')}
+        ${rij('Stroom per fase', 'sensor.nexblue_current_l1 · l2 · l3', '6 A')}
+        ${rij('Totaal geladen', 'sensor.nexblue_energy_total', '1.284 kWh')}
+        ${rij('Kabel erin', 'niet gevonden', 'Kies ›', false)}
+      </div>
+      <div class="glas vak" style="gap: 0; padding: 4px 14px">
+        <div class="regel"><span>Naam</span><b>NexBlue Edge Max</b></div>
+        <div class="regel"><span>Plek</span><b>Oprit<i>›</i></b></div>
+      </div>
+      <div class="glas vak"><b>Wat mag SunArc?</b><div class="seg"><span class="aan">Alleen kijken</span><span class="niet">Met de hand</span><span class="niet">Op zon</span></div><p>Eerst alleen kijken. Bedienen via Modbus komt in een volgende stap.</p></div>
+      ${knop('Toevoegen')}`;
+  }
+</script>
+</body>
+</html>

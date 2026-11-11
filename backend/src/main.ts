@@ -48,6 +48,7 @@ import { LayoutStore, herstelMeedoen, withLayoutNames, type Layout } from './web
 import { noteSensors, readLayoutFile, withMeasurement } from './web/meten.js';
 import { configUitDeApp } from './web/config-uit-app.js';
 import { bijspringenView, ComfortStore, controleerBijspringen, controleerComfort, type Comfort, type ComfortRoom, type ComfortView } from './web/comfort.js';
+import { controleerHelpen, HelpenDag, helpenView } from './web/helpen.js';
 import { BewonersStore, GEEN_BEWONERS, bewonersView, comfortVanBewoner, gastStand, persoonsAccount, herken as herkenBewoner, hoofdVan, leesActie, namenVoorExport, personenUit, profielenVan, vasthoudenVoorbij, voerUit, zonderVasthoudenVan, type Bewoners, type Wie } from './web/bewoners.js';
 import { BACKUP_DIR, OPNIEUW_STARTEN, beginOpnieuw, bewaarBackup, bewaardeBackups, leesBackup, maakBackup, zetTerug } from './web/gegevens.js';
 import { entiteitenLijst, type AnalyseExtra } from './web/export.js';
@@ -74,13 +75,13 @@ import type { TeDoenDienst } from './web/routes/tedoen.js';
 import { spraakKeuzes, type SpraakKeuze } from './web/functies.js';
 import { cameraMelders, camerasNu, laatsteAanUitHistorie } from './web/cameras.js';
 import { FunctiesStore, aangebeld, functiesGevonden, functiesVoorstel, getoondeCameras, volledig, type Functies, type FunctiesGevonden } from './web/functies.js';
-import { accusNu, accuView, KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, vindOpslag } from './web/opslag.js';
+import { accusNu, accuView, KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, metLosseLaadpalen, vindOpslag } from './web/opslag.js';
 import { Laadhand, laadMag } from './web/laadhand.js';
 import { Stekkerhand, stekkerMag, type StekkerBekend, type StekkerTot } from './web/stekkerhand.js';
 import { StekkerZon } from './web/stekkerzon.js';
 import { Laadbeurten } from './web/laadbeurten.js';
 import { laadAdvies, prijzenVooruit, type LaadAdvies } from './web/laadadvies.js';
-import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhases, findPowers, withConnection, type Applied, type ConnectionAnswers } from './web/aansluiting.js';
+import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhases, findPowers, metOpZonVanNu, withConnection, type Applied, type ConnectionAnswers } from './web/aansluiting.js';
 import { clearSkyOnPlaneWm2, sunPosition } from './core/sun.js';
 import { laadDag, zonVerwachtW } from './web/laaddag.js';
 import { clearSkyW } from './web/sun.js';
@@ -88,6 +89,7 @@ import { hoofddakPlat, panelenVan, type DakVlak } from './web/daken.js';
 import { inNederland } from './web/bag3d.js';
 import { aanvullenUitMeter, achterblijven, meetVlakken, metMeting, opbrengstPerVlak, verdeelDag, type Achter, type MeterGroep, type VlakStand, type Verdeling } from './web/meten-vlakken.js';
 import { findHeatStores, findPlugs, type FoundHeatStore } from './web/buffers-vinden.js';
+import { GEEN_KEUZES, SchakelaarStore, kinderslotVan, lampSchakelaars, leesLosseLaadpaal, leesSchakelaarKeuze, losseSensoren, metKeuze, metLaadpaal, schakelaarViews, schakelaarsMag, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
 import { kiesLigging, meetLigging, omvormerUitType, type Meting, type PanelenAntwoord } from './web/ligging.js';
 import { alarmSensoren, vindRookmelders } from './web/rookmelders.js';
 import { eigenUpdate, updateView, type UpdateView } from './web/bijwerken.js';
@@ -353,6 +355,8 @@ try {
  */
 const connectionStore = logDir !== '' ? new ConnectionStore(logDir) : null;
 const answersAtStart = (await connectionStore?.load()) ?? null;
+/** De antwoorden waarmee de regeling nu rekent: bij het starten, en op zon van nu (besluit 290). */
+let answersInGebruik = answersAtStart;
 const baseConfig = site?.config ?? null;
 let connectionApplied: Pick<Applied, 'toegevoegd' | 'overgeslagen'> = { toegevoegd: [], overgeslagen: [] };
 if (site && answersAtStart) {
@@ -416,13 +420,18 @@ await comfortStore?.load();
 /* Bewoners (besluit 147): wie hier woont, op volgorde, met elk een eigen comfort of dat van de hoofdgebruiker. */
 const bewonersStore = logDir !== '' ? new BewonersStore(logDir) : null;
 await bewonersStore?.load();
+/**
+ * De prijzen voor Helpen bij de cv (besluit 292): uit Energie › Prijzen, met de
+ * prijs van nu bij een prijs per uur. Leeg tot de meters en prijzen geladen zijn.
+ */
+let prijzenVoorHelpen: () => { gas: number | null; stroom: number | null } = () => ({ gas: null, stroom: null });
 /** De ruwe configuratie met alles wat de app erover legt, en comfort zoals gegeven. */
 async function configWithComfort(comfort: Comfort | null, bewoners: Bewoners = bewonersStore?.current ?? GEEN_BEWONERS): Promise<{ ok: true; config: SiteConfig; toegevoegd: string[] } | { ok: false; reden: string }> {
   if (!site) return { ok: false, reden: 'er is geen configuratie' };
   const base = JSON.parse(await readFile(site.source, 'utf-8')) as Record<string, unknown>;
   // De stapel zelf staat in config-uit-app.ts; hier de stand van nu.
   return configUitDeApp(base, {
-    aansluiting: answersAtStart,
+    aansluiting: answersInGebruik,
     aansluitingToegevoegd: connectionApplied,
     // Meten met (besluit 123) uit de indeling van nu: de regeling neemt een andere sensor meteen over (138).
     layout: layoutNu?.() ?? layoutAtStart,
@@ -432,6 +441,14 @@ async function configWithComfort(comfort: Comfort | null, bewoners: Bewoners = b
     bewoners,
     occupancy: site.config.occupancy,
     strategieen: strategies.ids,
+    // Helpen bij de cv (besluit 292): de thermostaat van de ketel uit Energie › Verwarming, en de prijzen.
+    // Gas alleen bij een cv-ketel: bij een warmtepomp of stadsverwarming vergelijkt het niet met gas.
+    helpen: (() => {
+      const vw = connectionStore?.current?.verwarming;
+      const p = prijzenVoorHelpen();
+      const gasKetel = vw?.soort == null || vw.soort === 'cv' || vw.soort === 'hybride' || vw.soort === 'weetniet';
+      return { thermostaat: vw?.thermostaat ?? null, stroom: p.stroom, gas: gasKetel ? p.gas : null };
+    })(),
     waarschuw: (t) => console.warn(t),
   });
 }
@@ -500,7 +517,23 @@ const client = new HaClient({
     const klimaat = klimaatAan() || (handbediening?.terugzetten.length ?? 0) > 0
       ? { klimaat: [...new Set([...HAND_KLIMAAT, ...handKnoppen().map((k) => k.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.thermostaat).map((t) => t.id)])], schakelaars: [...handSchakelaars().map((s) => s.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.modus === 'aan').map((t) => t.id)] }
       : { klimaat: [], schakelaars: [] };
-    return { klimaat: klimaat.klimaat, schakelaars: [...new Set([...klimaat.schakelaars, ...stekkers])] };
+    // Schakelaars die de bewoner met de hand toeliet (besluit 297): dezelfde deur, alleen in de add-on.
+    const relais = (() => {
+      try {
+        return inHuisMetDeuren ? schakelaarsMag(vindSchakelaarsNu(), schakelaarKeuzes()) : [];
+      } catch {
+        return [];
+      }
+    })();
+    // Een kinderslot op een thermostaat of witgoed (besluit 299): dezelfde deur, alleen in de add-on.
+    const sloten = (() => {
+      try {
+        return inHuisMetDeuren ? Object.values(kinderslotten()).map((s) => s.id) : [];
+      } catch {
+        return [];
+      }
+    })();
+    return { klimaat: klimaat.klimaat, schakelaars: [...new Set([...klimaat.schakelaars, ...stekkers, ...relais, ...sloten])] };
   },
 });
 
@@ -581,7 +614,7 @@ let houseRegisters: HouseRegisters | null = null;
 /** Wat de thuisaccu's samen nu doen, in W: plus is laden (besluit 272, 274); null zonder accu. */
 function accuNuW(): number | null {
   if (!houseRegisters) return null;
-  const w = accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null).map((a) => a.vermogenW).filter((x): x is number => x != null);
+  const w = accusNu(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null).map((a) => a.vermogenW).filter((x): x is number => x != null);
   return w.length ? w.reduce((s, x) => s + x, 0) : null;
 }
 /** De stroommeter bij hetzelfde apparaat in Home Assistant, zoals bij een airco (besluit 138). */
@@ -674,7 +707,7 @@ const handbediening: Handbediening | null = inHuisMetDeuren
   : null;
 /** Wat er per auto met de hand te bedienen is (besluit 262). */
 function laadBedieningenNu() {
-  return houseRegisters ? laadBedieningen(houseRegisters, allStates, connectionStore?.current?.laden ?? null) : [];
+  return houseRegisters ? laadBedieningen(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null) : [];
 }
 /*
  * Laden met de hand (besluit 262, stap 5 van besluit 259): de hoogste
@@ -701,7 +734,8 @@ const laadhand: Laadhand | null = inHuisMetDeuren
  * elders kijkt het blad mee.
  */
 function stekkersBekend(): StekkerBekend[] {
-  const mag = new Set((connectionStore?.current?.buffers ?? []).filter((b) => b.bedienen === true).map((b) => b.id));
+  // Toegelaten in het blad, of op zon: op zon is zelf de toestemming (besluit 290).
+  const mag = new Set((connectionStore?.current?.buffers ?? []).filter((b) => b.bedienen === true || (b.soort === 'stekker' && b.opZon)).map((b) => b.id));
   return vindBuffers()
     .filter((b) => b.soort === 'stekker')
     .map((b) => ({ id: b.id, naam: b.naam, actuator: b.actuator, ...(b.power ? { power: b.power } : {}), mag: mag.has(b.id) }));
@@ -755,6 +789,51 @@ function vindBuffers(): FoundHeatStore[] {
   const buffers = findHeatStores(allStates, houseRegisters.entities, houseRegisters.devices);
   const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...buffers.map((b) => b.actuator)]);
   return [...buffers, ...findPlugs(allStates, houseRegisters.entities, houseRegisters.devices, bekend)];
+}
+/*
+ * Schakelaars (besluit 297): een relais zoals een Shelly 1 mini, klik-aan-klik-uit
+ * of de knoppen van een IR-afstandsbediening. Wat het huis al kent (de regeling,
+ * een boiler, een stekker), telt niet mee. De keuzes staan in een eigen bestand.
+ */
+const schakelaarStore = logDir !== '' ? new SchakelaarStore(logDir) : null;
+await schakelaarStore?.load();
+const schakelaarKeuzes = (): SchakelaarKeuzes => schakelaarStore?.current ?? GEEN_KEUZES;
+/**
+ * De registers met de laadpalen uit losse sensoren erbij (besluit 301), voor
+ * alles over laden en de thuisaccu. Zolang de keuzes nog niet geladen zijn: zonder.
+ */
+function laadReg<R extends { readonly devices: readonly HaDevice[]; readonly entities: readonly HaRegistryEntity[] }>(r: R): R {
+  let laadpalen;
+  try {
+    laadpalen = schakelaarStore?.current?.laadpalen;
+  } catch {
+    laadpalen = undefined;
+  }
+  return metLosseLaadpalen(r, laadpalen);
+}
+function vindSchakelaarsNu(): GevondenSchakelaar[] {
+  if (!houseRegisters) return [];
+  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...vindBuffers().map((b) => b.actuator)]);
+  return vindSchakelaars(allStates, houseRegisters.entities, houseRegisters.devices, bekend);
+}
+/**
+ * De kinderslotten (besluit 299), per klimaatapparaat (op zijn `climate.`) en
+ * per witgoed (op zijn id uit de configuratie): het slot op hetzelfde apparaat
+ * in Home Assistant.
+ */
+function kinderslotten(): Record<string, { readonly id: string; readonly aan: boolean }> {
+  if (!houseRegisters) return {};
+  const uit: Record<string, { readonly id: string; readonly aan: boolean }> = {};
+  for (const e of houseRegisters.entities) {
+    if (!e.entity_id.startsWith('climate.')) continue;
+    const s = kinderslotVan(e.entity_id, houseRegisters.entities, allStates);
+    if (s) uit[e.entity_id] = s;
+  }
+  for (const d of siteConfig?.deferrables ?? []) {
+    const s = kinderslotVan(d.remoteStart.id, houseRegisters.entities, allStates);
+    if (s) uit[d.id] = s;
+  }
+  return uit;
 }
 
 /** De radiatorknoppen buiten de regeling (besluit 126), met hun kamer: die zet de hand direct (besluit 235). */
@@ -970,7 +1049,7 @@ client.on('ready', (states: HaEntityState[]) => {
  * Vóór de dienst, zodat die het bij elk besluit kan lezen.
  */
 const uitstelStore: UitstelStore | null =
-  logDir !== '' && site && (site.config.deferrables ?? []).length > 0
+  logDir !== '' && site
     ? new UitstelStore({
         logDir,
         config: site.config,
@@ -982,14 +1061,22 @@ await uitstelStore?.load();
 
 /* Klaar om, legionella en vol bij de boiler en de jacuzzi (besluit 186): naast de dataset. */
 const bufferStore: BufferStore | null =
-  logDir !== '' && site && (site.config.heatStores ?? []).length > 0
+  logDir !== '' && site
     ? new BufferStore({ logDir, config: site.config, onChange: () => runner?.nudge('klaarom') })
     : null;
 await bufferStore?.load();
 
+/* Wat de airco's vandaag hielpen bij de cv (besluit 292). */
+const helpenDag = new HelpenDag(() => siteConfig?.timezone ?? 'Europe/Amsterdam');
+
 /* Meters en prijzen voor Opbrengst (besluit 102): naast de dataset, dus alleen met een logmap. */
 const energyStore = logDir !== '' ? new EnergyStore(logDir) : null;
 await energyStore?.load();
+prijzenVoorHelpen = () => {
+  const p = energyStore?.current?.prijzen;
+  const nu = p?.dynamisch?.prijsEntiteit ? Number(allStates.get(p.dynamisch.prijsEntiteit)?.state) : Number.NaN;
+  return { gas: p?.gas ?? null, stroom: p?.stroom ?? (Number.isFinite(nu) ? nu : null) };
+};
 
 const runner: ShadowRunner | null =
   site == null
@@ -1016,6 +1103,8 @@ const runner: ShadowRunner | null =
                 // Een eindtijd vervalt als het programma klaar is of de deur openging.
                 void uitstelStore?.prune(snapshot.explanation.deferrables);
                 void bufferStore?.observe(snapshot.explanation.heatStores);
+                // Helpen bij de cv (besluit 292): wat de airco's vandaag hielpen.
+                helpenDag.observe(snapshot.atMs, new Set(snapshot.accepted.filter((i) => i.strategyId === 'heat-assist').map((i) => i.actuatorId)));
                 // Wat de regeling zou starten, start SunArc nu echt (besluit 238).
                 void witgoed?.opBesluit(snapshot).catch(() => []);
                 // En een stekker op zon (besluit 267).
@@ -1108,7 +1197,7 @@ layoutNu = () => layoutStore?.current ?? layoutAtStart;
 async function rollenOvernemen(l: Layout | null): Promise<void> {
   if (!l || !site || l.kamers.some((k) => k.rollen !== undefined)) return;
   const base = JSON.parse(await readFile(site.source, 'utf-8')) as Record<string, unknown>;
-  const raw = answersAtStart && connectionApplied.toegevoegd.length ? withConnection(base, answersAtStart).raw : base;
+  const raw = answersInGebruik && connectionApplied.toegevoegd.length ? withConnection(base, answersInGebruik).raw : base;
   const over = await layoutStore!.overnemen((x) => ({
     ...x,
     kamers: x.kamers.map((k) => {
@@ -1135,6 +1224,37 @@ async function herlaadUitDeApp(waarom: string): Promise<void> {
     if (logDir !== '') await noteSensors(logDir, met.config, Date.now()).catch(() => false);
   } catch {
     // Niet te lezen: dan blijft het zoals het was.
+  }
+}
+
+/**
+ * Op zon aan of uit gaat meteen in (besluit 290): na het bewaren bij Regeling ›
+ * Op zon rekent de regeling met wat er nu op zon staat, zonder herstart. Neemt
+ * de regeling het niet over, dan blijft het zoals het was en zegt de pagina dat
+ * het na de volgende start ingaat.
+ */
+async function opZonMeteen(): Promise<void> {
+  const nu = connectionStore?.current;
+  if (!site || !nu) return;
+  const vorig = { answers: answersInGebruik, applied: connectionApplied };
+  const proef = metOpZonVanNu(answersInGebruik, nu);
+  // Niets anders op zon: wel de thermostaat van de ketel voor Helpen bij de cv (besluit 292).
+  if (JSON.stringify(proef) === JSON.stringify(answersInGebruik)) return herlaadUitDeApp('de aansluiting');
+  try {
+    const applied = withConnection(JSON.parse(await readFile(site.source, 'utf-8')) as Record<string, unknown>, proef);
+    answersInGebruik = proef;
+    connectionApplied = { toegevoegd: applied.toegevoegd, overgeslagen: applied.overgeslagen };
+    const met = await configWithComfort(comfortStore?.current ?? null);
+    if (!met.ok) throw new Error(met.reden);
+    if (runner && !runner.setConfig(met.config, allStates.values())) throw new Error('de regeling nam het niet over');
+    siteConfig = met.config;
+    uitstelStore?.setConfig(met.config);
+    bufferStore?.setConfig(met.config);
+    console.log(`Op zon meteen overgenomen: ${(met.config.deferrables ?? []).length} apparaten, ${(met.config.heatStores ?? []).length} buffers en stekkers`);
+  } catch (e) {
+    answersInGebruik = vorig.answers;
+    connectionApplied = vorig.applied;
+    console.warn(`Op zon gaat in na de volgende start: ${(e as Error).message}`);
   }
 }
 
@@ -1367,7 +1487,7 @@ function autoBel(timeZone: string): Pick<Parameters<typeof meldingenBron>[0], 'a
 /** Wat de bel van de thuisaccu's weet (besluit 276); null zonder accu. */
 function accuBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBron>[0]['accus']> | null {
   if (!houseRegisters) return null;
-  const lijst = accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null);
+  const lijst = accusNu(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null);
   if (!lijst.length) return null;
   const p = partsIn(Date.now(), cfg.timezone);
   const e = runner?.latest?.explanation;
@@ -1634,7 +1754,7 @@ const historieVan = (vanMs: number, totMs: number) => historie.van(vanMs, totMs)
 // De laadbeurten van een auto (besluit 259, stap 3): de meter van zijn laadvermogen en het net, met de prijzen van Energie.
 const laadbeurten = new Laadbeurten({
   config: () => siteConfig,
-  meter: (auto) => (houseRegisters ? (laadMeters(houseRegisters, allStates, connectionStore?.current?.laden ?? null).find((m) => m.auto === auto)?.vermogen ?? null) : null),
+  meter: (auto) => (houseRegisters ? (laadMeters(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null).find((m) => m.auto === auto)?.vermogen ?? null) : null),
   prijzen: () => energyStore?.current?.prijzen ?? null,
   eenheid: (id) => {
     const e = allStates.get(id)?.attributes['unit_of_measurement'];
@@ -1725,7 +1845,7 @@ const HUIS_HOOGUIT_MS = 10_000;
 /** Per taal (besluit 185): de stand en de samenvatting staan erin in woorden. */
 const huisBewaard = new Map<Lang, { sleutel: readonly unknown[]; atMs: number; huis: ReturnType<typeof buildHouse> | null }>();
 const huisNu = (lang: Lang) => {
-  const sleutel = [huisVersie, houseRegisters, siteConfig, runner?.latest, layoutStore?.current, functiesStore?.current, connectionStore?.current];
+  const sleutel = [huisVersie, houseRegisters, siteConfig, runner?.latest, layoutStore?.current, functiesStore?.current, connectionStore?.current, schakelaarStore?.current];
   const b = huisBewaard.get(lang);
   if (b && Date.now() - b.atMs < HUIS_HOOGUIT_MS && b.sleutel.every((x, i) => x === sleutel[i])) return b.huis;
   const huis = siteConfig && houseRegisters
@@ -1742,6 +1862,8 @@ const huisNu = (lang: Lang) => {
         // Wanneer een batterij of filter een melding geeft (besluit 149).
         functiesStore?.current?.meldingen,
         lang,
+        // Lampen achter een schakelaar (besluit 297): bij het licht van hun kamer.
+        lampSchakelaars(vindSchakelaarsNu(), schakelaarKeuzes()),
       )
     : null;
   // Een plat dak op het hoofdhuis (issue 131): zoals de bewoner het opgaf bij Daken en panelen of Inrichten (143).
@@ -1750,7 +1872,7 @@ const huisNu = (lang: Lang) => {
   const isPlat = huis != null && hoofddakPlat(a?.daken, a?.panelen?.ligging, layoutStore?.current?.dak === 'geen');
   const plat0 = !isPlat || !huis ? huis : huis.ligging ? { ...huis, ligging: { ...huis.ligging, plat: true } } : { ...huis, dakPlat: true };
   // De auto's en laadpalen met de keuzes bij Energie (besluit 259), uit alle standen: een kabel of bereik telt niet als iets in huis.
-  const plat = plat0 && houseRegisters ? { ...plat0, opslag: vindOpslag(houseRegisters, allStates, a?.laden ?? null, new Date(), a?.accu ?? null) } : plat0;
+  const plat = plat0 && houseRegisters ? { ...plat0, opslag: vindOpslag(laadReg(houseRegisters), allStates, a?.laden ?? null, new Date(), a?.accu ?? null) } : plat0;
   huisBewaard.set(lang, { sleutel, atMs: Date.now(), huis: plat });
   return plat;
 };
@@ -1860,7 +1982,13 @@ if (startup.lights.withoutIngress) {
 const lightSwitch = startup.lights.enabled
   ? new LightSwitch({
       house: houseReport,
-      call: (service, entityIds, data) => client.callService('light', service, data, { entity_id: [...entityIds] }),
+      call: async (service, entityIds, data) => {
+        // Een lamp achter een schakelaar (besluit 297) is een `switch.`: die gaat los aan of uit, zonder helderheid.
+        const lampen = entityIds.filter((id) => id.startsWith('light.'));
+        const relais = entityIds.filter((id) => id.startsWith('switch.'));
+        if (lampen.length) await client.callService('light', service, data, { entity_id: lampen });
+        for (const id of relais) await client.callService('switch', service, {}, { entity_id: id });
+      },
       callScene: (sceneId) => client.callService('scene', 'turn_on', {}, { entity_id: sceneId }),
     })
   : null;
@@ -2373,7 +2501,7 @@ if (webPort != null) {
     accu: {
       nuW: accuNuW,
       meters: () => {
-        const lijst = houseRegisters ? accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null) : [];
+        const lijst = houseRegisters ? accusNu(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null) : [];
         return {
           geladen: lijst.flatMap((a) => (a.sensoren.geladen ? [a.sensoren.geladen] : [])),
           geleverd: lijst.flatMap((a) => (a.sensoren.geleverd ? [a.sensoren.geleverd] : [])),
@@ -2391,6 +2519,59 @@ if (webPort != null) {
         }
       : {}),
     // Een slimme stekker met de hand (besluit 265): de stand overal, schakelen alleen in de add-on.
+    // Een laadpaal uit losse sensoren (besluit 301): de keuzes in het eigen bestand van de schakelaars.
+    losseLaadpalen: {
+      lijst: () => ({ laadpalen: schakelaarStore?.current?.laadpalen ?? {}, sensoren: houseRegisters ? losseSensoren(houseRegisters.entities, allStates) : [] }),
+      bewaar: async (body: unknown) => {
+        if (!schakelaarStore) return { ok: false as const, reden: 'er is geen map om de keuze te bewaren' };
+        const l = leesLosseLaadpaal(body);
+        if (!l.ok) return l;
+        await schakelaarStore.save(metLaadpaal(schakelaarStore.current, l.id, l.laadpaal));
+        return { ok: true as const };
+      },
+    },
+    // Het kinderslot in het blad (besluit 299): zien overal, zetten alleen in de add-on.
+    kinderslot: {
+      lijst: () => kinderslotten(),
+      ...(inHuisMetDeuren
+        ? {
+            zet: async (slot: string, aan: boolean) => {
+              if (!Object.values(kinderslotten()).some((s) => s.id === slot)) return { ok: false as const, reden: 'dat is geen kinderslot dat het huis kent' };
+              try {
+                await client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: slot });
+                return { ok: true as const };
+              } catch (e) {
+                return { ok: false as const, reden: `Home Assistant nam het niet aan: ${(e as Error).message}` };
+              }
+            },
+          }
+        : {}),
+    },
+    schakelaars: {
+      lijst: () => schakelaarViews(vindSchakelaarsNu(), schakelaarKeuzes(), allStates),
+      bewaar: async (body) => {
+        if (!schakelaarStore) return { ok: false as const, reden: 'er is geen map om de keuze te bewaren' };
+        const k = leesSchakelaarKeuze(body);
+        if (!k.ok) return k;
+        if (!vindSchakelaarsNu().some((g) => g.id === k.id) && k.keuze !== 'weg') return { ok: false as const, reden: 'die schakelaar kent het huis niet' };
+        await schakelaarStore.save(metKeuze(schakelaarStore.current, k.id, k.keuze));
+        return { ok: true as const };
+      },
+      // Met de hand aan of uit (besluit 297): alleen in de add-on, alleen een knop die de bewoner toeliet.
+      ...(inHuisMetDeuren
+        ? {
+            zet: async (knop: string, aan: boolean) => {
+              if (!schakelaarsMag(vindSchakelaarsNu(), schakelaarKeuzes()).includes(knop)) return { ok: false as const, reden: 'deze schakelaar mag SunArc niet bedienen' };
+              try {
+                await client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: knop });
+                return { ok: true as const };
+              } catch (e) {
+                return { ok: false as const, reden: `Home Assistant nam het niet aan: ${(e as Error).message}` };
+              }
+            },
+          }
+        : {}),
+    },
     stekkers: {
       standen: async () =>
         (await stekkerhand.standen(inHuisMetDeuren)).map((s) => {
@@ -2459,7 +2640,7 @@ if (webPort != null) {
               if (doel.id == null || doel.id === hoofdVan(b)?.id) {
                 // Het comfort van het huis, van de hoofdgebruiker; de eigen comforts blijven.
                 // Bijspringen (besluit 283) komt van Regeling, niet van deze pagina: dat blijft ook.
-                comfort = { ...check.comfort, ...(huidig?.profielen ? { profielen: huidig.profielen } : {}), ...(huidig?.bijspringen ? { bijspringen: huidig.bijspringen } : {}) };
+                comfort = { ...check.comfort, ...(huidig?.profielen ? { profielen: huidig.profielen } : {}), ...(huidig?.bijspringen ? { bijspringen: huidig.bijspringen } : {}), ...(huidig?.helpen ? { helpen: huidig.helpen } : {}) };
               } else {
                 // Een eigen comfort (besluit 147): alleen de doelen en het plafond per kamer.
                 const eigen: Record<string, ComfortRoom> = Object.fromEntries(Object.entries(check.comfort.kamers).map(([k, v]) => [k, { modi: v.modi, ...(v.nooitWarmerC !== undefined ? { nooitWarmerC: v.nooitWarmerC } : {}) }]));
@@ -2473,6 +2654,22 @@ if (webPort != null) {
               if (bewoners !== b) await bewonersStore!.save(bewoners);
               siteConfig = met.config;
               return { ok: true as const, view: comfortVoor(wie, doel.id).view };
+            },
+          },
+          // Helpen bij de cv (besluit 292): van het huis, net als bijspringen.
+          helpen: {
+            view: () => helpenView(siteConfig!, runner?.latest ?? null, helpenDag, Date.now()),
+            save: async (body: unknown) => {
+              const check = controleerHelpen(body, siteConfig!);
+              if (!check.ok) return { ok: false as const, status: 400, reden: check.reden };
+              const huidig = comfortStore.current ?? { versie: 1 as const, kamers: {} };
+              const comfort: Comfort = { ...huidig, helpen: check.waarde };
+              const met = await configWithComfort(comfort);
+              if (!met.ok) return { ok: false as const, status: 400, reden: `past niet in de regeling: ${met.reden}` };
+              if (runner && !runner.setConfig(met.config, allStates.values())) return { ok: false as const, status: 409, reden: 'de regeling kon het niet overnemen; het gaat in na de volgende start' };
+              await comfortStore.save(comfort);
+              siteConfig = met.config;
+              return { ok: true as const, view: helpenView(met.config, runner?.latest ?? null, helpenDag, Date.now()) };
             },
           },
           // Bijspringen per kamer (besluit 283): van het huis, dus wie het comfort van het huis mag aanpassen.
@@ -2670,6 +2867,7 @@ if (webPort != null) {
     ...(energyStore ? {
           energy: {
             store: energyStore,
+            naBewaren: () => herlaadUitDeApp('andere prijzen'),
             source: haEnergySource(
               client,
               (id) => allStates.get(id),
@@ -2701,12 +2899,13 @@ function connectionDoor(store: ConnectionStore, base: NonNullable<typeof baseCon
   return {
     store,
     found,
+    naBewaren: opZonMeteen,
     view: (lang?: Lang) =>
       connectionView({
         base,
         found: found(),
         applied: connectionApplied,
-        answersAtStart,
+        answersAtStart: answersInGebruik,
         answers: store.current,
         meting: metingNu(),
         omvormerGevonden: omvormerGevonden(),
@@ -2721,9 +2920,9 @@ function connectionDoor(store: ConnectionStore, base: NonNullable<typeof baseCon
         zonNu: location ? sunPosition(Date.now(), location.latDeg, location.lonDeg) : null,
         grenzen: grenzenGevonden(),
         // Auto en laadpaal (besluit 259): wat Home Assistant heeft, met de keuzes van nu.
-        laden: houseRegisters ? ladenView(houseRegisters, allStates, store.current?.laden ?? null, store.current?.accu ?? null) : null,
+        laden: houseRegisters ? ladenView(laadReg(houseRegisters), allStates, store.current?.laden ?? null, store.current?.accu ?? null) : null,
         // Energie › Thuisaccu (besluit 271): de accu's, met de sensoren om uit te kiezen.
-        accu: houseRegisters ? accuView(houseRegisters, allStates, store.current?.accu ?? null, store.current?.laden ?? null) : null,
+        accu: houseRegisters ? accuView(laadReg(houseRegisters), allStates, store.current?.accu ?? null, store.current?.laden ?? null) : null,
         inGebruik: {
           netmeter: siteConfig?.power.gridPower ? { afname: siteConfig.power.gridPower.id, terug: siteConfig.power.gridExport?.id ?? null } : null,
           omvormers: siteConfig?.solarProduction ? [siteConfig.solarProduction.id, ...(siteConfig.solarExtra ?? []).map((p) => p.id)] : [],
@@ -2827,6 +3026,8 @@ if (runner) {
     }
   }
   runner.start();
+  // Helpen bij de cv (besluit 292): ook zonder iets uit de app, en met de prijzen die er bij het starten nog niet waren.
+  void herlaadUitDeApp('helpen bij de cv');
 } else {
   // Geen configuratie, dus niets om te beslissen. Wel verbinden: de onboarding
   // heeft de registers nodig, en die komen over deze socket.

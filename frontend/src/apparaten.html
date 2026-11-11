@@ -14,10 +14,71 @@
 <script>(function () { var d = document.documentElement, w0 = 0, h0 = 0, t = {}, m = matchMedia('(prefers-color-scheme: light)'); try { t = JSON.parse(localStorage.getItem('sc-thema')) || {}; } catch (e) {} function k() { var eigen = d.classList.contains('tel-stand') || !t.scherm, c = eigen ? t.kleur : t.wandKleur; var licht = eigen && (t.thema === 'licht' || (t.thema === 'systeem' && m.matches)), tc = document.querySelector('meta[name="theme-color"]'); d.classList.toggle('sc-licht', licht); if (tc) tc.setAttribute('content', licht ? '#e9eff6' : '#0b1424'); if (c && c !== 'lucht') d.setAttribute('data-kleur', c); else d.removeAttribute('data-kleur'); } window.scThema = function (n) { if (n) { t = n; try { localStorage.setItem('sc-thema', JSON.stringify(n)); } catch (e) {} } k(); }; function s() { var a = document.activeElement; if (w0 === innerWidth && innerHeight < h0 && a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) return; w0 = innerWidth; h0 = innerHeight; var b = Math.min(1700, Math.max(1280, Math.round(800 * innerWidth / innerHeight))); d.classList.toggle('tel-stand', innerHeight > innerWidth || innerWidth < 560); d.style.setProperty('--wandbreedte', b + 'px'); d.style.setProperty('--wandschaal', Math.min(innerWidth / b, innerHeight / 800)); k(); } s(); addEventListener('resize', s); m.addEventListener('change', k); })();</script>
 <style>
   #wand main { display: flex; flex-direction: column; gap: 16px; height: 100%; }
-  .kop { display: flex; justify-content: space-between; align-items: end; gap: 24px; }
-  .zonchip { display: flex; align-items: center; gap: 16px; padding: 14px 18px; flex: none; }
-  .raster { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-content: start; }
-  #wand .raster { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+  .kop { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: start; gap: 14px; }
+  /* Hoeveel zon er over is, met de strook van waar de stroom heen gaat (besluit 293). */
+  .zonchip { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 4px 14px; padding: 12px 18px 13px; flex: none; min-width: 300px; }
+  .zonchip .strook { grid-column: 1 / -1; display: flex; height: 7px; border-radius: 4px; overflow: hidden; margin-top: 6px; background: rgb(var(--wit) / 0.06); }
+  .zonchip .strook i { display: block; height: 100%; }
+  .erbij { display: inline-flex; align-items: center; gap: 10px; height: 64px; padding: 0 20px 0 14px; border-radius: 20px; background: var(--tekst); color: var(--tegen); font-weight: 700; font-size: 16px; text-decoration: none; white-space: nowrap; }
+  .erbij i { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--nacht) / 0.1); font-style: normal; font-size: 24px; line-height: 1; }
+  /* Op de telefoon een ronde plus naast de knoppen bovenaan; de naam staat in het label. */
+  #tel .erbij { width: 40px; height: 40px; padding: 0; border-radius: 50%; justify-content: center; }
+  #tel .erbij i { width: auto; height: auto; background: none; font-size: 24px; }
+  #tel .erbij span { display: none; }
+  /* Hoeveel er nieuw gevonden is (besluit 293): een oranje bolletje, want het mist nog iets. */
+  .erbij { position: relative; }
+  .erbij .nieuw { position: absolute; top: -8px; right: -6px; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--gloed); color: #2a1206; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+  #tel .erbij .nieuw { top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; font-size: 11px; }
+  /* De soorten bovenaan: tekst met een streep onder de gekozen, geen bubbels. */
+  .soortenrij { display: flex; gap: 4px; border-bottom: 1px solid rgb(var(--wit) / 0.08); overflow-x: auto; scrollbar-width: none; flex: none; }
+  .soortenrij button { flex: none; display: inline-flex; align-items: baseline; gap: 6px; padding: 8px 12px 11px; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; color: var(--zacht); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .soortenrij button small { font-size: 12.5px; color: var(--gedempt); }
+  .soortenrij button[aria-pressed='true'] { color: var(--tekst); border-bottom-color: var(--tekst); }
+  #tel .soortenrij { position: sticky; top: 0; z-index: 3; margin: 0 -16px; padding: 6px 16px 0; background: var(--tegen); }
+  /* Drie kolommen; een soort is zo breed als hij kaarten heeft (besluit 293). Deze pagina mag op de wand scrollen. */
+  .rol { display: flex; flex-direction: column; gap: 22px; }
+  #wand .rol { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; gap: 24px 14px; padding: 2px 4px 20px 0; }
+  #wand .soort { grid-column: span var(--breed, 3); min-width: 0; }
+  #tel .soort { scroll-margin-top: 56px; }
+  .soort h2 { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; font-family: var(--kop); font-size: 22px; font-weight: 600; }
+  .soort h2 small { font-family: var(--romp, Figtree, sans-serif); font-size: 14px; font-weight: 600; color: var(--gedempt); }
+  .sik { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; flex: none; }
+  .sik svg { width: 20px; height: 20px; }
+  .kaarten { display: flex; flex-direction: column; gap: 12px; }
+  #wand .kaarten { display: grid; grid-template-columns: repeat(var(--breed, 3), minmax(0, 1fr)); gap: 14px; }
+  /* Licht: per kamer een vak, een regel en een schakelaar per lamp. */
+  .kamers { display: flex; flex-direction: column; gap: 10px; }
+  #wand .kamers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+  .kamervak { padding: 6px 16px 8px; border-radius: 20px; }
+  .kkop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0 6px; }
+  .kkop b { font-size: 15.5px; font-weight: 700; }
+  .kkop small { font-size: 12.5px; font-weight: 600; color: var(--gedempt); }
+  .kkop .mist { height: 24px; padding: 0 10px; border-radius: 999px; background: rgba(255, 122, 77, 0.16); color: var(--gloed-t); font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; text-decoration: none; }
+  .lamp { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 50px; border-top: 1px solid rgb(var(--wit) / 0.06); }
+  .lik { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: rgb(var(--wit) / 0.06); opacity: 0.6; }
+  .lamp.aan .lik { background: rgba(247, 181, 72, 0.18); opacity: 1; }
+  .lik svg { width: 18px; height: 18px; }
+  .lnaam { font-size: 14.5px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; text-decoration: none; }
+  button.lnaam { border: 0; padding: 0; background: none; font-family: inherit; text-align: left; cursor: pointer; }
+  .lnaam small { display: block; font-size: 12px; font-weight: 500; color: var(--gedempt); overflow: hidden; text-overflow: ellipsis; }
+  /* Een schakelaar (besluit 297): per knop een regel, zoals een lamp. */
+  .knoprijen { display: flex; flex-direction: column; }
+  .knoprijen .lamp { grid-template-columns: minmax(0, 1fr) auto; min-height: 42px; }
+  .knoprijen .lamp:first-child { border-top: 0; }
+  /* Een kaart die zijn blad opent (besluit 298), zoals een airco of stekker. */
+  .app[data-vrij] { cursor: pointer; }
+  /* In het blad: een regel met links wat en rechts de waarde of een knop. */
+  .vrij-rij { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 52px; border-top: 1px solid rgb(var(--wit) / 0.07); font-size: 15px; }
+  .vrij-rij:first-of-type { border-top: 0; }
+  .vrij-rij span { color: var(--zacht); }
+  .vrij-rij b { font-family: var(--kop); font-size: 20px; font-weight: 600; }
+  .vrij-rij input[type='range'] { flex: 1; max-width: 260px; accent-color: var(--zon); }
+  .vrij-knoppen .lamp { min-height: 52px; }
+  .schakel { width: 44px; height: 26px; border-radius: 999px; border: 0; padding: 0; background: var(--mint); position: relative; flex: none; cursor: pointer; }
+  .schakel::after { content: ''; position: absolute; right: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; }
+  .schakel.uit { background: rgb(var(--wit) / 0.16); }
+  .schakel.uit::after { right: auto; left: 3px; }
+  .schakel:disabled { opacity: 0.45; cursor: default; }
   .app { padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
   .app .boven { display: flex; align-items: center; gap: 14px; }
   .app .boven > div { min-width: 0; }
@@ -25,7 +86,6 @@
   .app b { font-size: 18px; display: block; }
   .app .zin { margin: 0; }
   /* Een apparaat nu (besluit 140): wat het doet, wat het vraagt, en vandaag. */
-  #wand .raster { flex: 1; }
   .app { gap: 9px; }
   .app .kopje { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
   .app .kopje b { font-size: 16px; }
@@ -52,25 +112,14 @@
   a.app { color: inherit; text-decoration: none; }
   .gezegd:empty { display: none; }
 
-  /* Waar de zon nu heen gaat: één balk over de breedte. */
-  .verdeling { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
-  .balkje { display: flex; height: 16px; border-radius: 8px; overflow: hidden; background: rgb(var(--wit) / 0.05); }
-  .balkje i { display: block; height: 100%; }
-  .legenda { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; color: var(--zacht); }
-  .legenda span { display: inline-flex; align-items: center; gap: 8px; }
-  .legenda .stip { width: 10px; height: 10px; }
-  .legenda b { color: var(--tekst); font-weight: 700; }
 
   /* De telefoon. */
   #tel .inhoud { padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 12px; }
   #tel .app { padding: 16px; }
   #tel .ring { width: 64px; height: 64px; }
-  #tel .verdeling { margin-top: 0; }
 
   .sectie { font-size: 13px; font-weight: 700; color: var(--gedempt); margin: 8px 2px 0; }
   /* Wat SunArc bij meer apparaten hetzelfde zou doen, één keer (besluit 226). */
-  /* Toevoegen op de wand alleen de kop: de uitleg viel onder de rand (besluit 226). */
-  #wand .app.nieuw .zin { display: none; }
   .etiket { margin: 0; color: var(--gedempt); }
   .zousamen { margin: 4px 0 0; font-size: 14.5px; color: var(--zacht); max-width: 64ch; }
 </style>
@@ -82,9 +131,10 @@
       <div class="kop">
         <div><h1 class="kop-1"><span data-t="nav.apparaten"></span></h1><p class="lead" style="max-width: 64ch; margin-top: 8px"><span data-t="apparaten.lead"></span></p><p class="lead zousamen" data-zou-samen hidden></p></div>
         <div class="glas zonchip" data-zonchip></div>
+        <a class="erbij" href="toevoegen.html"><i>+</i><span data-t="apparaten.toevoegenKort"></span><b class="nieuw" data-nieuw-tel hidden></b></a>
       </div>
-      <div class="raster" data-apparaten></div>
-      <section class="glas verdeling" data-verdeling></section>
+      <nav class="soortenrij" data-soorten data-t-aria-label="apparaten.soorten"></nav>
+      <div class="rol" data-apparaten></div>
     </main>
   </div>
 
@@ -92,12 +142,12 @@
     <div class="inhoud">
       <div style="display: flex; justify-content: space-between; align-items: center">
         <h1 class="kop-1" style="font-size: 34px"><span data-t="nav.apparaten"></span></h1>
-        <a class="pil" data-t-aria-label="nav.instellingen" data-tandwiel></a>
+        <span style="display: flex; gap: 8px; align-items: center"><a class="erbij" href="toevoegen.html" data-t-aria-label="apparaten.toevoegen"><i>+</i><span data-t="apparaten.toevoegenKort"></span><b class="nieuw" data-nieuw-tel hidden></b></a><a class="pil" data-t-aria-label="nav.instellingen" data-tandwiel></a></span>
       </div>
       <div class="glas zonchip" data-zonchip></div>
       <p class="zousamen" data-zou-samen hidden></p>
-      <div data-apparaten style="display: flex; flex-direction: column; gap: 12px"></div>
-      <section class="glas verdeling" data-verdeling></section>
+      <nav class="soortenrij" data-soorten data-t-aria-label="apparaten.soorten"></nav>
+      <div class="rol" data-apparaten></div>
     </div>
     <nav class="tabs" id="tabs" data-t-aria-label="nav.hoofdmenu"></nav>
   </div>

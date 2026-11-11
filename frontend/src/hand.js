@@ -35,6 +35,33 @@
    */
   let open = null;
   let fout = '';
+  /** De kinderslotten per apparaat (besluit 299): `{ sloten, bedienen }` van `api/kinderslot`. */
+  let sloten = null;
+  /** Wat je net tikte bij een kinderslot, tot Home Assistant het doorgeeft. */
+  const slotWens = new Map();
+
+  async function laadSloten() {
+    try {
+      sloten = await haal('api/kinderslot');
+    } catch {
+      sloten = null;
+    }
+  }
+
+  const SLOT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.6"/><path d="M8.5 10.5V7.8a3.5 3.5 0 0 1 7 0v2.7"/><path d="M12 14.6v2.2"/></svg>';
+
+  /**
+   * Het kinderslot van een apparaat (besluit 299), onderaan zijn blad: "Op de
+   * thermostaat" of "Op de droger", met een schakelaar die meteen gaat.
+   */
+  function slotHtml(sleutel, naam) {
+    const sl = sloten?.sloten?.[sleutel];
+    if (!sl) return '';
+    const aan = slotWens.has(sl.id) ? slotWens.get(sl.id) : sl.aan;
+    const mag = sloten.bedienen === true;
+    const wie = naam ? naam.charAt(0).toLowerCase() + naam.slice(1) : '';
+    return `<div class="hand-slot"><h3>${esc(t('hand.slot.op', { naam: wie }))}</h3><div class="hand-slotrij"><span class="hand-slotik">${SLOT}</span><div><b>${esc(t('hand.slot.naam'))}</b><small>${esc(t(mag ? 'hand.slot.zin' : 'hand.slot.addon'))}</small></div><button type="button" class="schakel${aan ? '' : ' uit'}" role="switch" aria-checked="${aan}" aria-label="${esc(t('hand.slot.naam'))}" data-slot="${esc(sl.id)}" ${mag ? '' : 'disabled'}></button></div></div>`;
+  }
 
   const graden = (n) => `${nl(n, Number.isInteger(n) ? 0 : 1)}°`;
   const vind = (id) => (data?.apparaten ?? []).find((a) => a.id === id) ?? null;
@@ -139,6 +166,7 @@
       ${dagbalk(totMs, label)}
       <div class="hand-hoe${hoe.let ? ' let' : ''}">${esc(hoe.tekst)}</div>
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
+      ${slotHtml(a.id, a.naam)}
       <div class="hand-onder">${terugKnop}<button type="button" class="hand-zet" data-hand-zet ${kan ? '' : 'disabled'}>${esc(zet)}</button></div>`;
   }
 
@@ -155,6 +183,7 @@
       <div class="hand-vraag hand-kolom"><span>${esc(t(draait ? 'witgoed.straks' : 'witgoed.zoKlaar'))}</span><ol class="wg-stappen">${stappen}</ol></div>
       <div class="hand-hoe">${esc(t('witgoed.hoe'))}</div>
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
+      ${slotHtml(d.id, d.naam)}
       <div class="hand-onder">${nu}<button type="button" class="hand-zet" data-hand-sluit>${esc(t('witgoed.begrepen'))}</button></div>`;
   }
 
@@ -215,7 +244,10 @@
     const zon = zonZin ? `<div class="hand-hoe">${esc(zonZin)}</div>` : '';
     // Op de NAS, of nog niet toegelaten: alleen de stand en waarom.
     if (!stekkers?.aan) return `${kop}<div class="hand-hoe let">${esc(t('hand.stekkerAlleenAddon'))}</div>${zon}`;
-    if (!s.toegelaten) return `${kop}<div class="hand-hoe let">${esc(t('hand.stekkerToelaten'))}</div>${zon}<div class="hand-onder"><a class="hand-zet" href="regeling.html#opzon">${esc(t('hand.stekkerNaarRegeling'))}</a></div>`;
+    // Nog niet toegelaten: hier toestaan (besluit 290), zonder eerst naar Regeling.
+    if (!s.toegelaten) return `${kop}<div class="hand-hoe let">${esc(t('hand.stekkerToelaten'))}</div>${zon}${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}<div class="hand-onder"><button type="button" class="hand-zet" data-st-toestaan="ja">${esc(t('hand.stekkerToestaan'))}</button></div>`;
+    // Toegelaten zonder op zon: dat kan hier ook weer weg. Op zon is zelf de toestemming (besluit 290).
+    const intrekken = s.zon?.schakelt ? '' : `<p class="mini" style="margin: 0"><button type="button" class="hand-intrek" data-st-toestaan="nee">${esc(t('hand.stekkerIntrekken'))}</button></p>`;
 
     const vast = open.wanneer !== 'nu';
     // Uit, nu: meteen uit, zonder hoe lang (7 november 2026).
@@ -268,7 +300,33 @@
       ${zon}
       ${lijst}
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
-      <div class="hand-onder">${terugKnop}<button type="button" class="hand-zet" data-st-zet ${s.mag ? '' : 'disabled'}>${esc(knopTekst)}</button></div>`;
+      <div class="hand-onder">${terugKnop}<button type="button" class="hand-zet" data-st-zet ${s.mag ? '' : 'disabled'}>${esc(knopTekst)}</button></div>
+      ${intrekken}`;
+  }
+
+  /**
+   * Toestaan of weer intrekken, in het blad (besluit 290): SunArc mag de stekker
+   * met de hand en op vaste tijden schakelen. Bewaard bij de aansluiting, met de
+   * rest zoals het was.
+   */
+  async function stekkerToestaan(id, ja) {
+    let a = null;
+    try {
+      a = (await haal('api/aansluiting'))?.antwoorden ?? null;
+    } catch {
+      a = null;
+    }
+    const res = a
+      ? await deur('api/aansluiting', { panelen: a.panelen, zekering: a.zekering, tarief: a.tarief, verwarming: a.verwarming, voorkantZon: a.voorkantZon, dak: a.dak, elders: a.elders ?? {}, opZon: a.opZon ?? {}, opZonUit: a.opZonUit ?? [], bedienen: { [id]: ja } })
+      : null;
+    if (!res || !res.ok) {
+      fout = (res ? (await res.json().catch(() => null))?.fout : null) ?? t('hand.lukteNiet');
+      return false;
+    }
+    fout = '';
+    await laadStekkers();
+    global.dispatchEvent(new CustomEvent('handveranderd'));
+    return true;
   }
 
   /**
@@ -356,6 +414,7 @@
       </div>
       <div class="hand-hoe">${esc(stand && !stand.kan && stand.reden ? `${t('witgoed.hoe')} ${t('witgoed.nuNiet', { reden: stand.reden })}` : t('witgoed.hoe'))}</div>
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
+      ${slotHtml(d.id, d.naam)}
       <div class="hand-onder">${nu}<button type="button" class="hand-zet" data-wg-bewaar>${esc(t('hand.bewaar'))}</button></div>`;
   }
 
@@ -381,15 +440,38 @@
     }
     // Niet 'tel': die klasse is in kit.css het telefoonframe van de schetsen, 390 breed (2 november 2026).
     laag.classList.toggle('op-tel', telStand());
-    const naam = open.wg ? open.wg.naam : open.st ? stekkerVan(open.st)?.naam ?? '' : vind(open.id)?.naam ?? '';
+    // Een vrij blad (besluit 298): de pagina zegt de naam, de zin en wat erin staat.
+    const vrij = open.vrij ? open.vrij() : null;
+    if (open.vrij && !vrij) {
+      open = null;
+      laag.remove();
+      return;
+    }
+    const naam = vrij ? vrij.naam : open.wg ? open.wg.naam : open.st ? stekkerVan(open.st)?.naam ?? '' : vind(open.id)?.naam ?? '';
     laag.setAttribute('aria-label', naam);
     const st = open.st ? stekkerVan(open.st) : null;
-    const inhoud = open.wg ? witgoedBlad(open.wg) : open.st ? (st ? stekkerBlad(st) : '') : (() => {
+    const inhoud = vrij ? `${kopVan(vrij.naam, vrij.zin)}${vrij.html}` : open.wg ? witgoedBlad(open.wg) : open.st ? (st ? stekkerBlad(st) : '') : (() => {
       const a = vind(open.id);
       return a ? blad(a, true) : '';
     })();
     laag.innerHTML = `<div class="hand-achter" data-hand-sluit></div><div class="hand-vel"><section class="glas hand-blad">${inhoud}</section></div>`;
-    global.dispatchEvent(new CustomEvent('handblad', { detail: { id: open.wg ? open.wg.id : open.st ?? open.id } }));
+    global.dispatchEvent(new CustomEvent('handblad', { detail: { id: open.wg ? open.wg.id : open.st ?? open.vrijId ?? open.id } }));
+  }
+
+  /**
+   * Een vrij blad (besluit 298): voor een lamp, de boiler, de thuisaccu of een
+   * schakelaar bij Apparaten. `maak` geeft `{ naam, zin, html }` (of null: dan
+   * gaat het dicht) en wordt bij elk verversen opnieuw gevraagd; de knoppen
+   * erin handelt de pagina zelf af.
+   */
+  function openVrij(id, maak) {
+    open = { vrij: maak, vrijId: id };
+    fout = '';
+    teken();
+  }
+  /** Het open vrije blad opnieuw tekenen, als er iets veranderde. */
+  function verfris() {
+    if (open?.vrij) teken();
   }
 
   /** Begint een klimaatapparaat: wat er met de hand staat, wat het nu doet (een airco die koelt), of het doel van zijn knop. */
@@ -408,6 +490,7 @@
     } catch {
       data = null;
     }
+    await laadSloten();
     return data;
   }
 
@@ -438,6 +521,7 @@
     } catch {
       witgoed = null;
     }
+    await laadSloten();
     const stappen = d.stappen ?? [];
     const i = stappen.findIndex((s) => s.waarde === d.klaarVoor);
     open = { wg: d, stap: i < 0 ? 0 : i + 1 };
@@ -465,6 +549,20 @@
     // In een kamer: alleen klikken in het eigen blad.
     if (open.plek && !open.plek.contains(e.target)) return;
     let x;
+    // Het kinderslot (besluit 299): meteen, los van "Zet op".
+    if ((x = el('[data-slot]'))) {
+      if (x.disabled) return;
+      const aan = x.getAttribute('aria-checked') !== 'true';
+      slotWens.set(x.dataset.slot, aan);
+      teken();
+      await deur('api/kinderslot', { slot: x.dataset.slot, aan }).catch(() => null);
+      setTimeout(async () => {
+        await laadSloten();
+        slotWens.delete(x.dataset.slot);
+        teken();
+      }, 2500);
+      return;
+    }
     if (el('[data-hand-sluit]')) open = null;
     else if ((x = el('[data-hand-tot]'))) open.tot = x.dataset.handTot;
     else if ((x = el('[data-hand-modus]'))) {
@@ -496,6 +594,9 @@
       const res = await deur('api/te-doen', { actie: 'annuleer', id: x.dataset.stWeg });
       if (res && !res.ok) fout = (await res.json().catch(() => null))?.fout ?? t('gp.lukteNiet');
       await laadTaken();
+    } else if ((x = el('[data-st-toestaan]'))) {
+      x.disabled = true;
+      await stekkerToestaan(open.st, x.dataset.stToestaan === 'ja');
     } else if (el('[data-st-terug]')) {
       if (await stuur('api/stekker', { id: open.st, terug: true })) open = null;
     } else if (el('[data-st-zet]') && open.wanneer !== 'nu') {
@@ -559,5 +660,5 @@
     }
   });
 
-  global.hand = { laad, laadNu, nuHtml, openen, inPlek, openWitgoed, openStekker, laadStekkers, stekker: stekkerVan, stekkerZin, bij, data: () => data, nuZin, sluit: () => { open = null; teken(); } };
+  global.hand = { laad, laadNu, nuHtml, openen, inPlek, openWitgoed, openStekker, openVrij, verfris, vrijOpen: () => open?.vrijId ?? null, laadStekkers, stekker: stekkerVan, stekkerZin, bij, data: () => data, nuZin, sluit: () => { open = null; teken(); } };
 })(window);

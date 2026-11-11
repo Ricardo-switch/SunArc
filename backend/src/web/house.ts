@@ -136,6 +136,8 @@ export interface HouseDevice {
   readonly naam: string;
   /** De naam zoals Home Assistant hem kent, voor wie hem hernoemt. */
   readonly haNaam: string;
+  /** Een lamp achter een schakelaar (besluit 297): waarlangs, zoals "Shelly 1 mini". */
+  readonly via?: string;
   readonly soort: DeviceKind;
   /** De stand in woorden, in de taal van de app: "aan · 70%", "60% dicht", "koelen naar 22°". */
   readonly stand: string;
@@ -354,6 +356,8 @@ export interface HouseReport {
     readonly groepen: readonly string[];
     /** De kamer die bij een van die groepen lijkt te horen, of null. */
     readonly voorstelKamer: string | null;
+    /** Bij een lamp: of hij aan staat, voor Apparaten › Licht (besluit 293). */
+    readonly aan?: boolean;
   }[];
   /**
    * De lampgroepen uit Home Assistant: groepen en Hue-kamers en -zones. Ze staan
@@ -1910,9 +1914,23 @@ export function buildHouse(
   drempels: Drempels = STANDAARD_DREMPELS,
   /** De taal van wat er in woorden staat (besluit 185): de stand, de samenvatting, de status van een kamer. */
   lang: Lang = 'nl',
+  /** Lampen achter een schakelaar (besluit 297): een gewone lamp in zijn kamer, met waarlangs. */
+  relaisLampen: readonly { readonly id: string; readonly naam: string; readonly kamer: string | null; readonly gebied: string | null; readonly via: string }[] = [],
 ): HouseReport {
-  const { found, groups, successors, unreachable } = collect(config, registers, states, snapshot, cameras, lang);
-  const base = saved ?? proposeLayout(config, registers, states);
+  const verzameld = collect(config, registers, states, snapshot, cameras, lang);
+  const { groups, successors, unreachable } = verzameld;
+  const found: Found[] = [...verzameld.found];
+  for (const r of relaisLampen) {
+    if (found.some((f) => f.device.id === r.id)) continue;
+    const { naam: _n, haNaam: _h, zone: _z, groepen: _g, ...device } = lightOf(r.id, states.get(r.id), '', lang);
+    found.push({ device: { ...device, via: r.via }, haNaam: r.naam, haArea: r.gebied, groepen: [] });
+  }
+  const gekozen = saved ?? proposeLayout(config, registers, states);
+  // De kamer die de bewoner bij Apparaat toevoegen koos, tenzij Indeling hem al ergens zette.
+  const base: Layout = {
+    ...gekozen,
+    apparaten: { ...Object.fromEntries(relaisLampen.filter((r) => r.kamer && gekozen.kamers.some((k) => k.id === r.kamer)).map((r) => [r.id, { kamer: r.kamer as string, zone: null, naam: r.naam }])), ...gekozen.apparaten },
+  };
   // Een lamp die sinds het indelen is uitgezet, geeft zijn plek door aan zijn groep.
   const deviceIds = new Set(found.map((f) => f.device.id));
   const layout: Layout = {
@@ -1930,6 +1948,7 @@ export function buildHouse(
     voorstel: string | null;
     groepen: readonly string[];
     voorstelKamer: string | null;
+    aan?: boolean;
   }[] = [];
   const hiddenIds = new Set(layout.verborgen ?? []);
   const hidden: { id: string; naam: string; soort: DeviceKind }[] = [];
@@ -1950,6 +1969,8 @@ export function buildHouse(
         voorstel: f.haArea ? (areaName.get(f.haArea) ?? null) : null,
         groepen: f.groepen,
         voorstelKamer: roomForGroups(f.groepen, layout.kamers) ?? roomForName(naam, layout.kamers),
+        // Een lamp zonder kamer staat ook bij Apparaten › Licht, met zijn schakelaar (besluit 293).
+        ...(f.device.soort === 'licht' ? { aan: f.device.aan } : {}),
       });
       continue;
     }
@@ -2158,7 +2179,8 @@ export function lampsFor(
     // Alles buiten: de etage buiten en elke ruimte die buiten ligt (besluit 206).
     case 'buiten':
       return lampsIn(house.etages.flatMap((f) => f.ruimtes.filter((r) => f.id === 'buiten' || r.buiten != null)));
+    // Ook een lamp zonder kamer: die staat bij Apparaten › Licht (besluit 294).
     case 'lamp':
-      return lampsIn(rooms).includes(doel.id ?? '') ? [doel.id as string] : null;
+      return lampsIn(rooms).includes(doel.id ?? '') || house.zonderRuimte.some((d) => d.soort === 'licht' && d.id === doel.id) ? [doel.id as string] : null;
   }
 }

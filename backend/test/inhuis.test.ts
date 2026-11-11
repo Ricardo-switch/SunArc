@@ -13,10 +13,11 @@ const st = (entity_id: string, device_class?: string): HaEntityState => ({ entit
 
 describe('wat het huis raakt (besluit 174)', () => {
   it('neemt lampen, schermen, klimaat, beweging, rookmelders en metingen mee, en niet de rest', () => {
-    for (const s of [st('light.plafond'), st('cover.screen'), st('climate.airco'), st('binary_sensor.gang', 'motion'), st('binary_sensor.rook', 'smoke'), st('sensor.kamer', 'temperature'), st('sensor.airco_vermogen', 'power'), st('sensor.radiator_klep')]) {
+    // Ook een `switch.`: een lamp achter een schakelaar staat in het huis (besluit 297).
+    for (const s of [st('light.plafond'), st('switch.shelly_schuur'), st('cover.screen'), st('climate.airco'), st('binary_sensor.gang', 'motion'), st('binary_sensor.rook', 'smoke'), st('sensor.kamer', 'temperature'), st('sensor.airco_vermogen', 'power'), st('sensor.radiator_klep')]) {
       expect(inHouse(s), s.entity_id).toBe(true);
     }
-    for (const s of [st('sensor.internet'), st('binary_sensor.deur', 'door'), st('switch.stekker'), st('person.iemand')]) {
+    for (const s of [st('sensor.internet'), st('binary_sensor.deur', 'door'), st('person.iemand')]) {
       expect(inHouse(s), s.entity_id).toBe(false);
     }
   });

@@ -24,6 +24,7 @@ import {
   HEAT_STORE_CONTROLS,
   HEAT_STORE_KINDS,
   type Actuator,
+  type CvHelp,
   type HeatStore,
   type ComfortProfile,
   type ProfileHold,
@@ -44,7 +45,7 @@ import {
   type ThermalMass,
   type Zone,
 } from '../core/model.js';
-import { HEAT_ASSIST_DEFAULTS } from '../core/strategies/heatAssist.js';
+import { CV_HELP_DEFAULTS, HEAT_ASSIST_DEFAULTS } from '../core/strategies/heatAssist.js';
 import { STANDAARD_DAGDELEN, STANDAARD_WARM } from './standaard.js';
 
 /** De schemaversie die deze code begrijpt. */
@@ -1419,6 +1420,40 @@ export function parseSiteConfig(
     }
   }
 
+  // Helpen bij de cv (besluit 292). Optioneel; weg is bijspringen per zone (283).
+  let cvHelp: CvHelp | null = null;
+  if (input['cvHelp'] !== undefined) {
+    const raw = blockOf(p, input['cvHelp'], 'cvHelp');
+    if (raw) {
+      const known = new Set(actuators.map((a) => a.id));
+      const ids = (key: string, verplicht: boolean): string[] => {
+        const lijst = raw[key] === undefined && !verplicht ? [] : arr(p, raw, 'cvHelp', key);
+        if (!lijst) return [];
+        const uit: string[] = [];
+        lijst.forEach((x, i) => {
+          if (typeof x !== 'string' || !known.has(x)) p.error(join(join('cvHelp', key), i), 'is geen apparaat uit de lijst');
+          else uit.push(x);
+        });
+        return uit;
+      };
+      const boilerIds = ids('boilerIds', true);
+      const off = ids('off', false);
+      const prijs = (key: string, max: number): number | undefined => (raw[key] === undefined || raw[key] === null ? undefined : (num(p, raw, 'cvHelp', key, { min: 0, max }) ?? undefined));
+      const gas = prijs('gasEurPerM3', 10);
+      const stroom = prijs('electricityEurPerKwh', 5);
+      cvHelp = {
+        boilerIds,
+        startDelayMinutes: numOr(p, raw, 'cvHelp', 'startDelayMinutes', HEAT_ASSIST_DEFAULTS.startDelayMinutes, { min: 0, max: 120 }),
+        minShortfallC: numOr(p, raw, 'cvHelp', 'minShortfallC', HEAT_ASSIST_DEFAULTS.minShortfallC, { min: 0.1, max: 5 }),
+        minRunMinutes: numOr(p, raw, 'cvHelp', 'minRunMinutes', CV_HELP_DEFAULTS.minRunMinutes, { min: 0, max: 240 }),
+        minRestMinutes: numOr(p, raw, 'cvHelp', 'minRestMinutes', CV_HELP_DEFAULTS.minRestMinutes, { min: 0, max: 240 }),
+        ...(off.length ? { off } : {}),
+        ...(gas !== undefined ? { gasEurPerM3: gas } : {}),
+        ...(stroom !== undefined ? { electricityEurPerKwh: stroom } : {}),
+      };
+    }
+  }
+
   // Warmtebuffers, zoals een boiler of een jacuzzi (besluit 186). Optioneel.
   const heatStores: HeatStore[] = [];
   const heatStoresRaw = input['heatStores'];
@@ -1803,6 +1838,7 @@ export function parseSiteConfig(
       ...(grid ? { grid } : {}),
       ...(deferrables.length > 0 ? { deferrables } : {}),
       ...(heatStores.length > 0 ? { heatStores } : {}),
+      ...(cvHelp ? { cvHelp } : {}),
       ...(sunOrder.length > 0 ? { sunOrder } : {}),
       ...(recordOnly && recordOnly.length > 0 ? { recordOnly } : {}),
       ...(migration ? { migration } : {}),

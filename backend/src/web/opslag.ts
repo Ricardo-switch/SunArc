@@ -292,7 +292,8 @@ export interface LadenView {
 
 const AUTO_KOPPELING = /^(tesla_fleet|teslemetry|tessie|tesla_custom|volkswagencarnet|volkswagen_we_connect_id|renault|kia_uvo|hyundai|bmw_connected_drive|mercedes_me|mbapi2020|polestar_api|nissan_leaf|nissan_connect|audiconnect|skodaconnect|myskoda|peugeot|stellantis|toyota|volvo|volvo_cars|ford|fordpass|mg_saic|byd|smart_hashtag|lynkco)$/;
 const AUTO_MERK = /\b(volkswagen|renault|kia|hyundai|polestar|bmw|mercedes|audi|skoda|škoda|nissan|peugeot|toyota|volvo|ford|mg|cupra|lynk)\b/i;
-const LAADPAAL_KOPPELING = /^(easee|zaptec|wallbox|alfen_wallbox|peblar|ohme|myenergi|go_echarger|goecharger|openevse|nrgkick|tesla_wall_connector|ocpp|evse_load_balancer|smappee)$/;
+// `sunarc_losse`: een laadpaal uit losse sensoren (besluit 301), zoals via Modbus.
+const LAADPAAL_KOPPELING = /^(easee|zaptec|wallbox|alfen_wallbox|peblar|ohme|myenergi|go_echarger|goecharger|openevse|nrgkick|tesla_wall_connector|ocpp|evse_load_balancer|smappee|sunarc_losse)$/;
 const LAADPAAL_MERK = /\b(easee|zaptec|wallbox|alfen|peblar|ohme|zappi|go-e|openevse|nrgkick|wall connector)\b/i;
 /**
  * Koppelingen die een afstand of een plek meten maar nooit een auto of een
@@ -344,6 +345,34 @@ const watt = (s: HaEntityState | undefined): number | null => {
   const eenheid = String(s?.attributes['unit_of_measurement'] ?? 'W');
   return eenheid === 'kW' ? n * 1000 : eenheid === 'MW' ? n * 1e6 : n;
 };
+
+/** Een laadpaal uit losse sensoren (besluit 301): een naam en de sensoren die erbij horen. */
+export interface LosseLaadpaal {
+  readonly naam: string;
+  readonly sensoren: readonly string[];
+}
+
+/**
+ * De registers met de laadpalen uit losse sensoren erbij (besluit 301): per
+ * laadpaal een apparaat van SunArc zelf, met een kopie van zijn sensoren. Zo
+ * vindt de rest (vermogen, stroom, stand) hem als elke andere laadpaal. Een
+ * laadpaal via Modbus heeft in Home Assistant geen apparaat (issue 160).
+ */
+export function metLosseLaadpalen<R extends Registers>(registers: R, laadpalen: Readonly<Record<string, LosseLaadpaal>> | null | undefined): R {
+  const lijst = Object.entries(laadpalen ?? {});
+  if (!lijst.length) return registers;
+  const devices = [...registers.devices, ...lijst.map(([id, l]): HaDevice => ({ id, area_id: null, name: l.naam, manufacturer: 'SunArc', model: 'Losse sensoren' }))];
+  const entities = [
+    ...registers.entities,
+    ...lijst.flatMap(([id, l]) =>
+      l.sensoren.map((s): HaRegistryEntity => {
+        const echt = registers.entities.find((e) => e.entity_id === s);
+        return { ...(echt ?? { entity_id: s }), device_id: id, platform: 'sunarc_losse' };
+      }),
+    ),
+  ];
+  return { ...registers, devices, entities };
+}
 
 interface Apparaat {
   readonly device: HaDevice;

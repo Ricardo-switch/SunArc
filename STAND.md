@@ -117,11 +117,15 @@ verwijzing bestaat.
 - **Comfort** mag koelen boven een plafond, ook op netstroom ([50]). Een zone
   met meer kamers koelt op de warmste en verwarmt op de koudste ([81]); bij twee
   meters in één kamer kiest de bewoner ([95]).
-- **Bijspringen:** de airco helpt de ketel als die lang stookt en de kamer
-  achterloopt, maar niet 's nachts, bij afwezig, op vakantie of tijdens
-  voorverwarmen, want zijn piepje maakt de slapers wakker ([281]). Per kamer
-  aan of uit, na hoeveel minuten stoken en vanaf hoeveel graden te koud, bij
-  Regeling › Klimaat ([283]).
+- **Helpen bij de cv:** een airco helpt de ketel als die lang stookt en zijn
+  eigen kamer achterloopt, maar niet 's nachts, bij afwezig, op vakantie of
+  tijdens voorverwarmen, want zijn piepje maakt de slapers wakker ([281]).
+  Sinds 0.165.0 een eigen deel bij Regeling, met elke airco, ook zolder: hij
+  helpt alleen als hij goedkoper is dan de ketel (prijzen en een tabel per
+  buitentemperatuur), gaat door tot zijn kamer op temperatuur is, minstens 30
+  minuten aan en 15 uit ([289], [292]). Daarvoor per kamer bij Regeling ›
+  Klimaat ([283]). Een radiatorknop of de thermostaat van een gasketel kan niet
+  op zon ([291]).
 - **De stand op Thuis** zegt wat er meespeelt: met de hand, bijspringen,
   vakantie of afwezig, en nog Dag door licht. Op de wand in de knop, op de
   telefoon naast de begroeting; het blad met de dag als balk ([286]). Handmatig
@@ -157,6 +161,8 @@ verwijzing bestaat.
   per dag, en dan schakelt SunArc hem echt als de bewoner hem toeliet; wie zelf
   schakelt, wint ([267], 0.141.0). Het blad zegt Zet aan of Zet uit, en vast
   elke dag, op werkdagen of in het weekend kan er meteen in ([268], 0.142.0).
+  Sinds 0.164.0 één schakelaar bij Op zon: op zon is zelf de toestemming, met
+  de hand toestaan kan in het blad, en op zon gaat meteen in, zonder herstart ([290]).
   Een geplande scène noemt zijn kamer en, bij Aanpassen, zijn lampen ([285], 0.156.2).
 - **Terugkijken:** Opbrengst rekent per dag, week, maand of jaar met de meters
   en prijzen die de app bewaart, overgenomen uit het Energie-dashboard of zelf
@@ -270,6 +276,10 @@ verwijzing bestaat.
   bij een apparaat staan binnen en buiten apart ([269], 0.143.0). De
   thuisaccu staat in de tekening aan de gevel, in de garage of binnen, zoals
   de bewoner kiest ([270], 0.144.0).
+- **Je huis op maat staat stil**: Huisontwerp, Etages, Kamers als vakken en
+  apparaten op hun plek zijn gebouwd (0.158.0–0.162.0), maar op beta
+  teruggedraaid in 0.163.0 en bewaard op de branch `je-huis`; het huis op
+  Thuis op echte maat is gepauzeerd ([288]).
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over
@@ -496,7 +506,19 @@ verwijzing bestaat.
   naar links of rechts. Een scherm hangt aan een gevel, en zegt alleen zon als
   die op zijn gevel staat ([145]).
 - **Vandaag** is de dag in de tijd; **Apparaten** is het nu, per apparaat een
-  kaart met wat het doet, vraagt en vandaag op zon deed ([140]).
+  kaart met wat het doet, vraagt en vandaag op zon deed ([140]). Sinds 0.166.0
+  in soorten, met bovenaan een rij om te springen, alle lampen per kamer met
+  een schakelaar, en het zonblok met de strook bovenaan ([294]); een tik op een
+  soort toont alleen die soort ([296]). Schakelaars (een Shelly, klik-aan-klik-uit,
+  IR) stel je in bij Toevoegen; een lamp komt bij zijn kamer, de rest bij
+  Schakelaars, met de hand door de deur van een stekker ([297]). Een tik opent
+  bij elk apparaat zijn blad, en bij een schakelaar zonder meter vul je het
+  vermogen in voor Opbrengst › Nu ([298]). Het kinderslot van een thermostaat
+  of droger staat onderaan zijn blad ([299]). Een kachel uit IR-knoppen, een
+  stekker en een temperatuur is één apparaat bij Klimaat ([300]). Een laadpaal
+  uit losse sensoren (Modbus) kies je bij Toevoegen › Losse sensoren ([301]). Toevoegen is
+  een eigen scherm met wat nieuw gevonden is en de soorten ([295]). Alles van
+  [293] is gebouwd.
 - **De assistent** is een gesprek: het huis begroet je, leest zijn antwoord
   voor met Piper uit Home Assistant, en vraagt of het nog iets kan doen
   ([141]). Hij zegt eerst het antwoord, kort en warm, spreekt eenheden en
@@ -897,4 +919,18 @@ verwijzing bestaat.
 [285]: DECISIONS.md#285-een-geplande-scène-noemt-zijn-kamer-en-lampen
 [286]: DECISIONS.md#286-de-stand-van-het-huis-zegt-wat-er-meespeelt
 [287]: DECISIONS.md#287-handmatig-koelen-en-vakantie-bij-de-stand
+[288]: DECISIONS.md#288-je-huis-op-maat-vorm-etages-kamers-als-vakken-en-de-plek-van-apparaten
+[289]: DECISIONS.md#289-helpen-bij-de-cv-los-van-de-kamer-en-de-airco-draait-door-tot-zijn-kamer-warm-is
+[290]: DECISIONS.md#290-een-stekker-op-zon-met-één-schakelaar-en-op-zon-gaat-meteen-in
+[291]: DECISIONS.md#291-een-radiatorknop-of-een-gasketel-helpt-niet-op-zon
+[292]: DECISIONS.md#292-helpen-bij-de-cv-gebouwd-elke-airco-voor-zijn-eigen-kamer
+[293]: DECISIONS.md#293-apparaten-in-soorten-een-eigen-scherm-toevoegen-en-schakelaars
+[294]: DECISIONS.md#294-apparaten-in-soorten-gebouwd-met-alle-lampen-per-kamer
+[295]: DECISIONS.md#295-apparaat-toevoegen-een-eigen-scherm
+[296]: DECISIONS.md#296-de-soorten-op-apparaten-filteren-in-plaats-van-springen
+[297]: DECISIONS.md#297-schakelaars-vinden-instellen-bij-toevoegen-en-met-de-hand-schakelen
+[298]: DECISIONS.md#298-een-blad-voor-elk-apparaat-en-het-vermogen-invullen-bij-een-schakelaar
+[299]: DECISIONS.md#299-het-kinderslot-in-het-blad-van-een-thermostaat-of-witgoed
+[300]: DECISIONS.md#300-een-kachel-uit-meer-delen-ir-knoppen-de-stekker-en-de-temperatuur
+[301]: DECISIONS.md#301-een-laadpaal-uit-losse-sensoren
 <!-- links:einde -->

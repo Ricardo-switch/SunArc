@@ -171,7 +171,8 @@ const TOESTELLEN: readonly Toestel[] = [
   { id: 'd-warmtepomp', naam: 'Warmtepomp', ruimte: 'woonkamer', merk: 'Daikin', model: 'Altherma', entiteiten: [['climate.beneden'], ['sensor.warmtepomp_vermogen', meter('power', 'Vermogen')]] },
   { id: 'd-airco-wk', naam: 'Airco woonkamer', ruimte: 'woonkamer', merk: 'Daikin', entiteiten: [['climate.air_conditioning_woonkamer'], ['sensor.airco_woonkamer_vermogen', meter('power', 'Vermogen')]] },
   { id: 'd-airco-z', naam: 'Airco zolder', ruimte: 'zolder', merk: 'Daikin', entiteiten: [['climate.air_conditioning_zolder'], ['sensor.airco_zolder_vermogen', meter('power', 'Vermogen')]] },
-  { id: 'd-bad', naam: 'Thermostaat badkamer', ruimte: 'badkamer', entiteiten: [['climate.thermostaat_badkamer']] },
+  // Met een kinderslot (besluit 299), zoals een Tuya-thermostaat.
+  { id: 'd-bad', naam: 'Thermostaat badkamer', ruimte: 'badkamer', entiteiten: [['climate.thermostaat_badkamer'], ['switch.thermostaat_badkamer_kinderslot']] },
   { id: 'd-meter-wk', naam: 'Meter woonkamer', ruimte: 'woonkamer', entiteiten: [['sensor.woonkamer_temperatuur', meter('temperature', 'Temperatuur')], ['sensor.woonkamer_luchtvochtigheid', meter('humidity', 'Luchtvochtigheid')]] },
   { id: 'd-meter-keuken', naam: 'Meter keuken', ruimte: 'keuken', entiteiten: [['sensor.keuken_temperatuur', meter('temperature', 'Temperatuur')]] },
   { id: 'd-meter-bad', naam: 'Meter badkamer', ruimte: 'badkamer', entiteiten: [['sensor.badkamer_temperatuur', meter('temperature', 'Temperatuur')]] },
@@ -195,7 +196,7 @@ const TOESTELLEN: readonly Toestel[] = [
     ruimte: 'keuken',
     merk: 'Bosch',
     platform: 'home_connect',
-    entiteiten: [['binary_sensor.droger_op_afstand', meter('', 'Op afstand starten')], ['sensor.droger_status', meter('', 'Status')], ['sensor.droger_programmaduur', meter('duration', 'Programmaduur')], ['button.droger_start_pauze', meter('', 'Start of pauze')]],
+    entiteiten: [['binary_sensor.droger_op_afstand', meter('', 'Op afstand starten')], ['sensor.droger_status', meter('', 'Status')], ['sensor.droger_programmaduur', meter('duration', 'Programmaduur')], ['button.droger_start_pauze', meter('', 'Start of pauze')], ['switch.droger_kinderslot', meter('', 'Kinderslot')]],
   },
   { id: 'd-accu', naam: 'Thuisbatterij', ruimte: 'hal', merk: 'Sessy', platform: 'sessy', entiteiten: [['sensor.thuisbatterij_lading', meter('battery', 'Lading')], ['sensor.thuisbatterij_vermogen', meter('power', 'Batterij vermogen')]] },
   {
@@ -209,6 +210,12 @@ const TOESTELLEN: readonly Toestel[] = [
   },
   // Een ontvochtiger op een slimme stekker (besluiten 264 en 265): op zon, en met de hand te schakelen.
   { id: 'd-ontvochtiger', naam: 'Ontvochtiger', ruimte: 'zolder', merk: 'Shelly', model: 'Plug S', platform: 'shelly', entiteiten: [['switch.ontvochtiger'], ['sensor.ontvochtiger_vermogen', meter('power', 'Vermogen')], ['sensor.ontvochtiger_energie', meter('energy', 'Energie')]] },
+  // Schakelaars (besluit 297): een Shelly 1 mini zonder meter achter de lamp in de tuin, en klik-aan-klik-uit via RFXCOM zonder ruimte.
+  { id: 'd-shelly-tuin', naam: 'Shelly 1 mini Gen3', ruimte: 'tuin', merk: 'Shelly', model: 'Shelly 1 Mini Gen3', platform: 'shelly', entiteiten: [['switch.shelly1minig3_tuin']] },
+  // Een IR-afstandsbediening met temperatuur voor de kachel in het tuinhuis, en de stekker die de stroom geeft (besluit 300).
+  { id: 'd-ir', naam: 'Heater tuinhuis', ruimte: 'tuin', merk: 'HOBEIAN', model: 'Smart IR remote switch', platform: 'mqtt', entiteiten: [['switch.heater_tuinhuis_switch1'], ['switch.heater_tuinhuis_switch2'], ['switch.heater_tuinhuis_switch3'], ['select.heater_tuinhuis_switch1_on'], ['select.heater_tuinhuis_switch2_on'], ['select.heater_tuinhuis_switch3_on'], ['infrared.heater_tuinhuis_ir_emitter'], ['sensor.heater_tuinhuis_temperature', meter('temperature', 'Temperatuur')]] },
+  { id: 'd-stekker-kachel', naam: 'Stekker kachel tuinhuis', ruimte: 'tuin', merk: 'SONOFF', model: 'Zigbee smart plug', platform: 'mqtt', entiteiten: [['switch.stekker_kachel_tuinhuis'], ['sensor.stekker_kachel_tuinhuis_vermogen', meter('power', 'Vermogen')]] },
+  { id: 'd-kaku', naam: 'AC 0x01a2b3c4:1', ruimte: null, model: 'AC', platform: 'rfxtrx', entiteiten: [['switch.ac_0x01a2b3c4_1']] },
   { id: 'd-laadpaal', naam: 'Laadpaal', ruimte: 'oprit', merk: 'Easee', platform: 'easee', entiteiten: [['sensor.laadpaal_vermogen', meter('power', 'Vermogen')], ['sensor.laadpaal_status', meter('', 'Status')], ['sensor.laadpaal_stroom_l1', meter('current', 'Stroom L1')], ['number.laadpaal_laadstroom', meter('', 'Laadstroom')], ['switch.laadpaal_laden', meter('', 'Laden')]] },
   {
     id: 'd-p1',
@@ -274,6 +281,8 @@ export const ENTITEITEN: readonly HaRegistryEntity[] = [
   ...TOESTELLEN.flatMap((t) => t.entiteiten.map(([id, extra]) => ({ entity_id: id, device_id: t.id, ...(t.platform ? { platform: t.platform } : {}), ...(extra ?? {}) }))),
   { entity_id: 'sensor.buiten_temperatuur', device_id: null, platform: 'buienradar', original_device_class: 'temperature' },
   { entity_id: 'weather.thuis', device_id: null, platform: 'buienradar' },
+  // Een laadpaal via Modbus (besluit 301, issue 160): losse sensoren zonder apparaat.
+  ...['power', 'current_l1', 'current_l2', 'current_l3', 'energy_total', 'charging_state'].map((x) => ({ entity_id: `sensor.nexblue_${x}`, device_id: null, platform: 'modbus' })),
   { entity_id: 'scene.woonkamer_avond', device_id: null, area_id: 'woonkamer' },
   { entity_id: 'scene.woonkamer_helder', device_id: null, area_id: 'woonkamer' },
 ];
@@ -379,6 +388,9 @@ export function staten(klok: Klok, ingrepen: Ingrepen, nuMs: number): HaEntitySt
   zet('sensor.droger_status', m.droger ? 'Run' : !winter && klok.minuut < 690 ? 'Ready' : klok.minuut >= 860 && !winter ? 'Finished' : 'Inactive', {});
   zet('sensor.droger_programmaduur', 168, { unit_of_measurement: 'min', device_class: 'duration' });
   zet('button.droger_start_pauze', 'unknown', {});
+  // De kinderslotten (besluit 299): aan op de thermostaat, uit op de droger, tot iemand ze omzet.
+  zet('switch.thermostaat_badkamer_kinderslot', ingrepen.get('switch.thermostaat_badkamer_kinderslot')?.state ?? 'on', {});
+  zet('switch.droger_kinderslot', ingrepen.get('switch.droger_kinderslot')?.state ?? 'off', {});
 
   // Thuisbatterij, auto en laadpaal.
   zet('sensor.thuisbatterij_lading', m.batterijPct, { unit_of_measurement: '%', device_class: 'battery' });
@@ -395,6 +407,19 @@ export function staten(klok: Klok, ingrepen: Ingrepen, nuMs: number): HaEntitySt
   const autoW = laadtNu ? laadA * 230 : 0;
   zet('number.laadpaal_laadstroom', 6, { unit_of_measurement: 'A', min: 6, max: 16, step: 1, mode: 'slider' });
   zet('switch.laadpaal_laden', 'on', {});
+  // De schakelaars (besluit 297): uit, tot iemand ze aanzet; klik-aan-klik-uit zegt zijn stand niet terug.
+  for (const n of [1, 2, 3]) zet(`switch.heater_tuinhuis_switch${n}`, ingrepen.get(`switch.heater_tuinhuis_switch${n}`)?.state === 'on' ? 'on' : 'off', { assumed_state: true });
+  for (const n of [1, 2, 3]) zet(`select.heater_tuinhuis_switch${n}_on`, n <= 2 ? 'registered' : 'unregistered', {});
+  zet('sensor.nexblue_power', 0, { unit_of_measurement: 'W', device_class: 'power', state_class: 'measurement', friendly_name: 'NexBlue vermogen' });
+  for (const l of [1, 2, 3]) zet(`sensor.nexblue_current_l${l}`, 0, { unit_of_measurement: 'A', device_class: 'current', state_class: 'measurement', friendly_name: `NexBlue stroom L${l}` });
+  zet('sensor.nexblue_energy_total', 1284, { unit_of_measurement: 'kWh', device_class: 'energy', state_class: 'total_increasing', friendly_name: 'NexBlue totaal' });
+  zet('sensor.nexblue_charging_state', 'Idle', { friendly_name: 'NexBlue stand' });
+  zet('sensor.heater_tuinhuis_temperature', 6.3, { unit_of_measurement: '°C', device_class: 'temperature', state_class: 'measurement' });
+  const kachelAan = ingrepen.get('switch.stekker_kachel_tuinhuis')?.state === 'on';
+  zet('switch.stekker_kachel_tuinhuis', kachelAan ? 'on' : 'off', {});
+  zet('sensor.stekker_kachel_tuinhuis_vermogen', kachelAan ? 1850 : 0, { unit_of_measurement: 'W', device_class: 'power', state_class: 'measurement' });
+  zet('switch.shelly1minig3_tuin', ingrepen.get('switch.shelly1minig3_tuin')?.state === 'on' ? 'on' : 'off', {});
+  zet('switch.ac_0x01a2b3c4_1', ingrepen.get('switch.ac_0x01a2b3c4_1')?.state === 'on' ? 'on' : 'off', { assumed_state: true });
   // De ontvochtiger op een slimme stekker: uit, tot iemand hem aanzet (met de hand, besluit 265).
   const ontvochtigerAan = ingrepen.get('switch.ontvochtiger')?.state === 'on';
   zet('switch.ontvochtiger', 'off', {});

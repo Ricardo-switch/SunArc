@@ -313,6 +313,8 @@ export class WebServer {
       (this.#d.options.comfort != null && path === '/api/comfort') ||
       // Bijspringen per kamer (besluit 283): naar hetzelfde bestand als comfort.
       (this.#d.options.bijspringen != null && path === '/api/bijspringen') ||
+      // Helpen bij de cv (besluit 292): naar hetzelfde bestand als comfort.
+      (this.#d.options.helpen != null && path === '/api/helpen') ||
       // Bewoners (besluit 147): naar een eigen bestand, en nooit naar Home Assistant.
       (this.#d.options.bewoners != null && path === '/api/bewoners') ||
       (this.#d.options.lights != null && path === '/api/licht') ||
@@ -328,6 +330,13 @@ export class WebServer {
       (this.#d.options.laden != null && path === '/api/laden') ||
       // Een slimme stekker met de hand (besluit 265): alleen de stekkers die de bewoner toeliet.
       (this.#d.options.stekkers?.zet != null && path === '/api/stekker') ||
+      // Schakelaars (besluit 297): de keuze naar een eigen bestand, en aan of uit alleen als de bewoner dat toeliet.
+      (this.#d.options.schakelaars != null && path === '/api/schakelaars') ||
+      (this.#d.options.schakelaars?.zet != null && path === '/api/schakelaar') ||
+      // Het kinderslot (besluit 299): alleen een slot op een thermostaat of witgoed dat het huis kent.
+      (this.#d.options.kinderslot?.zet != null && path === '/api/kinderslot') ||
+      // Een laadpaal uit losse sensoren (besluit 301): alleen de keuze, naar het eigen bestand.
+      (this.#d.options.losseLaadpalen != null && path === '/api/losse-laadpaal') ||
       // Te doen (besluit 216): een herinnering in het eigen bestand, of iets op een lijst van Home Assistant. Een gast niet.
       (this.#d.options.tedoen != null && path === '/api/te-doen') ||
       // Scènes (besluit 100): een eigen smalle deur naast het licht.

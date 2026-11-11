@@ -11,6 +11,8 @@ export const inHouse = (st: HaEntityState) =>
   st.entity_id.startsWith('light.') ||
   st.entity_id.startsWith('cover.') ||
   st.entity_id.startsWith('climate.') ||
+  // Een lamp achter een schakelaar (besluit 297) is een `switch.`.
+  st.entity_id.startsWith('switch.') ||
   // De scènes van Hue, voor de ruimtes (besluit 100).
   st.entity_id.startsWith('scene.') ||
   // De camera's (besluit 106): anders zei het huis "niet bereikbaar" terwijl er beeld was.
@@ -33,5 +35,5 @@ export const inHouse = (st: HaEntityState) =>
       /valve|klep|filter/i.test(st.entity_id)));
 /** Wat je bedient of ziet bewegen; een temperatuur, verbruik of batterij verschuift rustig. */
 export const snelInHuis = (st: HaEntityState) =>
-  /^(light|cover|scene|climate|camera)\./.test(st.entity_id) ||
+  /^(light|switch|cover|scene|climate|camera)\./.test(st.entity_id) ||
   (st.entity_id.startsWith('binary_sensor.') && ['motion', 'occupancy', 'presence', 'smoke', 'carbon_monoxide', 'heat'].includes(String(st.attributes['device_class'])));

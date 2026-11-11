@@ -493,6 +493,17 @@ export function withConnection(raw: Record<string, unknown>, answers: Connection
   return { raw: out, toegevoegd, overgeslagen };
 }
 
+/**
+ * Op zon gaat meteen in (besluit 290): de antwoorden waarmee de dienst draait,
+ * met wat er op zon staat van nu. De zekering, de stroommeters, de netmeter en
+ * de omvormers blijven zoals bij het starten; die gaan pas in na een herstart.
+ */
+export function metOpZonVanNu(inGebruik: ConnectionAnswers | null, nu: ConnectionAnswers): ConnectionAnswers {
+  const basis: ConnectionAnswers = inGebruik ?? { ...nu, zekering: null, netmeter: null, omvormers: [] };
+  const { buffers: _buffers, opZonUit: _uit, ...rest } = basis;
+  return { ...rest, apparaten: nu.apparaten, ...(nu.buffers ? { buffers: nu.buffers } : {}), ...(nu.opZonUit ? { opZonUit: nu.opZonUit } : {}) };
+}
+
 /* ------------------------------------------------------------ bewaren */
 
 /** Hoe lang een stekker per dag minstens aan moet, en uiterlijk wanneer (besluit 267). */
@@ -1039,7 +1050,8 @@ export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): Connect
     configuratie: {
       zekering: grid && grid.phases.length > 0 ? { fasen: grid.phases.length === 3 ? 3 : 1, ampere: grid.phases[0]!.maxA } : null,
       apparaten: [...(c.base.deferrables ?? []), ...(c.base.heatStores ?? [])].map((d) => ({ id: d.id, naam: d.name })),
-      panelen: planes.map((pl) => `${(pl.peakW / 1000).toLocaleString(lang === 'nl' ? 'nl-NL' : 'en-GB', { maximumFractionDigits: 1 })} kWp ${compass(pl.azimuthDeg, lang)}, ${Math.round(pl.tiltDeg)}°`),
+      // Met de hand een komma: Node in de add-on kent alleen Engelse getallen (10 november 2026).
+      panelen: planes.map((pl) => `${lang === 'nl' ? String(Math.round(pl.peakW / 100) / 10).replace('.', ',') : String(Math.round(pl.peakW / 100) / 10)} kWp ${compass(pl.azimuthDeg, lang)}, ${Math.round(pl.tiltDeg)}°`),
     },
     zonnesensor: c.solar
       ? {

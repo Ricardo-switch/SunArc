@@ -697,10 +697,26 @@ html.sc-voorbeeld #tel .td-keuze { bottom: calc(250px + env(safe-area-inset-bott
 .hand-hoe.let { background: rgb(247 181 72 / 0.07); box-shadow: inset 0 0 0 1px rgb(247 181 72 / 0.25); }
 .hand-fout { margin: 0; color: var(--gloed-t); font-size: 13px; }
 .hand-onder { margin-top: auto; display: flex; align-items: center; gap: 14px; }
+/* Het kinderslot onderaan het blad (besluit 299): "Op de thermostaat", met een schakelaar die meteen gaat. */
+.hand-slot { margin-top: auto; padding-top: 14px; border-top: 1px solid rgb(var(--wit) / 0.08); }
+.hand-slot + .hand-onder { margin-top: 14px; }
+.hand-slot h3 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--gedempt); }
+.hand-slotrij { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.hand-slotik { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 122, 77, 0.12); color: var(--gloed-zacht, #ffb090); }
+.hand-slotik svg { width: 21px; height: 21px; }
+.hand-slotrij b { display: block; font-size: 15.5px; font-weight: 600; }
+.hand-slotrij small { font-size: 12.5px; color: var(--gedempt); line-height: 1.35; }
+.hand-slot .schakel { width: 46px; height: 28px; border-radius: 999px; border: 0; padding: 0; background: var(--mint); position: relative; cursor: pointer; }
+.hand-slot .schakel::after { content: ''; position: absolute; right: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+.hand-slot .schakel.uit { background: rgb(var(--wit) / 0.16); }
+.hand-slot .schakel.uit::after { right: auto; left: 3px; }
+.hand-slot .schakel:disabled { opacity: 0.45; cursor: default; }
 .hand-terug { border: 0; background: none; padding: 0; color: var(--zacht); font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; }
 .hand-zet { margin-left: auto; height: 48px; padding: 0 24px; border-radius: 15px; border: 0; background: var(--tekst); color: var(--inkt); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
 .hand-zet:disabled { opacity: 0.4; cursor: default; }
 a.hand-zet { display: inline-flex; align-items: center; text-decoration: none; }
+/* Toestemming weer intrekken in het blad van een stekker (besluit 290): klein, onder de knoppen. */
+.hand-intrek { border: 0; background: none; padding: 0; color: var(--zacht); font: inherit; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 /* Het blad van een stekker (besluit 268): de stand met een stip, de tijd bij vast, en de vaste taken. */
 .hand-stip { display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; vertical-align: 1px; }
 .hand-om { width: auto; min-width: 110px; }

@@ -902,6 +902,12 @@ function metenStap() {
 
 /* De regeling per kamer (besluit 138): dezelfde drie keuzes als bij Indeling. */
 const ROLLEN = ['houdt', 'zon', 'kijken'].map((r) => [r, t(`inr.rol.${r}`), t(`inr.rol.${r}Kort`)]);
+/** De knoppen voor wat een apparaat doet; op zon alleen als het kan (besluit 291), of als het er al stond. */
+function rolKnoppen(a, nuRol) {
+  return ROLLEN.filter(([w]) => w !== 'zon' || nuRol === 'zon' || huismodel.kanOpZon(a, d.huis, antwoorden().verwarming))
+    .map(([w, lang, kort]) => `<button type="button" class="${w === 'zon' ? 'zon' : ''}" data-rolwaarde="${w}" aria-pressed="${w === nuRol}" title="${esc(lang)}">${esc(kort)}</button>`)
+    .join('');
+}
 const rolVan = (k, r, key) => (k?.rollen ? (k.rollen[key] ?? 'kijken') : (klimaatIn(r).find((a) => sleutel(a) === key)?.klimaat?.rol ?? 'kijken'));
 /* Waar de warmte vandaan komt (besluit 122); hoort bij Klimaat (besluit 158). */
 const VERWARMING = [...['cv', 'warmtepomp', 'hybride', 'stadsverwarming'].map((x) => [x, t(`energie.bron.${x}`)]), ['weetniet', t('energie.weetNiet')]];
@@ -982,7 +988,8 @@ function warmteStap() {
     // Drie knoppen naast elkaar, zoals de schets: op temperatuur, op zon, kijkt mee (besluit 146).
     const toestellen = klimaatIn(r).map((x) => {
       const nuRol = rolVan(k, r, sleutel(x));
-      const knoppen = ROLLEN.map(([w, lang, kort]) => `<button type="button" class="${w === 'zon' ? 'zon' : ''}" data-rolwaarde="${w}" aria-pressed="${w === nuRol}" title="${esc(lang)}">${esc(kort)}</button>`).join('');
+      // Een radiatorknop of de thermostaat van een gasketel helpt niet op zon (besluit 291).
+      const knoppen = rolKnoppen(x, nuRol);
       const ketel = huismodel.cvThermostaat(d.huis, a.verwarming)?.sleutel === sleutel(x);
       return `<div class="toestel">${esc(x.naam)}${ketel ? `<span class="zacht"> · ${esc(t('inr.zetKetel'))}</span>` : ''}<div class="seg" role="group" aria-label="${esc(t('inr.watMet', { naam: x.naam }))}" data-rol="${esc(sleutel(x))}" data-rolkamer="${esc(r.id)}">${knoppen}</div></div>`;
     }).join('');
@@ -1111,7 +1118,7 @@ function kanStap() {
   const al = lijst.map((x) => ({ ...x, kan: kanVan(x.a, x.r) }));
   const los = ({ a, r, kan }) => {
     const punten = kan.punten.map((x) => `<div class="kpunt ${x.soort}"><i aria-hidden="true">${x.soort === 'ok' ? '✓' : x.soort === 'vraag' ? '?' : x.soort === 'nee' ? '–' : ''}</i><span><b>${esc(x.titel)}</b>${x.zin ? `<small>${esc(x.zin)}</small>` : ''}${x.extra}</span></div>`).join('');
-    const knoppen = ROLLEN.map(([w, lang, kort]) => `<button type="button" class="${w === 'zon' ? 'zon' : ''}" data-rolwaarde="${w}" aria-pressed="${w === kan.rol}" title="${esc(lang)}">${esc(kort)}</button>`).join('');
+    const knoppen = rolKnoppen(a, kan.rol);
     return `<div class="klos" data-klos="${esc(sleutel(a))}">
       <div class="kkop"><b>${esc(a.naam)}</b><span>${esc(a.radiatorknop ? t('inr.kan.knopVia', { via: koppelingNaam(a.klimaat?.ha?.koppeling) }) : koppelingNaam(a.klimaat?.ha?.koppeling))}</span></div>
       <div class="kpunten">${punten}</div>

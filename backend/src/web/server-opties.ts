@@ -11,6 +11,8 @@ import type { LaadOverzicht } from './laadbeurten.js';
 import type { LaadAdvies } from './laadadvies.js';
 import type { LaadStand, LaadUitkomst, LaadVraag } from './laadhand.js';
 import type { StekkerStand, StekkerTot, StekkerUitkomst } from './stekkerhand.js';
+import type { LosseSensor, SchakelaarView } from './schakelaars.js';
+import type { LosseLaadpaal } from './opslag.js';
 import type { CameraNu } from './cameras.js';
 import type { AanzetStand } from './assistent-aan.js';
 import type { InHuisStand } from './stem-in-huis.js';
@@ -41,6 +43,7 @@ import type { LuisterDeur } from './luisterpost.js';
 import type { Location } from './sun.js';
 import type { ForecastDay, HourColumns, WeatherLog } from './weather.js';
 import type { BijspringenView, ComfortView } from './comfort.js';
+import type { HelpenView } from './helpen.js';
 import type { HouseReport } from './house.js';
 import type { Lang } from './assistant.js';
 import type { Layout, LayoutStore } from './layout.js';
@@ -122,6 +125,14 @@ export interface WebOptions {
   readonly bijspringen?: {
     readonly view: () => BijspringenView;
     readonly save: (body: unknown) => Promise<{ readonly ok: true; readonly view: BijspringenView } | { readonly ok: false; readonly status: number; readonly reden: string }>;
+  };
+  /**
+   * Helpen bij de cv (besluit 292), bij Regeling: welke airco's de ketel
+   * helpen, wanneer, en wat warmte kost. Zonder dit bestaat de route niet.
+   */
+  readonly helpen?: {
+    readonly view: () => HelpenView;
+    readonly save: (body: unknown) => Promise<{ readonly ok: true; readonly view: HelpenView } | { readonly ok: false; readonly status: number; readonly reden: string }>;
   };
   /**
    * Bewoners (besluit 147): wie hier woont, op volgorde, en wat een bewoner
@@ -217,6 +228,25 @@ export interface WebOptions {
   /** Het advies per auto (besluit 259, stap 4): zon over en de goedkoopste uren, alleen als het iets zegt. */
   readonly laadadvies?: () => Readonly<Record<string, LaadAdvies>>;
   /** Laden met de hand (besluit 262): alleen in de add-on. */
+  /**
+   * Schakelaars (besluit 297): wat gevonden is met de keuzes van de bewoner,
+   * een keuze bewaren, en met de hand aan of uit (`zet` alleen in de add-on).
+   */
+  /** Laadpalen uit losse sensoren (besluit 301): wat gekozen is, de sensoren om uit te kiezen, en bewaren. */
+  readonly losseLaadpalen?: {
+    readonly lijst: () => { readonly laadpalen: Readonly<Record<string, LosseLaadpaal>>; readonly sensoren: readonly LosseSensor[] };
+    readonly bewaar: (body: unknown) => Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }>;
+  };
+  /** Het kinderslot van een thermostaat of witgoed (besluit 299), per apparaat; `zet` alleen in de add-on. */
+  readonly kinderslot?: {
+    readonly lijst: () => Readonly<Record<string, { readonly id: string; readonly aan: boolean }>>;
+    readonly zet?: (slot: string, aan: boolean) => Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }>;
+  };
+  readonly schakelaars?: {
+    readonly lijst: () => readonly SchakelaarView[];
+    readonly bewaar: (body: unknown) => Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }>;
+    readonly zet?: (knop: string, aan: boolean) => Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }>;
+  };
   /** Een slimme stekker met de hand (besluit 265): `zet` en `terug` alleen in de add-on. */
   readonly stekkers?: {
     readonly standen: () => Promise<readonly StekkerStand[]>;
@@ -294,7 +324,8 @@ export interface WebOptions {
    * Opbrengst (besluit 102): de meters en prijzen van de app, en de statistiek
    * van Home Assistant om ze mee te lezen. Zonder dit geen terugblik.
    */
-  readonly energy?: { readonly store: EnergyStore; readonly source: EnergySource };
+  /** `naBewaren`: andere prijzen gaan meteen mee in Helpen bij de cv (besluit 292). */
+  readonly energy?: { readonly store: EnergyStore; readonly source: EnergySource; readonly naBewaren?: () => Promise<void> };
   /** De map met scèneplaatjes van de bewoner (scene-pictures.ts); zonder dit geen route. */
   readonly scenePicturesDir?: string;
   /**
@@ -306,6 +337,8 @@ export interface WebOptions {
     /** In de taal van de app (besluit 185): de ligging van de panelen staat erin in woorden. */
     readonly view: (lang?: Lang) => ConnectionView;
     readonly found: () => { readonly fasen: readonly FoundPhase[]; readonly apparaten: readonly FoundAppliance[]; readonly vermogens?: readonly FoundPower[] };
+    /** Na het bewaren: op zon gaat meteen in (besluit 290). */
+    readonly naBewaren?: () => Promise<void>;
   };
   /**
    * Het weer van de komende dagen (besluit 105): de verwachting van Buienradar

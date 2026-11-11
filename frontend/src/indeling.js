@@ -637,7 +637,10 @@ function rolVoorstel(k, sleutel) {
 function rolRegel(k, sleutel) {
   const rol = rolVan(k, sleutel);
   const id = `rol-${sleutel.replace(/[^a-z0-9_-]/gi, '-')}`;
-  return `<div class="rolrij"><label for="${esc(id)}">${esc(t('indeling.deRegeling'))}</label><select class="veld rolkeuze" id="${esc(id)}" data-rol="${esc(sleutel)}">${ROL_KEUZE.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>${rol === 'zon' ? `<p class="rolzin">${esc(t('indeling.rolZon'))}</p>` : ''}`;
+  // Een radiatorknop of de thermostaat van een gasketel helpt niet op zon (besluit 291); stond het er toch, dan blijft het zichtbaar.
+  const a = klimaatToestellen().find((x) => x.sleutel === sleutel)?.a;
+  const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon' || rol === 'zon' || !a || huismodel.kanOpZon(a, huisData, verwarming));
+  return `<div class="rolrij"><label for="${esc(id)}">${esc(t('indeling.deRegeling'))}</label><select class="veld rolkeuze" id="${esc(id)}" data-rol="${esc(sleutel)}">${keuzes.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>${rol === 'zon' ? `<p class="rolzin">${esc(t('indeling.rolZon'))}</p>` : ''}`;
 }
 function rolKeuzes(gekozen) {
   return `<div class="keuzes" role="radiogroup" aria-label="${esc(t('indeling.watRegeling'))}">${ROL_KEUZE.map(([w, x, u]) => `<button type="button" class="keuze${w === gekozen ? ' aan' : ''}" role="radio" aria-checked="${w === gekozen}" data-bron-rol="${w}"><i></i><span><b>${esc(x)}</b><span>${esc(u)}</span></span></button>`).join('')}</div>`;

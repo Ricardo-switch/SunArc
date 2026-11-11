@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Je huis op maat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Je huis op maat (schets, 8 november 2026): Kamers en indeling wordt een
+   * groep zoals Energie, met vier delen die op elkaar bouwen. Eén beschrijving
+   * in meters (huisontwerp.js) geeft de vorm van boven, de etages opzij en de
+   * kamers per etage. Dezelfde gebouwen als bij Daken en panelen: wat je op
+   * de ene plek vindt of verschuift, staat meteen op de andere.
+   *   (zonder)    Huisontwerp: de gebouwen van boven, het hoofdhuis aangetikt
+   *   #etages     Etages: het huis opzij, de eerste verdieping aangetikt
+   *   #kamers     Kamers: de begane grond, met Kies een indeling
+   *   #lijnen     Kamers: zelf lijnen zetten op de eerste verdieping
+   *   #apparaten  Apparaten indelen: op de plattegrond, een stekker onderweg
+   *   #zonder     Huisontwerp zonder kaart: woningtype, dak en maten als begin, de helling van de panelen
+   *   #hal        Kamers: een hal opzij erin gezet; de woonkamer loopt er als U omheen,
+   *               met de stippellijn tussen zithoek en eethoek om te verschuiven
+   */
+  main { position: relative; padding: 22px 26px 20px 22px; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  .kopregel { display: flex; align-items: center; gap: 14px; }
+  .terug { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 16px 0 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.07); border: 1px solid var(--glas-rand); font-size: 14.5px; font-weight: 600; color: var(--zacht); }
+  .terug i { font-style: normal; font-size: 20px; line-height: 1; margin-top: -2px; }
+  .kopregel .kop-1 { font-size: 40px; margin-left: 4px; white-space: nowrap; }
+  .samen { display: flex; gap: 8px; margin-left: 6px; }
+  .samen span { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .samen span::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .samen .mis { color: var(--gloed); background: rgba(255, 122, 77, 0.12); }
+  .samen .goed { color: var(--mint); background: rgba(110, 231, 183, 0.1); }
+  .rechts { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .bewaard { font-size: 13.5px; font-weight: 600; color: var(--gedempt); }
+
+  .veld { flex: 1; display: grid; grid-template-columns: 262px minmax(0, 1fr); gap: 16px; min-height: 0; }
+
+  /* De delen, zoals bij Energie. */
+  .lijst { align-self: start; padding: 6px; border-radius: 22px; display: flex; flex-direction: column; gap: 2px; }
+  .lijst h4 { margin: 10px 14px 4px; font-size: 12px; font-weight: 700; color: var(--gedempt); }
+  .lijst h4:first-child { margin-top: 8px; }
+  .rij { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 1px 12px; align-items: center; min-height: 62px; padding: 6px 12px; border-radius: 16px; color: var(--tekst); position: relative; }
+  .rij .ik { grid-row: 1 / 3; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); }
+  .rij .ik svg { width: 22px; height: 22px; }
+  .rij b { font-size: 16px; font-weight: 600; align-self: end; }
+  .rij small { grid-column: 2; font-size: 13px; color: var(--gedempt); align-self: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rij .stip { grid-row: 1 / 3; grid-column: 3; width: 8px; height: 8px; border-radius: 50%; }
+  .rij .nr { grid-row: 1 / 3; grid-column: 3; font-size: 12px; font-weight: 700; color: var(--gedempt); }
+  .rij.mist small { color: var(--gloed); }
+  .rij.nu { background: rgba(255, 255, 255, 0.1); }
+  .rij.nu::before { content: ''; position: absolute; left: -2px; top: 16px; bottom: 16px; width: 4px; border-radius: 2px; background: var(--tekst); }
+  .lijst .na { margin: 6px 14px 8px; font-size: 12px; line-height: 1.4; color: var(--gedempt); }
+
+  /* Het gekozen deel. */
+  .vorm { position: relative; padding: 18px 22px 0; display: none; flex-direction: column; gap: 12px; min-height: 0; border-radius: 24px; }
+  .vormkop { display: flex; align-items: center; gap: 12px; min-height: 40px; }
+  .vormkop h2 { margin: 0; }
+  .vormkop .mini { margin: 0; }
+  .vormkop .seg { margin-left: auto; }
+  .seg { display: inline-flex; gap: 3px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, 0.06); }
+  .seg span { height: 32px; padding: 0 13px; display: grid; place-items: center; border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--zacht); white-space: nowrap; }
+  .seg span.aan { background: var(--tekst); color: var(--inkt); }
+  .binnen { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 316px; gap: 16px; min-height: 0; }
+  .links { display: flex; flex-direction: column; gap: 10px; min-height: 0; position: relative; }
+  .podium { flex: 1; position: relative; min-height: 0; display: grid; place-items: center; }
+  .podium svg { display: block; }
+  .blad { padding: 14px 16px; border-radius: 18px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.07); display: flex; flex-direction: column; gap: 11px; min-height: 0; }
+  .bladkop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .bladkop h3 { margin: 0; font-size: 20px; }
+  .label { font-size: 12px; color: var(--gedempt); margin-bottom: 5px; display: block; font-weight: 600; }
+  .invoer { height: 38px; border-radius: 11px; border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: space-between; padding: 0 11px; font-size: 14px; font-weight: 600; }
+  .invoer .pijl { color: var(--gedempt); font-size: 12px; }
+  .twee { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .knop { display: inline-flex; align-items: center; justify-content: center; height: 40px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { height: 32px; padding: 0 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .chip svg { width: 17px; height: 17px; }
+  .chip.aan { background: rgba(110, 231, 183, 0.14); color: var(--mint); }
+  .chip.wacht { background: rgba(247, 181, 72, 0.08); border: 1px dashed rgba(247, 181, 72, 0.75); color: #ffd38a; }
+  .chip.plus { background: transparent; border: 1px dashed rgba(111, 211, 255, 0.6); color: var(--ijs); }
+  .chip.uit { color: var(--gedempt); }
+
+  /* Huisontwerp: waar het huis vandaan komt, en de maten. */
+  .bron { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px; border-radius: 13px; background: rgba(255, 255, 255, 0.05); }
+  .bron span { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 2px 6px; border-radius: 10px; font-size: 12px; font-weight: 700; color: var(--zacht); text-align: center; line-height: 1.15; }
+  .bron span small { font-size: 10.5px; font-weight: 600; color: var(--gedempt); }
+  .bron span.aan { background: rgba(110, 231, 183, 0.16); color: var(--mint); box-shadow: inset 0 0 0 1.5px rgba(110, 231, 183, 0.6); }
+  .bron span.aan small { color: rgba(110, 231, 183, 0.85); }
+  .maten { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .maten div { padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.06); }
+  .maten b { display: block; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .maten small { font-size: 11.5px; color: var(--gedempt); }
+  .gebouw { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 0 10px; align-items: center; padding: 7px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 14px; }
+  .gebouw:first-of-type { border-top: 0; }
+  .gebouw i { width: 12px; height: 12px; border-radius: 3px; border: 2px solid var(--mint); }
+  .gebouw i.zelf { border-color: var(--ijs); border-style: dashed; }
+  .gebouw b { font-weight: 600; }
+  .gebouw span { font-size: 12px; color: var(--gedempt); }
+  .gebouw.nu b { color: #fff; }
+  .gebouw.nu { background: rgba(255, 255, 255, 0.06); margin: 0 -8px; padding: 7px 8px; border-radius: 10px; border-top-color: transparent; }
+
+  /* Tweeweg: dezelfde gebouwen als bij Daken en panelen. */
+  .tweeweg { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 16px; background: rgba(247, 181, 72, 0.07); border: 1px solid rgba(247, 181, 72, 0.25); }
+  .tweeweg .ik { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: rgba(247, 181, 72, 0.14); flex: none; }
+  .tweeweg .ik svg { width: 21px; height: 21px; }
+  .tweeweg div { flex: 1; font-size: 12.5px; color: var(--gedempt); line-height: 1.35; }
+  .tweeweg div b { display: block; font-size: 14px; color: var(--tekst); }
+  .tweeweg a { font-size: 13.5px; font-weight: 700; color: var(--zon); white-space: nowrap; }
+
+  /* Etages. */
+  .klopt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 14px; background: rgba(110, 231, 183, 0.08); border: 1px solid rgba(110, 231, 183, 0.25); font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+  .klopt b { display: block; color: var(--mint); font-size: 14px; }
+  .klopt .vink { width: 22px; height: 22px; border-radius: 50%; background: var(--mint); color: var(--inkt); display: grid; place-items: center; font-weight: 800; font-size: 13px; flex: none; margin-top: 1px; }
+  .laag { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 10px; align-items: center; padding: 8px 10px; border-radius: 12px; }
+  .laag b { font-size: 14.5px; font-weight: 600; }
+  .laag span { grid-column: 1; font-size: 12px; color: var(--gedempt); }
+  .laag em { grid-row: 1 / 3; grid-column: 2; font-style: normal; font-size: 13px; font-weight: 700; color: var(--zacht); font-variant-numeric: tabular-nums; }
+  .laag.nu { background: rgba(111, 211, 255, 0.12); box-shadow: inset 0 0 0 1.5px rgba(111, 211, 255, 0.5); }
+  .stap { display: grid; grid-template-columns: 38px 1fr 38px; height: 38px; border-radius: 11px; border: 1px solid rgba(255, 255, 255, 0.18); overflow: hidden; }
+  .stap span { display: grid; place-items: center; font-size: 18px; font-weight: 700; color: var(--zacht); background: rgba(255, 255, 255, 0.05); }
+  .stap b { display: grid; place-items: center; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+
+  /* Kamers: kies een indeling. */
+  .keus { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .keus div { position: relative; padding: 6px 6px 8px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); border: 1.5px solid transparent; }
+  .keus div.aan { border-color: var(--mint); background: rgba(110, 231, 183, 0.07); }
+  .keus div.aan::after { content: '✓'; position: absolute; right: 8px; top: 8px; width: 20px; height: 20px; border-radius: 50%; background: var(--mint); color: var(--inkt); display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+  .keus .pl { height: 92px; }
+  .keus b { display: block; margin: 4px 4px 0; font-size: 13px; }
+  .keus small { display: block; margin: 0 4px; font-size: 11px; color: var(--gedempt); line-height: 1.25; }
+  .zelf { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; border: 1px dashed rgba(111, 211, 255, 0.55); color: var(--ijs); font-size: 14px; font-weight: 700; }
+  .zelf svg { width: 20px; height: 20px; }
+  .zelf small { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--gedempt); }
+
+  /* Onder de tekening: wat nog een plek zoekt. */
+  .strook { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-radius: 18px; border: 1px dashed rgba(247, 181, 72, 0.5); background: rgba(247, 181, 72, 0.05); }
+  .strook .getal { font-size: 26px; }
+  .strook .uitleg { flex: 1; font-size: 12.5px; color: var(--gedempt); line-height: 1.35; }
+  .strook .uitleg b { display: block; font-size: 14px; color: var(--tekst); }
+  .strook.goed { border-color: rgba(110, 231, 183, 0.35); background: rgba(110, 231, 183, 0.05); }
+
+  /* De werkbalk naast een vak dat je aantikt. */
+  .werk { position: absolute; z-index: 4; display: flex; gap: 3px; padding: 4px; border-radius: 14px; background: #f2f6f9; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45); }
+  .werk span { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 11px; border-radius: 10px; font-size: 13px; font-weight: 700; color: #33415a; white-space: nowrap; }
+  .werk span.aan { background: #0b1424; color: #fff; }
+  .werk svg { width: 17px; height: 17px; }
+  .sleep { position: absolute; z-index: 5; display: inline-flex; align-items: center; gap: 9px; height: 42px; padding: 0 15px 0 9px; border-radius: 14px; background: #f2f6f9; color: #0b1424; font-weight: 700; font-size: 14px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); transform: rotate(-3deg); }
+  .sleep i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #ffe2ad; }
+  .sleep i svg { width: 17px; height: 17px; }
+
+  .app { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 14px; }
+  .app:first-of-type { border-top: 0; }
+  .app .ik2 { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: #13213a; border: 1px solid rgba(255, 255, 255, 0.2); flex: none; }
+  .app .ik2 svg { width: 17px; height: 17px; }
+  .greep { color: var(--gedempt); letter-spacing: -2px; font-weight: 700; }
+  .app .l { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .app .l span { font-size: 12px; color: var(--gedempt); }
+
+  .voet { display: flex; gap: 12px; align-items: center; padding: 10px 0 14px; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .waarvoor { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px 0 10px; border-radius: 12px; background: rgba(111, 211, 255, 0.1); color: #a9e6ff; font-size: 14px; font-weight: 700; }
+  .waarvoor svg { width: 19px; height: 19px; }
+  .voet .waar { margin-right: auto; font-size: 12.5px; color: var(--gedempt); }
+  .voet a { display: flex; flex-direction: column; gap: 1px; min-width: 160px; padding: 7px 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--glas-rand); color: var(--tekst); }
+  .voet a small { font-size: 12px; color: var(--gedempt); font-weight: 600; }
+  .voet a b { font-size: 15px; font-weight: 600; }
+  .voet a.volgende { text-align: right; }
+
+  /* Zonder kaart: het dak kiezen, en de helling van de panelen. */
+  .bron span.mis { opacity: 0.45; }
+  .dakvorm { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .dakvorm span { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 2px 6px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); font-size: 11.5px; font-weight: 700; color: var(--zacht); }
+  .dakvorm svg { width: 34px; height: 24px; fill: rgba(255, 255, 255, 0.12); stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+  .dakvorm span.aan { background: rgba(110, 231, 183, 0.14); color: var(--mint); box-shadow: inset 0 0 0 1.5px rgba(110, 231, 183, 0.6); }
+  .helling { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 13px; background: rgba(247, 181, 72, 0.08); border: 1px solid rgba(247, 181, 72, 0.25); font-size: 12px; color: var(--gedempt); line-height: 1.35; }
+  .helling b { display: block; color: var(--tekst); font-size: 13.5px; }
+  .helling .vink { width: 22px; height: 22px; border-radius: 50%; background: var(--zon); color: var(--inkt); display: grid; place-items: center; font-weight: 800; font-size: 13px; flex: none; }
+  .strook .getal svg { width: 30px; height: 30px; }
+
+  body[data-toon='vorm'] .s-vorm, body[data-toon='etages'] .s-etages, body[data-toon='kamers'] .s-kamers, body[data-toon='lijnen'] .s-lijnen, body[data-toon='apparaten'] .s-apparaten, body[data-toon='hal'] .s-hal, body[data-toon='zonder'] .s-zonder { display: flex; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-dag">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="kopregel">
+      <span class="terug"><i>‹</i>Instellingen</span>
+      <h1 class="kop-1">Je huis</h1>
+      <div class="samen" id="samen"></div>
+      <div class="rechts"><span class="bewaard">Verandert niets in Home Assistant</span></div>
+    </div>
+
+    <div class="veld">
+      <nav class="glas lijst" aria-label="Delen van Je huis">
+        <h4>Je huis op maat</h4>
+        <div class="rij" data-deel="vorm zonder"><span class="ik" data-ik="dak" style="color: var(--mint)"></span><b>Huisontwerp</b><small>uit de 3D-kaart, 4 gebouwen</small><span class="nr">1</span></div>
+        <div class="rij" data-deel="etages"><span class="ik" data-ik="etages" style="color: var(--mint)"></span><b>Etages</b><small>3, zoals de kaart ziet</small><span class="nr">2</span></div>
+        <div class="rij" data-deel="kamers lijnen hal" id="rij-kamers"><span class="ik" data-ik="kamers" style="color: var(--mint)"></span><b>Kamers</b><small>9 vakken, alles op zijn plek</small><span class="nr">3</span></div>
+        <div class="rij mist" data-deel="apparaten"><span class="ik" data-ik="apparaat" style="color: var(--zon)"></span><b>Apparaten indelen</b><small>1 nog in te delen</small><span class="stip" style="background: var(--gloed)"></span></div>
+        <h4>Rond het huis</h4>
+        <div class="rij"><span class="ik" data-ik="buiten" style="color: var(--mint)"></span><b>Buiten</b><small>oprit, tuin, tuinhuis</small></div>
+        <div class="rij"><span class="ik" data-ik="berging" style="color: var(--zacht)"></span><b>Verborgen</b><small>2 apparaten</small></div>
+        <p class="na">Elk deel bouwt op het vorige, maar overslaan mag: zonder maten krijgt je huis het poppenhuis van je woningtype.</p>
+      </nav>
+
+      <!-- 1 Huisontwerp: de gebouwen van boven. -->
+      <section class="glas vorm s-vorm">
+        <div class="vormkop"><h2 class="kop-2">Huisontwerp</h2><span class="mini">de vorm van buiten</span><div class="seg"><span class="aan">Van boven</span><span>Opzij</span><span>3D</span></div></div>
+        <div class="binnen">
+          <div class="links">
+            <div class="podium" id="p-vorm"></div>
+            <div class="tweeweg"><span class="ik" data-ik="panelen" style="color: var(--zon)"></span><div><b>Daken en panelen gebruikt dezelfde gebouwen</b>Wat je hier verschuift, schuift daar mee. Daar staan nu 3 dakvlakken op.</div><a>Daken ›</a></div>
+          </div>
+          <div class="blad">
+            <div><span class="label">Waar je huis vandaan komt</span>
+              <div class="bron"><span>Zelf<small>tekenen</small></span><span>Woning<small>tussenwoning</small></span><span>Plattegrond<small>gevonden</small></span><span class="aan">3D-kaart<small>met hoogte</small></span></div>
+            </div>
+            <div class="bladkop"><h3 class="kop-3">Hoofdhuis</h3><span class="mini">uit de 3D-kaart</span></div>
+            <div class="maten">
+              <div><b>10,0 m</b><small>breed</small></div><div><b>8,4 m</b><small>diep</small></div><div><b>3</b><small>bouwlagen</small></div>
+              <div><b>6,3 m</b><small>tot de goot</small></div><div><b>10,2 m</b><small>tot de nok</small></div><div><b>43°</b><small>zadeldak</small></div>
+            </div>
+            <p class="mini" style="margin: 0">Klopt een maat niet? Sleep een hoek in de tekening, of tik de maat.</p>
+            <div><span class="label">Gebouwen</span>
+              <div class="gebouw nu"><i></i><b>Hoofdhuis</b><span>3 lagen</span></div>
+              <div class="gebouw"><i></i><b>Uitbouw</b><span>plat dak</span></div>
+              <div class="gebouw"><i></i><b>Garage</b><span>plat dak</span></div>
+              <div class="gebouw"><i class="zelf"></i><b>Tuinhuis</b><span>zelf getekend</span></div>
+            </div>
+            <span class="chip plus" style="align-self: flex-start">+ Gebouw erbij</span>
+          </div>
+        </div>
+        <div class="voet"><span class="waarvoor" data-ik="vraag">Waarvoor is dit?</span><span class="waar">1 van 4</span><a><small>‹ Vorige</small><b>Verborgen</b></a><a class="volgende"><small>Volgende ›</small><b>Etages</b></a></div>
+      </section>
+
+      <!-- 1 Huisontwerp zonder kaart: woningtype, dak en maten als begin. -->
+      <section class="glas vorm s-zonder">
+        <div class="vormkop"><h2 class="kop-2">Huisontwerp</h2><span class="mini">de vorm van buiten</span><div class="seg"><span class="aan">Van boven</span><span>Opzij</span><span>3D</span></div></div>
+        <div class="binnen">
+          <div class="links">
+            <div class="podium" id="p-zonder"></div>
+            <div class="strook"><span class="getal" data-ik="thuis" style="color: var(--zon)"></span><div class="uitleg"><b>Geschat: een tussenwoning van 5,4 bij 9 meter</b>Sleep een hoek of tik een maat. Een uitbouw, garage of tuinhuis zet je er als blok bij. Vindt een kaart later je huis, dan vraagt SunArc eerst.</div></div>
+          </div>
+          <div class="blad">
+            <div><span class="label">Waar je huis vandaan komt</span>
+              <div class="bron"><span>Zelf<small>tekenen</small></span><span class="aan">Woning<small>gekozen</small></span><span class="mis">Plattegrond<small>niets</small></span><span class="mis">3D-kaart<small>alleen NL</small></span></div>
+            </div>
+            <div><span class="label">Wat voor woning</span><div class="chips"><span class="chip">Vrijstaand</span><span class="chip aan">✓ Tussenwoning</span><span class="chip">Hoekwoning</span><span class="chip">2-onder-1-kap</span><span class="chip">Appartement</span></div></div>
+            <div><span class="label">Het dak</span>
+              <div class="dakvorm">
+                <span class="aan"><svg viewBox="0 0 32 24"><path d="M3 12 16 3l13 9v9H3z"/></svg>Zadeldak</span>
+                <span><svg viewBox="0 0 32 24"><path d="M3 12 9 4h14l6 8v9H3z"/></svg>Schilddak</span>
+                <span><svg viewBox="0 0 32 24"><path d="M3 7l26 6v8H3z"/></svg>Lessenaar</span>
+                <span><svg viewBox="0 0 32 24"><path d="M3 8h26v13H3z"/></svg>Plat</span>
+              </div>
+              <div class="chips" style="margin-top: 7px"><span class="chip aan">✓ Nok langs de straat</span><span class="chip">Haaks</span></div>
+            </div>
+            <div class="maten">
+              <div><b>5,4 m</b><small>breed</small></div><div><b>9,0 m</b><small>diep</small></div><div><b>3</b><small>etages, met zolder</small></div>
+            </div>
+            <div class="helling"><span class="vink">✓</span><div><b>45°, gemeten bij je panelen</b>De helling komt van Daken en panelen.</div></div>
+
+          </div>
+        </div>
+        <div class="voet"><span class="waarvoor" data-ik="vraag">Waarvoor is dit?</span><span class="waar">1 van 4</span><a><small>‹ Vorige</small><b>Verborgen</b></a><a class="volgende"><small>Volgende ›</small><b>Etages</b></a></div>
+      </section>
+
+      <!-- 2 Etages: het huis opzij. -->
+      <section class="glas vorm s-etages">
+        <div class="vormkop"><h2 class="kop-2">Etages</h2><span class="mini">van de grond tot de nok</span></div>
+        <div class="binnen">
+          <div class="links">
+            <div class="podium" id="p-etages"></div>
+          </div>
+          <div class="blad">
+            <div class="klopt"><span class="vink">✓</span><div><b>3 lagen, net als in Home Assistant</b>De 3D-kaart ziet drie bouwlagen. Home Assistant heeft drie verdiepingen. Ze horen bij elkaar.</div></div>
+            <div>
+              <div class="laag"><b>Zolder</b><span>onder het schuine dak</span><em>4,6 m</em></div>
+              <div class="laag nu"><b>Eerste verdieping</b><span>alleen het hoofdhuis</span><em>2,8 m</em></div>
+              <div class="laag"><b>Begane grond</b><span>met uitbouw en garage (ernaast)</span><em>2,8 m</em></div>
+            </div>
+            <div class="twee"><div><span class="label">Naam</span><div class="invoer">Eerste verdieping</div></div><div><span class="label">Hoogte</span><div class="stap"><span>−</span><b>2,8 m</b><span>+</span></div></div></div>
+            <div><span class="label">Ligt op</span><div class="chips"><span class="chip aan">✓ Hoofdhuis</span><span class="chip uit">Uitbouw</span><span class="chip uit">Garage</span></div></div>
+            <div><span class="label">In Home Assistant</span><div class="invoer">Verdieping “Eerste”<span class="pijl">▾</span></div></div>
+            <p class="mini" style="margin: auto 0 0">Een etage erbij of eraf? Tik op + Kelder, of sleep de bovenste lijn van een laag.</p>
+          </div>
+        </div>
+        <div class="voet"><span class="waarvoor" data-ik="vraag">Waarvoor is dit?</span><span class="waar">2 van 4</span><a><small>‹ Vorige</small><b>Huisontwerp</b></a><a class="volgende"><small>Volgende ›</small><b>Kamers</b></a></div>
+      </section>
+
+      <!-- 3 Kamers: kies een indeling. -->
+      <section class="glas vorm s-kamers">
+        <div class="vormkop"><h2 class="kop-2">Kamers</h2><div class="seg"><span>Zolder</span><span>Eerste</span><span class="aan">Begane grond</span></div></div>
+        <div class="binnen">
+          <div class="links">
+            <div class="podium" id="p-kamers"></div>
+            <div class="strook goed"><span class="getal mint-t" style="color: var(--mint)">✓</span><div class="uitleg"><b>Elke kamer uit Home Assistant heeft een plek</b>Hal, Woonkamer, Keuken en Garage. Het toilet staat alleen in de tekening.</div></div>
+          </div>
+          <div class="blad">
+            <div class="bladkop"><h3 class="kop-3">Kies een indeling</h3><span class="mini">past bij 4 kamers</span></div>
+            <div class="keus" id="keus"></div>
+            <div class="zelf"><span data-ik="kamer"></span>Zelf lijnen zetten<small>per vak</small></div>
+            <p class="mini" style="margin: 0">Een indeling is een begin: daarna schuif je elke lijn op zijn plek.</p>
+          </div>
+        </div>
+        <div class="voet"><span class="waarvoor" data-ik="vraag">Waarvoor is dit?</span><span class="waar">3 van 4</span><a><small>‹ Vorige</small><b>Etages</b></a><a class="volgende"><small>Volgende ›</small><b>Apparaten indelen</b></a></div>
+      </section>
+
+      <!-- 3 Kamers: zelf lijnen zetten. -->
+      <section class="glas vorm s-lijnen">
+        <div class="vormkop"><h2 class="kop-2">Kamers</h2><div class="seg"><span>Zolder</span><span class="aan">Eerste</span><span>Begane grond</span></div></div>
+        <div class="binnen">
+          <div class="links">
+            <div class="podium" id="p-lijnen"></div>
+            <div class="werk" style="left: 30px; top: 30px"><span class="aan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16"/></svg>Dwars</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 4v16"/></svg>Overlangs</span><span>Samenvoegen</span></div>
+            <div class="strook"><span class="getal" style="color: var(--zon)">2</span><div class="uitleg"><b>Nog zonder plek op deze etage</b>Sleep een kamer naar een vak, of tik het vak en kies.</div><span class="chip wacht" data-chip="kinderkamer">Kinderkamer</span><span class="chip wacht" data-chip="badkamer">Badkamer</span></div>
+          </div>
+          <div class="blad">
+            <div class="bladkop"><h3 class="kop-3">Vak links</h3><span class="mini">4,4 × 8,4 m · 37 m²</span></div>
+            <div><span class="label">De nieuwe lijn, vanaf de voorgevel</span><div class="stap"><span>−</span><b>4,0 m</b><span>+</span></div></div>
+            <div><span class="label">Wat komt er voor de lijn?</span><div class="chips"><span class="chip wacht" style="background: rgba(247,181,72,0.18)">✓ Kinderkamer</span><span class="chip wacht">Badkamer</span><span class="chip">Overloop</span><span class="chip">Iets anders</span></div></div>
+            <div><span class="label">En erachter?</span><div class="chips"><span class="chip wacht">Badkamer</span><span class="chip">Overloop</span><span class="chip">Nog niet</span></div></div>
+            <p class="mini" style="margin: 0">Een lijn springt per 10 cm. Sleep hem met de rondjes; tik een lijn twee keer om hem weg te halen.</p>
+            <div class="twee" style="margin-top: auto"><span class="knop knop-licht">Zet de lijn</span><span class="knop">Annuleren</span></div>
+          </div>
+        </div>
+        <div class="voet"><span class="waarvoor" data-ik="vraag">Waarvoor is dit?</span><span class="waar">3 van 4</span><a><small>‹ Vorige</small><b>Etages</b></a><a class="volgende"><small>Volgende ›</small><b>Apparaten indelen</b></a></div>
+      </section>
+
+      <!-- 3 Kamers: een ruimte erin zetten, de rest blijft de kamer eromheen. -->
+      <section class="glas vorm s-hal">
+        <div class="vormkop"><h2 class="kop-2">Kamers</h2><div class="seg"><span>Zolder</span><span>Eerste</span><span class="aan">Begane grond</span></div></div>
+        <div class="binnen">
+          <div class="links">
+            <div class="podium" id="p-hal"></div>
+            <div class="werk" style="left: 30px; top: 22px"><span class="aan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="12" y="9" width="8" height="6"/></svg>Ruimte erin</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16"/></svg>Dwars</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 4v16"/></svg>Overlangs</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3"><path d="M4 12h16"/></svg>Zone</span></div>
+            <div class="strook goed"><span class="getal" style="color: var(--mint)">✓</span><div class="uitleg"><b>De woonkamer loopt om de hal heen</b>Wat over is, blijft vanzelf de woonkamer: één ruimte, ook als hij een L of een U wordt.</div></div>
+          </div>
+          <div class="blad">
+            <div class="bladkop"><h3 class="kop-3">Hal</h3><span class="mini">erin gezet · 6 m²</span></div>
+            <div><span class="label">Tegen de muur</span><div class="chips"><span class="chip">Voor</span><span class="chip">Links</span><span class="chip aan">✓ Rechts</span><span class="chip">Achter</span><span class="chip">Los</span></div></div>
+            <div class="twee"><div><span class="label">Breed</span><div class="stap"><span>−</span><b>2,4 m</b><span>+</span></div></div><div><span class="label">Diep</span><div class="stap"><span>−</span><b>2,6 m</b><span>+</span></div></div></div>
+            <div><span class="label">Eromheen</span><div class="invoer">Woonkamer · U-vorm, 78 m²<span class="pijl">▾</span></div></div>
+            <div style="padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.07)"><span class="label">Zones in de woonkamer, sleep de stippellijn</span>
+              <div class="chips"><span class="chip aan">Zithoek · voor</span><span class="chip aan">Eethoek · achter</span><span class="chip plus">+ Zone</span></div>
+            </div>
+            <p class="mini" style="margin: 0">Een zone is geen muur: de kamer blijft één ruimte met één temperatuur. Een zone zegt alleen welke lamp of welk scherm waar hangt.</p>
+          </div>
+        </div>
+        <div class="voet"><span class="waarvoor" data-ik="vraag">Waarvoor is dit?</span><span class="waar">3 van 4</span><a><small>‹ Vorige</small><b>Etages</b></a><a class="volgende"><small>Volgende ›</small><b>Apparaten indelen</b></a></div>
+      </section>
+
+      <!-- 4 Apparaten indelen: op de plattegrond. -->
+      <section class="glas vorm s-apparaten">
+        <div class="vormkop"><h2 class="kop-2">Apparaten indelen</h2><div class="seg"><span>Zolder</span><span>Eerste</span><span class="aan">Begane grond</span></div></div>
+        <div class="binnen">
+          <div class="links">
+            <div class="podium" id="p-apparaten"></div>
+            <div class="sleep" style="left: 250px; top: 196px" aria-hidden="true"><i data-ik="koffie"></i>Stekker koffie</div>
+            <div class="strook"><span class="getal" style="color: var(--zon)">1</span><div class="uitleg"><b>Nog in te delen</b>Sleep naar een kamer. Waar het rondje staat, staat het in de tekening.</div><span class="chip wacht" style="opacity: 0.4">Stekker koffie</span></div>
+          </div>
+          <div class="blad">
+            <div class="bladkop"><h3 class="kop-3">Woonkamer</h3><span class="mini">7 × 8,4 m · 20,8°</span></div>
+            <div><span class="label">Zones, van voor naar achter</span><div class="chips"><span class="chip">Zithoek</span><span class="chip">Eethoek</span><span class="chip plus">+ Zone</span></div></div>
+            <div><span class="label">Apparaten, sleep om te verplaatsen</span>
+              <div class="app"><span class="greep">⋮⋮</span><span class="ik2" data-ik="airco" style="color: var(--ijs)"></span><div class="l"><b>Airco woonkamer</b><span>achterwand, eethoek</span></div></div>
+              <div class="app"><span class="greep">⋮⋮</span><span class="ik2" data-ik="licht" style="color: var(--zon)"></span><div class="l"><b>Plafondlamp</b><span>midden</span></div></div>
+              <div class="app"><span class="greep">⋮⋮</span><span class="ik2" data-ik="licht" style="color: var(--zon)"></span><div class="l"><b>Sfeerlamp</b><span>zithoek</span></div></div>
+              <div class="app"><span class="greep">⋮⋮</span><span class="ik2" data-ik="screen" style="color: var(--ijs)"></span><div class="l"><b>Screen woonkamer</b><span>voorgevel</span></div></div>
+              <div class="app"><span class="greep">⋮⋮</span><span class="ik2" data-ik="klimaat" style="color: var(--gloed)"></span><div class="l"><b>Meter woonkamer</b><span>zithoek</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="voet"><span class="waarvoor" data-ik="vraag">Waarvoor is dit?</span><span class="waar">4 van 4</span><a><small>‹ Vorige</small><b>Kamers</b></a><a class="volgende"><small>Volgende ›</small><b>Buiten</b></a></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="huisontwerp.js"></script>
+<script>
+  const toon = location.hash.slice(1) || 'vorm';
+  document.body.dataset.toon = toon;
+  document.querySelectorAll('[data-deel]').forEach((el) => el.classList.toggle('nu', el.dataset.deel.split(' ').includes(toon)));
+  const VRAAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.9.7c0 1.7-2.4 2.1-2.4 3.8"/><path d="M12 17h.01"/></svg>';
+  document.querySelectorAll('[data-ik]').forEach((el) => el.insertAdjacentHTML('afterbegin', el.dataset.ik === 'vraag' ? VRAAG : iconen.svg(el.dataset.ik)));
+  nav.balk(document.getElementById('balk'), 'instellingen');
+
+  // De kopregel: wat mist en wat klaar is.
+  const lijnen = toon === 'lijnen';
+  document.getElementById('samen').innerHTML = lijnen ? '<span class="mis">2 kamers zonder plek</span><span class="goed">2 klaar</span>' : '<span class="mis">1 mist</span><span class="goed">3 klaar</span>';
+  if (lijnen) {
+    const r = document.getElementById('rij-kamers');
+    r.classList.add('mist');
+    r.querySelector('small').textContent = '2 kamers zonder plek';
+    r.querySelector('.nr').outerHTML = '<span class="stip" style="background: var(--gloed)"></span>';
+  }
+
+  const H = huisontwerp;
+  const zet = (id, svg) => { const el = document.getElementById(id); if (el) el.innerHTML = svg; };
+  const maat = (id) => { const el = document.getElementById(id); return { breed: Math.round(el.clientWidth), hoog: Math.round(el.clientHeight) }; };
+
+  if (toon === 'vorm') zet('p-vorm', H.vanBoven({ kies: 'hoofd', ...maat('p-vorm') }));
+  if (toon === 'zonder') {
+    const r = document.querySelector('[data-deel~="vorm"] small');
+    r.textContent = 'geschat: tussenwoning';
+    zet('p-zonder', H.vanBoven({
+      ...maat('p-zonder'), kies: 'huis',
+      huis: {
+        perceel: { x: 0, y: -4, w: 5.4, d: 21 },
+        buren: true,
+        bomen: [[2.6, 14.5, 1.5]],
+        gebouwen: [{ id: 'huis', naam: 'Je huis', x: 0, y: 0, w: 5.4, d: 9, dak: 'zadel', bron: 'schatting', kolommen: 3 }],
+      },
+    }));
+  }
+  if (toon === 'etages') zet('p-etages', H.doorsnede({ kies: 'e1', ...maat('p-etages') }));
+  if (toon === 'kamers') {
+    zet('p-kamers', H.plattegrond({ etage: 'bg', ...maat('p-kamers') }));
+    document.getElementById('keus').innerHTML = H.SJABLONEN_BG.map((s, i) => `<div class="${i === 0 ? 'aan' : ''}"><div class="pl">${H.sjabloon(s.bomen)}</div><b>${s.naam}</b><small>${s.zin}</small></div>`).join('');
+  }
+  if (toon === 'lijnen') {
+    zet('p-lijnen', H.plattegrond({
+      etage: 'e1', ...maat('p-lijnen'),
+      indeling: { hoofd: { as: 'x', op: 4.4, a: { wacht: true }, b: { k: 'slaapkamer' } } },
+      kies: 'hoofd:a',
+      lijn: { gebouw: 'hoofd', as: 'y', op: 4, r: { x: 0, y: 0, w: 4.4, d: 8.4 } },
+    }));
+  }
+  if (toon === 'hal') {
+    zet('p-hal', H.plattegrond({
+      etage: 'bg', ...maat('p-hal'), kies: 'hoofd:bab', deur: 'rechts',
+      indeling: {
+        hoofd: { as: 'y', op: 3, a: { k: 'woonkamer' }, b: { as: 'y', op: 2.6, a: { as: 'x', op: 7.6, a: { k: 'woonkamer' }, b: { k: 'hal' } }, b: { k: 'woonkamer' } } },
+        uitbouw: { k: 'keuken' },
+        garage: { k: 'garage' },
+      },
+      zones: [{ kamer: 'woonkamer', op: 4.3, namen: ['Zithoek', 'Eethoek'], greep: true }],
+    }));
+  }
+  if (toon === 'apparaten') {
+    zet('p-apparaten', H.plattegrond({
+      etage: 'bg', ...maat('p-apparaten'), kies: 'hoofd:b',
+      apparaten: [
+        { x: 9.3, y: 7.6, icoon: 'airco', kleur: '#6fd3ff' },
+        { x: 6.5, y: 4.4, icoon: 'licht', kleur: '#f7b548' },
+        { x: 4.0, y: 1.6, icoon: 'licht', kleur: '#f7b548' },
+        { x: 6.5, y: 0.5, icoon: 'screen', kleur: '#6fd3ff' },
+        { x: 8.8, y: 2.0, icoon: 'klimaat', kleur: '#ff7a4d' },
+        { gebouw: 'uitbouw', x: 1.2, y: 2.4, icoon: 'droger', kleur: '#6fd3ff' },
+        { gebouw: 'uitbouw', x: 3.0, y: 1.6, icoon: 'licht', kleur: '#f7b548' },
+        { gebouw: 'uitbouw', x: 4.8, y: 2.4, icoon: 'klimaat', kleur: '#ff7a4d' },
+        { gebouw: 'uitbouw', x: 4.2, y: 0.8, icoon: 'koffie', nieuw: true },
+        { x: 1.5, y: 2.1, icoon: 'licht', kleur: '#f7b548' },
+        { x: 2.4, y: 0.8, icoon: 'accu', kleur: '#6ee7b7' },
+        { gebouw: 'garage', x: 1.8, y: 3.3, icoon: 'auto', kleur: '#9aaabb' },
+      ],
+    }));
+  }
+</script>
+</body>
+</html>

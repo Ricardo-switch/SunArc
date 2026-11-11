@@ -463,7 +463,8 @@ describe('het voorstel uit Home Assistant', () => {
   it('zet wat in geen gebied hangt bij "nog in te delen", met de kamer van zijn groep als voorstel', () => {
     const tuin = proposeLayout(config, registers, states).kamers.find((k) => k.naam === 'Tuin')!;
     expect(house.zonderRuimte).toEqual([
-      { id: 'light.zwerver', naam: 'light.zwerver', soort: 'licht', voorstel: null, groepen: ['Tuin alles'], voorstelKamer: tuin.id },
+      // Een lamp zegt ook of hij aan staat, voor Apparaten › Licht (besluit 294).
+      { id: 'light.zwerver', naam: 'light.zwerver', soort: 'licht', voorstel: null, groepen: ['Tuin alles'], voorstelKamer: tuin.id, aan: expect.any(Boolean) },
       // Een uitstelbaar apparaat (besluit 98) zonder gebied: de bewoner geeft het een kamer.
       { id: 'droger', naam: 'Droger', soort: 'apparaat', voorstel: null, groepen: [], voorstelKamer: null },
     ]);
@@ -506,7 +507,9 @@ describe('het voorstel uit Home Assistant', () => {
     expect(lampsFor(house, { soort: 'huis', id: null })).toContain('light.hue_badkamer');
     expect(lampsFor(house, { soort: 'lamp', id: 'light.sfeerverlichting' })).toEqual(['light.sfeerverlichting']);
     expect(lampsFor(house, { soort: 'lamp', id: 'cover.screen' })).toBeNull();
-    expect(lampsFor(house, { soort: 'lamp', id: 'light.zwerver' })).toBeNull();
+    // Een lamp zonder kamer schakelt ook, vanuit Apparaten › Licht (besluit 297).
+    expect(lampsFor(house, { soort: 'lamp', id: 'light.zwerver' })).toEqual(['light.zwerver']);
+    expect(lampsFor(house, { soort: 'lamp', id: 'light.bestaat_niet' })).toBeNull();
     expect(lampsFor(house, { soort: 'etage', id: 'kelder' })).toBeNull();
   });
 

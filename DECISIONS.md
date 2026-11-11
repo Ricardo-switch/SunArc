@@ -51,6 +51,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [277. Easee met de hand, via de eigen dienst van Easee](#277-easee-met-de-hand-via-de-eigen-dienst-van-easee)
 - [278. De stand van evcc met de hand](#278-de-stand-van-evcc-met-de-hand)
 - [280. Laden met de hand met een zin](#280-laden-met-de-hand-met-een-zin)
+- [290. Een stekker op zon met één schakelaar, en op zon gaat meteen in](#290-een-stekker-op-zon-met-één-schakelaar-en-op-zon-gaat-meteen-in)
 
 **Kern en regeling**
 
@@ -88,6 +89,9 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [274. De regeling kijkt in de schaduw mee met de thuisaccu](#274-de-regeling-kijkt-in-de-schaduw-mee-met-de-thuisaccu)
 - [281. De airco springt niet bij tijdens voorverwarmen](#281-de-airco-springt-niet-bij-tijdens-voorverwarmen)
 - [283. Bijspringen per kamer, bij Regeling › Klimaat](#283-bijspringen-per-kamer-bij-regeling--klimaat)
+- [289. Helpen bij de cv: los van de kamer, en de airco draait door tot zijn kamer warm is](#289-helpen-bij-de-cv-los-van-de-kamer-en-de-airco-draait-door-tot-zijn-kamer-warm-is)
+- [291. Een radiatorknop of een gasketel helpt niet op zon](#291-een-radiatorknop-of-een-gasketel-helpt-niet-op-zon)
+- [292. Helpen bij de cv gebouwd: elke airco voor zijn eigen kamer](#292-helpen-bij-de-cv-gebouwd-elke-airco-voor-zijn-eigen-kamer)
 
 **Configuratie en onboarding**
 
@@ -281,6 +285,16 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [285. Een geplande scène noemt zijn kamer en lampen](#285-een-geplande-scène-noemt-zijn-kamer-en-lampen)
 - [286. De stand van het huis zegt wat er meespeelt](#286-de-stand-van-het-huis-zegt-wat-er-meespeelt)
 - [287. Handmatig koelen en vakantie bij de stand](#287-handmatig-koelen-en-vakantie-bij-de-stand)
+- [288. Je huis op maat: vorm, etages, kamers als vakken en de plek van apparaten](#288-je-huis-op-maat-vorm-etages-kamers-als-vakken-en-de-plek-van-apparaten)
+- [293. Apparaten in soorten, een eigen scherm Toevoegen, en schakelaars](#293-apparaten-in-soorten-een-eigen-scherm-toevoegen-en-schakelaars)
+- [294. Apparaten in soorten gebouwd, met alle lampen per kamer](#294-apparaten-in-soorten-gebouwd-met-alle-lampen-per-kamer)
+- [295. Apparaat toevoegen, een eigen scherm](#295-apparaat-toevoegen-een-eigen-scherm)
+- [296. De soorten op Apparaten filteren in plaats van springen](#296-de-soorten-op-apparaten-filteren-in-plaats-van-springen)
+- [297. Schakelaars: vinden, instellen bij Toevoegen, en met de hand schakelen](#297-schakelaars-vinden-instellen-bij-toevoegen-en-met-de-hand-schakelen)
+- [298. Een blad voor elk apparaat, en het vermogen invullen bij een schakelaar](#298-een-blad-voor-elk-apparaat-en-het-vermogen-invullen-bij-een-schakelaar)
+- [299. Het kinderslot in het blad van een thermostaat of witgoed](#299-het-kinderslot-in-het-blad-van-een-thermostaat-of-witgoed)
+- [300. Een kachel uit meer delen: IR-knoppen, de stekker en de temperatuur](#300-een-kachel-uit-meer-delen-ir-knoppen-de-stekker-en-de-temperatuur)
+- [301. Een laadpaal uit losse sensoren](#301-een-laadpaal-uit-losse-sensoren)
 
 **Veiligheid**
 
@@ -13200,6 +13214,639 @@ alsof iemand de stand zelf koos. En bij vakantie stond niet tot of sinds wanneer
   uit de toestanden die hij al bijhoudt (`toestand`). Alleen lezen. Dit "sinds"
   komt uit Home Assistant, dus het klopt ook na een herstart.
 - **Versie 0.157.1.**
+
+---
+
+## 288. Je huis op maat: vorm, etages, kamers als vakken en de plek van apparaten
+
+*Onderwerp: weergave · Status: geldig*
+
+8 november 2026, stap 1 (nog geen versie). Ricardo: "we gaan je huis beter
+ontwerpen, ook ter voorbereiding om straks hetzelfde principe om de kaart
+omtrek of 3d BAG op het huisontwerp toe te passen"; daarna de schets
+Wand-Huis-Ontwerp (standen vorm, zonder, etages, kamers, lijnen, hal,
+apparaten) en zijn keuzes: "laten we het zo bouwen".
+
+*Waarom:* een kamer had in de app geen vorm en geen plek, alleen een etage en
+een volgorde; het poppenhuis zet de kamers daarom op een rij. De gebouwen bij
+Daken en panelen hebben wel een omtrek in meters. Zonder vorm per kamer kan het
+huis op Thuis nooit op echte maat getekend worden.
+
+*Besluit:*
+
+- **Kamers en indeling wordt de groep Je huis**, met vier delen die op elkaar
+  bouwen: Huisontwerp (de gebouwen van boven), Etages (het huis opzij, met
+  hoogtes), Kamers (per etage van boven) en Apparaten indelen (op de
+  plattegrond, met een plek). Buiten en Verborgen blijven. De etages zijn
+  geen losse delen meer: bij Kamers kies je de etage, en een tik op een kamer
+  opent het bekende blad met Kamer en Verwarmen en koelen.
+- **Eén set gebouwen voor Daken en panelen en Huisontwerp.** Wat je op de ene
+  plek vindt of verschuift, staat meteen op de andere. De plattegrond en de
+  3D-kaart vullen elkaar aan: de omtrek uit de ene, hoogte en dak uit de
+  andere. Zonder kaart: woningtype, dakvorm en maten als geschat blok, de
+  helling uit de meting van de panelen. Zelf tekenen kan altijd, met blokken.
+- **Kamers zijn vakken.** Elk vak deel je met één lijn in tweeën, dwars of
+  overlangs, dus de kamers sluiten altijd op elkaar aan. Vakken met dezelfde
+  kamer zijn één ruimte, zonder muur ertussen: een woonkamer kan als een L of U
+  om een hal heen lopen ("Ruimte erin"). Een vak mag een eigen naam hebben
+  zonder kamer in Home Assistant (toilet, overloop). Je begint met een
+  indeling die past bij je kamers, of zet de lijnen zelf.
+- **Zones zijn een lijn in een kamer,** te verschuiven; geen muur, de kamer
+  houdt één temperatuur.
+- **Een apparaat krijgt een plek in zijn kamer.** Zonder plek kiest de
+  tekening er een.
+- **Stap 1, de opslag** (`huisvorm.ts`): in de indeling `plattegrond` (per
+  etage, per gebouw een boom van vakken, in meters langs de assen van het
+  gebouw: u langs de voorgevel, v naar achter), `etageMaten` (hoogte en op
+  welke gebouwen), per kamer `zoneAs` en `zoneGrenzen`, per apparaat `plek`;
+  bij een gebouw `hoogteGoot`, `hoogteNok` en `lagen`. Een kamer die
+  verdwijnt of verhuist laat zijn vak leeg, zonder het bewaren te blokkeren.
+- **Bouwvolgorde:** 1 opslag, 2 de groep Je huis, 3 Huisontwerp, 4 Etages,
+  5 Kamers, 6 Apparaten met hun plek. Elke stap een versie op beta; samen naar
+  main als Je huis af is. Het huis op Thuis op echte maat is daarna een eigen
+  ronde.
+- **Stap 2, versie 0.158.0:** de groep heet Je huis, met Kamers (de etages
+  als balk bovenin, met + Etage), Apparaten indelen, en rond het huis Buiten
+  en Verborgen. Oude adressen met een kamer of etage openen Kamers op die
+  etage. Een apparaat slepen naar een etage bovenin opent die etage.
+- **Stap 3, versie 0.159.0:** Huisontwerp bovenaan Je huis: de tekening van
+  boven en de gebouwen van Daken en panelen (`dakvlakken.vorm` met `huis`),
+  met wat kan bij jouw huis, het woningtype, en per gebouw dak, maat en hoogte
+  (goot, nok, bouwlagen; geschat tot de bewoner of de 3D-kaart het zegt). 3D
+  BAG geeft de hoogte uit `b3_h_dak_min`, `b3_h_dak_max`, `b3_h_maaiveld` en
+  `b3_bouwlagen`. Bewaren gaat langs de nieuwe deur `api/huisvorm`, die alleen
+  de daken bewaart: de panelen, zekering en prijzen blijven staan. Het slepen,
+  de kaart en het venster staan in `dakbediening.js`, de opmaak in `daken.css`
+  (eerst in energie.html); Energie gebruikt de bediening nog uit eigen code.
+- **Stap 4, versie 0.160.0:** Etages na Huisontwerp: het huis opzij
+  (`frontend/kit/huisvorm.js`, `doorsnede`), met de etages op hun hoogte, de
+  etage onder het schuine dak tot de nok met het deel onder 1,5 meter
+  gearceerd, een kelder onder de grond en de uitbouw achter. Goot en nok komen
+  van het hoofdhuis als ze niet geschat zijn, anders uit de etages; een etage
+  is 2,8 meter (een kelder 2,4) tot de bewoner het verandert. Een laag tik je
+  aan in de tekening of de lijst; daar de naam, de hoogte, het schuine dak, op
+  welke gebouwen hij ligt (de begane grond standaard op huis en uitbouw), en
+  hoger, lager en + Etage. Zijn de bouwlagen niet geschat, dan zegt een regel
+  of ze kloppen met het aantal etages boven de grond.
+- **Stap 5, versie 0.161.0:** Kamers toont de etage van boven, op de maat
+  van de gebouwen (`huisvorm.plattegrond` in de kit, de gebouwen in de assen
+  van het hoofdhuis), met de kamers als vakken. Zolang er niets bewaard is,
+  staat er een voorstel uit de kamers; Kies een indeling geeft naast elkaar,
+  voor en achter, hal opzij en gang in het midden (de keuken in de uitbouw,
+  een garage in de garage). Een vak tik je aan: kamer, eigen naam of leeg,
+  dwars of overlangs delen, de lijn ervoor schuiven (ook slepen in de
+  tekening, per 10 cm), een ruimte erin tegen een muur (2,4 bij 2,6 meter,
+  de rest blijft de kamer eromheen), samenvoegen met een leeg of los buurvak.
+  Kamers zonder plek staan bovenaan om in een vak te zetten. Zones zet je in
+  de tekening; elke lijn schuift. Een apparaat sleep je naar een vak met een
+  kamer. Zonder tekening van boven blijft het poppenhuis.
+- **Stap 6, versie 0.162.0:** Apparaten indelen toont de plattegrond met de
+  etagebalk, en elk apparaat als rondje met zijn icoon: op zijn bewaarde plek,
+  of anders langs de achterwand van het grootste vak van zijn kamer. Een
+  rondje of een apparaat uit de lijst sleep je naar een vak met een kamer:
+  dan bewaart de pagina de kamer én de plek (`plek` in meters in het
+  gebouw), en als de kamer zones in de tekening heeft ook de zone die daar
+  ligt. Naar een andere kamer zonder plek valt de oude plek weg. Tik op een
+  rondje opent het apparaat. Zonder tekening van boven blijft de lijst.
+  Hiermee is Je huis af (stap 1 tot 6); het huis op Thuis op echte maat is de
+  volgende ronde.
+- **Het huis op Thuis op echte maat, gepauzeerd (8 november 2026).** Plan met
+  Ricardo's keuzes: opengewerkt met lage binnenmuren, vanaf de straat schuin
+  van rechtsvoor, in huis.js (het eiland en de rest blijven), eerst een
+  schets. Gedaan: de rekenkern en tekenmotor `frontend/kit/huis3d.js` met
+  tests, en de schets Wand-Huis-Maat (het voorbeeldhuis, `#jouw`, `#avond`).
+  De app gebruikt het nog niet. Open bij de schets: de vloeren erboven dekken
+  de kamers achterin, de namen van boven zweven in de zolder, de panelen en
+  het eiland ontbreken. Ricardo: "voorlopig wil ik dit allemaal even
+  pauzeren". Verder bij stap 3 (het huis op maat in huis.js) als hij het zegt.
+- **Teruggedraaid op beta, versie 0.163.0 (9 november 2026).** Ricardo wil Je
+  huis nog niet mee naar main. Beta is één lijn, dus alles van Je huis (stap 1
+  tot 6 en het huis in 3D) staat op de branch `je-huis` (tot en met 697f36a)
+  en is op beta teruggedraaid met één commit: Kamers en indeling werkt weer
+  zoals in 0.157.1. De schets Wand-Huis-Ontwerp en dit besluit blijven op
+  beta. Wat op de NAS in Je huis was ingevuld (vakken, etagehoogtes, de
+  hoogte van gebouwen) valt bij de volgende keer bewaren weg. Terugzetten:
+  de branch `je-huis` samenvoegen met beta, of de terugdraai-commit zelf
+  terugdraaien, en dan de versie ophogen.
+
+---
+
+## 289. Helpen bij de cv: los van de kamer, en de airco draait door tot zijn kamer warm is
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+8 november 2026, nog geen versie: gekozen, nog niet geschetst of gebouwd.
+Ricardo: "de verwarmings assistant ben ik nog niet tevreden over. dit staat nu
+bij woonkamer maar zolder niet", en later: "uiteindelijk moet de regeling kunnen
+bepalen of het efficienter is om de airco mee te laten draaien", "we hoeven niet
+perse het oude systeem te kopieren, het mag ook beter als dat kan". Zijn keuzes
+staan hieronder.
+
+*Waarom:*
+
+- **Zolder kan nooit helpen.** Bijspringen (besluit 283) werkt per zone, en
+  alleen in een zone met een hoofdverwarming én een airco. Zolder heeft alleen
+  `ac-zolder`, dus de instelling staat er niet en de regeling slaat zolder over.
+  In de schaduw stond zolder op 7 november om zes uur op 17,7° bij een doel van
+  19,5°, en er gebeurde niets. Het oude systeem liet de zolder-airco wél
+  meedoen zolang de assist liep, met een eigen grens (aan onder 18°, uit boven
+  18,5°). De app is dat bij de overstap kwijtgeraakt.
+- **Elke beurt is te kort.** In het schaduwlogboek van 1 tot 8 november sprong
+  de woonkamer-airco 1 tot 3 keer per dag bij, steeds 15 tot 22 minuten, meestal
+  precies de kortste beurt (`minRunMinutes` 15). Elke beurt eindigde omdat de
+  ketel stopte, terwijl de kamer nog 0,4 tot 0,9° onder het doel van 20° zat. Na
+  de beurt staat de airco 5 minuten op standby en gaat dan uit, tot de ketel
+  weer aanslaat. Het aantal starts valt mee, maar een warmtepomp die steeds
+  zijn kortste beurt maakt, verliest bij elke start. Op 8 november schoot de
+  kamer juist door, naar 20,9°. De echte airco's stonden die week uit, dus hoe
+  vaak ze zelf aan en uit gaan (de compressor) is nog niet gemeten.
+- **Met deze prijzen is de airco bijna altijd goedkoper dan gas.** Gas kost
+  € 1,37 per m³, en een ketel haalt ongeveer 8,8 kWh warmte uit een m³: zo'n
+  16 ct per kWh warmte. Stroom kost € 0,27. Een airco geeft ongeveer 3,5 kWh
+  warmte per kWh stroom bij 7° buiten (8 ct), 2,8 bij 0° (10 ct) en 2,2 bij −7°
+  (12 ct). Gelijk is het pas bij 1,75, ongeveer −15° buiten. Zon maakt het tot
+  2027 niet goedkoper, want met salderen is een kWh van de panelen evenveel
+  waard als een kWh van het net. De winst zit dus vooral in het vermijden van
+  korte beurten, niet in het kiezen van het uur.
+- **De airco in de kamer van de Nest werkt op de ketel terug.** Verwarmt hij de
+  woonkamer, dan stopt de Nest eerder, en krijgen de radiatoren in de andere
+  kamers minder. Daarom blijft de ketel de basis (zie hieronder) en is "de
+  airco eerst" een latere stap.
+- **Wat er al is en goed is.** Op zon is er dezelfde stabilisatie als in het
+  oude systeem: starten vanaf 1.000 W over, doordraaien vanaf 600 W, stoppen
+  boven 50 W van het net, en 5 minuten rust na elke schakeling, zodat nooit twee
+  airco's tegelijk starten (`power.stabilisationMinutes`). Bijspringen valt daar
+  ook onder. De piep (besluit 281) geldt al voor elke airco: bijspringen start
+  niets in nacht, afwezig, vakantie en voorverwarmen, dus ook niet op zolder.
+
+*Besluit:*
+
+- **Een eigen blok "Helpen bij de cv" bij Regeling › Klimaat,** met elke airco
+  die kan verwarmen, per airco aan of uit. Het blok onder de woonkamer vervalt.
+  Een helper hoort niet meer bij de zone van de cv-thermostaat: hij helpt de
+  hoofdverwarming van het huis.
+- **De ketel blijft de basis; de airco helpt, slimmer.** Starten zoals nu: de
+  ketel stookt al een paar minuten en de kamer van die airco is te koud. Daarbij
+  komt dat de airco goedkoper moet zijn dan de ketel, op dat moment, met de prijs
+  van stroom en gas en de buitentemperatuur.
+- **Elke airco kijkt naar zijn eigen kamer.** De zolder-airco naar zolder, de
+  woonkamer-airco naar de woonkamer.
+- **Stoppen als zijn eigen kamer warm is,** niet als de ketel stopt.
+- **De pomp sparen: minstens 30 minuten aan, daarna minstens 15 minuten uit**
+  (nu 15 en 5).
+- **Rekenen: eerst een tabel per buitentemperatuur, later leren.** Het
+  thermisch model meet al hoe snel een airco zijn kamer verwarmt (woonkamer
+  ongeveer 1° per uur, besluit 231). Met de stroommeter van de airco
+  (`sensor.air_conditioning_*_energy_current`) wordt dat later de warmte per kWh
+  van dit huis in plaats van de tabel.
+- **Zichtbaar op twee plekken.** Bij de instelling een regel per airco: hoe
+  vaak en hoe lang hij vandaag hielp, en wat warmte van de airco kost tegen de
+  ketel ("Airco 9 ct per kWh warmte, ketel 16 ct"). Alleen oranje als hij
+  pendelt. Bij het apparaat een dagbalk met wanneer de ketel stookte en wanneer
+  de airco hielp. Geen melding op de telefoon.
+
+*Nog uit te werken in de schets:* de ingestelde temperatuur van de airco
+bijsturen met het verschil tussen zijn eigen meter en die in de kamer, zodat hij
+rustig doordraait en zichzelf niet steeds uitzet. Met de stroommeter is te zien
+of dat lukt. Verder: hoe het blok eruitziet op wand en telefoon, en wat er
+gebeurt met de drempels per kamer uit `comfort.json` (`bijspringen`, besluit
+283). De airco's echt sturen kan pas in stap B (de schrijfgrens); tot dan is
+het alleen in de schaduw te zien.
+
+---
+
+## 290. Een stekker op zon met één schakelaar, en op zon gaat meteen in
+
+*Onderwerp: visie en principes · Status: geldig*
+
+10 november 2026, na 0.157.1 op de Pi bekeken. De bewoner zag twee dingen bij de
+stekker van het tuinhuis. De kaart zei "Wacht op zon" terwijl beide schakelaars
+bij Regeling › Op zon uit stonden. En onder de stekker stonden twee
+schakelaars voor zon ("op zon" en "SunArc mag hem aan- en uitzetten"), wat
+dubbel leek. Gekozen uit twee vragen met opties, steeds de aanbevolen.
+
+*Besluit:*
+
+- **Op zon gaat meteen in.** Na het bewaren bij Regeling › Op zon rekent de
+  regeling met wat er nu op zon staat, zonder herstart: de antwoorden waarmee
+  de dienst draait krijgen het op zon van nu (`metOpZonVanNu`), en de regeling
+  neemt de configuratie over zoals bij comfort en meten met ([138]). De
+  zekering, de stroommeters, de netmeter en de omvormers blijven wachten op
+  een herstart. Neemt de regeling het niet over, dan blijft het zoals het was
+  en zegt de pagina "Na de volgende start van SunArc".
+- **Waarom het "Wacht op zon" zei:** een stekker die je van zon haalde, stond
+  tot de volgende start nog in de configuratie. Dat is hiermee weg.
+- **Van zon gehaald, dan gaat uit wat SunArc aanzette**, ook nu hij niet meer
+  in het besluit staat ([267] keek alleen naar wat het besluit noemde).
+- **Eén schakelaar per stekker** bij Regeling › Op zon. Op zon is zelf de
+  toestemming: SunArc zet hem dan echt aan en uit, met de hand en op tijden
+  mag dan ook. De aparte schakelaar "SunArc mag hem aan- en uitzetten" ([265])
+  is weg; meekijken zonder schakelen bestaat voor een stekker niet meer.
+- **Met de hand toestaan in het blad van de stekker**, met **Toestaan** in
+  plaats van "Naar Regeling", en zonder op zon kan het daar ook weer weg. Het
+  is dezelfde toestemming (`bedienen` bij de aansluiting); Regeling stuurt
+  hem niet meer mee, zodat een open pagina hem niet terugzet. De deur naar
+  Home Assistant blijft dezelfde ([265], [267]): `switch.turn_on` en
+  `turn_off` op een stekker die mag.
+- **De opslag van klaar voor en klaar om** bestaat nu altijd als er een
+  logmap is, en volgt de configuratie van nu, zodat een apparaat dat er
+  zonder herstart bij komt ze ook heeft.
+- **Een komma in kW:** Node in de add-on (Alpine) kent alleen Engelse
+  getallen, en gaf "0.8 kW". De stekker, de boiler en de panelen zetten de
+  komma nu zelf.
+- **Versie 0.164.0.**
+
+---
+
+## 291. Een radiatorknop of een gasketel helpt niet op zon
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+11 november 2026, versie 0.165.0. Ricardo: "kijk ook naar de radiatoren met
+een slimme knop op cv met gas. deze kunnen niet helpen met de zon".
+
+*Besluit:*
+
+- **Bij Inrichten › Klimaat, bij Wat kan elk apparaat en bij Indeling** staat
+  bij een radiatorknop geen "op zon" meer, en ook niet bij de thermostaat van
+  de cv-ketel, behalve bij een warmtepomp. Een radiatorknop zet alleen een klep
+  open; de warmte komt van de ketel, dus van gas. Een airco en een elektrische
+  verwarming houden de keuze (`huismodel.kanOpZon`).
+- **Stond het er al,** dan blijft de keuze zichtbaar, zodat je hem kunt
+  terugzetten. De dienst sloeg "op zon" zonder vermogen al over ([138]).
+- **Helpen bij de cv** ([292]) telt alleen airco's: een radiatorknop helpt de
+  ketel niet.
+
+---
+
+## 292. Helpen bij de cv gebouwd: elke airco voor zijn eigen kamer
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+11 november 2026, versie 0.165.0: [289] gebouwd, met de schets Wand-Helpen-Cv.
+Ricardo: "ga hierna verder met helpen met cv".
+
+*Besluit:*
+
+- **In de configuratie `cvHelp`,** voor het hele huis: de thermostaten van de
+  ketel (`boilerIds`), na hoeveel minuten stoken, vanaf hoeveel graden te koud,
+  minstens 30 minuten aan en 15 uit, welke airco's niet helpen (`off`), en de
+  prijzen van gas en stroom. De app zet het erin (`withCvHelp` in
+  `web/helpen.ts`) zodra er een ketel is en een airco die kan verwarmen. Zonder
+  `cvHelp` blijft bijspringen per zone ([283]) zoals het was.
+- **De ketel** is de thermostaat die bij Energie › Verwarming gekozen is, en
+  anders de hoofdverwarming in een kamer waar een airco helpt (de Nest). Een
+  thermostaat in de badkamer telt dus niet.
+- **De regel (heat-assist):** elke airco met de rol assist die kan verwarmen,
+  kijkt naar zijn eigen zone. Hij begint als de ketel al zo lang stookt, zijn
+  kamer zoveel te koud is en hij goedkoper is dan de ketel. Hij gaat door tot
+  zijn kamer op temperatuur is, ook als de ketel al stopte, en eenmaal aan
+  minstens 30 minuten; daarna rust hij 15 minuten. Niet in nacht, afwezig,
+  vakantie en voorverwarmen ([281]). De zolder-airco helpt dus nu ook.
+- **Goedkoper:** gas ÷ 8,8 kWh warmte per m³ tegen stroom ÷ wat een airco per
+  kWh geeft, uit een tabel per buitentemperatuur (−15° 1,75; −7° 2,2; 0° 2,8;
+  7° 3,5; 15° 4,2, met rechte lijnen ertussen). Zonder prijzen of
+  buitentemperatuur vergelijkt hij niet en helpt hij zoals eerder. Bij een
+  warmtepomp of stadsverwarming vergelijkt hij niet met gas. Een prijs per uur
+  telt met de prijs van nu. Dat de regel de buitentemperatuur leest, is nieuw
+  voor de kern ([30]).
+- **Bij Regeling een eigen deel "Helpen bij de cv",** tussen Klimaat en
+  Apparaten op zon: wat warmte van de airco en van de ketel kost, met wat nu
+  goedkoper is en bij welke buitentemperatuur ze gelijk zijn; per airco zijn
+  eigen kamer met de temperatuur en het doel, aan of uit, wat hij nu doet en
+  hoe vaak en hoe lang hij vandaag hielp; en "Zo gaat het" met de stappers
+  voor de minuten en de graden. Waarvoor is dit? geeft de rekensom. Bewaard in
+  `comfort.json` als `helpen` (`/api/helpen`, de beheerder). Wat bij
+  bijspringen per kamer stond, neemt het over.
+- **Bij Klimaat** vervalt het blok onder de woonkamer; er komt een rij naar
+  Helpen bij de cv.
+- **Meteen in:** andere prijzen bij Energie of een andere thermostaat van de
+  ketel gaan zonder herstart mee, net als bij het starten.
+- **Vandaag** telt de dienst in het geheugen, per besluit; na een herstart
+  begint de dag opnieuw.
+- **Nog niet:** de ingestelde temperatuur van de airco bijsturen met het
+  verschil tussen zijn eigen meter en de kamer (doordraaien), de dagbalk in het
+  blad van de airco, en leren met de stroommeter van de airco. De airco's echt
+  sturen blijft stap B: tot dan is het de schaduw.
+
+---
+
+## 293. Apparaten in soorten, een eigen scherm Toevoegen, en schakelaars
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, schets Wand-Apparaten-Soorten en Wand-Apparaat-Toevoegen
+(met de telefoon), na de meldingen 157 (Shelly 1 mini), 160 (NexBlue via
+Modbus) en 161 (klik-aan-klik-uit via RFXCOM). Ricardo: "het gaat vooral om
+apparaat ondersteuning", "ik wil meer overzicht in de zin van categorieën",
+"om schakelaars te ondersteunen is een heel nieuw apparaattype". Zijn keuzes
+staan hieronder.
+
+*Waarom:*
+
+- **Waarom ze ontbreken.** Een schakelaar telt nu alleen als stekker als hij zo
+  heet of zelf meet (`findPlugs`): een Shelly 1 mini en een klik-aan-klik-uit
+  (RFXCOM maakt van een gewone ontvanger een `switch.`, zonder ruimte, zonder
+  meter, met een naam als "AC 0x01a2b3c4:1") vallen af. Een apparaat met meer
+  schakelaars ook, zoals een IR-afstandsbediening (HOBEIAN ZG-IR01, zes
+  knoppen). Een laadpaal via Modbus heeft in Home Assistant geen apparaat,
+  alleen losse sensoren, en SunArc zoekt per apparaat.
+- **Niet alles is een apparaat.** In het eigen huis staan 48 schakelaars zonder
+  vaste rol: de meeste zijn instellingen of software (Adaptive Lighting,
+  AdGuard, de NAS, de router, het kinderslot van de droger).
+
+*Besluit:*
+
+- **Apparaten in soorten:** Klimaat, Licht, Warm water en bad, Witgoed, Auto
+  en laden, Thuisaccu, Stekkers en Schakelaars. Een rij bovenaan springt naar
+  een soort. Kleine soorten delen een rij. Deze pagina mag op de wand scrollen
+  (een uitzondering op [104]): anders past het alleen met een pagina per soort.
+- **Licht op Apparaten:** alle lampen, per kamer, om snel te bedienen. Een lamp
+  achter een Shelly of klik-aan-klik-uit is daar gewoon één lamp, met "via".
+  Lampen zonder kamer staan samen onder "Zonder kamer". Een knop zoals een Hue
+  dimmer is geen apparaat en staat nergens.
+- **Stekkers en Schakelaars** zijn eigen soorten. Een schakelaar is een relais
+  in de muur: je kiest wat hij aanzet. Een lamp komt bij Licht, een kachel of
+  ventilator bij Klimaat, de rest bij Schakelaars.
+- **Een eigen scherm Toevoegen** in de tab Apparaten, in plaats van Regeling ›
+  Op zon: links wat nieuw gevonden is (met "Dit is geen apparaat"), rechts zelf
+  kiezen per soort of zoeken. Daarna: wat het is, de naam, waar, en wat SunArc
+  mag (alleen kijken, met de hand).
+- **Losse sensoren aanwijzen** als iets geen apparaat is in Home Assistant,
+  zoals een laadpaal via Modbus: SunArc stelt ze voor, eerst alleen kijken.
+- **Een apparaat uit meer delen:** een IR-afstandsbediening met de knoppen die
+  een code hebben, een stekker die meet en de temperatuur worden samen één
+  kachel. IR en klik-aan-klik-uit zeggen niet terug of iets aan staat: de app
+  toont wat het laatst gestuurd is.
+- **Alleen echte meters,** behalve bij klimaat: daar mag je het vermogen
+  invullen (vloerverwarming, infraroodpaneel, een kachel zonder meter). Het
+  ingevulde vermogen van een stekker ([264]) gaat weg. Zonder meter kan iets
+  niet op zon.
+- **Kinderslot in het blad:** bij een thermostaat of droger met een kinderslot
+  staat onderaan het blad "Op de thermostaat" (of "Op de droger") met een
+  schakelaar die meteen gaat.
+- **Bedienen vraagt eigen deuren:** een lamp achter een schakelaar, een
+  schakelaar, IR-knoppen en een kinderslot schakelen een `switch.` die nu niet
+  mag. Elke deur krijgt bij het bouwen zijn eigen besluit en test ([97], [265]).
+- **Bouwen in stappen,** elk een versie: de soorten op Apparaten; het scherm
+  Toevoegen; schakelaars, IR en losse sensoren; het kinderslot en het
+  vermogen.
+
+---
+
+## 294. Apparaten in soorten gebouwd, met alle lampen per kamer
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.166.0: de eerste stap van [293], met de schets
+Wand-Apparaten-Soorten. Ricardo: "1, en dan bouwen".
+
+*Besluit:*
+
+- **Apparaten in soorten:** Klimaat, Licht, Warm water en bad (boiler,
+  jacuzzi), Witgoed, Auto en laden, Thuisaccu en Stekkers. Een soort zonder
+  apparaten staat er niet. Wat SunArc vond maar nog niet op zon staat, komt bij
+  zijn soort (een stekker bij Stekkers, een boiler bij Warm water). Per soort
+  eerst wat nu iets doet ([140]).
+- **De kop van een soort** zegt in een paar woorden wat er gebeurt: "1 bezig ·
+  2 wacht op zon", of "alles rustig"; bij Licht "1 van 9 aan".
+- **Bovenaan een rij met de soorten,** met hoeveel er zijn. Een tik springt
+  naar de soort; Alles gaat terug naar boven. Op de telefoon blijft de rij
+  bovenaan staan en schuift hij opzij.
+- **Licht:** alle lampen per kamer, in de volgorde van het huis, elk met een
+  schakelaar. Schakelen gaat door dezelfde deur als in een kamer
+  (`api/licht`, [97]); staat licht bedienen uit, dan zijn de schakelaars
+  grijs. Lampen zonder kamer staan onder "Zonder kamer", met "Kies een kamer"
+  naar Indeling; daarvoor geeft `api/huis` bij een lamp zonder kamer nu ook of
+  hij aan staat.
+- **Op de wand drie kolommen,** en een soort is zo breed als hij kaarten heeft:
+  kleine soorten delen een rij. Deze pagina scrolt op de wand ([293]); waar je
+  stond, blijft staan als de pagina ververst.
+- **Het zonblok bovenaan** zegt hoeveel zon er over is, met eronder een strook
+  van waar de stroom heen gaat (de airco's, de rest van het huis, terug naar
+  het net). De balk onderaan is weg. Ernaast de knop Toevoegen; op de
+  telefoon een ronde plus. Hij gaat nog naar Regeling › Op zon, tot het eigen
+  scherm Toevoegen er is (de volgende stap).
+
+---
+
+## 295. Apparaat toevoegen, een eigen scherm
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.167.0: de tweede stap van [293], met de schets
+Wand-Apparaat-Toevoegen.
+
+*Besluit:*
+
+- **Een eigen scherm** `toevoegen.html`, in de tab Apparaten. De knop Toevoegen
+  op Apparaten gaat erheen, met een oranje bolletje met hoeveel er nieuw
+  gevonden is.
+- **Links: nieuw gevonden** in Home Assistant en nog niet ingedeeld: zonder
+  kamer (naar Indeling), gevonden maar nog niet op zon (naar Regeling › Op
+  zon), en een auto, laadpaal of accu die bij Energie uit staat. Staat alles,
+  dan zegt het "Alles is ingedeeld."
+- **Rechts: zelf kiezen per soort.** Elke soort gaat naar de plek waar hij nu
+  al ingesteld wordt: Klimaat naar Inrichten › Klimaat, Licht naar Indeling,
+  Warm water, Witgoed en Stekkers naar Regeling › Op zon, Auto en laden en
+  Thuisaccu naar Energie.
+- **Nog niet:** schakelaars (een Shelly, klik-aan-klik-uit, een
+  IR-afstandsbediening), losse sensoren en zoeken. Die komen in de volgende
+  stap, met het kiezen in dit scherm zelf; het scherm zegt dat eronder.
+
+---
+
+## 296. De soorten op Apparaten filteren in plaats van springen
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.167.1, na 0.167.0 op de telefoon bekeken. Ricardo:
+"per categorie is het nu nog steeds een lange lijst die naar de juiste plek
+springt", en gekozen: filteren.
+
+*Besluit:*
+
+- **Een tik op een soort toont alleen die soort** ([294] sprong naar zijn plek
+  in één lange pagina). Alles toont weer alles. De gekozen soort staat over de
+  hele breedte, en de lijst begint bovenaan.
+- **De keuze blijft staan** als je terugkomt, op dat toestel (in de browser,
+  niet in de dienst). Bestaat de soort niet meer, dan geldt Alles.
+- **Bij een slimme stekker op de NAS of elders zonder deuren** zegt het blad
+  nu: alleen meekijken, met de hand schakelen kan in de add-on, met Toestaan in
+  dit blad ([290]). Het is geen instelling: de NAS schrijft nooit naar Home
+  Assistant ([152]).
+- **Nieuw gevonden telt een apparaat uit de configuratie niet,** zoals een
+  droger uit het bestand: dat staat bij Regeling › Op zon al aan (of bewust
+  uit). Toevoegen noemde hem "nog niet op zon" ([295]).
+- **Elk apparaat is aan te tikken,** zoals een klimaatkaart: de naam van een
+  lamp opent hem in zijn kamer (zonder kamer: Indeling), de boiler en de
+  jacuzzi openen hun kamer als het huis ze daar kent, en de thuisaccu opent
+  Energie › Thuisaccu. Ricardo: "zorg dat alle apparaten aanklikbaar zijn net
+  als klimaat die je dan naar de locatie brengt in huis". Wat al een eigen
+  blad of pagina heeft (een airco of thermostaat met de hand, witgoed, een
+  stekker, de auto), houdt dat: daar bedien je het al.
+
+---
+
+## 297. Schakelaars: vinden, instellen bij Toevoegen, en met de hand schakelen
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.168.0: de derde stap van [293], voor de meldingen
+157 (Shelly 1 mini), 161 (klik-aan-klik-uit via RFXCOM) en de
+IR-afstandsbediening in het tuinhuis.
+
+*Besluit:*
+
+- **Vinden** (`web/schakelaars.ts`): een apparaat in Home Assistant met een
+  `switch.` zonder vaste rol, van een koppeling die echte schakelaars levert
+  (Shelly, RFXCOM, Zigbee2MQTT, ZHA, Tuya, Tasmota, ESPHome en zo). Niet:
+  software (Adaptive Lighting, AdGuard, de NAS, de router), instellingen (een
+  kinderslot, een lampje, de jetstand), een brug of coördinator, een apparaat
+  dat iets anders is (klimaat, een lamp, een scherm), en wat het huis al kent
+  (de regeling, een boiler, een stekker). Bij een IR-afstandsbediening alleen
+  de knoppen met een geleerde code. Klik-aan-klik-uit en IR zeggen niet terug
+  of iets aan staat: de app zegt dan "laatst gestuurd".
+- **Instellen bij Apparaat toevoegen:** een schakelaar staat bij Nieuw
+  gevonden, en onder de soort Schakelaars. Je kiest wat hij aanzet (lamp,
+  kachel, ventilator, pomp, boiler, fietslader, anders), de naam (bij meer
+  knoppen per knop), de kamer (of zoals in Home Assistant), en alleen kijken
+  of met de hand. "Dit is geen apparaat" haalt hem uit de lijst. Bewaard in
+  een eigen bestand `schakelaars.json` (`/api/schakelaars`, de beheerder).
+- **Een lamp** wordt een gewone lamp in zijn kamer: op Thuis, in de kamer en
+  bij Apparaten › Licht, met "via" en het model. Hij gaat aan en uit door de
+  deur van het licht (`/api/licht`, [97]); de dienst zet dan `switch.turn_on`
+  of `turn_off` op die schakelaar. Het huis volgt daarom ook `switch.`.
+- **Iets anders** staat bij Apparaten › Schakelaars, met per knop of hij aan
+  staat en een schakelaar (`/api/schakelaar`, de bewoner).
+- **De deur naar Home Assistant** is die van een stekker met de hand ([265]):
+  `switch.turn_on` en `turn_off` zonder velden, alleen op een schakelaar die
+  de bewoner met de hand toeliet, alleen in de add-on. Op de NAS kijkt de app
+  mee.
+- **Een lamp zonder kamer** bij Apparaten › Licht schakelde niet (de deur
+  zocht alleen in kamers); nu wel.
+- **Nog niet:** het vermogen invullen bij een schakelaar zonder meter, de
+  bladen per apparaat, het kinderslot, de IR-afstandsbediening samen met de
+  stekker en de temperatuur als één kachel, en losse sensoren. Dat is stap 4.
+
+---
+
+## 298. Een blad voor elk apparaat, en het vermogen invullen bij een schakelaar
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.169.0: stap 4 van [293], de eerste twee delen.
+Ricardo, na de Pi bekeken: "de losse vensters in apparaten werken sneller dan
+naar de locatie. Doe dit voor alle apparaten ipv naar de locatie te gaan", en
+over het vermogen: "dan geef je de gebruiker toch de mogelijkheid om meer
+inzicht te geven bij opbrengst".
+
+*Besluit:*
+
+- **Een tik opent het blad van het apparaat,** bij elk apparaat op Apparaten:
+  een lamp (de naam), de boiler of jacuzzi, de thuisaccu en een schakelaar.
+  Het blad komt van rechts op de wand en van onderen op de telefoon, zoals het
+  blad van een airco, stekker of witgoed ([238], [265]). Dit vervangt de weg
+  naar de kamer uit [296]; in het blad staat de kamer als tweede weg.
+- **Het blad van een lamp:** aan of uit, en de helderheid als hij dimt, door
+  de deur van het licht ([97]). Een lamp zonder kamer heeft "Kies een kamer".
+- **De boiler of jacuzzi:** wat hij doet, de temperatuur en het vermogen nu,
+  met Instellen naar Regeling › Op zon. **De thuisaccu:** lading, vermogen,
+  wat erin zit en wat SunArc ermee zou doen, met Instellen naar Energie.
+  **Een schakelaar:** per knop aan of uit (als het mag), het vermogen, met
+  Instellen naar Apparaat toevoegen.
+- **Het vermogen invullen** ([293] zei: alleen echte meters; dat is
+  teruggedraaid): bij een schakelaar zonder eigen meter vul je in wat hij
+  vraagt als hij aan staat, in W, niet verplicht. Staat een knop aan, dan telt
+  dat mee bij Opbrengst › Nu en staat het op de kaart als "kW, ingevuld". Een
+  schakelaar met een eigen meter gebruikt de meter. Het ingevulde vermogen van
+  een stekker ([264]) blijft.
+- **In `hand.js` een vrij blad** (`openVrij`), dat de pagina zelf vult; het
+  ververst met de pagina mee.
+
+---
+
+## 299. Het kinderslot in het blad van een thermostaat of witgoed
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.170.0: stap 4 van [293], derde deel. Ricardo: "bij
+een slimme thermostaat knop wil ik kinderslot wel kunnen bedienen", en ook bij
+de droger.
+
+*Besluit:*
+
+- **Vinden:** een `switch.` met kinderslot of child lock in de naam, op
+  hetzelfde apparaat in Home Assistant als de thermostaat (zijn `climate.`) of
+  het witgoed (de knop voor op afstand starten), ook als hij onder de
+  instellingen staat. Bij Ricardo: `switch.thermostaat_badkamer_kinderslot`
+  (Tuya), `switch.sonoff_thermostaat_child_lock` (Zigbee2MQTT) en
+  `switch.droger_kinderslot` (Home Connect). `/api/kinderslot` geeft ze per
+  apparaat.
+- **In het blad,** onderaan: "Op de …" met de naam van het apparaat, Kinderslot
+  en een schakelaar die meteen gaat, los van "Zet op". Bij een airco,
+  thermostaat, radiatorknop en witgoed, waar het blad ook geopend wordt (bij
+  Apparaten en in de kamer).
+- **De deur naar Home Assistant** is die van een stekker ([265], [297]):
+  `switch.turn_on` en `turn_off` zonder velden, alleen op een kinderslot dat
+  het huis zo vond, alleen in de add-on, voor wie in huis woont. Op de NAS
+  kijkt het blad mee.
+
+---
+
+## 300. Een kachel uit meer delen: IR-knoppen, de stekker en de temperatuur
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.171.0: stap 4 van [293], vierde deel. Ricardo koos
+dat de kachel in het tuinhuis één apparaat wordt ("zet het erbij"): een
+IR-afstandsbediening (HOBEIAN ZG-IR01) met twee geleerde knoppen en een
+temperatuur, en een slimme stekker (Sonoff S60) die de stroom geeft en meet.
+
+*Besluit:*
+
+- **Bij Apparaat toevoegen,** bij alles behalve een lamp: "Hoort erbij" met de
+  slimme stekker die de stroom geeft. SunArc stelt de stekker voor die een
+  woord uit de naam of het gebied deelt ("tuinhuis"). Heeft het apparaat zelf
+  een temperatuur, dan staat die erbij. Met een stekker meet de stekker; het
+  vermogen invullen ([298]) is dan niet nodig.
+- **Een kachel of ventilator** staat bij Apparaten › Klimaat, niet bij
+  Schakelaars, met "Het is er 6,3°" van het apparaat zelf, de knoppen met hun
+  naam, en "Stroom via …" met de stekker; een tik daarop opent het blad van
+  de stekker ([265]). Wat hij trekt komt van de meter van de stekker.
+- **De stekker staat niet nog eens los** bij Stekkers of bij Nieuw gevonden,
+  en telt niet dubbel bij Opbrengst.
+- **De regeling** doet er nog niets mee: een kachel achter IR is nog geen
+  klimaatapparaat dat de regeling stuurt. De stekker op zon blijft zoals hij
+  was ([290]).
+
+---
+
+## 301. Een laadpaal uit losse sensoren
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.172.0: het laatste deel van stap 4 van [293], voor
+melding 160 (een NexBlue Edge Max via Modbus, niet te vinden).
+
+*Waarom:* SunArc herkent een laadpaal per apparaat in Home Assistant ([259]).
+Een laadpaal via Modbus heeft geen apparaat, alleen losse sensoren.
+
+*Besluit:*
+
+- **Bij Apparaat toevoegen › Losse sensoren** (alleen als er sensoren zonder
+  apparaat zijn): een naam, een zoekveld, en de sensoren zonder apparaat per
+  soort (vermogen, stroom per fase, totaal geladen, stand), met wat ze nu
+  zeggen. Je vinkt aan wat bij de laadpaal hoort, hooguit acht.
+- **Een apparaat van SunArc zelf:** de keuze (`schakelaars.json`,
+  `laadpalen`, `/api/losse-laadpaal` voor de beheerder) wordt in de registers
+  een apparaat met een kopie van die sensoren, alleen voor laden en de
+  thuisaccu (`metLosseLaadpalen`). Zo herkent Energie › Auto en laadpaal hem
+  als laadpaal, met vermogen, stroom en stand, en werken de kaart, de pagina
+  Auto en de laadbeurten zoals bij elke laadpaal.
+- **Eerst alleen kijken:** bedienen via Modbus (een stroom zetten, pauzeren)
+  kan nog niet.
+- **De melding SA-EXA6** (issue 160) krijgt het antwoord in de app.
 
 ---
 

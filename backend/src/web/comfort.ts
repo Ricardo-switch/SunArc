@@ -20,6 +20,7 @@ import type { SiteConfig } from '../core/model.js';
 import { zonePriorityFor } from '../core/voorrang.js';
 import { STANDAARD_DAGDELEN, STANDAARD_KOEL, STANDAARD_PLAFOND_BOVEN, STANDAARD_WARM } from '../config/standaard.js';
 import { HEAT_ASSIST_DEFAULTS } from '../core/strategies/heatAssist.js';
+import type { Helpen } from './helpen.js';
 
 export const COMFORT_FILE = 'comfort.json';
 
@@ -103,6 +104,11 @@ export interface Comfort {
    * Klimaat. Weg is: aan, met de standaard van heat-assist.
    */
   readonly bijspringen?: Readonly<Record<string, Bijspringen>>;
+  /**
+   * Helpen bij de cv (besluit 292), van het huis: gezet bij Regeling › Helpen
+   * bij de cv. Weg is: wat bijspringen per kamer zei, of de standaard.
+   */
+  readonly helpen?: Helpen;
 }
 
 /** Of de airco in een zone de hoofdverwarming helpt, en wanneer (besluit 283). */

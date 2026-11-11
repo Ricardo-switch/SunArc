@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Regeling › Helpen bij de cv</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Helpen bij de cv (schets, 9 november 2026, besluit 289).
+   *
+   * Een eigen deel in Regeling, naast Klimaat en Apparaten op zon: elke airco
+   * die kan verwarmen, per airco aan of uit, en elk kijkt naar zijn eigen
+   * kamer. Bovenaan wat warmte nu kost, van de airco en van de ketel. Per
+   * airco wat hij vandaag deed, en op welke temperatuur de app hem zet zodat
+   * hij rustig doordraait. Onderaan hoe het gaat: wanneer hij begint en
+   * stopt, de pomp sparen, en stil 's nachts.
+   *
+   * Een eigen deel en geen blok onder Klimaat: met drie kamers en twee
+   * airco's past het daar op de wand niet zonder scrollen (besluit 104).
+   *
+   * Standen:
+   *   (zonder)    16:10, 3° buiten: de woonkamer-airco helpt, zolder is klaar
+   *   #pendelt    de zolder-airco gaat zelf steeds kort uit en aan; oranje
+   *   #duurder    −16° buiten: de ketel is nu goedkoper, de airco's wachten
+   *   #stil       06:20, voorverwarmen: stil tot 07:00, om het piepje
+   *   #hulp       Waarvoor is dit? open, met de rekensom
+   *   #klimaat    het deel Klimaat, zonder bijspringen onder de woonkamer
+   *   #apparaat   het blad van de zolder-airco met de dag als balk
+   *   #apparaat-pendelt  dezelfde balk als hij pendelt
+   */
+  main { position: relative; padding: 22px 26px 20px 22px; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  .kopregel { display: flex; align-items: center; gap: 14px; }
+  .terug { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 16px 0 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.07); border: 1px solid var(--glas-rand); font-size: 14.5px; font-weight: 600; color: var(--zacht); }
+  .terug i { font-style: normal; font-size: 20px; line-height: 1; margin-top: -2px; }
+  .kopregel .kop-1 { font-size: 40px; margin-left: 4px; }
+  .bewaard { margin-left: auto; font-size: 13.5px; font-weight: 600; color: var(--gedempt); }
+  .veld { flex: 1; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; min-height: 0; }
+
+  /* De delen van Regeling. */
+  .lijst { align-self: start; padding: 6px; border-radius: 22px; display: flex; flex-direction: column; gap: 2px; }
+  .rij { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 1px 12px; align-items: center; min-height: 72px; padding: 8px 12px; border-radius: 16px; color: var(--tekst); position: relative; }
+  .rij .ik { grid-row: 1 / 3; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); }
+  .rij .ik svg { width: 22px; height: 22px; }
+  .rij b { font-size: 16px; font-weight: 600; align-self: end; }
+  .rij small { grid-column: 2; font-size: 13px; color: var(--gedempt); align-self: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rij .stip { grid-row: 1 / 3; grid-column: 3; }
+  .rij.mist small { color: var(--gloed); }
+  .rij.nu { background: rgba(255, 255, 255, 0.1); }
+  .rij.nu::before { content: ''; position: absolute; left: -2px; top: 18px; bottom: 18px; width: 4px; border-radius: 2px; background: var(--tekst); }
+
+  /* Het gekozen deel. */
+  .vorm { position: relative; padding: 20px 24px 16px; display: flex; flex-direction: column; gap: 14px; min-height: 0; border-radius: 24px; }
+  .vorm h2 { margin: 0; }
+  .vorm .lead { margin: 4px 0 0; font-size: 14px; color: var(--zacht); }
+
+  /* Wat warmte nu kost: twee balken op één schaal. */
+  .kost { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 18px; align-items: center; padding: 14px 16px; border-radius: 18px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.07); }
+  .balken { display: flex; flex-direction: column; gap: 8px; }
+  .bk { display: grid; grid-template-columns: 128px minmax(0, 1fr) 92px; gap: 10px; align-items: center; font-size: 13.5px; color: var(--zacht); }
+  .bk .baan { height: 14px; border-radius: 7px; background: rgba(255, 255, 255, 0.06); position: relative; overflow: hidden; }
+  .bk .baan i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; }
+  .bk b { font-family: var(--kop); font-size: 17px; font-weight: 600; color: var(--tekst); text-align: right; white-space: nowrap; }
+  .bk b small { font-family: var(--romp); font-size: 11.5px; font-weight: 600; color: var(--gedempt); margin-left: 3px; }
+  .oordeel { display: flex; flex-direction: column; gap: 3px; padding-left: 18px; border-left: 1px solid rgba(255, 255, 255, 0.08); }
+  .oordeel b { font-size: 15px; font-weight: 700; }
+  .oordeel span { font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+
+  /* Per airco een kaart. */
+  .airco { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .ac { padding: 14px 16px 12px; border-radius: 18px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.07); display: flex; flex-direction: column; gap: 10px; }
+  .ac.let { border-color: rgba(255, 122, 77, 0.45); background: rgba(255, 122, 77, 0.06); }
+  .ac.uit { opacity: 0.6; }
+  .ac .boven { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+  .ac .ik { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 122, 77, 0.12); }
+  .ac .ik svg { width: 22px; height: 22px; }
+  .ac b.naam { display: block; font-size: 16px; font-weight: 600; }
+  .ac .kamer { font-size: 12.5px; color: var(--gedempt); }
+  .ac .kamer em { font-style: normal; color: var(--zacht); font-weight: 600; }
+  .schakel { width: 48px; height: 28px; border-radius: 999px; background: var(--mint); position: relative; flex: none; }
+  .schakel::after { content: ''; position: absolute; right: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+  .schakel.uit { background: rgba(255, 255, 255, 0.16); }
+  .schakel.uit::after { right: auto; left: 3px; }
+  .status { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+  .status .stip { flex: none; }
+  .regels { display: flex; flex-direction: column; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .regel { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0 0; font-size: 13px; color: var(--gedempt); }
+  .regel span:last-child { color: var(--zacht); font-weight: 600; text-align: right; }
+  .regel.let span:last-child { color: var(--gloed); }
+  .dag { font-size: 13px; font-weight: 700; color: var(--ijs); align-self: flex-start; }
+
+  /* Hoe het gaat. */
+  .gaat { display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
+  .gaat h3 { grid-column: 1 / -1; margin: 0 0 2px; font-size: 13px; font-weight: 700; color: var(--gedempt); }
+  .stap { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 10px; align-items: center; min-height: 46px; border-top: 1px solid rgba(255, 255, 255, 0.07); font-size: 13.5px; color: var(--zacht); }
+  .stap > b { font-size: 14px; font-weight: 600; color: var(--tekst); }
+  .stap.breed { grid-column: 1 / -1; }
+  .stap .zin { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; }
+  .stapper { display: inline-flex; align-items: center; gap: 6px; }
+  .stapper i { font-style: normal; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.08); font-weight: 700; font-size: 16px; color: var(--tekst); }
+  .stapper b { min-width: 58px; text-align: center; font-size: 14px; color: var(--tekst); }
+
+  .verder { margin-top: auto; display: flex; gap: 12px; align-items: center; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .verder a { display: flex; flex-direction: column; gap: 1px; min-width: 200px; padding: 9px 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--glas-rand); color: var(--tekst); text-decoration: none; }
+  .verder a small { font-size: 12px; color: var(--gedempt); font-weight: 600; }
+  .verder a b { font-size: 15px; font-weight: 600; }
+  .verder a.volgende { text-align: right; }
+  .verder .waar { margin-right: auto; font-size: 12.5px; color: var(--gedempt); }
+  .waarvoor { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 10px; border-radius: 12px; background: rgba(111, 211, 255, 0.1); color: #a9e6ff; font-size: 14px; font-weight: 700; }
+  .waarvoor svg { width: 19px; height: 19px; }
+
+  /* Waarvoor is dit? */
+  .hulp { display: none; position: absolute; z-index: 5; bottom: 82px; left: 20px; width: 400px; padding: 16px 18px; border-radius: 18px; background: #0e1626; border: 1px solid var(--glas-rand); box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5); }
+  body[data-toon='hulp'] .hulp { display: block; }
+  body[data-toon='hulp'] .waarvoor { background: #a9e6ff; color: var(--inkt); }
+  .hulp::before { content: ''; position: absolute; bottom: -7px; left: 70px; width: 12px; height: 12px; background: #0e1626; border-right: 1px solid var(--glas-rand); border-bottom: 1px solid var(--glas-rand); transform: rotate(45deg); }
+  .hulp h3 { margin: 0 0 8px; font-size: 14px; font-weight: 700; color: var(--zacht); }
+  .hulp ul { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 7px; font-size: 13.5px; color: var(--zacht); line-height: 1.4; }
+  .hulp li { display: flex; gap: 8px; }
+  .hulp li::before { content: '›'; color: var(--ijs); font-weight: 700; }
+  .som { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; color: var(--zacht); padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); }
+  .som b { color: var(--tekst); }
+
+  /* Klimaat, zonder bijspringen. */
+  .kamerrij { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .kamerrij b { display: block; font-size: 15.5px; font-weight: 600; }
+  .kamerrij span { font-size: 13px; color: var(--gedempt); }
+  .kamerrij .pijl { color: var(--gedempt); font-size: 22px; }
+  .fase { display: grid; grid-auto-flow: column; gap: 3px; padding: 3px; border-radius: 11px; background: rgba(255, 255, 255, 0.06); }
+  .fase span { height: 30px; display: grid; place-items: center; border-radius: 8px; padding: 0 12px; font-size: 12.5px; font-weight: 700; color: var(--zacht); }
+  .fase span.aan { background: var(--tekst); color: var(--inkt); }
+  .naar { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: rgba(255, 122, 77, 0.07); border: 1px solid rgba(255, 122, 77, 0.22); }
+  .naar .ik { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 122, 77, 0.14); }
+  .naar .ik svg { width: 22px; height: 22px; }
+  .naar b { display: block; font-size: 15px; font-weight: 600; }
+  .naar span { font-size: 13px; color: var(--zacht); }
+  .naar .pijl { color: var(--gedempt); font-size: 22px; }
+
+  /* Het apparaat: de kaarten gedimd, het blad rechts. */
+  .apparaten { position: absolute; inset: 0; padding: 22px 26px 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+  .apparaten .kaarten { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 168px; gap: 12px; opacity: 0.35; }
+  .apparaten .kaart { border-radius: 20px; padding: 14px 16px; }
+  .apparaten .kaart b { font-size: 15px; }
+  .blad { position: absolute; z-index: 4; top: 16px; right: 16px; bottom: 16px; width: 470px; padding: 22px 24px 20px; border-radius: 26px; background: #0d1626; border: 1px solid var(--glas-rand); box-shadow: -18px 0 50px rgba(0, 0, 0, 0.45); display: flex; flex-direction: column; gap: 14px; }
+  .blad .kop { display: flex; justify-content: space-between; align-items: start; }
+  .blad h2 { margin: 0; font-size: 28px; }
+  .blad .sub { font-size: 13px; color: var(--zacht); margin-top: 3px; }
+  .blad .sluit { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.08); color: var(--zacht); font-size: 16px; }
+  .knop-rond { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; justify-items: center; }
+  .knop-rond i { font-style: normal; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, 0.18); font-size: 22px; color: var(--zacht); }
+  .wijzer { width: 168px; height: 168px; position: relative; display: grid; place-items: center; }
+  .wijzer svg { position: absolute; inset: 0; }
+  .wijzer b { font-family: var(--kop); font-size: 50px; font-weight: 600; letter-spacing: -1px; }
+  .wijzer small { position: absolute; bottom: 38px; font-size: 12px; color: var(--gedempt); }
+  .soort { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 13px; background: rgba(255, 255, 255, 0.06); }
+  .soort span { height: 38px; display: grid; place-items: center; border-radius: 10px; font-weight: 700; font-size: 14px; color: var(--zacht); }
+  .soort span.aan { background: rgba(255, 255, 255, 0.14); color: var(--tekst); }
+
+  /* De dag als balk. */
+  .vandaag { padding: 14px 16px; border-radius: 18px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.07); display: flex; flex-direction: column; gap: 10px; }
+  .vandaag .titel { display: flex; justify-content: space-between; align-items: baseline; }
+  .vandaag .titel b { font-size: 15px; font-weight: 700; }
+  .vandaag .titel span { font-size: 12.5px; color: var(--gedempt); }
+  .tijdlijn { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 7px 10px; align-items: center; font-size: 12.5px; color: var(--zacht); }
+  .tijdlijn .baan { position: relative; height: 18px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); }
+  .tijdlijn .baan i { position: absolute; top: 2px; bottom: 2px; border-radius: 4px; }
+  .tijdlijn .baan i.kort { top: 0; bottom: 0; width: 3px; border-radius: 2px; background: var(--gloed); box-shadow: 0 0 0 1px rgba(13, 22, 38, 0.9); }
+  .tijdlijn .stil { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0 3px, transparent 3px 7px); border-radius: 6px; }
+  .tijdlijn .nu-lijn { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--tekst); border-radius: 1px; }
+  .uren { position: relative; height: 14px; font-size: 11px; color: var(--gedempt); }
+  .uren span { position: absolute; transform: translateX(-50%); }
+  .legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--zacht); }
+  .legenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .legenda i { width: 12px; height: 8px; border-radius: 3px; display: inline-block; }
+  .samenvat { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.07); font-size: 13px; color: var(--zacht); }
+  .samenvat .let { color: var(--gloed); font-weight: 600; }
+  .koppel { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; color: var(--zacht); padding: 10px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.045); }
+  .koppel b { color: var(--tekst); font-weight: 600; }
+  .koppel a { color: var(--ijs); font-weight: 700; font-size: 13px; text-decoration: none; }
+  .blad .doe { margin-top: auto; align-self: flex-end; height: 46px; padding: 0 20px; border-radius: 14px; background: var(--tekst); color: var(--inkt); display: grid; place-items: center; font-weight: 700; font-size: 14.5px; }
+
+  [data-scherm] { display: none !important; }
+  body[data-scherm-nu='regeling'] [data-scherm='regeling'],
+  body[data-scherm-nu='klimaat'] [data-scherm='klimaat'],
+  body[data-scherm-nu='apparaat'] [data-scherm='apparaat'] { display: flex !important; }
+  body[data-scherm-nu='regeling'] .veld[data-scherm='regeling'], body[data-scherm-nu='klimaat'] .veld[data-scherm='klimaat'] { display: grid !important; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-winter">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="kopregel" data-scherm="regeling" id="kop-r"></div>
+    <div class="kopregel" data-scherm="klimaat" id="kop-k"></div>
+
+    <!-- Regeling › Helpen bij de cv -->
+    <div class="veld" data-scherm="regeling">
+      <nav class="glas lijst" aria-label="Delen van Regeling" id="delen-r"></nav>
+      <section class="glas vorm">
+        <div>
+          <h2 class="kop-2">Helpen bij de cv</h2>
+          <p class="lead">Houdt de ketel het niet bij, dan springen de airco's bij. Elke airco kijkt naar zijn eigen kamer.</p>
+        </div>
+
+        <div class="kost">
+          <div class="balken" id="balken"></div>
+          <div class="oordeel" id="oordeel"></div>
+        </div>
+
+        <div class="airco" id="airco"></div>
+
+        <div class="gaat">
+          <h3>Zo gaat het, voor alle airco's</h3>
+          <div class="stap breed"><b>Begint</b><span class="zin">als de ketel <span class="stapper"><i>−</i><b>5 min</b><i>+</i></span> stookt, de kamer <span class="stapper"><i>−</i><b>0,3°</b><i>+</i></span> te koud is en de airco goedkoper is</span></div>
+          <div class="stap"><b>Stopt</b><span>als zijn kamer op temperatuur is, ook als de ketel al stopte</span></div>
+          <div class="stap"><b>Pomp sparen</b><span>minstens 30 min aan, daarna minstens 15 min uit</span></div>
+          <div class="stap"><b>Stil</b><span>niet 's nachts en niet bij voorverwarmen, om het piepje</span></div>
+          <div class="stap"><b>Doordraaien</b><span>de app zet de airco op een temperatuur waarbij hij niet zelf uitgaat</span></div>
+        </div>
+
+        <div class="verder">
+          <span class="waarvoor" data-icoon="vraag">Waarvoor is dit?</span>
+          <span class="waar">2 van 3</span>
+          <a class="volgende"><small>Volgende ›</small><b>Apparaten op zon</b></a>
+        </div>
+
+        <div class="hulp" role="dialog" aria-label="Waarvoor is dit?">
+          <h3>Waarvoor dit is</h3>
+          <ul>
+            <li>Een airco haalt warmte uit de buitenlucht en is daardoor meestal goedkoper dan gas</li>
+            <li>Hij helpt alleen als de ketel al stookt, zodat de cv de basis blijft voor alle kamers</li>
+            <li>Lange beurten sparen de pomp en zijn zuiniger dan vaak kort aan en uit</li>
+          </ul>
+          <h3>Zo rekent de app, bij 3° buiten</h3>
+          <div class="som">
+            <span>Ketel</span><span><b>€ 1,37</b> per m³ gas ÷ 8,8 kWh warmte per m³ = <b>16 ct</b></span>
+            <span>Airco</span><span><b>€ 0,27</b> per kWh stroom ÷ 3,0 kWh warmte per kWh = <b>9 ct</b></span>
+          </div>
+          <p class="mini" style="margin: 10px 0 0">Hoeveel warmte een airco per kWh geeft, komt nu uit een tabel per buitentemperatuur. Zodra de app genoeg heeft gemeten, rekent hij met jouw eigen airco's.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Regeling › Klimaat, zonder bijspringen -->
+    <div class="veld" data-scherm="klimaat">
+      <nav class="glas lijst" aria-label="Delen van Regeling" id="delen-k"></nav>
+      <section class="glas vorm" style="gap: 10px">
+        <div>
+          <h2 class="kop-2">Klimaat</h2>
+          <p class="lead">Per kamer wat er regelt. Tik op een kamer om het te veranderen.</p>
+        </div>
+        <div class="kamerrij"><div><b>Kijkt mee sinds 15 juli</b><span>Zegt wat het zou doen, en schakelt nog niets</span></div><div class="fase"><span>Leren</span><span class="aan">Kijkt mee</span><span>Regelt</span></div></div>
+        <div class="kamerrij"><div><b>Zolder</b><span>Airco zolder helpt op zon en helpt de cv</span></div><span class="pijl">›</span></div>
+        <div class="kamerrij"><div><b>Badkamer</b><span>Thermostaat badkamer houdt op temperatuur</span></div><span class="pijl">›</span></div>
+        <div class="kamerrij"><div><b>Woonkamer</b><span>Nest houdt op temperatuur, Airco woonkamer helpt op zon en helpt de cv</span></div><span class="pijl">›</span></div>
+        <div class="naar"><span class="ik" data-icoon="airco" style="color: var(--gloed)"></span><div><b>Helpen bij de cv</b><span>2 airco's helpen de ketel, elk voor zijn eigen kamer</span></div><span class="pijl">›</span></div>
+        <p class="mini" style="margin: 2px 0 0">Doen nog niet mee: <span style="color: var(--ijs)">Slaapkamer, Kinderkamer, Keuken, Hal</span>. Kies bij de kamer wat er regelt.</p>
+        <div class="verder">
+          <span class="waarvoor" data-icoon="vraag">Waarvoor is dit?</span>
+          <span class="waar">1 van 3</span>
+          <a class="volgende"><small>Volgende ›</small><b>Helpen bij de cv</b></a>
+        </div>
+      </section>
+    </div>
+
+    <!-- Apparaten, met het blad van de zolder-airco -->
+    <div class="apparaten" data-scherm="apparaat">
+      <div><h1 class="kop-1" style="font-size: 40px; margin: 0">Apparaten</h1><p class="lead" style="margin: 4px 0 0">Wat elk apparaat nu doet, en wat het vandaag op eigen zon deed.</p></div>
+      <div class="kaarten">
+        <div class="glas kaart"><b>Airco zolder</b></div><div class="glas kaart"><b>Thermostaat badkamer</b></div><div class="glas kaart"><b>Airco woonkamer</b></div>
+        <div class="glas kaart"><b>Droger</b></div><div class="glas kaart"><b>Elektrische auto</b></div><div class="glas kaart"><b>De batterij</b></div>
+        <div class="glas kaart"><b>Nest</b></div><div class="glas kaart"><b>Ontvochtiger</b></div><div class="glas kaart"><b>Apparaat toevoegen</b></div>
+      </div>
+      <aside class="blad" aria-label="Airco zolder">
+        <div class="kop">
+          <div><h2 class="kop-2">Airco zolder</h2><div class="sub" id="blad-sub"></div></div>
+          <span class="sluit">✕</span>
+        </div>
+        <div class="knop-rond">
+          <i>−</i>
+          <div class="wijzer">
+            <svg viewBox="0 0 168 168" aria-hidden="true"><g id="streepjes"></g></svg>
+            <b id="blad-doel">19,5°</b><small id="blad-nu">nu 19,2°</small>
+          </div>
+          <i>+</i>
+        </div>
+        <div class="soort"><span class="aan">Verwarmen</span><span>Koelen</span></div>
+
+        <div class="vandaag">
+          <div class="titel"><b>Vandaag</b><span id="blad-wanneer">06:00 tot nu, 16:10</span></div>
+          <div class="tijdlijn" id="tijdlijn"></div>
+          <div class="legenda" id="legenda"></div>
+          <div class="samenvat" id="samenvat"></div>
+        </div>
+
+        <div class="koppel"><span>Helpt de cv: <b>aan</b>, kijkt naar Zolder</span><a>Helpen bij de cv ›</a></div>
+        <span class="doe">Verwarm tot 19,5°</span>
+      </aside>
+    </div>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script>
+  const toon = location.hash.slice(1) || 'gewoon';
+  document.body.dataset.toon = toon;
+  document.body.dataset.schermNu = toon === 'klimaat' ? 'klimaat' : toon.startsWith('apparaat') ? 'apparaat' : 'regeling';
+  const $ = (id) => document.getElementById(id);
+  const VRAAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.9.7c0 1.7-2.4 2.1-2.4 3.8"/><path d="M12 17h.01"/></svg>';
+  const ik = (naam) => (naam === 'vraag' ? VRAAG : iconen.svg(naam));
+  document.querySelectorAll('[data-icoon]').forEach((el) => el.insertAdjacentHTML('afterbegin', ik(el.dataset.icoon)));
+
+  /* De kop en de delen van Regeling. */
+  const kop = '<span class="terug"><i>‹</i>Instellingen</span><h1 class="kop-1">Regeling</h1><span class="bewaard">Alles wordt meteen bewaard</span>';
+  $('kop-r').innerHTML = kop;
+  $('kop-k').innerHTML = kop;
+  const pendelt = toon === 'pendelt';
+  const delen = (nu) => [
+    ['klimaat', 'klimaat', 'var(--ijs)', 'Klimaat', '3 kamers, kijkt mee', false],
+    ['cv', 'airco', 'var(--gloed)', 'Helpen bij de cv', pendelt ? 'airco zolder gaat steeds kort uit' : toon === 'duurder' ? "de ketel is nu goedkoper" : "2 airco's, 1 helpt nu", pendelt],
+    ['opzon', 'opzon', 'var(--zon)', 'Apparaten op zon', '2 op zon', false],
+  ].map(([id, icoon, kleur, naam, klein, mist]) => `<div class="rij${mist ? ' mist' : ''}${id === nu ? ' nu' : ''}"><span class="ik" style="color: ${kleur}">${ik(icoon)}</span><b>${naam}</b><small>${klein}</small>${mist ? '<span class="stip" style="background: var(--gloed)"></span>' : ''}</div>`).join('');
+  $('delen-r').innerHTML = delen('cv');
+  $('delen-k').innerHTML = delen('klimaat');
+
+  /* Wat warmte nu kost. */
+  const KOST = {
+    gewoon: { buiten: 3, airco: 9, per: '3,0', ketel: 16, oordeel: ['De airco is nu goedkoper', 'Bij 3° buiten. Gelijk wordt het pas bij ongeveer −15°.'], kleur: 'var(--mint)' },
+    duurder: { buiten: -16, airco: 18, per: '1,5', ketel: 16, oordeel: ['De ketel is nu goedkoper', "Bij −16° buiten. De airco's springen weer bij als het minder koud is."], kleur: 'var(--zacht)' },
+  };
+  const k = KOST[toon] ?? KOST.gewoon;
+  const breed = (ct) => `${Math.min(100, (ct / 20) * 100).toFixed(0)}%`;
+  $('balken').innerHTML = `
+    <div class="bk"><span>Warmte van de airco</span><span class="baan"><i style="width: ${breed(k.airco)}; background: var(--gloed)"></i></span><b>${k.airco} ct<small>per kWh</small></b></div>
+    <div class="bk"><span>Warmte van de ketel</span><span class="baan"><i style="width: ${breed(k.ketel)}; background: var(--violet)"></i></span><b>${k.ketel} ct<small>per kWh</small></b></div>`;
+  $('oordeel').innerHTML = `<b style="color: ${k.kleur}">${k.oordeel[0]}</b><span>${k.oordeel[1]}</span>`;
+
+  /* Per airco. */
+  const AIRCO = {
+    gewoon: [
+      { naam: 'Airco woonkamer', kamer: 'Woonkamer', temp: '19,6°', doel: '20°', nu: ['var(--gloed)', 'Helpt sinds 15:24, tot de kamer 20° is'], vandaag: '2× geholpen, samen 1 uur 26 min', staat: 'Op 21,5°: meet 1,5° meer dan de kamer' },
+      { naam: 'Airco zolder', kamer: 'Zolder', temp: '19,5°', doel: '19,5°', nu: ['var(--mint)', 'Klaar om 09:20, zolder is op temperatuur'], vandaag: '1× geholpen, 1 uur 10 min', staat: 'Op 20,5°: meet 1° meer dan de kamer' },
+    ],
+    pendelt: [
+      { naam: 'Airco woonkamer', kamer: 'Woonkamer', temp: '19,6°', doel: '20°', nu: ['var(--gloed)', 'Helpt sinds 15:24, tot de kamer 20° is'], vandaag: '2× geholpen, samen 1 uur 26 min', staat: 'Op 21,5°: meet 1,5° meer dan de kamer' },
+      { naam: 'Airco zolder', kamer: 'Zolder', temp: '18,9°', doel: '19,5°', let: true, nu: ['var(--gloed)', 'Stond aan, maar ging vandaag 6× zelf kort uit'], vandaag: '1× geholpen, 1 uur 40 min', staat: 'Nu op 21,5°, 1° hoger, zodat hij doordraait', staatLet: true },
+    ],
+    duurder: [
+      { naam: 'Airco woonkamer', kamer: 'Woonkamer', temp: '19,2°', doel: '20°', nu: ['var(--gedempt)', 'Wacht: de ketel is nu goedkoper'], vandaag: 'nog niet geholpen', staat: 'uit' },
+      { naam: 'Airco zolder', kamer: 'Zolder', temp: '18,4°', doel: '19,5°', nu: ['var(--gedempt)', 'Wacht: de ketel is nu goedkoper'], vandaag: 'nog niet geholpen', staat: 'uit' },
+    ],
+    stil: [
+      { naam: 'Airco woonkamer', kamer: 'Woonkamer', temp: '18,6°', doel: '19°', nu: ['var(--violet)', 'Stil tot 07:00, de ketel voorverwarmt alleen'], vandaag: 'nog niet geholpen', staat: 'uit' },
+      { naam: 'Airco zolder', kamer: 'Zolder', temp: '17,7°', doel: '19,5°', nu: ['var(--violet)', 'Stil tot 07:00, om het piepje'], vandaag: 'nog niet geholpen', staat: 'uit' },
+    ],
+  };
+  const lijst = AIRCO[toon] ?? AIRCO.gewoon;
+  $('airco').innerHTML = lijst.map((a) => `
+    <div class="ac${a.let ? ' let' : ''}">
+      <div class="boven"><span class="ik" style="color: var(--gloed)">${ik('airco')}</span><div><b class="naam">${a.naam}</b><span class="kamer">kijkt naar ${a.kamer}: <em>${a.temp}</em>, doel ${a.doel}</span></div><span class="schakel" role="switch" aria-checked="true" aria-label="${a.naam} mag de cv helpen"></span></div>
+      <div class="status"><span class="stip" style="background: ${a.nu[0]}"></span><span style="color: ${a.let ? 'var(--gloed)' : 'var(--tekst)'}">${a.nu[1]}</span></div>
+      <div class="regels">
+        <div class="regel"><span>Vandaag</span><span>${a.vandaag}</span></div>
+        <div class="regel${a.staatLet ? ' let' : ''}"><span>Staat</span><span>${a.staat}</span></div>
+      </div>
+      <a class="dag">De dag bekijken ›</a>
+    </div>`).join('');
+
+  /* Het blad: de wijzer. */
+  const g = $('streepjes');
+  if (g) {
+    let s = '';
+    for (let i = 0; i <= 40; i++) {
+      const hoek = (-225 + (i / 40) * 270) * (Math.PI / 180);
+      const [r1, r2] = i % 5 ? [70, 76] : [66, 78];
+      const kleur = i <= 22 ? '#ff7a4d' : 'rgba(255,255,255,0.22)';
+      s += `<line x1="${84 + r1 * Math.cos(hoek)}" y1="${84 + r1 * Math.sin(hoek)}" x2="${84 + r2 * Math.cos(hoek)}" y2="${84 + r2 * Math.sin(hoek)}" stroke="${kleur}" stroke-width="2" stroke-linecap="round"/>`;
+    }
+    g.innerHTML = s;
+  }
+
+  /* De dag als balk: wanneer de ketel stookte, wanneer de airco hielp, wanneer het stil was. */
+  const BLAD = {
+    apparaat: {
+      sub: 'Zolder · nu 19,5° · helpt de cv',
+      ketel: [[6.08, 6.67], [8.0, 8.5], [12.33, 12.75], [15.33, 15.75]],
+      airco: [[8.17, 9.33], [15.5, 16.17]],
+      kort: [],
+      samen: ['2× geholpen, samen 1 uur 50 min, gemiddeld 55 min per keer', 'Daarvan 1 uur 05 min langer dan de ketel: hij draaide door tot zolder op temperatuur was', '0× zelf kort uit en weer aan'],
+    },
+    'apparaat-pendelt': {
+      sub: 'Zolder · nu 18,9° · helpt de cv',
+      ketel: [[6.08, 6.67], [8.0, 8.5], [12.33, 12.75], [15.33, 15.75]],
+      airco: [[8.17, 9.83], [15.5, 16.17]],
+      kort: [8.45, 8.7, 8.95, 9.2, 9.45, 15.8],
+      samen: ['2× geholpen, samen 2 uur 20 min', '6× zelf kort uit en weer aan, terwijl hij aan stond', 'De app zet hem nu 1° hoger, zodat hij doordraait'],
+      let: [1, 2],
+    },
+  };
+  const b = BLAD[toon];
+  if (b) {
+    $('blad-sub').textContent = b.sub;
+    if (toon === 'apparaat-pendelt') $('blad-nu').textContent = 'nu 18,9°';
+    const pos = (u) => `${((u / 18) * 100).toFixed(2)}%`;
+    const op = (u) => pos(u - 6);
+    const blok = (van, tot, kleur) => `<i style="left: ${op(van)}; width: ${pos(tot - van)}; background: ${kleur}"></i>`;
+    const stil = `<span class="stil" style="left: 0; width: ${pos(1)}"></span><span class="stil" style="left: ${op(22)}; width: ${pos(2)}"></span>`;
+    const nu = `<span class="nu-lijn" style="left: ${op(16.17)}"></span>`;
+    $('tijdlijn').innerHTML = `
+      <span>Ketel stookte</span><span class="baan">${stil}${b.ketel.map(([v, t]) => blok(v, t, 'var(--violet)')).join('')}${nu}</span>
+      <span>Airco hielp</span><span class="baan">${stil}${b.airco.map(([v, t]) => blok(v, t, 'var(--gloed)')).join('')}${b.kort.map((u) => `<i class="kort" style="left: ${op(u)}"></i>`).join('')}${nu}</span>
+      <span></span><span class="uren">${[6, 9, 12, 15, 18, 21, 24].map((u) => `<span style="left: ${op(u)}">${u}</span>`).join('')}</span>`;
+    $('legenda').innerHTML = `<span><i style="background: var(--violet)"></i>ketel</span><span><i style="background: var(--gloed)"></i>airco</span><span><i style="background: repeating-linear-gradient(135deg, rgba(255,255,255,0.25) 0 2px, transparent 2px 4px)"></i>stil, om het piepje</span>${b.kort.length ? '<span><i style="background: var(--gloed); width: 3px"></i>kort uit</span>' : ''}`;
+    $('samenvat').innerHTML = b.samen.map((t, i) => `<span${b.let?.includes(i) ? ' class="let"' : ''}>${t}</span>`).join('');
+  }
+
+  nav.balk(document.getElementById('balk'), 'instellingen');
+</script>
+</body>
+</html>

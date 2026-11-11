@@ -150,6 +150,16 @@ export class StekkerZon {
         gedaan.push(`${s.actuator} aan${e.reason === 'ready_by' ? ' voor zijn minimum' : ' op zon'}`);
       }
     }
+    // Van zon gehaald (besluit 290: dat gaat meteen in): dan staat hij niet meer in het besluit, en wat SunArc aanzette gaat uit.
+    for (const [id, eigen] of [...this.#eigen]) {
+      if (opZon.has(id) || hand.has(id) || !this.#d.aan()) continue;
+      const staat = aanUit(this.#d.state(eigen.actuator));
+      if (staat == null) continue;
+      if (staat && !(await this.#schakel(eigen.actuator, false, id, nu))) continue;
+      this.#eigen.delete(id);
+      veranderd = true;
+      if (staat) gedaan.push(`${eigen.actuator} uit`);
+    }
     if (veranderd) await this.#bewaar();
     return gedaan;
   }
