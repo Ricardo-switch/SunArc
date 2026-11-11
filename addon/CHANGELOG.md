@@ -27,7 +27,7 @@
 
 - A switch without a meter, whose power you entered, can run on solar like a smart plug: switch it on under Control › Appliances on solar
 - The sheet of an air conditioner that helps the boiler shows the day: when the boiler heated, when the air conditioner helped, and where it briefly switched off by itself
-- The Connection card on Home, to choose in Customize Home: per phase how full it is against the fuse, and which one is tightest
+- The Connection card on Home, to choose in Customise Home: per phase how full it is against the fuse, and which one is tightest
 - Tapping the card opens a sheet with today’s current per phase in one graph, the highest per phase, and what SunArc does when it gets tight
 
 **Improved**

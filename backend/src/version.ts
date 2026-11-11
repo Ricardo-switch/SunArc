@@ -74,7 +74,7 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.175.1', '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
@@ -157,7 +157,7 @@ export const NIEUW: readonly Nieuw[] = [
     ],
     en: {
       nieuw: [
-        'The Connection card on Home, to choose in Customize Home: per phase how full it is against the fuse, and which one is tightest',
+        'The Connection card on Home, to choose in Customise Home: per phase how full it is against the fuse, and which one is tightest',
         'Tapping the card opens a sheet with today’s current per phase in one graph, the highest per phase, and what SunArc does when it gets tight',
       ],
     },
