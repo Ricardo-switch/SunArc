@@ -25,6 +25,10 @@
   #tel .erbij { width: 40px; height: 40px; padding: 0; border-radius: 50%; justify-content: center; }
   #tel .erbij i { width: auto; height: auto; background: none; font-size: 24px; }
   #tel .erbij span { display: none; }
+  /* Hoeveel er nieuw gevonden is (besluit 293): een oranje bolletje, want het mist nog iets. */
+  .erbij { position: relative; }
+  .erbij .nieuw { position: absolute; top: -8px; right: -6px; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--gloed); color: #2a1206; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+  #tel .erbij .nieuw { top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; font-size: 11px; }
   /* De soorten bovenaan: tekst met een streep onder de gekozen, geen bubbels. */
   .soortenrij { display: flex; gap: 4px; border-bottom: 1px solid rgb(var(--wit) / 0.08); overflow-x: auto; scrollbar-width: none; flex: none; }
   .soortenrij button { flex: none; display: inline-flex; align-items: baseline; gap: 6px; padding: 8px 12px 11px; border: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; background: none; color: var(--zacht); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -112,7 +116,7 @@
       <div class="kop">
         <div><h1 class="kop-1"><span data-t="nav.apparaten"></span></h1><p class="lead" style="max-width: 64ch; margin-top: 8px"><span data-t="apparaten.lead"></span></p><p class="lead zousamen" data-zou-samen hidden></p></div>
         <div class="glas zonchip" data-zonchip></div>
-        <a class="erbij" href="regeling.html#opzon"><i>+</i><span data-t="apparaten.toevoegenKort"></span></a>
+        <a class="erbij" href="toevoegen.html"><i>+</i><span data-t="apparaten.toevoegenKort"></span><b class="nieuw" data-nieuw-tel hidden></b></a>
       </div>
       <nav class="soortenrij" data-soorten data-t-aria-label="apparaten.soorten"></nav>
       <div class="rol" data-apparaten></div>
@@ -123,7 +127,7 @@
     <div class="inhoud">
       <div style="display: flex; justify-content: space-between; align-items: center">
         <h1 class="kop-1" style="font-size: 34px"><span data-t="nav.apparaten"></span></h1>
-        <span style="display: flex; gap: 8px; align-items: center"><a class="erbij" href="regeling.html#opzon" data-t-aria-label="apparaten.toevoegen"><i>+</i><span data-t="apparaten.toevoegenKort"></span></a><a class="pil" data-t-aria-label="nav.instellingen" data-tandwiel></a></span>
+        <span style="display: flex; gap: 8px; align-items: center"><a class="erbij" href="toevoegen.html" data-t-aria-label="apparaten.toevoegen"><i>+</i><span data-t="apparaten.toevoegenKort"></span><b class="nieuw" data-nieuw-tel hidden></b></a><a class="pil" data-t-aria-label="nav.instellingen" data-tandwiel></a></span>
       </div>
       <div class="glas zonchip" data-zonchip></div>
       <p class="zousamen" data-zou-samen hidden></p>

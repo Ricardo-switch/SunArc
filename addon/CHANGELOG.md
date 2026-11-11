@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.166.0
+## 0.167.0
 
-*11 november 2026 · 0.163.0 – 0.166.0*
+*11 november 2026 · 0.163.0 – 0.167.0*
 
 **Nieuw**
 
+- Apparaat toevoegen is een eigen scherm bij Apparaten: links wat SunArc nieuw vond en nog niet is ingedeeld, rechts zelf kiezen per soort
 - Apparaten staat nu in soorten: Klimaat, Licht, Warm water en bad, Witgoed, Auto en laden, Thuisaccu en Stekkers, met bovenaan een rij om naar een soort te springen
 - Alle lampen staan bij Apparaten › Licht, per kamer, met een schakelaar om ze snel aan of uit te zetten
 - Helpen bij de cv, een eigen deel bij Regeling: per airco aan of uit, wat warmte van de airco kost tegen de ketel, en wat hij vandaag hielp
@@ -13,6 +14,7 @@
 
 **Beter**
 
+- Op de knop Toevoegen staat hoeveel er nieuw gevonden is
 - Hoeveel zon er over is en waar de stroom heen gaat, staat in één blok bovenaan, met een knop Toevoegen ernaast
 - Een airco helpt alleen als hij goedkoper is dan de ketel, en stopt pas als zijn kamer op temperatuur is, ook als de ketel al stopte
 - Eenmaal aan helpt een airco minstens een half uur, en daarna rust hij een kwartier: dat spaart de pomp
@@ -31,6 +33,7 @@
 
 **New**
 
+- Add a device is a screen of its own in Devices: on the left what SunArc newly found and is not placed yet, on the right choose yourself by kind
 - Devices is now grouped by kind: Climate, Lights, Hot water and bath, Appliances, Car and charging, Home battery and Plugs, with a row at the top to jump to a kind
 - All lights are in Devices › Lights, per room, each with a switch to turn it on or off quickly
 - Helping the boiler, a section of its own in Control: each air conditioner on or off, what its heat costs against the boiler, and how it helped today
@@ -38,6 +41,7 @@
 
 **Improved**
 
+- The Add button shows how many were newly found
 - How much sun is to spare and where the electricity goes now is one block at the top, with an Add button next to it
 - An air conditioner only helps when it is cheaper than the boiler, and stops only when its room is at temperature, even if the boiler already stopped
 - Once on, an air conditioner helps for at least half an hour and then rests for a quarter: that spares the pump

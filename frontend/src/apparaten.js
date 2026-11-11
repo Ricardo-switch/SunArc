@@ -644,6 +644,14 @@ function tekenNu() {
     box.scrollTop = top;
   }
   tekenSoortenRij(soortenNu, aantal);
+  // Hoeveel er nieuw gevonden is, zoals het scherm Toevoegen het telt (besluit 293).
+  const opZonKeuze = aansluiting?.antwoorden?.opZon ?? {};
+  const nieuw = (huisData?.zonderRuimte ?? []).length + (aansluiting?.gevonden?.apparaten ?? []).filter((d) => opZonKeuze[d.id] !== true).length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
+  $$('[data-nieuw-tel]').forEach((el) => {
+    el.hidden = nieuw === 0;
+    el.textContent = String(nieuw);
+    el.setAttribute('aria-label', t('apparaten.nieuwGevonden', { n: nieuw }));
+  });
   // Van Thuis met #auto of #batterij: naar die kaart (besluit 182), één keer.
   const doel = location.hash.slice(1);
   if ((doel === 'auto' || doel === 'batterij') && !naarKaart) {

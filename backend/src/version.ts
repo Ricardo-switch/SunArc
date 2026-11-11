@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.166.0';
+export const VERSIE = '0.167.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,24 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.167.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Apparaat toevoegen is een eigen scherm bij Apparaten: links wat SunArc nieuw vond en nog niet is ingedeeld, rechts zelf kiezen per soort',
+    ],
+    beter: [
+      'Op de knop Toevoegen staat hoeveel er nieuw gevonden is',
+    ],
+    en: {
+      nieuw: [
+        'Add a device is a screen of its own in Devices: on the left what SunArc newly found and is not placed yet, on the right choose yourself by kind',
+      ],
+      beter: [
+        'The Add button shows how many were newly found',
+      ],
+    },
+  },
   {
     versie: '0.166.0',
     datum: '2026-11-11',

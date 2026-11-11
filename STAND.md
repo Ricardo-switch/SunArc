@@ -508,8 +508,9 @@ verwijzing bestaat.
 - **Vandaag** is de dag in de tijd; **Apparaten** is het nu, per apparaat een
   kaart met wat het doet, vraagt en vandaag op zon deed ([140]). Sinds 0.166.0
   in soorten, met bovenaan een rij om te springen, alle lampen per kamer met
-  een schakelaar, en het zonblok met de strook bovenaan ([294]). Gekozen, nog
-  niet gebouwd: Schakelaars als eigen soort, een eigen scherm Toevoegen, losse
+  een schakelaar, en het zonblok met de strook bovenaan ([294]). Toevoegen is
+  een eigen scherm met wat nieuw gevonden is en de soorten ([295]). Gekozen, nog
+  niet gebouwd: Schakelaars als eigen soort, kiezen in Toevoegen zelf, losse
   sensoren, een apparaat uit meer delen (IR-afstandsbediening met stekker),
   alleen echte meters behalve bij klimaat, en het kinderslot in het blad ([293]).
 - **De assistent** is een gesprek: het huis begroet je, leest zijn antwoord
@@ -919,4 +920,5 @@ verwijzing bestaat.
 [292]: DECISIONS.md#292-helpen-bij-de-cv-gebouwd-elke-airco-voor-zijn-eigen-kamer
 [293]: DECISIONS.md#293-apparaten-in-soorten-een-eigen-scherm-toevoegen-en-schakelaars
 [294]: DECISIONS.md#294-apparaten-in-soorten-gebouwd-met-alle-lampen-per-kamer
+[295]: DECISIONS.md#295-apparaat-toevoegen-een-eigen-scherm
 <!-- links:einde -->

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Apparaat toevoegen · SunArc</title>
+<meta name="color-scheme" content="only dark">
+<link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="basis.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1424">
+<link rel="icon" href="icoon-192.png?v=sunarc">
+<link rel="apple-touch-icon" href="icoon-192.png?v=sunarc">
+<script>(function () { var d = document.documentElement, w0 = 0, h0 = 0, t = {}, m = matchMedia('(prefers-color-scheme: light)'); try { t = JSON.parse(localStorage.getItem('sc-thema')) || {}; } catch (e) {} function k() { var eigen = d.classList.contains('tel-stand') || !t.scherm, c = eigen ? t.kleur : t.wandKleur; var licht = eigen && (t.thema === 'licht' || (t.thema === 'systeem' && m.matches)), tc = document.querySelector('meta[name="theme-color"]'); d.classList.toggle('sc-licht', licht); if (tc) tc.setAttribute('content', licht ? '#e9eff6' : '#0b1424'); if (c && c !== 'lucht') d.setAttribute('data-kleur', c); else d.removeAttribute('data-kleur'); } window.scThema = function (n) { if (n) { t = n; try { localStorage.setItem('sc-thema', JSON.stringify(n)); } catch (e) {} } k(); }; function s() { var a = document.activeElement; if (w0 === innerWidth && innerHeight < h0 && a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) return; w0 = innerWidth; h0 = innerHeight; var b = Math.min(1700, Math.max(1280, Math.round(800 * innerWidth / innerHeight))); d.classList.toggle('tel-stand', innerHeight > innerWidth || innerWidth < 560); d.style.setProperty('--wandbreedte', b + 'px'); d.style.setProperty('--wandschaal', Math.min(innerWidth / b, innerHeight / 800)); k(); } s(); addEventListener('resize', s); m.addEventListener('change', k); })();</script>
+<style>
+  /* Apparaat toevoegen (besluit 293, schets Wand-Apparaat-Toevoegen). */
+  #wand main { display: flex; flex-direction: column; gap: 16px; height: 100%; }
+  .terug { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--zacht); text-decoration: none; margin-bottom: 6px; }
+  .veld { flex: 1; min-height: 0; display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 16px; }
+  .gevonden { align-self: start; padding: 16px 8px 10px; border-radius: 24px; display: flex; flex-direction: column; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+  .gevonden h2, .vorm h2 { margin: 0; }
+  .gevonden h2 { margin: 0 12px 2px; font-size: 17px; font-weight: 700; }
+  .gevonden > p { margin: 0 12px 10px; font-size: 13px; color: var(--gedempt); }
+  .rij { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 1px 12px; align-items: center; min-height: 62px; padding: 6px 12px; border-radius: 16px; color: var(--tekst); text-decoration: none; }
+  .rij:hover { background: rgb(var(--wit) / 0.06); }
+  .rij .ik { grid-row: 1 / 3; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); }
+  .rij .ik svg { width: 22px; height: 22px; }
+  .rij b { font-size: 15.5px; font-weight: 600; align-self: end; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rij small { grid-column: 2; font-size: 12.5px; color: var(--gedempt); align-self: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rij .pijl { grid-row: 1 / 3; grid-column: 3; color: var(--gedempt); font-size: 22px; }
+  .leeg { margin: 4px 12px 8px; font-size: 14px; color: var(--zacht); }
+  .vorm { padding: 20px 24px 18px; border-radius: 24px; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+  .vorm h2 { font-family: var(--kop); font-size: 24px; font-weight: 600; }
+  .vorm .lead { margin: 2px 0 0; font-size: 14px; color: var(--zacht); max-width: none; }
+  .soorten { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 12px; }
+  .soort { display: grid; grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: auto auto; align-content: center; gap: 2px 16px; padding: 16px 18px; border-radius: 20px; background: rgb(var(--wit) / 0.045); border: 1px solid rgb(var(--wit) / 0.07); color: var(--tekst); text-decoration: none; }
+  .soort:hover { background: rgb(var(--wit) / 0.08); }
+  .soort .ik { grid-row: 1 / 3; width: 52px; height: 52px; border-radius: 15px; display: grid; place-items: center; }
+  .soort .ik svg { width: 28px; height: 28px; }
+  .soort b { font-size: 16.5px; font-weight: 600; align-self: end; }
+  .soort span { font-size: 13px; color: var(--gedempt); line-height: 1.35; align-self: start; }
+  .uitleg { margin: auto 0 0; padding-top: 12px; border-top: 1px solid rgb(var(--wit) / 0.07); font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+  /* De telefoon. */
+  #tel .inhoud { padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 14px; }
+  #tel h2 { margin: 6px 2px 0; font-size: 15px; font-weight: 700; color: var(--zacht); }
+  #tel .gevonden { padding: 4px; align-self: stretch; max-height: none; overflow: visible; overscroll-behavior: auto; }
+  #tel .soorten { grid-template-columns: 1fr 1fr; }
+  #tel .soort { grid-template-columns: 1fr; padding: 14px; }
+  #tel .soort .ik { grid-row: auto; width: 42px; height: 42px; margin-bottom: 8px; }
+  #tel .soort .ik svg { width: 24px; height: 24px; }
+  #tel .uitleg { border: 0; padding: 0 2px; }
+</style>
+</head>
+<body class="lucht lucht-dag">
+  <div id="wand" class="wand">
+    <nav class="balk" id="balk" data-t-aria-label="nav.hoofdmenu"></nav>
+    <main>
+      <div>
+        <a class="terug" href="apparaten.html">‹ <span data-t="nav.apparaten"></span></a>
+        <h1 class="kop-1" data-t="toev.titel"></h1>
+      </div>
+      <div class="veld">
+        <section class="glas gevonden">
+          <h2 data-t="toev.nieuw"></h2>
+          <p data-t="toev.nieuwLead"></p>
+          <div data-nieuw></div>
+        </section>
+        <section class="glas vorm">
+          <div><h2 data-t="toev.watWil"></h2><p class="lead" data-t="toev.watWilLead"></p></div>
+          <div class="soorten" data-soorten></div>
+          <p class="uitleg" data-t="toev.straks"></p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="tel" class="tel">
+    <div class="inhoud">
+      <a class="terug" href="apparaten.html">‹ <span data-t="nav.apparaten"></span></a>
+      <h1 class="kop-1" style="font-size: 30px" data-t="toev.titelKort"></h1>
+      <h2 data-t="toev.nieuwHa"></h2>
+      <div class="glas gevonden" data-nieuw></div>
+      <h2 data-t="toev.ofZelf"></h2>
+      <div class="soorten" data-soorten></div>
+      <p class="uitleg" data-t="toev.straks"></p>
+    </div>
+    <nav class="tabs" id="tabs" data-t-aria-label="nav.hoofdmenu"></nav>
+  </div>
+  <script src="kit/iconen.js"></script>
+  <script src="kit/teksten.nl.js"></script>
+  <script src="kit/teksten.en.js"></script>
+  <script src="kit/taal.js"></script>
+  <script src="kit/nav.js"></script>
+  <script src="basis.js"></script>
+  <script src="toevoegen.js"></script>
+</body>
+</html>

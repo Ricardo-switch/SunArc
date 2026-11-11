@@ -288,6 +288,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [288. Je huis op maat: vorm, etages, kamers als vakken en de plek van apparaten](#288-je-huis-op-maat-vorm-etages-kamers-als-vakken-en-de-plek-van-apparaten)
 - [293. Apparaten in soorten, een eigen scherm Toevoegen, en schakelaars](#293-apparaten-in-soorten-een-eigen-scherm-toevoegen-en-schakelaars)
 - [294. Apparaten in soorten gebouwd, met alle lampen per kamer](#294-apparaten-in-soorten-gebouwd-met-alle-lampen-per-kamer)
+- [295. Apparaat toevoegen, een eigen scherm](#295-apparaat-toevoegen-een-eigen-scherm)
 
 **Veiligheid**
 
@@ -13620,6 +13621,32 @@ Wand-Apparaten-Soorten. Ricardo: "1, en dan bouwen".
   het net). De balk onderaan is weg. Ernaast de knop Toevoegen; op de
   telefoon een ronde plus. Hij gaat nog naar Regeling › Op zon, tot het eigen
   scherm Toevoegen er is (de volgende stap).
+
+---
+
+## 295. Apparaat toevoegen, een eigen scherm
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.167.0: de tweede stap van [293], met de schets
+Wand-Apparaat-Toevoegen.
+
+*Besluit:*
+
+- **Een eigen scherm** `toevoegen.html`, in de tab Apparaten. De knop Toevoegen
+  op Apparaten gaat erheen, met een oranje bolletje met hoeveel er nieuw
+  gevonden is.
+- **Links: nieuw gevonden** in Home Assistant en nog niet ingedeeld: zonder
+  kamer (naar Indeling), gevonden maar nog niet op zon (naar Regeling › Op
+  zon), en een auto, laadpaal of accu die bij Energie uit staat. Staat alles,
+  dan zegt het "Alles is ingedeeld."
+- **Rechts: zelf kiezen per soort.** Elke soort gaat naar de plek waar hij nu
+  al ingesteld wordt: Klimaat naar Inrichten › Klimaat, Licht naar Indeling,
+  Warm water, Witgoed en Stekkers naar Regeling › Op zon, Auto en laden en
+  Thuisaccu naar Energie.
+- **Nog niet:** schakelaars (een Shelly, klik-aan-klik-uit, een
+  IR-afstandsbediening), losse sensoren en zoeken. Die komen in de volgende
+  stap, met het kiezen in dit scherm zelf; het scherm zegt dat eronder.
 
 ---
 
