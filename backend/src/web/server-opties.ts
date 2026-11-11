@@ -231,6 +231,11 @@ export interface WebOptions {
    * Schakelaars (besluit 297): wat gevonden is met de keuzes van de bewoner,
    * een keuze bewaren, en met de hand aan of uit (`zet` alleen in de add-on).
    */
+  /** Het kinderslot van een thermostaat of witgoed (besluit 299), per apparaat; `zet` alleen in de add-on. */
+  readonly kinderslot?: {
+    readonly lijst: () => Readonly<Record<string, { readonly id: string; readonly aan: boolean }>>;
+    readonly zet?: (slot: string, aan: boolean) => Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }>;
+  };
   readonly schakelaars?: {
     readonly lijst: () => readonly SchakelaarView[];
     readonly bewaar: (body: unknown) => Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }>;

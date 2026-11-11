@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { HaEntityState } from '../src/adapters/homeassistant/client.js';
 import type { HaDevice, HaRegistryEntity } from '../src/adapters/homeassistant/discovery.js';
-import { GEEN_KEUZES, lampSchakelaars, leesSchakelaarKeuze, metKeuze, schakelaarViews, schakelaarsMag, vindSchakelaars } from '../src/web/schakelaars.js';
+import { GEEN_KEUZES, kinderslotVan, lampSchakelaars, leesSchakelaarKeuze, metKeuze, schakelaarViews, schakelaarsMag, vindSchakelaars } from '../src/web/schakelaars.js';
 
 /*
  * Schakelaars (besluit 297), met wat er in een echt huis stond (11 november
@@ -100,6 +100,16 @@ describe('schakelaars vinden (besluit 297)', () => {
     expect(schakelaarViews(gevonden, GEEN_KEUZES, states).find((v) => v.id === 'shelly')!.nuW).toBeNull();
     expect(leesSchakelaarKeuze({ id: 'kaku', wat: 'pomp', vermogenW: 0 }).ok).toBe(false);
     expect(leesSchakelaarKeuze({ id: 'kaku', wat: 'pomp', vermogenW: 2.5 }).ok).toBe(false);
+  });
+
+  it('vindt het kinderslot op hetzelfde apparaat, ook onder de instellingen (besluit 299)', () => {
+    const slotStates = new Map(states);
+    slotStates.set('switch.sonoff_thermostaat_child_lock', { ...states.get('switch.sonoff_thermostaat_child_lock')!, state: 'on' });
+    expect(kinderslotVan('climate.sonoff_thermostaat', entities, slotStates)).toEqual({ id: 'switch.sonoff_thermostaat_child_lock', aan: true });
+    expect(kinderslotVan('switch.droger_kinderslot', entities, slotStates)).toEqual({ id: 'switch.droger_kinderslot', aan: false });
+    // Een apparaat zonder kinderslot, of een entiteit zonder apparaat.
+    expect(kinderslotVan('switch.shelly1minig3_schuur', entities, slotStates)).toBeNull();
+    expect(kinderslotVan('climate.bestaat_niet', entities, slotStates)).toBeNull();
   });
 
   it('weigert een keuze die niet klopt', () => {

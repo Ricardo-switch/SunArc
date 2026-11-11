@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.169.0';
+export const VERSIE = '0.170.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.170.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Het kinderslot van een thermostaat of droger zet je in zijn blad: onderaan staat "Op de thermostaat" of "Op de droger", met een schakelaar die meteen gaat',
+    ],
+    en: {
+      nieuw: [
+        'You set the child lock of a thermostat or dryer in its sheet: at the bottom is "On the thermostat" or "On the dryer", with a switch that takes effect at once',
+      ],
+    },
+  },
   {
     versie: '0.169.0',
     datum: '2026-11-11',

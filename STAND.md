@@ -513,11 +513,12 @@ verwijzing bestaat.
   IR) stel je in bij Toevoegen; een lamp komt bij zijn kamer, de rest bij
   Schakelaars, met de hand door de deur van een stekker ([297]). Een tik opent
   bij elk apparaat zijn blad, en bij een schakelaar zonder meter vul je het
-  vermogen in voor Opbrengst › Nu ([298]). Toevoegen is
+  vermogen in voor Opbrengst › Nu ([298]). Het kinderslot van een thermostaat
+  of droger staat onderaan zijn blad ([299]). Toevoegen is
   een eigen scherm met wat nieuw gevonden is en de soorten ([295]). Gekozen, nog
   niet gebouwd: losse
   sensoren, een apparaat uit meer delen (IR-afstandsbediening met stekker),
-  en het kinderslot in het blad ([293]).
+  ([293]).
 - **De assistent** is een gesprek: het huis begroet je, leest zijn antwoord
   voor met Piper uit Home Assistant, en vraagt of het nog iets kan doen
   ([141]). Hij zegt eerst het antwoord, kort en warm, spreekt eenheden en
@@ -929,4 +930,5 @@ verwijzing bestaat.
 [296]: DECISIONS.md#296-de-soorten-op-apparaten-filteren-in-plaats-van-springen
 [297]: DECISIONS.md#297-schakelaars-vinden-instellen-bij-toevoegen-en-met-de-hand-schakelen
 [298]: DECISIONS.md#298-een-blad-voor-elk-apparaat-en-het-vermogen-invullen-bij-een-schakelaar
+[299]: DECISIONS.md#299-het-kinderslot-in-het-blad-van-een-thermostaat-of-witgoed
 <!-- links:einde -->

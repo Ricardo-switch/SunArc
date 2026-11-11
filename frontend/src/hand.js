@@ -35,6 +35,33 @@
    */
   let open = null;
   let fout = '';
+  /** De kinderslotten per apparaat (besluit 299): `{ sloten, bedienen }` van `api/kinderslot`. */
+  let sloten = null;
+  /** Wat je net tikte bij een kinderslot, tot Home Assistant het doorgeeft. */
+  const slotWens = new Map();
+
+  async function laadSloten() {
+    try {
+      sloten = await haal('api/kinderslot');
+    } catch {
+      sloten = null;
+    }
+  }
+
+  const SLOT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.6"/><path d="M8.5 10.5V7.8a3.5 3.5 0 0 1 7 0v2.7"/><path d="M12 14.6v2.2"/></svg>';
+
+  /**
+   * Het kinderslot van een apparaat (besluit 299), onderaan zijn blad: "Op de
+   * thermostaat" of "Op de droger", met een schakelaar die meteen gaat.
+   */
+  function slotHtml(sleutel, naam) {
+    const sl = sloten?.sloten?.[sleutel];
+    if (!sl) return '';
+    const aan = slotWens.has(sl.id) ? slotWens.get(sl.id) : sl.aan;
+    const mag = sloten.bedienen === true;
+    const wie = naam ? naam.charAt(0).toLowerCase() + naam.slice(1) : '';
+    return `<div class="hand-slot"><h3>${esc(t('hand.slot.op', { naam: wie }))}</h3><div class="hand-slotrij"><span class="hand-slotik">${SLOT}</span><div><b>${esc(t('hand.slot.naam'))}</b><small>${esc(t(mag ? 'hand.slot.zin' : 'hand.slot.addon'))}</small></div><button type="button" class="schakel${aan ? '' : ' uit'}" role="switch" aria-checked="${aan}" aria-label="${esc(t('hand.slot.naam'))}" data-slot="${esc(sl.id)}" ${mag ? '' : 'disabled'}></button></div></div>`;
+  }
 
   const graden = (n) => `${nl(n, Number.isInteger(n) ? 0 : 1)}°`;
   const vind = (id) => (data?.apparaten ?? []).find((a) => a.id === id) ?? null;
@@ -139,6 +166,7 @@
       ${dagbalk(totMs, label)}
       <div class="hand-hoe${hoe.let ? ' let' : ''}">${esc(hoe.tekst)}</div>
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
+      ${slotHtml(a.id, a.naam)}
       <div class="hand-onder">${terugKnop}<button type="button" class="hand-zet" data-hand-zet ${kan ? '' : 'disabled'}>${esc(zet)}</button></div>`;
   }
 
@@ -155,6 +183,7 @@
       <div class="hand-vraag hand-kolom"><span>${esc(t(draait ? 'witgoed.straks' : 'witgoed.zoKlaar'))}</span><ol class="wg-stappen">${stappen}</ol></div>
       <div class="hand-hoe">${esc(t('witgoed.hoe'))}</div>
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
+      ${slotHtml(d.id, d.naam)}
       <div class="hand-onder">${nu}<button type="button" class="hand-zet" data-hand-sluit>${esc(t('witgoed.begrepen'))}</button></div>`;
   }
 
@@ -385,6 +414,7 @@
       </div>
       <div class="hand-hoe">${esc(stand && !stand.kan && stand.reden ? `${t('witgoed.hoe')} ${t('witgoed.nuNiet', { reden: stand.reden })}` : t('witgoed.hoe'))}</div>
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
+      ${slotHtml(d.id, d.naam)}
       <div class="hand-onder">${nu}<button type="button" class="hand-zet" data-wg-bewaar>${esc(t('hand.bewaar'))}</button></div>`;
   }
 
@@ -460,6 +490,7 @@
     } catch {
       data = null;
     }
+    await laadSloten();
     return data;
   }
 
@@ -490,6 +521,7 @@
     } catch {
       witgoed = null;
     }
+    await laadSloten();
     const stappen = d.stappen ?? [];
     const i = stappen.findIndex((s) => s.waarde === d.klaarVoor);
     open = { wg: d, stap: i < 0 ? 0 : i + 1 };
@@ -517,6 +549,20 @@
     // In een kamer: alleen klikken in het eigen blad.
     if (open.plek && !open.plek.contains(e.target)) return;
     let x;
+    // Het kinderslot (besluit 299): meteen, los van "Zet op".
+    if ((x = el('[data-slot]'))) {
+      if (x.disabled) return;
+      const aan = x.getAttribute('aria-checked') !== 'true';
+      slotWens.set(x.dataset.slot, aan);
+      teken();
+      await deur('api/kinderslot', { slot: x.dataset.slot, aan }).catch(() => null);
+      setTimeout(async () => {
+        await laadSloten();
+        slotWens.delete(x.dataset.slot);
+        teken();
+      }, 2500);
+      return;
+    }
     if (el('[data-hand-sluit]')) open = null;
     else if ((x = el('[data-hand-tot]'))) open.tot = x.dataset.handTot;
     else if ((x = el('[data-hand-modus]'))) {

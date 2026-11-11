@@ -145,6 +145,21 @@ export function vindSchakelaars(
   return uit.sort((a, b) => a.naam.localeCompare(b.naam, 'nl'));
 }
 
+/** Een kinderslot: een `switch.` op het apparaat, ook onder zijn instellingen (besluit 299). */
+const KINDERSLOT = /child.?lock|kinderslot|kindersicherung/i;
+
+/**
+ * Het kinderslot van het apparaat waar deze entiteit bij hoort (besluit 299),
+ * zoals `switch.thermostaat_badkamer_kinderslot` (Tuya) bij de thermostaat, of
+ * `switch.droger_kinderslot` (Home Connect) bij de droger; null zonder.
+ */
+export function kinderslotVan(entityId: string, entities: readonly HaRegistryEntity[], states: ReadonlyMap<string, HaEntityState>): { readonly id: string; readonly aan: boolean } | null {
+  const apparaat = entities.find((e) => e.entity_id === entityId)?.device_id;
+  if (!apparaat) return null;
+  const slot = entities.find((e) => e.device_id === apparaat && e.entity_id.startsWith('switch.') && !e.disabled_by && KINDERSLOT.test(`${e.entity_id} ${e.original_name ?? ''}`) && states.has(e.entity_id));
+  return slot ? { id: slot.entity_id, aan: states.get(slot.entity_id)?.state === 'on' } : null;
+}
+
 /** Hoe de app een schakelaar laat zien: wat hij vond, met wat de bewoner koos. */
 export interface SchakelaarView extends GevondenSchakelaar {
   readonly keuze: SchakelaarKeuze | null;

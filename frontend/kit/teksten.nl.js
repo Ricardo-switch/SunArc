@@ -4647,6 +4647,11 @@
   'hand.stekkerAlleenAddon': 'Hier kijk je alleen mee. Met de hand schakelen kan in de add-on van SunArc in Home Assistant: tik daar in dit blad op Toestaan.',
   'hand.stekkerToelaten': 'SunArc mag deze stekker nog niet schakelen. Sta het hier toe, of zet hem op zon bij Regeling.',
   'hand.stekkerToestaan': 'Toestaan',
+  // Het kinderslot (besluit 299).
+  'hand.slot.op': 'Op de {naam}',
+  'hand.slot.naam': 'Kinderslot',
+  'hand.slot.zin': 'De knoppen op het apparaat zelf doen niets. Gaat meteen.',
+  'hand.slot.addon': 'Hier kijk je alleen mee. Zetten kan in de add-on van SunArc in Home Assistant.',
   'hand.stekkerIntrekken': 'SunArc mag hem niet meer schakelen',
   'hand.stekkerOpZon': 'Op zon zet SunArc hem zelf aan en uit. Met de hand gaat voor.',
   'hand.stekkerMinimum': 'Minstens {duur} per dag, uiterlijk {klok}: nu {gehad}.',

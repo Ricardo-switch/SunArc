@@ -292,6 +292,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [296. De soorten op Apparaten filteren in plaats van springen](#296-de-soorten-op-apparaten-filteren-in-plaats-van-springen)
 - [297. Schakelaars: vinden, instellen bij Toevoegen, en met de hand schakelen](#297-schakelaars-vinden-instellen-bij-toevoegen-en-met-de-hand-schakelen)
 - [298. Een blad voor elk apparaat, en het vermogen invullen bij een schakelaar](#298-een-blad-voor-elk-apparaat-en-het-vermogen-invullen-bij-een-schakelaar)
+- [299. Het kinderslot in het blad van een thermostaat of witgoed](#299-het-kinderslot-in-het-blad-van-een-thermostaat-of-witgoed)
 
 **Veiligheid**
 
@@ -13760,6 +13761,34 @@ inzicht te geven bij opbrengst".
   een stekker ([264]) blijft.
 - **In `hand.js` een vrij blad** (`openVrij`), dat de pagina zelf vult; het
   ververst met de pagina mee.
+
+---
+
+## 299. Het kinderslot in het blad van een thermostaat of witgoed
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.170.0: stap 4 van [293], derde deel. Ricardo: "bij
+een slimme thermostaat knop wil ik kinderslot wel kunnen bedienen", en ook bij
+de droger.
+
+*Besluit:*
+
+- **Vinden:** een `switch.` met kinderslot of child lock in de naam, op
+  hetzelfde apparaat in Home Assistant als de thermostaat (zijn `climate.`) of
+  het witgoed (de knop voor op afstand starten), ook als hij onder de
+  instellingen staat. Bij Ricardo: `switch.thermostaat_badkamer_kinderslot`
+  (Tuya), `switch.sonoff_thermostaat_child_lock` (Zigbee2MQTT) en
+  `switch.droger_kinderslot` (Home Connect). `/api/kinderslot` geeft ze per
+  apparaat.
+- **In het blad,** onderaan: "Op de …" met de naam van het apparaat, Kinderslot
+  en een schakelaar die meteen gaat, los van "Zet op". Bij een airco,
+  thermostaat, radiatorknop en witgoed, waar het blad ook geopend wordt (bij
+  Apparaten en in de kamer).
+- **De deur naar Home Assistant** is die van een stekker ([265], [297]):
+  `switch.turn_on` en `turn_off` zonder velden, alleen op een kinderslot dat
+  het huis zo vond, alleen in de add-on, voor wie in huis woont. Op de NAS
+  kijkt het blad mee.
 
 ---
 

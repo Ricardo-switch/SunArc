@@ -89,7 +89,7 @@ import { hoofddakPlat, panelenVan, type DakVlak } from './web/daken.js';
 import { inNederland } from './web/bag3d.js';
 import { aanvullenUitMeter, achterblijven, meetVlakken, metMeting, opbrengstPerVlak, verdeelDag, type Achter, type MeterGroep, type VlakStand, type Verdeling } from './web/meten-vlakken.js';
 import { findHeatStores, findPlugs, type FoundHeatStore } from './web/buffers-vinden.js';
-import { GEEN_KEUZES, SchakelaarStore, lampSchakelaars, leesSchakelaarKeuze, metKeuze, schakelaarViews, schakelaarsMag, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
+import { GEEN_KEUZES, SchakelaarStore, kinderslotVan, lampSchakelaars, leesSchakelaarKeuze, metKeuze, schakelaarViews, schakelaarsMag, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
 import { kiesLigging, meetLigging, omvormerUitType, type Meting, type PanelenAntwoord } from './web/ligging.js';
 import { alarmSensoren, vindRookmelders } from './web/rookmelders.js';
 import { eigenUpdate, updateView, type UpdateView } from './web/bijwerken.js';
@@ -525,7 +525,15 @@ const client = new HaClient({
         return [];
       }
     })();
-    return { klimaat: klimaat.klimaat, schakelaars: [...new Set([...klimaat.schakelaars, ...stekkers, ...relais])] };
+    // Een kinderslot op een thermostaat of witgoed (besluit 299): dezelfde deur, alleen in de add-on.
+    const sloten = (() => {
+      try {
+        return inHuisMetDeuren ? Object.values(kinderslotten()).map((s) => s.id) : [];
+      } catch {
+        return [];
+      }
+    })();
+    return { klimaat: klimaat.klimaat, schakelaars: [...new Set([...klimaat.schakelaars, ...stekkers, ...relais, ...sloten])] };
   },
 });
 
@@ -794,6 +802,25 @@ function vindSchakelaarsNu(): GevondenSchakelaar[] {
   if (!houseRegisters) return [];
   const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...vindBuffers().map((b) => b.actuator)]);
   return vindSchakelaars(allStates, houseRegisters.entities, houseRegisters.devices, bekend);
+}
+/**
+ * De kinderslotten (besluit 299), per klimaatapparaat (op zijn `climate.`) en
+ * per witgoed (op zijn id uit de configuratie): het slot op hetzelfde apparaat
+ * in Home Assistant.
+ */
+function kinderslotten(): Record<string, { readonly id: string; readonly aan: boolean }> {
+  if (!houseRegisters) return {};
+  const uit: Record<string, { readonly id: string; readonly aan: boolean }> = {};
+  for (const e of houseRegisters.entities) {
+    if (!e.entity_id.startsWith('climate.')) continue;
+    const s = kinderslotVan(e.entity_id, houseRegisters.entities, allStates);
+    if (s) uit[e.entity_id] = s;
+  }
+  for (const d of siteConfig?.deferrables ?? []) {
+    const s = kinderslotVan(d.remoteStart.id, houseRegisters.entities, allStates);
+    if (s) uit[d.id] = s;
+  }
+  return uit;
 }
 
 /** De radiatorknoppen buiten de regeling (besluit 126), met hun kamer: die zet de hand direct (besluit 235). */
@@ -2479,6 +2506,23 @@ if (webPort != null) {
         }
       : {}),
     // Een slimme stekker met de hand (besluit 265): de stand overal, schakelen alleen in de add-on.
+    // Het kinderslot in het blad (besluit 299): zien overal, zetten alleen in de add-on.
+    kinderslot: {
+      lijst: () => kinderslotten(),
+      ...(inHuisMetDeuren
+        ? {
+            zet: async (slot: string, aan: boolean) => {
+              if (!Object.values(kinderslotten()).some((s) => s.id === slot)) return { ok: false as const, reden: 'dat is geen kinderslot dat het huis kent' };
+              try {
+                await client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: slot });
+                return { ok: true as const };
+              } catch (e) {
+                return { ok: false as const, reden: `Home Assistant nam het niet aan: ${(e as Error).message}` };
+              }
+            },
+          }
+        : {}),
+    },
     schakelaars: {
       lijst: () => schakelaarViews(vindSchakelaarsNu(), schakelaarKeuzes(), allStates),
       bewaar: async (body) => {

@@ -4642,6 +4642,11 @@
   'hand.stekkerAlleenAddon': 'Here you only watch. Switching by hand works in the SunArc add-on in Home Assistant: tap Allow in this sheet there.',
   'hand.stekkerToelaten': 'SunArc may not switch this plug yet. Allow it here, or put it on solar in Control.',
   'hand.stekkerToestaan': 'Allow',
+  // The child lock (decision 299).
+  'hand.slot.op': 'On the {naam}',
+  'hand.slot.naam': 'Child lock',
+  'hand.slot.zin': 'The buttons on the device itself do nothing. Takes effect at once.',
+  'hand.slot.addon': 'Here you only watch. You can set it in the SunArc add-on in Home Assistant.',
   'hand.stekkerIntrekken': 'Stop SunArc from switching it',
   'hand.stekkerOpZon': 'On solar, SunArc switches it on and off itself. By hand comes first.',
   'hand.stekkerMinimum': 'At least {duur} per day, by {klok} at the latest: {gehad} so far.',

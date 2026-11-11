@@ -58,6 +58,34 @@ export async function energieRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
     return true;
   }
 
+  // Het kinderslot (besluit 299): per apparaat, en aan of uit.
+  if (path === '/api/kinderslot' && d.options.kinderslot) {
+    const k = d.options.kinderslot;
+    if (method !== 'POST') {
+      sendJson(res, 200, { sloten: k.lijst(), bedienen: k.zet != null });
+      return true;
+    }
+    if (!k.zet) {
+      sendJson(res, 503, { fout: 'Een kinderslot zetten kan alleen in de add-on' });
+      return true;
+    }
+    let body: Record<string, unknown>;
+    try {
+      body = (await readJson(req)) as Record<string, unknown>;
+    } catch (error) {
+      sendJson(res, 400, { fout: (error as Error).message });
+      return true;
+    }
+    const slot = body?.['slot'];
+    if (typeof slot !== 'string' || !/^switch\.[a-z0-9_]+$/.test(slot) || typeof body['aan'] !== 'boolean') {
+      sendJson(res, 400, { fout: 'verwacht { slot: "switch.…", aan }' });
+      return true;
+    }
+    const uit = await k.zet(slot, body['aan']);
+    sendJson(res, uit.ok ? 200 : 409, uit.ok ? uit : { fout: uit.reden });
+    return true;
+  }
+
   // Schakelaars (besluit 297): de lijst en de keuzes, en met de hand aan of uit.
   if (path === '/api/schakelaars' && d.options.schakelaars) {
     const s = d.options.schakelaars;

@@ -171,7 +171,8 @@ const TOESTELLEN: readonly Toestel[] = [
   { id: 'd-warmtepomp', naam: 'Warmtepomp', ruimte: 'woonkamer', merk: 'Daikin', model: 'Altherma', entiteiten: [['climate.beneden'], ['sensor.warmtepomp_vermogen', meter('power', 'Vermogen')]] },
   { id: 'd-airco-wk', naam: 'Airco woonkamer', ruimte: 'woonkamer', merk: 'Daikin', entiteiten: [['climate.air_conditioning_woonkamer'], ['sensor.airco_woonkamer_vermogen', meter('power', 'Vermogen')]] },
   { id: 'd-airco-z', naam: 'Airco zolder', ruimte: 'zolder', merk: 'Daikin', entiteiten: [['climate.air_conditioning_zolder'], ['sensor.airco_zolder_vermogen', meter('power', 'Vermogen')]] },
-  { id: 'd-bad', naam: 'Thermostaat badkamer', ruimte: 'badkamer', entiteiten: [['climate.thermostaat_badkamer']] },
+  // Met een kinderslot (besluit 299), zoals een Tuya-thermostaat.
+  { id: 'd-bad', naam: 'Thermostaat badkamer', ruimte: 'badkamer', entiteiten: [['climate.thermostaat_badkamer'], ['switch.thermostaat_badkamer_kinderslot']] },
   { id: 'd-meter-wk', naam: 'Meter woonkamer', ruimte: 'woonkamer', entiteiten: [['sensor.woonkamer_temperatuur', meter('temperature', 'Temperatuur')], ['sensor.woonkamer_luchtvochtigheid', meter('humidity', 'Luchtvochtigheid')]] },
   { id: 'd-meter-keuken', naam: 'Meter keuken', ruimte: 'keuken', entiteiten: [['sensor.keuken_temperatuur', meter('temperature', 'Temperatuur')]] },
   { id: 'd-meter-bad', naam: 'Meter badkamer', ruimte: 'badkamer', entiteiten: [['sensor.badkamer_temperatuur', meter('temperature', 'Temperatuur')]] },
@@ -195,7 +196,7 @@ const TOESTELLEN: readonly Toestel[] = [
     ruimte: 'keuken',
     merk: 'Bosch',
     platform: 'home_connect',
-    entiteiten: [['binary_sensor.droger_op_afstand', meter('', 'Op afstand starten')], ['sensor.droger_status', meter('', 'Status')], ['sensor.droger_programmaduur', meter('duration', 'Programmaduur')], ['button.droger_start_pauze', meter('', 'Start of pauze')]],
+    entiteiten: [['binary_sensor.droger_op_afstand', meter('', 'Op afstand starten')], ['sensor.droger_status', meter('', 'Status')], ['sensor.droger_programmaduur', meter('duration', 'Programmaduur')], ['button.droger_start_pauze', meter('', 'Start of pauze')], ['switch.droger_kinderslot', meter('', 'Kinderslot')]],
   },
   { id: 'd-accu', naam: 'Thuisbatterij', ruimte: 'hal', merk: 'Sessy', platform: 'sessy', entiteiten: [['sensor.thuisbatterij_lading', meter('battery', 'Lading')], ['sensor.thuisbatterij_vermogen', meter('power', 'Batterij vermogen')]] },
   {
@@ -382,6 +383,9 @@ export function staten(klok: Klok, ingrepen: Ingrepen, nuMs: number): HaEntitySt
   zet('sensor.droger_status', m.droger ? 'Run' : !winter && klok.minuut < 690 ? 'Ready' : klok.minuut >= 860 && !winter ? 'Finished' : 'Inactive', {});
   zet('sensor.droger_programmaduur', 168, { unit_of_measurement: 'min', device_class: 'duration' });
   zet('button.droger_start_pauze', 'unknown', {});
+  // De kinderslotten (besluit 299): aan op de thermostaat, uit op de droger, tot iemand ze omzet.
+  zet('switch.thermostaat_badkamer_kinderslot', ingrepen.get('switch.thermostaat_badkamer_kinderslot')?.state ?? 'on', {});
+  zet('switch.droger_kinderslot', ingrepen.get('switch.droger_kinderslot')?.state ?? 'off', {});
 
   // Thuisbatterij, auto en laadpaal.
   zet('sensor.thuisbatterij_lading', m.batterijPct, { unit_of_measurement: '%', device_class: 'battery' });
