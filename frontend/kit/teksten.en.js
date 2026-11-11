@@ -970,6 +970,8 @@
   'toev.losse.stroom': 'Current per phase',
   'toev.losse.energie2': 'Total charged',
   'toev.losse.stand': 'State',
+  'toev.losse.overig': 'Other numbers, without a unit',
+  'toev.losse.overigZin': 'Without a unit, SunArc does not know what it is. Give such a sensor a unit in Home Assistant (W, A or kWh), and it appears above under the right kind.',
   'toev.losse.geen': 'No sensors without a device found in Home Assistant.',
   'toev.losse.geenPassend': 'Nothing found with this search.',
   // Setting up a switch (decision 297).
@@ -2003,6 +2005,8 @@
   'evcc.stand.smart': 'Smart',
   'laden.nietsKop': 'No car or charger found yet',
   'laden.nietsZin': 'If your car or charger is in Home Assistant, it shows up here by itself. You can also choose one yourself.',
+  'laden.losseZin': 'A charger via Modbus does not show up here by itself: it is not a device in Home Assistant.',
+  'laden.losseLink': 'Add from separate sensors ›',
   'laden.geenHA': 'Without a connection to Home Assistant there are no cars or chargers to find.',
 
   // Home battery in Energy (thuisaccu.js, decision 271)

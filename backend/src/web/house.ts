@@ -1634,10 +1634,16 @@ export function knownForLayout(
   config: SiteConfig,
   registers: HouseRegisters,
   states: ReadonlyMap<string, HaEntityState>,
+  /**
+   * Wat het huis buiten Home Assistant om als apparaat kent: de lampen achter
+   * een schakelaar (besluit 297). Zonder deze ids gooide het bewaren hun kamer
+   * stil weg (melding 163).
+   */
+  extra: readonly string[] = [],
 ): LayoutKnown {
   const { found, successors } = collect(config, registers, states, null);
   return {
-    deviceIds: new Set(found.map((f) => f.device.id)),
+    deviceIds: new Set([...found.map((f) => f.device.id), ...extra]),
     zoneIds: new Set(config.zones.map((z) => z.id)),
     gevelIds: new Set((config.geometry?.facades ?? []).map((f) => f.id)),
     opvolgers: successors,

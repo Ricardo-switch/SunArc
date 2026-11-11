@@ -1205,7 +1205,8 @@ const layoutStore =
   logDir !== '' && siteConfig
     ? new LayoutStore({
         logDir,
-        known: () => (houseRegisters ? knownForLayout(siteConfig!, houseRegisters, houseStates) : null),
+        // Met de lampen achter een schakelaar (besluit 297): anders bleef hun kamer niet bewaard (melding 163).
+        known: () => (houseRegisters ? knownForLayout(siteConfig!, houseRegisters, houseStates, lampSchakelaars(vindSchakelaarsNu(), schakelaarKeuzes()).map((r) => r.id)) : null),
         // Een bron die op zon mag (besluit 132): de regeling neemt het meteen over, net als comfort.
         onSaved: () => void herlaadUitDeApp('de indeling'),
       })

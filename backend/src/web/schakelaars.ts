@@ -61,7 +61,7 @@ export interface LosseSensor {
   readonly id: string;
   readonly naam: string;
   /** Waar hij op lijkt: een vermogen, een stroom, een totaal in kWh, of een stand. */
-  readonly soort: 'vermogen' | 'stroom' | 'energie' | 'stand';
+  readonly soort: 'vermogen' | 'stroom' | 'energie' | 'stand' | 'overig';
   readonly staat: string;
   readonly eenheid: string;
 }
@@ -80,7 +80,8 @@ export function losseSensoren(entities: readonly HaRegistryEntity[], states: Rea
     if (!s) continue;
     const eenheid = String(s.attributes['unit_of_measurement'] ?? '');
     const klasse = String(s.attributes['device_class'] ?? '');
-    const soort = klasse === 'power' || /^k?W$/.test(eenheid) ? 'vermogen' : klasse === 'current' || eenheid === 'A' ? 'stroom' : klasse === 'energy' || /^[kM]?Wh$/.test(eenheid) ? 'energie' : !eenheid && Number.isNaN(Number(s.state)) && !/^(unknown|unavailable)$/.test(s.state) ? 'stand' : null;
+    // Een Modbus-register zonder eenheid (melding 164): als getal, zodat hij te vinden is.
+    const soort = klasse === 'power' || /^k?W$/.test(eenheid) ? 'vermogen' : klasse === 'current' || eenheid === 'A' ? 'stroom' : klasse === 'energy' || /^[kM]?Wh$/.test(eenheid) ? 'energie' : !eenheid && Number.isNaN(Number(s.state)) && !/^(unknown|unavailable)$/.test(s.state) ? 'stand' : !eenheid && !klasse ? 'overig' : null;
     if (!soort) continue;
     uit.push({ id, naam: String(s.attributes['friendly_name'] ?? id).slice(0, 80), soort, staat: s.state, eenheid });
   }

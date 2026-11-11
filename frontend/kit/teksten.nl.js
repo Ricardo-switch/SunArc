@@ -975,6 +975,8 @@
   'toev.losse.stroom': 'Stroom per fase',
   'toev.losse.energie2': 'Totaal geladen',
   'toev.losse.stand': 'Stand',
+  'toev.losse.overig': 'Andere getallen, zonder eenheid',
+  'toev.losse.overigZin': 'Zonder eenheid weet SunArc niet wat het is. Geef zo\'n sensor in Home Assistant een eenheid (W, A of kWh), dan staat hij hierboven bij de goede soort.',
   'toev.losse.geen': 'Geen sensoren zonder apparaat gevonden in Home Assistant.',
   'toev.losse.geenPassend': 'Niets gevonden met deze zoektekst.',
   // Een schakelaar instellen (besluit 297).
@@ -2008,6 +2010,8 @@
   'evcc.stand.smart': 'Slim',
   'laden.nietsKop': 'Nog geen auto of laadpaal gevonden',
   'laden.nietsZin': 'Staat je auto of laadpaal in Home Assistant, dan verschijnt hij hier vanzelf. Je kunt er ook zelf een kiezen.',
+  'laden.losseZin': 'Een laadpaal via Modbus staat hier niet vanzelf: hij is in Home Assistant geen apparaat.',
+  'laden.losseLink': 'Toevoegen uit losse sensoren ›',
   'laden.geenHA': 'Zonder verbinding met Home Assistant zijn er geen auto’s of laadpalen te vinden.',
 
   // Thuisaccu bij Energie (thuisaccu.js, besluit 271)

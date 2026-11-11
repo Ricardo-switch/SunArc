@@ -38,6 +38,14 @@ describe('een laadpaal uit losse sensoren (besluit 301)', () => {
     ]);
   });
 
+  it('toont een Modbus-register zonder eenheid ook, als ander getal (melding 164)', () => {
+    const met = new Map(states);
+    met.set('sensor.nexblue_register_40100', { entity_id: 'sensor.nexblue_register_40100', state: '2', attributes: {}, last_changed: '', last_updated: '' } as never);
+    expect(losseSensoren(entities, met).find((x) => x.id === 'sensor.nexblue_register_40100')?.soort).toBe('overig');
+    // Een temperatuur heeft een eenheid: dat is geen laadpaal, die blijft weg.
+    expect(losseSensoren(entities, met).some((x) => x.id === 'sensor.buiten')).toBe(false);
+  });
+
   it('maakt er een laadpaal van die Energie › Auto en laadpaal kent', () => {
     const l = leesLosseLaadpaal({ id: 'losse-nexblue', naam: 'NexBlue Edge Max', sensoren: ['sensor.nexblue_power', 'sensor.nexblue_current_l1', 'sensor.nexblue_charging_state'] });
     expect(l.ok).toBe(true);

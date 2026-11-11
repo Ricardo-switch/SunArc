@@ -10,7 +10,7 @@ import { programMinutes, remainingMinutes } from '../src/adapters/homeassistant/
 import type { EntitySource } from '../src/adapters/homeassistant/source.js';
 
 import { buildHouse, gevelVan, houseBeforeSetup, knownForLayout, lampsFor, outsideFromNames, proposeLayout, roomForName, roomTypeFromNames } from '../src/web/house.js';
-import { floorOrder, type Layout } from '../src/web/layout.js';
+import { floorOrder, validateLayout, type Layout } from '../src/web/layout.js';
 import { registers, snapshot, states } from './house-fixture.js';
 import { exampleSite } from './site.js';
 
@@ -700,6 +700,16 @@ describe('een vastgelegde indeling', () => {
     expect(known.opvolgers?.get('light.badkamer_spot_1')).toBe('light.hue_badkamer');
     expect(known.opvolgers?.get('light.keukentafel_2')).toBe('light.hue_keuken');
     expect(known.opvolgers?.has('light.oude_groep')).toBe(false);
+  });
+
+  it('bewaart de kamer van een lamp achter een schakelaar (melding 163)', () => {
+    const kamer = layout.kamers.find((k) => k.etage !== 'buiten')!.id;
+    const body = { ...layout, apparaten: { ...layout.apparaten, 'switch.ac_0x01a2b3c4_1': { kamer, zone: null } } };
+    // Zonder de schakelaar viel hij stil weg; met hem blijft hij in zijn kamer.
+    const zonder = validateLayout(body, knownForLayout(config, registers, states));
+    expect(zonder.ok && zonder.layout.apparaten['switch.ac_0x01a2b3c4_1']).toBeFalsy();
+    const met = validateLayout(body, knownForLayout(config, registers, states, ['switch.ac_0x01a2b3c4_1']));
+    expect(met.ok && met.layout.apparaten['switch.ac_0x01a2b3c4_1']?.kamer).toBe(kamer);
   });
 
   it('toont een etage zonder kamers als de bewoner hem een naam gaf, en anders niet', () => {

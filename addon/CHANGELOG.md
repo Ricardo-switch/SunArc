@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.175.0
+## 0.175.1
 
-*11 november 2026 · 0.173.0 – 0.175.0*
+*11 november 2026 · 0.173.0 – 0.175.1*
 
 **Nieuw**
 
@@ -13,7 +13,13 @@
 
 **Beter**
 
+- Bij Energie › Auto en laadpaal staat de weg naar een laadpaal uit losse sensoren, zoals via Modbus
+- Losse sensoren toont ook getallen zonder eenheid, zodat een Modbus-register te vinden is
 - Een airco die helpt, staat hoger als zijn eigen meter warmer is dan de kamer, zodat hij doordraait tot de kamer op temperatuur is
+
+**Opgelost**
+
+- Een lamp achter een schakelaar, zoals klik-aan-klik-uit, bleef bij Kamers en indeling "nog in te delen" staan als je hem een kamer gaf
 
 *English*
 
@@ -26,7 +32,13 @@
 
 **Improved**
 
+- Energy › Car and charger shows the way to a charger from separate sensors, like via Modbus
+- Separate sensors also shows numbers without a unit, so a Modbus register can be found
 - An air conditioner that helps is set higher when its own sensor reads warmer than the room, so it keeps going until the room is warm enough
+
+**Fixed**
+
+- A lamp behind a switch, like a KlikAanKlikUit switch, stayed "not arranged yet" in Rooms and layout when you gave it a room
 
 ## 0.172.1
 

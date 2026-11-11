@@ -55,11 +55,12 @@ const slug = (x) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,
 function lossePaneel() {
   const zoek = lConcept.zoek.trim().toLowerCase();
   const passend = losse.sensoren.filter((x) => !zoek || `${x.id} ${x.naam}`.toLowerCase().includes(zoek));
-  const groepen = ['vermogen', 'stroom', 'energie', 'stand']
+  const groepen = ['vermogen', 'stroom', 'energie', 'stand', 'overig']
     .map((soort) => {
       const rijen = passend.filter((x) => x.soort === soort).slice(0, 30);
       if (!rijen.length) return '';
-      return `<div class="lgroep"><h3>${esc(t(`toev.losse.${soort === 'energie' ? 'energie2' : soort}`))}</h3>${rijen.map((x) => `<label class="lsensor"><input type="checkbox" data-lsensor="${esc(x.id)}" ${lConcept.gekozen.has(x.id) ? 'checked' : ''}><span><b>${esc(x.naam)}</b><small>${esc(x.id)}</small></span><em>${esc(`${x.staat}${x.eenheid ? ` ${x.eenheid}` : ''}`)}</em></label>`).join('')}</div>`;
+      const uitleg = soort === 'overig' ? `<p class="onder">${esc(t('toev.losse.overigZin'))}</p>` : '';
+      return `<div class="lgroep"><h3>${esc(t(`toev.losse.${soort === 'energie' ? 'energie2' : soort}`))}</h3>${uitleg}${rijen.map((x) => `<label class="lsensor"><input type="checkbox" data-lsensor="${esc(x.id)}" ${lConcept.gekozen.has(x.id) ? 'checked' : ''}><span><b>${esc(x.naam)}</b><small>${esc(x.id)}</small></span><em>${esc(`${x.staat}${x.eenheid ? ` ${x.eenheid}` : ''}`)}</em></label>`).join('')}</div>`;
     })
     .join('');
   const bestaand = Object.entries(losse.laadpalen ?? {});
@@ -278,7 +279,7 @@ function teken() {
   });
   // Wie aan het typen was, blijft in hetzelfde veld.
   if (focus) $$(`[data-rechts] ${focus.knop ? `[data-knop="${focus.knop}"]` : focus.naam != null ? '[data-naam]' : focus.vermogen != null ? '[data-vermogen]' : focus.lzoek != null ? '[data-lzoek]' : focus.lnaam != null ? '[data-lnaam]' : '[data-kamer]'}`).find((x) => x.offsetParent)?.focus();
-  const tegels = SOORTEN.filter(([id]) => (id !== 'schakelaars' || schakelaars.length > 0) && (id !== 'losse' || losse.sensoren.length > 0 || Object.keys(losse.laadpalen ?? {}).length > 0))
+  const tegels = SOORTEN.filter(([id]) => (id !== 'schakelaars' || schakelaars.length > 0))
     .map(([id, icoon, vlak, href]) => `<a class="soort" href="${href}" data-soort="${id}"><span class="ik" style="background: rgba(${vlak}, 0.14)">${iconen.svg(icoon)}</span><b>${esc(t(`apparaten.soort.${id}`))}</b><span>${esc(t(`toev.soort.${id}`))}</span></a>`)
     .join('');
   $$('[data-soorten]').forEach((el) => (el.innerHTML = tegels));

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.175.0';
+export const VERSIE = '0.175.1';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,44 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.175.1',
+    datum: '2026-11-11',
+    opgelost: [
+      'Een lamp achter een schakelaar, zoals klik-aan-klik-uit, bleef bij Kamers en indeling "nog in te delen" staan als je hem een kamer gaf',
+    ],
+    beter: [
+      'Bij Energie › Auto en laadpaal staat de weg naar een laadpaal uit losse sensoren, zoals via Modbus',
+      'Losse sensoren toont ook getallen zonder eenheid, zodat een Modbus-register te vinden is',
+    ],
+    meldingen: [
+      {
+        code: 'SA-SKYA',
+        uitkomst: 'opgelost',
+        tekst: 'Een lamp achter een schakelaar die je bij Kamers en indeling een kamer gaf, bleef "nog in te delen". Dat is hersteld: de kamer blijft nu bewaard.',
+        tekstEn: 'A lamp behind a switch that you gave a room in Rooms and layout stayed "not arranged yet". That is fixed: the room is now saved.',
+        href: 'indeling.html#los',
+        issue: 163,
+      },
+      {
+        code: 'SA-N2JR',
+        uitkomst: 'instelling',
+        tekst: 'Een laadpaal via Modbus voeg je toe bij Apparaten › Toevoegen › Losse sensoren, niet bij Energie. Zie je je sensoren daar niet, dan hebben ze waarschijnlijk geen eenheid: ze staan nu onder Andere getallen.',
+        tekstEn: 'A charger via Modbus is added in Devices › Add › Separate sensors, not in Energy. If your sensors are not there, they probably have no unit: they are now under Other numbers.',
+        href: 'toevoegen.html#losse',
+        issue: 164,
+      },
+    ],
+    en: {
+      opgelost: [
+        'A lamp behind a switch, like a KlikAanKlikUit switch, stayed "not arranged yet" in Rooms and layout when you gave it a room',
+      ],
+      beter: [
+        'Energy › Car and charger shows the way to a charger from separate sensors, like via Modbus',
+        'Separate sensors also shows numbers without a unit, so a Modbus register can be found',
+      ],
+    },
+  },
   {
     versie: '0.175.0',
     datum: '2026-11-11',
