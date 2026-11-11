@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.174.0
+## 0.175.0
 
-*11 november 2026 · 0.173.0 – 0.174.0*
+*11 november 2026 · 0.173.0 – 0.175.0*
 
 **Nieuw**
 
+- Een schakelaar zonder meter, waarvan je het vermogen invulde, kan op zon zoals een slimme stekker: zet hem aan bij Regeling › Apparaten op zon
 - In het blad van een airco die de cv helpt staat de dag: wanneer de ketel stookte, wanneer de airco hielp, en waar hij zelf kort uitging
 - De kaart Aansluiting op Thuis, te kiezen bij Thuis aanpassen: per fase hoe vol hij is tegen de zekering, en welke het krapst is
 - Een tik op de kaart opent een blad met de stroom per fase van vandaag in één grafiek, het hoogste per fase en wat SunArc doet als het krap wordt
@@ -18,6 +19,7 @@
 
 **New**
 
+- A switch without a meter, whose power you entered, can run on solar like a smart plug: switch it on under Control › Appliances on solar
 - The sheet of an air conditioner that helps the boiler shows the day: when the boiler heated, when the air conditioner helped, and where it briefly switched off by itself
 - The Connection card on Home, to choose in Customize Home: per phase how full it is against the fuse, and which one is tightest
 - Tapping the card opens a sheet with today’s current per phase in one graph, the highest per phase, and what SunArc does when it gets tight

@@ -555,7 +555,10 @@ async function schakelLamp(id, aan) {
 /** Een kachel of ventilator achter een schakelaar staat bij Klimaat (besluit 300). */
 const KLIMAAT_WAT = new Set(['kachel', 'ventilator']);
 /** De stekkers die bij een schakelaar horen: die staan bij hem, niet nog eens bij Stekkers. */
-const stekkersBijSchakelaar = () => new Set((schakelaarData?.schakelaars ?? []).map((x) => x.keuze?.stekker).filter(Boolean));
+// Ook een schakelaar op zon (besluit 304): die doet mee als stekker, maar staat hier als schakelaar.
+const stekkersBijSchakelaar = () => new Set((schakelaarData?.schakelaars ?? []).flatMap((x) => [x.keuze?.stekker, x.opZonId]).filter(Boolean));
+/** Een schakelaar op zon (besluit 304): wat hij op zon doet, uit de warmtebuffers, als hij op zon staat. */
+const opZonVan = (s) => (s.opZonId ? (state?.bewoner?.warmtebuffers ?? []).find((b) => b.id === s.opZonId) ?? null : null);
 
 /** De stekker bij een schakelaar, als regel: de stroom en wat hij trekt; een tik opent zijn blad. */
 function stekkerRegel(s) {
@@ -600,12 +603,14 @@ function schakelaarKaart(s) {
   const rijen = knopRijen(s) + stekkerRegel(s);
   const st = s.keuze?.stekker ? hand.stekker(s.keuze.stekker) : null;
   const kw = st?.vermogenW != null ? `${nl(st.vermogenW / 1000)}<span>${esc(t('apparaten.kwNu'))}</span>` : s.nuW != null ? `${nl(s.nuW / 1000)}<span>${esc(t(s.meet ? 'apparaten.kwNu' : 'apparaten.kwIngevuld'))}</span>` : '';
+  const zonStand = opZonVan(s);
   const el = document.createElement('section');
   el.className = 'glas app';
   el.dataset.actief = String(s.knoppen.some((k) => (knopWens.has(k.id) ? knopWens.get(k.id) : k.aan === true)));
   el.innerHTML = `
     <div class="kopje"><span class="ik" style="background: rgba(201, 211, 220, 0.14)">${iconen.svg(WAT_IK[s.keuze.wat] ?? 'apparaat')}</span><div><b>${esc(s.keuze.naam || s.naam)}</b><span class="mini">${esc(t(`toev.wat.${s.keuze.wat}`))} · ${esc(t('apparaten.via', { via: s.model ?? s.koppeling }))}</span></div><div class="kw">${kw}</div></div>
     ${s.temperatuurC != null ? `<div class="stand"><i style="background: var(--mint)"></i>${esc(t('apparaten.hetIsEr', { c: nl(s.temperatuurC, 1) }))}</div>` : ''}
+    ${zonStand ? `<div class="stand"><i style="background: var(--zon)"></i>${esc(zonStand.kop)}</div>` : ''}
     <div class="knoprijen">${rijen}</div>
     ${mag ? '' : `<p class="mini etiket">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}`;
   return metBlad(el, `schakelaar:${s.id}`, s.keuze.naam || s.naam);
@@ -678,8 +683,16 @@ function schakelaarBlad(id) {
   return {
     naam: s.keuze.naam || s.naam,
     zin: [t(`toev.wat.${s.keuze.wat}`), t('apparaten.via', { via: s.model ?? s.koppeling })].join(' · '),
-    html: `${s.temperatuurC != null ? regel(t('apparaten.blad.nu'), `<b>${nl(s.temperatuurC, 1)}°</b>`) : ''}<div class="knoprijen vrij-knoppen">${knopRijen(s)}${stekkerRegel(s)}</div>${s.nuW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(s.nuW / 1000)} kW</b>`) : ''}${!s.meet && s.keuze.vermogenW != null ? `<p class="hand-hoe">${esc(t('apparaten.ingevuldZin', { w: s.keuze.vermogenW }))}</p>` : ''}${mag ? '' : `<p class="hand-hoe">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}${onder([[`toevoegen.html#s-${encodeURIComponent(s.id)}`, t('apparaten.blad.instellen')]])}`,
+    html: `${s.temperatuurC != null ? regel(t('apparaten.blad.nu'), `<b>${nl(s.temperatuurC, 1)}°</b>`) : ''}<div class="knoprijen vrij-knoppen">${knopRijen(s)}${stekkerRegel(s)}</div>${s.nuW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(s.nuW / 1000)} kW</b>`) : ''}${!s.meet && s.keuze.vermogenW != null ? `<p class="hand-hoe">${esc(t('apparaten.ingevuldZin', { w: s.keuze.vermogenW }))}</p>` : ''}${zonBlok(s)}${mag ? '' : `<p class="hand-hoe">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}${onder([[`toevoegen.html#s-${encodeURIComponent(s.id)}`, t('apparaten.blad.instellen')], ...(s.opZonId ? [['regeling.html#opzon', t('apparaten.blad.naarOpZon')]] : [])])}`,
   };
+}
+
+/** Op zon in het blad van een schakelaar (besluit 304): wat hij doet, of dat het kan. */
+function zonBlok(s) {
+  if (!s.opZonId) return '';
+  const b = opZonVan(s);
+  if (!b) return `<p class="hand-hoe">${esc(t('apparaten.kanOpZon'))}</p>`;
+  return `${regel(t('apparaten.blad.opZon'), `<b>${esc(b.kop)}</b>`)}${b.zin ? `<p class="hand-hoe">${esc(b.zin)}</p>` : ''}`;
 }
 
 /** Het blad bij een sleutel als "lamp:light.x", "buffer:boiler", "accu" of "schakelaar:id". */

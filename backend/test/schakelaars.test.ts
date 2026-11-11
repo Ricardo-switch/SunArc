@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { HaEntityState } from '../src/adapters/homeassistant/client.js';
 import type { HaDevice, HaRegistryEntity } from '../src/adapters/homeassistant/discovery.js';
-import { GEEN_KEUZES, kinderslotVan, lampSchakelaars, leesSchakelaarKeuze, metKeuze, schakelaarViews, schakelaarsMag, vindSchakelaars } from '../src/web/schakelaars.js';
+import { GEEN_KEUZES, kinderslotVan, lampSchakelaars, leesSchakelaarKeuze, metKeuze, relaisId, schakelaarViews, schakelaarsMag, schakelaarsOpZon, vindSchakelaars } from '../src/web/schakelaars.js';
 
 /*
  * Schakelaars (besluit 297), met wat er in een echt huis stond (11 november
@@ -126,6 +126,31 @@ describe('schakelaars vinden (besluit 297)', () => {
     // De stekker meet: het ingevulde vermogen telt dan niet nog eens.
     expect(v.nuW).toBeNull();
     expect(leesSchakelaarKeuze({ id: 'ir', wat: 'kachel', stekker: '../x' }).ok).toBe(false);
+  });
+
+  it('een schakelaar met een ingevuld vermogen kan op zon, als een stekker (besluit 304)', () => {
+    const kies = (id: string, body: Record<string, unknown>, keuzes = GEEN_KEUZES) => {
+      const k = leesSchakelaarKeuze({ id, ...body });
+      if (!k.ok || typeof k.keuze !== 'object') throw new Error('keuze klopt niet');
+      return metKeuze(keuzes, id, k.keuze);
+    };
+    // Klik-aan-klik-uit voor de vijverpomp met 120 W, de Shelly zonder vermogen, de IR-kachel met stekker.
+    let keuzes = kies('kaku', { wat: 'pomp', naam: 'Vijverpomp', vermogenW: 120 });
+    keuzes = kies('shelly', { wat: 'pomp', naam: 'Schuur' }, keuzes);
+    keuzes = kies('ir', { wat: 'kachel', naam: 'Kachel', stekker: 'stekker-x', vermogenW: 2000 }, keuzes);
+    keuzes = kies('spiegel', { wat: 'lamp', naam: 'Spiegel', vermogenW: 40 }, keuzes);
+    const zon = schakelaarsOpZon(gevonden, keuzes);
+    expect(zon).toEqual([
+      { id: relaisId('kaku'), naam: 'Vijverpomp', soort: 'stekker', control: 'switch', actuator: 'switch.ac_0x01a2b3c4_1', estimatedW: 120, minC: 0, sunC: 0, heatRateCPerHour: 1 },
+    ]);
+    // De app weet het per schakelaar: wie op zon kan, krijgt het id van Regeling › Apparaten op zon.
+    const v = schakelaarViews(gevonden, keuzes, states);
+    expect(v.find((x) => x.id === 'kaku')!.opZonId).toBe(relaisId('kaku'));
+    expect(v.find((x) => x.id === 'shelly')!.opZonId).toBeNull();
+    expect(v.find((x) => x.id === 'ir')!.opZonId).toBeNull();
+    expect(v.find((x) => x.id === 'spiegel')!.opZonId).toBeNull();
+    // Een andere naam haalt hem niet van zon: het id hangt aan het apparaat.
+    expect(schakelaarsOpZon(gevonden, kies('kaku', { wat: 'pomp', naam: 'Pomp', vermogenW: 120 }))[0]!.id).toBe(relaisId('kaku'));
   });
 
   it('weigert een keuze die niet klopt', () => {

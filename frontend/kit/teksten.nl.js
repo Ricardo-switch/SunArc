@@ -856,6 +856,10 @@
   'apparaten.kwIngevuld': 'kW, ingevuld',
   'apparaten.hetIsEr': 'Het is er {c}°',
   'apparaten.stroomVia': 'Stroom via {naam}',
+  // Een schakelaar op zon (besluit 304).
+  'apparaten.blad.opZon': 'Op zon',
+  'apparaten.blad.naarOpZon': 'Apparaten op zon',
+  'apparaten.kanOpZon': 'Met het ingevulde vermogen kan hij op zon. Zet hem aan bij Regeling › Apparaten op zon: dan zet SunArc hem aan als er zon over is.',
   'apparaten.ingevuldZin': 'Geen eigen meter: ingevuld is {w} W als hij aan staat. Zo telt hij mee bij Opbrengst › Nu.',
   'apparaten.schakelaarAddon': 'Hier kijk je alleen mee. Met de hand schakelen kan in de add-on van SunArc in Home Assistant.',
   'apparaten.stekkerMag': 'Met de hand te schakelen',

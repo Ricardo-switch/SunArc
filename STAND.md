@@ -518,7 +518,8 @@ verwijzing bestaat.
   IR) stel je in bij Toevoegen; een lamp komt bij zijn kamer, de rest bij
   Schakelaars, met de hand door de deur van een stekker ([297]). Een tik opent
   bij elk apparaat zijn blad, en bij een schakelaar zonder meter vul je het
-  vermogen in voor Opbrengst › Nu ([298]). Het kinderslot van een thermostaat
+  vermogen in voor Opbrengst › Nu ([298]); zo'n schakelaar kan dan ook op zon,
+  als een stekker ([304]). Het kinderslot van een thermostaat
   of droger staat onderaan zijn blad ([299]). Een kachel uit IR-knoppen, een
   stekker en een temperatuur is één apparaat bij Klimaat ([300]). Een laadpaal
   uit losse sensoren (Modbus) kies je bij Toevoegen › Losse sensoren ([301]). Toevoegen is
@@ -940,4 +941,5 @@ verwijzing bestaat.
 [301]: DECISIONS.md#301-een-laadpaal-uit-losse-sensoren
 [302]: DECISIONS.md#302-de-fasekaart-hoe-vol-elke-fase-is
 [303]: DECISIONS.md#303-helpen-bij-de-cv-doordraaien-en-de-dag-in-het-blad-van-de-airco
+[304]: DECISIONS.md#304-een-schakelaar-met-een-ingevuld-vermogen-kan-op-zon
 <!-- links:einde -->

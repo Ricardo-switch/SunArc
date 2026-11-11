@@ -851,6 +851,10 @@
   'apparaten.kwIngevuld': 'kW, entered',
   'apparaten.hetIsEr': 'It is {c}° there',
   'apparaten.stroomVia': 'Power via {naam}',
+  // Een schakelaar op zon (besluit 304).
+  'apparaten.blad.opZon': 'On solar',
+  'apparaten.blad.naarOpZon': 'Appliances on solar',
+  'apparaten.kanOpZon': 'With the power you entered, it can run on solar. Switch it on under Control › Appliances on solar: then SunArc turns it on when there is sun to spare.',
   'apparaten.ingevuldZin': 'No meter of its own: entered is {w} W when it is on. That way it counts in Energy › Now.',
   'apparaten.schakelaarAddon': 'Here you only watch. Switching by hand works in the SunArc add-on in Home Assistant.',
   'apparaten.stekkerMag': 'Can be switched by hand',

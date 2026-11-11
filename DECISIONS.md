@@ -93,6 +93,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [291. Een radiatorknop of een gasketel helpt niet op zon](#291-een-radiatorknop-of-een-gasketel-helpt-niet-op-zon)
 - [292. Helpen bij de cv gebouwd: elke airco voor zijn eigen kamer](#292-helpen-bij-de-cv-gebouwd-elke-airco-voor-zijn-eigen-kamer)
 - [303. Helpen bij de cv: doordraaien en de dag in het blad van de airco](#303-helpen-bij-de-cv-doordraaien-en-de-dag-in-het-blad-van-de-airco)
+- [304. Een schakelaar met een ingevuld vermogen kan op zon](#304-een-schakelaar-met-een-ingevuld-vermogen-kan-op-zon)
 
 **Configuratie en onboarding**
 
@@ -13923,6 +13924,37 @@ doel van de kamer stopt hij te vroeg en slaat hij even later weer aan
   `/api/helpen` per airco `balk` en `bijC`.
 - **Nog steeds de schaduw:** de airco's echt sturen blijft stap B. Leren met
   de stroommeter van de airco blijft open.
+
+---
+
+## 304. Een schakelaar met een ingevuld vermogen kan op zon
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+11 november 2026, versie 0.175.0: een open vraag van [298]. Gevraagd of een
+schakelaar zonder meter, waarvan de bewoner het vermogen invulde, ook op zon
+mag zoals een slimme stekker, koos Ricardo: ja, met toestemming. Ook gevraagd:
+een laadpaal uit losse sensoren ([301]) bedienen via Modbus. Gekozen: nog
+niet, eerst een tester met zo'n laadpaal.
+
+*Besluit:*
+
+- **Wie:** een schakelaar ([297]) met één knop, geen lamp, geen
+  IR-afstandsbediening, zonder eigen meter, zonder stekker erbij ([300]; die
+  stekker kan zelf op zon) en met een ingevuld vermogen ([298]).
+- **Als een slimme stekker** ([264]): hij staat bij Regeling › Apparaten op zon
+  met het stekkericoon, en daar is op zon zelf de toestemming ([290]). Dan zet
+  SunArc hem echt aan en uit door dezelfde deur ([267]: `switch.turn_on` en
+  `turn_off` op die ene schakelaar), met de marge, de rust en het minimum per
+  dag van een stekker. Hij vraagt het ingevulde vermogen (50 tot 3.680 W).
+- **Het id** is `relais-` met het apparaat in Home Assistant, niet de naam: een
+  andere naam haalt hem niet van zon.
+- **Niet dubbel:** op Apparaten blijft hij een schakelaar, niet ook een stekker.
+  De kaart zegt wat hij op zon doet ("Aan op zon"); het blad zegt het ook, of
+  dat het kan, met een regel naar Apparaten op zon. Er komt geen melding
+  "Stekker gevonden": hij is ingesteld, niet gevonden.
+- **Zonder meter** ziet SunArc niet of hij echt trekt: "aan" telt als het
+  ingevulde vermogen, zoals bij Opbrengst › Nu ([298]).
 
 ---
 

@@ -90,7 +90,7 @@ import { hoofddakPlat, panelenVan, type DakVlak } from './web/daken.js';
 import { inNederland } from './web/bag3d.js';
 import { aanvullenUitMeter, achterblijven, meetVlakken, metMeting, opbrengstPerVlak, verdeelDag, type Achter, type MeterGroep, type VlakStand, type Verdeling } from './web/meten-vlakken.js';
 import { findHeatStores, findPlugs, type FoundHeatStore } from './web/buffers-vinden.js';
-import { GEEN_KEUZES, SchakelaarStore, kinderslotVan, lampSchakelaars, leesLosseLaadpaal, leesSchakelaarKeuze, losseSensoren, metKeuze, metLaadpaal, schakelaarViews, schakelaarsMag, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
+import { GEEN_KEUZES, SchakelaarStore, kinderslotVan, lampSchakelaars, leesLosseLaadpaal, leesSchakelaarKeuze, losseSensoren, metKeuze, metLaadpaal, schakelaarViews, schakelaarsMag, schakelaarsOpZon, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
 import { kiesLigging, meetLigging, omvormerUitType, type Meting, type PanelenAntwoord } from './web/ligging.js';
 import { alarmSensoren, vindRookmelders } from './web/rookmelders.js';
 import { eigenUpdate, updateView, type UpdateView } from './web/bijwerken.js';
@@ -785,11 +785,25 @@ if (laadhand) {
  * zoals ze nu in Home Assistant staan. Een schakelaar die de regeling al
  * bedient, is geen losse stekker.
  */
-function vindBuffers(): FoundHeatStore[] {
+function vindBuffersHa(): FoundHeatStore[] {
   if (!houseRegisters) return [];
   const buffers = findHeatStores(allStates, houseRegisters.entities, houseRegisters.devices);
   const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...buffers.map((b) => b.actuator)]);
   return [...buffers, ...findPlugs(allStates, houseRegisters.entities, houseRegisters.devices, bekend)];
+}
+/** Met de schakelaars die op zon kunnen (besluit 304): die doen mee als een stekker. */
+function vindBuffers(): FoundHeatStore[] {
+  const ha = vindBuffersHa();
+  if (!houseRegisters) return ha;
+  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...ha.map((b) => b.actuator)]);
+  // Bij het opstarten bestaat het bestand met de keuzes nog niet: dan alleen wat Home Assistant heeft.
+  let keuzes: SchakelaarKeuzes;
+  try {
+    keuzes = schakelaarKeuzes();
+  } catch {
+    return ha;
+  }
+  return [...ha, ...schakelaarsOpZon(vindSchakelaars(allStates, houseRegisters.entities, houseRegisters.devices, bekend), keuzes)];
 }
 /*
  * Schakelaars (besluit 297): een relais zoals een Shelly 1 mini, klik-aan-klik-uit
@@ -814,7 +828,7 @@ function laadReg<R extends { readonly devices: readonly HaDevice[]; readonly ent
 }
 function vindSchakelaarsNu(): GevondenSchakelaar[] {
   if (!houseRegisters) return [];
-  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...vindBuffers().map((b) => b.actuator)]);
+  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...vindBuffersHa().map((b) => b.actuator)]);
   return vindSchakelaars(allStates, houseRegisters.entities, houseRegisters.devices, bekend);
 }
 /**
@@ -1512,7 +1526,8 @@ function stekkerBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBro
   const inRegeling = new Set((cfg.heatStores ?? []).map((h) => h.actuator.id));
   const gekozen = new Set((connectionStore?.current?.buffers ?? []).filter((b) => b.opZon).map((b) => b.actuator));
   const meters = energyStore?.current ? new Set(energyStore.current.apparaten.map((a) => a.id)) : null;
-  return vindBuffers()
+  // Een schakelaar op zon (besluit 304) is niet gevonden maar ingesteld: geen melding.
+  return vindBuffersHa()
     .filter((b) => b.soort === 'stekker')
     .map((b) => ({ id: b.id, naam: b.naam, opZon: inRegeling.has(b.actuator) || gekozen.has(b.actuator), meter: b.energy ?? null, meterErin: meters == null || (b.energy != null && meters.has(b.energy)) }));
 }

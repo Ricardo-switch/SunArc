@@ -19,6 +19,7 @@ import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { HaEntityState } from '../adapters/homeassistant/client.js';
 import type { HaDevice, HaRegistryEntity } from '../adapters/homeassistant/discovery.js';
+import { PLUG_MAX_W, type FoundHeatStore } from './buffers-vinden.js';
 import type { LosseLaadpaal } from './opslag.js';
 
 /** Wat er aan een schakelaar hangt. Een lamp komt bij Licht, de rest bij Schakelaars. */
@@ -233,6 +234,8 @@ export interface SchakelaarView extends GevondenSchakelaar {
   readonly nuW: number | null;
   /** De temperatuur van nu op het apparaat zelf, of null (besluit 300). */
   readonly temperatuurC: number | null;
+  /** Kan hij op zon (besluit 304)? Dan zijn id bij Regeling › Op zon; anders null. */
+  readonly opZonId: string | null;
 }
 
 /** Wat een schakelaar nu vraagt: de meter, of het ingevulde vermogen als hij aan staat. */
@@ -253,7 +256,7 @@ export function schakelaarViews(gevonden: readonly GevondenSchakelaar[], keuzes:
   return gevonden.filter((g) => !keuzes.geen.includes(g.id)).map((g) => {
     const keuze = keuzes.apparaten[g.id] ?? null;
     const c = g.temperatuur ? Number(states.get(g.temperatuur)?.state) : NaN;
-    return { ...g, keuze, nuW: nuVermogenW(g, keuze, states), temperatuurC: Number.isFinite(c) ? c : null };
+    return { ...g, keuze, nuW: nuVermogenW(g, keuze, states), temperatuurC: Number.isFinite(c) ? c : null, opZonId: keuze && kanOpZon(g, keuze) ? relaisId(g.id) : null };
   });
 }
 
@@ -263,6 +266,40 @@ export function knopNaam(g: GevondenSchakelaar, k: SchakelaarKeuze, knop: Schake
   if (eigen) return eigen;
   const basis = k.naam.trim() || g.naam;
   return g.knoppen.length > 1 ? `${basis} ${i + 1}` : basis;
+}
+
+/** Het id van een schakelaar op zon (besluit 304): op het apparaat, zodat een andere naam hem niet van zon haalt. */
+export const relaisId = (apparaat: string): string => `relais-${apparaat.replace(/[^a-z0-9]/gi, '').slice(0, 24).toLowerCase()}`;
+
+/**
+ * Schakelaars die op zon kunnen (besluit 304): zonder eigen meter, met een
+ * vermogen dat de bewoner invulde, met één knop, geen lamp, geen IR en geen
+ * stekker erbij (die stekker kan zelf op zon). Ze doen mee als een slimme
+ * stekker ([264]): ze staan bij Regeling › Op zon, en daar is op zon zelf de
+ * toestemming ([290]), met dezelfde deur naar Home Assistant.
+ */
+export function kanOpZon(g: GevondenSchakelaar, k: SchakelaarKeuze): boolean {
+  return k.wat !== 'lamp' && !k.stekker && k.vermogenW != null && !g.meet && !g.ir && g.knoppen.length === 1;
+}
+
+export function schakelaarsOpZon(gevonden: readonly GevondenSchakelaar[], keuzes: SchakelaarKeuzes): FoundHeatStore[] {
+  const uit: FoundHeatStore[] = [];
+  for (const g of gevonden) {
+    const k = keuzes.apparaten[g.id];
+    if (!k || !kanOpZon(g, k) || k.vermogenW == null) continue;
+    uit.push({
+      id: relaisId(g.id),
+      naam: (k.naam || g.naam).slice(0, 60),
+      soort: 'stekker',
+      control: 'switch',
+      actuator: g.knoppen[0]!.id,
+      estimatedW: Math.max(50, Math.min(PLUG_MAX_W, Math.round(k.vermogenW))),
+      minC: 0,
+      sunC: 0,
+      heatRateCPerHour: 1,
+    });
+  }
+  return uit;
 }
 
 /** De lampen achter een schakelaar: elke knop is een lamp, in de kamer die de bewoner koos. */
