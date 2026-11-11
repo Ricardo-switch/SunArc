@@ -7,6 +7,10 @@
  * jacuzzi "klaar om" (besluit 186). De zinnen en de keuzes komen kant-en-klaar van de dienst
  * (besluit 94); de pagina zet ze neer en rekent alleen de resterende tijd uit.
  *
+ * Sinds besluit 294 in soorten (Klimaat, Licht, Warm water en bad, Witgoed,
+ * Auto en laden, Thuisaccu, Stekkers), met bovenaan een rij om te springen,
+ * en alle lampen per kamer met een schakelaar. De pagina mag op de wand scrollen.
+ *
  * Eerlijk over wat er is (besluit 104): een batterij of een auto staat hier pas
  * als het huis er een heeft. De tijd kiezen gaat naar de dienst, nooit naar
  * Home Assistant.
@@ -114,6 +118,8 @@ function kaart(d) {
   const el = document.createElement('section');
   el.className = 'glas app';
   el.dataset.actief = String(d.stand === 'running' || d.stand === 'would_start' || d.stand === 'waiting');
+  // Voor de kop van de soort (besluit 293): wachten op zon is niet hetzelfde als bezig.
+  el.dataset.wacht = String(d.stand === 'would_start' || d.stand === 'waiting');
   el.innerHTML = `
     <div class="boven">${boven}<div><b>${esc(d.naam)}</b><span class="klein ${toon}">${esc(d.kop)}</span></div></div>
     <p class="mini zin">${esc(zin)}</p>
@@ -171,6 +177,7 @@ function stekkerKaart(b) {
   const el = document.createElement('section');
   el.className = 'glas app';
   el.dataset.actief = String(aan || b.stand === 'would_heat');
+  el.dataset.wacht = String(!aan && b.stand === 'waiting');
   // Met de hand (besluit 265): in zonkleur, met tot wanneer.
   const st = hand.stekker(b.id);
   const metHand = st?.actief;
@@ -306,6 +313,7 @@ function klimaatKaart({ a, r }) {
   el.className = 'glas app';
   el.href = `kamer.html#${encodeURIComponent(r.id)}/${encodeURIComponent(a.id)}`;
   el.dataset.actief = String(doet || bew?.soort === 'wait');
+  el.dataset.wacht = String(!doet && bew?.soort === 'wait');
   // Alleen "SunArc zou: …": dan kan hij samen met de andere kaarten bovenaan (besluit 226).
   if (vanSC && zin === vanSC && rest && !doet && bew?.soort !== 'wait') el.dataset.zou = rest;
   // Met de hand (besluit 235): in zonkleur, met wanneer het terug gaat. Een tik opent het blad (besluit 238).
@@ -416,21 +424,16 @@ function nietOpZon(a) {
   return el;
 }
 
-function toevoegen() {
-  const el = document.createElement('a');
-  el.className = 'glas app niet nieuw';
-  el.href = 'regeling.html#opzon';
-  el.innerHTML = `
-    <div class="boven"><svg class="ring" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 20v24M20 32h24" stroke="#7F8E9C" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2" stroke-dasharray="4 6"/></svg><div><b>${esc(t('apparaten.toevoegen'))}</b><span class="klein">${esc(t('apparaten.toevoegenWat'))}</span></div></div>
-    <p class="mini zin">${esc(t('apparaten.toevoegenWaar'))}</p>`;
-  return el;
-}
-
 /* ------------------------------------------------------------- de zon */
 
 const ZON = '<svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="9" fill="#F7B548"/><g stroke="#F7B548" stroke-width="2.4" stroke-linecap="round"><path d="M20 3v4M20 33v4M3 20h4M33 20h4M8 8l3 3M29 29l3 3M8 32l3-3M29 11l3-3"/></g></svg>';
 const MAAN = '<svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><path d="M26 8a13 13 0 1 0 6 20A11 11 0 0 1 26 8z" fill="#B8C4CF"/></svg>';
 
+/**
+ * Hoeveel zon er over is, met eronder een strook: waar de stroom nu heen gaat
+ * (de airco's, de rest van het huis, terug naar het net). Sinds besluit 293
+ * één blok bovenaan in plaats van een balk onder de kaarten, die nu scrollen.
+ */
 function tekenZonchip() {
   const s = state?.bewoner?.stromen ?? {};
   const zonKw = s.zonKw ?? 0;
@@ -447,12 +450,6 @@ function tekenZonchip() {
     kop = t('apparaten.over', { kw: nl(overKw) });
     onder = t((s.aircoKw ?? 0) > 0.05 ? 'apparaten.vanZonAirco' : 'apparaten.vanZon', { kw: nl(zonKw) });
   }
-  $$('[data-zonchip]').forEach((el) => (el.innerHTML = `${zonKw < 0.05 ? MAAN : ZON}<div><div class="kop-3">${esc(kop)}</div><div class="mini">${esc(onder)}</div></div>`));
-}
-
-/** Waar de zon nu heen gaat: airco's, de rest van het huis, terug naar het net. */
-function tekenVerdeling() {
-  const s = state?.bewoner?.stromen ?? {};
   const delen = [
     [t('apparaten.deAircos'), s.aircoKw ?? 0, 'var(--ijs)'],
     // 's Avonds geeft de omvormer niets door: dan is wat van het net komt het huis (besluit 226).
@@ -460,17 +457,116 @@ function tekenVerdeling() {
     [t('apparaten.terugNet'), Math.max(0, -(s.netKw ?? 0)), 'var(--mint)'],
   ].filter(([, kw]) => kw >= 0.05);
   const totaal = delen.reduce((som, [, kw]) => som + kw, 0);
-  const vanNet = Math.max(0, s.netKw ?? 0);
-  const titel = t((s.zonKw ?? 0) >= 0.05 ? 'apparaten.waarHeen' : 'apparaten.watGebruikt');
-  const balk = totaal > 0 ? delen.map(([, kw, kleur]) => `<i style="width: ${((kw / totaal) * 100).toFixed(1)}%; background: ${kleur}"></i>`).join('') : '';
-  const legenda = [
-    ...delen.map(([naam, kw, kleur]) => `<span><span class="stip" style="background: ${kleur}"></span>${esc(naam)} <b>${nl(kw)} kW</b></span>`),
-    // Waar het vandaan komt: ook je panelen, niet alleen het net (besluit 226).
-    (s.zonKw ?? 0) >= 0.05 ? `<span><span class="stip" style="background: var(--zon)"></span>${esc(t('apparaten.vanPanelen'))} <b>${nl(s.zonKw)} kW</b></span>` : '',
-    vanNet >= 0.05 ? `<span><span class="stip" style="background: var(--gloed)"></span>${esc(t('apparaten.vanNet'))} <b>${nl(vanNet)} kW</b></span>` : '',
-  ].join('');
-  $$('[data-verdeling]').forEach((el) => (el.innerHTML = `<h2 class="kop-3">${esc(titel)}</h2><div class="balkje" aria-hidden="true">${balk}</div><div class="legenda">${legenda}</div>`));
+  const uitleg = `${t((s.zonKw ?? 0) >= 0.05 ? 'apparaten.waarHeen' : 'apparaten.watGebruikt')}: ${delen.map(([naam, kw]) => `${naam} ${nl(kw)} kW`).join(', ')}`;
+  const strook = totaal > 0 ? `<div class="strook" role="img" aria-label="${esc(uitleg)}" title="${esc(uitleg)}">${delen.map(([, kw, kleur]) => `<i style="width: ${((kw / totaal) * 100).toFixed(1)}%; background: ${kleur}"></i>`).join('')}</div>` : '';
+  $$('[data-zonchip]').forEach((el) => (el.innerHTML = `${zonKw < 0.05 ? MAAN : ZON}<div><div class="kop-3">${esc(kop)}</div><div class="mini">${esc(onder)}</div></div>${strook}`));
 }
+
+/* ------------------------------------------------- de soorten (293) */
+
+/** De soorten, in deze volgorde op de pagina; een lege soort staat er niet. */
+const SOORTEN = ['klimaat', 'licht', 'water', 'witgoed', 'auto', 'energie', 'stekkers'];
+const SOORT_IK = { klimaat: 'airco', licht: 'lamp', water: 'boiler', witgoed: 'witgoed', auto: 'auto', energie: 'batterij', stekkers: 'stekker' };
+/** Het vlak achter het icoon van de soort, als r, g, b. */
+const SOORT_VLAK = { klimaat: '111, 211, 255', licht: '247, 181, 72', water: '255, 122, 77', witgoed: '110, 231, 183', auto: '143, 134, 255', energie: '110, 231, 183', stekkers: '201, 211, 220' };
+/** Wat de dienst vond maar nog niet op zon staat: een stekker, een boiler of jacuzzi, of witgoed. */
+const soortVanGevonden = (s) => (s === 'stekker' ? 'stekkers' : s === 'boiler' || s === 'jacuzzi' ? 'water' : 'witgoed');
+
+/** Wat je net tikte, tot Home Assistant de nieuwe stand doorgeeft. */
+const lampWens = new Map();
+const lampAan = (d) => (lampWens.has(d.id) ? lampWens.get(d.id) : d.aan === true);
+
+/** Alle lampen per kamer, in de volgorde van het huis; zonder kamer achteraan. */
+function lampenPerKamer() {
+  const vakken = (huisData?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).map((r) => ({ naam: r.naam, lampen: (r.apparaten ?? []).filter((a) => a.soort === 'licht') }))).filter((v) => v.lampen.length > 0);
+  const los = (huisData?.zonderRuimte ?? []).filter((a) => a.soort === 'licht');
+  return los.length ? [...vakken, { naam: null, lampen: los }] : vakken;
+}
+
+/** Een kamer met zijn lampen, elk met een schakelaar als licht bedienen mag (besluit 97). */
+function kamerVak({ naam, lampen }) {
+  const mag = huisData?.lichtBedienen === true;
+  const aan = lampen.filter(lampAan).length;
+  const kop = naam
+    ? `<b>${esc(naam)}</b><small>${esc(aan ? t('apparaten.lampenAan', { n: aan, m: lampen.length }) : t('apparaten.lampenUit'))}</small>`
+    : `<b>${esc(t('apparaten.zonderKamer'))}</b><a class="mist" href="indeling.html#los">${esc(t('apparaten.kiesKamer'))}</a>`;
+  const rijen = lampen
+    .map((d) => {
+      const op = lampAan(d);
+      return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><span class="lnaam">${esc(d.naam)}</span><button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
+    })
+    .join('');
+  const el = document.createElement('div');
+  el.className = 'glas kamervak';
+  el.innerHTML = `<div class="kkop">${kop}</div>${rijen}`;
+  return el;
+}
+
+/** Een lamp aan of uit, via dezelfde deur als bij een kamer (`api/licht`). */
+async function schakelLamp(id, aan) {
+  lampWens.set(id, aan);
+  teken();
+  try {
+    await deur('api/licht', { doel: 'lamp', id, aan });
+  } catch {
+    // Geen verbinding: de stand van Home Assistant komt vanzelf terug.
+  }
+  for (const ms of [800, 2500]) setTimeout(() => void laadAlles(), ms);
+  setTimeout(() => {
+    lampWens.delete(id);
+    teken();
+  }, 6000);
+}
+
+/** In een paar woorden wat een soort nu doet, voor zijn kop. */
+function samenvatting(kaarten) {
+  const wacht = kaarten.filter((k) => k.dataset.wacht === 'true').length;
+  const bezig = kaarten.filter((k) => k.dataset.actief === 'true' && k.dataset.wacht !== 'true').length;
+  return [bezig ? t('apparaten.bezig', { n: bezig }) : '', wacht ? t('apparaten.wachtenOpZon', { n: wacht }) : ''].filter(Boolean).join(' · ') || t('apparaten.rustig');
+}
+
+/** Een soort: de kop met het icoon, en de kaarten of de kamers met lampen. */
+function soortBlok(soort, inhoud, klein) {
+  const el = document.createElement('section');
+  el.className = 'soort';
+  el.dataset.soort = soort;
+  // Zo breed als hij kaarten heeft, hooguit drie: kleine soorten delen een rij op de wand.
+  el.style.setProperty('--breed', String(Math.min(3, Math.max(1, inhoud.length))));
+  el.innerHTML = `<h2><span class="sik" style="background: rgba(${SOORT_VLAK[soort]}, 0.14)">${iconen.svg(SOORT_IK[soort])}</span>${esc(t(`apparaten.soort.${soort}`))}<small>${esc(klein)}</small></h2><div class="${soort === 'licht' ? 'kamers' : 'kaarten'}"></div>`;
+  el.lastElementChild.append(...inhoud);
+  return el;
+}
+
+/** De rij met soorten bovenaan; een tik springt naar de soort. */
+function tekenSoortenRij(soorten, aantal) {
+  const nu = gekozenSoort && soorten.includes(gekozenSoort) ? gekozenSoort : 'alles';
+  const knop = (id, naam, n) => `<button type="button" data-naar="${id}" aria-pressed="${id === nu}">${esc(naam)}<small>${n}</small></button>`;
+  const html = [knop('alles', t('apparaten.alles'), Object.values(aantal).reduce((a, b) => a + b, 0)), ...soorten.map((s) => knop(s, t(`apparaten.soort.${s}`), aantal[s]))].join('');
+  $$('[data-soorten]').forEach((el) => {
+    if (el.dataset.html !== html) {
+      el.innerHTML = html;
+      el.dataset.html = html;
+    }
+  });
+}
+let gekozenSoort = null;
+
+document.addEventListener('click', (e) => {
+  const lamp = e.target.closest('[data-lamp]');
+  if (lamp && !lamp.disabled) {
+    void schakelLamp(lamp.dataset.lamp, lamp.getAttribute('aria-checked') !== 'true');
+    return;
+  }
+  const naar = e.target.closest('[data-naar]');
+  if (!naar) return;
+  const plek = naar.closest('#wand, #tel');
+  gekozenSoort = naar.dataset.naar;
+  plek.querySelectorAll('[data-naar]').forEach((b) => b.setAttribute('aria-pressed', String(b === naar)));
+  const doel = gekozenSoort === 'alles' ? plek.querySelector('[data-apparaten]') : plek.querySelector(`.soort[data-soort="${gekozenSoort}"]`);
+  if (gekozenSoort === 'alles' && plek.id === 'wand') doel?.scrollTo({ top: 0 });
+  else if (gekozenSoort === 'alles') scrollTo({ top: 0 });
+  else doel?.scrollIntoView({ block: 'start' });
+});
 
 /* ------------------------------------------------------------ tekenen */
 
@@ -490,28 +586,64 @@ function zouSamen(kaarten, plek) {
   regel.textContent = samen.map(([wat, n]) => t('apparaten.zouSamen', { n, wat: wat.replace(/\.$/, '') })).join(' ');
 }
 
+/** De kaarten per soort, nieuw getekend; wat nu iets doet eerst (besluit 140). */
+function kaartenPerSoort() {
+  const lijst = state.bewoner?.uitstelbaar ?? [];
+  const buffers = state.bewoner?.warmtebuffers ?? [];
+  const opZon = new Set([...lijst, ...buffers].map((d) => d.id));
+  const gevonden = (aansluiting?.gevonden?.apparaten ?? []).filter((a) => !opZon.has(a.id));
+  const opslag = huisData?.opslag ?? {};
+  const per = {
+    klimaat: klimaat().map(klimaatKaart),
+    witgoed: lijst.map(kaart),
+    water: buffers.filter((b) => b.soort !== 'stekker').map(bufferKaart),
+    stekkers: buffers.filter((b) => b.soort === 'stekker').map(bufferKaart),
+    auto: (opslag.autos ?? (opslag.auto ? [opslag.auto] : [])).map((x) => ladingKaart('auto', x)),
+    energie: opslag.batterij ? [ladingKaart('batterij', opslag.batterij)] : [],
+  };
+  for (const a of gevonden) (per[soortVanGevonden(a.soort)] ??= []).push(nietOpZon(a));
+  for (const s of Object.keys(per)) per[s] = [...per[s].filter((k) => k.dataset.actief === 'true'), ...per[s].filter((k) => k.dataset.actief !== 'true')];
+  return per;
+}
+
 function tekenNu() {
   app.schaal();
   if (!state) return;
   app.luchtVan(zon, state.bewoner?.stromen?.zonKw ?? 0);
   tekenZonchip();
-  tekenVerdeling();
-
-  const lijst = state.bewoner?.uitstelbaar ?? [];
-  const buffers = state.bewoner?.warmtebuffers ?? [];
-  const opZon = new Set([...lijst, ...buffers].map((d) => d.id));
-  const gevonden = (aansluiting?.gevonden?.apparaten ?? []).filter((a) => !opZon.has(a.id));
+  const vakken = lampenPerKamer();
+  let soortenNu = [];
+  const aantal = {};
   for (const box of $$('[data-apparaten]')) {
     // Een knop met focus niet onder de vinger weghalen.
-    if (box.contains(document.activeElement) && document.activeElement !== document.body) continue;
-    // Wat nu iets doet eerst (besluit 140); verder de volgorde van het huis.
-    const opslag = huisData?.opslag ?? {};
-    const kaarten = [...klimaat().map(klimaatKaart), ...lijst.map(kaart), ...buffers.map(bufferKaart), ...(opslag.autos ?? (opslag.auto ? [opslag.auto] : [])).map((x) => ladingKaart('auto', x)), ...(opslag.batterij ? [ladingKaart('batterij', opslag.batterij)] : [])];
-    zouSamen(kaarten, box.closest('#wand, #tel'));
-    const voor = kaarten.filter((k) => k.dataset.actief === 'true');
-    const na = kaarten.filter((k) => k.dataset.actief !== 'true');
-    box.replaceChildren(...voor, ...na, ...gevonden.map(nietOpZon), toevoegen());
+    if (box.contains(document.activeElement) && document.activeElement !== document.body && !document.activeElement.matches('[data-lamp]')) continue;
+    const per = kaartenPerSoort();
+    zouSamen(Object.values(per).flat(), box.closest('#wand, #tel'));
+    const blokken = [];
+    soortenNu = [];
+    for (const s of SOORTEN) {
+      if (s === 'licht') {
+        if (!vakken.length) continue;
+        const lampen = vakken.flatMap((v) => v.lampen);
+        const aan = lampen.filter(lampAan).length;
+        blokken.push(soortBlok('licht', vakken.map(kamerVak), aan ? t('apparaten.lampenAan', { n: aan, m: lampen.length }) : t('apparaten.lampenUit')));
+        aantal.licht = lampen.length;
+      } else {
+        const kaarten = per[s] ?? [];
+        if (!kaarten.length) continue;
+        blokken.push(soortBlok(s, kaarten, samenvatting(kaarten)));
+        aantal[s] = kaarten.length;
+      }
+      soortenNu.push(s);
+    }
+    // Licht is altijd zo breed als de pagina.
+    blokken.find((b) => b.dataset.soort === 'licht')?.style.setProperty('--breed', '3');
+    // Waar je stond, blijft staan: het scrollen in de wand gaat niet terug naar boven.
+    const top = box.scrollTop;
+    box.replaceChildren(...blokken);
+    box.scrollTop = top;
   }
+  tekenSoortenRij(soortenNu, aantal);
   // Van Thuis met #auto of #batterij: naar die kaart (besluit 182), één keer.
   const doel = location.hash.slice(1);
   if ((doel === 'auto' || doel === 'batterij') && !naarKaart) {

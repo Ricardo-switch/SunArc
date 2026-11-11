@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.165.0';
+export const VERSIE = '0.166.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,26 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.166.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Apparaten staat nu in soorten: Klimaat, Licht, Warm water en bad, Witgoed, Auto en laden, Thuisaccu en Stekkers, met bovenaan een rij om naar een soort te springen',
+      'Alle lampen staan bij Apparaten › Licht, per kamer, met een schakelaar om ze snel aan of uit te zetten',
+    ],
+    beter: [
+      'Hoeveel zon er over is en waar de stroom heen gaat, staat in één blok bovenaan, met een knop Toevoegen ernaast',
+    ],
+    en: {
+      nieuw: [
+        'Devices is now grouped by kind: Climate, Lights, Hot water and bath, Appliances, Car and charging, Home battery and Plugs, with a row at the top to jump to a kind',
+        'All lights are in Devices › Lights, per room, each with a switch to turn it on or off quickly',
+      ],
+      beter: [
+        'How much sun is to spare and where the electricity goes now is one block at the top, with an Add button next to it',
+      ],
+    },
+  },
   {
     versie: '0.165.0',
     datum: '2026-11-11',

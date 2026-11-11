@@ -4451,7 +4451,11 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       const droger = p.locator(`${z} .app`, { hasText: 'Droger' });
       await droger.waitFor();
       await p.locator(`${z} .app`, { hasText: 'Vaatwasser' }).filter({ hasText: 'Niet op zon' }).waitFor();
-      await p.locator(`${z} [data-verdeling] h2`).waitFor();
+      await p.locator(`${z} [data-zonchip] .kop-3`).waitFor();
+      // In soorten (besluit 293): de rij bovenaan noemt Klimaat en Witgoed, en elke soort heeft een kop.
+      await p.locator(`${z} [data-soorten] [data-naar="klimaat"]`).waitFor();
+      expect(await p.locator(`${z} [data-soorten] [data-naar="witgoed"]`).count()).toBe(1);
+      expect(await p.locator(`${z} .soort[data-soort="witgoed"] h2`).textContent()).toContain('Witgoed');
       // Het nu (besluit 140): elk klimaatapparaat als kaart naar zijn kamer, en geen grafiek van de dag meer.
       const klimaatKaart = p.locator(`${z} a.app[href^="kamer.html#"]`);
       await klimaatKaart.first().waitFor();
@@ -4463,7 +4467,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         expect(await p.evaluate('document.scrollingElement.scrollHeight <= innerHeight && document.scrollingElement.scrollWidth <= innerWidth')).toBe(true);
         // Alles binnen de wand: de body scrolt niet, dus wat eronder valt is gewoon weg.
         const wand = await p.locator('#wand').boundingBox();
-        const onder = await p.locator('#wand [data-verdeling]').boundingBox();
+        const onder = await p.locator('#wand [data-zonchip]').boundingBox();
         expect(onder && wand && onder.y + onder.height <= wand.y + wand.height + 1).toBe(true);
       } else {
         expect(await p.evaluate('document.scrollingElement.scrollWidth <= innerWidth')).toBe(true);

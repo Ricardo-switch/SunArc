@@ -809,7 +809,7 @@
   'vandaag.voetMorgen': 'Tomorrow: the sun as the weather expects it.',
 
   // Devices (apparaten.js)
-  'apparaten.lead': 'What each device is doing now, and what it did on your own sun today.',
+  'apparaten.lead': 'What each device is doing now, by kind.',
   'apparaten.nogMinuten': { one: '{naam}, 1 minute left', other: '{naam}, {n} minutes left' },
   'apparaten.begon': 'Started {klok}.',
   'apparaten.zou': 'SunArc would have started it at {klok}, with sun to spare.',
@@ -893,6 +893,25 @@
   'apparaten.watGebruikt': 'What the house is using now',
   'apparaten.vanPanelen': 'From your panels',
   'apparaten.vanNet': 'From the grid',
+  // Devices by kind (decision 293).
+  'apparaten.toevoegenKort': 'Add',
+  'apparaten.soorten': 'Kinds',
+  'apparaten.alles': 'All',
+  'apparaten.soort.klimaat': 'Climate',
+  'apparaten.soort.licht': 'Lights',
+  'apparaten.soort.water': 'Hot water and bath',
+  'apparaten.soort.witgoed': 'Appliances',
+  'apparaten.soort.auto': 'Car and charging',
+  'apparaten.soort.energie': 'Home battery',
+  'apparaten.soort.stekkers': 'Plugs',
+  'apparaten.bezig': '{n} active',
+  'apparaten.wachtenOpZon': '{n} waiting for sun',
+  'apparaten.rustig': 'all quiet',
+  'apparaten.lampenAan': '{n} of {m} on',
+  'apparaten.lampenUit': 'all off',
+  'apparaten.zonderKamer': 'No room',
+  'apparaten.kiesKamer': 'Choose a room',
+  'apparaten.lampAanUit': '{naam} on or off',
 
   // Energy (opbrengst.js)
   'opbrengst.periode': 'Period',

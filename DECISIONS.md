@@ -287,6 +287,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [287. Handmatig koelen en vakantie bij de stand](#287-handmatig-koelen-en-vakantie-bij-de-stand)
 - [288. Je huis op maat: vorm, etages, kamers als vakken en de plek van apparaten](#288-je-huis-op-maat-vorm-etages-kamers-als-vakken-en-de-plek-van-apparaten)
 - [293. Apparaten in soorten, een eigen scherm Toevoegen, en schakelaars](#293-apparaten-in-soorten-een-eigen-scherm-toevoegen-en-schakelaars)
+- [294. Apparaten in soorten gebouwd, met alle lampen per kamer](#294-apparaten-in-soorten-gebouwd-met-alle-lampen-per-kamer)
 
 **Veiligheid**
 
@@ -13583,6 +13584,42 @@ staan hieronder.
 - **Bouwen in stappen,** elk een versie: de soorten op Apparaten; het scherm
   Toevoegen; schakelaars, IR en losse sensoren; het kinderslot en het
   vermogen.
+
+---
+
+## 294. Apparaten in soorten gebouwd, met alle lampen per kamer
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.166.0: de eerste stap van [293], met de schets
+Wand-Apparaten-Soorten. Ricardo: "1, en dan bouwen".
+
+*Besluit:*
+
+- **Apparaten in soorten:** Klimaat, Licht, Warm water en bad (boiler,
+  jacuzzi), Witgoed, Auto en laden, Thuisaccu en Stekkers. Een soort zonder
+  apparaten staat er niet. Wat SunArc vond maar nog niet op zon staat, komt bij
+  zijn soort (een stekker bij Stekkers, een boiler bij Warm water). Per soort
+  eerst wat nu iets doet ([140]).
+- **De kop van een soort** zegt in een paar woorden wat er gebeurt: "1 bezig ·
+  2 wacht op zon", of "alles rustig"; bij Licht "1 van 9 aan".
+- **Bovenaan een rij met de soorten,** met hoeveel er zijn. Een tik springt
+  naar de soort; Alles gaat terug naar boven. Op de telefoon blijft de rij
+  bovenaan staan en schuift hij opzij.
+- **Licht:** alle lampen per kamer, in de volgorde van het huis, elk met een
+  schakelaar. Schakelen gaat door dezelfde deur als in een kamer
+  (`api/licht`, [97]); staat licht bedienen uit, dan zijn de schakelaars
+  grijs. Lampen zonder kamer staan onder "Zonder kamer", met "Kies een kamer"
+  naar Indeling; daarvoor geeft `api/huis` bij een lamp zonder kamer nu ook of
+  hij aan staat.
+- **Op de wand drie kolommen,** en een soort is zo breed als hij kaarten heeft:
+  kleine soorten delen een rij. Deze pagina scrolt op de wand ([293]); waar je
+  stond, blijft staan als de pagina ververst.
+- **Het zonblok bovenaan** zegt hoeveel zon er over is, met eronder een strook
+  van waar de stroom heen gaat (de airco's, de rest van het huis, terug naar
+  het net). De balk onderaan is weg. Ernaast de knop Toevoegen; op de
+  telefoon een ronde plus. Hij gaat nog naar Regeling › Op zon, tot het eigen
+  scherm Toevoegen er is (de volgende stap).
 
 ---
 

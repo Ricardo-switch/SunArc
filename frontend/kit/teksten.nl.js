@@ -814,7 +814,7 @@
   'vandaag.voetMorgen': 'Morgen: de zon zoals het weer hem verwacht.',
 
   // Apparaten (apparaten.js)
-  'apparaten.lead': 'Wat elk apparaat nu doet, en wat het vandaag op eigen zon deed.',
+  'apparaten.lead': 'Wat elk apparaat nu doet, per soort.',
   'apparaten.nogMinuten': { one: '{naam}, nog 1 minuut', other: '{naam}, nog {n} minuten' },
   'apparaten.begon': 'Begon {klok}.',
   'apparaten.zou': 'SunArc zou hem om {klok} gestart hebben, met zon over.',
@@ -898,6 +898,25 @@
   'apparaten.watGebruikt': 'Wat het huis nu gebruikt',
   'apparaten.vanPanelen': 'Van je panelen',
   'apparaten.vanNet': 'Van het net',
+  // Apparaten in soorten (besluit 293).
+  'apparaten.toevoegenKort': 'Toevoegen',
+  'apparaten.soorten': 'Soorten',
+  'apparaten.alles': 'Alles',
+  'apparaten.soort.klimaat': 'Klimaat',
+  'apparaten.soort.licht': 'Licht',
+  'apparaten.soort.water': 'Warm water en bad',
+  'apparaten.soort.witgoed': 'Witgoed',
+  'apparaten.soort.auto': 'Auto en laden',
+  'apparaten.soort.energie': 'Thuisaccu',
+  'apparaten.soort.stekkers': 'Stekkers',
+  'apparaten.bezig': '{n} bezig',
+  'apparaten.wachtenOpZon': '{n} wacht op zon',
+  'apparaten.rustig': 'alles rustig',
+  'apparaten.lampenAan': '{n} van {m} aan',
+  'apparaten.lampenUit': 'alles uit',
+  'apparaten.zonderKamer': 'Zonder kamer',
+  'apparaten.kiesKamer': 'Kies een kamer',
+  'apparaten.lampAanUit': '{naam} aan of uit',
 
   // Opbrengst (opbrengst.js)
   'opbrengst.periode': 'Periode',

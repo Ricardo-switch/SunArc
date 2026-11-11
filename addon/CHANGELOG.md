@@ -1,16 +1,19 @@
 # Wat is er nieuw · What is new
 
-## 0.165.0
+## 0.166.0
 
-*11 november 2026 · 0.163.0 – 0.165.0*
+*11 november 2026 · 0.163.0 – 0.166.0*
 
 **Nieuw**
 
+- Apparaten staat nu in soorten: Klimaat, Licht, Warm water en bad, Witgoed, Auto en laden, Thuisaccu en Stekkers, met bovenaan een rij om naar een soort te springen
+- Alle lampen staan bij Apparaten › Licht, per kamer, met een schakelaar om ze snel aan of uit te zetten
 - Helpen bij de cv, een eigen deel bij Regeling: per airco aan of uit, wat warmte van de airco kost tegen de ketel, en wat hij vandaag hielp
 - Elke airco kijkt naar zijn eigen kamer, dus ook de zolder-airco helpt nu als de ketel het niet bijhoudt
 
 **Beter**
 
+- Hoeveel zon er over is en waar de stroom heen gaat, staat in één blok bovenaan, met een knop Toevoegen ernaast
 - Een airco helpt alleen als hij goedkoper is dan de ketel, en stopt pas als zijn kamer op temperatuur is, ook als de ketel al stopte
 - Eenmaal aan helpt een airco minstens een half uur, en daarna rust hij een kwartier: dat spaart de pomp
 - Een radiatorknop of de thermostaat van een gasketel kun je niet meer op zon zetten: de warmte komt van gas
@@ -28,11 +31,14 @@
 
 **New**
 
+- Devices is now grouped by kind: Climate, Lights, Hot water and bath, Appliances, Car and charging, Home battery and Plugs, with a row at the top to jump to a kind
+- All lights are in Devices › Lights, per room, each with a switch to turn it on or off quickly
 - Helping the boiler, a section of its own in Control: each air conditioner on or off, what its heat costs against the boiler, and how it helped today
 - Each air conditioner looks at its own room, so the attic one now helps too when the boiler cannot keep up
 
 **Improved**
 
+- How much sun is to spare and where the electricity goes now is one block at the top, with an Add button next to it
 - An air conditioner only helps when it is cheaper than the boiler, and stops only when its room is at temperature, even if the boiler already stopped
 - Once on, an air conditioner helps for at least half an hour and then rests for a quarter: that spares the pump
 - A radiator valve or the thermostat of a gas boiler can no longer be put on solar: the heat comes from gas

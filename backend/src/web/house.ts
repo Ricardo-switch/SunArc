@@ -354,6 +354,8 @@ export interface HouseReport {
     readonly groepen: readonly string[];
     /** De kamer die bij een van die groepen lijkt te horen, of null. */
     readonly voorstelKamer: string | null;
+    /** Bij een lamp: of hij aan staat, voor Apparaten › Licht (besluit 293). */
+    readonly aan?: boolean;
   }[];
   /**
    * De lampgroepen uit Home Assistant: groepen en Hue-kamers en -zones. Ze staan
@@ -1930,6 +1932,7 @@ export function buildHouse(
     voorstel: string | null;
     groepen: readonly string[];
     voorstelKamer: string | null;
+    aan?: boolean;
   }[] = [];
   const hiddenIds = new Set(layout.verborgen ?? []);
   const hidden: { id: string; naam: string; soort: DeviceKind }[] = [];
@@ -1950,6 +1953,8 @@ export function buildHouse(
         voorstel: f.haArea ? (areaName.get(f.haArea) ?? null) : null,
         groepen: f.groepen,
         voorstelKamer: roomForGroups(f.groepen, layout.kamers) ?? roomForName(naam, layout.kamers),
+        // Een lamp zonder kamer staat ook bij Apparaten › Licht, met zijn schakelaar (besluit 293).
+        ...(f.device.soort === 'licht' ? { aan: f.device.aan } : {}),
       });
       continue;
     }
