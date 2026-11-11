@@ -233,7 +233,8 @@ function bufferKaart(b) {
     }
     el.append(blok);
   }
-  return el;
+  // Een tik op de kaart (niet op een keuze) opent de boiler of jacuzzi in zijn kamer (besluit 296).
+  return naarPlek(el, plekVan(b.id, b.actuator), t('apparaten.openIn', { naam: b.naam }));
 }
 
 async function kiesKlaarOm(b, optie, groep, knop, antwoord) {
@@ -400,6 +401,8 @@ function ladingKaart(soort, o) {
     <div class="verdeel"><i style="width: ${pct ?? 0}%; background: ${kleur}"></i></div>
     ${accuRegels(lijstAccus)}
     ${zin ? `<p class="mini zin">${esc(zin)}</p>` : ''}`;
+  // De thuisaccu gaat naar zijn eigen deel bij Energie (besluit 296); de auto heeft zijn pagina al.
+  if (soort === 'batterij') return naarPlek(el, 'energie.html#accu', t('apparaten.openIn', { naam }));
   return el;
 }
 
@@ -472,19 +475,44 @@ const SOORT_VLAK = { klimaat: '111, 211, 255', licht: '247, 181, 72', water: '25
 /** Wat de dienst vond maar nog niet op zon staat: een stekker, een boiler of jacuzzi, of witgoed. */
 const soortVanGevonden = (s) => (s === 'stekker' ? 'stekkers' : s === 'boiler' || s === 'jacuzzi' ? 'water' : 'witgoed');
 
+/**
+ * Waar een apparaat in huis staat (besluit 296): de kamer met dat apparaat
+ * open, net als een klimaatkaart; daar bedien je het. Null als het huis het in
+ * geen kamer kent.
+ */
+function plekVan(...ids) {
+  for (const e of huisData?.etages ?? []) {
+    for (const r of e.ruimtes ?? []) {
+      const a = (r.apparaten ?? []).find((x) => ids.includes(x.id) || (x.actuatorId != null && ids.includes(x.actuatorId)));
+      if (a) return `kamer.html#${encodeURIComponent(r.id)}/${encodeURIComponent(a.id)}`;
+    }
+  }
+  return null;
+}
+
+/** Een kaart die naar zijn plek gaat: een tik of Enter, behalve op een knop erin. */
+function naarPlek(el, href, naam) {
+  if (!href) return el;
+  el.dataset.plek = href;
+  el.tabIndex = 0;
+  el.setAttribute('role', 'link');
+  el.setAttribute('aria-label', naam);
+  return el;
+}
+
 /** Wat je net tikte, tot Home Assistant de nieuwe stand doorgeeft. */
 const lampWens = new Map();
 const lampAan = (d) => (lampWens.has(d.id) ? lampWens.get(d.id) : d.aan === true);
 
 /** Alle lampen per kamer, in de volgorde van het huis; zonder kamer achteraan. */
 function lampenPerKamer() {
-  const vakken = (huisData?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).map((r) => ({ naam: r.naam, lampen: (r.apparaten ?? []).filter((a) => a.soort === 'licht') }))).filter((v) => v.lampen.length > 0);
+  const vakken = (huisData?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).map((r) => ({ id: r.id, naam: r.naam, lampen: (r.apparaten ?? []).filter((a) => a.soort === 'licht') }))).filter((v) => v.lampen.length > 0);
   const los = (huisData?.zonderRuimte ?? []).filter((a) => a.soort === 'licht');
   return los.length ? [...vakken, { naam: null, lampen: los }] : vakken;
 }
 
 /** Een kamer met zijn lampen, elk met een schakelaar als licht bedienen mag (besluit 97). */
-function kamerVak({ naam, lampen }) {
+function kamerVak({ id: kamer, naam, lampen }) {
   const mag = huisData?.lichtBedienen === true;
   const aan = lampen.filter(lampAan).length;
   const kop = naam
@@ -493,7 +521,9 @@ function kamerVak({ naam, lampen }) {
   const rijen = lampen
     .map((d) => {
       const op = lampAan(d);
-      return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><span class="lnaam">${esc(d.naam)}</span><button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
+      // Een tik op de naam opent de lamp in zijn kamer (besluit 296); zonder kamer gaat hij naar Indeling.
+      const plek = kamer ? `kamer.html#${encodeURIComponent(kamer)}/${encodeURIComponent(d.id)}` : 'indeling.html#los';
+      return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><a class="lnaam" href="${plek}">${esc(d.naam)}</a><button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
     })
     .join('');
   const el = document.createElement('div');
@@ -537,7 +567,7 @@ function soortBlok(soort, inhoud, klein) {
   return el;
 }
 
-/** De rij met soorten bovenaan; een tik springt naar de soort. */
+/** De rij met soorten bovenaan; een tik toont alleen die soort, Alles weer alles (besluit 296). */
 function tekenSoortenRij(soorten, aantal) {
   const nu = gekozenSoort && soorten.includes(gekozenSoort) ? gekozenSoort : 'alles';
   const knop = (id, naam, n) => `<button type="button" data-naar="${id}" aria-pressed="${id === nu}">${esc(naam)}<small>${n}</small></button>`;
@@ -549,7 +579,14 @@ function tekenSoortenRij(soorten, aantal) {
     }
   });
 }
-let gekozenSoort = null;
+/** De gekozen soort blijft staan als je terugkomt, op dit toestel. */
+let gekozenSoort = (() => {
+  try {
+    return localStorage.getItem('sc-apparaten-soort');
+  } catch {
+    return null;
+  }
+})();
 
 document.addEventListener('click', (e) => {
   const lamp = e.target.closest('[data-lamp]');
@@ -557,15 +594,24 @@ document.addEventListener('click', (e) => {
     void schakelLamp(lamp.dataset.lamp, lamp.getAttribute('aria-checked') !== 'true');
     return;
   }
+  // Een kaart die naar zijn plek gaat (besluit 296), behalve een tik op een knop of keuze erin.
+  const kaart = e.target.closest('.app[data-plek]');
+  if (kaart && !e.target.closest('button, a, input, select')) {
+    location.href = kaart.dataset.plek;
+    return;
+  }
   const naar = e.target.closest('[data-naar]');
   if (!naar) return;
-  const plek = naar.closest('#wand, #tel');
   gekozenSoort = naar.dataset.naar;
-  plek.querySelectorAll('[data-naar]').forEach((b) => b.setAttribute('aria-pressed', String(b === naar)));
-  const doel = gekozenSoort === 'alles' ? plek.querySelector('[data-apparaten]') : plek.querySelector(`.soort[data-soort="${gekozenSoort}"]`);
-  if (gekozenSoort === 'alles' && plek.id === 'wand') doel?.scrollTo({ top: 0 });
-  else if (gekozenSoort === 'alles') scrollTo({ top: 0 });
-  else doel?.scrollIntoView({ block: 'start' });
+  try {
+    localStorage.setItem('sc-apparaten-soort', gekozenSoort);
+  } catch {
+    // Zonder opslag geldt de keuze tot de pagina sluit.
+  }
+  tekenNu();
+  // Bovenaan beginnen: op de wand in de lijst, op de telefoon net onder de kop.
+  $$('#wand [data-apparaten]').forEach((el) => (el.scrollTop = 0));
+  if (app.telStand() && scrollY > 0) document.querySelector('#tel [data-soorten]')?.scrollIntoView({ block: 'start' });
 });
 
 /* ------------------------------------------------------------ tekenen */
@@ -638,6 +684,12 @@ function tekenNu() {
     }
     // Licht is altijd zo breed als de pagina.
     blokken.find((b) => b.dataset.soort === 'licht')?.style.setProperty('--breed', '3');
+    // Een soort gekozen in de rij: alleen die soort, over de hele breedte (besluit 296).
+    const alleen = gekozenSoort && gekozenSoort !== 'alles' && blokken.some((b) => b.dataset.soort === gekozenSoort) ? gekozenSoort : null;
+    for (const b of blokken) {
+      b.hidden = alleen != null && b.dataset.soort !== alleen;
+      if (alleen) b.style.setProperty('--breed', '3');
+    }
     // Waar je stond, blijft staan: het scrollen in de wand gaat niet terug naar boven.
     const top = box.scrollTop;
     box.replaceChildren(...blokken);
@@ -646,7 +698,8 @@ function tekenNu() {
   tekenSoortenRij(soortenNu, aantal);
   // Hoeveel er nieuw gevonden is, zoals het scherm Toevoegen het telt (besluit 293).
   const opZonKeuze = aansluiting?.antwoorden?.opZon ?? {};
-  const nieuw = (huisData?.zonderRuimte ?? []).length + (aansluiting?.gevonden?.apparaten ?? []).filter((d) => opZonKeuze[d.id] !== true).length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
+  const vast = new Set((aansluiting?.configuratie?.apparaten ?? []).map((x) => x.id));
+  const nieuw = (huisData?.zonderRuimte ?? []).length + (aansluiting?.gevonden?.apparaten ?? []).filter((d) => opZonKeuze[d.id] !== true && !vast.has(d.id)).length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
   $$('[data-nieuw-tel]').forEach((el) => {
     el.hidden = nieuw === 0;
     el.textContent = String(nieuw);
@@ -700,7 +753,10 @@ document.addEventListener('keydown', (e) => {
   if (k && (e.key === 'Enter' || e.key === ' ')) {
     e.preventDefault();
     openBlad(k);
+    return;
   }
+  // Naar zijn plek (besluit 296), alleen als de kaart zelf de focus heeft.
+  if (e.key === 'Enter' && e.target.matches?.('.app[data-plek]')) location.href = e.target.dataset.plek;
 });
 
 setInterval(() => void laadAlles(), 60_000);

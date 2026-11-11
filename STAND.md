@@ -508,7 +508,8 @@ verwijzing bestaat.
 - **Vandaag** is de dag in de tijd; **Apparaten** is het nu, per apparaat een
   kaart met wat het doet, vraagt en vandaag op zon deed ([140]). Sinds 0.166.0
   in soorten, met bovenaan een rij om te springen, alle lampen per kamer met
-  een schakelaar, en het zonblok met de strook bovenaan ([294]). Toevoegen is
+  een schakelaar, en het zonblok met de strook bovenaan ([294]); een tik op een
+  soort toont alleen die soort ([296]). Toevoegen is
   een eigen scherm met wat nieuw gevonden is en de soorten ([295]). Gekozen, nog
   niet gebouwd: Schakelaars als eigen soort, kiezen in Toevoegen zelf, losse
   sensoren, een apparaat uit meer delen (IR-afstandsbediening met stekker),
@@ -921,4 +922,5 @@ verwijzing bestaat.
 [293]: DECISIONS.md#293-apparaten-in-soorten-een-eigen-scherm-toevoegen-en-schakelaars
 [294]: DECISIONS.md#294-apparaten-in-soorten-gebouwd-met-alle-lampen-per-kamer
 [295]: DECISIONS.md#295-apparaat-toevoegen-een-eigen-scherm
+[296]: DECISIONS.md#296-de-soorten-op-apparaten-filteren-in-plaats-van-springen
 <!-- links:einde -->

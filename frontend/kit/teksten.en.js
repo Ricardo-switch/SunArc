@@ -912,6 +912,7 @@
   'apparaten.zonderKamer': 'No room',
   'apparaten.kiesKamer': 'Choose a room',
   'apparaten.lampAanUit': '{naam} on or off',
+  'apparaten.openIn': 'Open {naam}',
   'apparaten.nieuwGevonden': '{n} new',
   // Add a device (decision 293).
   'toev.titel': 'Add a device',
@@ -4582,7 +4583,7 @@
   'hand.stekkerZetUit': 'Switch off until {klok}',
   'hand.stekkerDaarna': 'At {klok} back as it was, unless you switched it yourself in the meantime.',
   'hand.stekkerTerug': 'Back as it was',
-  'hand.stekkerAlleenAddon': 'Here you are watching. Switching is possible in SunArc in Home Assistant.',
+  'hand.stekkerAlleenAddon': 'Here you only watch. Switching by hand works in the SunArc add-on in Home Assistant: tap Allow in this sheet there.',
   'hand.stekkerToelaten': 'SunArc may not switch this plug yet. Allow it here, or put it on solar in Control.',
   'hand.stekkerToestaan': 'Allow',
   'hand.stekkerIntrekken': 'Stop SunArc from switching it',

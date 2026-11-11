@@ -917,6 +917,7 @@
   'apparaten.zonderKamer': 'Zonder kamer',
   'apparaten.kiesKamer': 'Kies een kamer',
   'apparaten.lampAanUit': '{naam} aan of uit',
+  'apparaten.openIn': '{naam} openen',
   'apparaten.nieuwGevonden': '{n} nieuw',
   // Apparaat toevoegen (besluit 293).
   'toev.titel': 'Apparaat toevoegen',
@@ -4587,7 +4588,7 @@
   'hand.stekkerZetUit': 'Zet uit tot {klok}',
   'hand.stekkerDaarna': 'Om {klok} weer zoals hij was, tenzij je hem intussen zelf schakelde.',
   'hand.stekkerTerug': 'Terug zoals hij was',
-  'hand.stekkerAlleenAddon': 'Hier kijk je mee. Schakelen kan in SunArc in Home Assistant.',
+  'hand.stekkerAlleenAddon': 'Hier kijk je alleen mee. Met de hand schakelen kan in de add-on van SunArc in Home Assistant: tik daar in dit blad op Toestaan.',
   'hand.stekkerToelaten': 'SunArc mag deze stekker nog niet schakelen. Sta het hier toe, of zet hem op zon bij Regeling.',
   'hand.stekkerToestaan': 'Toestaan',
   'hand.stekkerIntrekken': 'SunArc mag hem niet meer schakelen',

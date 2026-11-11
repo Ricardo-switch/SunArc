@@ -289,6 +289,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [293. Apparaten in soorten, een eigen scherm Toevoegen, en schakelaars](#293-apparaten-in-soorten-een-eigen-scherm-toevoegen-en-schakelaars)
 - [294. Apparaten in soorten gebouwd, met alle lampen per kamer](#294-apparaten-in-soorten-gebouwd-met-alle-lampen-per-kamer)
 - [295. Apparaat toevoegen, een eigen scherm](#295-apparaat-toevoegen-een-eigen-scherm)
+- [296. De soorten op Apparaten filteren in plaats van springen](#296-de-soorten-op-apparaten-filteren-in-plaats-van-springen)
 
 **Veiligheid**
 
@@ -13647,6 +13648,38 @@ Wand-Apparaat-Toevoegen.
 - **Nog niet:** schakelaars (een Shelly, klik-aan-klik-uit, een
   IR-afstandsbediening), losse sensoren en zoeken. Die komen in de volgende
   stap, met het kiezen in dit scherm zelf; het scherm zegt dat eronder.
+
+---
+
+## 296. De soorten op Apparaten filteren in plaats van springen
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.167.1, na 0.167.0 op de telefoon bekeken. Ricardo:
+"per categorie is het nu nog steeds een lange lijst die naar de juiste plek
+springt", en gekozen: filteren.
+
+*Besluit:*
+
+- **Een tik op een soort toont alleen die soort** ([294] sprong naar zijn plek
+  in één lange pagina). Alles toont weer alles. De gekozen soort staat over de
+  hele breedte, en de lijst begint bovenaan.
+- **De keuze blijft staan** als je terugkomt, op dat toestel (in de browser,
+  niet in de dienst). Bestaat de soort niet meer, dan geldt Alles.
+- **Bij een slimme stekker op de NAS of elders zonder deuren** zegt het blad
+  nu: alleen meekijken, met de hand schakelen kan in de add-on, met Toestaan in
+  dit blad ([290]). Het is geen instelling: de NAS schrijft nooit naar Home
+  Assistant ([152]).
+- **Nieuw gevonden telt een apparaat uit de configuratie niet,** zoals een
+  droger uit het bestand: dat staat bij Regeling › Op zon al aan (of bewust
+  uit). Toevoegen noemde hem "nog niet op zon" ([295]).
+- **Elk apparaat is aan te tikken,** zoals een klimaatkaart: de naam van een
+  lamp opent hem in zijn kamer (zonder kamer: Indeling), de boiler en de
+  jacuzzi openen hun kamer als het huis ze daar kent, en de thuisaccu opent
+  Energie › Thuisaccu. Ricardo: "zorg dat alle apparaten aanklikbaar zijn net
+  als klimaat die je dan naar de locatie brengt in huis". Wat al een eigen
+  blad of pagina heeft (een airco of thermostaat met de hand, witgoed, een
+  stekker, de auto), houdt dat: daar bedien je het al.
 
 ---
 

@@ -49,7 +49,9 @@ function nieuwGevonden() {
   const uit = [];
   for (const d of huisData?.zonderRuimte ?? []) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.zonderKamer', href: 'indeling.html#los' });
   const opZon = aansluiting?.antwoorden?.opZon ?? {};
-  for (const d of aansluiting?.gevonden?.apparaten ?? []) if (opZon[d.id] !== true) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.nietOpZon', href: 'regeling.html#opzon' });
+  // Wat al in de configuratie op zon staat (zoals een droger uit het bestand), is niet nieuw: Regeling toont het al (besluit 296).
+  const vast = new Set((aansluiting?.configuratie?.apparaten ?? []).map((x) => x.id));
+  for (const d of aansluiting?.gevonden?.apparaten ?? []) if (opZon[d.id] !== true && !vast.has(d.id)) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.nietOpZon', href: 'regeling.html#opzon' });
   for (const d of aansluiting?.laden?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: d.rol, zin: 'toev.uit', href: 'energie.html#auto' });
   for (const d of aansluiting?.accu?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: 'accu', zin: 'toev.uit', href: 'energie.html#accu' });
   return uit;
