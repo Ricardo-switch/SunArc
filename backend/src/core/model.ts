@@ -221,6 +221,31 @@ export interface Zone {
   readonly heatAssist?: ZoneHeatAssist;
 }
 
+/**
+ * Helpen bij de cv (besluit 292), voor het hele huis. Een airco met de rol
+ * assist die kan verwarmen, helpt als de ketel al een tijd stookt, zijn eigen
+ * kamer te koud is en hij goedkoper is dan de ketel. Hij stopt pas als zijn
+ * kamer op temperatuur is, en spaart zijn pomp met lange beurten.
+ */
+export interface CvHelp {
+  /** De thermostaten die de ketel aanzetten: hun stoken telt. */
+  readonly boilerIds: readonly string[];
+  /** Hoe lang de ketel onafgebroken moet stoken, in minuten. */
+  readonly startDelayMinutes: number;
+  /** Hoeveel de kamer van de airco minstens onder het doel moet zitten, in °C. */
+  readonly minShortfallC: number;
+  /** Eenmaal aan minstens zo lang, in minuten. */
+  readonly minRunMinutes: number;
+  /** Na een beurt minstens zo lang uit, in minuten. */
+  readonly minRestMinutes: number;
+  /** De airco's die niet helpen; weg is: elke airco die kan verwarmen helpt. */
+  readonly off?: readonly string[];
+  /** Euro per m³ gas; weg is onbekend, en dan vergelijkt hij niet. */
+  readonly gasEurPerM3?: number;
+  /** Euro per kWh stroom; weg is onbekend, en dan vergelijkt hij niet. */
+  readonly electricityEurPerKwh?: number;
+}
+
 /** Bijspringen in één zone (besluit 283). */
 export interface ZoneHeatAssist {
   readonly enabled: boolean;
@@ -625,6 +650,11 @@ export interface SiteConfig {
    * 186). Optioneel; zonder blijft alles zoals het was.
    */
   readonly heatStores?: readonly HeatStore[];
+  /**
+   * Helpen bij de cv (besluit 292): de airco's helpen de ketel, elk voor zijn
+   * eigen kamer. Weg is: bijspringen per zone zoals in besluit 283.
+   */
+  readonly cvHelp?: CvHelp;
   /**
    * De volgorde op zon (besluit 176): de zones die op zon opwarmen of koelen en
    * de uitstelbare apparaten, in één lijst. Wie eerder staat, krijgt het

@@ -545,6 +545,17 @@
     const lijst = thermostaten(huis);
     return (keus ? lijst.find((x) => x.sleutel === keus) : lijst[0]) ?? null;
   }
+  /**
+   * Kan dit klimaatapparaat op zon helpen (besluit 291)? Een airco wel. Een
+   * radiatorknop niet: hij zet alleen een klep open, de warmte komt van de
+   * ketel. De thermostaat van de cv-ketel ook niet, behalve bij een warmtepomp.
+   */
+  function kanOpZon(a, huis, verwarming) {
+    if (a?.klimaat?.kanKoelen) return true;
+    if (a?.radiatorknop) return false;
+    const ketel = isKetelKoppeling(a) || cvThermostaat(huis, verwarming)?.sleutel === (a?.actuatorId ?? a?.id);
+    return !ketel || verwarming?.soort === 'warmtepomp';
+  }
 
   /**
    * Het huis zelf uit de tekening, voor het model van elke pagina (besluit 191):
@@ -580,7 +591,7 @@
   const BUITEN_SOORTEN = soorten('buiten', ['tuin', 'voortuin', 'zijtuin', 'oprit', 'carport', 'terras', 'balkon', 'dakterras', 'tuinhuis', 'garage', 'voordeur']);
   /** De delen van een buitenruimte (besluit 167). Een tuinhuis tekent het huisje in de tuin. */
   const BUITEN_ZONES = soorten('buitenZone', ['gazon', 'border', 'terras', 'tuinhuis', 'overstek', 'moestuin', 'vijver', 'pad', 'speelplek', 'oprit', 'carport']);
-  global.huismodel = { KAMER_SOORTEN, ZONE_SOORTEN, BUITEN_SOORTEN, BUITEN_ZONES, buitenUitNaam, buitenZoneUitNaam, thermostaten, cvThermostaat, isKetelKoppeling, ACTIEF,
+  global.huismodel = { KAMER_SOORTEN, ZONE_SOORTEN, BUITEN_SOORTEN, BUITEN_ZONES, buitenUitNaam, buitenZoneUitNaam, thermostaten, cvThermostaat, isKetelKoppeling, kanOpZon, ACTIEF,
 
  BUITEN, GANG, kleurVanLicht, zoneNaam, metLidwoord, metHoofdletter, etagesNaast, BRON_NAAM, ELEKTRISCH, bronNaam, opsomming, isElektrischSlim, inKamers, standVan, kortVan, kamerModel, isBuiten, soortBuiten, buiten, rondNu, rondom, OP_OPRIT, IN_TUIN, hangtAan, rondAan, rondWissel, huisjeVan, huisjeNaam, HUISJES, rondMet, tekening, huisDelen, panelenOpDak, kompasVan, zonOpRechts, zonNu, groetNamen, groetWie };
 })(window);

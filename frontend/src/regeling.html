@@ -33,6 +33,24 @@
   a.kamerrij .pijl { color: var(--gedempt); font-size: 18px; }
   .vorm p a { color: var(--ijs-t); text-decoration: none; font-weight: 600; }
   #tel .inhoud { padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 14px; }
+  /* Helpen bij de cv (besluit 292, schets Wand-Helpen-Cv): wat warmte kost, en per airco een kaart. */
+  .kost { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.045); }
+  .kostbalk { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr) auto; align-items: center; gap: 12px; font-size: 13.5px; color: var(--zacht); }
+  .kostbalk i { height: 10px; border-radius: 5px; background: rgb(var(--wit) / 0.06); overflow: hidden; }
+  .kostbalk i b { display: block; height: 100%; border-radius: 5px; }
+  .kostbalk em { font-style: normal; font-weight: 700; color: var(--tekst); white-space: nowrap; }
+  .oordeel { margin: 2px 0 0; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 13px; color: var(--gedempt); }
+  .oordeel b { color: var(--tekst); }
+  .oordeel b.goed { color: var(--mint-t); }
+  .helpers { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .helper { padding: 4px 14px 12px; border-radius: 18px; background: rgb(var(--wit) / 0.045); border: 1px solid rgb(var(--wit) / 0.07); }
+  .helper.uit { opacity: 0.7; }
+  .helpstand { margin: 2px 0 0; display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; }
+  .helpstand i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .helpdag { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid rgb(var(--wit) / 0.07); display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--gedempt); }
+  .helpdag b { color: var(--tekst); font-weight: 600; }
+  .tel-stand .kostbalk { grid-template-columns: 1fr auto; }
+  .tel-stand .kostbalk i { grid-column: 1 / -1; grid-row: 2; }
 </style>
 </head>
 <body class="lucht lucht-dag">

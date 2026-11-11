@@ -1,11 +1,19 @@
 # Wat is er nieuw · What is new
 
-## 0.164.0
+## 0.165.0
 
-*11 november 2026 · 0.163.0 – 0.164.0*
+*11 november 2026 · 0.163.0 – 0.165.0*
+
+**Nieuw**
+
+- Helpen bij de cv, een eigen deel bij Regeling: per airco aan of uit, wat warmte van de airco kost tegen de ketel, en wat hij vandaag hielp
+- Elke airco kijkt naar zijn eigen kamer, dus ook de zolder-airco helpt nu als de ketel het niet bijhoudt
 
 **Beter**
 
+- Een airco helpt alleen als hij goedkoper is dan de ketel, en stopt pas als zijn kamer op temperatuur is, ook als de ketel al stopte
+- Eenmaal aan helpt een airco minstens een half uur, en daarna rust hij een kwartier: dat spaart de pomp
+- Een radiatorknop of de thermostaat van een gasketel kun je niet meer op zon zetten: de warmte komt van gas
 - Een slimme stekker heeft bij Regeling › Op zon nog één schakelaar: op zon betekent dat SunArc hem echt aan- en uitzet
 - Met de hand schakelen sta je toe in het blad van de stekker zelf, met Toestaan, en daar kan het ook weer weg
 - Op zon aan- of uitzetten gaat meteen in, zonder SunArc opnieuw te starten
@@ -18,8 +26,16 @@
 
 *English*
 
+**New**
+
+- Helping the boiler, a section of its own in Control: each air conditioner on or off, what its heat costs against the boiler, and how it helped today
+- Each air conditioner looks at its own room, so the attic one now helps too when the boiler cannot keep up
+
 **Improved**
 
+- An air conditioner only helps when it is cheaper than the boiler, and stops only when its room is at temperature, even if the boiler already stopped
+- Once on, an air conditioner helps for at least half an hour and then rests for a quarter: that spares the pump
+- A radiator valve or the thermostat of a gas boiler can no longer be put on solar: the heat comes from gas
 - A smart plug has one switch left in Control › On solar: on solar means SunArc really switches it on and off
 - You allow switching by hand in the plug sheet itself, with Allow, and you can take it back there too
 - Putting something on solar, or taking it off, works straight away, without restarting SunArc

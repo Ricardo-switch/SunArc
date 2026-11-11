@@ -92,6 +92,7 @@ export async function energieRoute(d: Diensten, req: IncomingMessage, res: Serve
     }
     const result = await energy.store.save(body);
     d.yieldCache.clear();
+    if (result.ok) await energy.naBewaren?.();
     if (result.ok) sendJson(res, 200, result.settings);
     else sendJson(res, result.status, { fout: result.reden });
     return;

@@ -90,6 +90,8 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [281. De airco springt niet bij tijdens voorverwarmen](#281-de-airco-springt-niet-bij-tijdens-voorverwarmen)
 - [283. Bijspringen per kamer, bij Regeling › Klimaat](#283-bijspringen-per-kamer-bij-regeling--klimaat)
 - [289. Helpen bij de cv: los van de kamer, en de airco draait door tot zijn kamer warm is](#289-helpen-bij-de-cv-los-van-de-kamer-en-de-airco-draait-door-tot-zijn-kamer-warm-is)
+- [291. Een radiatorknop of een gasketel helpt niet op zon](#291-een-radiatorknop-of-een-gasketel-helpt-niet-op-zon)
+- [292. Helpen bij de cv gebouwd: elke airco voor zijn eigen kamer](#292-helpen-bij-de-cv-gebouwd-elke-airco-voor-zijn-eigen-kamer)
 
 **Configuratie en onboarding**
 
@@ -13444,6 +13446,79 @@ dubbel leek. Gekozen uit twee vragen met opties, steeds de aanbevolen.
   getallen, en gaf "0.8 kW". De stekker, de boiler en de panelen zetten de
   komma nu zelf.
 - **Versie 0.164.0.**
+
+---
+
+## 291. Een radiatorknop of een gasketel helpt niet op zon
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+11 november 2026, versie 0.165.0. Ricardo: "kijk ook naar de radiatoren met
+een slimme knop op cv met gas. deze kunnen niet helpen met de zon".
+
+*Besluit:*
+
+- **Bij Inrichten › Klimaat, bij Wat kan elk apparaat en bij Indeling** staat
+  bij een radiatorknop geen "op zon" meer, en ook niet bij de thermostaat van
+  de cv-ketel, behalve bij een warmtepomp. Een radiatorknop zet alleen een klep
+  open; de warmte komt van de ketel, dus van gas. Een airco en een elektrische
+  verwarming houden de keuze (`huismodel.kanOpZon`).
+- **Stond het er al,** dan blijft de keuze zichtbaar, zodat je hem kunt
+  terugzetten. De dienst sloeg "op zon" zonder vermogen al over ([138]).
+- **Helpen bij de cv** ([292]) telt alleen airco's: een radiatorknop helpt de
+  ketel niet.
+
+---
+
+## 292. Helpen bij de cv gebouwd: elke airco voor zijn eigen kamer
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+11 november 2026, versie 0.165.0: [289] gebouwd, met de schets Wand-Helpen-Cv.
+Ricardo: "ga hierna verder met helpen met cv".
+
+*Besluit:*
+
+- **In de configuratie `cvHelp`,** voor het hele huis: de thermostaten van de
+  ketel (`boilerIds`), na hoeveel minuten stoken, vanaf hoeveel graden te koud,
+  minstens 30 minuten aan en 15 uit, welke airco's niet helpen (`off`), en de
+  prijzen van gas en stroom. De app zet het erin (`withCvHelp` in
+  `web/helpen.ts`) zodra er een ketel is en een airco die kan verwarmen. Zonder
+  `cvHelp` blijft bijspringen per zone ([283]) zoals het was.
+- **De ketel** is de thermostaat die bij Energie › Verwarming gekozen is, en
+  anders de hoofdverwarming in een kamer waar een airco helpt (de Nest). Een
+  thermostaat in de badkamer telt dus niet.
+- **De regel (heat-assist):** elke airco met de rol assist die kan verwarmen,
+  kijkt naar zijn eigen zone. Hij begint als de ketel al zo lang stookt, zijn
+  kamer zoveel te koud is en hij goedkoper is dan de ketel. Hij gaat door tot
+  zijn kamer op temperatuur is, ook als de ketel al stopte, en eenmaal aan
+  minstens 30 minuten; daarna rust hij 15 minuten. Niet in nacht, afwezig,
+  vakantie en voorverwarmen ([281]). De zolder-airco helpt dus nu ook.
+- **Goedkoper:** gas ÷ 8,8 kWh warmte per m³ tegen stroom ÷ wat een airco per
+  kWh geeft, uit een tabel per buitentemperatuur (−15° 1,75; −7° 2,2; 0° 2,8;
+  7° 3,5; 15° 4,2, met rechte lijnen ertussen). Zonder prijzen of
+  buitentemperatuur vergelijkt hij niet en helpt hij zoals eerder. Bij een
+  warmtepomp of stadsverwarming vergelijkt hij niet met gas. Een prijs per uur
+  telt met de prijs van nu. Dat de regel de buitentemperatuur leest, is nieuw
+  voor de kern ([30]).
+- **Bij Regeling een eigen deel "Helpen bij de cv",** tussen Klimaat en
+  Apparaten op zon: wat warmte van de airco en van de ketel kost, met wat nu
+  goedkoper is en bij welke buitentemperatuur ze gelijk zijn; per airco zijn
+  eigen kamer met de temperatuur en het doel, aan of uit, wat hij nu doet en
+  hoe vaak en hoe lang hij vandaag hielp; en "Zo gaat het" met de stappers
+  voor de minuten en de graden. Waarvoor is dit? geeft de rekensom. Bewaard in
+  `comfort.json` als `helpen` (`/api/helpen`, de beheerder). Wat bij
+  bijspringen per kamer stond, neemt het over.
+- **Bij Klimaat** vervalt het blok onder de woonkamer; er komt een rij naar
+  Helpen bij de cv.
+- **Meteen in:** andere prijzen bij Energie of een andere thermostaat van de
+  ketel gaan zonder herstart mee, net als bij het starten.
+- **Vandaag** telt de dienst in het geheugen, per besluit; na een herstart
+  begint de dag opnieuw.
+- **Nog niet:** de ingestelde temperatuur van de airco bijsturen met het
+  verschil tussen zijn eigen meter en de kamer (doordraaien), de dagbalk in het
+  blad van de airco, en leren met de stroommeter van de airco. De airco's echt
+  sturen blijft stap B: tot dan is het de schaduw.
 
 ---
 

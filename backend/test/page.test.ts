@@ -181,6 +181,7 @@ import { parseSiteConfig } from '../src/config/schema.js';
 import { defaultStrategies } from '../src/index.js';
 import { NIEUW, VERSIE, eersteVan } from '../src/version.js';
 import { bijspringenView, comfortView, controleerBijspringen, controleerComfort, withComfort, type Comfort } from '../src/web/comfort.js';
+import { helpenView } from '../src/web/helpen.js';
 import type { SiteConfig } from '../src/core/model.js';
 
 /* Comfort (besluit 130): in het geheugen, met hetzelfde schema als de dienst. */
@@ -215,6 +216,11 @@ const bijspringenDeur = {
     configNu = checked.config;
     return { ok: true as const, view: bijspringenView(configNu) };
   },
+};
+/* Helpen bij de cv (besluit 292): alleen bekijken; de paginatest ervan vangt het bewaren zelf af. */
+const helpenDeur = {
+  view: () => helpenView(configNu, null, null, Date.now()),
+  save: async () => ({ ok: false as const, status: 400, reden: 'bewaren vangt de paginatest zelf af' }),
 };
 
 const ENABLED = process.env['HEMS_PAGE_TEST'] === '1';
@@ -430,6 +436,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
           // Wiens comfort (besluit 147): dat van wie er kijkt, of van wie er gevraagd wordt.
           comfort: { view: (wie, bewoner) => comfortVanBewoner(configNu, comfortNu, bewonersStore.current, wie, bewoner).view, save: comfortDeur.save },
           bijspringen: bijspringenDeur,
+          helpen: helpenDeur,
           latest: () => live,
           divergence: () => review.latest,
           logDir: dir,
@@ -1330,24 +1337,12 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await rij.waitFor({ timeout: 10_000 });
     expect(await rij.textContent()).toContain('helpt op zon');
     expect(await rij.getAttribute('href')).toBe(`indeling.html#${encodeURIComponent(kamer.id)}/warmte`);
-    // Bijspringen (besluit 283): onder de kamer een schakelaar; aan met de twee getallen, en meteen in de regeling.
-    const bijZone = bijspringenView(configNu).zones[0];
-    if (bijZone) {
-      const schakel = p.locator(`#wand [data-bij-aan="${bijZone.zoneId}"]`);
-      await schakel.waitFor();
-      expect(await schakel.getAttribute('aria-checked')).toBe('true');
-      await p.locator(`#wand [data-bij="${bijZone.zoneId}:vanafC:-0.1"]`).click();
-      await expect.poll(() => configNu.zones.find((z) => z.id === bijZone.zoneId)?.heatAssist?.minShortfallC, { timeout: 5_000 }).toBe(0.4);
-      expect(await p.locator('#wand [data-vorm]').textContent()).toContain('vanaf 0,4° te koud');
-      expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
-      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-bijspringen.png') });
-      await schakel.click();
-      await expect.poll(() => configNu.zones.find((z) => z.id === bijZone.zoneId)?.heatAssist?.enabled, { timeout: 5_000 }).toBe(false);
-      expect(await p.locator(`#wand [data-bij="${bijZone.zoneId}:naMin:1"]`).count()).toBe(0);
-      // Terug zoals het was, voor de andere tests.
-      await schakel.click();
-      await expect.poll(() => configNu.zones.find((z) => z.id === bijZone.zoneId)?.heatAssist?.enabled, { timeout: 5_000 }).toBe(true);
-    }
+    // Bijspringen staat niet meer onder de kamer: een rij naar Helpen bij de cv (besluit 292).
+    expect(await p.locator('#wand [data-bij-aan]').count()).toBe(0);
+    const naar = p.locator('#wand .naar-helpen');
+    await naar.waitFor({ timeout: 10_000 });
+    expect(await naar.getAttribute('href')).toBe('#helpen');
+    expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-regeling.png') });
     expect(fouten).toEqual([]);
     await context.close();
@@ -6720,6 +6715,64 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await blad.locator('[data-st-zet]').click();
     await expect.poll(() => gestuurd.length, kort).toBe(2);
     expect(gestuurd[1]).toEqual({ id: 'tuinhuis', aan: true, klok: '23:45' });
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
+  /*
+   * Helpen bij de cv (besluit 292): een eigen deel bij Regeling, met wat
+   * warmte kost en per airco zijn eigen kamer. Een schakelaar en een stapper
+   * bewaren meteen, voor het hele huis.
+   */
+  it('toont Helpen bij de cv bij Regeling, en bewaart per airco en de drempels', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5000 };
+    const bewaard: Record<string, unknown>[] = [];
+    const airco = (id: string, naam: string, kamer: string, aan: boolean) => ({ id, naam, kamer, kamerC: 19.2, doelC: 19.5, aan, stand: aan ? 'helpt' : 'uit', sindsMs: Date.UTC(2026, 10, 11, 15, 24), vandaag: { keer: aan ? 2 : 0, minuten: 86 } });
+    let view = {
+      aircos: [airco('ac-woonkamer', 'Airco woonkamer', 'Woonkamer', true), airco('ac-zolder', 'Airco zolder', 'Zolder', true)],
+      ketel: ['Nest'],
+      naMin: 5,
+      vanafC: 0.3,
+      minRunMinutes: 30,
+      minRestMinutes: 15,
+      bereik: { naMin: { min: 1, max: 30 }, vanafC: { min: 0.1, max: 2 } },
+      kosten: { airco: 0.09, ketel: 0.156, cop: 3.1, buitenC: 3, gelijkBijC: -15, gas: 1.37, stroom: 0.27 },
+    };
+    await p.route('**/api/helpen', async (route) => {
+      if (route.request().method() === 'POST') {
+        const body = route.request().postDataJSON() as { naMin: number; vanafC: number; aan: Record<string, boolean> };
+        bewaard.push(body);
+        view = { ...view, naMin: body.naMin, vanafC: body.vanafC, aircos: view.aircos.map((a) => ({ ...a, aan: body.aan[a.id] ?? a.aan })) };
+      }
+      await route.fulfill({ json: view });
+    });
+    await p.goto(`${baseUrl}/regeling.html#helpen`);
+    const wand = p.locator('#wand');
+    await wand.locator('[data-vorm] h2', { hasText: 'Helpen bij de cv' }).waitFor(kort);
+    const tekst = await wand.locator('[data-vorm]').textContent();
+    expect(tekst).toContain('9 ct per kWh');
+    expect(tekst).toContain('16 ct per kWh');
+    expect(tekst).toContain('De airco is nu goedkoper');
+    expect(tekst).toContain('Gelijk wordt het bij ongeveer −15°');
+    expect(tekst).toContain('kijkt naar Zolder: 19,2°, doel 19,5°');
+    expect(tekst).toContain('2× geholpen, samen 1 uur 26 min');
+    // De zolder-airco uit: meteen bewaard, de woonkamer blijft aan.
+    await wand.locator('[data-helpen-aan="ac-zolder"]').click();
+    await expect.poll(() => bewaard.length, kort).toBe(1);
+    expect(bewaard[0]).toEqual({ naMin: 5, vanafC: 0.3, aan: { 'ac-woonkamer': true, 'ac-zolder': false } });
+    // Een tiende graad meer.
+    await wand.locator('[data-helpen="vanafC:0.1"]').click();
+    await expect.poll(() => bewaard.length, kort).toBe(2);
+    expect(bewaard[1]).toMatchObject({ vanafC: 0.4 });
+    // Bij Klimaat een rij erheen, geen bijspringen onder de kamer meer.
+    await p.goto(`${baseUrl}/regeling.html#klimaat`);
+    await wand.locator('.naar-helpen').waitFor(kort);
+    expect(await wand.locator('[data-bij-aan]').count()).toBe(0);
     expect(fouten).toEqual([]);
     await context.close();
   }, 30_000);

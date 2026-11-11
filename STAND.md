@@ -117,14 +117,15 @@ verwijzing bestaat.
 - **Comfort** mag koelen boven een plafond, ook op netstroom ([50]). Een zone
   met meer kamers koelt op de warmste en verwarmt op de koudste ([81]); bij twee
   meters in één kamer kiest de bewoner ([95]).
-- **Bijspringen:** de airco helpt de ketel als die lang stookt en de kamer
-  achterloopt, maar niet 's nachts, bij afwezig, op vakantie of tijdens
-  voorverwarmen, want zijn piepje maakt de slapers wakker ([281]). Per kamer
-  aan of uit, na hoeveel minuten stoken en vanaf hoeveel graden te koud, bij
-  Regeling › Klimaat ([283]). Gekozen, nog niet gebouwd: een eigen blok
-  "Helpen bij de cv" met elke airco, ook zolder. Elke airco kijkt naar zijn
-  eigen kamer, helpt alleen als hij goedkoper is dan de ketel, draait door tot
-  zijn kamer warm is, minstens 30 minuten aan en 15 uit ([289]).
+- **Helpen bij de cv:** een airco helpt de ketel als die lang stookt en zijn
+  eigen kamer achterloopt, maar niet 's nachts, bij afwezig, op vakantie of
+  tijdens voorverwarmen, want zijn piepje maakt de slapers wakker ([281]).
+  Sinds 0.165.0 een eigen deel bij Regeling, met elke airco, ook zolder: hij
+  helpt alleen als hij goedkoper is dan de ketel (prijzen en een tabel per
+  buitentemperatuur), gaat door tot zijn kamer op temperatuur is, minstens 30
+  minuten aan en 15 uit ([289], [292]). Daarvoor per kamer bij Regeling ›
+  Klimaat ([283]). Een radiatorknop of de thermostaat van een gasketel kan niet
+  op zon ([291]).
 - **De stand op Thuis** zegt wat er meespeelt: met de hand, bijspringen,
   vakantie of afwezig, en nog Dag door licht. Op de wand in de knop, op de
   telefoon naast de begroeting; het blad met de dag als balk ([286]). Handmatig
@@ -909,4 +910,6 @@ verwijzing bestaat.
 [288]: DECISIONS.md#288-je-huis-op-maat-vorm-etages-kamers-als-vakken-en-de-plek-van-apparaten
 [289]: DECISIONS.md#289-helpen-bij-de-cv-los-van-de-kamer-en-de-airco-draait-door-tot-zijn-kamer-warm-is
 [290]: DECISIONS.md#290-een-stekker-op-zon-met-één-schakelaar-en-op-zon-gaat-meteen-in
+[291]: DECISIONS.md#291-een-radiatorknop-of-een-gasketel-helpt-niet-op-zon
+[292]: DECISIONS.md#292-helpen-bij-de-cv-gebouwd-elke-airco-voor-zijn-eigen-kamer
 <!-- links:einde -->

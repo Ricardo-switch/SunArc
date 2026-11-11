@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.164.0';
+export const VERSIE = '0.165.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,30 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.165.0',
+    datum: '2026-11-11',
+    nieuw: [
+      "Helpen bij de cv, een eigen deel bij Regeling: per airco aan of uit, wat warmte van de airco kost tegen de ketel, en wat hij vandaag hielp",
+      'Elke airco kijkt naar zijn eigen kamer, dus ook de zolder-airco helpt nu als de ketel het niet bijhoudt',
+    ],
+    beter: [
+      'Een airco helpt alleen als hij goedkoper is dan de ketel, en stopt pas als zijn kamer op temperatuur is, ook als de ketel al stopte',
+      'Eenmaal aan helpt een airco minstens een half uur, en daarna rust hij een kwartier: dat spaart de pomp',
+      'Een radiatorknop of de thermostaat van een gasketel kun je niet meer op zon zetten: de warmte komt van gas',
+    ],
+    en: {
+      nieuw: [
+        'Helping the boiler, a section of its own in Control: each air conditioner on or off, what its heat costs against the boiler, and how it helped today',
+        'Each air conditioner looks at its own room, so the attic one now helps too when the boiler cannot keep up',
+      ],
+      beter: [
+        'An air conditioner only helps when it is cheaper than the boiler, and stops only when its room is at temperature, even if the boiler already stopped',
+        'Once on, an air conditioner helps for at least half an hour and then rests for a quarter: that spares the pump',
+        'A radiator valve or the thermostat of a gas boiler can no longer be put on solar: the heat comes from gas',
+      ],
+    },
+  },
   {
     versie: '0.164.0',
     datum: '2026-11-11',

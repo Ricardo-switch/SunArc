@@ -60,6 +60,30 @@ export async function bewonersRoutes(d: Diensten, v: Verzoek): Promise<boolean> 
     return true;
   }
 
+  // Helpen bij de cv (besluit 292), bij Regeling.
+  if (path === '/api/helpen') {
+    const helpen = d.options.helpen;
+    if (helpen == null) {
+      sendJson(res, 503, { wachten: 'helpen bij de cv kan pas met een configuratie en een logmap' });
+      return true;
+    }
+    if (method !== 'POST') {
+      sendJson(res, 200, helpen.view());
+      return true;
+    }
+    let body: unknown;
+    try {
+      body = await readJson(req);
+    } catch (error) {
+      sendJson(res, 400, { fout: (error as Error).message });
+      return true;
+    }
+    const result = await helpen.save(body);
+    if (result.ok) sendJson(res, 200, result.view);
+    else sendJson(res, result.status, { fout: result.reden });
+    return true;
+  }
+
   if (path === '/api/bewoners') {
     const bewoners = d.options.bewoners;
     if (bewoners == null) {

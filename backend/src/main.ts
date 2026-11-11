@@ -48,6 +48,7 @@ import { LayoutStore, herstelMeedoen, withLayoutNames, type Layout } from './web
 import { noteSensors, readLayoutFile, withMeasurement } from './web/meten.js';
 import { configUitDeApp } from './web/config-uit-app.js';
 import { bijspringenView, ComfortStore, controleerBijspringen, controleerComfort, type Comfort, type ComfortRoom, type ComfortView } from './web/comfort.js';
+import { controleerHelpen, HelpenDag, helpenView } from './web/helpen.js';
 import { BewonersStore, GEEN_BEWONERS, bewonersView, comfortVanBewoner, gastStand, persoonsAccount, herken as herkenBewoner, hoofdVan, leesActie, namenVoorExport, personenUit, profielenVan, vasthoudenVoorbij, voerUit, zonderVasthoudenVan, type Bewoners, type Wie } from './web/bewoners.js';
 import { BACKUP_DIR, OPNIEUW_STARTEN, beginOpnieuw, bewaarBackup, bewaardeBackups, leesBackup, maakBackup, zetTerug } from './web/gegevens.js';
 import { entiteitenLijst, type AnalyseExtra } from './web/export.js';
@@ -418,6 +419,11 @@ await comfortStore?.load();
 /* Bewoners (besluit 147): wie hier woont, op volgorde, met elk een eigen comfort of dat van de hoofdgebruiker. */
 const bewonersStore = logDir !== '' ? new BewonersStore(logDir) : null;
 await bewonersStore?.load();
+/**
+ * De prijzen voor Helpen bij de cv (besluit 292): uit Energie › Prijzen, met de
+ * prijs van nu bij een prijs per uur. Leeg tot de meters en prijzen geladen zijn.
+ */
+let prijzenVoorHelpen: () => { gas: number | null; stroom: number | null } = () => ({ gas: null, stroom: null });
 /** De ruwe configuratie met alles wat de app erover legt, en comfort zoals gegeven. */
 async function configWithComfort(comfort: Comfort | null, bewoners: Bewoners = bewonersStore?.current ?? GEEN_BEWONERS): Promise<{ ok: true; config: SiteConfig; toegevoegd: string[] } | { ok: false; reden: string }> {
   if (!site) return { ok: false, reden: 'er is geen configuratie' };
@@ -434,6 +440,14 @@ async function configWithComfort(comfort: Comfort | null, bewoners: Bewoners = b
     bewoners,
     occupancy: site.config.occupancy,
     strategieen: strategies.ids,
+    // Helpen bij de cv (besluit 292): de thermostaat van de ketel uit Energie › Verwarming, en de prijzen.
+    // Gas alleen bij een cv-ketel: bij een warmtepomp of stadsverwarming vergelijkt het niet met gas.
+    helpen: (() => {
+      const vw = connectionStore?.current?.verwarming;
+      const p = prijzenVoorHelpen();
+      const gasKetel = vw?.soort == null || vw.soort === 'cv' || vw.soort === 'hybride' || vw.soort === 'weetniet';
+      return { thermostaat: vw?.thermostaat ?? null, stroom: p.stroom, gas: gasKetel ? p.gas : null };
+    })(),
     waarschuw: (t) => console.warn(t),
   });
 }
@@ -990,9 +1004,17 @@ const bufferStore: BufferStore | null =
     : null;
 await bufferStore?.load();
 
+/* Wat de airco's vandaag hielpen bij de cv (besluit 292). */
+const helpenDag = new HelpenDag(() => siteConfig?.timezone ?? 'Europe/Amsterdam');
+
 /* Meters en prijzen voor Opbrengst (besluit 102): naast de dataset, dus alleen met een logmap. */
 const energyStore = logDir !== '' ? new EnergyStore(logDir) : null;
 await energyStore?.load();
+prijzenVoorHelpen = () => {
+  const p = energyStore?.current?.prijzen;
+  const nu = p?.dynamisch?.prijsEntiteit ? Number(allStates.get(p.dynamisch.prijsEntiteit)?.state) : Number.NaN;
+  return { gas: p?.gas ?? null, stroom: p?.stroom ?? (Number.isFinite(nu) ? nu : null) };
+};
 
 const runner: ShadowRunner | null =
   site == null
@@ -1019,6 +1041,8 @@ const runner: ShadowRunner | null =
                 // Een eindtijd vervalt als het programma klaar is of de deur openging.
                 void uitstelStore?.prune(snapshot.explanation.deferrables);
                 void bufferStore?.observe(snapshot.explanation.heatStores);
+                // Helpen bij de cv (besluit 292): wat de airco's vandaag hielpen.
+                helpenDag.observe(snapshot.atMs, new Set(snapshot.accepted.filter((i) => i.strategyId === 'heat-assist').map((i) => i.actuatorId)));
                 // Wat de regeling zou starten, start SunArc nu echt (besluit 238).
                 void witgoed?.opBesluit(snapshot).catch(() => []);
                 // En een stekker op zon (besluit 267).
@@ -1152,7 +1176,8 @@ async function opZonMeteen(): Promise<void> {
   if (!site || !nu) return;
   const vorig = { answers: answersInGebruik, applied: connectionApplied };
   const proef = metOpZonVanNu(answersInGebruik, nu);
-  if (JSON.stringify(proef) === JSON.stringify(answersInGebruik)) return;
+  // Niets anders op zon: wel de thermostaat van de ketel voor Helpen bij de cv (besluit 292).
+  if (JSON.stringify(proef) === JSON.stringify(answersInGebruik)) return herlaadUitDeApp('de aansluiting');
   try {
     const applied = withConnection(JSON.parse(await readFile(site.source, 'utf-8')) as Record<string, unknown>, proef);
     answersInGebruik = proef;
@@ -2492,7 +2517,7 @@ if (webPort != null) {
               if (doel.id == null || doel.id === hoofdVan(b)?.id) {
                 // Het comfort van het huis, van de hoofdgebruiker; de eigen comforts blijven.
                 // Bijspringen (besluit 283) komt van Regeling, niet van deze pagina: dat blijft ook.
-                comfort = { ...check.comfort, ...(huidig?.profielen ? { profielen: huidig.profielen } : {}), ...(huidig?.bijspringen ? { bijspringen: huidig.bijspringen } : {}) };
+                comfort = { ...check.comfort, ...(huidig?.profielen ? { profielen: huidig.profielen } : {}), ...(huidig?.bijspringen ? { bijspringen: huidig.bijspringen } : {}), ...(huidig?.helpen ? { helpen: huidig.helpen } : {}) };
               } else {
                 // Een eigen comfort (besluit 147): alleen de doelen en het plafond per kamer.
                 const eigen: Record<string, ComfortRoom> = Object.fromEntries(Object.entries(check.comfort.kamers).map(([k, v]) => [k, { modi: v.modi, ...(v.nooitWarmerC !== undefined ? { nooitWarmerC: v.nooitWarmerC } : {}) }]));
@@ -2506,6 +2531,22 @@ if (webPort != null) {
               if (bewoners !== b) await bewonersStore!.save(bewoners);
               siteConfig = met.config;
               return { ok: true as const, view: comfortVoor(wie, doel.id).view };
+            },
+          },
+          // Helpen bij de cv (besluit 292): van het huis, net als bijspringen.
+          helpen: {
+            view: () => helpenView(siteConfig!, runner?.latest ?? null, helpenDag, Date.now()),
+            save: async (body: unknown) => {
+              const check = controleerHelpen(body, siteConfig!);
+              if (!check.ok) return { ok: false as const, status: 400, reden: check.reden };
+              const huidig = comfortStore.current ?? { versie: 1 as const, kamers: {} };
+              const comfort: Comfort = { ...huidig, helpen: check.waarde };
+              const met = await configWithComfort(comfort);
+              if (!met.ok) return { ok: false as const, status: 400, reden: `past niet in de regeling: ${met.reden}` };
+              if (runner && !runner.setConfig(met.config, allStates.values())) return { ok: false as const, status: 409, reden: 'de regeling kon het niet overnemen; het gaat in na de volgende start' };
+              await comfortStore.save(comfort);
+              siteConfig = met.config;
+              return { ok: true as const, view: helpenView(met.config, runner?.latest ?? null, helpenDag, Date.now()) };
             },
           },
           // Bijspringen per kamer (besluit 283): van het huis, dus wie het comfort van het huis mag aanpassen.
@@ -2703,6 +2744,7 @@ if (webPort != null) {
     ...(energyStore ? {
           energy: {
             store: energyStore,
+            naBewaren: () => herlaadUitDeApp('andere prijzen'),
             source: haEnergySource(
               client,
               (id) => allStates.get(id),
@@ -2861,6 +2903,8 @@ if (runner) {
     }
   }
   runner.start();
+  // Helpen bij de cv (besluit 292): ook zonder iets uit de app, en met de prijzen die er bij het starten nog niet waren.
+  void herlaadUitDeApp('helpen bij de cv');
 } else {
   // Geen configuratie, dus niets om te beslissen. Wel verbinden: de onboarding
   // heeft de registers nodig, en die komen over deze socket.

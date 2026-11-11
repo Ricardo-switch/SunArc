@@ -22,6 +22,7 @@ import {
 import type { Action, SiteConfig } from '../src/core/model.js';
 import type { ActuatorState, SystemState } from '../src/core/state.js';
 import { unavailable, value } from '../src/core/state.js';
+import { copBij, warmtePrijs } from '../src/core/strategies/heatAssist.js';
 
 const NOW = Date.UTC(2026, 7, 28, 12, 0, 0); // woensdagmiddag, dagmodus
 
@@ -346,6 +347,77 @@ describe('heat-assist startvertraging', () => {
     expect(
       decision.proposed.some((i) => i.strategyId === 'heat-assist'),
     ).toBe(false);
+  });
+});
+
+describe('helpen bij de cv (besluit 292)', () => {
+  const help = (extra: Partial<NonNullable<SiteConfig['cvHelp']>> = {}): SiteConfig => ({
+    ...exampleSite,
+    cvHelp: { boilerIds: ['nest'], startDelayMinutes: 5, minShortfallC: 0.3, minRunMinutes: 30, minRestMinutes: 15, ...extra },
+  });
+  const helpt = (config: SiteConfig, state: SystemState, id = 'ac-zolder') =>
+    decide({ config, state, strategies: defaultStrategies() }).proposed.some((i) => i.strategyId === 'heat-assist' && i.actuatorId === id);
+  /** De ketel stookt, de zolder (doel 18°) is te koud, geen zon. */
+  const koud = (o: { stookt?: number | null; zolder?: number; airco?: ActuatorState; buiten?: number } = {}): SystemState => {
+    const s = buildState({
+      gridPowerW: 1500,
+      livingRoomC: 20.0,
+      atticC: o.zolder ?? 17.5,
+      actuators: {
+        nest: o.stookt === null ? actuator('off') : actuator('heat', { setpointC: 20, producingFor: o.stookt ?? 10 }),
+        ...(o.airco ? { 'ac-zolder': o.airco } : {}),
+      },
+    });
+    return o.buiten == null ? s : { ...s, outdoorTemperatureC: value(o.buiten, NOW) };
+  };
+
+  it('de zolder-airco helpt ook, zonder eigen cv in zijn kamer', () => {
+    expect(helpt(exampleSite, koud())).toBe(false);
+    expect(helpt(help(), koud())).toBe(true);
+  });
+
+  it('pas als de ketel lang genoeg stookt, en zijn eigen kamer te koud is', () => {
+    expect(helpt(help(), koud({ stookt: 2 }))).toBe(false);
+    expect(helpt(help(), koud({ zolder: 17.9 }))).toBe(false);
+    expect(helpt(help(), koud({ zolder: 17.7 }))).toBe(true);
+  });
+
+  it('alleen als de airco goedkoper is dan de ketel', () => {
+    // Bij −10° geeft een airco ongeveer 2 kWh warmte per kWh stroom: 13 ct tegen 16 ct van de ketel.
+    expect(helpt(help({ gasEurPerM3: 1.37, electricityEurPerKwh: 0.27 }), koud({ buiten: -10 }))).toBe(true);
+    // Goedkoop gas: 6 ct per kWh warmte, dan niet.
+    expect(helpt(help({ gasEurPerM3: 0.5, electricityEurPerKwh: 0.27 }), koud({ buiten: -10 }))).toBe(false);
+    // Zonder buitentemperatuur vergelijkt hij niet.
+    expect(helpt(help({ gasEurPerM3: 0.5, electricityEurPerKwh: 0.27 }), koud())).toBe(true);
+  });
+
+  it('stopt pas als zijn kamer op temperatuur is, ook als de ketel al stopte', () => {
+    const aan = (min: number) => actuator('heat', { setpointC: 18, minutesAgo: min });
+    expect(helpt(help(), koud({ stookt: null, zolder: 17.8, airco: aan(40) }))).toBe(true);
+    expect(helpt(help(), koud({ stookt: null, zolder: 18.1, airco: aan(40) }))).toBe(false);
+  });
+
+  it('spaart de pomp: eenmaal aan een half uur, daarna een kwartier uit', () => {
+    expect(helpt(help(), koud({ stookt: null, zolder: 18.4, airco: actuator('heat', { setpointC: 18, minutesAgo: 10 }) }))).toBe(true);
+    expect(helpt(help(), koud({ airco: actuator('off', { minutesAgo: 5 }) }))).toBe(false);
+    expect(helpt(help(), koud({ airco: actuator('off', { minutesAgo: 20 }) }))).toBe(true);
+  });
+
+  it('een airco die uit staat bij Helpen bij de cv, helpt niet', () => {
+    expect(helpt(help({ off: ['ac-zolder'] }), koud())).toBe(false);
+  });
+
+  it('niet tijdens voorverwarmen, om het piepje (besluit 281)', () => {
+    expect(helpt(help(), { ...koud(), modeOverride: 'voorverwarmen' as const })).toBe(false);
+  });
+
+  it('rekent de warmteprijs met een tabel per buitentemperatuur', () => {
+    expect(copBij(7)).toBeCloseTo(3.5);
+    expect(copBij(0)).toBeCloseTo(2.8);
+    expect(copBij(-30)).toBeCloseTo(1.75);
+    const p = warmtePrijs({ boilerIds: [], startDelayMinutes: 5, minShortfallC: 0.3, minRunMinutes: 30, minRestMinutes: 15, gasEurPerM3: 1.37, electricityEurPerKwh: 0.27 }, 3);
+    expect(Math.round((p?.ketel ?? 0) * 100)).toBe(16);
+    expect(Math.round((p?.airco ?? 0) * 100)).toBe(9);
   });
 });
 

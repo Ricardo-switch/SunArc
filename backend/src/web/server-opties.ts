@@ -41,6 +41,7 @@ import type { LuisterDeur } from './luisterpost.js';
 import type { Location } from './sun.js';
 import type { ForecastDay, HourColumns, WeatherLog } from './weather.js';
 import type { BijspringenView, ComfortView } from './comfort.js';
+import type { HelpenView } from './helpen.js';
 import type { HouseReport } from './house.js';
 import type { Lang } from './assistant.js';
 import type { Layout, LayoutStore } from './layout.js';
@@ -122,6 +123,14 @@ export interface WebOptions {
   readonly bijspringen?: {
     readonly view: () => BijspringenView;
     readonly save: (body: unknown) => Promise<{ readonly ok: true; readonly view: BijspringenView } | { readonly ok: false; readonly status: number; readonly reden: string }>;
+  };
+  /**
+   * Helpen bij de cv (besluit 292), bij Regeling: welke airco's de ketel
+   * helpen, wanneer, en wat warmte kost. Zonder dit bestaat de route niet.
+   */
+  readonly helpen?: {
+    readonly view: () => HelpenView;
+    readonly save: (body: unknown) => Promise<{ readonly ok: true; readonly view: HelpenView } | { readonly ok: false; readonly status: number; readonly reden: string }>;
   };
   /**
    * Bewoners (besluit 147): wie hier woont, op volgorde, en wat een bewoner
@@ -294,7 +303,8 @@ export interface WebOptions {
    * Opbrengst (besluit 102): de meters en prijzen van de app, en de statistiek
    * van Home Assistant om ze mee te lezen. Zonder dit geen terugblik.
    */
-  readonly energy?: { readonly store: EnergyStore; readonly source: EnergySource };
+  /** `naBewaren`: andere prijzen gaan meteen mee in Helpen bij de cv (besluit 292). */
+  readonly energy?: { readonly store: EnergyStore; readonly source: EnergySource; readonly naBewaren?: () => Promise<void> };
   /** De map met scèneplaatjes van de bewoner (scene-pictures.ts); zonder dit geen route. */
   readonly scenePicturesDir?: string;
   /**

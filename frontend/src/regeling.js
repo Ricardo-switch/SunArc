@@ -23,11 +23,11 @@ let vermogen = {};
 /** Hoe lang een stekker per dag minstens aan moet, en uiterlijk wanneer (besluit 267). */
 let minimum = {};
 let zon = null;
-/** Bijspringen per kamer (besluit 283): waar de airco de verwarming helpt, en wanneer. */
-let bij = null;
+/** Helpen bij de cv (besluit 292): welke airco's de ketel helpen, wanneer, en wat warmte kost. */
+let helpen = null;
 
 async function laadAlles() {
-  const [s, d, h, a, z, b] = await Promise.allSettled([haal('api/site'), haal('api/divergence'), haal('api/huis'), haal('api/aansluiting'), haal('api/zon'), haal('api/bijspringen')]);
+  const [s, d, h, a, z, b] = await Promise.allSettled([haal('api/site'), haal('api/divergence'), haal('api/huis'), haal('api/aansluiting'), haal('api/zon'), haal('api/helpen')]);
   if (s.status === 'fulfilled') site = s.value;
   if (d.status === 'fulfilled') terugblik = d.value;
   if (h.status === 'fulfilled') huisData = h.value;
@@ -39,7 +39,7 @@ async function laadAlles() {
     minimum = { ...(aInfo.antwoorden?.minimum ?? {}) };
   }
   if (z.status === 'fulfilled') zon = z.value;
-  if (b.status === 'fulfilled') bij = b.value;
+  if (b.status === 'fulfilled') helpen = b.value;
   teken();
 }
 
@@ -52,6 +52,8 @@ function delen() {
   const opZonAan = Object.values(opZon).filter(Boolean).length + (aInfo?.configuratie?.apparaten ?? []).filter((x) => !opZonUit.includes(x.id)).length;
   return [
     { id: 'klimaat', titel: t('regeling.klimaat'), zin: huisData ? t('regeling.kamersMee', { n: kamersMee().length }) : klimaat().length ? t('regeling.apparatenMee', { n: klimaat().length }) : '…', stand: site ? 'goed' : null },
+    // Helpen bij de cv (besluit 292): alleen als er een airco is die kan helpen.
+    ...(helpen?.aircos?.length ? [{ id: 'helpen', titel: t('regeling.helpen'), zin: helpenZin(), stand: 'goed' }] : []),
     { id: 'opzon', titel: t('instellingen.opZon'), zin: aInfo ? (opZonAan ? t('regeling.nOpZon', { n: opZonAan }) : t('instellingen.geen')) : '…', stand: aInfo ? 'goed' : null },
   ];
 }
@@ -69,23 +71,6 @@ const actiefIn = (r) => (r.apparaten ?? []).filter((a) => a.soort === 'klimaat' 
 const kamersMee = () => binnenKamers().filter((r) => actiefIn(r).length);
 const naarKamer = (r) => `indeling.html#${encodeURIComponent(r.id)}/warmte`;
 
-/**
- * Bijspringen (besluit 283): onder een kamer waar een airco de verwarming kan
- * helpen een schakelaar, en als die aan staat na hoeveel minuten stoken en
- * vanaf hoeveel graden te koud.
- */
-function bijspringenRij(r) {
-  const z = bij?.zones?.find((x) => x.zoneId === r.zoneId);
-  if (!z) return '';
-  const wie = z.apparaten.join(` ${t('algemeen.en')} `);
-  const zin = z.aan ? t('regeling.bij.aan', { wie, min: z.naMin, graden: `${nl(z.vanafC, 1)}°` }) : t('regeling.bij.uit', { wie });
-  const stap = (veld, stapje, label, tekst) => `<div class="bijstap"><span>${esc(label)}</span><button type="button" data-bij="${esc(z.zoneId)}:${veld}:-${stapje}" aria-label="${esc(t('regeling.bij.minder', { wat: label }))}">−</button><b>${esc(tekst)}</b><button type="button" data-bij="${esc(z.zoneId)}:${veld}:${stapje}" aria-label="${esc(t('regeling.bij.meer', { wat: label }))}">+</button></div>`;
-  const getallen = z.aan
-    ? `<div class="regelrij bijgetallen" style="padding-left: 22px">${stap('naMin', 1, t('regeling.bij.na'), t('regeling.bij.minuten', { n: z.naMin }))}${stap('vanafC', 0.1, t('regeling.bij.vanaf'), t('regeling.bij.graden', { graden: `${nl(z.vanafC, 1)}°` }))}</div>`
-    : '';
-  return `<div class="regelrij" style="padding-left: 22px"><div class="l"><b style="font-weight: 500">${esc(t('regeling.bij.titel'))}</b><span>${esc(zin)}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${z.aan}" aria-label="${esc(t('regeling.bij.van', { kamer: r.naam }))}" data-bij-aan="${esc(z.zoneId)}"></button></div>${getallen}`;
-}
-
 function klimaatVorm() {
   const winter = terugblik?.dataset?.seizoenen?.find((x) => x.seizoen === 'winter');
   const van = terugblik?.dataset?.vanMs ?? terugblik?.vanMs;
@@ -95,7 +80,7 @@ function klimaatVorm() {
         // Kamers die meedoen met deze (besluit 142), erbij genoemd.
         const mee = binnenKamers().filter((x) => x.meedoenMet?.kamerId === r.id).map((x) => x.naam);
         const wat = actiefIn(r).map((a) => t(ROL_ZIN[a.klimaat.rol], { naam: a.naam })).join(', ');
-        return `<a class="regelrij kamerrij" href="${naarKamer(r)}"><div class="l"><b>${esc([r.naam, ...mee].join(` ${t('algemeen.en')} `))}</b><span>${esc(wat)}</span></div><span class="pijl" aria-hidden="true">›</span></a>${bijspringenRij(r)}`;
+        return `<a class="regelrij kamerrij" href="${naarKamer(r)}"><div class="l"><b>${esc([r.naam, ...mee].join(` ${t('algemeen.en')} `))}</b><span>${esc(wat)}</span></div><span class="pijl" aria-hidden="true">›</span></a>`;
       }).join('')
     : '';
   const nietMee = binnenKamers().filter((r) => !actiefIn(r).length && !r.meedoenMet);
@@ -110,11 +95,85 @@ function klimaatVorm() {
   return `<h2 class="kop-2">${esc(t('regeling.klimaat'))}</h2>
     <p class="klein" style="margin: 0">${esc(t('regeling.perKamer'))}</p>
     ${stand}
-    <div>${rijen || `<p class="klein">${esc(t('regeling.geenKamer'))}</p>`}</div>
+    <div>${rijen || `<p class="klein">${esc(t('regeling.geenKamer'))}</p>`}${naarHelpen()}</div>
     ${rest}
     ${bewijs}`;
 }
 
+
+/* ------------------------------------------------- helpen bij de cv */
+
+/** "1 uur 26 min", "45 min". */
+function duur(min) {
+  const u = Math.floor(min / 60);
+  const m = Math.round(min % 60);
+  return u === 0 ? t('regeling.helpen.min', { n: m }) : m === 0 ? t('regeling.helpen.uur', { n: u }) : t('regeling.helpen.uurMin', { u, m });
+}
+const graden = (c) => `${nl(c, 1).replace('-', '−')}°`;
+
+/** "2 airco's, 1 helpt nu". */
+function helpenZin() {
+  const aan = helpen.aircos.filter((a) => a.aan);
+  if (!aan.length) return t('regeling.helpen.allesUit');
+  const nu = aan.filter((a) => a.stand === 'helpt').length;
+  return [t('regeling.helpen.nAirco', { n: aan.length }), nu ? t('regeling.helpen.nHelpt', { n: nu }) : ''].filter(Boolean).join(', ');
+}
+
+/** Bij Klimaat: een rij naar Helpen bij de cv, in plaats van bijspringen onder de kamer. */
+function naarHelpen() {
+  if (!helpen?.aircos?.length) return '';
+  const n = helpen.aircos.filter((a) => a.aan).length;
+  return `<a class="regelrij kamerrij naar-helpen" href="#helpen"><div class="l"><b>${esc(t('regeling.helpen'))}</b><span>${esc(n ? t('regeling.helpen.naar', { n }) : t('regeling.helpen.allesUit'))}</span></div><span class="pijl" aria-hidden="true">›</span></a>`;
+}
+
+/** Wat warmte nu kost, van de airco en van de ketel: twee balken en wat goedkoper is. */
+function kostenBlok() {
+  const k = helpen.kosten;
+  if (!k) return `<p class="klein" style="margin: 0">${esc(t('regeling.helpen.geenPrijzen'))} <a href="energie.html#prijzen">${esc(t('regeling.helpen.naarPrijzen'))}</a></p>`;
+  const max = Math.max(k.airco, k.ketel);
+  const balk = (label, w, kleur) => `<div class="kostbalk"><span>${esc(label)}</span><i><b style="width: ${Math.round((w / max) * 100)}%; background: ${kleur}"></b></i><em>${esc(t('regeling.helpen.ct', { ct: nl(w * 100, 0) }))}</em></div>`;
+  const goedkoper = k.airco < k.ketel;
+  const sub = [t('regeling.helpen.bijBuiten', { graden: graden(k.buitenC) }), k.gelijkBijC != null ? t('regeling.helpen.gelijkBij', { graden: `${nl(Math.round(k.gelijkBijC), 0).replace('-', '−')}°` }) : ''].filter(Boolean).join(' ');
+  return `<div class="kost">${balk(t('regeling.helpen.warmteAirco'), k.airco, 'var(--ijs)')}${balk(t('regeling.helpen.warmteKetel'), k.ketel, 'var(--gloed)')}
+    <p class="oordeel"><b class="${goedkoper ? 'goed' : ''}">${esc(t(goedkoper ? 'regeling.helpen.aircoGoedkoper' : 'regeling.helpen.ketelGoedkoper'))}</b><span>${esc(sub)}</span></p></div>`;
+}
+
+/** Per airco: zijn eigen kamer, of hij helpt, wat hij nu doet en wat hij vandaag deed. */
+function helperKaart(a) {
+  const kijkt = a.kamer ? t('regeling.helpen.kijkt', { kamer: a.kamer, nu: a.kamerC != null ? graden(a.kamerC) : '–', doel: a.doelC != null ? graden(a.doelC) : '–' }) : '';
+  const klok = a.sindsMs ? app.klokVan(a.sindsMs) : '';
+  const stand = {
+    helpt: t('regeling.helpen.helpt', { klok, doel: a.doelC != null ? graden(a.doelC) : '' }),
+    klaar: t('regeling.helpen.klaar', { klok, kamer: (a.kamer ?? '').toLowerCase() }),
+    wacht: t('regeling.helpen.wacht'),
+    uit: t('regeling.helpen.uit'),
+  }[a.stand];
+  const kleur = a.stand === 'helpt' ? 'var(--gloed)' : a.stand === 'klaar' ? 'var(--mint)' : 'var(--net)';
+  const vandaag = a.vandaag.keer ? t('regeling.helpen.vandaag', { n: a.vandaag.keer, duur: duur(a.vandaag.minuten) }) : t('regeling.helpen.nogNiet');
+  return `<div class="helper${a.aan ? '' : ' uit'}">
+    <div class="regelrij"><div class="l"><b>${esc(a.naam)}</b><span>${esc(kijkt)}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${a.aan}" aria-label="${esc(t('regeling.helpen.van', { naam: a.naam }))}" data-helpen-aan="${esc(a.id)}"></button></div>
+    <p class="helpstand"><i style="background: ${kleur}"></i>${esc(stand)}</p>
+    ${a.aan ? `<p class="helpdag"><span>${esc(t('regeling.helpen.vandaagKop'))}</span><b>${esc(vandaag)}</b></p>` : ''}
+  </div>`;
+}
+
+function helpenVorm() {
+  if (!helpen) return `<p class="klein">${esc(t('algemeen.laden'))}…</p>`;
+  const stap = (veld, stapje, label, tekst) => `<div class="bijstap"><span>${esc(label)}</span><button type="button" data-helpen="${veld}:-${stapje}" aria-label="${esc(t('regeling.bij.minder', { wat: label }))}">−</button><b>${esc(tekst)}</b><button type="button" data-helpen="${veld}:${stapje}" aria-label="${esc(t('regeling.bij.meer', { wat: label }))}">+</button></div>`;
+  const regel = (kop, zin) => `<div class="regelrij gaat"><div class="l"><b>${esc(kop)}</b><span>${esc(zin)}</span></div></div>`;
+  return `<h2 class="kop-2">${esc(t('regeling.helpen'))}</h2>
+    <p class="klein" style="margin: 0">${esc(t('regeling.helpen.lead'))}</p>
+    ${kostenBlok()}
+    <div class="helpers">${helpen.aircos.map(helperKaart).join('')}</div>
+    <h3 class="kop-3" style="margin: 6px 0 0">${esc(t('regeling.helpen.zoGaatHet'))}</h3>
+    <div>
+      ${regel(t('regeling.helpen.begint'), t('regeling.helpen.beginZin', { min: helpen.naMin, graden: graden(helpen.vanafC) }))}
+      <div class="regelrij bijgetallen">${stap('naMin', 1, t('regeling.bij.na'), t('regeling.bij.minuten', { n: helpen.naMin }))}${stap('vanafC', 0.1, t('regeling.bij.vanaf'), t('regeling.bij.graden', { graden: graden(helpen.vanafC) }))}</div>
+      ${regel(t('regeling.helpen.stopt'), t('regeling.helpen.stoptZin'))}
+      ${regel(t('regeling.helpen.pomp'), t('regeling.helpen.pompZin', { aan: helpen.minRunMinutes, uit: helpen.minRestMinutes }))}
+      ${regel(t('regeling.helpen.stil'), t('regeling.helpen.stilZin'))}
+    </div>`;
+}
 
 /** Een schakelaar per apparaat (besluit 167): aan start hij op zon, uit niet. Ook voor wat de configuratie noemt. */
 function opZonRij(naam, aan, data) {
@@ -156,13 +215,18 @@ function opZonVorm() {
 }
 
 /** Per deel een kopje en drie of twee punten (regeling.naast.*). */
-const NAAST = { klimaat: 3, opzon: 2 };
+const NAAST = { klimaat: 3, helpen: 3, opzon: 2 };
 
 function naast(id) {
   const deel = NAAST[id] ? id : 'klimaat';
   const lijst = Array.from({ length: NAAST[deel] }, (_, i) => t(`regeling.naast.${deel}.${i + 1}`));
   const later = aInfo?.volgendeStart && id === 'opzon' ? `<div class="glas"><h3>${esc(t('regeling.ingaat'))}</h3><p style="margin: 0">${esc(t('regeling.ingaatZin'))}</p><button type="button" class="knop" data-herstart style="align-self: start; margin-top: 8px">${esc(t('basis.herstart'))}</button></div>` : '';
-  return `<div class="glas"><h3>${esc(t(`regeling.naast.${deel}`))}</h3><ul>${lijst.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>${later}`;
+  // Helpen bij de cv (besluit 292): de rekensom erbij.
+  const k = deel === 'helpen' ? helpen?.kosten : null;
+  const som = k
+    ? `<div class="glas"><h3>${esc(t('regeling.helpen.somKop', { graden: graden(k.buitenC) }))}</h3><p class="mini" style="margin: 0">${esc(t('regeling.helpen.somKetel', { gas: nl(k.gas, 2), ct: nl(k.ketel * 100, 0) }))}</p><p class="mini" style="margin: 0">${esc(t('regeling.helpen.somAirco', { stroom: nl(k.stroom, 2), cop: nl(k.cop, 1), ct: nl(k.airco * 100, 0) }))}</p><p class="mini" style="margin: 0">${esc(t('regeling.helpen.somTabel'))}</p></div>`
+    : '';
+  return `<div class="glas"><h3>${esc(t(`regeling.naast.${deel}`))}</h3><ul>${lijst.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>${som}${later}`;
 }
 
 /* ------------------------------------------------------------ tekenen */
@@ -171,33 +235,33 @@ function tekenNu() {
   app.schaal();
   app.luchtVan(zon, 0);
   const nu = groep.tekenDelen(delen());
-  const vorm = { klimaat: klimaatVorm, opzon: opZonVorm }[nu]?.() ?? '';
+  const vorm = { klimaat: klimaatVorm, helpen: helpenVorm, opzon: opZonVorm }[nu]?.() ?? '';
   $$('[data-vorm]').forEach((el) => (el.innerHTML = vorm));
   $$('[data-naast]').forEach((el) => (el.innerHTML = naast(nu)));
 }
 
 /* ------------------------------------------------------------ bewaren */
 
-// Bijspringen per kamer (besluit 283): meteen bewaard, per kamer.
+// Helpen bij de cv (besluit 292): meteen bewaard, voor het hele huis.
 document.addEventListener('click', (e) => {
-  const knop = e.target.closest('[data-bij-aan], [data-bij]');
-  if (!knop || !bij) return;
-  const id = knop.dataset.bijAan ?? knop.dataset.bij.split(':')[0];
-  const z = bij.zones.find((x) => x.zoneId === id);
-  if (!z) return;
-  const nieuw = { zone: id, aan: z.aan, naMin: z.naMin, vanafC: z.vanafC };
-  if (knop.dataset.bijAan) nieuw.aan = !z.aan;
+  const knop = e.target.closest('[data-helpen-aan], [data-helpen]');
+  if (!knop || !helpen) return;
+  let { naMin, vanafC } = helpen;
+  let aircos = helpen.aircos;
+  if (knop.dataset.helpenAan) aircos = aircos.map((a) => (a.id === knop.dataset.helpenAan ? { ...a, aan: !a.aan } : a));
   else {
-    const [, veld, stap] = knop.dataset.bij.split(':');
-    const { min, max } = bij.bereik[veld];
-    nieuw[veld] = Math.round(Math.min(max, Math.max(min, z[veld] + Number(stap))) * 10) / 10;
+    const [veld, stap] = knop.dataset.helpen.split(':');
+    const { min, max } = helpen.bereik[veld];
+    const nieuw = Math.round(Math.min(max, Math.max(min, helpen[veld] + Number(stap))) * 10) / 10;
+    if (veld === 'naMin') naMin = nieuw;
+    else vanafC = nieuw;
   }
-  bij = { ...bij, zones: bij.zones.map((x) => (x.zoneId === id ? { ...x, ...nieuw } : x)) };
+  helpen = { ...helpen, naMin, vanafC, aircos };
   teken();
   groep.bewaarStraks(async () => {
-    const uit = await groep.stuur('api/bijspringen', nieuw);
+    const uit = await groep.stuur('api/helpen', { naMin, vanafC, aan: Object.fromEntries(aircos.map((a) => [a.id, a.aan])) });
     if (uit?.ok) {
-      bij = uit.antwoord;
+      helpen = uit.antwoord;
       teken();
     }
     return uit;

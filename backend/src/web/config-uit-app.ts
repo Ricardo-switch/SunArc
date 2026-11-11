@@ -15,6 +15,7 @@ import type { OccupancySource, SiteConfig } from '../core/model.js';
 import { withConnection, type Applied, type ConnectionAnswers } from './aansluiting.js';
 import { profielenVoor, type Bewoners } from './bewoners.js';
 import { withComfort, type Comfort } from './comfort.js';
+import { helpenNu, withCvHelp, type HelpenKeuze } from './helpen.js';
 import type { Layout } from './layout.js';
 import { withMeasurement } from './meten.js';
 import { doelenBinnenBereik, withBereik, withRegeling } from './regeling.js';
@@ -32,6 +33,8 @@ export interface UitDeApp {
   readonly bewoners: Bewoners;
   readonly occupancy: readonly OccupancySource[];
   readonly strategieen: readonly string[];
+  /** Helpen bij de cv (besluit 292): de ketel en de prijzen; weg is: niet. */
+  readonly helpen?: HelpenKeuze;
   /** Voor wat er niet over te nemen viel, zoals een regeling die een apparaat mist. */
   readonly waarschuw?: (tekst: string) => void;
 }
@@ -60,6 +63,12 @@ export function configUitDeApp(base: Record<string, unknown>, i: UitDeApp): { ok
   if (profiles.length > 0) {
     metComfort.raw = { ...metComfort.raw, profiles, ...(i.bewoners.vasthouden ? { profileHold: { id: i.bewoners.vasthouden.id, home: i.bewoners.vasthouden.home } } : {}) };
     metComfort.toegevoegd.push(`comfort per bewoner: ${profiles.map((x) => x.name).join(', ')}`);
+  }
+  // Helpen bij de cv (besluit 292): voor het hele huis, met de ketel en de prijzen van nu.
+  if (i.helpen) {
+    const metHelpen = withCvHelp(metComfort.raw, helpenNu(i.comfort?.helpen, i.comfort?.bijspringen, metComfort.raw), i.helpen);
+    metComfort.raw = metHelpen.raw;
+    metComfort.toegevoegd.push(...metHelpen.toegevoegd);
   }
   // Een kamer die een apparaat kwijtraakte (besluit 138): doelen binnen wat de apparaten kunnen.
   const checked = parseSiteConfig(metRegeling.toegevoegd.length || metBereik.toegevoegd.length || (layout?.kamers ?? []).some((k) => k.rollen) ? doelenBinnenBereik(metComfort.raw) : metComfort.raw, { knownStrategies: i.strategieen });
