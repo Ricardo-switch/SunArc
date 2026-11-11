@@ -1,0 +1,66 @@
+/* Kosten als regels op Opbrengst, en prijzen per contractjaar (schets, 11 november 2026). */
+.kostenkaart { padding: 16px 18px; border-radius: 22px; display: flex; flex-direction: column; gap: 6px; min-height: 0; overflow: hidden; }
+.kkop { display: flex; justify-content: space-between; align-items: baseline; }
+.kkop h2 { margin: 0; }
+.kkop span { font-size: 13px; color: var(--gedempt); font-weight: 600; }
+.ksub { margin: 0; font-size: 12.5px; color: var(--gedempt); }
+.kregels { display: flex; flex-direction: column; min-height: 0; overflow: auto; }
+.kregel { padding: 8px 0; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+.kregel:first-child { border-top: 0; }
+.kboven { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.knaam { font-size: 14.5px; font-weight: 600; }
+.knaam i { font-style: normal; display: inline-block; margin-left: 6px; color: var(--gedempt); transition: transform 0.15s; }
+.kregel.open .knaam i { transform: rotate(90deg); }
+.kboven b { font-family: var(--kop); font-size: 16px; font-weight: 600; white-space: nowrap; }
+.kboven b.min { color: var(--mint-t, #6ee7b7); }
+.kboven b.leeg { color: var(--gedempt); }
+.kuitleg { font-size: 12.5px; color: var(--zacht); margin-top: 2px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.kuitleg .let { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; background: rgba(255, 122, 77, 0.16); color: #ff9d6e; font-size: 11.5px; font-weight: 700; }
+.kletzin { font-size: 12px; color: #ff9d6e; margin-top: 3px; }
+.prijzen { color: var(--gedempt); }
+.prijzen b { color: var(--zacht); font-weight: 600; }
+.onder { margin-top: 6px; padding: 4px 0 0 12px; border-left: 2px solid rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; gap: 5px; }
+.krij { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--zacht); }
+.krij small { display: block; font-size: 11.5px; color: var(--gedempt); }
+.krij b { font-weight: 600; white-space: nowrap; }
+.krij b.min { color: var(--mint-t, #6ee7b7); }
+.ktotaal { display: flex; justify-content: space-between; align-items: baseline; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.14); }
+.ktotaal span { font-size: 14.5px; font-weight: 700; }
+.ktotaal b { font-family: var(--kop); font-size: 22px; font-weight: 600; }
+.kvorig { margin: 0; font-size: 12.5px; color: var(--gedempt); text-align: right; }
+.kbron { margin: 4px 0 0; font-size: 12px; color: var(--gedempt); line-height: 1.45; }
+.kbron a { color: var(--ijs, #6fd3ff); font-weight: 700; white-space: nowrap; }
+
+/* Energie › Contract en prijzen, per contractjaar. */
+.ckop h2 { margin: 0; }
+.ckop p { margin: 6px 0 0; font-size: 13.5px; color: var(--zacht); max-width: 640px; }
+.jaren { display: flex; gap: 8px; flex-wrap: wrap; }
+.jaar { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 9px 14px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1); background: transparent; color: var(--tekst); font: inherit; }
+.jaar b { font-size: 14px; }
+.jaar small { font-size: 11.5px; color: var(--gedempt); }
+.jaar.aan { background: #bfe9ff; border-color: #bfe9ff; }
+.jaar.aan b, .jaar.aan small { color: #0b1424; }
+.jaar.erbij { border-style: dashed; }
+.jaar.erbij b { color: var(--ijs, #6fd3ff); }
+.cvak { display: flex; flex-direction: column; gap: 14px; }
+.cvak.breed { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+.ckolom { display: flex; flex-direction: column; gap: 10px; }
+.ckolom h3 { margin: 4px 0 0; font-size: 15px; font-weight: 700; }
+.regelvak { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: baseline; padding: 10px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); font-size: 13.5px; color: var(--zacht); }
+.regelvak b { color: var(--tekst); }
+.regelvak small { grid-column: 1 / -1; font-size: 12px; color: var(--gedempt); }
+.twee { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vak { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: var(--gedempt); }
+.invoer { height: 44px; display: flex; align-items: center; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04); color: var(--tekst); font-size: 16px; font-weight: 600; }
+.wissel-in { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; border: 1px dashed rgba(255, 255, 255, 0.16); font-size: 13px; color: var(--zacht); }
+.wissel-in span { color: var(--ijs, #6fd3ff); font-weight: 700; }
+.posten { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--zacht); }
+.posten span { display: flex; justify-content: space-between; gap: 10px; padding: 7px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); }
+.posten b { color: var(--tekst); font-weight: 600; }
+.posten .meer { justify-content: center; color: var(--ijs, #6fd3ff); font-weight: 700; background: transparent; }
+.cnote { margin: 0; font-size: 12.5px; color: var(--gedempt); }
+
+/* De keuzes als segment, zoals bij Contract en prijzen. */
+.seg .chip { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 36px; padding: 0 12px; border-radius: 9px; font-size: 14px; font-weight: 600; color: var(--zacht); white-space: nowrap; }
+.seg .chip.aan { background: rgba(255, 255, 255, 0.14); color: var(--tekst); }
+.ckolom .seg { display: flex; }

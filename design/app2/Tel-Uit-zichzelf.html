@@ -9,9 +9,12 @@
 <link rel="stylesheet" href="../../frontend/kit/kit.css">
 <style>
   /*
-   * Uit zichzelf op de telefoon (schets, 30 oktober 2026), bij Wand-Uit-zichzelf.
-   * Alleen de kaart op Thuis: de telefoon zegt niets hardop en krijgt geen
-   * melding (keuze van de bewoner). Hetzelfde voorstel, met Ja en Nee.
+   * Uit zichzelf op de telefoon (schets, 30 oktober 2026, bijgewerkt 11
+   * november 2026), bij Wand-Uit-zichzelf. Alleen de kaart op Thuis: de
+   * telefoon zegt niets hardop en krijgt geen melding (keuze van de bewoner).
+   * Hetzelfde voorstel, met Ja en Nee. Standen: zonder hash Thuis met het
+   * voorstel, #ja na Ja (met terugdraaien), #functies Functies › Uit zichzelf.
+   * De standen #blad, #melding en #jij zijn weg: dat is Te doen, al gebouwd.
    */
   .tel { overflow: hidden; }
   .tel .tabs { position: fixed; }
@@ -126,9 +129,30 @@
   .voorstel .knoppen span { height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 14px; font-weight: 700; background: rgb(var(--wit) / 0.08); border: 1px solid var(--glas-rand); }
   .voorstel .knoppen span.licht { background: var(--tekst); color: var(--inkt); border-color: transparent; }
   [data-stand] { display: none !important; }
-  body[data-toon='thuis'] [data-stand~='thuis'], body[data-toon='blad'] [data-stand~='blad'], body[data-toon='melding'] [data-stand~='melding'], body[data-toon='jij'] [data-stand~='jij'] { display: block !important; }
-  body[data-toon='blad'] .blad[data-stand], body[data-toon='jij'] .jij[data-stand], body[data-toon='jij'] .onderblad[data-stand], body[data-toon='thuis'] .inhoud[data-stand] { display: flex !important; }
-  body[data-toon='thuis'] .tabs[data-stand], body[data-toon='blad'] .tabs[data-stand] { display: grid !important; }
+  body[data-toon='thuis'] [data-stand~='thuis'], body[data-toon='functies'] [data-stand~='functies'] { display: block !important; }
+  body[data-toon='thuis'] .inhoud[data-stand], body[data-toon='functies'] .fn[data-stand] { display: flex !important; }
+  body[data-toon='thuis'] .tabs[data-stand], body[data-toon='functies'] .tabs[data-stand] { display: flex !important; }
+  body[data-ja='true'] [data-niet-ja], body[data-ja='false'] [data-ja] { display: none; }
+  /* Functies › Uit zichzelf. */
+  .fn { flex-direction: column; gap: 10px; padding: 16px 16px 120px; }
+  .fn .terug { align-self: flex-start; height: 40px; padding: 0 14px; border-radius: 13px; display: inline-flex; align-items: center; background: rgb(var(--wit) / 0.06); border: 1px solid var(--glas-rand); font-weight: 700; font-size: 14px; color: var(--zacht); }
+  .fn h2 { margin: 6px 0 0; font-family: var(--kop); font-size: 30px; font-weight: 600; }
+  .fn h3 { margin: 8px 0 0; font-size: 12px; font-weight: 700; color: var(--gedempt); text-transform: uppercase; letter-spacing: 0.06em; }
+  .fn .tip { margin: 0; font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+  .fvak { padding: 4px 14px; border-radius: 18px; background: rgb(var(--nacht) / 0.55); border: 1px solid var(--glas-rand); }
+  .frij { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid rgb(var(--wit) / 0.07); }
+  .frij:first-child { border-top: 0; }
+  .frij > div { flex: 1; }
+  .frij b { display: block; font-size: 15px; }
+  .frij span { font-size: 12.5px; color: var(--gedempt); }
+  .frij em { font-style: normal; font-size: 13px; font-weight: 600; color: var(--zacht); white-space: nowrap; }
+  .frij em.ja { color: var(--mint-t); }
+  .frij .schakel { width: 48px; height: 28px; flex: none; border-radius: 999px; background: var(--mint); position: relative; }
+  .frij .schakel::after { content: ''; position: absolute; top: 3px; left: 23px; width: 22px; height: 22px; border-radius: 50%; background: var(--inkt); }
+  .seg3 { display: flex; padding: 3px; border-radius: 12px; background: rgb(var(--wit) / 0.06); }
+  .seg3 span { flex: 1; height: 38px; border-radius: 9px; display: grid; place-items: center; font-weight: 600; font-size: 14px; color: var(--zacht); }
+  .seg3 span.aan { background: rgb(var(--wit) / 0.14); color: var(--tekst); }
+  .voorstel .knoppen.een { grid-template-columns: 1fr; }
 </style>
 </head>
 <body>
@@ -155,9 +179,12 @@
   <div class="inhoud" data-stand="thuis">
     <div class="voorstel">
       <small><i></i>Voorstel van je huis</small>
-      <b>Vannacht wordt het 2°. Zal ik de woonkamer morgen om 6:00 al op 20° zetten?</b>
+      <div data-niet-ja><b>Vannacht wordt het 2°. De woonkamer morgen om 6:00 al op 20°?</b>
       <p>Dan is het warm als je opstaat. Daarna weer zoals altijd.</p>
-      <div class="knoppen"><span class="licht">Ja, doe maar</span><span>Nee</span></div>
+      <div class="knoppen"><span class="licht">Ja, doe maar</span><span>Nee</span></div></div>
+      <div data-ja><b>Morgen om 6:00 gaat de woonkamer op 20°</b>
+      <p>Tot 9:00, via je eigen regeling. Daarna weer zoals altijd.</p>
+      <div class="knoppen een"><span>Terugdraaien</span></div></div>
     </div>
     <div class="nv">
       <div class="naam">Te doen<span>alles ›</span></div>
@@ -168,67 +195,29 @@
     <div class="k"><small>Straks</small><b>Vannacht 16° overal, rustig</b></div>
   </div>
 
-  <!-- #blad: alles, als eigen pagina. -->
-  <div class="blad" data-stand="blad">
-    <div class="kopregel"><span class="terug">‹ Thuis</span></div>
-    <h2>Te doen</h2>
-    <p class="tip">Zeg "herinner me om acht uur aan de container" of "zet melk op de boodschappen".</p>
-    <h3>Herinneringen <em>+ Nieuwe</em></h3>
-    <div class="her nu"><div class="uur"><b>20:00</b><span>vandaag</span></div><div class="wat"><b>Container buiten zetten</b><span>jij · wand en telefoon</span></div><span class="vink"><svg><use href="#vink"/></svg></span></div>
-    <div class="her"><div class="uur"><b>07:30</b><span>morgen</span></div><div class="wat"><b>Matt zijn gymtas meegeven</b><span>Shira · telefoon</span></div><span class="vink"><svg><use href="#vink"/></svg></span></div>
-    <h3>Deze week</h3>
-    <div class="week">
-      <div class="dag"><b>DI 3</b><span class="bak gft"><svg><use href="#bak"/></svg>GFT</span></div>
-      <div class="dag"><b>DO 5</b><span class="bak gezin"><svg><use href="#agenda"/></svg>Zwemles</span></div>
-      <div class="dag" style="width: 150px"><b>DI 10</b><span class="bak grijs"><svg><use href="#bak"/></svg>Rest</span><span class="bak" style="background: rgb(247 160 72 / 0.16); color: #ffb86b"><svg><use href="#bak"/></svg>PMD</span></div>
+  <!-- #functies: Functies › Uit zichzelf, zoals op de wand. -->
+  <div class="fn" data-stand="functies">
+    <span class="terug">‹ Functies</span>
+    <h2>Uit zichzelf</h2>
+    <p class="tip">Het huis stelt zelf iets voor als dat zinnig is. Het vraagt altijd eerst; zonder ja gebeurt er niets.</p>
+    <h3>Waarover</h3>
+    <div class="fvak">
+      <div class="frij"><div><b>Klimaat vooruit</b><span>een koude nacht of een warme dag die eraan komt</span></div><span class="schakel"></span></div>
+      <div class="frij"><div><b>Weer en screens</b><span>harde wind of regen, en de screens staan uit</span></div><span class="schakel"></span></div>
+      <div class="frij"><div><b>Apparaten en zon</b><span>de was is klaar, of er is zon over voor de vaatwasser</span></div><span class="schakel"></span></div>
+      <div class="frij"><div><b>Thuiskomen</b><span>een korte begroeting op de wand</span></div><span class="schakel"></span></div>
     </div>
-    <h3>Lijsten</h3>
-    <div class="tabs2"><span class="aan">Boodschappen 5</span><span>To-do 3</span></div>
-    <div>
-      <div class="item" style="border-top: 0"><span class="box"></span>Melk</div>
-      <div class="item"><span class="box"></span>Brood</div>
-      <div class="item"><span class="box"></span>Eieren</div>
+    <h3>Hoe vaak</h3>
+    <div class="seg3"><span>Stil</span><span class="aan">Rustig</span><span>Alles</span></div>
+    <p class="tip">Rustig is hooguit 3 per dag. Nooit 's nachts, nooit als niemand thuis is, en niet twee keer hetzelfde op een dag.</p>
+    <h3>Laatst voorgesteld</h3>
+    <div class="fvak">
+      <div class="frij"><div><b>Woonkamer om 6:00 op 20°</b><span>vanavond 21:40</span></div><em class="ja">ja</em></div>
+      <div class="frij"><div><b>Vaatwasser op de zon</b><span>vrijdag · twee keer nee</span></div><em>stil tot 12 dec</em></div>
     </div>
   </div>
 
-  <!-- #melding: om 20:00 op het slot van de telefoon. -->
-  <div class="slot" data-stand="melding">
-    <div class="datum">maandag 2 november</div>
-    <div class="uur">20:00</div>
-    <div class="melding">
-      <div class="van"><i></i>JE HUIS<span>nu</span></div>
-      <b>Container buiten zetten</b>
-      <p>Morgen komt het GFT: de groene bak.</p>
-      <div class="acties"><span>Gedaan</span><span>10 min</span><span>1 uur</span></div>
-    </div>
-    <div class="uitleg">De wand zegt het tegelijk hardop, als er iemand thuis is. Gedaan op de een, is gedaan op de ander.</div>
-  </div>
-
-  <!-- #jij: de agenda kiezen, of uit. -->
-  <div class="jij" data-stand="jij">
-    <span class="terug">‹ Instellingen</span>
-    <div class="jijkop"><span class="av">R</span><div><b>Ricardo</b><span>Hoofdgebruiker · thuis</span></div></div>
-    <div class="vak">
-      <small>Agenda en herinneringen</small>
-      <div class="regel"><span class="ik klok"><svg><use href="#agenda"/></svg></span><div><b>Jouw agenda's</b><span>Ric060589@gmail.com en Gezin</span></div><span class="pijl">›</span></div>
-      <div class="regel"><span class="ik grijs"><svg><use href="#tel"/></svg></span><div><b>Herinneringen naar</b><span>Telefoon Ricardo, en de wand</span></div><span class="pijl">›</span></div>
-      <div class="noot">"Wat staat er morgen?" kijkt in de agenda's die jij kiest, en in Afval. Je eigen agenda staat nooit op de wand; Gezin wel, want die is van iedereen.</div>
-    </div>
-  </div>
-  <div class="dim" data-stand="jij"></div>
-  <div class="onderblad" data-stand="jij">
-    <span class="greep"></span>
-    <h3>Jouw agenda's</h3>
-    <div class="schakelrij"><div><b>Agenda's gebruiken</b><span>uit: de assistent leest geen agenda voor jou</span></div><span class="schakel"></span></div>
-    <p>Kies er zoveel als je wilt, uit Home Assistant. Wat erin staat, zie jij op je telefoon of hoor je als je het vraagt.</p>
-    <div class="keus aan"><i><svg><use href="#vink"/></svg></i><div><b>Ric060589@gmail.com</b><span>Google</span></div></div>
-    <div class="keus aan"><i><svg><use href="#vink"/></svg></i><div><b>Gezin</b><span>Google, van iedereen</span></div><span class="label">ook op de wand</span></div>
-    <div class="keus"><i></i><div><b>Werkplek</b><span>Google</span></div></div>
-    <div class="keus"><i></i><div><b>Verjaardagen</b><span>Google</span></div></div>
-    <div class="keus"><i></i><div><b>Parro agenda</b><span>school</span></div></div>
-  </div>
-
-  <nav class="tabs" id="tabs" data-stand="thuis blad"></nav>
+  <nav class="tabs" id="tabs" data-stand="thuis functies"></nav>
 </div>
 <script src="../../frontend/kit/iconen.js"></script>
 <script src="../../frontend/kit/teksten.nl.js"></script>
@@ -237,10 +226,11 @@
 <script src="../../frontend/kit/nav.js"></script>
 <script src="../../frontend/kit/huis.js"></script>
 <script>
-  const toon = { '#blad': 'blad', '#melding': 'melding', '#jij': 'jij' }[location.hash] ?? 'thuis';
-  document.body.dataset.toon = toon;
+  const toon = { '#functies': 'functies', '#ja': 'ja' }[location.hash] ?? 'thuis';
+  document.body.dataset.toon = toon === 'ja' ? 'thuis' : toon;
+  document.body.dataset.ja = String(toon === 'ja');
   nav.tabs(document.getElementById('tabs'), 'thuis');
-  if (toon === 'thuis') {
+  if (toon !== 'functies') {
     huis.teken(document.getElementById('podium'), {
       beschrijving: "Het huis, 's avonds.",
       tijd: 'avond',

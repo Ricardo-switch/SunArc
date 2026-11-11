@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Kosten op Opbrengst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="opbrengst-kosten.css">
+<style>
+  /*
+   * Kosten op de telefoon (schets, 11 november 2026; issue 128). De kaart Kosten
+   * staat onder de tegels; met #geschat en #jaar de andere standen, met
+   * #contract Energie › Contract en prijzen per contractjaar.
+   */
+  body { margin: 0; width: 390px; min-height: 844px; }
+  .tel .tabs { position: fixed; }
+  .scherm { padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 12px; }
+  .scherm h1 { margin: 0; font-size: 28px; line-height: 1.1; }
+  .periode { display: flex; align-items: center; gap: 10px; }
+  .periode span { font-family: var(--kop); font-size: 17px; font-weight: 600; }
+  .tegels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tegel { padding: 12px 14px; border-radius: 18px; }
+  .tegel .mini { font-size: 12.5px; color: var(--gedempt); }
+  .tegel b { display: block; font-family: var(--kop); font-size: 24px; font-weight: 600; margin: 2px 0; }
+  .tegel small { font-size: 12px; color: var(--zacht); }
+  .tegel.gekozen { box-shadow: inset 0 0 0 1.5px rgba(196, 188, 255, 0.55); }
+  .kostenkaart { overflow: visible; }
+  .kregels { overflow: visible; }
+  .contract { padding: 18px 16px; border-radius: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .jaren { flex-wrap: nowrap; overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+  .jaar { flex: none; }
+</style>
+</head>
+<body class="lucht lucht-dag">
+<div class="tel">
+  <div class="scherm" id="scherm"></div>
+  <nav class="tabs" id="tabs" aria-label="Hoofdmenu"></nav>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="opbrengst-kosten.js"></script>
+<script>
+  const hash = location.hash.slice(1);
+  const scherm = document.getElementById('scherm');
+  if (hash === 'contract') {
+    nav.tabs(document.getElementById('tabs'), 'meer');
+    scherm.innerHTML = `<div class="periode"><span>‹ Energie</span></div><section class="glas contract">${kostenSchets.contract(false)}</section>`;
+  } else {
+    nav.tabs(document.getElementById('tabs'), 'opbrengst');
+    const s = kostenSchets.stand(hash);
+    scherm.innerHTML = `
+      <h1 class="kop-1">${hash === 'jaar' ? '54%' : hash === 'geschat' ? '18%' : '59%'} van je stroom kwam van je eigen panelen</h1>
+      <div class="periode"><span>‹ ${s.titel} ›</span></div>
+      <div class="tegels">
+        <div class="glas tegel"><span class="mini">Stroom gebruikt</span><b>${hash === 'jaar' ? '5.940' : hash === 'geschat' ? '159' : '245'} <small>kWh</small></b></div>
+        <div class="glas tegel gekozen"><span class="mini">Kosten</span><b>${s.totaal < 0 ? '− ' : ''}€ ${Math.abs(s.totaal).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</b><small>alles samen</small></div>
+      </div>
+      ${kostenSchets.kaart(s, { open: hash === '' ? 'Vaste kosten' : '' })}`;
+  }
+</script>
+</body>
+</html>

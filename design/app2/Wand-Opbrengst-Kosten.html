@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Kosten op Opbrengst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="opbrengst-kosten.css">
+<style>
+  /*
+   * Kosten als regels op Opbrengst (schets, 11 november 2026; issue 128). Links
+   * onder Je panelen een kaart Kosten met de regels die de dienst al rekent;
+   * het midden en rechts staan er gedimd bij. Met #contract: Energie ›
+   * Contract en prijzen, per contractjaar. Standen in opbrengst-kosten.js.
+   */
+  main { position: relative; padding: 22px 26px 20px 22px; display: grid; grid-template-columns: 375px minmax(0, 1fr) 375px; grid-template-rows: auto 1fr; gap: 16px 16px; height: 800px; min-height: 0; }
+  .kop { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: end; }
+  .kop h1 { margin: 0; font-size: 38px; line-height: 1.05; max-width: 760px; }
+  .periode { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .periode button { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--glas-rand); background: transparent; color: var(--tekst); font-size: 18px; }
+  .wissel { display: inline-flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); }
+  .wissel span { height: 36px; padding: 0 14px; border-radius: 10px; color: var(--zacht); font-weight: 600; font-size: 14px; display: grid; place-items: center; }
+  .wissel span.aan { background: #bfe9ff; color: #0b1424; }
+  .links { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .tegels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tegel { padding: 12px 14px; border-radius: 18px; }
+  .tegel .mini { font-size: 12.5px; color: var(--gedempt); }
+  .tegel b { display: block; font-family: var(--kop); font-size: 26px; font-weight: 600; margin: 2px 0; }
+  .tegel small { font-size: 12.5px; color: var(--zacht); }
+  .tegel.gekozen { box-shadow: inset 0 0 0 1.5px rgba(196, 188, 255, 0.55); }
+  .ander { opacity: 0.4; border-radius: 22px; }
+  .midden { grid-column: 2; }
+  .rechts { grid-column: 3; display: flex; flex-direction: column; gap: 12px; }
+  .contract { grid-column: 2 / 4; padding: 22px 26px; border-radius: 26px; display: flex; flex-direction: column; gap: 16px; }
+  .groepen { padding: 10px; border-radius: 22px; display: flex; flex-direction: column; gap: 6px; }
+  .groepen div { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; }
+  .groepen div.aan { background: rgba(255, 255, 255, 0.08); }
+  .groepen b { font-size: 15px; }
+  .groepen small { display: block; font-size: 12.5px; color: var(--gedempt); }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-dag">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main id="main"></main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="opbrengst-kosten.js"></script>
+<script>
+  const hash = location.hash.slice(1);
+  const main = document.getElementById('main');
+  if (hash === 'contract') {
+    nav.balk(document.getElementById('balk'), 'instellingen');
+    main.style.gridTemplateColumns = '300px minmax(0, 1fr)';
+    main.innerHTML = `
+      <div class="kop"><h1 class="kop-1" style="font-size: 40px">Energie</h1><span class="mini">Alles wordt meteen bewaard</span></div>
+      <div class="glas groepen">
+        <div><b>Daken en panelen</b></div><div><b>Aansluiting</b></div><div><b>Meters</b></div>
+        <div class="aan"><span><b>Contract en prijzen</b><small>3 jaren · nu € 0,27 per kWh</small></span></div>
+        <div><b>Verwarming</b></div><div><b>Auto en laadpaal</b></div><div><b>Thuisaccu</b></div>
+      </div>
+      <section class="glas contract" style="grid-column: 2">${kostenSchets.contract(true)}</section>`;
+  } else {
+    nav.balk(document.getElementById('balk'), 'opbrengst');
+    const s = kostenSchets.stand(hash);
+    const jaar = hash === 'jaar';
+    main.innerHTML = `
+      <div class="kop">
+        <div>
+          <h1 class="kop-1">${jaar ? '54% van je stroom kwam van je eigen panelen' : hash === 'geschat' ? '18% van je stroom kwam van je eigen panelen' : '59% van je stroom kwam van je eigen panelen'}</h1>
+          <div class="periode"><button>‹</button><span class="kop-3" style="font-size: 17px">${s.titel}</span><button>›</button></div>
+        </div>
+        <div class="wissel"><span>Nu</span><span>Dag</span><span>Week</span><span class="${jaar ? '' : 'aan'}">Maand</span><span class="${jaar ? 'aan' : ''}">Jaar</span></div>
+      </div>
+      <div class="links">
+        <div class="tegels">
+          <div class="glas tegel"><span class="mini">Stroom gebruikt</span><b>${jaar ? '5.940' : hash === 'geschat' ? '159' : '245'} <small>kWh</small></b><small>${jaar ? '52% van het net' : hash === 'geschat' ? '74% van het net' : '99,4 van het net'}</small></div>
+          <div class="glas tegel gekozen"><span class="mini">Kosten</span><b>${s.totaal < 0 ? '− ' : ''}€ ${Math.abs(s.totaal).toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</b><small>alles samen, ook vast</small></div>
+        </div>
+        ${kostenSchets.kaart(s, { open: '' })}
+      </div>
+      <div class="glas ander midden"></div>
+      <div class="rechts"><div class="glas ander" style="height: 170px"></div><div class="glas ander" style="flex: 1"></div></div>`;
+  }
+</script>
+</body>
+</html>
