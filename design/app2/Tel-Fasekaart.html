@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · De fasekaart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="fasekaart.css">
+<style>
+  /*
+   * De fasekaart op de telefoon (schets, 11 november 2026). Standen: (zonder),
+   * #krap, #een, #geen; met -blad erachter het blad van onderen (#krap-blad).
+   */
+  body { margin: 0; width: 390px; min-height: 844px; }
+  .tel .tabs { position: fixed; }
+  .scherm { padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 12px; }
+  .scherm h1 { margin: 0 0 4px; font-size: 34px; }
+  .dek { position: fixed; inset: 0; z-index: 8; background: rgba(4, 9, 18, 0.55); }
+  .blad { position: fixed; z-index: 9; left: 0; right: 0; bottom: 0; max-height: 92%; overflow: auto; padding: 18px 18px 26px; border-radius: 26px 26px 0 0; background: #0e1828; border: 1px solid var(--glas-rand); display: flex; flex-direction: column; gap: 14px; }
+  .ander { opacity: 0.45; }
+</style>
+</head>
+<body class="lucht lucht-avond">
+<div class="tel">
+  <div class="scherm">
+    <h1 class="kop-1">Thuis</h1>
+    <div id="kaart"></div>
+    <div class="glas kaart ander"><div class="kop"><span class="ik" id="ik-auto"></span><h2 class="kop-3">Elektrische auto</h2><span class="pijl">›</span></div><p class="fzin">Laadt 2,8 kW · 57%</p></div>
+  </div>
+  <nav class="tabs" id="tabs" aria-label="Hoofdmenu"></nav>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="fasekaart.js"></script>
+<script>
+  nav.tabs(document.getElementById('tabs'), 'thuis');
+  const hash = location.hash.slice(1);
+  const metBlad = hash.endsWith('blad');
+  const s = fasekaart.stand(hash.replace(/-?blad$/, ''));
+  document.getElementById('kaart').innerHTML = fasekaart.kaart(s);
+  document.getElementById('ik-auto').innerHTML = iconen.svg('auto');
+  if (metBlad) document.body.insertAdjacentHTML('beforeend', `<div class="dek"></div><section class="blad">${fasekaart.blad(s, 340)}</section>`);
+</script>
+</body>
+</html>

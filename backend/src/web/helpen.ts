@@ -135,6 +135,10 @@ export interface HelpenAirco {
   /** Sinds wanneer hij helpt, of wanneer hij klaar was. */
   readonly sindsMs: number | null;
   readonly vandaag: { readonly keer: number; readonly minuten: number };
+  /** Hoeveel hoger hij nu staat om door te draaien (besluit 303), of 0. */
+  readonly bijC: number;
+  /** De dagbalk voor het blad van de airco (besluit 303), of null zonder telling. */
+  readonly balk: HelpenBalk | null;
 }
 
 export interface HelpenKosten {
@@ -178,34 +182,50 @@ export function gelijkBij(help: CvHelp): number | null {
  */
 export class HelpenDag {
   #dag = '';
-  readonly #stukken = new Map<string, [number, number | null][]>();
+  #middernacht = 0;
+  readonly #stukken = new Map<string, Stuk[]>();
+  /** De dagbalk (besluit 303): wanneer de ketel stookte, en wanneer het stil moest (nacht, voorverwarmen). */
+  #ketel: Stuk[] = [];
+  #stil: Stuk[] = [];
+  /** Per airco wanneer hij zelf even uitging terwijl hij hielp, en of hij net verwarmde. */
+  readonly #kort = new Map<string, number[]>();
+  readonly #warm = new Map<string, boolean>();
   readonly #tz: () => string;
 
   constructor(tz: () => string) {
     this.#tz = tz;
   }
 
-  /** Welke airco's nu helpen, volgens het laatste besluit. */
-  observe(nowMs: number, helpend: ReadonlySet<string>): void {
+  /**
+   * Welke airco's nu helpen, volgens het laatste besluit. Met `ook` de dagbalk:
+   * of de ketel stookt, of het stil moet, en welke airco's zelf verwarmen.
+   */
+  observe(nowMs: number, helpend: ReadonlySet<string>, ook?: { readonly ketel: boolean; readonly stil: boolean; readonly warm: ReadonlySet<string> }): void {
     const p = partsIn(nowMs, this.#tz());
     const dag = `${p.y}-${p.m}-${p.d}`;
     if (dag !== this.#dag) {
       // Wat over middernacht doorloopt, telt vanaf middernacht.
       const open = this.#dag === '' ? [] : [...this.#stukken].filter(([, s]) => s.at(-1)?.[1] === null).map(([id]) => id);
+      const ketelOpen = this.#ketel.at(-1)?.[1] === null;
+      const stilOpen = this.#stil.at(-1)?.[1] === null;
       this.#dag = dag;
       this.#stukken.clear();
+      this.#kort.clear();
       const middernacht = startOfLocalDay(nowMs, this.#tz());
+      this.#middernacht = middernacht;
       for (const id of open) this.#stukken.set(id, [[middernacht, null]]);
+      this.#ketel = ketelOpen ? [[middernacht, null]] : [];
+      this.#stil = stilOpen ? [[middernacht, null]] : [];
     }
-    for (const id of helpend) {
-      const s = this.#stukken.get(id) ?? [];
-      const laatste = s.at(-1);
-      if (!laatste || laatste[1] !== null) s.push([nowMs, null]);
-      this.#stukken.set(id, s);
-    }
-    for (const [id, s] of this.#stukken) {
-      const laatste = s.at(-1);
-      if (laatste && laatste[1] === null && !helpend.has(id)) laatste[1] = nowMs;
+    for (const id of new Set([...helpend, ...this.#stukken.keys()])) this.#stukken.set(id, zet(this.#stukken.get(id) ?? [], helpend.has(id), nowMs));
+    if (!ook) return;
+    this.#ketel = zet(this.#ketel, ook.ketel, nowMs);
+    this.#stil = zet(this.#stil, ook.stil, nowMs);
+    // Kort uit: de airco stopte zelf met verwarmen terwijl hij hielp. Dat is pendelen.
+    for (const id of new Set([...ook.warm, ...this.#warm.keys()])) {
+      const nu = ook.warm.has(id);
+      if (this.#warm.get(id) === true && !nu && helpend.has(id)) this.#kort.set(id, [...(this.#kort.get(id) ?? []), nowMs]);
+      this.#warm.set(id, nu);
     }
   }
 
@@ -215,12 +235,62 @@ export class HelpenDag {
     const laatste = s.at(-1);
     return { keer: s.length, minuten, sindsMs: laatste && laatste[1] === null ? laatste[0] : null, klaarMs: laatste?.[1] ?? null };
   }
+
+  /** De dagbalk van een airco (besluit 303): de ketel, de airco, de stille uren en kort uit. */
+  balk(id: string, nowMs: number): HelpenBalk {
+    const airco = this.#stukken.get(id) ?? [];
+    return {
+      vanMs: this.#middernacht || startOfLocalDay(nowMs, this.#tz()),
+      ketel: this.#ketel,
+      airco,
+      stil: this.#stil,
+      kort: this.#kort.get(id) ?? [],
+      langerMin: Math.round(zonder(airco, this.#ketel, nowMs) / 60_000),
+    };
+  }
+}
+
+/** Een stuk van de dag: van, tot (null: loopt nog). */
+type Stuk = [number, number | null];
+
+/** Een stuk openen of sluiten. */
+function zet(stukken: Stuk[], aan: boolean, nowMs: number): Stuk[] {
+  const laatste = stukken.at(-1);
+  if (aan && (!laatste || laatste[1] !== null)) stukken.push([nowMs, null]);
+  if (!aan && laatste && laatste[1] === null) laatste[1] = nowMs;
+  return stukken;
+}
+
+/** Hoeveel tijd in `a` valt buiten `b`: hoe lang de airco hielp terwijl de ketel niet stookte. */
+function zonder(a: readonly Stuk[], b: readonly Stuk[], nowMs: number): number {
+  let ms = 0;
+  for (const [van, tot0] of a) {
+    const tot = tot0 ?? nowMs;
+    let samen = 0;
+    for (const [bv, bt0] of b) samen += Math.max(0, Math.min(tot, bt0 ?? nowMs) - Math.max(van, bv));
+    ms += Math.max(0, tot - van - samen);
+  }
+  return ms;
+}
+
+/** De dagbalk in het blad van een airco (besluit 303). */
+export interface HelpenBalk {
+  /** Middernacht van vandaag. */
+  readonly vanMs: number;
+  readonly ketel: readonly (readonly [number, number | null])[];
+  readonly airco: readonly (readonly [number, number | null])[];
+  readonly stil: readonly (readonly [number, number | null])[];
+  /** Wanneer hij zelf kort uitging terwijl hij hielp. */
+  readonly kort: readonly number[];
+  /** Hoe lang hij hielp terwijl de ketel al niet meer stookte, in minuten. */
+  readonly langerMin: number;
 }
 
 /** Helpen bij de cv zoals de pagina het toont: per airco zijn kamer, wat hij doet en wat hij vandaag deed. */
 export function helpenView(config: SiteConfig, latest: Pick<Decision, 'accepted' | 'explanation'> | null, dag: HelpenDag | null, nowMs: number): HelpenView {
   const help = config.cvHelp;
-  const helpend = new Set((latest?.accepted ?? []).filter((i) => i.strategyId === 'heat-assist').map((i) => i.actuatorId));
+  const hulp = (latest?.accepted ?? []).filter((i) => i.strategyId === 'heat-assist');
+  const helpend = new Set(hulp.map((i) => i.actuatorId));
   const uit = new Set(help?.off ?? []);
   const aircos = config.actuators
     .filter((a) => a.role === 'assist' && a.capabilities.canHeat)
@@ -240,6 +310,12 @@ export function helpenView(config: SiteConfig, latest: Pick<Decision, 'accepted'
         stand,
         sindsMs: stand === 'helpt' ? v.sindsMs : stand === 'klaar' ? v.klaarMs : null,
         vandaag: { keer: v.keer, minuten: v.minuten },
+        // Doordraaien (besluit 303): wat de regel boven het doel van de kamer vraagt.
+        bijC: (() => {
+          const i = hulp.find((x) => x.actuatorId === a.id);
+          return i?.setpointC != null && z?.heatTargetC != null ? Math.max(0, Math.round((i.setpointC - z.heatTargetC) * 10) / 10) : 0;
+        })(),
+        balk: dag ? dag.balk(a.id, nowMs) : null,
       };
     });
   const buiten = latest?.explanation.outdoorTemperatureC ?? null;

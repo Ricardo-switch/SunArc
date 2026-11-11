@@ -17,7 +17,7 @@ import type { Duplex } from 'node:stream';
 import type { HaEntityState } from '../adapters/homeassistant/client.js';
 import { accepteer, isUpgrade, type Verbinding } from '../web/websocket.js';
 import { type Klok, type Weer, dagBegin, moment, uurOpWelkeDag, weerOp } from './dag.js';
-import { APPARATEN, ENTITEITEN, ETAGES, RUIMTES, type Ingrepen, naamIn, staten } from './huis.js';
+import { APPARATEN, ENTITEITEN, ETAGES, RUIMTES, type Ingrepen, faseStroom, naamIn, staten } from './huis.js';
 
 /** Een klein grijs beeld voor de deurbel: geen camera, wel een plaatje. */
 const BEELD = Buffer.from(
@@ -244,7 +244,7 @@ export class NepHa {
       case 'recorder/statistics_during_period':
         return this.#statistiek(b);
       case 'history/history_during_period':
-        return {};
+        return this.#historie(b);
       case 'weather/subscribe_forecast':
         this.#weer.add({ verbinding, id });
         setTimeout(() => this.#stuurWeer(verbinding, id), 10).unref?.();
@@ -327,6 +327,31 @@ export class NepHa {
   }
 
   /* ---- meterstanden en weer ---- */
+
+  /**
+   * De historie (de fasekaart, besluit 302): de stroom per fase elke vijf
+   * minuten, uit het verbruik en de zon van dat uur en wat de auto laadde, met
+   * wat golving zodat het op een echte meter lijkt. Andere entiteiten: niets.
+   */
+  #historie(b: Record<string, unknown>): Record<string, unknown[]> {
+    const begin = Date.parse(String(b['start_time']));
+    const uit: Record<string, unknown[]> = {};
+    for (const id of (b['entity_ids'] as string[] | undefined) ?? []) {
+      const fase = /^sensor\.p1_stroom_fase_([123])$/.exec(id)?.[1];
+      if (!fase) continue;
+      const rij: unknown[] = [];
+      for (let t = Math.ceil(begin / 300_000) * 300_000; t < this.#nu(); t += 300_000) {
+        const plek = new Date(t + 3_600_000);
+        const dagVanJaar = Math.floor((plek.getTime() - Date.UTC(plek.getUTCFullYear(), 0, 1)) / 86_400_000);
+        const { zonWh, verbruikWh } = uurOpWelkeDag(dagVanJaar, plek.getUTCHours());
+        const golf = 1 + 0.35 * Math.sin(t / 1_700_000 + Number(fase)) * Math.sin(t / 650_000);
+        const a = faseStroom(Number(fase) as 1 | 2 | 3, verbruikWh * golf, laadWOp(t, this.#nu()), zonWh);
+        rij.push({ s: a.toFixed(1), lu: t / 1000 });
+      }
+      uit[id] = rij;
+    }
+    return uit;
+  }
 
   #statistiek(b: Record<string, unknown>): Record<string, unknown[]> {
     const begin = Date.parse(String(b['start_time']));

@@ -2610,7 +2610,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await kaart.locator('[data-volgende]').click();
     // De wand (besluit 190): de kaarten om aan of uit te zetten, en de wand in het klein.
     await kaart.locator('h1', { hasText: 'Hoe ziet de wand eruit?' }).waitFor();
-    expect(await kaart.locator('[data-wkaart]').count()).toBe(12);
+    expect(await kaart.locator('[data-wkaart]').count()).toBe(13);
     await kaart.locator('.wandje [data-mini] svg.sc-huis').waitFor();
     await shot('wand');
     await kaart.locator('[data-volgende]').click();

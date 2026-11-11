@@ -319,6 +319,15 @@ const KNOPPEN: readonly (readonly [string, number, number, number])[] = [
 /** Het weer als toestand van een weerentiteit; zon hangt van dag of nacht af. */
 const WEER_TOESTAND: Readonly<Partial<Record<Weer, string>>> = { bewolkt: 'cloudy', regen: 'rainy', sneeuw: 'snowy' };
 
+/**
+ * De stroom op een fase (de fasekaart, besluit 302): het huis ongelijk over de
+ * drie fasen, de auto op L1 (hij laadt op één fase), de zon gelijk verdeeld.
+ */
+export function faseStroom(fase: 1 | 2 | 3, huisW: number, autoW: number, zonW: number): number {
+  const deel = fase === 1 ? 0.4 : fase === 2 ? 0.35 : 0.25;
+  return Math.abs(huisW * deel + (fase === 1 ? autoW : 0) - zonW / 3) / 230;
+}
+
 export function staten(klok: Klok, ingrepen: Ingrepen, nuMs: number): HaEntityState[] {
   const m: Moment = moment(klok);
   const tijd = new Date(nuMs).toISOString();
@@ -433,8 +442,8 @@ export function staten(klok: Klok, ingrepen: Ingrepen, nuMs: number): HaEntitySt
   // Het net: wat het huis vraagt, min de zon, min de batterij.
   const netW = Math.round(m.huisW + autoW + m.batterijW - m.zonW);
   zet('sensor.p1_vermogen', netW, { unit_of_measurement: 'W', device_class: 'power', state_class: 'measurement' });
-  for (const f of [1, 2, 3]) {
-    zet(`sensor.p1_stroom_fase_${f}`, Math.abs(netW / 3 / 230).toFixed(1), { unit_of_measurement: 'A', device_class: 'current' });
+  for (const f of [1, 2, 3] as const) {
+    zet(`sensor.p1_stroom_fase_${f}`, faseStroom(f, m.huisW + m.batterijW, autoW, m.zonW).toFixed(1), { unit_of_measurement: 'A', device_class: 'current' });
     zet(`sensor.p1_spanning_fase_${f}`, 231, { unit_of_measurement: 'V', device_class: 'voltage' });
   }
   zet('sensor.p1_afname_totaal', 18234.5, { unit_of_measurement: 'kWh', device_class: 'energy', state_class: 'total_increasing' });

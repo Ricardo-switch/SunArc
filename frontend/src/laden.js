@@ -107,14 +107,16 @@ const laden = (() => {
       .map((p) => `<div class="ld-schakel"><div><b>${esc(t('laden.evccMag', { naam: p.naam }))}</b><span class="mini">${esc(t('laden.evccMagZin'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${p.bedienen === true}" aria-label="${esc(t('laden.evccMag', { naam: p.naam }))}" data-laad="bedienen" data-id="${esc(p.id)}"></button></div>`)
       .join('');
     const evcc = info.laden.evcc.length ? `<div class="ld-evcc"><span class="stip" style="background: var(--ijs)"></span><span><b>${esc(t('laden.evccKop'))}</b> ${esc(t('laden.evccZin'))}</span></div>${evccMag}` : '';
+    // Een laadpaal via Modbus is geen apparaat: die voeg je toe als losse sensoren (besluit 301, melding 164).
+    const losseRegel = `<p class="uitleg">${esc(t('laden.losseZin'))} <a href="toevoegen.html#losse">${esc(t('laden.losseLink'))}</a></p>`;
     if (!x.length) {
-      return `${kop}${evcc}<div class="ld-leeg"><b>${esc(t('laden.nietsKop'))}</b><p class="uitleg">${esc(t('laden.nietsZin'))}</p>${kiezen(info, t('laden.eenKiezen'))}</div>`;
+      return `${kop}${evcc}<div class="ld-leeg"><b>${esc(t('laden.nietsKop'))}</b><p class="uitleg">${esc(t('laden.nietsZin'))}</p>${kiezen(info, t('laden.eenKiezen'))}${losseRegel}</div>`;
     }
     const gekozen = x.find((y) => y.id === staat.wie && y.aan) ?? x.find((y) => y.aan) ?? null;
     staat.wie = gekozen?.id ?? null;
     const rijen = x.map((y) => `<div class="ld-rij${y.aan ? '' : ' uit'}${y === gekozen ? ' nu' : ''}">${ik(y.rol)}<button type="button" class="ld-tekst" data-laad="wie" data-id="${esc(y.id)}" ${y.aan ? '' : 'disabled'}><b>${esc(y.naam)}</b><span>${esc(watZin(y))}</span></button><button type="button" class="schakelaar" role="switch" aria-checked="${y.aan}" aria-label="${esc(t('laden.vanDitHuis', { naam: y.naam }))}" data-laad="aan" data-id="${esc(y.id)}"></button></div>`).join('');
     const klimaat = x.some((y) => y.rol === 'auto') ? `<p class="mini">${esc(t('laden.klimaatNoot'))}</p>` : '';
-    const links = `<div class="deelvraag"><h3 class="kop-3">${esc(t('laden.gevonden'))}</h3>${rijen}${kiezen(info, t('laden.anderKiezen'))}${klimaat}</div>`;
+    const links = `<div class="deelvraag"><h3 class="kop-3">${esc(t('laden.gevonden'))}</h3>${rijen}${kiezen(info, t('laden.anderKiezen'))}${klimaat}${losseRegel}</div>`;
     const wie = aan(info).length > 1 ? `<div class="keuzes ld-wie" role="tablist">${aan(info).map((y) => `<button type="button" role="tab" data-laad="wie" data-id="${esc(y.id)}" aria-pressed="${y === gekozen}">${esc(y.naam)}</button>`).join('')}</div>` : '';
     const rechts = gekozen ? `<div class="deelvraag">${wie}${instellen(info, a, gekozen, staat)}${evcc}</div>` : `<div class="deelvraag"><p class="uitleg">${esc(t('laden.allesUit'))}</p>${evcc}</div>`;
     return `${kop}<div class="kolommen"><div>${links}</div><div>${rechts}</div></div>`;

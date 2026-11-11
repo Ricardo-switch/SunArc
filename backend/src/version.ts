@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.172.1';
+export const VERSIE = '0.175.1';
 
 export interface Nieuw {
   readonly versie: string;
@@ -74,12 +74,94 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.175.1', '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.175.1',
+    datum: '2026-11-11',
+    opgelost: [
+      'Een lamp achter een schakelaar, zoals klik-aan-klik-uit, bleef bij Kamers en indeling "nog in te delen" staan als je hem een kamer gaf',
+    ],
+    beter: [
+      'Bij Energie › Auto en laadpaal staat de weg naar een laadpaal uit losse sensoren, zoals via Modbus',
+      'Losse sensoren toont ook getallen zonder eenheid, zodat een Modbus-register te vinden is',
+    ],
+    meldingen: [
+      {
+        code: 'SA-SKYA',
+        uitkomst: 'opgelost',
+        tekst: 'Een lamp achter een schakelaar die je bij Kamers en indeling een kamer gaf, bleef "nog in te delen". Dat is hersteld: de kamer blijft nu bewaard.',
+        tekstEn: 'A lamp behind a switch that you gave a room in Rooms and layout stayed "not arranged yet". That is fixed: the room is now saved.',
+        href: 'indeling.html#los',
+        issue: 163,
+      },
+      {
+        code: 'SA-N2JR',
+        uitkomst: 'instelling',
+        tekst: 'Een laadpaal via Modbus voeg je toe bij Apparaten › Toevoegen › Losse sensoren, niet bij Energie. Zie je je sensoren daar niet, dan hebben ze waarschijnlijk geen eenheid: ze staan nu onder Andere getallen.',
+        tekstEn: 'A charger via Modbus is added in Devices › Add › Separate sensors, not in Energy. If your sensors are not there, they probably have no unit: they are now under Other numbers.',
+        href: 'toevoegen.html#losse',
+        issue: 164,
+      },
+    ],
+    en: {
+      opgelost: [
+        'A lamp behind a switch, like a KlikAanKlikUit switch, stayed "not arranged yet" in Rooms and layout when you gave it a room',
+      ],
+      beter: [
+        'Energy › Car and charger shows the way to a charger from separate sensors, like via Modbus',
+        'Separate sensors also shows numbers without a unit, so a Modbus register can be found',
+      ],
+    },
+  },
+  {
+    versie: '0.175.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Een schakelaar zonder meter, waarvan je het vermogen invulde, kan op zon zoals een slimme stekker: zet hem aan bij Regeling › Apparaten op zon',
+    ],
+    en: {
+      nieuw: [
+        'A switch without a meter, whose power you entered, can run on solar like a smart plug: switch it on under Control › Appliances on solar',
+      ],
+    },
+  },
+  {
+    versie: '0.174.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'In het blad van een airco die de cv helpt staat de dag: wanneer de ketel stookte, wanneer de airco hielp, en waar hij zelf kort uitging',
+    ],
+    beter: [
+      'Een airco die helpt, staat hoger als zijn eigen meter warmer is dan de kamer, zodat hij doordraait tot de kamer op temperatuur is',
+    ],
+    en: {
+      nieuw: [
+        'The sheet of an air conditioner that helps the boiler shows the day: when the boiler heated, when the air conditioner helped, and where it briefly switched off by itself',
+      ],
+      beter: [
+        'An air conditioner that helps is set higher when its own sensor reads warmer than the room, so it keeps going until the room is warm enough',
+      ],
+    },
+  },
+  {
+    versie: '0.173.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'De kaart Aansluiting op Thuis, te kiezen bij Thuis aanpassen: per fase hoe vol hij is tegen de zekering, en welke het krapst is',
+      'Een tik op de kaart opent een blad met de stroom per fase van vandaag in één grafiek, het hoogste per fase en wat SunArc doet als het krap wordt',
+    ],
+    en: {
+      nieuw: [
+        'The Connection card on Home, to choose in Customise Home: per phase how full it is against the fuse, and which one is tightest',
+        'Tapping the card opens a sheet with today’s current per phase in one graph, the highest per phase, and what SunArc does when it gets tight',
+      ],
+    },
+  },
   {
     versie: '0.172.1',
     datum: '2026-11-11',

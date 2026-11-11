@@ -58,7 +58,8 @@ import { VoorkeurenStore } from './web/voorkeuren.js';
 import { SceneColorStore, colorsFromLamps } from './web/scene-colors.js';
 import { ScenePictures } from './web/scene-pictures.js';
 import { EnergyStore } from './web/energy.js';
-import { partsIn, zonedMidnight, type PowerRow } from './web/today.js';
+import { partsIn, startOfLocalDay, zonedMidnight, type PowerRow } from './web/today.js';
+import { faseHistorie, fasenView, type FasePunt, type FasenView } from './web/fasen.js';
 import { WeatherLog, dagenUitUren, type EntityForecast } from './web/weather.js';
 import { Historie, somPerVak } from './web/historie.js';
 import { zetValuta } from './web/valuta.js';
@@ -89,7 +90,7 @@ import { hoofddakPlat, panelenVan, type DakVlak } from './web/daken.js';
 import { inNederland } from './web/bag3d.js';
 import { aanvullenUitMeter, achterblijven, meetVlakken, metMeting, opbrengstPerVlak, verdeelDag, type Achter, type MeterGroep, type VlakStand, type Verdeling } from './web/meten-vlakken.js';
 import { findHeatStores, findPlugs, type FoundHeatStore } from './web/buffers-vinden.js';
-import { GEEN_KEUZES, SchakelaarStore, kinderslotVan, lampSchakelaars, leesLosseLaadpaal, leesSchakelaarKeuze, losseSensoren, metKeuze, metLaadpaal, schakelaarViews, schakelaarsMag, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
+import { GEEN_KEUZES, SchakelaarStore, kinderslotVan, lampSchakelaars, leesLosseLaadpaal, leesSchakelaarKeuze, losseSensoren, metKeuze, metLaadpaal, schakelaarViews, schakelaarsMag, schakelaarsOpZon, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
 import { kiesLigging, meetLigging, omvormerUitType, type Meting, type PanelenAntwoord } from './web/ligging.js';
 import { alarmSensoren, vindRookmelders } from './web/rookmelders.js';
 import { eigenUpdate, updateView, type UpdateView } from './web/bijwerken.js';
@@ -784,11 +785,25 @@ if (laadhand) {
  * zoals ze nu in Home Assistant staan. Een schakelaar die de regeling al
  * bedient, is geen losse stekker.
  */
-function vindBuffers(): FoundHeatStore[] {
+function vindBuffersHa(): FoundHeatStore[] {
   if (!houseRegisters) return [];
   const buffers = findHeatStores(allStates, houseRegisters.entities, houseRegisters.devices);
   const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...buffers.map((b) => b.actuator)]);
   return [...buffers, ...findPlugs(allStates, houseRegisters.entities, houseRegisters.devices, bekend)];
+}
+/** Met de schakelaars die op zon kunnen (besluit 304): die doen mee als een stekker. */
+function vindBuffers(): FoundHeatStore[] {
+  const ha = vindBuffersHa();
+  if (!houseRegisters) return ha;
+  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...ha.map((b) => b.actuator)]);
+  // Bij het opstarten bestaat het bestand met de keuzes nog niet: dan alleen wat Home Assistant heeft.
+  let keuzes: SchakelaarKeuzes;
+  try {
+    keuzes = schakelaarKeuzes();
+  } catch {
+    return ha;
+  }
+  return [...ha, ...schakelaarsOpZon(vindSchakelaars(allStates, houseRegisters.entities, houseRegisters.devices, bekend), keuzes)];
 }
 /*
  * Schakelaars (besluit 297): een relais zoals een Shelly 1 mini, klik-aan-klik-uit
@@ -813,7 +828,7 @@ function laadReg<R extends { readonly devices: readonly HaDevice[]; readonly ent
 }
 function vindSchakelaarsNu(): GevondenSchakelaar[] {
   if (!houseRegisters) return [];
-  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...vindBuffers().map((b) => b.actuator)]);
+  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...vindBuffersHa().map((b) => b.actuator)]);
   return vindSchakelaars(allStates, houseRegisters.entities, houseRegisters.devices, bekend);
 }
 /**
@@ -1104,7 +1119,14 @@ const runner: ShadowRunner | null =
                 void uitstelStore?.prune(snapshot.explanation.deferrables);
                 void bufferStore?.observe(snapshot.explanation.heatStores);
                 // Helpen bij de cv (besluit 292): wat de airco's vandaag hielpen.
-                helpenDag.observe(snapshot.atMs, new Set(snapshot.accepted.filter((i) => i.strategyId === 'heat-assist').map((i) => i.actuatorId)));
+                // De dagbalk (besluit 303): of de ketel stookt, of het stil moet, en welke airco zelf verwarmt.
+                {
+                  const doet = snapshot.observedAction ?? {};
+                  const ketel = (siteConfig?.cvHelp?.boilerIds ?? []).some((id) => doet[id] === 'heating');
+                  const warm = new Set(Object.keys(doet).filter((id) => doet[id] === 'heating'));
+                  const stil = snapshot.explanation.mode === 'nacht' || snapshot.explanation.mode === 'voorverwarmen';
+                  helpenDag.observe(snapshot.atMs, new Set(snapshot.accepted.filter((i) => i.strategyId === 'heat-assist').map((i) => i.actuatorId)), { ketel, stil, warm });
+                }
                 // Wat de regeling zou starten, start SunArc nu echt (besluit 238).
                 void witgoed?.opBesluit(snapshot).catch(() => []);
                 // En een stekker op zon (besluit 267).
@@ -1183,7 +1205,8 @@ const layoutStore =
   logDir !== '' && siteConfig
     ? new LayoutStore({
         logDir,
-        known: () => (houseRegisters ? knownForLayout(siteConfig!, houseRegisters, houseStates) : null),
+        // Met de lampen achter een schakelaar (besluit 297): anders bleef hun kamer niet bewaard (melding 163).
+        known: () => (houseRegisters ? knownForLayout(siteConfig!, houseRegisters, houseStates, lampSchakelaars(vindSchakelaarsNu(), schakelaarKeuzes()).map((r) => r.id)) : null),
         // Een bron die op zon mag (besluit 132): de regeling neemt het meteen over, net als comfort.
         onSaved: () => void herlaadUitDeApp('de indeling'),
       })
@@ -1504,7 +1527,8 @@ function stekkerBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBro
   const inRegeling = new Set((cfg.heatStores ?? []).map((h) => h.actuator.id));
   const gekozen = new Set((connectionStore?.current?.buffers ?? []).filter((b) => b.opZon).map((b) => b.actuator));
   const meters = energyStore?.current ? new Set(energyStore.current.apparaten.map((a) => a.id)) : null;
-  return vindBuffers()
+  // Een schakelaar op zon (besluit 304) is niet gevonden maar ingesteld: geen melding.
+  return vindBuffersHa()
     .filter((b) => b.soort === 'stekker')
     .map((b) => ({ id: b.id, naam: b.naam, opZon: inRegeling.has(b.actuator) || gekozen.has(b.actuator), meter: b.energy ?? null, meterErin: meters == null || (b.energy != null && meters.has(b.energy)) }));
 }
@@ -1908,6 +1932,39 @@ function zekeringVoor(id: string): number | null {
   const nuA = a?.laadt ? Math.max(0, ...(a.stroomA ?? [])) : 0;
   // Nooit boven de zekering zelf: bij teruglevering loopt er op een fase soms minder dan de auto neemt.
   return Math.floor(Math.min(nuA + Math.min(...fasen.map((f) => f.grensA - f.stroomA)), ...fasen.map((f) => f.grensA)));
+}
+/**
+ * De fasekaart (besluit 302): de stroom per fase nu, en de dag uit de historie
+ * van Home Assistant. Die historie hooguit elke vijf minuten opnieuw; de stand
+ * van nu komt elke keer uit het laatste besluit.
+ */
+let faseDag: { startMs: number; opMs: number; punten: Map<string, FasePunt[]> } = { startMs: 0, opMs: 0, punten: new Map() };
+async function fasenNuView(): Promise<FasenView> {
+  const grid = siteConfig?.grid ?? null;
+  const nuMs = Date.now();
+  const startMs = startOfLocalDay(nuMs, siteConfig?.timezone ?? 'Europe/Amsterdam');
+  const e = runner?.latest?.explanation ?? null;
+  const ids = grid?.phases.map((p) => p.current.id) ?? [];
+  if (ids.length && (faseDag.startMs !== startMs || nuMs - faseDag.opMs > 5 * 60_000)) {
+    try {
+      // Vanaf een uur voor middernacht: de stand van toen geldt ook om middernacht.
+      const antwoord = await client.query('history/history_during_period', { start_time: new Date(startMs - 3_600_000).toISOString(), entity_ids: ids, minimal_response: true, no_attributes: true, significant_changes_only: false });
+      faseDag = { startMs, opMs: nuMs, punten: faseHistorie(antwoord) };
+    } catch {
+      // Zonder historie: alleen de stand van nu; over vijf minuten weer.
+      faseDag = faseDag.startMs === startMs ? { ...faseDag, opMs: nuMs } : { startMs, opMs: nuMs, punten: new Map() };
+    }
+  }
+  const z = connectionStore?.current?.zekering;
+  return fasenView({
+    grid: grid ? { phases: grid.phases.map((p) => ({ id: p.id, current: p.current.id, maxA: p.maxA })), marginA: grid.marginA } : null,
+    nu: e?.phases?.map((p) => ({ id: p.id, currentA: p.currentA, bron: p.bron })) ?? null,
+    historie: faseDag.punten,
+    dagStartMs: startMs,
+    nuMs,
+    zekering: z && z !== 'weetniet' ? z : null,
+    netW: e && siteConfig?.power.gridPower ? e.budget.gridPowerW : null,
+  });
 }
 const laadadviezen = (): Record<string, LaadAdvies> => {
   const autos = huisNu('nl')?.opslag?.autos ?? [];
@@ -2497,6 +2554,8 @@ if (webPort != null) {
     historie: historieVan,
     laadbeurten: (auto: string) => laadbeurten.van(auto),
     laadadvies: laadadviezen,
+    // De fasekaart (besluit 302): alleen lezen.
+    fasen: fasenNuView,
     // De thuisaccu's (besluit 272): wat ze nu doen, en hun tellers voor Opbrengst.
     accu: {
       nuW: accuNuW,

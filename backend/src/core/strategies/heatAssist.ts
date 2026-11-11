@@ -98,6 +98,21 @@ export function warmtePrijs(help: CvHelp, buitenC: number | null): { readonly ai
   return { airco: help.electricityEurPerKwh / cop, ketel: help.gasEurPerM3 / KETEL_KWH_PER_M3, cop };
 }
 
+/** Hoeveel hoger doordraaien een airco hooguit zet (besluit 303). */
+export const DOORDRAAI_MAX_C = 2;
+
+/**
+ * Doordraaien (besluit 303): een airco meet zijn eigen temperatuur, hoog aan de
+ * wand, waar het eerder warm is dan in de kamer. Op het doel van de kamer stopt
+ * hij dan te vroeg en slaat hij even later weer aan. Daarom krijgt hij het
+ * verschil tussen zijn eigen meter en de kamer erbij, in halve graden, hooguit
+ * twee graden. Meet hij de kamer zelf, dan is het verschil nul.
+ */
+export function doordraaiC(eigenC: number | null, kamerC: number): number {
+  if (eigenC == null) return 0;
+  return Math.min(DOORDRAAI_MAX_C, Math.max(0, Math.round((eigenC - kamerC) * 2) / 2));
+}
+
 /**
  * Helpen bij de cv (besluit 292), voor het hele huis: elke airco die helpt
  * kijkt naar zijn eigen kamer. Hij begint als de ketel al een tijd stookt, zijn
@@ -132,12 +147,17 @@ function cvHelpIntents(ctx: DecisionContext, help: CvHelp): Intent[] {
       helpt = minuten >= help.minRestMinutes && ketelStookt && tekort >= help.minShortfallC - 1e-9 && goedkoper;
     }
     if (!helpt) continue;
+    // Doordraaien (besluit 303): hoger met het verschil tussen zijn eigen meter en de kamer.
+    const eigenC = s.ownTemperatureC?.ok ? s.ownTemperatureC.value : null;
+    let bij = doordraaiC(eigenC, eigen.temperatureC);
+    // Zolang hij helpt niet zakken: anders wisselt de stand bij elke halve graad.
+    if (verwarmt && s.setpointC.ok) bij = Math.max(bij, Math.min(DOORDRAAI_MAX_C, Math.max(0, s.setpointC.value - eigen.heatTargetC)));
     intents.push({
       strategyId: 'heat-assist',
       zoneId: eigen.zone.id,
       actuatorId: actuator.id,
       action: 'heat',
-      setpointC: eigen.heatTargetC,
+      setpointC: eigen.heatTargetC + bij,
       priority: 15,
       budgetW: 0,
       reason: 'zone_below_setpoint',

@@ -419,6 +419,39 @@
   .morgen .graden { grid-row: 1 / 3; grid-column: 3; font-family: var(--kop); font-weight: 600; font-size: 26px; }
   .morgen .graden small { font-size: 15px; color: var(--gedempt); font-family: var(--romp); }
   .boilerkaart { color: inherit; text-decoration: none; }
+  /* De fasekaart (besluit 302): per fase een balk tot de zekering; het blad met de dag. */
+  .fasekaart { cursor: pointer; }
+  .fasekaart .kaartkop .fs-zek-kort { font-size: 13px; font-weight: 600; color: var(--gedempt); }
+  .fs-balken { display: flex; flex-direction: column; gap: 9px; margin-top: 12px; }
+  .fs-rij { display: grid; grid-template-columns: 26px minmax(0, 1fr) 52px; gap: 10px; align-items: center; }
+  .fs-naam { font-size: 13px; font-weight: 700; color: var(--zacht); }
+  .fs-balk { position: relative; height: 12px; border-radius: 6px; background: rgb(var(--wit) / 0.08); }
+  .fs-balk i { display: block; height: 100%; border-radius: 6px; }
+  .fs-balk em { position: absolute; top: -3px; bottom: -3px; width: 2px; border-radius: 1px; background: rgb(255 122 77 / 0.8); }
+  .fs-rij b { font-family: var(--kop); font-size: 17px; font-weight: 600; text-align: right; }
+  .fs-zin { margin: 12px 0 0; font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+  .fs-totaal { display: flex; align-items: baseline; gap: 10px; margin: 12px 0 8px; }
+  .fs-totaal b { font-family: var(--kop); font-size: 28px; font-weight: 600; }
+  .fs-totaal span { font-size: 13px; color: var(--gedempt); }
+  .fs-mist { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; margin-right: 6px; border-radius: 999px; background: rgb(255 122 77 / 0.16); color: var(--gloed-t); font-size: 11.5px; font-weight: 700; }
+  .fs-blad .fs-balken { margin-top: 0; }
+  .fs-dagblok { padding: 14px 16px 10px; border-radius: 18px; background: rgb(var(--wit) / 0.045); }
+  .fs-dagkop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .fs-dagkop h3, .fs-h3, .fs-uitleg h3 { margin: 0; font-size: 13px; font-weight: 700; color: var(--gedempt); }
+  .fs-legenda { display: flex; gap: 14px; font-size: 12.5px; color: var(--zacht); }
+  .fs-legenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .fs-legenda i { width: 10px; height: 3px; border-radius: 2px; display: block; }
+  .fs-dag { width: 100%; height: auto; display: block; }
+  .fs-dag .fs-as { font-size: 11px; fill: var(--gedempt); }
+  .fs-dag .fs-zek { font-size: 11px; fill: var(--gloed-t); }
+  .fs-dag .fs-nu { stroke: rgb(var(--wit) / 0.4); stroke-width: 1; }
+  .fs-pieken { display: grid; gap: 8px; margin-top: 8px; }
+  .fs-piek { padding: 10px 12px; border-radius: 14px; background: rgb(var(--wit) / 0.05); }
+  .fs-piek span { font-size: 12.5px; font-weight: 700; color: var(--zacht); }
+  .fs-piek b { display: block; font-family: var(--kop); font-size: 20px; font-weight: 600; }
+  .fs-piek small { font-size: 12px; color: var(--gedempt); }
+  .fs-uitleg p { margin: 6px 0 0; font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+  .fs-uitleg .knop { margin-top: 10px; display: inline-flex; }
   /* Het sluipverbruik (besluit 192): vannacht, en de laatste nachten als staafjes. */
   .sluipkaart { color: inherit; text-decoration: none; }
   .sluipkaart .sluipnu { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
@@ -722,6 +755,7 @@
         <section class="glas kaart deurbelkaart" data-kaart="deurbel" data-t-data-naam="thuis.cam.kop" data-t-data-leeg="thuis.leeg.deurbel" data-deurbelkaart hidden></section>
         <a class="glas kaart boilerkaart" href="apparaten.html" data-kaart="boiler" data-t-data-naam="thuis.kaart.boiler" data-t-data-leeg="thuis.leeg.boiler" data-boiler hidden></a>
         <a class="glas kaart sluipkaart" href="sluipverbruik.html" data-kaart="sluip" data-t-data-naam="thuis.kaart.sluip" data-t-data-leeg="thuis.leeg.sluip" data-sluip hidden></a>
+        <section class="glas kaart fasekaart" role="button" tabindex="0" data-kaart="fasen" data-t-data-naam="thuis.kaart.fasen" data-t-data-leeg="thuis.leeg.fasen" data-fasen hidden></section>
         <button type="button" class="vrijvak" data-vrijvak hidden><span data-t="thuis.kaartKiezen"></span></button>
       </aside>
       <section class="glas weer" id="weer-wand" role="dialog" data-t-aria-label="thuis.weer.kop" hidden data-weer></section>
@@ -782,6 +816,7 @@
       <section class="glas kaart deurbelkaart" data-kaart="deurbel" data-t-data-naam="thuis.cam.kop" data-t-data-leeg="thuis.leeg.deurbel" data-deurbelkaart hidden></section>
         <a class="glas kaart boilerkaart" href="apparaten.html" data-kaart="boiler" data-t-data-naam="thuis.kaart.boiler" data-t-data-leeg="thuis.leeg.boiler" data-boiler hidden></a>
         <a class="glas kaart sluipkaart" href="sluipverbruik.html" data-kaart="sluip" data-t-data-naam="thuis.kaart.sluip" data-t-data-leeg="thuis.leeg.sluip" data-sluip hidden></a>
+        <section class="glas kaart fasekaart" role="button" tabindex="0" data-kaart="fasen" data-t-data-naam="thuis.kaart.fasen" data-t-data-leeg="thuis.leeg.fasen" data-fasen hidden></section>
       <div class="aanpasrij">
         <button type="button" class="aanpasknop" data-aanpassen><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span data-t="thuis.aanpassen"></span></button>
         <button type="button" class="aanpasknop" data-weergave hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span data-t="thuis.weergave"></span></button>
@@ -819,6 +854,7 @@
   <script src="buitenblad.js"></script>
   <script src="dakvlakken.js"></script>
   <script src="tedoen.js"></script>
+  <script src="fasekaart.js"></script>
   <script src="thuis.js"></script>
 </body>
 </html>

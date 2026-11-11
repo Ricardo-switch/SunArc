@@ -1,5 +1,45 @@
 # Wat is er nieuw · What is new
 
+## 0.175.1
+
+*11 november 2026 · 0.173.0 – 0.175.1*
+
+**Nieuw**
+
+- Een schakelaar zonder meter, waarvan je het vermogen invulde, kan op zon zoals een slimme stekker: zet hem aan bij Regeling › Apparaten op zon
+- In het blad van een airco die de cv helpt staat de dag: wanneer de ketel stookte, wanneer de airco hielp, en waar hij zelf kort uitging
+- De kaart Aansluiting op Thuis, te kiezen bij Thuis aanpassen: per fase hoe vol hij is tegen de zekering, en welke het krapst is
+- Een tik op de kaart opent een blad met de stroom per fase van vandaag in één grafiek, het hoogste per fase en wat SunArc doet als het krap wordt
+
+**Beter**
+
+- Bij Energie › Auto en laadpaal staat de weg naar een laadpaal uit losse sensoren, zoals via Modbus
+- Losse sensoren toont ook getallen zonder eenheid, zodat een Modbus-register te vinden is
+- Een airco die helpt, staat hoger als zijn eigen meter warmer is dan de kamer, zodat hij doordraait tot de kamer op temperatuur is
+
+**Opgelost**
+
+- Een lamp achter een schakelaar, zoals klik-aan-klik-uit, bleef bij Kamers en indeling "nog in te delen" staan als je hem een kamer gaf
+
+*English*
+
+**New**
+
+- A switch without a meter, whose power you entered, can run on solar like a smart plug: switch it on under Control › Appliances on solar
+- The sheet of an air conditioner that helps the boiler shows the day: when the boiler heated, when the air conditioner helped, and where it briefly switched off by itself
+- The Connection card on Home, to choose in Customise Home: per phase how full it is against the fuse, and which one is tightest
+- Tapping the card opens a sheet with today’s current per phase in one graph, the highest per phase, and what SunArc does when it gets tight
+
+**Improved**
+
+- Energy › Car and charger shows the way to a charger from separate sensors, like via Modbus
+- Separate sensors also shows numbers without a unit, so a Modbus register can be found
+- An air conditioner that helps is set higher when its own sensor reads warmer than the room, so it keeps going until the room is warm enough
+
+**Fixed**
+
+- A lamp behind a switch, like a KlikAanKlikUit switch, stayed "not arranged yet" in Rooms and layout when you gave it a room
+
 ## 0.172.1
 
 *11 november 2026 · 0.163.0 – 0.172.1*

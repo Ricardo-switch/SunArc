@@ -46,6 +46,17 @@ export async function energieRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
     return true;
   }
 
+  // De fasekaart (besluit 302): alleen lezen.
+  if (path === '/api/fasen') {
+    const lees = d.options.fasen;
+    if (!lees) {
+      sendJson(res, 503, { wachten: 'de fasen komen van Home Assistant zodra die verbonden is' });
+      return true;
+    }
+    sendJson(res, 200, await lees());
+    return true;
+  }
+
   // Laden met de hand (besluit 262): de stand per auto, of een stroom, pauze of terug.
   if (path === '/api/laden') {
     await ladenRoute(d, req, res, method);

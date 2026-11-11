@@ -1,0 +1,43 @@
+/* De fasekaart (schets, 11 november 2026): de kaart op Thuis en het blad, voor wand en telefoon. */
+.kaart { padding: 16px 18px; color: inherit; text-decoration: none; display: block; }
+.kaart .kop { display: flex; align-items: center; gap: 10px; }
+.kaart .kop .ik { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: rgba(247, 181, 72, 0.14); flex: none; }
+.kaart .kop .ik svg { width: 19px; height: 19px; }
+.kaart .kop h2 { flex: 1; margin: 0; }
+.kaart .kop .klein { font-size: 13px; font-weight: 600; color: var(--gedempt); }
+.kaart .kop .pijl { color: var(--gedempt); font-size: 18px; }
+.fbalken { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
+.frij { display: grid; grid-template-columns: 26px minmax(0, 1fr) 52px; gap: 10px; align-items: center; }
+.fnaam { font-size: 13px; font-weight: 700; color: var(--zacht); }
+.fbalk { position: relative; height: 12px; border-radius: 6px; background: rgb(var(--wit) / 0.08); }
+.fbalk i { display: block; height: 100%; border-radius: 6px; }
+.fbalk em { position: absolute; top: -3px; bottom: -3px; width: 2px; border-radius: 1px; background: rgba(255, 122, 77, 0.8); }
+.frij b { font-family: var(--kop); font-size: 17px; font-weight: 600; text-align: right; }
+.fzin { margin: 12px 0 0; font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+.totaal { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 8px; }
+.totaal b { font-family: var(--kop); font-size: 28px; font-weight: 600; }
+.totaal span { font-size: 13px; color: var(--gedempt); }
+.mist-regel { margin: 12px 0 0; font-size: 13px; color: var(--zacht); line-height: 1.45; }
+.mist { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; margin-right: 6px; border-radius: 999px; background: rgba(255, 122, 77, 0.16); color: var(--gloed); font-size: 11.5px; font-weight: 700; }
+
+/* Het blad. */
+.bkop { display: flex; justify-content: space-between; gap: 12px; }
+.bkop h2 { margin: 0; font-family: var(--kop); font-size: 26px; font-weight: 600; }
+.bkop p { margin: 4px 0 0; font-size: 13.5px; color: var(--zacht); }
+.sluit { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); font-size: 20px; flex: none; }
+.bbalken .fbalken { margin-top: 0; }
+.bbalken .fzin { margin-top: 10px; }
+.dagblok { padding: 14px 16px 10px; border-radius: 18px; background: rgb(var(--wit) / 0.045); }
+.dagkop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.dagkop h3, .pieken h3, .uitleg h3 { margin: 0; font-size: 13px; font-weight: 700; color: var(--gedempt); }
+.legenda { display: flex; gap: 14px; font-size: 12.5px; color: var(--zacht); }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda i { width: 10px; height: 3px; border-radius: 2px; display: block; }
+.fdag { width: 100%; height: auto; display: block; }
+.pieklijst { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.piek { padding: 10px 12px; border-radius: 14px; background: rgb(var(--wit) / 0.05); }
+.piek span { font-size: 12.5px; font-weight: 700; color: var(--zacht); }
+.piek b { display: block; font-family: var(--kop); font-size: 20px; font-weight: 600; }
+.piek small { font-size: 12px; color: var(--gedempt); }
+.uitleg p { margin: 6px 0 0; font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+.knopje { display: inline-flex; margin-top: 10px; height: 40px; align-items: center; padding: 0 14px; border-radius: 12px; background: rgb(var(--wit) / 0.08); font-size: 14px; font-weight: 700; }

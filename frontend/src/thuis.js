@@ -256,6 +256,7 @@ function tekenNu() {
   tekenLading();
   tekenMaand();
   tekenSluip();
+  tekenFasen();
   tekenDeurbel();
   // Thuis naar eigen smaak (besluit 162): favorieten, en de kaarten op hun plek.
   eigen.tekenFavorieten(huisData);
@@ -696,6 +697,8 @@ async function kaartGegevens() {
       // De volgende keer.
     }
   }
+  // De fasekaart (besluit 302): ook als hij er niet staat, anders weet Kaart toevoegen niet of dit huis hem heeft.
+  await fasekaart.laad();
   // De plaatjes van de gekozen camera's: hooguit elke minuut, bij beweging elke tien tellen.
   if (cameras?.aan && staatErin('deurbel')) await Promise.all(camerasGekozen().map((c) => camPlaatje(c, nu)));
 }
@@ -844,6 +847,16 @@ function tekenLading() {
   const bKleur = st === 'laadt' ? 'var(--zon)' : st === 'levert' ? 'var(--violet)' : 'var(--net)';
   zetKaart('[data-batterij]', 'batterij', b ? `${vol(`${kaartKop('batterij', b.naam)}${lading(b.pct, bKleur, bZin, app.tekstKleur(st === 'rust' || !st ? 'var(--zacht)' : bKleur))}`)}${tegel({ id: 'batterij', naam: b.naam, waarde: b.pct == null ? '–' : `${getal(b.pct, 0)}%`, zin: bZin, toon: st === 'rust' || !st ? '' : app.tekstKleur(bKleur), beeld: staaf(b.pct, st === 'levert' ? 'var(--violet)' : 'var(--mint)') })}` : '', !!b);
   tekenBoiler();
+}
+
+/** De fasekaart (besluit 302): per fase de stroom tegen de zekering; een tik opent het blad (fasekaart.js). */
+function tekenFasen() {
+  const f = fasekaart;
+  if (!f.hier()) return zetKaart('[data-fasen]', 'fasen', '', false);
+  const naam = t('thuis.kaart.fasen');
+  const kop = `<div class="kaartkop"><span class="ik">${eigen.icoon('fasen')}</span><h2 class="kop-3">${esc(naam)}</h2><span class="fs-zek-kort">${esc(f.zekeringKort())}</span><span class="pijl" aria-hidden="true">›</span></div>`;
+  const w = f.tegelWaarden();
+  zetKaart('[data-fasen]', 'fasen', `${vol(`${kop}${f.balken()}`)}${tegel({ id: 'fasen', naam, waarde: w.waarde, zin: w.zin, toon: w.toon, beeld: f.staafjes() })}`, true);
 }
 
 /** Het sluipverbruik (besluit 192): vannacht, hoeveel boven je gewone nacht, en de laatste nachten. */

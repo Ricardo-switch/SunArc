@@ -92,6 +92,8 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [289. Helpen bij de cv: los van de kamer, en de airco draait door tot zijn kamer warm is](#289-helpen-bij-de-cv-los-van-de-kamer-en-de-airco-draait-door-tot-zijn-kamer-warm-is)
 - [291. Een radiatorknop of een gasketel helpt niet op zon](#291-een-radiatorknop-of-een-gasketel-helpt-niet-op-zon)
 - [292. Helpen bij de cv gebouwd: elke airco voor zijn eigen kamer](#292-helpen-bij-de-cv-gebouwd-elke-airco-voor-zijn-eigen-kamer)
+- [303. Helpen bij de cv: doordraaien en de dag in het blad van de airco](#303-helpen-bij-de-cv-doordraaien-en-de-dag-in-het-blad-van-de-airco)
+- [304. Een schakelaar met een ingevuld vermogen kan op zon](#304-een-schakelaar-met-een-ingevuld-vermogen-kan-op-zon)
 
 **Configuratie en onboarding**
 
@@ -295,6 +297,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [299. Het kinderslot in het blad van een thermostaat of witgoed](#299-het-kinderslot-in-het-blad-van-een-thermostaat-of-witgoed)
 - [300. Een kachel uit meer delen: IR-knoppen, de stekker en de temperatuur](#300-een-kachel-uit-meer-delen-ir-knoppen-de-stekker-en-de-temperatuur)
 - [301. Een laadpaal uit losse sensoren](#301-een-laadpaal-uit-losse-sensoren)
+- [302. De fasekaart: hoe vol elke fase is](#302-de-fasekaart-hoe-vol-elke-fase-is)
 
 **Veiligheid**
 
@@ -13847,6 +13850,111 @@ Een laadpaal via Modbus heeft geen apparaat, alleen losse sensoren.
 - **Eerst alleen kijken:** bedienen via Modbus (een stroom zetten, pauzeren)
   kan nog niet.
 - **De melding SA-EXA6** (issue 160) krijgt het antwoord in de app.
+
+---
+
+## 302. De fasekaart: hoe vol elke fase is
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.173.0: stap 7 van de testerronde, na de schetsen
+Wand-Fasekaart en Tel-Fasekaart.
+
+*Waarom:* SunArc houdt elke fase onder de zekering min een marge ([78]), maar
+de bewoner zag nergens hoe vol een fase is. Met een laadpaal, een warmtepomp
+of een oven op één fase is dat de vraag "kan dit er nog bij?". Het huis
+krijgt eind 2026 zelf 3 × 25 A.
+
+*Besluit:*
+
+- **Een kaart om te kiezen** bij Thuis aanpassen, zoals de auto en de
+  batterij ([182]), niet standaard: per fase een balk tot de zekering, met een
+  streep waar SunArc onder blijft, de stroom nu, en een zin met de fase die het
+  krapst is. Op de smalle tegel van de wand het hoogste nu en drie staafjes.
+  Kleur: groen, geel vanaf twee derde, oranje vanaf 88% van de zekering.
+- **Een tik opent een blad** (op Thuis zelf, zoals bij Apparaten, [298]): de
+  fasen nu, de dag per kwartier met alle fasen in één grafiek (de zekering en
+  de grens erin), het hoogste van vandaag per fase met de tijd, en wat SunArc
+  doet als het krap wordt.
+- **Geen melding** op de telefoon als een fase bijna vol is: SunArc zet dan
+  zelf niets bij aan. De kaart zegt het wel ("Bijna vol op L2") binnen 1 A van
+  de grens.
+- **Waar het vandaan komt:** de stroom nu uit het laatste besluit (dezelfde
+  fasen als de arbiter); de dag uit de historie van Home Assistant van de
+  stroommeters per fase, hooguit elke vijf minuten opgehaald
+  (`/api/fasen`, alleen lezen).
+- **Zonder stroommeter per fase** staat het totaal tegen wat de aansluiting
+  samen kan (uit de zekering bij Energie), met "Meter per fase mist" en de weg
+  naar Energie › Aansluiting. Zonder zekering biedt Kaart toevoegen hem niet aan.
+
+---
+
+## 303. Helpen bij de cv: doordraaien en de dag in het blad van de airco
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+11 november 2026, versie 0.174.0: de twee open stukken van [292], na de schets
+Wand-Helpen-Cv (#apparaat en #apparaat-pendelt). Ricardo: "ja doe maar".
+
+*Waarom:* in het schaduwlogboek van 1 tot 8 november stopte de airco in de
+woonkamer elke keer terwijl de kamer nog 0,4 tot 0,9° te koud was. Een airco
+meet zijn eigen temperatuur hoog aan de wand, waar het eerder warm is. Op het
+doel van de kamer stopt hij te vroeg en slaat hij even later weer aan
+(pendelen), en dat zag de bewoner nergens.
+
+*Besluit:*
+
+- **Doordraaien:** een airco die helpt, krijgt het doel van zijn kamer plus
+  het verschil tussen zijn eigen meter (`current_temperature`, nieuw in de
+  toestand als `ownTemperatureC`) en de kamer, in halve graden, hooguit 2°.
+  Meet hij de kamer zelf, dan is het verschil nul. Zolang hij helpt zakt die
+  stand niet, anders wisselt hij bij elke halve graad. Wanneer hij stopt,
+  blijft de kamer bepalen: tot zijn kamer op temperatuur is.
+- **De dag in het blad van de airco** (Apparaten en het blad van een kamer):
+  "Helpen bij de cv vandaag" van 06:00 tot 24:00 met twee banen, wanneer de
+  ketel stookte en wanneer de airco hielp, de stille uren (nacht en
+  voorverwarmen) gearceerd, en een oranje streepje waar hij zelf kort uitging
+  terwijl hij hielp. Daaronder: hoe vaak en hoe lang, hoeveel daarvan na de
+  ketel, hoe vaak kort uit (oranje), en hoeveel hoger hij staat. Met een regel
+  naar Helpen bij de cv.
+- **Waar het vandaan komt:** dezelfde telling in het geheugen als in [292]
+  (`HelpenDag`), nu ook de ketel (`hvac_action` heating van de thermostaten
+  van de ketel), de stille uren uit de stand, en kort uit als de airco zelf van
+  heating naar iets anders gaat terwijl de regel hem laat helpen. In
+  `/api/helpen` per airco `balk` en `bijC`.
+- **Nog steeds de schaduw:** de airco's echt sturen blijft stap B. Leren met
+  de stroommeter van de airco blijft open.
+
+---
+
+## 304. Een schakelaar met een ingevuld vermogen kan op zon
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+11 november 2026, versie 0.175.0: een open vraag van [298]. Gevraagd of een
+schakelaar zonder meter, waarvan de bewoner het vermogen invulde, ook op zon
+mag zoals een slimme stekker, koos Ricardo: ja, met toestemming. Ook gevraagd:
+een laadpaal uit losse sensoren ([301]) bedienen via Modbus. Gekozen: nog
+niet, eerst een tester met zo'n laadpaal.
+
+*Besluit:*
+
+- **Wie:** een schakelaar ([297]) met één knop, geen lamp, geen
+  IR-afstandsbediening, zonder eigen meter, zonder stekker erbij ([300]; die
+  stekker kan zelf op zon) en met een ingevuld vermogen ([298]).
+- **Als een slimme stekker** ([264]): hij staat bij Regeling › Apparaten op zon
+  met het stekkericoon, en daar is op zon zelf de toestemming ([290]). Dan zet
+  SunArc hem echt aan en uit door dezelfde deur ([267]: `switch.turn_on` en
+  `turn_off` op die ene schakelaar), met de marge, de rust en het minimum per
+  dag van een stekker. Hij vraagt het ingevulde vermogen (50 tot 3.680 W).
+- **Het id** is `relais-` met het apparaat in Home Assistant, niet de naam: een
+  andere naam haalt hem niet van zon.
+- **Niet dubbel:** op Apparaten blijft hij een schakelaar, niet ook een stekker.
+  De kaart zegt wat hij op zon doet ("Aan op zon"); het blad zegt het ook, of
+  dat het kan, met een regel naar Apparaten op zon. Er komt geen melding
+  "Stekker gevonden": hij is ingesteld, niet gevonden.
+- **Zonder meter** ziet SunArc niet of hij echt trekt: "aan" telt als het
+  ingevulde vermogen, zoals bij Opbrengst › Nu ([298]).
 
 ---
 

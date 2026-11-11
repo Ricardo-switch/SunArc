@@ -220,6 +220,11 @@ export function buildSystemState(
       producing,
       producingSinceMs:
         producing.ok && producing.value ? source.hvacActionSince(b.climateEntity) : null,
+      // Wat het apparaat zelf meet (besluit 303): voor doordraaien bij helpen bij de cv.
+      ownTemperatureC: (() => {
+        const c = source.attrNumber(b.climateEntity, 'current_temperature');
+        return c == null || !Number.isFinite(c) ? unavailable<number>() : value(c, nowMs);
+      })(),
     };
   }
 

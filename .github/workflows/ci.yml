@@ -153,7 +153,9 @@ jobs:
         working-directory: backend
         run: |
           npm ci
-          npx playwright install --with-deps chromium
+          # security.ubuntu.com is soms onbereikbaar vanaf de runners (11 november 2026, drie
+          # rondes op rij): dan alleen de browser. De runner heeft Chrome al, met zijn bibliotheken.
+          npx playwright install --with-deps chromium || npx playwright install chromium
 
       - name: de pagina
         working-directory: backend
