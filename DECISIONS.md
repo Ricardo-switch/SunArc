@@ -294,6 +294,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [298. Een blad voor elk apparaat, en het vermogen invullen bij een schakelaar](#298-een-blad-voor-elk-apparaat-en-het-vermogen-invullen-bij-een-schakelaar)
 - [299. Het kinderslot in het blad van een thermostaat of witgoed](#299-het-kinderslot-in-het-blad-van-een-thermostaat-of-witgoed)
 - [300. Een kachel uit meer delen: IR-knoppen, de stekker en de temperatuur](#300-een-kachel-uit-meer-delen-ir-knoppen-de-stekker-en-de-temperatuur)
+- [301. Een laadpaal uit losse sensoren](#301-een-laadpaal-uit-losse-sensoren)
 
 **Veiligheid**
 
@@ -13818,6 +13819,34 @@ temperatuur, en een slimme stekker (Sonoff S60) die de stroom geeft en meet.
 - **De regeling** doet er nog niets mee: een kachel achter IR is nog geen
   klimaatapparaat dat de regeling stuurt. De stekker op zon blijft zoals hij
   was ([290]).
+
+---
+
+## 301. Een laadpaal uit losse sensoren
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, versie 0.172.0: het laatste deel van stap 4 van [293], voor
+melding 160 (een NexBlue Edge Max via Modbus, niet te vinden).
+
+*Waarom:* SunArc herkent een laadpaal per apparaat in Home Assistant ([259]).
+Een laadpaal via Modbus heeft geen apparaat, alleen losse sensoren.
+
+*Besluit:*
+
+- **Bij Apparaat toevoegen › Losse sensoren** (alleen als er sensoren zonder
+  apparaat zijn): een naam, een zoekveld, en de sensoren zonder apparaat per
+  soort (vermogen, stroom per fase, totaal geladen, stand), met wat ze nu
+  zeggen. Je vinkt aan wat bij de laadpaal hoort, hooguit acht.
+- **Een apparaat van SunArc zelf:** de keuze (`schakelaars.json`,
+  `laadpalen`, `/api/losse-laadpaal` voor de beheerder) wordt in de registers
+  een apparaat met een kopie van die sensoren, alleen voor laden en de
+  thuisaccu (`metLosseLaadpalen`). Zo herkent Energie › Auto en laadpaal hem
+  als laadpaal, met vermogen, stroom en stand, en werken de kaart, de pagina
+  Auto en de laadbeurten zoals bij elke laadpaal.
+- **Eerst alleen kijken:** bedienen via Modbus (een stroom zetten, pauzeren)
+  kan nog niet.
+- **De melding SA-EXA6** (issue 160) krijgt het antwoord in de app.
 
 ---
 

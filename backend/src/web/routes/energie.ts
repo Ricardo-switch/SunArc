@@ -58,6 +58,25 @@ export async function energieRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
     return true;
   }
 
+  // Een laadpaal uit losse sensoren (besluit 301): de lijst, en bewaren of weghalen.
+  if (path === '/api/losse-laadpaal' && d.options.losseLaadpalen) {
+    const l = d.options.losseLaadpalen;
+    if (method !== 'POST') {
+      sendJson(res, 200, l.lijst());
+      return true;
+    }
+    let body: unknown;
+    try {
+      body = await readJson(req);
+    } catch (error) {
+      sendJson(res, 400, { fout: (error as Error).message });
+      return true;
+    }
+    const uit = await l.bewaar(body);
+    sendJson(res, uit.ok ? 200 : 400, uit.ok ? { ok: true, ...l.lijst() } : { fout: uit.reden });
+    return true;
+  }
+
   // Het kinderslot (besluit 299): per apparaat, en aan of uit.
   if (path === '/api/kinderslot' && d.options.kinderslot) {
     const k = d.options.kinderslot;

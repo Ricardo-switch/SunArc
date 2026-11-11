@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.171.0';
+export const VERSIE = '0.172.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -81,6 +81,28 @@ export const OP_MAIN: readonly string[] = [
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
   {
+    versie: '0.172.0',
+    datum: '2026-11-11',
+    nieuw: [
+      'Een laadpaal uit losse sensoren, zoals via Modbus: bij Apparaat toevoegen › Losse sensoren zoek je zijn sensoren en vink je ze aan; daarna staat hij bij Energie › Auto en laadpaal als elke andere laadpaal',
+    ],
+    meldingen: [
+      {
+        code: 'SA-EXA6',
+        uitkomst: 'opgelost',
+        tekst: 'Een laadpaal via Modbus, zoals je NexBlue Edge Max, voeg je nu toe bij Apparaat toevoegen › Losse sensoren. Zoek op nexblue en vink het vermogen, de stroom en de stand aan.',
+        tekstEn: 'A charger via Modbus, like your NexBlue Edge Max, can now be added in Add a device › Separate sensors. Search for nexblue and tick the power, current and state.',
+        href: 'toevoegen.html#losse',
+        issue: 160,
+      },
+    ],
+    en: {
+      nieuw: [
+        'A charger from separate sensors, like via Modbus: in Add a device › Separate sensors you search for its sensors and tick them; then it is in Energy › Car and charger like any other charger',
+      ],
+    },
+  },
+  {
     versie: '0.171.0',
     datum: '2026-11-11',
     nieuw: [
@@ -130,6 +152,24 @@ export const NIEUW: readonly Nieuw[] = [
     ],
     opgelost: [
       'Een lamp zonder kamer bij Apparaten › Licht schakelde niet',
+    ],
+    meldingen: [
+      {
+        code: 'SA-6JGB',
+        uitkomst: 'opgelost',
+        tekst: 'Een Shelly 1 mini zonder meter vindt SunArc nu. Je stelt hem in bij Apparaten › Toevoegen: kies wat hij aanzet, zoals een lamp, en of je hem met de hand mag schakelen.',
+        tekstEn: 'SunArc now finds a Shelly 1 mini without a meter. Set it up in Devices › Add: pick what it switches, like a light, and whether it may be switched by hand.',
+        href: 'toevoegen.html',
+        issue: 157,
+      },
+      {
+        code: 'SA-EMC4',
+        uitkomst: 'opgelost',
+        tekst: 'Klik-aan-klik-uit via RFXCOM vindt SunArc nu. Je stelt elke ontvanger in bij Apparaten › Toevoegen: kies Lamp, een naam en de kamer. Zijn stand is wat SunArc het laatst stuurde.',
+        tekstEn: 'SunArc now finds KlikAanKlikUit via RFXCOM. Set up each receiver in Devices › Add: pick Light, a name and the room. Its state is what SunArc last sent.',
+        href: 'toevoegen.html',
+        issue: 161,
+      },
     ],
     en: {
       nieuw: [

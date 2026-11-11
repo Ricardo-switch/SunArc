@@ -281,6 +281,8 @@ export const ENTITEITEN: readonly HaRegistryEntity[] = [
   ...TOESTELLEN.flatMap((t) => t.entiteiten.map(([id, extra]) => ({ entity_id: id, device_id: t.id, ...(t.platform ? { platform: t.platform } : {}), ...(extra ?? {}) }))),
   { entity_id: 'sensor.buiten_temperatuur', device_id: null, platform: 'buienradar', original_device_class: 'temperature' },
   { entity_id: 'weather.thuis', device_id: null, platform: 'buienradar' },
+  // Een laadpaal via Modbus (besluit 301, issue 160): losse sensoren zonder apparaat.
+  ...['power', 'current_l1', 'current_l2', 'current_l3', 'energy_total', 'charging_state'].map((x) => ({ entity_id: `sensor.nexblue_${x}`, device_id: null, platform: 'modbus' })),
   { entity_id: 'scene.woonkamer_avond', device_id: null, area_id: 'woonkamer' },
   { entity_id: 'scene.woonkamer_helder', device_id: null, area_id: 'woonkamer' },
 ];
@@ -408,6 +410,10 @@ export function staten(klok: Klok, ingrepen: Ingrepen, nuMs: number): HaEntitySt
   // De schakelaars (besluit 297): uit, tot iemand ze aanzet; klik-aan-klik-uit zegt zijn stand niet terug.
   for (const n of [1, 2, 3]) zet(`switch.heater_tuinhuis_switch${n}`, ingrepen.get(`switch.heater_tuinhuis_switch${n}`)?.state === 'on' ? 'on' : 'off', { assumed_state: true });
   for (const n of [1, 2, 3]) zet(`select.heater_tuinhuis_switch${n}_on`, n <= 2 ? 'registered' : 'unregistered', {});
+  zet('sensor.nexblue_power', 0, { unit_of_measurement: 'W', device_class: 'power', state_class: 'measurement', friendly_name: 'NexBlue vermogen' });
+  for (const l of [1, 2, 3]) zet(`sensor.nexblue_current_l${l}`, 0, { unit_of_measurement: 'A', device_class: 'current', state_class: 'measurement', friendly_name: `NexBlue stroom L${l}` });
+  zet('sensor.nexblue_energy_total', 1284, { unit_of_measurement: 'kWh', device_class: 'energy', state_class: 'total_increasing', friendly_name: 'NexBlue totaal' });
+  zet('sensor.nexblue_charging_state', 'Idle', { friendly_name: 'NexBlue stand' });
   zet('sensor.heater_tuinhuis_temperature', 6.3, { unit_of_measurement: '°C', device_class: 'temperature', state_class: 'measurement' });
   const kachelAan = ingrepen.get('switch.stekker_kachel_tuinhuis')?.state === 'on';
   zet('switch.stekker_kachel_tuinhuis', kachelAan ? 'on' : 'off', {});

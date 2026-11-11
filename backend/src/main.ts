@@ -75,7 +75,7 @@ import type { TeDoenDienst } from './web/routes/tedoen.js';
 import { spraakKeuzes, type SpraakKeuze } from './web/functies.js';
 import { cameraMelders, camerasNu, laatsteAanUitHistorie } from './web/cameras.js';
 import { FunctiesStore, aangebeld, functiesGevonden, functiesVoorstel, getoondeCameras, volledig, type Functies, type FunctiesGevonden } from './web/functies.js';
-import { accusNu, accuView, KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, vindOpslag } from './web/opslag.js';
+import { accusNu, accuView, KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, metLosseLaadpalen, vindOpslag } from './web/opslag.js';
 import { Laadhand, laadMag } from './web/laadhand.js';
 import { Stekkerhand, stekkerMag, type StekkerBekend, type StekkerTot } from './web/stekkerhand.js';
 import { StekkerZon } from './web/stekkerzon.js';
@@ -89,7 +89,7 @@ import { hoofddakPlat, panelenVan, type DakVlak } from './web/daken.js';
 import { inNederland } from './web/bag3d.js';
 import { aanvullenUitMeter, achterblijven, meetVlakken, metMeting, opbrengstPerVlak, verdeelDag, type Achter, type MeterGroep, type VlakStand, type Verdeling } from './web/meten-vlakken.js';
 import { findHeatStores, findPlugs, type FoundHeatStore } from './web/buffers-vinden.js';
-import { GEEN_KEUZES, SchakelaarStore, kinderslotVan, lampSchakelaars, leesSchakelaarKeuze, metKeuze, schakelaarViews, schakelaarsMag, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
+import { GEEN_KEUZES, SchakelaarStore, kinderslotVan, lampSchakelaars, leesLosseLaadpaal, leesSchakelaarKeuze, losseSensoren, metKeuze, metLaadpaal, schakelaarViews, schakelaarsMag, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
 import { kiesLigging, meetLigging, omvormerUitType, type Meting, type PanelenAntwoord } from './web/ligging.js';
 import { alarmSensoren, vindRookmelders } from './web/rookmelders.js';
 import { eigenUpdate, updateView, type UpdateView } from './web/bijwerken.js';
@@ -614,7 +614,7 @@ let houseRegisters: HouseRegisters | null = null;
 /** Wat de thuisaccu's samen nu doen, in W: plus is laden (besluit 272, 274); null zonder accu. */
 function accuNuW(): number | null {
   if (!houseRegisters) return null;
-  const w = accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null).map((a) => a.vermogenW).filter((x): x is number => x != null);
+  const w = accusNu(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null).map((a) => a.vermogenW).filter((x): x is number => x != null);
   return w.length ? w.reduce((s, x) => s + x, 0) : null;
 }
 /** De stroommeter bij hetzelfde apparaat in Home Assistant, zoals bij een airco (besluit 138). */
@@ -707,7 +707,7 @@ const handbediening: Handbediening | null = inHuisMetDeuren
   : null;
 /** Wat er per auto met de hand te bedienen is (besluit 262). */
 function laadBedieningenNu() {
-  return houseRegisters ? laadBedieningen(houseRegisters, allStates, connectionStore?.current?.laden ?? null) : [];
+  return houseRegisters ? laadBedieningen(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null) : [];
 }
 /*
  * Laden met de hand (besluit 262, stap 5 van besluit 259): de hoogste
@@ -798,6 +798,19 @@ function vindBuffers(): FoundHeatStore[] {
 const schakelaarStore = logDir !== '' ? new SchakelaarStore(logDir) : null;
 await schakelaarStore?.load();
 const schakelaarKeuzes = (): SchakelaarKeuzes => schakelaarStore?.current ?? GEEN_KEUZES;
+/**
+ * De registers met de laadpalen uit losse sensoren erbij (besluit 301), voor
+ * alles over laden en de thuisaccu. Zolang de keuzes nog niet geladen zijn: zonder.
+ */
+function laadReg<R extends { readonly devices: readonly HaDevice[]; readonly entities: readonly HaRegistryEntity[] }>(r: R): R {
+  let laadpalen;
+  try {
+    laadpalen = schakelaarStore?.current?.laadpalen;
+  } catch {
+    laadpalen = undefined;
+  }
+  return metLosseLaadpalen(r, laadpalen);
+}
 function vindSchakelaarsNu(): GevondenSchakelaar[] {
   if (!houseRegisters) return [];
   const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...vindBuffers().map((b) => b.actuator)]);
@@ -1474,7 +1487,7 @@ function autoBel(timeZone: string): Pick<Parameters<typeof meldingenBron>[0], 'a
 /** Wat de bel van de thuisaccu's weet (besluit 276); null zonder accu. */
 function accuBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBron>[0]['accus']> | null {
   if (!houseRegisters) return null;
-  const lijst = accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null);
+  const lijst = accusNu(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null);
   if (!lijst.length) return null;
   const p = partsIn(Date.now(), cfg.timezone);
   const e = runner?.latest?.explanation;
@@ -1741,7 +1754,7 @@ const historieVan = (vanMs: number, totMs: number) => historie.van(vanMs, totMs)
 // De laadbeurten van een auto (besluit 259, stap 3): de meter van zijn laadvermogen en het net, met de prijzen van Energie.
 const laadbeurten = new Laadbeurten({
   config: () => siteConfig,
-  meter: (auto) => (houseRegisters ? (laadMeters(houseRegisters, allStates, connectionStore?.current?.laden ?? null).find((m) => m.auto === auto)?.vermogen ?? null) : null),
+  meter: (auto) => (houseRegisters ? (laadMeters(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null).find((m) => m.auto === auto)?.vermogen ?? null) : null),
   prijzen: () => energyStore?.current?.prijzen ?? null,
   eenheid: (id) => {
     const e = allStates.get(id)?.attributes['unit_of_measurement'];
@@ -1859,7 +1872,7 @@ const huisNu = (lang: Lang) => {
   const isPlat = huis != null && hoofddakPlat(a?.daken, a?.panelen?.ligging, layoutStore?.current?.dak === 'geen');
   const plat0 = !isPlat || !huis ? huis : huis.ligging ? { ...huis, ligging: { ...huis.ligging, plat: true } } : { ...huis, dakPlat: true };
   // De auto's en laadpalen met de keuzes bij Energie (besluit 259), uit alle standen: een kabel of bereik telt niet als iets in huis.
-  const plat = plat0 && houseRegisters ? { ...plat0, opslag: vindOpslag(houseRegisters, allStates, a?.laden ?? null, new Date(), a?.accu ?? null) } : plat0;
+  const plat = plat0 && houseRegisters ? { ...plat0, opslag: vindOpslag(laadReg(houseRegisters), allStates, a?.laden ?? null, new Date(), a?.accu ?? null) } : plat0;
   huisBewaard.set(lang, { sleutel, atMs: Date.now(), huis: plat });
   return plat;
 };
@@ -2488,7 +2501,7 @@ if (webPort != null) {
     accu: {
       nuW: accuNuW,
       meters: () => {
-        const lijst = houseRegisters ? accusNu(houseRegisters, allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null) : [];
+        const lijst = houseRegisters ? accusNu(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null) : [];
         return {
           geladen: lijst.flatMap((a) => (a.sensoren.geladen ? [a.sensoren.geladen] : [])),
           geleverd: lijst.flatMap((a) => (a.sensoren.geleverd ? [a.sensoren.geleverd] : [])),
@@ -2506,6 +2519,17 @@ if (webPort != null) {
         }
       : {}),
     // Een slimme stekker met de hand (besluit 265): de stand overal, schakelen alleen in de add-on.
+    // Een laadpaal uit losse sensoren (besluit 301): de keuzes in het eigen bestand van de schakelaars.
+    losseLaadpalen: {
+      lijst: () => ({ laadpalen: schakelaarStore?.current?.laadpalen ?? {}, sensoren: houseRegisters ? losseSensoren(houseRegisters.entities, allStates) : [] }),
+      bewaar: async (body: unknown) => {
+        if (!schakelaarStore) return { ok: false as const, reden: 'er is geen map om de keuze te bewaren' };
+        const l = leesLosseLaadpaal(body);
+        if (!l.ok) return l;
+        await schakelaarStore.save(metLaadpaal(schakelaarStore.current, l.id, l.laadpaal));
+        return { ok: true as const };
+      },
+    },
     // Het kinderslot in het blad (besluit 299): zien overal, zetten alleen in de add-on.
     kinderslot: {
       lijst: () => kinderslotten(),
@@ -2896,9 +2920,9 @@ function connectionDoor(store: ConnectionStore, base: NonNullable<typeof baseCon
         zonNu: location ? sunPosition(Date.now(), location.latDeg, location.lonDeg) : null,
         grenzen: grenzenGevonden(),
         // Auto en laadpaal (besluit 259): wat Home Assistant heeft, met de keuzes van nu.
-        laden: houseRegisters ? ladenView(houseRegisters, allStates, store.current?.laden ?? null, store.current?.accu ?? null) : null,
+        laden: houseRegisters ? ladenView(laadReg(houseRegisters), allStates, store.current?.laden ?? null, store.current?.accu ?? null) : null,
         // Energie › Thuisaccu (besluit 271): de accu's, met de sensoren om uit te kiezen.
-        accu: houseRegisters ? accuView(houseRegisters, allStates, store.current?.accu ?? null, store.current?.laden ?? null) : null,
+        accu: houseRegisters ? accuView(laadReg(houseRegisters), allStates, store.current?.accu ?? null, store.current?.laden ?? null) : null,
         inGebruik: {
           netmeter: siteConfig?.power.gridPower ? { afname: siteConfig.power.gridPower.id, terug: siteConfig.power.gridExport?.id ?? null } : null,
           omvormers: siteConfig?.solarProduction ? [siteConfig.solarProduction.id, ...(siteConfig.solarExtra ?? []).map((p) => p.id)] : [],

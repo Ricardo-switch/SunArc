@@ -335,6 +335,8 @@ export class WebServer {
       (this.#d.options.schakelaars?.zet != null && path === '/api/schakelaar') ||
       // Het kinderslot (besluit 299): alleen een slot op een thermostaat of witgoed dat het huis kent.
       (this.#d.options.kinderslot?.zet != null && path === '/api/kinderslot') ||
+      // Een laadpaal uit losse sensoren (besluit 301): alleen de keuze, naar het eigen bestand.
+      (this.#d.options.losseLaadpalen != null && path === '/api/losse-laadpaal') ||
       // Te doen (besluit 216): een herinnering in het eigen bestand, of iets op een lijst van Home Assistant. Een gast niet.
       (this.#d.options.tedoen != null && path === '/api/te-doen') ||
       // Scènes (besluit 100): een eigen smalle deur naast het licht.

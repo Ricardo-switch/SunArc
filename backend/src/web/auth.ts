@@ -50,6 +50,8 @@ export const DOOR_ROLES: Readonly<Record<string, Role>> = {
   '/api/schakelaars': 'beheerder',
   // Het kinderslot van een thermostaat of droger (besluit 299): voor wie in huis woont.
   '/api/kinderslot': 'bewoner',
+  // Een laadpaal uit losse sensoren (besluit 301): kiezen doet de beheerder.
+  '/api/losse-laadpaal': 'beheerder',
   // Te doen (besluit 216): voor wie in huis woont, en de wand.
   '/api/te-doen': 'bewoner',
   // Hoe het voelt mag zonder inlog (besluit 134): het verandert niets aan het huis.

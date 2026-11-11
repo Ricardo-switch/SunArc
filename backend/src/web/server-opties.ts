@@ -11,7 +11,8 @@ import type { LaadOverzicht } from './laadbeurten.js';
 import type { LaadAdvies } from './laadadvies.js';
 import type { LaadStand, LaadUitkomst, LaadVraag } from './laadhand.js';
 import type { StekkerStand, StekkerTot, StekkerUitkomst } from './stekkerhand.js';
-import type { SchakelaarView } from './schakelaars.js';
+import type { LosseSensor, SchakelaarView } from './schakelaars.js';
+import type { LosseLaadpaal } from './opslag.js';
 import type { CameraNu } from './cameras.js';
 import type { AanzetStand } from './assistent-aan.js';
 import type { InHuisStand } from './stem-in-huis.js';
@@ -231,6 +232,11 @@ export interface WebOptions {
    * Schakelaars (besluit 297): wat gevonden is met de keuzes van de bewoner,
    * een keuze bewaren, en met de hand aan of uit (`zet` alleen in de add-on).
    */
+  /** Laadpalen uit losse sensoren (besluit 301): wat gekozen is, de sensoren om uit te kiezen, en bewaren. */
+  readonly losseLaadpalen?: {
+    readonly lijst: () => { readonly laadpalen: Readonly<Record<string, LosseLaadpaal>>; readonly sensoren: readonly LosseSensor[] };
+    readonly bewaar: (body: unknown) => Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }>;
+  };
   /** Het kinderslot van een thermostaat of witgoed (besluit 299), per apparaat; `zet` alleen in de add-on. */
   readonly kinderslot?: {
     readonly lijst: () => Readonly<Record<string, { readonly id: string; readonly aan: boolean }>>;

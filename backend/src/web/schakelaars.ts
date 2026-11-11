@@ -19,6 +19,7 @@ import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { HaEntityState } from '../adapters/homeassistant/client.js';
 import type { HaDevice, HaRegistryEntity } from '../adapters/homeassistant/discovery.js';
+import type { LosseLaadpaal } from './opslag.js';
 
 /** Wat er aan een schakelaar hangt. Een lamp komt bij Licht, de rest bij Schakelaars. */
 export const SCHAKELAAR_WAT = ['lamp', 'kachel', 'ventilator', 'pomp', 'boiler', 'fietslader', 'anders'] as const;
@@ -48,9 +49,62 @@ export interface SchakelaarKeuzes {
   readonly apparaten: Readonly<Record<string, SchakelaarKeuze>>;
   /** "Dit is geen apparaat": dan staat hij niet meer bij Nieuw gevonden. */
   readonly geen: readonly string[];
+  /** Laadpalen uit losse sensoren (besluit 301), zoals een NexBlue via Modbus. */
+  readonly laadpalen?: Readonly<Record<string, LosseLaadpaal>>;
 }
 
 export const GEEN_KEUZES: SchakelaarKeuzes = { apparaten: {}, geen: [] };
+
+/** Een sensor om bij een laadpaal uit losse sensoren te kiezen (besluit 301). */
+export interface LosseSensor {
+  readonly id: string;
+  readonly naam: string;
+  /** Waar hij op lijkt: een vermogen, een stroom, een totaal in kWh, of een stand. */
+  readonly soort: 'vermogen' | 'stroom' | 'energie' | 'stand';
+  readonly staat: string;
+  readonly eenheid: string;
+}
+
+/**
+ * De sensoren zonder apparaat in Home Assistant, zoals die van Modbus (besluit
+ * 301): een vermogen, een stroom, een totaal in kWh, of een stand in woorden.
+ */
+export function losseSensoren(entities: readonly HaRegistryEntity[], states: ReadonlyMap<string, HaEntityState>): LosseSensor[] {
+  const uit: LosseSensor[] = [];
+  const ids = new Set(entities.filter((e) => !e.device_id && !e.disabled_by && e.entity_id.startsWith('sensor.')).map((e) => e.entity_id));
+  // Wat in de registers niet staat (Modbus in YAML zonder unique_id) telt ook.
+  for (const id of states.keys()) if (id.startsWith('sensor.') && !entities.some((e) => e.entity_id === id)) ids.add(id);
+  for (const id of ids) {
+    const s = states.get(id);
+    if (!s) continue;
+    const eenheid = String(s.attributes['unit_of_measurement'] ?? '');
+    const klasse = String(s.attributes['device_class'] ?? '');
+    const soort = klasse === 'power' || /^k?W$/.test(eenheid) ? 'vermogen' : klasse === 'current' || eenheid === 'A' ? 'stroom' : klasse === 'energy' || /^[kM]?Wh$/.test(eenheid) ? 'energie' : !eenheid && Number.isNaN(Number(s.state)) && !/^(unknown|unavailable)$/.test(s.state) ? 'stand' : null;
+    if (!soort) continue;
+    uit.push({ id, naam: String(s.attributes['friendly_name'] ?? id).slice(0, 80), soort, staat: s.state, eenheid });
+  }
+  return uit.sort((a, b) => a.id.localeCompare(b.id)).slice(0, 400);
+}
+
+/** Een laadpaal uit losse sensoren, nagelopen: een naam en hooguit acht sensoren. */
+export function leesLosseLaadpaal(body: unknown): { readonly ok: true; readonly id: string; readonly laadpaal: LosseLaadpaal | 'weg' } | { readonly ok: false; readonly reden: string } {
+  if (typeof body !== 'object' || body == null || Array.isArray(body)) return { ok: false, reden: 'verwacht een object' };
+  const b = body as Record<string, unknown>;
+  const id = b['id'];
+  if (typeof id !== 'string' || !/^losse-[a-z0-9-]{1,40}$/.test(id)) return { ok: false, reden: 'id begint met losse-' };
+  if (b['weg'] === true) return { ok: true, id, laadpaal: 'weg' };
+  const naam = typeof b['naam'] === 'string' ? b['naam'].trim().slice(0, 60) : '';
+  if (!naam) return { ok: false, reden: 'geef de laadpaal een naam' };
+  const sensoren = b['sensoren'];
+  if (!Array.isArray(sensoren) || sensoren.length < 1 || sensoren.length > 8 || !sensoren.every((x) => typeof x === 'string' && /^sensor\.[a-z0-9_]+$/.test(x))) return { ok: false, reden: 'kies een tot acht sensoren' };
+  return { ok: true, id, laadpaal: { naam, sensoren: [...new Set(sensoren as string[])] } };
+}
+
+/** Een laadpaal uit losse sensoren erbij, of weg. */
+export function metLaadpaal(keuzes: SchakelaarKeuzes, id: string, l: LosseLaadpaal | 'weg'): SchakelaarKeuzes {
+  const { [id]: _weg, ...rest } = keuzes.laadpalen ?? {};
+  return { ...keuzes, laadpalen: l === 'weg' ? rest : { ...rest, [id]: l } };
+}
 
 /** Een knop van een schakelaar: zijn `switch.`, met of hij een code kent (IR) en of hij aan staat. */
 export interface SchakelaarKnop {
@@ -278,16 +332,22 @@ function leesKeuzes(raw: unknown): SchakelaarKeuzes {
     if (k.ok && typeof k.keuze === 'object') apparaten[id] = k.keuze;
   }
   const geen = Array.isArray(r['geen']) ? r['geen'].filter((x): x is string => typeof x === 'string') : [];
-  return { apparaten, geen };
+  const laadpalen: Record<string, LosseLaadpaal> = {};
+  for (const [id, v] of Object.entries((r['laadpalen'] as Record<string, unknown>) ?? {})) {
+    const l = leesLosseLaadpaal({ ...(v as object), id });
+    if (l.ok && typeof l.laadpaal === 'object') laadpalen[id] = l.laadpaal;
+  }
+  return { apparaten, geen, ...(Object.keys(laadpalen).length ? { laadpalen } : {}) };
 }
 
 /** Een keuze verwerkt in de keuzes, zonder de rest te veranderen. */
 export function metKeuze(keuzes: SchakelaarKeuzes, id: string, keuze: SchakelaarKeuze | 'geen' | 'weg'): SchakelaarKeuzes {
   const { [id]: _weg, ...apparaten } = keuzes.apparaten;
   const geen = keuzes.geen.filter((x) => x !== id);
-  if (keuze === 'weg') return { apparaten, geen };
-  if (keuze === 'geen') return { apparaten, geen: [...geen, id] };
-  return { apparaten: { ...apparaten, [id]: keuze }, geen };
+  const blijft = keuzes.laadpalen ? { laadpalen: keuzes.laadpalen } : {};
+  if (keuze === 'weg') return { apparaten, geen, ...blijft };
+  if (keuze === 'geen') return { apparaten, geen: [...geen, id], ...blijft };
+  return { apparaten: { ...apparaten, [id]: keuze }, geen, ...blijft };
 }
 
 const BESTAND = 'schakelaars.json';

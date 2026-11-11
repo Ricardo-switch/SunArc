@@ -41,7 +41,77 @@ const SOORTEN = [
   ['energie', 'batterij', '110, 231, 183', 'energie.html#accu'],
   ['stekkers', 'stekker', '201, 211, 220', 'regeling.html#opzon'],
   ['schakelaars', 'apparaat', '201, 211, 220', '#schakelaars'],
+  ['losse', 'laadpaal', '143, 134, 255', '#losse'],
 ];
+
+/* --------------------------------- een laadpaal uit losse sensoren (301) */
+
+/** Wat gekozen is en de sensoren zonder apparaat, van `api/losse-laadpaal`. */
+let losse = { laadpalen: {}, sensoren: [] };
+/** Wat de bewoner aan het kiezen is. */
+let lConcept = { naam: '', zoek: '', gekozen: new Set() };
+const slug = (x) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'laadpaal';
+
+function lossePaneel() {
+  const zoek = lConcept.zoek.trim().toLowerCase();
+  const passend = losse.sensoren.filter((x) => !zoek || `${x.id} ${x.naam}`.toLowerCase().includes(zoek));
+  const groepen = ['vermogen', 'stroom', 'energie', 'stand']
+    .map((soort) => {
+      const rijen = passend.filter((x) => x.soort === soort).slice(0, 30);
+      if (!rijen.length) return '';
+      return `<div class="lgroep"><h3>${esc(t(`toev.losse.${soort === 'energie' ? 'energie2' : soort}`))}</h3>${rijen.map((x) => `<label class="lsensor"><input type="checkbox" data-lsensor="${esc(x.id)}" ${lConcept.gekozen.has(x.id) ? 'checked' : ''}><span><b>${esc(x.naam)}</b><small>${esc(x.id)}</small></span><em>${esc(`${x.staat}${x.eenheid ? ` ${x.eenheid}` : ''}`)}</em></label>`).join('')}</div>`;
+    })
+    .join('');
+  const bestaand = Object.entries(losse.laadpalen ?? {});
+  const lijst = bestaand.length
+    ? `<div class="stap"><b>${esc(t('toev.losse.al'))}</b><div class="lijst">${bestaand.map(([id, l]) => `<div class="rij"><span class="ik">${iconen.svg('laadpaal')}</span><b>${esc(l.naam)}</b><small>${esc(t('toev.losse.n', { n: l.sensoren.length }))} · <a href="energie.html#auto">${esc(t('toev.losse.energie'))}</a></small><button type="button" class="stil" data-lweg="${esc(id)}">${esc(t('toev.weg'))}</button></div>`).join('')}</div></div>`
+    : '';
+  return `
+    <div class="wie"><span class="ik">${iconen.svg('laadpaal')}</span><div><h2>${esc(t('toev.losse.titel'))}</h2><small>${esc(t('toev.losse.lead'))}</small></div></div>
+    ${lijst}
+    <div class="stap"><b>${esc(t('toev.naam'))}</b><input type="text" class="invoer" maxlength="60" data-lnaam value="${esc(lConcept.naam)}" placeholder="${esc(t('toev.losse.naamVoorbeeld'))}"></div>
+    <div class="stap"><b>${esc(t('toev.losse.zoek'))}</b><input type="search" class="invoer" data-lzoek value="${esc(lConcept.zoek)}" placeholder="${esc(t('toev.losse.zoekVoorbeeld'))}"></div>
+    <div class="stap"><b>${esc(t('toev.losse.sensoren'))}<small>${esc(t('toev.losse.gekozen', { n: lConcept.gekozen.size }))}</small></b><div>${groepen || `<p class="onder">${esc(t(losse.sensoren.length ? 'toev.losse.geenPassend' : 'toev.losse.geen'))}</p>`}</div></div>
+    <p class="fout" data-fout aria-live="polite"></p>
+    <div class="klaar"><button type="button" class="knop hoofd" data-lbewaar ${lConcept.gekozen.size && lConcept.naam.trim() ? '' : 'disabled'}>${esc(t('toev.voegToe'))}</button></div>`;
+}
+
+async function bewaarLosse(body) {
+  try {
+    const res = await deur('api/losse-laadpaal', body);
+    if (res === null) return;
+    const uit = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      $$('[data-fout]').forEach((el) => (el.textContent = uit.fout ?? t('kamer.mislukt')));
+      return;
+    }
+    losse = { laadpalen: uit.laadpalen ?? {}, sensoren: uit.sensoren ?? losse.sensoren };
+    lConcept = { naam: '', zoek: '', gekozen: new Set() };
+    teken();
+  } catch {
+    $$('[data-fout]').forEach((el) => (el.textContent = t('kamer.geenVerbinding')));
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const weg = e.target.closest('[data-lweg]');
+  if (weg) return void bewaarLosse({ id: weg.dataset.lweg, weg: true });
+  if (e.target.closest('[data-lbewaar]')) return void bewaarLosse({ id: `losse-${slug(lConcept.naam)}`, naam: lConcept.naam.trim(), sensoren: [...lConcept.gekozen] });
+});
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (el.matches?.('[data-lnaam]')) {
+    lConcept.naam = el.value;
+    $$('[data-lbewaar]').forEach((b) => (b.disabled = !(lConcept.gekozen.size && lConcept.naam.trim())));
+  } else if (el.matches?.('[data-lzoek]')) {
+    lConcept.zoek = el.value;
+    teken();
+  } else if (el.matches?.('[data-lsensor]')) {
+    if (el.checked) lConcept.gekozen.add(el.dataset.lsensor);
+    else lConcept.gekozen.delete(el.dataset.lsensor);
+    teken();
+  }
+});
 
 /** Wat er aan een schakelaar kan hangen, met zijn icoon. */
 const WAT = [
@@ -194,7 +264,7 @@ function teken() {
   const open = hash.startsWith('s-') ? schakelaars.find((s) => s.id === hash.slice(2)) : null;
   if (!open) concept = null;
   const focus = document.activeElement?.matches?.('input, select') ? document.activeElement.dataset : null;
-  const rechts = open ? paneel(open) : hash === 'schakelaars' ? lijstSchakelaars() : null;
+  const rechts = open ? paneel(open) : hash === 'schakelaars' ? lijstSchakelaars() : hash === 'losse' ? lossePaneel() : null;
   $$('[data-rechts]').forEach((el) => {
     el.hidden = rechts == null;
     if (rechts != null) el.innerHTML = rechts;
@@ -207,15 +277,16 @@ function teken() {
     a.lastElementChild.textContent = t(rechts != null ? 'toev.titelKort' : 'nav.apparaten');
   });
   // Wie aan het typen was, blijft in hetzelfde veld.
-  if (focus) $$(`[data-rechts] ${focus.knop ? `[data-knop="${focus.knop}"]` : focus.naam != null ? '[data-naam]' : focus.vermogen != null ? '[data-vermogen]' : '[data-kamer]'}`).find((x) => x.offsetParent)?.focus();
-  const tegels = SOORTEN.filter(([id]) => id !== 'schakelaars' || schakelaars.length > 0)
+  if (focus) $$(`[data-rechts] ${focus.knop ? `[data-knop="${focus.knop}"]` : focus.naam != null ? '[data-naam]' : focus.vermogen != null ? '[data-vermogen]' : focus.lzoek != null ? '[data-lzoek]' : focus.lnaam != null ? '[data-lnaam]' : '[data-kamer]'}`).find((x) => x.offsetParent)?.focus();
+  const tegels = SOORTEN.filter(([id]) => (id !== 'schakelaars' || schakelaars.length > 0) && (id !== 'losse' || losse.sensoren.length > 0 || Object.keys(losse.laadpalen ?? {}).length > 0))
     .map(([id, icoon, vlak, href]) => `<a class="soort" href="${href}" data-soort="${id}"><span class="ik" style="background: rgba(${vlak}, 0.14)">${iconen.svg(icoon)}</span><b>${esc(t(`apparaten.soort.${id}`))}</b><span>${esc(t(`toev.soort.${id}`))}</span></a>`)
     .join('');
   $$('[data-soorten]').forEach((el) => (el.innerHTML = tegels));
 }
 
 async function laad() {
-  const [h, a, s, st] = await Promise.allSettled([haal('api/huis'), haal('api/aansluiting'), haal('api/schakelaars'), haal('api/stekker')]);
+  const [h, a, s, st, ls] = await Promise.allSettled([haal('api/huis'), haal('api/aansluiting'), haal('api/schakelaars'), haal('api/stekker'), haal('api/losse-laadpaal')]);
+  if (ls.status === 'fulfilled' && ls.value) losse = { laadpalen: ls.value.laadpalen ?? {}, sensoren: ls.value.sensoren ?? [] };
   if (st.status === 'fulfilled') stekkers = (st.value?.stekkers ?? []).map((x) => ({ id: x.id, naam: x.naam }));
   if (h.status === 'fulfilled') huisData = h.value;
   if (a.status === 'fulfilled') aansluiting = a.value;

@@ -515,10 +515,10 @@ verwijzing bestaat.
   bij elk apparaat zijn blad, en bij een schakelaar zonder meter vul je het
   vermogen in voor Opbrengst › Nu ([298]). Het kinderslot van een thermostaat
   of droger staat onderaan zijn blad ([299]). Een kachel uit IR-knoppen, een
-  stekker en een temperatuur is één apparaat bij Klimaat ([300]). Toevoegen is
-  een eigen scherm met wat nieuw gevonden is en de soorten ([295]). Gekozen, nog
-  niet gebouwd: losse
-  sensoren ([293]).
+  stekker en een temperatuur is één apparaat bij Klimaat ([300]). Een laadpaal
+  uit losse sensoren (Modbus) kies je bij Toevoegen › Losse sensoren ([301]). Toevoegen is
+  een eigen scherm met wat nieuw gevonden is en de soorten ([295]). Alles van
+  [293] is gebouwd.
 - **De assistent** is een gesprek: het huis begroet je, leest zijn antwoord
   voor met Piper uit Home Assistant, en vraagt of het nog iets kan doen
   ([141]). Hij zegt eerst het antwoord, kort en warm, spreekt eenheden en
@@ -932,4 +932,5 @@ verwijzing bestaat.
 [298]: DECISIONS.md#298-een-blad-voor-elk-apparaat-en-het-vermogen-invullen-bij-een-schakelaar
 [299]: DECISIONS.md#299-het-kinderslot-in-het-blad-van-een-thermostaat-of-witgoed
 [300]: DECISIONS.md#300-een-kachel-uit-meer-delen-ir-knoppen-de-stekker-en-de-temperatuur
+[301]: DECISIONS.md#301-een-laadpaal-uit-losse-sensoren
 <!-- links:einde -->

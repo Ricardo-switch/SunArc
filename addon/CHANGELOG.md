@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.171.0
+## 0.172.0
 
-*11 november 2026 · 0.163.0 – 0.171.0*
+*11 november 2026 · 0.163.0 – 0.172.0*
 
 **Nieuw**
 
+- Een laadpaal uit losse sensoren, zoals via Modbus: bij Apparaat toevoegen › Losse sensoren zoek je zijn sensoren en vink je ze aan; daarna staat hij bij Energie › Auto en laadpaal als elke andere laadpaal
 - Een kachel of ventilator achter een schakelaar staat bij Apparaten › Klimaat, met de temperatuur van het apparaat zelf, zoals een IR-afstandsbediening met sensor
 - Bij Apparaat toevoegen kies je welke slimme stekker erbij hoort: die meet wat de kachel gebruikt en staat dan bij de kachel, niet meer los bij Stekkers
 - Het kinderslot van een thermostaat of droger zet je in zijn blad: onderaan staat "Op de thermostaat" of "Op de droger", met een schakelaar die meteen gaat
@@ -46,6 +47,7 @@
 
 **New**
 
+- A charger from separate sensors, like via Modbus: in Add a device › Separate sensors you search for its sensors and tick them; then it is in Energy › Car and charger like any other charger
 - A heater or fan behind a switch is in Devices › Climate, with the temperature of the device itself, like an IR remote with a sensor
 - In Add a device you choose which smart plug belongs with it: it measures what the heater uses and is then shown with the heater, no longer on its own in Plugs
 - You set the child lock of a thermostat or dryer in its sheet: at the bottom is "On the thermostat" or "On the dryer", with a switch that takes effect at once

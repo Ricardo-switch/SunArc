@@ -71,6 +71,15 @@
   .klaar .hoofd:disabled { opacity: 0.35; cursor: default; }
   .klaar .stil { margin-left: auto; border: 0; background: none; color: var(--gedempt); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
   .lijst { display: flex; flex-direction: column; }
+  /* Een laadpaal uit losse sensoren (besluit 301): per soort een groep vinkjes. */
+  .lgroep h3 { margin: 4px 0 6px; font-size: 13px; font-weight: 700; color: var(--gedempt); }
+  .lsensor { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 44px; border-top: 1px solid rgb(var(--wit) / 0.06); cursor: pointer; }
+  .lsensor input { width: 18px; height: 18px; accent-color: var(--zon); }
+  .lsensor b { display: block; font-size: 14px; font-weight: 600; }
+  .lsensor small { display: block; font-size: 11.5px; color: var(--gedempt); font-family: ui-monospace, Consolas, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lsensor em { font-style: normal; font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .lijst .rij .stil { grid-row: 1 / 3; grid-column: 3; border: 0; background: none; color: var(--gedempt); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .lijst .rij small a { color: inherit; }
   .rij.nu { background: rgb(var(--wit) / 0.1); }
   #tel .paneel { padding: 16px; border-radius: 22px; }
   #tel .stap { grid-template-columns: 1fr; gap: 8px; }
