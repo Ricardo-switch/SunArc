@@ -142,6 +142,75 @@
     return `<div class="hand-boven"><div><h2>${esc(naam)}</h2><p class="nu">${esc(zin)}</p></div><button type="button" class="sluit" data-hand-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>`;
   }
 
+  /*
+   * Helpen bij de cv in het blad van een airco (besluit 303, schets
+   * Wand-Helpen-Cv #apparaat): de dag van 06:00 tot 24:00 als twee banen, wanneer
+   * de ketel stookte en wanneer de airco hielp, met de stille uren gearceerd en
+   * een streepje waar hij zelf kort uitging. Daaronder wat dat samen was.
+   */
+  let helpen = null;
+  let helpenOp = 0;
+  async function laadHelpen() {
+    if (Date.now() - helpenOp < 60_000) return;
+    helpenOp = Date.now();
+    try {
+      helpen = await haal('api/helpen');
+    } catch {
+      helpen = null;
+    }
+  }
+  /** Bij een airco die kan helpen: de hulp van vandaag ophalen en het blad opnieuw tekenen. */
+  function metHelpen(a) {
+    if (!a?.actuatorId || !a.modi?.some((m) => m.modus === 'verwarmen')) return;
+    void laadHelpen().then(() => {
+      if (open && !open.vrij && !open.wg && !open.st) teken();
+    });
+  }
+  function duurVan(min) {
+    const u = Math.floor(min / 60);
+    const m = Math.round(min % 60);
+    return u === 0 ? t('regeling.helpen.min', { n: m }) : m === 0 ? t('regeling.helpen.uur', { n: u }) : t('regeling.helpen.uurMin', { u, m });
+  }
+  function hulpBlok(a) {
+    const h = helpen?.aircos?.find((x) => x.id === a.actuatorId);
+    if (!h || !h.balk) return '';
+    if (!h.aan) return `<div class="hand-koppel"><span>${esc(t('hand.hulp.uit'))}</span><a href="regeling.html#helpen">${esc(t('hand.hulp.naar'))}</a></div>`;
+    const b = h.balk;
+    const nu = Date.now();
+    const van = b.vanMs + 6 * 3_600_000;
+    const tot = b.vanMs + 24 * 3_600_000;
+    const pos = (ms) => Math.max(0, Math.min(100, ((ms - van) / (tot - van)) * 100));
+    const blokken = (stukken, klasse) =>
+      stukken
+        .map(([a0, e]) => {
+          const l = pos(a0);
+          const r = pos(e ?? nu);
+          return r > l ? `<i class="${klasse}" style="left: ${l.toFixed(2)}%; width: ${Math.max(0.6, r - l).toFixed(2)}%"></i>` : '';
+        })
+        .join('');
+    const stil = blokken(b.stil, 'stil');
+    const nuLijn = nu < tot ? `<b style="left: ${pos(nu).toFixed(2)}%"></b>` : '';
+    const kort = b.kort.map((ms) => `<i class="kort" style="left: ${pos(ms).toFixed(2)}%"></i>`).join('');
+    const uren = [6, 9, 12, 15, 18, 21, 24].map((u) => `<span style="left: ${(((u - 6) / 18) * 100).toFixed(2)}%">${u}</span>`).join('');
+    const regels = [];
+    if (h.vandaag.keer) regels.push([t('hand.hulp.keer', { n: h.vandaag.keer, duur: duurVan(h.vandaag.minuten) }), false]);
+    else regels.push([t('hand.hulp.nogNiet'), false]);
+    if (b.langerMin >= 1) regels.push([t('hand.hulp.langer', { duur: duurVan(b.langerMin), kamer: h.kamer ?? a.kamer ?? '' }), false]);
+    if (b.kort.length) regels.push([t('hand.hulp.kort', { n: b.kort.length }), true]);
+    if (h.bijC > 0) regels.push([t('hand.hulp.hoger', { graden: nl(h.bijC, h.bijC % 1 ? 1 : 0) }), false]);
+    return `<div class="hand-hulp">
+        <div class="hand-hulp-kop"><b>${esc(t('hand.hulp.vandaag'))}</b><span>${esc(t('hand.hulp.tot', { klok: klokVan(Math.min(nu, tot)) }))}</span></div>
+        <div class="hand-hulp-banen" role="img" aria-label="${esc(t('hand.hulp.label'))}">
+          <span>${esc(t('hand.hulp.ketel'))}</span><span class="baan">${stil}${blokken(b.ketel, 'ketel')}${nuLijn}</span>
+          <span>${esc(t('hand.hulp.airco'))}</span><span class="baan">${stil}${blokken(b.airco, 'airco')}${kort}${nuLijn}</span>
+          <span></span><span class="uren">${uren}</span>
+        </div>
+        <div class="hand-hulp-legenda"><span><i class="ketel"></i>${esc(t('hand.hulp.lKetel'))}</span><span><i class="airco"></i>${esc(t('hand.hulp.lAirco'))}</span><span><i class="stil"></i>${esc(t('hand.hulp.lStil'))}</span>${b.kort.length ? `<span><i class="kort"></i>${esc(t('hand.hulp.lKort'))}</span>` : ''}</div>
+        <div class="hand-hulp-samen">${regels.map(([r, opvallen]) => `<span${opvallen ? ' class="let"' : ''}>${esc(r)}</span>`).join('')}</div>
+      </div>
+      <div class="hand-koppel"><span>${esc(t('hand.hulp.aan', { kamer: h.kamer ?? a.kamer ?? '' }))}</span><a href="regeling.html#helpen">${esc(t('hand.hulp.naar'))}</a></div>`;
+  }
+
   /** Het blad van een klimaatapparaat; in een kamer zonder eigen kop. */
   function blad(a, metKop) {
     const totMs = totVan(open.tot);
@@ -166,6 +235,7 @@
       ${dagbalk(totMs, label)}
       <div class="hand-hoe${hoe.let ? ' let' : ''}">${esc(hoe.tekst)}</div>
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
+      ${hulpBlok(a)}
       ${slotHtml(a.id, a.naam)}
       <div class="hand-onder">${terugKnop}<button type="button" class="hand-zet" data-hand-zet ${kan ? '' : 'disabled'}>${esc(zet)}</button></div>`;
   }
@@ -501,6 +571,7 @@
     open = begin(id);
     fout = '';
     teken();
+    metHelpen(vind(id));
   }
 
   /** Het blad van een klimaatapparaat in een plek op de pagina (het blad van een kamer); een tweede keer blijft de keuze staan. */
@@ -509,6 +580,7 @@
     if (!(open?.plek && open.id === id)) {
       open = begin(id, el);
       fout = '';
+      metHelpen(vind(id));
     } else open.plek = el;
     teken();
     return true;

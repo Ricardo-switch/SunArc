@@ -1105,7 +1105,14 @@ const runner: ShadowRunner | null =
                 void uitstelStore?.prune(snapshot.explanation.deferrables);
                 void bufferStore?.observe(snapshot.explanation.heatStores);
                 // Helpen bij de cv (besluit 292): wat de airco's vandaag hielpen.
-                helpenDag.observe(snapshot.atMs, new Set(snapshot.accepted.filter((i) => i.strategyId === 'heat-assist').map((i) => i.actuatorId)));
+                // De dagbalk (besluit 303): of de ketel stookt, of het stil moet, en welke airco zelf verwarmt.
+                {
+                  const doet = snapshot.observedAction ?? {};
+                  const ketel = (siteConfig?.cvHelp?.boilerIds ?? []).some((id) => doet[id] === 'heating');
+                  const warm = new Set(Object.keys(doet).filter((id) => doet[id] === 'heating'));
+                  const stil = snapshot.explanation.mode === 'nacht' || snapshot.explanation.mode === 'voorverwarmen';
+                  helpenDag.observe(snapshot.atMs, new Set(snapshot.accepted.filter((i) => i.strategyId === 'heat-assist').map((i) => i.actuatorId)), { ketel, stil, warm });
+                }
                 // Wat de regeling zou starten, start SunArc nu echt (besluit 238).
                 void witgoed?.opBesluit(snapshot).catch(() => []);
                 // En een stekker op zon (besluit 267).

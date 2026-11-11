@@ -92,6 +92,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [289. Helpen bij de cv: los van de kamer, en de airco draait door tot zijn kamer warm is](#289-helpen-bij-de-cv-los-van-de-kamer-en-de-airco-draait-door-tot-zijn-kamer-warm-is)
 - [291. Een radiatorknop of een gasketel helpt niet op zon](#291-een-radiatorknop-of-een-gasketel-helpt-niet-op-zon)
 - [292. Helpen bij de cv gebouwd: elke airco voor zijn eigen kamer](#292-helpen-bij-de-cv-gebouwd-elke-airco-voor-zijn-eigen-kamer)
+- [303. Helpen bij de cv: doordraaien en de dag in het blad van de airco](#303-helpen-bij-de-cv-doordraaien-en-de-dag-in-het-blad-van-de-airco)
 
 **Configuratie en onboarding**
 
@@ -13884,6 +13885,44 @@ krijgt eind 2026 zelf 3 × 25 A.
 - **Zonder stroommeter per fase** staat het totaal tegen wat de aansluiting
   samen kan (uit de zekering bij Energie), met "Meter per fase mist" en de weg
   naar Energie › Aansluiting. Zonder zekering biedt Kaart toevoegen hem niet aan.
+
+---
+
+## 303. Helpen bij de cv: doordraaien en de dag in het blad van de airco
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+11 november 2026, versie 0.174.0: de twee open stukken van [292], na de schets
+Wand-Helpen-Cv (#apparaat en #apparaat-pendelt). Ricardo: "ja doe maar".
+
+*Waarom:* in het schaduwlogboek van 1 tot 8 november stopte de airco in de
+woonkamer elke keer terwijl de kamer nog 0,4 tot 0,9° te koud was. Een airco
+meet zijn eigen temperatuur hoog aan de wand, waar het eerder warm is. Op het
+doel van de kamer stopt hij te vroeg en slaat hij even later weer aan
+(pendelen), en dat zag de bewoner nergens.
+
+*Besluit:*
+
+- **Doordraaien:** een airco die helpt, krijgt het doel van zijn kamer plus
+  het verschil tussen zijn eigen meter (`current_temperature`, nieuw in de
+  toestand als `ownTemperatureC`) en de kamer, in halve graden, hooguit 2°.
+  Meet hij de kamer zelf, dan is het verschil nul. Zolang hij helpt zakt die
+  stand niet, anders wisselt hij bij elke halve graad. Wanneer hij stopt,
+  blijft de kamer bepalen: tot zijn kamer op temperatuur is.
+- **De dag in het blad van de airco** (Apparaten en het blad van een kamer):
+  "Helpen bij de cv vandaag" van 06:00 tot 24:00 met twee banen, wanneer de
+  ketel stookte en wanneer de airco hielp, de stille uren (nacht en
+  voorverwarmen) gearceerd, en een oranje streepje waar hij zelf kort uitging
+  terwijl hij hielp. Daaronder: hoe vaak en hoe lang, hoeveel daarvan na de
+  ketel, hoe vaak kort uit (oranje), en hoeveel hoger hij staat. Met een regel
+  naar Helpen bij de cv.
+- **Waar het vandaan komt:** dezelfde telling in het geheugen als in [292]
+  (`HelpenDag`), nu ook de ketel (`hvac_action` heating van de thermostaten
+  van de ketel), de stille uren uit de stand, en kort uit als de airco zelf van
+  heating naar iets anders gaat terwijl de regel hem laat helpen. In
+  `/api/helpen` per airco `balk` en `bijC`.
+- **Nog steeds de schaduw:** de airco's echt sturen blijft stap B. Leren met
+  de stroommeter van de airco blijft open.
 
 ---
 

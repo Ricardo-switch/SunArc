@@ -1,20 +1,30 @@
 # Wat is er nieuw · What is new
 
-## 0.173.0
+## 0.174.0
 
-*11 november 2026*
+*11 november 2026 · 0.173.0 – 0.174.0*
 
 **Nieuw**
 
+- In het blad van een airco die de cv helpt staat de dag: wanneer de ketel stookte, wanneer de airco hielp, en waar hij zelf kort uitging
 - De kaart Aansluiting op Thuis, te kiezen bij Thuis aanpassen: per fase hoe vol hij is tegen de zekering, en welke het krapst is
 - Een tik op de kaart opent een blad met de stroom per fase van vandaag in één grafiek, het hoogste per fase en wat SunArc doet als het krap wordt
+
+**Beter**
+
+- Een airco die helpt, staat hoger als zijn eigen meter warmer is dan de kamer, zodat hij doordraait tot de kamer op temperatuur is
 
 *English*
 
 **New**
 
+- The sheet of an air conditioner that helps the boiler shows the day: when the boiler heated, when the air conditioner helped, and where it briefly switched off by itself
 - The Connection card on Home, to choose in Customize Home: per phase how full it is against the fuse, and which one is tightest
 - Tapping the card opens a sheet with today’s current per phase in one graph, the highest per phase, and what SunArc does when it gets tight
+
+**Improved**
+
+- An air conditioner that helps is set higher when its own sensor reads warmer than the room, so it keeps going until the room is warm enough
 
 ## 0.172.1
 

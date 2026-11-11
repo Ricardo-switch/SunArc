@@ -697,6 +697,32 @@ html.sc-voorbeeld #tel .td-keuze { bottom: calc(250px + env(safe-area-inset-bott
 .hand-hoe.let { background: rgb(247 181 72 / 0.07); box-shadow: inset 0 0 0 1px rgb(247 181 72 / 0.25); }
 .hand-fout { margin: 0; color: var(--gloed-t); font-size: 13px; }
 .hand-onder { margin-top: auto; display: flex; align-items: center; gap: 14px; }
+/* Helpen bij de cv in het blad van een airco (besluit 303): de dag als twee banen. */
+.hand-hulp { padding: 14px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.045); border: 1px solid rgb(var(--wit) / 0.07); display: flex; flex-direction: column; gap: 10px; }
+.hand-hulp-kop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.hand-hulp-kop b { font-size: 15px; font-weight: 700; }
+.hand-hulp-kop span { font-size: 12.5px; color: var(--gedempt); white-space: nowrap; }
+.hand-hulp-banen { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 7px 10px; align-items: center; font-size: 12.5px; color: var(--zacht); }
+.hand-hulp-banen .baan { position: relative; height: 18px; border-radius: 6px; background: rgb(var(--wit) / 0.05); }
+.hand-hulp-banen .baan i { position: absolute; top: 2px; bottom: 2px; border-radius: 4px; }
+.hand-hulp-banen .baan i.stil { top: 0; bottom: 0; border-radius: 6px; background: repeating-linear-gradient(135deg, rgb(var(--wit) / 0.08) 0 3px, transparent 3px 7px); }
+.hand-hulp-banen .baan i.kort { top: 0; bottom: 0; width: 3px; margin-left: -1px; border-radius: 2px; background: var(--gloed); box-shadow: 0 0 0 1px rgb(var(--nacht) / 0.9); }
+.hand-hulp-banen .baan b { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--tekst); }
+.hand-hulp i.ketel { background: var(--violet); }
+.hand-hulp i.airco { background: var(--gloed); }
+.hand-hulp-banen .uren { position: relative; height: 14px; font-size: 11px; color: var(--gedempt); }
+.hand-hulp-banen .uren span { position: absolute; transform: translateX(-50%); }
+.hand-hulp-banen .uren span:first-child { transform: none; }
+.hand-hulp-banen .uren span:last-child { transform: translateX(-100%); }
+.hand-hulp-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--zacht); }
+.hand-hulp-legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.hand-hulp-legenda i { width: 12px; height: 8px; border-radius: 3px; display: inline-block; }
+.hand-hulp-legenda i.stil { background: repeating-linear-gradient(135deg, rgb(var(--wit) / 0.3) 0 2px, transparent 2px 4px); }
+.hand-hulp-legenda i.kort { width: 3px; background: var(--gloed); }
+.hand-hulp-samen { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 1px solid rgb(var(--wit) / 0.07); font-size: 13px; color: var(--zacht); }
+.hand-hulp-samen .let { color: var(--gloed-t); font-weight: 600; }
+.hand-koppel { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13.5px; color: var(--zacht); padding: 10px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.045); }
+.hand-koppel a { color: var(--ijs); font-weight: 700; font-size: 13px; text-decoration: none; white-space: nowrap; }
 /* Het kinderslot onderaan het blad (besluit 299): "Op de thermostaat", met een schakelaar die meteen gaat. */
 .hand-slot { margin-top: auto; padding-top: 14px; border-top: 1px solid rgb(var(--wit) / 0.08); }
 .hand-slot + .hand-onder { margin-top: 14px; }

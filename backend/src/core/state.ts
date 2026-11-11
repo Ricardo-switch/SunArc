@@ -56,6 +56,12 @@ export interface ActuatorState {
   readonly producing: Reading<boolean>;
   /** Sinds wanneer `producing` onafgebroken waar is, of null. */
   readonly producingSinceMs: number | null;
+  /**
+   * De temperatuur die het apparaat zelf meet (`current_temperature`), los van
+   * de kamer (besluit 303). Een airco hangt hoog aan de wand en meet daar
+   * eerder warm; helpen bij de cv zet hem dan hoger, zodat hij doordraait.
+   */
+  readonly ownTemperatureC?: Reading<number>;
 }
 
 export interface ZoneState {

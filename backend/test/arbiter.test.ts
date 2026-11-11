@@ -403,6 +403,22 @@ describe('helpen bij de cv (besluit 292)', () => {
     expect(helpt(help(), koud({ airco: actuator('off', { minutesAgo: 20 }) }))).toBe(true);
   });
 
+  it('draait door (besluit 303): hoger met het verschil tussen zijn eigen meter en de kamer', () => {
+    const stand = (airco: ActuatorState) =>
+      decide({ config: help(), state: koud({ airco }), strategies: defaultStrategies() }).proposed.find((i) => i.strategyId === 'heat-assist' && i.actuatorId === 'ac-zolder')?.setpointC;
+    const uit = (eigen: number | null) => ({ ...actuator('off', { minutesAgo: 20 }), ...(eigen == null ? {} : { ownTemperatureC: value(eigen, NOW) }) });
+    // Zonder eigen meter, of als hij de kamer zelf meet: het doel van de kamer.
+    expect(stand(uit(null))).toBe(18);
+    expect(stand(uit(17.5))).toBe(18);
+    // Hoog aan de wand 1,1° warmer: een graad hoger, in halve graden.
+    expect(stand(uit(18.6))).toBe(19);
+    // Hooguit twee graden.
+    expect(stand(uit(22))).toBe(20);
+    // Eenmaal aan zakt hij niet terug als zijn eigen meter dichter bij de kamer komt.
+    const aan = { ...actuator('heat', { setpointC: 19, minutesAgo: 10 }), ownTemperatureC: value(17.6, NOW) };
+    expect(stand(aan)).toBe(19);
+  });
+
   it('een airco die uit staat bij Helpen bij de cv, helpt niet', () => {
     expect(helpt(help({ off: ['ac-zolder'] }), koud())).toBe(false);
   });

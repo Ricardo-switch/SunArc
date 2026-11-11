@@ -123,7 +123,10 @@ verwijzing bestaat.
   Sinds 0.165.0 een eigen deel bij Regeling, met elke airco, ook zolder: hij
   helpt alleen als hij goedkoper is dan de ketel (prijzen en een tabel per
   buitentemperatuur), gaat door tot zijn kamer op temperatuur is, minstens 30
-  minuten aan en 15 uit ([289], [292]). Daarvoor per kamer bij Regeling ›
+  minuten aan en 15 uit ([289], [292]). Een airco die zijn eigen meter
+  warmer ziet dan de kamer, staat hoger zodat hij doordraait, en in zijn blad
+  staat de dag: wanneer de ketel stookte en wanneer hij hielp ([303]).
+  Daarvoor per kamer bij Regeling ›
   Klimaat ([283]). Een radiatorknop of de thermostaat van een gasketel kan niet
   op zon ([291]).
 - **De stand op Thuis** zegt wat er meespeelt: met de hand, bijspringen,
@@ -936,4 +939,5 @@ verwijzing bestaat.
 [300]: DECISIONS.md#300-een-kachel-uit-meer-delen-ir-knoppen-de-stekker-en-de-temperatuur
 [301]: DECISIONS.md#301-een-laadpaal-uit-losse-sensoren
 [302]: DECISIONS.md#302-de-fasekaart-hoe-vol-elke-fase-is
+[303]: DECISIONS.md#303-helpen-bij-de-cv-doordraaien-en-de-dag-in-het-blad-van-de-airco
 <!-- links:einde -->
