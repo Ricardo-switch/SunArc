@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Apparaat toevoegen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Apparaat toevoegen (schets, 11 november 2026; issues 157, 160, 161).
+   *
+   * Een eigen scherm in de tab Apparaten, niet meer via Regeling › Op zon.
+   * Links wat SunArc in Home Assistant vond en nog niet is ingedeeld.
+   * Rechts zelf kiezen, per soort. Na de keuze: wat het is, de naam, waar
+   * het staat, en wat SunArc mag. Op zon kiezen gebeurt hier niet: dat doe
+   * je later in het blad van het apparaat, en alleen met een echte meter
+   * (behalve klimaat).
+   *
+   * Een schakelaar is een eigen apparaat: je kiest wat hij aanzet. Een lamp
+   * komt bij Licht en ook bij het licht van zijn kamer op Thuis. Staat iets
+   * niet als apparaat in Home Assistant, zoals een laadpaal via Modbus, dan
+   * kies je losse sensoren.
+   *
+   * Standen:
+   *   (zonder)   wat nieuw is, en zelf kiezen per soort
+   *   #shelly    de Shelly 1 mini (157): lamp, naam, Schuur, met de hand
+   *   #rfxcom    klik-aan-klik-uit via RFXCOM (161): naam en kamer missen
+   *   #laadpaal  Auto en laden › Laadpaal met losse sensoren (160)
+   *   #ir        de IR-afstandsbediening in het tuinhuis: twee knoppen met
+   *              een code, de stekker die meet en de temperatuur worden
+   *              samen één kachel
+   */
+  main { padding: 22px 26px 20px 22px; display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  .kopregel { display: flex; align-items: center; gap: 14px; }
+  .terug { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 16px 0 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.07); border: 1px solid var(--glas-rand); font-size: 14.5px; font-weight: 600; color: var(--zacht); }
+  .terug i { font-style: normal; font-size: 20px; line-height: 1; margin-top: -2px; }
+  .kopregel .kop-1 { font-size: 40px; margin-left: 4px; }
+  .veld { flex: 1; display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 16px; min-height: 0; }
+
+  /* Links: nieuw gevonden. */
+  .gevonden { align-self: start; padding: 16px 8px 10px; border-radius: 24px; display: flex; flex-direction: column; }
+  .gevonden h2 { margin: 0 12px 2px; font-size: 17px; font-weight: 700; }
+  .gevonden > p { margin: 0 12px 10px; font-size: 13px; color: var(--gedempt); }
+  .rij { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 1px 12px; align-items: center; min-height: 62px; padding: 6px 12px; border-radius: 16px; position: relative; }
+  .rij .ik { grid-row: 1 / 3; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); }
+  .rij .ik svg { width: 22px; height: 22px; }
+  .rij b { font-size: 15.5px; font-weight: 600; align-self: end; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rij small { grid-column: 2; font-size: 12.5px; color: var(--gedempt); align-self: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rij .pijl { grid-row: 1 / 3; grid-column: 3; color: var(--gedempt); font-size: 22px; }
+  .rij.nu { background: rgba(255, 255, 255, 0.1); }
+  .rij.nu::before { content: ''; position: absolute; left: -2px; top: 18px; bottom: 18px; width: 4px; border-radius: 2px; background: var(--tekst); }
+  .verborgen { margin: 8px 12px 2px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.07); display: flex; justify-content: space-between; font-size: 13px; color: var(--gedempt); }
+  .verborgen b { color: var(--zacht); font-weight: 600; }
+
+  /* Rechts. */
+  .vorm { padding: 20px 24px 18px; border-radius: 24px; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+  .vorm h2 { margin: 0; font-family: var(--kop); font-size: 24px; font-weight: 600; }
+  .vorm .lead { margin: 2px 0 0; font-size: 14px; color: var(--zacht); max-width: none; }
+  .soorten { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, 1fr); gap: 12px; min-height: 0; }
+  .soort { display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-rows: auto auto; align-content: center; gap: 2px 16px; padding: 14px 18px; border-radius: 20px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.07); }
+  .soort .ik { grid-row: 1 / 3; width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; }
+  .soort .ik svg { width: 30px; height: 30px; }
+  .soort b { font-size: 17px; font-weight: 600; align-self: end; }
+  .soort span { font-size: 13px; color: var(--gedempt); line-height: 1.35; align-self: start; }
+  .soort.zoek { border-style: dashed; background: none; }
+
+  /* Zo komt hij op Apparaten: dezelfde tegel als daar. */
+  .voorbeeld { display: grid; grid-template-columns: 170px 360px; gap: 14px; align-items: center; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .voorbeeld > b { font-size: 15px; font-weight: 600; }
+  .voorbeeld > b small { display: block; font-size: 12.5px; font-weight: 500; color: var(--gedempt); margin-top: 2px; }
+  .tegel { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 10px 12px; align-items: center; padding: 14px 16px; border-radius: 20px; background: rgba(247, 181, 72, 0.06); border: 1px solid rgba(247, 181, 72, 0.18); }
+  .tegel .ik { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; }
+  .tegel .ik svg { width: 22px; height: 22px; }
+  .tegel .wie { display: block; min-width: 0; }
+  .tegel .wie b { display: block; font-size: 15.5px; font-weight: 600; }
+  .tegel .wie small { display: block; font-size: 12.5px; color: var(--gedempt); }
+  .tegel .tstand { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; padding-top: 9px; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 13.5px; font-weight: 600; }
+  .tegel .tstand .stip { width: 8px; height: 8px; }
+  .tegel .tstand .meter { margin-left: auto; font-size: 13px; }
+  .dim { color: var(--gedempt); font-weight: 500; }
+  .schakel { width: 48px; height: 28px; border-radius: 999px; background: var(--mint); position: relative; flex: none; }
+  .schakel::after { content: ''; position: absolute; right: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+  .uitleg { padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.07); font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+
+  /* Het gekozen apparaat. */
+  .wie { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 2px 14px; align-items: center; }
+  .wie .ik { grid-row: 1 / 3; width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); }
+  .wie .ik svg { width: 26px; height: 26px; }
+  .wie h2 { align-self: end; }
+  .wie small { font-size: 13px; color: var(--gedempt); }
+  .wie small code { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--zacht); }
+  .stap { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 14px; align-items: center; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .stap > b { font-size: 15px; font-weight: 600; align-self: start; padding-top: 10px; }
+  .stap > b small { display: block; font-size: 12.5px; font-weight: 500; color: var(--gedempt); margin-top: 2px; }
+  .keuzes { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+  .keuze { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px 9px; border-radius: 14px; background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.07); font-size: 13px; font-weight: 600; color: var(--zacht); }
+  .keuze svg { width: 24px; height: 24px; }
+  .keuze.aan { background: rgba(247, 181, 72, 0.12); border-color: var(--zon); color: var(--tekst); }
+  .onder { grid-column: 2; margin: -4px 0 0; font-size: 13px; color: var(--zacht); }
+  .invoer { height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-radius: 13px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--glas-rand); font-size: 15.5px; font-weight: 600; }
+  .invoer.leeg { color: var(--gedempt); font-weight: 500; }
+  .invoer .pijl { color: var(--gedempt); font-size: 20px; }
+  .invoer .bron { font-size: 12.5px; font-weight: 500; color: var(--gedempt); }
+  .mist { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; background: rgba(255, 122, 77, 0.16); color: var(--gloed); font-size: 12px; font-weight: 700; }
+  .seg { display: inline-grid; grid-auto-flow: column; gap: 3px; padding: 3px; border-radius: 13px; background: rgba(255, 255, 255, 0.06); justify-self: start; }
+  .seg span { height: 38px; display: grid; place-items: center; border-radius: 10px; padding: 0 18px; font-size: 14px; font-weight: 700; color: var(--zacht); }
+  .seg span.aan { background: var(--tekst); color: var(--inkt); }
+  .seg span.niet { color: rgba(255, 255, 255, 0.28); }
+  .let { display: flex; gap: 10px; align-items: flex-start; padding: 11px 14px; border-radius: 14px; background: rgba(111, 211, 255, 0.07); border: 1px solid rgba(111, 211, 255, 0.18); font-size: 13.5px; color: var(--zacht); line-height: 1.4; }
+  .let svg { width: 20px; height: 20px; flex: none; margin-top: 1px; }
+  .klaar { margin-top: auto; display: flex; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .klaar .knop { height: 48px; padding: 0 26px; border: 0; }
+  .klaar .knop.hoofd { background: var(--tekst); color: var(--inkt); }
+  .klaar .knop.hoofd.uit { opacity: 0.35; }
+  .klaar .stil { margin-left: auto; font-size: 14px; font-weight: 600; color: var(--gedempt); }
+
+  /* Losse sensoren. */
+  .pad { font-size: 13.5px; font-weight: 600; color: var(--gedempt); }
+  .pad b { color: var(--zacht); }
+  .sensoren { display: flex; flex-direction: column; }
+  .sensor { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; gap: 14px; align-items: center; min-height: 44px; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 14px; }
+  .sensor:first-child { border-top: 0; }
+  .sensor > b { font-weight: 600; }
+  .sensor > b small { font-weight: 500; color: var(--gedempt); font-size: 12px; margin-left: 4px; }
+  .sensor code { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; color: var(--zacht); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sensor .w { font-weight: 700; text-align: right; white-space: nowrap; }
+  .sensor .w.dim { color: var(--gedempt); font-weight: 600; }
+  .sensor .w .vink { color: var(--mint); margin-left: 8px; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-dag">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="kopregel"><span class="terug"><i>‹</i>Apparaten</span><h1 class="kop-1">Apparaat toevoegen</h1></div>
+    <div class="veld">
+      <section class="glas gevonden" id="gevonden"></section>
+      <section class="glas vorm" id="vorm"></section>
+    </div>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="apparaten-soorten.js"></script>
+<script>
+  nav.balk(document.getElementById('balk'), 'apparaten');
+  const toon = location.hash.slice(1) || 'kiezen';
+  const { ik, SOORTEN, GEVONDEN, AAN_SCHAKELAAR } = schets;
+  const INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="#a9e6ff" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6h.01"/></svg>';
+  const gekozen = { shelly: 'shelly', rfxcom: 'rfx1', ir: 'ir' }[toon];
+
+  /* Links: nieuw gevonden. */
+  document.getElementById('gevonden').innerHTML = `
+    <h2>Nieuw gevonden</h2>
+    <p>In Home Assistant, nog niet ingedeeld.</p>
+    ${GEVONDEN.map((g) => `<div class="rij${g.id === gekozen ? ' nu' : ''}"><span class="ik">${ik(g.icoon)}</span><b>${g.naam}</b><small>${g.waar ?? 'geen ruimte'} · ${g.koppeling} · ${g.wat.toLowerCase()}</small><span class="pijl">›</span></div>`).join('')}
+    <div class="verborgen"><span>Geen apparaat, verborgen</span><b>6 ›</b></div>`;
+
+  /* Rechts. */
+  const vorm = document.getElementById('vorm');
+  const keuzes = (aan) => `<div class="keuzes">${AAN_SCHAKELAAR.map(([icoon, naam]) => `<span class="keuze${naam === aan ? ' aan' : ''}">${ik(icoon)}${naam}</span>`).join('')}</div>`;
+  const mag = (welke, nietZin) => `<div class="stap"><b>Wat mag SunArc?</b><div style="display: flex; flex-direction: column; gap: 8px"><span class="seg"><span class="${welke === 'kijken' ? 'aan' : ''}">Alleen kijken</span><span class="${welke === 'hand' ? 'aan' : welke === 'geen-hand' ? 'niet' : ''}">Met de hand</span><span class="niet">Op zon</span></span><span style="font-size: 13px; color: var(--gedempt)">${nietZin}</span></div></div>`;
+
+  if (toon === 'kiezen') {
+    vorm.innerHTML = `
+      <div><h2>Wat wil je toevoegen?</h2><p class="lead">Kies de soort. Daarna kies je het apparaat uit Home Assistant.</p></div>
+      <div class="soorten">${SOORTEN.map((s) => `<div class="soort"><span class="ik" style="background: rgba(${s.kleur}, 0.14)">${ik(s.icoon)}</span><b>${s.naam}</b><span>${s.wat}</span></div>`).join('')}<div class="soort zoek"><span class="ik" style="background: rgba(255, 255, 255, 0.06)">${ik('oog')}</span><b>Zoeken</b><span>Alles uit Home Assistant, op naam</span></div></div>
+      <p class="uitleg">Staat het niet als apparaat in Home Assistant, zoals een laadpaal via Modbus? Dan kies je losse sensoren: wat hij nu gebruikt, of hij aan staat, en de rest die er is.</p>`;
+  }
+
+  if (toon === 'shelly') {
+    vorm.innerHTML = `
+      <div class="wie"><span class="ik">${ik('apparaat')}</span><h2>Shelly 1 mini Gen3</h2><small>Schakelaar · Shelly · <code>switch.shelly1minig3_5432</code> · geen meter</small></div>
+      <div class="stap"><b>Wat zet hij aan?</b>${keuzes('Lamp')}<p class="onder">Een lamp komt bij Licht, en bij het licht van de Schuur op Thuis en in je scènes.</p></div>
+      <div class="stap"><b>Naam</b><div class="invoer">Lamp schuur</div></div>
+      <div class="stap"><b>Waar</b><div class="invoer">Schuur<span class="bron">uit Home Assistant <span class="pijl">›</span></span></div></div>
+      ${mag('hand', 'Op zon kan niet: deze schakelaar meet niet wat hij gebruikt. Met een Shelly 1PM mini kan het wel.')}
+      <div class="voorbeeld"><b>Zo komt hij erbij<small>Apparaten › Licht</small></b>${schets.tegel(schets.APPARATEN.find((a) => a.naam === 'Lamp schuur'), SOORTEN[1])}</div>
+      <div class="klaar"><button class="knop hoofd">Toevoegen</button><span class="stil">Dit is geen apparaat</span></div>`;
+  }
+
+  if (toon === 'rfxcom') {
+    vorm.innerHTML = `
+      <div class="wie"><span class="ik">${ik('apparaat')}</span><h2>AC 0x01a2b3c4:1</h2><small>Schakelaar · RFXCOM · klik-aan-klik-uit · <code>switch.ac_0x01a2b3c4_1</code></small></div>
+      <div class="stap"><b>Wat zet hij aan?<small>Meestal een lamp</small></b>${keuzes('Lamp')}</div>
+      <div class="stap"><b>Naam</b><div class="invoer leeg">Bijvoorbeeld Tuinverlichting<span class="mist">Vul in</span></div></div>
+      <div class="stap"><b>Waar</b><div class="invoer leeg">Kies een kamer of plek buiten<span class="mist">Kies</span></div></div>
+      ${mag('hand', 'Op zon kan niet zonder meter.')}
+      <div class="let">${INFO}<span>Klik-aan-klik-uit zegt niet terug of hij aan staat. SunArc laat zien wat het laatst gestuurd is. Gebruik je ook de afstandsbediening, dan ziet SunArc dat alleen als je RFXtrx het opvangt.</span></div>
+      <div class="klaar"><button class="knop hoofd uit">Toevoegen</button><span class="stil">Dit is geen apparaat</span></div>`;
+  }
+
+  if (toon === 'laadpaal') {
+    const rij = (rol, id, w, vink = true) => `<div class="sensor"><b>${rol}</b><code>${id}</code><span class="w${vink ? '' : ' dim'}">${w}${vink ? '<span class="vink">✓</span>' : ''}</span></div>`;
+    vorm.innerHTML = `
+      <span class="pad">Wat wil je toevoegen? › <b>Auto en laden</b> › <b>Laadpaal</b></span>
+      <div class="stap" style="border-top: 0; padding-top: 0"><b>Uit Home Assistant</b><div style="display: flex; flex-direction: column; gap: 8px"><span class="seg"><span>Een apparaat</span><span class="aan">Losse sensoren</span></span><span style="font-size: 13px; color: var(--gedempt)">Geen laadpaal als apparaat gevonden. Via Modbus staan de sensoren los; SunArc zocht op "nexblue".</span></div></div>
+      <div class="sensoren">
+        ${rij('Vermogen nu <small>nodig</small>', 'sensor.nexblue_power', '1,4 kW')}
+        ${rij('Laadt hij?', 'sensor.nexblue_charging_state', 'Charging')}
+        ${rij('Stroom per fase', 'sensor.nexblue_current_l1 · l2 · l3', '6 · 6 · 6 A')}
+        ${rij('Totaal geladen', 'sensor.nexblue_energy_total', '1.284 kWh')}
+        ${rij('Kabel erin', 'niet gevonden', 'Kies ›', false)}
+      </div>
+      <div class="stap"><b>Naam en plek</b><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"><div class="invoer">NexBlue Edge Max</div><div class="invoer">Oprit<span class="pijl">›</span></div></div></div>
+      ${mag('kijken', 'Eerst alleen kijken. Bedienen via Modbus komt in een volgende stap.').replace('<span class="">Met de hand</span>', '<span class="niet">Met de hand</span>')}
+      <div class="klaar"><button class="knop hoofd">Toevoegen</button></div>`;
+  }
+  if (toon === 'ir') {
+    vorm.style.gap = '10px';
+    const knop = (n, naam, code) => `<div class="sensor"><b>Knop ${n}</b>${code ? `<div class="invoer" style="height: 38px">${naam}</div>` : '<code>geen code geleerd</code>'}<span class="w${code ? '' : ' dim'}">${code ? 'code<span class="vink">✓</span>' : 'verborgen'}</span></div>`;
+    const deel = (rol, id, w) => `<div class="sensor"><b>${rol}</b><code>${id}</code><span class="w">${w}<span class="vink">✓</span></span></div>`;
+    vorm.innerHTML = `
+      <div class="wie"><span class="ik">${ik('warm')}</span><h2>Heater tuinhuis</h2><small>IR-afstandsbediening · HOBEIAN ZG-IR01 · Zigbee2MQTT · met temperatuur</small></div>
+      <div class="stap"><b>Wat bedient hij?</b>${keuzes('Kachel')}<p class="onder">Een kachel komt bij Klimaat.</p></div>
+      <div class="stap"><b>Knoppen<small>2 van 6 hebben een code</small></b><div class="sensoren">${knop(1, 'Aan en uit', true)}${knop(2, 'Hoge stand', true)}<div class="sensor"><b>Knop 3 tot 6</b><code>geen code geleerd</code><span class="w dim">verborgen</span></div></div></div>
+      <div class="stap"><b>Hoort erbij<small>SunArc stelt het voor</small></b><div class="sensoren">
+        ${deel('Stekker', 'switch.smart_plug_verwarming_tuinhuis', 'meet, nu 0 W')}
+        ${deel('Temperatuur', 'sensor.heater_tuinhuis_temperature', '6,3°')}
+      </div></div>
+      <div class="stap"><b>Naam en plek</b><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"><div class="invoer">Kachel tuinhuis</div><div class="invoer">Tuinhuis<span class="pijl">›</span></div></div></div>
+      <div class="let">${INFO}<span>IR zegt niet terug of de kachel aan staat. De stekker meet of hij echt stroom trekt.</span></div>
+      <div class="klaar"><button class="knop hoofd">Toevoegen</button><span class="stil">Dit is geen apparaat</span></div>`;
+  }
+</script>
+</body>
+</html>

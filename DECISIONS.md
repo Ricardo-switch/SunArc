@@ -286,6 +286,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [286. De stand van het huis zegt wat er meespeelt](#286-de-stand-van-het-huis-zegt-wat-er-meespeelt)
 - [287. Handmatig koelen en vakantie bij de stand](#287-handmatig-koelen-en-vakantie-bij-de-stand)
 - [288. Je huis op maat: vorm, etages, kamers als vakken en de plek van apparaten](#288-je-huis-op-maat-vorm-etages-kamers-als-vakken-en-de-plek-van-apparaten)
+- [293. Apparaten in soorten, een eigen scherm Toevoegen, en schakelaars](#293-apparaten-in-soorten-een-eigen-scherm-toevoegen-en-schakelaars)
 
 **Veiligheid**
 
@@ -13519,6 +13520,69 @@ Ricardo: "ga hierna verder met helpen met cv".
   verschil tussen zijn eigen meter en de kamer (doordraaien), de dagbalk in het
   blad van de airco, en leren met de stroommeter van de airco. De airco's echt
   sturen blijft stap B: tot dan is het de schaduw.
+
+---
+
+## 293. Apparaten in soorten, een eigen scherm Toevoegen, en schakelaars
+
+*Onderwerp: weergave · Status: geldig*
+
+11 november 2026, schets Wand-Apparaten-Soorten en Wand-Apparaat-Toevoegen
+(met de telefoon), na de meldingen 157 (Shelly 1 mini), 160 (NexBlue via
+Modbus) en 161 (klik-aan-klik-uit via RFXCOM). Ricardo: "het gaat vooral om
+apparaat ondersteuning", "ik wil meer overzicht in de zin van categorieën",
+"om schakelaars te ondersteunen is een heel nieuw apparaattype". Zijn keuzes
+staan hieronder.
+
+*Waarom:*
+
+- **Waarom ze ontbreken.** Een schakelaar telt nu alleen als stekker als hij zo
+  heet of zelf meet (`findPlugs`): een Shelly 1 mini en een klik-aan-klik-uit
+  (RFXCOM maakt van een gewone ontvanger een `switch.`, zonder ruimte, zonder
+  meter, met een naam als "AC 0x01a2b3c4:1") vallen af. Een apparaat met meer
+  schakelaars ook, zoals een IR-afstandsbediening (HOBEIAN ZG-IR01, zes
+  knoppen). Een laadpaal via Modbus heeft in Home Assistant geen apparaat,
+  alleen losse sensoren, en SunArc zoekt per apparaat.
+- **Niet alles is een apparaat.** In het eigen huis staan 48 schakelaars zonder
+  vaste rol: de meeste zijn instellingen of software (Adaptive Lighting,
+  AdGuard, de NAS, de router, het kinderslot van de droger).
+
+*Besluit:*
+
+- **Apparaten in soorten:** Klimaat, Licht, Warm water en bad, Witgoed, Auto
+  en laden, Thuisaccu, Stekkers en Schakelaars. Een rij bovenaan springt naar
+  een soort. Kleine soorten delen een rij. Deze pagina mag op de wand scrollen
+  (een uitzondering op [104]): anders past het alleen met een pagina per soort.
+- **Licht op Apparaten:** alle lampen, per kamer, om snel te bedienen. Een lamp
+  achter een Shelly of klik-aan-klik-uit is daar gewoon één lamp, met "via".
+  Lampen zonder kamer staan samen onder "Zonder kamer". Een knop zoals een Hue
+  dimmer is geen apparaat en staat nergens.
+- **Stekkers en Schakelaars** zijn eigen soorten. Een schakelaar is een relais
+  in de muur: je kiest wat hij aanzet. Een lamp komt bij Licht, een kachel of
+  ventilator bij Klimaat, de rest bij Schakelaars.
+- **Een eigen scherm Toevoegen** in de tab Apparaten, in plaats van Regeling ›
+  Op zon: links wat nieuw gevonden is (met "Dit is geen apparaat"), rechts zelf
+  kiezen per soort of zoeken. Daarna: wat het is, de naam, waar, en wat SunArc
+  mag (alleen kijken, met de hand).
+- **Losse sensoren aanwijzen** als iets geen apparaat is in Home Assistant,
+  zoals een laadpaal via Modbus: SunArc stelt ze voor, eerst alleen kijken.
+- **Een apparaat uit meer delen:** een IR-afstandsbediening met de knoppen die
+  een code hebben, een stekker die meet en de temperatuur worden samen één
+  kachel. IR en klik-aan-klik-uit zeggen niet terug of iets aan staat: de app
+  toont wat het laatst gestuurd is.
+- **Alleen echte meters,** behalve bij klimaat: daar mag je het vermogen
+  invullen (vloerverwarming, infraroodpaneel, een kachel zonder meter). Het
+  ingevulde vermogen van een stekker ([264]) gaat weg. Zonder meter kan iets
+  niet op zon.
+- **Kinderslot in het blad:** bij een thermostaat of droger met een kinderslot
+  staat onderaan het blad "Op de thermostaat" (of "Op de droger") met een
+  schakelaar die meteen gaat.
+- **Bedienen vraagt eigen deuren:** een lamp achter een schakelaar, een
+  schakelaar, IR-knoppen en een kinderslot schakelen een `switch.` die nu niet
+  mag. Elke deur krijgt bij het bouwen zijn eigen besluit en test ([97], [265]).
+- **Bouwen in stappen,** elk een versie: de soorten op Apparaten; het scherm
+  Toevoegen; schakelaars, IR en losse sensoren; het kinderslot en het
+  vermogen.
 
 ---
 

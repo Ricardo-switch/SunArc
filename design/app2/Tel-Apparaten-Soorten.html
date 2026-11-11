@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Apparaten in soorten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Apparaten in soorten op de telefoon (schets, 11 november 2026). Dezelfde
+   * inhoud als Wand-Apparaten-Soorten (apparaten-soorten.js). De soorten
+   * staan in een rij die opzij schuift en blijft bovenaan staan. Klimaat,
+   * witgoed, auto en accu als kaart; lampen, pompen en stekkers als regels
+   * in één vlak per soort, met de schakelaar rechts.
+   *
+   * Standen: (zonder) bovenaan, #licht gesprongen naar Licht, #blad het blad
+   * van de thermostaat in de badkamer van onderen, met het kinderslot.
+   */
+  body { margin: 0; width: 390px; min-height: 844px; }
+  .tel .tabs { position: fixed; }
+  .scherm { padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 14px; }
+  .kop { display: flex; align-items: center; gap: 10px; }
+  .kop h1 { margin: 0 auto 0 0; font-size: 34px; }
+  .rond { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); border: 1px solid var(--glas-rand); }
+  .rond svg { width: 20px; height: 20px; }
+  .erbij { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px 0 10px; border-radius: 999px; background: var(--tekst); color: var(--inkt); font-weight: 700; font-size: 14.5px; text-decoration: none; }
+  .erbij i { font-style: normal; font-size: 20px; line-height: 1; }
+  .erbij .nieuw { position: absolute; top: -7px; right: -6px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--gloed); color: #fff; font-size: 11.5px; font-weight: 700; display: grid; place-items: center; }
+
+  .nu { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 2px 12px; align-items: center; padding: 12px 16px 13px; border-radius: 20px; }
+  .nu svg { width: 30px; height: 30px; grid-row: 1 / 3; }
+  .nu b { font-family: var(--kop); font-size: 17px; font-weight: 600; }
+  .nu span { font-size: 12.5px; color: var(--gedempt); }
+  .nu .strook { grid-column: 1 / -1; display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 6px; }
+  .nu .strook i { display: block; height: 100%; }
+
+  .soorten { position: sticky; top: 0; z-index: 3; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 6px 16px 0; background: linear-gradient(#0f1d33 70%, rgba(15, 29, 51, 0)); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+  .soorten a { flex: none; display: inline-flex; align-items: baseline; gap: 5px; padding: 8px 10px 10px; font-size: 14.5px; font-weight: 600; color: var(--zacht); text-decoration: none; border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+  .soorten a small { font-size: 12px; color: var(--gedempt); }
+  .soorten a.gekozen { color: var(--tekst); border-bottom-color: var(--tekst); }
+
+  .rol { display: flex; flex-direction: column; gap: 22px; padding-top: 6px; }
+  .soort h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-family: var(--kop); font-size: 20px; font-weight: 600; }
+  .soort h2 .ik { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; }
+  .soort h2 .ik svg { width: 18px; height: 18px; }
+  .soort h2 small { font-family: var(--romp); font-size: 13px; font-weight: 600; color: var(--gedempt); }
+  .voet { margin: 8px 2px 0; font-size: 12.5px; color: var(--gedempt); }
+
+  .kaarten { display: flex; flex-direction: column; gap: 10px; }
+  .app { padding: 15px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .app .kopje { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+  .app .ik { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; }
+  .app .ik svg { width: 22px; height: 22px; }
+  .app .kopje b { display: block; font-size: 16px; }
+  .app .waar { font-size: 12.5px; color: var(--gedempt); }
+  .app .kw { font-family: var(--kop); font-size: 22px; font-weight: 600; text-align: right; line-height: 1.1; }
+  .app .kw span { display: block; font-family: var(--romp); font-size: 11.5px; font-weight: 500; color: var(--gedempt); }
+  .app .stand { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+  .app .stand i { width: 8px; height: 8px; border-radius: 50%; display: block; }
+  .app .zin { margin: 0; font-size: 13px; color: var(--zacht); line-height: 1.45; }
+  .app .zin.dim { color: var(--gedempt); }
+  .app .vandaag { padding-top: 9px; border-top: 1px solid rgba(255, 255, 255, 0.06); display: flex; justify-content: space-between; font-size: 12.5px; color: var(--gedempt); }
+  .app .vandaag b { color: var(--tekst); font-weight: 600; }
+  .lading { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .lading .regel { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--gedempt); }
+  .lading .regel b { color: var(--tekst); }
+  .lading .baan { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+  .lading .baan i { display: block; height: 100%; }
+
+  /* Regels in één vlak. */
+  .tegels { border-radius: 20px; background: var(--glas); border: 1px solid var(--glas-rand); padding: 2px 14px; }
+  .tegel { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding: 12px 0; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .tegel:first-child { border-top: 0; }
+  .tegel .ik { grid-row: 1 / 3; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; }
+  .tegel .ik svg { width: 20px; height: 20px; }
+  .tegel .wie b { display: block; font-size: 15px; font-weight: 600; }
+  .tegel .wie small { display: none; }
+  .tegel .schakel, .tegel .kijk { grid-row: 1 / 3; grid-column: 3; }
+  .tegel .kijk { font-size: 12px; font-weight: 600; color: var(--gedempt); }
+  .tegel .tstand { grid-column: 2; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--zacht); }
+  .tegel .tstand .stip { width: 7px; height: 7px; flex: none; }
+  .tegel .tstand .meter { font-weight: 500; color: var(--gedempt); }
+  .tegel .tstand .meter::before { content: '· '; }
+  .tegel .tstand .meter b { font-weight: 600; color: var(--zacht); }
+  .dim { color: var(--gedempt); font-weight: 500; }
+  .schakel { width: 46px; height: 28px; border-radius: 999px; background: var(--mint); position: relative; flex: none; }
+  .schakel::after { content: ''; position: absolute; right: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+  .schakel.uit { background: rgba(255, 255, 255, 0.16); }
+  .schakel.uit::after { right: auto; left: 3px; }
+  /* Licht: per kamer een vlak. */
+  .kamers { display: flex; flex-direction: column; gap: 10px; }
+  .kamer { padding: 4px 14px 6px; border-radius: 20px; }
+  .kkop { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 8px 0 4px; }
+  .kkop b { font-size: 15px; font-weight: 700; }
+  .kkop small { font-size: 12.5px; font-weight: 600; color: var(--gedempt); }
+  .lamp { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 50px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .lik { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.06); opacity: 0.6; }
+  .lamp.aan .lik { background: rgba(247, 181, 72, 0.18); opacity: 1; }
+  .lik svg { width: 18px; height: 18px; }
+  .lnaam { font-size: 14.5px; font-weight: 600; min-width: 0; }
+  .lnaam small { display: block; font-size: 12px; font-weight: 500; color: var(--gedempt); }
+  .mist { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 999px; background: rgba(255, 122, 77, 0.16); color: var(--gloed); font-size: 11.5px; font-weight: 700; }
+  .irknoppen { display: flex; gap: 8px; }
+  .irknoppen span { flex: 1; height: 38px; display: grid; place-items: center; border-radius: 12px; background: rgba(255, 255, 255, 0.07); border: 1px solid var(--glas-rand); font-size: 13.5px; font-weight: 700; }
+  /* Het blad van onderen (#blad). */
+  .dek { display: none; position: fixed; inset: 0; z-index: 8; background: rgba(4, 9, 18, 0.55); }
+  .blad { display: none; position: fixed; z-index: 9; left: 0; right: 0; bottom: 0; padding: 18px 18px 26px; border-radius: 26px 26px 0 0; background: #0e1828; border: 1px solid var(--glas-rand); flex-direction: column; gap: 14px; }
+  body[data-toon='blad'] .dek { display: block; }
+  body[data-toon='blad'] .blad { display: flex; }
+  .bkop { display: flex; justify-content: space-between; gap: 12px; }
+  .bkop h2 { margin: 0; font-family: var(--kop); font-size: 22px; font-weight: 600; }
+  .bkop p { margin: 3px 0 0; font-size: 13px; color: var(--zacht); }
+  .sluit { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.08); font-size: 18px; }
+  .knoprij { display: flex; align-items: center; justify-content: center; gap: 18px; }
+  .rond { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--glas-rand); font-size: 20px; }
+  .wijzer { width: 170px; height: 154px; }
+  .vraag { display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 600; }
+  .vraag .seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, 0.06); }
+  .vraag .seg span { height: 36px; display: grid; place-items: center; border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--zacht); }
+  .vraag .seg span.aan { background: rgba(255, 255, 255, 0.14); color: var(--tekst); }
+  .dagbalk { display: none; }
+  .hoe { margin: 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); font-size: 13px; color: var(--zacht); line-height: 1.4; }
+  .optoestel { padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+  .optoestel h3 { margin: 0 0 8px; font-size: 12.5px; font-weight: 700; color: var(--gedempt); }
+  .instelling { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+  .instelling .ik { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: rgba(255, 122, 77, 0.12); color: #ffb090; }
+  .instelling .ik svg { width: 20px; height: 20px; }
+  .instelling b { display: block; font-size: 15px; font-weight: 600; }
+  .instelling small { font-size: 12px; color: var(--gedempt); line-height: 1.35; }
+  .bonder .zet { width: 100%; height: 50px; border: 0; border-radius: 16px; background: var(--tekst); color: var(--inkt); font-size: 16px; font-weight: 700; }
+</style>
+</head>
+<body class="lucht lucht-dag">
+<div class="tel">
+  <div class="scherm">
+    <div class="kop">
+      <h1 class="kop-1">Apparaten</h1>
+      <a class="erbij" href="Tel-Apparaat-Toevoegen.html"><i>+</i>Toevoegen<span class="nieuw">4</span></a>
+      <span class="rond" data-icoon="instellingen"></span>
+    </div>
+    <div class="glas nu">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="9" fill="#F7B548"/><g stroke="#F7B548" stroke-width="2.4" stroke-linecap="round"><path d="M20 3v4M20 33v4M3 20h4M33 20h4M8 8l3 3M29 29l3 3M8 32l3-3M29 11l3-3"/></g></svg>
+      <b>0,1 kW over</b><span>van 4,1 kW zon · airco's 0,9 · huis 3,1</span>
+      <div class="strook"><i style="width: 22%; background: var(--ijs)"></i><i style="width: 75.5%; background: #b8c4cf"></i><i style="width: 2.5%; background: var(--mint)"></i></div>
+    </div>
+    <nav class="soorten" id="soorten" aria-label="Soorten"></nav>
+    <div class="rol" id="rol"></div>
+  </div>
+  <nav class="tabs" id="tabs" aria-label="Hoofdmenu"></nav>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="apparaten-soorten.js"></script>
+<script>
+  nav.tabs(document.getElementById('tabs'), 'apparaten');
+  document.querySelectorAll('[data-icoon]').forEach((el) => (el.innerHTML = iconen.svg(el.dataset.icoon)));
+  const toon = location.hash.slice(1) || 'alles';
+  document.getElementById('rol').innerHTML = schets.SOORTEN.map(schets.soortBlok).join('');
+  document.getElementById('soorten').innerHTML = schets.soortenRij(toon);
+  if (toon === 'blad') {
+    document.body.dataset.toon = 'blad';
+    document.body.insertAdjacentHTML('beforeend', '<div class="dek"></div>' + schets.thermostaatBlad());
+  }
+  const doel = document.getElementById(`soort-${toon}`);
+  if (doel) {
+    const rij = document.querySelector(`.soorten a.gekozen`);
+    rij.parentElement.scrollLeft = rij.offsetLeft - 60;
+    // Gesprongen: de kop en het zonblok zijn weggescrold, de soorten blijven staan.
+    document.querySelector('.kop').remove();
+    document.querySelector('.nu').remove();
+    let weg = doel.previousElementSibling;
+    while (weg) {
+      const vorige = weg.previousElementSibling;
+      weg.remove();
+      weg = vorige;
+    }
+  }
+</script>
+</body>
+</html>

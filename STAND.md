@@ -506,7 +506,11 @@ verwijzing bestaat.
   naar links of rechts. Een scherm hangt aan een gevel, en zegt alleen zon als
   die op zijn gevel staat ([145]).
 - **Vandaag** is de dag in de tijd; **Apparaten** is het nu, per apparaat een
-  kaart met wat het doet, vraagt en vandaag op zon deed ([140]).
+  kaart met wat het doet, vraagt en vandaag op zon deed ([140]). Gekozen, nog
+  niet gebouwd: Apparaten in soorten met alle lampen per kamer, Stekkers en
+  Schakelaars apart, een eigen scherm Toevoegen, losse sensoren, een apparaat
+  uit meer delen (IR-afstandsbediening met stekker), alleen echte meters
+  behalve bij klimaat, en het kinderslot in het blad ([293]).
 - **De assistent** is een gesprek: het huis begroet je, leest zijn antwoord
   voor met Piper uit Home Assistant, en vraagt of het nog iets kan doen
   ([141]). Hij zegt eerst het antwoord, kort en warm, spreekt eenheden en
@@ -912,4 +916,5 @@ verwijzing bestaat.
 [290]: DECISIONS.md#290-een-stekker-op-zon-met-één-schakelaar-en-op-zon-gaat-meteen-in
 [291]: DECISIONS.md#291-een-radiatorknop-of-een-gasketel-helpt-niet-op-zon
 [292]: DECISIONS.md#292-helpen-bij-de-cv-gebouwd-elke-airco-voor-zijn-eigen-kamer
+[293]: DECISIONS.md#293-apparaten-in-soorten-een-eigen-scherm-toevoegen-en-schakelaars
 <!-- links:einde -->
