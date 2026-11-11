@@ -25,7 +25,6 @@
 
 - Bij Apparaten toont een tik op een soort alleen die soort, in plaats van naar zijn plek in een lange lijst te springen; Alles toont weer alles, en je keuze blijft staan
 - Bij een slimme stekker zegt het blad duidelijker waar je hem met de hand schakelt: in de add-on, met Toestaan
-- Elk apparaat bij Apparaten is aan te tikken: een lamp, de boiler of de jacuzzi opent zijn kamer, waar je hem bedient; de thuisaccu opent Energie
 - Op de knop Toevoegen staat hoeveel er nieuw gevonden is
 - Hoeveel zon er over is en waar de stroom heen gaat, staat in één blok bovenaan, met een knop Toevoegen ernaast
 - Een airco helpt alleen als hij goedkoper is dan de ketel, en stopt pas als zijn kamer op temperatuur is, ook als de ketel al stopte
@@ -67,7 +66,6 @@
 
 - In Devices, tapping a kind now shows only that kind instead of jumping to it in one long list; All shows everything again, and your choice stays
 - For a smart plug the sheet says more clearly where you switch it by hand: in the add-on, with Allow
-- Every device in Devices can be tapped: a light, the boiler or the hot tub opens its room, where you operate it; the home battery opens Energy
 - The Add button shows how many were newly found
 - How much sun is to spare and where the electricity goes now is one block at the top, with an Add button next to it
 - An air conditioner only helps when it is cheaper than the boiler, and stops only when its room is at temperature, even if the boiler already stopped

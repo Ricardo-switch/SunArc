@@ -74,7 +74,7 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
@@ -200,7 +200,6 @@ export const NIEUW: readonly Nieuw[] = [
     beter: [
       'Bij Apparaten toont een tik op een soort alleen die soort, in plaats van naar zijn plek in een lange lijst te springen; Alles toont weer alles, en je keuze blijft staan',
       'Bij een slimme stekker zegt het blad duidelijker waar je hem met de hand schakelt: in de add-on, met Toestaan',
-      'Elk apparaat bij Apparaten is aan te tikken: een lamp, de boiler of de jacuzzi opent zijn kamer, waar je hem bedient; de thuisaccu opent Energie',
     ],
     opgelost: [
       'Toevoegen noemde een droger uit de configuratie "nog niet op zon", terwijl hij bij Regeling al op zon stond',
@@ -209,7 +208,6 @@ export const NIEUW: readonly Nieuw[] = [
       beter: [
         'In Devices, tapping a kind now shows only that kind instead of jumping to it in one long list; All shows everything again, and your choice stays',
         'For a smart plug the sheet says more clearly where you switch it by hand: in the add-on, with Allow',
-        'Every device in Devices can be tapped: a light, the boiler or the hot tub opens its room, where you operate it; the home battery opens Energy',
       ],
       opgelost: [
         'Add called a dryer from the configuration "not on sun yet", while Control already had it on sun',
