@@ -77,20 +77,28 @@ export class BufferStore {
   readonly #now: () => number;
   readonly #limit: number;
   #recent: number[] = [];
+  /** De configuratie van nu: op zon gaat meteen in (besluit 290). */
+  #config: SiteConfig;
   #current: Bewaard = { klaarOm: {}, legionella: {}, vol: {} };
 
   constructor(options: BufferOptions) {
     this.#options = options;
+    this.#config = options.config;
     this.#path = join(options.logDir, BUFFERS_FILE);
     this.#now = options.now ?? Date.now;
     this.#limit = options.perTenMinutes ?? 30;
+  }
+
+  /** Een apparaat op zon erbij of eraf, zonder herstart (besluit 290). */
+  setConfig(next: SiteConfig): void {
+    this.#config = next;
   }
 
   async load(): Promise<void> {
     try {
       const raw = JSON.parse(await readFile(this.#path, 'utf-8')) as Record<string, unknown>;
       if (raw?.['versie'] !== 1) return;
-      const known = new Set((this.#options.config.heatStores ?? []).map((h) => h.id));
+      const known = new Set((this.#config.heatStores ?? []).map((h) => h.id));
       const tijden = (v: unknown) =>
         Object.fromEntries(Object.entries(typeof v === 'object' && v != null ? v : {}).filter((e): e is [string, number] => known.has(e[0]) && isGetal(e[1])));
       const klaarOm = Object.fromEntries(
@@ -113,7 +121,7 @@ export class BufferStore {
   /** Per buffer wat de kern van de dienst krijgt. */
   get extra(): Readonly<Record<string, HeatStoreExtra>> {
     return Object.fromEntries(
-      (this.#options.config.heatStores ?? []).map((h) => [
+      (this.#config.heatStores ?? []).map((h) => [
         h.id,
         {
           readyBy: this.#current.klaarOm[h.id] ?? null,
@@ -130,17 +138,17 @@ export class BufferStore {
   #minimum(h: NonNullable<SiteConfig['heatStores']>[number]): { atMs: number; remainingMs: number } | null {
     if (h.kind !== 'stekker' || h.minimum == null) return null;
     const t = this.#now();
-    const atMs = nextLocalTime(t, h.minimum.by, this.#options.config.timezone);
+    const atMs = nextLocalTime(t, h.minimum.by, this.#config.timezone);
     const gehad = aanTussen(this.#current.aan?.[h.id] ?? [], this.#current.aanSinds?.[h.id] ?? null, atMs - DAG_MS, t);
     return { atMs, remainingMs: Math.max(0, h.minimum.minutes * 60_000 - gehad) };
   }
 
   /** Hoe lang een stekker aan was in de 24 uur voor zijn minimum, in minuten; voor het blad. */
   aanGehad(id: string): number | null {
-    const h = (this.#options.config.heatStores ?? []).find((x) => x.id === id);
+    const h = (this.#config.heatStores ?? []).find((x) => x.id === id);
     if (h?.kind !== 'stekker' || h.minimum == null) return null;
     const t = this.#now();
-    const atMs = nextLocalTime(t, h.minimum.by, this.#options.config.timezone);
+    const atMs = nextLocalTime(t, h.minimum.by, this.#config.timezone);
     return Math.floor(aanTussen(this.#current.aan?.[h.id] ?? [], this.#current.aanSinds?.[h.id] ?? null, atMs - DAG_MS, t) / 60_000);
   }
 
@@ -149,7 +157,7 @@ export class BufferStore {
     if (typeof body !== 'object' || body == null || Array.isArray(body)) return { ok: false, status: 400, reden: 'verwacht { id, klaarOm }' };
     const b = body as Record<string, unknown>;
     const id = b['id'];
-    const h = (this.#options.config.heatStores ?? []).find((x) => x.id === id);
+    const h = (this.#config.heatStores ?? []).find((x) => x.id === id);
     if (typeof id !== 'string' || h == null) return { ok: false, status: 404, reden: 'dat apparaat kent SunArc niet als warmtebuffer' };
     if (h.kind === 'stekker') return { ok: false, status: 400, reden: 'een stekker heeft geen klaar om' };
     const t = this.#now();
@@ -186,7 +194,7 @@ export class BufferStore {
     const aanSinds: Record<string, number> = { ...this.#current.aanSinds };
     let changed = false;
     for (const e of explanations ?? []) {
-      const h = (this.#options.config.heatStores ?? []).find((x) => x.id === e.id);
+      const h = (this.#config.heatStores ?? []).find((x) => x.id === e.id);
       if (h == null) continue;
       // Hooguit eens per uur bijwerken: anders schrijft elk besluit het bestand.
       if (h.legionellaC != null && e.temperatureC != null && e.temperatureC >= h.legionellaC && t - (legionella[h.id] ?? 0) > 3_600_000) {

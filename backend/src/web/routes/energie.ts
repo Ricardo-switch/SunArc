@@ -238,6 +238,8 @@ export async function aansluitingRoute(d: Diensten, req: IncomingMessage, res: S
       return;
     }
     await connection.store.save(checked.answers);
+    // Op zon aan of uit gaat meteen in (besluit 290), zonder herstart.
+    await connection.naBewaren?.();
   }
   sendJson(res, 200, connection.view(taalVan(new URL(req.url ?? '/', 'http://localhost').searchParams.get('taal') ?? req.headers['x-taal'])));
 }

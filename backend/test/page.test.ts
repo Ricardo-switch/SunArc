@@ -6725,6 +6725,49 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 30_000);
 
   /*
+   * Toestaan in het blad van een stekker (besluit 290): niet eerst naar
+   * Regeling. Bewaard bij de aansluiting met de rest zoals het was; en zonder
+   * op zon kan het er ook weer weg.
+   */
+  it('staat een stekker toe in zijn blad, en trekt het weer in', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5000 };
+    let toegelaten = false;
+    const bewaard: Record<string, unknown>[] = [];
+    await p.route('**/api/stekker', async (route) => {
+      await route.fulfill({ json: { aan: true, stekkers: [{ id: 'tuinhuis', naam: 'Tuinhuis', aan: false, vermogenW: 0, mag: toegelaten, toegelaten, actief: null, zon: { schakelt: false, vanSunArc: false, rustTot: null } }] } });
+    });
+    await p.route('**/api/aansluiting', async (route) => {
+      if (route.request().method() === 'POST') {
+        const body = route.request().postDataJSON() as Record<string, unknown>;
+        bewaard.push(body);
+        toegelaten = (body['bedienen'] as Record<string, boolean>)['tuinhuis'] === true;
+      }
+      await route.fulfill({ json: { antwoorden: { panelen: { ligging: 'voor', aantal: 10, voorkant: null, achterkant: null }, zekering: { fasen: 1, ampere: 35 }, tarief: 'dynamisch', verwarming: { soort: 'cv', aanvoerC: 60 }, voorkantZon: null, dak: null, elders: {}, opZon: { droger: true }, opZonUit: [] } } });
+    });
+    await p.goto(`${baseUrl}/apparaten.html`);
+    await p.waitForFunction(() => typeof (globalThis as unknown as { hand?: unknown }).hand === 'object');
+    await p.evaluate(() => (globalThis as unknown as { hand: { openStekker: (id: string) => Promise<void> } }).hand.openStekker('tuinhuis'));
+    const blad = p.locator('[data-hand]');
+    await blad.locator('[data-st-toestaan="ja"]').click(kort);
+    await expect.poll(() => bewaard.length, kort).toBe(1);
+    // De rest gaat mee zoals het was; alleen deze stekker erbij.
+    expect(bewaard[0]).toMatchObject({ zekering: { fasen: 1, ampere: 35 }, tarief: 'dynamisch', verwarming: { soort: 'cv', aanvoerC: 60 }, opZon: { droger: true }, bedienen: { tuinhuis: true } });
+    // Nu kan hij met de hand, en het kan weer weg.
+    await blad.locator('[data-st-zet]').waitFor(kort);
+    await blad.locator('[data-st-toestaan="nee"]').click(kort);
+    await expect.poll(() => bewaard.length, kort).toBe(2);
+    expect(bewaard[1]).toMatchObject({ bedienen: { tuinhuis: false } });
+    await blad.locator('[data-st-toestaan="ja"]').waitFor(kort);
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
+  /*
    * Inloggen via Home Assistant op een andere site (16 oktober 2026): na het
    * inloggen kom je echt binnen. Het cookie is SameSite=Strict, en ging bij een
    * doorverwijzing vanaf de site van Home Assistant niet mee: dan stond je

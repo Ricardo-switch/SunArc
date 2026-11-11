@@ -80,7 +80,7 @@ import { Stekkerhand, stekkerMag, type StekkerBekend, type StekkerTot } from './
 import { StekkerZon } from './web/stekkerzon.js';
 import { Laadbeurten } from './web/laadbeurten.js';
 import { laadAdvies, prijzenVooruit, type LaadAdvies } from './web/laadadvies.js';
-import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhases, findPowers, withConnection, type Applied, type ConnectionAnswers } from './web/aansluiting.js';
+import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhases, findPowers, metOpZonVanNu, withConnection, type Applied, type ConnectionAnswers } from './web/aansluiting.js';
 import { clearSkyOnPlaneWm2, sunPosition } from './core/sun.js';
 import { laadDag, zonVerwachtW } from './web/laaddag.js';
 import { clearSkyW } from './web/sun.js';
@@ -353,6 +353,8 @@ try {
  */
 const connectionStore = logDir !== '' ? new ConnectionStore(logDir) : null;
 const answersAtStart = (await connectionStore?.load()) ?? null;
+/** De antwoorden waarmee de regeling nu rekent: bij het starten, en op zon van nu (besluit 290). */
+let answersInGebruik = answersAtStart;
 const baseConfig = site?.config ?? null;
 let connectionApplied: Pick<Applied, 'toegevoegd' | 'overgeslagen'> = { toegevoegd: [], overgeslagen: [] };
 if (site && answersAtStart) {
@@ -422,7 +424,7 @@ async function configWithComfort(comfort: Comfort | null, bewoners: Bewoners = b
   const base = JSON.parse(await readFile(site.source, 'utf-8')) as Record<string, unknown>;
   // De stapel zelf staat in config-uit-app.ts; hier de stand van nu.
   return configUitDeApp(base, {
-    aansluiting: answersAtStart,
+    aansluiting: answersInGebruik,
     aansluitingToegevoegd: connectionApplied,
     // Meten met (besluit 123) uit de indeling van nu: de regeling neemt een andere sensor meteen over (138).
     layout: layoutNu?.() ?? layoutAtStart,
@@ -701,7 +703,8 @@ const laadhand: Laadhand | null = inHuisMetDeuren
  * elders kijkt het blad mee.
  */
 function stekkersBekend(): StekkerBekend[] {
-  const mag = new Set((connectionStore?.current?.buffers ?? []).filter((b) => b.bedienen === true).map((b) => b.id));
+  // Toegelaten in het blad, of op zon: op zon is zelf de toestemming (besluit 290).
+  const mag = new Set((connectionStore?.current?.buffers ?? []).filter((b) => b.bedienen === true || (b.soort === 'stekker' && b.opZon)).map((b) => b.id));
   return vindBuffers()
     .filter((b) => b.soort === 'stekker')
     .map((b) => ({ id: b.id, naam: b.naam, actuator: b.actuator, ...(b.power ? { power: b.power } : {}), mag: mag.has(b.id) }));
@@ -970,7 +973,7 @@ client.on('ready', (states: HaEntityState[]) => {
  * Vóór de dienst, zodat die het bij elk besluit kan lezen.
  */
 const uitstelStore: UitstelStore | null =
-  logDir !== '' && site && (site.config.deferrables ?? []).length > 0
+  logDir !== '' && site
     ? new UitstelStore({
         logDir,
         config: site.config,
@@ -982,7 +985,7 @@ await uitstelStore?.load();
 
 /* Klaar om, legionella en vol bij de boiler en de jacuzzi (besluit 186): naast de dataset. */
 const bufferStore: BufferStore | null =
-  logDir !== '' && site && (site.config.heatStores ?? []).length > 0
+  logDir !== '' && site
     ? new BufferStore({ logDir, config: site.config, onChange: () => runner?.nudge('klaarom') })
     : null;
 await bufferStore?.load();
@@ -1108,7 +1111,7 @@ layoutNu = () => layoutStore?.current ?? layoutAtStart;
 async function rollenOvernemen(l: Layout | null): Promise<void> {
   if (!l || !site || l.kamers.some((k) => k.rollen !== undefined)) return;
   const base = JSON.parse(await readFile(site.source, 'utf-8')) as Record<string, unknown>;
-  const raw = answersAtStart && connectionApplied.toegevoegd.length ? withConnection(base, answersAtStart).raw : base;
+  const raw = answersInGebruik && connectionApplied.toegevoegd.length ? withConnection(base, answersInGebruik).raw : base;
   const over = await layoutStore!.overnemen((x) => ({
     ...x,
     kamers: x.kamers.map((k) => {
@@ -1135,6 +1138,36 @@ async function herlaadUitDeApp(waarom: string): Promise<void> {
     if (logDir !== '') await noteSensors(logDir, met.config, Date.now()).catch(() => false);
   } catch {
     // Niet te lezen: dan blijft het zoals het was.
+  }
+}
+
+/**
+ * Op zon aan of uit gaat meteen in (besluit 290): na het bewaren bij Regeling ›
+ * Op zon rekent de regeling met wat er nu op zon staat, zonder herstart. Neemt
+ * de regeling het niet over, dan blijft het zoals het was en zegt de pagina dat
+ * het na de volgende start ingaat.
+ */
+async function opZonMeteen(): Promise<void> {
+  const nu = connectionStore?.current;
+  if (!site || !nu) return;
+  const vorig = { answers: answersInGebruik, applied: connectionApplied };
+  const proef = metOpZonVanNu(answersInGebruik, nu);
+  if (JSON.stringify(proef) === JSON.stringify(answersInGebruik)) return;
+  try {
+    const applied = withConnection(JSON.parse(await readFile(site.source, 'utf-8')) as Record<string, unknown>, proef);
+    answersInGebruik = proef;
+    connectionApplied = { toegevoegd: applied.toegevoegd, overgeslagen: applied.overgeslagen };
+    const met = await configWithComfort(comfortStore?.current ?? null);
+    if (!met.ok) throw new Error(met.reden);
+    if (runner && !runner.setConfig(met.config, allStates.values())) throw new Error('de regeling nam het niet over');
+    siteConfig = met.config;
+    uitstelStore?.setConfig(met.config);
+    bufferStore?.setConfig(met.config);
+    console.log(`Op zon meteen overgenomen: ${(met.config.deferrables ?? []).length} apparaten, ${(met.config.heatStores ?? []).length} buffers en stekkers`);
+  } catch (e) {
+    answersInGebruik = vorig.answers;
+    connectionApplied = vorig.applied;
+    console.warn(`Op zon gaat in na de volgende start: ${(e as Error).message}`);
   }
 }
 
@@ -2701,12 +2734,13 @@ function connectionDoor(store: ConnectionStore, base: NonNullable<typeof baseCon
   return {
     store,
     found,
+    naBewaren: opZonMeteen,
     view: (lang?: Lang) =>
       connectionView({
         base,
         found: found(),
         applied: connectionApplied,
-        answersAtStart,
+        answersAtStart: answersInGebruik,
         answers: store.current,
         meting: metingNu(),
         omvormerGevonden: omvormerGevonden(),

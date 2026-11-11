@@ -215,7 +215,10 @@
     const zon = zonZin ? `<div class="hand-hoe">${esc(zonZin)}</div>` : '';
     // Op de NAS, of nog niet toegelaten: alleen de stand en waarom.
     if (!stekkers?.aan) return `${kop}<div class="hand-hoe let">${esc(t('hand.stekkerAlleenAddon'))}</div>${zon}`;
-    if (!s.toegelaten) return `${kop}<div class="hand-hoe let">${esc(t('hand.stekkerToelaten'))}</div>${zon}<div class="hand-onder"><a class="hand-zet" href="regeling.html#opzon">${esc(t('hand.stekkerNaarRegeling'))}</a></div>`;
+    // Nog niet toegelaten: hier toestaan (besluit 290), zonder eerst naar Regeling.
+    if (!s.toegelaten) return `${kop}<div class="hand-hoe let">${esc(t('hand.stekkerToelaten'))}</div>${zon}${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}<div class="hand-onder"><button type="button" class="hand-zet" data-st-toestaan="ja">${esc(t('hand.stekkerToestaan'))}</button></div>`;
+    // Toegelaten zonder op zon: dat kan hier ook weer weg. Op zon is zelf de toestemming (besluit 290).
+    const intrekken = s.zon?.schakelt ? '' : `<p class="mini" style="margin: 0"><button type="button" class="hand-intrek" data-st-toestaan="nee">${esc(t('hand.stekkerIntrekken'))}</button></p>`;
 
     const vast = open.wanneer !== 'nu';
     // Uit, nu: meteen uit, zonder hoe lang (7 november 2026).
@@ -268,7 +271,33 @@
       ${zon}
       ${lijst}
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
-      <div class="hand-onder">${terugKnop}<button type="button" class="hand-zet" data-st-zet ${s.mag ? '' : 'disabled'}>${esc(knopTekst)}</button></div>`;
+      <div class="hand-onder">${terugKnop}<button type="button" class="hand-zet" data-st-zet ${s.mag ? '' : 'disabled'}>${esc(knopTekst)}</button></div>
+      ${intrekken}`;
+  }
+
+  /**
+   * Toestaan of weer intrekken, in het blad (besluit 290): SunArc mag de stekker
+   * met de hand en op vaste tijden schakelen. Bewaard bij de aansluiting, met de
+   * rest zoals het was.
+   */
+  async function stekkerToestaan(id, ja) {
+    let a = null;
+    try {
+      a = (await haal('api/aansluiting'))?.antwoorden ?? null;
+    } catch {
+      a = null;
+    }
+    const res = a
+      ? await deur('api/aansluiting', { panelen: a.panelen, zekering: a.zekering, tarief: a.tarief, verwarming: a.verwarming, voorkantZon: a.voorkantZon, dak: a.dak, elders: a.elders ?? {}, opZon: a.opZon ?? {}, opZonUit: a.opZonUit ?? [], bedienen: { [id]: ja } })
+      : null;
+    if (!res || !res.ok) {
+      fout = (res ? (await res.json().catch(() => null))?.fout : null) ?? t('hand.lukteNiet');
+      return false;
+    }
+    fout = '';
+    await laadStekkers();
+    global.dispatchEvent(new CustomEvent('handveranderd'));
+    return true;
   }
 
   /**
@@ -496,6 +525,9 @@
       const res = await deur('api/te-doen', { actie: 'annuleer', id: x.dataset.stWeg });
       if (res && !res.ok) fout = (await res.json().catch(() => null))?.fout ?? t('gp.lukteNiet');
       await laadTaken();
+    } else if ((x = el('[data-st-toestaan]'))) {
+      x.disabled = true;
+      await stekkerToestaan(open.st, x.dataset.stToestaan === 'ja');
     } else if (el('[data-st-terug]')) {
       if (await stuur('api/stekker', { id: open.st, terug: true })) open = null;
     } else if (el('[data-st-zet]') && open.wanneer !== 'nu') {

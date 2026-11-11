@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.163.0';
+export const VERSIE = '0.164.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,30 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.164.0',
+    datum: '2026-11-11',
+    beter: [
+      'Een slimme stekker heeft bij Regeling › Op zon nog één schakelaar: op zon betekent dat SunArc hem echt aan- en uitzet',
+      'Met de hand schakelen sta je toe in het blad van de stekker zelf, met Toestaan, en daar kan het ook weer weg',
+      'Op zon aan- of uitzetten gaat meteen in, zonder SunArc opnieuw te starten',
+    ],
+    opgelost: [
+      'Een stekker die je van zon haalde, zei nog "Wacht op zon" tot SunArc opnieuw startte',
+      'Bij een stekker of boiler stond "0.8 kW" met een punt in plaats van een komma',
+    ],
+    en: {
+      beter: [
+        'A smart plug has one switch left in Control › On solar: on solar means SunArc really switches it on and off',
+        'You allow switching by hand in the plug sheet itself, with Allow, and you can take it back there too',
+        'Putting something on solar, or taking it off, works straight away, without restarting SunArc',
+      ],
+      opgelost: [
+        'A plug you took off solar still said "Waiting for sun" until SunArc restarted',
+        'A plug or boiler showed "0.8 kW" with a point instead of a comma in Dutch',
+      ],
+    },
+  },
   {
     versie: '0.163.0',
     datum: '2026-11-09',

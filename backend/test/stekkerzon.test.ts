@@ -18,7 +18,7 @@ import type { HeatStore, SiteConfig } from '../src/core/model.js';
 import type { SystemState } from '../src/core/state.js';
 import { unavailable, value } from '../src/core/state.js';
 import { defaultStrategies } from '../src/index.js';
-import { validateConnection, withConnection } from '../src/web/aansluiting.js';
+import { metOpZonVanNu, validateConnection, withConnection } from '../src/web/aansluiting.js';
 import { residentBuffers } from '../src/web/buffers-bewoner.js';
 import { findPlugs } from '../src/web/buffers-vinden.js';
 import { StekkerZon, NIET_SNEL_MS, STEKKERZON_BESTAND } from '../src/web/stekkerzon.js';
@@ -242,6 +242,29 @@ describe('een stekker op zon, echt geschakeld (besluit 267)', () => {
     expect(h.z.eigen).toEqual([]);
   });
 
+  it('van zon gehaald (besluit 290), dan gaat wat SunArc aanzette uit, ook zonder besluit over hem', async () => {
+    const o: { opZon: boolean } = { opZon: true };
+    const h = huis(o);
+    await h.z.opBesluit(besluit('would_heat'));
+    o.opZon = false;
+    h.verder(MIN);
+    // Niet meer in de configuratie: het besluit noemt hem niet meer.
+    expect(await h.z.opBesluit(undefined)).toEqual(['switch.pomp uit']);
+    expect(h.z.eigen).toEqual([]);
+    expect(h.geschakeld).toEqual([['switch.pomp', true], ['switch.pomp', false]]);
+  });
+
+  it('van zon gehaald terwijl hij al uit stond: dan alleen vergeten', async () => {
+    const o: { opZon: boolean } = { opZon: true };
+    const h = huis(o);
+    await h.z.opBesluit(besluit('would_heat'));
+    o.opZon = false;
+    // Binnen de tien minuten zelf uitgezet, en dan van zon gehaald.
+    h.toestand.set('switch.pomp', 'off');
+    expect(await h.z.opBesluit(undefined)).toEqual([]);
+    expect(h.z.eigen).toEqual([]);
+  });
+
   it('onthoudt wat hij aanzette, ook na een herstart', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'stekkerzon-'));
     const h = huis({ map: dir });
@@ -292,5 +315,24 @@ describe('het minimum bewaren (besluit 267)', () => {
     const raw = JSON.parse(readFileSync(exampleSitePath, 'utf-8')) as Record<string, unknown>;
     const boiler = { id: 'b', name: 'Boiler', kind: 'boiler', control: 'switch', actuator: 'switch.b', minimum: { minutes: 60, by: '22:00' } };
     expect(parseSiteConfig({ ...raw, heatStores: [boiler] }, { knownStrategies: defaultStrategies().ids }).ok).toBe(false);
+  });
+});
+
+describe('op zon gaat meteen in (besluit 290)', () => {
+  it('neemt op zon van nu over, en laat de zekering zoals bij het starten', () => {
+    const found = { fasen: [], apparaten: [], buffers: findPlugs(staten, entities, devices) };
+    const id = found.buffers[0]!.id;
+    const start = validateConnection({ ...leeg, zekering: { fasen: 1, ampere: 35 }, opZon: { [id]: true } }, found);
+    const nu = validateConnection({ ...leeg, zekering: { fasen: 3, ampere: 25 }, opZon: { [id]: false } }, found);
+    if (!start.ok || !nu.ok) throw new Error('niet geldig');
+    const samen = metOpZonVanNu(start.answers, nu.answers);
+    expect(samen.zekering).toEqual({ fasen: 1, ampere: 35 });
+    expect(samen.buffers?.[0]?.opZon).toBe(false);
+    // Van zon gehaald: dan komt hij niet meer in de configuratie.
+    const raw = JSON.parse(readFileSync(exampleSitePath, 'utf-8')) as Record<string, unknown>;
+    expect(withConnection(raw, start.answers).raw['heatStores']).toHaveLength(1);
+    expect(withConnection(raw, samen).raw['heatStores']).toBeUndefined();
+    // Zonder antwoorden bij het starten: alleen op zon, geen zekering.
+    expect(metOpZonVanNu(null, nu.answers).zekering).toBeNull();
   });
 });

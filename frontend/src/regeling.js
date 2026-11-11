@@ -20,8 +20,6 @@ let opZon = {};
 let opZonUit = [];
 /** Wat de bewoner opgaf bij een stekker zonder eigen meter (besluit 264), in W. */
 let vermogen = {};
-/** De stekkers die SunArc mag schakelen (besluit 265). */
-let bedienen = new Set();
 /** Hoe lang een stekker per dag minstens aan moet, en uiterlijk wanneer (besluit 267). */
 let minimum = {};
 let zon = null;
@@ -38,7 +36,6 @@ async function laadAlles() {
     opZon = { ...(aInfo.antwoorden?.opZon ?? {}) };
     opZonUit = [...(aInfo.antwoorden?.opZonUit ?? [])];
     vermogen = { ...(aInfo.antwoorden?.vermogen ?? {}) };
-    bedienen = new Set(aInfo.antwoorden?.bedienen ?? []);
     minimum = { ...(aInfo.antwoorden?.minimum ?? {}) };
   }
   if (z.status === 'fulfilled') zon = z.value;
@@ -126,6 +123,7 @@ function opZonRij(naam, aan, data) {
 
 /**
  * Een slimme stekker (besluit 264): met zijn icoon, aan als er zon over is.
+ * Eén schakelaar (besluit 290): op zon is ook de toestemming, SunArc zet hem echt aan en uit.
  * Meet hij zijn vermogen niet zelf, dan vraagt de rij hoeveel hij trekt.
  */
 function stekkerRij(x) {
@@ -133,8 +131,6 @@ function stekkerRij(x) {
   const veld = aan && !x.meet
     ? `<label class="veldnaam" style="margin-top: 6px">${esc(t('regeling.stekkerVermogen'))}<input class="invoer" type="number" inputmode="numeric" min="50" max="3680" step="10" data-vermogen="${esc(x.id)}" value="${vermogen[x.id] ?? ''}" placeholder="1000"></label>`
     : '';
-  // Mag SunArc hem schakelen (besluit 265): met de hand, op tijden en op zon (267); weg is nee.
-  const mag = bedienen.has(x.id);
   // Minstens zo lang per dag, uiterlijk om (besluit 267): twee velden, elk met zijn eigen naam.
   const min = minimum[x.id] ?? null;
   const duren = [30, 60, 120, 180, 240, 360, 480];
@@ -142,8 +138,7 @@ function stekkerRij(x) {
   const minRij = aan
     ? `<div class="regelrij" style="padding-left: 22px; flex-wrap: wrap; gap: 8px 12px"><label class="veldnaam" style="margin: 0">${esc(t('regeling.stekkerMinimum'))}<select class="invoer" data-minimum="${esc(x.id)}" aria-label="${esc(t('regeling.stekkerMinimumVan', { naam: x.naam }))}">${keuze}</select></label>${min ? `<label class="veldnaam" style="margin: 0">${esc(t('regeling.stekkerUiterlijk'))}<input class="invoer" type="time" step="900" data-uiterlijk="${esc(x.id)}" value="${esc(min.klok)}" aria-label="${esc(t('regeling.stekkerUiterlijkVan', { naam: x.naam }))}"></label>` : ''}<p class="mini" style="margin: 0; flex-basis: 100%">${esc(t(min ? 'regeling.stekkerMinimumUitleg' : 'regeling.stekkerMinimumGeenUitleg'))}</p></div>`
     : '';
-  const bedien = `<div class="regelrij" style="padding-left: 22px"><div class="l"><b style="font-weight: 500">${esc(t('regeling.stekkerBedienen'))}</b><span>${esc(t(mag ? 'regeling.stekkerBedienenJa' : 'regeling.stekkerBedienenNee'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${mag}" aria-label="${esc(t('regeling.stekkerBedienenVan', { naam: x.naam }))}" data-bedienen="${esc(x.id)}"></button></div>`;
-  return `<div class="regelrij"><div class="l"><b><span aria-hidden="true" style="display: inline-flex; vertical-align: -3px">${iconen.svg('stekker', { grootte: 16 })}</span> ${esc(x.naam)}</b><span>${esc(t(aan ? 'regeling.stekkerZon' : 'regeling.stekkerNiet'))}</span>${veld}</div><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('regeling.naamOpZon', { naam: x.naam }))}" data-opzon="${esc(x.id)}"></button></div>${minRij}${bedien}`;
+  return `<div class="regelrij"><div class="l"><b><span aria-hidden="true" style="display: inline-flex; vertical-align: -3px">${iconen.svg('stekker', { grootte: 16 })}</span> ${esc(x.naam)}</b><span>${esc(t(aan ? 'regeling.stekkerZon' : 'regeling.stekkerNiet'))}</span>${veld}</div><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('regeling.naamOpZon', { naam: x.naam }))}" data-opzon="${esc(x.id)}"></button></div>${minRij}`;
 }
 
 function opZonVorm() {
@@ -210,14 +205,10 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('click', (e) => {
-  const knop = e.target.closest('[data-opzon], [data-opzon-vast], [data-bedienen]');
+  const knop = e.target.closest('[data-opzon], [data-opzon-vast]');
   if (!knop || !aInfo) return;
   const aan = knop.getAttribute('aria-checked') !== 'true';
-  if (knop.dataset.bedienen) {
-    bedienen = new Set(bedienen);
-    if (aan) bedienen.add(knop.dataset.bedienen);
-    else bedienen.delete(knop.dataset.bedienen);
-  } else if (knop.dataset.opzon) opZon[knop.dataset.opzon] = aan;
+  if (knop.dataset.opzon) opZon[knop.dataset.opzon] = aan;
   else {
     const id = knop.dataset.opzonVast;
     opZonUit = aan ? opZonUit.filter((x) => x !== id) : [...new Set([...opZonUit, id])];
@@ -267,8 +258,7 @@ function bewaar() {
     opZon: Object.fromEntries(Object.entries(opZon).filter(([, v]) => typeof v === 'boolean')),
     opZonUit,
     vermogen,
-    // Per stekker ja of nee (besluit 265): alleen de stekkers die er nu zijn.
-    bedienen: Object.fromEntries((aInfo.gevonden?.apparaten ?? []).filter((x) => x.soort === 'stekker').map((x) => [x.id, bedienen.has(x.id)])),
+    // Toestemming voor met de hand staat in het blad van de stekker (besluit 290): niet meesturen, dan blijft hij.
     minimum: Object.fromEntries((aInfo.gevonden?.apparaten ?? []).filter((x) => x.soort === 'stekker').map((x) => [x.id, minimum[x.id] ?? null])),
   };
   groep.bewaarStraks(async () => {

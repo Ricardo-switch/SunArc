@@ -44,19 +44,27 @@ export class UitstelStore {
   readonly #now: () => number;
   readonly #limit: number;
   #recent: number[] = [];
+  /** De configuratie van nu: op zon gaat meteen in (besluit 290). */
+  #config: SiteConfig;
   #current: Record<string, number> = {};
 
   constructor(options: UitstelOptions) {
     this.#options = options;
+    this.#config = options.config;
     this.#path = join(options.logDir, UITSTEL_FILE);
     this.#now = options.now ?? Date.now;
     this.#limit = options.perTenMinutes ?? 30;
   }
 
+  /** Een apparaat op zon erbij of eraf, zonder herstart (besluit 290). */
+  setConfig(next: SiteConfig): void {
+    this.#config = next;
+  }
+
   async load(): Promise<void> {
     try {
       const raw = JSON.parse(await readFile(this.#path, 'utf-8')) as { versie?: unknown; klaarVoor?: unknown };
-      const known = new Set((this.#options.config.deferrables ?? []).map((d) => d.id));
+      const known = new Set((this.#config.deferrables ?? []).map((d) => d.id));
       const list = raw?.versie === 1 && typeof raw.klaarVoor === 'object' && raw.klaarVoor != null ? raw.klaarVoor : {};
       this.#current = Object.fromEntries(
         Object.entries(list).filter((e): e is [string, number] => known.has(e[0]) && typeof e[1] === 'number' && Number.isFinite(e[1])),
@@ -76,7 +84,7 @@ export class UitstelStore {
     if (typeof body !== 'object' || body == null || Array.isArray(body)) return { ok: false, status: 400, reden: 'verwacht { id, klaarVoor }' };
     const b = body as Record<string, unknown>;
     const id = b['id'];
-    const d = (this.#options.config.deferrables ?? []).find((x) => x.id === id);
+    const d = (this.#config.deferrables ?? []).find((x) => x.id === id);
     if (typeof id !== 'string' || d == null) return { ok: false, status: 404, reden: 'dat apparaat kent SunArc niet als uitstelbaar' };
     const klaarVoor = b['klaarVoor'];
     if (klaarVoor !== null && (typeof klaarVoor !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(klaarVoor))) {
@@ -97,7 +105,7 @@ export class UitstelStore {
       if (status !== 'waiting' && status !== 'would_start') {
         return { ok: false, status: 409, reden: `${d.name} staat niet klaar: kies een programma, sluit de deur en zet "op afstand starten" aan` };
       }
-      next = { ...this.#current, [id]: nextLocalTime(t, klaarVoor, this.#options.config.timezone) };
+      next = { ...this.#current, [id]: nextLocalTime(t, klaarVoor, this.#config.timezone) };
     }
     this.#recent.push(t);
     await this.#save(next);

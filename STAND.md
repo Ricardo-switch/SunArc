@@ -160,6 +160,8 @@ verwijzing bestaat.
   per dag, en dan schakelt SunArc hem echt als de bewoner hem toeliet; wie zelf
   schakelt, wint ([267], 0.141.0). Het blad zegt Zet aan of Zet uit, en vast
   elke dag, op werkdagen of in het weekend kan er meteen in ([268], 0.142.0).
+  Sinds 0.164.0 één schakelaar bij Op zon: op zon is zelf de toestemming, met
+  de hand toestaan kan in het blad, en op zon gaat meteen in, zonder herstart ([290]).
   Een geplande scène noemt zijn kamer en, bij Aanpassen, zijn lampen ([285], 0.156.2).
 - **Terugkijken:** Opbrengst rekent per dag, week, maand of jaar met de meters
   en prijzen die de app bewaart, overgenomen uit het Energie-dashboard of zelf
@@ -906,4 +908,5 @@ verwijzing bestaat.
 [287]: DECISIONS.md#287-handmatig-koelen-en-vakantie-bij-de-stand
 [288]: DECISIONS.md#288-je-huis-op-maat-vorm-etages-kamers-als-vakken-en-de-plek-van-apparaten
 [289]: DECISIONS.md#289-helpen-bij-de-cv-los-van-de-kamer-en-de-airco-draait-door-tot-zijn-kamer-warm-is
+[290]: DECISIONS.md#290-een-stekker-op-zon-met-één-schakelaar-en-op-zon-gaat-meteen-in
 <!-- links:einde -->

@@ -51,6 +51,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [277. Easee met de hand, via de eigen dienst van Easee](#277-easee-met-de-hand-via-de-eigen-dienst-van-easee)
 - [278. De stand van evcc met de hand](#278-de-stand-van-evcc-met-de-hand)
 - [280. Laden met de hand met een zin](#280-laden-met-de-hand-met-een-zin)
+- [290. Een stekker op zon met één schakelaar, en op zon gaat meteen in](#290-een-stekker-op-zon-met-één-schakelaar-en-op-zon-gaat-meteen-in)
 
 **Kern en regeling**
 
@@ -13400,6 +13401,49 @@ of dat lukt. Verder: hoe het blok eruitziet op wand en telefoon, en wat er
 gebeurt met de drempels per kamer uit `comfort.json` (`bijspringen`, besluit
 283). De airco's echt sturen kan pas in stap B (de schrijfgrens); tot dan is
 het alleen in de schaduw te zien.
+
+---
+
+## 290. Een stekker op zon met één schakelaar, en op zon gaat meteen in
+
+*Onderwerp: visie en principes · Status: geldig*
+
+10 november 2026, na 0.157.1 op de Pi bekeken. De bewoner zag twee dingen bij de
+stekker van het tuinhuis. De kaart zei "Wacht op zon" terwijl beide schakelaars
+bij Regeling › Op zon uit stonden. En onder de stekker stonden twee
+schakelaars voor zon ("op zon" en "SunArc mag hem aan- en uitzetten"), wat
+dubbel leek. Gekozen uit twee vragen met opties, steeds de aanbevolen.
+
+*Besluit:*
+
+- **Op zon gaat meteen in.** Na het bewaren bij Regeling › Op zon rekent de
+  regeling met wat er nu op zon staat, zonder herstart: de antwoorden waarmee
+  de dienst draait krijgen het op zon van nu (`metOpZonVanNu`), en de regeling
+  neemt de configuratie over zoals bij comfort en meten met ([138]). De
+  zekering, de stroommeters, de netmeter en de omvormers blijven wachten op
+  een herstart. Neemt de regeling het niet over, dan blijft het zoals het was
+  en zegt de pagina "Na de volgende start van SunArc".
+- **Waarom het "Wacht op zon" zei:** een stekker die je van zon haalde, stond
+  tot de volgende start nog in de configuratie. Dat is hiermee weg.
+- **Van zon gehaald, dan gaat uit wat SunArc aanzette**, ook nu hij niet meer
+  in het besluit staat ([267] keek alleen naar wat het besluit noemde).
+- **Eén schakelaar per stekker** bij Regeling › Op zon. Op zon is zelf de
+  toestemming: SunArc zet hem dan echt aan en uit, met de hand en op tijden
+  mag dan ook. De aparte schakelaar "SunArc mag hem aan- en uitzetten" ([265])
+  is weg; meekijken zonder schakelen bestaat voor een stekker niet meer.
+- **Met de hand toestaan in het blad van de stekker**, met **Toestaan** in
+  plaats van "Naar Regeling", en zonder op zon kan het daar ook weer weg. Het
+  is dezelfde toestemming (`bedienen` bij de aansluiting); Regeling stuurt
+  hem niet meer mee, zodat een open pagina hem niet terugzet. De deur naar
+  Home Assistant blijft dezelfde ([265], [267]): `switch.turn_on` en
+  `turn_off` op een stekker die mag.
+- **De opslag van klaar voor en klaar om** bestaat nu altijd als er een
+  logmap is, en volgt de configuratie van nu, zodat een apparaat dat er
+  zonder herstart bij komt ze ook heeft.
+- **Een komma in kW:** Node in de add-on (Alpine) kent alleen Engelse
+  getallen, en gaf "0.8 kW". De stekker, de boiler en de panelen zetten de
+  komma nu zelf.
+- **Versie 0.164.0.**
 
 ---
 
