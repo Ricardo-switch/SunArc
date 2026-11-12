@@ -4139,7 +4139,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     p.on('pageerror', (e) => fouten.push(e.message));
     extraOpslag = {
       batterij: { id: 'sessy', naam: 'De batterij', pct: 54, vermogenW: -900, stand: 'levert' },
-      auto: { id: 'tesla', naam: 'Tesla Model 3', pct: 62, aangesloten: true, laadt: true, vermogenW: 3200, bereikKm: 280, plek: 'garage', accuKWh: 75, laadpaal: 'easee', paalNaam: 'Easee Home', paalStroomA: { min: 6, max: 16 }, laadgrens: 80, stroomA: [4.6, 4.6, 4.7], volOm: null, thuis: true, kabelSinds: null, wegSinds: null, fout: null },
+      auto: { id: 'tesla', naam: 'Tesla Model 3', pct: 62, aangesloten: true, laadt: true, vermogenW: 3200, bereikKm: 280, plek: 'garage', paalPlek: null, accuKWh: 75, laadpaal: 'easee', paalNaam: 'Easee Home', paalStroomA: { min: 6, max: 16 }, laadgrens: 80, stroomA: [4.6, 4.6, 4.7], volOm: null, thuis: true, kabelSinds: null, wegSinds: null, fout: null },
       autos: [],
     };
     extraOpslag = { ...extraOpslag, autos: [extraOpslag.auto!] };

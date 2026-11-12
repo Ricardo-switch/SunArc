@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.175.1';
+export const VERSIE = '0.176.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.176.0',
+    datum: '2026-11-12',
+    nieuw: [
+      'De laadpaal staat in de tekening op Thuis, ook een uit losse sensoren: de stroom loopt van de zon en het net naar de paal en naar de auto',
+      'Een tik op de laadpaal of de auto opent een blad: wat hij nu laadt en waarvan, de auto, de stroom per fase en wat hij vandaag laadde',
+      'Bij Energie › Auto en laadpaal kies je ook voor de laadpaal waar hij staat, ook als er een auto is',
+    ],
+    en: {
+      nieuw: [
+        'The charger is in the drawing on Home, including one from separate sensors: power flows from solar and the grid to the charger and on to the car',
+        'Tapping the charger or the car opens a sheet: what it is charging now and from where, the car, the current per phase and what it charged today',
+        'In Energy › Car and charger you also choose where the charger stands, even when there is a car',
+      ],
+    },
+  },
   {
     versie: '0.175.1',
     datum: '2026-11-11',

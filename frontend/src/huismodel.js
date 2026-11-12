@@ -433,15 +433,43 @@
    * Waar de auto staat (idee 123, besluit 259), zoals de bewoner het bij
    * Energie › Auto en laadpaal koos: in de garage, op de oprit of onder de
    * carport. Een auto zonder plek laat de indeling beslissen, zoals eerst.
+   *
+   * Met een laadpaal (issue 164): de paal staat altijd in de tekening, op zijn
+   * eigen plek, en anders op de oprit. Zit de auto aan de kabel, dan staat hij
+   * bij de paal en laadt hij daar; is hij weg, dan staat er alleen de paal.
    */
   function autosOpHunPlek(delen, autos) {
-    const inGarage = autos.find((a) => a.plek === 'garage');
-    if (inGarage) delen.garage = { ...(delen.garage ?? { id: null, naam: global.t('huis.buiten.garage'), lampAan: false }), auto: { laadt: !!inGarage.laadt } };
-    const buiten = autos.filter((a) => a.plek === 'oprit' || a.plek === 'carport');
-    if (buiten.length) {
-      const o = delen.oprit ?? { id: null, naam: global.t('huis.buiten.oprit'), auto: null, camera: null };
+    const opritNu = () => delen.oprit ?? { id: null, naam: global.t('huis.buiten.oprit'), auto: null, camera: null };
+    const garageNu = () => delen.garage ?? { id: null, naam: global.t('huis.buiten.garage'), lampAan: false };
+    let paalBuiten = false;
+    const zonderPaal = [];
+    for (const a of autos) {
+      const paal = a.paalNaam != null ? (a.paalPlek ?? 'oprit') : null;
+      const weg = a.thuis === false;
+      const aanKabel = a.laadt === true || a.aangesloten === true;
+      // Waar de auto nu staat: bij de paal als hij aan de kabel zit, anders op zijn eigen plek, anders bij de paal.
+      const waar = weg ? null : aanKabel && paal ? paal : (a.plek ?? paal);
+      if (paal === 'garage') {
+        if (waar === 'garage') delen.garage = { ...garageNu(), auto: { laadt: !!a.laadt } };
+      } else if (paal && !paalBuiten) {
+        paalBuiten = true;
+        const o = opritNu();
+        delen.oprit = { ...o, auto: null, ...(paal === 'carport' ? { carport: o.carport || true } : {}) };
+        // De laadpaal met de auto ernaast (kit/huis.js); de bron zet Thuis erbij uit de stromen van nu.
+        delen.auto = { id: a.id, procent: a.pct ?? undefined, stand: waar === paal ? (a.laadt ? 'laadt' : 'geparkeerd') : 'weg', vermogenW: a.vermogenW };
+      } else {
+        zonderPaal.push(waar ? { ...a, plek: waar } : a);
+        continue;
+      }
+      if (waar && waar !== paal) zonderPaal.push({ ...a, plek: waar });
+    }
+    const inGarage = zonderPaal.find((a) => a.plek === 'garage');
+    if (inGarage && !delen.garage?.auto) delen.garage = { ...garageNu(), auto: { laadt: !!inGarage.laadt } };
+    const buiten = zonderPaal.filter((a) => a.plek === 'oprit' || a.plek === 'carport');
+    if (buiten.length && !paalBuiten) {
+      const o = opritNu();
       delen.oprit = { ...o, auto: o.auto ?? {}, ...(buiten.some((a) => a.plek === 'carport') ? { carport: o.carport || true } : {}) };
-    } else if (autos.length && autos.every((a) => a.plek === 'garage') && delen.oprit) delen.oprit = { ...delen.oprit, auto: null };
+    } else if (!paalBuiten && autos.length && autos.every((a) => a.plek === 'garage') && delen.oprit) delen.oprit = { ...delen.oprit, auto: null };
   }
 
   /**
@@ -580,6 +608,8 @@
       balkon: tek.balkon,
       voortuin: tek.voortuin,
       garage: tek.garage && e.garage ? { ...tek.garage, panelen: e.garage } : tek.garage,
+      // De laadpaal met de auto ernaast (issue 164).
+      ...(tek.auto ? { auto: tek.auto } : {}),
       // Hoe het huis ligt (besluit 205): de nok en de helling, en de voorgevel voor de zon.
       ...(tek.ligging ? { dak: { nok: tek.ligging.nok, ...(tek.ligging.hellingDeg ? { hellingDeg: tek.ligging.hellingDeg } : {}), ...(tek.ligging.plat ? { plat: true } : {}) }, voorgevelDeg: tek.ligging.voorgevelDeg } : {}),
       // Een plat dak zonder bekende ligging (7 november 2026): wel plat, de rest zoals eerst.

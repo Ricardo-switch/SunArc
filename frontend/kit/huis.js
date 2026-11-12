@@ -2337,6 +2337,16 @@
       const y0 = D - 1.75;
       const L = 2.1;
       const B = 0.95;
+      // Een tik op de paal of de auto (issue 164): een vlak erboven, als Thuis dat vraagt.
+      const tikVlak = (pts) => {
+        if (a?.tik) tikkenBoven.push(poly(pts, `class="sc-tik" data-tik="${esc(a.tik)}" fill="transparent" role="button" tabindex="0"${a.tikLabel ? ` aria-label="${esc(a.tikLabel)}"` : ''}`));
+      };
+      // De auto is weg (issue 164): alleen de laadpaal staat er.
+      if (a?.stand === 'weg') {
+        paal();
+        tikVlak([[px - 0.35, py - 0.35, 0.5], [px + 0.35, py - 0.35, 0.5], [px + 0.35, py + 0.35, 0.5], [px - 0.35, py + 0.35, 0.5]]);
+        return;
+      }
       if (isSpook) {
         buiten.push(`<g opacity="0.65">${poly([[x0, y0, 0.02], [x0 + B, y0, 0.02], [x0 + B, y0 + L, 0.02], [x0, y0 + L, 0.02]], `fill="none" stroke="${KLEUR.ijs}" stroke-dasharray="5 5"`)}</g>`);
         paal();
@@ -2379,6 +2389,7 @@
       // Koplampen als een lichtstreep.
       buiten.push(poly([[x0 + 0.1, y0 + L + 0.002, h1 - 0.16], [x0 + B - 0.1, y0 + L + 0.002, h1 - 0.16], [x0 + B - 0.1, y0 + L + 0.002, h1 - 0.11], [x0 + 0.1, y0 + L + 0.002, h1 - 0.11]], 'fill="#e9f1f8" opacity="0.9"'));
       paal();
+      tikVlak([[-2.6, D - 1.9, 0.45], [px + 0.3, D - 1.9, 0.45], [px + 0.3, py + 0.35, 0.45], [-2.6, py + 0.35, 0.45]]);
       // De kabel naar de laadpaal.
       if (a?.stand === 'laadt') {
         const p1 = P(px - 0.08, py, 0.55);

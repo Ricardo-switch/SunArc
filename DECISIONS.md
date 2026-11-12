@@ -298,6 +298,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [300. Een kachel uit meer delen: IR-knoppen, de stekker en de temperatuur](#300-een-kachel-uit-meer-delen-ir-knoppen-de-stekker-en-de-temperatuur)
 - [301. Een laadpaal uit losse sensoren](#301-een-laadpaal-uit-losse-sensoren)
 - [302. De fasekaart: hoe vol elke fase is](#302-de-fasekaart-hoe-vol-elke-fase-is)
+- [305. De laadpaal in de tekening, met de stromen en een blad](#305-de-laadpaal-in-de-tekening-met-de-stromen-en-een-blad)
 
 **Veiligheid**
 
@@ -13955,6 +13956,41 @@ niet, eerst een tester met zo'n laadpaal.
   "Stekker gevonden": hij is ingesteld, niet gevonden.
 - **Zonder meter** ziet SunArc niet of hij echt trekt: "aan" telt als het
   ingevulde vermogen, zoals bij Opbrengst › Nu ([298]).
+
+---
+
+## 305. De laadpaal in de tekening, met de stromen en een blad
+
+*Onderwerp: weergave · Status: geldig*
+
+12 november 2026, versie 0.176.0: melding 164 en idee 135, na de schets
+Wand-Laadpaal. Arno voegde zijn NexBlue toe uit losse sensoren ([301]) en
+verwachtte hem in de tekening op de oprit, met de stromen van het net en de
+zon naar de laadpaal en van de laadpaal naar de auto. Ricardo zag dat een
+laadpaal geen plek kon kiezen zodra er een auto was. Hij koos: bouwen zoals de
+schets.
+
+*Besluit:*
+
+- **De laadpaal staat altijd in de tekening** zodra er een is, ook uit losse
+  sensoren, op zijn eigen plek: oprit, carport of garage. Niets gekozen: op de
+  oprit. Zit de auto aan de kabel, dan staat hij bij de paal en laadt hij
+  daar; is hij weg, dan staat er alleen de paal. Anders staat de auto op zijn
+  eigen plek, en zonder die bij de paal.
+- **De plek van de laadpaal** kies je bij Energie › Auto en laadpaal, nu ook als
+  er een auto is (`paalPlek` bij de auto in het huis). De plek van de auto
+  zegt waar hij staat als hij niet aan de laadpaal zit.
+- **De stromen:** van de zon en het net naar de paal, naar rato van waar de
+  stroom van het huis nu vandaan komt; de kabel van paal naar auto beweegt in
+  de kleur van wat het meest is. Levert de auto (in twee richtingen laden),
+  dan loopt de stroom van de auto naar het huis.
+- **Een label bij de paal:** "Laadt 3,7 kW", hoeveel van de zon of van het net,
+  en de lading van de auto.
+- **Een tik op de paal, de auto of het label** opent een blad op Thuis: wat hij
+  nu laadt met zon en net, de auto met zijn lading en wanneer hij vol is, de
+  stroom per fase, wat hij vandaag laadde (uit de laadbeurten), en Naar Auto.
+  Alleen kijken. Dit is het begin van idee 135: de andere stromen krijgen later
+  hetzelfde.
 
 ---
 

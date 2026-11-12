@@ -419,6 +419,30 @@
   .morgen .graden { grid-row: 1 / 3; grid-column: 3; font-family: var(--kop); font-weight: 600; font-size: 26px; }
   .morgen .graden small { font-size: 15px; color: var(--gedempt); font-family: var(--romp); }
   .boilerkaart { color: inherit; text-decoration: none; }
+  /* Het blad van de laadpaal (issue 164): wat hij nu laadt en waarvan, de auto, de fasen en vandaag. */
+  .pb-blad .hand-zet { text-decoration: none; display: inline-grid; place-items: center; margin-left: auto; }
+  .pb-nu { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; padding: 14px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.045); }
+  .pb-getal b { font-family: var(--kop); font-size: 44px; font-weight: 600; line-height: 1; }
+  .pb-getal span { font-size: 16px; color: var(--zacht); margin-left: 4px; }
+  .pb-getal small { display: block; font-size: 12.5px; color: var(--gedempt); margin-top: 4px; }
+  .pb-balk { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: rgb(var(--wit) / 0.07); }
+  .pb-balk i { display: block; height: 100%; }
+  .pb-leg { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 12.5px; color: var(--zacht); }
+  .pb-leg span { display: inline-flex; align-items: center; gap: 6px; }
+  .pb-leg i { width: 10px; height: 10px; border-radius: 3px; display: block; }
+  .pb-auto { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: rgb(var(--wit) / 0.045); color: inherit; text-decoration: none; }
+  .pb-auto b { display: block; font-size: 15px; }
+  .pb-auto small { font-size: 12.5px; color: var(--gedempt); }
+  .pb-auto .pijl { color: var(--gedempt); font-size: 18px; }
+  .pb-ring { --p: 50; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--mint) calc(var(--p) * 1%), rgb(var(--wit) / 0.1) 0); position: relative; }
+  .pb-ring::before { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: rgb(var(--nacht)); }
+  .pb-ring b { position: relative; font-size: 12px !important; }
+  .pb-h3 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--gedempt); }
+  .pb-fasen { display: grid; gap: 8px; }
+  .pb-fasen div { padding: 9px 12px; border-radius: 13px; background: rgb(var(--wit) / 0.05); }
+  .pb-fasen span { font-size: 12px; font-weight: 700; color: var(--zacht); }
+  .pb-fasen b { display: block; font-family: var(--kop); font-size: 18px; font-weight: 600; }
+  .pb-zin { margin: 0; font-size: 14px; color: var(--zacht); }
   /* De fasekaart (besluit 302): per fase een balk tot de zekering; het blad met de dag. */
   .fasekaart { cursor: pointer; }
   .fasekaart .kaartkop .fs-zek-kort { font-size: 13px; font-weight: 600; color: var(--gedempt); }
@@ -855,6 +879,7 @@
   <script src="dakvlakken.js"></script>
   <script src="tedoen.js"></script>
   <script src="fasekaart.js"></script>
+  <script src="paalblad.js"></script>
   <script src="thuis.js"></script>
 </body>
 </html>

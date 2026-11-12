@@ -24,6 +24,8 @@ let weer = null;
 /** De antwoorden bij Zon en aansluiting: hoeveel panelen er liggen. */
 let aansluiting = null;
 let gekozenZone = null;
+/** De laadpaal voor zijn blad (issue 164): de auto, de plek, en wat Thuis uitrekende over zon en net. */
+let paalNu = null;
 /** Wie hier woont en wiens comfort geldt (besluit 147); null zonder bewoners. */
 let bewoners = null;
 
@@ -87,6 +89,31 @@ function huisModel() {
   const metAccu = !!huisData?.opslag?.batterij;
   if (metAccu && accuKw > 0.05) stromen.push({ van: zonKw > 0.05 ? 'zon' : 'net', naar: 'batterij', sterkte: Math.min(1, accuKw / 3) });
   if (metAccu && accuKw < -0.05) stromen.push({ van: 'batterij', naar: koelend ? `kamer:${koelend.naam}` : 'huis', sterkte: Math.min(1, -accuKw / 3) });
+  /*
+   * De auto aan de laadpaal (issue 164): van de zon en het net naar de paal,
+   * naar rato van waar de stroom van het huis nu vandaan komt; en terug naar
+   * het huis als de auto levert.
+   */
+  const paalAuto = tek.auto && tek.auto.stand !== 'weg' ? tek.auto : null;
+  const autoKw = (paalAuto?.vermogenW ?? 0) / 1000;
+  let autoZon = 0;
+  if (paalAuto && autoKw > 0.05) {
+    const zonInHuis = Math.max(0, zonKw - Math.max(0, -netKw));
+    const vanNet = Math.max(0, netKw);
+    const deel = zonInHuis + vanNet > 0 ? zonInHuis / (zonInHuis + vanNet) : 0;
+    autoZon = Math.min(autoKw, autoKw * deel);
+    if (autoZon > 0.05) stromen.push({ van: 'zon', naar: 'auto', sterkte: Math.min(1, autoZon / 3) });
+    if (autoKw - autoZon > 0.05) stromen.push({ van: 'net', naar: 'auto', sterkte: Math.min(1, (autoKw - autoZon) / 3) });
+  }
+  if (paalAuto && autoKw < -0.05) stromen.push({ van: 'auto', naar: 'huis', sterkte: Math.min(1, -autoKw / 3) });
+  if (paalAuto) tek.auto = { ...paalAuto, bron: autoZon >= autoKw / 2 ? 'zon' : 'net', ...(paalAuto.stand === 'laadt' && autoKw <= 0.05 ? { stand: 'geparkeerd' } : {}) };
+  // Een tik op de paal of de auto opent zijn blad (issue 164, idee 135).
+  if (tek.auto) {
+    tek.auto = { ...tek.auto, tik: 'laadpaal', tikLabel: t('paal.label') };
+    const auto = (huisData?.opslag?.autos ?? []).find((a) => a.id === tek.auto.id);
+    paalNu = auto ? { auto, plek: auto.paalPlek ?? 'oprit', kw: tek.auto.stand === 'weg' ? 0 : autoKw, zonKw: autoZon } : null;
+    paalblad.bij(paalNu);
+  } else paalNu = null;
 
   const labels = [];
   // Zonder slimme meter (besluit 196): bij de panelen wat er geschat over is, en geen label bij het net.
@@ -99,6 +126,12 @@ function huisModel() {
   if (zonKw > 0.05) labels.push({ bij: 'panelen', titel: `${getal(zonKw)} kW`, groot: true, toon: 'zon', regels: [t('thuis.label.panelen'), ...dakRegel, ...over], dx: 64, dy: -70, ...(daken > 1 ? { tik: 'daken', tikLabel: t('daken.nu.kop') } : {}) });
   // Bij de accu wat hij nu doet (besluit 273): laden in goud, leveren in ijsblauw, zoals de lijn.
   if (metAccu && Math.abs(accuKw) > 0.05) labels.push({ bij: 'batterij', titel: `${getal(Math.abs(accuKw))} kW`, toon: accuKw > 0 ? 'zon' : 'ijs', regels: [t(accuKw > 0 ? 'thuis.label.accuLaadt' : 'thuis.label.accuLevert')], dx: 54, dy: -40 });
+  // Bij de laadpaal wat de auto nu laadt, en hoeveel van de zon (issue 164).
+  const paalLabel = tek.auto;
+  if (paalLabel && paalLabel.stand === 'laadt' && autoKw > 0.05) {
+    const pctZon = Math.round((autoZon / autoKw) * 100);
+    labels.push({ bij: 'laadpaal', titel: t('thuis.label.laadt', { kw: getal(autoKw) }), tik: 'laadpaal', tikLabel: t('paal.label'), toon: pctZon >= 50 ? 'zon' : 'violet', regels: [pctZon >= 5 ? t('thuis.label.laadtZon', { pct: pctZon }) : t('thuis.label.laadtNet'), ...(paalLabel.procent != null ? [t('thuis.label.autoPct', { pct: paalLabel.procent })] : [])], dx: -30, dy: -96 });
+  } else if (paalLabel && autoKw < -0.05) labels.push({ bij: 'laadpaal', titel: t('thuis.label.autoLevert', { kw: getal(-autoKw) }), toon: 'ijs', dx: -30, dy: -96 });
   // Van het net in violet, terug in groen: dezelfde kleur als de lijn (besluit 187).
   if (!s.geschat) labels.push({ bij: 'net', titel: netKw > 0.05 ? t('thuis.label.vanNet', { kw: getal(netKw) }) : netKw < -0.05 ? t('thuis.label.terug', { kw: getal(-netKw) }) : t('thuis.label.nietsNet'), toon: netKw > 0.05 ? 'violet' : 'mint', dx: 40, dy: 64 });
 
@@ -1411,11 +1444,17 @@ function openDaken() {
 }
 document.addEventListener('click', (e) => {
   if (e.target.closest('[data-tik="daken"]')) return void openDaken();
+  // De laadpaal (issue 164): het blad met wat hij nu doet.
+  if (e.target.closest('[data-tik="laadpaal"]') && paalNu) return void paalblad.openen(paalNu);
   const blad = document.querySelector('[data-dakblad]');
   if (blad && (e.target.closest('[data-dakblad-sluit]') || e.target === blad)) blad.remove();
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') document.querySelector('[data-dakblad]')?.remove();
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.closest?.('[data-tik="laadpaal"]') && paalNu) {
+    e.preventDefault();
+    paalblad.openen(paalNu);
+  }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.closest?.('[data-tik="daken"]')) {
     e.preventDefault();
     openDaken();

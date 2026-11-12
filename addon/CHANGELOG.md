@@ -1,5 +1,23 @@
 # Wat is er nieuw · What is new
 
+## 0.176.0
+
+*12 november 2026*
+
+**Nieuw**
+
+- De laadpaal staat in de tekening op Thuis, ook een uit losse sensoren: de stroom loopt van de zon en het net naar de paal en naar de auto
+- Een tik op de laadpaal of de auto opent een blad: wat hij nu laadt en waarvan, de auto, de stroom per fase en wat hij vandaag laadde
+- Bij Energie › Auto en laadpaal kies je ook voor de laadpaal waar hij staat, ook als er een auto is
+
+*English*
+
+**New**
+
+- The charger is in the drawing on Home, including one from separate sensors: power flows from solar and the grid to the charger and on to the car
+- Tapping the charger or the car opens a sheet: what it is charging now and from where, the car, the current per phase and what it charged today
+- In Energy › Car and charger you also choose where the charger stands, even when there is a car
+
 ## 0.175.1
 
 *11 november 2026 · 0.173.0 – 0.175.1*
