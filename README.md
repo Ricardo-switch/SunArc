@@ -183,7 +183,7 @@ Home Assistant then shows **New device discovered: SunArc**; click **Add**. You 
 The project is written in Dutch, including the decision log. Read more:
 - [STAND.md](STAND.md): how each part works today.
 - [DECISIONS.md](DECISIONS.md): every decision, with why and what it cost.
-- [Architecture.md](Architecture.md): how it is built.
+- [Architecture.en.md](Architecture.en.md): how it is built (an English translation of [Architecture.md](Architecture.md)).
 - [design/app2](design/app2): the sketches of the app. The sketch is the code: the app draws the house with the same files.
 - [docs/oude-regeling](docs/oude-regeling): the YAML setup that SunArc replaces.
 

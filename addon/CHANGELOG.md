@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.177.0
+## 0.178.0
 
-*12 november 2026 · 0.176.0 – 0.177.0*
+*12 november 2026 · 0.176.0 – 0.178.0*
 
 **Nieuw**
 
+- Tik op Thuis op de zon, het net of de thuisaccu, op hun lijn of hun label: een blad zegt per apparaat wat het nu van die stroom gebruikt
+- Op de telefoon opent een tik op een vakje onder het huis hetzelfde blad
+- Bij Kamers en indeling › Buiten staat bij elke plek in de tekening hoeveel apparaten er hangen; een tik opent de plek
 - Een zone in een kamer, zoals de keuken in de woonkamer, kan een eigen regeling krijgen met haar radiatorknop: een eigen doel en eigen tijden bij Comfort
 - In het blad van de kamer staat elke zone met haar temperatuur, doel en knoppen, en de knop van een zone zet je met de hand tot een tijd
 - De laadpaal staat in de tekening op Thuis, ook een uit losse sensoren: de stroom loopt van de zon en het net naar de paal en naar de auto
@@ -20,6 +23,9 @@
 
 **New**
 
+- On Home, tap the sun, the grid or the home battery, on their line or their label: a sheet shows what each device uses of that power right now
+- On the phone, tapping a tile below the house opens the same sheet
+- In Rooms and layout › Outside, each place in the drawing shows how many devices are there; a tap opens the place
 - A zone in a room, like the kitchen in the living room, can get its own control with its radiator valve: its own target and times in Comfort
 - The room sheet shows each zone with its temperature, target and valves, and you set a zone valve by hand until a time
 - The charger is in the drawing on Home, including one from separate sensors: power flows from solar and the grid to the charger and on to the car

@@ -443,6 +443,19 @@
   .pb-fasen span { font-size: 12px; font-weight: 700; color: var(--zacht); }
   .pb-fasen b { display: block; font-family: var(--kop); font-size: 18px; font-weight: 600; }
   .pb-zin { margin: 0; font-size: 14px; color: var(--zacht); }
+  /* Stroom nu (idee 135): per apparaat wat het van een bron gebruikt. */
+  .sb-rijen { display: flex; flex-direction: column; gap: 10px; }
+  .sb-rij { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: baseline; }
+  .sb-naam b { font-size: 14.5px; font-weight: 600; }
+  .sb-naam small { margin-left: 8px; font-size: 12.5px; color: var(--gedempt); }
+  .sb-w { font-family: var(--kop); font-size: 15px; font-weight: 600; }
+  .sb-staaf { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: rgb(var(--wit) / 0.07); overflow: hidden; }
+  .sb-staaf i { display: block; height: 100%; border-radius: 3px; }
+  .sb-link { margin-top: 10px; padding: 0; border: 0; background: none; color: var(--ijs-t, var(--ijs)); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .sb-accu { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--zacht); }
+  .sb-blad .livelabel { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: var(--zacht); }
+  .sb-blad .livelabel i { width: 9px; height: 9px; border-radius: 50%; background: var(--mint); }
+  #tel .stromen > div[data-tik] { cursor: pointer; }
   /* De fasekaart (besluit 302): per fase een balk tot de zekering; het blad met de dag. */
   .fasekaart { cursor: pointer; }
   .fasekaart .kaartkop .fs-zek-kort { font-size: 13px; font-weight: 600; color: var(--gedempt); }
@@ -880,6 +893,8 @@
   <script src="tedoen.js"></script>
   <script src="fasekaart.js"></script>
   <script src="paalblad.js"></script>
+  <script src="stroomnu.js"></script>
+  <script src="stroomblad.js"></script>
   <script src="thuis.js"></script>
 </body>
 </html>

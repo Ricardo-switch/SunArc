@@ -1,6 +1,6 @@
 # Project: SunArc OS (met HEMS-roadmap)
 
-*Bijgewerkt 1 oktober 2026.*
+*Bijgewerkt 1 oktober 2026. In het Engels: [Architecture.en.md](Architecture.en.md).*
 
 Dit document is de kaart van hoe het nu is: welke onderdelen er zijn, hoe een
 besluit tot stand komt, en waar wat draait. Het waarom — welke alternatieven

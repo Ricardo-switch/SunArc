@@ -300,6 +300,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [301. Een laadpaal uit losse sensoren](#301-een-laadpaal-uit-losse-sensoren)
 - [302. De fasekaart: hoe vol elke fase is](#302-de-fasekaart-hoe-vol-elke-fase-is)
 - [305. De laadpaal in de tekening, met de stromen en een blad](#305-de-laadpaal-in-de-tekening-met-de-stromen-en-een-blad)
+- [307. Stroom nu op Thuis, en wat er hangt bij de plekken buiten](#307-stroom-nu-op-thuis-en-wat-er-hangt-bij-de-plekken-buiten)
 
 **Veiligheid**
 
@@ -14033,6 +14034,38 @@ knop draaien in Home Assistant ([210]).
   telden als één apparaat via twee koppelingen ([127]), en zodra één in de
   regeling kwam, verdween de andere. Hetzelfde type telt nu alleen als
   hetzelfde apparaat als ze via verschillende koppelingen binnenkomen.
+
+## 307. Stroom nu op Thuis, en wat er hangt bij de plekken buiten
+
+*Onderwerp: weergave · Status: geldig*
+
+12 november 2026, versie 0.178.0: de rest van idee 135, en wat van [269] nog
+openstond. Een tester vroeg om de stroom van nu op het huis, met de details per
+apparaat bij een tik. Opbrengst › Nu had die details al ([254], [298]); de
+laadpaal kreeg als eerste een blad ([305]).
+
+*Besluit:*
+
+- **Stroom nu, een blad op Thuis.** Een tik op de zon, het net of de
+  thuisaccu opent het: op hun lijn in de tekening, op hun label, of op een
+  vakje onder het huis op de telefoon. Vier tabbladen: Zon, Huis, Net en Accu
+  (Accu alleen met een thuisaccu). Per bron het getal van nu, waar het heen
+  gaat of vandaan komt als balk, en per apparaat wat het nu van die bron
+  gebruikt. Bij de zon ook per dakvlak, met de weg naar De zon op je daken.
+  Elke vijf tellen opnieuw zolang het open is; alleen kijken.
+- **Eén rekensom** (`stroomnu.js`) voor Opbrengst › Nu en het blad, zodat ze
+  hetzelfde zeggen. De auto aan de laadpaal telt als apparaat onder zijn eigen
+  naam; de laadpaal dan niet nog eens.
+- **De panelen zelf** openen nog steeds De zon op je daken; het label bij de
+  panelen opent nu Stroom nu.
+- **"Alles live in Opbrengst"** opent Opbrengst meteen op Nu (`#nu`).
+- **Bij Kamers en indeling › Buiten** staat bij elke plek in de tekening een
+  kaartje met hoeveel apparaten er hangen ("Oprit · 3 apparaten"); een tik
+  opent de plek. Botsen kaartjes, dan schuiven ze uit elkaar (`wijk`); is er
+  nergens plek, dan valt er een weg, want de lijst eronder zegt hetzelfde. Op
+  de telefoon één regel per plek ("Tuin · 2").
+- **Architecture.en.md**: een Engelse vertaling van Architecture.md, waar de
+  Engelse README naar wijst. De Nederlandse blijft leidend.
 
 ---
 

@@ -373,7 +373,24 @@ function tekenBuiten(el, maat) {
   const buiten = huismodel.huisDelen(tek, aans?.antwoorden?.elders);
   for (const w of ['oprit', 'tuin', 'terras', 'balkon', 'voortuin', 'garage', 'voordeur']) if (buiten[w]) buiten[w] = { ...buiten[w], gekozen: !!buiten[w].id && (buiten[w].id === keuze.kamer || buiten[w].id === sleepDoel) };
   if (buiten.tuin?.tuinhuisId) buiten.tuin.tuinhuisGekozen = buiten.tuin.tuinhuisId === keuze.kamer || buiten.tuin.tuinhuisId === sleepDoel;
-  huis.teken(el, { beschrijving: t('indeling.beschrijvingBuiten'), tijd: 'dag', ...buiten, labels: [] }, { ...maat, marge: 0.04, tik: true });
+  huis.teken(el, { beschrijving: t('indeling.beschrijvingBuiten'), tijd: 'dag', ...buiten, labels: plekLabels(concept()) }, { ...maat, marge: 0.04, tik: true });
+}
+/*
+ * Op elke plek buiten een kaartje met wat er hangt (besluit 269, versie 1 had
+ * dit nog niet): "Oprit · 2 apparaten". De gekozen plek in ijsblauw. Een tik
+ * opent de plek, zoals de knop in het blad.
+ */
+const PLEK_RICHTING = { voordeur: [-30, 70], oprit: [-40, -60], carport: [-50, -40], garage: [-50, -60], tuin: [50, 50], tuinhuis: [40, -60], terras: [60, -30], voortuin: [60, 60], balkon: [60, -40] };
+function plekLabels(d) {
+  if (!d) return [];
+  return plekkenBuiten(d).map((p) => {
+    const n = p.kamer ? apparatenIn(p.kamer.id).length : 0;
+    const [dx, dy] = PLEK_RICHTING[p.soort] ?? [40, -40];
+    const gekozen = !!p.kamer && (p.kamer.id === keuze.kamer || p.kamer.id === sleepDoel);
+    // Op de telefoon is de tekening laag: één regel per plek, "Tuin · 2".
+    const kort = app.telStand();
+    return { bij: `buiten:${p.soort}`, titel: kort ? `${p.naam} · ${n}` : p.naam, regels: kort ? [] : [t('indeling.plek.aantal', { n })], toon: gekozen ? 'ijs' : n ? 'mint' : 'zacht', dx, dy, wijk: true, tik: p.kamer ? `kamer:${p.kamer.id}` : `plek:${p.soort}`, tikLabel: p.naam };
+  });
 }
 
 /* ------------------------------------------------------------ het blad */
@@ -1089,8 +1106,16 @@ document.addEventListener('click', async (e) => {
     netGesleept = false;
     return;
   }
-  const el = e.target.closest('button, [data-kamer], [data-bron-open]');
+  const el = e.target.closest('button, [data-kamer], [data-bron-open], [data-tik^="kamer:"], [data-tik^="plek:"]');
   if (!el || el.disabled) return;
+  // Een kaartje bij een plek buiten (12 november 2026).
+  if (el.dataset.tik) {
+    const [soort, wat] = [el.dataset.tik.slice(0, el.dataset.tik.indexOf(':')), el.dataset.tik.slice(el.dataset.tik.indexOf(':') + 1)];
+    await naBewaren();
+    if (soort === 'kamer') kiesKamer(wat);
+    else await plekOpenen(wat);
+    return;
+  }
   await naBewaren();
   const d = concept();
   if (!d) return;

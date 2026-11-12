@@ -106,6 +106,12 @@ function huisModel() {
     if (autoKw - autoZon > 0.05) stromen.push({ van: 'net', naar: 'auto', sterkte: Math.min(1, (autoKw - autoZon) / 3) });
   }
   if (paalAuto && autoKw < -0.05) stromen.push({ van: 'auto', naar: 'huis', sterkte: Math.min(1, -autoKw / 3) });
+  // Een tik op een lijn opent Stroom nu bij zijn bron (idee 135); de lijn naar de auto opent de laadpaal.
+  for (const st of stromen) {
+    const bron = st.naar === 'auto' ? null : st.van === 'zon' ? 'zon' : st.van === 'net' ? 'net' : st.van === 'batterij' ? 'accu' : null;
+    if (bron) Object.assign(st, { tik: `stroom:${bron}`, tikLabel: t('stroom.label') });
+    else if (st.naar === 'auto' || st.van === 'auto') Object.assign(st, { tik: 'laadpaal', tikLabel: t('paal.label') });
+  }
   if (paalAuto) tek.auto = { ...paalAuto, bron: autoZon >= autoKw / 2 ? 'zon' : 'net', ...(paalAuto.stand === 'laadt' && autoKw <= 0.05 ? { stand: 'geparkeerd' } : {}) };
   // Een tik op de paal of de auto opent zijn blad (issue 164, idee 135).
   if (tek.auto) {
@@ -123,9 +129,9 @@ function huisModel() {
   const dakRegel = daken > 1 ? [t('thuis.label.daken', { n: daken })] : [];
   // Een tik op de panelen zelf opent ook De zon op je daken, niet de zolder.
   const dakenTik = daken > 1;
-  if (zonKw > 0.05) labels.push({ bij: 'panelen', titel: `${getal(zonKw)} kW`, groot: true, toon: 'zon', regels: [t('thuis.label.panelen'), ...dakRegel, ...over], dx: 64, dy: -70, ...(daken > 1 ? { tik: 'daken', tikLabel: t('daken.nu.kop') } : {}) });
+  if (zonKw > 0.05) labels.push({ bij: 'panelen', titel: `${getal(zonKw)} kW`, groot: true, toon: 'zon', regels: [t('thuis.label.panelen'), ...dakRegel, ...over], dx: 64, dy: -70, tik: 'stroom:zon', tikLabel: t('stroom.label') });
   // Bij de accu wat hij nu doet (besluit 273): laden in goud, leveren in ijsblauw, zoals de lijn.
-  if (metAccu && Math.abs(accuKw) > 0.05) labels.push({ bij: 'batterij', titel: `${getal(Math.abs(accuKw))} kW`, toon: accuKw > 0 ? 'zon' : 'ijs', regels: [t(accuKw > 0 ? 'thuis.label.accuLaadt' : 'thuis.label.accuLevert')], dx: 54, dy: -40 });
+  if (metAccu && Math.abs(accuKw) > 0.05) labels.push({ bij: 'batterij', titel: `${getal(Math.abs(accuKw))} kW`, toon: accuKw > 0 ? 'zon' : 'ijs', regels: [t(accuKw > 0 ? 'thuis.label.accuLaadt' : 'thuis.label.accuLevert')], dx: 54, dy: -40, tik: 'stroom:accu', tikLabel: t('stroom.label') });
   // Bij de laadpaal wat de auto nu laadt, en hoeveel van de zon (issue 164).
   const paalLabel = tek.auto;
   if (paalLabel && paalLabel.stand === 'laadt' && autoKw > 0.05) {
@@ -133,7 +139,7 @@ function huisModel() {
     labels.push({ bij: 'laadpaal', titel: t('thuis.label.laadt', { kw: getal(autoKw) }), tik: 'laadpaal', tikLabel: t('paal.label'), toon: pctZon >= 50 ? 'zon' : 'violet', regels: [pctZon >= 5 ? t('thuis.label.laadtZon', { pct: pctZon }) : t('thuis.label.laadtNet'), ...(paalLabel.procent != null ? [t('thuis.label.autoPct', { pct: paalLabel.procent })] : [])], dx: -30, dy: -96 });
   } else if (paalLabel && autoKw < -0.05) labels.push({ bij: 'laadpaal', titel: t('thuis.label.autoLevert', { kw: getal(-autoKw) }), toon: 'ijs', dx: -30, dy: -96 });
   // Van het net in violet, terug in groen: dezelfde kleur als de lijn (besluit 187).
-  if (!s.geschat) labels.push({ bij: 'net', titel: netKw > 0.05 ? t('thuis.label.vanNet', { kw: getal(netKw) }) : netKw < -0.05 ? t('thuis.label.terug', { kw: getal(-netKw) }) : t('thuis.label.nietsNet'), toon: netKw > 0.05 ? 'violet' : 'mint', dx: 40, dy: 64 });
+  if (!s.geschat) labels.push({ bij: 'net', titel: netKw > 0.05 ? t('thuis.label.vanNet', { kw: getal(netKw) }) : netKw < -0.05 ? t('thuis.label.terug', { kw: getal(-netKw) }) : t('thuis.label.nietsNet'), toon: netKw > 0.05 ? 'violet' : 'mint', dx: 40, dy: 64, tik: 'stroom:net', tikLabel: t('stroom.label') });
 
   return {
     beschrijving: `${state?.bewoner?.kop?.titel ?? t('thuis.hetHuis')}. ${state?.bewoner?.kop?.zin ?? ''}`,
@@ -188,11 +194,12 @@ function tekenStromenTel() {
   const ZON = '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/>';
   const HUIS = '<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/>';
   const NET = '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>';
-  const vak = (pad, kleur, kw, woord) => `<div class="${kleur}"><i>${ik(pad)}</i><b>${esc(kw)}</b><span>${esc(woord)}</span></div>`;
+  // Elk vakje opent Stroom nu bij zijn bron (idee 135).
+  const vak = (pad, kleur, kw, woord, bron) => `<div class="${kleur}"${bron ? ` data-tik="stroom:${bron}" role="button" tabindex="0" aria-label="${esc(`${woord}: ${kw}`)}"` : ''}><i>${ik(pad)}</i><b>${esc(kw)}</b><span>${esc(woord)}</span></div>`;
   const netKw = s.netKw ?? 0;
   const delen = [];
   // De zon alleen als het huis panelen heeft; 's nachts gewoon 0.
-  if (s.zonKw != null) delen.push(vak(ZON, 'zon-t', `${getal(s.zonKw)} kW`, t('thuis.stromen.zon')));
+  if (s.zonKw != null) delen.push(vak(ZON, 'zon-t', `${getal(s.zonKw)} kW`, t('thuis.stromen.zon'), 'zon'));
   // Zonder slimme meter (besluit 196): wat er geschat over is, en geen net.
   if (s.geschat) {
     if (s.overKw != null) delen.push(vak(HUIS, '', `± ${getal(s.overKw)} kW`, t('thuis.stromen.overGeschat')));
@@ -200,12 +207,12 @@ function tekenStromenTel() {
     el.hidden = !delen.length;
     return;
   }
-  if (s.verbruikKw != null) delen.push(vak(HUIS, '', `${getal(s.verbruikKw)} kW`, t('thuis.stromen.huis')));
+  if (s.verbruikKw != null) delen.push(vak(HUIS, '', `${getal(s.verbruikKw)} kW`, t('thuis.stromen.huis'), 'huis'));
   delen.push(netKw > 0.05
-    ? vak(NET, 'violet-t', `${getal(netKw)} kW`, t('thuis.stromen.vanNet'))
+    ? vak(NET, 'violet-t', `${getal(netKw)} kW`, t('thuis.stromen.vanNet'), 'net')
     : netKw < -0.05
-      ? vak(NET, 'mint-t', `${getal(-netKw)} kW`, t('thuis.stromen.terug'))
-      : vak(NET, '', '0 kW', t('thuis.stromen.net')));
+      ? vak(NET, 'mint-t', `${getal(-netKw)} kW`, t('thuis.stromen.terug'), 'net')
+      : vak(NET, '', '0 kW', t('thuis.stromen.net'), 'net'));
   el.innerHTML = delen.join('');
   el.hidden = false;
 }
@@ -1444,6 +1451,9 @@ function openDaken() {
 }
 document.addEventListener('click', (e) => {
   if (e.target.closest('[data-tik="daken"]')) return void openDaken();
+  // Stroom nu (idee 135): bij de zon, het huis, het net of de accu.
+  const stroom = e.target.closest('[data-tik^="stroom:"]');
+  if (stroom) return void stroomblad.openen(stroom.dataset.tik.slice(7));
   // De laadpaal (issue 164): het blad met wat hij nu doet.
   if (e.target.closest('[data-tik="laadpaal"]') && paalNu) return void paalblad.openen(paalNu);
   const blad = document.querySelector('[data-dakblad]');
@@ -1451,6 +1461,11 @@ document.addEventListener('click', (e) => {
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') document.querySelector('[data-dakblad]')?.remove();
+  const stroom = (e.key === 'Enter' || e.key === ' ') && e.target.closest?.('[data-tik^="stroom:"]');
+  if (stroom) {
+    e.preventDefault();
+    stroomblad.openen(stroom.dataset.tik.slice(7));
+  }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.closest?.('[data-tik="laadpaal"]') && paalNu) {
     e.preventDefault();
     paalblad.openen(paalNu);
