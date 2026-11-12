@@ -117,6 +117,9 @@ verwijzing bestaat.
 - **Comfort** mag koelen boven een plafond, ook op netstroom ([50]). Een zone
   met meer kamers koelt op de warmste en verwarmt op de koudste ([81]); bij twee
   meters in één kamer kiest de bewoner ([95]).
+- **Een zone apart regelen:** een zone in een kamer, zoals de keuken in een
+  woonkamer, kan een eigen regeling krijgen met haar radiatorknop, met een
+  eigen doel bij Comfort, en de knop per zone met de hand ([306]).
 - **Helpen bij de cv:** een airco helpt de ketel als die lang stookt en zijn
   eigen kamer achterloopt, maar niet 's nachts, bij afwezig, op vakantie of
   tijdens voorverwarmen, want zijn piepje maakt de slapers wakker ([281]).
@@ -943,4 +946,5 @@ verwijzing bestaat.
 [303]: DECISIONS.md#303-helpen-bij-de-cv-doordraaien-en-de-dag-in-het-blad-van-de-airco
 [304]: DECISIONS.md#304-een-schakelaar-met-een-ingevuld-vermogen-kan-op-zon
 [305]: DECISIONS.md#305-de-laadpaal-in-de-tekening-met-de-stromen-en-een-blad
+[306]: DECISIONS.md#306-een-zone-apart-regelen-en-de-radiatorknop-per-zone-met-de-hand
 <!-- links:einde -->

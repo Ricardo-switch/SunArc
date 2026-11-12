@@ -1,22 +1,34 @@
 # Wat is er nieuw · What is new
 
-## 0.176.0
+## 0.177.0
 
-*12 november 2026*
+*12 november 2026 · 0.176.0 – 0.177.0*
 
 **Nieuw**
 
+- Een zone in een kamer, zoals de keuken in de woonkamer, kan een eigen regeling krijgen met haar radiatorknop: een eigen doel en eigen tijden bij Comfort
+- In het blad van de kamer staat elke zone met haar temperatuur, doel en knoppen, en de knop van een zone zet je met de hand tot een tijd
 - De laadpaal staat in de tekening op Thuis, ook een uit losse sensoren: de stroom loopt van de zon en het net naar de paal en naar de auto
 - Een tik op de laadpaal of de auto opent een blad: wat hij nu laadt en waarvan, de auto, de stroom per fase en wat hij vandaag laadde
 - Bij Energie › Auto en laadpaal kies je ook voor de laadpaal waar hij staat, ook als er een auto is
+
+**Opgelost**
+
+- Twee radiatorknoppen van hetzelfde type in één kamer telden soms als één apparaat, en dan verdween er een
 
 *English*
 
 **New**
 
+- A zone in a room, like the kitchen in the living room, can get its own control with its radiator valve: its own target and times in Comfort
+- The room sheet shows each zone with its temperature, target and valves, and you set a zone valve by hand until a time
 - The charger is in the drawing on Home, including one from separate sensors: power flows from solar and the grid to the charger and on to the car
 - Tapping the charger or the car opens a sheet: what it is charging now and from where, the car, the current per phase and what it charged today
 - In Energy › Car and charger you also choose where the charger stands, even when there is a car
+
+**Fixed**
+
+- Two radiator valves of the same type in one room sometimes counted as one device, and then one disappeared
 
 ## 0.175.1
 

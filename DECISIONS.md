@@ -94,6 +94,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [292. Helpen bij de cv gebouwd: elke airco voor zijn eigen kamer](#292-helpen-bij-de-cv-gebouwd-elke-airco-voor-zijn-eigen-kamer)
 - [303. Helpen bij de cv: doordraaien en de dag in het blad van de airco](#303-helpen-bij-de-cv-doordraaien-en-de-dag-in-het-blad-van-de-airco)
 - [304. Een schakelaar met een ingevuld vermogen kan op zon](#304-een-schakelaar-met-een-ingevuld-vermogen-kan-op-zon)
+- [306. Een zone apart regelen, en de radiatorknop per zone met de hand](#306-een-zone-apart-regelen-en-de-radiatorknop-per-zone-met-de-hand)
 
 **Configuratie en onboarding**
 
@@ -13991,6 +13992,47 @@ schets.
   stroom per fase, wat hij vandaag laadde (uit de laadbeurten), en Naar Auto.
   Alleen kijken. Dit is het begin van idee 135: de andere stromen krijgen later
   hetzelfde.
+
+---
+
+## 306. Een zone apart regelen, en de radiatorknop per zone met de hand
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+12 november 2026, versie 0.177.0, na de schets Wand-Zones. Ricardo heeft in één
+ruimte een keuken en een woonkamer, elk met een radiator waar slimme
+radiatorknoppen op komen; de app regelde alleen kamers, geen zones. Gekozen:
+een eigen regeling per zone, en de knop per zone met de hand. Met de hand raakt
+de meting voor stap B niet: het is een ingreep van een bewoner, net als aan de
+knop draaien in Home Assistant ([210]).
+
+*Besluit:*
+
+- **Per zone een eigen regeling** bij Kamers en indeling › een kamer ›
+  Verwarmen en koelen, onder Zones: "Met de kamer" of "Eigen regeling". Een
+  eigen regeling neemt de klimaatapparaten in die zone (zoals de radiatorknop
+  die je in de zone zette) en houdt ze op temperatuur; wat de kamer er al mee
+  deed, blijft.
+- **In de indeling** krijgt de zone `rollen`, `meten` en `regelzone`, net als
+  een kamer ([138], [123]). Een zone die voor het eerst meedoet, krijgt een
+  regelgebied met het id van de kamer en de zone (`woonkamer-keuken`).
+- **Voor de regeling is de zone een eigen kamer** (`regelKamers`):
+  "Woonkamer · Keuken", met haar apparaten, haar meten en haar regelgebied;
+  die apparaten tellen niet meer bij de kamer zelf. Zonder eigen keuze meet de
+  zone met haar eerste apparaat (de knop zelf). Comfort heeft daarmee een regel
+  per zone, met de standaarden van een nieuw huis ([204]).
+- **In de app:** het blad van de kamer heeft per zone een kop met haar
+  temperatuur en doel, met haar knoppen eronder; in de tekening staat de
+  temperatuur bij elke zone. Het huis geeft per zone `regeling` mee.
+- **De knop per zone met de hand,** door dezelfde deur als een radiatorknop
+  buiten de regeling ([235]): een doel tot een tijd, daarna terug naar het doel
+  van daarvoor. Een radiatorknop in de regeling heet ook een radiatorknop.
+  Tot stap B zet de regeling de knop niet zelf; in stap B herkent de regeling
+  een ingreep met de hand ([74]).
+- **Gevonden en hersteld:** twee knoppen van hetzelfde type in dezelfde kamer
+  telden als één apparaat via twee koppelingen ([127]), en zodra één in de
+  regeling kwam, verdween de andere. Hetzelfde type telt nu alleen als
+  hetzelfde apparaat als ze via verschillende koppelingen binnenkomen.
 
 ---
 

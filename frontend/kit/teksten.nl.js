@@ -639,6 +639,7 @@
   'kamer.bewegingOm': 'beweging om {wanneer}',
   'kamer.bewegingNu': 'Beweging, nu',
   'kamer.draait': '{naam} draait',
+  'kamer.zoneDoel': 'doel {c}°',
   'kamer.klimaat': 'Klimaat',
   'kamer.licht': 'Licht',
   'kamer.allesUit': 'Alles uit',
@@ -3361,6 +3362,17 @@
   'kan.beschrijving': 'Het huis, met wat SunArc erin doet.',
 
   // Kamers en indeling (indeling.js)
+  // Een zone apart regelen (besluit 306).
+  'indeling.zone.kop': 'Zones',
+  'indeling.zone.geenKnop': 'nog geen klimaatapparaat in deze zone',
+  'indeling.zone.doel': 'doel {c}°',
+  'indeling.zone.regeling': 'De regeling van {naam}',
+  'indeling.zone.metKamer': 'Met de kamer',
+  'indeling.zone.eigen': 'Eigen regeling',
+  'indeling.zone.uitleg': 'Met een eigen regeling heeft een zone een eigen doel en tijden bij Comfort, en meet hij met zijn eigen knop. Zet een knop in een zone bij het apparaat.',
+  'indeling.zone.isEigen': '{naam} heeft een eigen regeling',
+  'indeling.zone.isKamer': '{naam} doet mee met de kamer',
+  'indeling.zone.regelt': 'Geregeld door de zone {naam}',
   'indeling.kop': 'Kamers en indeling',
   'indeling.ongedaan': 'Ongedaan maken',
   'indeling.etages': 'Etages',
@@ -4799,6 +4811,7 @@
   'hand.zinKoelen': 'Via de koelknop van je regeling. Je regeling koelt dan tot {doel}, ook zonder zon over; dat kost stroom van het net. Om {klok} terug naar {terug}.',
   'hand.zinBadkamer': 'Via de knop van je regeling: de vloer en het paneel gaan uit boven {doel}. Om {klok} terug naar {terug}.',
   'hand.zinDirect': 'Je regeling verwarmt met deze airco alleen met zon of als hulp. Met de hand zet de app hem zelf op verwarmen, en zijn knop op {doel}, zodat je regeling hem laat staan. Om {klok} gaat hij uit.',
+  'hand.zinRadiatorZone': 'Deze radiatorknop regelt de zone {zone}. Met de hand gaat hij op {doel}; om {klok} terug naar {terug}, tenzij iemand hem intussen zelf verzette.',
   'hand.zinRadiator': 'Deze radiatorknop zit niet in je regeling: de app zet hem zelf op {doel}. Om {klok} terug naar {terug}, tenzij iemand hem intussen zelf verzette.',
   'hand.doelRadiator': 'het doel van de knop, daarna weer {terug}',
   'hand.zinStekker': 'Deze stekker zit niet in je regeling: de app zet hem zelf aan. Om {klok} gaat hij weer uit.',

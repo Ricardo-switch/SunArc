@@ -300,9 +300,23 @@ function kamerBlad(k) {
   const klimaatZin = k.samenvatting?.klimaat ?? '';
   // Draait er geen klimaat, dan zegt de samenvatting "Er draait niets": niet naast de droger.
   const onder = draait.length ? [k.samenvatting?.draait === 0 ? '' : klimaatZin, ...draait].filter(Boolean).join('. ') : klimaatZin;
+  /*
+   * Een zone met een eigen regeling (besluit 306): een kop met haar temperatuur
+   * en stand, en daaronder haar klimaatapparaten; de rest van de kamer erna.
+   */
+  const eigenZones = (k.zones ?? []).filter((z) => z.regeling);
+  const inZone = new Set();
+  const zoneGroepen = eigenZones.map((z) => {
+    const ds = klimaat.filter((d) => d.zone === z.id);
+    ds.forEach((d) => inZone.add(d.id));
+    const r = z.regeling;
+    const zin = r.doelC != null ? t('kamer.zoneDoel', { c: nl(r.doelC) }) : '';
+    return `<div class="zonegroep"><div class="zonekop"><b>${esc(z.naam)}</b>${r.temperatuurC != null ? `<span class="zonegetal">${nl(r.temperatuurC)}°</span>` : ''}<span class="mini">${esc(zin)}</span></div>${ds.map(rij).join('')}</div>`;
+  }).join('');
+  const klimaatRijen = zoneGroepen + klimaat.filter((d) => !inZone.has(d.id)).map(rij).join('');
   const delen = [
     `<div class="bladkop"><div><h2 class="kop-2">${esc(k.naam)}</h2><p class="klein" style="margin: 4px 0 0">${esc(onder)}</p></div></div>`,
-    klimaat.length ? `<div><h3 class="kop-3" style="margin-bottom: 4px">${esc(t(klimaat.some((d) => d.soort === 'klimaat') ? 'kamer.klimaat' : 'nav.apparaten'))}</h3>${klimaat.map(rij).join('')}</div>` : '',
+    klimaat.length ? `<div><h3 class="kop-3" style="margin-bottom: 4px">${esc(t(klimaat.some((d) => d.soort === 'klimaat') ? 'kamer.klimaat' : 'nav.apparaten'))}</h3>${klimaatRijen}</div>` : '',
     lampen.length || schakelaars.length
       ? `<div><div class="groepkop"><h3 class="kop-3">${esc(t('kamer.licht'))}</h3>${bedienen && lampen.some((d) => d.aan) ? `<button type="button" class="pil" data-alles-uit style="height: 30px; font-size: 13px; border: 0; color: inherit; cursor: pointer">${esc(t('kamer.allesUit'))}</button>` : ''}</div>${lampen.map(lamp).join('')}${schakelaars.map(battRij).join('')}${bedienen || !lampen.length ? '' : `<p class="mini" style="margin: 6px 0 0">${esc(t('kamer.lichtUit'))}</p>`}</div>`
       : '',

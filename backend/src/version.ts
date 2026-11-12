@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.176.0';
+export const VERSIE = '0.177.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,26 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.177.0',
+    datum: '2026-11-12',
+    nieuw: [
+      'Een zone in een kamer, zoals de keuken in de woonkamer, kan een eigen regeling krijgen met haar radiatorknop: een eigen doel en eigen tijden bij Comfort',
+      'In het blad van de kamer staat elke zone met haar temperatuur, doel en knoppen, en de knop van een zone zet je met de hand tot een tijd',
+    ],
+    opgelost: [
+      'Twee radiatorknoppen van hetzelfde type in één kamer telden soms als één apparaat, en dan verdween er een',
+    ],
+    en: {
+      nieuw: [
+        'A zone in a room, like the kitchen in the living room, can get its own control with its radiator valve: its own target and times in Comfort',
+        'The room sheet shows each zone with its temperature, target and valves, and you set a zone valve by hand until a time',
+      ],
+      opgelost: [
+        'Two radiator valves of the same type in one room sometimes counted as one device, and then one disappeared',
+      ],
+    },
+  },
   {
     versie: '0.176.0',
     datum: '2026-11-12',

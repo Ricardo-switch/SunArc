@@ -44,7 +44,7 @@ import {
   type HaRegistryEntity,
 } from './adapters/homeassistant/discovery.js';
 import { buildHouse, houseBeforeSetup, knownForLayout, proposeLayout, type HouseRegisters } from './web/house.js';
-import { LayoutStore, herstelMeedoen, withLayoutNames, type Layout } from './web/layout.js';
+import { LayoutStore, herstelMeedoen, regelKamers, withLayoutNames, type Layout } from './web/layout.js';
 import { noteSensors, readLayoutFile, withMeasurement } from './web/meten.js';
 import { configUitDeApp } from './web/config-uit-app.js';
 import { bijspringenView, ComfortStore, controleerBijspringen, controleerComfort, type Comfort, type ComfortRoom, type ComfortView } from './web/comfort.js';
@@ -395,7 +395,7 @@ if (site && logDir !== '') {
     layoutAtStart = await readLayoutFile(logDir);
     const base = JSON.parse(await readFile(site.source, 'utf-8')) as Record<string, unknown>;
     const metAansluiting = answersAtStart && connectionApplied.toegevoegd.length ? withConnection(base, answersAtStart).raw : base;
-    const metMeten = withMeasurement(metAansluiting, layoutAtStart);
+    const metMeten = withMeasurement(metAansluiting, layoutAtStart ? { kamers: regelKamers(layoutAtStart.kamers) } : null);
     if (metMeten.toegevoegd.length) {
       const checked = parseSiteConfig(metMeten.raw, { knownStrategies: strategies.ids });
       if (checked.ok) {
@@ -852,9 +852,16 @@ function kinderslotten(): Record<string, { readonly id: string; readonly aan: bo
 }
 
 /** De radiatorknoppen buiten de regeling (besluit 126), met hun kamer: die zet de hand direct (besluit 235). */
-function handKnoppen(): { id: string; naam: string; kamer: string }[] {
-  const regeling = new Set((siteConfig?.actuators ?? []).map((a) => a.ref.id));
-  return (houseReport()?.etages ?? []).flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten.filter((a) => a.radiatorknop && a.id.startsWith('climate.') && !regeling.has(a.id)).map((a) => ({ id: a.id, naam: a.naam, kamer: r.naam }))));
+function handKnoppen(): { id: string; naam: string; kamer: string; zone?: string }[] {
+  // Een knop in een zone met een eigen regeling (besluit 306) mag ook met de hand: de bewoner koos dat.
+  const zoneGebieden = new Set((layoutNu?.()?.kamers ?? []).flatMap((k) => k.zones.map((z) => z.regelzone).filter((x): x is string => x != null)));
+  const inZone = new Set((siteConfig?.zones ?? []).filter((z) => zoneGebieden.has(z.id)).flatMap((z) => z.actuatorIds));
+  const regeling = new Set((siteConfig?.actuators ?? []).filter((a) => !inZone.has(a.id)).map((a) => a.ref.id));
+  return (houseReport()?.etages ?? []).flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten.filter((a) => a.radiatorknop && a.id.startsWith('climate.') && !regeling.has(a.id)).map((a) => {
+    // De zone die deze knop regelt, voor de zin in het blad.
+    const zone = inZone.has(a.actuatorId ?? a.id) ? r.zones.find((z) => z.id === a.zone && z.regeling)?.naam : undefined;
+    return { id: a.id, naam: a.naam, kamer: r.naam, ...(zone ? { zone } : {}) };
+  })));
 }
 /** De stekkers met een warmtebron die niet in de regeling zitten (besluit 235). */
 function handSchakelaars(): { id: string; kamer: string; naam: string; aan: boolean }[] {

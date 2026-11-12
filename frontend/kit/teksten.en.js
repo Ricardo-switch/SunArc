@@ -634,6 +634,7 @@
   'kamer.bewegingOm': 'movement at {wanneer}',
   'kamer.bewegingNu': 'Movement, now',
   'kamer.draait': '{naam} is running',
+  'kamer.zoneDoel': 'target {c}°',
   'kamer.klimaat': 'Climate',
   'kamer.licht': 'Lights',
   'kamer.allesUit': 'All off',
@@ -3356,6 +3357,17 @@
   'kan.beschrijving': 'The house, with what SunArc does in it.',
 
   // Rooms and layout (indeling.js)
+  // Een zone apart regelen (besluit 306).
+  'indeling.zone.kop': 'Zones',
+  'indeling.zone.geenKnop': 'no climate device in this zone yet',
+  'indeling.zone.doel': 'target {c}°',
+  'indeling.zone.regeling': 'The control of {naam}',
+  'indeling.zone.metKamer': 'With the room',
+  'indeling.zone.eigen': 'Own control',
+  'indeling.zone.uitleg': 'With its own control a zone has its own target and times in Comfort, and measures with its own valve. Put a valve in a zone at the device.',
+  'indeling.zone.isEigen': '{naam} has its own control',
+  'indeling.zone.isKamer': '{naam} follows the room',
+  'indeling.zone.regelt': 'Controlled by the zone {naam}',
   'indeling.kop': 'Rooms and layout',
   'indeling.ongedaan': 'Undo',
   'indeling.etages': 'Floors',
@@ -4794,6 +4806,7 @@
   'hand.zinKoelen': 'Through the cooling knob of your controller. It then cools to {doel}, even without surplus solar; that uses power from the grid. At {klok} back to {terug}.',
   'hand.zinBadkamer': 'Through the knob of your controller: the floor and the panel switch off above {doel}. At {klok} back to {terug}.',
   'hand.zinDirect': 'Your controller only heats with this air conditioner on solar or as help. Manually, the app turns it to heat itself, and its knob to {doel}, so your controller leaves it on. At {klok} it switches off.',
+  'hand.zinRadiatorZone': 'This valve controls the zone {zone}. By hand it goes to {doel}; at {klok} back to {terug}, unless someone changed it in the meantime.',
   'hand.zinRadiator': 'This radiator valve is not part of your controller: the app sets it to {doel} itself. At {klok} back to {terug}, unless someone changed it in the meantime.',
   'hand.doelRadiator': 'the valve target, then back to {terug}',
   'hand.zinStekker': 'This plug is not part of your controller: the app switches it on itself. At {klok} it switches off again.',

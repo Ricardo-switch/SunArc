@@ -147,6 +147,12 @@
   .keuze b { display: block; font-size: 13.5px; }
   .keuze span span { font-size: 12px; color: var(--gedempt); line-height: 1.35; }
   .uitleg { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
+  /* Een zone apart regelen (besluit 306). */
+  .zones-blok { display: flex; flex-direction: column; gap: 8px; }
+  .zone-regel { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 14px; background: rgb(var(--wit) / 0.045); }
+  .zone-kop { display: flex; align-items: baseline; gap: 10px; }
+  .zone-temp { font-size: 13px; color: var(--zacht); font-weight: 600; }
+  .zone-regel .chips.seg { align-self: flex-start; }
   .uitleg b { color: var(--zacht); }
   .vraagknop { align-self: start; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px dashed rgba(111, 211, 255, 0.55); background: none; color: var(--ijs-t); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
   .plus { height: 42px; border-radius: 14px; border: 1px dashed rgba(111, 211, 255, 0.55); background: none; color: var(--ijs-t); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }

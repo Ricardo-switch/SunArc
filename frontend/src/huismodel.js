@@ -126,7 +126,11 @@
       // Een kamer die meedoet met een andere (besluit 142), kleurt mee met die regeling.
       stand: zid ? standVan(zid, state) : null,
       zin: zid ? kortVan(zid, state) : r.lampenAan ? global.t('huis.lampenAan', { n: r.lampenAan }) : null,
-      zones: (r.zones ?? []).length > 1 ? r.zones.map((z) => (z.soort ? { naam: z.naam, soort: z.soort } : z.naam)) : undefined,
+      // Een zone met een eigen regeling (besluit 306) zegt haar eigen temperatuur erbij.
+      zones: (r.zones ?? []).length > 1 ? r.zones.map((z) => {
+        const naam = z.regeling?.temperatuurC != null ? `${z.naam} ${nl(z.regeling.temperatuurC)}°` : z.naam;
+        return z.soort ? { naam, soort: z.soort } : naam;
+      }) : undefined,
       // Wat voor kamer, voor de inrichting ingezoomd (besluit 119). Hebben de zones
       // een gekozen soort en de kamer niet, dan per zone (besluit 145).
       inrichting: (r.soortGekozen || !(r.zones ?? []).some((z) => z.soort) ? r.soort : null) ?? undefined,
