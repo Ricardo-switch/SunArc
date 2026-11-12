@@ -74,7 +74,7 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.175.1', '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.178.1', '0.175.1', '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
@@ -135,6 +135,16 @@ export const NIEUW: readonly Nieuw[] = [
       'De laadpaal staat in de tekening op Thuis, ook een uit losse sensoren: de stroom loopt van de zon en het net naar de paal en naar de auto',
       'Een tik op de laadpaal of de auto opent een blad: wat hij nu laadt en waarvan, de auto, de stroom per fase en wat hij vandaag laadde',
       'Bij Energie › Auto en laadpaal kies je ook voor de laadpaal waar hij staat, ook als er een auto is',
+    ],
+    meldingen: [
+      {
+        code: 'SA-N2JR',
+        uitkomst: 'opgelost',
+        tekst: 'De laadpaal staat nu in de tekening op Thuis, op je oprit of waar je hem zet, met de stroom van de zon en het net naar de paal en de auto. Een tik op de paal opent wat hij nu doet.',
+        tekstEn: 'The charger now shows in the drawing on Home, on your driveway or wherever you place it, with power from the sun and the grid flowing to the charger and the car. Tap the charger to see what it is doing now.',
+        href: 'thuis.html',
+        issue: 164,
+      },
     ],
     en: {
       nieuw: [
