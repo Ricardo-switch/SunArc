@@ -287,6 +287,9 @@ verwijzing bestaat.
   apparaten op hun plek zijn gebouwd (0.158.0–0.162.0), maar op beta
   teruggedraaid in 0.163.0 en bewaard op de branch `je-huis`; het huis op
   Thuis op echte maat is gepauzeerd ([288]).
+  Het is opnieuw ontworpen als één tekentafel op ruitjes van 10 cm, met het
+  huis in 3D uit de tekening; de schets werkt, de bouw moet nog beginnen
+  ([308]).
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over
@@ -949,4 +952,5 @@ verwijzing bestaat.
 [305]: DECISIONS.md#305-de-laadpaal-in-de-tekening-met-de-stromen-en-een-blad
 [306]: DECISIONS.md#306-een-zone-apart-regelen-en-de-radiatorknop-per-zone-met-de-hand
 [307]: DECISIONS.md#307-stroom-nu-op-thuis-en-wat-er-hangt-bij-de-plekken-buiten
+[308]: DECISIONS.md#308-je-huis-tekenen-één-tekentafel-op-ruitjes-en-het-huis-in-3d-uit-de-tekening
 <!-- links:einde -->

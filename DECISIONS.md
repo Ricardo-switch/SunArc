@@ -301,6 +301,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [302. De fasekaart: hoe vol elke fase is](#302-de-fasekaart-hoe-vol-elke-fase-is)
 - [305. De laadpaal in de tekening, met de stromen en een blad](#305-de-laadpaal-in-de-tekening-met-de-stromen-en-een-blad)
 - [307. Stroom nu op Thuis, en wat er hangt bij de plekken buiten](#307-stroom-nu-op-thuis-en-wat-er-hangt-bij-de-plekken-buiten)
+- [308. Je huis tekenen: één tekentafel op ruitjes, en het huis in 3D uit de tekening](#308-je-huis-tekenen-één-tekentafel-op-ruitjes-en-het-huis-in-3d-uit-de-tekening)
 
 **Veiligheid**
 
@@ -14071,6 +14072,108 @@ laadpaal kreeg als eerste een blad ([305]).
   uit en deed niets. Nu is hij gedempt en geeft een tik onder de zone de
   uitleg: er moet eerst een radiatorknop of ander klimaatapparaat in, te
   kiezen bij het apparaat onder Zone ([306]).
+
+---
+
+## 308. Je huis tekenen: één tekentafel op ruitjes, en het huis in 3D uit de tekening
+
+*Onderwerp: weergave · Status: geldig*
+
+12 november 2026, nog geen versie. Vervangt de opzet van [288] (Je huis op
+maat, 0.158.0–0.162.0, teruggedraaid in 0.163.0). Ricardo: "lijnen tekenen was
+lastig en ook de apparaten indelen door te slepen werkte niet goed", daarna
+de schetsen Wand-Huis-Tekenen en Tel-Huis-Tekenen in vier rondes, en: "nu het
+idee er is, kunnen we dit vastleggen en bouwen".
+
+*Waarom:* 0.162.0 is nagemeten met het voorbeeldhuis en een nagebootste vinger.
+
+- Op een aanraakscherm brak het slepen van een lijn en van een apparaat na een
+  paar millimeter af: de browser pakte het gebaar af (geen `touch-action: none`
+  op de lijn, op een SVG-groep werkt het niet, niets hield de vinger vast, en de
+  tekening werd onder de vinger opnieuw getekend). Met de muis ging het wel, en
+  de tests klikten alleen.
+- De kamers waren een boom van lijnen, elke lijn met zijn maat vanaf de vorige.
+  Een muur schuiven verschoof daardoor een andere muur mee: de hal werd twee
+  keer zo groot toen de muur tussen woonkamer en keuken schoof.
+- Een lijn zetten ging in drie stappen (vak, knop, onzichtbare streep van 16
+  px), de maat zag je pas na het loslaten, het blad schoof op de wand, de
+  rondjes van de apparaten waren 26 px en vielen over de naam van de kamer.
+- Vier pagina's na elkaar voor één huis, zonder dat je er iets voor terugzag.
+- Ricardo's eigen begane grond (één open ruimte met keuken en woonkamer als
+  zones, en in het midden een kern met hal, meterkast, toilet en trap) was er
+  niet in te maken.
+
+*Besluit:*
+
+- **Eén tekentafel.** Je huis is één scherm: de plattegrond vult het, de
+  etages staan links als het huis opzij (op de telefoon een balk), en bovenin
+  kies je Vorm, Kamers, Apparaten of Huis. Het blad ernaast bestaat uit
+  regels, geen wolk van knoppen, en schuift op de wand nooit.
+- **Een etage is ruitjespapier van 10 cm.** Elk ruitje hoort bij één ruimte
+  of ligt buiten. Er is dus nooit een gat of een overlap, een ruimte mag elke
+  rechte vorm hebben (een L, een U om een kern heen), en een muur schuiven
+  verandert alleen de twee ruimtes ernaast. Bewaard wordt per ruimte een lijst
+  rechthoeken in meters; de boom van lijnen uit [288] vervalt.
+- **Eén manier van tekenen.** Trek een vak: een nieuwe ruimte, de rest blijft
+  wat het was. Pak een muur: schuiven, per 10 cm, met de maten aan weerszijden
+  en vastklikken aan muren in de buurt en aan die van de etage eronder. Tik:
+  zeggen wat het is, een kamer uit Home Assistant, of een eigen naam zonder
+  kamer (hal, toilet, trap, meterkast, zelf getypt). Een gekozen ruimte
+  verplaats je in zijn geheel met de greep in het midden, en haal je weg met
+  Weghalen: hij wordt weer deel van de ruimte waar hij het meest aan grenst.
+  Een maat typen kan ook. Stap terug en vooruit staan altijd bovenin.
+- **Een begin hoeft niet zelf.** Per etage een paar indelingen uit de kamers
+  van Home Assistant, of de muren van de etage eronder.
+- **Zones zijn een stippellijn in één kamer,** geen muur: te slepen, hij stopt
+  vanzelf bij wat in de kamer staat. De kamer heet in de tekening naar zijn
+  zones, ook bij Apparaten, en een apparaat staat in de zone aan zijn kant van
+  de lijn.
+- **Een apparaat hoeft geen plek.** Zonder plek staat het waar het meestal
+  hangt (airco aan de achterwand, screen aan de gevel, lamp in het midden,
+  meter aan een muur). Verzetten kan, en bij een muur klikt het vast; de rest
+  verspringt dan niet. Tik een kamer aan en hij komt dichtbij. Wat nog geen
+  kamer heeft staat in een strook: slepen naar een kamer, of aantikken en dan
+  de kamer. Na het neerzetten springt er niets open.
+- **Bij Vorm staat wat elke bron van het huis vindt, en kies je.** De
+  3D-kaart van Nederland (omtrek, hoogte en dak), OpenStreetMap (alleen de
+  omtrek) en het basishuis uit het woningtype, elk met een plaatje, wat
+  gevonden is en of het gemeten of geschat is. Het is dezelfde zoekactie en
+  dezelfde set gebouwen als Wat kan bij jouw huis bij Daken en panelen
+  ([261]); kiezen kan op allebei de plekken. De kamers blijven staan waar ze
+  nog passen. Een buitenmuur trek je recht met hetzelfde gebaar.
+- **Huis tekent het huis in 3D uit de tekening.** De buitenkant van de
+  gekozen bron (goot, nok, dakvorm; de nok hoeft niet in het midden te
+  liggen), de binnenkant uit de ruitjes: één etage open met lage binnenmuren,
+  de zones en de apparaten, of dicht met het dak. Te draaien. Dit is het
+  begin van het huis op Thuis op echte maat ([288], gepauzeerd): dat blijft
+  een eigen ronde.
+- **Alles wat je sleept wordt met een nagebootste vinger getest,** op de maat
+  van de wand en van de telefoon, in de paginatest: alleen `pointerdown` en
+  `pointerup`, geen `pointercancel`. De hele tekening houdt de vinger vast
+  (`touch-action: none` op het svg-element, `setPointerCapture`), wat je raakt
+  rekent de motor uit de meters, en onder de vinger wordt niets opnieuw
+  getekend dat hem vasthoudt.
+- **Bouwen naast de oude pagina.** Kamers en indeling blijft zoals hij is tot
+  Ricardo zegt dat de nieuwe goed is; pas dan gaat de oude eruit en gaat het
+  naar main. De volgorde, elke stap een versie op beta:
+  1. de tekenmotor naar `frontend/kit` met de vingerproef als paginatest, en
+     de opslag (ruitjes als rechthoeken per ruimte, zones, plek);
+  2. Kamers, met de echte kamers uit Home Assistant;
+  3. Apparaten;
+  4. Vorm, met de gebouwen en bronnen van Daken en panelen en de hoogtes;
+  5. Huis in 3D;
+  6. de telefoon en Engels afmaken.
+- **Van de branch `je-huis` blijft bruikbaar:** de hoogte per gebouw
+  (`hoogteGoot`, `hoogteNok`, `lagen`), de maat per etage, de hoogte uit de
+  3D-kaart, het huis opzij en de deur `api/huisvorm`. De lijnenboom en de
+  sleepcode niet.
+
+De schets werkt echt en is de maatstaf ([104]): `design/app2/Wand-Huis-Tekenen.html`
+en `Tel-Huis-Tekenen.html`, de tekenmotor in `huistekenen.js`, het huis in 3D
+in `huistekenen-3d.js`. Ze tonen een voorbeeldhuis, een huis met een open
+begane grond en het huis van Ricardo uit de 3D-kaart (`#jouw`). Nog niet in
+de schets: meer dan twee zones in een kamer, een gebouw dat schuin staat,
+een dakkapel, en hoogtes aanpassen.
 
 ---
 

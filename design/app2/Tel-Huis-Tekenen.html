@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Je huis tekenen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="huistekenen.css">
+<style>
+  /*
+   * Je huis tekenen op de telefoon (schets, 11 november 2026): dezelfde
+   * tekentafel als op de wand (Wand-Huis-Tekenen), onder elkaar. De tekening
+   * houdt je vinger vast; de pagina schuif je erboven of eronder. Dezelfde
+   * standen: #muur, #vak, #leeg, #apparaten, #kamer, #vorm.
+   */
+  .tel { padding: 14px 16px 110px; display: flex; flex-direction: column; gap: 12px; }
+  .tk-kop { display: flex; align-items: center; gap: 8px; }
+  .tk-kop a { font-size: 14px; font-weight: 600; color: var(--zacht); }
+  .tk-kop h1 { margin: 0; font: 600 30px var(--kop); letter-spacing: -0.02em; }
+  .tk-kop .hm-rechts { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .hm-seg { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .hm-seg button { justify-content: center; padding: 0 2px; font-size: 13.5px; }
+  .tk-etages { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 14px; background: rgb(255 255 255 / 0.05); }
+  .tk-etages button { height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--zacht); font: 700 13.5px var(--romp); }
+  .tk-etages button[aria-pressed='true'] { background: rgb(111 211 255 / 0.2); color: var(--tekst); box-shadow: inset 0 0 0 2px rgb(111 211 255 / 0.7); }
+  .tk-podium { position: relative; padding: 6px; border-radius: 22px; }
+  .tk-tekening { position: relative; height: 348px; }
+  .tk-tekening svg { position: absolute; inset: 0; }
+  .hm-straat { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgb(255 255 255 / 0.3); pointer-events: none; }
+  .hm-uitleg { padding: 0 4px; font-size: 13px; min-height: 54px; align-items: flex-start; }
+  .ht-strook { flex-wrap: wrap; }
+  .ht-strook .ht-n span { max-width: none; }
+  .tk-blad { padding: 16px 14px; border-radius: 22px; }
+  .ht-keus button span { height: 96px; }
+</style>
+</head>
+<body class="lucht lucht-dag">
+<div class="tel">
+  <div class="tk-kop">
+    <div><a>‹ Instellingen</a><h1>Je huis</h1></div>
+    <div class="hm-rechts">
+      <span class="hm-bewaard" id="bewaard">Bewaard</span>
+      <button type="button" class="hm-rond" id="terug" aria-label="Stap terug"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+      <button type="button" class="hm-rond" id="vooruit" aria-label="Stap vooruit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
+    </div>
+  </div>
+  <div class="hm-seg" id="standen" role="group" aria-label="Wat je tekent">
+    <button type="button" data-stand="vorm">Vorm</button>
+    <button type="button" data-stand="kamers">Kamers</button>
+    <button type="button" data-stand="apparaten">Apparaten</button>
+<button type="button" data-stand="huis">Huis</button>
+  </div>
+  <div class="tk-etages" role="group" aria-label="Etage">
+    <button type="button" data-etage-kies="zolder">Zolder</button>
+    <button type="button" data-etage-kies="eerste">Eerste</button>
+    <button type="button" data-etage-kies="bg">Begane grond</button>
+  </div>
+  <section class="glas tk-podium">
+    <div class="tk-tekening"><svg id="tekening" role="application" aria-label="De plattegrond van deze etage"></svg><span class="hm-straat">STRAAT</span></div>
+  </section>
+  <p class="hm-uitleg" id="uitleg"></p>
+  <div class="ht-strook" id="strook" hidden></div>
+  <aside class="glas tk-blad ht-blad" id="blad" aria-live="polite"></aside>
+  <nav class="tabs" id="tabs" aria-label="Hoofdmenu"></nav>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="huistekenen.js"></script>
+<script src="huistekenen-3d.js"></script>
+<script src="huistekenen-voorbeeld.js"></script>
+<script src="huistekenen-schets.js"></script>
+<script>
+  nav.tabs(document.getElementById('tabs'), 'instellingen');
+  huistekenenSchets.start();
+</script>
+</body>
+</html>

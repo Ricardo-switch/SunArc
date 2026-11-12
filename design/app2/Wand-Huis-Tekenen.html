@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wand · Je huis tekenen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="huistekenen.css">
+<style>
+  /*
+   * Je huis tekenen (schets, 11 november 2026): Je huis opnieuw, na 0.158-0.162.
+   * Eén tekentafel in plaats van vier pagina's: de plattegrond vult het scherm,
+   * de etages staan links als het huis opzij, en bovenin kies je wat je tekent.
+   * De schets werkt echt: trek een vak, pak een muur, versleep een apparaat.
+   * Zonder hash onthoudt de browser wat je tekende (Opnieuw zet het terug).
+   *   (zonder)    Kamers op de begane grond
+   *   #muur       een muur gekozen: de greep, de maat vanaf de gevel
+   *   #vak        een nieuw vak in de woonkamer: wat is dit?
+   *   #leeg       de zolder, nog leeg: begin met een indeling
+   *   #apparaten  Apparaten op de begane grond, twee nog zonder kamer
+   *   #kamer      Apparaten: de woonkamer dichtbij
+   *   #vorm       Vorm: de buitenmuren met hun maat
+   */
+  main { padding: 20px 24px 18px 22px; display: flex; flex-direction: column; gap: 14px; min-height: 0; min-width: 0; }
+  .hm-kop { display: flex; align-items: center; gap: 14px; height: 54px; }
+  .terug { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 16px 0 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.07); border: 1px solid var(--glas-rand); font-size: 14.5px; font-weight: 600; color: var(--zacht); }
+  .terug i { font-style: normal; font-size: 20px; line-height: 1; margin-top: -2px; }
+  .hm-kop .kop-1 { font-size: 38px; margin: 0 14px 0 4px; white-space: nowrap; }
+  .hm-rechts { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .hm-veld { flex: 1; display: grid; grid-template-columns: 124px minmax(0, 1fr) 306px; gap: 16px; min-height: 0; }
+  .hm-links { display: flex; flex-direction: column; justify-content: center; padding: 0 8px 30px; }
+  .hm-links .opnieuw { margin-top: 22px; border: 0; background: transparent; color: var(--gedempt); font: 600 12px var(--romp); text-decoration: underline; cursor: pointer; text-align: left; padding: 0 4px; }
+  .hm-podium { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 8px; min-height: 0; min-width: 0; border-radius: 24px; }
+  .hm-tekening { flex: 1; min-height: 0; position: relative; }
+  .hm-tekening svg { position: absolute; inset: 0; }
+  .hm-straat { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: rgb(255 255 255 / 0.3); pointer-events: none; }
+  .hm-blad { padding: 16px 14px 14px; border-radius: 24px; min-height: 0; overflow: hidden; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-dag">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="hm-kop">
+      <span class="terug"><i>‹</i>Instellingen</span>
+      <h1 class="kop-1">Je huis</h1>
+      <div class="hm-seg" id="standen" role="group" aria-label="Wat je tekent">
+        <button type="button" data-stand="vorm" data-ik="thuis">Vorm</button>
+        <button type="button" data-stand="kamers" data-ik="kamers">Kamers</button>
+        <button type="button" data-stand="apparaten" data-ik="apparaat">Apparaten</button>
+<button type="button" data-stand="huis" data-ik="thuis">Huis</button>
+      </div>
+      <div class="hm-rechts">
+        <span class="hm-bewaard" id="bewaard">Bewaard</span>
+        <button type="button" class="hm-rond" id="terug" aria-label="Stap terug"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+        <button type="button" class="hm-rond" id="vooruit" aria-label="Stap vooruit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
+      </div>
+    </div>
+    <div class="hm-veld">
+      <div class="hm-links">
+        <div class="ht-stapel" id="stapel"></div>
+        <button type="button" class="opnieuw" id="opnieuw">Schets: opnieuw beginnen</button>
+      </div>
+      <section class="glas hm-podium">
+        <div class="hm-tekening"><svg id="tekening" role="application" aria-label="De plattegrond van deze etage"></svg><span class="hm-straat">STRAAT</span></div>
+        <div class="ht-strook" id="strook" hidden></div>
+        <p class="hm-uitleg" id="uitleg"></p>
+      </section>
+      <aside class="glas hm-blad ht-blad" id="blad" aria-live="polite"></aside>
+    </div>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="huistekenen.js"></script>
+<script src="huistekenen-3d.js"></script>
+<script src="huistekenen-voorbeeld.js"></script>
+<script src="huistekenen-schets.js"></script>
+<script>
+  nav.balk(document.getElementById('balk'), 'instellingen');
+  huistekenenSchets.start();
+</script>
+</body>
+</html>
