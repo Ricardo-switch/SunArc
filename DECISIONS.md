@@ -14066,6 +14066,11 @@ laadpaal kreeg als eerste een blad ([305]).
   de telefoon één regel per plek ("Tuin · 2").
 - **Architecture.en.md**: een Engelse vertaling van Architecture.md, waar de
   Engelse README naar wijst. De Nederlandse blijft leidend.
+- **Eigen regeling zonder klimaatapparaat in de zone** (0.178.1, Ricardo op de
+  NAS): de knop stond als `disabled`, maar zag er in de segmentbalk niet zo
+  uit en deed niets. Nu is hij gedempt en geeft een tik onder de zone de
+  uitleg: er moet eerst een radiatorknop of ander klimaatapparaat in, te
+  kiezen bij het apparaat onder Zone ([306]).
 
 ---
 

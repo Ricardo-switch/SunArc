@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.178.0
+## 0.178.1
 
-*12 november 2026 · 0.176.0 – 0.178.0*
+*12 november 2026 · 0.176.0 – 0.178.1*
 
 **Nieuw**
 
@@ -17,6 +17,7 @@
 
 **Opgelost**
 
+- De knop Eigen regeling bij een zone deed niets als er nog geen radiatorknop in de zone zat; hij is nu gedempt en zegt bij een tik wat er nodig is
 - Twee radiatorknoppen van hetzelfde type in één kamer telden soms als één apparaat, en dan verdween er een
 
 *English*
@@ -34,6 +35,7 @@
 
 **Fixed**
 
+- The Own control button for a zone did nothing while no radiator valve was in the zone yet; it is now dimmed and a tap says what is needed
 - Two radiator valves of the same type in one room sometimes counted as one device, and then one disappeared
 
 ## 0.175.1

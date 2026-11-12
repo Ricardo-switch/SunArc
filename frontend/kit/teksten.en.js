@@ -3394,6 +3394,7 @@
   'indeling.zone.regeling': 'The control of {naam}',
   'indeling.zone.metKamer': 'With the room',
   'indeling.zone.eigen': 'Own control',
+  'indeling.zone.nogNiet': 'Its own control only works once a radiator valve or other climate device is in {naam}. Tap the device in the list and choose {naam} under Zone.',
   'indeling.zone.uitleg': 'With its own control a zone has its own target and times in Comfort, and measures with its own valve. Put a valve in a zone at the device.',
   'indeling.zone.isEigen': '{naam} has its own control',
   'indeling.zone.isKamer': '{naam} follows the room',

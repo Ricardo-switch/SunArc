@@ -609,6 +609,8 @@ const BRON_KEUZE = ['radiator', 'vloer', 'paneel', 'kachel', 'airco'].map((b) =>
 const AAN_KEUZE = ['thermostaat', 'knop', 'stekker', 'hand'].map((a) => [a, t(`indeling.aan.${a}`)]);
 /** Het formulier van een bron, of null. */
 let bronVorm = null;
+/** De zone waar Eigen regeling werd getikt zonder klimaatapparaat erin: daar staat de uitleg (12 november 2026). */
+let zoneUitleg = null;
 
 function kamerTabs(k) {
   if (alleBuitenEtage(k)) return '';
@@ -735,8 +737,10 @@ function zonesBlok(k) {
     const reg = (r?.zones ?? []).find((x) => x.id === z.id)?.regeling ?? null;
     const wat = toestellen.length ? toestellen.map((a) => a.naam).join(', ') : t('indeling.zone.geenKnop');
     const temp = eigen && reg?.temperatuurC != null ? `<span class="zone-temp">${nl(reg.temperatuurC)}°${reg.doelC != null ? ` · ${esc(t('indeling.zone.doel', { c: nl(reg.doelC) }))}` : ''}</span>` : '';
-    const seg = `<div class="chips seg" role="group" aria-label="${esc(t('indeling.zone.regeling', { naam: z.naam }))}"><button type="button" class="chip${eigen ? '' : ' aan'}" aria-pressed="${!eigen}" data-zone-regeling="${esc(z.id)}" data-waarde="kamer">${esc(t('indeling.zone.metKamer'))}</button><button type="button" class="chip${eigen ? ' aan' : ''}" aria-pressed="${eigen}" data-zone-regeling="${esc(z.id)}" data-waarde="eigen" ${toestellen.length ? '' : 'disabled'}>${esc(t('indeling.zone.eigen'))}</button></div>`;
-    return `<div class="zone-regel"><div class="zone-kop"><b>${esc(z.naam)}</b>${temp}</div><span class="mini">${esc(wat)}</span>${seg}</div>`;
+    const seg = `<div class="chips seg" role="group" aria-label="${esc(t('indeling.zone.regeling', { naam: z.naam }))}"><button type="button" class="chip${eigen ? '' : ' aan'}" aria-pressed="${!eigen}" data-zone-regeling="${esc(z.id)}" data-waarde="kamer">${esc(t('indeling.zone.metKamer'))}</button><button type="button" class="chip${eigen ? ' aan' : ''}" aria-pressed="${eigen}" data-zone-regeling="${esc(z.id)}" data-waarde="eigen"${toestellen.length ? '' : ' data-leeg aria-describedby="zone-uitleg-' + esc(z.id) + '"'}>${esc(t('indeling.zone.eigen'))}</button></div>`;
+    // Zonder klimaatapparaat in de zone kan het nog niet: een tik zegt waarom en wat je doet (Ricardo, 12 november 2026).
+    const uitleg = !toestellen.length && zoneUitleg === `${k.id}/${z.id}` ? `<p class="zone-uitleg" id="zone-uitleg-${esc(z.id)}" role="status">${esc(t('indeling.zone.nogNiet', { naam: z.naam }))}</p>` : '';
+    return `<div class="zone-regel"><div class="zone-kop"><b>${esc(z.naam)}</b>${temp}</div><span class="mini">${esc(wat)}</span>${seg}${uitleg}</div>`;
   });
   return `<div class="zones-blok"><span class="label">${esc(t('indeling.zone.kop'))}</span>${rijen.join('')}<p class="mini" style="margin: 0">${esc(t('indeling.zone.uitleg'))}</p></div>`;
 }
@@ -751,7 +755,11 @@ async function zoneKlik(knop) {
   const r = ruimteVan(k.id);
   if (knop.dataset.waarde === 'eigen') {
     const toestellen = (r?.apparaten ?? []).filter((a) => a.soort === 'klimaat' && a.zone === z.id).map((a) => a.actuatorId ?? a.id);
-    if (!toestellen.length) return true;
+    if (!toestellen.length) {
+      zoneUitleg = zoneUitleg === `${k.id}/${z.id}` ? null : `${k.id}/${z.id}`;
+      teken();
+      return true;
+    }
     // Wat de kamer er al mee deed, blijft; anders houdt de zone hem op temperatuur.
     z.rollen = Object.fromEntries(toestellen.map((id) => [id, k.rollen?.[id] && k.rollen[id] !== 'kijken' ? k.rollen[id] : 'houdt']));
     if (k.rollen) for (const id of toestellen) delete k.rollen[id];

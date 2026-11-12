@@ -3399,6 +3399,7 @@
   'indeling.zone.regeling': 'De regeling van {naam}',
   'indeling.zone.metKamer': 'Met de kamer',
   'indeling.zone.eigen': 'Eigen regeling',
+  'indeling.zone.nogNiet': 'Een eigen regeling kan pas als er een radiatorknop of ander klimaatapparaat in {naam} zit. Tik op het apparaat in de lijst en kies bij Zone voor {naam}.',
   'indeling.zone.uitleg': 'Met een eigen regeling heeft een zone een eigen doel en tijden bij Comfort, en meet hij met zijn eigen knop. Zet een knop in een zone bij het apparaat.',
   'indeling.zone.isEigen': '{naam} heeft een eigen regeling',
   'indeling.zone.isKamer': '{naam} doet mee met de kamer',
