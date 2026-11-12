@@ -61,6 +61,8 @@ export const DOOR_ROLES: Readonly<Record<string, Role>> = {
   // De wand meldt hoe Fully Kiosk staat (besluit 246): ingelogd, zoals de wand altijd is.
   '/api/wand': 'bewoner',
   '/api/indeling': 'beheerder',
+  // Je huis tekenen (besluit 308): bewaart in de indeling, dus net als de indeling.
+  '/api/huistekening': 'beheerder',
   '/api/energie': 'beheerder',
   '/api/aansluiting': 'beheerder',
   // Bijspringen per kamer (besluit 283), bij Regeling: net als de rest van Regeling.

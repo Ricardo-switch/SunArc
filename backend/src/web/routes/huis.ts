@@ -9,6 +9,7 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
+import { tekenVorm, verschuif } from '../huistekening.js';
 
 /** De routes van dit onderwerp; waar als het verzoek hier is afgehandeld. */
 export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
@@ -44,6 +45,11 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
       standaard: standardFloors(taal),
       regelzones: config.zones.map((z) => ({ id: z.id, naam: z.name })),
     });
+    return true;
+  }
+
+  if (path === '/api/huistekening') {
+    await huistekeningRoute(d, v);
     return true;
   }
 
@@ -292,4 +298,90 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
   }
 
   return false;
+}
+
+/**
+ * Je huis tekenen (besluit 308). GET geeft alles wat de tekentafel nodig heeft:
+ * de vorm (de gebouwen van Daken en panelen, of een rechthoek uit het
+ * woningtype), de etages binnen met hun kamers en zones, en wat er al
+ * getekend is, in meters vanaf de linker voorhoek van het hele huis. POST
+ * `{ tekening, zones, plekken? }` bewaart alleen dat, in de indeling; de rest
+ * van de indeling blijft zoals hij is. Een kamer die er niet meer is, laat een
+ * vak zonder naam achter.
+ */
+async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
+  const { req, res, url, method } = v;
+  const door = d.options.layout;
+  const taal = taalVan(url.searchParams.get('taal') ?? req.headers['x-taal']);
+  const huis = d.options.house?.(taal) ?? null;
+  const basis = door?.store.current ?? door?.proposal() ?? null;
+  if (door == null || huis == null || basis == null) {
+    sendJson(res, 503, { wachten: 'de etages en kamers komen van Home Assistant zodra die verbonden is' });
+    return;
+  }
+  const daken = d.options.connection?.view(taal).daken ?? null;
+  const vorm = tekenVorm(daken?.tekening.gebouwen ?? [], daken?.voorgevelDeg ?? null, huis.woning);
+  const { u: nu, v: nv } = vorm.nul;
+
+  if (method === 'POST') {
+    let body: unknown;
+    try {
+      body = await readJson(req);
+    } catch (error) {
+      sendJson(res, 400, { fout: (error as Error).message });
+      return;
+    }
+    const b = (typeof body === 'object' && body != null && !Array.isArray(body) ? body : {}) as Record<string, unknown>;
+    if (typeof b['tekening'] !== 'object' || b['tekening'] == null || Array.isArray(b['tekening'])) {
+      sendJson(res, 400, { fout: 'verwacht { tekening, zones }' });
+      return;
+    }
+    // Terug naar de hoek van het hoofdhuis; wat niet klopt, zegt de toets van de indeling.
+    const terug = (x: unknown) => (Array.isArray(x) && x.length === 4 && x.every((n) => typeof n === 'number') ? [(x[0] as number) - nu, (x[1] as number) - nv, x[2], x[3]] : x);
+    const ruimteTerug = (r: unknown) => {
+      const o = typeof r === 'object' && r != null ? (r as Record<string, unknown>) : null;
+      return o && Array.isArray(o['vakken']) ? { ...o, vakken: o['vakken'].map(terug) } : r;
+    };
+    const tekening = Object.fromEntries(Object.entries(b['tekening'] as Record<string, unknown>).map(([e, lijst]) => [e, Array.isArray(lijst) ? lijst.map(ruimteTerug) : lijst]));
+    const zones = (typeof b['zones'] === 'object' && b['zones'] != null ? b['zones'] : {}) as Record<string, { as?: unknown; op?: unknown }>;
+    const kamers = basis.kamers.map((k) => {
+      const { zoneLijn: _weg, ...rest } = k;
+      const z = zones[k.id];
+      if (!z || (z.as !== 'u' && z.as !== 'v') || typeof z.op !== 'number') return rest;
+      return { ...rest, zoneLijn: { as: z.as, op: z.op - (z.as === 'u' ? nu : nv) } };
+    });
+    // De plekken (stap 3): alleen als ze meekomen, en alleen voor apparaten die al in de indeling staan.
+    let apparaten: Record<string, unknown> = basis.apparaten;
+    if (typeof b['plekken'] === 'object' && b['plekken'] != null) {
+      const plekken = b['plekken'] as Record<string, { etage?: unknown; u?: unknown; v?: unknown }>;
+      apparaten = Object.fromEntries(
+        Object.entries(basis.apparaten).map(([id, a]) => {
+          const { plek: _weg, ...rest } = a;
+          const p = plekken[id];
+          return [id, p && typeof p.u === 'number' && typeof p.v === 'number' ? { ...rest, plek: { etage: p.etage, u: p.u - nu, v: p.v - nv } } : rest];
+        }),
+      );
+    }
+    const uit = await door.store.save({ ...basis, kamers, apparaten, plattegrond: tekening });
+    if (uit.ok) sendJson(res, 200, { bewaard: true });
+    else sendJson(res, uit.status, { fout: uit.reden });
+    return;
+  }
+
+  const binnen = huis.etages.filter((e) => e.id !== OUTSIDE_FLOOR);
+  const zoneLijnen: Record<string, { as: 'u' | 'v'; op: number }> = {};
+  for (const k of basis.kamers) if (k.zoneLijn) zoneLijnen[k.id] = { as: k.zoneLijn.as, op: Math.round((k.zoneLijn.op + (k.zoneLijn.as === 'u' ? nu : nv)) * 10) / 10 };
+  const plekken: Record<string, { etage: string; u: number; v: number }> = {};
+  for (const [id, a] of Object.entries(basis.apparaten)) if (a.plek) plekken[id] = { etage: a.plek.etage, u: Math.round((a.plek.u + nu) * 100) / 100, v: Math.round((a.plek.v + nv) * 100) / 100 };
+  sendJson(res, 200, {
+    eigen: door.store.current != null,
+    vorm: { maat: vorm.maat, blokken: vorm.blokken, bron: vorm.bron },
+    woning: huis.woning,
+    // Van boven naar beneden, zoals het huis opzij.
+    etages: binnen.map((e) => ({ id: e.id, naam: e.naam })),
+    kamers: binnen.flatMap((e) => e.ruimtes.map((r) => ({ id: r.id, naam: r.naam, soort: r.soort, etage: e.id, zones: r.zones.map((z) => z.naam) }))),
+    tekening: verschuif(basis.plattegrond ?? {}, nu, nv),
+    zones: zoneLijnen,
+    plekken,
+  });
 }

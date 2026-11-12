@@ -307,6 +307,8 @@ export class WebServer {
       (this.#d.options.bijwerken != null && path === '/api/update/zoek') ||
       (this.#d.options.herstart != null && path === '/api/herstart') ||
       (this.#d.options.layout != null && path === '/api/indeling') ||
+      // Je huis tekenen (besluit 308): alleen de tekening, de zonelijnen en de plekken, in de indeling.
+      (this.#d.options.layout != null && path === '/api/huistekening') ||
       // Camera's en de deurbel (besluit 109): alleen de keuzes, naar een eigen bestand.
       (this.#d.options.functies != null && path === '/api/functies') ||
       // Comfort (besluit 130): doelen voor de regeling, naar een eigen bestand.

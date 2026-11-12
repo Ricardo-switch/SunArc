@@ -22,6 +22,12 @@
  * huistekenen.paneel(el, tekenaar) en huistekenen.stapel(el, tekenaar) vullen
  * het blad ernaast en de etages. De assen: x naar rechts langs de voorgevel,
  * y van de straat naar achter, in ruitjes.
+ *
+ * Sinds besluit 308 (stap 1) staat de motor in frontend/kit: de app (Je huis)
+ * en de schetsen in design/app2 gebruiken hetzelfde bestand. De teksten staan
+ * in teksten.nl.js en teksten.en.js onder `ht.`. Bewaren gaat in de app via
+ * `opties.opslaan` (de dienst), in de schets via `opties.bewaar` (de browser);
+ * `opties.tekening` is wat er al bewaard was, in meters (`t.uitvoer()`).
  */
 (function (global) {
   'use strict';
@@ -32,7 +38,9 @@
   const MIN = 6;
   const FONT = 'font-family="Figtree, system-ui, sans-serif"';
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-  const nl = (n, d = 1) => n.toLocaleString('nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d });
+  /** Een tekst uit teksten.*.js (taal.js); zonder taal.js de sleutel zelf. */
+  const T = (sleutel, p) => (typeof global.t === 'function' ? global.t(sleutel, p) : sleutel);
+  const nl = (n, d = 1) => n.toLocaleString(global.taal?.locale ?? 'nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d });
   const meter = (cellen) => `${nl(cellen * CEL)} m`;
   const klem = (n, a, b) => Math.min(b, Math.max(a, n));
   const ik = (naam) => (global.iconen ? global.iconen.svg(global.iconen.heeft(naam) ? naam : 'apparaat') : '');
@@ -40,7 +48,9 @@
   const TINT = { woon: '110 231 183', keuken: '247 181 72', slaap: '143 134 255', nat: '111 211 255', hal: '184 196 207', garage: '154 170 187', leeg: '255 255 255' };
   const SOORT_TINT = { woonkamer: 'woon', woonkeuken: 'keuken', keuken: 'keuken', eetkamer: 'keuken', slaapkamer: 'slaap', kinderkamer: 'slaap', logeerkamer: 'slaap', werkkamer: 'slaap', zolder: 'slaap', badkamer: 'nat', toilet: 'nat', wasruimte: 'nat', hal: 'hal', overloop: 'hal', trap: 'hal', berging: 'hal', garage: 'garage', kelder: 'garage' };
   /** Ruimtes die niet in Home Assistant hoeven te staan. */
-  const EIGEN = [['hal', 'Hal'], ['toilet', 'Toilet'], ['overloop', 'Overloop'], ['trap', 'Trap'], ['berging', 'Berging'], ['berging', 'Meterkast']];
+  const EIGEN_SLEUTELS = [['hal', 'hal'], ['toilet', 'toilet'], ['overloop', 'overloop'], ['trap', 'trap'], ['berging', 'berging'], ['berging', 'meterkast']];
+  /** [soort, naam] in de taal van de app. */
+  const eigenNamen = () => EIGEN_SLEUTELS.map(([soort, k]) => [soort, T(`ht.eigen.${k}`)]);
   const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', koffie: '#f7b548', camera: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff' };
   const APP_ICOON = { meter: 'klimaat' };
 
@@ -171,6 +181,12 @@
 
   /** Per ruimte een pad van rechthoeken, voor de kleur. */
   function vlakPaden(v) {
+    const d = {};
+    for (const [id, lijst] of Object.entries(stroken(v))) d[id] = lijst.map(([x0, y0, x1, y1]) => `M${x0} ${y0}H${x1}V${y1}H${x0}Z`).join('');
+    return d;
+  }
+  /** Per ruimte de rechthoeken waaruit hij bestaat, in ruitjes: [x0, y0, x1, y1]. Rijen met dezelfde stukken worden één. */
+  function stroken(v) {
     const { W, H, cel } = v;
     const open = new Map();
     const d = {};
@@ -192,7 +208,7 @@
       }
       for (const [sleutel, [id, x0, x1, y0]] of [...open]) {
         if (nu.has(sleutel)) continue;
-        d[id] = `${d[id] ?? ''}M${x0} ${y0}H${x1}V${y}H${x0}Z`;
+        (d[id] ??= []).push([x0, y0, x1, y]);
         open.delete(sleutel);
       }
     }
@@ -342,19 +358,19 @@
     const achter = rest.filter((k) => !VOOR.has(k.soort));
     const uit = [];
     const met = (naam, boom) => uit.push({ naam, bomen: { ...vast, [hoofd.id]: boom } });
-    met('Naast elkaar', verdeel(rest, 'u', B));
-    if (voor.length && achter.length) met('Voor en achter', rijen(voor, achter, B, D));
+    met(T('ht.indeling.naastElkaar'), verdeel(rest, 'u', B));
+    if (voor.length && achter.length) met(T('ht.indeling.voorAchter'), rijen(voor, achter, B, D));
     if (hal && zonderHal.length) {
       const strook = Math.min(2.4, rond1(B * 0.28));
-      met('Hal opzij', { as: 'u', op: strook, a: { kamer: hal.id }, b: zonderHal.length > 2 ? rijen(zonderHal.filter((k) => VOOR.has(k.soort)), zonderHal.filter((k) => !VOOR.has(k.soort)), B - strook, D) : verdeel(zonderHal, 'v', D) });
+      met(T('ht.indeling.halOpzij'), { as: 'u', op: strook, a: { kamer: hal.id }, b: zonderHal.length > 2 ? rijen(zonderHal.filter((k) => VOOR.has(k.soort)), zonderHal.filter((k) => !VOOR.has(k.soort)), B - strook, D) : verdeel(zonderHal, 'v', D) });
       if (zonderHal.length >= 2) {
         const links = zonderHal.filter((_, i) => i % 2 === 0);
         const rechts = zonderHal.filter((_, i) => i % 2 === 1);
         const l = rond1((B - 1.6) / 2);
-        met('Gang in het midden', { as: 'u', op: l, a: verdeel(links, 'v', D), b: { as: 'u', op: 1.6, a: { kamer: hal.id }, b: verdeel(rechts, 'v', D) } });
+        met(T('ht.indeling.gangMidden'), { as: 'u', op: l, a: verdeel(links, 'v', D), b: { as: 'u', op: 1.6, a: { kamer: hal.id }, b: verdeel(rechts, 'v', D) } });
       }
     } else if (rest.length >= 2) {
-      met('Achter elkaar', verdeel(rest, 'v', D));
+      met(T('ht.indeling.achterElkaar'), verdeel(rest, 'v', D));
     }
     return uit;
   }
@@ -414,6 +430,42 @@
       i += p.r[k + 1];
     }
     return { W: p.W, H: p.H, cel, ruimtes: p.ruimtes, zones: p.zones ?? {}, volg: p.volg };
+  }
+
+  /* ---------------------------------------------- bewaren in de dienst: meters (besluit 308) */
+
+  const m1 = (cellen) => Math.round(cellen) / 10;
+  /**
+   * Een vloer als lijst ruimtes, elk met zijn rechthoeken in meters: [x, y,
+   * breed, diep] vanaf de linker voorhoek van het huis. Een vak zonder naam
+   * gaat ook mee: het is ook een ruimte, met zijn eigen muren.
+   */
+  function vloerNaarMeters(v) {
+    const uit = [];
+    for (const [id, lijst] of Object.entries(stroken(v))) {
+      const r = v.ruimtes[id] ?? {};
+      uit.push({ ...(r.kamer ? { kamer: r.kamer } : r.naam ? { naam: r.naam, ...(r.soort ? { soort: r.soort } : {}) } : {}), vakken: lijst.map(([x0, y0, x1, y1]) => [m1(x0 - MARGE), m1(y0 - MARGE), m1(x1 - x0), m1(y1 - y0)]) });
+    }
+    return uit;
+  }
+  /**
+   * Een vloer uit de dienst, op de gebouwen van nu: wat niet meer in het huis
+   * valt, valt weg, en wat nergens bij hoort blijft een vak zonder naam.
+   */
+  function vloerUitMeters(maat, blokken, ruimtes, zones) {
+    const v = nieuweVloer(maat, blokken);
+    const cel = (m) => MARGE + Math.round(m / CEL);
+    for (const r of ruimtes ?? []) {
+      const id = v.volg++;
+      v.ruimtes[id] = r.kamer ? { kamer: r.kamer } : r.naam ? { naam: r.naam, ...(r.soort ? { soort: r.soort } : {}) } : {};
+      for (const [x, y, b, d] of r.vakken ?? []) vulRecht(v, cel(x), cel(y), cel(x + b), cel(y + d), id, false);
+    }
+    ordenen(v);
+    for (const r of Object.values(v.ruimtes)) {
+      const z = r.kamer ? zones?.[r.kamer] : null;
+      if (z) v.zones[r.kamer] = { as: z.as === 'u' ? 'x' : 'y', op: cel(z.op) };
+    }
+    return v;
   }
 
   /** Een klein plaatje van een vloer, voor de keuze van een indeling. */
@@ -483,6 +535,29 @@
       st.apparaten = JSON.parse(JSON.stringify(huis.apparaten));
     };
     begin();
+    // Wat er in de dienst bewaard was (besluit 308): per etage de ruimtes in meters, de zonelijnen en de plekken.
+    const bewaarde = opties.tekening;
+    if (bewaarde?.tekening) {
+      for (const e of huis.etages) if (bewaarde.tekening[e.id]?.length) st.vloeren[e.id] = vloerUitMeters(huis.maat, e.blokken, bewaarde.tekening[e.id], bewaarde.zones);
+    }
+    if (bewaarde?.plekken) {
+      for (const a of st.apparaten) {
+        const p = bewaarde.plekken[a.id];
+        if (p && st.vloeren[p.etage]) a.plek = { etage: p.etage, x: MARGE + p.u / CEL, y: MARGE + p.v / CEL };
+      }
+    }
+    /** De hele tekening in meters, zoals de dienst hem bewaart. */
+    const uitvoer = () => {
+      const tekening = {};
+      const zones = {};
+      for (const [etage, v] of Object.entries(st.vloeren)) {
+        tekening[etage] = vloerNaarMeters(v);
+        for (const [kamer, z] of Object.entries(v.zones ?? {})) zones[kamer] = { as: z.as === 'x' ? 'u' : 'v', op: m1(z.op - MARGE) };
+      }
+      const plekken = {};
+      for (const a of st.apparaten) if (a.plek) plekken[a.id] = { etage: a.plek.etage, u: Math.round((a.plek.x - MARGE) * 10) / 100, v: Math.round((a.plek.y - MARGE) * 10) / 100 };
+      return { tekening, zones, plekken };
+    };
     if (sleutel) {
       try {
         const p = JSON.parse(localStorage.getItem(sleutel) ?? 'null');
@@ -499,10 +574,40 @@
       }
     }
     let bewaarTimer = null;
+    /** In de app: elke keer de laatste stand naar de dienst, één tegelijk; onder de vinger gebeurt er niets. */
+    let bezigMet = null;
+    let nogEens = false;
+    const naarDienst = () => {
+      if (bezigMet) {
+        nogEens = true;
+        return;
+      }
+      bezigMet = Promise.resolve()
+        .then(() => opties.opslaan(uitvoer()))
+        .then(
+          () => {
+            st.fout = null;
+          },
+          (e) => {
+            st.fout = e?.message ?? String(e);
+          },
+        )
+        .finally(() => {
+          bezigMet = null;
+          if (nogEens) {
+            nogEens = false;
+            naarDienst();
+            return;
+          }
+          st.bewaard = !st.fout;
+          meld();
+        });
+    };
     const bewaar = () => {
       st.bewaard = false;
       clearTimeout(bewaarTimer);
       bewaarTimer = setTimeout(() => {
+        if (opties.opslaan) return naarDienst();
         if (sleutel) {
           try {
             localStorage.setItem(sleutel, JSON.stringify({ vloeren: Object.fromEntries(Object.entries(st.vloeren).map(([id, v]) => [id, inpakken(v)])), apparaten: st.apparaten, bron: st.bron }));
@@ -512,7 +617,7 @@
         }
         st.bewaard = true;
         meld();
-      }, 700);
+      }, opties.wacht ?? 700);
     };
 
     const vloer = () => st.vloeren[st.etage];
@@ -565,7 +670,9 @@
     let ox = 0;
     let oy = 0;
     const heleKijk = () => {
-      const o = omtrek(st.vloeren[huis.etages[huis.etages.length - 1].id]);
+      // Het hele huis, over alle etages: in de app kan er een kelder onder de begane grond liggen, op alleen het hoofdhuis.
+      const os = huis.etages.map((e) => omtrek(st.vloeren[e.id]));
+      const o = { x0: Math.min(...os.map((x) => x.x0)), y0: Math.min(...os.map((x) => x.y0)), x1: Math.max(...os.map((x) => x.x1)), y1: Math.max(...os.map((x) => x.y1)) };
       const rand = st.stand === 'vorm' ? 16 : 7;
       return { x0: o.x0 - rand, y0: o.y0 - rand - 3, x1: o.x1 + rand, y1: o.y1 + rand };
     };
@@ -661,7 +768,7 @@
     }
     /** Hoe een plek heet in gewone woorden. */
     function plekNaam(p) {
-      if (!p.zelf) return 'plek van SunArc';
+      if (!p.zelf) return T('ht.plek.sunarc');
       const v = vloer();
       const tot = (dx, dy) => {
         let n = 0;
@@ -674,8 +781,8 @@
         }
         return n;
       };
-      const kanten = [['aan de linkermuur', tot(-1, 0)], ['aan de rechtermuur', tot(1, 0)], ['aan de voorkant', tot(0, -1)], ['aan de achterwand', tot(0, 1)]].sort((a, b) => a[1] - b[1]);
-      return kanten[0][1] <= 5 ? kanten[0][0] : 'midden in de kamer';
+      const kanten = [[T('ht.plek.links'), tot(-1, 0)], [T('ht.plek.rechts'), tot(1, 0)], [T('ht.plek.voor'), tot(0, -1)], [T('ht.plek.achter'), tot(0, 1)]].sort((a, b) => a[1] - b[1]);
+      return kanten[0][1] <= 5 ? kanten[0][0] : T('ht.plek.midden');
     }
 
     /* ---------- tekenen */
@@ -787,7 +894,7 @@
         if (zones.some((zz) => zz.id === Number(id)) && !actie?.type) continue;
         const cx = X((mm.r.x0 + mm.r.x1) / 2);
         const cy = Y((mm.r.y0 + mm.r.y1) / 2);
-        const tekst = naam ?? 'Wat is dit?';
+        const tekst = naam ?? T('ht.watIsDit');
         const fs = pb < 74 || pd < 44 ? 11.5 : pb > 200 && pd > 120 ? 17 : 14.5;
         if (pb < tekst.length * fs * 0.5 || pd < 18) continue;
         const kleur = naam ? (r.kamer ? '#eef3f7' : 'rgb(255 255 255 / 0.72)') : '#ffd38a';
@@ -798,7 +905,7 @@
         }
         const metMaat = pd > 46 && pb > 60;
         s += `<text x="${cx.toFixed(1)}" y="${(cy + (metMaat ? -2 : 4)).toFixed(1)}" text-anchor="middle" ${FONT} font-size="${fs}" font-weight="700" fill="${kleur}" pointer-events="none">${esc(tekst)}</text>`;
-        if (metMaat) s += `<text x="${cx.toFixed(1)}" y="${(cy + 15).toFixed(1)}" text-anchor="middle" ${FONT} font-size="11.5" fill="rgb(255 255 255 / 0.5)" pointer-events="none">${m2}${naam && !r.kamer && pb > 150 ? ' · niet in Home Assistant' : ''}</text>`;
+        if (metMaat) s += `<text x="${cx.toFixed(1)}" y="${(cy + 15).toFixed(1)}" text-anchor="middle" ${FONT} font-size="11.5" fill="rgb(255 255 255 / 0.5)" pointer-events="none">${m2}${naam && !r.kamer && pb > 150 ? ` · ${esc(T('ht.nietInHA'))}` : ''}</text>`;
       }
       // De namen van de zones aan weerszijden van hun lijn, bij het langste stuk.
       if (!app && !actie?.type) {
@@ -1102,7 +1209,7 @@
         for (const c of cellen) v.cel[c + ddy * W + ddx] = actie.kandidaat.id;
         actie.voorbeeld = v;
         const o = omtrek(basis);
-        over = pil(X((bb.x0 + bb.x1) / 2 + ddx), Y(bb.y1 + ddy) - 18, `${meter(bb.x0 + ddx - o.x0)} van links · ${meter(bb.y0 + ddy - o.y0)} van voor`);
+        over = pil(X((bb.x0 + bb.x1) / 2 + ddx), Y(bb.y1 + ddy) - 18, T('ht.vanLinksVoor', { links: meter(bb.x0 + ddx - o.x0), voor: meter(bb.y0 + ddy - o.y0) }));
         teken();
       } else if (actie.type === 'zone') {
         // De zonelijn schuift binnen zijn kamer; de muren blijven staan.
@@ -1163,7 +1270,7 @@
         actie.px = px;
         actie.py = py;
         actie.plek = kan ? { etage: st.etage, x, y } : null;
-        const naam = id === BUITEN ? 'Buiten het huis' : kan ? `${naamVan(v.ruimtes[id])}${muurBijPlek ? ' · aan de muur' : ''}` : 'Dit vak is nog geen kamer';
+        const naam = id === BUITEN ? T('ht.buitenHuis') : kan ? `${naamVan(v.ruimtes[id])}${muurBijPlek ? ` · ${T('ht.aanDeMuur')}` : ''}` : T('ht.nogGeenKamer');
         over = pil(px, py - 44, naam, kan ? '#6ee7b7' : '#ffb090');
         if (anders) teken();
         else {
@@ -1657,116 +1764,117 @@
         // Vorm is ook de plek waar je ziet wat elke bron van je huis vindt, en waar je kiest.
         const o = t.omtrek();
         const nu = t.huis.bronnen?.[st.bron];
-        s = `<header><h3>Buitenkant</h3><span>${nl((o.x1 - o.x0) * CEL)} × ${nl((o.y1 - o.y0) * CEL)} m</span></header>
-          <p class="ht-zin">Gezocht op je plek uit Home Assistant. Dit vindt elke bron van je huis; kies welke klopt.</p>
+        s = `<header><h3>${esc(T('ht.vorm.kop'))}</h3><span>${nl((o.x1 - o.x0) * CEL)} × ${nl((o.y1 - o.y0) * CEL)} m</span></header>
+          <p class="ht-zin">${esc(T('ht.vorm.zin'))}</p>
           ${Object.entries(t.huis.bronnen ?? {})
-            .map(([id, b]) => `<button type="button" class="ht-bron${st.bron === id ? ' aan' : ''}" data-ht="bron" data-bron="${esc(id)}" aria-pressed="${st.bron === id}"><span class="pl">${t.bronPlaatje(id, 92, 70)}</span><span class="t"><b>${esc(b.naam)}</b><small>${esc(b.vond)}</small><small>${esc(b.weet)}</small><em>${st.bron === id ? '✓ In gebruik' : 'Gebruik deze'}</em></span></button>`)
+            .map(([id, b]) => `<button type="button" class="ht-bron${st.bron === id ? ' aan' : ''}" data-ht="bron" data-bron="${esc(id)}" aria-pressed="${st.bron === id}"><span class="pl">${t.bronPlaatje(id, 92, 70)}</span><span class="t"><b>${esc(b.naam)}</b><small>${esc(b.vond)}</small><small>${esc(b.weet)}</small><em>${esc(st.bron === id ? T('ht.vorm.inGebruik') : T('ht.vorm.gebruik'))}</em></span></button>`)
             .join('')}
-          ${rij({ ik: 'etages', titel: 'Hoogte', zin: nu?.hoogte ?? '', rechts: nu?.gemeten ? 'gemeten' : 'geschat', data: 'disabled' })}
-          <p class="ht-voet">Je kamers blijven staan waar ze nog passen. Klopt een maat niet, pak dan de buitenmuur en trek hem recht. Daken en panelen gebruikt dezelfde vorm.</p>`;
+          ${rij({ ik: 'etages', titel: T('ht.hoogte'), zin: nu?.hoogte ?? '', rechts: nu?.gemeten ? T('ht.gemeten') : T('ht.geschat'), data: 'disabled' })}
+          <p class="ht-voet">${esc(T('ht.vorm.voet'))}</p>`;
       } else if (st.stand === 'kamers') {
         if (st.kies?.soort === 'muur' && st.kies.run) {
           const run = st.kies.run;
           const o = t.omtrek();
           const [a, b] = t.muurKanten(run);
-          const na = t.naamVan(v.ruimtes[a]) ?? 'vak zonder naam';
-          const nb = t.naamVan(v.ruimtes[b]) ?? 'vak zonder naam';
+          const na = t.naamVan(v.ruimtes[a]) ?? T('ht.vakZonderNaam');
+          const nb = t.naamVan(v.ruimtes[b]) ?? T('ht.vakZonderNaam');
           const vanaf = run.as === 'x' ? run.op - o.x0 : run.op - o.y0;
-          s = `<header><h3>Muur</h3><span>${meter(run.tot - run.van)} lang</span></header>
-            <p class="ht-zin">Tussen ${esc(na)} en ${esc(nb)}. Sleep hem in de tekening, of zet de maat hier.</p>
-            <div class="ht-veld"><label for="ht-maat">${run.as === 'x' ? 'Vanaf de linkergevel' : 'Vanaf de voorgevel'}</label>
-              <div class="ht-stap"><button type="button" data-ht="muur-stap" data-d="-1" aria-label="10 cm terug">−</button><input id="ht-maat" inputmode="decimal" value="${nl(vanaf * CEL)}" data-ht-maat data-nul="${run.as === 'x' ? o.x0 : o.y0}" aria-label="meter"><span>m</span><button type="button" data-ht="muur-stap" data-d="1" aria-label="10 cm verder">+</button></div></div>
-            ${rij({ ik: 'kruis', titel: 'Muur weg', zin: 'De twee ruimtes worden er één', data: 'data-ht="muur-weg"' })}`;
+          s = `<header><h3>${esc(T('ht.muur.kop'))}</h3><span>${esc(T('ht.muur.lang', { maat: meter(run.tot - run.van) }))}</span></header>
+            <p class="ht-zin">${esc(T('ht.muur.zin', { a: na, b: nb }))}</p>
+            <div class="ht-veld"><label for="ht-maat">${esc(run.as === 'x' ? T('ht.muur.vanLinks') : T('ht.muur.vanVoor'))}</label>
+              <div class="ht-stap"><button type="button" data-ht="muur-stap" data-d="-1" aria-label="${esc(T('ht.muur.terug'))}">−</button><input id="ht-maat" inputmode="decimal" value="${nl(vanaf * CEL)}" data-ht-maat data-nul="${run.as === 'x' ? o.x0 : o.y0}" aria-label="${esc(T('ht.muur.meter'))}"><span>m</span><button type="button" data-ht="muur-stap" data-d="1" aria-label="${esc(T('ht.muur.verder'))}">+</button></div></div>
+            ${rij({ ik: 'kruis', titel: T('ht.muur.weg'), zin: T('ht.muur.wegZin'), data: 'data-ht="muur-weg"' })}`;
         } else if (st.kies?.soort === 'ruimte' && v.ruimtes[st.kies.id]) {
           const id = st.kies.id;
           const r = v.ruimtes[id];
           const mm = m[id];
           const naam = t.naamVan(r);
-          const maat = mm.recht ? `${nl((mm.x1 - mm.x0) * CEL)} × ${nl((mm.y1 - mm.y0) * CEL)} m` : 'met een hoek';
-          s = `<header><h3>${esc(naam ?? 'Nieuw vak')}</h3><span>${maat} · ${nl(mm.n * CEL * CEL, 0)} m²</span></header><h4>Wat is dit?</h4>`;
+          const maat = mm.recht ? `${nl((mm.x1 - mm.x0) * CEL)} × ${nl((mm.y1 - mm.y0) * CEL)} m` : T('ht.metHoek');
+          s = `<header><h3>${esc(naam ?? T('ht.nieuwVak'))}</h3><span>${maat} · ${nl(mm.n * CEL * CEL, 0)} m²</span></header><h4>${esc(T('ht.watIsDit'))}</h4>`;
           for (const km of hier) {
             const w = waar[km.id];
             const aan = r.kamer === km.id;
-            s += rij({ ik: km.soort, titel: km.naam, zin: aan ? 'staat hier' : w ? 'staat al ergens: dan wisselen ze' : 'nog geen plek', mist: !w, aan, rechts: aan ? '✓' : '', data: `data-ht="noem" data-kamer="${esc(km.id)}"` });
+            s += rij({ ik: km.soort, titel: km.naam, zin: aan ? T('ht.staatHier') : w ? T('ht.wisselen') : T('ht.nogGeenPlek'), mist: !w, aan, rechts: aan ? '✓' : '', data: `data-ht="noem" data-kamer="${esc(km.id)}"` });
           }
           // Zones: alleen bij een kamer die er in Home Assistant meer dan één heeft.
           const zn = r.kamer ? (t.kamers[r.kamer]?.zones ?? []) : [];
           if (zn.length > 1) {
             const z = v.zones?.[r.kamer];
-            s += `<h4>Zones: ${esc(zn.join(' en '))}</h4>`;
+            s += `<h4>${esc(T('ht.zones.kop', { namen: zn.join(` ${T('algemeen.en')} `) }))}</h4>`;
             s += z
-              ? `<div class="ht-twee twee">${`<button type="button" class="ht-klein" data-ht="zone" data-wat="draai">Lijn draaien</button><button type="button" class="ht-klein" data-ht="zone" data-wat="weg">Lijn weg</button>`}</div>`
-              : rij({ ik: 'kamers', titel: 'Zones tekenen', zin: 'Een stippellijn om te slepen, geen muur', data: 'data-ht="zone" data-wat="zet"' });
+              ? `<div class="ht-twee twee">${`<button type="button" class="ht-klein" data-ht="zone" data-wat="draai">${esc(T('ht.zones.draai'))}</button><button type="button" class="ht-klein" data-ht="zone" data-wat="weg">${esc(T('ht.zones.weg'))}</button>`}</div>`
+              : rij({ ik: 'kamers', titel: T('ht.zones.zet'), zin: T('ht.zones.zetZin'), data: 'data-ht="zone" data-wat="zet"' });
           }
+          const EIGEN = eigenNamen();
           const eigen = r.naam && !EIGEN.some(([, n]) => n === r.naam) ? r.naam : '';
-          s += `<h4>Geen kamer in Home Assistant</h4><div class="ht-twee">${EIGEN.map(([soort, n]) => `<button type="button" class="ht-klein${r.naam === n ? ' aan' : ''}" data-ht="noem" data-naam="${esc(n)}" data-soort="${soort}">${esc(n)}</button>`).join('')}</div>
-            <input class="ht-naam" id="ht-naam" data-ht-naam value="${esc(eigen)}" placeholder="Of een eigen naam" maxlength="30" aria-label="Een eigen naam voor dit vak">`;
+          s += `<h4>${esc(T('ht.geenKamerHA'))}</h4><div class="ht-twee">${EIGEN.map(([soort, n]) => `<button type="button" class="ht-klein${r.naam === n ? ' aan' : ''}" data-ht="noem" data-naam="${esc(n)}" data-soort="${soort}">${esc(n)}</button>`).join('')}</div>
+            <input class="ht-naam" id="ht-naam" data-ht-naam value="${esc(eigen)}" placeholder="${esc(T('ht.eigenNaam'))}" maxlength="30" aria-label="${esc(T('ht.eigenNaamLabel'))}">`;
           // Weghalen: het vak wordt weer deel van de ruimte waar het het meest aan grenst.
           const bw = t.buurVoor(id);
           const bwNaam = bw != null ? t.naamVan(v.ruimtes[bw]) : null;
-          s += `<div class="ht-onder">${rij({ ik: 'kruis', kleur: 'var(--gloed)', titel: bw != null ? 'Weghalen' : 'Naam weghalen', zin: bw != null ? `Wordt weer deel van ${bwNaam ?? 'het vak ernaast'}` : 'Het vak blijft, zonder naam', data: 'data-ht="weg"' })}</div>`;
+          s += `<div class="ht-onder">${rij({ ik: 'kruis', kleur: 'var(--gloed)', titel: bw != null ? T('ht.weghalen') : T('ht.naamWeghalen'), zin: bw != null ? T('ht.weerDeelVan', { naam: bwNaam ?? T('ht.vakErnaast') }) : T('ht.vakBlijft'), data: 'data-ht="weg"' })}</div>`;
         } else if (t.isLeeg()) {
           const lijst = t.indelingen();
-          s = `<header><h3>${esc(etage.naam)}</h3><span>${hier.length} kamers</span></header><h4>Begin met een indeling</h4>
+          s = `<header><h3>${esc(etage.naam)}</h3><span>${esc(T('ht.kamers', { n: hier.length }))}</span></header><h4>${esc(T('ht.begin.kop'))}</h4>
             <div class="ht-keus">${lijst.map((x, i) => `<button type="button" data-ht="indeling" data-i="${i}"><span>${t.plaatje(i, 116, 78)}</span><b>${esc(x.naam)}</b></button>`).join('')}</div>
-            ${st.etage !== t.huis.etages[t.huis.etages.length - 1].id ? rij({ ik: 'etages', titel: 'De muren van beneden', zin: 'Zoals de etage eronder', data: 'data-ht="beneden"' }) : ''}
-            <p class="ht-voet">Een indeling is een begin: daarna schuif je elke muur op zijn plek. Zelf tekenen kan ook: trek een vak in de tekening.</p>`;
+            ${st.etage !== t.huis.etages[t.huis.etages.length - 1].id ? rij({ ik: 'etages', titel: T('ht.begin.beneden'), zin: T('ht.begin.benedenZin'), data: 'data-ht="beneden"' }) : ''}
+            <p class="ht-voet">${esc(T('ht.begin.voet'))}</p>`;
         } else {
           const zonder = hier.filter((k) => !waar[k.id]);
-          s = `<header><h3>${esc(etage.naam)}</h3><span>${zonder.length ? `${zonder.length} zonder plek` : 'alles heeft een plek'}</span></header>`;
+          s = `<header><h3>${esc(etage.naam)}</h3><span>${esc(zonder.length ? T('ht.zonderPlek', { n: zonder.length }) : T('ht.allesPlek'))}</span></header>`;
           for (const km of hier) {
             const w = waar[km.id];
             const mm = w ? m[w.id] : null;
-            s += rij({ ik: km.soort, titel: km.naam, zin: w ? '' : st.wapen?.kamer === km.id ? 'Tik nu het vak aan, of trek er een' : 'nog geen plek', mist: !w, aan: st.wapen?.kamer === km.id, rechts: mm ? `${nl(mm.n * CEL * CEL, 0)} m²` : '', data: `data-ht="kamer" data-kamer="${esc(km.id)}"` });
+            s += rij({ ik: km.soort, titel: km.naam, zin: w ? '' : st.wapen?.kamer === km.id ? T('ht.tikVak') : T('ht.nogGeenPlek'), mist: !w, aan: st.wapen?.kamer === km.id, rechts: mm ? `${nl(mm.n * CEL * CEL, 0)} m²` : '', data: `data-ht="kamer" data-kamer="${esc(km.id)}"` });
           }
-          for (const [id, r] of Object.entries(v.ruimtes)) if (r.naam) s += rij({ ik: r.soort ?? 'kamer', titel: r.naam, zin: 'niet in Home Assistant', rechts: `${nl(m[id].n * CEL * CEL, 0)} m²`, data: `data-ht="ruimte" data-id="${id}"`, kleur: 'var(--gedempt)' });
-          s += `<div class="ht-onder">${rij({ ik: 'kamers', titel: 'Andere indeling', zin: 'Opnieuw beginnen op deze etage', data: 'data-ht="leeg"' })}</div>`;
+          for (const [id, r] of Object.entries(v.ruimtes)) if (r.naam) s += rij({ ik: r.soort ?? 'kamer', titel: r.naam, zin: T('ht.nietInHA'), rechts: `${nl(m[id].n * CEL * CEL, 0)} m²`, data: `data-ht="ruimte" data-id="${id}"`, kleur: 'var(--gedempt)' });
+          s += `<div class="ht-onder">${rij({ ik: 'kamers', titel: T('ht.andereIndeling'), zin: T('ht.andereIndelingZin'), data: 'data-ht="leeg"' })}</div>`;
         }
       } else if (st.stand === 'huis') {
         const b = t.huis.bronnen?.[st.bron];
         const n = Object.values(v.ruimtes).filter((r) => t.naamVan(r)).length;
-        s = `<header><h3>Je huis</h3><span>${st.dicht ? 'dicht, met het dak' : `${esc(etage.kort ?? etage.naam)} open`}</span></header>
-          <p class="ht-zin">De buitenkant komt van de kaart, de binnenkant uit je tekening. Sleep opzij om het huis te draaien.</p>
-          ${rij({ ik: 'thuis', titel: 'Buitenkant', zin: b?.naam ?? 'Zelf getekend', data: 'disabled' })}
-          ${rij({ ik: 'etages', titel: 'Hoogte', zin: b?.hoogte ?? '', rechts: b?.gemeten ? 'gemeten' : 'geschat', data: 'disabled' })}
-          ${rij({ ik: 'kamers', titel: 'Binnen', zin: `${n} ${n === 1 ? 'ruimte' : 'ruimtes'} uit je tekening`, data: 'disabled' })}
-          <h4>Kijken</h4>
-          <div class="ht-twee twee"><button type="button" class="ht-klein${st.dicht ? '' : ' aan'}" data-ht="dicht" data-d="0">Open</button><button type="button" class="ht-klein${st.dicht ? ' aan' : ''}" data-ht="dicht" data-d="1">Dicht</button></div>
-          <p class="ht-voet">Tik een etage aan om die open te zetten. Verandert er iets in de tekening of kies je een andere bron, dan verandert het huis mee. Zo kan het later ook op Thuis staan.</p>`;
+        s = `<header><h3>${esc(T('ht.huis.kop'))}</h3><span>${esc(st.dicht ? T('ht.huis.dicht') : T('ht.huis.open', { etage: etage.kort ?? etage.naam }))}</span></header>
+          <p class="ht-zin">${esc(T('ht.huis.zin'))}</p>
+          ${rij({ ik: 'thuis', titel: T('ht.vorm.kop'), zin: b?.naam ?? T('ht.huis.zelf'), data: 'disabled' })}
+          ${rij({ ik: 'etages', titel: T('ht.hoogte'), zin: b?.hoogte ?? '', rechts: b?.gemeten ? T('ht.gemeten') : T('ht.geschat'), data: 'disabled' })}
+          ${rij({ ik: 'kamers', titel: T('ht.huis.binnen'), zin: T('ht.huis.ruimtes', { n }), data: 'disabled' })}
+          <h4>${esc(T('ht.huis.kijken'))}</h4>
+          <div class="ht-twee twee"><button type="button" class="ht-klein${st.dicht ? '' : ' aan'}" data-ht="dicht" data-d="0">${esc(T('ht.huis.openKnop'))}</button><button type="button" class="ht-klein${st.dicht ? ' aan' : ''}" data-ht="dicht" data-d="1">${esc(T('ht.huis.dichtKnop'))}</button></div>
+          <p class="ht-voet">${esc(T('ht.huis.voet'))}</p>`;
       } else {
         const punten = t.apparaatPunten();
         const kies = st.kies?.soort === 'apparaat' ? t.st.apparaten.find((a) => a.id === st.kies.id) : null;
         const los = t.st.apparaten.filter((a) => !a.kamer);
         if (st.wapen?.apparaat || (kies && st.wapen?.lijst)) {
           const a = t.st.apparaten.find((x) => x.id === (st.wapen.apparaat ?? kies.id));
-          s = `<header><h3>${esc(a.naam)}</h3><span>waar staat het?</span></header><p class="ht-zin">Tik de kamer aan in de tekening, of kies hier.</p>`;
+          s = `<header><h3>${esc(a.naam)}</h3><span>${esc(T('ht.app.waar'))}</span></header><p class="ht-zin">${esc(T('ht.app.waarZin'))}</p>`;
           for (const e of t.huis.etages) {
             const ks = t.huis.kamers.filter((k) => k.etage === e.id && waar[k.id]);
             if (!ks.length) continue;
             s += `<h4>${esc(e.naam)}</h4><div class="ht-twee">${ks.map((k) => `<button type="button" class="ht-klein${a.ha === k.id ? ' tip' : ''}${a.kamer === k.id ? ' aan' : ''}" data-ht="app-kamer" data-app="${esc(a.id)}" data-kamer="${esc(k.id)}">${esc(k.naam)}</button>`).join('')}</div>`;
           }
-          if (a.ha) s += `<p class="ht-voet">In Home Assistant staat het in ${esc(t.kamers[a.ha]?.naam ?? a.ha)}.</p>`;
+          if (a.ha) s += `<p class="ht-voet">${esc(T('ht.app.inHA', { naam: t.kamers[a.ha]?.naam ?? a.ha }))}</p>`;
         } else if (kies) {
           const p = punten.find((x) => x.a.id === kies.id);
-          s = `<header><h3>${esc(kies.naam)}</h3><span>${esc(t.kamers[kies.kamer]?.naam ?? 'geen kamer')}</span></header>
-            ${rij({ ik: t.kamers[kies.kamer]?.soort ?? 'kamer', titel: 'Kamer', zin: t.kamers[kies.kamer]?.naam ?? 'nog niet gekozen', rechts: '›', data: `data-ht="app-waar" data-app="${esc(kies.id)}"` })}
-            ${rij({ ik: 'standaard', titel: 'Plek', zin: p ? [t.zoneVan(p), t.plekNaam(p)].filter(Boolean).join(' · ') : 'op een andere etage', rechts: p?.zelf ? 'laat SunArc kiezen' : '', data: p?.zelf ? `data-ht="app-vrij" data-app="${esc(kies.id)}"` : 'disabled' })}
-            ${rij({ ik: 'apparaat', titel: 'Apparaat openen', zin: 'naam, bedienen, verbergen', rechts: '›', data: 'disabled' })}
-            <p class="ht-voet">Pak het icoon in de tekening om het te verzetten. Een plek is niet nodig: zonder plek staat het waar het meestal hangt.</p>`;
+          s = `<header><h3>${esc(kies.naam)}</h3><span>${esc(t.kamers[kies.kamer]?.naam ?? T('ht.app.geenKamer'))}</span></header>
+            ${rij({ ik: t.kamers[kies.kamer]?.soort ?? 'kamer', titel: T('ht.app.kamer'), zin: t.kamers[kies.kamer]?.naam ?? T('ht.app.nietGekozen'), rechts: '›', data: `data-ht="app-waar" data-app="${esc(kies.id)}"` })}
+            ${rij({ ik: 'standaard', titel: T('ht.app.plek'), zin: p ? [t.zoneVan(p), t.plekNaam(p)].filter(Boolean).join(' · ') : T('ht.app.andereEtage'), rechts: p?.zelf ? T('ht.app.laatKiezen') : '', data: p?.zelf ? `data-ht="app-vrij" data-app="${esc(kies.id)}"` : 'disabled' })}
+            ${rij({ ik: 'apparaat', titel: T('ht.app.openen'), zin: T('ht.app.openenZin'), rechts: '›', data: 'disabled' })}
+            <p class="ht-voet">${esc(T('ht.app.voet'))}</p>`;
         } else if (st.zoom != null && v.ruimtes[st.zoom]) {
           const lijst = punten.filter((p) => p.ruimte === st.zoom);
-          s = `<header><h3>${esc(t.naamVan(v.ruimtes[st.zoom]) ?? 'Vak zonder naam')}</h3><span>${lijst.length} apparaten</span></header>`;
-          s += lijst.map((p) => rij({ ik: APP_ICOON[p.a.soort] ?? p.a.soort, kleur: APP_KLEUR[p.a.soort], titel: p.a.naam, zin: [t.zoneVan(p), t.plekNaam(p)].filter(Boolean).join(' · '), data: `data-ht="app" data-app="${esc(p.a.id)}"` })).join('') || '<p class="ht-zin">Hier staat nog niets. Sleep er een apparaat heen, of kies er een uit de strook onderaan.</p>';
-          s += `<div class="ht-onder">${rij({ ik: 'terug', titel: 'Hele etage', zin: '', data: 'data-ht="uit"' })}</div>`;
+          s = `<header><h3>${esc(t.naamVan(v.ruimtes[st.zoom]) ?? T('ht.vakZonderNaamKop'))}</h3><span>${esc(T('ht.apparaten', { n: lijst.length }))}</span></header>`;
+          s += lijst.map((p) => rij({ ik: APP_ICOON[p.a.soort] ?? p.a.soort, kleur: APP_KLEUR[p.a.soort], titel: p.a.naam, zin: [t.zoneVan(p), t.plekNaam(p)].filter(Boolean).join(' · '), data: `data-ht="app" data-app="${esc(p.a.id)}"` })).join('') || `<p class="ht-zin">${esc(T('ht.app.leeg'))}</p>`;
+          s += `<div class="ht-onder">${rij({ ik: 'terug', titel: T('ht.app.heleEtage'), zin: '', data: 'data-ht="uit"' })}</div>`;
         } else {
-          s = `<header><h3>${esc(etage.naam)}</h3><span>${punten.length} apparaten</span></header>`;
+          s = `<header><h3>${esc(etage.naam)}</h3><span>${esc(T('ht.apparaten', { n: punten.length }))}</span></header>`;
           for (const km of hier.filter((x) => waar[x.id])) {
             const n = punten.filter((p) => p.ruimte === waar[km.id].id).length;
-            s += rij({ ik: km.soort, titel: km.naam, zin: `${(km.zones ?? []).length > 1 && v.zones?.[km.id] ? `${km.zones.length} zones · ` : ''}${n === 1 ? '1 apparaat' : `${n} apparaten`}`, rechts: '›', data: `data-ht="zoom" data-id="${waar[km.id].id}"` });
+            s += rij({ ik: km.soort, titel: km.naam, zin: `${(km.zones ?? []).length > 1 && v.zones?.[km.id] ? `${T('ht.zones.aantal', { n: km.zones.length })} · ` : ''}${T('ht.apparaten', { n })}`, rechts: '›', data: `data-ht="zoom" data-id="${waar[km.id].id}"` });
           }
           const zonderVak = hier.filter((x) => !waar[x.id]);
-          if (zonderVak.length) s += `<p class="ht-zin mist">${zonderVak.map((x) => x.naam).join(', ')}: nog geen plek in de tekening. De apparaten staan er wel in.</p>`;
-          s += `<div class="ht-onder">${los.length ? '' : '<p class="ht-voet">Alles heeft een kamer. Komt er iets nieuws bij in Home Assistant, dan staat het in de strook onder de tekening.</p>'}${rij({ ik: 'verborgen', titel: 'Verborgen', zin: '2 apparaten', rechts: '›', data: 'disabled' })}</div>`;
+          if (zonderVak.length) s += `<p class="ht-zin mist">${esc(T('ht.app.zonderVak', { namen: zonderVak.map((x) => x.naam).join(', ') }))}</p>`;
+          s += `<div class="ht-onder">${los.length ? '' : `<p class="ht-voet">${esc(T('ht.app.allesKamer'))}</p>`}${rij({ ik: 'verborgen', titel: T('ht.app.verborgen'), zin: T('ht.apparaten', { n: 2 }), rechts: '›', data: 'disabled' })}</div>`;
         }
       }
       el.innerHTML = s;
@@ -1834,9 +1942,9 @@
       el.innerHTML = `<div class="ht-dak" aria-hidden="true"></div>${t.huis.etages
         .map((e) => {
           const zonder = t.huis.kamers.filter((k) => k.etage === e.id && !waar[k.id]).length;
-          return `<button type="button" class="ht-laag${e.id === t.st.etage ? ' aan' : ''}" data-etage="${esc(e.id)}" aria-pressed="${e.id === t.st.etage}"><b>${esc(e.kort ?? e.naam)}</b><small>${t.st.stand === 'vorm' ? `${nl(e.hoogte ?? 2.8)} m hoog` : zonder && t.st.stand === 'kamers' ? `${zonder} zonder plek` : `${t.huis.kamers.filter((k) => k.etage === e.id).length} kamers`}</small>${zonder && t.st.stand === 'kamers' ? '<i></i>' : ''}</button>`;
+          return `<button type="button" class="ht-laag${e.id === t.st.etage ? ' aan' : ''}" data-etage="${esc(e.id)}" aria-pressed="${e.id === t.st.etage}"><b>${esc(e.kort ?? e.naam)}</b><small>${esc(t.st.stand === 'vorm' ? T('ht.stapel.hoog', { maat: nl(e.hoogte ?? 2.8) }) : zonder && t.st.stand === 'kamers' ? T('ht.zonderPlek', { n: zonder }) : T('ht.kamers', { n: t.huis.kamers.filter((k) => k.etage === e.id).length }))}</small>${zonder && t.st.stand === 'kamers' ? '<i></i>' : ''}</button>`;
         })
-        .join('')}<div class="ht-grond" aria-hidden="true"></div><button type="button" class="ht-laag buiten" disabled><b>Buiten</b><small>oprit, tuin</small></button>`;
+        .join('')}<div class="ht-grond" aria-hidden="true"></div><button type="button" class="ht-laag buiten" disabled><b>${esc(T('ht.stapel.buiten'))}</b><small>${esc(T('ht.stapel.buitenZin'))}</small></button>`;
     };
     el.addEventListener('click', (e) => {
       const b = e.target.closest('[data-etage]');
@@ -1857,7 +1965,7 @@
       if (sleep) return;
       const los = t.st.apparaten.filter((a) => !a.kamer);
       el.hidden = t.st.stand !== 'apparaten' || !los.length;
-      el.innerHTML = `<div class="ht-n"><b>${los.length}</b><span>nog zonder kamer</span></div>${los.map((a) => `<button type="button" class="ht-los${t.st.wapen?.apparaat === a.id ? ' aan' : ''}" data-los="${esc(a.id)}" style="color: ${APP_KLEUR[a.soort] ?? '#eef3f7'}"><span class="ik">${ik(APP_ICOON[a.soort] ?? a.soort)}</span><span class="t"><b>${esc(a.naam)}</b><small>${a.ha ? `Home Assistant: ${esc(t.kamers[a.ha]?.naam ?? a.ha)}` : 'sleep naar een kamer'}</small></span></button>`).join('')}`;
+      el.innerHTML = `<div class="ht-n"><b>${los.length}</b><span>${esc(T('ht.strook.zonder'))}</span></div>${los.map((a) => `<button type="button" class="ht-los${t.st.wapen?.apparaat === a.id ? ' aan' : ''}" data-los="${esc(a.id)}" style="color: ${APP_KLEUR[a.soort] ?? '#eef3f7'}"><span class="ik">${ik(APP_ICOON[a.soort] ?? a.soort)}</span><span class="t"><b>${esc(a.naam)}</b><small>${esc(a.ha ? T('ht.strook.ha', { naam: t.kamers[a.ha]?.naam ?? a.ha }) : T('ht.strook.sleep'))}</small></span></button>`).join('')}`;
     };
     el.addEventListener('pointerdown', (e) => {
       const b = e.target.closest('[data-los]');
@@ -1913,21 +2021,21 @@
   function uitleg(t) {
     const st = t.st;
     const a = t.bezig();
-    if (a?.type === 'muur') return a.gelijk ? 'Op één lijn met een andere muur.' : 'Laat los waar de muur moet staan. Hij springt per 10 cm.';
-    if (a?.type === 'verplaats') return 'Laat los waar de ruimte moet staan. Hij klikt vast aan muren in de buurt.';
-    if (a?.type === 'vak') return 'Laat los om het vak te zetten. Het klikt vast aan muren in de buurt.';
-    if (a?.type === 'apparaat') return 'Laat los waar het hangt of staat. Bij een muur klikt het vast.';
-    if (st.stand === 'huis') return 'Sleep opzij om het huis te draaien. Tik een etage aan om die open te zetten.';
-    if (st.stand === 'vorm') return 'Pak een buitenmuur om het huis op maat te trekken. Trek een vak buiten het huis voor een uitbouw of garage.';
+    if (a?.type === 'muur') return a.gelijk ? T('ht.uitleg.opLijn') : T('ht.uitleg.muurLos');
+    if (a?.type === 'verplaats') return T('ht.uitleg.verplaatsLos');
+    if (a?.type === 'vak') return T('ht.uitleg.vakLos');
+    if (a?.type === 'apparaat') return T('ht.uitleg.apparaatLos');
+    if (st.stand === 'huis') return T('ht.uitleg.huis');
+    if (st.stand === 'vorm') return T('ht.uitleg.vorm');
     if (st.stand === 'kamers') {
-      if (st.wapen?.kamer) return `Tik het vak aan waar de ${t.kamers[st.wapen.kamer].naam.toLowerCase()} is, of trek er een nieuw vak voor.`;
-      if (st.kies?.soort === 'ruimte' && t.verplaatsbaar(st.kies.id)) return 'Pak het blauwe rondje om de ruimte in zijn geheel te verplaatsen. Pak een muur om hem groter of kleiner te maken.';
-      if (st.kies?.soort === 'muur') return 'Sleep de muur, of zet de maat rechts. Alleen de twee ruimtes ernaast veranderen.';
-      return 'Trek met je vinger een vak voor een nieuwe ruimte. Pak een muur om hem te schuiven. Tik een vak aan om te zeggen wat het is.';
+      if (st.wapen?.kamer) return T('ht.uitleg.wapen', { naam: t.kamers[st.wapen.kamer].naam.toLowerCase() });
+      if (st.kies?.soort === 'ruimte' && t.verplaatsbaar(st.kies.id)) return T('ht.uitleg.greep');
+      if (st.kies?.soort === 'muur') return T('ht.uitleg.muur');
+      return T('ht.uitleg.kamers');
     }
-    if (st.wapen?.apparaat) return 'Tik de kamer aan waar het staat.';
-    if (st.zoom != null) return 'Pak een apparaat en zet het neer; bij een muur klikt het vast. Tik buiten het huis om terug te gaan.';
-    return 'Tik een kamer aan om dichterbij te kijken. Een apparaat versleep je naar zijn plek of naar een andere kamer.';
+    if (st.wapen?.apparaat) return T('ht.uitleg.appWapen');
+    if (st.zoom != null) return T('ht.uitleg.appZoom');
+    return T('ht.uitleg.apparaten');
   }
 
   global.huistekenen = { maak, paneel, stapel, strook, uitleg, CEL, MARGE, BUITEN, randen, isMuur, maten, omtrek, TINT, SOORT_TINT, APP_KLEUR };

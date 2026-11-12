@@ -1,5 +1,19 @@
 # Wat is er nieuw · What is new
 
+## 0.179.0
+
+*12 november 2026*
+
+**Nieuw**
+
+- Voorbereiding op Je huis tekenen: SunArc kan per etage je kamers als vakken op ruitjes van 10 cm bewaren, met de lijn tussen de zones van een kamer. Er is nog niets te zien; de pagina komt in de volgende versie
+
+*English*
+
+**New**
+
+- Preparing for Draw your home: SunArc can store your rooms per floor as boxes on a 10 cm grid, with the line between the zones of a room. Nothing to see yet; the page comes in the next version
+
 ## 0.178.1
 
 *12 november 2026 · 0.176.0 – 0.178.1*

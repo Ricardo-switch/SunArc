@@ -53,6 +53,7 @@ import { EnergyStore, importFromPrefs, type EnergySource } from '../src/web/ener
 import { THERMISCH_FILE, type ThermischRapport } from '../src/web/thermisch.js';
 import { ConnectionStore, connectionView, type FoundAppliance, type FoundPhase, type FoundPower } from '../src/web/aansluiting.js';
 import { naarRd, type CityJson } from '../src/web/bag3d.js';
+import { vinger } from './vinger.js';
 
 /** Wat het thermisch model zou hebben geleerd (besluit 231): twee kamers, de woonkamer zekerder dan de zolder. */
 const THERMISCH_VOORBEELD = (nu: number): ThermischRapport => ({
@@ -7317,4 +7318,62 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     expect(new URL(p.url()).pathname).toBe('/thuis.html');
     await context.close();
   }, 30_000);
+  /*
+   * De tekenmotor van Je huis (besluit 308, stap 1), met een nagebootste
+   * vinger op de maat van de wand en van de telefoon: een muur schuiven, een
+   * vak trekken en een ruimte verplaatsen. Goed is alleen pointerdown en
+   * pointerup, nooit pointercancel: daar brak het slepen bij 0.162.0 op af.
+   * Een kaal blad met alleen de motor uit kit/, zodat de proef de motor zelf
+   * raakt; de pagina Je huis heeft zijn eigen proef.
+   */
+  it('tekent met een vinger zonder dat de browser het gebaar afpakt, op de wand en de telefoon (besluit 308)', async () => {
+    const huis = {
+      maat: { breed: 10, diep: 8.4 },
+      etages: [{ id: 'bg', naam: 'Begane grond', kort: 'Begane grond', blokken: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8.4 }] }],
+      kamers: [
+        { id: 'hal', naam: 'Hal', soort: 'hal', etage: 'bg' },
+        { id: 'woonkamer', naam: 'Woonkamer', soort: 'woonkamer', etage: 'bg' },
+      ],
+      apparaten: [],
+      begin: { bg: { hoofd: { as: 'u', op: 2.4, a: { kamer: 'hal' }, b: { kamer: 'woonkamer' } } } },
+    };
+    const blad = `<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="kit/kit.css"><link rel="stylesheet" href="kit/huistekenen.css">
+      <style>body { margin: 0; } #vak { position: relative; width: calc(100vw - 32px); height: 60vh; margin: 16px; } #vak svg { position: absolute; inset: 0; }</style></head>
+      <body><div id="vak"><svg id="tekening"></svg></div>
+      <script src="kit/iconen.js"></script><script src="kit/teksten.nl.js"></script><script src="kit/teksten.en.js"></script><script src="kit/taal.js"></script><script src="kit/huistekenen.js"></script>
+      <script>window.bewaard = []; window.tekenaar = huistekenen.maak(document.getElementById('tekening'), ${JSON.stringify(huis)}, { stand: 'kamers', etage: 'bg', wacht: 50, opslaan: async (x) => { window.bewaard.push(x); } });</script></body></html>`;
+    for (const [naam, breed, hoog] of [['wand', 1280, 800], ['telefoon', 390, 844]] as const) {
+      const context = await browser.newContext({ viewport: { width: breed, height: hoog }, hasTouch: true, isMobile: breed < 600, timezoneId: 'UTC', locale: 'nl-NL' });
+      await context.route(`${baseUrl}/proef-huistekenen.html`, (route) => route.fulfill({ contentType: 'text/html; charset=utf-8', body: blad }));
+      const p = await context.newPage();
+      const fouten: string[] = [];
+      p.on('pageerror', (e) => fouten.push(e.message));
+      await p.goto(`${baseUrl}/proef-huistekenen.html`);
+      await p.waitForFunction("document.querySelector('#tekening [data-l=\"vlak\"] g')");
+      const v = await vinger(p);
+      // De muur tussen de hal en de woonkamer, een meter naar rechts.
+      await v.veeg([2.4, 4], [3.4, 4.1]);
+      expect(await v.log(), naam).toBe('pointerdown pointerup');
+      let s = await v.stand();
+      expect(s['Hal'], naam).toMatchObject({ x0: 0, x1: 34, y0: 0, y1: 84 });
+      expect(s['Woonkamer'], naam).toMatchObject({ x0: 34, x1: 100 });
+      // Een vak trekken midden in de woonkamer: een nieuwe ruimte van 2 bij 2 meter.
+      await v.veeg([5, 1], [6, 2], [7, 3]);
+      expect(await v.log(), naam).toBe('pointerdown pointerup');
+      s = await v.stand();
+      const vak = Object.keys(s).find((k) => k.startsWith('vak'))!;
+      expect(s[vak], naam).toEqual({ x0: 50, y0: 10, x1: 70, y1: 30, n: 400 });
+      // Het nieuwe vak is gekozen: met de greep in het midden verplaats je het in zijn geheel.
+      await v.veeg([6, 2], [6.5, 3], [7, 4]);
+      expect(await v.log(), naam).toBe('pointerdown pointerup');
+      s = await v.stand();
+      expect(s[vak], naam).toEqual({ x0: 60, y0: 30, x1: 80, y1: 50, n: 400 });
+      expect(Object.keys(s), naam).toHaveLength(3);
+      // Bewaard na het loslaten, in meters vanaf de linker voorhoek.
+      await expect.poll(() => p.evaluate<string>('JSON.stringify(window.bewaard.at(-1))')).toContain('[6,3,2,2]');
+      expect(fouten, naam).toEqual([]);
+      await context.close();
+    }
+  }, 60_000);
 });

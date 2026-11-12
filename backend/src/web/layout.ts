@@ -21,6 +21,7 @@ import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SiteConfig } from '../core/model.js';
 import type { Lang } from './assistant.js';
+import { leesPlek, leesTekening, leesZoneLijn, type Plek, type TekenRuimte, type ZoneLijn } from './huistekening.js';
 import { controleerRollen, doetMee, type Rol, type Rollen } from './regeling.js';
 import { controleerBronnen, type Warmtebron } from './warmte.js';
 
@@ -171,6 +172,12 @@ export interface LayoutRoom {
   readonly buiten?: LayoutOutside;
   /** Delen van de kamer, als die ze heeft: keuken en zithoek (95). */
   readonly zones: readonly LayoutZone[];
+  /**
+   * Waar de zones in de tekening op elkaar aansluiten (besluit 308): een
+   * stippellijn in de kamer, geen muur. Alleen bij twee of meer zones; weg:
+   * de zones staan alleen als lijst.
+   */
+  readonly zoneLijn?: ZoneLijn;
   /** Alleen binnen: wat er verwarmt en koelt (besluit 132). Weg is: nog niets vastgelegd. */
   readonly bronnen?: readonly Warmtebron[];
   /**
@@ -207,6 +214,8 @@ export interface LayoutDevice {
   readonly bereik?: readonly [min: number, max: number];
   /** Wat een thermostaat verwarmt, als hij het niet zelf zegt (besluit 197). */
   readonly warmte?: ApparaatWarmte;
+  /** Waar het staat in de tekening van Je huis (besluit 308). Weg: de tekening kiest een plek die bij de soort past. */
+  readonly plek?: Plek;
 }
 
 /** Wat een thermostaat verwarmt (besluit 197): de cv-ketel, elektrisch, of de bewoner weet het niet. */
@@ -238,6 +247,12 @@ export interface Layout {
   readonly woning?: Woning;
   /** Waar de thuisaccu staat (besluit 270). Weg: aan de gevel. */
   readonly accu?: LayoutAccu;
+  /**
+   * Je huis getekend (besluit 308): per etage binnen de ruimtes als
+   * rechthoeken in meters vanaf de linker voorhoek van het hoofdhuis. Weg:
+   * nog niet getekend.
+   */
+  readonly plattegrond?: Readonly<Record<FloorId, readonly TekenRuimte[]>>;
 }
 
 export interface LayoutKnown {
@@ -341,6 +356,8 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
     }
   }
   const bekend = (id: string) => id === OUTSIDE_FLOOR || (volgorde ? volgorde.includes(id) : STANDARD_FLOORS.some((f) => f.id === id));
+  /** Een etage binnen die bestaat: daar kan getekend worden (besluit 308). */
+  const binnenEtage = (id: string) => id !== OUTSIDE_FLOOR && bekend(id);
 
   const etagesIn = b['etages'] ?? {};
   if (typeof etagesIn !== 'object' || etagesIn == null || Array.isArray(etagesIn)) return { ok: false, reden: 'etages is een object' };
@@ -465,7 +482,9 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
       bronnen = c.bronnen.map((b) => (b.apparaat && !known.deviceIds.has(b.apparaat) ? (({ apparaat: _a, opZon: _z, ...rest }) => rest)(b) : b));
       if (bronnen.length === 0) bronnen = undefined;
     }
-    kamers.push({ id, naam, etage, zones, regelzone: meedoenMet ? null : (rz as string | null), haGebied: ha as string | null, ...(buiten ? { buiten } : {}), ...(soort ? { soort } : {}), ...(meten ? { meten } : {}), ...(bronnen ? { bronnen } : {}), ...(rollen ? { rollen } : {}), ...(meedoenMet ? { meedoenMet } : {}) });
+    // De zonelijn in de tekening (besluit 308): klopt hij niet meer, dan valt hij weg.
+    const zoneLijn = etage === OUTSIDE_FLOOR ? null : leesZoneLijn(k['zoneLijn'], zones.length);
+    kamers.push({ id, naam, etage, zones, ...(zoneLijn ? { zoneLijn } : {}), regelzone: meedoenMet ? null : (rz as string | null), haGebied: ha as string | null, ...(buiten ? { buiten } : {}), ...(soort ? { soort } : {}), ...(meten ? { meten } : {}), ...(bronnen ? { bronnen } : {}), ...(rollen ? { rollen } : {}), ...(meedoenMet ? { meedoenMet } : {}) });
     if (meedoenMet && rz) regelzones.delete(rz);
   }
   // Wie meedoet, doet mee met een kamer die er is en zelf niet meedoet met een ander.
@@ -531,7 +550,10 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
     }
     const warmte = d['warmte'] ?? null;
     if (warmte !== null && !APPARAAT_WARMTE.includes(warmte as ApparaatWarmte)) return { ok: false, reden: `wat apparaat ${id} verwarmt is ${APPARAAT_WARMTE.join(', ')}` };
-    apparaten[id] = { ...(naam ? { naam } : {}), kamer: room.id, zone: zone as string | null, ...(gevel ? { gevel } : {}), ...(bereik ? { bereik } : {}), ...(warmte ? { warmte: warmte as ApparaatWarmte } : {}) };
+    // Waar het staat in de tekening (besluit 308); op een etage die er niet meer is, valt het weg.
+    const plek = leesPlek(d['plek'], binnenEtage);
+    if (plek != null && 'fout' in plek) return { ok: false, reden: `apparaat ${id}: ${plek.fout}` };
+    apparaten[id] = { ...(naam ? { naam } : {}), kamer: room.id, zone: zone as string | null, ...(gevel ? { gevel } : {}), ...(bereik ? { bereik } : {}), ...(warmte ? { warmte: warmte as ApparaatWarmte } : {}), ...(plek ? { plek } : {}) };
   }
 
   // Verbergen kan alleen wat het huis kent; wat het niet meer kent, valt weg, net als hierboven.
@@ -563,9 +585,16 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
     if (plekA === 'binnen' && (typeof kamerA !== 'string' || !kamers.some((k) => k.id === kamerA && k.etage !== OUTSIDE_FLOOR))) return { ok: false, reden: 'binnen staat de thuisaccu in een kamer binnen' };
     accu = { plek: plekA as AccuPlek, kamer: plekA === 'binnen' ? (kamerA as string) : null };
   }
+  // Je huis getekend (besluit 308). Een kamer die weg is of verhuisde, laat een vak zonder naam achter.
+  let plattegrond: Record<FloorId, TekenRuimte[]> | undefined;
+  if (b['plattegrond'] !== undefined && b['plattegrond'] !== null) {
+    const p = leesTekening(b['plattegrond'], binnenEtage, (e, kid) => kamers.some((k) => k.id === kid && k.etage === e));
+    if ('fout' in p) return { ok: false, reden: p.fout };
+    if (Object.keys(p.tekening).length) plattegrond = p.tekening;
+  }
   return {
     ok: true,
-    layout: { versie: 1, etages, ...(volgorde ? { volgorde } : {}), kamers, apparaten, verborgen, ...(dak !== undefined ? { dak: dak as FloorId | 'geen' } : {}), ...(rond ? { rond } : {}), ...(woning !== undefined ? { woning: woning as Woning } : {}), ...(accu ? { accu } : {}) },
+    layout: { versie: 1, etages, ...(volgorde ? { volgorde } : {}), kamers, apparaten, verborgen, ...(dak !== undefined ? { dak: dak as FloorId | 'geen' } : {}), ...(rond ? { rond } : {}), ...(woning !== undefined ? { woning: woning as Woning } : {}), ...(accu ? { accu } : {}), ...(plattegrond ? { plattegrond } : {}) },
   };
 }
 

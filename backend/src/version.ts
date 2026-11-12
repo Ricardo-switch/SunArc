@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.178.1';
+export const VERSIE = '0.179.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.179.0',
+    datum: '2026-11-12',
+    nieuw: [
+      'Voorbereiding op Je huis tekenen: SunArc kan per etage je kamers als vakken op ruitjes van 10 cm bewaren, met de lijn tussen de zones van een kamer. Er is nog niets te zien; de pagina komt in de volgende versie',
+    ],
+    en: {
+      nieuw: [
+        'Preparing for Draw your home: SunArc can store your rooms per floor as boxes on a 10 cm grid, with the line between the zones of a room. Nothing to see yet; the page comes in the next version',
+      ],
+    },
+  },
   {
     versie: '0.178.1',
     datum: '2026-11-12',

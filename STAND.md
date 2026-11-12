@@ -288,8 +288,10 @@ verwijzing bestaat.
   teruggedraaid in 0.163.0 en bewaard op de branch `je-huis`; het huis op
   Thuis op echte maat is gepauzeerd ([288]).
   Het is opnieuw ontworpen als één tekentafel op ruitjes van 10 cm, met het
-  huis in 3D uit de tekening; de schets werkt, de bouw moet nog beginnen
-  ([308]).
+  huis in 3D uit de tekening ([308]). Stap 1 staat op beta (0.179.0): de
+  tekenmotor in `frontend/kit/huistekenen.js` (de schetsen gebruiken hem
+  ook), de opslag per etage als rechthoeken in de indeling via
+  `api/huistekening`, en de vingerproef als paginatest.
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over
