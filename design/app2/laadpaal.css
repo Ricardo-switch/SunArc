@@ -1,0 +1,49 @@
+/* De laadpaal op Thuis (schets, 12 november 2026): het blad en Energie › Auto en laadpaal. */
+.lkop { display: flex; justify-content: space-between; gap: 12px; }
+.lkop h2 { margin: 0; font-family: var(--kop); font-size: 26px; font-weight: 600; }
+.lkop p { margin: 4px 0 0; font-size: 13.5px; color: var(--zacht); }
+.sluit { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); font-size: 19px; flex: none; }
+.lnu { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; padding: 14px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.045); }
+.lgetal b { font-family: var(--kop); font-size: 46px; font-weight: 600; line-height: 1; }
+.lgetal span { font-size: 16px; color: var(--zacht); margin-left: 4px; }
+.lgetal small { display: block; font-size: 12.5px; color: var(--gedempt); margin-top: 4px; }
+.lbalk { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: rgb(var(--wit) / 0.07); }
+.lbalk i { display: block; height: 100%; }
+.lleg { display: flex; gap: 14px; margin-top: 8px; font-size: 12.5px; color: var(--zacht); flex-wrap: wrap; }
+.lleg span { display: inline-flex; align-items: center; gap: 6px; }
+.lleg i { width: 10px; height: 10px; border-radius: 3px; display: block; }
+.lrij { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: rgb(var(--wit) / 0.045); }
+.lrij b { display: block; font-size: 15px; }
+.lrij small { font-size: 12.5px; color: var(--gedempt); }
+.lrij .pijl { color: var(--gedempt); font-size: 18px; }
+.lring { --p: 50; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--mint) calc(var(--p) * 1%), rgb(var(--wit) / 0.1) 0); position: relative; }
+.lring::before { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: #0e1828; }
+.lring b { position: relative; font-size: 12px !important; }
+.lblok h3 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--gedempt); }
+.lfasen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.lfasen div { padding: 9px 12px; border-radius: 13px; background: rgb(var(--wit) / 0.05); }
+.lfasen span { font-size: 12px; font-weight: 700; color: var(--zacht); }
+.lfasen b { display: block; font-family: var(--kop); font-size: 18px; font-weight: 600; }
+.lzin { margin: 0; font-size: 14px; color: var(--zacht); }
+.lzin b { color: var(--tekst); }
+.lnoot { margin: 0; font-size: 12.5px; color: var(--gedempt); }
+.londer { margin-top: auto; display: flex; justify-content: flex-end; }
+.knopje { display: inline-flex; height: 44px; align-items: center; padding: 0 18px; border-radius: 13px; background: var(--tekst); color: var(--inkt); font-size: 14.5px; font-weight: 700; }
+
+/* Energie › Auto en laadpaal. */
+.pkop h2 { margin: 0; }
+.pkol { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+.ph3 { margin: 14px 0 8px; font-size: 15px; font-weight: 700; }
+.prij { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: rgb(var(--wit) / 0.045); margin-bottom: 8px; }
+.prij.nu { box-shadow: inset 0 0 0 1.5px rgb(var(--wit) / 0.18); background: rgb(var(--wit) / 0.08); }
+.prij b { display: block; font-size: 15px; }
+.prij small { font-size: 12.5px; color: var(--gedempt); }
+.pik { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgb(143 134 255 / 0.16); font-size: 18px; }
+.pschakel { width: 46px; height: 27px; border-radius: 999px; background: var(--mint); position: relative; }
+.pschakel::after { content: ''; position: absolute; top: 3px; left: 22px; width: 21px; height: 21px; border-radius: 50%; background: #fff; }
+.pmini { margin: 6px 0 0; font-size: 12.5px; color: var(--gedempt); line-height: 1.45; }
+.pmini a { color: var(--ijs, #6fd3ff); font-weight: 700; }
+.pseg { display: flex; padding: 3px; border-radius: 12px; background: rgb(var(--wit) / 0.06); }
+.pseg span { flex: 1; height: 38px; border-radius: 9px; display: grid; place-items: center; font-size: 14px; font-weight: 600; color: var(--zacht); white-space: nowrap; padding: 0 10px; }
+.pseg span.aan { background: #bfe9ff; color: #0b1424; }
+.pik svg { width: 21px; height: 21px; }

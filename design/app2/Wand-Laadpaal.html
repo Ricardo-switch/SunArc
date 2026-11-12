@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · De laadpaal op Thuis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="laadpaal.css">
+<style>
+  /*
+   * De laadpaal op Thuis (schets, 12 november 2026; issue 164, idee 135). De
+   * laadpaal staat in de tekening zodra er een is, ook uit losse sensoren, op
+   * zijn eigen plek. Van de panelen of het net loopt de stroom naar de paal, en
+   * van de paal naar de auto. Een tik op de paal of de auto opent het blad.
+   * Standen in laadpaal.js: (zonder), #net, #blad, #plek.
+   */
+  main { position: relative; height: 800px; }
+  .kop { position: absolute; left: 26px; top: 22px; z-index: 2; }
+  .tijd { font-family: var(--kop); font-size: 64px; font-weight: 600; letter-spacing: -0.035em; line-height: 0.9; }
+  .tijd small { display: block; font: 500 15px var(--romp); color: var(--zacht); letter-spacing: 0; margin-top: 10px; }
+  .kop h1 { font-family: var(--kop); font-weight: 600; font-size: 36px; line-height: 1.05; letter-spacing: -0.025em; margin: 16px 0 6px; max-width: 470px; }
+  .kop p { margin: 0; font-size: 15.5px; color: var(--zacht); max-width: 400px; }
+  .podium { position: absolute; left: 0; top: 70px; width: 820px; height: 700px; }
+  .rechts { position: absolute; right: 26px; top: 22px; bottom: 22px; width: 330px; display: flex; flex-direction: column; gap: 12px; }
+  .k { padding: 14px 16px; border-radius: 20px; }
+  .k .naam { font-size: 12.5px; font-weight: 700; color: var(--zacht); }
+  .k .waarde { font-family: var(--kop); font-size: 24px; font-weight: 600; margin-top: 5px; }
+  .k .zin { font-size: 13px; color: var(--zacht); margin-top: 2px; }
+  .ander { opacity: 0.5; }
+  .tik { position: absolute; left: 226px; top: 552px; width: 70px; height: 70px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.75); box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.12); z-index: 3; }
+  .dek { position: absolute; inset: 0; z-index: 4; }
+  .blad { position: absolute; z-index: 5; top: 22px; right: 26px; bottom: 20px; width: 470px; padding: 22px 26px 20px; border-radius: 26px; background: #0e1828; border: 1px solid var(--glas-rand); box-shadow: -18px 0 50px rgba(0, 0, 0, 0.45); display: flex; flex-direction: column; gap: 14px; }
+  .energie { position: absolute; inset: 0; padding: 22px 26px 20px 22px; display: grid; grid-template-columns: 300px minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 16px; }
+  .energie .ekop { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: end; }
+  .groepen { padding: 10px; border-radius: 22px; display: flex; flex-direction: column; gap: 6px; }
+  .groepen div { padding: 12px 14px; border-radius: 16px; font-weight: 700; font-size: 15px; }
+  .groepen div.aan { background: rgba(255, 255, 255, 0.08); }
+  .groepen small { display: block; font-weight: 500; font-size: 12.5px; color: var(--gedempt); }
+  .paneel { padding: 22px 26px; border-radius: 26px; }
+</style>
+</head>
+<body>
+<div class="wand lucht" id="lucht">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main id="main"></main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="../../frontend/kit/huis.js"></script>
+<script src="laadpaal.js"></script>
+<script>
+  const hash = location.hash.slice(1);
+  const main = document.getElementById('main');
+  if (hash === 'plek') {
+    nav.balk(document.getElementById('balk'), 'instellingen');
+    document.getElementById('lucht').classList.add('lucht-dag');
+    main.innerHTML = `<div class="energie">
+      <div class="ekop"><h1 class="kop-1" style="margin: 0; font-size: 40px">Energie</h1><span class="mini">Alles wordt meteen bewaard</span></div>
+      <div class="glas groepen"><div>Daken en panelen</div><div>Aansluiting</div><div>Meters</div><div>Contract en prijzen</div><div>Verwarming</div><div class="aan">Auto en laadpaal<small>1 auto, 1 laadpaal</small></div><div>Thuisaccu</div></div>
+      <section class="glas paneel">${laadpaalSchets.plek()}</section>
+    </div>`;
+  } else {
+    nav.balk(document.getElementById('balk'), 'thuis');
+    const s = laadpaalSchets.stand(hash === 'net' ? 'net' : '');
+    document.getElementById('lucht').classList.add(hash === 'net' ? 'lucht-avond' : 'lucht-dag');
+    main.innerHTML = `
+      <div class="kop"><div class="tijd">${s.tijd}<small>donderdag 12 november</small></div><h1>${s.kop}</h1><p>${s.lead}</p></div>
+      <div class="podium" id="podium"></div>
+      <div class="rechts">
+        <div class="glas k ander"><div class="naam">Te doen</div><div class="waarde">Di GFT</div><div class="zin">morgenavond buiten</div></div>
+        <div class="glas k"><div class="naam">Elektrische auto</div><div class="waarde">${hash === 'net' ? '64%' : '57%'}</div><div class="zin">${hash === 'net' ? 'laadt 7,4 kW van het net' : 'laadt 3,7 kW, 80% zon'}</div></div>
+        <div class="glas k ander" style="flex: 1"><div class="naam">Vandaag</div></div>
+      </div>
+      ${hash === 'blad' ? `<span class="tik"></span><div class="dek"></div><section class="blad">${laadpaalSchets.blad(false)}</section>` : ''}`;
+    huis.teken(document.getElementById('podium'), s.model, { breedte: 820, hoogte: 700, meubels: true, wereld: true, eigenLucht: false, schuifX: 40, schuifY: 30 });
+  }
+</script>
+</body>
+</html>
