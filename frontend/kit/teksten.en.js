@@ -3509,6 +3509,26 @@
   'ht.uitleg.appZoom': 'Take a device and put it down; it snaps to a wall. Tap outside the home to go back.',
   'ht.uitleg.apparaten': 'Tap a room to look closer. Drag a device to its place or to another room.',
 
+  // Your home (jehuis.js, decision 308)
+  'jehuis.kop': 'Your home',
+  'jehuis.standen': 'What you draw',
+  'jehuis.vorm': 'Shape',
+  'jehuis.kamers': 'Rooms',
+  'jehuis.apparaten': 'Devices',
+  'jehuis.huis': 'Home',
+  'jehuis.later': 'Comes in a next version',
+  'jehuis.stapTerug': 'Step back',
+  'jehuis.stapVooruit': 'Step forward',
+  'jehuis.etage': 'Floor',
+  'jehuis.tekening': 'The floor plan of this floor',
+  'jehuis.straat': 'STREET',
+  'jehuis.bewaard': 'Saved',
+  'jehuis.bewaren': 'Saving…',
+  'jehuis.nietBewaard': 'Not saved',
+  'jehuis.geenHuis': 'The floors and rooms come from Home Assistant. As soon as SunArc knows them, you draw your home here.',
+  'jehuis.geenEtages': 'There are no floors inside yet. Add them in Rooms and layout, then draw them here.',
+  'indeling.naarJeHuis': 'Draw your home ›',
+
   // Rooms and layout (indeling.js)
   // Een zone apart regelen (besluit 306).
   'indeling.zone.kop': 'Zones',

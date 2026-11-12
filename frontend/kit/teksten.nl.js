@@ -3514,6 +3514,26 @@
   'ht.uitleg.appZoom': 'Pak een apparaat en zet het neer; bij een muur klikt het vast. Tik buiten het huis om terug te gaan.',
   'ht.uitleg.apparaten': 'Tik een kamer aan om dichterbij te kijken. Een apparaat versleep je naar zijn plek of naar een andere kamer.',
 
+  // Je huis (jehuis.js, besluit 308)
+  'jehuis.kop': 'Je huis',
+  'jehuis.standen': 'Wat je tekent',
+  'jehuis.vorm': 'Vorm',
+  'jehuis.kamers': 'Kamers',
+  'jehuis.apparaten': 'Apparaten',
+  'jehuis.huis': 'Huis',
+  'jehuis.later': 'Komt in een volgende versie',
+  'jehuis.stapTerug': 'Stap terug',
+  'jehuis.stapVooruit': 'Stap vooruit',
+  'jehuis.etage': 'Etage',
+  'jehuis.tekening': 'De plattegrond van deze etage',
+  'jehuis.straat': 'STRAAT',
+  'jehuis.bewaard': 'Bewaard',
+  'jehuis.bewaren': 'Bewaren…',
+  'jehuis.nietBewaard': 'Niet bewaard',
+  'jehuis.geenHuis': 'De etages en kamers komen uit Home Assistant. Zodra SunArc ze kent, teken je hier je huis.',
+  'jehuis.geenEtages': 'Er zijn nog geen etages binnen. Zet ze bij Kamers en indeling, dan teken je ze hier.',
+  'indeling.naarJeHuis': 'Je huis tekenen ›',
+
   // Kamers en indeling (indeling.js)
   // Een zone apart regelen (besluit 306).
   'indeling.zone.kop': 'Zones',

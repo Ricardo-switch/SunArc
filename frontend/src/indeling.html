@@ -20,6 +20,8 @@
    * dak met het blad ernaast, en eronder de strook met wat nog in te delen is.
    */
   .groep .groepkop .status { margin-left: auto; }
+  .groepkop [data-naar-jehuis] { flex: none; white-space: nowrap; }
+  #tel [data-naar-jehuis] { align-self: flex-start; }
   .status { font-size: 13.5px; font-weight: 600; color: var(--gedempt); max-width: 46ch; text-align: right; }
   .status.fout { color: var(--gloed-zacht); }
   .vormkop { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -208,6 +210,8 @@
         <h1 class="kop-1" data-t="indeling.kop"></h1>
         <span class="samen" data-samen></span>
         <span class="status" data-status aria-live="polite" data-t="indeling.nietsInHA"></span>
+        <!-- De nieuwe tekentafel (besluit 308), naast deze pagina tot Ricardo zegt dat hij goed is. -->
+        <a class="knop" href="jehuis.html" data-naar-jehuis data-t="indeling.naarJeHuis"></a>
       </div>
       <div class="groepveld">
         <nav class="glas delen schuift" data-t-aria-label="indeling.delen" data-delen></nav>
@@ -235,6 +239,7 @@
       <a class="terugje" href="instellingen.html" data-terug data-t="jij.terugInstellingen"></a>
       <div class="groepkop"><h1 class="kop-1" style="font-size: 34px" data-t="indeling.kop"></h1><span class="status" data-status aria-live="polite" data-t="indeling.nietsInHA"></span></div>
       <span class="samen" data-samen></span>
+      <a class="knop" href="jehuis.html" data-naar-jehuis data-t="indeling.naarJeHuis"></a>
       <nav class="glas delen" data-t-aria-label="indeling.delen" data-delen></nav>
       <section class="glas vorm" data-vorm>
           <div class="vormkop"><h2 class="kop-2" data-deelkop></h2><span class="mini" data-deelzin></span><button type="button" class="knop" data-ongedaan disabled data-t="indeling.ongedaan"></button></div>

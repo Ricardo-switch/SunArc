@@ -1854,6 +1854,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         ['huis-kan.html', /What your house can do[\s\S]*Comfort[\s\S]*What the house learns first[\s\S]*On solar/],
         ['voortgang.html', /How far your house is[\s\S]*Fully working/],
         ['indeling.html', /Rooms and layout[\s\S]*(Add a floor|Name of the floor)/],
+        ['jehuis.html', /Your home[\s\S]*Rooms/],
         ['inrichten.html', /Welcome[\s\S]*home\.[\s\S]*Always says why/],
         ['inrichten.html#warmte', /What heats and cools\?/],
         ['inrichten.html#apparaat', /What each device can do/],
@@ -4093,7 +4094,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect((await slecht()).some((x) => x.includes('"proef"'))).toBe(true);
       const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { ruimtes: { id: string; apparaten: unknown[] }[] }[] };
       const vol = huisNu.etages.flatMap((e) => e.ruimtes).sort((x, y) => y.apparaten.length - x.apparaten.length)[0]!;
-      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'regeling.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'indeling.html', 'inrichten.html'];
+      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'regeling.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'indeling.html', 'jehuis.html', 'inrichten.html'];
       const weg: string[] = [];
       for (const pagina of paginas) {
         await p.goto(`${baseUrl}/${pagina}`);
@@ -7376,4 +7377,107 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await context.close();
     }
   }, 60_000);
+  /*
+   * Je huis (besluit 308, stap 2): de tekentafel in de stand Kamers op de
+   * echte pagina, met de kamers uit de indeling. Met een nagebootste vinger op
+   * de wand en de telefoon: een vak trekken, de muur ervan schuiven en het vak
+   * verplaatsen, stap terug en vooruit, en bewaren in de indeling. Alleen
+   * pointerdown en pointerup, nooit pointercancel. Kamers en indeling blijft,
+   * met een ingang naar Je huis.
+   */
+  it('tekent bij Je huis de kamers met een vinger en bewaart ze in de indeling, op de wand en de telefoon (besluit 308)', async () => {
+    const voor = layoutStore.current;
+    try {
+      for (const [naam, breed, hoog] of [['wand', 1280, 800], ['telefoon', 390, 844]] as const) {
+        // Elke keer van een lege tekening: begin met een indeling.
+        const nu = layoutStore.current;
+        if (nu?.plattegrond) {
+          const { plattegrond: _weg, ...zonder } = nu;
+          await layoutStore.save(zonder);
+        }
+        const kant = breed < 600 ? '#tel' : '#wand';
+        const context = await browser.newContext({ viewport: { width: breed, height: hoog }, hasTouch: true, isMobile: breed < 600, timezoneId: 'UTC', locale: 'nl-NL' });
+        await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+        const p = await context.newPage();
+        const fouten: string[] = [];
+        p.on('pageerror', (e) => fouten.push(e.message));
+        await p.goto(`${baseUrl}/jehuis.html#bg`);
+        await p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);
+        // Alleen Kamers; Vorm, Apparaten en Huis komen later en staan uit.
+        expect(await p.locator(`${kant} [data-stand="kamers"]`).getAttribute('aria-pressed'), naam).toBe('true');
+        for (const s of ['vorm', 'apparaten', 'huis']) expect(await p.locator(`${kant} [data-stand="${s}"]`).isDisabled(), `${naam} ${s}`).toBe(true);
+        // De wand schuift nooit: alles past in het scherm.
+        if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
+        // Nog leeg: begin met de eerste indeling uit de kamers.
+        if (await p.evaluate<boolean>('window.tekenaar.isLeeg()')) {
+          await p.locator(`${kant} [data-ht="indeling"]`).first().click();
+          await expect.poll(() => p.evaluate<boolean>('window.tekenaar.isLeeg()')).toBe(false);
+        }
+        const v = await vinger(p);
+        await v.log();
+        // Een vak van 1,6 bij 1,6 meter in de grootste ruimte, op een plek waar geen muurlijn van deze etage of die eronder
+        // binnen 40 cm ligt: de tekening klikt daar terecht aan vast, en dan zou de proef iets anders meten.
+        const plek = await p.evaluate<[number, number] | null>(`(() => {
+          const t = window.tekenaar; const v = t.vloer();
+          const m = Object.values(t.maten()).sort((a, b) => b.n - a.n)[0].r;
+          const lijnen = (as) => huistekenen.randen(v, huistekenen.isMuur).filter((r) => r.as === as).map((r) => r.op);
+          const vrij = (lijst, ...op) => op.every((o) => lijst.every((l) => Math.abs(l - o) >= 4));
+          const xs = lijnen('x'); const ys = lijnen('y');
+          for (let y = m.y0 + 6; y + 28 <= m.y1; y++) for (let x = m.x0 + 6; x + 28 <= m.x1; x++) {
+            if (vrij(xs, x, x + 6, x + 12, x + 16, x + 22) && vrij(ys, y, y + 6, y + 16, y + 22)) return [x - t.MARGE, y - t.MARGE];
+          }
+          return null;
+        })()`);
+        expect(plek, naam).not.toBeNull();
+        const [x0, y0] = plek!;
+        const voorVak = Object.keys(await v.stand());
+        await v.veeg([x0 / 10, y0 / 10], [(x0 + 8) / 10, (y0 + 8) / 10], [(x0 + 16) / 10, (y0 + 16) / 10]);
+        expect(await v.log(), naam).toBe('pointerdown pointerup');
+        let s = await v.stand();
+        const vak = Object.keys(s).find((k) => !voorVak.includes(k))!;
+        expect(s[vak], naam).toEqual({ x0, y0, x1: x0 + 16, y1: y0 + 16, n: 256 });
+        // De linkermuur van het vak 60 cm naar rechts (op de telefoon is 40 cm soms minder dan de 10 px van een tik): het vak wordt smaller, de rest blijft.
+        const my = (y0 + 8) / 10;
+        await v.veeg([x0 / 10, my], [(x0 + 3) / 10, my + 0.02], [(x0 + 6) / 10, my]);
+        expect(await v.log(), naam).toBe('pointerdown pointerup');
+        s = await v.stand();
+        expect(s[vak], naam).toEqual({ x0: x0 + 6, y0, x1: x0 + 16, y1: y0 + 16, n: 160 });
+        const smal = s[vak];
+        // Het vak aantikken, en met de greep in het midden 60 cm naar rechts en naar achter verplaatsen.
+        await v.tik((x0 + 11) / 10, my);
+        expect(await v.log(), naam).toBe('pointerdown pointerup');
+        expect(await p.evaluate<number | null>('window.tekenaar.st.kies?.id ?? null'), naam).not.toBeNull();
+        await v.veeg([(x0 + 11) / 10, my], [(x0 + 14) / 10, my + 0.3], [(x0 + 17) / 10, my + 0.6]);
+        expect(await v.log(), naam).toBe('pointerdown pointerup');
+        s = await v.stand();
+        const verplaatst = { x0: x0 + 12, y0: y0 + 6, x1: x0 + 22, y1: y0 + 22, n: 160 };
+        expect(s[vak], naam).toEqual(verplaatst);
+        // Stap terug en weer vooruit.
+        await p.locator(`${kant} [data-stap-terug]`).click();
+        expect((await v.stand())[vak], naam).toEqual(smal);
+        await p.locator(`${kant} [data-stap-vooruit]`).click();
+        expect((await v.stand())[vak], naam).toEqual(verplaatst);
+        // Bewaard in de indeling.
+        await expect.poll(() => p.locator(`${kant} [data-bewaard]`).textContent(), { timeout: 10_000 }).toBe('Bewaard');
+        // De deur rekent het terug naar de hoek van het hele huis, waar de tekening ook in rekent.
+        const bewaard = ((await (await fetch(`${baseUrl}/api/huistekening`)).json()) as { tekening: Record<string, { vakken: number[][] }[]> }).tekening['bg'] ?? [];
+        expect(bewaard.some((x) => JSON.stringify(x.vakken) === JSON.stringify([[(x0 + 12) / 10, (y0 + 6) / 10, 1, 1.6]])), naam).toBe(true);
+        // Opnieuw open: dezelfde tekening.
+        const stand = await v.stand();
+        await p.reload();
+        await p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);
+        expect(Object.values(await (await vinger(p)).stand()).sort((a, b) => a.x0 - b.x0 || a.y0 - b.y0), naam).toEqual(Object.values(stand).sort((a, b) => a.x0 - b.x0 || a.y0 - b.y0));
+        expect(fouten, naam).toEqual([]);
+        await context.close();
+      }
+      // Kamers en indeling blijft, met een ingang naar Je huis.
+      const oud = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const p = await oud.newPage();
+      await p.goto(`${baseUrl}/indeling.html`);
+      expect(await p.locator('#wand [data-naar-jehuis]').getAttribute('href')).toBe('jehuis.html');
+      await oud.close();
+    } finally {
+      if (voor) await layoutStore.save(voor);
+    }
+  }, 90_000);
 });

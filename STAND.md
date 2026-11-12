@@ -291,7 +291,11 @@ verwijzing bestaat.
   huis in 3D uit de tekening ([308]). Stap 1 staat op beta (0.179.0): de
   tekenmotor in `frontend/kit/huistekenen.js` (de schetsen gebruiken hem
   ook), de opslag per etage als rechthoeken in de indeling via
-  `api/huistekening`, en de vingerproef als paginatest.
+  `api/huistekening`, en de vingerproef als paginatest. Stap 2 (0.180.0):
+  de pagina Je huis (`jehuis.html`) in de stand Kamers, met de etages,
+  kamers en zones uit de indeling, begin-indelingen, de muren van beneden,
+  terug en vooruit; Kamers en indeling heeft een knop ernaartoe. Vorm,
+  Apparaten en Huis staan uit tot stap 3 tot 5; Ricardo probeert eerst.
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over

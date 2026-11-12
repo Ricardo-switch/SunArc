@@ -1088,9 +1088,15 @@
       }
       // De greep midden in een gekozen ruimte: daarmee verplaats je hem in zijn geheel.
       const g = greepPlek(vloer());
-      if (g && Math.hypot(g.px - p.px, g.py - p.py) <= (vinger ? 30 : 20)) {
-        actie.kandidaat = { soort: 'verplaats', id: st.kies.id };
-        return;
+      const dg = g ? Math.hypot(g.px - p.px, g.py - p.py) : Infinity;
+      if (dg <= (vinger ? 30 : 20)) {
+        // In een klein vak ligt de muur ook binnen bereik van de greep (de telefoon, 0.180.0): wat het dichtst bij de vinger ligt, wint.
+        const mg = muurBij(p, vinger ? 20 : 9);
+        const dm = mg ? Math.abs((mg.as === 'x' ? p.x : p.y) - mg.op) * k : Infinity;
+        if (dm >= dg) {
+          actie.kandidaat = { soort: 'verplaats', id: st.kies.id };
+          return;
+        }
       }
       if (st.stand === 'apparaten') {
         const q = apparaatBij(p, vinger ? 32 : 24);
