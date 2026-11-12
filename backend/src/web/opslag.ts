@@ -74,6 +74,11 @@ export interface Auto {
   readonly bereikKm: number | null;
   /** Waar hij in de tekening staat, als de bewoner het koos; null: zoals de indeling zegt. */
   readonly plek: AutoPlek | null;
+  /**
+   * Waar zijn laadpaal staat (issue 164): de keuze bij die laadpaal, of null.
+   * Een auto aan de kabel staat in de tekening bij zijn paal.
+   */
+  readonly paalPlek: AutoPlek | null;
   /** De accu in kWh, als de bewoner hem invulde. */
   readonly accuKWh: number | null;
   /** De laadpaal waar hij aan laadt, of null. */
@@ -885,6 +890,7 @@ function opslagMet(registers: Registers, states: ReadonlyMap<string, HaEntitySta
       vermogenW,
       bereikKm: bereik,
       plek: ins.plek,
+      paalPlek: paal ? instelling(paal.device.id).plek : null,
       accuKWh: wagen ? ins.accuKWh : null,
       laadpaal: paal && wagen ? paal.device.id : null,
       paalNaam: paalItem?.naam ?? null,

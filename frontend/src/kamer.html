@@ -35,6 +35,12 @@
   .bladkop { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
   .bladkop h2 { margin: 0; }
   .groepkop { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  /* Een zone met een eigen regeling (besluit 306): een kop per zone. */
+  .zonegroep { margin-top: 6px; padding: 8px 12px 2px; border-radius: 14px; background: rgb(var(--wit) / 0.04); }
+  .zonekop { display: flex; align-items: baseline; gap: 10px; padding-bottom: 4px; }
+  .zonekop b { font-size: 15px; }
+  .zonegetal { font-family: var(--kop); font-size: 18px; font-weight: 600; }
+  .zonekop .mini { margin-left: auto; text-align: right; }
   .rij { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid rgb(var(--wit) / 0.06); width: 100%; background: none; border-left: 0; border-right: 0; border-bottom: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .rij:first-of-type { border-top: 0; }
   .rij .naam { flex: 1; min-width: 0; }

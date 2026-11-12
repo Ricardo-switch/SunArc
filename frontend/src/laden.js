@@ -82,7 +82,9 @@ const laden = (() => {
     const palen = aan(info).filter((y) => y.rol === 'laadpaal');
     const i = instelling(a, x.id);
     const keuzes = (sleutel, opties, huidig) => `<div class="keuzes" role="group">${opties.map(([w, tekst]) => `<button type="button" data-laad="${sleutel}" data-id="${esc(x.id)}" data-waarde="${esc(w ?? '')}" aria-pressed="${w === huidig}">${esc(tekst)}</button>`).join('')}</div>`;
-    const plek = `<div class="ld-vraag"><b>${esc(t('laden.plek'))}</b>${keuzes('plek', PLEKKEN.map((p) => [p, t(`laden.plek.${p}`)]), i.plek)}<p class="mini">${esc(t('laden.plekUitleg'))}</p></div>`;
+    // Een laadpaal heeft altijd een eigen plek (issue 164); een auto met een paal staat daar als hij aan de kabel zit.
+    const plekUitleg = x.rol === 'laadpaal' ? 'laden.paalPlekUitleg' : palen.length ? 'laden.autoPlekUitleg' : 'laden.plekUitleg';
+    const plek = `<div class="ld-vraag"><b>${esc(t('laden.plek'))}</b>${keuzes('plek', PLEKKEN.map((p) => [p, t(`laden.plek.${p}`)]), i.plek)}<p class="mini">${esc(t(plekUitleg))}</p></div>`;
     const rol = x.zelf ? `<div class="ld-vraag"><b>${esc(t('laden.watIsHet'))}</b>${keuzes('rol', [['auto', t('laden.rol.auto')], ['laadpaal', t('laden.rol.laadpaal')]], x.rol)}<button type="button" class="knop" data-laad="weg" data-id="${esc(x.id)}" style="align-self: start">${esc(t('laden.weghalen'))}</button></div>` : '';
     if (x.rol === 'auto') {
       const paalOpties = [['', palen.length === 1 ? t('laden.paalVanzelf', { naam: palen[0].naam }) : t('laden.geenPaal')], ...palen.map((p) => [p.id, p.naam])];
@@ -93,9 +95,9 @@ const laden = (() => {
         ${kabelVraag(a, x)}
         ${plek}${bedienBlok(info, x)}`;
     }
-    // Een laadpaal: wat hij kan, en zonder auto in Home Assistant ook de plek.
+    // Een laadpaal: wat hij kan, en waar hij staat (issue 164: ook als er een auto is).
     const kan = x.stroomA ? t('laden.paalKan', { min: x.stroomA.min, max: x.stroomA.max }) : t('laden.paalKanNiet');
-    return `${rol}<div class="ld-vraag"><b>${esc(t('laden.watHijKan'))}</b><p class="uitleg" style="margin: 0">${esc(kan)}</p></div>${bedienBlok(info, x)}${autos.length ? '' : plek}`;
+    return `${rol}<div class="ld-vraag"><b>${esc(t('laden.watHijKan'))}</b><p class="uitleg" style="margin: 0">${esc(kan)}</p></div>${bedienBlok(info, x)}${plek}`;
   }
 
   function vorm(info, a, staat) {

@@ -394,18 +394,11 @@ let liveDaken = null;
 const kw = (w) => nl(w / 1000, w >= 10_000 ? 0 : w >= 1000 ? 1 : 2);
 
 async function laadNu() {
-  const dakenOud = !liveDaken || Date.now() - liveDaken.at > 30_000;
-  const [s, h, a, sch] = await Promise.allSettled([haal('api/state'), haal('api/huis'), dakenOud ? haal('api/aansluiting') : Promise.resolve(null), haal('api/schakelaars')]);
-  if (a.status === 'fulfilled' && a.value) liveDaken = { at: Date.now(), daken: a.value.daken ?? null };
-  const st = s.status === 'fulfilled' ? s.value?.bewoner?.stromen ?? null : null;
-  // De apparaten met een eigen meter die nu stroom vragen.
-  const apparaten = h.status === 'fulfilled'
-    ? (h.value?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).flatMap((r) => (r.apparaten ?? []).filter((d) => typeof d.vermogenW === 'number' && d.vermogenW >= 30).map((d) => ({ id: d.id, naam: d.naam, w: d.vermogenW }))))
-    : [];
-  // Schakelaars (besluit 298): met hun meter, of met het ingevulde vermogen als ze aan staan.
-  if (sch.status === 'fulfilled') for (const x of sch.value?.schakelaars ?? []) if (x.keuze && x.nuW != null && x.nuW >= 30) apparaten.push({ id: `sch-${x.id}`, naam: x.keuze.naam || x.naam, w: x.nuW });
-  live = st ? { st, apparaten, at: Date.now() } : null;
-  if (!live) melding = s.status === 'rejected' ? t('kamer.geenVerbinding') : t('opbrengst.nu.wachten');
+  // De rekensom staat in stroomnu.js, samen met het blad op Thuis (idee 135).
+  const r = await stroomNu.laad();
+  liveDaken = { daken: r.daken };
+  live = r.live;
+  if (!live) melding = r.fout ? t('kamer.geenVerbinding') : t('opbrengst.nu.wachten');
   teken();
 }
 
@@ -420,36 +413,12 @@ function stopNu() {
 
 /** Wat er nu stroomt, in W: bronnen, doelen en de stromen ertussen, zoals het stroombeeld ze tekent. */
 function nuModel() {
-  const st = live.st;
-  const zonW = Math.max(0, (st.zonKw ?? 0) * 1000);
-  const netW = (st.netKw ?? 0) * 1000;
-  const vanNet = Math.max(0, netW);
-  const terug = Math.max(0, -netW);
-  // De thuisaccu (besluit 273): wat hij laadt komt eerst uit de zon, wat hij levert gaat naar het huis.
-  const accuW = (st.accuKw ?? 0) * 1000;
-  const laden = Math.max(0, accuW);
-  const leveren = Math.max(0, -accuW);
-  const verbruik = st.verbruikKw != null ? st.verbruikKw * 1000 : Math.max(0, zonW + netW - accuW);
-  const ladenZon = Math.min(laden, Math.max(0, zonW - terug));
-  const zonHuis = Math.max(0, Math.min(verbruik, zonW - terug - ladenZon));
-  const uitAccu = Math.min(leveren, Math.max(0, verbruik - zonHuis));
-  // De grootste apparaten van nu, samen nooit meer dan het huis; een meter die meer zegt dan het huis is geen apparaat.
-  let ruimte = verbruik;
-  const apps = [...live.apparaten].filter((d) => d.w <= verbruik * 1.05).sort((x, y) => y.w - x.w).slice(0, 5).map((d) => {
-    const w = Math.min(d.w, ruimte);
-    ruimte -= w;
-    return { ...d, w };
-  }).filter((d) => d.w >= 30);
-  const rest = Math.max(0, ruimte);
-  // Altijd aan: het gewone sluipverbruik, hooguit 90% van de rest (besluit 192).
-  const altijd = sluip?.gewoonW ? Math.min(rest * 0.9, sluip.gewoonW) : 0;
+  const { zonW, vanNet, terug, laden, verbruik, ladenZon, zonHuis, uitAccu, apps, rest, altijd, zonDeel, accuDeel } = stroomNu.verdeling(live, { sluipW: sluip?.gewoonW ?? 0 });
   const doelen = [
     ...apps.map((d, i) => ({ id: `app-${d.id}`, naam: kort(d.naam), w: d.w, kleur: KLEUREN[i % KLEUREN.length] })),
     ...(rest - altijd >= 30 ? [{ id: 'rest', naam: t('opbrengst.rest'), w: rest - altijd, kleur: NET }] : []),
     ...(altijd >= 30 ? [{ id: 'altijd', naam: t('opbrengst.stromen.altijd'), w: altijd, kleur: '#FFB39F' }] : []),
   ];
-  const zonDeel = verbruik > 0 ? zonHuis / verbruik : 0;
-  const accuDeel = verbruik > 0 ? uitAccu / verbruik : 0;
   // De zon per dakvlak, naar wat elk vlak nu levert (besluit 254).
   const dk = liveDaken?.daken;
   const nu = dk?.nu ?? {};
@@ -644,6 +613,11 @@ document.addEventListener('click', (e) => {
     void laad();
   }
 });
+// Van het blad Stroom nu op Thuis (idee 135): meteen naar Nu.
+if (location.hash === '#nu') {
+  keuze.soort = 'nu';
+  startNu();
+}
 void laad();
 haal('api/zon').then((z) => ((zon = z), teken())).catch(() => {});
 haal('api/sluipverbruik').then((s) => ((sluip = s), teken())).catch(() => {});

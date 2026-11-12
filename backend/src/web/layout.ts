@@ -75,6 +75,16 @@ export interface LayoutZone {
   readonly naam: string;
   /** Wat voor deel het is, zoals keuken of zithoek (besluit 145), of buiten een gazon of tuinhuis (167). Weg is: de naam zegt het. */
   readonly soort?: RoomType | OutsideZoneType;
+  /**
+   * Een eigen regeling voor deze zone (besluit 306): wat de regeling met de
+   * klimaatapparaten in de zone doet, zoals bij een kamer (138). Weg is: de
+   * zone doet mee met de kamer.
+   */
+  readonly rollen?: Rollen;
+  /** Meten met voor de zone (besluit 123, 306). Weg is: het eerste apparaat van de zone meet. */
+  readonly meten?: readonly string[];
+  /** Het regelgebied uit de configuratie dat deze zone is, als hij een eigen regeling heeft. */
+  readonly regelzone?: string | null;
 }
 
 /**
@@ -374,7 +384,25 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
       // Binnen de soorten van een kamer, buiten die van een buitenruimte (besluit 167).
       const soorten: readonly string[] = etage === OUTSIDE_FLOOR ? OUTSIDE_ZONE_TYPES : ROOM_TYPES;
       if (zs !== undefined && zs !== null && !soorten.includes(zs as string)) return { ok: false, reden: `zone ${zid}: soort is ${soorten.join(', ')}` };
-      zones.push({ id: zid, naam: zn, ...(zs != null ? { soort: zs as RoomType | OutsideZoneType } : {}) });
+      // Een eigen regeling voor de zone (besluit 306): binnen, met rollen, meten en een regelgebied.
+      let zRollen: Record<string, Rol> | undefined;
+      let zMeten: string[] | undefined;
+      let zRz: string | null = null;
+      if (etage !== OUTSIDE_FLOOR && zz['rollen'] !== undefined && zz['rollen'] !== null) {
+        const c = controleerRollen(`${id}/${zid}`, zz['rollen'], known.deviceIds);
+        if (!c.ok) return { ok: false, reden: c.reden };
+        zRollen = c.rollen;
+        const zm = zz['meten'];
+        if (zm !== undefined && zm !== null) {
+          if (!Array.isArray(zm) || zm.length > 6 || zm.some((x) => typeof x !== 'string' || !known.deviceIds.has(x)) || new Set(zm).size !== zm.length) {
+            return { ok: false, reden: `zone ${zid}: meten is een lijst van hooguit zes bekende sensoren` };
+          }
+          zMeten = zm as string[];
+        }
+        const r = zz['regelzone'];
+        if (typeof r === 'string' && ID.test(r)) zRz = r;
+      }
+      zones.push({ id: zid, naam: zn, ...(zs != null ? { soort: zs as RoomType | OutsideZoneType } : {}), ...(zRollen ? { rollen: zRollen, regelzone: zRz } : {}), ...(zMeten ? { meten: zMeten } : {}) });
     }
     // De regeling per kamer (besluit 138); buiten valt het weg.
     let rollen: Record<string, Rol> | undefined;
@@ -450,6 +478,22 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
   for (const [i, k] of herstelMeedoen(kamers, weg).entries()) kamers[i] = k;
   regelzones.clear();
   for (const k of kamers) if (k.regelzone != null) regelzones.add(k.regelzone);
+  // De zones met een eigen regeling (besluit 306): elk een eigen regelgebied, nooit dat van een ander.
+  for (const [i, k] of kamers.entries()) {
+    if (!k.zones.some((z) => z.rollen)) continue;
+    const zones = k.zones.map((z) => {
+      if (!z.rollen) return z;
+      if (!doetMee(z.rollen)) return { ...z, regelzone: null };
+      let zid = z.regelzone ?? null;
+      if (zid == null || regelzones.has(zid)) {
+        zid = `${k.id}-${z.id}`;
+        for (let n = 2; regelzones.has(zid) || known.zoneIds.has(zid); n++) zid = `${k.id}-${z.id}-${n}`;
+      }
+      regelzones.add(zid);
+      return { ...z, regelzone: zid };
+    });
+    kamers[i] = { ...k, zones };
+  }
   // Een kamer die voor het eerst meedoet, krijgt een eigen zone, met haar eigen id als dat vrij is.
   for (const [i, k] of kamers.entries()) {
     if (k.regelzone != null || !doetMee(k.rollen)) continue;
@@ -532,8 +576,10 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
  * van het huis. Alleen voor wat de app laat zien; de regeling zelf rekent met
  * de id's.
  */
-export function withLayoutNames(config: SiteConfig, layout: Pick<Layout, 'kamers' | 'apparaten' | 'volgorde'> | null): SiteConfig {
-  if (layout == null) return config;
+export function withLayoutNames(config: SiteConfig, layoutIn: Pick<Layout, 'kamers' | 'apparaten' | 'volgorde'> | null): SiteConfig {
+  if (layoutIn == null) return config;
+  // Met de zones die een eigen regeling hebben (besluit 306), als kamer "Woonkamer · Keuken".
+  const layout = { ...layoutIn, kamers: regelKamers(layoutIn.kamers) };
   let anders = false;
   // In de volgorde van het huis, de zolder boven: zo staan ze ook in lijsten onder elkaar.
   const etages = floorOrder(layout);
@@ -652,3 +698,35 @@ export class LayoutStore {
     return { ok: true, layout: checked.layout };
   }
 }
+
+/**
+ * De kamers zoals de regeling ze ziet (besluit 306): een zone met een eigen
+ * regeling wordt een eigen kamer, "Woonkamer · Keuken", met haar apparaten,
+ * haar meten en haar regelgebied. Haar apparaten tellen dan niet meer bij de
+ * kamer zelf. Het id is dat van de kamer en de zone, met een ~ ertussen.
+ */
+export function regelKamers(kamers: readonly LayoutRoom[]): LayoutRoom[] {
+  const uit: LayoutRoom[] = [];
+  for (const k of kamers) {
+    const eigen = k.zones.filter((z) => z.rollen && doetMee(z.rollen));
+    const inZone = new Set(eigen.flatMap((z) => Object.keys(z.rollen ?? {})));
+    uit.push(inZone.size && k.rollen ? { ...k, rollen: Object.fromEntries(Object.entries(k.rollen).filter(([id]) => !inZone.has(id))) } : k);
+    for (const z of eigen) {
+      uit.push({
+        id: zoneKamerId(k.id, z.id),
+        naam: `${k.naam} · ${z.naam}`,
+        etage: k.etage,
+        zones: [],
+        regelzone: z.regelzone ?? null,
+        haGebied: null,
+        rollen: z.rollen!,
+        ...(z.meten ? { meten: z.meten } : {}),
+        ...(k.bronnen ? { bronnen: k.bronnen.filter((b) => b.apparaat != null && z.rollen![b.apparaat] != null) } : {}),
+      });
+    }
+  }
+  return uit;
+}
+
+/** Het id van een zone als kamer van de regeling (besluit 306). */
+export const zoneKamerId = (kamer: string, zone: string): string => `${kamer}~${zone}`;

@@ -117,6 +117,9 @@ verwijzing bestaat.
 - **Comfort** mag koelen boven een plafond, ook op netstroom ([50]). Een zone
   met meer kamers koelt op de warmste en verwarmt op de koudste ([81]); bij twee
   meters in één kamer kiest de bewoner ([95]).
+- **Een zone apart regelen:** een zone in een kamer, zoals de keuken in een
+  woonkamer, kan een eigen regeling krijgen met haar radiatorknop, met een
+  eigen doel bij Comfort, en de knop per zone met de hand ([306]).
 - **Helpen bij de cv:** een airco helpt de ketel als die lang stookt en zijn
   eigen kamer achterloopt, maar niet 's nachts, bij afwezig, op vakantie of
   tijdens voorverwarmen, want zijn piepje maakt de slapers wakker ([281]).
@@ -278,7 +281,8 @@ verwijzing bestaat.
   plekken voor apparaten, zonder gebied in Home Assistant als dat er niet is;
   bij een apparaat staan binnen en buiten apart ([269], 0.143.0). De
   thuisaccu staat in de tekening aan de gevel, in de garage of binnen, zoals
-  de bewoner kiest ([270], 0.144.0).
+  de bewoner kiest ([270], 0.144.0). Bij Kamers en indeling › Buiten staat
+  bij elke plek een kaartje met hoeveel apparaten er hangen ([307], 0.178.0).
 - **Je huis op maat staat stil**: Huisontwerp, Etages, Kamers als vakken en
   apparaten op hun plek zijn gebouwd (0.158.0–0.162.0), maar op beta
   teruggedraaid in 0.163.0 en bewaard op de branch `je-huis`; het huis op
@@ -411,8 +415,8 @@ verwijzing bestaat.
   thuisbatterij, deze maand en de deurbel, als het huis ze heeft ([182]); en
   de aansluiting: per fase hoe vol hij is tegen de zekering, met de dag en de
   pieken in het blad ([302]).
-- **Auto en laadpaal (alle zes stappen gebouwd, 0.131.0 tot 0.137.0):** Energie › Auto en laadpaal herkent auto's, laadpalen en evcc, met een schakelaar per apparaat, zelf kiezen, en per auto de accu, de laadpaal en de plek (ook de garage, idee 123); het klimaat van een auto telt niet als klimaat in huis (melding 132). De pagina Auto toont de auto als meter, met laden, stroom per fase, laadgrens, vol om, kabel en onderweg; de Thuis-kaart en Apparaten openen hem (0.132.0). De laadbeurten van de laatste week staan erop, met kWh, kosten en het deel eigen zon, uit de statistiek van Home Assistant (0.133.0). Het advies staat onder de auto en als eigen kaart op Thuis boven de auto: meer of minder stroom op zon, binnen de laadpaal en de zekering, of beginnen met de kabel erin; met een prijs per uur de goedkoopste uren (0.135.0). Laden met de hand: de hoogste stroom of pauzeren, met een eind, door een eigen smalle deur, alleen als de bewoner het bij Energie toeliet ([262], 0.136.0); bij Easee via de eigen dienst, met de levensduur van Easee als vangnet ([277], 0.151.0); met evcc de stand van evcc ([278], 0.152.0); in het blad de balk van de dag met zon over, de prijs per uur en tot wanneer ([279], 0.153.0); en met een zin tegen de assistent ([280], 0.154.0). Meldingen: vol, een fout van de laadpaal, met de hand klaar, en kabel vergeten met een vaste avondcheck per auto; op de telefoon de keuze De auto ([263], 0.137.0); het bouwplan staat in `docs/auto-en-laadpaal.md` ([259]).
-- **Thuisaccu (ronde van zes stappen, onderzoek in `docs/thuisaccu-onderzoek.md`):** Energie › Thuisaccu toont de gevonden accu's met een schakelaar; je kiest er zelf een, ook een apparaat van Homey met losse sensoren, en per accu welke sensor de lading, het vermogen en de totalen zijn, en wat plus betekent ([271], 0.145.0). Het verbruik van nu en Opbrengst rekenen de accu mee, uit het Energie-dashboard of de gekozen tellers; het stroombeeld heeft Uit de accu en Naar de accu ([272], 0.146.0). Op Thuis en bij Opbrengst › Nu lopen de stromen van en naar de accu, ook als hij binnen staat ([273], 0.147.0). De regeling rekent in de schaduw wat hij zou doen als wat de accu met zon laadt zon over was; het echte besluit verandert niet ([274], 0.148.0). Meer accu's staan samen op één kaart met per accu een regel; met de maat zegt de app hoeveel erin zit, hoe laat hij vol is of hoe lang hij nog voedt, en Wat je huis kan zegt wat hij leverde ([275], 0.149.0). Meldingen als hij niets meer zegt, bij een fout, en als hij vol is met zon over ([276], 0.150.0).
+- **Auto en laadpaal (alle zes stappen gebouwd, 0.131.0 tot 0.137.0):** Energie › Auto en laadpaal herkent auto's, laadpalen en evcc, met een schakelaar per apparaat, zelf kiezen, en per auto de accu, de laadpaal en de plek (ook de garage, idee 123); het klimaat van een auto telt niet als klimaat in huis (melding 132). De pagina Auto toont de auto als meter, met laden, stroom per fase, laadgrens, vol om, kabel en onderweg; de Thuis-kaart en Apparaten openen hem (0.132.0). De laadbeurten van de laatste week staan erop, met kWh, kosten en het deel eigen zon, uit de statistiek van Home Assistant (0.133.0). Het advies staat onder de auto en als eigen kaart op Thuis boven de auto: meer of minder stroom op zon, binnen de laadpaal en de zekering, of beginnen met de kabel erin; met een prijs per uur de goedkoopste uren (0.135.0). Laden met de hand: de hoogste stroom of pauzeren, met een eind, door een eigen smalle deur, alleen als de bewoner het bij Energie toeliet ([262], 0.136.0); bij Easee via de eigen dienst, met de levensduur van Easee als vangnet ([277], 0.151.0); met evcc de stand van evcc ([278], 0.152.0); in het blad de balk van de dag met zon over, de prijs per uur en tot wanneer ([279], 0.153.0); en met een zin tegen de assistent ([280], 0.154.0). Meldingen: vol, een fout van de laadpaal, met de hand klaar, en kabel vergeten met een vaste avondcheck per auto; op de telefoon de keuze De auto ([263], 0.137.0); het bouwplan staat in `docs/auto-en-laadpaal.md` ([259]). De laadpaal staat in de tekening op zijn eigen plek, met de stromen van zon en net naar de paal en de auto, en een blad bij een tik ([305], 0.176.0).
+- **Thuisaccu (ronde van zes stappen, onderzoek in `docs/thuisaccu-onderzoek.md`):** Energie › Thuisaccu toont de gevonden accu's met een schakelaar; je kiest er zelf een, ook een apparaat van Homey met losse sensoren, en per accu welke sensor de lading, het vermogen en de totalen zijn, en wat plus betekent ([271], 0.145.0). Het verbruik van nu en Opbrengst rekenen de accu mee, uit het Energie-dashboard of de gekozen tellers; het stroombeeld heeft Uit de accu en Naar de accu ([272], 0.146.0). Op Thuis en bij Opbrengst › Nu lopen de stromen van en naar de accu, ook als hij binnen staat ([273], 0.147.0). Een tik op de zon, het net of de accu op Thuis opent Stroom nu: per apparaat wat het van die bron gebruikt ([307], 0.178.0). De regeling rekent in de schaduw wat hij zou doen als wat de accu met zon laadt zon over was; het echte besluit verandert niet ([274], 0.148.0). Meer accu's staan samen op één kaart met per accu een regel; met de maat zegt de app hoeveel erin zit, hoe laat hij vol is of hoe lang hij nog voedt, en Wat je huis kan zegt wat hij leverde ([275], 0.149.0). Meldingen als hij niets meer zegt, bij een fout, en als hij vol is met zon over ([276], 0.150.0).
 - **Een profiel per bewoner** (Jij, bovenaan Instellingen): je thema op je
   eigen apparaten (donker, licht of zoals je telefoon; een scherm blijft
   donker), een van zes eigen kleuren, je
@@ -942,4 +946,7 @@ verwijzing bestaat.
 [302]: DECISIONS.md#302-de-fasekaart-hoe-vol-elke-fase-is
 [303]: DECISIONS.md#303-helpen-bij-de-cv-doordraaien-en-de-dag-in-het-blad-van-de-airco
 [304]: DECISIONS.md#304-een-schakelaar-met-een-ingevuld-vermogen-kan-op-zon
+[305]: DECISIONS.md#305-de-laadpaal-in-de-tekening-met-de-stromen-en-een-blad
+[306]: DECISIONS.md#306-een-zone-apart-regelen-en-de-radiatorknop-per-zone-met-de-hand
+[307]: DECISIONS.md#307-stroom-nu-op-thuis-en-wat-er-hangt-bij-de-plekken-buiten
 <!-- links:einde -->

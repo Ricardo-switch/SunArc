@@ -1,5 +1,43 @@
 # Wat is er nieuw · What is new
 
+## 0.178.1
+
+*12 november 2026 · 0.176.0 – 0.178.1*
+
+**Nieuw**
+
+- Tik op Thuis op de zon, het net of de thuisaccu, op hun lijn of hun label: een blad zegt per apparaat wat het nu van die stroom gebruikt
+- Op de telefoon opent een tik op een vakje onder het huis hetzelfde blad
+- Bij Kamers en indeling › Buiten staat bij elke plek in de tekening hoeveel apparaten er hangen; een tik opent de plek
+- Een zone in een kamer, zoals de keuken in de woonkamer, kan een eigen regeling krijgen met haar radiatorknop: een eigen doel en eigen tijden bij Comfort
+- In het blad van de kamer staat elke zone met haar temperatuur, doel en knoppen, en de knop van een zone zet je met de hand tot een tijd
+- De laadpaal staat in de tekening op Thuis, ook een uit losse sensoren: de stroom loopt van de zon en het net naar de paal en naar de auto
+- Een tik op de laadpaal of de auto opent een blad: wat hij nu laadt en waarvan, de auto, de stroom per fase en wat hij vandaag laadde
+- Bij Energie › Auto en laadpaal kies je ook voor de laadpaal waar hij staat, ook als er een auto is
+
+**Opgelost**
+
+- De knop Eigen regeling bij een zone deed niets als er nog geen radiatorknop in de zone zat; hij is nu gedempt en zegt bij een tik wat er nodig is
+- Twee radiatorknoppen van hetzelfde type in één kamer telden soms als één apparaat, en dan verdween er een
+
+*English*
+
+**New**
+
+- On Home, tap the sun, the grid or the home battery, on their line or their label: a sheet shows what each device uses of that power right now
+- On the phone, tapping a tile below the house opens the same sheet
+- In Rooms and layout › Outside, each place in the drawing shows how many devices are there; a tap opens the place
+- A zone in a room, like the kitchen in the living room, can get its own control with its radiator valve: its own target and times in Comfort
+- The room sheet shows each zone with its temperature, target and valves, and you set a zone valve by hand until a time
+- The charger is in the drawing on Home, including one from separate sensors: power flows from solar and the grid to the charger and on to the car
+- Tapping the charger or the car opens a sheet: what it is charging now and from where, the car, the current per phase and what it charged today
+- In Energy › Car and charger you also choose where the charger stands, even when there is a car
+
+**Fixed**
+
+- The Own control button for a zone did nothing while no radiator valve was in the zone yet; it is now dimmed and a tap says what is needed
+- Two radiator valves of the same type in one room sometimes counted as one device, and then one disappeared
+
 ## 0.175.1
 
 *11 november 2026 · 0.173.0 – 0.175.1*

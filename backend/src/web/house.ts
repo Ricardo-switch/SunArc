@@ -251,7 +251,13 @@ export interface HouseRoom {
   /** Het regelgebied uit de configuratie dat deze kamer is, of null. */
   readonly zoneId: string | null;
   /** De delen van de kamer (95), leeg als hij er geen heeft. */
-  readonly zones: readonly { readonly id: string; readonly naam: string; readonly soort?: RoomType | OutsideZoneType }[];
+  readonly zones: readonly {
+    readonly id: string;
+    readonly naam: string;
+    readonly soort?: RoomType | OutsideZoneType;
+    /** Een eigen regeling (besluit 306): het regelgebied, de temperatuur, het doel en de stand. */
+    readonly regeling?: { readonly zoneId: string; readonly temperatuurC: number | null; readonly doelC: number | null; readonly status: { readonly soort: string; readonly zin: string } | null };
+  }[];
   /** Van het regelgebied, of anders van een meter in de kamer. */
   readonly temperatuurC: number | null;
   readonly vochtPct: number | null;
@@ -802,12 +808,17 @@ function isRadiatorKnob(dev: { model?: string | null; manufacturer?: string | nu
  * Zijn dit twee koppelingen van hetzelfde apparaat (besluit 127)? Dezelfde
  * naam, of in dezelfde ruimte met hetzelfde type ("RAC_056905_WW").
  */
-function sameDevice(a: HaDevice, b: HaDevice): boolean {
+function sameDevice(a: HaDevice, b: HaDevice, registers?: Pick<HouseRegisters, 'entities'>): boolean {
   if (a.id === b.id) return true;
   const naam = (d: HaDevice) => (d.name_by_user ?? d.name ?? '').trim().toLowerCase();
   if (naam(a) !== '' && naam(a) === naam(b)) return true;
   const type = (d: HaDevice) => /^[a-z0-9_]{4,}/i.exec((d.model ?? '').trim())?.[0].toLowerCase() ?? '';
-  return a.area_id != null && a.area_id === b.area_id && type(a) !== '' && type(a) === type(b);
+  if (!(a.area_id != null && a.area_id === b.area_id && type(a) !== '' && type(a) === type(b))) return false;
+  // Twee knoppen van hetzelfde type in één kamer via dezelfde koppeling zijn twee apparaten (besluit 306):
+  // één apparaat via twee koppelingen komt binnen via twee verschillende.
+  const koppeling = (d: HaDevice) => registers?.entities.find((e) => e.device_id === d.id)?.platform ?? null;
+  const ka = koppeling(a);
+  return ka == null || ka !== koppeling(b);
 }
 
 /**
@@ -818,7 +829,7 @@ function sameDevice(a: HaDevice, b: HaDevice): boolean {
 function filterOf(registers: HouseRegisters, states: ReadonlyMap<string, HaEntityState>, deviceId: string | null): { pct: number | null; uren: number | null } | null {
   if (!deviceId) return null;
   const own = registers.devices.find((d) => d.id === deviceId);
-  const devices = new Set(own ? registers.devices.filter((d) => sameDevice(own, d)).map((d) => d.id) : [deviceId]);
+  const devices = new Set(own ? registers.devices.filter((d) => sameDevice(own, d, registers)).map((d) => d.id) : [deviceId]);
   let pct: number | null = null;
   let uren: number | null = null;
   for (const e of registers.entities) {
@@ -1304,7 +1315,7 @@ function collect(
       ? registers.entities.find((x) => {
           if (x.entity_id === entityId || !x.entity_id.startsWith('climate.') || x.disabled_by || !x.device_id) return false;
           const d2 = registers.devices.find((y) => y.id === x.device_id);
-          return d2 != null && (d2.id === dev.id || sameDevice(dev, d2));
+          return d2 != null && (d2.id === dev.id || sameDevice(dev, d2, registers));
         })
       : undefined;
     const tst = twin ? states.get(twin.entity_id) : undefined;
@@ -1347,7 +1358,13 @@ function collect(
       meting: hasReading ? meting : null,
       klimaat,
     }, lang);
-    found.push({ device, haNaam: a.name, haArea: areaOf(a.ref.id), groepen: [] });
+    // Een radiatorknop in de regeling, zoals in een zone met een eigen regeling (besluit 306): ook dan een knop.
+    const entiteit = registry.get(a.ref.id);
+    const apparaatHa = entiteit?.device_id ? registers.devices.find((d) => d.id === entiteit.device_id) : undefined;
+    const knop = a.capabilities.canHeat && !a.capabilities.canCool && isRadiatorKnob(apparaatHa, modes)
+      ? { koppeling: entiteit?.platform === 'zha' ? ('zha' as const) : entiteit?.platform === 'mqtt' ? ('zigbee2mqtt' as const) : ('anders' as const), klepPct: valveOf(registers, states, entiteit?.device_id ?? null) }
+      : null;
+    found.push({ device: knop ? { ...device, radiatorknop: knop } : device, haNaam: a.name, haArea: areaOf(a.ref.id), groepen: [] });
   }
 
   /*
@@ -1369,7 +1386,7 @@ function collect(
     if (!e.entity_id.startsWith('climate.') || e.disabled_by || e.hidden_by || inConfig.has(e.entity_id)) continue;
     if (e.device_id && autos.has(e.device_id)) continue;
     const eigen = e.device_id ? devById.get(e.device_id) : undefined;
-    if (eigen && configDevs.some((c) => sameDevice(c, eigen))) continue;
+    if (eigen && configDevs.some((c) => sameDevice(c, eigen, registers))) continue;
     const st = states.get(e.entity_id);
     const modes = Array.isArray(st?.attributes['hvac_modes']) ? (st!.attributes['hvac_modes'] as unknown[]).map(String) : [];
     const own = sensorsOf.get(e.device_id ?? '');
@@ -2060,7 +2077,18 @@ export function buildHouse(
       naam: k.naam,
       // Wie meedoet, heeft geen eigen regelzone: zo staat elke regeling één keer in de app.
       zoneId: doel ? null : (zone?.id ?? null),
-      zones: k.zones.map((z) => ({ id: z.id, naam: z.naam, ...(z.soort ? { soort: z.soort } : {}) })),
+      zones: k.zones.map((z) => {
+        // Een zone met een eigen regeling (besluit 306): wat die regeling nu zegt.
+        const cz = z.regelzone ? config.zones.find((x) => x.id === z.regelzone) : undefined;
+        const zp = cz ? snapshot?.explanation.perZone.find((x) => x.zoneId === cz.id) : undefined;
+        const zs = cz && snapshot ? roomStatus(config, snapshot, cz, lang, true) : null;
+        return {
+          id: z.id,
+          naam: z.naam,
+          ...(z.soort ? { soort: z.soort } : {}),
+          ...(cz ? { regeling: { zoneId: cz.id, temperatuurC: zp?.temperatureC ?? null, doelC: zp?.heatTargetC ?? null, status: zs ? { soort: zs.kind, zin: zs.zin } : null } } : {}),
+        };
+      }),
       // Meedoen: een eigen meter wint; anders de temperatuur van de regeling.
       temperatuurC: doel ? (gekozenC ?? meterTemp?.meting?.temperatuurC ?? pz?.temperatureC ?? null) : (pz?.temperatureC ?? gekozenC ?? meterTemp?.meting?.temperatuurC ?? null),
       vochtPct: pz?.humidityPct ?? devices.find((d) => d.meting?.vochtPct != null)?.meting?.vochtPct ?? null,

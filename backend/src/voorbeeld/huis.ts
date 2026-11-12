@@ -173,6 +173,9 @@ const TOESTELLEN: readonly Toestel[] = [
   { id: 'd-airco-z', naam: 'Airco zolder', ruimte: 'zolder', merk: 'Daikin', entiteiten: [['climate.air_conditioning_zolder'], ['sensor.airco_zolder_vermogen', meter('power', 'Vermogen')]] },
   // Met een kinderslot (besluit 299), zoals een Tuya-thermostaat.
   { id: 'd-bad', naam: 'Thermostaat badkamer', ruimte: 'badkamer', entiteiten: [['climate.thermostaat_badkamer'], ['switch.thermostaat_badkamer_kinderslot']] },
+  // Twee radiatorknoppen in de woonkamer (besluit 306): voor een zone met een eigen regeling.
+  { id: 'd-knop-zithoek', naam: 'Radiatorknop zithoek', ruimte: 'woonkamer', merk: 'SONOFF', model: 'TRVZB', platform: 'mqtt', entiteiten: [['climate.radiatorknop_zithoek']] },
+  { id: 'd-knop-eethoek', naam: 'Radiatorknop eethoek', ruimte: 'woonkamer', merk: 'SONOFF', model: 'TRVZB', platform: 'mqtt', entiteiten: [['climate.radiatorknop_eethoek']] },
   { id: 'd-meter-wk', naam: 'Meter woonkamer', ruimte: 'woonkamer', entiteiten: [['sensor.woonkamer_temperatuur', meter('temperature', 'Temperatuur')], ['sensor.woonkamer_luchtvochtigheid', meter('humidity', 'Luchtvochtigheid')]] },
   { id: 'd-meter-keuken', naam: 'Meter keuken', ruimte: 'keuken', entiteiten: [['sensor.keuken_temperatuur', meter('temperature', 'Temperatuur')]] },
   { id: 'd-meter-bad', naam: 'Meter badkamer', ruimte: 'badkamer', entiteiten: [['sensor.badkamer_temperatuur', meter('temperature', 'Temperatuur')]] },
@@ -353,6 +356,8 @@ export function staten(klok: Klok, ingrepen: Ingrepen, nuMs: number): HaEntitySt
   klimaat('climate.beneden', winter ? 'heat' : 'off', 20.5, m.temp.woonkamer, m.verwarmt ? 'heating' : winter ? 'idle' : 'off', ['off', 'heat']);
   klimaat('climate.air_conditioning_woonkamer', m.koelt ? 'cool' : 'off', 23, m.temp.woonkamer, m.koelt ? 'cooling' : 'off', ['off', 'heat', 'cool']);
   klimaat('climate.air_conditioning_zolder', 'off', 18, m.temp.zolder, 'off', ['off', 'heat', 'cool']);
+  klimaat('climate.radiatorknop_zithoek', 'heat', 21, m.temp.woonkamer - 0.3, winter && m.temp.woonkamer - 0.3 < 21 ? 'heating' : 'idle', ['off', 'heat']);
+  klimaat('climate.radiatorknop_eethoek', 'heat', 19, m.temp.woonkamer - 1.4, winter && m.temp.woonkamer - 1.4 < 19 ? 'heating' : 'idle', ['off', 'heat']);
   klimaat('climate.thermostaat_badkamer', 'heat', 21, m.temp.badkamer, winter && m.temp.badkamer < 21 ? 'heating' : 'idle', ['off', 'heat']);
   const stroomW = (id: string) => (ingrepen.get(id)?.state ?? '') === 'heat' || (ingrepen.get(id)?.state ?? '') === 'cool';
   zet('sensor.warmtepomp_vermogen', m.verwarmt ? (m.zonW > 800 ? 1400 : 1100) : 0, { unit_of_measurement: 'W', device_class: 'power' });

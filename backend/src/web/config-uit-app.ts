@@ -16,7 +16,7 @@ import { withConnection, type Applied, type ConnectionAnswers } from './aansluit
 import { profielenVoor, type Bewoners } from './bewoners.js';
 import { withComfort, type Comfort } from './comfort.js';
 import { helpenNu, withCvHelp, type HelpenKeuze } from './helpen.js';
-import type { Layout } from './layout.js';
+import { regelKamers, zoneKamerId, type Layout } from './layout.js';
 import { withMeasurement } from './meten.js';
 import { doelenBinnenBereik, withBereik, withRegeling } from './regeling.js';
 import { withHeatSources } from './warmte.js';
@@ -44,16 +44,22 @@ export function configUitDeApp(base: Record<string, unknown>, i: UitDeApp): { ok
   const metAansluiting = i.aansluiting && i.aansluitingToegevoegd.toegevoegd.length ? withConnection(base, i.aansluiting).raw : base;
   const layout = i.layout;
   // De regeling per kamer uit de app (besluit 138): welke apparaten een kamer regelen, en hoe.
-  const metRegeling = withRegeling(metAansluiting, layout?.kamers ?? null, {
+  // Een zone met een eigen regeling (besluit 306) is voor de regeling een eigen kamer.
+  const kamers = layout ? regelKamers(layout.kamers) : null;
+  const zoneVan = (id: string) => {
+    for (const k of layout?.kamers ?? []) for (const z of k.zones) if (z.rollen?.[id] != null && z.rollen[id] !== 'kijken') return zoneKamerId(k.id, z.id);
+    return null;
+  };
+  const metRegeling = withRegeling(metAansluiting, kamers, {
     state: i.state,
     vermogenSensor: i.vermogenSensor,
-    kamerVan: (id) => layout?.apparaten[id]?.kamer ?? null,
+    kamerVan: (id) => zoneVan(id) ?? layout?.apparaten[id]?.kamer ?? null,
   });
   for (const t of metRegeling.overgeslagen) i.waarschuw?.(`Regeling uit de app: ${t}`);
   // Het bereik per apparaat (besluit 197), als de bewoner een ander koos dan Home Assistant opgeeft.
   const metBereik = withBereik(metRegeling.raw, layout?.apparaten ?? null);
   // Meten met (besluit 123) uit de indeling van nu: de regeling neemt een andere sensor meteen over (138).
-  const metMeten = withMeasurement(metBereik.raw, layout).raw;
+  const metMeten = withMeasurement(metBereik.raw, kamers ? { kamers } : null).raw;
   // De bronnen per kamer (besluit 132): uit de indeling van nu, want op zon gaat meteen in.
   const metBronnen = withHeatSources(metMeten, layout?.kamers ?? null);
   const metComfort = withComfort(metBronnen.raw, i.comfort);

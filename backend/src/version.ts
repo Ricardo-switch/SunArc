@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.175.1';
+export const VERSIE = '0.178.1';
 
 export interface Nieuw {
   readonly versie: string;
@@ -74,12 +74,86 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.175.1', '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.178.1', '0.175.1', '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.178.1',
+    datum: '2026-11-12',
+    opgelost: [
+      'De knop Eigen regeling bij een zone deed niets als er nog geen radiatorknop in de zone zat; hij is nu gedempt en zegt bij een tik wat er nodig is',
+    ],
+    en: {
+      opgelost: [
+        'The Own control button for a zone did nothing while no radiator valve was in the zone yet; it is now dimmed and a tap says what is needed',
+      ],
+    },
+  },
+  {
+    versie: '0.178.0',
+    datum: '2026-11-12',
+    nieuw: [
+      'Tik op Thuis op de zon, het net of de thuisaccu, op hun lijn of hun label: een blad zegt per apparaat wat het nu van die stroom gebruikt',
+      'Op de telefoon opent een tik op een vakje onder het huis hetzelfde blad',
+      'Bij Kamers en indeling › Buiten staat bij elke plek in de tekening hoeveel apparaten er hangen; een tik opent de plek',
+    ],
+    en: {
+      nieuw: [
+        'On Home, tap the sun, the grid or the home battery, on their line or their label: a sheet shows what each device uses of that power right now',
+        'On the phone, tapping a tile below the house opens the same sheet',
+        'In Rooms and layout › Outside, each place in the drawing shows how many devices are there; a tap opens the place',
+      ],
+    },
+  },
+  {
+    versie: '0.177.0',
+    datum: '2026-11-12',
+    nieuw: [
+      'Een zone in een kamer, zoals de keuken in de woonkamer, kan een eigen regeling krijgen met haar radiatorknop: een eigen doel en eigen tijden bij Comfort',
+      'In het blad van de kamer staat elke zone met haar temperatuur, doel en knoppen, en de knop van een zone zet je met de hand tot een tijd',
+    ],
+    opgelost: [
+      'Twee radiatorknoppen van hetzelfde type in één kamer telden soms als één apparaat, en dan verdween er een',
+    ],
+    en: {
+      nieuw: [
+        'A zone in a room, like the kitchen in the living room, can get its own control with its radiator valve: its own target and times in Comfort',
+        'The room sheet shows each zone with its temperature, target and valves, and you set a zone valve by hand until a time',
+      ],
+      opgelost: [
+        'Two radiator valves of the same type in one room sometimes counted as one device, and then one disappeared',
+      ],
+    },
+  },
+  {
+    versie: '0.176.0',
+    datum: '2026-11-12',
+    nieuw: [
+      'De laadpaal staat in de tekening op Thuis, ook een uit losse sensoren: de stroom loopt van de zon en het net naar de paal en naar de auto',
+      'Een tik op de laadpaal of de auto opent een blad: wat hij nu laadt en waarvan, de auto, de stroom per fase en wat hij vandaag laadde',
+      'Bij Energie › Auto en laadpaal kies je ook voor de laadpaal waar hij staat, ook als er een auto is',
+    ],
+    meldingen: [
+      {
+        code: 'SA-N2JR',
+        uitkomst: 'opgelost',
+        tekst: 'De laadpaal staat nu in de tekening op Thuis, op je oprit of waar je hem zet, met de stroom van de zon en het net naar de paal en de auto. Een tik op de paal opent wat hij nu doet.',
+        tekstEn: 'The charger now shows in the drawing on Home, on your driveway or wherever you place it, with power from the sun and the grid flowing to the charger and the car. Tap the charger to see what it is doing now.',
+        href: 'thuis.html',
+        issue: 164,
+      },
+    ],
+    en: {
+      nieuw: [
+        'The charger is in the drawing on Home, including one from separate sensors: power flows from solar and the grid to the charger and on to the car',
+        'Tapping the charger or the car opens a sheet: what it is charging now and from where, the car, the current per phase and what it charged today',
+        'In Energy › Car and charger you also choose where the charger stands, even when there is a car',
+      ],
+    },
+  },
   {
     versie: '0.175.1',
     datum: '2026-11-11',

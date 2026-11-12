@@ -1,0 +1,68 @@
+/* Een zone apart regelen (schets, 12 november 2026). */
+.bkop { display: flex; justify-content: space-between; gap: 12px; }
+.bkop h2 { margin: 0; font-family: var(--kop); font-size: 26px; font-weight: 600; }
+.bkop p { margin: 4px 0 0; font-size: 13.5px; color: var(--zacht); }
+.sluit { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); font-size: 19px; flex: none; }
+.bh3 { margin: 6px 0 0; font-size: 15px; font-weight: 700; }
+.zgroep { padding: 12px 14px; border-radius: 18px; background: rgb(var(--wit) / 0.045); display: flex; flex-direction: column; gap: 8px; }
+.zkop { display: flex; align-items: baseline; gap: 10px; }
+.zkop b { font-size: 15.5px; }
+.ztemp { font-family: var(--kop); font-size: 20px; font-weight: 600; }
+.zstand { margin-left: auto; font-size: 13px; font-weight: 600; }
+.zrij { display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: center; }
+.zrij b { display: block; font-size: 14px; }
+.zrij small { font-size: 12.5px; color: var(--gedempt); }
+.zrij .pijl { color: var(--gedempt); font-size: 18px; }
+.zrij.dim { padding: 10px 14px; border-radius: 16px; background: rgb(var(--wit) / 0.03); }
+.zik { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: rgb(255 140 90 / 0.14); color: #ffb090; }
+.zik svg { width: 18px; height: 18px; }
+.zschakel { width: 46px; height: 27px; border-radius: 999px; background: var(--mint); position: relative; }
+.zschakel::after { content: ''; position: absolute; top: 3px; left: 22px; width: 21px; height: 21px; border-radius: 50%; background: #fff; }
+.zgevoel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.zgevoel span { height: 42px; border-radius: 13px; display: grid; place-items: center; font-weight: 700; font-size: 14px; background: rgb(var(--wit) / 0.06); }
+.zwijzer { display: grid; grid-template-columns: 54px 1fr 54px; align-items: center; justify-items: center; margin: 6px 0; }
+.zknop { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgb(var(--wit) / 0.16); font-size: 24px; color: var(--zacht); }
+.zdoel { width: 170px; height: 170px; border-radius: 50%; display: grid; place-items: center; align-content: center; border: 8px solid rgb(var(--wit) / 0.08); }
+.zdoel b { font-family: var(--kop); font-size: 44px; font-weight: 600; line-height: 1; }
+.zdoel small { font-size: 13px; color: var(--gedempt); margin-top: 6px; }
+.zseg { display: flex; padding: 3px; border-radius: 12px; background: rgb(var(--wit) / 0.06); }
+.zseg span { flex: 1; height: 38px; border-radius: 9px; display: grid; place-items: center; font-size: 14px; font-weight: 600; color: var(--zacht); white-space: nowrap; padding: 0 10px; }
+.zseg span.aan { background: rgb(var(--wit) / 0.14); color: var(--tekst); }
+.zseg.klein span { height: 34px; }
+.zvraag { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.zvraag > span { font-size: 14px; font-weight: 600; color: var(--zacht); }
+.zhoe { padding: 13px 16px; border-radius: 16px; background: rgb(var(--wit) / 0.04); font-size: 14px; line-height: 1.5; color: var(--zacht); }
+.zonder { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.zterug { font-size: 14px; font-weight: 700; color: var(--zacht); }
+.zzet { height: 46px; padding: 0 20px; border-radius: 14px; background: var(--tekst); color: var(--inkt); display: grid; place-items: center; font-weight: 700; font-size: 14.5px; }
+
+/* Kamers en indeling › Verwarmen en koelen. */
+.ikop { display: flex; align-items: baseline; gap: 12px; }
+.ikop h2 { margin: 0; }
+.itabs { display: flex; padding: 3px; border-radius: 12px; background: rgb(var(--wit) / 0.06); }
+.itabs span { flex: 1; height: 36px; border-radius: 9px; display: grid; place-items: center; font-size: 14px; font-weight: 600; color: var(--zacht); }
+.itabs span.aan { background: rgb(var(--wit) / 0.14); color: var(--tekst); }
+.imini { margin: 0; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
+.izone { padding: 12px 14px; border-radius: 18px; background: rgb(var(--wit) / 0.045); display: flex; flex-direction: column; gap: 9px; }
+.izkop { display: flex; align-items: baseline; gap: 10px; }
+.izkop b { font-size: 15.5px; }
+.izkop span { font-size: 12.5px; color: var(--gedempt); }
+.irij { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
+.irij.link { grid-template-columns: 1fr auto; padding: 8px 12px; border-radius: 13px; background: rgb(var(--wit) / 0.04); }
+.irij b { display: block; font-size: 14px; }
+.irij small { font-size: 12.5px; color: var(--gedempt); }
+.irij .pijl { color: var(--gedempt); font-size: 18px; }
+.irij.plus { grid-template-columns: 1fr; padding: 12px 14px; border-radius: 16px; border: 1px dashed rgb(var(--wit) / 0.16); color: var(--ijs, #6fd3ff); }
+.ivraag { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.ivraag > span { font-size: 13.5px; font-weight: 600; color: var(--zacht); }
+
+/* Comfort. */
+.ctabel { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ctabel th { text-align: left; font-size: 12.5px; font-weight: 700; color: var(--gedempt); padding: 8px 10px; }
+.ctabel td { padding: 12px 10px; border-top: 1px solid rgb(var(--wit) / 0.07); font-family: var(--kop); font-size: 17px; font-weight: 600; }
+.ctabel td:first-child { font-family: var(--romp); font-size: 14.5px; }
+.ctabel td b { display: block; }
+.ctabel td small { display: block; font-size: 12.5px; color: var(--ijs, #6fd3ff); font-weight: 600; }
+.izone.dicht { flex-direction: row; align-items: center; justify-content: space-between; }
+.izone.dicht .izkop { flex-direction: column; gap: 2px; }
+.izone.dicht .pijl { color: var(--gedempt); font-size: 18px; }

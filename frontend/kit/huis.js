@@ -1255,6 +1255,8 @@
       const dik = 1.6 + 2.2 * (s.sterkte ?? 0.5);
       stromen.push(`<polyline points="${d}" fill="none" stroke="${kleur}" stroke-opacity="0.18" stroke-width="${dik + 3}" stroke-linejoin="round" stroke-linecap="round"/>`);
       stromen.push(`<polyline class="sc-stroom" style="animation-duration:${(2.6 - 1.6 * (s.sterkte ?? 0.5)).toFixed(2)}s" points="${d}" fill="none" stroke="${kleur}" stroke-width="${dik}" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1 11"/>`);
+      // Een stroom om aan te tikken (idee 135): een brede, onzichtbare lijn erover met `tik` als data-tik.
+      if (s.tik && opts.tik) tikkenBoven.push(`<polyline class="sc-tik" data-tik="${esc(s.tik)}" points="${d}" fill="none" stroke="transparent" stroke-width="22" stroke-linejoin="round" stroke-linecap="round" role="button" tabindex="-1"${s.tikLabel ? ` aria-label="${esc(s.tikLabel)}"` : ''} style="cursor: pointer"/>`);
     }
     function route(van, naar) {
       const pts = [];
@@ -1341,8 +1343,25 @@
       deurbel: plek.deurbel ?? [W / 2, D, 0.7],
       camera: plek.camera ?? [-0.1, D, FH],
     };
+    /*
+     * De plekken buiten (besluit 269, 12 november 2026): waar een label "Oprit · 2
+     * apparaten" aan hangt. Alleen een plek die getekend is; anders geen label.
+     */
+    const tweeHoog = g.etages.filter((e) => !e.dak).length >= 2;
+    const buitenPlek = {
+      voordeur: plek.voordeur ?? null,
+      oprit: model.oprit || model.auto ? (eiland ? plek.oprit : [-1.95, D + 0.7, 0.03]) : null,
+      carport: model.oprit?.carport ? [-1.98, D * 0.5 + 0.5, 1.1] : null,
+      garage: model.garage ? (plek.garage ?? [-2.0, -1.25, 1.1]) : null,
+      tuin: model.tuin ? (plek.gazon ?? [W + 1.3, -0.7, 0.05]) : null,
+      tuinhuis: model.tuin && model.tuin.tuinhuis !== false ? (plek.tuinhuis ?? [W + 1.37, -1.27, 0.9]) : null,
+      terras: model.terras ? (plek.terras ?? [W + 1.17, (0.85 + D) / 2, 0.05]) : null,
+      voortuin: model.voortuin ? [W * 0.6 + 0.5, eiland ? D + 0.45 : D + 1.0, 0.05] : null,
+      balkon: model.balkon && (tweeHoog || appartement) ? [W + 0.28, 0.75, (tweeHoog ? FH : 0) + 0.4] : null,
+    };
     const zoek = (bij) => {
       if (Array.isArray(bij)) return bij;
+      if (typeof bij === 'string' && bij.startsWith('buiten:')) return buitenPlek[bij.slice(7)] ?? null;
       if (anker[bij]) return anker[bij];
       if (plek[bij]) return plek[bij];
       if (bij.startsWith('kamer:')) {
@@ -1351,8 +1370,11 @@
       }
       return [W / 2, D / 2, 0];
     };
+    const geplaatst = [];
     for (const l of model.labels ?? []) {
-      const a = P(...zoek(l.bij));
+      const plekA = zoek(l.bij);
+      if (!plekA) continue;
+      const a = P(...plekA);
       const fs = l.groot ? 26 : 14;
       const regels = [l.titel, ...(l.regels ?? [])].filter(Boolean);
       const breedte = Math.max(...regels.map((r, i) => r.length * (i === 0 && l.groot ? fs * 0.56 : (i === 0 ? 14 : 12.5) * 0.53))) + 24;
@@ -1361,7 +1383,19 @@
       const ly = a[1] + (l.dy ?? -40);
       // Binnen de tekening (5 november 2026): een breed label viel op de telefoon links buiten beeld.
       const bx = Math.max(6, Math.min((opts.breedte ?? 760) - breedte - 6, l.dx < 0 ? lx - breedte : lx));
-      const by = Math.max(6, Math.min((opts.hoogte ?? 560) - hoogte - 6, ly - hoogte / 2));
+      const binnenY = (y) => Math.max(6, Math.min((opts.hoogte ?? 560) - hoogte - 6, y));
+      let by = binnenY(ly - hoogte / 2);
+      // Labels die uit elkaar moeten (12 november 2026, de plekken buiten): botst er een
+      // met een eerder label, dan schuift hij op of neer naar de dichtste vrije plek.
+      if (l.wijk) {
+        const botst = (y) => geplaatst.some((p) => bx < p.x + p.b + 4 && p.x < bx + breedte + 4 && y < p.y + p.h + 4 && p.y < y + hoogte + 4);
+        const stap = hoogte + 6;
+        const vrij = [0, 1, -1, 2, -2, 3, -3, 4, -4].map((i) => binnenY(by + i * stap)).find((y) => !botst(y));
+        // Nergens plek: dan liever geen label dan twee over elkaar.
+        if (vrij === undefined) continue;
+        by = vrij;
+        geplaatst.push({ x: bx, y: by, b: breedte, h: hoogte });
+      }
       const kleur = KLEUR[l.toon] ?? KLEUR.zacht;
       // In het licht een wit kaartje met donkere tekst, zoals de rest van de app (besluit 181).
       const tl = licht ? (k) => TEKST_LICHT[k] ?? k : (k) => k;
@@ -2337,6 +2371,16 @@
       const y0 = D - 1.75;
       const L = 2.1;
       const B = 0.95;
+      // Een tik op de paal of de auto (issue 164): een vlak erboven, als Thuis dat vraagt.
+      const tikVlak = (pts) => {
+        if (a?.tik) tikkenBoven.push(poly(pts, `class="sc-tik" data-tik="${esc(a.tik)}" fill="transparent" role="button" tabindex="0"${a.tikLabel ? ` aria-label="${esc(a.tikLabel)}"` : ''}`));
+      };
+      // De auto is weg (issue 164): alleen de laadpaal staat er.
+      if (a?.stand === 'weg') {
+        paal();
+        tikVlak([[px - 0.35, py - 0.35, 0.5], [px + 0.35, py - 0.35, 0.5], [px + 0.35, py + 0.35, 0.5], [px - 0.35, py + 0.35, 0.5]]);
+        return;
+      }
       if (isSpook) {
         buiten.push(`<g opacity="0.65">${poly([[x0, y0, 0.02], [x0 + B, y0, 0.02], [x0 + B, y0 + L, 0.02], [x0, y0 + L, 0.02]], `fill="none" stroke="${KLEUR.ijs}" stroke-dasharray="5 5"`)}</g>`);
         paal();
@@ -2379,6 +2423,7 @@
       // Koplampen als een lichtstreep.
       buiten.push(poly([[x0 + 0.1, y0 + L + 0.002, h1 - 0.16], [x0 + B - 0.1, y0 + L + 0.002, h1 - 0.16], [x0 + B - 0.1, y0 + L + 0.002, h1 - 0.11], [x0 + 0.1, y0 + L + 0.002, h1 - 0.11]], 'fill="#e9f1f8" opacity="0.9"'));
       paal();
+      tikVlak([[-2.6, D - 1.9, 0.45], [px + 0.3, D - 1.9, 0.45], [px + 0.3, py + 0.35, 0.45], [-2.6, py + 0.35, 0.45]]);
       // De kabel naar de laadpaal.
       if (a?.stand === 'laadt') {
         const p1 = P(px - 0.08, py, 0.55);

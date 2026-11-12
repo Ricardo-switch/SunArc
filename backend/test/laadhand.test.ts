@@ -9,7 +9,7 @@ import type { Auto, LaadBediening } from '../src/web/opslag.js';
 const t0 = Date.parse('2026-11-07T11:00:00Z');
 
 const autoVan = (x: Partial<Auto> = {}): Auto => ({
-  id: 'tesla', naam: 'Model 3', pct: 64, aangesloten: true, laadt: true, vermogenW: 4140, bereikKm: 312, plek: null, accuKWh: 75, laadpaal: 'easee',
+  id: 'tesla', naam: 'Model 3', pct: 64, aangesloten: true, laadt: true, vermogenW: 4140, bereikKm: 312, plek: null, paalPlek: null, accuKWh: 75, laadpaal: 'easee',
   paalNaam: 'Easee Home', paalStroomA: { min: 6, max: 16 }, laadgrens: 80, stroomA: [6, 6, 6], volOm: null, thuis: true, kabelSinds: null, wegSinds: null, fout: null, ...x,
 });
 const bedieningVan = (x: Partial<LaadBediening> = {}): LaadBediening => ({

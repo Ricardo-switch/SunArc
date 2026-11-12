@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Een zone apart regelen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="zones.css">
+<style>
+  /*
+   * Een zone apart regelen (schets, 12 november 2026). De woonkamer is één
+   * ruimte met Zithoek en Keuken, elk met een radiator en een slimme
+   * radiatorknop. Standen in zones.js: (zonder) het blad van de kamer, #zone
+   * het blad van de keuken, #indeling Kamers en indeling › Verwarmen en
+   * koelen, #comfort Comfort met een regel per zone.
+   */
+  main { position: relative; height: 800px; }
+  .pad { position: absolute; left: 26px; top: 22px; font-size: 14px; color: var(--zacht); font-weight: 600; }
+  .pad b { color: var(--tekst); }
+  .groot { position: absolute; left: 26px; top: 56px; display: flex; gap: 28px; align-items: end; }
+  .groot div b { display: block; font-family: var(--kop); font-size: 64px; font-weight: 600; letter-spacing: -0.03em; line-height: 0.95; }
+  .groot div span { font-size: 15px; font-weight: 700; color: var(--zacht); }
+  .groot div small { display: block; font-size: 13.5px; color: var(--gedempt); margin-top: 2px; }
+  .lead { position: absolute; left: 26px; top: 170px; max-width: 560px; margin: 0; font-size: 16px; color: var(--zacht); line-height: 1.45; }
+  .podium { position: absolute; left: 0; top: 210px; width: 790px; height: 570px; }
+  .rechtsblad { position: absolute; z-index: 5; top: 22px; right: 26px; bottom: 20px; width: 400px; padding: 22px 24px 20px; border-radius: 26px; display: flex; flex-direction: column; gap: 12px; }
+  .rechtsblad.donker { background: #0e1828; border: 1px solid var(--glas-rand); box-shadow: -18px 0 50px rgba(0, 0, 0, 0.45); width: 470px; }
+  .tik { position: absolute; z-index: 3; left: 352px; top: 532px; width: 64px; height: 64px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.75); box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.12); }
+  .scherm { position: absolute; inset: 0; padding: 22px 26px 20px 22px; display: grid; grid-template-columns: 300px minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 16px; }
+  .scherm .skop { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; }
+  .terug { height: 44px; padding: 0 16px; border-radius: 14px; display: inline-flex; align-items: center; background: rgb(var(--wit) / 0.06); border: 1px solid var(--glas-rand); font-weight: 700; font-size: 14px; color: var(--zacht); }
+  .lijst { padding: 10px; border-radius: 22px; display: flex; flex-direction: column; gap: 6px; }
+  .lijst div { padding: 12px 14px; border-radius: 16px; font-weight: 700; font-size: 15px; }
+  .lijst div.aan { background: rgba(255, 255, 255, 0.08); }
+  .lijst small { display: block; font-weight: 500; font-size: 12.5px; color: var(--gedempt); }
+  .paneel { padding: 20px 24px; border-radius: 26px; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 20px; min-height: 0; }
+  .paneel .tekening { position: relative; }
+  .paneel .vorm { display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+  .paneel.enkel { grid-template-columns: 1fr; align-content: start; gap: 12px; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-avond">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main id="main"></main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="../../frontend/kit/huis.js"></script>
+<script src="zones.js"></script>
+<script>
+  const hash = location.hash.slice(1);
+  const main = document.getElementById('main');
+  if (hash === 'indeling' || hash === 'comfort') {
+    nav.balk(document.getElementById('balk'), 'instellingen');
+    const indeling = hash === 'indeling';
+    main.innerHTML = `<div class="scherm">
+      <div class="skop"><span class="terug">‹ Instellingen</span><h1 class="kop-1" style="margin: 0; font-size: 40px">${indeling ? 'Kamers en indeling' : 'Comfort'}</h1></div>
+      <div class="glas lijst">${indeling ? '<div>Zolder<small>1 kamer</small></div><div>Eerste verdieping<small>2 kamers</small></div><div class="aan">Begane grond<small>2 kamers, 2 zones</small></div><div>Buiten</div>' : '<div class="aan">Per kamer<small>overdag en \'s nachts</small></div><div>Je dag<small>opstaan, weg, slapen</small></div><div>Bewoners</div>'}</div>
+      <section class="glas paneel${indeling ? '' : ' enkel'}">${indeling ? `<div class="tekening" id="podium"></div><div class="vorm">${zonesSchets.indeling()}</div>` : zonesSchets.comfort()}</section>
+    </div>`;
+    if (indeling) {
+      const p = document.getElementById('podium');
+      huis.teken(p, zonesSchets.model(), { breedte: p.clientWidth, hoogte: p.clientHeight, meubels: true, zoom: 1.15 });
+    }
+  } else {
+    nav.balk(document.getElementById('balk'), 'thuis');
+    main.innerHTML = `
+      <div class="pad">Huis › Begane grond › <b>Woonkamer</b></div>
+      <div class="groot"><div><b>20,6°</b><span>Zithoek</span><small>verwarmt naar 21°</small></div><div><b style="color: var(--zacht)">18,9°</b><span>Keuken</span><small>uit tot 17:00</small></div></div>
+      <p class="lead">Elke zone heeft een eigen regeling. De zithoek verwarmt naar 21°; de keuken staat met de hand uit tot 17:00.</p>
+      <div class="podium" id="podium"></div>
+      ${hash === 'zone' ? `<span class="tik"></span><section class="rechtsblad donker">${zonesSchets.zoneBlad()}</section>` : `<section class="glas rechtsblad">${zonesSchets.kamerBlad()}</section>`}`;
+    huis.teken(document.getElementById('podium'), zonesSchets.model(), { breedte: 790, hoogte: 570, meubels: true, zoom: 1.2, schuifY: -10 });
+  }
+</script>
+</body>
+</html>

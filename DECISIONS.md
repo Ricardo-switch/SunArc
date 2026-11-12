@@ -94,6 +94,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [292. Helpen bij de cv gebouwd: elke airco voor zijn eigen kamer](#292-helpen-bij-de-cv-gebouwd-elke-airco-voor-zijn-eigen-kamer)
 - [303. Helpen bij de cv: doordraaien en de dag in het blad van de airco](#303-helpen-bij-de-cv-doordraaien-en-de-dag-in-het-blad-van-de-airco)
 - [304. Een schakelaar met een ingevuld vermogen kan op zon](#304-een-schakelaar-met-een-ingevuld-vermogen-kan-op-zon)
+- [306. Een zone apart regelen, en de radiatorknop per zone met de hand](#306-een-zone-apart-regelen-en-de-radiatorknop-per-zone-met-de-hand)
 
 **Configuratie en onboarding**
 
@@ -298,6 +299,8 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [300. Een kachel uit meer delen: IR-knoppen, de stekker en de temperatuur](#300-een-kachel-uit-meer-delen-ir-knoppen-de-stekker-en-de-temperatuur)
 - [301. Een laadpaal uit losse sensoren](#301-een-laadpaal-uit-losse-sensoren)
 - [302. De fasekaart: hoe vol elke fase is](#302-de-fasekaart-hoe-vol-elke-fase-is)
+- [305. De laadpaal in de tekening, met de stromen en een blad](#305-de-laadpaal-in-de-tekening-met-de-stromen-en-een-blad)
+- [307. Stroom nu op Thuis, en wat er hangt bij de plekken buiten](#307-stroom-nu-op-thuis-en-wat-er-hangt-bij-de-plekken-buiten)
 
 **Veiligheid**
 
@@ -13955,6 +13958,119 @@ niet, eerst een tester met zo'n laadpaal.
   "Stekker gevonden": hij is ingesteld, niet gevonden.
 - **Zonder meter** ziet SunArc niet of hij echt trekt: "aan" telt als het
   ingevulde vermogen, zoals bij Opbrengst › Nu ([298]).
+
+---
+
+## 305. De laadpaal in de tekening, met de stromen en een blad
+
+*Onderwerp: weergave · Status: geldig*
+
+12 november 2026, versie 0.176.0: melding 164 en idee 135, na de schets
+Wand-Laadpaal. Arno voegde zijn NexBlue toe uit losse sensoren ([301]) en
+verwachtte hem in de tekening op de oprit, met de stromen van het net en de
+zon naar de laadpaal en van de laadpaal naar de auto. Ricardo zag dat een
+laadpaal geen plek kon kiezen zodra er een auto was. Hij koos: bouwen zoals de
+schets.
+
+*Besluit:*
+
+- **De laadpaal staat altijd in de tekening** zodra er een is, ook uit losse
+  sensoren, op zijn eigen plek: oprit, carport of garage. Niets gekozen: op de
+  oprit. Zit de auto aan de kabel, dan staat hij bij de paal en laadt hij
+  daar; is hij weg, dan staat er alleen de paal. Anders staat de auto op zijn
+  eigen plek, en zonder die bij de paal.
+- **De plek van de laadpaal** kies je bij Energie › Auto en laadpaal, nu ook als
+  er een auto is (`paalPlek` bij de auto in het huis). De plek van de auto
+  zegt waar hij staat als hij niet aan de laadpaal zit.
+- **De stromen:** van de zon en het net naar de paal, naar rato van waar de
+  stroom van het huis nu vandaan komt; de kabel van paal naar auto beweegt in
+  de kleur van wat het meest is. Levert de auto (in twee richtingen laden),
+  dan loopt de stroom van de auto naar het huis.
+- **Een label bij de paal:** "Laadt 3,7 kW", hoeveel van de zon of van het net,
+  en de lading van de auto.
+- **Een tik op de paal, de auto of het label** opent een blad op Thuis: wat hij
+  nu laadt met zon en net, de auto met zijn lading en wanneer hij vol is, de
+  stroom per fase, wat hij vandaag laadde (uit de laadbeurten), en Naar Auto.
+  Alleen kijken. Dit is het begin van idee 135: de andere stromen krijgen later
+  hetzelfde.
+
+---
+
+## 306. Een zone apart regelen, en de radiatorknop per zone met de hand
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+12 november 2026, versie 0.177.0, na de schets Wand-Zones. Ricardo heeft in één
+ruimte een keuken en een woonkamer, elk met een radiator waar slimme
+radiatorknoppen op komen; de app regelde alleen kamers, geen zones. Gekozen:
+een eigen regeling per zone, en de knop per zone met de hand. Met de hand raakt
+de meting voor stap B niet: het is een ingreep van een bewoner, net als aan de
+knop draaien in Home Assistant ([210]).
+
+*Besluit:*
+
+- **Per zone een eigen regeling** bij Kamers en indeling › een kamer ›
+  Verwarmen en koelen, onder Zones: "Met de kamer" of "Eigen regeling". Een
+  eigen regeling neemt de klimaatapparaten in die zone (zoals de radiatorknop
+  die je in de zone zette) en houdt ze op temperatuur; wat de kamer er al mee
+  deed, blijft.
+- **In de indeling** krijgt de zone `rollen`, `meten` en `regelzone`, net als
+  een kamer ([138], [123]). Een zone die voor het eerst meedoet, krijgt een
+  regelgebied met het id van de kamer en de zone (`woonkamer-keuken`).
+- **Voor de regeling is de zone een eigen kamer** (`regelKamers`):
+  "Woonkamer · Keuken", met haar apparaten, haar meten en haar regelgebied;
+  die apparaten tellen niet meer bij de kamer zelf. Zonder eigen keuze meet de
+  zone met haar eerste apparaat (de knop zelf). Comfort heeft daarmee een regel
+  per zone, met de standaarden van een nieuw huis ([204]).
+- **In de app:** het blad van de kamer heeft per zone een kop met haar
+  temperatuur en doel, met haar knoppen eronder; in de tekening staat de
+  temperatuur bij elke zone. Het huis geeft per zone `regeling` mee.
+- **De knop per zone met de hand,** door dezelfde deur als een radiatorknop
+  buiten de regeling ([235]): een doel tot een tijd, daarna terug naar het doel
+  van daarvoor. Een radiatorknop in de regeling heet ook een radiatorknop.
+  Tot stap B zet de regeling de knop niet zelf; in stap B herkent de regeling
+  een ingreep met de hand ([74]).
+- **Gevonden en hersteld:** twee knoppen van hetzelfde type in dezelfde kamer
+  telden als één apparaat via twee koppelingen ([127]), en zodra één in de
+  regeling kwam, verdween de andere. Hetzelfde type telt nu alleen als
+  hetzelfde apparaat als ze via verschillende koppelingen binnenkomen.
+
+## 307. Stroom nu op Thuis, en wat er hangt bij de plekken buiten
+
+*Onderwerp: weergave · Status: geldig*
+
+12 november 2026, versie 0.178.0: de rest van idee 135, en wat van [269] nog
+openstond. Een tester vroeg om de stroom van nu op het huis, met de details per
+apparaat bij een tik. Opbrengst › Nu had die details al ([254], [298]); de
+laadpaal kreeg als eerste een blad ([305]).
+
+*Besluit:*
+
+- **Stroom nu, een blad op Thuis.** Een tik op de zon, het net of de
+  thuisaccu opent het: op hun lijn in de tekening, op hun label, of op een
+  vakje onder het huis op de telefoon. Vier tabbladen: Zon, Huis, Net en Accu
+  (Accu alleen met een thuisaccu). Per bron het getal van nu, waar het heen
+  gaat of vandaan komt als balk, en per apparaat wat het nu van die bron
+  gebruikt. Bij de zon ook per dakvlak, met de weg naar De zon op je daken.
+  Elke vijf tellen opnieuw zolang het open is; alleen kijken.
+- **Eén rekensom** (`stroomnu.js`) voor Opbrengst › Nu en het blad, zodat ze
+  hetzelfde zeggen. De auto aan de laadpaal telt als apparaat onder zijn eigen
+  naam; de laadpaal dan niet nog eens.
+- **De panelen zelf** openen nog steeds De zon op je daken; het label bij de
+  panelen opent nu Stroom nu.
+- **"Alles live in Opbrengst"** opent Opbrengst meteen op Nu (`#nu`).
+- **Bij Kamers en indeling › Buiten** staat bij elke plek in de tekening een
+  kaartje met hoeveel apparaten er hangen ("Oprit · 3 apparaten"); een tik
+  opent de plek. Botsen kaartjes, dan schuiven ze uit elkaar (`wijk`); is er
+  nergens plek, dan valt er een weg, want de lijst eronder zegt hetzelfde. Op
+  de telefoon één regel per plek ("Tuin · 2").
+- **Architecture.en.md**: een Engelse vertaling van Architecture.md, waar de
+  Engelse README naar wijst. De Nederlandse blijft leidend.
+- **Eigen regeling zonder klimaatapparaat in de zone** (0.178.1, Ricardo op de
+  NAS): de knop stond als `disabled`, maar zag er in de segmentbalk niet zo
+  uit en deed niets. Nu is hij gedempt en geeft een tik onder de zone de
+  uitleg: er moet eerst een radiatorknop of ander klimaatapparaat in, te
+  kiezen bij het apparaat onder Zone ([306]).
 
 ---
 

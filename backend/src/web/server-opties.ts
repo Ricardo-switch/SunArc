@@ -471,7 +471,7 @@ export interface WebOptions {
    */
   readonly klimaat?: { readonly brug: KlimaatBrug; readonly aan: () => boolean };
   /** Klimaat met de hand (besluit 235): de apparaten, of de brug aan staat, en de stekkers met een warmtebron. */
-  readonly hand?: { readonly hand: Handbediening; readonly aan: () => boolean; readonly schakelaars: () => readonly { readonly id: string; readonly kamer: string; readonly naam: string; readonly aan: boolean }[]; readonly knoppen: () => readonly { readonly id: string; readonly naam: string; readonly kamer: string }[] };
+  readonly hand?: { readonly hand: Handbediening; readonly aan: () => boolean; readonly schakelaars: () => readonly { readonly id: string; readonly kamer: string; readonly naam: string; readonly aan: boolean }[]; readonly knoppen: () => readonly { readonly id: string; readonly naam: string; readonly kamer: string; readonly zone?: string }[] };
   /** Witgoed starten (besluit 238): de startknop van een droger of vaatwasser, alleen in de add-on. */
   readonly witgoed?: Witgoed;
   /** Het voorbeeldhuis (besluit 237): alles onder `voorbeeld/` gaat naar een eigen proces. */

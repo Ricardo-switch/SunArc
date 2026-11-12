@@ -129,6 +129,8 @@
     if (m.niet === 'vakantie') return { let: true, tekst: t('hand.nietVakantie') };
     if (open.tot === 'doel') return { tekst: t(m.modus === 'koelen' ? 'hand.zinDoelKoelen' : 'hand.zinDoel', { doel: graden(open.doel), klok }) };
     const terug = m.standaardC != null ? graden(m.standaardC) : '';
+    // Een knop die een zone met een eigen regeling regelt (besluit 306): daarna terug naar zijn doel van daarvoor (tot stap B zet de regeling hem niet zelf).
+    if (a.soort === 'radiatorknop' && a.zone) return { tekst: t('hand.zinRadiatorZone', { zone: a.zone, doel: graden(open.doel), klok, terug }) };
     if (a.soort === 'radiatorknop') return { tekst: t('hand.zinRadiator', { doel: graden(open.doel), klok, terug }) };
     if (m.via === 'direct') return { let: true, tekst: t('hand.zinDirect', { doel: graden(open.doel), klok }) };
     if (m.modus === 'koelen') return { tekst: t('hand.zinKoelen', { doel: graden(open.doel), klok, terug }) };

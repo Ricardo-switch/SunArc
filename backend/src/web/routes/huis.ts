@@ -150,7 +150,7 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
       const knoppen = h.knoppen();
       const apparaten = (await h.hand.standen(knoppen.map((k) => k.id))).map((s) => {
         const knop = knoppen.find((k) => k.id === s.id);
-        if (knop) return { ...s, naam: knop.naam, kamer: knop.kamer, zoneId: null, actuatorId: null };
+        if (knop) return { ...s, naam: knop.naam, kamer: knop.kamer, zoneId: null, actuatorId: null, ...(knop.zone ? { zone: knop.zone } : {}) };
         const a = config.actuators.find((x) => x.ref.id === s.id);
         const zone = zoneVan(s.id);
         // Het klimaatapparaat uit de configuratie: zo vindt het blad van een apparaat in het huis zijn stand (ronde 5).

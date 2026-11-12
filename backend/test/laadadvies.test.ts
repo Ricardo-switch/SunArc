@@ -14,6 +14,7 @@ const auto = (x: Partial<Auto> = {}): Auto => ({
   vermogenW: 4140,
   bereikKm: 312,
   plek: 'garage',
+  paalPlek: null,
   accuKWh: 75,
   laadpaal: 'easee',
   paalNaam: 'Easee Home',

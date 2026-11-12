@@ -22,7 +22,7 @@ function huis(apparaten: HaDevice[], metingen: Meting[], keuze: LadenKeuze | nul
   const { reg, states } = registers(apparaten, metingen);
   return vindOpslag(reg, states, keuze, nu);
 }
-const geenKeuze = { plek: null, accuKWh: null, laadpaal: null, paalNaam: null, paalStroomA: null, laadgrens: null, stroomA: null, volOm: null, thuis: null, kabelSinds: null, wegSinds: null, fout: null };
+const geenKeuze = { plek: null, paalPlek: null, accuKWh: null, laadpaal: null, paalNaam: null, paalStroomA: null, laadgrens: null, stroomA: null, volOm: null, thuis: null, kabelSinds: null, wegSinds: null, fout: null };
 
 const knop: HaDevice = { id: 'knop', area_id: null, name: 'Knop hal', manufacturer: 'IKEA', model: 'STYRBAR' };
 const knopBatterij: Meting = { id: 'sensor.knop_batterij', klasse: 'battery', staat: '80', eenheid: '%', platform: 'zha', apparaat: 'knop' };
@@ -231,7 +231,10 @@ describe('meer auto’s en laadpalen, en wat de bewoner koos (besluit 259)', () 
     const keuze: LadenKeuze = { aan: { kia: false }, rol: {}, instelling: { tesla: { accuKWh: 75, laadpaal: 'easee', plek: 'garage' } } };
     const met = huis([tesla, kia, easee], metingen, keuze);
     expect(met.autos).toHaveLength(1);
-    expect(met.auto).toMatchObject({ id: 'tesla', naam: 'Model 3', pct: 62, laadt: true, plek: 'garage', accuKWh: 75, laadpaal: 'easee' });
+    expect(met.auto).toMatchObject({ id: 'tesla', naam: 'Model 3', pct: 62, laadt: true, plek: 'garage', accuKWh: 75, laadpaal: 'easee', paalPlek: null });
+    // De laadpaal heeft een eigen plek (issue 164): die komt bij de auto, ook als de auto zelf een andere heeft.
+    const paalKeuze: LadenKeuze = { ...keuze, instelling: { ...keuze.instelling, easee: { accuKWh: null, laadpaal: null, plek: 'carport' } } };
+    expect(huis([tesla, kia, easee], metingen, paalKeuze).auto).toMatchObject({ plek: 'garage', paalPlek: 'carport' });
   });
 
   it('neemt een zelf gekozen apparaat als auto, en zet een laadpaal zonder auto in zijn plek', () => {
