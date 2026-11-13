@@ -28,7 +28,6 @@
  *             vlakken [{ p: [[x, y]...], soort: terras | oprit | pad | border }],
  *             gebouwen [{ x, y, b, d, h, dak?, naam?, buur? }] (een tuinhuis; buur: het huis ernaast, als schim),
  *             auto { x, y, b, d, kleur, laadt? }, apparaten [{ id, soort, x, y, z, naam? }]
- *   namen     de namen van de apparaten die aan staan, bij hun icoon
  */
 (function (global) {
   'use strict';
@@ -158,8 +157,10 @@
       return { b, ...d };
     });
     // Passend maken: alles wat er staat in beeld, met ruimte eromheen.
-    const punten = [...eiland.map(([x, y]) => [x, y, -0.7]), ...eiland.map(([x, y]) => [x, y, 0]), ...lagen.flatMap((l) => [[X0, Y0, l.top], [X1, Y0, l.top], [X1, Y1, l.top], [X0, Y1, l.top]]), ...daken.flatMap((d) => d.vlakken.flatMap((v) => v.p))];
-    for (const q of buiten.gebouwen ?? []) if (!q.buur) punten.push([q.x, q.y, q.h + 1.5], [q.x + q.b, q.y + q.d, 0]);
+    // Passend: om alles wat er staat, of (passend: 'huis') alleen om het huis, zodat het groot in beeld staat en de tuin eromheen wegloopt.
+    const alleenHuis = o.passend === 'huis';
+    const punten = [...(alleenHuis ? [] : eiland.map(([x, y]) => [x, y, -0.7])), ...(alleenHuis ? [[X0 - 1, Y0 - 1, 0], [X1 + 1, Y0 - 1, 0], [X1 + 1, Y1 + 1, 0], [X0 - 1, Y1 + 1, 0]] : eiland.map(([x, y]) => [x, y, 0])), ...lagen.flatMap((l) => [[X0, Y0, l.top], [X1, Y0, l.top], [X1, Y1, l.top], [X0, Y1, l.top]]), ...daken.flatMap((d) => d.vlakken.flatMap((v) => v.p))];
+    if (!alleenHuis) for (const q of buiten.gebouwen ?? []) if (!q.buur) punten.push([q.x, q.y, q.h + 1.5], [q.x + q.b, q.y + q.d, 0]);
     const kp = punten.map((p) => kaal(...p));
     const rand = o.rand ?? 18;
     const [minX, maxX, minY, maxY] = [Math.min(...kp.map((p) => p[0])), Math.max(...kp.map((p) => p[0])), Math.min(...kp.map((p) => p[1])), Math.max(...kp.map((p) => p[1]))];
@@ -177,16 +178,28 @@
     let s = `<defs><radialGradient id="hm-gloed"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="hm-glas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe6ff" stop-opacity="0.10"/><stop offset="1" stop-color="#bfe6ff" stop-opacity="0.03"/></linearGradient></defs>`;
 
     const labels = [];
-    /** Een apparaat als rond icoon, zoals bij Je huis; wat draait, gloeit. Met `namen` ook de naam eronder. */
-    const icoon = (b, a, kleur, draait) => {
-      const R = o.icoon ?? 8.5;
-      const naam = global.iconen?.heeft?.(a.soort) ? a.soort : { meter: 'klimaat', rookmelder: 'melding' }[a.soort] ?? 'apparaat';
-      const svg = global.iconen ? global.iconen.svg(global.iconen.heeft(naam) ? naam : 'apparaat').replace('<svg ', `<svg x="${(b[0] - R * 0.62).toFixed(1)}" y="${(b[1] - R * 0.62).toFixed(1)}" width="${(R * 1.24).toFixed(1)}" height="${(R * 1.24).toFixed(1)}" style="color:${draait ? '#0d1a30' : kleur}" `) : '';
-      let x2 = `<circle cx="${b[0].toFixed(1)}" cy="${b[1].toFixed(1)}" r="${R}" fill="${draait ? kleur : '#0d1a30'}" stroke="${kleur}" stroke-width="1.5"/>${svg}`;
-      if (draait && o.namen && a.naam && !o.stil) labels.push({ x: b[0] - a.naam.length * 3, y: b[1] + R + 2, b: a.naam.length * 6, h: 13, prio: 0.5, s: `<text x="${b[0].toFixed(1)}" y="${(b[1] + R + 13).toFixed(1)}" text-anchor="middle" ${FONT} font-size="10.5" font-weight="700" fill="${kleur}" paint-order="stroke" stroke="#0d1a30" stroke-width="3" stroke-linejoin="round">${esc(a.naam)}</text>` });
-      return x2;
+    /** Een doos van x0..x1, y0..y1, z0..z1: de twee zijkanten naar de kijker en de bovenkant. Kleuren: [boven, zijkant x, zijkant y]. */
+    const doos3 = (x0, x1, y0, y1, z0, z1, kl) => {
+      const [a0, a1] = [Math.min(x0, x1), Math.max(x0, x1)];
+      const [b0, b1] = [Math.min(y0, y1), Math.max(y0, y1)];
+      const xKant = naarKijker(-1, 0) ? a0 : a1;
+      const yKant = naarKijker(0, -1) ? b0 : b1;
+      const zx = `<path d="${vlak([[xKant, b0, z0], [xKant, b1, z0], [xKant, b1, z1], [xKant, b0, z1]])}" fill="${kl[1]}"/>`;
+      const zy = `<path d="${vlak([[a0, yKant, z0], [a1, yKant, z0], [a1, yKant, z1], [a0, yKant, z1]])}" fill="${kl[2]}"/>`;
+      return zx + zy + `<path d="${vlak([[a0, b0, z1], [a1, b0, z1], [a1, b1, z1], [a0, b1, z1]])}" fill="${kl[0]}" stroke="rgb(13 26 48 / 0.25)" stroke-width="0.5"/>`;
     };
-    // Het eiland: de zijkanten naar de kijker, dan het gras.
+    /** Een cirkel op een staand vlak (de trommel van een droger): `as` is de as waar het vlak haaks op staat. */
+    const cirkel = (cx, cy, cz, r, as, attr) => {
+      const pp = [];
+      for (let i = 0; i < 18; i++) {
+        const h = (i / 18) * 2 * Math.PI;
+        pp.push(as === 'x' ? [cx, cy + Math.cos(h) * r, cz + Math.sin(h) * r] : [cx + Math.cos(h) * r, cy, cz + Math.sin(h) * r]);
+      }
+      return `<path d="${vlak(pp)}" ${attr}/>`;
+    };
+    const KAST = ['#eef3f7', '#dfe7ee', '#c3ced8'];
+    const WIT = ['#e9eef2', '#d7dee5', '#b9c3cd'];
+    // Het eiland    // Het eiland: de zijkanten naar de kijker, dan het gras.
     const zijden = [];
     for (let i = 0; i < 4; i++) {
       const [a, b] = [eiland[i], eiland[(i + 1) % 4]];
@@ -329,6 +342,14 @@
       }
       const stukken = [];
       const muren = randen(v, isMuur);
+      // In welke ruimtes een lamp aan staat (voor de ramen 's avonds).
+      const lichtIn = new Set();
+      {
+        const was1 = st.etage;
+        st.etage = laag.e.id;
+        for (const q of t.apparaatPunten()) if (q.a.soort === 'licht' && aan.has(q.a.id)) lichtIn.add(q.ruimte);
+        st.etage = was1;
+      }
       for (const run of muren) {
         const mid = Math.floor((run.van + run.tot) / 2);
         // Aan welke kant ligt de ruimte, en waar kijkt de muur heen.
@@ -351,28 +372,103 @@
             stukken.push({ d: d - 50, s: muur(z0, z0 + 0.35, '#d7e0e9', 'fill-opacity="0.85"') + muur(z0 + 0.35, top, 'url(#hm-glas)') + `<path d="M${pt(x0, y0, top)}L${pt(x1, y1, top)}" stroke="#cfe6ff" stroke-opacity="0.35" stroke-width="1"/>` });
           } else {
             const vul = voor ? (run.as === 'x' ? '#5a6a83' : '#66778f') : run.as === 'x' ? '#26354d' : '#2d3d57';
-            stukken.push({ d: voor ? d - 50 : d, s: muur(z0, top, vul, `stroke="${vul}" stroke-width="0.6"`) });
+            let raam = '';
+            // Een raam in elk stuk muur van een kamer (niet in een garage), zoals in het poppenhuis.
+            if (!dicht && (b - a) * CEL >= 1.4 && top - z0 >= 2) {
+              const r0 = 0.35 / ((b - a) * CEL);
+              const [rx0, ry0, rx1, ry1] = [x0 + (x1 - x0) * r0, y0 + (y1 - y0) * r0, x1 - (x1 - x0) * r0, y1 - (y1 - y0) * r0];
+              const warm = o.avond && lichtIn.has(binnen);
+              raam = `<path d="${vlak([[rx0, ry0, z0 + 0.9], [rx1, ry1, z0 + 0.9], [rx1, ry1, Math.min(top - 0.3, z0 + 2.1)], [rx0, ry0, Math.min(top - 0.3, z0 + 2.1)]])}" fill="${warm ? '#f3c77a' : '#8fb4d6'}" fill-opacity="${warm ? 0.55 : 0.28}" stroke="#c9d6e2" stroke-opacity="0.35" stroke-width="0.8"/>`;
+            }
+            stukken.push({ d: voor ? d - 50 : d, s: muur(z0, top, vul, `stroke="${vul}" stroke-width="0.6"`) + raam });
           }
         }
       }
-      // De apparaten van deze etage: een stip op ooghoogte met een steeltje.
+      // De apparaten van deze etage, zoals in het poppenhuis: een airco hoog aan de muur, een hanglamp,
+      // witgoed tegen de muur. Wat je niet ziet in een kamer (meters, rookmelders, thermostaten) blijft weg: dat is rustiger.
       const was = st.etage;
       st.etage = laag.e.id;
       const punten = t.apparaatPunten();
       st.etage = was;
+      /** De muur het dichtst bij een punt (in ruitjes), met de kant waar het punt ligt. */
+      const wandBij = (cx, cy) => {
+        let best = null;
+        for (const run of muren) {
+          const [langs, dwars] = run.as === 'x' ? [cy, cx] : [cx, cy];
+          if (langs < run.van || langs > run.tot) continue;
+          const afst = Math.abs(dwars - run.op) - (run.soort === 2 ? 3 : 0);
+          if (!best || afst < best.afst) best = { run, afst, kant: dwars >= run.op ? 1 : -1, langs };
+        }
+        return best;
+      };
+      /** Een doos tegen een muur: `b` langs de muur, `d` de kamer in, van hoogte za tot zb. */
+      const tegenMuur = (w, b, d, za, zb, kl) => {
+        const { run, kant } = w;
+        const half = b / 2;
+        const midden = Math.min(m(run.tot) - half - 0.05, Math.max(m(run.van) + half + 0.05, m(w.langs)));
+        const vlakMuur = m(run.op) + kant * 0.03;
+        const diepte = vlakMuur + kant * d;
+        const [x0, x1, y0, y1] = run.as === 'x' ? [vlakMuur, diepte, midden - half, midden + half] : [midden - half, midden + half, vlakMuur, diepte];
+        return { s: doos3(x0, x1, y0, y1, za, zb, kl), x0, x1, y0, y1, midden, diepte, as: run.as, kant };
+      };
       for (const q of punten) {
-        const [x, y] = [m(q.x), m(q.y)];
-        const a = P(x, y, z0);
-        const b = P(x, y, z0 + 1.35);
-        const kleur = APP_KLEUR[q.a.soort] ?? '#eef3f7';
+        const soort = q.a.soort;
         const draait = aan.has(q.a.id);
-        const licht = draait && o.avond && q.a.soort === 'licht';
+        const [x, y] = [m(q.x), m(q.y)];
         let x2 = '';
-        if (licht) x2 += `<ellipse cx="${a[0].toFixed(1)}" cy="${a[1].toFixed(1)}" rx="${(2.2 * k).toFixed(1)}" ry="${(2.2 * k * sp).toFixed(1)}" fill="#f7b548" fill-opacity="0.22"/>`;
-        x2 += `<path d="M${a[0].toFixed(1)} ${a[1].toFixed(1)}L${b[0].toFixed(1)} ${b[1].toFixed(1)}" stroke="rgb(255 255 255 / 0.3)" stroke-width="1.1"/>`;
-        if (draait) x2 += `<circle cx="${b[0].toFixed(1)}" cy="${b[1].toFixed(1)}" r="13" fill="url(#hm-gloed)" opacity="0.55" style="mix-blend-mode:screen"/><circle cx="${b[0].toFixed(1)}" cy="${b[1].toFixed(1)}" r="9" fill="${kleur}" fill-opacity="0.35"/>`;
-        x2 += icoon(b, q.a, kleur, draait);
-        stukken.push({ d: diep(x, y) - 0.1, s: x2 });
+        let d = diep(x, y);
+        if (soort === 'airco') {
+          const w = wandBij(q.x, q.y);
+          if (!w) continue;
+          const doos = tegenMuur(w, 0.85, 0.22, top - 0.6, top - 0.32, KAST);
+          x2 += doos.s;
+          d = diep((doos.x0 + doos.x1) / 2, (doos.y0 + doos.y1) / 2);
+          if (draait) {
+            // Drie zachte stromen lucht naar de kamer, warm of koel.
+            const kleur = kamerInfo[t.st.apparaten.find((a) => a.id === q.a.id)?.kamer]?.toon === 'koelt' ? '#6fd3ff' : '#ff7a4d';
+            for (let i = -1; i <= 1; i++) {
+              const langs = doos.midden + i * 0.25;
+              const van = doos.as === 'x' ? [doos.diepte, langs, top - 0.62] : [langs, doos.diepte, top - 0.62];
+              const naar = doos.as === 'x' ? [doos.diepte + doos.kant * 0.7, langs, top - 1.05] : [langs, doos.diepte + doos.kant * 0.7, top - 1.05];
+              const a = P(...van);
+              const b = P(...naar);
+              x2 += `<path d="M${a[0].toFixed(1)} ${a[1].toFixed(1)}Q${((a[0] + b[0]) / 2).toFixed(1)} ${((a[1] + b[1]) / 2 + 5).toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}" stroke="${kleur}" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.75"/>`;
+            }
+          }
+        } else if (soort === 'licht') {
+          // Een hanglamp: een snoer, een kap, en aan een vlek licht op de vloer.
+          const kap = top - 0.42;
+          const s0 = P(x, y, top);
+          const s1 = P(x, y, kap + 0.1);
+          if (draait) {
+            const v0 = P(x, y, z0 + 0.01);
+            x2 += `<ellipse cx="${v0[0].toFixed(1)}" cy="${v0[1].toFixed(1)}" rx="${(1.3 * k).toFixed(1)}" ry="${(1.3 * k * sp).toFixed(1)}" fill="#ffd9a0" fill-opacity="${o.avond ? 0.26 : 0.1}"/>`;
+            const l = P(x - 0.6, y, z0 + 0.05);
+            const r = P(x + 0.6, y, z0 + 0.05);
+            const b = P(x, y, kap);
+            x2 += `<path d="M${b[0].toFixed(1)} ${b[1].toFixed(1)}L${l[0].toFixed(1)} ${l[1].toFixed(1)}L${r[0].toFixed(1)} ${r[1].toFixed(1)}Z" fill="#ffd9a0" fill-opacity="${o.avond ? 0.09 : 0.04}"/>`;
+          }
+          x2 += `<path d="M${s0[0].toFixed(1)} ${s0[1].toFixed(1)}L${s1[0].toFixed(1)} ${s1[1].toFixed(1)}" stroke="#8090a0" stroke-width="1"/>`;
+          x2 += doos3(x - 0.12, x + 0.12, y - 0.12, y + 0.12, kap, kap + 0.1, draait ? ['#ffe2b0', '#e8b878', '#d6a565'] : ['#5c6876', '#4a5664', '#3c4755']);
+        } else if (/droger|wasmachine|vaat/.test(soort)) {
+          const w = wandBij(q.x, q.y);
+          if (!w) continue;
+          const doos = tegenMuur(w, 0.6, 0.6, z0, z0 + 0.85, WIT);
+          x2 += doos.s;
+          d = diep((doos.x0 + doos.x1) / 2, (doos.y0 + doos.y1) / 2);
+          if (soort !== 'vaat') {
+            const c = doos.as === 'x' ? [doos.diepte + doos.kant * 0.001, doos.midden, z0 + 0.42] : [doos.midden, doos.diepte + doos.kant * 0.001, z0 + 0.42];
+            x2 += cirkel(...c, 0.18, doos.as, 'fill="#5e6c7b" stroke="#9aa7b4" stroke-width="1.2"');
+            if (draait) x2 += cirkel(...c, 0.12, doos.as, 'fill="none" stroke="#f7b548" stroke-width="1.6" stroke-dasharray="3 3"');
+          }
+        } else if (soort === 'accu') {
+          const w = wandBij(q.x, q.y);
+          if (!w) continue;
+          const doos = tegenMuur(w, 0.5, 0.2, z0 + 0.05, z0 + 0.95, KAST);
+          x2 += doos.s;
+          d = diep((doos.x0 + doos.x1) / 2, (doos.y0 + doos.y1) / 2);
+        } else continue;
+        stukken.push({ d: d - 0.1, s: x2 });
       }
       stukken.sort((a, b) => b.d - a.d);
       s += stukken.map((x) => x.s).join('');
@@ -448,16 +544,40 @@
 
     s += tekenBuiten(voorHuis);
     for (const a of buiten.apparaten ?? []) {
-      const kleur = APP_KLEUR[a.soort] ?? '#eef3f7';
       const draait = aan.has(a.id);
-      const v0 = P(a.x, a.y, 0);
-      const b = P(a.x, a.y, a.z ?? 1.4);
-      if (draait && a.soort === 'licht' && o.avond) s += `<ellipse cx="${v0[0].toFixed(1)}" cy="${v0[1].toFixed(1)}" rx="${(2 * k).toFixed(1)}" ry="${(2 * k * sp).toFixed(1)}" fill="#f7b548" fill-opacity="0.2"/>`;
-      s += `<path d="M${v0[0].toFixed(1)} ${v0[1].toFixed(1)}L${b[0].toFixed(1)} ${b[1].toFixed(1)}" stroke="rgb(255 255 255 / 0.3)" stroke-width="1.1"/>`;
-      if (draait) s += `<circle cx="${b[0].toFixed(1)}" cy="${b[1].toFixed(1)}" r="15" fill="url(#hm-gloed)" opacity="0.5"/>`;
-      s += icoon(b, a, kleur, draait);
+      if (a.soort === 'licht') {
+        const v0 = P(a.x, a.y, 0.02);
+        if (draait) s += `<ellipse cx="${v0[0].toFixed(1)}" cy="${v0[1].toFixed(1)}" rx="${(1.1 * k).toFixed(1)}" ry="${(1.1 * k * sp).toFixed(1)}" fill="#ffd9a0" fill-opacity="${o.avond ? 0.28 : 0.08}"/>`;
+        const z = a.z ?? 0.6;
+        // Laag: een tuinlampje op een paaltje; hoog: een lamp aan de muur.
+        if (z < 1.2) {
+          const p0 = P(a.x, a.y, 0);
+          const p1 = P(a.x, a.y, z);
+          s += `<path d="M${p0[0].toFixed(1)} ${p0[1].toFixed(1)}L${p1[0].toFixed(1)} ${p1[1].toFixed(1)}" stroke="#55606e" stroke-width="2"/>`;
+        }
+        const h = P(a.x, a.y, z);
+        if (draait && o.avond) s += `<circle cx="${h[0].toFixed(1)}" cy="${h[1].toFixed(1)}" r="9" fill="url(#hm-gloed)" opacity="0.55"/>`;
+        s += `<circle cx="${h[0].toFixed(1)}" cy="${h[1].toFixed(1)}" r="2.6" fill="${draait ? '#ffe2b0' : '#5c6876'}"/>`;
+      } else if (a.soort === 'screen' && a.uit) {
+        // Een zonnescherm: een doek schuin naar buiten, gestreept als hij uit staat.
+        const [ux, uy] = a.uit;
+        const b = a.b ?? 3;
+        const [lx, ly] = [-uy, ux];
+        const z = a.z ?? 2.5;
+        const lang = draait ? 1.8 : 0.25;
+        const pp = [[a.x - (lx * b) / 2, a.y - (ly * b) / 2, z], [a.x + (lx * b) / 2, a.y + (ly * b) / 2, z], [a.x + (lx * b) / 2 + ux * lang, a.y + (ly * b) / 2 + uy * lang, z - lang * 0.35], [a.x - (lx * b) / 2 + ux * lang, a.y - (ly * b) / 2 + uy * lang, z - lang * 0.35]];
+        s += `<path d="${vlak(pp)}" fill="#c9d4df" stroke="#8a98a8" stroke-width="0.8"/>`;
+        if (draait) for (let i = 1; i < 6; i += 2) {
+          const f0 = i / 6;
+          const f1 = (i + 1) / 6;
+          const lijn = (f) => [pp[0].map((n, j) => n + (pp[1][j] - n) * f), pp[3].map((n, j) => n + (pp[2][j] - n) * f)];
+          const [a0, a1] = lijn(f0);
+          const [b0, b1] = lijn(f1);
+          s += `<path d="${vlak([a0, b0, b1, a1])}" fill="#ff9a6b" fill-opacity="0.75"/>`;
+        }
+      }
     }
-    // De namen bovenop. Wat botst schuift een stukje op of neer; past het nergens, dan valt het weg. De kamers met een temperatuur gaan voor.
+        // De namen bovenop. Wat botst schuift een stukje op of neer; past het nergens, dan valt het weg. De kamers met een temperatuur gaan voor.
     labels.sort((a, b) => b.prio - a.prio);
     const gezet = [];
     for (const l of labels) {
