@@ -1,6 +1,6 @@
 /*
- * Je huis (besluit 308, stap 2, 3 en 4): de tekentafel in de standen Vorm, Kamers en
- * Apparaten, met de echte etages, kamers, zones en apparaten uit de indeling. De schets is de maatstaf
+ * Je huis (besluit 308, stap 2 tot 5): de tekentafel in de standen Vorm, Kamers,
+ * Apparaten en Huis (het huis in 3D uit de tekening, kit/huistekenen-3d.js), met de echte etages, kamers, zones en apparaten uit de indeling. De schets is de maatstaf
  * (design/app2/Wand-Huis-Tekenen en Tel-Huis-Tekenen); de motor staat in
  * kit/huistekenen.js en is dezelfde als in de schets.
  *
@@ -27,14 +27,15 @@ const $ = (s, r = document) => r.querySelector(s);
 const WIJS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M12 10.5V9a1.5 1.5 0 0 1 3 0v2"/><path d="M15 11a1.5 1.5 0 0 1 3 0v3.5c0 3.6-2.2 6-5.6 6-2.4 0-3.7-.9-5-2.9L5 14.3c-.6-1 .6-2.2 1.6-1.4L9 15"/></svg>';
 
 let tekenaar = null;
-/** De standen die er al zijn; Huis komt in stap 5. */
-const STANDEN = ['vorm', 'kamers', 'apparaten'];
+/** De standen: Huis is het huis in 3D uit de tekening (stap 5). */
+const STANDEN = ['vorm', 'kamers', 'apparaten', 'huis'];
 /** Wat de dienst als bron en als hoek van het hoofdhuis gaf; een andere bron gaat alleen mee als je hem koos. */
 const dienst = { bron: null, nul: null };
 /** De kaarten vragen: bezig, of wat er misging. */
 const kijk = { bezig: false, fout: null };
 
 const getal = (n) => n.toLocaleString(window.taal?.locale ?? 'nl-NL', { maximumFractionDigits: 1 });
+const komma = (n) => n.toLocaleString(window.taal?.locale ?? 'nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 /** "huis, garage en uitbouw". */
 function opsomming(lijst) {
   try {
@@ -56,7 +57,13 @@ function bronVoorMotor(id, b, woning) {
   const wat = opsomming([...new Set(b.blokken.map((x) => x.soort))].map((x) => t(`ht.bron.blok.${x}`)));
   const vond = soort === 'basis' ? t('ht.bron.basisVond', { woning: t(`ht.bron.woning.${woning && ['vrijstaand', 'tweekap', 'hoek', 'rij', 'appartement'].includes(woning) ? woning : 'vrijstaand'}`), ...maat }) : soort === 'zelf' ? t('ht.bron.zelfVond', maat) : t('ht.bron.gevonden', { wat });
   const weet = t(`ht.bron.weet.${soort === 'bag3d' && !b.gemeten ? 'bag3dZonder' : soort}`);
-  return { naam: t(`ht.bron.${soort}`), vond, weet, gemeten: b.gemeten, hoogte: t('ht.bron.hoogte', { goot: b.goot.toLocaleString(window.taal?.locale ?? 'nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }), nok: b.nok.toLocaleString(window.taal?.locale ?? 'nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) }), blokken: b.blokken };
+  return { naam: t(`ht.bron.${soort}`), vond, weet, gemeten: b.gemeten, hoogte: t(b.gootLaag != null ? 'ht.bron.hoogteScheef' : 'ht.bron.hoogte', { goot: komma(b.goot), nok: komma(b.nok), laag: komma(b.gootLaag ?? b.goot) }),
+    // Voor het huis in 3D (stap 5): de goot, de lage goot bij een scheef dak, de nok, en per gebouw het dak.
+    goot: b.goot,
+    ...(b.gootLaag != null ? { gootLaag: b.gootLaag } : {}),
+    nok: b.nok,
+    blokken: b.blokken,
+  };
 }
 
 /**
@@ -226,6 +233,13 @@ async function start() {
     if (s && !s.disabled) tk.zetStand(s.dataset.stand);
     if (e.target.closest('[data-stap-terug]')) tk.terug();
     if (e.target.closest('[data-stap-vooruit]')) tk.vooruit();
+  });
+  // Een ander adres op dezelfde pagina (een link, terug in de browser): naar die etage en stand.
+  addEventListener('hashchange', () => {
+    const [e, s] = decodeURIComponent(location.hash.slice(1)).split('/');
+    if (huis.etages.some((x) => x.id === e) && e !== tk.st.etage) tk.zetEtage(e);
+    const stand = STANDEN.includes(s) ? s : 'kamers';
+    if (stand !== tk.st.stand) tk.zetStand(stand);
   });
   addEventListener('standwissel', () => {
     plaats();

@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.182.0
+## 0.183.0
 
-*13 november 2026 · 0.179.0 – 0.182.0*
+*13 november 2026 · 0.179.0 – 0.183.0*
 
 **Nieuw**
 
+- Je huis: Huis. Je huis in 3D uit je tekening: de buitenkant van de bron bij Vorm, met goot, nok en dak, en binnen één etage open met lage muren, de zones en de apparaten op hun plek
+- Sleep opzij om het huis te draaien. Dicht zet het dak erop; tik een etage aan om die open te zetten
+- Uit de 3D-kaart komt ook waar de nok ligt: die hoeft niet in het midden, met de goot aan de ene kant lager
 - Je huis: Vorm. Je ziet wat de 3D-kaart van Nederland, OpenStreetMap en het basishuis van je huis vinden, met de hoogte, en kiest welke klopt. Die keuze geldt ook bij Daken en panelen
 - Klopt een maat niet, pak dan de buitenmuur en trek hem recht; trek een vak buiten het huis voor een uitbouw of garage. Dat blijft in Je huis staan
 - Bij elke etage staat hoe hoog hij is, geschat uit de goot en de nok
@@ -23,6 +26,9 @@
 
 **New**
 
+- Your home: House. Your home in 3D from your drawing: the outside from the source under Shape, with gutter, ridge and roof, and inside one floor open with low walls, the zones and the devices in their spot
+- Drag sideways to turn the house. Closed puts the roof on; tap a floor to open it
+- The 3D map also gives where the ridge is: it need not be in the middle, with the gutter lower on one side
 - Your home: Shape. See what the 3D map of the Netherlands, OpenStreetMap and the basic house find for your home, with the height, and choose the one that fits. That choice also applies to Roofs and panels
 - If a size is off, take the outside wall and pull it straight; draw a box outside the house for an extension or garage. That stays in Your home
 - Each floor shows how high it is, estimated from the gutter and the ridge

@@ -174,6 +174,22 @@ export interface Blok {
   readonly v: number;
   readonly b: number;
   readonly d: number;
+  /**
+   * Het dak (stap 5, het huis in 3D): de vorm, en of de nok langs u (`x`, langs
+   * de voorgevel) of langs v (`y`, naar achter) loopt. Bij een lessenaar loopt
+   * de bovenkant zo.
+   */
+  readonly dak?: Dakvorm;
+  readonly nokLangs?: 'x' | 'y';
+  /**
+   * Hoe hoog: de nok, en de goot aan de lage kant van de dwarsas (`goot0`: voor
+   * of links) en de hoge kant (`goot1`: achter of rechts), en waar de nok ligt,
+   * gemeten vanaf kant 0. Weg: de nok in het midden, de goot van het huis.
+   */
+  readonly nok?: number;
+  readonly goot0?: number;
+  readonly goot1?: number;
+  readonly nokVan0?: number;
 }
 
 export interface TekenVorm {
@@ -184,6 +200,8 @@ export interface TekenVorm {
   readonly nul: { readonly u: number; readonly v: number };
   /** Waar de vorm vandaan komt: de gebouwen van Daken en panelen, of een rechthoek uit het woningtype. */
   readonly bron: 'gebouwen' | 'woning';
+  /** De richting van u op de kaart (0 is het noorden); null zonder gebouwen. */
+  readonly uDeg: number | null;
 }
 
 /** De maat van een basishuis per woningtype, breed langs de straat bij diep: gangbare maten, geschat. */
@@ -252,16 +270,23 @@ export function tekenVorm(gebouwen: readonly Gebouw[], voorgevelDeg: number | nu
   const hoofd = gebouwen.find((g) => g.soort === 'hoofdhuis');
   if (!hoofd || hoofd.bron === 'schatting' || hoofd.omtrek.length < 3) {
     const [b, d] = WONING_MAAT[woning ?? 'vrijstaand'] ?? WONING_MAAT['vrijstaand']!;
-    return { maat: { breed: b, diep: d }, blokken: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b, d }], nul: { u: 0, v: 0 }, bron: 'woning' };
+    return { maat: { breed: b, diep: d }, blokken: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b, d, dak: 'zadel', nokLangs: 'x' }], nul: { u: 0, v: 0 }, bron: 'woning', uDeg: null };
   }
   const k = kaderVan(hoofd, voorgevelDeg);
-  const ruw: { id: string; soort: Blok['soort']; u: number; v: number; b: number; d: number }[] = [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: k.breed, d: k.diep }];
+  const uDeg = ((Math.atan2(k.uAs[0], k.uAs[1]) / RAD) % 360 + 360) % 360;
+  // Langs de voorgevel of naar achter: bij een zadel- of schilddak de nok, bij een lessenaar de bovenkant (haaks op waar hij naartoe kijkt).
+  const verschil = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180);
+  const langs = (g: Gebouw): 'x' | 'y' => {
+    const r = g.dakvorm === 'lessenaar' ? g.nokDeg + 90 : g.nokDeg;
+    return Math.min(verschil(r, uDeg), verschil(r, uDeg + 180)) <= 45 ? 'x' : 'y';
+  };
+  const ruw: { id: string; soort: Blok['soort']; u: number; v: number; b: number; d: number; dak: Dakvorm; nokLangs: 'x' | 'y' }[] = [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: k.breed, d: k.diep, dak: hoofd.dakvorm, nokLangs: langs(hoofd) }];
   for (const g of gebouwen) {
     if (g === hoofd || (g.soort !== 'uitbouw' && g.soort !== 'garage') || g.omtrek.length < 3) continue;
     const punten = g.omtrek.map((p) => uitKaart(k, p));
     const u0 = Math.min(...punten.map((p) => p[0]));
     const v0 = Math.min(...punten.map((p) => p[1]));
-    const blok = { id: g.id === 'hoofd' ? `${g.id}-2` : g.id, soort: g.soort, u: u0, v: v0, b: Math.max(...punten.map((p) => p[0])) - u0, d: Math.max(...punten.map((p) => p[1])) - v0 };
+    const blok = { id: g.id === 'hoofd' ? `${g.id}-2` : g.id, soort: g.soort, u: u0, v: v0, b: Math.max(...punten.map((p) => p[0])) - u0, d: Math.max(...punten.map((p) => p[1])) - v0, dak: g.dakvorm, nokLangs: langs(g) };
     if (blok.b < 1 || blok.d < 1) continue;
     if (afstand(blok, ruw[0]!) > 1) continue;
     ruw.push(blok);
@@ -269,12 +294,13 @@ export function tekenVorm(gebouwen: readonly Gebouw[], voorgevelDeg: number | nu
   // Alles op ruitjes, met de linker voorhoek van het hele huis op nul.
   const u0 = Math.min(...ruw.map((r) => r.u));
   const v0 = Math.min(...ruw.map((r) => r.v));
-  const blokken = ruw.map((r) => ({ id: r.id, soort: r.soort, u: ruitje(r.u - u0), v: ruitje(r.v - v0), b: ruitje(r.b), d: ruitje(r.d) }));
+  const blokken = ruw.map((r) => ({ id: r.id, soort: r.soort, u: ruitje(r.u - u0), v: ruitje(r.v - v0), b: ruitje(r.b), d: ruitje(r.d), dak: r.dak, nokLangs: r.nokLangs }));
   return {
     maat: { breed: Math.max(...blokken.map((r) => ruitje(r.u + r.b))), diep: Math.max(...blokken.map((r) => ruitje(r.v + r.d))) },
     blokken,
     nul: { u: ruitje(-u0), v: ruitje(-v0) },
     bron: 'gebouwen',
+    uDeg,
   };
 }
 
@@ -360,6 +386,8 @@ export interface BronVorm {
   readonly blokken: readonly Blok[];
   /** Goot en nok in meters boven de grond; gemeten uit 3D BAG, anders geschat uit de etages. */
   readonly goot: number;
+  /** De goot aan de lage kant, als het dak scheef ligt; daar lopen de dichte muren tot. */
+  readonly gootLaag?: number;
   readonly nok: number;
   readonly gemeten: boolean;
   readonly dakvorm: Dakvorm;
@@ -381,16 +409,69 @@ export function bronVorm(d: Daken, voorgevelDeg: number | null, woning: string |
   const hoofd = gebouwen.find((g) => g.soort === 'hoofdhuis');
   const dakvorm = hoofd?.dakvorm ?? 'zadel';
   const uitBag = hoofd?.bron === 'kaart' && hoofd.kaart === 'bag3d' && hoofd.hoogteGoot != null;
-  const goot = uitBag ? hoofd.hoogteGoot! : m1(2.8 * Math.max(1, lagen));
-  const nok = uitBag && hoofd.hoogteNok != null ? hoofd.hoogteNok : dakvorm === 'plat' ? goot : m1(goot + 3);
+  const geschat = m1(2.8 * Math.max(1, lagen));
+  const nok = uitBag && hoofd.hoogteNok != null ? hoofd.hoogteNok : dakvorm === 'plat' ? geschat : m1(geschat + 3);
+  // Het dak van het hoofdhuis: uit de dakvlakken van 3D BAG ligt de nok soms niet in het midden, met de goot aan de ene kant lager.
+  const dak = (b: Blok): Blok => {
+    if (b.soort !== 'hoofdhuis') return { ...b, ...bijDak(b, 2.8) };
+    const scheef = uitBag ? scheefDak(b, d.kaartDak ?? [], v.uDeg, nok, hoofd.hoogteGoot!) : null;
+    return { ...b, nok, ...(scheef ?? { goot0: uitBag ? hoofd.hoogteGoot! : geschat, goot1: uitBag ? hoofd.hoogteGoot! : geschat }) };
+  };
+  const blokken = v.blokken.map((b) => dak({ ...b, u: m1(b.u - v.nul.u), v: m1(b.v - v.nul.v) }));
+  const h = blokken.find((b) => b.soort === 'hoofdhuis');
+  // De goot voor de etages is de hoge kant: daaronder liggen de etages heel.
+  const goot = h?.goot0 != null && h.goot1 != null ? Math.max(h.goot0, h.goot1) : uitBag ? hoofd.hoogteGoot! : geschat;
   return {
-    blokken: v.blokken.map((b) => ({ ...b, u: m1(b.u - v.nul.u), v: m1(b.v - v.nul.v) })),
+    blokken,
     goot,
+    ...(h?.goot0 != null && h.goot1 != null && h.goot0 !== h.goot1 ? { gootLaag: Math.min(h.goot0, h.goot1) } : {}),
     nok,
     gemeten: uitBag,
     dakvorm,
     zelfGetekend: v.bron === 'gebouwen' && hoofd?.bron === 'bewoner',
   };
+}
+
+/** Een garage of uitbouw: de goot op de hoogte van de begane grond, een schuin dak op 35°. */
+function bijDak(b: Blok, goot: number): Pick<Blok, 'nok' | 'goot0' | 'goot1'> {
+  const breed = b.nokLangs === 'y' ? b.b : b.d;
+  const nok = b.dak === 'plat' ? goot : b.dak === 'lessenaar' ? m1(goot + 1) : m1(goot + (breed / 2) * Math.tan(35 * (Math.PI / 180)));
+  return { nok, goot0: goot, goot1: goot };
+}
+
+/**
+ * Waar de nok ligt en hoe hoog de goot aan elke kant is, uit de dakvlakken
+ * van 3D BAG: van boven gezien is elk dakvlak zo breed als zijn oppervlak maal
+ * de cosinus van de helling, dus de verhouding tussen de twee kanten zegt waar
+ * de nok ligt; de helling zegt dan hoe ver de goot onder de nok ligt. Null
+ * als het dak dat niet zegt (plat, of geen vlakken aan beide kanten).
+ */
+export function scheefDak(b: Blok, vlakken: readonly { readonly azimuthDeg: number; readonly tiltDeg: number; readonly m2: number }[], uDeg: number | null, nok: number, gootMin: number): Pick<Blok, 'goot0' | 'goot1' | 'nokVan0'> | null {
+  if (uDeg == null || b.dak === 'plat' || !vlakken.length) return null;
+  // Kant 1 ligt achter (nok langs u) of rechts (nok naar achter); kant 0 er tegenover.
+  const richting1 = b.nokLangs === 'y' ? uDeg : uDeg - 90;
+  const verschil = (a: number, c: number) => Math.abs(((a - c + 540) % 360) - 180);
+  const breed = b.nokLangs === 'y' ? b.b : b.d;
+  const kant = [{ w: 0, tan: 0, n: 0 }, { w: 0, tan: 0, n: 0 }];
+  for (const x of vlakken) {
+    const i = verschil(x.azimuthDeg, richting1) <= 45 ? 1 : verschil(x.azimuthDeg, richting1 + 180) <= 45 ? 0 : -1;
+    if (i < 0 || x.tiltDeg < 5) continue;
+    const t = x.tiltDeg * (Math.PI / 180);
+    const w = x.m2 * Math.cos(t);
+    kant[i]!.w += w;
+    kant[i]!.tan += w * Math.tan(t);
+    kant[i]!.n += w;
+  }
+  const [k0, k1] = kant as [{ w: number; tan: number; n: number }, { w: number; tan: number; n: number }];
+  if (b.dak === 'lessenaar') {
+    // Eén vlak: de hoge kant is waar hij niet naartoe kijkt.
+    if (!k0.w && !k1.w) return null;
+    return k1.w >= k0.w ? { nokVan0: 0, goot0: nok, goot1: m1(Math.max(1.5, gootMin)) } : { nokVan0: m1(breed), goot0: m1(Math.max(1.5, gootMin)), goot1: nok };
+  }
+  if (!k0.w || !k1.w) return null;
+  const van0 = (breed * k0.w) / (k0.w + k1.w);
+  const goot = (afstand: number, k: { tan: number; n: number }) => m1(Math.min(nok, Math.max(1.5, nok - afstand * (k.tan / k.n))));
+  return { nokVan0: m1(van0), goot0: goot(van0, k0), goot1: goot(breed - van0, k1) };
 }
 
 /**

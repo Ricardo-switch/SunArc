@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Daken, DakVlak, Gebouw, Xy } from '../src/web/daken.js';
-import { bronVanDaken, dakenMetBron, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { bronVanDaken, dakenMetBron, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -133,7 +133,7 @@ describe('de vorm om op te tekenen', () => {
   });
 
   it('zonder gebouwen een rechthoek uit het woningtype', () => {
-    expect(tekenVorm([], null, 'rij')).toEqual({ maat: { breed: 5.4, diep: 9 }, blokken: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: 5.4, d: 9 }], nul: { u: 0, v: 0 }, bron: 'woning' });
+    expect(tekenVorm([], null, 'rij')).toEqual({ maat: { breed: 5.4, diep: 9 }, blokken: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: 5.4, d: 9, dak: 'zadel', nokLangs: 'x' }], nul: { u: 0, v: 0 }, bron: 'woning', uDeg: null });
     expect(tekenVorm([{ ...blok('huis', 'hoofdhuis', -5, -4.5, 5, 4.5), bron: 'schatting' }], 180, null).maat).toEqual({ breed: WONING_MAAT['vrijstaand']![0], diep: WONING_MAAT['vrijstaand']![1] });
   });
 
@@ -157,10 +157,12 @@ describe('de vorm om op te tekenen', () => {
     expect(v.nul).toEqual({ u: 3.4, v: 0 });
     // De voorgevel op het zuiden: v loopt naar het noorden, de garage komt links (u = 0).
     expect(v.blokken).toEqual([
-      { id: 'hoofd', soort: 'hoofdhuis', u: 3.4, v: 0, b: 10, d: 8.4 },
-      { id: 'garage', soort: 'garage', u: 0, v: 1, b: 3.4, d: 6.2 },
-      { id: 'uitbouw', soort: 'uitbouw', u: 8.8, v: 8.4, b: 4.6, d: 3.2 },
+      { id: 'hoofd', soort: 'hoofdhuis', u: 3.4, v: 0, b: 10, d: 8.4, dak: 'zadel', nokLangs: 'x' },
+      { id: 'garage', soort: 'garage', u: 0, v: 1, b: 3.4, d: 6.2, dak: 'zadel', nokLangs: 'x' },
+      { id: 'uitbouw', soort: 'uitbouw', u: 8.8, v: 8.4, b: 4.6, d: 3.2, dak: 'zadel', nokLangs: 'x' },
     ]);
+    // De nok loopt naar het oosten, en u ook: langs de voorgevel.
+    expect(v.uDeg).toBe(90);
   });
 
   it('schuift een tekening van de hoek van het hoofdhuis naar die van het hele huis, en terug', () => {
@@ -262,5 +264,27 @@ describe('je huis tekenen: de bronnen bij Vorm (stap 4)', () => {
     // Zonder zolder: alle etages onder de goot.
     expect(etageHoogtes([{ id: 'e1', naam: 'Eerste' }, { id: 'bg', naam: 'Beneden' }], 5.6, 5.6)).toEqual([2.8, 2.8]);
     expect(etageHoogtes([{ id: 'bg', naam: 'Beneden' }], 2.8, 5.8)).toEqual([2.8]);
+  });
+});
+
+/*
+ * Stap 5 (Huis in 3D): de nok hoeft niet in het midden. Uit de dakvlakken van
+ * 3D BAG volgt waar hij ligt en hoe hoog de goot aan elke kant is.
+ */
+describe('je huis tekenen: het dak voor het huis in 3D (stap 5)', () => {
+  // Een huis van 9,8 bij 5,6 m met de straat in het oosten: u loopt naar het noorden, achter is het westen.
+  const huis = { id: 'hoofd', soort: 'hoofdhuis' as const, u: 0, v: 0, b: 9.8, d: 5.6, dak: 'zadel' as const, nokLangs: 'x' as const };
+  it('legt de nok waar de dakvlakken van boven gezien elkaar raken, met de goot per kant', () => {
+    const vlakken = [{ azimuthDeg: 93, tiltDeg: 44, m2: 37.5 * 9.8 / 7.194 }, { azimuthDeg: 272, tiltDeg: 44, m2: 18.5 * 9.8 / 7.194 }];
+    expect(scheefDak(huis, vlakken, 0, 9.2, 3.9)).toEqual({ nokVan0: 3.8, goot0: 5.6, goot1: 7.4 });
+  });
+  it('zegt niets bij een plat dak, zonder vlakken of met maar één kant', () => {
+    expect(scheefDak({ ...huis, dak: 'plat' }, [{ azimuthDeg: 93, tiltDeg: 44, m2: 30 }], 0, 9.2, 3.9)).toBeNull();
+    expect(scheefDak(huis, [], 0, 9.2, 3.9)).toBeNull();
+    expect(scheefDak(huis, [{ azimuthDeg: 93, tiltDeg: 44, m2: 30 }], 0, 9.2, 3.9)).toBeNull();
+    expect(scheefDak(huis, [{ azimuthDeg: 93, tiltDeg: 44, m2: 30 }], null, 9.2, 3.9)).toBeNull();
+  });
+  it('een lessenaar is hoog aan de kant waar hij niet naartoe kijkt', () => {
+    expect(scheefDak({ ...huis, dak: 'lessenaar' }, [{ azimuthDeg: 270, tiltDeg: 15, m2: 50 }], 0, 6, 4)).toEqual({ nokVan0: 0, goot0: 6, goot1: 4 });
   });
 });

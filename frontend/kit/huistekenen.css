@@ -108,3 +108,7 @@ svg.ht .ht-ap.sleept { cursor: grabbing; filter: drop-shadow(0 10px 14px rgb(0 0
 .ht-bron.aan em { color: var(--mint); }
 .ht-niet { margin: 2px 2px 0; font-size: 12.5px; line-height: 1.4; color: var(--zacht); }
 .ht-niet b { color: var(--tekst); font-weight: 600; }
+/* De strook in het lichte thema (telefoon): lichte knoppen met donkere tekst. */
+.sc-licht .ht-los { background: #fff; border-color: rgb(13 26 48 / 0.16); }
+.sc-licht .ht-los .ik { background: rgb(13 26 48 / 0.06); }
+.sc-licht .ht-strook .ht-n b { color: var(--zon-t); }

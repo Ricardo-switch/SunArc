@@ -1856,6 +1856,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         ['indeling.html', /Rooms and layout[\s\S]*(Add a floor|Name of the floor)/],
         ['jehuis.html', /Your home[\s\S]*Rooms/],
         ['jehuis.html#bg/apparaten', /Your home[\s\S]*Devices/],
+        ['jehuis.html#bg/huis', /Your home[\s\S]*Open[\s\S]*Closed/],
         ['inrichten.html', /Welcome[\s\S]*home\.[\s\S]*Always says why/],
         ['inrichten.html#warmte', /What heats and cools\?/],
         ['inrichten.html#apparaat', /What each device can do/],
@@ -4095,7 +4096,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect((await slecht()).some((x) => x.includes('"proef"'))).toBe(true);
       const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { ruimtes: { id: string; apparaten: unknown[] }[] }[] };
       const vol = huisNu.etages.flatMap((e) => e.ruimtes).sort((x, y) => y.apparaten.length - x.apparaten.length)[0]!;
-      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'regeling.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'indeling.html', 'jehuis.html', 'jehuis.html#bg/apparaten', 'inrichten.html'];
+      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'regeling.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'indeling.html', 'jehuis.html', 'jehuis.html#bg/apparaten', 'jehuis.html#bg/huis', 'inrichten.html'];
       const weg: string[] = [];
       for (const pagina of paginas) {
         await p.goto(`${baseUrl}/${pagina}`);
@@ -7428,10 +7429,9 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         p.on('pageerror', (e) => fouten.push(e.message));
         await p.goto(`${baseUrl}/jehuis.html#bg`);
         await p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);
-        // Kamers staat aan; Vorm (stap 4) en Apparaten (stap 3) kunnen ook, Huis komt later en staat uit.
+        // Kamers staat aan; Vorm, Apparaten en Huis (stap 3 tot 5) kunnen ook.
         expect(await p.locator(`${kant} [data-stand="kamers"]`).getAttribute('aria-pressed'), naam).toBe('true');
-        for (const s of ['vorm', 'apparaten']) expect(await p.locator(`${kant} [data-stand="${s}"]`).isDisabled(), `${naam} ${s}`).toBe(false);
-        expect(await p.locator(`${kant} [data-stand="huis"]`).isDisabled(), `${naam} huis`).toBe(true);
+        for (const s of ['vorm', 'apparaten', 'huis']) expect(await p.locator(`${kant} [data-stand="${s}"]`).isDisabled(), `${naam} ${s}`).toBe(false);
         // De wand schuift nooit: alles past in het scherm.
         if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
         // Nog leeg: begin met de eerste indeling uit de kamers.
@@ -7692,4 +7692,57 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       if (conn0) await connStore.save(conn0);
     }
   }, 120_000);
+
+  /*
+   * Je huis, stap 5 (Huis): het huis in 3D uit de tekening. Opzij slepen met
+   * een nagebootste vinger draait het (alleen pointerdown en pointerup, en er
+   * komt niets bij de tekening), Dicht zet het dak erop, en een etage
+   * aantikken zet die weer open. De wand schuift niet.
+   */
+  it('draait bij Je huis het huis in 3D met een vinger, dicht met het dak en een etage open (besluit 308)', async () => {
+    for (const [naam, breed, hoog] of [['wand', 1280, 800], ['telefoon', 390, 844]] as const) {
+      const kant = breed < 600 ? '#tel' : '#wand';
+      const context = await browser.newContext({ viewport: { width: breed, height: hoog }, hasTouch: true, isMobile: breed < 600, timezoneId: 'UTC', locale: 'nl-NL' });
+      await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+      const p = await context.newPage();
+      const fouten: string[] = [];
+      p.on('pageerror', (e) => fouten.push(e.message));
+      await p.goto(`${baseUrl}/jehuis.html#bg/huis`);
+      await p.waitForFunction(`window.tekenaar && window.huistekenen3d && document.querySelector('${kant} #tekening [data-l="vlak"] path')`);
+      expect(await p.locator(`${kant} [data-stand="huis"]`).getAttribute('aria-pressed'), naam).toBe('true');
+      expect(await p.evaluate('window.tekenaar.st.dicht'), naam).toBe(false);
+      // Open: de begane grond met de maten van het dak erboven.
+      expect(await p.locator(`${kant} #tekening`).textContent(), naam).toMatch(/nok \d+,\d m[\s\S]*goot \d+,\d m/);
+      if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
+      // Opzij slepen draait het huis; de tekening blijft zoals hij was.
+      const voor = await p.evaluate<string>('JSON.stringify(window.tekenaar.st.vloeren)');
+      const hoek = await p.evaluate<number>('window.tekenaar.st.hoek');
+      const r = (await p.locator(`${kant} #tekening`).boundingBox())!;
+      await p.locator(`${kant} #tekening`).scrollIntoViewIfNeeded();
+      const b2 = (await p.locator(`${kant} #tekening`).boundingBox())!;
+      const v = await vinger(p);
+      await v.log();
+      const cdp = await context.newCDPSession(p);
+      const [x0, y0] = [b2.x + b2.width * 0.35, b2.y + b2.height / 2];
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: x0, y: y0 }] });
+      for (let j = 1; j <= 12; j++) {
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x0 + (r.width * 0.3 * j) / 12, y: y0 }] });
+        await p.waitForTimeout(16);
+      }
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      expect(await v.log(), naam).toBe('pointerdown pointerup');
+      expect(await p.evaluate<number>('window.tekenaar.st.hoek'), naam).toBeGreaterThan(hoek);
+      expect(await p.evaluate<string>('JSON.stringify(window.tekenaar.st.vloeren)'), naam).toBe(voor);
+      // Dicht: het dak erop; een andere etage aantikken zet die open.
+      await p.locator(`${kant} [data-ht="dicht"][data-d="1"]`).click();
+      expect(await p.evaluate('window.tekenaar.st.dicht'), naam).toBe(true);
+      const andere = await p.evaluate<string>(`window.tekenaar.huis.etages.find((e) => e.id !== 'bg').id`);
+      if (kant === '#wand') await p.locator(`#wand [data-etage="${andere}"]`).click();
+      else await p.locator(`#tel [data-etage-kies="${andere}"]`).click();
+      expect(await p.evaluate('window.tekenaar.st.dicht'), naam).toBe(false);
+      expect(await p.evaluate('location.hash'), naam).toBe(`#${andere}/huis`);
+      expect(fouten, naam).toEqual([]);
+      await context.close();
+    }
+  }, 90_000);
 });

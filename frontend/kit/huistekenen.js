@@ -1789,6 +1789,8 @@
       },
       zetEtage(id) {
         st.etage = id;
+        // Bij Huis zet een etage aantikken die etage open, ook als het huis dicht was.
+        if (st.stand === 'huis') st.dicht = false;
         st.kies = null;
         st.wapen = null;
         st.zoom = null;

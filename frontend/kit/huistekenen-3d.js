@@ -1,5 +1,6 @@
 /*
- * SunArc: het huis in 3D uit de tekening (schets, 12 november 2026).
+ * SunArc: het huis in 3D uit de tekening (schets 12 november 2026; sinds
+ * 0.183.0 ook in de app, besluit 308 stap 5).
  *
  * De buitenkant komt van de gekozen bron (de 3D-kaart geeft goot, nok en
  * dakvorm; anders geschat), de binnenkant uit de ruitjes van Je huis tekenen
@@ -9,12 +10,20 @@
  * met het dak erop. SVG, geen 3D-motor: van achter naar voren getekend.
  *
  * huistekenen3d.teken(tekenaar, breed, hoog) geeft de inhoud voor de tekening.
+ *
+ * Per gebouw (`bron.blokken`): `dak` (zadel, schild, lessenaar of plat), of
+ * de nok langs de voorgevel loopt (`nokLangs: 'x'`) of naar achter (`'y'`),
+ * en zo bekend de hoogte: `nok`, de goot aan kant 0 (voor of links) en kant 1
+ * (achter of rechts), en waar de nok ligt vanaf kant 0 (`nokVan0`). De nok
+ * hoeft dus niet in het midden te liggen. Zonder die maten: de goot en de nok
+ * van het huis, de nok in het midden.
  */
 (function (global) {
   'use strict';
   const FONT = 'font-family="Figtree, system-ui, sans-serif"';
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-  const nl = (n) => n.toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const nl = (n) => n.toLocaleString(global.taal?.locale ?? 'nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const T = (sleutel, p, anders) => (typeof global.t === 'function' ? global.t(sleutel, p) : anders);
 
   /** De ruitjes van een vloer als zo weinig mogelijk rechthoeken per ruimte. */
   function rechthoeken(v, BUITEN) {
@@ -59,8 +68,9 @@
     const etages = [...huis.etages].reverse();
     const m = (c) => (c - MARGE) * CEL;
 
-    // De lagen op hun hoogte: de bovenste loopt tot de goot.
-    let z = 0;
+    // De lagen op hun hoogte: de bovenste loopt tot de goot. Een kelder ligt onder de grond: de begane grond begint op nul.
+    const bg = huis.beneden ? etages.findIndex((e) => e.id === huis.beneden) : 0;
+    let z = -etages.slice(0, Math.max(0, bg)).reduce((n, e) => n + (e.hoogte ?? 2.5), 0);
     const lagen = etages.map((e, i) => {
       const z0 = z;
       const top = i === etages.length - 1 ? Math.max(laagGoot, z0 + 0.4) : z0 + (e.hoogte ?? 2.8);
@@ -182,24 +192,38 @@
       return `<g transform="translate(${p[0].toFixed(1)} ${p[1].toFixed(1)})"><rect x="${-bw / 2}" y="-11" width="${bw}" height="22" rx="7" fill="#0d1a30" stroke="${kleur}" stroke-opacity="0.55"/><text y="4.5" text-anchor="middle" ${FONT} font-size="12" font-weight="700" fill="${kleur}">${esc(tekst)}</text></g>`;
     };
     const kleur = bron.gemeten ? '#6ee7b7' : '#ffd38a';
-    for (const b of (bron.blokken ?? []).filter((x) => /zadel/.test(x.dak ?? ''))) {
+    // Een zadeldak, een schilddak (de nok korter, met schuine kanten) of een lessenaar (de nok aan één kant).
+    for (const b of (bron.blokken ?? []).filter((x) => /zadel|schild|lessenaar/.test(x.dak ?? ''))) {
       const haaks = b.nokLangs === 'y';
       // a loopt langs de nok, c er dwars op.
       const Q = (a, c, zz) => (haaks ? [c, a, zz] : [a, c, zz]);
       const [a0, a1] = haaks ? [b.v, b.v + b.d] : [b.u, b.u + b.b];
       const [c0, c1] = haaks ? [b.u, b.u + b.b] : [b.v, b.v + b.d];
-      const cr = haaks ? c1 - (b.nokVanRechts ?? (c1 - c0) / 2) : (c0 + c1) / 2;
-      const g0 = haaks ? (b.gootLinks ?? goot) : goot;
-      const g1 = haaks ? (b.gootRechts ?? goot) : goot;
+      const lessenaar = /lessenaar/.test(b.dak);
+      // De oude schets gaf voor een haakse nok de afstand vanaf rechts en de goot links en rechts.
+      const van0 = b.nokVan0 ?? (b.nokVanRechts != null ? c1 - c0 - b.nokVanRechts : lessenaar ? 0 : (c1 - c0) / 2);
+      const cr = c0 + van0;
+      const bnok = b.nok ?? nok;
+      const g0 = b.goot0 ?? b.gootLinks ?? (lessenaar && van0 <= 0 ? bnok : goot);
+      const g1 = b.goot1 ?? b.gootRechts ?? goot;
       const zl = Math.min(g0, g1);
+      // Een schilddak: de nok begint en eindigt zo ver van de gevel als hij van de goot ligt.
+      const inset = /schild/.test(b.dak) ? Math.min((a1 - a0) / 2 - 0.2, Math.min(cr - c0, c1 - cr)) : 0;
+      const [n0, n1] = [a0 + Math.max(0, inset), a1 - Math.max(0, inset)];
       const dp = (punten) => punten.reduce((n, q) => n + diep(q[0], q[1]), 0) / punten.length;
       if (st.dicht) {
-        const delen = [
-          { p: [Q(a0, c0, g0), Q(a1, c0, g0), Q(a1, cr, nok), Q(a0, cr, nok)], vul: '#52627f' },
-          { p: [Q(a0, c1, g1), Q(a1, c1, g1), Q(a1, cr, nok), Q(a0, cr, nok)], vul: '#3f4d66' },
-          { p: [Q(a0, c0, zl), Q(a0, c0, g0), Q(a0, cr, nok), Q(a0, c1, g1), Q(a0, c1, zl)], vul: haaks ? '#cbd4dd' : '#aab6c4' },
-          { p: [Q(a1, c0, zl), Q(a1, c0, g0), Q(a1, cr, nok), Q(a1, c1, g1), Q(a1, c1, zl)], vul: haaks ? '#cbd4dd' : '#aab6c4' },
-        ];
+        const delen = [];
+        if (cr > c0) delen.push({ p: [Q(a0, c0, g0), Q(a1, c0, g0), Q(n1, cr, bnok), Q(n0, cr, bnok)], vul: '#52627f' });
+        if (cr < c1) delen.push({ p: [Q(a0, c1, g1), Q(a1, c1, g1), Q(n1, cr, bnok), Q(n0, cr, bnok)], vul: '#3f4d66' });
+        if (inset > 0) {
+          // De schuine kanten aan de uiteinden.
+          delen.push({ p: [Q(a0, c0, g0), Q(n0, cr, bnok), Q(a0, c1, g1)], vul: '#485873' }, { p: [Q(a1, c0, g0), Q(n1, cr, bnok), Q(a1, c1, g1)], vul: '#485873' });
+        } else {
+          delen.push(
+            { p: [Q(a0, c0, zl), Q(a0, c0, g0), Q(a0, cr, bnok), Q(a0, c1, g1), Q(a0, c1, zl)], vul: haaks ? '#cbd4dd' : '#aab6c4' },
+            { p: [Q(a1, c0, zl), Q(a1, c0, g0), Q(a1, cr, bnok), Q(a1, c1, g1), Q(a1, c1, zl)], vul: haaks ? '#cbd4dd' : '#aab6c4' },
+          );
+        }
         // Waar de goot hoger ligt, loopt de gevel daar door tot de goot.
         if (g0 > zl) delen.push({ p: [Q(a0, c0, zl), Q(a1, c0, zl), Q(a1, c0, g0), Q(a0, c0, g0)], vul: haaks ? '#aab6c4' : '#cbd4dd' });
         if (g1 > zl) delen.push({ p: [Q(a0, c1, zl), Q(a1, c1, zl), Q(a1, c1, g1), Q(a0, c1, g1)], vul: haaks ? '#aab6c4' : '#cbd4dd' });
@@ -211,20 +235,23 @@
         const van = open ? open.top : zl;
         let d = '';
         for (const [a, c, gz] of [[a0, c0, g0], [a1, c0, g0], [a0, c1, g1], [a1, c1, g1]]) if (gz > van) d += lijn(Q(a, c, van), Q(a, c, gz));
-        d += lijn(Q(a0, c0, g0), Q(a1, c0, g0)) + lijn(Q(a0, c1, g1), Q(a1, c1, g1)) + lijn(Q(a0, cr, nok), Q(a1, cr, nok));
-        for (const a of [a0, a1]) d += lijn(Q(a, c0, g0), Q(a, cr, nok)) + lijn(Q(a, c1, g1), Q(a, cr, nok));
+        d += lijn(Q(a0, c0, g0), Q(a1, c0, g0)) + lijn(Q(a0, c1, g1), Q(a1, c1, g1)) + lijn(Q(n0, cr, bnok), Q(n1, cr, bnok));
+        for (const [a, n] of [[a0, n0], [a1, n1]]) d += lijn(Q(a, c0, g0), Q(n, cr, bnok)) + lijn(Q(a, c1, g1), Q(n, cr, bnok));
         s += `<path d="${d}" fill="none" stroke="#6fd3ff" stroke-opacity="0.55" stroke-width="1.4" stroke-dasharray="5 5" stroke-linecap="round"/>`;
       }
-      // De maten van de kaart: de nok, en de goot aan elke kant als die verschillen.
+      // De maten: alleen bij het hoofdhuis (of het eerste gebouw), de nok en de goot aan elke kant als die verschillen.
+      if (b !== (bron.blokken.find((x) => x.soort === 'hoofdhuis' && /zadel|schild|lessenaar/.test(x.dak ?? '')) ?? b)) continue;
       const bij = (q, tekst, omhoog) => {
         const p = P(...q);
         const kant = p[0] >= B / 2 ? 1 : -1;
         return pil([p[0] + kant * (tekst.length * 3.3 + 20), p[1] + omhoog], tekst, kleur);
       };
       const voor = diep(...Q(a0, cr, 0)) < diep(...Q(a1, cr, 0)) ? a0 : a1;
-      s += bij(Q(voor, cr, nok), `nok ${nl(nok)} m`, -8);
-      if (g0 === g1) s += bij(Q(voor, c0, g0), `goot ${nl(g0)} m`, 4);
-      else s += bij(Q(voor, c0, g0), `goot ${nl(g0)} m`, 4) + bij(Q(voor, c1, g1), `goot ${nl(g1)} m`, 4);
+      const nokMaat = (n) => T('ht.huis.nokMaat', { maat: nl(n) }, `nok ${nl(n)} m`);
+      const gootMaat = (n) => T('ht.huis.gootMaat', { maat: nl(n) }, `goot ${nl(n)} m`);
+      s += bij(Q(voor === a0 ? n0 : n1, cr, bnok), nokMaat(bnok), -8);
+      if (g0 === g1) s += bij(Q(voor, c0, g0), gootMaat(g0), 4);
+      else s += (cr > c0 ? bij(Q(voor, c0, g0), gootMaat(g0), 4) : '') + (cr < c1 ? bij(Q(voor, c1, g1), gootMaat(g1), 4) : '');
     }
     return s;
   }

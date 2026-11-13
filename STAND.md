@@ -302,7 +302,12 @@ verwijzing bestaat.
   4 (0.182.0): Vorm, met wat elke bron vindt (de 3D-kaart, OpenStreetMap,
   zonder kaart) en de hoogte; de kaarten pas na de melding van Daken en
   panelen, en een gekozen bron geldt ook daar. Een buitenmuur rechttrekken
-  blijft in de tekening (`plattegrondBron`). Huis staat uit tot stap 5.
+  blijft in de tekening (`plattegrondBron`). Stap 5 (0.183.0): Huis, het
+  huis in 3D uit de tekening (`frontend/kit/huistekenen-3d.js`, dezelfde als
+  de schets): de buitenkant van de bron met goot, nok en dak (uit de
+  dakvlakken van 3D BAG ook een nok buiten het midden), binnen één etage open
+  of dicht met het dak, te draaien. Het huis op Thuis blijft het oude; dat is
+  een eigen ronde. Stap 6 (telefoon en Engels afmaken) nog niet.
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over

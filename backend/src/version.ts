@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.182.0';
+export const VERSIE = '0.183.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.183.0',
+    datum: '2026-11-13',
+    nieuw: [
+      'Je huis: Huis. Je huis in 3D uit je tekening: de buitenkant van de bron bij Vorm, met goot, nok en dak, en binnen één etage open met lage muren, de zones en de apparaten op hun plek',
+      'Sleep opzij om het huis te draaien. Dicht zet het dak erop; tik een etage aan om die open te zetten',
+      'Uit de 3D-kaart komt ook waar de nok ligt: die hoeft niet in het midden, met de goot aan de ene kant lager',
+    ],
+    en: {
+      nieuw: [
+        'Your home: House. Your home in 3D from your drawing: the outside from the source under Shape, with gutter, ridge and roof, and inside one floor open with low walls, the zones and the devices in their spot',
+        'Drag sideways to turn the house. Closed puts the roof on; tap a floor to open it',
+        'The 3D map also gives where the ridge is: it need not be in the middle, with the gutter lower on one side',
+      ],
+    },
+  },
   {
     versie: '0.182.0',
     datum: '2026-11-13',
