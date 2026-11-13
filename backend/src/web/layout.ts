@@ -21,7 +21,7 @@ import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SiteConfig } from '../core/model.js';
 import type { Lang } from './assistant.js';
-import { leesPlek, leesTekening, leesZoneLijn, VORM_BRONNEN, type Plek, type TekenRuimte, type VormBron, type ZoneLijn } from './huistekening.js';
+import { leesOpeningen, leesPlek, leesTekening, leesZoneLijn, VORM_BRONNEN, type Opening, type Plek, type TekenRuimte, type VormBron, type ZoneLijn } from './huistekening.js';
 import { controleerRollen, doetMee, type Rol, type Rollen } from './regeling.js';
 import { controleerBronnen, type Warmtebron } from './warmte.js';
 
@@ -216,6 +216,8 @@ export interface LayoutDevice {
   readonly warmte?: ApparaatWarmte;
   /** Waar het staat in de tekening van Je huis (besluit 308). Weg: de tekening kiest een plek die bij de soort past. */
   readonly plek?: Plek;
+  /** Een screen voor een raam (0.187.0): het id van het raam op de etage van zijn plek. */
+  readonly raam?: string;
 }
 
 /** Wat een thermostaat verwarmt (besluit 197): de cv-ketel, elektrisch, of de bewoner weet het niet. */
@@ -260,6 +262,8 @@ export interface Layout {
    * nieuwe vorm. Weg: dezelfde.
    */
   readonly plattegrondBron?: VormBron;
+  /** De deuren, ramen en de voordeur per etage (0.187.0), in dezelfde meters als de plattegrond. */
+  readonly openingen?: Readonly<Record<FloorId, readonly Opening[]>>;
 }
 
 export interface LayoutKnown {
@@ -560,7 +564,9 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
     // Waar het staat in de tekening (besluit 308); op een etage die er niet meer is, valt het weg.
     const plek = leesPlek(d['plek'], binnenEtage);
     if (plek != null && 'fout' in plek) return { ok: false, reden: `apparaat ${id}: ${plek.fout}` };
-    apparaten[id] = { ...(naam ? { naam } : {}), kamer: room.id, zone: zone as string | null, ...(gevel ? { gevel } : {}), ...(bereik ? { bereik } : {}), ...(warmte ? { warmte: warmte as ApparaatWarmte } : {}), ...(plek ? { plek } : {}) };
+    // Een screen voor een raam: alleen met een plek; of dat raam er is, zie onder.
+    const raam = plek && typeof d['raam'] === 'string' && /^o\d{1,4}$/.test(d['raam']) ? d['raam'] : null;
+    apparaten[id] = { ...(naam ? { naam } : {}), kamer: room.id, zone: zone as string | null, ...(gevel ? { gevel } : {}), ...(bereik ? { bereik } : {}), ...(warmte ? { warmte: warmte as ApparaatWarmte } : {}), ...(plek ? { plek } : {}), ...(raam ? { raam } : {}) };
   }
 
   // Verbergen kan alleen wat het huis kent; wat het niet meer kent, valt weg, net als hierboven.
@@ -600,6 +606,20 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
     if (Object.keys(p.tekening).length) plattegrond = p.tekening;
   }
   const plattegrondBron = plattegrond && VORM_BRONNEN.includes(b['plattegrondBron'] as VormBron) ? (b['plattegrondBron'] as VormBron) : undefined;
+  // De deuren en ramen (0.187.0); een screen hangt alleen voor een raam dat er op zijn etage is.
+  let openingen: Record<FloorId, Opening[]> | undefined;
+  if (b['openingen'] !== undefined && b['openingen'] !== null) {
+    const o = leesOpeningen(b['openingen'], binnenEtage);
+    if ('fout' in o) return { ok: false, reden: o.fout };
+    if (Object.keys(o.openingen).length) openingen = o.openingen;
+  }
+  for (const [id, a] of Object.entries(apparaten)) {
+    if (!a.raam) continue;
+    if (!openingen?.[a.plek!.etage]?.some((o) => o.id === a.raam && o.soort === 'raam')) {
+      const { raam: _weg, ...zonder } = a;
+      apparaten[id] = zonder;
+    }
+  }
   return {
     ok: true,
     layout: {
@@ -615,6 +635,7 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
       ...(accu ? { accu } : {}),
       ...(plattegrond ? { plattegrond } : {}),
       ...(plattegrondBron ? { plattegrondBron } : {}),
+      ...(openingen ? { openingen } : {}),
     },
   };
 }

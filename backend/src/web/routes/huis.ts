@@ -9,7 +9,7 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { bronVanDaken, bronVorm, dakenMetBron, eenPapier, ERBIJ_SOORTEN, gebouwErbij, gebouwWeg, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, eenPapier, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwErbij, gebouwWeg, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
 import { leesDaken, type Daken, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
@@ -429,6 +429,8 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     const object = (x: unknown) => (typeof x === 'object' && x != null && !Array.isArray(x) ? (x as Record<string, unknown>) : null);
     const plekken = object(b['plekken']) as Record<string, { etage?: unknown; u?: unknown; v?: unknown }> | null;
     const naarKamer = object(b['apparaten']);
+    // Een screen voor een raam (0.187.0): per apparaat het id van het raam, als het meekomt.
+    const ramen = object(b['ramen']);
     let apparaten: Record<string, unknown> = basis.apparaten;
     if (plekken || naarKamer) {
       const kamerOp = new Map(kamers.map((k) => [k.id, k]));
@@ -442,11 +444,18 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
         const p = plekken?.[id];
         const plek = plekken ? (p && typeof p.u === 'number' && typeof p.v === 'number' && typeof p.etage === 'string' ? { etage: p.etage, u: p.u - nu, v: p.v - nv } : undefined) : oudePlek;
         const zone = (plek && kamerOp.get(kamer) ? zoneVanPlek(kamerOp.get(kamer)!, plek) : null) ?? (oud?.kamer === kamer ? oud.zone : null);
-        apparaten[id] = { ...rest, kamer, zone, ...(plek ? { plek } : {}) };
+        const { raam: oudRaam, ...zonderRaam } = rest as typeof rest & { raam?: string };
+        const raam = ramen ? (typeof ramen[id] === 'string' ? (ramen[id] as string) : undefined) : oudRaam;
+        apparaten[id] = { ...zonderRaam, kamer, zone, ...(plek ? { plek } : {}), ...(raam ? { raam } : {}) };
       }
     }
     const { plattegrondBron: _oud, ...zonderBron } = basis;
-    const uit = await door.store.save({ ...zonderBron, kamers, apparaten, plattegrond: tekening, plattegrondBron: bron });
+    // De deuren en ramen (0.187.0), terug naar de hoek van het hoofdhuis; zonder openingen in het verzoek blijven ze zoals ze waren.
+    const openingenIn = object(b['openingen']);
+    const openingen = openingenIn
+      ? verschuifOpeningen(Object.fromEntries(Object.entries(openingenIn).map(([e, l]) => [e, Array.isArray(l) ? (l as Opening[]) : []])), -nu, -nv)
+      : basis.openingen;
+    const uit = await door.store.save({ ...zonderBron, kamers, apparaten, plattegrond: tekening, plattegrondBron: bron, ...(openingen ? { openingen } : {}) });
     if (uit.ok) sendJson(res, 200, { bewaard: true });
     else sendJson(res, uit.status, { fout: uit.reden });
     return;
@@ -483,6 +492,9 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     etages: binnen.map((e, i) => ({ id: e.id, naam: e.naam, hoogte: hoogtes[i] })),
     kamers: binnen.flatMap((e) => e.ruimtes.map((r) => ({ id: r.id, naam: r.naam, soort: r.soort, etage: e.id, zones: r.zones.map((z) => z.naam) }))),
     tekening: verschuif(basis.plattegrond ?? {}, nu, nv),
+    // De deuren en ramen, en welk screen voor welk raam hangt (0.187.0).
+    openingen: verschuifOpeningen(basis.openingen ?? {}, nu, nv),
+    ramen: Object.fromEntries(Object.entries(basis.apparaten).filter(([, a]) => a.raam).map(([id, a]) => [id, a.raam!])),
     zones: zoneLijnen,
     plekken,
     apparaten,

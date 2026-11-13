@@ -31,7 +31,55 @@ export interface TekenRuimte {
   readonly kamer?: string;
   readonly naam?: string;
   readonly soort?: EigenSoort;
+  /** Bij een trap (0.187.0): naar welke kant hij omhoog gaat. n is naar achter, z naar de straat, w links, o rechts. */
+  readonly omhoog?: TrapRichting;
   readonly vakken: readonly Vak[];
+}
+export const TRAP_RICHTINGEN = ['n', 'z', 'o', 'w'] as const;
+export type TrapRichting = (typeof TRAP_RICHTINGEN)[number];
+
+/**
+ * Een deur, raam of de voordeur (0.187.0, keuze Ricardo: op de muur bij
+ * Kamers). Hij ligt op een muurlijn: bij `as` u op u = `op`, van..tot langs
+ * v; bij `as` v op v = `op`, van..tot langs u. In meters vanaf de linker
+ * voorhoek van het hoofdhuis, zoals de vakken. Het id is per etage.
+ */
+export interface Opening {
+  readonly id: string;
+  readonly soort: OpeningSoort;
+  readonly as: As;
+  readonly op: number;
+  readonly van: number;
+  readonly tot: number;
+}
+export const OPENING_SOORTEN = ['deur', 'raam', 'voordeur'] as const;
+export type OpeningSoort = (typeof OPENING_SOORTEN)[number];
+const MAX_OPENINGEN = 60;
+
+/** De deuren en ramen per etage; wat niet klopt, laat het bewaren mislukken; een etage die er niet meer is valt weg. */
+export function leesOpeningen(x: unknown, etageOk: (id: string) => boolean): { openingen: Record<string, Opening[]> } | { fout: string } {
+  if (!obj(x)) return { fout: 'openingen is een object per etage' };
+  const uit: Record<string, Opening[]> = {};
+  for (const [etage, lijst] of Object.entries(x)) {
+    if (!etageOk(etage)) continue;
+    if (!Array.isArray(lijst) || lijst.length > MAX_OPENINGEN) return { fout: `openingen ${etage}: een lijst van hooguit ${MAX_OPENINGEN}` };
+    const gehad = new Set<string>();
+    const e: Opening[] = [];
+    for (const o of lijst) {
+      if (!obj(o) || typeof o['id'] !== 'string' || !/^o\d{1,4}$/.test(o['id']) || gehad.has(o['id'])) return { fout: `openingen ${etage}: elk een eigen id (o1, o2, …)` };
+      if (!OPENING_SOORTEN.includes(o['soort'] as OpeningSoort) || (o['as'] !== 'u' && o['as'] !== 'v')) return { fout: `openingen ${etage}: een deur, raam of voordeur op as u of v` };
+      if (!getal(o['op'], -MAX_M, MAX_M) || !getal(o['van'], -MAX_M, MAX_M) || !getal(o['tot'], -MAX_M, MAX_M) || (o['tot'] as number) - (o['van'] as number) < 0.3 || (o['tot'] as number) - (o['van'] as number) > 6) return { fout: `openingen ${etage}: op, van en tot in meters, tussen 30 cm en 6 m breed` };
+      gehad.add(o['id']);
+      e.push({ id: o['id'], soort: o['soort'] as OpeningSoort, as: o['as'], op: ruitje(o['op']), van: ruitje(o['van']), tot: ruitje(o['tot']) });
+    }
+    if (e.length) uit[etage] = e;
+  }
+  return { openingen: uit };
+}
+
+/** De openingen van de hoek van het hoofdhuis naar die van het hele huis (`du`, `dv`), of terug. */
+export function verschuifOpeningen(o: Readonly<Record<string, readonly Opening[]>>, du: number, dv: number): Record<string, Opening[]> {
+  return Object.fromEntries(Object.entries(o).map(([e, lijst]) => [e, lijst.map((x) => (x.as === 'u' ? { ...x, op: ruitje(x.op + du), van: ruitje(x.van + dv), tot: ruitje(x.tot + dv) } : { ...x, op: ruitje(x.op + dv), van: ruitje(x.van + du), tot: ruitje(x.tot + du) }))]));
 }
 
 /** De soorten van een ruimte zonder kamer: wat de tekentafel aanbiedt, en wat een kamer kan zijn. */
@@ -129,7 +177,9 @@ export function leesEtage(x: unknown, kamerOp: (kamer: string) => boolean): { ru
     }
     const naam = naamVan(r['naam']);
     const soort = EIGEN_SOORTEN.includes(r['soort'] as EigenSoort) ? (r['soort'] as EigenSoort) : null;
-    uit.push({ ...(naam ? { naam, ...(soort ? { soort } : {}) } : {}), vakken });
+    // Een trap houdt zijn richting.
+    const omhoog = soort === 'trap' && TRAP_RICHTINGEN.includes(r['omhoog'] as TrapRichting) ? (r['omhoog'] as TrapRichting) : null;
+    uit.push({ ...(naam ? { naam, ...(soort ? { soort } : {}), ...(omhoog ? { omhoog } : {}) } : {}), vakken });
   }
   return { ruimtes: uit };
 }

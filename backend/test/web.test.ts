@@ -1860,6 +1860,27 @@ describe('de indeling (besluit 96)', () => {
     // Zonder plekken en apparaten (zoals stap 2 bewaarde) blijven plek en zone staan.
     expect((await bewaar({})).status).toBe(200);
     expect(store.current?.apparaten['nest']).toMatchObject({ zone: 'a', plek: { etage: 'bg', u: 2, v: 1 } });
+
+    // Deuren en ramen (0.187.0): een raam in de voorgevel met een screen ervoor, en een deur; de trap houdt zijn richting.
+    const nul = (await lees())['nul'] as { u: number; v: number };
+    const met = { bg: [{ kamer: 'woonkamer', vakken: [[0, 0, 5.4, 6]] }, { naam: 'Trap', soort: 'trap', omhoog: 'z', vakken: [[0, 6, 5.4, 3]] }] };
+    const openingen = { bg: [{ id: 'o1', soort: 'raam', as: 'v', op: nul.v, van: nul.u + 1, tot: nul.u + 2.2 }, { id: 'o2', soort: 'deur', as: 'v', op: nul.v + 6, van: nul.u + 2, tot: nul.u + 2.9 }] };
+    const r1 = await fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening: met, zones: {}, nul, openingen, ramen: { nest: 'o1' }, plekken: { nest: { etage: 'bg', u: nul.u + 1.6, v: nul.v + 0.3 } } }) });
+    expect(r1.status).toBe(200);
+    // Bewaard vanaf de hoek van het hoofdhuis, zoals de vakken.
+    expect(store.current?.openingen).toEqual({ bg: [{ id: 'o1', soort: 'raam', as: 'v', op: 0, van: 1, tot: 2.2 }, { id: 'o2', soort: 'deur', as: 'v', op: 6, van: 2, tot: 2.9 }] });
+    expect(store.current?.apparaten['nest']).toMatchObject({ raam: 'o1' });
+    expect(store.current?.plattegrond?.['bg']?.[1]).toEqual({ naam: 'Trap', soort: 'trap', omhoog: 'z', vakken: [[0, 6, 5.4, 3]] });
+    const weer = await lees();
+    expect(weer).toMatchObject({ openingen, ramen: { nest: 'o1' } });
+    // Zonder openingen in het verzoek blijven ze staan; een screen voor een raam dat er niet is, hangt nergens voor.
+    expect((await bewaar({ nul })).status).toBe(200);
+    expect(store.current?.openingen?.['bg']).toHaveLength(2);
+    expect((await fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening: met, zones: {}, nul, openingen: { bg: [] }, ramen: { nest: 'o1' } }) })).status).toBe(200);
+    expect(store.current?.openingen).toBeUndefined();
+    expect(store.current?.apparaten['nest']?.raam).toBeUndefined();
+    // Wat niet klopt, wordt geweigerd.
+    expect((await fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening: met, zones: {}, nul, openingen: { bg: [{ id: 'x', soort: 'luik', as: 'u', op: 0, van: 0, tot: 1 }] } }) })).status).toBe(400);
   });
 
   /*

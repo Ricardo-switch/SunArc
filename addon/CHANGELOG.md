@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.186.0
+## 0.187.0
 
-*13 november 2026 · 0.179.0 – 0.186.0*
+*13 november 2026 · 0.179.0 – 0.187.0*
 
 **Nieuw**
 
+- Je huis › Kamers: tik een muur aan en zet er een deur in, of in de buitenmuur een raam of de voordeur. Sleep hem langs de muur en zet de breedte in het blad
+- Een screen sleep je bij Apparaten naar een raam: dan hangt hij daarvoor, en in 3D zie je hem op of neer
+- Een vak dat Trap heet krijgt een richting naar boven, met treden en het trapgat op de etage erboven
 - Kies je bij Daken en panelen of Je huis de plattegrond van OpenStreetMap, dan komen het dak en de hoogte uit de 3D-kaart als die je huis ook kent
 - Van elk dakvlak uit de 3D-kaart bewaart SunArc nu ook waar het ligt. Zo staat een dakkapel aan de goede kant van het dak, en telt hij niet mee voor waar de nok ligt
 - Je huis › Vorm: de gebouwen die de kaart om je huis vindt, staan grijs. Tik er een aan en zeg wat het is, ook een tuinhuis of carport los in de tuin; dat geldt ook bij Daken en panelen
@@ -33,6 +36,9 @@
 
 **New**
 
+- Your home › Rooms: tap a wall and put a door in it, or a window or the front door in the outside wall. Drag it along the wall and set the width in the panel
+- Drag a screen to a window under Devices: it then hangs in front of it, and in 3D you see it up or down
+- A box called Stairs gets a direction upwards, with steps and the stairwell on the floor above
 - If you choose the OpenStreetMap outline under Roofs and panels or Your home, the roof and height come from the 3D map when it also knows your home
 - For each roof surface from the 3D map, SunArc now also keeps where it lies. A dormer then sits on the right side of the roof, and no longer counts towards where the ridge lies
 - Your home › Shape: the buildings the map finds around your home show in grey. Tap one and say what it is, also a summer house or carport separate in the garden; this also applies to Roofs and panels

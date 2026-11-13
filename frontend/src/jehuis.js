@@ -110,7 +110,7 @@ async function opslaan(x) {
   for (let poging = 0; ; poging++) {
     // De bron alleen als je een andere koos (ook met stap terug): die geldt dan ook bij Daken en panelen.
     const bron = x.bron && x.bron !== dienst.bron ? { bron: x.bron } : {};
-    const res = await deur('api/huistekening', { tekening: x.tekening, zones: x.zones, plekken: x.plekken, apparaten: x.apparaten, nul: dienst.nul, ...bron });
+    const res = await deur('api/huistekening', { tekening: x.tekening, zones: x.zones, plekken: x.plekken, apparaten: x.apparaten, nul: dienst.nul, ...(x.openingen ? { openingen: x.openingen, ramen: x.ramen } : {}), ...bron });
     if (res?.ok) {
       if (bron.bron) dienst.bron = bron.bron;
       return;
@@ -241,7 +241,7 @@ async function start() {
   const [gevraagd, gevraagdeStand] = decodeURIComponent(location.hash.slice(1)).split('/');
   const etage = huis.etages.some((e) => e.id === gevraagd) ? gevraagd : (huis.etages.find((e) => e.id === 'bg') ?? huis.etages.at(-1)).id;
   const stand = STANDEN.includes(gevraagdeStand) ? gevraagdeStand : 'kamers';
-  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: d, opslaan, wacht: 900, naar, kijk: vraagKaarten, gebouw });
+  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: d, opslaan, wacht: 900, naar, kijk: vraagKaarten, gebouw, openingen: true });
   tekenaar = tk;
   window.tekenaar = tk;
   huistekenen.paneel($('#blad'), tk);

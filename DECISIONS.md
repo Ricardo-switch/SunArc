@@ -14198,6 +14198,28 @@ De hoogte per etage is een schatting uit de goot en de nok (een zolder
 bovenin is nok min goot, de etages eronder delen de goot); uit 3D BAG komen
 goot en nok gemeten, anders 2,8 m per etage en de nok 3 m hoger.
 
+*Nagekomen, versie 0.185.0 tot 0.187.0* (13 november 2026). Ricardo vroeg om
+een schuur of tuinhuis bij Vorm, om de dakkapel op de goede plek, en om
+deuren, ramen, screens en een trap. Zijn keuzes:
+
+- **Een gebouw van de kaart aanwijzen kan ook bij Vorm** (0.185.0), en het
+  geldt bij Daken en panelen. Alles wat je aanwijst telt mee, ook een
+  tuinhuis of carport los in de tuin (tot 30 m), op zijn echte plek, met een
+  eigen ruimte op de begane grond.
+- **Niet gokken, combineren** (0.186.0). Van elk dakvlak uit 3D BAG bewaart
+  Daken ook de vorm van boven en de hoogte; een dakkapel komt uit waar zijn
+  platte dakje ligt, en zonder plek tekent SunArc er geen. De plattegrond van
+  OpenStreetMap neemt het dak, de hoogte en de dakvlakken van 3D BAG over
+  als die het huis ook kent.
+- **Deuren en ramen op de muur bij Kamers** (0.187.0), geen eigen stand: tik
+  een muur aan; een binnenmuur krijgt een deur, een buitenmuur een raam of de
+  voordeur. Een buitenmuur schuif je bij Kamers niet (dat blijft Vorm). Een
+  opening ligt op een muurlijn en telt alleen zolang daar een muur is.
+- **Een screen sleep je bij Apparaten naar een raam**; hij hangt dan voor dat
+  raam op dezelfde etage.
+- **De trap is een vak met een richting**, met treden en op de etage erboven
+  het trapgat.
+
 ---
 
 ## Wat nog een besluit wacht

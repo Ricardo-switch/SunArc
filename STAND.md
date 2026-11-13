@@ -319,9 +319,11 @@ verwijzing bestaat.
   0.186.0: de plattegrond van OpenStreetMap neemt het dak, de hoogte en de
   dakvlakken van 3D BAG over als die het huis ook kent; van elk dakvlak uit
   3D BAG wordt ook de vorm van boven en de hoogte bewaard, en een dakkapel
-  komt uit waar zijn platte dakje echt ligt (niet uit de richting). In de
-  schetsen (nog niet in de dienst): deuren, ramen, de voordeur, screens voor
-  een raam en een trap met een richting, en Thuis met het huis op maat.
+  komt uit waar zijn platte dakje echt ligt (niet uit de richting).
+  0.187.0: deuren, ramen en de voordeur op de muur bij Kamers (de indeling
+  bewaart ze per etage als `openingen`), een screen voor een raam (`raam` bij
+  het apparaat) en een trap met een richting (`omhoog`); in 3D bij Je huis
+  ramen, deuren en de trap. Thuis met het huis op maat is nog een schets.
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over

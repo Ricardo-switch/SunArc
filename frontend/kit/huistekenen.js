@@ -491,7 +491,7 @@
     const uit = [];
     for (const [id, lijst] of Object.entries(stroken(v))) {
       const r = v.ruimtes[id] ?? {};
-      uit.push({ ...(r.kamer ? { kamer: r.kamer } : r.naam ? { naam: r.naam, ...(r.soort ? { soort: r.soort } : {}) } : {}), vakken: lijst.map(([x0, y0, x1, y1]) => [m1(x0 - MARGE), m1(y0 - MARGE), m1(x1 - x0), m1(y1 - y0)]) });
+      uit.push({ ...(r.kamer ? { kamer: r.kamer } : r.naam ? { naam: r.naam, ...(r.soort ? { soort: r.soort } : {}), ...(r.soort === 'trap' && r.omhoog ? { omhoog: r.omhoog } : {}) } : {}), vakken: lijst.map(([x0, y0, x1, y1]) => [m1(x0 - MARGE), m1(y0 - MARGE), m1(x1 - x0), m1(y1 - y0)]) });
     }
     return uit;
   }
@@ -507,7 +507,7 @@
     const cel = (m) => MARGE + Math.round(m / CEL);
     for (const r of ruimtes ?? []) {
       const id = v.volg++;
-      v.ruimtes[id] = r.kamer ? { kamer: r.kamer } : r.naam ? { naam: r.naam, ...(r.soort ? { soort: r.soort } : {}) } : {};
+      v.ruimtes[id] = r.kamer ? { kamer: r.kamer } : r.naam ? { naam: r.naam, ...(r.soort ? { soort: r.soort } : {}), ...(r.omhoog ? { omhoog: r.omhoog } : {}) } : {};
       for (const [x, y, b, d] of r.vakken ?? []) vulRecht(v, cel(x), cel(y), cel(x + b), cel(y + d), id, !!eigen);
     }
     // Een gebouw dat er later bij kwam (aangewezen bij Vorm) en nog niets getekend heeft: een eigen ruimte op zijn plek.
@@ -634,6 +634,15 @@
         if (p && st.vloeren[p.etage]) a.plek = { etage: p.etage, x: MARGE + p.u / CEL, y: MARGE + p.v / CEL };
       }
     }
+    // De deuren en ramen (0.187.0): u is x, v is y; en welk screen voor welk raam hangt.
+    const celVan = (meter) => MARGE + Math.round(meter / CEL);
+    if (bewaarde?.openingen) {
+      for (const [etage, lijst] of Object.entries(bewaarde.openingen)) {
+        if (!st.vloeren[etage]) continue;
+        st.vloeren[etage].openingen = lijst.map((o) => ({ id: o.id, soort: o.soort, as: o.as === 'u' ? 'x' : 'y', op: celVan(o.op), van: celVan(o.van), tot: celVan(o.tot) }));
+      }
+    }
+    if (bewaarde?.ramen) for (const a of st.apparaten) if (bewaarde.ramen[a.id] && a.plek) a.raam = bewaarde.ramen[a.id];
     /** De hele tekening in meters, zoals de dienst hem bewaart. */
     const uitvoer = () => {
       const tekening = {};
@@ -649,8 +658,16 @@
         if (a.plek) plekken[a.id] = { etage: a.plek.etage, u: Math.round((a.plek.x - MARGE) * 10) / 100, v: Math.round((a.plek.y - MARGE) * 10) / 100 };
         if (a.kamer) apparaten[a.id] = a.kamer;
       }
+      // De deuren en ramen (0.187.0), in meters; en per screen het raam waar het voor hangt.
+      const openingen = {};
+      for (const [etage, v] of Object.entries(st.vloeren)) {
+        const lijst = (v.openingen ?? []).filter((o) => openingMuur(v, o));
+        if (lijst.length) openingen[etage] = lijst.map((o) => ({ id: o.id, soort: o.soort, as: o.as === 'x' ? 'u' : 'v', op: m1(o.op - MARGE), van: m1(o.van - MARGE), tot: m1(o.tot - MARGE) }));
+      }
+      const ramen = {};
+      for (const a of st.apparaten) if (a.raam && a.plek) ramen[a.id] = a.raam;
       // Stap 4: op welke bron dit getekend is; een andere dan bij Daken en panelen zet die daar ook.
-      return { tekening, zones, plekken, apparaten, bron: st.bron };
+      return { tekening, zones, plekken, apparaten, bron: st.bron, ...(metOpeningen ? { openingen, ramen } : {}) };
     };
     if (sleutel) {
       try {

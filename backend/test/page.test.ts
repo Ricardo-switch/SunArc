@@ -7695,6 +7695,65 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 120_000);
 
   /*
+   * Je huis › Kamers (0.187.0): een raam in de buitenmuur zetten via het blad,
+   * het met een nagebootste vinger langs de muur schuiven (alleen pointerdown
+   * en pointerup), en na opnieuw laden staat het er nog, op wand en telefoon.
+   */
+  it('zet bij Je huis een raam in de buitenmuur, schuift het met een vinger en bewaart het (0.187.0)', async () => {
+    const voor = layoutStore.current;
+    try {
+      for (const [naam, breed, hoog] of [['wand', 1280, 800], ['telefoon', 390, 844]] as const) {
+        const kant = breed < 600 ? '#tel' : '#wand';
+        const context = await browser.newContext({ viewport: { width: breed, height: hoog }, hasTouch: true, isMobile: breed < 600, timezoneId: 'UTC', locale: 'nl-NL' });
+        await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+        const p = await context.newPage();
+        const fouten: string[] = [];
+        p.on('pageerror', (e) => fouten.push(e.message));
+        const klaar = () => p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);
+        await p.goto(`${baseUrl}/jehuis.html#bg`);
+        await klaar();
+        if (await p.evaluate('window.tekenaar.isLeeg()')) await p.locator(`${kant} [data-ht="indeling"]`).first().click();
+        // De voorgevel kiezen, zoals na het aantikken: de buitenmuur onderaan, in het midden.
+        await p.evaluate(`(() => { const t = window.tekenaar; const v = t.vloer(); const o = t.omtrek(); const run = huistekenen.randen(v, huistekenen.isMuur).find((r) => r.as === 'y' && r.op === o.y0 && r.soort === 2); t.kies({ soort: 'muur', run, bij: (run.van + run.tot) / 2 }); })()`);
+        const blad = p.locator(`${kant} #blad`);
+        await expect.poll(() => blad.textContent(), { message: naam }).toContain('Raam hier');
+        await blad.locator('[data-ht="opening-plaats"][data-soort="raam"]').click();
+        await expect.poll(() => blad.textContent(), { message: naam }).toContain('Breedte');
+        await expect.poll(() => p.locator(`${kant} [data-bewaard]`).textContent(), { timeout: 10_000, message: naam }).toBe('Bewaard');
+        const raam = () => layoutStore.current?.openingen?.['bg']?.find((o) => o.soort === 'raam');
+        expect(raam(), naam).toMatchObject({ soort: 'raam', as: 'v' });
+        const van0 = raam()!.van;
+        // Met een vinger een meter naar rechts langs de muur.
+        await p.evaluate(`document.querySelector('#tekening').scrollIntoView({ block: 'center' })`);
+        const [a, b] = await p.evaluate<[[number, number], [number, number]]>(`(() => { const t = window.tekenaar; const o = t.vloer().openingen[0]; const el = document.querySelector('#tekening'); const r = el.getBoundingClientRect(); const g = el.querySelector('[data-l="vlak"] g').getAttribute('transform'); const [, ox, oy, k] = /translate\\(([-\\d.]+) ([-\\d.]+)\\) scale\\(([-\\d.]+)/.exec(g).map(Number); const sch = (x, y) => [r.left + ox + x * k, r.top + oy - y * k]; const mid = (o.van + o.tot) / 2; return [sch(mid, o.op), sch(mid + 10, o.op)]; })()`);
+        const v = await vinger(p);
+        await v.log();
+        const cdp = await context.newCDPSession(p);
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: a[0], y: a[1] }] });
+        for (let j = 1; j <= 12; j++) {
+          await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: a[0] + ((b[0] - a[0]) * j) / 12, y: a[1] }] });
+          await p.waitForTimeout(16);
+        }
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        expect(await v.log(), naam).toBe('pointerdown pointerup');
+        await expect.poll(() => raam()?.van, { timeout: 10_000, message: naam }).toBeCloseTo(van0 + 1, 1);
+        // Opnieuw laden: het raam staat er nog, op zijn nieuwe plek.
+        await p.reload();
+        await klaar();
+        expect(await p.evaluate<number>('window.tekenaar.st.vloeren.bg.openingen.length'), naam).toBe(1);
+        expect(fouten, naam).toEqual([]);
+        // Weer weg, voor de volgende ronde.
+        await p.evaluate(`window.tekenaar.kies({ soort: 'opening', id: window.tekenaar.st.vloeren.bg.openingen[0].id })`);
+        await blad.locator('[data-ht="opening-weg"]').click();
+        await expect.poll(() => layoutStore.current?.openingen?.['bg']?.length ?? 0, { timeout: 10_000, message: naam }).toBe(0);
+        await context.close();
+      }
+    } finally {
+      if (voor) await layoutStore.save(voor);
+    }
+  }, 120_000);
+
+  /*
    * Je huis › Vorm (0.185.0): een gebouw van de kaart aanwijzen, zoals bij
    * Daken en panelen. De gebouwen eromheen staan grijs; aantikken met een
    * nagebootste vinger, zeggen wat het is, en het hoort bij het huis (ook bij

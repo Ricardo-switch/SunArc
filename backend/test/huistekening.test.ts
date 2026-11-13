@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Daken, DakVlak, Gebouw, Xy } from '../src/web/daken.js';
-import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, gebouwErbij, gebouwWeg, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, leesOpeningen, verschuifOpeningen, gebouwErbij, gebouwWeg, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -288,6 +288,29 @@ describe('je huis tekenen: de bronnen bij Vorm (stap 4)', () => {
  * Stap 5 (Huis in 3D): de nok hoeft niet in het midden. Uit de dakvlakken van
  * 3D BAG volgt waar hij ligt en hoe hoog de goot aan elke kant is.
  */
+describe('je huis tekenen: deuren, ramen en de trap (0.187.0)', () => {
+  it('leest de deuren en ramen per etage, en weigert wat niet kan', () => {
+    const goed = leesOpeningen({ bg: [{ id: 'o1', soort: 'raam', as: 'v', op: 0, van: 1.04, tot: 2.2 }], weg: [{ id: 'o1', soort: 'deur', as: 'u', op: 0, van: 0, tot: 1 }] }, (e) => e === 'bg');
+    expect(goed).toEqual({ openingen: { bg: [{ id: 'o1', soort: 'raam', as: 'v', op: 0, van: 1, tot: 2.2 }] } });
+    expect(leesOpeningen({ bg: [{ id: 'o1', soort: 'luik', as: 'v', op: 0, van: 0, tot: 1 }] }, () => true)).toMatchObject({ fout: expect.any(String) });
+    expect(leesOpeningen({ bg: [{ id: 'o1', soort: 'deur', as: 'v', op: 0, van: 0, tot: 0.1 }] }, () => true)).toMatchObject({ fout: expect.any(String) });
+    expect(leesOpeningen({ bg: [{ id: 'o1', soort: 'deur', as: 'v', op: 0, van: 0, tot: 1 }, { id: 'o1', soort: 'deur', as: 'v', op: 0, van: 2, tot: 3 }] }, () => true)).toMatchObject({ fout: expect.any(String) });
+  });
+
+  it('schuift ze mee naar de hoek van het hele huis en terug', () => {
+    const o = { bg: [{ id: 'o1', soort: 'deur' as const, as: 'u' as const, op: 2, van: 1, tot: 2 }, { id: 'o2', soort: 'raam' as const, as: 'v' as const, op: 0, van: 3, tot: 4.2 }] };
+    const heen = verschuifOpeningen(o, 3.4, 1);
+    expect(heen).toEqual({ bg: [{ id: 'o1', soort: 'deur', as: 'u', op: 5.4, van: 2, tot: 3 }, { id: 'o2', soort: 'raam', as: 'v', op: 1, van: 6.4, tot: 7.6 }] });
+    expect(verschuifOpeningen(heen, -3.4, -1)).toEqual(o);
+  });
+
+  it('een trap houdt zijn richting, een andere ruimte niet', () => {
+    expect(leesEtage([{ naam: 'Trap', soort: 'trap', omhoog: 'n', vakken: [[0, 0, 1, 3]] }, { naam: 'Hal', soort: 'hal', omhoog: 'n', vakken: [[1, 0, 2, 3]] }], () => false)).toEqual({
+      ruimtes: [{ naam: 'Trap', soort: 'trap', omhoog: 'n', vakken: [[0, 0, 1, 3]] }, { naam: 'Hal', soort: 'hal', vakken: [[1, 0, 2, 3]] }],
+    });
+  });
+});
+
 describe('je huis tekenen: een dakkapel uit 3D BAG', () => {
   // Het huis van Ricardo, vereenvoudigd: 9,9 m diep van oost naar west, 5,6 m breed, de voorgevel op het oosten.
   const huis: Gebouw = { id: 'huis', soort: 'hoofdhuis', bron: 'kaart', kaart: 'bag3d', omtrek: [[0, 0], [9.9, 0], [9.9, 5.6], [0, 5.6]], dakvorm: 'zadel', nokDeg: 0 };
