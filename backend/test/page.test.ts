@@ -5059,7 +5059,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await p.locator('#wand [data-zoek]').fill(eenKamer.toLowerCase());
     await p.locator('#wand [data-gevonden] a', { hasText: eenKamer }).first().waitFor();
     await p.locator('#wand [data-zoek]').press('Escape');
-    await p.locator('#wand a.kan').click();
+    await p.locator('#wand .kan a[href="huis-kan.html"]').click();
     await p.locator('#wand h1', { hasText: 'Wat je huis kan' }).waitFor();
     await p.locator('#wand svg.sc-huis').first().waitFor();
     // Zes groepen (besluit 187): wat het huis eerst leert apart, en de kosten ook.
@@ -5182,11 +5182,13 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const fouten: string[] = [];
     p.on('pageerror', (e) => fouten.push(e.message));
     const shot = (naam: string, vol = false) => (process.env.HEMS_PAGE_SHOT ? p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', `-${naam}.png`), fullPage: vol }) : null);
-    // Bij Instellingen opent de kleine waaier op de kaart meteen de pagina.
+    // Bij Instellingen is Hoe ver je huis is de tweede helft van het vak Wat je huis kan, met een eigen pijl (0.180.2).
     await p.goto(`${baseUrl}/instellingen.html`);
-    await p.locator('#wand a.kan .kanwaaier .straal').first().waitFor();
+    await p.locator('#wand .kan a.hoever .straal').first().waitFor();
+    expect(await p.locator('#wand .kan > a').count()).toBe(2);
+    expect(await p.locator('#tel .kan a.hoever').textContent()).toMatch(/Hoe ver je huis is\d+%, \d+ van \d+ werken helemaal/);
     await shot('voortgang-instellingen');
-    await p.locator('#wand a.kan .kanwaaier').click();
+    await p.locator('#wand .kan a.hoever').click();
     await p.waitForURL(/voortgang\.html$/);
     await p.locator('#wand h1', { hasText: 'Hoe ver je huis is' }).waitFor();
     await p.locator('#wand [data-waaier] .straal').first().waitFor();

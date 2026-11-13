@@ -40,11 +40,26 @@
   .mist .regel b { font-size: 15px; }
   .mist .regel span { display: block; font-size: 13px; color: var(--zacht); }
   .doe { display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 12px; background: var(--accent); color: var(--op-accent); font-weight: 700; font-size: 13.5px; white-space: nowrap; text-decoration: none; }
-  .kan { padding: 16px 20px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; color: inherit; text-decoration: none; }
-  /* Hoe ver je huis is: de kleine zonnewaaier opent die pagina meteen (schets Wand-Voortgang #ingang). */
-  .kan .kanwaaier { display: block; cursor: pointer; }
-  .kan .kanwaaier svg { width: 150px; height: 87px; }
-  #tel .kan .kanwaaier svg { width: 112px; height: 65px; }
+  /* Eén vak, twee helften met elk een pijl (0.180.2, schets Instellingen-Kan-Ingangen B): Wat je huis kan en Hoe ver je huis is. Wand naast elkaar, telefoon onder elkaar. */
+  .kan { padding: 0; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); overflow: hidden; }
+  .kan.een { grid-template-columns: minmax(0, 1fr); }
+  .kan > a { display: block; min-width: 0; padding: 14px 18px; color: inherit; text-decoration: none; }
+  .kan > a:hover { background: rgb(var(--wit) / 0.03); }
+  .kan > a:focus-visible { outline: 2px solid var(--tekst); outline-offset: -3px; }
+  .kan > a + a { border-left: 1px solid rgb(var(--wit) / 0.09); }
+  .kan .kopregel { display: flex; align-items: center; gap: 10px; }
+  .kan .kopregel h2 { margin: 0; }
+  .kan .pijl { margin-left: auto; color: var(--gedempt); font-size: 22px; line-height: 1; }
+  .kan .hoever { display: flex; flex-direction: column; align-items: center; }
+  .kan .hoever .kopregel { align-self: stretch; }
+  .kan .hoever .zin { display: none; }
+  .kan .hoever svg { width: 140px; height: 81px; margin-top: 6px; }
+  #tel .kan { grid-template-columns: minmax(0, 1fr); }
+  #tel .kan > a + a { border-left: 0; border-top: 1px solid rgb(var(--wit) / 0.09); }
+  #tel .kan .hoever { flex-direction: row; gap: 12px; }
+  #tel .kan .hoever .kopregel { flex: 1; min-width: 0; }
+  #tel .kan .hoever .zin { display: block; margin-top: 2px; font-size: 13px; color: var(--zacht); }
+  #tel .kan .hoever svg { order: -1; width: 96px; height: 56px; margin: 0; flex: none; }
   .kan .standen { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .stand { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
   .stand::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
@@ -97,7 +112,7 @@
         </div>
         <div style="display: flex; gap: 10px; align-items: center"><a class="pil jijpil" href="jij.html" data-jijpil hidden></a><div class="zoekvak" data-zoekvak></div></div>
       </div>
-      <div class="boven"><section class="glas mist" data-mist></section><a class="glas kan" href="huis-kan.html" data-kan></a></div>
+      <div class="boven"><section class="glas mist" data-mist></section><div class="glas kan" data-kan></div></div>
       <section class="groepen" data-groepen></section>
     </main>
   </div>
@@ -109,7 +124,7 @@
       <a class="glas jijregel" href="jij.html" data-jijregel hidden></a>
       <div class="zoekvak" data-zoekvak></div>
       <section class="glas mist" data-mist></section>
-      <a class="glas kan" href="huis-kan.html" data-kan></a>
+      <div class="glas kan" data-kan></div>
       <section class="groepen" data-groepen></section>
     </div>
     <nav class="tabs" id="tabs" data-t-aria-label="nav.hoofdmenu"></nav>

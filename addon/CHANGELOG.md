@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.180.1
+## 0.180.2
 
-*13 november 2026 · 0.179.0 – 0.180.1*
+*13 november 2026 · 0.179.0 – 0.180.2*
 
 **Nieuw**
 
+- Instellingen: het vak Wat je huis kan heeft twee helften met elk een pijl, Wat je huis kan en Hoe ver je huis is; zo zie je dat het twee pagina’s zijn
 - Je huis: zoom in met twee vingers en schuif de tekening met twee vingers; Hele huis zet hem terug
 - Een gekozen ruimte sleep je overal binnen de ruimte weg, niet alleen aan het blauwe rondje; er komt dan geen nieuw vak meer bij
 - Je huis: teken je kamers op ruitjes van 10 cm, per etage. Begin met een indeling uit je kamers of met de muren van beneden, trek een vak voor een nieuwe ruimte, schuif een muur, en tik een vak aan om te zeggen welke kamer het is
@@ -16,6 +17,7 @@
 
 **New**
 
+- Settings: the What your house can do box has two halves, each with an arrow, What your house can do and How far your house is; so you can see they are two pages
 - Your home: zoom in with two fingers and move the drawing with two fingers; Whole house puts it back
 - Drag a chosen space from anywhere inside it, not just by the blue circle; it no longer adds a new box
 - Your home: draw your rooms on a 10 cm grid, floor by floor. Start with a layout from your rooms or with the walls from below, drag a box for a new space, move a wall, and tap a box to say which room it is

@@ -39,10 +39,13 @@ function kan() {
         .map((s) => (tel(s) ? `<span class="stand ${s}">${esc(t(`instellingen.telt.${s}`, { n: tel(s) }))}</span>` : ''))
         .join('')
     : '';
-  // De kleine zonnewaaier: een tik erop opent meteen Hoe ver je huis is.
+  const pijl = '<span class="pijl" aria-hidden="true">›</span>';
+  // Twee helften van één vak (0.180.2): Wat je huis kan, en Hoe ver je huis is met de kleine zonnewaaier. Elk een eigen pijl.
   const v = k && window.waaier ? stand.voortgang(d) : null;
-  const mini = v?.onderwerpen.length ? `<span class="kanwaaier" data-naar="voortgang.html" title="${esc(t('voortgang.open'))}"><svg viewBox="0 0 190 110" aria-hidden="true" data-mini></svg></span>` : '';
-  return `<div><h2 class="kop-3">${esc(t('instellingen.kan'))}</h2><p class="mini" style="margin: 4px 0 0">${esc(t('instellingen.kanZin'))}</p><div class="standen">${standen}</div></div>${mini}`;
+  const hoever = v?.onderwerpen.length
+    ? `<a class="hoever" href="voortgang.html"><div class="kopregel"><div><h2 class="kop-3">${esc(t('voortgang.knop'))}</h2><span class="zin">${esc(t('voortgang.knopZin', { pct: v.totaal, n: v.tel('werkt'), totaal: v.onderwerpen.length }))}</span></div>${pijl}</div><svg viewBox="0 0 190 110" aria-hidden="true" data-mini></svg></a>`
+    : '';
+  return `<a href="huis-kan.html"><div class="kopregel"><h2 class="kop-3">${esc(t('instellingen.kan'))}</h2>${pijl}</div><p class="mini" style="margin: 4px 0 0">${esc(t('instellingen.kanZin'))}</p><div class="standen">${standen}</div></a>${hoever}`;
 }
 
 /* --------------------------------------------------------- de groepen */
@@ -231,7 +234,10 @@ function tekenNu() {
     el.innerHTML = m.html;
     el.classList.toggle('klaar', m.klaar);
   });
-  $$('[data-kan]').forEach((el) => (el.innerHTML = kan()));
+  $$('[data-kan]').forEach((el) => {
+    el.innerHTML = kan();
+    el.classList.toggle('een', el.children.length < 2);
+  });
   const v = $$('[data-mini]').length ? stand.voortgang(d) : null;
   $$('[data-mini]').forEach((svg) => waaier.teken(svg, { groepen: v.groepen, cx: 95, cy: 104, r0: 32, R: 92, getal: `${v.totaal}%`, groei: false, knoppen: false }));
   $$('[data-groepen]').forEach((el) => (el.innerHTML = groepen()));
@@ -273,12 +279,6 @@ document.addEventListener('keydown', (e) => {
     e.target.value = '';
     toonGevonden(e.target);
   }
-});
-document.addEventListener('click', (e) => {
-  const naar = e.target.closest('[data-naar]');
-  if (!naar) return;
-  e.preventDefault();
-  location.href = naar.dataset.naar;
 });
 document.addEventListener('pointerdown', (e) => {
   if (!e.target.closest('[data-zoekvak]')) $$('[data-gevonden]').forEach((el) => (el.hidden = true));
