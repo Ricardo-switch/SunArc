@@ -17,6 +17,10 @@ export interface Vinger {
   /** Van punt naar punt in meters, in tien stapjes per stuk; laat los aan het eind. */
   veeg(...punten: (readonly [number, number])[]): Promise<void>;
   tik(u: number, v: number): Promise<void>;
+  /** Twee vingers rond punt (u, v): van `van` naar `tot` px uit elkaar, en samen `schuif` px naar rechts. */
+  knijp(u: number, v: number, van: number, tot: number, schuif?: number): Promise<void>;
+  /** Hoeveel schermpunten één ruitje van 10 cm nu is. */
+  schaal(): Promise<number>;
   /** Wat de pagina sinds de vorige keer aan pointer-gebeurtenissen zag: alleen down, up en cancel. */
   log(): Promise<string>;
   /** De ruimtes op deze etage, op naam (of `vak<id>`), in ruitjes vanaf de linker voorhoek. */
@@ -78,6 +82,22 @@ export async function vinger(p: Page, svg = '#tekening'): Promise<Vinger> {
       await raak('touchEnd');
       await p.waitForTimeout(250);
     },
+    async knijp(u, v, van, tot, schuif = 0) {
+      const [x, y] = await scherm(u, v);
+      const twee = (d: number, s: number) => [
+        { x: x - d / 2 + s, y, id: 1 },
+        { x: x + d / 2 + s, y, id: 2 },
+      ];
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [twee(van, 0)[0]!] });
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: twee(van, 0) });
+      for (let j = 1; j <= 12; j++) {
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: twee(van + ((tot - van) * j) / 12, (schuif * j) / 12) });
+        await p.waitForTimeout(16);
+      }
+      await raak('touchEnd');
+      await p.waitForTimeout(250);
+    },
+    schaal: () => p.evaluate<number>(`Number(/scale\\(([-\\d.]+)/.exec(document.querySelector(${JSON.stringify(svg)}).querySelector('[data-l="vlak"] g').getAttribute('transform'))[1])`),
     log: () => p.evaluate<string>(LOG),
     stand: () => p.evaluate<Stand>(STAND),
   };

@@ -704,6 +704,7 @@
       anim = requestAnimationFrame(loop);
     };
     const zoomDoel = () => {
+      if (st.eigen) return st.eigen;
       if (st.zoom == null) return heleKijk();
       const m = maten(vloer())[st.zoom];
       if (!m) return heleKijk();
@@ -788,7 +789,7 @@
     /* ---------- tekenen */
     svg.classList.add('ht');
     svg.style.touchAction = 'none';
-    svg.innerHTML = `<defs><pattern id="ht-leeg" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V3.2" stroke="rgb(247 181 72 / 0.13)" stroke-width="0.7"/></pattern></defs><g data-l="onder"></g><g data-l="vlak"></g><g data-l="namen"></g><g data-l="app"></g><g data-l="over"></g>`;
+    svg.innerHTML = `<defs><pattern id="ht-leeg" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V3.2" stroke="rgb(247 181 72 / 0.13)" stroke-width="0.7"/></pattern></defs><g data-l="onder"></g><g data-l="vlak"></g><g data-l="namen"></g><g data-l="app"></g><g data-l="over"></g><g data-l="knop"></g>`;
     const laag = (n) => svg.querySelector(`[data-l="${n}"]`);
     const pil = (x, y, tekst, kleur = '#a9e6ff', draai = false) => {
       const bw = tekst.length * 6.9 + 16;
@@ -801,7 +802,7 @@
       if (!kijk) return;
       // Het huis in 3D: de buitenkant van de kaart, de binnenkant uit de tekening (huistekenen-3d.js).
       if (st.stand === 'huis' && global.huistekenen3d) {
-        for (const n of ['onder', 'namen', 'app', 'over']) laag(n).innerHTML = '';
+        for (const n of ['onder', 'namen', 'app', 'over', 'knop']) laag(n).innerHTML = '';
         laag('vlak').innerHTML = global.huistekenen3d.teken(t, B, Hpx);
         return;
       }
@@ -956,6 +957,15 @@
       }
       laag('app').innerHTML = s;
       laag('over').innerHTML = over;
+      // Ingezoomd: een knop terug naar het hele huis.
+      const hk = heelKnop();
+      laag('knop').innerHTML = hk ? `<g transform="translate(${hk.x} ${hk.y})" pointer-events="none"><rect width="${hk.b}" height="${hk.h}" rx="10" fill="#0d1a30" stroke="#6fd3ff" stroke-opacity="0.7"/><text x="${hk.b / 2}" y="${hk.h / 2 + 4.5}" text-anchor="middle" ${FONT} font-size="13" font-weight="700" fill="#a9e6ff">${esc(T('ht.heleHuis'))}</text></g>` : '';
+    }
+    /** Waar de knop Hele huis staat, als er ingezoomd is. */
+    function heelKnop() {
+      if (!st.eigen) return null;
+      const b = T('ht.heleHuis').length * 7.4 + 24;
+      return { x: B - b - 10, y: 10, b, h: 32 };
     }
 
     /* ---------- wat ligt er onder de vinger */
@@ -1067,16 +1077,87 @@
       return best;
     };
 
+    /* ---------- zoomen: knijpen met twee vingers, of het wieltje */
+    /** Hoe groot het hele huis past: verder uitzoomen hoeft niet. */
+    const pasK = () => {
+      const h = heleKijk();
+      return Math.min(B / (h.x1 - h.x0), Hpx / (h.y1 - h.y0));
+    };
+    /** Zoom naar schaal `k1`, met ruitje `g` onder schermpunt `m`. */
+    function zoomNaar(k1, g, m) {
+      cancelAnimationFrame(anim);
+      const kp = pasK();
+      k1 = klem(k1, kp, Math.max(kp * 1.01, 16));
+      if (k1 <= kp * 1.03) {
+        st.eigen = null;
+        zetKijk(zoomDoel());
+        return teken();
+      }
+      const ox1 = m.px - g.x * k1;
+      const oy1 = m.py + g.y * k1;
+      const r = { x0: -ox1 / k1, x1: (B - ox1) / k1, y0: (oy1 - Hpx) / k1, y1: oy1 / k1 };
+      // Het midden van wat je ziet blijft boven het huis.
+      const h = heleKijk();
+      const cx = (r.x0 + r.x1) / 2;
+      const cy = (r.y0 + r.y1) / 2;
+      const sx = klem(cx, h.x0, h.x1) - cx;
+      const sy = klem(cy, h.y0, h.y1) - cy;
+      st.eigen = { x0: r.x0 + sx, x1: r.x1 + sx, y0: r.y0 + sy, y1: r.y1 + sy };
+      zetKijk(st.eigen);
+      teken();
+    }
+    const opScherm = (c) => {
+      const r = svg.getBoundingClientRect();
+      return { px: ((c.x - r.left) * B) / r.width, py: ((c.y - r.top) * Hpx) / r.height };
+    };
+    /** De vingers die nu op de tekening staan. */
+    const wijzers = new Map();
+    let knijp = null;
+    function beginKnijp() {
+      const [a, b] = [...wijzers.values()].map(opScherm);
+      const m = { px: (a.px + b.px) / 2, py: (a.py + b.py) / 2 };
+      knijp = { ids: [...wijzers.keys()], d0: Math.max(20, Math.hypot(a.px - b.px, a.py - b.py)), k0: k, g: { x: (m.px - ox) / k, y: (oy - m.py) / k } };
+    }
+    function knijpVerder() {
+      const [a, b] = knijp.ids.map((id) => opScherm(wijzers.get(id)));
+      const m = { px: (a.px + b.px) / 2, py: (a.py + b.py) / 2 };
+      zoomNaar((knijp.k0 * Math.hypot(a.px - b.px, a.py - b.py)) / knijp.d0, knijp.g, m);
+    }
+    function heelHuis() {
+      st.eigen = null;
+      kijkNaar(zoomDoel());
+    }
+    svg.addEventListener(
+      'wheel',
+      (e) => {
+        if (st.stand === 'huis' || actie) return;
+        e.preventDefault();
+        const m = opScherm({ x: e.clientX, y: e.clientY });
+        zoomNaar(k * Math.exp(-e.deltaY * 0.0015), { x: (m.px - ox) / k, y: (oy - m.py) / k }, m);
+      },
+      { passive: false },
+    );
+
     /* ---------- het gebaar */
     let actie = null;
     function neer(e) {
-      if (actie || e.button > 0) return;
+      if (e.button > 0) return;
       try {
         svg.setPointerCapture(e.pointerId);
       } catch {
         // Een nagebootste vinger kan dat niet; de luisteraars doen het dan nog.
       }
       e.preventDefault();
+      wijzers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (wijzers.size > 1) {
+        // Een tweede vinger: knijpen en schuiven. Wat de eerste vinger begon, gaat niet door.
+        if (wijzers.size === 2 && !knijp && st.stand !== 'huis') {
+          if (actie) afgebroken();
+          beginKnijp();
+        }
+        return;
+      }
+      if (actie || knijp) return;
       const p = punt(e);
       const vinger = e.pointerType !== 'mouse';
       actie = { wijzer: e.pointerId, start: p, vinger, type: null, kandidaat: { soort: 'niets' } };
@@ -1086,15 +1167,22 @@
         actie.hoek0 = st.hoek;
         return;
       }
-      // De greep midden in een gekozen ruimte: daarmee verplaats je hem in zijn geheel.
+      const hk = heelKnop();
+      if (hk && p.px >= hk.x - 6 && p.px <= hk.x + hk.b + 6 && p.py >= hk.y - 6 && p.py <= hk.y + hk.h + 6) {
+        actie.kandidaat = { soort: 'heel' };
+        return;
+      }
+      // Een gekozen ruimte sleep je in zijn geheel weg: overal binnen de ruimte, of aan de greep in het midden.
       const g = greepPlek(vloer());
       const dg = g ? Math.hypot(g.px - p.px, g.py - p.py) : Infinity;
-      if (dg <= (vinger ? 30 : 20)) {
-        // In een klein vak ligt de muur ook binnen bereik van de greep (de telefoon, 0.180.0): wat het dichtst bij de vinger ligt, wint.
+      const opGreep = dg <= (vinger ? 30 : 20);
+      if (g && ruimteOp(vloer(), p.x, p.y) === st.kies.id) actie.gekozen = st.kies.id;
+      if (opGreep || actie.gekozen != null) {
+        // Vlak bij een muur pak je de muur: wat het dichtst bij de vinger ligt, wint (in een klein vak ligt de muur ook bij de greep).
         const mg = muurBij(p, vinger ? 20 : 9);
         const dm = mg ? Math.abs((mg.as === 'x' ? p.x : p.y) - mg.op) * k : Infinity;
-        if (dm >= dg) {
-          actie.kandidaat = { soort: 'verplaats', id: st.kies.id };
+        if (dm >= dg || (!opGreep && !mg)) {
+          actie.kandidaat = { soort: 'verplaats', id: st.kies.id, greep: opGreep };
           return;
         }
       }
@@ -1109,6 +1197,11 @@
       }
     }
     function beweeg(e) {
+      if (wijzers.has(e.pointerId)) wijzers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (knijp) {
+        if (knijp.ids.includes(e.pointerId)) knijpVerder();
+        return;
+      }
       if (!actie || e.pointerId !== actie.wijzer) return;
       const p = punt(e);
       const dx = p.px - actie.start.px;
@@ -1120,7 +1213,11 @@
       }
       if (!actie.type) {
         if (Math.hypot(dx, dy) < (actie.vinger ? 10 : 5)) return;
-        const kd = actie.kandidaat;
+        let kd = actie.kandidaat;
+        // In een gekozen ruimte bij een muur: recht van de muur af schuift de muur, schuin of erlangs verplaatst de ruimte.
+        if (actie.gekozen != null && (kd.soort === 'muur' || kd.soort === 'zone') && !(Math.abs(kd.m.as === 'x' ? dx : dy) > Math.abs(kd.m.as === 'x' ? dy : dx) * 1.4)) {
+          kd = actie.kandidaat = { soort: 'verplaats', id: actie.gekozen, greep: false };
+        }
         if (kd.soort === 'verplaats') {
           // De ruimte optillen: waar hij stond komt de ruimte terug waar hij het meest aan grenst.
           const v0 = vloer();
@@ -1163,7 +1260,11 @@
           actie.dx = X(kd.q.x) - actie.start.px;
           actie.dy = Y(kd.q.y) - actie.start.py - (actie.vinger ? 30 : 0);
         } else if (kd.soort === 'vak') actie.type = 'vak';
-        else return;
+        else if (kd.soort === 'heel') {
+          // Van de knop af geschoven: dan niets.
+          actie.type = 'niets';
+          return;
+        } else return;
         if (actie.type === 'vak') {
           const sx = klik(actie.start.x, magneten('x'), 3.2);
           const sy = klik(actie.start.y, magneten('y'), 3.2);
@@ -1309,13 +1410,20 @@
       }
       return s;
     }
+    /** Een vinger van de tekening af: na het knijpen gebeurt er niets tot ze allebei los zijn. */
+    function vingerWeg(id) {
+      wijzers.delete(id);
+      if (knijp && !wijzers.size) knijp = null;
+    }
     function los(e) {
+      vingerWeg(e.pointerId);
       if (!actie || e.pointerId !== actie.wijzer) return;
       const a = actie;
       actie = null;
       over = '';
       if (a.type === 'draai') return meld();
-      if (!a.type) return tik(a);
+      if (a.type === 'niets') return;
+      if (!a.type) return a.kandidaat.soort === 'heel' ? heelHuis() : tik(a);
       if (a.type === 'verplaats') {
         if (a.voorbeeld && (a.d[0] || a.d[1])) {
           stap();
@@ -1367,6 +1475,7 @@
       }
     }
     function afgebroken(e) {
+      if (e) vingerWeg(e.pointerId);
       if (!actie || (e && e.pointerId !== actie.wijzer)) return;
       actie = null;
       over = '';
@@ -1394,17 +1503,19 @@
           return;
         } else if (id !== BUITEN && id !== st.zoom) {
           st.zoom = id;
+          st.eigen = null;
           st.kies = { soort: 'ruimte', id };
           kijkNaar(zoomDoel());
         } else if (id === BUITEN && st.zoom != null) {
           st.zoom = null;
+          st.eigen = null;
           st.kies = null;
           kijkNaar(zoomDoel());
         } else st.kies = id !== BUITEN ? { soort: 'ruimte', id } : null;
         teken();
         return meld();
       }
-      if (a.kandidaat.soort === 'verplaats') return teken();
+      if (a.kandidaat.soort === 'verplaats' && a.kandidaat.greep) return teken();
       if (a.kandidaat.soort === 'muur') st.kies = { soort: 'muur', run: a.kandidaat.m };
       else if (a.kandidaat.soort === 'zone') st.kies = { soort: 'ruimte', id: a.kandidaat.id };
       else if (id === BUITEN || st.stand === 'vorm') st.kies = null;
@@ -1420,9 +1531,12 @@
     svg.addEventListener('pointermove', beweeg);
     svg.addEventListener('pointerup', los);
     svg.addEventListener('pointercancel', afgebroken);
-    svg.addEventListener('lostpointercapture', () => {
+    svg.addEventListener('lostpointercapture', (e) => {
       // Kwijt zonder loslaten (een melding eroverheen): terug naar hoe het was.
-      setTimeout(() => actie && afgebroken(), 50);
+      setTimeout(() => {
+        vingerWeg(e.pointerId);
+        if (actie && actie.wijzer === e.pointerId) afgebroken();
+      }, 50);
     });
     if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => pasAan()).observe(svg);
 
@@ -1540,6 +1654,7 @@
       if (!huis.bronnen?.[id] || id === st.bron) return;
       stap();
       st.bron = id;
+      st.eigen = null;
       zetBlokken();
       for (const e of huis.etages) {
         const oud = st.vloeren[e.id];
@@ -1643,11 +1758,13 @@
       plekNaam,
       kamerPlek,
       bezig: () => actie,
+      heelHuis,
       zetStand(s) {
         st.stand = s;
         st.kies = null;
         st.wapen = null;
         st.zoom = null;
+        st.eigen = null;
         kijkNaar(zoomDoel());
         meld();
       },
@@ -1672,6 +1789,7 @@
       },
       zoom(id) {
         st.zoom = id;
+        st.eigen = null;
         if (id != null) st.kies = { soort: 'ruimte', id };
         kijkNaar(zoomDoel());
         meld();

@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.180.0
+## 0.180.1
 
-*12 november 2026 · 0.179.0 – 0.180.0*
+*13 november 2026 · 0.179.0 – 0.180.1*
 
 **Nieuw**
 
+- Je huis: zoom in met twee vingers en schuif de tekening met twee vingers; Hele huis zet hem terug
+- Een gekozen ruimte sleep je overal binnen de ruimte weg, niet alleen aan het blauwe rondje; er komt dan geen nieuw vak meer bij
 - Je huis: teken je kamers op ruitjes van 10 cm, per etage. Begin met een indeling uit je kamers of met de muren van beneden, trek een vak voor een nieuwe ruimte, schuif een muur, en tik een vak aan om te zeggen welke kamer het is
 - Je huis staat naast Kamers en indeling, met een knop Je huis tekenen; Vorm, Apparaten en Huis komen in de volgende versies
 - Voorbereiding op Je huis tekenen: SunArc kan per etage je kamers als vakken op ruitjes van 10 cm bewaren, met de lijn tussen de zones van een kamer. Er is nog niets te zien; de pagina komt in de volgende versie
@@ -14,6 +16,8 @@
 
 **New**
 
+- Your home: zoom in with two fingers and move the drawing with two fingers; Whole house puts it back
+- Drag a chosen space from anywhere inside it, not just by the blue circle; it no longer adds a new box
 - Your home: draw your rooms on a 10 cm grid, floor by floor. Start with a layout from your rooms or with the walls from below, drag a box for a new space, move a wall, and tap a box to say which room it is
 - Your home sits next to Rooms and layout, with a Draw your home button; Shape, Devices and Home come in the next versions
 - Preparing for Draw your home: SunArc can store your rooms per floor as boxes on a 10 cm grid, with the line between the zones of a room. Nothing to see yet; the page comes in the next version

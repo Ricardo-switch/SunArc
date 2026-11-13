@@ -7371,8 +7371,30 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       s = await v.stand();
       expect(s[vak], naam).toEqual({ x0: 60, y0: 30, x1: 80, y1: 50, n: 400 });
       expect(Object.keys(s), naam).toHaveLength(3);
+      // Een gekozen ruimte sleep je ook buiten de greep weg, schuin bij een muur ook: geen nieuw vak (Ricardo, 0.180.1).
+      await v.veeg([6.3, 3.3], [6.55, 3.55], [6.8, 3.8]);
+      expect(await v.log(), naam).toBe('pointerdown pointerup');
+      s = await v.stand();
+      expect(s[vak], naam).toEqual({ x0: 65, y0: 35, x1: 85, y1: 55, n: 400 });
+      expect(Object.keys(s), naam).toHaveLength(3);
+      // Knijpen zoomt in en tekent niets; met twee vingers schuift de tekening; Hele huis zet hem terug.
+      const k0 = await v.schaal();
+      await v.knijp(5, 4.2, 40, 160);
+      expect(await v.log(), naam).not.toContain('pointercancel');
+      expect(await v.schaal(), naam).toBeGreaterThan(k0 * 2.5);
+      const k1 = await v.schaal();
+      await v.knijp(5, 4.2, 80, 80, 60);
+      expect(await v.schaal(), naam).toBeCloseTo(k1, 3);
+      expect(await v.stand(), naam).toEqual(s);
+      const knop = await p.evaluate<[number, number]>(`(() => { const r = document.querySelector('#tekening [data-l="knop"] rect').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; })()`);
+      const cdp = await context.newCDPSession(p);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: knop[0], y: knop[1] }] });
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await expect.poll(() => v.schaal()).toBeCloseTo(k0, 3);
+      expect(await p.locator('#tekening [data-l="knop"] rect').count(), naam).toBe(0);
+      expect(await v.stand(), naam).toEqual(s);
       // Bewaard na het loslaten, in meters vanaf de linker voorhoek.
-      await expect.poll(() => p.evaluate<string>('JSON.stringify(window.bewaard.at(-1))')).toContain('[6,3,2,2]');
+      await expect.poll(() => p.evaluate<string>('JSON.stringify(window.bewaard.at(-1))')).toContain('[6.5,3.5,2,2]');
       expect(fouten, naam).toEqual([]);
       await context.close();
     }
