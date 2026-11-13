@@ -316,6 +316,12 @@ verwijzing bestaat.
   erbij, ook bij Daken en panelen, met een eigen ruimte op de begane grond.
   Weghalen zet het terug. Een tuinhuis telt zo ook mee als het verder dan een
   meter van het huis staat (tot 30 m).
+  0.186.0: de plattegrond van OpenStreetMap neemt het dak, de hoogte en de
+  dakvlakken van 3D BAG over als die het huis ook kent; van elk dakvlak uit
+  3D BAG wordt ook de vorm van boven en de hoogte bewaard, en een dakkapel
+  komt uit waar zijn platte dakje echt ligt (niet uit de richting). In de
+  schetsen (nog niet in de dienst): deuren, ramen, de voordeur, screens voor
+  een raam en een trap met een richting, en Thuis met het huis op maat.
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over

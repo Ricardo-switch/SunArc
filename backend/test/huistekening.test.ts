@@ -247,6 +247,12 @@ describe('je huis tekenen: de bronnen bij Vorm (stap 4)', () => {
     expect(osm.kaartDak).toBeUndefined();
     // Een kaart die het huis niet kent: niets te kiezen.
     expect(dakenMetBron(d, 'osm', { stand: 'wijk' })).toBeNull();
+    // De plattegrond met de 3D-kaart erbij (13 november 2026): de omtrek van OpenStreetMap, het dak, de hoogte en de dakvlakken van 3D BAG.
+    const samen = dakenMetBron(d, 'osm', { stand: 'huis', hoofdhuis: blok(-5, -4, 5, 4) }, kaart)!;
+    const h3 = samen.gebouwen!.find((g) => g.soort === 'hoofdhuis')!;
+    expect(h3).toMatchObject({ kaart: 'osm', dakvorm: 'schild', hoogteGoot: 6.2, hoogteNok: 9.7 });
+    expect(h3.omtrek).toEqual(blok(-5, -4, 5, 4));
+    expect(samen.kaartDak).toEqual([{ azimuthDeg: 180, tiltDeg: 44, m2: 50 }]);
     expect(dakenMetBron(d, 'bag3d', null)).toBeNull();
   });
 
@@ -283,14 +289,24 @@ describe('je huis tekenen: de bronnen bij Vorm (stap 4)', () => {
  * 3D BAG volgt waar hij ligt en hoe hoog de goot aan elke kant is.
  */
 describe('je huis tekenen: een dakkapel uit 3D BAG', () => {
-  const blok = { id: 'hoofd', soort: 'hoofdhuis' as const, u: 0, v: 0, b: 5.6, d: 9.9, dak: 'zadel' as const, nokLangs: 'x' as const };
-  it('herkent een klein, bijna plat dakvlak aan een kant van het dak', () => {
-    // Het huis van Ricardo: de voorgevel op het oosten, een plat stukje van 4,9 m² aan de voorkant; de garage (plat, 20,7 m²) telt niet.
-    const vlakken = [{ azimuthDeg: 92, tiltDeg: 5.2, m2: 4.9 }, { azimuthDeg: 92, tiltDeg: 45.9, m2: 5 }, { azimuthDeg: 0, tiltDeg: 0.6, m2: 20.7 }, { azimuthDeg: 93, tiltDeg: 42.9, m2: 28.6 }, { azimuthDeg: 272, tiltDeg: 43.9, m2: 41.5 }];
-    // u loopt naar het noorden (0) en v naar het westen: kant 1 (achter) kijkt naar het westen, kant 0 (voor) naar het oosten.
-    expect(dakkapellen(blok, vlakken, 0)).toEqual([{ kant: 0, breed: 2.5 }]);
-    expect(dakkapellen({ ...blok, dak: 'plat' }, vlakken, 0)).toEqual([]);
-    expect(dakkapellen(blok, vlakken, null)).toEqual([]);
+  // Het huis van Ricardo, vereenvoudigd: 9,9 m diep van oost naar west, 5,6 m breed, de voorgevel op het oosten.
+  const huis: Gebouw = { id: 'huis', soort: 'hoofdhuis', bron: 'kaart', kaart: 'bag3d', omtrek: [[0, 0], [9.9, 0], [9.9, 5.6], [0, 5.6]], dakvorm: 'zadel', nokDeg: 0 };
+  const v = tekenVorm([huis], 90, null);
+  const blok = v.blokken[0]!;
+  // Het platte dakje van de dakkapel ligt aan de westkant, 1,5 tot 3,5 m van de achtergevel.
+  const kapel = { azimuthDeg: 92, tiltDeg: 5.2, m2: 4.9, vorm: [[1.5, 1.5], [3.5, 1.5], [3.5, 4], [1.5, 4]] as Xy[], hoog: [8, 8.1] as const };
+
+  it('legt hem aan de kant waar het vlak echt ligt, niet waar het naar wijst', () => {
+    expect(v.kader).toBeTruthy();
+    // Het vlak wijst naar het oosten (92°), maar ligt aan de westkant: achter (kant 1).
+    expect(dakkapellen(blok, [kapel], v.kader!)).toEqual([{ kant: 1, van: 1.5, tot: 4, voor: 1.5, achter: 3.5, boven: 8.1 }]);
+  });
+
+  it('gokt niet: een vlak zonder plek, een schuin vlak of een plat dak geeft niets', () => {
+    const { vorm: _v, ...zonder } = kapel;
+    expect(dakkapellen(blok, [zonder], v.kader!)).toEqual([]);
+    expect(dakkapellen(blok, [{ ...kapel, tiltDeg: 44 }], v.kader!)).toEqual([]);
+    expect(dakkapellen({ ...blok, dak: 'plat' }, [kapel], v.kader!)).toEqual([]);
   });
 });
 

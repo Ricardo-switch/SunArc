@@ -71,6 +71,64 @@
   };
 
   /*
+   * Deuren, ramen, de trap en de screens van het voorbeeldhuis (schets 13
+   * november 2026): `#deuren` in Je huis tekenen, en Thuis op maat. In ruitjes
+   * (de rand is 30 ruitjes, een ruitje is 10 cm). Op de begane grond de
+   * voordeur in de hal, ramen in de woonkamer en de keuken, deuren naar de
+   * woonkamer, de keuken en de garage, en achter in de hal de trap naar voren;
+   * boven een overloop boven de trap, ramen en deuren. De screens van de
+   * woonkamer en de slaapkamer hangen voor het raam aan de straat.
+   */
+  global.huistekenenVoorbeeld.inrichten = function (t) {
+    const st = t.st;
+    const o = (soort, as, op, van, tot) => ({ soort, as, op, van, tot });
+    const zet = (etage, lijst) => (st.vloeren[etage].openingen = lijst.map((x, i) => ({ id: `o${i + 1}`, ...x })));
+    const was = st.etage;
+    const stand = st.stand;
+    st.stand = 'kamers';
+    // De trap achter in de hal, en boven de overloop erboven.
+    t.zetEtage('bg');
+    t.vak({ x0: 64, y0: 84, x1: 88, y1: 114 });
+    t.noem(t.st.kies.id, { naam: t.huis.eigenNaam?.('trap') ?? 'Trap', soort: 'trap' });
+    t.zetTrap(t.st.kies.id, 'z');
+    t.zetEtage('eerste');
+    t.vak({ x0: 64, y0: 76, x1: 88, y1: 114 });
+    t.noem(t.st.kies.id, { naam: 'Overloop', soort: 'overloop' });
+    zet('bg', [
+      o('voordeur', 'y', 30, 71, 81),
+      o('raam', 'y', 30, 100, 120),
+      o('raam', 'y', 30, 128, 148),
+      o('raam', 'x', 164, 52, 66),
+      o('raam', 'y', 146, 128, 148),
+      o('deur', 'x', 88, 66, 75),
+      o('deur', 'y', 114, 140, 149),
+      o('deur', 'x', 64, 70, 79),
+    ]);
+    zet('eerste', [
+      o('raam', 'y', 30, 80, 96),
+      o('raam', 'y', 30, 132, 148),
+      o('raam', 'y', 114, 120, 136),
+      o('raam', 'x', 164, 50, 62),
+      o('deur', 'y', 76, 70, 79),
+      o('deur', 'x', 88, 92, 101),
+      o('deur', 'y', 76, 104, 113),
+    ]);
+    const hang = (id, etage, raam) => {
+      const a = st.apparaten.find((x) => x.id === id);
+      const r = st.vloeren[etage].openingen.find((x) => x.id === raam);
+      if (!a || !r) return;
+      a.raam = raam;
+      a.plek = { etage, x: (r.van + r.tot) / 2, y: r.op + 3 };
+    };
+    hang('screen-woon', 'bg', 'o2');
+    hang('screen-slaap', 'eerste', 'o1');
+    st.terug = [];
+    st.stand = stand;
+    t.zetEtage(was);
+    t.kies(null);
+  };
+
+  /*
    * Een tweede huis: één rechthoek van 10 bij 7,6 meter met een open begane
    * grond. Keuken en woonkamer zijn zones van één kamer; in het midden aan de
    * voorkant staat een kern met de hal, de meterkast, het toilet en de trap.
@@ -125,7 +183,7 @@
    * begane grond is zijn eigen schets (12 november 2026), op deze maat gezet.
    */
   const gar = { id: 'garage', soort: 'garage', naam: 'Garage', u: 0, v: 0, b: 8.9, d: 2.4, dak: 'plat dak' };
-  const hs = { id: 'hoofd', soort: 'hoofdhuis', naam: 'Hoofdhuis', u: 6.4, v: 2.4, b: 9.8, d: 5.6, dak: 'zadeldak', nokLangs: 'y', nokVanRechts: 3.75, gootLinks: 3.9, gootRechts: 5.6, dakkapellen: [{ kant: 1, breed: 2.5 }] };
+  const hs = { id: 'hoofd', soort: 'hoofdhuis', naam: 'Hoofdhuis', u: 6.4, v: 2.4, b: 9.8, d: 5.6, dak: 'zadeldak', nokLangs: 'y', nokVanRechts: 3.75, gootLinks: 3.9, gootRechts: 5.6, dakkapellen: [{ kant: 0, breed: 2.5 }] };
   const hsRecht = { ...hs, nokVanRechts: 4.9, gootLinks: 5.4, gootRechts: 5.4 };
   global.huistekenenJouw = {
     maat: { breed: 16.2, diep: 8 },

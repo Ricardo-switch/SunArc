@@ -393,8 +393,9 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     // Een andere bron voor de buitenkant: eerst bij Daken en panelen, dan pas de tekening.
     const bron = VORM_BRONNEN.includes(b['bron'] as VormBron) ? (b['bron'] as VormBron) : vorm.bron;
     if (bron !== vorm.bron) {
-      const kaart = bron === 'zelf' ? null : ((await kaartBronnen(d, false))?.[bron] ?? null);
-      const nieuw = vorm.daken && d.options.connection ? dakenMetBron(vorm.daken, bron, kaart) : null;
+      const alle = bron === 'zelf' ? null : await kaartBronnen(d, false);
+      const kaart = alle?.[bron as 'osm' | 'bag3d'] ?? null;
+      const nieuw = vorm.daken && d.options.connection ? dakenMetBron(vorm.daken, bron, kaart, alle?.bag3d ?? null) : null;
       if (!nieuw || !d.options.connection) {
         sendJson(res, 409, { fout: 'deze bron is er niet meer; kijk opnieuw wat de kaarten vinden' });
         return;
@@ -532,7 +533,7 @@ async function vormVanHuis(
   const kaarten = daken ? await kaartBronnen(d, false) : null;
   for (const k of ['bag3d', 'osm'] as const) {
     if (k === bron || !daken) continue;
-    const met = dakenMetBron(daken, k, kaarten?.[k] ?? null);
+    const met = dakenMetBron(daken, k, kaarten?.[k] ?? null, kaarten?.bag3d ?? null);
     if (met) vormen[k] = bronVorm(met, voorgevel, woning, lagen);
   }
   if (bron !== 'zelf') vormen.zelf = bronVorm(daken ? dakenMetBron(daken, 'zelf', null)! : leeg, voorgevel, woning, lagen);

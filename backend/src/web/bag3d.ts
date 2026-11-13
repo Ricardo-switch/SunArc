@@ -94,6 +94,14 @@ export interface BagDakvlak {
   readonly azimuthDeg: number;
   readonly tiltDeg: number;
   readonly m2: number;
+  /**
+   * Waar het vlak ligt (13 november 2026, Ricardo: niet gokken): de hoeken
+   * van boven gezien, in meters vanaf de plek (x oost, y noord), en hoe hoog
+   * het laagste en hoogste punt boven de grond liggen. Zo valt een dakkapel
+   * aan de goede kant van de nok.
+   */
+  readonly vorm?: readonly Xy[];
+  readonly hoog?: readonly [number, number];
 }
 
 /** Het dak van een gebouw, zoals SunArc het tekent: de vorm, de nok, en de helling van de schuine vlakken. */
@@ -222,6 +230,7 @@ export function bagHuisEnOmgeving(cj: CityJson, x: number, y: number): { huis: B
     const afstand = Math.hypot(m[0], m[1]);
     if (afstand > 60) continue;
     const vlakken: BagDakvlak[] = [];
+    const grond = typeof o.attributes?.['b3_h_maaiveld'] === 'number' ? (o.attributes['b3_h_maaiveld'] as number) : 0;
     for (const kind of o.children ?? []) {
       for (const g of cj.CityObjects[kind]?.geometry ?? []) {
         if (g.lod !== '2.2' || !g.semantics) continue;
@@ -232,8 +241,12 @@ export function bagHuisEnOmgeving(cj: CityJson, x: number, y: number): { huis: B
           if (s?.['type'] !== 'RoofSurface') continue;
           const az = s['b3_azimut'];
           const tilt = s['b3_hellingshoek'];
-          const m2 = oppervlak3d(r.map(punt));
-          if (typeof tilt === 'number' && m2 > 0.5) vlakken.push({ azimuthDeg: typeof az === 'number' ? norm(az) : 0, tiltDeg: Math.round(tilt * 10) / 10, m2: Math.round(m2 * 10) / 10 });
+          const punten = r.map(punt);
+          const m2 = oppervlak3d(punten);
+          const r1 = (n: number) => Math.round(n * 10) / 10;
+          const zs = punten.map((q) => q[2]! - grond);
+          const vorm = punten.slice(0, 16).map((q) => [r1(q[0]!), r1(q[1]!)] as Xy);
+          if (typeof tilt === 'number' && m2 > 0.5) vlakken.push({ azimuthDeg: typeof az === 'number' ? norm(az) : 0, tiltDeg: Math.round(tilt * 10) / 10, m2: Math.round(m2 * 10) / 10, vorm, hoog: [r1(Math.min(...zs)), r1(Math.max(...zs))] });
         }
       }
     }

@@ -81,7 +81,7 @@
     }
     return n;
   }
-  const kopie = (v) => ({ W: v.W, H: v.H, cel: v.cel.slice(), ruimtes: JSON.parse(JSON.stringify(v.ruimtes)), zones: JSON.parse(JSON.stringify(v.zones ?? {})), volg: v.volg });
+  const kopie = (v) => ({ W: v.W, H: v.H, cel: v.cel.slice(), ruimtes: JSON.parse(JSON.stringify(v.ruimtes)), zones: JSON.parse(JSON.stringify(v.zones ?? {})), volg: v.volg, openingen: JSON.parse(JSON.stringify(v.openingen ?? [])) });
 
   /**
    * Een zone is een stippellijn in één kamer, geen muur: de stukken van die
@@ -178,6 +178,53 @@
   /** Muren: 1 tussen twee ruimtes, 2 de buitenmuur. */
   const isMuur = (a, b) => (a === b ? 0 : a === BUITEN || b === BUITEN ? 2 : 1);
   const lijnPad = (r) => (r.as === 'x' ? `M${r.op} ${r.van}V${r.tot}` : `M${r.van} ${r.op}H${r.tot}`);
+
+  /*
+   * Deuren, ramen en de voordeur (schets 13 november 2026, keuze Ricardo: op de
+   * muur bij Kamers). Een opening ligt op een muurlijn: `as` en `op` zoals een
+   * muur, van..tot langs de muur, in ruitjes. Hij hoort bij de vloer
+   * (`v.openingen`); ligt er geen muur meer, dan telt hij niet.
+   */
+  const OPENING_BREED = { deur: 9, voordeur: 10, raam: 12 };
+  /** 0: geen muur (meer), 1: een binnenmuur, 2: (deels) de buitenmuur. */
+  function openingMuur(v, o) {
+    let buiten = false;
+    for (let j = o.van; j < o.tot; j++) {
+      const [a, b] = o.as === 'x' ? [v.cel[j * v.W + o.op - 1], v.cel[j * v.W + o.op]] : [v.cel[(o.op - 1) * v.W + j], v.cel[o.op * v.W + j]];
+      const m = isMuur(a, b);
+      if (!m) return 0;
+      if (m === 2) buiten = true;
+    }
+    return buiten ? 2 : 1;
+  }
+  /** Aan welke kant van de muur de ruimte ligt bij een buitenmuur (+1 of -1); bij een binnenmuur +1. */
+  function openingBinnen(v, o) {
+    const mid = Math.floor((o.van + o.tot) / 2);
+    const plus = o.as === 'x' ? v.cel[mid * v.W + o.op] : v.cel[o.op * v.W + mid];
+    return plus === BUITEN ? -1 : 1;
+  }
+  /** De trap: waar hij omhoog gaat, als richting in ruitjes. n is naar achter, z naar de straat. */
+  const TRAP_RICHTING = { n: [0, 1], z: [0, -1], o: [1, 0], w: [-1, 0] };
+  /**
+   * Een muur in stukken van hooguit `stap` ruitjes voor het huis in 3D, met
+   * per stuk wat erin zit: niets, een raam, een deur of de voordeur.
+   */
+  function muurDelen(v, run, stap = 10) {
+    const op = (v.openingen ?? []).filter((o) => o.as === run.as && o.op === run.op && o.van >= run.van && o.tot <= run.tot && openingMuur(v, o)).sort((a, b) => a.van - b.van);
+    const uit = [];
+    const knip = (van, tot, soort, id) => {
+      for (let a = van; a < tot; a += stap) uit.push({ van: a, tot: Math.min(tot, a + stap), soort, id });
+    };
+    let nu = run.van;
+    for (const o of op) {
+      if (o.van < nu) continue;
+      knip(nu, o.van, null);
+      uit.push({ van: o.van, tot: o.tot, soort: o.soort, id: o.id });
+      nu = o.tot;
+    }
+    knip(nu, run.tot, null);
+    return uit;
+  }
 
   /** Per ruimte een pad van rechthoeken, voor de kleur. */
   function vlakPaden(v) {
@@ -420,7 +467,7 @@
         n = 1;
       }
     }
-    return { W: v.W, H: v.H, r: rijen, ruimtes: v.ruimtes, zones: v.zones ?? {}, volg: v.volg };
+    return { W: v.W, H: v.H, r: rijen, ruimtes: v.ruimtes, zones: v.zones ?? {}, volg: v.volg, openingen: v.openingen ?? [] };
   }
   function uitpakken(p) {
     const cel = new Int16Array(p.W * p.H);
@@ -429,7 +476,7 @@
       cel.fill(p.r[k], i, i + p.r[k + 1]);
       i += p.r[k + 1];
     }
-    return { W: p.W, H: p.H, cel, ruimtes: p.ruimtes, zones: p.zones ?? {}, volg: p.volg };
+    return { W: p.W, H: p.H, cel, ruimtes: p.ruimtes, zones: p.zones ?? {}, volg: p.volg, openingen: p.openingen ?? [] };
   }
 
   /* ---------------------------------------------- bewaren in de dienst: meters (besluit 308) */
@@ -515,6 +562,8 @@
    */
   function maak(svg, huis, opties = {}) {
     const kamers = Object.fromEntries(huis.kamers.map((k) => [k.id, k]));
+    /** Deuren, ramen, screens aan een raam en een trap met een richting (schets, nog niet in de dienst). */
+    const metOpeningen = !!opties.openingen;
     const st = {
       stand: opties.stand ?? 'kamers',
       etage: opties.etage ?? huis.etages[huis.etages.length - 1].id,
@@ -874,6 +923,17 @@
         const d = randen(st.vloeren[eronder.id], isMuur).filter((r) => r.soort === 1).map(lijnPad).join('');
         s = `<g transform="${tf}"><path d="${d}" fill="none" stroke="rgb(255 255 255 / 0.2)" stroke-width="1.5" stroke-dasharray="5 6" vector-effect="non-scaling-stroke"/></g>`;
       }
+      // Het trapgat: waar de trap van de etage eronder hier uitkomt.
+      if (metOpeningen && eronder && st.stand !== 'vorm') {
+        const vo = st.vloeren[eronder.id];
+        const mo = maten(vo);
+        for (const [id, r] of Object.entries(vo.ruimtes)) {
+          if (soortVan(r) !== 'trap' || !mo[id]) continue;
+          const b = mo[id];
+          s += `<g transform="${tf}"><rect x="${b.x0}" y="${b.y0}" width="${b.x1 - b.x0}" height="${b.y1 - b.y0}" fill="rgb(255 255 255 / 0.05)" stroke="#a9e6ff" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="6 5" vector-effect="non-scaling-stroke"/></g>`;
+          s += `<text x="${X((b.x0 + b.x1) / 2).toFixed(1)}" y="${(Y((b.y0 + b.y1) / 2) + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12" font-weight="700" fill="#a9e6ff" pointer-events="none">${esc(T('ht.trap.gat'))}</text>`;
+        }
+      }
       laag('onder').innerHTML = s;
 
       // De ruimtes in hun kleur, en de muren.
@@ -902,6 +962,8 @@
       const buiten = muren.filter((r) => r.soort === 2).map(lijnPad).join('');
       if (!vorm) s += `<path d="${binnen}" fill="none" stroke="#c9d3dc" stroke-width="3" stroke-linecap="square" vector-effect="non-scaling-stroke"/>`;
       s += `<path d="${buiten}" fill="none" stroke="#eef3f7" stroke-width="${vorm ? 6 : 5}" stroke-linecap="square" vector-effect="non-scaling-stroke"/>`;
+      if (metOpeningen && !vorm) s += openingenPad(v);
+      if (metOpeningen && !vorm) s += trapPad(v, m);
       // Wat gekozen is: de rand van de ruimte, of de muur zelf.
       if (st.kies?.soort === 'ruimte' && m[st.kies.id]) {
         const id = st.kies.id;
@@ -1033,6 +1095,53 @@
       const hk = heelKnop();
       laag('knop').innerHTML = hk ? `<g transform="translate(${hk.x} ${hk.y})" pointer-events="none"><rect width="${hk.b}" height="${hk.h}" rx="10" fill="#0d1a30" stroke="#6fd3ff" stroke-opacity="0.7"/><text x="${hk.b / 2}" y="${hk.h / 2 + 4.5}" text-anchor="middle" ${FONT} font-size="13" font-weight="700" fill="#a9e6ff">${esc(T('ht.heleHuis'))}</text></g>` : '';
     }
+    /** De deuren, ramen en de voordeur op de plattegrond (in ruitjes, binnen de transform). */
+    function openingenPad(v) {
+      let s2 = '';
+      for (const o of v.openingen ?? []) {
+        const mu = openingMuur(v, o);
+        if (!mu) continue;
+        const gekozen = (st.kies?.soort === 'opening' && st.kies.id === o.id) || actie?.kandidaat?.o?.id === o.id;
+        const lijn = (e, a = o.van, b = o.tot) => (o.as === 'x' ? `M${o.op + e} ${a}V${b}` : `M${a} ${o.op + e}H${b}`);
+        // Het gat in de muur.
+        s2 += `<path d="${lijn(0)}" stroke="#1a2740" stroke-width="${mu === 2 ? 7 : 5}" vector-effect="non-scaling-stroke" fill="none"/>`;
+        const kleur = gekozen ? '#6fd3ff' : o.soort === 'raam' ? '#a9e6ff' : o.soort === 'voordeur' ? '#f7b548' : '#dfe6ec';
+        if (o.soort === 'raam') {
+          s2 += `<path d="${lijn(-0.45)}${lijn(0.45)}" stroke="${kleur}" stroke-width="${gekozen ? 2.6 : 1.8}" vector-effect="non-scaling-stroke" fill="none"/>`;
+          // Een screen voor dit raam: een oranje streep aan de buitenkant.
+          if (st.apparaten.some((a) => a.raam === o.id && a.plek?.etage === st.etage)) s2 += `<path d="${lijn(-openingBinnen(v, o) * 1.6, o.van + 0.5, o.tot - 0.5)}" stroke="#ff9a6b" stroke-width="2.4" stroke-dasharray="4 3" vector-effect="non-scaling-stroke" fill="none"/>`;
+        } else {
+          // Een deur: het blad en de boog waar hij draait, de kamer in (de voordeur naar binnen).
+          const w = o.tot - o.van;
+          const kant = openingBinnen(v, o);
+          const [hx, hy, lx, ly, sx, sy] = o.as === 'x' ? [o.op, o.van, o.op + kant * w, o.van, o.op, o.tot] : [o.van, o.op, o.van, o.op + kant * w, o.tot, o.op];
+          const veeg = (o.as === 'x') === (kant > 0) ? 0 : 1;
+          s2 += `<path d="M${hx} ${hy}L${lx} ${ly}" stroke="${kleur}" stroke-width="${gekozen ? 3 : 2}" stroke-linecap="round" vector-effect="non-scaling-stroke" fill="none"/>`;
+          s2 += `<path d="M${sx} ${sy}A${w} ${w} 0 0 ${veeg} ${lx} ${ly}" stroke="${kleur}" stroke-width="1.2" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" fill="none" opacity="0.8"/>`;
+        }
+      }
+      return s2;
+    }
+    /** De trap: treden dwars op de richting, en een pijl naar boven. */
+    function trapPad(v, mm) {
+      let s2 = '';
+      for (const [id, r] of Object.entries(v.ruimtes)) {
+        if (soortVan(r) !== 'trap' || !mm[id]?.r) continue;
+        const b = mm[id].r;
+        const [rx, ry] = TRAP_RICHTING[r.omhoog ?? 'n'];
+        const langs = rx ? [b.x0, b.x1] : [b.y0, b.y1];
+        let d = '';
+        for (let t2 = langs[0] + 2.5; t2 < langs[1] - 0.5; t2 += 2.5) d += rx ? `M${t2} ${b.y0 + 1}V${b.y1 - 1}` : `M${b.x0 + 1} ${t2}H${b.x1 - 1}`;
+        s2 += `<path d="${d}" stroke="rgb(255 255 255 / 0.4)" stroke-width="1.2" vector-effect="non-scaling-stroke" fill="none"/>`;
+        // De pijl van onder naar boven.
+        const [cx, cy] = [(b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2];
+        const half = ((rx ? b.x1 - b.x0 : b.y1 - b.y0) / 2) * 0.75;
+        const [ax, ay, bx, by] = [cx - rx * half, cy - ry * half, cx + rx * half, cy + ry * half];
+        const pk = 2.2;
+        s2 += `<path d="M${ax} ${ay}L${bx} ${by}M${bx - rx * pk - ry * pk} ${by - ry * pk - rx * pk}L${bx} ${by}L${bx - rx * pk + ry * pk} ${by - ry * pk + rx * pk}" stroke="#a9e6ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" fill="none"/>`;
+      }
+      return s2;
+    }
     /** Waar de knop Hele huis staat, als er ingezoomd is. */
     function heelKnop() {
       if (!st.eigen) return null;
@@ -1053,11 +1162,40 @@
       if (cx < 0 || cy < 0 || cx >= v.W || cy >= v.H) return BUITEN;
       return v.cel[cy * v.W + cx];
     };
+    /** De deur of het raam vlak bij de vinger, op deze vloer. */
+    function openingBij(p, tolPx) {
+      const tol = tolPx / k;
+      let best = null;
+      const v = vloer();
+      for (const o of v.openingen ?? []) {
+        if (!openingMuur(v, o)) continue;
+        const dw = Math.abs((o.as === 'x' ? p.x : p.y) - o.op);
+        const l = o.as === 'x' ? p.y : p.x;
+        if (dw > tol || l < o.van - 1 || l > o.tot + 1) continue;
+        if (!best || dw < best.d) best = { d: dw, o };
+      }
+      return best?.o ?? null;
+    }
+    /** De muurlijn waar een opening op ligt (langer of korter dan de opening). */
+    const muurVan = (v, o) => randen(v, isMuur).find((r) => r.as === o.as && r.op === o.op && r.van <= o.van && r.tot >= o.tot) ?? null;
+    /** Het raam vlak bij een plek (een screen dat je erheen sleept), binnen 80 cm. */
+    function raamBij(v, x, y) {
+      let best = null;
+      for (const o of v.openingen ?? []) {
+        if (o.soort !== 'raam' || !openingMuur(v, o)) continue;
+        const dw = Math.abs((o.as === 'x' ? x : y) - o.op);
+        const l = o.as === 'x' ? y : x;
+        const buiten = Math.max(0, o.van - l, l - o.tot);
+        const d = Math.hypot(dw, buiten);
+        if (d <= 8 && (!best || d < best.d)) best = { d, o };
+      }
+      return best?.o ?? null;
+    }
     function muurBij(p, tolPx) {
       const tol = tolPx / k;
       let best = null;
       for (const r of randen(vloer(), isMuur)) {
-        if (r.soort !== (st.stand === 'vorm' ? 2 : 1)) continue;
+        if (r.soort !== (st.stand === 'vorm' ? 2 : 1) && !(metOpeningen && st.stand === 'kamers' && r.soort === 2)) continue;
         const dwars = Math.abs((r.as === 'x' ? p.x : p.y) - r.op);
         const langs = r.as === 'x' ? p.y : p.x;
         // Vlak bij een hoek liever niets pakken dan de verkeerde muur.
@@ -1244,6 +1382,13 @@
         actie.kandidaat = { soort: 'heel' };
         return;
       }
+      // Een deur of raam: aantikken of langs de muur schuiven.
+      const op = metOpeningen && st.stand === 'kamers' ? openingBij(p, vinger ? 22 : 10) : null;
+      if (op) {
+        actie.kandidaat = { soort: 'opening', o: op };
+        teken();
+        return;
+      }
       // Een gekozen ruimte sleep je in zijn geheel weg: overal binnen de ruimte, of aan de greep in het midden.
       const g = greepPlek(vloer());
       const dg = g ? Math.hypot(g.px - p.px, g.py - p.py) : Infinity;
@@ -1308,7 +1453,7 @@
           // Recht van de muur af is schuiven; schuin of erlangs is een vak trekken dat bij de muur begint.
           const dwars = Math.abs(kd.m.as === 'x' ? dx : dy);
           const langs = Math.abs(kd.m.as === 'x' ? dy : dx);
-          if (dwars > langs * 1.4) {
+          if (dwars > langs * 1.4 && !(kd.m.soort === 2 && st.stand === 'kamers')) {
             actie.type = 'muur';
             actie.begin = kopie(vloer());
             actie.ruimte = muurRuimte(actie.begin, kd.m);
@@ -1324,6 +1469,15 @@
             actie.nuOp = kd.m.op;
             actie.magneet = magneten(kd.m.as);
           } else actie.type = 'vak';
+        } else if (kd.soort === 'opening') {
+          actie.type = 'opening';
+          actie.begin = foto();
+          actie.o0 = { ...kd.o };
+          actie.run = muurVan(vloer(), kd.o);
+          if (!actie.run) {
+            actie.type = 'niets';
+            return;
+          }
         } else if (kd.soort === 'apparaat') {
           actie.type = 'apparaat';
           actie.a = kd.q.a;
@@ -1343,6 +1497,20 @@
           actie.hoek = { x: sx, y: sy };
           teken();
         }
+      }
+      if (actie.type === 'opening') {
+        const o0 = actie.o0;
+        const o = vloer().openingen.find((x) => x.id === o0.id);
+        const w = o0.tot - o0.van;
+        const van = Math.round(klem(o0.van + (o0.as === 'x' ? -dy : dx) / k, actie.run.van + 1, actie.run.tot - 1 - w));
+        if (o && van !== o.van) {
+          o.van = van;
+          o.tot = van + w;
+          st.kies = { soort: 'opening', id: o.id };
+          teken();
+          meld();
+        }
+        return;
       }
       if (actie.type === 'muur') {
         const m = actie.kandidaat.m;
@@ -1520,6 +1688,12 @@
         }
         return klaar();
       }
+      if (a.type === 'opening') {
+        const o = vloer().openingen.find((x) => x.id === a.o0.id);
+        if (o && o.van !== a.o0.van) stap(a.begin);
+        st.kies = { soort: 'opening', id: a.o0.id };
+        return klaar();
+      }
       if (a.type === 'zone') {
         if (a.voorbeeld) {
           stap();
@@ -1540,6 +1714,16 @@
           const dev = st.apparaten.find((x) => x.id === a.a.id);
           dev.kamer = vloer().ruimtes[a.doel].kamer;
           dev.plek = a.plek;
+          if (metOpeningen && dev.soort === 'screen') {
+            const r = raamBij(vloer(), a.plek.x, a.plek.y);
+            if (r) {
+              dev.raam = r.id;
+              // Vlak voor het raam, in het midden.
+              const kant = openingBinnen(vloer(), r) * (openingMuur(vloer(), r) === 2 ? 1 : 1);
+              const mid = (r.van + r.tot) / 2;
+              dev.plek = r.as === 'x' ? { etage: st.etage, x: r.op + kant * 3, y: mid } : { etage: st.etage, x: mid, y: r.op + kant * 3 };
+            } else delete dev.raam;
+          }
           st.kies = { soort: 'apparaat', id: dev.id };
           if (st.zoom != null && st.zoom !== a.doel) st.zoom = a.doel;
         }
@@ -1588,7 +1772,8 @@
         return meld();
       }
       if (a.kandidaat.soort === 'verplaats' && a.kandidaat.greep) return teken();
-      if (a.kandidaat.soort === 'muur') st.kies = { soort: 'muur', run: a.kandidaat.m };
+      if (a.kandidaat.soort === 'opening') st.kies = { soort: 'opening', id: a.kandidaat.o.id };
+      else if (a.kandidaat.soort === 'muur') st.kies = { soort: 'muur', run: a.kandidaat.m, bij: a.kandidaat.m.as === 'x' ? p.y : p.x };
       else if (a.kandidaat.soort === 'zone') st.kies = { soort: 'ruimte', id: a.kandidaat.id };
       else if (st.stand === 'vorm') st.kies = gebouwOp(p.x, p.y);
       else if (id === BUITEN) st.kies = null;
@@ -1838,6 +2023,57 @@
       naar: opties.naar ?? null,
       /** Stap 4: de kaarten vragen (na de melding), als de pagina dat kan. */
       kijk: opties.kijk ?? null,
+      metOpeningen,
+      openingMuur: (o) => openingMuur(vloer(), o),
+      /** Een deur, raam of voordeur op de gekozen muur, waar je tikte. */
+      plaatsOpening(soort) {
+        const kz = st.kies;
+        if (kz?.soort !== 'muur' || !kz.run) return;
+        const run = kz.run;
+        const w = Math.min(OPENING_BREED[soort] ?? 9, run.tot - run.van - 2);
+        if (w < 5) return;
+        const mid = kz.bij ?? (run.van + run.tot) / 2;
+        const van = Math.round(klem(mid - w / 2, run.van + 1, run.tot - 1 - w));
+        const v = vloer();
+        stap();
+        const lijst = v.openingen ?? [];
+        const id = `o${Math.max(0, ...lijst.map((o) => Number(o.id.slice(1)) || 0)) + 1}`;
+        v.openingen = [...lijst, { id, soort, as: run.as, op: run.op, van, tot: van + w }];
+        st.kies = { soort: 'opening', id };
+        klaar();
+      },
+      /** De gekozen opening breder (+1) of smaller (-1), tien centimeter per stap, om zijn midden. */
+      openingBreed(d) {
+        const v = vloer();
+        const o = (v.openingen ?? []).find((x) => x.id === st.kies?.id);
+        const run = o && muurVan(v, o);
+        if (!run) return;
+        const w = klem(o.tot - o.van + d, 5, Math.min(40, run.tot - run.van - 2));
+        const van = Math.round(klem((o.van + o.tot) / 2 - w / 2, run.van + 1, run.tot - 1 - w));
+        if (w === o.tot - o.van && van === o.van) return;
+        stap();
+        o.van = van;
+        o.tot = van + w;
+        klaar();
+      },
+      openingWeg() {
+        const v = vloer();
+        const id = st.kies?.id;
+        if (!(v.openingen ?? []).some((x) => x.id === id)) return;
+        stap();
+        v.openingen = v.openingen.filter((x) => x.id !== id);
+        for (const a of st.apparaten) if (a.raam === id) delete a.raam;
+        st.kies = null;
+        klaar();
+      },
+      /** De trap in een ruimte: naar welke kant hij omhoog gaat. */
+      zetTrap(id, richting) {
+        const r = vloer().ruimtes[id];
+        if (!r || !TRAP_RICHTING[richting]) return;
+        stap();
+        r.omhoog = richting;
+        klaar();
+      },
       /** 0.185.0: een gebouw van de kaart erbij ({ erbij, soort }) of weg ({ weg }); de pagina bewaart en laadt opnieuw. */
       gebouw: opties.gebouw ?? null,
       omgeving,
@@ -1971,6 +2207,7 @@
   const rij = (o) => `<button type="button" class="ht-rij${o.mist ? ' mist' : ''}${o.aan ? ' aan' : ''}" ${o.data}>${o.ik ? `<span class="ik"${o.kleur ? ` style="color: ${o.kleur}"` : ''}>${ik(o.ik)}</span>` : ''}<span class="t"><b>${esc(o.titel)}</b>${o.zin ? `<small>${esc(o.zin)}</small>` : ''}</span>${o.rechts ? `<em>${esc(o.rechts)}</em>` : ''}</button>`;
 
   /** Het blad rechts (wand) of onder (telefoon): wat je hier kunt, in regels. */
+  const metOpeningenVan = (t) => !!t.metOpeningen;
   function paneel(el, t) {
     const teken = () => {
       // Wie een maat aan het typen is, houdt zijn veld.
@@ -2010,6 +2247,23 @@
           ${t.kijk && t.huis.kijk ? rij({ ik: 'dak', titel: t.huis.kijk.bezig ? T('ht.vorm.kijkt') : T('ht.vorm.kijk'), zin: t.huis.kijk.fout ?? T('ht.vorm.kijkZin'), rechts: '›', data: t.huis.kijk.bezig ? 'disabled' : 'data-ht="kijk"' }) : ''}
           ${rij({ ik: 'etages', titel: T('ht.hoogte'), zin: nu?.hoogte ?? '', rechts: nu?.gemeten ? T('ht.gemeten') : T('ht.geschat'), data: 'disabled' })}
           <p class="ht-voet">${esc(T(t.kijk ? 'ht.vorm.voetApp' : 'ht.vorm.voet'))}</p>`;
+      } else if (st.stand === 'kamers' && st.kies?.soort === 'opening' && (v.openingen ?? []).some((x) => x.id === st.kies.id)) {
+        // Een deur, raam of de voordeur: de breedte, en weghalen.
+        const o = v.openingen.find((x) => x.id === st.kies.id);
+        const screen = o.soort === 'raam' ? st.apparaten.find((a) => a.raam === o.id && a.plek?.etage === st.etage) : null;
+        s = `<header><h3>${esc(T(`ht.opening.${o.soort}`))}</h3><span>${esc(meter(o.tot - o.van))}</span></header>
+          <p class="ht-zin">${esc(T(`ht.opening.${o.soort}Zin`))}</p>
+          <div class="ht-veld"><label>${esc(T('ht.opening.breed'))}</label>
+            <div class="ht-stap"><button type="button" data-ht="opening-breed" data-d="-1" aria-label="${esc(T('ht.opening.smaller'))}">−</button><input readonly value="${nl((o.tot - o.van) * CEL)}" aria-label="${esc(T('ht.opening.breed'))}"><span>m</span><button type="button" data-ht="opening-breed" data-d="1" aria-label="${esc(T('ht.opening.breder'))}">+</button></div></div>
+          ${o.soort === 'raam' ? rij({ ik: 'screen', titel: T('ht.opening.screen'), zin: screen ? T('ht.opening.screenErvoor', { naam: screen.naam }) : T('ht.opening.screenZin'), data: 'disabled' }) : ''}
+          <div class="ht-onder">${rij({ ik: 'kruis', kleur: 'var(--gloed)', titel: T('ht.opening.weg'), zin: T('ht.opening.wegZin'), data: 'data-ht="opening-weg"' })}</div>`;
+      } else if (st.stand === 'kamers' && metOpeningenVan(t) && st.kies?.soort === 'muur' && st.kies.run?.soort === 2) {
+        // Een buitenmuur bij Kamers: schuiven doe je bij Vorm; hier een raam of de voordeur.
+        const run = st.kies.run;
+        s = `<header><h3>${esc(T('ht.opening.buitenmuur'))}</h3><span>${esc(T('ht.muur.lang', { maat: meter(run.tot - run.van) }))}</span></header>
+          <p class="ht-zin">${esc(T('ht.opening.buitenmuurZin'))}</p>
+          ${rij({ ik: 'raam', titel: T('ht.opening.raamHier'), zin: T('ht.opening.raamHierZin'), rechts: '+', data: 'data-ht="opening-plaats" data-soort="raam"' })}
+          ${rij({ ik: 'deur', titel: T('ht.opening.voordeurHier'), zin: T('ht.opening.voordeurHierZin'), rechts: '+', data: 'data-ht="opening-plaats" data-soort="voordeur"' })}`;
       } else if (st.stand === 'kamers') {
         if (st.kies?.soort === 'muur' && st.kies.run) {
           const run = st.kies.run;
@@ -2022,6 +2276,7 @@
             <p class="ht-zin">${esc(T('ht.muur.zin', { a: na, b: nb }))}</p>
             <div class="ht-veld"><label for="ht-maat">${esc(run.as === 'x' ? T('ht.muur.vanLinks') : T('ht.muur.vanVoor'))}</label>
               <div class="ht-stap"><button type="button" data-ht="muur-stap" data-d="-1" aria-label="${esc(T('ht.muur.terug'))}">−</button><input id="ht-maat" inputmode="decimal" value="${nl(vanaf * CEL)}" data-ht-maat data-nul="${run.as === 'x' ? o.x0 : o.y0}" aria-label="${esc(T('ht.muur.meter'))}"><span>m</span><button type="button" data-ht="muur-stap" data-d="1" aria-label="${esc(T('ht.muur.verder'))}">+</button></div></div>
+            ${metOpeningenVan(t) ? rij({ ik: 'deur', titel: T('ht.opening.deurHier'), zin: T('ht.opening.deurHierZin'), rechts: '+', data: 'data-ht="opening-plaats" data-soort="deur"' }) : ''}
             ${rij({ ik: 'kruis', titel: T('ht.muur.weg'), zin: T('ht.muur.wegZin'), data: 'data-ht="muur-weg"' })}`;
         } else if (st.kies?.soort === 'ruimte' && v.ruimtes[st.kies.id]) {
           const id = st.kies.id;
@@ -2046,6 +2301,10 @@
           }
           const EIGEN = eigenNamen();
           const eigen = r.naam && !EIGEN.some(([, n]) => n === r.naam) ? r.naam : '';
+          // Een trap: naar welke kant hij omhoog gaat.
+          if (metOpeningenVan(t) && t.soortVan(r) === 'trap') {
+            s += `<h4>${esc(T('ht.trap.omhoog'))}</h4><div class="ht-twee">${['n', 'z', 'w', 'o'].map((x) => `<button type="button" class="ht-klein${(r.omhoog ?? 'n') === x ? ' aan' : ''}" data-ht="trap" data-r="${x}">${esc(T(`ht.trap.${x}`))}</button>`).join('')}</div>`;
+          }
           s += `<h4>${esc(T('ht.geenKamerHA'))}</h4><div class="ht-twee">${EIGEN.map(([soort, n]) => `<button type="button" class="ht-klein${r.naam === n ? ' aan' : ''}" data-ht="noem" data-naam="${esc(n)}" data-soort="${soort}">${esc(n)}</button>`).join('')}</div>
             <input class="ht-naam" id="ht-naam" data-ht-naam value="${esc(eigen)}" placeholder="${esc(T('ht.eigenNaam'))}" maxlength="30" aria-label="${esc(T('ht.eigenNaamLabel'))}">`;
           // Weghalen: het vak wordt weer deel van de ruimte waar het het meest aan grenst.
@@ -2128,6 +2387,10 @@
       else if (d.ht === 'bron') t.kiesBron(d.bron);
       else if (d.ht === 'kijk') t.kijk?.();
       else if (d.ht === 'gebouw-terug') t.kies(null);
+      else if (d.ht === 'opening-plaats') t.plaatsOpening(d.soort);
+      else if (d.ht === 'opening-breed') t.openingBreed(Number(d.d));
+      else if (d.ht === 'opening-weg') t.openingWeg();
+      else if (d.ht === 'trap') t.zetTrap(st.kies.id, d.r);
       else if ((d.ht === 'gebouw-erbij' || d.ht === 'gebouw-weg') && t.gebouw && !st.gebouwBezig) {
         st.gebouwBezig = true;
         teken();
@@ -2279,11 +2542,14 @@
     if (a?.type === 'verplaats') return T('ht.uitleg.verplaatsLos');
     if (a?.type === 'vak') return T('ht.uitleg.vakLos');
     if (a?.type === 'apparaat') return T('ht.uitleg.apparaatLos');
+    if (a?.type === 'opening') return T('ht.uitleg.openingLos');
     if (st.stand === 'huis') return T('ht.uitleg.huis');
     if (st.stand === 'vorm') return T('ht.uitleg.vorm');
     if (st.stand === 'kamers') {
       if (st.wapen?.kamer) return T('ht.uitleg.wapen', { naam: t.kamers[st.wapen.kamer].naam.toLowerCase() });
       if (st.kies?.soort === 'ruimte' && t.verplaatsbaar(st.kies.id)) return T('ht.uitleg.greep');
+      if (st.kies?.soort === 'opening') return T('ht.uitleg.opening');
+      if (st.kies?.soort === 'muur' && st.kies.run?.soort === 2) return T('ht.uitleg.buitenmuur');
       if (st.kies?.soort === 'muur') return T('ht.uitleg.muur');
       return T('ht.uitleg.kamers');
     }
@@ -2292,5 +2558,5 @@
     return T('ht.uitleg.apparaten');
   }
 
-  global.huistekenen = { maak, paneel, stapel, strook, uitleg, CEL, MARGE, BUITEN, randen, isMuur, maten, omtrek, TINT, SOORT_TINT, APP_KLEUR };
+  global.huistekenen = { maak, paneel, stapel, strook, uitleg, CEL, MARGE, BUITEN, randen, isMuur, maten, omtrek, TINT, SOORT_TINT, APP_KLEUR, muurDelen, openingBinnen, TRAP_RICHTING };
 })(typeof window !== 'undefined' ? window : globalThis);

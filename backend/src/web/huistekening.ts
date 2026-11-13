@@ -18,7 +18,7 @@
  * Een kamer die verdwijnt of naar een andere etage verhuist, maakt het
  * bewaren nooit onmogelijk: zijn vak blijft, zonder kamer.
  */
-import type { Daken, Dakvorm, DakVlak, Gebouw, Xy } from './daken.js';
+import type { Daken, Dakvorm, DakVlak, Gebouw, KaartDakvlak, Xy } from './daken.js';
 import { maatAs, rechthoekOm, tekening as dakTekening } from './daken-tekening.js';
 
 export type As = 'u' | 'v';
@@ -209,7 +209,7 @@ export interface Blok {
    * hoe breed hij is. Uit 3D BAG: een klein, bijna plat dakvlak dat dezelfde
    * kant op kijkt als een schuine kant van het dak.
    */
-  readonly dakkapellen?: readonly { readonly kant: 0 | 1; readonly breed: number }[];
+  readonly dakkapellen?: readonly Dakkapel[];
 }
 
 export interface TekenVorm {
@@ -224,6 +224,8 @@ export interface TekenVorm {
   readonly uDeg: number | null;
   /** De gebouwen van de kaart eromheen die er nog niet bij horen, in dezelfde assen als de blokken. */
   readonly omgeving: readonly OmgevingVorm[];
+  /** Van de kaart naar de assen van het hoofdhuis (zijn linker voorhoek is nul); null zonder kaart. */
+  readonly kader?: Kader | null;
 }
 
 /** De maat van een basishuis per woningtype, breed langs de straat bij diep: gangbare maten, geschat. */
@@ -239,7 +241,7 @@ const RAD = Math.PI / 180;
 const richting = (deg: number): Xy => [Math.sin(deg * RAD), Math.cos(deg * RAD)];
 
 /** De assen van een gebouw op de kaart: de linker voorhoek, de richting van u en v, en de maat. */
-interface Kader {
+export interface Kader {
   readonly oorsprong: Xy;
   readonly uAs: Xy;
   readonly vAs: Xy;
@@ -329,6 +331,7 @@ export function tekenVorm(gebouwen: readonly Gebouw[], voorgevelDeg: number | nu
     bron: 'gebouwen',
     uDeg,
     omgeving: om,
+    kader: k,
   };
 }
 
@@ -352,7 +355,7 @@ export interface KaartHuis {
   readonly stand: string;
   readonly hoofdhuis?: readonly (readonly [number, number])[];
   readonly omgeving?: readonly (readonly (readonly [number, number])[])[];
-  readonly dak?: { readonly dakvorm: Dakvorm; readonly nokDeg: number; readonly vlakken: readonly { readonly azimuthDeg: number; readonly tiltDeg: number; readonly m2: number }[] };
+  readonly dak?: { readonly dakvorm: Dakvorm; readonly nokDeg: number; readonly vlakken: readonly KaartDakvlak[] };
   readonly hoogte?: { readonly goot: number | null; readonly nok: number | null; readonly lagen: number | null };
 }
 
@@ -384,7 +387,7 @@ const losVan = (vlakken: readonly DakVlak[], ids: readonly string[]): DakVlak[] 
  * ligt raken los van hun gebouw. Zonder kaart blijft alleen wat de bewoner
  * zelf neerzette. Null als de kaart het huis niet (meer) kent.
  */
-export function dakenMetBron(d: Daken, bron: VormBron, kaart: KaartHuis | null): Daken | null {
+export function dakenMetBron(d: Daken, bron: VormBron, kaart: KaartHuis | null, bag: KaartHuis | null = null): Daken | null {
   const oud = d.gebouwen ?? [];
   const { kaartDak: _k, ...rest } = d;
   if (bron === 'zelf') {
@@ -393,8 +396,11 @@ export function dakenMetBron(d: Daken, bron: VormBron, kaart: KaartHuis | null):
   const omtrek = kaart?.stand === 'huis' ? kaart.hoofdhuis : undefined;
   if (!kaart || !omtrek || omtrek.length < 3) return null;
   const weg = oud.filter((g) => g.soort !== 'hoofdhuis' && g.bron === 'schatting').map((g) => g.id);
-  const dak = bron === 'bag3d' && kaart.dak ? { dakvorm: kaart.dak.dakvorm, nokDeg: kaart.dak.nokDeg, dakBron: 'kaart' as const } : {};
-  const h = bron === 'bag3d' ? kaart.hoogte : undefined;
+  // De plattegrond met de 3D-kaart erbij (Ricardo, 13 november 2026: combineren in plaats van gokken): de omtrek
+  // van OpenStreetMap, het dak, de hoogte en de dakvlakken van 3D BAG als die het huis ook kent.
+  const metDak = bron === 'bag3d' ? kaart : bron === 'osm' && bag?.stand === 'huis' ? bag : null;
+  const dak = metDak?.dak ? { dakvorm: metDak.dak.dakvorm, nokDeg: metDak.dak.nokDeg, dakBron: 'kaart' as const } : {};
+  const h = metDak?.hoogte;
   const hoogte = { ...(h?.goot != null ? { hoogteGoot: h.goot } : {}), ...(h?.nok != null ? { hoogteNok: h.nok } : {}), ...(h?.lagen != null ? { lagen: h.lagen } : {}) };
   const huisId = oud.find((g) => g.soort === 'hoofdhuis')?.id ?? 'huis';
   const nieuwHuis = (g: Gebouw | null): Gebouw => {
@@ -404,8 +410,8 @@ export function dakenMetBron(d: Daken, bron: VormBron, kaart: KaartHuis | null):
   };
   const zonderWeg = oud.filter((g) => !weg.includes(g.id));
   const gebouwen = zonderWeg.some((g) => g.soort === 'hoofdhuis') ? zonderWeg.map((g) => (g.soort === 'hoofdhuis' ? nieuwHuis(g) : g)) : [nieuwHuis(null), ...zonderWeg];
-  const kaartDak = bron === 'bag3d' && kaart.dak?.vlakken.length ? { kaartDak: kaart.dak.vlakken.slice(0, 24).map(({ azimuthDeg, tiltDeg, m2 }) => ({ azimuthDeg, tiltDeg, m2 })) } : {};
-  return { ...rest, vlakken: losVan(d.vlakken, [...weg, ...(kaart.dak && bron === 'bag3d' ? [huisId] : [])]), gebouwen, omgeving: (kaart.omgeving ?? []).map((o) => o.map((p) => [p[0], p[1]] as Xy)), ...kaartDak };
+  const kaartDak = metDak?.dak?.vlakken.length ? { kaartDak: metDak.dak.vlakken.slice(0, 24).map(({ azimuthDeg, tiltDeg, m2, vorm, hoog }) => ({ azimuthDeg, tiltDeg, m2, ...(vorm ? { vorm: vorm.slice(0, 16).map((p) => [p[0], p[1]] as Xy) } : {}), ...(hoog ? { hoog } : {}) })) } : {};
+  return { ...rest, vlakken: losVan(d.vlakken, [...weg, ...(metDak?.dak ? [huisId] : [])]), gebouwen, omgeving: (kaart.omgeving ?? []).map((o) => o.map((p) => [p[0], p[1]] as Xy)), ...kaartDak };
 }
 
 /** Wat een bron van het huis maakt: de gebouwen in de assen van het hoofdhuis, en de hoogte. */
@@ -439,14 +445,14 @@ export function bronVorm(d: Daken, voorgevelDeg: number | null, woning: string |
   const v = tekenVorm(gebouwen, voorgevelDeg, woning, dt.omgeving);
   const hoofd = gebouwen.find((g) => g.soort === 'hoofdhuis');
   const dakvorm = hoofd?.dakvorm ?? 'zadel';
-  const uitBag = hoofd?.bron === 'kaart' && hoofd.kaart === 'bag3d' && hoofd.hoogteGoot != null;
+  const uitBag = hoofd?.bron === 'kaart' && hoofd.hoogteGoot != null;
   const geschat = m1(2.8 * Math.max(1, lagen));
   const nok = uitBag && hoofd.hoogteNok != null ? hoofd.hoogteNok : dakvorm === 'plat' ? geschat : m1(geschat + 3);
   // Het dak van het hoofdhuis: uit de dakvlakken van 3D BAG ligt de nok soms niet in het midden, met de goot aan de ene kant lager.
   const dak = (b: Blok): Blok => {
     if (b.soort !== 'hoofdhuis') return { ...b, ...bijDak(b, 2.8) };
     const scheef = uitBag ? scheefDak(b, d.kaartDak ?? [], v.uDeg, nok, hoofd.hoogteGoot!) : null;
-    const kapellen = uitBag ? dakkapellen(b, d.kaartDak ?? [], v.uDeg) : [];
+    const kapellen = uitBag && v.kader ? dakkapellen({ ...b, ...(scheef ?? {}) }, d.kaartDak ?? [], v.kader) : [];
     return { ...b, nok, ...(scheef ?? { goot0: uitBag ? hoofd.hoogteGoot! : geschat, goot1: uitBag ? hoofd.hoogteGoot! : geschat }), ...(kapellen.length ? { dakkapellen: kapellen } : {}) };
   };
   const blokken = v.blokken.map((b) => dak({ ...b, u: m1(b.u - v.nul.u), v: m1(b.v - v.nul.v) }));
@@ -488,7 +494,7 @@ export function scheefDak(b: Blok, vlakken: readonly { readonly azimuthDeg: numb
   const kant = [{ w: 0, tan: 0, n: 0 }, { w: 0, tan: 0, n: 0 }];
   for (const x of vlakken) {
     const i = verschil(x.azimuthDeg, richting1) <= 45 ? 1 : verschil(x.azimuthDeg, richting1 + 180) <= 45 ? 0 : -1;
-    if (i < 0 || x.tiltDeg < 5) continue;
+    if (i < 0 || x.tiltDeg < 15) continue;
     const t = x.tiltDeg * (Math.PI / 180);
     const w = x.m2 * Math.cos(t);
     kant[i]!.w += w;
@@ -513,19 +519,42 @@ export function scheefDak(b: Blok, vlakken: readonly { readonly azimuthDeg: numb
  * een kant van het dak. Zo breed als zijn oppervlak gedeeld door twee meter
  * diepte, tussen 1,2 m en de breedte van het dak min een meter.
  */
-export function dakkapellen(b: Blok, vlakken: readonly { readonly azimuthDeg: number; readonly tiltDeg: number; readonly m2: number }[], uDeg: number | null): { kant: 0 | 1; breed: number }[] {
-  if (uDeg == null || b.dak === 'plat' || b.dak === 'lessenaar') return [];
-  const richting1 = b.nokLangs === 'y' ? uDeg : uDeg - 90;
-  const verschil = (a: number, c: number) => Math.abs(((a - c + 540) % 360) - 180);
-  const langs = b.nokLangs === 'y' ? b.d : b.b;
-  const uit: { kant: 0 | 1; breed: number }[] = [];
+export function dakkapellen(b: Blok, vlakken: readonly KaartDakvlak[], kader: Kader): Dakkapel[] {
+  if (b.dak === 'plat' || b.dak === 'lessenaar') return [];
+  const haaks = b.nokLangs === 'y';
+  // a langs de nok, c er dwars op; kant 0 is de kant met de kleinste c (voor of links).
+  const [a0, a1, c0, c1] = haaks ? [b.v, b.v + b.d, b.u, b.u + b.b] : [b.u, b.u + b.b, b.v, b.v + b.d];
+  const cr = c0 + (b.nokVan0 ?? (c1 - c0) / 2);
+  const uit: Dakkapel[] = [];
   for (const x of vlakken) {
-    if (x.tiltDeg >= 15 || x.m2 < 1.5 || x.m2 > 15) continue;
-    const kant = verschil(x.azimuthDeg, richting1) <= 45 ? 1 : verschil(x.azimuthDeg, richting1 + 180) <= 45 ? 0 : -1;
-    if (kant < 0) continue;
-    uit.push({ kant: kant === 1 ? 1 : 0, breed: m1(Math.min(langs - 1, Math.max(1.2, x.m2 / 2))) });
+    if (x.tiltDeg >= 15 || x.m2 < 1.5 || x.m2 > 15 || !x.vorm || x.vorm.length < 3) continue;
+    const pp = x.vorm.map((p) => uitKaart(kader, p)).map(([u, v]) => (haaks ? [v, u] : [u, v]) as [number, number]);
+    const [as, cs] = [pp.map((p) => p[0]), pp.map((p) => p[1])];
+    const [amin, amax, cmin, cmax] = [Math.min(...as), Math.max(...as), Math.min(...cs), Math.max(...cs)];
+    const cm = (cmin + cmax) / 2;
+    // Alleen wat op dit dak ligt, en niet over de nok heen.
+    if ((amin + amax) / 2 < a0 || (amin + amax) / 2 > a1 || cm < c0 || cm > c1) continue;
+    const kant: 0 | 1 = cm < cr ? 0 : 1;
+    // De voorkant van de dakkapel is de kant van de goot, de achterkant raakt het dak richting de nok.
+    const [voor, achter] = kant === 0 ? [cmin, cmax] : [cmax, cmin];
+    uit.push({ kant, van: m1(Math.max(0, amin - a0)), tot: m1(Math.min(a1 - a0, amax - a0)), voor: m1(Math.abs(voor - (kant === 0 ? c0 : c1))), achter: m1(Math.abs(achter - (kant === 0 ? c0 : c1))), ...(x.hoog ? { boven: x.hoog[1] } : {}) });
   }
   return uit.slice(0, 4);
+}
+
+/**
+ * Een dakkapel op een kant van het dak (0 voor of links, 1 achter of rechts):
+ * van..tot langs de nok vanaf het begin van het dak, en hoe ver de voorkant
+ * en de achterkant van de goot af liggen; `boven` is de hoogte van zijn
+ * dakje boven de grond. Alles in meters, uit waar 3D BAG het vlak legt.
+ */
+export interface Dakkapel {
+  readonly kant: 0 | 1;
+  readonly van: number;
+  readonly tot: number;
+  readonly voor: number;
+  readonly achter: number;
+  readonly boven?: number;
 }
 
 /**

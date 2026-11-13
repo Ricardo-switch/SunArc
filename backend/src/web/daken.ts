@@ -126,6 +126,9 @@ export interface KaartDakvlak {
   readonly azimuthDeg: number;
   readonly tiltDeg: number;
   readonly m2: number;
+  /** Waar het vlak ligt, van boven, in meters vanaf de plek; en het laagste en hoogste punt boven de grond (3D BAG). */
+  readonly vorm?: readonly Xy[];
+  readonly hoog?: readonly [number, number];
 }
 
 function leesKaartDak(x: unknown): KaartDakvlak[] | null {
@@ -134,7 +137,11 @@ function leesKaartDak(x: unknown): KaartDakvlak[] | null {
   for (const v of x) {
     const r = (typeof v === 'object' && v != null ? v : {}) as Record<string, unknown>;
     if (!getal(r['azimuthDeg'], 0, 360) || !getal(r['tiltDeg'], 0, 90) || !getal(r['m2'], 0, 5000)) return null;
-    uit.push({ azimuthDeg: r['azimuthDeg'] as number, tiltDeg: r['tiltDeg'] as number, m2: r['m2'] as number });
+    const vorm = r['vorm'];
+    const vormOk = Array.isArray(vorm) && vorm.length >= 3 && vorm.length <= 16 && vorm.every((p) => Array.isArray(p) && p.length === 2 && getal(p[0], -500, 500) && getal(p[1], -500, 500));
+    const hoog = r['hoog'];
+    const hoogOk = Array.isArray(hoog) && hoog.length === 2 && getal(hoog[0], -10, 200) && getal(hoog[1], -10, 200);
+    uit.push({ azimuthDeg: r['azimuthDeg'] as number, tiltDeg: r['tiltDeg'] as number, m2: r['m2'] as number, ...(vormOk ? { vorm: (vorm as number[][]).map((p) => [p[0]!, p[1]!] as Xy) } : {}), ...(hoogOk ? { hoog: [hoog[0] as number, hoog[1] as number] as const } : {}) });
   }
   return uit;
 }

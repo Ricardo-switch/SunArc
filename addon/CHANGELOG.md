@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.185.0
+## 0.186.0
 
-*13 november 2026 · 0.179.0 – 0.185.0*
+*13 november 2026 · 0.179.0 – 0.186.0*
 
 **Nieuw**
 
+- Kies je bij Daken en panelen of Je huis de plattegrond van OpenStreetMap, dan komen het dak en de hoogte uit de 3D-kaart als die je huis ook kent
+- Van elk dakvlak uit de 3D-kaart bewaart SunArc nu ook waar het ligt. Zo staat een dakkapel aan de goede kant van het dak, en telt hij niet mee voor waar de nok ligt
 - Je huis › Vorm: de gebouwen die de kaart om je huis vindt, staan grijs. Tik er een aan en zeg wat het is, ook een tuinhuis of carport los in de tuin; dat geldt ook bij Daken en panelen
 - Een gebouw dat erbij hoort, krijgt op de begane grond een eigen ruimte voor apparaten. Weghalen kan ook: dan staat het weer grijs
 - Je huis op de telefoon: de etages heten kort (Eerste in plaats van Eerste verdieping), en de maten van het huis in 3D blijven in beeld
@@ -31,6 +33,8 @@
 
 **New**
 
+- If you choose the OpenStreetMap outline under Roofs and panels or Your home, the roof and height come from the 3D map when it also knows your home
+- For each roof surface from the 3D map, SunArc now also keeps where it lies. A dormer then sits on the right side of the roof, and no longer counts towards where the ridge lies
 - Your home › Shape: the buildings the map finds around your home show in grey. Tap one and say what it is, also a summer house or carport separate in the garden; this also applies to Roofs and panels
 - A building that belongs to your home gets a room of its own on the ground floor for devices. You can remove it too: it then shows grey again
 - Your home on the phone: floors have short names (First instead of First floor), and the sizes of the house in 3D stay in view

@@ -7,6 +7,10 @@
  * voor het voorbeeldhuis; `#open` het tweede huis nog leeg, `#kern` getekend;
  * `#jouw` het huis van Ricardo uit de 3D-kaart, met zijn begane grond. Een
  * stand en een huis samen: `#huis-jouw`, `#dicht-jouw`, `#vorm-jouw`, `#huis-kern`.
+ * Deuren en ramen (13 november 2026): `#deuren` het voorbeeldhuis met deuren,
+ * ramen, de trap en screens; `#deur`, `#raam` en `#trap` met die gekozen,
+ * `#deuren-eerste` de eerste verdieping, `#screens` bij Apparaten,
+ * `#deuren-huis` in 3D.
  */
 (function (global) {
   'use strict';
@@ -48,7 +52,7 @@
       location.reload();
     };
     const stand = toon === 'huis' || toon === 'dicht' ? 'huis' : toon === 'vorm' || toon === 'bron' ? 'vorm' : toon === 'apparaten' || toon === 'kamer' ? 'apparaten' : 'kamers';
-    const t = huistekenen.maak($('tekening'), huis, { stand: adres === 'gebouw' ? 'vorm' : stand, etage: toon === 'leeg' ? 'zolder' : 'bg', bewaar: adres ? null : 'sunarc-schets-huistekenen-1', gebouw });
+    const t = huistekenen.maak($('tekening'), huis, { stand: adres === 'gebouw' ? 'vorm' : stand, etage: toon === 'leeg' ? 'zolder' : 'bg', bewaar: adres ? null : 'sunarc-schets-huistekenen-1', gebouw, openingen: true });
     huistekenen.paneel($('blad'), t);
     if ($('stapel')) huistekenen.stapel($('stapel'), t);
     huistekenen.strook($('strook'), t);
@@ -102,6 +106,17 @@
         t.st.terug = [];
         t.st.stand = stand0;
         t.kies(null);
+      }
+      // Deuren, ramen, de trap en de screens in het voorbeeldhuis.
+      if (/^(deuren|deur|raam|trap|screens)/.test(toon) && !wie) {
+        huis.inrichten(t);
+        const vb = t.vloer();
+        if (toon === 'deur') t.kies({ soort: 'opening', id: 'o6' });
+        else if (toon === 'raam') t.kies({ soort: 'opening', id: 'o2' });
+        else if (toon === 'trap') t.kies({ soort: 'ruimte', id: Number(Object.entries(vb.ruimtes).find(([, r]) => r.soort === 'trap')?.[0]) });
+        else if (toon === 'screens') t.zetStand('apparaten');
+        else if (toon === 'deuren-eerste') t.zetEtage('eerste');
+        else if (toon === 'deuren-huis') t.zetStand('huis');
       }
       if (toon === 'muur') {
         const o = t.omtrek();

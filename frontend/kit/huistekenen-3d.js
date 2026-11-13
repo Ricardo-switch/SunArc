@@ -102,14 +102,26 @@
     s += `<path d="${vlak([[m(o.x0) - g, m(o.y0) - g, 0], [m(o.x1) + g, m(o.y0) - g, 0], [m(o.x1) + g, m(o.y1) + g, 0], [m(o.x0) - g, m(o.y1) + g, 0]])}" fill="rgb(63 125 85 / 0.16)" stroke="rgb(63 125 85 / 0.35)"/>`;
 
     /** Een muur als staand vlak; lange muren in stukken, zodat voor en achter kloppen. */
-    const muurStukken = (run) => {
+    const muurStukken = (run, v) => {
+      // Met de deuren en ramen uit de tekening (schets 13 november 2026): per stuk wat erin zit.
+      const delen = v && K.muurDelen ? K.muurDelen(v, run, 10) : null;
       const uit = [];
+      if (delen) {
+        for (const d of delen) {
+          const xy = run.as === 'x' ? [m(run.op), m(d.van), m(run.op), m(d.tot)] : [m(d.van), m(run.op), m(d.tot), m(run.op)];
+          xy.soort = d.soort;
+          uit.push(xy);
+        }
+        return uit;
+      }
       for (let a = run.van; a < run.tot; a += 10) {
         const b = Math.min(run.tot, a + 10);
         uit.push(run.as === 'x' ? [m(run.op), m(a), m(run.op), m(b)] : [m(a), m(run.op), m(b), m(run.op)]);
       }
       return uit;
     };
+    /** Een raam als glas op een muur, van 0,9 tot 2,1 m boven de vloer (of tot onder de bovenkant). */
+    const raamOp = (x0, y0, x1, y1, z0, top) => `<path d="${vlak([[x0, y0, z0 + 0.9], [x1, y1, z0 + 0.9], [x1, y1, Math.min(top - 0.2, z0 + 2.1)], [x0, y0, Math.min(top - 0.2, z0 + 2.1)]])}" fill="#8fd0ff" fill-opacity="0.45" stroke="#d6eefc" stroke-opacity="0.7" stroke-width="0.8"/>`;
     /** Kijkt de buitenkant van deze buitenmuur naar de kijker? */
     const naarKijker = (v, run) => {
       const mid = Math.floor((run.van + run.tot) / 2);
@@ -142,7 +154,16 @@
           const voor = run.soort === 2 && naarKijker(v, run);
           const h = run.soort === 1 ? 1.15 : voor ? 0.45 : top - z0;
           const vul = run.soort === 1 ? (run.as === 'x' ? '#cdd6df' : '#e4eaf0') : voor ? '#f1f5f8' : run.as === 'x' ? 'rgb(170 184 198 / 0.42)' : 'rgb(201 211 220 / 0.42)';
-          for (const [x0, y0, x1, y1] of muurStukken(run)) stukken.push({ d: diep((x0 + x1) / 2, (y0 + y1) / 2), s: `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, z0 + h], [x0, y0, z0 + h]])}" fill="${vul}" stroke="rgb(13 26 48 / 0.35)" stroke-width="0.7" stroke-linejoin="round"/>` });
+          for (const st4 of muurStukken(run, v)) {
+            const [x0, y0, x1, y1] = st4;
+            // Een deur in een binnenmuur of aan de kant van de kijker: een gat; in een hoge buitenmuur de deur zelf.
+            if ((st4.soort === 'deur' || st4.soort === 'voordeur') && (run.soort === 1 || voor)) continue;
+            let x2 = `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, z0 + h], [x0, y0, z0 + h]])}" fill="${vul}" stroke="rgb(13 26 48 / 0.35)" stroke-width="0.7" stroke-linejoin="round"/>`;
+            if (st4.soort === 'raam' && run.soort === 2 && !voor) x2 += raamOp(x0, y0, x1, y1, z0, z0 + h);
+            if (st4.soort === 'raam' && voor) x2 += `<path d="M${pt(x0, y0, z0 + h)}L${pt(x1, y1, z0 + h)}" stroke="#8fd0ff" stroke-width="3" stroke-linecap="round"/>`;
+            if ((st4.soort === 'deur' || st4.soort === 'voordeur') && run.soort === 2) x2 += `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, z0 + Math.min(h, 2.1)], [x0, y0, z0 + Math.min(h, 2.1)]])}" fill="${st4.soort === 'voordeur' ? '#8a5a3c' : '#5c6b80'}"/>`;
+            stukken.push({ d: diep((x0 + x1) / 2, (y0 + y1) / 2), s: x2 });
+          }
         }
         // De apparaten: een stip op ooghoogte, met een steel naar de vloer.
         if (li === lagen.findIndex((l) => l.e.id === st.etage)) {
@@ -177,7 +198,13 @@
       // Een dichte laag: alleen de buitenmuren, en het vlak erbovenop (een plat dak, of de vloer van de laag erboven).
       for (const run of muren.filter((r) => r.soort === 2)) {
         const vul = run.as === 'x' ? '#aab6c4' : '#cbd4dd';
-        for (const [x0, y0, x1, y1] of muurStukken(run)) stukken.push({ d: diep((x0 + x1) / 2, (y0 + y1) / 2), s: `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, top], [x0, y0, top]])}" fill="${vul}" stroke="${vul}" stroke-width="0.6" stroke-linejoin="round"/>` });
+        for (const st4 of muurStukken(run, v)) {
+          const [x0, y0, x1, y1] = st4;
+          let x2 = `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, top], [x0, y0, top]])}" fill="${vul}" stroke="${vul}" stroke-width="0.6" stroke-linejoin="round"/>`;
+          if (st4.soort === 'raam') x2 += raamOp(x0, y0, x1, y1, z0, top);
+          if (st4.soort === 'deur' || st4.soort === 'voordeur') x2 += `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, z0 + Math.min(top - z0, 2.1)], [x0, y0, z0 + Math.min(top - z0, 2.1)]])}" fill="${st4.soort === 'voordeur' ? '#8a5a3c' : '#5c6b80'}"/>`;
+          stukken.push({ d: diep((x0 + x1) / 2, (y0 + y1) / 2), s: x2 });
+        }
       }
       stukken.sort((a, b) => b.d - a.d);
       s += stukken.map((x) => x.s).join('');

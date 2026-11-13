@@ -100,20 +100,23 @@
     const opKant = (k) => lijst.filter((x) => x.kant === k);
     for (const kant of [0, 1]) {
       const rij = opKant(kant);
-      const totaal = rij.reduce((n, x) => n + x.breed, 0) + Math.max(0, rij.length - 1) * 0.8;
+      // Zonder plek (een oude schets): op een rij in het midden.
+      const totaal = rij.reduce((n, x) => n + (x.breed ?? x.tot - x.van), 0) + Math.max(0, rij.length - 1) * 0.8;
       let a = (a0 + a1) / 2 - totaal / 2;
       for (const x of rij) {
-        const [ga, gb] = [a, a + x.breed];
-        a += x.breed + 0.8;
+        const breedte = x.breed ?? x.tot - x.van;
+        const [ga, gb] = x.van != null ? [a0 + x.van, a0 + x.tot] : [a, a + breedte];
+        a += breedte + 0.8;
         const g = kant === 0 ? g0 : g1;
         const cg = kant === 0 ? c0 : c1;
         const richting = kant === 0 ? 1 : -1;
         const breed = Math.abs(cr - cg);
         if (breed < 1 || nok - g < 1.2) continue;
         const dakZ = (c) => g + ((nok - g) * Math.abs(c - cg)) / breed;
-        const cv = cg + richting * Math.min(0.7, breed * 0.25);
+        // Uit de kaart: de voorkant en de hoogte van het dakje; anders geschat.
+        const cv = cg + richting * (x.voor ?? Math.min(0.7, breed * 0.25));
         const zv = dakZ(cv);
-        const zt = Math.min(nok - 0.25, zv + 1.5);
+        const zt = Math.min(nok - 0.15, x.boven ?? zv + 1.5);
         const ca = cg + (richting * (zt - g) * breed) / (nok - g);
         kapellen.push({
           kant,
@@ -144,6 +147,8 @@
     // De lagen op hun hoogte, zoals in Je huis: de bovenste loopt tot de laagste goot.
     const bg = huis.beneden ? etages.findIndex((e) => e.id === huis.beneden) : 0;
     let z = -etages.slice(0, Math.max(0, bg)).reduce((n, e) => n + (e.hoogte ?? 2.5), 0);
+    /** Waar de etage boven laag `li` begint (voor de trap), of null. */
+    const erbovenOp = (li) => lagen[li + 1]?.z0 ?? null;
     const lagen = etages.map((e, i) => {
       const z0 = z;
       const top = i === etages.length - 1 ? Math.max(laagGoot, z0 + 0.4) : z0 + (e.hoogte ?? 2.8);
@@ -421,8 +426,34 @@
         const n = run.as === 'x' ? [ia === BUITEN ? -1 : 1, 0] : [0, ia === BUITEN ? -1 : 1];
         const voor = run.soort === 2 && naarKijker(...n);
         const dicht = run.soort === 2 && DICHT.test(ruimteSoort(binnen));
-        for (let a = run.van; a < run.tot; a += 20) {
-          const b = Math.min(run.tot, a + 20);
+        const eigenRamen = (v.openingen ?? []).length > 0;
+        for (const deel of K.muurDelen(v, run, 20)) {
+          const [a, b] = [deel.van, deel.tot];
+          if (deel.soort) {
+            // Een deur of raam uit de tekening.
+            const [x0, y0, x1, y1] = run.as === 'x' ? [m(run.op), m(a), m(run.op), m(b)] : [m(a), m(run.op), m(b), m(run.op)];
+            const d = diep((x0 + x1) / 2, (y0 + y1) / 2);
+            const muur = (h0, h1, vul, extra = '') => `<path d="${vlak([[x0, y0, h0], [x1, y1, h0], [x1, y1, h1], [x0, y0, h1]])}" fill="${vul}" ${extra}/>`;
+            const hoog = run.soort === 1 ? z0 + 1.1 : top;
+            const vul = run.as === 'x' ? '#26354d' : '#2d3d57';
+            if (deel.soort === 'raam') {
+              const r0 = z0 + 0.9;
+              const r1 = Math.min(top - 0.3, z0 + 2.1);
+              const screen = st.apparaten.find((q) => q.raam === deel.id && q.plek?.etage === laag.e.id);
+              let x2 = voor ? muur(z0, z0 + 0.35, '#d7e0e9', 'fill-opacity="0.85"') + muur(z0 + 0.35, top, 'url(#hm-glas)') : muur(z0, r0, vul, `stroke="${vul}" stroke-width="0.6"`) + muur(r1, top, vul, `stroke="${vul}" stroke-width="0.6"`) + muur(r0, r1, o.avond && lichtIn.has(binnen) ? '#f3c77a' : '#8fb4d6', `fill-opacity="${o.avond && lichtIn.has(binnen) ? 0.6 : 0.35}" stroke="#c9d6e2" stroke-opacity="0.4" stroke-width="0.8"`);
+              // Een screen voor het raam: neer als hij dicht is, anders opgerold bovenaan.
+              if (screen) x2 += muur(aan.has(screen.id) ? r0 + 0.25 : r1 - 0.12, r1 + 0.05, '#b9a98f', 'fill-opacity="0.9" stroke="#8d7e66" stroke-width="0.6"');
+              stukken.push({ d: voor ? d - 50 : d, s: x2 });
+            } else if (run.soort === 2 && !voor) {
+              // Een deur in een dichte buitenmuur: de deur zelf, de voordeur in hout.
+              const kl = deel.soort === 'voordeur' ? '#8a5a3c' : '#5c6b80';
+              stukken.push({ d, s: muur(z0, z0 + 2.1, kl, 'stroke="rgb(13 26 48 / 0.5)" stroke-width="0.6"') + muur(z0 + 2.1, top, vul, `stroke="${vul}" stroke-width="0.6"`) });
+            } else if (run.soort === 2) {
+              // Aan de kant van de kijker: alleen het glas erboven, geen borstwering waar de deur is.
+              stukken.push({ d: d - 50, s: muur(z0 + 2.1, top, 'url(#hm-glas)') });
+            } else if (hoog > z0 + 2.1) stukken.push({ d, s: muur(z0 + 2.1, hoog, '#33445f') });
+            continue;
+          }
           const [x0, y0, x1, y1] = run.as === 'x' ? [m(run.op), m(a), m(run.op), m(b)] : [m(a), m(run.op), m(b), m(run.op)];
           const d = diep((x0 + x1) / 2, (y0 + y1) / 2);
           const muur = (h0, h1, vul, extra = '') => `<path d="${vlak([[x0, y0, h0], [x1, y1, h0], [x1, y1, h1], [x0, y0, h1]])}" fill="${vul}" ${extra}/>`;
@@ -437,7 +468,7 @@
             const vul = voor ? (run.as === 'x' ? '#5a6a83' : '#66778f') : run.as === 'x' ? '#26354d' : '#2d3d57';
             let raam = '';
             // Een raam in elk stuk muur van een kamer (niet in een garage), zoals in het poppenhuis.
-            if (!dicht && (b - a) * CEL >= 1.4 && top - z0 >= 2) {
+            if (!eigenRamen && !dicht && (b - a) * CEL >= 1.4 && top - z0 >= 2) {
               const r0 = 0.35 / ((b - a) * CEL);
               const [rx0, ry0, rx1, ry1] = [x0 + (x1 - x0) * r0, y0 + (y1 - y0) * r0, x1 - (x1 - x0) * r0, y1 - (y1 - y0) * r0];
               const warm = o.avond && lichtIn.has(binnen);
@@ -445,6 +476,23 @@
             }
             stukken.push({ d: voor ? d - 50 : d, s: muur(z0, top, vul, `stroke="${vul}" stroke-width="0.6"`) + raam });
           }
+        }
+      }
+      // De trap: treden in hout naar de kant waar hij omhoog gaat.
+      for (const [id, r] of Object.entries(v.ruimtes)) {
+        if (t.soortVan(r) !== 'trap') continue;
+        const rr = maten(v)[id]?.r;
+        if (!rr) continue;
+        const [rx, ry] = K.TRAP_RICHTING[r.omhoog ?? 'n'];
+        const n = 12;
+        const hoogte = (erbovenOp(li) ?? top) - z0;
+        for (let i = 0; i < n; i++) {
+          const f0 = i / n;
+          const f1 = (i + 1) / n;
+          const [xa, xb, ya, yb] = rx
+            ? (rx > 0 ? [m(rr.x0) + (m(rr.x1) - m(rr.x0)) * f0, m(rr.x0) + (m(rr.x1) - m(rr.x0)) * f1] : [m(rr.x1) - (m(rr.x1) - m(rr.x0)) * f1, m(rr.x1) - (m(rr.x1) - m(rr.x0)) * f0]).concat([m(rr.y0) + 0.1, m(rr.y1) - 0.1])
+            : [m(rr.x0) + 0.1, m(rr.x1) - 0.1].concat(ry > 0 ? [m(rr.y0) + (m(rr.y1) - m(rr.y0)) * f0, m(rr.y0) + (m(rr.y1) - m(rr.y0)) * f1] : [m(rr.y1) - (m(rr.y1) - m(rr.y0)) * f1, m(rr.y1) - (m(rr.y1) - m(rr.y0)) * f0]);
+          stukken.push({ d: diep((xa + xb) / 2, (ya + yb) / 2) - 0.2, s: doos3(xa, xb, ya, yb, z0 + hoogte * f0, z0 + hoogte * f1, ['#b08a64', '#8a6a4c', '#9c7a58']) });
         }
       }
       // De apparaten van deze etage, zoals in het poppenhuis: een airco hoog aan de muur, een hanglamp,

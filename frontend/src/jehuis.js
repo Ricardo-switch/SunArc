@@ -59,7 +59,7 @@ function bronVoorMotor(id, b, woning) {
   const maat = { b: getal(hoofd.b), d: getal(hoofd.d) };
   const wat = opsomming([...new Set(b.blokken.map((x) => x.soort))].map((x) => t(`ht.bron.blok.${x}`)));
   const vond = soort === 'basis' ? t('ht.bron.basisVond', { woning: t(`ht.bron.woning.${woning && ['vrijstaand', 'tweekap', 'hoek', 'rij', 'appartement'].includes(woning) ? woning : 'vrijstaand'}`), ...maat }) : soort === 'zelf' ? t('ht.bron.zelfVond', maat) : t('ht.bron.gevonden', { wat });
-  const weet = t(`ht.bron.weet.${soort === 'bag3d' && !b.gemeten ? 'bag3dZonder' : soort}`);
+  const weet = t(`ht.bron.weet.${soort === 'bag3d' && !b.gemeten ? 'bag3dZonder' : soort === 'osm' && b.gemeten ? 'osmMetBag' : soort}`);
   return { naam: t(`ht.bron.${soort}`), vond, weet, gemeten: b.gemeten, hoogte: t(b.gootLaag != null ? 'ht.bron.hoogteScheef' : 'ht.bron.hoogte', { goot: komma(b.goot), nok: komma(b.nok), laag: komma(b.gootLaag ?? b.goot) }),
     // Voor het huis in 3D (stap 5): de goot, de lage goot bij een scheef dak, de nok, en per gebouw het dak.
     goot: b.goot,

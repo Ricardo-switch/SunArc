@@ -36,7 +36,7 @@
     svg.style.cssText = 'position:absolute;width:10px;height:10px;left:-99px;top:0';
     document.body.appendChild(svg);
     const huis = wie === 'jouw' ? jouwHuis() : global.huistekenenVoorbeeld;
-    const t = global.huistekenen.maak(svg, huis, { stand: 'kamers', etage: 'bg' });
+    const t = global.huistekenen.maak(svg, huis, { stand: 'kamers', etage: 'bg', openingen: true });
     const M = t.st && global.huistekenen.MARGE;
     const vakken = (etage, lijst) => {
       t.zetEtage(etage);
@@ -74,6 +74,8 @@
       vakken('zolder', [[null, 0, 0, 0, { kamer: 'zolderkamer' }], [64, 24, 104, 80, { kamer: 'slaapkamer' }]]);
     } else {
       vakken('zolder', [[null, 0, 0, 0, { kamer: 'zolderkamer' }], [64, 0, 134, 84, { kamer: 'logeerkamer' }]]);
+      // Deuren, ramen, de trap en de screens.
+      huis.inrichten?.(t);
     }
     t.zetEtage('bg');
     return t;

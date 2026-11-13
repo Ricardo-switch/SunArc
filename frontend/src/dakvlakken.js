@@ -617,19 +617,21 @@ const dakvlakken = (() => {
     body.bron = bron;
     const oud = gebouwenUit(d);
     const weg = oud.filter((g) => g.soort !== 'hoofdhuis' && g.bron === 'schatting').map((g) => g.id);
-    // Uit 3D BAG ook het dak: de vorm en hoe de nok loopt (5 november 2026).
-    const dak = body.dak && DAKVORMEN.includes(body.dak.dakvorm) ? { dakvorm: body.dak.dakvorm, nokDeg: body.dak.nokDeg, dakBron: 'kaart' } : {};
+    // Uit 3D BAG ook het dak: de vorm en hoe de nok loopt (5 november 2026). Bij de plattegrond het dak en de
+    // hoogte van 3D BAG als die het huis ook kent: combineren in plaats van gokken (13 november 2026).
+    const bag = bron === 'bag3d' ? body : bron === 'osm' && s.bronnen?.bag3d?.stand === 'huis' ? s.bronnen.bag3d : null;
+    const dak = bag?.dak && DAKVORMEN.includes(bag.dak.dakvorm) ? { dakvorm: bag.dak.dakvorm, nokDeg: bag.dak.nokDeg, dakBron: 'kaart' } : {};
     const kaart = body.bron === 'bag3d' || body.bron === 'osm' ? { kaart: body.bron } : {};
     // Uit 3D BAG ook de hoogte (besluit 308); uit een andere kaart geen.
-    const h = bron === 'bag3d' ? body.hoogte : null;
+    const h = bag?.hoogte ?? null;
     const hoogte = { ...(h?.goot != null ? { hoogteGoot: h.goot } : {}), ...(h?.nok != null ? { hoogteNok: h.nok } : {}), ...(h?.lagen != null ? { lagen: h.lagen } : {}) };
     const zonderHoogte = ({ hoogteGoot: _g, hoogteNok: _n, lagen: _l, ...g }) => g;
     const gebouwen = oud.filter((g) => !weg.includes(g.id)).map((g) => (g.soort === 'hoofdhuis' ? { ...zonderHoogte(g), ...dak, ...hoogte, omtrek: body.hoofdhuis, bron: 'kaart', ...kaart } : g));
     // Een ander dak: de kanten van het huis kunnen anders liggen, dus de vlakken op het huis opnieuw plaatsen.
     const huisId = oud.find((g) => g.soort === 'hoofdhuis')?.id;
     // De dakvlakken uit 3D BAG blijven bewaard zolang het huis daaruit komt, voor de helling naast de meting.
-    const kaartDak = bron === 'bag3d' && Array.isArray(body.dak?.vlakken) ? body.dak.vlakken.slice(0, 24).map(({ azimuthDeg, tiltDeg, m2 }) => ({ azimuthDeg, tiltDeg, m2 })) : null;
-    return { vlakken: losVan(d.vlakken, [...weg, ...(body.dak && huisId ? [huisId] : [])]), gebouwen, omgeving: body.omgeving ?? [], kaartDak };
+    const kaartDak = Array.isArray(bag?.dak?.vlakken) ? bag.dak.vlakken.slice(0, 24).map(({ azimuthDeg, tiltDeg, m2, vorm, hoog }) => ({ azimuthDeg, tiltDeg, m2, ...(vorm ? { vorm } : {}), ...(hoog ? { hoog } : {}) })) : null;
+    return { vlakken: losVan(d.vlakken, [...weg, ...(bag?.dak && huisId ? [huisId] : [])]), gebouwen, omgeving: body.omgeving ?? [], kaartDak };
   }
 
   /*

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.185.0';
+export const VERSIE = '0.186.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.186.0',
+    datum: '2026-11-13',
+    nieuw: [
+      'Kies je bij Daken en panelen of Je huis de plattegrond van OpenStreetMap, dan komen het dak en de hoogte uit de 3D-kaart als die je huis ook kent',
+      'Van elk dakvlak uit de 3D-kaart bewaart SunArc nu ook waar het ligt. Zo staat een dakkapel aan de goede kant van het dak, en telt hij niet mee voor waar de nok ligt',
+    ],
+    en: {
+      nieuw: [
+        'If you choose the OpenStreetMap outline under Roofs and panels or Your home, the roof and height come from the 3D map when it also knows your home',
+        'For each roof surface from the 3D map, SunArc now also keeps where it lies. A dormer then sits on the right side of the roof, and no longer counts towards where the ridge lies',
+      ],
+    },
+  },
   {
     versie: '0.185.0',
     datum: '2026-11-13',
