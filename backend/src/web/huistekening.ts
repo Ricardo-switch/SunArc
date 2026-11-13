@@ -203,6 +203,13 @@ export interface Blok {
   readonly goot0?: number;
   readonly goot1?: number;
   readonly nokVan0?: number;
+  /**
+   * Dakkapellen (13 november 2026, Ricardo: "er is een dakkapel op de kaart"):
+   * per stuk de kant van het dak (0: voor of links, 1: achter of rechts) en
+   * hoe breed hij is. Uit 3D BAG: een klein, bijna plat dakvlak dat dezelfde
+   * kant op kijkt als een schuine kant van het dak.
+   */
+  readonly dakkapellen?: readonly { readonly kant: 0 | 1; readonly breed: number }[];
 }
 
 export interface TekenVorm {
@@ -439,7 +446,8 @@ export function bronVorm(d: Daken, voorgevelDeg: number | null, woning: string |
   const dak = (b: Blok): Blok => {
     if (b.soort !== 'hoofdhuis') return { ...b, ...bijDak(b, 2.8) };
     const scheef = uitBag ? scheefDak(b, d.kaartDak ?? [], v.uDeg, nok, hoofd.hoogteGoot!) : null;
-    return { ...b, nok, ...(scheef ?? { goot0: uitBag ? hoofd.hoogteGoot! : geschat, goot1: uitBag ? hoofd.hoogteGoot! : geschat }) };
+    const kapellen = uitBag ? dakkapellen(b, d.kaartDak ?? [], v.uDeg) : [];
+    return { ...b, nok, ...(scheef ?? { goot0: uitBag ? hoofd.hoogteGoot! : geschat, goot1: uitBag ? hoofd.hoogteGoot! : geschat }), ...(kapellen.length ? { dakkapellen: kapellen } : {}) };
   };
   const blokken = v.blokken.map((b) => dak({ ...b, u: m1(b.u - v.nul.u), v: m1(b.v - v.nul.v) }));
   const h = blokken.find((b) => b.soort === 'hoofdhuis');
@@ -497,6 +505,27 @@ export function scheefDak(b: Blok, vlakken: readonly { readonly azimuthDeg: numb
   const van0 = (breed * k0.w) / (k0.w + k1.w);
   const goot = (afstand: number, k: { tan: number; n: number }) => m1(Math.min(nok, Math.max(1.5, nok - afstand * (k.tan / k.n))));
   return { nokVan0: m1(van0), goot0: goot(van0, k0), goot1: goot(breed - van0, k1) };
+}
+
+/**
+ * De dakkapellen van een schuin dak uit de dakvlakken van 3D BAG: een vlak
+ * van 1,5 tot 15 m² met een helling onder 15° dat dezelfde kant op kijkt als
+ * een kant van het dak. Zo breed als zijn oppervlak gedeeld door twee meter
+ * diepte, tussen 1,2 m en de breedte van het dak min een meter.
+ */
+export function dakkapellen(b: Blok, vlakken: readonly { readonly azimuthDeg: number; readonly tiltDeg: number; readonly m2: number }[], uDeg: number | null): { kant: 0 | 1; breed: number }[] {
+  if (uDeg == null || b.dak === 'plat' || b.dak === 'lessenaar') return [];
+  const richting1 = b.nokLangs === 'y' ? uDeg : uDeg - 90;
+  const verschil = (a: number, c: number) => Math.abs(((a - c + 540) % 360) - 180);
+  const langs = b.nokLangs === 'y' ? b.d : b.b;
+  const uit: { kant: 0 | 1; breed: number }[] = [];
+  for (const x of vlakken) {
+    if (x.tiltDeg >= 15 || x.m2 < 1.5 || x.m2 > 15) continue;
+    const kant = verschil(x.azimuthDeg, richting1) <= 45 ? 1 : verschil(x.azimuthDeg, richting1 + 180) <= 45 ? 0 : -1;
+    if (kant < 0) continue;
+    uit.push({ kant: kant === 1 ? 1 : 0, breed: m1(Math.min(langs - 1, Math.max(1.2, x.m2 / 2))) });
+  }
+  return uit.slice(0, 4);
 }
 
 /**

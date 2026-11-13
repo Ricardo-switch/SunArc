@@ -125,7 +125,7 @@
    * begane grond is zijn eigen schets (12 november 2026), op deze maat gezet.
    */
   const gar = { id: 'garage', soort: 'garage', naam: 'Garage', u: 0, v: 0, b: 8.9, d: 2.4, dak: 'plat dak' };
-  const hs = { id: 'hoofd', soort: 'hoofdhuis', naam: 'Hoofdhuis', u: 6.4, v: 2.4, b: 9.8, d: 5.6, dak: 'zadeldak', nokLangs: 'y', nokVanRechts: 3.75, gootLinks: 3.9, gootRechts: 5.6 };
+  const hs = { id: 'hoofd', soort: 'hoofdhuis', naam: 'Hoofdhuis', u: 6.4, v: 2.4, b: 9.8, d: 5.6, dak: 'zadeldak', nokLangs: 'y', nokVanRechts: 3.75, gootLinks: 3.9, gootRechts: 5.6, dakkapellen: [{ kant: 1, breed: 2.5 }] };
   const hsRecht = { ...hs, nokVanRechts: 4.9, gootLinks: 5.4, gootRechts: 5.4 };
   global.huistekenenJouw = {
     maat: { breed: 16.2, diep: 8 },

@@ -94,7 +94,37 @@
     // Waar de goot hoger ligt dan de andere, loopt de gevel door tot die goot.
     if (g0 > zl) vlakken.push({ gevel: true, n: N(0, -1), p: [Q(a0, c0, zl), Q(a1, c0, zl), Q(a1, c0, g0), Q(a0, c0, g0)] });
     if (g1 > zl) vlakken.push({ gevel: true, n: N(0, 1), p: [Q(a0, c1, zl), Q(a1, c1, zl), Q(a1, c1, g1), Q(a0, c1, g1)] });
-    return { vlakken, nok, zl, Q, a0, a1, c0, c1, cr, g0, g1, n0, n1 };
+    // Dakkapellen: een kast op de kant van het dak, met een plat dak en een raam naar buiten; op een rij in het midden.
+    const kapellen = [];
+    const lijst = b.dakkapellen ?? [];
+    const opKant = (k) => lijst.filter((x) => x.kant === k);
+    for (const kant of [0, 1]) {
+      const rij = opKant(kant);
+      const totaal = rij.reduce((n, x) => n + x.breed, 0) + Math.max(0, rij.length - 1) * 0.8;
+      let a = (a0 + a1) / 2 - totaal / 2;
+      for (const x of rij) {
+        const [ga, gb] = [a, a + x.breed];
+        a += x.breed + 0.8;
+        const g = kant === 0 ? g0 : g1;
+        const cg = kant === 0 ? c0 : c1;
+        const richting = kant === 0 ? 1 : -1;
+        const breed = Math.abs(cr - cg);
+        if (breed < 1 || nok - g < 1.2) continue;
+        const dakZ = (c) => g + ((nok - g) * Math.abs(c - cg)) / breed;
+        const cv = cg + richting * Math.min(0.7, breed * 0.25);
+        const zv = dakZ(cv);
+        const zt = Math.min(nok - 0.25, zv + 1.5);
+        const ca = cg + (richting * (zt - g) * breed) / (nok - g);
+        kapellen.push({
+          kant,
+          voor: { n: N(0, -richting), p: [Q(ga, cv, zv), Q(gb, cv, zv), Q(gb, cv, zt), Q(ga, cv, zt)] },
+          raam: [Q(ga + 0.25, cv - richting * 0.01, zv + 0.25), Q(gb - 0.25, cv - richting * 0.01, zv + 0.25), Q(gb - 0.25, cv - richting * 0.01, zt - 0.2), Q(ga + 0.25, cv - richting * 0.01, zt - 0.2)],
+          boven: { p: [Q(ga, cv, zt), Q(gb, cv, zt), Q(gb, ca, zt), Q(ga, ca, zt)] },
+          zijden: [{ n: N(-1, 0), p: [Q(ga, cv, zv), Q(ga, cv, zt), Q(ga, ca, zt)] }, { n: N(1, 0), p: [Q(gb, cv, zv), Q(gb, cv, zt), Q(gb, ca, zt)] }],
+        });
+      }
+    }
+    return { vlakken, nok, zl, Q, a0, a1, c0, c1, cr, g0, g1, n0, n1, kapellen };
   }
 
   function teken(t, B, Hpx, o = {}) {
@@ -153,6 +183,8 @@
     const daken = blokken.filter((b) => /zadel|schild|lessenaar/.test(b.dak ?? '')).map((b) => {
       const d = dakVan(b, { goot, nok });
       for (const v of d.vlakken) v.p = v.p.map(([x, y, zz]) => [x, y, zz + dakOp]);
+      for (const kp of d.kapellen) for (const v of [kp.voor, kp.boven, ...kp.zijden]) v.p = v.p.map(([x, y, zz]) => [x, y, zz + dakOp]);
+      for (const kp of d.kapellen) kp.raam = kp.raam.map(([x, y, zz]) => [x, y, zz + dakOp]);
       d.nok += dakOp;
       return { b, ...d };
     });
@@ -252,17 +284,37 @@
       }
       return x2;
     };
-    /** De auto: een lage bak met een cabine erop, en een kabel als hij laadt. */
+    /** Een blok met een andere boven- en onderkant (vier hoeken elk): de zijden naar de kijker, dan de bovenkant. */
+    const prisma = (onder, boven, zij, top) => {
+      let x2 = '';
+      const vlakken = [0, 1, 2, 3].map((i) => {
+        const [a, b] = [onder[i], onder[(i + 1) % 4]];
+        return { p: [a, b, boven[(i + 1) % 4], boven[i]], n: [b[1] - a[1], -(b[0] - a[0])] };
+      });
+      for (const v of vlakken.sort((p1, p2) => dp(p2.p) - dp(p1.p))) if (naarKijker(...v.n)) x2 += `<path d="${vlak(v.p)}" fill="${zij(v)}" stroke="rgb(13 26 48 / 0.35)" stroke-width="0.6" stroke-linejoin="round"/>`;
+      return x2 + `<path d="${vlak(boven)}" fill="${top}" stroke="rgb(13 26 48 / 0.35)" stroke-width="0.6" stroke-linejoin="round"/>`;
+    };
+    /** De auto: een lage carrosserie op wielen, een cabine met ramen, en een bliksem als hij laadt. */
     const auto = (q) => {
-      const kleur = q.kleur ?? '#7f97b0';
-      const donker = '#4d5f75';
-      let x2 = doos({ x: q.x, y: q.y, b: q.b, d: q.d, h: 0.75 }, [donker, '#62758c', kleur, kleur]);
       const lang = q.d > q.b;
-      const c = lang ? { x: q.x + 0.12, y: q.y + q.d * 0.3, b: q.b - 0.24, d: q.d * 0.42, h: 1.35 } : { x: q.x + q.b * 0.3, y: q.y + 0.12, b: q.b * 0.42, d: q.d - 0.24, h: 1.35 };
-      x2 += doos({ ...c, h: 1.35 }, ['#26364d', '#2f425c', '#9fb3c8', '#9fb3c8']).replace(/<path d="M([^"]*)" fill="#9fb3c8"/, (m0) => m0);
+      // f langs de auto (0 achter, 1 voor), g dwars (0..1).
+      const W = (f, g, z) => (lang ? [q.x + g * q.b, q.y + f * q.d, z] : [q.x + f * q.b, q.y + g * q.d, z]);
+      const rect = (f0, f1, g0, g1, z) => [W(f0, g0, z), W(f1, g0, z), W(f1, g1, z), W(f0, g1, z)];
+      const kleur = q.kleur ?? '#a9b8c9';
+      let x2 = '';
+      const sch = P(q.x + q.b / 2, q.y + q.d / 2, 0.01);
+      x2 += `<ellipse cx="${sch[0].toFixed(1)}" cy="${sch[1].toFixed(1)}" rx="${(Math.max(q.b, q.d) * 0.55 * k).toFixed(1)}" ry="${(Math.max(q.b, q.d) * 0.55 * k * sp).toFixed(1)}" fill="#000" fill-opacity="0.22"/>`;
+      // De wielen aan de kant van de kijker.
+      const zijWiel = naarKijker(...(lang ? [-1, 0] : [0, -1])) ? 0 : 1;
+      for (const f of [0.18, 0.8]) {
+        const c = W(f, zijWiel === 0 ? -0.01 : 1.01, 0.32);
+        x2 += cirkel(c[0], c[1], c[2], 0.3, lang ? 'x' : 'y', 'fill="#1c2430" stroke="#3a4656" stroke-width="1"');
+      }
+      x2 += prisma(rect(0, 1, 0, 1, 0.28), rect(0.02, 0.98, 0.02, 0.98, 0.82), () => kleur, '#c4d0dc');
+      x2 += prisma(rect(0.24, 0.8, 0.07, 0.93, 0.82), rect(0.36, 0.7, 0.13, 0.87, 1.36), () => '#2b3c55', '#b7c5d3');
       if (q.laadt) {
-        const p = P(q.x + q.b / 2, q.y + q.d / 2, 1.6);
-        x2 += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="14" fill="url(#hm-gloed)" opacity="0.5"/><circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="9" fill="#0d1a30" stroke="#6ee7b7" stroke-width="1.6"/><path d="M${(p[0] + 1).toFixed(1)} ${(p[1] - 5).toFixed(1)}l-4 6h4l-1 5 4-6h-4z" fill="#6ee7b7"/>`;
+        const p = P(q.x + q.b / 2, q.y + q.d / 2, 1.8);
+        x2 += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="9" fill="#0d1a30" stroke="#6ee7b7" stroke-width="1.6"/><path d="M${(p[0] + 1).toFixed(1)} ${(p[1] - 5).toFixed(1)}l-4 6h4l-1 5 4-6h-4z" fill="#6ee7b7"/>`;
       }
       return x2;
     };
@@ -304,6 +356,17 @@
       return x;
     };
     for (const d of daken) for (const v of [...d.vlakken].sort((a, b) => dp(b.p) - dp(a.p))) s += dakVlak(d, v);
+    /** Een dakkapel: de wanden naar de kijker, het platte dak, en het raam (warm als het avond is). */
+    const kapel = (kp) => {
+      let x2 = '';
+      for (const z of kp.zijden) if (naarKijker(...z.n)) x2 += `<path d="${vlak(z.p)}" fill="#7d8ca1" stroke="rgb(13 26 48 / 0.4)" stroke-width="0.6"/>`;
+      if (naarKijker(...kp.voor.n)) {
+        x2 += `<path d="${vlak(kp.voor.p)}" fill="#97a6ba" stroke="rgb(13 26 48 / 0.4)" stroke-width="0.6"/>`;
+        x2 += `<path d="${vlak(kp.raam)}" fill="${o.avond ? '#f3c77a' : '#8fb4d6'}" fill-opacity="${o.avond ? 0.6 : 0.45}"/>`;
+      }
+      return x2 + `<path d="${vlak(kp.boven.p)}" fill="#55647c" stroke="rgb(13 26 48 / 0.5)" stroke-width="0.6"/>`;
+    };
+    for (const d of daken) for (const kp of d.kapellen) if (!naarKijker(...kp.voor.n)) s += kapel(kp);
 
     const kamerVan = (r) => (r?.kamer ? r.kamer : null);
     lagen.forEach((laag, li) => {
@@ -538,6 +601,7 @@
         s += `<path d="${vlak(v.p)}" fill="rgb(191 230 255 / 0.05)" stroke="#9fd8ff" stroke-opacity="0.4" stroke-width="1.1" stroke-dasharray="5 4" stroke-linejoin="round"/>`;
         if (d === hoofdDak && v.dak && paneelVan(v)) s += `<g opacity="0.55">${paneelVeld(d, v)}</g>`;
       }
+      for (const kp of d.kapellen) if (naarKijker(...kp.voor.n)) s += kapel(kp);
       // De nok als dunne lijn.
       s += `<path d="M${pt(...d.Q(d.n0, d.cr, d.nok))}L${pt(...d.Q(d.n1, d.cr, d.nok))}" stroke="#cfe6ff" stroke-opacity="0.6" stroke-width="1.4"/>`;
     }

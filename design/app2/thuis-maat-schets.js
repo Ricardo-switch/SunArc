@@ -81,7 +81,7 @@
 
   const VOORBEELD = {
     hoek: 28,
-    lucht: 0.8,
+    lucht: 0,
     hoogte: 24,
     panelen: { aantal: 12, kant: 1 },
     aan: ['airco-woon', 'vaat', 'accu', 'laadpaal'],
@@ -98,7 +98,7 @@
   };
   const JOUW = (avond) => ({
     hoek: 50,
-    lucht: 0.8,
+    lucht: 0,
     hoogte: 24,
     panelen: { aantal: 10, kant: 1 },
     avond,

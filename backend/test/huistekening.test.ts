@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Daken, DakVlak, Gebouw, Xy } from '../src/web/daken.js';
-import { bronVanDaken, bronVorm, dakenMetBron, gebouwErbij, gebouwWeg, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, gebouwErbij, gebouwWeg, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -282,6 +282,18 @@ describe('je huis tekenen: de bronnen bij Vorm (stap 4)', () => {
  * Stap 5 (Huis in 3D): de nok hoeft niet in het midden. Uit de dakvlakken van
  * 3D BAG volgt waar hij ligt en hoe hoog de goot aan elke kant is.
  */
+describe('je huis tekenen: een dakkapel uit 3D BAG', () => {
+  const blok = { id: 'hoofd', soort: 'hoofdhuis' as const, u: 0, v: 0, b: 5.6, d: 9.9, dak: 'zadel' as const, nokLangs: 'x' as const };
+  it('herkent een klein, bijna plat dakvlak aan een kant van het dak', () => {
+    // Het huis van Ricardo: de voorgevel op het oosten, een plat stukje van 4,9 m² aan de voorkant; de garage (plat, 20,7 m²) telt niet.
+    const vlakken = [{ azimuthDeg: 92, tiltDeg: 5.2, m2: 4.9 }, { azimuthDeg: 92, tiltDeg: 45.9, m2: 5 }, { azimuthDeg: 0, tiltDeg: 0.6, m2: 20.7 }, { azimuthDeg: 93, tiltDeg: 42.9, m2: 28.6 }, { azimuthDeg: 272, tiltDeg: 43.9, m2: 41.5 }];
+    // u loopt naar het noorden (0) en v naar het westen: kant 1 (achter) kijkt naar het westen, kant 0 (voor) naar het oosten.
+    expect(dakkapellen(blok, vlakken, 0)).toEqual([{ kant: 0, breed: 2.5 }]);
+    expect(dakkapellen({ ...blok, dak: 'plat' }, vlakken, 0)).toEqual([]);
+    expect(dakkapellen(blok, vlakken, null)).toEqual([]);
+  });
+});
+
 describe('je huis tekenen: een gebouw erbij bij Vorm (0.185.0)', () => {
   const blok = (x0: number, y0: number, x1: number, y1: number): Xy[] => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
   const huis: Gebouw = { id: 'huis', soort: 'hoofdhuis', bron: 'kaart', kaart: 'bag3d', omtrek: blok(-5, -4, 5, 4), dakvorm: 'zadel', nokDeg: 90 };
