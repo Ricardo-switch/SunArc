@@ -38,6 +38,7 @@
       bg: { garage: { kamer: 'garage' }, uitbouw: { kamer: 'keuken' }, hoofd: { as: 'u', op: 2.4, a: { kamer: 'hal' }, b: { kamer: 'woonkamer' } } },
       eerste: { hoofd: { as: 'v', op: 4.6, a: { as: 'u', op: 5.6, a: { kamer: 'slaapkamer' }, b: { kamer: 'kinderkamer' } }, b: { as: 'u', op: 3.8, a: { kamer: 'badkamer' }, b: { kamer: 'werkkamer' } } } },
     },
+    verborgen: 2,
     apparaten: [
       { id: 'airco-woon', naam: 'Airco woonkamer', soort: 'airco', kamer: 'woonkamer' },
       { id: 'plafond', naam: 'Plafondlamp', soort: 'licht', kamer: 'woonkamer' },
@@ -95,6 +96,7 @@
       vakken: [[29, 0, 48, 40, { kamer: 'hal' }], [48, 14, 60, 40, { naam: 'Toilet', soort: 'toilet' }], [48, 0, 60, 14, { naam: 'Trap', soort: 'trap' }], [29, 30, 36, 40, { naam: 'Meterkast', soort: 'berging' }]],
       zone: { kamer: 'woonkamer', op: 40 },
     },
+    verborgen: 2,
     apparaten: [
       { id: 'airco-woon', naam: 'Airco woonkamer', soort: 'airco', kamer: 'woonkamer' },
       { id: 'keukenlamp', naam: 'Keukenlamp', soort: 'licht', kamer: 'woonkamer' },
@@ -146,6 +148,7 @@
       vakken: [[93, 24, 111, 53, { kamer: 'hal' }], [111, 34, 123, 53, { naam: 'Toilet', soort: 'toilet' }], [111, 24, 123, 34, { naam: 'Trap', soort: 'trap' }], [93, 46, 99, 53, { naam: 'Meterkast', soort: 'berging' }]],
       zone: { kamer: 'woonkamer', op: 103 },
     },
+    verborgen: 2,
     apparaten: [
       { id: 'airco-woon', naam: 'Airco woonkamer', soort: 'airco', kamer: 'woonkamer' },
       { id: 'keukenlamp', naam: 'Keukenlamp', soort: 'licht', kamer: 'woonkamer' },

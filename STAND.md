@@ -295,8 +295,11 @@ verwijzing bestaat.
   de pagina Je huis (`jehuis.html`) in de stand Kamers, met de etages,
   kamers en zones uit de indeling, begin-indelingen, de muren van beneden,
   terug en vooruit; Kamers en indeling heeft een knop ernaartoe. In 0.180.1
-  zoom je met twee vingers en sleep je een gekozen ruimte overal weg. Vorm,
-  Apparaten en Huis staan uit tot stap 3 tot 5; Ricardo probeert eerst.
+  zoom je met twee vingers en sleep je een gekozen ruimte overal weg. Stap 3
+  (0.181.0): Apparaten, met de apparaten uit de indeling; slepen naar een
+  andere kamer of plek bewaart de kamer en de plek, een plek naast een
+  zonelijn zet de zone, en wat nog geen kamer heeft staat in de strook. Vorm
+  en Huis staan uit tot stap 4 en 5.
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over

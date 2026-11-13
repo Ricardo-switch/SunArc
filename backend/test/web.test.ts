@@ -1787,7 +1787,7 @@ describe('de indeling (besluit 96)', () => {
     const dir = await mkdtemp(join(tmpdir(), 'hems-huistekening-web-'));
     cleanups.push(() => rm(dir, { recursive: true, force: true }));
     const store = new LayoutStore({ logDir: dir, known: () => known });
-    const house = () => ({ woning: 'rij', etages: [{ id: 'bg', naam: 'Beneden', ruimtes: [{ id: 'woonkamer', naam: 'Woonkamer', soort: 'woonkamer', zones: [{ id: 'a', naam: 'Keuken' }, { id: 'b', naam: 'Zithoek' }] }] }, { id: 'buiten', naam: 'Buiten', ruimtes: [] }] }) as unknown as HouseReport;
+    const house = () => ({ woning: 'rij', zonderRuimte: [], verborgen: [], etages: [{ id: 'bg', naam: 'Beneden', ruimtes: [{ id: 'woonkamer', naam: 'Woonkamer', soort: 'woonkamer', apparaten: [], zones: [{ id: 'a', naam: 'Keuken' }, { id: 'b', naam: 'Zithoek' }] }] }, { id: 'buiten', naam: 'Buiten', ruimtes: [] }] }) as unknown as HouseReport;
     const tweeZones: Layout = { ...layout, kamers: [{ ...layout.kamers[0]!, zones: [{ id: 'a', naam: 'Keuken' }, { id: 'b', naam: 'Zithoek' }] }] };
     const { base } = await start({ latest: () => snapshot(), house, layout: { store, proposal: () => tweeZones } });
     const leeg = (await (await fetch(`${base}/api/huistekening`)).json()) as Record<string, unknown>;
@@ -1805,6 +1805,54 @@ describe('de indeling (besluit 96)', () => {
     const fout = await fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening: { bg: [{ vakken: [[0, 0, 0, 1]] }] }, zones: {} }) });
     expect(fout.status).toBe(400);
     expect(store.current?.plattegrond).toEqual(tekening);
+  });
+
+  /*
+   * Je huis, stap 3 (Apparaten): de tekentafel krijgt de apparaten binnen, ook
+   * wat nog geen kamer heeft (met de kamer uit Home Assistant als tip), en
+   * bewaart per apparaat de kamer en de plek. Een plek naast de zonelijn zet
+   * de zone aan zijn kant van de lijn.
+   */
+  it('geeft de tekentafel de apparaten, en bewaart hun kamer, plek en zone', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'hems-huistekening-app-'));
+    cleanups.push(() => rm(dir, { recursive: true, force: true }));
+    const store = new LayoutStore({ logDir: dir, known: () => ({ ...known, deviceIds: new Set(['nest', 'lamp']) }) });
+    const zones = [{ id: 'a', naam: 'Keuken' }, { id: 'b', naam: 'Zithoek' }];
+    const house = () =>
+      ({
+        woning: 'rij',
+        zonderRuimte: [{ id: 'lamp', naam: 'Lamp', soort: 'licht', voorstel: 'woonkamer', voorstelKamer: null, groepen: [] }],
+        verborgen: [{ id: 'x', naam: 'Weg', soort: 'licht' }],
+        etages: [
+          { id: 'bg', naam: 'Beneden', ruimtes: [{ id: 'woonkamer', naam: 'Woonkamer', soort: 'woonkamer', zones, apparaten: [{ id: 'nest', naam: 'Thermostaat', soort: 'klimaat', klimaat: { kanKoelen: false } }] }] },
+          { id: 'buiten', naam: 'Buiten', ruimtes: [] },
+        ],
+      }) as unknown as HouseReport;
+    const tweeZones: Layout = { ...layout, kamers: [{ ...layout.kamers[0]!, zones }] };
+    const { base } = await start({ latest: () => snapshot(), house, layout: { store, proposal: () => tweeZones } });
+    const lees = async () => (await (await fetch(`${base}/api/huistekening`)).json()) as Record<string, unknown>;
+    expect(await lees()).toMatchObject({
+      apparaten: [
+        { id: 'nest', naam: 'Thermostaat', soort: 'thermostaat', kamer: 'woonkamer' },
+        { id: 'lamp', naam: 'Lamp', soort: 'licht', kamer: null, ha: 'woonkamer' },
+      ],
+      verborgen: 1,
+    });
+
+    // De thermostaat achter de zonelijn (zone Zithoek), de lamp uit de strook de kamer in, zonder plek.
+    const tekening = { bg: [{ kamer: 'woonkamer', vakken: [[0, 0, 5.4, 9]] }] };
+    const bewaar = (x: object) => fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening, zones: { woonkamer: { as: 'v', op: 4.5 } }, ...x }) });
+    expect((await bewaar({ plekken: { nest: { etage: 'bg', u: 2, v: 6 } }, apparaten: { nest: 'woonkamer', lamp: 'woonkamer' } })).status).toBe(200);
+    expect(store.current?.apparaten['nest']).toEqual({ naam: 'Thermostaat', kamer: 'woonkamer', zone: 'b', plek: { etage: 'bg', u: 2, v: 6 } });
+    expect(store.current?.apparaten['lamp']).toEqual({ kamer: 'woonkamer', zone: null });
+    expect(await lees()).toMatchObject({ plekken: { nest: { etage: 'bg', u: 2, v: 6 } } });
+
+    // Naar de andere kant van de lijn: de zone gaat mee. Een kamer die er niet is, verandert niets.
+    expect((await bewaar({ plekken: { nest: { etage: 'bg', u: 2, v: 1 } }, apparaten: { nest: 'zolder' } })).status).toBe(200);
+    expect(store.current?.apparaten['nest']).toMatchObject({ kamer: 'woonkamer', zone: 'a', plek: { etage: 'bg', u: 2, v: 1 } });
+    // Zonder plekken en apparaten (zoals stap 2 bewaarde) blijven plek en zone staan.
+    expect((await bewaar({})).status).toBe(200);
+    expect(store.current?.apparaten['nest']).toMatchObject({ zone: 'a', plek: { etage: 'bg', u: 2, v: 1 } });
   });
 
   it('weigert een indeling die niet deugt, met een reden', async () => {

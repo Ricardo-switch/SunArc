@@ -1855,6 +1855,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         ['voortgang.html', /How far your house is[\s\S]*Fully working/],
         ['indeling.html', /Rooms and layout[\s\S]*(Add a floor|Name of the floor)/],
         ['jehuis.html', /Your home[\s\S]*Rooms/],
+        ['jehuis.html#bg/apparaten', /Your home[\s\S]*Devices/],
         ['inrichten.html', /Welcome[\s\S]*home\.[\s\S]*Always says why/],
         ['inrichten.html#warmte', /What heats and cools\?/],
         ['inrichten.html#apparaat', /What each device can do/],
@@ -4094,7 +4095,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect((await slecht()).some((x) => x.includes('"proef"'))).toBe(true);
       const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { ruimtes: { id: string; apparaten: unknown[] }[] }[] };
       const vol = huisNu.etages.flatMap((e) => e.ruimtes).sort((x, y) => y.apparaten.length - x.apparaten.length)[0]!;
-      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'regeling.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'indeling.html', 'jehuis.html', 'inrichten.html'];
+      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'regeling.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'indeling.html', 'jehuis.html', 'jehuis.html#bg/apparaten', 'inrichten.html'];
       const weg: string[] = [];
       for (const pagina of paginas) {
         await p.goto(`${baseUrl}/${pagina}`);
@@ -7427,9 +7428,10 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         p.on('pageerror', (e) => fouten.push(e.message));
         await p.goto(`${baseUrl}/jehuis.html#bg`);
         await p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);
-        // Alleen Kamers; Vorm, Apparaten en Huis komen later en staan uit.
+        // Kamers staat aan; Apparaten kan ook (stap 3), Vorm en Huis komen later en staan uit.
         expect(await p.locator(`${kant} [data-stand="kamers"]`).getAttribute('aria-pressed'), naam).toBe('true');
-        for (const s of ['vorm', 'apparaten', 'huis']) expect(await p.locator(`${kant} [data-stand="${s}"]`).isDisabled(), `${naam} ${s}`).toBe(true);
+        expect(await p.locator(`${kant} [data-stand="apparaten"]`).isDisabled(), `${naam} apparaten`).toBe(false);
+        for (const s of ['vorm', 'huis']) expect(await p.locator(`${kant} [data-stand="${s}"]`).isDisabled(), `${naam} ${s}`).toBe(true);
         // De wand schuift nooit: alles past in het scherm.
         if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
         // Nog leeg: begin met de eerste indeling uit de kamers.
@@ -7500,6 +7502,105 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await p.goto(`${baseUrl}/indeling.html`);
       expect(await p.locator('#wand [data-naar-jehuis]').getAttribute('href')).toBe('jehuis.html');
       await oud.close();
+    } finally {
+      if (voor) await layoutStore.save(voor);
+    }
+  }, 90_000);
+  /*
+   * Je huis, stap 3 (Apparaten): met een nagebootste vinger een apparaat naar
+   * een andere kamer slepen, op de wand en de telefoon. Alleen pointerdown en
+   * pointerup; de kamer en de plek komen in de indeling, en stap terug zet het
+   * terug. Wat nog geen kamer heeft, staat in de strook en gaat zo de tekening
+   * in.
+   */
+  it('zet bij Je huis een apparaat met een vinger in een andere kamer, en bewaart het in de indeling (besluit 308)', async () => {
+    const voor = layoutStore.current;
+    try {
+      for (const [naam, breed, hoog] of [['wand', 1280, 800], ['telefoon', 390, 844]] as const) {
+        const nu = layoutStore.current;
+        if (nu?.plattegrond) {
+          const { plattegrond: _weg, ...zonder } = nu;
+          await layoutStore.save(zonder);
+        }
+        const kant = breed < 600 ? '#tel' : '#wand';
+        const context = await browser.newContext({ viewport: { width: breed, height: hoog }, hasTouch: true, isMobile: breed < 600, timezoneId: 'UTC', locale: 'nl-NL' });
+        await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+        const p = await context.newPage();
+        const fouten: string[] = [];
+        p.on('pageerror', (e) => fouten.push(e.message));
+        await p.goto(`${baseUrl}/jehuis.html`);
+        await p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);
+        // De etage met de meeste apparaten in een kamer, met een begin-indeling.
+        const etage = await p.evaluate<string>(`(() => { const t = window.tekenaar; const tel = {}; for (const a of t.st.apparaten) { const k = t.kamers[a.kamer]; if (k) tel[k.etage] = (tel[k.etage] ?? 0) + 1; } return Object.entries(tel).sort((a, b) => b[1] - a[1])[0][0]; })()`);
+        await p.evaluate(`window.tekenaar.zetEtage(${JSON.stringify(etage)})`);
+        if (await p.evaluate<boolean>('window.tekenaar.isLeeg()')) await p.locator(`${kant} [data-ht="indeling"]`).first().click();
+        await expect.poll(() => p.evaluate<boolean>('window.tekenaar.isLeeg()')).toBe(false);
+        // Naar Apparaten: de knop staat aan, het adres onthoudt het.
+        await p.locator(`${kant} [data-stand="apparaten"]`).click();
+        expect(await p.locator(`${kant} [data-stand="apparaten"]`).getAttribute('aria-pressed'), naam).toBe('true');
+        expect(await p.evaluate('location.hash'), naam).toBe(`#${etage}/apparaten`);
+        // De tekening zoomt in 260 ms naar het hele huis, en past zich aan het blad aan: wacht tot hij stilstaat.
+        const stand = () => p.evaluate<string>(`document.querySelector('#tekening [data-l="vlak"] g').getAttribute('transform') + document.querySelector('#tekening').getBoundingClientRect().height`);
+        await expect.poll(async () => { const a = await stand(); await p.waitForTimeout(200); return a === (await stand()); }).toBe(true);
+        // Met de strook erbij schuift de wand nog steeds niet.
+        if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
+        const v = await vinger(p);
+        await v.log();
+        // Op het scherm: een ruitje (x, y) van de tekening in schermpunten.
+        const SCHERM = `const el = document.querySelector('#tekening'); el.scrollIntoView({ block: 'center' }); const b = el.getBoundingClientRect(); const g = el.querySelector('[data-l="vlak"] g').getAttribute('transform'); const [, ox, oy, k] = /translate\\(([-\\d.]+) ([-\\d.]+)\\) scale\\(([-\\d.]+)/.exec(g).map(Number); const scherm = (x, y) => [b.left + ox + x * k, b.top + oy - y * k];`;
+        const cdp = await context.newCDPSession(p);
+        const sleep = async ([x0, y0]: [number, number], [x1, y1]: [number, number]) => {
+          await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: x0, y: y0 }] });
+          for (let j = 1; j <= 12; j++) {
+            await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x0 + ((x1 - x0) * j) / 12, y: y0 + ((y1 - y0) * j) / 12 }] });
+            await p.waitForTimeout(16);
+          }
+          await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+          await p.waitForTimeout(250);
+        };
+        // Een apparaat zonder eigen plek, en het midden van de grootste andere kamer op deze etage. Het icoon zweeft 30 px boven de vinger.
+        const zet = await p.evaluate<{ id: string; van: string; naar: string; a: [number, number]; b: [number, number] } | null>(`(() => {
+          ${SCHERM}
+          const t = window.tekenaar; const m = t.maten(); const w = t.kamerPlek();
+          const q = t.apparaatPunten().find((x) => !x.zelf);
+          if (!q) return null;
+          const ander = Object.entries(w).filter(([k, x]) => x.etage === t.st.etage && k !== q.a.kamer).sort((a, b) => m[b[1].id].n - m[a[1].id].n)[0];
+          if (!ander) return null;
+          const r = m[ander[1].id].r;
+          const [bx, by] = scherm((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2);
+          return { id: q.a.id, van: q.a.kamer, naar: ander[0], a: scherm(q.x, q.y), b: [bx, by + 30] };
+        })()`);
+        expect(zet, naam).not.toBeNull();
+        await sleep(zet!.a, zet!.b);
+        expect(await v.log(), naam).toBe('pointerdown pointerup');
+        const na = await p.evaluate<{ kamer: string; plek?: object }>(`window.tekenaar.st.apparaten.find((a) => a.id === ${JSON.stringify(zet!.id)})`);
+        expect(na.kamer, naam).toBe(zet!.naar);
+        expect(na.plek, naam).toBeTruthy();
+        // Bewaard in de indeling: de kamer en de plek.
+        await expect.poll(() => p.locator(`${kant} [data-bewaard]`).textContent(), { timeout: 10_000 }).toBe('Bewaard');
+        expect(layoutStore.current?.apparaten[zet!.id]?.kamer, naam).toBe(zet!.naar);
+        expect(layoutStore.current?.apparaten[zet!.id]?.plek?.etage, naam).toBe(etage);
+        // Het blad zegt waar het staat, met een weg naar het apparaat zelf.
+        expect(await p.locator(`${kant} [data-ht="openen"]`).count(), naam).toBe(1);
+        // Stap terug: weer in de eerste kamer, zonder eigen plek.
+        await p.locator(`${kant} [data-stap-terug]`).click();
+        await expect.poll(() => layoutStore.current?.apparaten[zet!.id]?.kamer, { timeout: 10_000, message: naam }).toBe(zet!.van);
+        expect(layoutStore.current?.apparaten[zet!.id]?.plek, naam).toBeUndefined();
+        // De strook: wat nog geen kamer heeft, sleep je de tekening in.
+        const los = p.locator(`${kant} #strook [data-los]`).first();
+        if (await los.count()) {
+          const id = await los.getAttribute('data-los');
+          // Uit de strook zweeft het 46 px boven de vinger.
+          const doel = await p.evaluate<[number, number]>(`(() => { ${SCHERM} const t = window.tekenaar; const m = t.maten(); const w = Object.values(t.kamerPlek()).find((x) => x.etage === t.st.etage); const r = m[w.id].r; const [x, y] = scherm((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2); return [x, y + 46]; })()`);
+          await los.scrollIntoViewIfNeeded();
+          const van2 = await los.boundingBox();
+          await sleep([van2!.x + van2!.width / 2, van2!.y + van2!.height / 2], doel);
+          await expect.poll(() => p.evaluate<string | null>(`window.tekenaar.st.apparaten.find((a) => a.id === ${JSON.stringify(id)})?.kamer ?? null`), { message: naam }).not.toBeNull();
+          await p.locator(`${kant} [data-stap-terug]`).click();
+        }
+        expect(fouten, naam).toEqual([]);
+        await context.close();
+      }
     } finally {
       if (voor) await layoutStore.save(voor);
     }

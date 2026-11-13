@@ -51,7 +51,7 @@
   const EIGEN_SLEUTELS = [['hal', 'hal'], ['toilet', 'toilet'], ['overloop', 'overloop'], ['trap', 'trap'], ['berging', 'berging'], ['berging', 'meterkast']];
   /** [soort, naam] in de taal van de app. */
   const eigenNamen = () => EIGEN_SLEUTELS.map(([soort, k]) => [soort, T(`ht.eigen.${k}`)]);
-  const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', koffie: '#f7b548', camera: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff' };
+  const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', koffie: '#f7b548', camera: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff', rookmelder: '#ff9a6b', boiler: '#ff9a6b', jacuzzi: '#6fd3ff' };
   const APP_ICOON = { meter: 'klimaat' };
 
   /* ================================================================ de vloer: ruitjes */
@@ -495,7 +495,7 @@
 
   /**
    * huis: { maat: {breed, diep}, etages: [{id, naam, kort, blokken: [{id, soort, naam, u, v, b, d}]}] van boven naar beneden,
-   *         kamers: [{id, naam, soort, etage}], apparaten: [{id, naam, soort, kamer, ha}],
+   *         kamers: [{id, naam, soort, etage}], apparaten: [{id, naam, soort, kamer, ha}], verborgen: hoeveel apparaten verborgen zijn,
    *         begin: { etage: [boom per blok] } }
    */
   function maak(svg, huis, opties = {}) {
@@ -555,8 +555,13 @@
         for (const [kamer, z] of Object.entries(v.zones ?? {})) zones[kamer] = { as: z.as === 'x' ? 'u' : 'v', op: m1(z.op - MARGE) };
       }
       const plekken = {};
-      for (const a of st.apparaten) if (a.plek) plekken[a.id] = { etage: a.plek.etage, u: Math.round((a.plek.x - MARGE) * 10) / 100, v: Math.round((a.plek.y - MARGE) * 10) / 100 };
-      return { tekening, zones, plekken };
+      // Per apparaat de kamer waar het staat (stap 3); wat nog geen kamer heeft, ontbreekt.
+      const apparaten = {};
+      for (const a of st.apparaten) {
+        if (a.plek) plekken[a.id] = { etage: a.plek.etage, u: Math.round((a.plek.x - MARGE) * 10) / 100, v: Math.round((a.plek.y - MARGE) * 10) / 100 };
+        if (a.kamer) apparaten[a.id] = a.kamer;
+      }
+      return { tekening, zones, plekken, apparaten };
     };
     if (sleutel) {
       try {
@@ -749,7 +754,7 @@
         const dd = r.y1 - r.y0;
         const per = {};
         for (const { a, zelf } of lijst) {
-          const groep = a.soort === 'licht' ? 'midden' : a.soort === 'airco' ? 'achter' : a.soort === 'screen' ? 'voor' : a.soort === 'meter' || a.soort === 'thermostaat' ? 'rechts' : 'links';
+          const groep = a.soort === 'licht' || a.soort === 'rookmelder' ? 'midden' : a.soort === 'airco' ? 'achter' : a.soort === 'screen' ? 'voor' : a.soort === 'meter' || a.soort === 'thermostaat' ? 'rechts' : 'links';
           (per[groep] ??= []).push(zelf ? null : a);
         }
         const zet = (a, x, y) => a && uit.push({ a, x: klem(x, r.x0 + 2, r.x1 - 2), y: klem(y, r.y0 + 2, r.y1 - 2), ruimte: Number(id), zelf: false });
@@ -1759,6 +1764,8 @@
       kamerPlek,
       bezig: () => actie,
       heelHuis,
+      /** Naar een andere pagina (de app): `verborgen`, of `apparaat` met { id, kamer }. Weg in de schets. */
+      naar: opties.naar ?? null,
       zetStand(s) {
         st.stand = s;
         st.kies = null;
@@ -1983,7 +1990,7 @@
           s = `<header><h3>${esc(kies.naam)}</h3><span>${esc(t.kamers[kies.kamer]?.naam ?? T('ht.app.geenKamer'))}</span></header>
             ${rij({ ik: t.kamers[kies.kamer]?.soort ?? 'kamer', titel: T('ht.app.kamer'), zin: t.kamers[kies.kamer]?.naam ?? T('ht.app.nietGekozen'), rechts: '›', data: `data-ht="app-waar" data-app="${esc(kies.id)}"` })}
             ${rij({ ik: 'standaard', titel: T('ht.app.plek'), zin: p ? [t.zoneVan(p), t.plekNaam(p)].filter(Boolean).join(' · ') : T('ht.app.andereEtage'), rechts: p?.zelf ? T('ht.app.laatKiezen') : '', data: p?.zelf ? `data-ht="app-vrij" data-app="${esc(kies.id)}"` : 'disabled' })}
-            ${rij({ ik: 'apparaat', titel: T('ht.app.openen'), zin: T('ht.app.openenZin'), rechts: '›', data: 'disabled' })}
+            ${rij({ ik: 'apparaat', titel: T('ht.app.openen'), zin: T('ht.app.openenZin'), rechts: '›', data: t.naar && kies.kamer ? `data-ht="openen" data-app="${esc(kies.id)}"` : 'disabled' })}
             <p class="ht-voet">${esc(T('ht.app.voet'))}</p>`;
         } else if (st.zoom != null && v.ruimtes[st.zoom]) {
           const lijst = punten.filter((p) => p.ruimte === st.zoom);
@@ -1997,8 +2004,8 @@
             s += rij({ ik: km.soort, titel: km.naam, zin: `${(km.zones ?? []).length > 1 && v.zones?.[km.id] ? `${T('ht.zones.aantal', { n: km.zones.length })} · ` : ''}${T('ht.apparaten', { n })}`, rechts: '›', data: `data-ht="zoom" data-id="${waar[km.id].id}"` });
           }
           const zonderVak = hier.filter((x) => !waar[x.id]);
-          if (zonderVak.length) s += `<p class="ht-zin mist">${esc(T('ht.app.zonderVak', { namen: zonderVak.map((x) => x.naam).join(', ') }))}</p>`;
-          s += `<div class="ht-onder">${los.length ? '' : `<p class="ht-voet">${esc(T('ht.app.allesKamer'))}</p>`}${rij({ ik: 'verborgen', titel: T('ht.app.verborgen'), zin: T('ht.apparaten', { n: 2 }), rechts: '›', data: 'disabled' })}</div>`;
+          if (zonderVak.length) s += `<p class="ht-zin mist">${esc(T('ht.app.zonderVak', { namen: zonderVak.map((x) => x.naam).join(', ') }))}</p>${rij({ ik: 'kamers', titel: T('ht.app.naarKamers'), zin: '', rechts: '›', data: 'data-ht="naar-kamers"' })}`;
+          s += `<div class="ht-onder">${los.length ? '' : `<p class="ht-voet">${esc(T('ht.app.allesKamer'))}</p>`}${t.huis.verborgen ? rij({ ik: 'verborgen', titel: T('ht.app.verborgen'), zin: T('ht.apparaten', { n: t.huis.verborgen }), rechts: '›', data: t.naar ? 'data-ht="verborgen"' : 'disabled' }) : ''}</div>`;
         }
       }
       el.innerHTML = s;
@@ -2035,6 +2042,9 @@
         teken();
       } else if (d.ht === 'app-kamer') t.zetApparaat(d.app, d.kamer, null);
       else if (d.ht === 'app-vrij') t.zetApparaat(d.app, st.apparaten.find((a) => a.id === d.app).kamer, null);
+      else if (d.ht === 'openen') t.naar('apparaat', st.apparaten.find((a) => a.id === d.app));
+      else if (d.ht === 'verborgen') t.naar('verborgen');
+      else if (d.ht === 'naar-kamers') t.zetStand('kamers');
     });
     el.addEventListener('change', (e) => {
       const naam = e.target.closest('[data-ht-naam]');

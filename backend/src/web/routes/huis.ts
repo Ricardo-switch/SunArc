@@ -9,7 +9,7 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { tekenVorm, verschuif } from '../huistekening.js';
+import { tekenSoort, tekenVorm, verschuif, zoneVanPlek } from '../huistekening.js';
 
 /** De routes van dit onderwerp; waar als het verzoek hier is afgehandeld. */
 export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
@@ -305,7 +305,7 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
  * de vorm (de gebouwen van Daken en panelen, of een rechthoek uit het
  * woningtype), de etages binnen met hun kamers en zones, en wat er al
  * getekend is, in meters vanaf de linker voorhoek van het hele huis. POST
- * `{ tekening, zones, plekken? }` bewaart alleen dat, in de indeling; de rest
+ * `{ tekening, zones, plekken?, apparaten? }` bewaart alleen dat, in de indeling (apparaten: per id de kamer); de rest
  * van de indeling blijft zoals hij is. Een kamer die er niet meer is, laat een
  * vak zonder naam achter.
  */
@@ -348,19 +348,28 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       const { zoneLijn: _weg, ...rest } = k;
       const z = zones[k.id];
       if (!z || (z.as !== 'u' && z.as !== 'v') || typeof z.op !== 'number') return rest;
-      return { ...rest, zoneLijn: { as: z.as, op: z.op - (z.as === 'u' ? nu : nv) } };
+      return { ...rest, zoneLijn: { as: z.as as 'u' | 'v', op: z.op - (z.as === 'u' ? nu : nv) } };
     });
-    // De plekken (stap 3): alleen als ze meekomen, en alleen voor apparaten die al in de indeling staan.
+    // De apparaten (stap 3), alleen als ze meekomen: de kamer waar een apparaat staat, en zijn plek.
+    // Een plek in een kamer met een zonelijn zet de zone: die aan zijn kant van de lijn.
+    const object = (x: unknown) => (typeof x === 'object' && x != null && !Array.isArray(x) ? (x as Record<string, unknown>) : null);
+    const plekken = object(b['plekken']) as Record<string, { etage?: unknown; u?: unknown; v?: unknown }> | null;
+    const naarKamer = object(b['apparaten']);
     let apparaten: Record<string, unknown> = basis.apparaten;
-    if (typeof b['plekken'] === 'object' && b['plekken'] != null) {
-      const plekken = b['plekken'] as Record<string, { etage?: unknown; u?: unknown; v?: unknown }>;
-      apparaten = Object.fromEntries(
-        Object.entries(basis.apparaten).map(([id, a]) => {
-          const { plek: _weg, ...rest } = a;
-          const p = plekken[id];
-          return [id, p && typeof p.u === 'number' && typeof p.v === 'number' ? { ...rest, plek: { etage: p.etage, u: p.u - nu, v: p.v - nv } } : rest];
-        }),
-      );
+    if (plekken || naarKamer) {
+      const kamerOp = new Map(kamers.map((k) => [k.id, k]));
+      apparaten = {};
+      for (const id of new Set([...Object.keys(basis.apparaten), ...Object.keys(naarKamer ?? {})])) {
+        const oud = basis.apparaten[id];
+        const gevraagd = naarKamer?.[id];
+        const kamer = typeof gevraagd === 'string' && kamerOp.has(gevraagd) ? gevraagd : oud?.kamer;
+        if (!kamer) continue;
+        const { plek: oudePlek, ...rest } = oud ?? { zone: null };
+        const p = plekken?.[id];
+        const plek = plekken ? (p && typeof p.u === 'number' && typeof p.v === 'number' && typeof p.etage === 'string' ? { etage: p.etage, u: p.u - nu, v: p.v - nv } : undefined) : oudePlek;
+        const zone = (plek && kamerOp.get(kamer) ? zoneVanPlek(kamerOp.get(kamer)!, plek) : null) ?? (oud?.kamer === kamer ? oud.zone : null);
+        apparaten[id] = { ...rest, kamer, zone, ...(plek ? { plek } : {}) };
+      }
     }
     const uit = await door.store.save({ ...basis, kamers, apparaten, plattegrond: tekening });
     if (uit.ok) sendJson(res, 200, { bewaard: true });
@@ -373,6 +382,16 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
   for (const k of basis.kamers) if (k.zoneLijn) zoneLijnen[k.id] = { as: k.zoneLijn.as, op: Math.round((k.zoneLijn.op + (k.zoneLijn.as === 'u' ? nu : nv)) * 10) / 10 };
   const plekken: Record<string, { etage: string; u: number; v: number }> = {};
   for (const [id, a] of Object.entries(basis.apparaten)) if (a.plek) plekken[id] = { etage: a.plek.etage, u: Math.round((a.plek.u + nu) * 100) / 100, v: Math.round((a.plek.v + nv) * 100) / 100 };
+  // De apparaten binnen: in hun kamer, of nog zonder kamer (de strook), met de kamer uit Home Assistant als tip.
+  const kamerIds = new Set(binnen.flatMap((e) => e.ruimtes.map((r) => r.id)));
+  const kamerMetNaam = (naam: string | null) => (naam ? (binnen.flatMap((e) => e.ruimtes).find((r) => r.naam.toLowerCase() === naam.toLowerCase())?.id ?? null) : null);
+  const apparaten = [
+    ...binnen.flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten.map((a) => ({ id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: r.id })))),
+    ...huis.zonderRuimte.map((a) => {
+      const tip = a.voorstelKamer && kamerIds.has(a.voorstelKamer) ? a.voorstelKamer : kamerMetNaam(a.voorstel);
+      return { id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: null, ...(tip ? { ha: tip } : {}) };
+    }),
+  ];
   sendJson(res, 200, {
     eigen: door.store.current != null,
     vorm: { maat: vorm.maat, blokken: vorm.blokken, bron: vorm.bron },
@@ -383,5 +402,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     tekening: verschuif(basis.plattegrond ?? {}, nu, nv),
     zones: zoneLijnen,
     plekken,
+    apparaten,
+    verborgen: huis.verborgen.length,
   });
 }

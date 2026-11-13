@@ -51,6 +51,33 @@ export interface Plek {
   readonly v: number;
 }
 
+/**
+ * Wat een apparaat in de tekening is (stap 3): het icoon, en waar het staat
+ * zolang het geen eigen plek heeft (een airco aan de achterwand, een lamp in
+ * het midden). Een klimaatapparaat dat kan koelen is een airco, anders een
+ * thermostaat.
+ */
+export type TekenSoort = 'airco' | 'thermostaat' | 'licht' | 'screen' | 'meter' | 'camera' | 'rookmelder' | 'boiler' | 'jacuzzi' | 'stekker';
+
+export function tekenSoort(a: { readonly soort: string; readonly klimaat?: { readonly kanKoelen: boolean } | null; readonly warmte?: { readonly soort: string }; readonly radiatorknop?: unknown }): TekenSoort {
+  if (a.radiatorknop) return 'thermostaat';
+  if (a.soort === 'klimaat') return a.klimaat?.kanKoelen ? 'airco' : 'thermostaat';
+  if (a.soort === 'licht' || a.soort === 'screen' || a.soort === 'meter' || a.soort === 'camera' || a.soort === 'rookmelder') return a.soort;
+  if (a.warmte?.soort === 'boiler' || a.warmte?.soort === 'jacuzzi') return a.warmte.soort;
+  return 'stekker';
+}
+
+/**
+ * In welke zone een plek ligt: aan welke kant van de stippellijn (besluit
+ * 308). De eerste zone ligt links of voor de lijn. Null zonder lijn, met meer
+ * dan twee zones, of op een andere etage.
+ */
+export function zoneVanPlek(kamer: { readonly etage: string; readonly zones: readonly { readonly id: string }[]; readonly zoneLijn?: ZoneLijn }, plek: Plek): string | null {
+  const lijn = kamer.zoneLijn;
+  if (!lijn || kamer.zones.length !== 2 || plek.etage !== kamer.etage) return null;
+  return kamer.zones[(lijn.as === 'u' ? plek.u : plek.v) < lijn.op ? 0 : 1]!.id;
+}
+
 const MAX_RUIMTES = 80;
 const MAX_VAKKEN = 400;
 /** Verder dan dit van de hoek van het hoofdhuis tekent niemand een huis. */

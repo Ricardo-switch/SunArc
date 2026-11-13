@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.180.2
+## 0.181.0
 
-*13 november 2026 · 0.179.0 – 0.180.2*
+*13 november 2026 · 0.179.0 – 0.181.0*
 
 **Nieuw**
 
+- Je huis: Apparaten. Je ziet elk apparaat in zijn kamer, op de plek waar het meestal hangt. Sleep het naar zijn echte plek of naar een andere kamer; bij een muur klikt het vast
+- Staat een apparaat aan de ene of de andere kant van de stippellijn tussen twee zones, dan hoort het bij die zone
+- Wat nog geen kamer heeft, staat in een strook onder de tekening: sleep het een kamer in, of tik het aan en dan de kamer
 - Instellingen: het vak Wat je huis kan heeft twee helften met elk een pijl, Wat je huis kan en Hoe ver je huis is; zo zie je dat het twee pagina’s zijn
 - Je huis: zoom in met twee vingers en schuif de tekening met twee vingers; Hele huis zet hem terug
 - Een gekozen ruimte sleep je overal binnen de ruimte weg, niet alleen aan het blauwe rondje; er komt dan geen nieuw vak meer bij
@@ -17,6 +20,9 @@
 
 **New**
 
+- Your home: Devices. Each device shows in its room, where it usually hangs. Drag it to its real spot or to another room; near a wall it snaps on
+- A device on one side of the dotted line between two zones belongs to that zone
+- Anything without a room sits in a strip below the drawing: drag it into a room, or tap it and then the room
 - Settings: the What your house can do box has two halves, each with an arrow, What your house can do and How far your house is; so you can see they are two pages
 - Your home: zoom in with two fingers and move the drawing with two fingers; Whole house puts it back
 - Drag a chosen space from anywhere inside it, not just by the blue circle; it no longer adds a new box

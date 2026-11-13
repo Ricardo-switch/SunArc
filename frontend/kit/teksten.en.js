@@ -3487,6 +3487,7 @@
   'ht.app.leeg': 'Nothing here yet. Drag a device here, or pick one from the strip below.',
   'ht.app.heleEtage': 'Whole floor',
   'ht.app.zonderVak': '{namen}: no place in the drawing yet. Their devices are still included.',
+  'ht.app.naarKamers': 'Draw the rooms',
   'ht.app.allesKamer': 'Everything has a room. When something new appears in Home Assistant, it shows in the strip below the drawing.',
   'ht.app.verborgen': 'Hidden',
   'ht.stapel.hoog': '{maat} m high',

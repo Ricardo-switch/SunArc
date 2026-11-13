@@ -3492,6 +3492,7 @@
   'ht.app.leeg': 'Hier staat nog niets. Sleep er een apparaat heen, of kies er een uit de strook onderaan.',
   'ht.app.heleEtage': 'Hele etage',
   'ht.app.zonderVak': '{namen}: nog geen plek in de tekening. De apparaten staan er wel in.',
+  'ht.app.naarKamers': 'Kamers tekenen',
   'ht.app.allesKamer': 'Alles heeft een kamer. Komt er iets nieuws bij in Home Assistant, dan staat het in de strook onder de tekening.',
   'ht.app.verborgen': 'Verborgen',
   'ht.stapel.hoog': '{maat} m hoog',

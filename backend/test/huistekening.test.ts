@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Gebouw, Xy } from '../src/web/daken.js';
-import { leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenVorm, verschuif, WONING_MAAT } from '../src/web/huistekening.js';
+import { leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -168,5 +168,29 @@ describe('de vorm om op te tekenen', () => {
     const heen = verschuif(t, 3.4, 0);
     expect(heen).toEqual({ bg: [{ kamer: 'hal', vakken: [[3.4, 0, 2.4, 8.4]] }] });
     expect(verschuif(heen, -3.4, 0)).toEqual(t);
+  });
+});
+
+describe('de apparaten in de tekening (stap 3)', () => {
+  it('een klimaatapparaat dat kan koelen is een airco, anders een thermostaat; een stekker zonder soort', () => {
+    expect(tekenSoort({ soort: 'klimaat', klimaat: { kanKoelen: true } })).toBe('airco');
+    expect(tekenSoort({ soort: 'klimaat', klimaat: { kanKoelen: false } })).toBe('thermostaat');
+    expect(tekenSoort({ soort: 'klimaat', klimaat: { kanKoelen: true }, radiatorknop: {} })).toBe('thermostaat');
+    expect(tekenSoort({ soort: 'licht' })).toBe('licht');
+    expect(tekenSoort({ soort: 'rookmelder' })).toBe('rookmelder');
+    expect(tekenSoort({ soort: 'apparaat', warmte: { soort: 'boiler' } })).toBe('boiler');
+    expect(tekenSoort({ soort: 'apparaat', warmte: { soort: 'stekker' } })).toBe('stekker');
+    expect(tekenSoort({ soort: 'apparaat' })).toBe('stekker');
+  });
+
+  it('een plek ligt in de zone aan zijn kant van de lijn; zonder lijn, met drie zones of op een andere etage: geen', () => {
+    const zones = [{ id: 'keuken' }, { id: 'zit' }];
+    const kamer = { etage: 'bg', zones, zoneLijn: { as: 'u' as const, op: 4 } };
+    expect(zoneVanPlek(kamer, { etage: 'bg', u: 3.9, v: 2 })).toBe('keuken');
+    expect(zoneVanPlek(kamer, { etage: 'bg', u: 4, v: 2 })).toBe('zit');
+    expect(zoneVanPlek({ ...kamer, zoneLijn: { as: 'v', op: 5 } }, { etage: 'bg', u: 9, v: 6 })).toBe('zit');
+    expect(zoneVanPlek({ etage: 'bg', zones }, { etage: 'bg', u: 1, v: 1 })).toBeNull();
+    expect(zoneVanPlek({ ...kamer, zones: [...zones, { id: 'eet' }] }, { etage: 'bg', u: 1, v: 1 })).toBeNull();
+    expect(zoneVanPlek(kamer, { etage: 'e1', u: 1, v: 1 })).toBeNull();
   });
 });

@@ -1,13 +1,14 @@
 /*
- * Je huis (besluit 308, stap 2): de tekentafel in de stand Kamers, met de
- * echte etages, kamers en zones uit de indeling. De schets is de maatstaf
+ * Je huis (besluit 308, stap 2 en 3): de tekentafel in de standen Kamers en
+ * Apparaten, met de echte etages, kamers, zones en apparaten uit de indeling. De schets is de maatstaf
  * (design/app2/Wand-Huis-Tekenen en Tel-Huis-Tekenen); de motor staat in
  * kit/huistekenen.js en is dezelfde als in de schets.
  *
  * Alles gaat door één deur, `api/huistekening`: lezen geeft de vorm van het
  * huis (de gebouwen van Daken en panelen, of een rechthoek uit het
- * woningtype), de etages, de kamers en wat er al getekend is; bewaren zet
- * alleen de tekening en de zonelijnen in de indeling. Er gaat niets naar Home
+ * woningtype), de etages, de kamers, de apparaten en wat er al getekend is;
+ * bewaren zet alleen de tekening, de zonelijnen, en per apparaat de kamer en
+ * de plek in de indeling (een plek naast een zonelijn zet ook de zone). Er gaat niets naar Home
  * Assistant. Bewaren gebeurt na het loslaten, en het antwoord tekent de
  * tekening niet opnieuw: wat onder je vinger ligt, blijft liggen.
  *
@@ -21,6 +22,8 @@ const $ = (s, r = document) => r.querySelector(s);
 const WIJS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M12 10.5V9a1.5 1.5 0 0 1 3 0v2"/><path d="M15 11a1.5 1.5 0 0 1 3 0v3.5c0 3.6-2.2 6-5.6 6-2.4 0-3.7-.9-5-2.9L5 14.3c-.6-1 .6-2.2 1.6-1.4L9 15"/></svg>';
 
 let tekenaar = null;
+/** De standen die er al zijn; Vorm en Huis komen in stap 4 en 5. */
+const STANDEN = ['kamers', 'apparaten'];
 
 /**
  * Het huis voor de motor: de etages van boven naar beneden, de begane grond
@@ -34,16 +37,22 @@ function huisVoorMotor(d) {
     maat: d.vorm.maat,
     etages: d.etages.map((e) => ({ id: e.id, naam: e.naam, kort: e.naam, blokken: e.id === beneden ? d.vorm.blokken : hoofd })),
     kamers: d.kamers.map((k) => ({ id: k.id, naam: k.naam, soort: k.soort ?? null, etage: k.etage, zones: k.zones })),
-    // De apparaten komen in stap 3 (Apparaten).
-    apparaten: [],
+    // Stap 3: de apparaten binnen, in hun kamer of nog zonder (de strook).
+    apparaten: d.apparaten ?? [],
+    verborgen: d.verborgen ?? 0,
   };
+}
+
+/** Een apparaat openen, of de verborgen apparaten bij Kamers en indeling. */
+function naar(wat, a) {
+  location.href = wat === 'verborgen' ? 'indeling.html#verborgen' : `kamer.html#${encodeURIComponent(a.kamer)}/${encodeURIComponent(a.id)}`;
 }
 
 const wacht = (ms) => new Promise((ok) => setTimeout(ok, ms));
 /** Naar de dienst; bij even te veel achter elkaar nog een paar keer, daarna zegt het label het. */
 async function opslaan(x) {
   for (let poging = 0; ; poging++) {
-    const res = await deur('api/huistekening', { tekening: x.tekening, zones: x.zones });
+    const res = await deur('api/huistekening', { tekening: x.tekening, zones: x.zones, plekken: x.plekken, apparaten: x.apparaten });
     if (res?.ok) return;
     if (res?.status === 429 && poging < 3) {
       await wacht(5000);
@@ -59,8 +68,9 @@ function plaats() {
   const kant = app.telStand() ? '#tel' : '#wand';
   const tafel = $(`${kant} [data-plek="tafel"]`);
   tafel.append($('#tafel'));
-  // Op de wand staat de zin onder de tekening in het vak, op de telefoon eronder.
-  (kant === '#wand' ? tafel : $(`${kant} [data-plek="uitleg"]`)).append($('#uitleg'));
+  // Op de wand staan de strook en de zin onder de tekening in het vak, op de telefoon eronder: eerst de zin, dan de strook.
+  if (kant === '#wand') tafel.append($('#strook'), $('#uitleg'));
+  else $(`${kant} [data-plek="uitleg"]`).append($('#uitleg'), $('#strook'));
   $(`${kant} [data-plek="blad"]`).append($('#blad'));
 }
 
@@ -77,8 +87,9 @@ function bij() {
     el.title = st.fout ?? '';
   });
   $('#uitleg').innerHTML = `${WIJS}<span>${esc(huistekenen.uitleg(tekenaar))}</span>`;
-  // Het adres onthoudt de etage, zodat je na vernieuwen op dezelfde plek staat.
-  if (location.hash.slice(1) !== st.etage) history.replaceState(null, '', `#${encodeURIComponent(st.etage)}`);
+  // Het adres onthoudt de etage en de stand, zodat je na vernieuwen op dezelfde plek staat.
+  const adres = `#${encodeURIComponent(st.etage)}${st.stand === 'kamers' ? '' : `/${st.stand}`}`;
+  if (location.hash !== adres) history.replaceState(null, '', adres);
 }
 
 async function start() {
@@ -95,13 +106,16 @@ async function start() {
     $('#blad').innerHTML = `<p class="jh-leeg">${esc(t('jehuis.geenEtages'))}</p>`;
     return;
   }
-  const gevraagd = decodeURIComponent(location.hash.slice(1));
+  // Het adres: de etage, en bij Apparaten ook de stand (#bg/apparaten).
+  const [gevraagd, gevraagdeStand] = decodeURIComponent(location.hash.slice(1)).split('/');
   const etage = huis.etages.some((e) => e.id === gevraagd) ? gevraagd : (huis.etages.find((e) => e.id === 'bg') ?? huis.etages.at(-1)).id;
-  const tk = huistekenen.maak($('#tekening'), huis, { stand: 'kamers', etage, tekening: d, opslaan, wacht: 900 });
+  const stand = STANDEN.includes(gevraagdeStand) ? gevraagdeStand : 'kamers';
+  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: d, opslaan, wacht: 900, naar });
   tekenaar = tk;
   window.tekenaar = tk;
   huistekenen.paneel($('#blad'), tk);
   huistekenen.stapel($('#stapel'), tk);
+  huistekenen.strook($('#strook'), tk);
   // Op de telefoon de etages als balk.
   $('[data-etages]').innerHTML = huis.etages.map((e) => `<button type="button" data-etage-kies="${esc(e.id)}">${esc(e.kort ?? e.naam)}</button>`).join('');
   document.querySelectorAll('[data-ik]').forEach((el) => el.insertAdjacentHTML('afterbegin', iconen.svg(el.dataset.ik)));
