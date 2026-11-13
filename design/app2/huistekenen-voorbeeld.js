@@ -13,7 +13,14 @@
     maat: { breed: 13.4, diep: 11.6 },
     bron: '3d',
     bronnen: {
-      '3d': { naam: '3D-kaart van Nederland', vond: 'Gevonden: huis, garage en uitbouw', weet: 'Omtrek, hoogte en dak, gemeten', gemeten: true, hoogte: 'goot 6,2 m · nok 9,7 m', goot: 6.2, nok: 9.7, blokken: [garage, hoofd, uitbouw] },
+      '3d': {
+        naam: '3D-kaart van Nederland', vond: 'Gevonden: huis, garage en uitbouw', weet: 'Omtrek, hoogte en dak, gemeten', gemeten: true, hoogte: 'goot 6,2 m · nok 9,7 m', goot: 6.2, nok: 9.7, blokken: [garage, hoofd, uitbouw],
+        // Wat de kaart er nog meer vindt (0.185.0): een tuinhuis achter de garage en het huis van de buren, grijs om aan te wijzen.
+        omgeving: [
+          { i: 0, punten: [[0.4, 9.2], [3.4, 9.2], [3.4, 11.6], [0.4, 11.6]] },
+          { i: 1, punten: [[15.2, 0.6], [22, 0.6], [22, 9.4], [15.2, 9.4]] },
+        ],
+      },
       osm: { naam: 'OpenStreetMap', vond: 'Gevonden: huis en garage', weet: 'Alleen de omtrek; hoogte geschat', gemeten: false, hoogte: 'goot 5,6 m · nok 8,6 m', goot: 5.6, nok: 8.6, blokken: [{ ...garage, v: 1.2, d: 5.8 }, hoofd] },
       basis: { naam: 'Basishuis', vond: 'Vrijstaand huis van 10 bij 8,4 m', weet: 'Uit je woningtype; alles geschat', gemeten: false, hoogte: 'goot 5,6 m · nok 8,6 m', goot: 5.6, nok: 8.6, blokken: [hoofd] },
     },

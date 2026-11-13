@@ -66,6 +66,8 @@ function bronVoorMotor(id, b, woning) {
     ...(b.gootLaag != null ? { gootLaag: b.gootLaag } : {}),
     nok: b.nok,
     blokken: b.blokken,
+    // 0.185.0: de gebouwen van de kaart eromheen, om bij Vorm aan te wijzen.
+    omgeving: b.omgeving ?? [],
   };
 }
 
@@ -169,6 +171,27 @@ async function haalKaarten() {
   location.reload();
 }
 
+/**
+ * Een gebouw van de kaart erbij of weg (0.185.0), zoals bij Daken en panelen:
+ * eerst wat nog bewaard moest worden, dan de dienst, dan opnieuw laden (de vorm
+ * en het ruitjespapier komen van de dienst).
+ */
+async function gebouw(wat) {
+  for (let i = 0; i < 60 && !tekenaar.st.bewaard && !tekenaar.st.fout; i++) await wacht(100);
+  let res = null;
+  try {
+    res = await deur('api/huistekening', { gebouw: wat });
+  } catch {
+    res = null;
+  }
+  if (res?.ok) {
+    location.reload();
+    return;
+  }
+  tekenaar.st.gebouwFout = t('ht.gebouw.fout');
+  tekenaar.ververs();
+}
+
 /** De tekening, de zin eronder en het blad staan één keer op de pagina: zet ze bij de wand of de telefoon. */
 function plaats() {
   const kant = app.telStand() ? '#tel' : '#wand';
@@ -218,7 +241,7 @@ async function start() {
   const [gevraagd, gevraagdeStand] = decodeURIComponent(location.hash.slice(1)).split('/');
   const etage = huis.etages.some((e) => e.id === gevraagd) ? gevraagd : (huis.etages.find((e) => e.id === 'bg') ?? huis.etages.at(-1)).id;
   const stand = STANDEN.includes(gevraagdeStand) ? gevraagdeStand : 'kamers';
-  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: d, opslaan, wacht: 900, naar, kijk: vraagKaarten });
+  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: d, opslaan, wacht: 900, naar, kijk: vraagKaarten, gebouw });
   tekenaar = tk;
   window.tekenaar = tk;
   huistekenen.paneel($('#blad'), tk);

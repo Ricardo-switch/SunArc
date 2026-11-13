@@ -9,8 +9,8 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { bronVanDaken, bronVorm, dakenMetBron, eenPapier, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
-import { leesDaken, type Daken } from '../daken.js';
+import { bronVanDaken, bronVorm, dakenMetBron, eenPapier, ERBIJ_SOORTEN, gebouwErbij, gebouwWeg, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { leesDaken, type Daken, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
 
@@ -358,6 +358,34 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       sendJson(res, 200, { kaarten: stand });
       return;
     }
+    // Een gebouw van de kaart erbij, of weer weg (0.185.0): zoals bij Daken en panelen, en het geldt op allebei.
+    const gb = b['gebouw'];
+    if (typeof gb === 'object' && gb != null && !Array.isArray(gb)) {
+      const g = gb as Record<string, unknown>;
+      if (!vorm.daken || !d.options.connection) {
+        sendJson(res, 409, { fout: 'eerst een huis bij Daken en panelen' });
+        return;
+      }
+      const soort = g['soort'];
+      const nieuw =
+        typeof g['erbij'] === 'number' && (ERBIJ_SOORTEN as readonly unknown[]).includes(soort)
+          ? (gebouwErbij(vorm.daken, g['erbij'], soort as ErbijSoort)?.daken ?? null)
+          : typeof g['weg'] === 'string'
+            ? gebouwWeg(vorm.daken, g['weg'])
+            : undefined;
+      if (nieuw === undefined) {
+        sendJson(res, 400, { fout: 'verwacht { gebouw: { erbij, soort } } of { gebouw: { weg } }' });
+        return;
+      }
+      if (nieuw == null) {
+        sendJson(res, 409, { fout: 'dat gebouw is er niet (meer)' });
+        return;
+      }
+      const fout = await bewaarDaken(d.options.connection, nieuw);
+      if (fout) sendJson(res, 400, { fout });
+      else sendJson(res, 200, { bewaard: true });
+      return;
+    }
     if (typeof b['tekening'] !== 'object' || b['tekening'] == null || Array.isArray(b['tekening'])) {
       sendJson(res, 400, { fout: 'verwacht { tekening, zones }' });
       return;
@@ -492,7 +520,8 @@ async function vormVanHuis(
         voorgevelDeg: bewaard?.voorgevelDeg ?? zicht.voorgevelDeg,
         omvormerW: bewaard?.omvormerW ?? zicht.omvormerW,
         gebouwen: bewaard?.gebouwen ?? zicht.tekening.gebouwen.map(kaalGebouw),
-        ...(bewaard?.omgeving ? {} : { omgeving: [] }),
+        // De gebouwen eromheen: wat bewaard is, anders wat Daken nu grijs tekent (om aan te wijzen bij Vorm).
+        ...(bewaard?.omgeving ? {} : { omgeving: zicht.tekening.omgeving.map((o) => o.map((p) => [p[0], p[1]] as Xy)) }),
       }
     : null;
   const leeg: Daken = { vlakken: [], voorgevelDeg: null, omvormerW: null };
@@ -510,7 +539,9 @@ async function vormVanHuis(
   const papier = eenPapier(Object.fromEntries(Object.entries(vormen).map(([id, v]) => [id, v.blokken])), plattegrond);
   // In vaste volgorde: de 3D-kaart, de plattegrond, zonder kaart.
   const bronnen: Partial<Record<VormBron, BronVorm>> = {};
-  for (const id of VORM_BRONNEN) if (vormen[id]) bronnen[id] = { ...vormen[id], blokken: papier.blokken[id] ?? [] };
+  // De gebouwen eromheen schuiven mee op het ruitjespapier.
+  const schuif = (o: BronVorm['omgeving']) => o.map((x) => ({ i: x.i, punten: x.punten.map(([u, v]) => [Math.round((u + papier.nul.u) * 10) / 10, Math.round((v + papier.nul.v) * 10) / 10] as const) }));
+  for (const id of VORM_BRONNEN) if (vormen[id]) bronnen[id] = { ...vormen[id], blokken: papier.blokken[id] ?? [], omgeving: schuif(vormen[id].omgeving) };
   return {
     daken,
     bron,

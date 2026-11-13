@@ -7695,6 +7695,87 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 120_000);
 
   /*
+   * Je huis › Vorm (0.185.0): een gebouw van de kaart aanwijzen, zoals bij
+   * Daken en panelen. De gebouwen eromheen staan grijs; aantikken met een
+   * nagebootste vinger, zeggen wat het is, en het hoort bij het huis (ook bij
+   * Daken), met een eigen ruimte op de begane grond. Weghalen zet hem terug.
+   */
+  it('wijst bij Je huis › Vorm een gebouw van de kaart aan en haalt het weer weg (0.185.0)', async () => {
+    const voor = layoutStore.current;
+    const conn0 = connStore.current;
+    const extra = () => (connStore.current?.daken?.gebouwen ?? []).filter((g) => g.soort === 'tuinhuis').length;
+    try {
+      for (const [naam, breed, hoog] of [['wand', 1280, 800], ['telefoon', 390, 844]] as const) {
+        const nu = layoutStore.current;
+        if (nu?.plattegrond) {
+          const { plattegrond: _weg, plattegrondBron: _bron, ...zonder } = nu;
+          await layoutStore.save(zonder);
+        }
+        if (connStore.current) await connStore.save({ ...connStore.current, daken: null });
+        const kant = breed < 600 ? '#tel' : '#wand';
+        const context = await browser.newContext({ viewport: { width: breed, height: hoog }, hasTouch: true, isMobile: breed < 600, timezoneId: 'UTC', locale: 'nl-NL' });
+        await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+        const p = await context.newPage();
+        const fouten: string[] = [];
+        p.on('pageerror', (e) => fouten.push(e.message));
+        const klaar = () => p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);
+        await p.goto(`${baseUrl}/jehuis.html#bg/vorm`);
+        await klaar();
+        const kijk = p.locator(`${kant} [data-ht="kijk"]`);
+        if (await kijk.count()) {
+          await kijk.click();
+          await Promise.all([p.waitForEvent('load'), p.locator('[data-kk-kaart]').click()]);
+          await klaar();
+        }
+        // De 3D-kaart: daar staan de gebouwen eromheen grijs.
+        await p.locator(`${kant} [data-bron="bag3d"]`).click();
+        await expect.poll(() => connStore.current?.daken?.gebouwen?.find((g) => g.soort === 'hoofdhuis')?.kaart, { timeout: 10_000, message: naam }).toBe('bag3d');
+        await expect.poll(() => layoutStore.current?.plattegrondBron, { timeout: 10_000, message: naam }).toBe('bag3d');
+        await p.reload();
+        await klaar();
+        const grijs = p.locator(`${kant} #tekening .ht-omgeving`);
+        await expect.poll(() => grijs.count(), { message: naam }).toBeGreaterThan(0);
+        const voorAantal = await grijs.count();
+        // Het kleinste grijze gebouw aantikken met een vinger (de tekening eerst in beeld, op de telefoon).
+        await p.evaluate(`document.querySelector('#tekening').scrollIntoView({ block: 'center' })`);
+        const midden = await grijs.evaluateAll((l) => {
+          const r = l.map((e) => e.getBoundingClientRect()).sort((a, b) => a.width * a.height - b.width * b.height)[0]!;
+          return [r.left + r.width / 2, r.top + r.height / 2];
+        });
+        const v = await vinger(p);
+        await v.log();
+        const cdp = await context.newCDPSession(p);
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: midden[0]!, y: midden[1]! }] });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        expect(await v.log(), naam).toBe('pointerdown pointerup');
+        const blad = p.locator(`${kant} #blad`);
+        await expect.poll(() => blad.textContent(), { message: naam }).toContain('Een gebouw op de kaart');
+        // Zeggen wat het is: het hoort erbij, ook bij Daken, en de pagina laadt opnieuw.
+        await Promise.all([p.waitForEvent('load'), blad.locator('[data-ht="gebouw-erbij"][data-soort="tuinhuis"]').click()]);
+        await klaar();
+        expect(extra(), naam).toBe(1);
+        expect(await grijs.count(), naam).toBe(voorAantal - 1);
+        // Op de begane grond een eigen ruimte.
+        const ruimte = await p.evaluate<boolean>(`(() => { const t = window.tekenaar; const b = t.huis.bronnen[t.st.bron].blokken.find((x) => x.soort === 'tuinhuis'); const v = t.st.vloeren.bg; const x = 30 + Math.round((b.u + b.b / 2) * 10); const y = 30 + Math.round((b.v + b.d / 2) * 10); return v.cel[y * v.W + x] !== -1; })()`);
+        expect(ruimte, naam).toBe(true);
+        if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
+        // Weer weg: het gebouw aantikken, Weghalen; daarna staat het weer grijs.
+        await p.evaluate(`window.tekenaar.kies({ soort: 'blok', id: window.tekenaar.huis.bronnen[window.tekenaar.st.bron].blokken.find((x) => x.soort === 'tuinhuis').id })`);
+        await expect.poll(() => blad.textContent(), { message: naam }).toContain('Weghalen');
+        await Promise.all([p.waitForEvent('load'), blad.locator('[data-ht="gebouw-weg"]').click()]);
+        await klaar();
+        expect(extra(), naam).toBe(0);
+        expect(await grijs.count(), naam).toBe(voorAantal);
+        expect(fouten, naam).toEqual([]);
+        await context.close();
+      }
+    } finally {
+      if (voor) await layoutStore.save(voor);
+      if (conn0) await connStore.save(conn0);
+    }
+  }, 120_000);
+
+  /*
    * Je huis, stap 5 (Huis): het huis in 3D uit de tekening. Opzij slepen met
    * een nagebootste vinger draait het (alleen pointerdown en pointerup, en er
    * komt niets bij de tekening), Dicht zet het dak erop, en een etage

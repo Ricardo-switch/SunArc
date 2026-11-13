@@ -18,8 +18,37 @@
     const wie = /(^|-)jouw$/.test(adres) ? 'jouw' : /(^|-)kern$/.test(adres) ? 'kern' : adres === 'open' ? 'open' : '';
     const toon = adres.replace(/-?(jouw|kern)$/, '').replace(/^open$/, '');
     const huis = wie === 'jouw' ? huistekenenJouw : wie ? huistekenenOpen : huistekenenVoorbeeld;
+    // Gebouwen van de kaart die je in de schets aanwees (0.185.0): de browser onthoudt ze, zoals de dienst in de app.
+    const SLEUTEL = 'sunarc-schets-gebouwen-1';
+    let gewezen = [];
+    try {
+      gewezen = adres ? [] : JSON.parse(localStorage.getItem(SLEUTEL) ?? '[]');
+    } catch {
+      gewezen = [];
+    }
+    if (adres === 'gebouw') gewezen = [{ i: 0, soort: 'tuinhuis' }];
+    const b3 = huis.bronnen?.['3d'];
+    for (const g of gewezen) {
+      const o = b3?.omgeving?.find((x) => x.i === g.i);
+      if (!o) continue;
+      const xs = o.punten.map((p) => p[0]);
+      const ys = o.punten.map((p) => p[1]);
+      b3.blokken.push({ id: g.soort, soort: g.soort, naam: g.soort, u: Math.min(...xs), v: Math.min(...ys), b: Math.max(...xs) - Math.min(...xs), d: Math.max(...ys) - Math.min(...ys), dak: 'zadeldak' });
+      b3.omgeving = b3.omgeving.filter((x) => x !== o);
+    }
+    const gebouw = (wat) => {
+      const lijst = wat.erbij != null ? [...gewezen, { i: wat.erbij, soort: wat.soort }] : gewezen.filter((g) => g.soort !== wat.weg);
+      try {
+        localStorage.setItem(SLEUTEL, JSON.stringify(lijst));
+        // De tekening past dan niet meer: de schets begint opnieuw met het nieuwe gebouw.
+        localStorage.removeItem('sunarc-schets-huistekenen-1');
+      } catch {
+        // Zonder opslag blijft het bij deze keer.
+      }
+      location.reload();
+    };
     const stand = toon === 'huis' || toon === 'dicht' ? 'huis' : toon === 'vorm' || toon === 'bron' ? 'vorm' : toon === 'apparaten' || toon === 'kamer' ? 'apparaten' : 'kamers';
-    const t = huistekenen.maak($('tekening'), huis, { stand, etage: toon === 'leeg' ? 'zolder' : 'bg', bewaar: adres ? null : 'sunarc-schets-huistekenen-1' });
+    const t = huistekenen.maak($('tekening'), huis, { stand: adres === 'gebouw' ? 'vorm' : stand, etage: toon === 'leeg' ? 'zolder' : 'bg', bewaar: adres ? null : 'sunarc-schets-huistekenen-1', gebouw });
     huistekenen.paneel($('blad'), t);
     if ($('stapel')) huistekenen.stapel($('stapel'), t);
     huistekenen.strook($('strook'), t);
@@ -45,7 +74,14 @@
     });
     $('terug').addEventListener('click', () => t.terug());
     $('vooruit').addEventListener('click', () => t.vooruit());
-    $('opnieuw')?.addEventListener('click', () => t.opnieuw());
+    $('opnieuw')?.addEventListener('click', () => {
+      try {
+        localStorage.removeItem(SLEUTEL);
+      } catch {
+        // Niets te wissen.
+      }
+      t.opnieuw();
+    });
 
     // De standen voor de schermafdrukken.
     requestAnimationFrame(() => requestAnimationFrame(() => {

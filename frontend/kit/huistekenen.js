@@ -463,6 +463,18 @@
       v.ruimtes[id] = r.kamer ? { kamer: r.kamer } : r.naam ? { naam: r.naam, ...(r.soort ? { soort: r.soort } : {}) } : {};
       for (const [x, y, b, d] of r.vakken ?? []) vulRecht(v, cel(x), cel(y), cel(x + b), cel(y + d), id, !!eigen);
     }
+    // Een gebouw dat er later bij kwam (aangewezen bij Vorm) en nog niets getekend heeft: een eigen ruimte op zijn plek.
+    if (eigen) {
+      for (const b of blokken) {
+        const [x0, y0, x1, y1] = [cel(b.u), cel(b.v), cel(b.u + b.b), cel(b.v + b.d)];
+        let leeg = true;
+        for (let y = y0; y < y1 && leeg; y++) for (let x = x0; x < x1; x++) if (v.cel[y * v.W + x] !== BUITEN) leeg = false;
+        if (!leeg) continue;
+        const id = v.volg++;
+        v.ruimtes[id] = { blok: b.id };
+        vulRecht(v, x0, y0, x1, y1, id, 'alleen');
+      }
+    }
     ordenen(v);
     for (const r of Object.values(v.ruimtes)) {
       const z = r.kamer ? zones?.[r.kamer] : null;
@@ -519,6 +531,26 @@
       dicht: false,
     };
     /** De gebouwen van de gekozen bron: beneden allemaal, erboven alleen het hoofdhuis. */
+    /** De gebouwen van de kaart eromheen (bij Vorm, om aan te wijzen), en de gebouwen naast het hoofdhuis. */
+    const omgeving = () => huis.bronnen?.[st.bron]?.omgeving ?? [];
+    const bijBlokken = () => (huis.bronnen?.[st.bron]?.blokken ?? []).filter((b) => b.soort !== 'hoofdhuis');
+    const binnen = (pp, x, y) => {
+      let erin = false;
+      for (let i = 0, j = pp.length - 1; i < pp.length; j = i++) {
+        const [xi, yi] = pp[i];
+        const [xj, yj] = pp[j];
+        if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) erin = !erin;
+      }
+      return erin;
+    };
+    /** Wat er bij Vorm onder de vinger ligt: een gebouw dat erbij hoort (niet het hoofdhuis), of een grijs gebouw van de kaart. */
+    const gebouwOp = (cx, cy) => {
+      const [x, y] = [(cx - MARGE) * CEL, (cy - MARGE) * CEL];
+      const b = bijBlokken().find((q) => x >= q.u && x <= q.u + q.b && y >= q.v && y <= q.v + q.d);
+      if (b) return { soort: 'blok', id: b.id };
+      const o = omgeving().find((q) => binnen(q.punten, x, y));
+      return o ? { soort: 'omgeving', i: o.i } : null;
+    };
     const zetBlokken = () => {
       const b = huis.bronnen?.[st.bron];
       if (!b) return;
@@ -687,6 +719,16 @@
       const os = huis.etages.map((e) => omtrek(st.vloeren[e.id]));
       const o = { x0: Math.min(...os.map((x) => x.x0)), y0: Math.min(...os.map((x) => x.y0)), x1: Math.max(...os.map((x) => x.x1)), y1: Math.max(...os.map((x) => x.y1)) };
       const rand = st.stand === 'vorm' ? 16 : 7;
+      if (st.stand === 'vorm') {
+        for (const q of omgeving()) {
+          for (const [x, y] of q.punten) {
+            o.x0 = Math.min(o.x0, MARGE + x / CEL);
+            o.x1 = Math.max(o.x1, MARGE + x / CEL);
+            o.y0 = Math.min(o.y0, MARGE + y / CEL);
+            o.y1 = Math.max(o.y1, MARGE + y / CEL);
+          }
+        }
+      }
       return { x0: o.x0 - rand, y0: o.y0 - rand - 3, x1: o.x1 + rand, y1: o.y1 + rand };
     };
     const zetKijk = (kk) => {
@@ -837,6 +879,13 @@
       // De ruimtes in hun kleur, en de muren.
       const paden = vlakPaden(v);
       s = `<g transform="${tf}">`;
+      // Bij Vorm: de gebouwen van de kaart eromheen, grijs, om aan te wijzen.
+      if (vorm) {
+        for (const q of omgeving()) {
+          const aan = st.kies?.soort === 'omgeving' && st.kies.i === q.i;
+          s += `<polygon class="ht-omgeving" points="${q.punten.map(([x, y]) => `${(MARGE + x / CEL).toFixed(1)},${(MARGE + y / CEL).toFixed(1)}`).join(' ')}" fill="${aan ? 'rgb(111 211 255 / 0.22)' : 'rgb(255 255 255 / 0.07)'}" stroke="${aan ? '#6fd3ff' : 'rgb(255 255 255 / 0.35)'}" stroke-width="${aan ? 3 : 1.5}" stroke-dasharray="${aan ? '' : '6 5'}" vector-effect="non-scaling-stroke"/>`;
+        }
+      }
       for (const [id, d] of Object.entries(paden)) {
         const r = v.ruimtes[id];
         const naam = naamVan(r);
@@ -948,6 +997,16 @@
             s += pil(X((r.x0 + r.x1) / 2), Y(r.y1) + 20, meter(r.x1 - r.x0));
             s += pil(X(r.x0) + 20, Y((r.y0 + r.y1) / 2), meter(r.y1 - r.y0), '#a9e6ff', true);
           }
+        }
+      }
+      // Bij Vorm: wat er naast het hoofdhuis staat, met zijn naam; een gekozen gebouw met een blauwe rand.
+      if (vorm && !actie?.type) {
+        for (const b of bijBlokken()) {
+          const aan = st.kies?.soort === 'blok' && st.kies.id === b.id;
+          const [x0, y0, x1, y1] = [X(MARGE + b.u / CEL), Y(MARGE + b.v / CEL), X(MARGE + (b.u + b.b) / CEL), Y(MARGE + (b.v + b.d) / CEL)];
+          if (aan) s += `<rect x="${Math.min(x0, x1).toFixed(1)}" y="${Math.min(y0, y1).toFixed(1)}" width="${Math.abs(x1 - x0).toFixed(1)}" height="${Math.abs(y1 - y0).toFixed(1)}" fill="rgb(111 211 255 / 0.14)" stroke="#6fd3ff" stroke-width="3" pointer-events="none"/>`;
+          const naam = T(`ht.bron.blok.${b.soort}`);
+          if (Math.abs(x1 - x0) > naam.length * 6.5) s += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${((y0 + y1) / 2 + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="rgb(255 255 255 / 0.7)" pointer-events="none">${esc(naam.charAt(0).toUpperCase() + naam.slice(1))}</text>`;
         }
       }
       laag('namen').innerHTML = s;
@@ -1531,7 +1590,8 @@
       if (a.kandidaat.soort === 'verplaats' && a.kandidaat.greep) return teken();
       if (a.kandidaat.soort === 'muur') st.kies = { soort: 'muur', run: a.kandidaat.m };
       else if (a.kandidaat.soort === 'zone') st.kies = { soort: 'ruimte', id: a.kandidaat.id };
-      else if (id === BUITEN || st.stand === 'vorm') st.kies = null;
+      else if (st.stand === 'vorm') st.kies = gebouwOp(p.x, p.y);
+      else if (id === BUITEN) st.kies = null;
       else if (st.wapen?.kamer) {
         noem(id, { kamer: st.wapen.kamer });
         return;
@@ -1778,6 +1838,23 @@
       naar: opties.naar ?? null,
       /** Stap 4: de kaarten vragen (na de melding), als de pagina dat kan. */
       kijk: opties.kijk ?? null,
+      /** 0.185.0: een gebouw van de kaart erbij ({ erbij, soort }) of weg ({ weg }); de pagina bewaart en laadt opnieuw. */
+      gebouw: opties.gebouw ?? null,
+      omgeving,
+      /** Een gebouw weg: zijn ruitjes op de begane grond worden weer buiten, en de tekening wordt bewaard. */
+      blokWeg(id) {
+        const b = bijBlokken().find((q) => q.id === id);
+        const beneden = huis.beneden ?? huis.etages.at(-1)?.id;
+        const v = b && st.vloeren[beneden];
+        if (!v) return;
+        stap();
+        const rest = huis.etages.find((e) => e.id === beneden).blokken.filter((q) => q.id !== id);
+        const inRest = (x, y) => rest.some((q) => x >= MARGE + q.u / CEL && x < MARGE + (q.u + q.b) / CEL && y >= MARGE + q.v / CEL && y < MARGE + (q.v + q.d) / CEL);
+        for (let y = Math.round(MARGE + b.v / CEL); y < Math.round(MARGE + (b.v + b.d) / CEL); y++) for (let x = Math.round(MARGE + b.u / CEL); x < Math.round(MARGE + (b.u + b.b) / CEL); x++) if (!inRest(x, y)) v.cel[y * v.W + x] = BUITEN;
+        ordenen(v);
+        st.kies = null;
+        klaar();
+      },
       zetStand(s) {
         st.stand = s;
         st.kies = null;
@@ -1905,7 +1982,22 @@
       const hier = t.huis.kamers.filter((k) => k.etage === st.etage);
       const waar = t.kamerPlek();
       let s = '';
-      if (st.stand === 'vorm') {
+      if (st.stand === 'vorm' && st.kies?.soort === 'omgeving') {
+        // Een grijs gebouw van de kaart aangetikt: wat is het? Zoals bij Daken en panelen, en het geldt op allebei.
+        s = `<header><h3>${esc(T('ht.gebouw.kop'))}</h3></header>
+          <p class="ht-zin">${esc(T('ht.gebouw.zin'))}</p>
+          ${st.gebouwFout ? `<p class="ht-niet">${esc(st.gebouwFout)}</p>` : ''}
+          ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : ['uitbouw', 'garage', 'carport', 'tuinhuis', 'anders'].map((soort) => rij({ ik: 'thuis', titel: T(`daken.gebouw.${soort}`), zin: T(`ht.gebouw.zin.${soort}`), rechts: '+', data: `data-ht="gebouw-erbij" data-soort="${soort}"` })).join('')}
+          ${rij({ ik: 'kruis', titel: T('ht.gebouw.niet'), zin: T('ht.gebouw.nietZin'), data: 'data-ht="gebouw-terug"' })}`;
+      } else if (st.stand === 'vorm' && st.kies?.soort === 'blok') {
+        const b = (t.huis.bronnen?.[st.bron]?.blokken ?? []).find((q) => q.id === st.kies.id);
+        const naam = b ? T(`ht.bron.blok.${b.soort}`) : '';
+        s = `<header><h3>${esc(naam.charAt(0).toUpperCase() + naam.slice(1))}</h3>${b ? `<span>${nl(b.b)} × ${nl(b.d)} m</span>` : ''}</header>
+          <p class="ht-zin">${esc(T('ht.gebouw.blokZin'))}</p>
+          ${st.gebouwFout ? `<p class="ht-niet">${esc(st.gebouwFout)}</p>` : ''}
+          ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : rij({ ik: 'kruis', titel: T('ht.gebouw.weg'), zin: T('ht.gebouw.wegZin'), data: 'data-ht="gebouw-weg"' })}
+          ${rij({ ik: 'thuis', titel: T('ht.gebouw.terug'), zin: '', data: 'data-ht="gebouw-terug"' })}`;
+      } else if (st.stand === 'vorm') {
         // Vorm is ook de plek waar je ziet wat elke bron van je huis vindt, en waar je kiest.
         const o = t.omtrek();
         const nu = t.huis.bronnen?.[st.bron];
@@ -2035,6 +2127,17 @@
       else if (d.ht === 'zone') t.zetZone(t.vloer().ruimtes[st.kies.id].kamer, d.wat);
       else if (d.ht === 'bron') t.kiesBron(d.bron);
       else if (d.ht === 'kijk') t.kijk?.();
+      else if (d.ht === 'gebouw-terug') t.kies(null);
+      else if ((d.ht === 'gebouw-erbij' || d.ht === 'gebouw-weg') && t.gebouw && !st.gebouwBezig) {
+        st.gebouwBezig = true;
+        teken();
+        const wat = d.ht === 'gebouw-erbij' ? { erbij: st.kies.i, soort: d.soort } : { weg: st.kies.id };
+        if (wat.weg) t.blokWeg(wat.weg);
+        Promise.resolve(t.gebouw(wat)).finally(() => {
+          st.gebouwBezig = false;
+          teken();
+        });
+      }
       else if (d.ht === 'weg') t.haalWeg(st.kies.id);
       else if (d.ht === 'dicht') {
         st.dicht = d.d === '1';

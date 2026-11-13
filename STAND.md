@@ -311,6 +311,11 @@ verwijzing bestaat.
   korte etagenamen, de maten in 3D binnen beeld, leesbare kleine tekst en een
   paginatest voor alle standen op de telefoon in het Engels. Kamers en
   indeling blijft naast Je huis tot Ricardo zegt dat de nieuwe goed is.
+  0.185.0: bij Vorm staan de gebouwen van de kaart eromheen grijs; aantikken
+  en zeggen wat het is (ook een tuinhuis of carport los in de tuin) zet het
+  erbij, ook bij Daken en panelen, met een eigen ruimte op de begane grond.
+  Weghalen zet het terug. Een tuinhuis telt zo ook mee als het verder dan een
+  meter van het huis staat (tot 30 m).
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over

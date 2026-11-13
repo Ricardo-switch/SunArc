@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.184.0
+## 0.185.0
 
-*13 november 2026 · 0.179.0 – 0.184.0*
+*13 november 2026 · 0.179.0 – 0.185.0*
 
 **Nieuw**
 
+- Je huis › Vorm: de gebouwen die de kaart om je huis vindt, staan grijs. Tik er een aan en zeg wat het is, ook een tuinhuis of carport los in de tuin; dat geldt ook bij Daken en panelen
+- Een gebouw dat erbij hoort, krijgt op de begane grond een eigen ruimte voor apparaten. Weghalen kan ook: dan staat het weer grijs
 - Je huis op de telefoon: de etages heten kort (Eerste in plaats van Eerste verdieping), en de maten van het huis in 3D blijven in beeld
 - Een lange etagenaam loopt in het blad door op een tweede regel, en de kleine tekst bij de bronnen is beter leesbaar, ook in het lichte thema
 - In het Engels heet de stand Huis nu House, zodat hij niet lijkt op Home in het menu
@@ -29,6 +31,8 @@
 
 **New**
 
+- Your home › Shape: the buildings the map finds around your home show in grey. Tap one and say what it is, also a summer house or carport separate in the garden; this also applies to Roofs and panels
+- A building that belongs to your home gets a room of its own on the ground floor for devices. You can remove it too: it then shows grey again
 - Your home on the phone: floors have short names (First instead of First floor), and the sizes of the house in 3D stay in view
 - A long floor name continues on a second line in the panel, and the small text under the sources is easier to read, also in the light theme
 - The House view is now called House in English, so it no longer looks like Home in the menu

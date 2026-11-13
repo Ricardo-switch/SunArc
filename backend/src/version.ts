@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.184.0';
+export const VERSIE = '0.185.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.185.0',
+    datum: '2026-11-13',
+    nieuw: [
+      'Je huis › Vorm: de gebouwen die de kaart om je huis vindt, staan grijs. Tik er een aan en zeg wat het is, ook een tuinhuis of carport los in de tuin; dat geldt ook bij Daken en panelen',
+      'Een gebouw dat erbij hoort, krijgt op de begane grond een eigen ruimte voor apparaten. Weghalen kan ook: dan staat het weer grijs',
+    ],
+    en: {
+      nieuw: [
+        'Your home › Shape: the buildings the map finds around your home show in grey. Tap one and say what it is, also a summer house or carport separate in the garden; this also applies to Roofs and panels',
+        'A building that belongs to your home gets a room of its own on the ground floor for devices. You can remove it too: it then shows grey again',
+      ],
+    },
+  },
   {
     versie: '0.184.0',
     datum: '2026-11-13',

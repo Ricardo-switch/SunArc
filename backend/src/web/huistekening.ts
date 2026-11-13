@@ -166,10 +166,23 @@ export function leesPlek(x: unknown, etageOk: (id: string) => boolean): Plek | n
 
 /* ------------------------------------------------------------------ de vorm om op te tekenen */
 
+/** Wat een blok kan zijn: het hoofdhuis, wat ertegenaan staat, en wat de bewoner op de kaart aanwees (ook los in de tuin). */
+export const BLOK_SOORTEN = ['hoofdhuis', 'uitbouw', 'garage', 'carport', 'tuinhuis', 'anders'] as const;
+export type BlokSoort = (typeof BLOK_SOORTEN)[number];
+/** Wat je bij Je huis › Vorm op de kaart kunt aanwijzen (0.185.0), net als bij Daken en panelen. */
+export const ERBIJ_SOORTEN = ['uitbouw', 'garage', 'carport', 'tuinhuis', 'anders'] as const;
+export type ErbijSoort = (typeof ERBIJ_SOORTEN)[number];
+
+/** Een gebouw van de kaart dat er nog niet bij hoort: grijs om het huis, om aan te tikken. `i` is zijn plek in de omgeving zoals Daken die tekent. */
+export interface OmgevingVorm {
+  readonly i: number;
+  readonly punten: readonly (readonly [number, number])[];
+}
+
 /** Een gebouw als rechthoek in de assen van het hoofdhuis, in meters vanaf de linker voorhoek van het hele huis. */
 export interface Blok {
   readonly id: string;
-  readonly soort: 'hoofdhuis' | 'uitbouw' | 'garage';
+  readonly soort: BlokSoort;
   readonly u: number;
   readonly v: number;
   readonly b: number;
@@ -202,6 +215,8 @@ export interface TekenVorm {
   readonly bron: 'gebouwen' | 'woning';
   /** De richting van u op de kaart (0 is het noorden); null zonder gebouwen. */
   readonly uDeg: number | null;
+  /** De gebouwen van de kaart eromheen die er nog niet bij horen, in dezelfde assen als de blokken. */
+  readonly omgeving: readonly OmgevingVorm[];
 }
 
 /** De maat van een basishuis per woningtype, breed langs de straat bij diep: gangbare maten, geschat. */
@@ -266,11 +281,11 @@ const afstand = (a: { u: number; v: number; b: number; d: number }, b: { u: numb
  * of rek staat buiten en telt niet mee. Is het hoofdhuis zelf nog een
  * schatting, dan een rechthoek uit het woningtype.
  */
-export function tekenVorm(gebouwen: readonly Gebouw[], voorgevelDeg: number | null, woning: string | null | undefined): TekenVorm {
+export function tekenVorm(gebouwen: readonly Gebouw[], voorgevelDeg: number | null, woning: string | null | undefined, omgeving: readonly (readonly Xy[])[] = []): TekenVorm {
   const hoofd = gebouwen.find((g) => g.soort === 'hoofdhuis');
   if (!hoofd || hoofd.bron === 'schatting' || hoofd.omtrek.length < 3) {
     const [b, d] = WONING_MAAT[woning ?? 'vrijstaand'] ?? WONING_MAAT['vrijstaand']!;
-    return { maat: { breed: b, diep: d }, blokken: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b, d, dak: 'zadel', nokLangs: 'x' }], nul: { u: 0, v: 0 }, bron: 'woning', uDeg: null };
+    return { maat: { breed: b, diep: d }, blokken: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b, d, dak: 'zadel', nokLangs: 'x' }], nul: { u: 0, v: 0 }, bron: 'woning', uDeg: null, omgeving: [] };
   }
   const k = kaderVan(hoofd, voorgevelDeg);
   const uDeg = ((Math.atan2(k.uAs[0], k.uAs[1]) / RAD) % 360 + 360) % 360;
@@ -280,27 +295,33 @@ export function tekenVorm(gebouwen: readonly Gebouw[], voorgevelDeg: number | nu
     const r = g.dakvorm === 'lessenaar' ? g.nokDeg + 90 : g.nokDeg;
     return Math.min(verschil(r, uDeg), verschil(r, uDeg + 180)) <= 45 ? 'x' : 'y';
   };
-  const ruw: { id: string; soort: Blok['soort']; u: number; v: number; b: number; d: number; dak: Dakvorm; nokLangs: 'x' | 'y' }[] = [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: k.breed, d: k.diep, dak: hoofd.dakvorm, nokLangs: langs(hoofd) }];
+  const ruw: { id: string; soort: BlokSoort; u: number; v: number; b: number; d: number; dak: Dakvorm; nokLangs: 'x' | 'y' }[] = [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: k.breed, d: k.diep, dak: hoofd.dakvorm, nokLangs: langs(hoofd) }];
   for (const g of gebouwen) {
-    if (g === hoofd || (g.soort !== 'uitbouw' && g.soort !== 'garage') || g.omtrek.length < 3) continue;
+    // Een uitbouw of garage, en sinds 0.185.0 alles wat de bewoner op de kaart aanwees: ook een carport of tuinhuis los in de tuin.
+    if (g === hoofd || !(ERBIJ_SOORTEN as readonly string[]).includes(g.soort) || g.omtrek.length < 3) continue;
+    if (g.soort !== 'uitbouw' && g.soort !== 'garage' && g.bron === 'schatting') continue;
     const punten = g.omtrek.map((p) => uitKaart(k, p));
     const u0 = Math.min(...punten.map((p) => p[0]));
     const v0 = Math.min(...punten.map((p) => p[1]));
-    const blok = { id: g.id === 'hoofd' ? `${g.id}-2` : g.id, soort: g.soort, u: u0, v: v0, b: Math.max(...punten.map((p) => p[0])) - u0, d: Math.max(...punten.map((p) => p[1])) - v0, dak: g.dakvorm, nokLangs: langs(g) };
+    const blok = { id: g.id === 'hoofd' ? `${g.id}-2` : g.id, soort: g.soort as BlokSoort, u: u0, v: v0, b: Math.max(...punten.map((p) => p[0])) - u0, d: Math.max(...punten.map((p) => p[1])) - v0, dak: g.dakvorm, nokLangs: langs(g) };
     if (blok.b < 1 || blok.d < 1) continue;
-    if (afstand(blok, ruw[0]!) > 1) continue;
+    // Een geschat blok alleen tegen het huis; wat van de kaart komt of de bewoner neerzette tot 30 meter verderop.
+    if (afstand(blok, ruw[0]!) > (g.bron === 'schatting' ? 1 : 30)) continue;
     ruw.push(blok);
   }
   // Alles op ruitjes, met de linker voorhoek van het hele huis op nul.
   const u0 = Math.min(...ruw.map((r) => r.u));
   const v0 = Math.min(...ruw.map((r) => r.v));
   const blokken = ruw.map((r) => ({ id: r.id, soort: r.soort, u: ruitje(r.u - u0), v: ruitje(r.v - v0), b: ruitje(r.b), d: ruitje(r.d), dak: r.dak, nokLangs: r.nokLangs }));
+  // De gebouwen eromheen in dezelfde assen, met hun plek in de lijst (die gaat mee als je er een aanwijst).
+  const om = omgeving.flatMap((o, i) => (o.length < 3 ? [] : [{ i, punten: o.map((p) => uitKaart(k, p)).map(([u, v]) => [ruitje(u - u0), ruitje(v - v0)] as const) }]));
   return {
     maat: { breed: Math.max(...blokken.map((r) => ruitje(r.u + r.b))), diep: Math.max(...blokken.map((r) => ruitje(r.v + r.d))) },
     blokken,
     nul: { u: ruitje(-u0), v: ruitje(-v0) },
     bron: 'gebouwen',
     uDeg,
+    omgeving: om,
   };
 }
 
@@ -393,6 +414,8 @@ export interface BronVorm {
   readonly dakvorm: Dakvorm;
   /** Zonder kaart: was het hoofdhuis door de bewoner getekend (en geen rechthoek uit het woningtype)? */
   readonly zelfGetekend: boolean;
+  /** De gebouwen van de kaart eromheen, nog niet aangewezen; in dezelfde assen als de blokken. */
+  readonly omgeving: readonly OmgevingVorm[];
 }
 
 const m1 = (n: number) => Math.round(n * 10) / 10 + 0;
@@ -404,8 +427,9 @@ const m1 = (n: number) => Math.round(n * 10) / 10 + 0;
  * hoger, bij een plat dak even hoog).
  */
 export function bronVorm(d: Daken, voorgevelDeg: number | null, woning: string | null | undefined, lagen: number): BronVorm {
-  const gebouwen = dakTekening(d).gebouwen;
-  const v = tekenVorm(gebouwen, voorgevelDeg, woning);
+  const dt = dakTekening(d);
+  const gebouwen = dt.gebouwen;
+  const v = tekenVorm(gebouwen, voorgevelDeg, woning, dt.omgeving);
   const hoofd = gebouwen.find((g) => g.soort === 'hoofdhuis');
   const dakvorm = hoofd?.dakvorm ?? 'zadel';
   const uitBag = hoofd?.bron === 'kaart' && hoofd.kaart === 'bag3d' && hoofd.hoogteGoot != null;
@@ -429,6 +453,7 @@ export function bronVorm(d: Daken, voorgevelDeg: number | null, woning: string |
     gemeten: uitBag,
     dakvorm,
     zelfGetekend: v.bron === 'gebouwen' && hoofd?.bron === 'bewoner',
+    omgeving: v.omgeving.map((o) => ({ i: o.i, punten: o.punten.map(([u, w]) => [m1(u - v.nul.u), m1(w - v.nul.v)] as const) })),
   };
 }
 
@@ -519,4 +544,44 @@ export function etageHoogtes(etages: readonly { readonly id: string; readonly na
   const zolder = heeftZolder(etages);
   const per = m1(Math.min(4, Math.max(2.2, goot / lagenOnderDak(etages))));
   return etages.map((_, i) => (onderGrond(i) ? 2.5 : zolder && i === 0 ? m1(Math.min(8, Math.max(1.5, nok - goot))) : per));
+}
+
+/* ------------------------------------------------------------------ een gebouw erbij of weg (0.185.0) */
+
+/**
+ * Een gebouw van de kaart erbij, zoals bij Daken en panelen (Ricardo, 13
+ * november 2026: ook bij Je huis › Vorm, en het geldt op allebei). `i` is de
+ * plek in de omgeving zoals Daken die tekent. Een geschat blok van dezelfde
+ * soort krijgt die omtrek; anders komt er een gebouw bij. Null als het gebouw
+ * er niet (meer) is.
+ */
+export function gebouwErbij(d: Daken, i: number, soort: ErbijSoort): { daken: Daken; id: string } | null {
+  const dt = dakTekening(d);
+  const omtrek = dt.omgeving[i];
+  if (!Number.isInteger(i) || !omtrek || omtrek.length < 3) return null;
+  const gebouwen: Gebouw[] = (d.gebouwen ?? dt.gebouwen.map(kaalGebouw)).map((g) => ({ ...g }));
+  const geschat = gebouwen.findIndex((g) => g.soort === soort && g.bron === 'schatting');
+  const kaart = gebouwen.find((g) => g.soort === 'hoofdhuis')?.kaart;
+  const vorm = omtrek.map((p) => [p[0], p[1]] as Xy);
+  let id: string;
+  if (geschat >= 0) {
+    id = gebouwen[geschat]!.id;
+    gebouwen[geschat] = { ...gebouwen[geschat]!, omtrek: vorm, bron: 'kaart' };
+  } else {
+    id = soort;
+    for (let n = 2; gebouwen.some((g) => g.id === id); n++) id = `${soort}-${n}`;
+    gebouwen.push({ id, soort, bron: 'kaart', omtrek: vorm, dakvorm: soort === 'tuinhuis' || soort === 'anders' ? 'zadel' : 'plat', nokDeg: 0, ...(kaart ? { kaart } : {}) });
+  }
+  const omgeving = dt.omgeving.filter((_o, n) => n !== i).map((o) => o.map((p) => [p[0], p[1]] as Xy));
+  return { daken: { ...d, vlakken: losVan(d.vlakken, geschat >= 0 ? [id] : []), gebouwen, omgeving }, id };
+}
+
+/** Een gebouw weer weg (niet het hoofdhuis). Wat van de kaart kwam, staat daarna weer grijs om het huis. Null als het er niet is. */
+export function gebouwWeg(d: Daken, id: string): Daken | null {
+  const dt = dakTekening(d);
+  const gebouwen = d.gebouwen ?? dt.gebouwen.map(kaalGebouw);
+  const g = gebouwen.find((x) => x.id === id);
+  if (!g || g.soort === 'hoofdhuis') return null;
+  const terug = g.bron === 'kaart' ? [g.omtrek.map((p) => [p[0], p[1]] as Xy)] : [];
+  return { ...d, vlakken: losVan(d.vlakken, [id]), gebouwen: gebouwen.filter((x) => x.id !== id), omgeving: [...dt.omgeving.map((o) => o.map((p) => [p[0], p[1]] as Xy)), ...terug].slice(0, 20) };
 }

@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Daken, DakVlak, Gebouw, Xy } from '../src/web/daken.js';
-import { bronVanDaken, dakenMetBron, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, gebouwErbij, gebouwWeg, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -133,7 +133,7 @@ describe('de vorm om op te tekenen', () => {
   });
 
   it('zonder gebouwen een rechthoek uit het woningtype', () => {
-    expect(tekenVorm([], null, 'rij')).toEqual({ maat: { breed: 5.4, diep: 9 }, blokken: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: 5.4, d: 9, dak: 'zadel', nokLangs: 'x' }], nul: { u: 0, v: 0 }, bron: 'woning', uDeg: null });
+    expect(tekenVorm([], null, 'rij')).toEqual({ maat: { breed: 5.4, diep: 9 }, blokken: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: 5.4, d: 9, dak: 'zadel', nokLangs: 'x' }], nul: { u: 0, v: 0 }, bron: 'woning', uDeg: null, omgeving: [] });
     expect(tekenVorm([{ ...blok('huis', 'hoofdhuis', -5, -4.5, 5, 4.5), bron: 'schatting' }], 180, null).maat).toEqual({ breed: WONING_MAAT['vrijstaand']![0], diep: WONING_MAAT['vrijstaand']![1] });
   });
 
@@ -145,24 +145,35 @@ describe('de vorm om op te tekenen', () => {
         blok('garage', 'garage', -3.4, 1, 0, 7.2),
         // De uitbouw achter (het noorden).
         blok('uitbouw', 'uitbouw', 5.4, 8.4, 10, 11.6),
-        // Een tuinhuis en een losse schuur tellen niet mee.
+        // Sinds 0.185.0 telt een tuinhuis van de kaart mee, ook los in de tuin; een geschat tuinhuis niet, en verder dan 30 meter ook niet.
         blok('tuinhuis', 'tuinhuis', 0, 20, 3, 23),
-        blok('anders', 'garage', 20, 0, 24, 6),
+        { ...blok('schuur', 'tuinhuis', 12, 0, 14, 2), bron: 'schatting' },
+        blok('ver', 'garage', 50, 0, 54, 6),
       ],
       180,
       null,
     );
     expect(v.bron).toBe('gebouwen');
-    expect(v.maat).toEqual({ breed: 13.4, diep: 11.6 });
+    expect(v.maat).toEqual({ breed: 13.4, diep: 23 });
     expect(v.nul).toEqual({ u: 3.4, v: 0 });
     // De voorgevel op het zuiden: v loopt naar het noorden, de garage komt links (u = 0).
     expect(v.blokken).toEqual([
       { id: 'hoofd', soort: 'hoofdhuis', u: 3.4, v: 0, b: 10, d: 8.4, dak: 'zadel', nokLangs: 'x' },
       { id: 'garage', soort: 'garage', u: 0, v: 1, b: 3.4, d: 6.2, dak: 'zadel', nokLangs: 'x' },
       { id: 'uitbouw', soort: 'uitbouw', u: 8.8, v: 8.4, b: 4.6, d: 3.2, dak: 'zadel', nokLangs: 'x' },
+      { id: 'tuinhuis', soort: 'tuinhuis', u: 3.4, v: 20, b: 3, d: 3, dak: 'zadel', nokLangs: 'x' },
     ]);
     // De nok loopt naar het oosten, en u ook: langs de voorgevel.
     expect(v.uDeg).toBe(90);
+  });
+
+  it('geeft de gebouwen eromheen in dezelfde assen, met hun plek in de lijst', () => {
+    const v = tekenVorm([blok('huis', 'hoofdhuis', 0, 0, 10, 8.4), blok('garage', 'garage', -3.4, 1, 0, 7.2)], 180, null, [
+      [[12, 0], [14, 0], [14, 2], [12, 2]],
+      [[1, 1]],
+    ]);
+    // Het tweede is geen omtrek en valt weg; het eerste houdt zijn plek 0, ook al schuift alles 3,4 m op.
+    expect(v.omgeving).toEqual([{ i: 0, punten: [[15.4, 0], [17.4, 0], [17.4, 2], [15.4, 2]] }]);
   });
 
   it('schuift een tekening van de hoek van het hoofdhuis naar die van het hele huis, en terug', () => {
@@ -271,6 +282,46 @@ describe('je huis tekenen: de bronnen bij Vorm (stap 4)', () => {
  * Stap 5 (Huis in 3D): de nok hoeft niet in het midden. Uit de dakvlakken van
  * 3D BAG volgt waar hij ligt en hoe hoog de goot aan elke kant is.
  */
+describe('je huis tekenen: een gebouw erbij bij Vorm (0.185.0)', () => {
+  const blok = (x0: number, y0: number, x1: number, y1: number): Xy[] => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  const huis: Gebouw = { id: 'huis', soort: 'hoofdhuis', bron: 'kaart', kaart: 'bag3d', omtrek: blok(-5, -4, 5, 4), dakvorm: 'zadel', nokDeg: 90 };
+  const tuinhuisVorm = blok(-2, 7, 1, 10);
+  const daken = (extra: Partial<Daken> = {}): Daken => ({ vlakken: [], voorgevelDeg: 180, omvormerW: null, gebouwen: [huis], omgeving: [tuinhuisVorm], ...extra });
+
+  it('wijst een gebouw van de kaart aan: het komt erbij en is weg uit de omgeving', () => {
+    const uit = gebouwErbij(daken(), 0, 'tuinhuis')!;
+    expect(uit.id).toBe('tuinhuis');
+    const g = uit.daken.gebouwen!.find((x) => x.id === 'tuinhuis')!;
+    expect(g).toMatchObject({ soort: 'tuinhuis', bron: 'kaart', kaart: 'bag3d', dakvorm: 'zadel' });
+    expect(g.omtrek).toEqual(tuinhuisVorm);
+    expect(uit.daken.omgeving).toEqual([]);
+    // Het staat daarna in de vorm om op te tekenen, los achter het huis.
+    expect(bronVorm(uit.daken, 180, null, 2).blokken.map((b) => b.soort)).toEqual(['hoofdhuis', 'tuinhuis']);
+  });
+
+  it('een tweede van dezelfde soort krijgt een eigen naam; een geschat blok krijgt de omtrek', () => {
+    const al: Gebouw = { id: 'tuinhuis', soort: 'tuinhuis', bron: 'bewoner', omtrek: blok(6, 0, 8, 2), dakvorm: 'zadel', nokDeg: 0 };
+    expect(gebouwErbij(daken({ gebouwen: [huis, al] }), 0, 'tuinhuis')!.id).toBe('tuinhuis-2');
+    const geschat: Gebouw = { id: 'garage', soort: 'garage', bron: 'schatting', omtrek: blok(5, -4, 8, 2), dakvorm: 'plat', nokDeg: 0 };
+    const uit = gebouwErbij(daken({ gebouwen: [huis, geschat] }), 0, 'garage')!;
+    expect(uit.id).toBe('garage');
+    expect(uit.daken.gebouwen!.find((x) => x.id === 'garage')).toMatchObject({ bron: 'kaart', omtrek: tuinhuisVorm });
+  });
+
+  it('weigert wat er niet is', () => {
+    expect(gebouwErbij(daken(), 3, 'tuinhuis')).toBeNull();
+    expect(gebouwWeg(daken(), 'huis')).toBeNull();
+    expect(gebouwWeg(daken(), 'niets')).toBeNull();
+  });
+
+  it('haalt een gebouw weer weg: wat van de kaart kwam, staat weer in de omgeving', () => {
+    const erbij = gebouwErbij(daken(), 0, 'carport')!;
+    const weg = gebouwWeg(erbij.daken, erbij.id)!;
+    expect(weg.gebouwen!.map((g) => g.id)).toEqual(['huis']);
+    expect(weg.omgeving).toEqual([tuinhuisVorm]);
+  });
+});
+
 describe('je huis tekenen: het dak voor het huis in 3D (stap 5)', () => {
   // Een huis van 9,8 bij 5,6 m met de straat in het oosten: u loopt naar het noorden, achter is het westen.
   const huis = { id: 'hoofd', soort: 'hoofdhuis' as const, u: 0, v: 0, b: 9.8, d: 5.6, dak: 'zadel' as const, nokLangs: 'x' as const };
