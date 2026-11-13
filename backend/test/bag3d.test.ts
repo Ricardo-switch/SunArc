@@ -8,7 +8,7 @@ import { gzipSync } from 'node:zlib';
 
 import { describe, expect, it } from 'vitest';
 
-import { alBinnen, bagHuisEnOmgeving, dakUitVlakken, haalBagVak, inNederland, naarRd, vakAdres, vakSleutels, type CityJson } from '../src/web/bag3d.js';
+import { alBinnen, bagHuisEnOmgeving, dakUitVlakken, haalBagVak, hoogteUit, inNederland, naarRd, vakAdres, vakSleutels, type CityJson } from '../src/web/bag3d.js';
 
 describe('3D BAG', () => {
   it('rekent naar RD: de toren van Amersfoort is het nulpunt', () => {
@@ -66,6 +66,14 @@ describe('3D BAG', () => {
     // Een gebouw uit OpenStreetMap op dezelfde plek telt niet dubbel; een tuinhuis verderop wel.
     expect(alBinnen([[-4, -5], [2, -5], [2, 3], [-4, 3]], [r.huis.omtrek])).toBe(true);
     expect(alBinnen([[-4, 20], [-1, 20], [-1, 23], [-4, 23]], [r.huis.omtrek])).toBe(false);
+  });
+
+  it('leest de hoogte boven de grond: goot, nok en bouwlagen (besluit 288)', () => {
+    expect(hoogteUit({ b3_h_maaiveld: 1.2, b3_h_dak_min: 7.5, b3_h_dak_max: 11.44, b3_bouwlagen: 3 })).toEqual({ goot: 6.3, nok: 10.2, lagen: 3 });
+    // Wat er niet staat of niet kan, is null; zonder iets bruikbaars geen hoogte.
+    expect(hoogteUit({ b3_h_dak_min: 4, b3_h_dak_max: 3, b3_bouwlagen: 2.5 })).toEqual({ goot: 4, nok: null, lagen: null });
+    expect(hoogteUit({ naam: 'x' })).toBeUndefined();
+    expect(hoogteUit(undefined)).toBeUndefined();
   });
 
   it('haalt het fijnste vak dat er is, en pakt het uit', async () => {

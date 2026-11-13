@@ -7428,10 +7428,10 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         p.on('pageerror', (e) => fouten.push(e.message));
         await p.goto(`${baseUrl}/jehuis.html#bg`);
         await p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);
-        // Kamers staat aan; Apparaten kan ook (stap 3), Vorm en Huis komen later en staan uit.
+        // Kamers staat aan; Vorm (stap 4) en Apparaten (stap 3) kunnen ook, Huis komt later en staat uit.
         expect(await p.locator(`${kant} [data-stand="kamers"]`).getAttribute('aria-pressed'), naam).toBe('true');
-        expect(await p.locator(`${kant} [data-stand="apparaten"]`).isDisabled(), `${naam} apparaten`).toBe(false);
-        for (const s of ['vorm', 'huis']) expect(await p.locator(`${kant} [data-stand="${s}"]`).isDisabled(), `${naam} ${s}`).toBe(true);
+        for (const s of ['vorm', 'apparaten']) expect(await p.locator(`${kant} [data-stand="${s}"]`).isDisabled(), `${naam} ${s}`).toBe(false);
+        expect(await p.locator(`${kant} [data-stand="huis"]`).isDisabled(), `${naam} huis`).toBe(true);
         // De wand schuift nooit: alles past in het scherm.
         if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
         // Nog leeg: begin met de eerste indeling uit de kamers.
@@ -7605,4 +7605,91 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       if (voor) await layoutStore.save(voor);
     }
   }, 90_000);
+
+  /*
+   * Je huis, stap 4 (Vorm): wat elke bron van het huis vindt, en kiezen. De
+   * kaarten pas na de melding van Daken en panelen (nagemaakt: er gaat niets
+   * naar buiten). Een andere bron geldt ook bij Daken; stap terug zet hem
+   * terug. Een buitenmuur trek je met een nagebootste vinger recht: alleen
+   * pointerdown en pointerup, en na opnieuw laden staat hij er nog.
+   */
+  it('kiest bij Je huis de vorm uit de kaarten, en trekt een buitenmuur met een vinger recht (besluit 308)', async () => {
+    const voor = layoutStore.current;
+    const conn0 = connStore.current;
+    const hoofdhuis = () => connStore.current?.daken?.gebouwen?.find((g) => g.soort === 'hoofdhuis');
+    try {
+      for (const [naam, breed, hoog] of [['wand', 1280, 800], ['telefoon', 390, 844]] as const) {
+        // Elke keer zonder tekening, en bij Daken nog zonder kaart.
+        const nu = layoutStore.current;
+        if (nu?.plattegrond) {
+          const { plattegrond: _weg, plattegrondBron: _bron, ...zonder } = nu;
+          await layoutStore.save(zonder);
+        }
+        if (connStore.current) await connStore.save({ ...connStore.current, daken: null });
+        const kant = breed < 600 ? '#tel' : '#wand';
+        const context = await browser.newContext({ viewport: { width: breed, height: hoog }, hasTouch: true, isMobile: breed < 600, timezoneId: 'UTC', locale: 'nl-NL' });
+        await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+        const p = await context.newPage();
+        const fouten: string[] = [];
+        p.on('pageerror', (e) => fouten.push(e.message));
+        await p.goto(`${baseUrl}/jehuis.html#bg/vorm`);
+        await p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);
+        expect(await p.locator(`${kant} [data-stand="vorm"]`).getAttribute('aria-pressed'), naam).toBe('true');
+        // Zonder kaart in gebruik; de kaarten vragen kan, met eerst de melding (als ze vandaag nog niet gevraagd zijn).
+        expect(await p.locator(`${kant} [data-ht="bron"][aria-pressed="true"]`).getAttribute('data-bron'), naam).toBe('zelf');
+        const kijk = p.locator(`${kant} [data-ht="kijk"]`);
+        if (await kijk.count()) {
+          await kijk.click();
+          expect(await p.locator('.kk-venster[role="dialog"]').isVisible(), naam).toBe(true);
+          await Promise.all([p.waitForEvent('load'), p.locator('[data-kk-kaart]').click()]);
+          await p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);
+        }
+        // De 3D-kaart, de plattegrond en zonder kaart, elk met wat het vond.
+        await expect.poll(() => p.locator(`${kant} [data-ht="bron"]`).evaluateAll((l) => l.map((b) => b.getAttribute('data-bron'))), { message: naam }).toEqual(['bag3d', 'osm', 'zelf']);
+        expect(await p.locator(`${kant} [data-ht="kijk"]`).count(), naam).toBe(0);
+        expect(await p.locator(`${kant} [data-bron="bag3d"]`).textContent(), naam).toMatch(/3D-kaart van Nederland[\s\S]*Gevonden: huis/);
+        // De wand schuift nooit, ook met drie bronnen.
+        if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
+
+        // De 3D-kaart kiezen: dat geldt ook bij Daken en panelen, en de tekening onthoudt de bron.
+        await p.locator(`${kant} [data-bron="bag3d"]`).click();
+        await expect.poll(() => hoofdhuis(), { timeout: 10_000, message: naam }).toMatchObject({ bron: 'kaart', kaart: 'bag3d' });
+        await expect.poll(() => layoutStore.current?.plattegrondBron, { timeout: 10_000, message: naam }).toBe('bag3d');
+        // Stap terug: weer zonder kaart, ook bij Daken.
+        await p.locator(`${kant} [data-stap-terug]`).click();
+        await expect.poll(() => hoofdhuis()?.bron ?? 'schatting', { timeout: 10_000, message: naam }).not.toBe('kaart');
+        await expect.poll(() => layoutStore.current?.plattegrondBron, { timeout: 10_000, message: naam }).toBe('zelf');
+
+        // De rechter buitenmuur een meter naar buiten, met een vinger.
+        const stand = () => p.evaluate<string>(`document.querySelector('#tekening [data-l="vlak"] g').getAttribute('transform') + document.querySelector('#tekening').getBoundingClientRect().height`);
+        await expect.poll(async () => { const a = await stand(); await p.waitForTimeout(200); return a === (await stand()); }).toBe(true);
+        const breedte = () => p.evaluate<number>('(() => { const o = window.tekenaar.omtrek(); return (o.x1 - o.x0) / 10; })()');
+        const eerst = await breedte();
+        const [a, b] = await p.evaluate<[[number, number], [number, number]]>(`(() => { const el = document.querySelector('#tekening'); el.scrollIntoView({ block: 'center' }); const r = el.getBoundingClientRect(); const g = el.querySelector('[data-l="vlak"] g').getAttribute('transform'); const [, ox, oy, k] = /translate\\(([-\\d.]+) ([-\\d.]+)\\) scale\\(([-\\d.]+)/.exec(g).map(Number); const scherm = (x, y) => [r.left + ox + x * k, r.top + oy - y * k]; const o = window.tekenaar.omtrek(); const y = (o.y0 + o.y1) / 2; return [scherm(o.x1, y), scherm(o.x1 + 10, y)]; })()`);
+        const v = await vinger(p);
+        await v.log();
+        const cdp = await context.newCDPSession(p);
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: a[0], y: a[1] }] });
+        for (let j = 1; j <= 14; j++) {
+          await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: a[0] + ((b[0] - a[0]) * j) / 14, y: a[1] }] });
+          await p.waitForTimeout(16);
+        }
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        expect(await v.log(), naam).toBe('pointerdown pointerup');
+        expect(await breedte(), naam).toBe(eerst + 1);
+        await expect.poll(() => p.locator(`${kant} [data-bewaard]`).textContent(), { timeout: 10_000 }).toBe('Bewaard');
+        // Opnieuw laden: de buitenmuur blijft waar je hem neerzette, ook bij Kamers.
+        await p.reload();
+        await p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);
+        expect(await breedte(), naam).toBe(eerst + 1);
+        await p.locator(`${kant} [data-stand="kamers"]`).click();
+        expect(await breedte(), naam).toBe(eerst + 1);
+        expect(fouten, naam).toEqual([]);
+        await context.close();
+      }
+    } finally {
+      if (voor) await layoutStore.save(voor);
+      if (conn0) await connStore.save(conn0);
+    }
+  }, 120_000);
 });

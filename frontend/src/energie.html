@@ -6,6 +6,7 @@
 <meta name="color-scheme" content="only dark">
 <title>Energie · SunArc</title>
 <link rel="stylesheet" href="kit/kit.css">
+<link rel="stylesheet" href="kit/kaartmelding.css">
 <link rel="stylesheet" href="basis.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b1424">
@@ -294,40 +295,9 @@
   #tel .pan-kop .dk-wissel { margin-left: 0; }
   /* De kaart is experimenteel (schets Wand-Daken-Kaart, 5 november 2026): de balk, en de melding over de hele pagina. */
   .kk-balk { gap: 10px; }
-  .kk-proef { flex: none; height: 26px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; background: rgb(169 156 255 / 0.16); color: var(--violet-t); font-size: 12px; font-weight: 800; }
-  .kk-proef svg { width: 14px; height: 14px; }
   .kk-balktekst { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px; line-height: 1.3; }
   .kk-balktekst small { font-size: 11.5px; color: var(--gedempt); }
   .kk-balktekst a { color: inherit; }
-  .kk-scherm { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; }
-  .kk-dim { position: absolute; inset: 0; background: rgb(4 8 16 / 0.62); backdrop-filter: blur(2px); }
-  .kk-venster { position: relative; width: min(780px, calc(100vw - 32px)); max-height: calc(100vh - 32px); border-radius: 26px; background: rgb(var(--nacht)); border: 1px solid rgb(var(--wit) / 0.12); box-shadow: 0 30px 80px rgb(0 0 0 / 0.55); display: flex; flex-direction: column; overflow: hidden; }
-  .kk-venster.kk-klein { width: min(470px, calc(100vw - 32px)); }
-  .kk-inhoud { padding: 26px 28px 8px; display: flex; flex-direction: column; gap: 14px; overflow: auto; }
-  .kk-kop { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-  .kk-kop h2 { margin: 0; }
-  .kk-lead { margin: 0; font-size: 15px; line-height: 1.5; color: var(--zacht); }
-  .kk-twee { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .kk-blok { padding: 13px 15px; border-radius: 18px; background: rgb(var(--wit) / 0.05); display: flex; flex-direction: column; gap: 9px; }
-  .kk-blok h3 { margin: 0; font: 600 15px var(--kop); }
-  .kk-regel { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 13.5px; line-height: 1.45; color: var(--zacht); }
-  .kk-regel b, .kk-terug b { color: var(--tekst); }
-  .kk-ik { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; }
-  .kk-ik svg { width: 16px; height: 16px; }
-  .kk-zon { background: rgb(247 181 72 / 0.16); color: var(--zon-t); }
-  .kk-mint { background: rgb(110 231 183 / 0.14); color: var(--mint-t); }
-  .kk-ijs { background: rgb(111 211 255 / 0.14); color: var(--ijs-t); }
-  .kk-terug { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: center; padding: 11px 15px; border-radius: 16px; background: rgb(111 211 255 / 0.07); border: 1px solid rgb(111 211 255 / 0.2); font-size: 13.5px; line-height: 1.45; color: var(--zacht); }
-  .kk-voet { display: flex; justify-content: flex-end; align-items: center; gap: 16px; padding: 12px 28px 22px; }
-  .kk-voet .knop { height: 46px; padding: 0 20px; }
-  .kk-niet { border: 0; background: none; color: var(--zacht); font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; padding: 8px 4px; }
-  /* Op de telefoon een blad van onderen; de knoppen onderaan over de hele breedte. */
-  html.tel-stand .kk-scherm { place-items: end stretch; }
-  html.tel-stand .kk-venster, html.tel-stand .kk-venster.kk-klein { width: 100%; max-height: 92vh; border-radius: 26px 26px 0 0; }
-  html.tel-stand .kk-inhoud { padding: 20px 18px 8px; }
-  html.tel-stand .kk-twee { grid-template-columns: 1fr; }
-  html.tel-stand .kk-voet { flex-direction: column-reverse; align-items: stretch; gap: 6px; padding: 12px 18px 24px; border-top: 1px solid rgb(var(--wit) / 0.07); }
-  html.tel-stand .kk-voet .knop { justify-content: center; }
 </style>
 </head>
 <body class="lucht lucht-dag">

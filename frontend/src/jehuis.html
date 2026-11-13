@@ -7,6 +7,7 @@
 <title>Je huis · SunArc</title>
 <link rel="stylesheet" href="kit/kit.css">
 <link rel="stylesheet" href="kit/huistekenen.css">
+<link rel="stylesheet" href="kit/kaartmelding.css">
 <link rel="stylesheet" href="basis.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b1424">
@@ -73,7 +74,7 @@
         <a class="terugje" href="instellingen.html" data-t="jij.terugInstellingen"></a>
         <h1 class="kop-1" data-t="jehuis.kop"></h1>
         <div class="hm-seg" role="group" data-t-aria-label="jehuis.standen">
-          <button type="button" data-stand="vorm" data-ik="thuis" disabled data-t-title="jehuis.later"><span data-t="jehuis.vorm"></span></button>
+          <button type="button" data-stand="vorm" data-ik="thuis"><span data-t="jehuis.vorm"></span></button>
           <button type="button" data-stand="kamers" data-ik="kamers" aria-pressed="true"><span data-t="jehuis.kamers"></span></button>
           <button type="button" data-stand="apparaten" data-ik="apparaat"><span data-t="jehuis.apparaten"></span></button>
           <button type="button" data-stand="huis" data-ik="thuis" disabled data-t-title="jehuis.later"><span data-t="jehuis.huis"></span></button>
@@ -104,7 +105,7 @@
         </div>
       </div>
       <div class="hm-seg" role="group" data-t-aria-label="jehuis.standen">
-        <button type="button" data-stand="vorm" disabled data-t-title="jehuis.later"><span data-t="jehuis.vorm"></span></button>
+        <button type="button" data-stand="vorm"><span data-t="jehuis.vorm"></span></button>
         <button type="button" data-stand="kamers" aria-pressed="true"><span data-t="jehuis.kamers"></span></button>
         <button type="button" data-stand="apparaten"><span data-t="jehuis.apparaten"></span></button>
         <button type="button" data-stand="huis" disabled data-t-title="jehuis.later"><span data-t="jehuis.huis"></span></button>
@@ -132,6 +133,7 @@
   <script src="kit/nav.js"></script>
   <script src="basis.js"></script>
   <script src="kit/huistekenen.js"></script>
+  <script src="dakvlakken.js"></script>
   <script src="jehuis.js"></script>
 </body>
 </html>

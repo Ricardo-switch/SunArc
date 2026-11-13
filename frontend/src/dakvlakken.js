@@ -293,7 +293,21 @@ const dakvlakken = (() => {
   const gebouwNaam = (g) => t(`daken.gebouw.${g.soort}`);
   const sleutelVan = (kant) => (kant == null ? 'plat' : String(kant));
   /** De gebouwen zoals de dienst ze leest, uit de tekening. */
-  const gebouwenUit = (d) => (d.tekening?.gebouwen ?? []).map(({ id, soort, bron, omtrek, dakvorm, nokDeg, kaart, dakBron }) => ({ id, soort, bron, omtrek, dakvorm, nokDeg, ...(kaart ? { kaart } : {}), ...(dakBron ? { dakBron } : {}) }));
+  // De hoogte uit 3D BAG (besluit 308, Je huis) gaat mee, anders valt hij bij elke keer bewaren weg.
+  const gebouwenUit = (d) =>
+    (d.tekening?.gebouwen ?? []).map(({ id, soort, bron, omtrek, dakvorm, nokDeg, kaart, dakBron, hoogteGoot, hoogteNok, lagen }) => ({
+      id,
+      soort,
+      bron,
+      omtrek,
+      dakvorm,
+      nokDeg,
+      ...(kaart ? { kaart } : {}),
+      ...(dakBron ? { dakBron } : {}),
+      ...(hoogteGoot != null ? { hoogteGoot } : {}),
+      ...(hoogteNok != null ? { hoogteNok } : {}),
+      ...(lagen != null ? { lagen } : {}),
+    }));
   /** Waar een vlak ligt: wat in het open vlak staat, anders wat de dienst vond. */
   function plaatsVan(d, v) {
     if (v.gebouw) return { gebouw: v.gebouw, kant: v.kant ?? null, getekend: true };
@@ -606,7 +620,11 @@ const dakvlakken = (() => {
     // Uit 3D BAG ook het dak: de vorm en hoe de nok loopt (5 november 2026).
     const dak = body.dak && DAKVORMEN.includes(body.dak.dakvorm) ? { dakvorm: body.dak.dakvorm, nokDeg: body.dak.nokDeg, dakBron: 'kaart' } : {};
     const kaart = body.bron === 'bag3d' || body.bron === 'osm' ? { kaart: body.bron } : {};
-    const gebouwen = oud.filter((g) => !weg.includes(g.id)).map((g) => (g.soort === 'hoofdhuis' ? { ...g, ...dak, omtrek: body.hoofdhuis, bron: 'kaart', ...kaart } : g));
+    // Uit 3D BAG ook de hoogte (besluit 308); uit een andere kaart geen.
+    const h = bron === 'bag3d' ? body.hoogte : null;
+    const hoogte = { ...(h?.goot != null ? { hoogteGoot: h.goot } : {}), ...(h?.nok != null ? { hoogteNok: h.nok } : {}), ...(h?.lagen != null ? { lagen: h.lagen } : {}) };
+    const zonderHoogte = ({ hoogteGoot: _g, hoogteNok: _n, lagen: _l, ...g }) => g;
+    const gebouwen = oud.filter((g) => !weg.includes(g.id)).map((g) => (g.soort === 'hoofdhuis' ? { ...zonderHoogte(g), ...dak, ...hoogte, omtrek: body.hoofdhuis, bron: 'kaart', ...kaart } : g));
     // Een ander dak: de kanten van het huis kunnen anders liggen, dus de vlakken op het huis opnieuw plaatsen.
     const huisId = oud.find((g) => g.soort === 'hoofdhuis')?.id;
     // De dakvlakken uit 3D BAG blijven bewaard zolang het huis daaruit komt, voor de helling naast de meting.

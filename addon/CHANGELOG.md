@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.181.0
+## 0.182.0
 
-*13 november 2026 · 0.179.0 – 0.181.0*
+*13 november 2026 · 0.179.0 – 0.182.0*
 
 **Nieuw**
 
+- Je huis: Vorm. Je ziet wat de 3D-kaart van Nederland, OpenStreetMap en het basishuis van je huis vinden, met de hoogte, en kiest welke klopt. Die keuze geldt ook bij Daken en panelen
+- Klopt een maat niet, pak dan de buitenmuur en trek hem recht; trek een vak buiten het huis voor een uitbouw of garage. Dat blijft in Je huis staan
+- Bij elke etage staat hoe hoog hij is, geschat uit de goot en de nok
 - Je huis: Apparaten. Je ziet elk apparaat in zijn kamer, op de plek waar het meestal hangt. Sleep het naar zijn echte plek of naar een andere kamer; bij een muur klikt het vast
 - Staat een apparaat aan de ene of de andere kant van de stippellijn tussen twee zones, dan hoort het bij die zone
 - Wat nog geen kamer heeft, staat in een strook onder de tekening: sleep het een kamer in, of tik het aan en dan de kamer
@@ -20,6 +23,9 @@
 
 **New**
 
+- Your home: Shape. See what the 3D map of the Netherlands, OpenStreetMap and the basic house find for your home, with the height, and choose the one that fits. That choice also applies to Roofs and panels
+- If a size is off, take the outside wall and pull it straight; draw a box outside the house for an extension or garage. That stays in Your home
+- Each floor shows how high it is, estimated from the gutter and the ridge
 - Your home: Devices. Each device shows in its room, where it usually hangs. Drag it to its real spot or to another room; near a wall it snaps on
 - A device on one side of the dotted line between two zones belongs to that zone
 - Anything without a room sits in a strip below the drawing: drag it into a room, or tap it and then the room

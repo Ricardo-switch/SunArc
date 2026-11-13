@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.181.0';
+export const VERSIE = '0.182.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.182.0',
+    datum: '2026-11-13',
+    nieuw: [
+      'Je huis: Vorm. Je ziet wat de 3D-kaart van Nederland, OpenStreetMap en het basishuis van je huis vinden, met de hoogte, en kiest welke klopt. Die keuze geldt ook bij Daken en panelen',
+      'Klopt een maat niet, pak dan de buitenmuur en trek hem recht; trek een vak buiten het huis voor een uitbouw of garage. Dat blijft in Je huis staan',
+      'Bij elke etage staat hoe hoog hij is, geschat uit de goot en de nok',
+    ],
+    en: {
+      nieuw: [
+        'Your home: Shape. See what the 3D map of the Netherlands, OpenStreetMap and the basic house find for your home, with the height, and choose the one that fits. That choice also applies to Roofs and panels',
+        'If a size is off, take the outside wall and pull it straight; draw a box outside the house for an extension or garage. That stays in Your home',
+        'Each floor shows how high it is, estimated from the gutter and the ridge',
+      ],
+    },
+  },
   {
     versie: '0.181.0',
     datum: '2026-11-13',

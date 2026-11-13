@@ -5,8 +5,8 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import type { Gebouw, Xy } from '../src/web/daken.js';
-import { leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import type { Daken, DakVlak, Gebouw, Xy } from '../src/web/daken.js';
+import { bronVanDaken, dakenMetBron, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -192,5 +192,75 @@ describe('de apparaten in de tekening (stap 3)', () => {
     expect(zoneVanPlek({ etage: 'bg', zones }, { etage: 'bg', u: 1, v: 1 })).toBeNull();
     expect(zoneVanPlek({ ...kamer, zones: [...zones, { id: 'eet' }] }, { etage: 'bg', u: 1, v: 1 })).toBeNull();
     expect(zoneVanPlek(kamer, { etage: 'e1', u: 1, v: 1 })).toBeNull();
+  });
+});
+
+/*
+ * Stap 4 (Vorm): de bronnen van de buitenkant. Kiezen doet wat Daken en
+ * panelen doet; alle bronnen liggen op één ruitjespapier; de hoogte per etage
+ * is een schatting uit goot en nok.
+ */
+describe('je huis tekenen: de bronnen bij Vorm (stap 4)', () => {
+  const blok = (x0: number, y0: number, x1: number, y1: number): Xy[] => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  const vlak = (extra: Partial<DakVlak> = {}): DakVlak => ({ letter: 'A', plek: 'hoofddak', opstelling: 'schuin', azimuthDeg: 180, tiltDeg: 40, aantal: 10, wpPerPaneel: 400, meter: null, bron: 'bewoner', ...extra });
+  const daken = (gebouwen: Gebouw[], vlakken: DakVlak[] = []): Daken => ({ vlakken, voorgevelDeg: 180, omvormerW: null, gebouwen });
+  const huis: Gebouw = { id: 'huis', soort: 'hoofdhuis', bron: 'schatting', omtrek: blok(-5, -4, 5, 4), dakvorm: 'zadel', nokDeg: 90 };
+  const garage: Gebouw = { id: 'garage', soort: 'garage', bron: 'schatting', omtrek: blok(5, -4, 8, 2), dakvorm: 'plat', nokDeg: 0 };
+  const schuur: Gebouw = { id: 'schuur', soort: 'tuinhuis', bron: 'bewoner', omtrek: blok(0, 8, 3, 10), dakvorm: 'zadel', nokDeg: 0 };
+  const kaart = { stand: 'huis', hoofdhuis: blok(-6, -4, 6, 4), omgeving: [blok(20, 0, 25, 5)], dak: { dakvorm: 'schild' as const, nokDeg: 90, vlakken: [{ azimuthDeg: 180, tiltDeg: 44, m2: 50 }] }, hoogte: { goot: 6.2, nok: 9.7, lagen: 3 } };
+
+  it('zegt welke bron het huis nu tekent', () => {
+    expect(bronVanDaken([huis])).toBe('zelf');
+    expect(bronVanDaken([{ ...huis, bron: 'kaart', kaart: 'bag3d' }])).toBe('bag3d');
+    expect(bronVanDaken([{ ...huis, bron: 'kaart' }])).toBe('osm');
+    expect(bronVanDaken([])).toBe('zelf');
+  });
+
+  it('kiest een kaart zoals Daken: de omtrek, uit 3D BAG ook het dak en de hoogte, geschatte blokken weg', () => {
+    const d = dakenMetBron(daken([huis, garage, schuur], [vlak({ gebouw: 'huis', kant: 180 }), vlak({ letter: 'B', plek: 'garage', gebouw: 'garage', kant: null })]), 'bag3d', kaart)!;
+    const h = d.gebouwen!.find((g) => g.soort === 'hoofdhuis')!;
+    expect(h).toMatchObject({ id: 'huis', bron: 'kaart', kaart: 'bag3d', dakvorm: 'schild', dakBron: 'kaart', hoogteGoot: 6.2, hoogteNok: 9.7, lagen: 3 });
+    expect(h.omtrek).toEqual(kaart.hoofdhuis);
+    // De geschatte garage valt weg, het tuinhuis van de bewoner blijft; de vlakken op wat anders ligt raken los.
+    expect(d.gebouwen!.map((g) => g.id)).toEqual(['huis', 'schuur']);
+    expect(d.vlakken.map((v) => v.gebouw ?? null)).toEqual([null, null]);
+    expect(d.omgeving).toHaveLength(1);
+    expect(d.kaartDak).toEqual([{ azimuthDeg: 180, tiltDeg: 44, m2: 50 }]);
+    // De plattegrond: alleen de omtrek; de hoogte en het dak uit 3D BAG gaan weg.
+    const osm = dakenMetBron(d, 'osm', { stand: 'huis', hoofdhuis: blok(-5, -4, 5, 4) })!;
+    const h2 = osm.gebouwen!.find((g) => g.soort === 'hoofdhuis')!;
+    expect(h2).toMatchObject({ bron: 'kaart', kaart: 'osm' });
+    expect(h2.hoogteGoot).toBeUndefined();
+    expect(osm.kaartDak).toBeUndefined();
+    // Een kaart die het huis niet kent: niets te kiezen.
+    expect(dakenMetBron(d, 'osm', { stand: 'wijk' })).toBeNull();
+    expect(dakenMetBron(d, 'bag3d', null)).toBeNull();
+  });
+
+  it('zonder kaart blijft alleen wat de bewoner zelf neerzette, zoals Zonder kaart bij Daken', () => {
+    const d = dakenMetBron(daken([{ ...huis, bron: 'kaart', kaart: 'osm' }, schuur], [vlak({ gebouw: 'huis', kant: 180 })]), 'zelf', null)!;
+    expect(d.gebouwen!.map((g) => g.id)).toEqual(['schuur']);
+    expect(d.vlakken[0]!.gebouw).toBeUndefined();
+    expect(d.omgeving).toEqual([]);
+  });
+
+  it('legt alle bronnen en de tekening op één ruitjespapier, met de hoek van het hoofdhuis op dezelfde plek', () => {
+    const p = eenPapier(
+      { bag3d: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }, { id: 'garage', soort: 'garage', u: -3, v: 1, b: 3, d: 6 }], zelf: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 9 }] },
+      { bg: [{ kamer: 'woonkamer', vakken: [[0, -0.5, 10, 9.5]] }] },
+    );
+    expect(p.nul).toEqual({ u: 3, v: 0.5 });
+    expect(p.maat).toEqual({ breed: 13, diep: 9.5 });
+    expect(p.blokken['bag3d']![1]).toMatchObject({ u: 0, v: 1.5 });
+    expect(p.blokken['zelf']![0]).toMatchObject({ u: 3, v: 0.5 });
+  });
+
+  it('schat de hoogte per etage: de zolder onder het dak, de rest deelt de goot, een kelder 2,5 m', () => {
+    const etages = [{ id: 'e2', naam: 'Zolder' }, { id: 'e1', naam: 'Eerste' }, { id: 'bg', naam: 'Begane grond' }, { id: 'kelder', naam: 'Kelder' }];
+    expect(lagenOnderDak(etages)).toBe(2);
+    expect(etageHoogtes(etages, 6.2, 9.7)).toEqual([3.5, 3.1, 3.1, 2.5]);
+    // Zonder zolder: alle etages onder de goot.
+    expect(etageHoogtes([{ id: 'e1', naam: 'Eerste' }, { id: 'bg', naam: 'Beneden' }], 5.6, 5.6)).toEqual([2.8, 2.8]);
+    expect(etageHoogtes([{ id: 'bg', naam: 'Beneden' }], 2.8, 5.8)).toEqual([2.8]);
   });
 });

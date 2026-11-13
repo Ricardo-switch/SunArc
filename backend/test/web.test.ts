@@ -123,6 +123,10 @@ async function start(options: {
   welkomHuis?: () => HouseReport | null;
   naOnboarding?: () => void;
   wandMeldt?: NonNullable<ConstructorParameters<typeof WebServer>[0]['wandMeldt']>;
+  /** De kaart (besluit 254): een nagemaakte plek, OpenStreetMap en 3D BAG; er gaat niets naar buiten. */
+  exacteLocatie?: NonNullable<ConstructorParameters<typeof WebServer>[0]['exacteLocatie']>;
+  kaartAntwoord?: NonNullable<ConstructorParameters<typeof WebServer>[0]['kaartAntwoord']>;
+  bagVak?: NonNullable<ConstructorParameters<typeof WebServer>[0]['bagVak']>;
 }): Promise<{ base: string; server: WebServer }> {
   const webDir = options.webDir ?? (await mkdtemp(join(tmpdir(), 'hems-web-')));
   if (!options.webDir) cleanups.push(() => rm(webDir, { recursive: true, force: true }));
@@ -164,6 +168,9 @@ async function start(options: {
         ...(options.logDir ? { logDir: options.logDir } : {}),
         ...(options.historie ? { historie: options.historie } : {}),
         ...(options.gegevens ? { gegevens: options.gegevens } : {}),
+        ...(options.exacteLocatie ? { exacteLocatie: options.exacteLocatie } : {}),
+        ...(options.kaartAntwoord ? { kaartAntwoord: options.kaartAntwoord } : {}),
+        ...(options.bagVak ? { bagVak: options.bagVak } : {}),
         ...(options.herken ? { bewoners: { view: () => { throw new Error('niet in deze test'); }, actie: async () => ({ ok: false as const, status: 400, reden: 'niet in deze test' }), herken: options.herken, ...(options.gast ? { gast: options.gast } : {}) } } : {}),
         // Open, zoals vóór besluit 99, tenzij een test de inlog zelf toetst.
         access: options.access ?? { kind: 'open' },
@@ -1791,7 +1798,7 @@ describe('de indeling (besluit 96)', () => {
     const tweeZones: Layout = { ...layout, kamers: [{ ...layout.kamers[0]!, zones: [{ id: 'a', naam: 'Keuken' }, { id: 'b', naam: 'Zithoek' }] }] };
     const { base } = await start({ latest: () => snapshot(), house, layout: { store, proposal: () => tweeZones } });
     const leeg = (await (await fetch(`${base}/api/huistekening`)).json()) as Record<string, unknown>;
-    expect(leeg).toMatchObject({ eigen: false, vorm: { maat: { breed: 5.4, diep: 9 }, bron: 'woning' }, etages: [{ id: 'bg', naam: 'Beneden' }], kamers: [{ id: 'woonkamer', etage: 'bg', zones: ['Keuken', 'Zithoek'] }], tekening: {}, zones: {} });
+    expect(leeg).toMatchObject({ eigen: false, vorm: { maat: { breed: 5.4, diep: 9 }, bron: 'zelf' }, bron: 'zelf', nul: { u: 0, v: 0 }, kaarten: null, etages: [{ id: 'bg', naam: 'Beneden', hoogte: 2.8 }], kamers: [{ id: 'woonkamer', etage: 'bg', zones: ['Keuken', 'Zithoek'] }], tekening: {}, zones: {} });
 
     const tekening = { bg: [{ kamer: 'woonkamer', vakken: [[0, 0, 4, 9]] }, { naam: 'Hal', soort: 'hal', vakken: [[4, 0, 1.4, 9]] }] };
     const res = await fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening, zones: { woonkamer: { as: 'v', op: 4.5 } } }) });
@@ -1853,6 +1860,83 @@ describe('de indeling (besluit 96)', () => {
     // Zonder plekken en apparaten (zoals stap 2 bewaarde) blijven plek en zone staan.
     expect((await bewaar({})).status).toBe(200);
     expect(store.current?.apparaten['nest']).toMatchObject({ zone: 'a', plek: { etage: 'bg', u: 2, v: 1 } });
+  });
+
+  /*
+   * Je huis, stap 4 (Vorm): wat elke bron van het huis vindt, met de hoogte.
+   * De kaarten pas na Kijk (dezelfde zoekactie als Daken en panelen); een
+   * andere bron kiezen geldt ook bij Daken en panelen, en de tekening onthoudt
+   * op welke bron hij gemaakt is.
+   */
+  it('geeft de tekentafel de bronnen van de vorm, en een gekozen bron geldt ook bij Daken (besluit 308)', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'hems-huistekening-vorm-'));
+    cleanups.push(() => rm(dir, { recursive: true, force: true }));
+    const store = new LayoutStore({ logDir: dir, known: () => known });
+    const conn = new ConnectionStore(dir);
+    const found = { fasen: [] as FoundPhase[], apparaten: [] as FoundAppliance[] };
+    const view = () => connectionView({ base: exampleSite, found, applied: { toegevoegd: [], overgeslagen: [] }, answersAtStart: null, answers: conn.current, solar: null });
+    const etages = [
+      { id: 'zolder', naam: 'Zolder', ruimtes: [] },
+      { id: 'e1', naam: 'Eerste', ruimtes: [] },
+      { id: 'bg', naam: 'Beneden', ruimtes: [{ id: 'woonkamer', naam: 'Woonkamer', soort: 'woonkamer', apparaten: [], zones: [] }] },
+      { id: 'buiten', naam: 'Buiten', ruimtes: [] },
+    ];
+    const house = () => ({ woning: 'vrijstaand', zonderRuimte: [], verborgen: [], etages }) as unknown as HouseReport;
+    // Een plek in Nederland met een huis van 10 bij 8 meter eromheen in OpenStreetMap; 3D BAG heeft hier geen kaartvak.
+    const [lat, lon] = [52.0123, 5.6789];
+    const punt = (n: number, o: number) => ({ lat: lat + n / 110_540, lon: lon + o / (111_320 * Math.cos((lat * Math.PI) / 180)) });
+    let gevraagd = 0;
+    const kaartAntwoord = async () => {
+      gevraagd++;
+      return { elements: [{ geometry: [punt(-4, -5), punt(-4, 5), punt(4, 5), punt(4, -5), punt(-4, -5)] }] };
+    };
+    const { base } = await start({
+      latest: () => snapshot(),
+      house,
+      layout: { store, proposal: () => layout },
+      connection: { store: conn, view, found: () => found },
+      exacteLocatie: async () => ({ latDeg: lat, lonDeg: lon }),
+      kaartAntwoord,
+      bagVak: async () => null,
+    });
+    const lees = async () => (await (await fetch(`${base}/api/huistekening`)).json()) as { bron: string; bronnen: Record<string, { blokken: { b: number; d: number }[]; goot: number; nok: number; gemeten: boolean }>; kaarten: unknown; nul: { u: number; v: number }; etages: { id: string; hoogte: number }[]; tekeningBron: string };
+    const stuur = (x: object) => fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify(x) });
+
+    // Zonder kijken: alleen zonder kaart, en er ging niets naar buiten. De hoogte geschat: twee etages onder het dak, de zolder erboven.
+    const eerst = await lees();
+    expect(eerst.bron).toBe('zelf');
+    expect(Object.keys(eerst.bronnen)).toEqual(['zelf']);
+    expect(eerst.bronnen['zelf']).toMatchObject({ blokken: [{ b: 10, d: 9 }], goot: 5.6, nok: 8.6, gemeten: false });
+    expect(eerst.kaarten).toEqual({ osm: null, bag3d: null });
+    expect(eerst.etages.map((e) => [e.id, e.hoogte])).toEqual([['zolder', 3], ['e1', 2.8], ['bg', 2.8]]);
+    expect(gevraagd).toBe(0);
+
+    // Kijk: de plattegrond kent het huis, 3D BAG niet; Daken onthoudt wat ze zeiden.
+    const kijk = await stuur({ kijk: true });
+    expect(kijk.status).toBe(200);
+    expect(await kijk.json()).toMatchObject({ kaarten: { osm: 'huis', bag3d: 'niets' } });
+    expect(conn.current?.daken?.kaartStand).toMatchObject({ osm: 'huis', bag3d: 'niets' });
+    const na = await lees();
+    expect(Object.keys(na.bronnen)).toEqual(['osm', 'zelf']);
+    // 10 bij 8 meter; welke kant breed is, hangt van de voorgevel af.
+    expect(na.bronnen['osm']!.blokken.map((b) => [b.b, b.d].sort((x, y) => x - y))).toEqual([[8, 10]]);
+    expect(na.kaarten).toEqual({ osm: 'huis', bag3d: 'niets' });
+
+    // De plattegrond kiezen: bij Daken is het hoofdhuis nu uit OpenStreetMap, en de tekening onthoudt de bron.
+    const tekening = { bg: [{ kamer: 'woonkamer', vakken: [[na.nul.u, na.nul.v, 10, 8]] }] };
+    expect((await stuur({ tekening, zones: {}, bron: 'osm', nul: na.nul })).status).toBe(200);
+    expect(conn.current?.daken?.gebouwen?.find((g) => g.soort === 'hoofdhuis')).toMatchObject({ bron: 'kaart', kaart: 'osm' });
+    expect(store.current?.plattegrondBron).toBe('osm');
+    expect(store.current?.plattegrond?.['bg']?.[0]?.vakken).toEqual([[0, 0, 10, 8]]);
+    expect(await lees()).toMatchObject({ bron: 'osm', tekeningBron: 'osm' });
+
+    // Een kaart die het huis niet kent, kan niet; zonder kaart weer wel.
+    expect((await stuur({ tekening, zones: {}, bron: 'bag3d' })).status).toBe(409);
+    expect((await stuur({ tekening, zones: {}, bron: 'zelf' })).status).toBe(200);
+    // Zonder vlakken en zonder eigen gebouwen bewaart Daken dan niets meer, zoals Zonder kaart daar.
+    expect(conn.current?.daken ?? null).toBeNull();
+    expect((await lees()).bron).toBe('zelf');
+    expect(gevraagd).toBe(1);
   });
 
   it('weigert een indeling die niet deugt, met een reden', async () => {

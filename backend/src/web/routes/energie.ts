@@ -8,7 +8,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { validateConnection } from '../aansluiting.js';
 import { importFromPrefs, pricesInPrefs, type DashboardPrice, type MeterOption } from '../energy.js';
-import { alBinnen, bagHuisEnOmgeving, haalBagVak, inNederland, naarRd, type BagDak, type BagDakvlak } from '../bag3d.js';
+import { alBinnen, bagHuisEnOmgeving, haalBagVak, inNederland, naarRd, type BagDak, type BagDakvlak, type BagHoogte } from '../bag3d.js';
 import type { Dakvorm, KaartStandWoord } from '../daken.js';
 import { gevelsUitOmtrek, haalKaart, haalOmtrek, heeftGebouwen, huisEnOmgeving, kaartVak, voorkantUitKaart } from '../kaart.js';
 import { readJson, sendJson } from '../http.js';
@@ -402,6 +402,53 @@ export interface UitKaart {
   readonly hoofdhuis?: readonly (readonly [number, number])[];
   readonly omgeving?: readonly (readonly (readonly [number, number])[])[];
   readonly dak?: { readonly dakvorm: Dakvorm; readonly nokDeg: number; readonly hellingDeg: number | null; readonly vlakken: readonly BagDakvlak[] };
+  /** Uit 3D BAG ook de hoogte (besluit 308, Je huis): goot, nok en bouwlagen. */
+  readonly hoogte?: BagHoogte;
+}
+
+/** Wat beide kaarten zeiden; null: die kaart is (nog) niet gevraagd. */
+export interface KaartBronnen {
+  readonly osm: UitKaart | null;
+  readonly bag3d: UitKaart | null;
+}
+
+/**
+ * Beide kaarten over het huis (besluit 254, 256 en 308): Daken en panelen en
+ * Je huis doen dezelfde zoekactie. Met `ophalen` vraagt hij de kaarten (na
+ * een tik en de melding); zonder alleen wat er nog van vandaag bewaard is,
+ * zonder iets naar buiten te sturen. Null zonder plek uit Home Assistant.
+ */
+export async function kaartBronnen(d: Diensten, ophalen: boolean): Promise<KaartBronnen | null> {
+  const loc = await (d.options.exacteLocatie?.() ?? Promise.resolve(null)).catch(() => null);
+  if (loc == null) return null;
+  const nl = inNederland(loc.latDeg, loc.lonDeg);
+  const p = { lat: loc.latDeg, lon: loc.lonDeg };
+  // In Nederland ook 3D BAG (5 november 2026): de omtrek en het dak per gebouw; OpenStreetMap vult aan wat er niet in staat, zoals een tuinhuis.
+  const [osm, bag] = ophalen
+    ? await Promise.allSettled([osmVak(d, loc.latDeg, loc.lonDeg), nl ? bagVak(d, loc.latDeg, loc.lonDeg) : Promise.resolve(null)])
+    : ([bewaardOsm(loc.latDeg, loc.lonDeg), nl ? bewaardBag(loc.latDeg, loc.lonDeg) : { status: 'fulfilled' as const, value: null }] as const);
+  const uitOsm = osm?.status === 'fulfilled' ? huisEnOmgeving(osm.value, p) : null;
+  const uitBag = bag?.status === 'fulfilled' ? bag.value?.uit ?? null : null;
+  const kaartOsm: UitKaart | null =
+    osm == null ? null : osm.status === 'rejected' ? { stand: 'fout' } : uitOsm ? { stand: 'huis', hoofdhuis: uitOsm.huis, omgeving: uitOsm.omgeving } : { stand: heeftGebouwen(osm.value) ? 'wijk' : 'niets' };
+  let kaartBag: UitKaart | null;
+  if (!nl) kaartBag = { stand: 'buiten' };
+  else if (bag == null) kaartBag = null;
+  else if (bag.status === 'rejected') kaartBag = { stand: 'fout' };
+  else if (!uitBag) kaartBag = { stand: bag.value?.vak ? 'wijk' : 'niets' };
+  else {
+    const bagOmtrekken = [uitBag.huis.omtrek, ...uitBag.omgeving.map((g) => g.omtrek)];
+    const erbij = [...(uitOsm ? [uitOsm.huis] : []), ...(uitOsm?.omgeving ?? [])].filter((o) => !alBinnen(o, bagOmtrekken));
+    const dak: BagDak = uitBag.huis.dak;
+    kaartBag = {
+      stand: 'huis',
+      hoofdhuis: uitBag.huis.omtrek,
+      omgeving: [...uitBag.omgeving.map((g) => g.omtrek), ...erbij].slice(0, 20),
+      dak: { dakvorm: dak.dakvorm, nokDeg: dak.nokDeg, hellingDeg: dak.hellingDeg, vlakken: dak.vlakken },
+      ...(uitBag.huis.hoogte ? { hoogte: uitBag.huis.hoogte } : {}),
+    };
+  }
+  return { osm: kaartOsm, bag3d: kaartBag };
 }
 
 /**
@@ -416,33 +463,14 @@ export interface UitKaart {
  * OpenStreetMap.
  */
 export async function dakenKaartRoute(d: Diensten, res: ServerResponse): Promise<void> {
-  const loc = await (d.options.exacteLocatie?.() ?? Promise.resolve(null)).catch(() => null);
-  if (loc == null) {
+  const gevonden = await kaartBronnen(d, true);
+  if (gevonden == null) {
     sendJson(res, 503, { wachten: 'de plek van het huis komt van Home Assistant zodra die verbonden is' });
     return;
   }
-  const nl = inNederland(loc.latDeg, loc.lonDeg);
-  // In Nederland ook 3D BAG (5 november 2026): de omtrek en het dak per gebouw; OpenStreetMap vult aan wat er niet in staat, zoals een tuinhuis.
-  const [osm, bag] = await Promise.allSettled([osmVak(d, loc.latDeg, loc.lonDeg), nl ? bagVak(d, loc.latDeg, loc.lonDeg) : Promise.resolve(null)]);
-  const uitOsm = osm.status === 'fulfilled' ? huisEnOmgeving(osm.value, { lat: loc.latDeg, lon: loc.lonDeg }) : null;
-  const uitBag = bag.status === 'fulfilled' ? bag.value?.uit ?? null : null;
-  const kaartOsm: UitKaart =
-    osm.status === 'rejected' ? { stand: 'fout' } : uitOsm ? { stand: 'huis', hoofdhuis: uitOsm.huis, omgeving: uitOsm.omgeving } : { stand: heeftGebouwen(osm.value) ? 'wijk' : 'niets' };
-  let kaartBag: UitKaart;
-  if (!nl) kaartBag = { stand: 'buiten' };
-  else if (bag.status === 'rejected') kaartBag = { stand: 'fout' };
-  else if (!uitBag) kaartBag = { stand: bag.value?.vak ? 'wijk' : 'niets' };
-  else {
-    const bagOmtrekken = [uitBag.huis.omtrek, ...uitBag.omgeving.map((g) => g.omtrek)];
-    const erbij = [...(uitOsm ? [uitOsm.huis] : []), ...(uitOsm?.omgeving ?? [])].filter((o) => !alBinnen(o, bagOmtrekken));
-    const dak: BagDak = uitBag.huis.dak;
-    kaartBag = {
-      stand: 'huis',
-      hoofdhuis: uitBag.huis.omtrek,
-      omgeving: [...uitBag.omgeving.map((g) => g.omtrek), ...erbij].slice(0, 20),
-      dak: { dakvorm: dak.dakvorm, nokDeg: dak.nokDeg, hellingDeg: dak.hellingDeg, vlakken: dak.vlakken },
-    };
-  }
+  // Met ophalen geeft elke kaart een antwoord.
+  const kaartOsm = gevonden.osm!;
+  const kaartBag = gevonden.bag3d!;
   const bronnen = { osm: kaartOsm, bag3d: kaartBag };
   if (kaartBag.stand === 'huis') {
     sendJson(res, 200, { hoofdhuis: kaartBag.hoofdhuis, omgeving: kaartBag.omgeving, bron: 'bag3d', dak: kaartBag.dak, bronnen });
@@ -469,6 +497,19 @@ async function osmVak(d: Diensten, lat: number, lon: number): Promise<unknown> {
     kaartVakken.set(vak, bewaard);
   }
   return bewaard.antwoord;
+}
+
+/** Wat er van vandaag nog van OpenStreetMap bewaard is, zonder te vragen; null als er niets is. */
+function bewaardOsm(lat: number, lon: number): PromiseSettledResult<unknown> | null {
+  const b = kaartVakken.get(kaartVak(lat, lon).sleutel);
+  return b != null && Date.now() - b.at <= 86_400_000 ? { status: 'fulfilled', value: b.antwoord } : null;
+}
+
+/** Wat er van vandaag nog van 3D BAG bewaard is, zonder te vragen. */
+function bewaardBag(lat: number, lon: number): PromiseSettledResult<{ vak: boolean; uit: ReturnType<typeof bagHuisEnOmgeving> }> | null {
+  const [x, y] = naarRd(lat, lon);
+  const sleutel = `${Math.round(x)},${Math.round(y)}`;
+  return bagBewaard?.sleutel === sleutel && Date.now() - bagBewaard.at < 86_400_000 ? { status: 'fulfilled', value: bagBewaard } : null;
 }
 
 /** 3D BAG: het kaartvak van de plek, en daaruit het huis en de buren; een dag bewaard. `vak`: was er een kaartvak? */

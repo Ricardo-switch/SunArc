@@ -21,7 +21,7 @@ import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SiteConfig } from '../core/model.js';
 import type { Lang } from './assistant.js';
-import { leesPlek, leesTekening, leesZoneLijn, type Plek, type TekenRuimte, type ZoneLijn } from './huistekening.js';
+import { leesPlek, leesTekening, leesZoneLijn, VORM_BRONNEN, type Plek, type TekenRuimte, type VormBron, type ZoneLijn } from './huistekening.js';
 import { controleerRollen, doetMee, type Rol, type Rollen } from './regeling.js';
 import { controleerBronnen, type Warmtebron } from './warmte.js';
 
@@ -253,6 +253,13 @@ export interface Layout {
    * nog niet getekend.
    */
   readonly plattegrond?: Readonly<Record<FloorId, readonly TekenRuimte[]>>;
+  /**
+   * Op welke bron de tekening gemaakt is (besluit 308, stap 4). Is de bron bij
+   * Daken en panelen dezelfde, dan is de buitenmuur van de tekening de
+   * buitenkant (ook als je hem rechttrok); anders vallen de ruimtes op de
+   * nieuwe vorm. Weg: dezelfde.
+   */
+  readonly plattegrondBron?: VormBron;
 }
 
 export interface LayoutKnown {
@@ -592,9 +599,23 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
     if ('fout' in p) return { ok: false, reden: p.fout };
     if (Object.keys(p.tekening).length) plattegrond = p.tekening;
   }
+  const plattegrondBron = plattegrond && VORM_BRONNEN.includes(b['plattegrondBron'] as VormBron) ? (b['plattegrondBron'] as VormBron) : undefined;
   return {
     ok: true,
-    layout: { versie: 1, etages, ...(volgorde ? { volgorde } : {}), kamers, apparaten, verborgen, ...(dak !== undefined ? { dak: dak as FloorId | 'geen' } : {}), ...(rond ? { rond } : {}), ...(woning !== undefined ? { woning: woning as Woning } : {}), ...(accu ? { accu } : {}), ...(plattegrond ? { plattegrond } : {}) },
+    layout: {
+      versie: 1,
+      etages,
+      ...(volgorde ? { volgorde } : {}),
+      kamers,
+      apparaten,
+      verborgen,
+      ...(dak !== undefined ? { dak: dak as FloorId | 'geen' } : {}),
+      ...(rond ? { rond } : {}),
+      ...(woning !== undefined ? { woning: woning as Woning } : {}),
+      ...(accu ? { accu } : {}),
+      ...(plattegrond ? { plattegrond } : {}),
+      ...(plattegrondBron ? { plattegrondBron } : {}),
+    },
   };
 }
 

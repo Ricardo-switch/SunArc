@@ -9,7 +9,10 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { tekenSoort, tekenVorm, verschuif, zoneVanPlek } from '../huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, eenPapier, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { leesDaken, type Daken } from '../daken.js';
+import { validateConnection } from '../aansluiting.js';
+import { kaartBronnen } from './energie.js';
 
 /** De routes van dit onderwerp; waar als het verzoek hier is afgehandeld. */
 export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
@@ -302,12 +305,18 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
 
 /**
  * Je huis tekenen (besluit 308). GET geeft alles wat de tekentafel nodig heeft:
- * de vorm (de gebouwen van Daken en panelen, of een rechthoek uit het
- * woningtype), de etages binnen met hun kamers en zones, en wat er al
- * getekend is, in meters vanaf de linker voorhoek van het hele huis. POST
- * `{ tekening, zones, plekken?, apparaten? }` bewaart alleen dat, in de indeling (apparaten: per id de kamer); de rest
- * van de indeling blijft zoals hij is. Een kamer die er niet meer is, laat een
- * vak zonder naam achter.
+ * de vorm van elke bron (de gebouwen van Daken en panelen, wat de kaarten van
+ * vandaag nog vonden, of zonder kaart), de etages binnen met hun hoogte, de
+ * kamers met hun zones, de apparaten, en wat er al getekend is. Alles in meters
+ * op één ruitjespapier: `nul` is waar de linker voorhoek van het hoofdhuis
+ * ligt, en de pagina stuurt hem bij het bewaren terug.
+ *
+ * POST `{ tekening, zones, plekken?, apparaten?, bron?, nul? }` bewaart dat in
+ * de indeling (apparaten: per id de kamer); de rest van de indeling blijft
+ * zoals hij is. Een kamer die er niet meer is, laat een vak zonder naam
+ * achter. Een andere `bron` geldt ook bij Daken en panelen (stap 4). POST
+ * `{ kijk: true }` vraagt de kaarten, na de melding, en onthoudt bij Daken wat
+ * ze zeiden.
  */
 async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
   const { req, res, url, method } = v;
@@ -319,9 +328,8 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     sendJson(res, 503, { wachten: 'de etages en kamers komen van Home Assistant zodra die verbonden is' });
     return;
   }
-  const daken = d.options.connection?.view(taal).daken ?? null;
-  const vorm = tekenVorm(daken?.tekening.gebouwen ?? [], daken?.voorgevelDeg ?? null, huis.woning);
-  const { u: nu, v: nv } = vorm.nul;
+  const binnen = huis.etages.filter((e) => e.id !== OUTSIDE_FLOOR);
+  const vorm = await vormVanHuis(d, taal, huis.woning, binnen, basis.plattegrond ?? {});
 
   if (method === 'POST') {
     let body: unknown;
@@ -332,10 +340,47 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       return;
     }
     const b = (typeof body === 'object' && body != null && !Array.isArray(body) ? body : {}) as Record<string, unknown>;
+    // Kijk wat de kaarten vinden: dezelfde zoekactie als bij Daken en panelen, alleen na de melding.
+    if (b['kijk'] === true) {
+      const kaarten = await kaartBronnen(d, true);
+      if (kaarten == null) {
+        sendJson(res, 503, { wachten: 'de plek van het huis komt van Home Assistant zodra die verbonden is' });
+        return;
+      }
+      const stand = { osm: kaarten.osm?.stand ?? 'fout', bag3d: kaarten.bag3d?.stand ?? 'fout', datum: new Date().toLocaleDateString('sv-SE') };
+      if (vorm.daken && d.options.connection) {
+        const fout = await bewaarDaken(d.options.connection, { ...vorm.daken, kaartStand: stand });
+        if (fout) {
+          sendJson(res, 400, { fout });
+          return;
+        }
+      }
+      sendJson(res, 200, { kaarten: stand });
+      return;
+    }
     if (typeof b['tekening'] !== 'object' || b['tekening'] == null || Array.isArray(b['tekening'])) {
       sendJson(res, 400, { fout: 'verwacht { tekening, zones }' });
       return;
     }
+    // Een andere bron voor de buitenkant: eerst bij Daken en panelen, dan pas de tekening.
+    const bron = VORM_BRONNEN.includes(b['bron'] as VormBron) ? (b['bron'] as VormBron) : vorm.bron;
+    if (bron !== vorm.bron) {
+      const kaart = bron === 'zelf' ? null : ((await kaartBronnen(d, false))?.[bron] ?? null);
+      const nieuw = vorm.daken && d.options.connection ? dakenMetBron(vorm.daken, bron, kaart) : null;
+      if (!nieuw || !d.options.connection) {
+        sendJson(res, 409, { fout: 'deze bron is er niet meer; kijk opnieuw wat de kaarten vinden' });
+        return;
+      }
+      const fout = await bewaarDaken(d.options.connection, nieuw);
+      if (fout) {
+        sendJson(res, 400, { fout });
+        return;
+      }
+    }
+    // De pagina stuurt de hoek van het hoofdhuis terug zoals hij hem kreeg; anders die van nu.
+    const n = b['nul'] as { u?: unknown; v?: unknown } | null | undefined;
+    const goed = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && Math.abs(x) <= 200;
+    const { u: nu, v: nv } = n && goed(n.u) && goed(n.v) ? { u: n.u, v: n.v } : vorm.nul;
     // Terug naar de hoek van het hoofdhuis; wat niet klopt, zegt de toets van de indeling.
     const terug = (x: unknown) => (Array.isArray(x) && x.length === 4 && x.every((n) => typeof n === 'number') ? [(x[0] as number) - nu, (x[1] as number) - nv, x[2], x[3]] : x);
     const ruimteTerug = (r: unknown) => {
@@ -371,13 +416,14 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
         apparaten[id] = { ...rest, kamer, zone, ...(plek ? { plek } : {}) };
       }
     }
-    const uit = await door.store.save({ ...basis, kamers, apparaten, plattegrond: tekening });
+    const { plattegrondBron: _oud, ...zonderBron } = basis;
+    const uit = await door.store.save({ ...zonderBron, kamers, apparaten, plattegrond: tekening, plattegrondBron: bron });
     if (uit.ok) sendJson(res, 200, { bewaard: true });
     else sendJson(res, uit.status, { fout: uit.reden });
     return;
   }
 
-  const binnen = huis.etages.filter((e) => e.id !== OUTSIDE_FLOOR);
+  const { u: nu, v: nv } = vorm.nul;
   const zoneLijnen: Record<string, { as: 'u' | 'v'; op: number }> = {};
   for (const k of basis.kamers) if (k.zoneLijn) zoneLijnen[k.id] = { as: k.zoneLijn.as, op: Math.round((k.zoneLijn.op + (k.zoneLijn.as === 'u' ? nu : nv)) * 10) / 10 };
   const plekken: Record<string, { etage: string; u: number; v: number }> = {};
@@ -392,12 +438,20 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       return { id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: null, ...(tip ? { ha: tip } : {}) };
     }),
   ];
+  const nu0 = vorm.bronnen[vorm.bron]!;
+  const hoogtes = etageHoogtes(binnen, nu0.goot, nu0.nok);
   sendJson(res, 200, {
     eigen: door.store.current != null,
-    vorm: { maat: vorm.maat, blokken: vorm.blokken, bron: vorm.bron },
+    vorm: { maat: vorm.maat, blokken: nu0.blokken, bron: vorm.bron },
+    // Stap 4: elke bron op hetzelfde ruitjespapier, de bron van nu, en wat de kaarten van vandaag zeiden.
+    nul: vorm.nul,
+    bron: vorm.bron,
+    bronnen: vorm.bronnen,
+    kaarten: vorm.kaarten,
+    tekeningBron: basis.plattegrondBron ?? vorm.bron,
     woning: huis.woning,
     // Van boven naar beneden, zoals het huis opzij.
-    etages: binnen.map((e) => ({ id: e.id, naam: e.naam })),
+    etages: binnen.map((e, i) => ({ id: e.id, naam: e.naam, hoogte: hoogtes[i] })),
     kamers: binnen.flatMap((e) => e.ruimtes.map((r) => ({ id: r.id, naam: r.naam, soort: r.soort, etage: e.id, zones: r.zones.map((z) => z.naam) }))),
     tekening: verschuif(basis.plattegrond ?? {}, nu, nv),
     zones: zoneLijnen,
@@ -405,4 +459,84 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     apparaten,
     verborgen: huis.verborgen.length,
   });
+}
+
+/**
+ * De vorm van het huis voor de tekentafel (stap 4): de daken zoals Daken en
+ * panelen ze nu tekent, de bron daarvan, en per bron de gebouwen en de hoogte.
+ * De kaarten alleen van wat er vandaag al gevraagd is: hier gaat niets naar
+ * buiten.
+ */
+async function vormVanHuis(
+  d: Diensten,
+  taal: ReturnType<typeof taalVan>,
+  woning: string | null | undefined,
+  etages: readonly { readonly id: string; readonly naam: string }[],
+  plattegrond: Readonly<Record<string, readonly TekenRuimte[]>>,
+): Promise<{
+  daken: Daken | null;
+  bron: VormBron;
+  bronnen: Partial<Record<VormBron, BronVorm>>;
+  kaarten: { osm: string | null; bag3d: string | null } | null;
+  nul: { u: number; v: number };
+  maat: { breed: number; diep: number };
+}> {
+  const verbinding = d.options.connection ?? null;
+  const zicht = verbinding?.view(taal).daken ?? null;
+  const bewaard = verbinding?.store.current?.daken ?? null;
+  // Wat Daken en panelen bewaarde, of anders wat het nu tekent; zonder vlakken telt wat er al was (dakenNu).
+  const daken: Daken | null = zicht
+    ? {
+        ...(bewaard ?? {}),
+        vlakken: bewaard?.vlakken ?? [],
+        voorgevelDeg: bewaard?.voorgevelDeg ?? zicht.voorgevelDeg,
+        omvormerW: bewaard?.omvormerW ?? zicht.omvormerW,
+        gebouwen: bewaard?.gebouwen ?? zicht.tekening.gebouwen.map(kaalGebouw),
+        ...(bewaard?.omgeving ? {} : { omgeving: [] }),
+      }
+    : null;
+  const leeg: Daken = { vlakken: [], voorgevelDeg: null, omvormerW: null };
+  const voorgevel = daken?.voorgevelDeg ?? null;
+  const lagen = lagenOnderDak(etages);
+  const bron = daken ? bronVanDaken(daken.gebouwen ?? []) : 'zelf';
+  const vormen: Partial<Record<VormBron, BronVorm>> = { [bron]: bronVorm(daken ?? leeg, voorgevel, woning, lagen) };
+  const kaarten = daken ? await kaartBronnen(d, false) : null;
+  for (const k of ['bag3d', 'osm'] as const) {
+    if (k === bron || !daken) continue;
+    const met = dakenMetBron(daken, k, kaarten?.[k] ?? null);
+    if (met) vormen[k] = bronVorm(met, voorgevel, woning, lagen);
+  }
+  if (bron !== 'zelf') vormen.zelf = bronVorm(daken ? dakenMetBron(daken, 'zelf', null)! : leeg, voorgevel, woning, lagen);
+  const papier = eenPapier(Object.fromEntries(Object.entries(vormen).map(([id, v]) => [id, v.blokken])), plattegrond);
+  // In vaste volgorde: de 3D-kaart, de plattegrond, zonder kaart.
+  const bronnen: Partial<Record<VormBron, BronVorm>> = {};
+  for (const id of VORM_BRONNEN) if (vormen[id]) bronnen[id] = { ...vormen[id], blokken: papier.blokken[id] ?? [] };
+  return {
+    daken,
+    bron,
+    bronnen,
+    kaarten: kaarten ? { osm: kaarten.osm?.stand ?? null, bag3d: kaarten.bag3d?.stand ?? null } : null,
+    nul: papier.nul,
+    maat: papier.maat,
+  };
+}
+
+/**
+ * De daken bewaren zoals Daken en panelen het doet (de deur `api/huisvorm` van
+ * de branch je-huis): alleen de daken, de rest van de antwoorden blijft.
+ * Geeft de fout, of null.
+ */
+async function bewaarDaken(verbinding: NonNullable<Diensten['options']['connection']>, raw: Daken): Promise<string | null> {
+  const gelezen = leesDaken(raw);
+  if ('fout' in gelezen) return gelezen.fout;
+  const nu = verbinding.store.current;
+  // Zonder vlakken en gebouwen bewaart Daken niets meer (zoals Zonder kaart daar): dan rekent SunArc weer zelf.
+  if (nu) await verbinding.store.save({ ...nu, daken: gelezen.daken });
+  else {
+    const c = validateConnection({ daken: raw }, verbinding.found(), null);
+    if (!c.ok) return c.reden;
+    await verbinding.store.save(c.answers);
+  }
+  await verbinding.naBewaren?.();
+  return null;
 }

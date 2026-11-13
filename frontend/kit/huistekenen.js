@@ -450,15 +450,18 @@
   }
   /**
    * Een vloer uit de dienst, op de gebouwen van nu: wat niet meer in het huis
-   * valt, valt weg, en wat nergens bij hoort blijft een vak zonder naam.
+   * valt, valt weg, en wat nergens bij hoort blijft een vak zonder naam. Met
+   * `eigen` (stap 4: getekend op dezelfde bron) is de tekening zelf de
+   * buitenkant, ook waar je een buitenmuur rechttrok of een vak buiten het huis
+   * trok.
    */
-  function vloerUitMeters(maat, blokken, ruimtes, zones) {
-    const v = nieuweVloer(maat, blokken);
+  function vloerUitMeters(maat, blokken, ruimtes, zones, eigen) {
+    const v = nieuweVloer(maat, eigen ? [] : blokken);
     const cel = (m) => MARGE + Math.round(m / CEL);
     for (const r of ruimtes ?? []) {
       const id = v.volg++;
       v.ruimtes[id] = r.kamer ? { kamer: r.kamer } : r.naam ? { naam: r.naam, ...(r.soort ? { soort: r.soort } : {}) } : {};
-      for (const [x, y, b, d] of r.vakken ?? []) vulRecht(v, cel(x), cel(y), cel(x + b), cel(y + d), id, false);
+      for (const [x, y, b, d] of r.vakken ?? []) vulRecht(v, cel(x), cel(y), cel(x + b), cel(y + d), id, !!eigen);
     }
     ordenen(v);
     for (const r of Object.values(v.ruimtes)) {
@@ -519,7 +522,9 @@
     const zetBlokken = () => {
       const b = huis.bronnen?.[st.bron];
       if (!b) return;
-      huis.etages.forEach((e, i) => (e.blokken = b.blokken.filter((x) => i === huis.etages.length - 1 || x.soort === 'hoofdhuis')));
+      // De begane grond (`huis.beneden`, anders de onderste) krijgt alle gebouwen; een kelder en de etages erboven alleen het hoofdhuis.
+      const beneden = huis.beneden ?? huis.etages.at(-1)?.id;
+      huis.etages.forEach((e) => (e.blokken = b.blokken.filter((x) => e.id === beneden || x.soort === 'hoofdhuis')));
     };
     zetBlokken();
     let luisteraars = [];
@@ -538,7 +543,9 @@
     // Wat er in de dienst bewaard was (besluit 308): per etage de ruimtes in meters, de zonelijnen en de plekken.
     const bewaarde = opties.tekening;
     if (bewaarde?.tekening) {
-      for (const e of huis.etages) if (bewaarde.tekening[e.id]?.length) st.vloeren[e.id] = vloerUitMeters(huis.maat, e.blokken, bewaarde.tekening[e.id], bewaarde.zones);
+      // Getekend op de bron van nu: de buitenmuur van de tekening telt. Een andere bron: de ruimtes vallen op de nieuwe vorm.
+      const eigen = !bewaarde.tekeningBron || bewaarde.tekeningBron === st.bron;
+      for (const e of huis.etages) if (bewaarde.tekening[e.id]?.length) st.vloeren[e.id] = vloerUitMeters(huis.maat, e.blokken, bewaarde.tekening[e.id], bewaarde.zones, eigen);
     }
     if (bewaarde?.plekken) {
       for (const a of st.apparaten) {
@@ -561,7 +568,8 @@
         if (a.plek) plekken[a.id] = { etage: a.plek.etage, u: Math.round((a.plek.x - MARGE) * 10) / 100, v: Math.round((a.plek.y - MARGE) * 10) / 100 };
         if (a.kamer) apparaten[a.id] = a.kamer;
       }
-      return { tekening, zones, plekken, apparaten };
+      // Stap 4: op welke bron dit getekend is; een andere dan bij Daken en panelen zet die daar ook.
+      return { tekening, zones, plekken, apparaten, bron: st.bron };
     };
     if (sleutel) {
       try {
@@ -1750,6 +1758,8 @@
       st,
       kamers,
       op: (f) => luisteraars.push(f),
+      /** Het blad en de rest opnieuw, als de pagina iets veranderde (de kaarten zoeken). */
+      ververs: () => meld(),
       teken,
       pasAan,
       vloer,
@@ -1766,6 +1776,8 @@
       heelHuis,
       /** Naar een andere pagina (de app): `verborgen`, of `apparaat` met { id, kamer }. Weg in de schets. */
       naar: opties.naar ?? null,
+      /** Stap 4: de kaarten vragen (na de melding), als de pagina dat kan. */
+      kijk: opties.kijk ?? null,
       zetStand(s) {
         st.stand = s;
         st.kies = null;
@@ -1900,8 +1912,10 @@
           ${Object.entries(t.huis.bronnen ?? {})
             .map(([id, b]) => `<button type="button" class="ht-bron${st.bron === id ? ' aan' : ''}" data-ht="bron" data-bron="${esc(id)}" aria-pressed="${st.bron === id}"><span class="pl">${t.bronPlaatje(id, 92, 70)}</span><span class="t"><b>${esc(b.naam)}</b><small>${esc(b.vond)}</small><small>${esc(b.weet)}</small><em>${esc(st.bron === id ? T('ht.vorm.inGebruik') : T('ht.vorm.gebruik'))}</em></span></button>`)
             .join('')}
+          ${(t.huis.nietGevonden ?? []).map((x) => `<p class="ht-niet"><b>${esc(x.naam)}</b> ${esc(x.zin)}</p>`).join('')}
+          ${t.kijk && t.huis.kijk ? rij({ ik: 'dak', titel: t.huis.kijk.bezig ? T('ht.vorm.kijkt') : T('ht.vorm.kijk'), zin: t.huis.kijk.fout ?? T('ht.vorm.kijkZin'), rechts: '›', data: t.huis.kijk.bezig ? 'disabled' : 'data-ht="kijk"' }) : ''}
           ${rij({ ik: 'etages', titel: T('ht.hoogte'), zin: nu?.hoogte ?? '', rechts: nu?.gemeten ? T('ht.gemeten') : T('ht.geschat'), data: 'disabled' })}
-          <p class="ht-voet">${esc(T('ht.vorm.voet'))}</p>`;
+          <p class="ht-voet">${esc(T(t.kijk ? 'ht.vorm.voetApp' : 'ht.vorm.voet'))}</p>`;
       } else if (st.stand === 'kamers') {
         if (st.kies?.soort === 'muur' && st.kies.run) {
           const run = st.kies.run;
@@ -2018,6 +2032,7 @@
       if (d.ht === 'noem') t.noem(st.kies.id, d.kamer ? { kamer: d.kamer } : { naam: d.naam, soort: d.soort });
       else if (d.ht === 'zone') t.zetZone(t.vloer().ruimtes[st.kies.id].kamer, d.wat);
       else if (d.ht === 'bron') t.kiesBron(d.bron);
+      else if (d.ht === 'kijk') t.kijk?.();
       else if (d.ht === 'weg') t.haalWeg(st.kies.id);
       else if (d.ht === 'dicht') {
         st.dicht = d.d === '1';

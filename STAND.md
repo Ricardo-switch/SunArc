@@ -298,8 +298,11 @@ verwijzing bestaat.
   zoom je met twee vingers en sleep je een gekozen ruimte overal weg. Stap 3
   (0.181.0): Apparaten, met de apparaten uit de indeling; slepen naar een
   andere kamer of plek bewaart de kamer en de plek, een plek naast een
-  zonelijn zet de zone, en wat nog geen kamer heeft staat in de strook. Vorm
-  en Huis staan uit tot stap 4 en 5.
+  zonelijn zet de zone, en wat nog geen kamer heeft staat in de strook. Stap
+  4 (0.182.0): Vorm, met wat elke bron vindt (de 3D-kaart, OpenStreetMap,
+  zonder kaart) en de hoogte; de kaarten pas na de melding van Daken en
+  panelen, en een gekozen bron geldt ook daar. Een buitenmuur rechttrekken
+  blijft in de tekening (`plattegrondBron`). Huis staat uit tot stap 5.
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over

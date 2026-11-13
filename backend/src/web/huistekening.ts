@@ -18,8 +18,8 @@
  * Een kamer die verdwijnt of naar een andere etage verhuist, maakt het
  * bewaren nooit onmogelijk: zijn vak blijft, zonder kamer.
  */
-import type { Gebouw, Xy } from './daken.js';
-import { maatAs, rechthoekOm } from './daken-tekening.js';
+import type { Daken, Dakvorm, DakVlak, Gebouw, Xy } from './daken.js';
+import { maatAs, rechthoekOm, tekening as dakTekening } from './daken-tekening.js';
 
 export type As = 'u' | 'v';
 
@@ -281,4 +281,161 @@ export function tekenVorm(gebouwen: readonly Gebouw[], voorgevelDeg: number | nu
 /** De tekening van de hoek van het hoofdhuis naar die van het hele huis (`teken`), of terug (`bewaar`). */
 export function verschuif(t: Readonly<Record<string, readonly TekenRuimte[]>>, du: number, dv: number): Record<string, TekenRuimte[]> {
   return Object.fromEntries(Object.entries(t).map(([e, lijst]) => [e, lijst.map((r) => ({ ...r, vakken: r.vakken.map(([u, v, b, d]) => [ruitje(u + du), ruitje(v + dv), b, d] as const) }))]));
+}
+
+/* ------------------------------------------------------------------ de bronnen bij Vorm (stap 4) */
+
+/**
+ * Waar de buitenkant vandaan komt, zoals bij Daken en panelen (besluit 261):
+ * de 3D-kaart van Nederland, OpenStreetMap, of zonder kaart (`zelf`: een
+ * rechthoek uit het woningtype, of wat de bewoner bij Daken zelf tekende).
+ */
+export type VormBron = 'bag3d' | 'osm' | 'zelf';
+export const VORM_BRONNEN: readonly VormBron[] = ['bag3d', 'osm', 'zelf'];
+
+/** Wat een kaart over het huis zei, zoals `kaartBronnen` het geeft. */
+export interface KaartHuis {
+  readonly stand: string;
+  readonly hoofdhuis?: readonly (readonly [number, number])[];
+  readonly omgeving?: readonly (readonly (readonly [number, number])[])[];
+  readonly dak?: { readonly dakvorm: Dakvorm; readonly nokDeg: number; readonly vlakken: readonly { readonly azimuthDeg: number; readonly tiltDeg: number; readonly m2: number }[] };
+  readonly hoogte?: { readonly goot: number | null; readonly nok: number | null; readonly lagen: number | null };
+}
+
+/** Welke bron het huis bij Daken en panelen nu tekent. */
+export function bronVanDaken(gebouwen: readonly Gebouw[]): VormBron {
+  const h = gebouwen.find((g) => g.soort === 'hoofdhuis');
+  return h?.bron === 'kaart' ? (h.kaart ?? 'osm') : 'zelf';
+}
+
+/** Alleen wat een gebouw is, zonder wat de tekening erbij rekende (maat, dakvlakken). */
+export const kaalGebouw = (g: Gebouw): Gebouw => {
+  const { id, soort, bron, omtrek, dakvorm, nokDeg, kaart, dakBron, hoogteGoot, hoogteNok, lagen } = g;
+  return { id, soort, bron, omtrek, dakvorm, nokDeg, ...(kaart ? { kaart } : {}), ...(dakBron ? { dakBron } : {}), ...(hoogteGoot != null ? { hoogteGoot } : {}), ...(hoogteNok != null ? { hoogteNok } : {}), ...(lagen != null ? { lagen } : {}) };
+};
+
+/** Weg met de verwijzing naar een gebouw dat er niet meer is of anders ligt, zoals bij Daken. */
+const losVan = (vlakken: readonly DakVlak[], ids: readonly string[]): DakVlak[] =>
+  vlakken.map((v) => {
+    if (!v.gebouw || !ids.includes(v.gebouw)) return v;
+    const { gebouw: _g, kant: _k, ...rest } = v;
+    return rest;
+  });
+
+/**
+ * De daken met een andere bron voor de buitenkant (besluit 308: kiezen kan bij
+ * Daken en panelen en bij Je huis, en geldt op allebei). Precies wat Daken
+ * doet: een kaart geeft het hoofdhuis zijn omtrek (uit 3D BAG ook het dak en de
+ * hoogte), geschatte blokken ernaast vallen weg, en de vlakken op wat anders
+ * ligt raken los van hun gebouw. Zonder kaart blijft alleen wat de bewoner
+ * zelf neerzette. Null als de kaart het huis niet (meer) kent.
+ */
+export function dakenMetBron(d: Daken, bron: VormBron, kaart: KaartHuis | null): Daken | null {
+  const oud = d.gebouwen ?? [];
+  const { kaartDak: _k, ...rest } = d;
+  if (bron === 'zelf') {
+    return { ...rest, vlakken: losVan(d.vlakken, oud.filter((g) => g.bron !== 'bewoner').map((g) => g.id)), gebouwen: oud.filter((g) => g.bron === 'bewoner'), omgeving: [] };
+  }
+  const omtrek = kaart?.stand === 'huis' ? kaart.hoofdhuis : undefined;
+  if (!kaart || !omtrek || omtrek.length < 3) return null;
+  const weg = oud.filter((g) => g.soort !== 'hoofdhuis' && g.bron === 'schatting').map((g) => g.id);
+  const dak = bron === 'bag3d' && kaart.dak ? { dakvorm: kaart.dak.dakvorm, nokDeg: kaart.dak.nokDeg, dakBron: 'kaart' as const } : {};
+  const h = bron === 'bag3d' ? kaart.hoogte : undefined;
+  const hoogte = { ...(h?.goot != null ? { hoogteGoot: h.goot } : {}), ...(h?.nok != null ? { hoogteNok: h.nok } : {}), ...(h?.lagen != null ? { lagen: h.lagen } : {}) };
+  const huisId = oud.find((g) => g.soort === 'hoofdhuis')?.id ?? 'huis';
+  const nieuwHuis = (g: Gebouw | null): Gebouw => {
+    const basis: Gebouw = g ?? { id: huisId, soort: 'hoofdhuis', bron: 'kaart', omtrek: [], dakvorm: 'zadel', nokDeg: 0 };
+    const { hoogteGoot: _g, hoogteNok: _n, lagen: _l, ...zonder } = basis;
+    return { ...zonder, ...dak, ...hoogte, omtrek: omtrek.map((p) => [p[0], p[1]] as Xy), bron: 'kaart', kaart: bron };
+  };
+  const zonderWeg = oud.filter((g) => !weg.includes(g.id));
+  const gebouwen = zonderWeg.some((g) => g.soort === 'hoofdhuis') ? zonderWeg.map((g) => (g.soort === 'hoofdhuis' ? nieuwHuis(g) : g)) : [nieuwHuis(null), ...zonderWeg];
+  const kaartDak = bron === 'bag3d' && kaart.dak?.vlakken.length ? { kaartDak: kaart.dak.vlakken.slice(0, 24).map(({ azimuthDeg, tiltDeg, m2 }) => ({ azimuthDeg, tiltDeg, m2 })) } : {};
+  return { ...rest, vlakken: losVan(d.vlakken, [...weg, ...(kaart.dak && bron === 'bag3d' ? [huisId] : [])]), gebouwen, omgeving: (kaart.omgeving ?? []).map((o) => o.map((p) => [p[0], p[1]] as Xy)), ...kaartDak };
+}
+
+/** Wat een bron van het huis maakt: de gebouwen in de assen van het hoofdhuis, en de hoogte. */
+export interface BronVorm {
+  /** In meters vanaf de linker voorhoek van het hoofdhuis. */
+  readonly blokken: readonly Blok[];
+  /** Goot en nok in meters boven de grond; gemeten uit 3D BAG, anders geschat uit de etages. */
+  readonly goot: number;
+  readonly nok: number;
+  readonly gemeten: boolean;
+  readonly dakvorm: Dakvorm;
+  /** Zonder kaart: was het hoofdhuis door de bewoner getekend (en geen rechthoek uit het woningtype)? */
+  readonly zelfGetekend: boolean;
+}
+
+const m1 = (n: number) => Math.round(n * 10) / 10 + 0;
+
+/**
+ * De vorm van één bron: de gebouwen zoals Daken ze dan tekent, als blokken in
+ * de assen van het hoofdhuis. `lagen`: hoeveel etages onder het dak, om de
+ * hoogte te schatten als 3D BAG hem niet geeft (2,8 m per etage, de nok 3 m
+ * hoger, bij een plat dak even hoog).
+ */
+export function bronVorm(d: Daken, voorgevelDeg: number | null, woning: string | null | undefined, lagen: number): BronVorm {
+  const gebouwen = dakTekening(d).gebouwen;
+  const v = tekenVorm(gebouwen, voorgevelDeg, woning);
+  const hoofd = gebouwen.find((g) => g.soort === 'hoofdhuis');
+  const dakvorm = hoofd?.dakvorm ?? 'zadel';
+  const uitBag = hoofd?.bron === 'kaart' && hoofd.kaart === 'bag3d' && hoofd.hoogteGoot != null;
+  const goot = uitBag ? hoofd.hoogteGoot! : m1(2.8 * Math.max(1, lagen));
+  const nok = uitBag && hoofd.hoogteNok != null ? hoofd.hoogteNok : dakvorm === 'plat' ? goot : m1(goot + 3);
+  return {
+    blokken: v.blokken.map((b) => ({ ...b, u: m1(b.u - v.nul.u), v: m1(b.v - v.nul.v) })),
+    goot,
+    nok,
+    gemeten: uitBag,
+    dakvorm,
+    zelfGetekend: v.bron === 'gebouwen' && hoofd?.bron === 'bewoner',
+  };
+}
+
+/**
+ * Alle bronnen op één ruitjespapier (de tekentafel wisselt van bron zonder dat
+ * een kamer verschuift): de hoek van het hoofdhuis ligt bij elke bron op
+ * dezelfde plek, `nul`, en de maat is wat alle bronnen en de tekening samen
+ * nodig hebben.
+ */
+export function eenPapier(
+  vormen: Readonly<Record<string, readonly Blok[]>>,
+  tekening: Readonly<Record<string, readonly TekenRuimte[]>>,
+): { nul: { u: number; v: number }; maat: { breed: number; diep: number }; blokken: Record<string, Blok[]> } {
+  const rechthoeken = [...Object.values(vormen).flatMap((l) => l.map((b) => [b.u, b.v, b.b, b.d] as const)), ...Object.values(tekening).flatMap((l) => l.flatMap((r) => r.vakken))];
+  if (!rechthoeken.length) return { nul: { u: 0, v: 0 }, maat: { breed: 1, diep: 1 }, blokken: {} };
+  const u0 = Math.min(...rechthoeken.map((r) => r[0]));
+  const v0 = Math.min(...rechthoeken.map((r) => r[1]));
+  return {
+    nul: { u: m1(-u0), v: m1(-v0) },
+    maat: { breed: m1(Math.max(...rechthoeken.map((r) => r[0] + r[2])) - u0), diep: m1(Math.max(...rechthoeken.map((r) => r[1] + r[3])) - v0) },
+    blokken: Object.fromEntries(Object.entries(vormen).map(([id, l]) => [id, l.map((b) => ({ ...b, u: m1(b.u - u0), v: m1(b.v - v0) }))])),
+  };
+}
+
+/** Is de bovenste etage een zolder onder het dak? Van boven naar beneden, met de namen. */
+export function heeftZolder(etages: readonly { readonly id: string; readonly naam: string }[]): boolean {
+  const top = etages[0];
+  return etages.length >= 2 && top != null && top.id !== 'bg' && (/zolder|attic|loft/i.test(top.id) || /zolder|attic|loft/i.test(top.naam));
+}
+
+/** Hoeveel etages onder het dak boven de grond liggen: om de goot te schatten. */
+export function lagenOnderDak(etages: readonly { readonly id: string; readonly naam: string }[]): number {
+  const bg = etages.findIndex((e) => e.id === 'bg');
+  const boven = bg >= 0 ? bg + 1 : etages.length;
+  return Math.max(1, boven - (heeftZolder(etages) ? 1 : 0));
+}
+
+/**
+ * De hoogte per etage, geschat uit de goot en de nok van het hoofdhuis: een
+ * zolder bovenin is nok min goot, de etages daaronder delen de goot, en een
+ * kelder is 2,5 m. Van boven naar beneden.
+ */
+export function etageHoogtes(etages: readonly { readonly id: string; readonly naam: string }[], goot: number, nok: number): number[] {
+  const bg = etages.findIndex((e) => e.id === 'bg');
+  const onderGrond = (i: number) => bg >= 0 && i > bg;
+  const zolder = heeftZolder(etages);
+  const per = m1(Math.min(4, Math.max(2.2, goot / lagenOnderDak(etages))));
+  return etages.map((_, i) => (onderGrond(i) ? 2.5 : zolder && i === 0 ? m1(Math.min(8, Math.max(1.5, nok - goot))) : per));
 }

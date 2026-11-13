@@ -106,3 +106,5 @@ svg.ht .ht-ap.sleept { cursor: grabbing; filter: drop-shadow(0 10px 14px rgb(0 0
 .ht-bron em { margin-top: 4px; font-style: normal; font-size: 12.5px; font-weight: 700; color: var(--ijs); }
 .ht-bron.aan { border-color: rgb(110 231 183 / 0.7); background: rgb(110 231 183 / 0.09); }
 .ht-bron.aan em { color: var(--mint); }
+.ht-niet { margin: 2px 2px 0; font-size: 12.5px; line-height: 1.4; color: var(--zacht); }
+.ht-niet b { color: var(--tekst); font-weight: 600; }

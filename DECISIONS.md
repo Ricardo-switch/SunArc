@@ -14175,6 +14175,29 @@ begane grond en het huis van Ricardo uit de 3D-kaart (`#jouw`). Nog niet in
 de schets: meer dan twee zones in een kamer, een gebouw dat schuin staat,
 een dakkapel, en hoogtes aanpassen.
 
+*Nagekomen, versie 0.182.0* (13 november 2026, stap 4 Vorm). Ricardo koos
+twee dingen die de schets openliet:
+
+- **Een bron kiezen geldt op allebei de plekken.** Kies je bij Vorm de
+  3D-kaart, de plattegrond of zonder kaart, dan doet SunArc bij Daken en
+  panelen precies wat daar de keuze doet: het hoofdhuis krijgt de omtrek (uit
+  3D BAG ook het dak en de hoogte), geschatte blokken vallen weg, en vlakken
+  op wat anders ligt raken los van hun gebouw. Stap terug zet het terug. De
+  kaarten vraagt Je huis pas na dezelfde melding ([256]), met dezelfde
+  zoekactie (`kaartBronnen`); wat ze vandaag vonden, onthoudt de dienst een
+  dag.
+- **Een buitenmuur rechttrekken blijft in Je huis.** Een muur een stukje
+  verschuiven of een vak buiten het huis trekken verandert de tekening, niet
+  Daken: de kaartvorm blijft gemeten en de panelen blijven liggen. De
+  indeling onthoudt op welke bron de tekening gemaakt is
+  (`plattegrondBron`): is die nog in gebruik, dan is de tekening de
+  buitenkant; kiest iemand bij Daken een andere, dan vallen de ruimtes op de
+  nieuwe vorm.
+
+De hoogte per etage is een schatting uit de goot en de nok (een zolder
+bovenin is nok min goot, de etages eronder delen de goot); uit 3D BAG komen
+goot en nok gemeten, anders 2,8 m per etage en de nok 3 m hoger.
+
 ---
 
 ## Wat nog een besluit wacht
