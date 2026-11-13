@@ -189,7 +189,10 @@
     // dan is de goot aan de ene kant hoger dan aan de andere.
     const pil = (p, tekst, kleur) => {
       const bw = tekst.length * 6.6 + 16;
-      return `<g transform="translate(${p[0].toFixed(1)} ${p[1].toFixed(1)})"><rect x="${-bw / 2}" y="-11" width="${bw}" height="22" rx="7" fill="#0d1a30" stroke="${kleur}" stroke-opacity="0.55"/><text y="4.5" text-anchor="middle" ${FONT} font-size="12" font-weight="700" fill="${kleur}">${esc(tekst)}</text></g>`;
+      // Binnen de tekening houden, ook op de smalle telefoon.
+      const x = Math.min(B - bw / 2 - 4, Math.max(bw / 2 + 4, p[0]));
+      const y = Math.min(Hpx - 14, Math.max(14, p[1]));
+      return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><rect x="${-bw / 2}" y="-11" width="${bw}" height="22" rx="7" fill="#0d1a30" stroke="${kleur}" stroke-opacity="0.55"/><text y="4.5" text-anchor="middle" ${FONT} font-size="12" font-weight="700" fill="${kleur}">${esc(tekst)}</text></g>`;
     };
     const kleur = bron.gemeten ? '#6ee7b7' : '#ffd38a';
     // Een zadeldak, een schilddak (de nok korter, met schuine kanten) of een lessenaar (de nok aan één kant).

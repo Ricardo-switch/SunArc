@@ -36,6 +36,9 @@ const kijk = { bezig: false, fout: null };
 
 const getal = (n) => n.toLocaleString(window.taal?.locale ?? 'nl-NL', { maximumFractionDigits: 1 });
 const komma = (n) => n.toLocaleString(window.taal?.locale ?? 'nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+/** Een etagenaam kort: zonder "verdieping" of "floor" erachter, als er dan nog iets staat. */
+const kortNaam = (naam) => naam.replace(/\s+(verdieping|etage|floor|storey)$/i, '') || naam;
+
 /** "huis, garage en uitbouw". */
 function opsomming(lijst) {
   try {
@@ -85,7 +88,8 @@ function huisVoorMotor(d) {
     ...(Object.keys(bronnen).length ? { bron: d.bron, bronnen } : {}),
     nietGevonden,
     ...(kanKijken ? { kijk } : {}),
-    etages: d.etages.map((e) => ({ id: e.id, naam: e.naam, kort: e.naam, hoogte: e.hoogte, blokken: e.id === beneden ? d.vorm.blokken : hoofd })),
+    // Kort voor de balk op de telefoon en het huis opzij: "Eerste verdieping" wordt "Eerste", "First floor" wordt "First".
+    etages: d.etages.map((e) => ({ id: e.id, naam: e.naam, kort: kortNaam(e.naam), hoogte: e.hoogte, blokken: e.id === beneden ? d.vorm.blokken : hoofd })),
     kamers: d.kamers.map((k) => ({ id: k.id, naam: k.naam, soort: k.soort ?? null, etage: k.etage, zones: k.zones })),
     // Stap 3: de apparaten binnen, in hun kamer of nog zonder (de strook).
     apparaten: d.apparaten ?? [],
@@ -154,9 +158,9 @@ async function haalKaarten() {
     res = null;
   }
   if (!res?.ok) {
-    const b = await res?.json().catch(() => null);
+    // De dienst zegt het in het Nederlands; de pagina zegt het in de taal van de app.
     kijk.bezig = false;
-    kijk.fout = b?.fout ?? b?.wachten ?? t('ht.vorm.geenAntwoord');
+    kijk.fout = t(res?.status === 503 ? 'ht.vorm.geenPlek' : 'ht.vorm.geenAntwoord');
     tekenaar.ververs();
     return;
   }

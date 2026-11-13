@@ -1856,7 +1856,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         ['indeling.html', /Rooms and layout[\s\S]*(Add a floor|Name of the floor)/],
         ['jehuis.html', /Your home[\s\S]*Rooms/],
         ['jehuis.html#bg/apparaten', /Your home[\s\S]*Devices/],
-        ['jehuis.html#bg/huis', /Your home[\s\S]*Open[\s\S]*Closed/],
+        ['jehuis.html#bg/huis', /Your home[\s\S]*House[\s\S]*Open[\s\S]*Closed/],
+        ['jehuis.html#bg/vorm', /Your home[\s\S]*Outside[\s\S]*Height/],
         ['inrichten.html', /Welcome[\s\S]*home\.[\s\S]*Always says why/],
         ['inrichten.html#warmte', /What heats and cools\?/],
         ['inrichten.html#apparaat', /What each device can do/],
@@ -4096,7 +4097,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect((await slecht()).some((x) => x.includes('"proef"'))).toBe(true);
       const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { ruimtes: { id: string; apparaten: unknown[] }[] }[] };
       const vol = huisNu.etages.flatMap((e) => e.ruimtes).sort((x, y) => y.apparaten.length - x.apparaten.length)[0]!;
-      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'regeling.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'indeling.html', 'jehuis.html', 'jehuis.html#bg/apparaten', 'jehuis.html#bg/huis', 'inrichten.html'];
+      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'regeling.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'indeling.html', 'jehuis.html', 'jehuis.html#bg/apparaten', 'jehuis.html#bg/huis', 'jehuis.html#bg/vorm', 'inrichten.html'];
       const weg: string[] = [];
       for (const pagina of paginas) {
         await p.goto(`${baseUrl}/${pagina}`);
@@ -7744,5 +7745,46 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       expect(fouten, naam).toEqual([]);
       await context.close();
     }
+  }, 90_000);
+
+  /*
+   * Je huis, stap 6 (de telefoon en Engels af): alle vier de standen op de
+   * telefoon in het Engels. Geen afgekapte tekst (de etagebalk heeft korte
+   * namen), geen kale tekstsleutels, de maten van het huis in 3D binnen de
+   * tekening, en de toegankelijkheidscheck haalt hij.
+   */
+  it('laat Je huis op de telefoon in het Engels in alle standen heel zien (besluit 308)', async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, timezoneId: 'UTC', locale: 'en-GB' });
+    await context.addInitScript(() => localStorage.setItem('sc-taal', 'en'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/jehuis.html#bg`);
+    await p.waitForFunction(`window.tekenaar && document.querySelector('#tel #tekening [data-l="vlak"] g')`);
+    if (await p.evaluate<boolean>('window.tekenaar.isLeeg()')) await p.locator('#tel [data-ht="indeling"]').first().click();
+    const namen = { vorm: 'Shape', kamers: 'Rooms', apparaten: 'Devices', huis: 'House' } as const;
+    for (const [stand, knop] of Object.entries(namen)) {
+      await p.locator(`#tel [data-stand="${stand}"]`).click();
+      expect((await p.locator(`#tel [data-stand="${stand}"]`).textContent())?.trim(), stand).toBe(knop);
+      await p.waitForTimeout(400);
+      // Niets afgekapt, geen sleutels in plaats van tekst.
+      const kap = await p.evaluate<string[]>(`[...document.querySelectorAll('#tel *')].filter((e) => e.offsetParent && e.children.length === 0 && e.textContent.trim() && e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflow !== 'visible').map((e) => e.textContent.trim())`);
+      expect(kap, stand).toEqual([]);
+      expect(await p.locator('#tel').innerText(), stand).not.toMatch(/\b(ht|jehuis)\.[a-zA-Z]+/);
+      await p.addScriptTag({ path: createRequire(import.meta.url).resolve('axe-core/axe.min.js') });
+      const fout = await p.evaluate(async () => {
+        const axe = (globalThis as unknown as { axe: { run: (ctx: unknown, o: unknown) => Promise<{ violations: { id: string; nodes: { target: string[] }[] }[] }> } }).axe;
+        const r = await axe.run('#tel', { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } });
+        return r.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(', ')}`);
+      });
+      expect(fout, stand).toEqual([]);
+    }
+    // Het huis in 3D: de maten van nok en goot in het Engels, en binnen de tekening.
+    const maten = await p.evaluate<{ tekst: string; binnen: boolean }[]>(`(() => { const svg = document.querySelector('#tel #tekening'); const b = svg.getBoundingClientRect(); return [...svg.querySelectorAll('g[transform] > rect + text')].map((t) => { const r = t.parentNode.getBoundingClientRect(); return { tekst: t.textContent, binnen: r.left >= b.left - 1 && r.right <= b.right + 1 && r.top >= b.top - 1 && r.bottom <= b.bottom + 1 }; }); })()`);
+    expect(maten.map((m) => m.tekst).join(' '), 'maten').toMatch(/ridge \d+\.\d m[\s\S]*gutter \d+\.\d m/);
+    expect(maten.filter((m) => !m.binnen), 'maten binnen').toEqual([]);
+    expect(fouten).toEqual([]);
+    await context.close();
   }, 90_000);
 });

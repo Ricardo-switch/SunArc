@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.183.0
+## 0.184.0
 
-*13 november 2026 · 0.179.0 – 0.183.0*
+*13 november 2026 · 0.179.0 – 0.184.0*
 
 **Nieuw**
 
+- Je huis op de telefoon: de etages heten kort (Eerste in plaats van Eerste verdieping), en de maten van het huis in 3D blijven in beeld
+- Een lange etagenaam loopt in het blad door op een tweede regel, en de kleine tekst bij de bronnen is beter leesbaar, ook in het lichte thema
+- In het Engels heet de stand Huis nu House, zodat hij niet lijkt op Home in het menu
 - Je huis: Huis. Je huis in 3D uit je tekening: de buitenkant van de bron bij Vorm, met goot, nok en dak, en binnen één etage open met lage muren, de zones en de apparaten op hun plek
 - Sleep opzij om het huis te draaien. Dicht zet het dak erop; tik een etage aan om die open te zetten
 - Uit de 3D-kaart komt ook waar de nok ligt: die hoeft niet in het midden, met de goot aan de ene kant lager
@@ -26,6 +29,9 @@
 
 **New**
 
+- Your home on the phone: floors have short names (First instead of First floor), and the sizes of the house in 3D stay in view
+- A long floor name continues on a second line in the panel, and the small text under the sources is easier to read, also in the light theme
+- The House view is now called House in English, so it no longer looks like Home in the menu
 - Your home: House. Your home in 3D from your drawing: the outside from the source under Shape, with gutter, ridge and roof, and inside one floor open with low walls, the zones and the devices in their spot
 - Drag sideways to turn the house. Closed puts the roof on; tap a floor to open it
 - The 3D map also gives where the ridge is: it need not be in the middle, with the gutter lower on one side

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.183.0';
+export const VERSIE = '0.184.0';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.184.0',
+    datum: '2026-11-13',
+    nieuw: [
+      'Je huis op de telefoon: de etages heten kort (Eerste in plaats van Eerste verdieping), en de maten van het huis in 3D blijven in beeld',
+      'Een lange etagenaam loopt in het blad door op een tweede regel, en de kleine tekst bij de bronnen is beter leesbaar, ook in het lichte thema',
+      'In het Engels heet de stand Huis nu House, zodat hij niet lijkt op Home in het menu',
+    ],
+    en: {
+      nieuw: [
+        'Your home on the phone: floors have short names (First instead of First floor), and the sizes of the house in 3D stay in view',
+        'A long floor name continues on a second line in the panel, and the small text under the sources is easier to read, also in the light theme',
+        'The House view is now called House in English, so it no longer looks like Home in the menu',
+      ],
+    },
+  },
   {
     versie: '0.183.0',
     datum: '2026-11-13',

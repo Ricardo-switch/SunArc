@@ -307,7 +307,10 @@ verwijzing bestaat.
   de schets): de buitenkant van de bron met goot, nok en dak (uit de
   dakvlakken van 3D BAG ook een nok buiten het midden), binnen één etage open
   of dicht met het dak, te draaien. Het huis op Thuis blijft het oude; dat is
-  een eigen ronde. Stap 6 (telefoon en Engels afmaken) nog niet.
+  een eigen ronde. Stap 6 (0.184.0): de telefoon en het Engels af, met
+  korte etagenamen, de maten in 3D binnen beeld, leesbare kleine tekst en een
+  paginatest voor alle standen op de telefoon in het Engels. Kamers en
+  indeling blijft naast Je huis tot Ricardo zegt dat de nieuwe goed is.
 - **Inrichten** zet de schermen per huis op een rij, met een balk naar de
   volgende stap ([114]).
 - **De assistent** leest ook een vraag in eigen woorden, over het huis en over

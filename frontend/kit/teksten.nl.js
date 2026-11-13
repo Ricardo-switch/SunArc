@@ -3451,6 +3451,7 @@
   'ht.bron.niet.niets': 'vindt hier geen huis.',
   'ht.bron.niet.fout': 'gaf geen antwoord. Probeer het straks nog eens.',
   'ht.bron.niet.buiten': 'komt alleen in Nederland.',
+  'ht.vorm.geenPlek': 'De plek van je huis komt van Home Assistant zodra die verbonden is.',
   'ht.vorm.geenAntwoord': 'De kaarten gaven geen antwoord. Probeer het straks nog eens.',
   'ht.hoogte': 'Hoogte',
   'ht.gemeten': 'gemeten',
