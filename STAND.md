@@ -9,10 +9,15 @@ draai `npm run decisions:index` in `backend/`. Die zet de links onderaan. Een
 test eist dat elk besluit dat nog geldt hier genoemd wordt, en dat elke
 verwijzing bestaat.
 
-*Stand: 31 oktober 2026.*
+*Stand: 15 november 2026.*
 
 ## Waar het project staat
 
+- **Sinds 12 november: geen nieuwe functies tot januari** ([310]). Eerst
+  één plek per onderwerp: de instellingen worden vier groepen, een apparaat
+  stel je in op zijn eigen kaart, en op Thuis staat altijd wat SunArc doet.
+  Testers krijgen hooguit één versie per week, en melden staat tot januari op
+  pauze in de add-on.
 - **De naam is SunArc** (sinds 31 oktober 2026; eerst Smart Climate): de zon
   op de horizon met stralen in mint, ijs en violet. Wat je ziet heet zo; de
   technische namen bleven ([222]). Het logo staat naast de klok en opent Over
@@ -20,14 +25,16 @@ verwijzing bestaat.
   0.106.1 klein rechtsboven, zodat de klok alleen staat.
 - **Nu: meekijken.** SunArc draait op de NAS naast de oude YAML-regeling,
   beslist elke ronde en legt vast wat hij zou doen. Klimaat en screens schakelt
-  hij niet ([15], [28], [73]).
+  hij niet ([15], [28], [73]). Met `HEMS_DEUREN=1` kan de NAS alles wat de
+  add-on kan ([309]); de add-on op de Pi gaat dan uit.
 - **Ernaast, nu al:** C, kamers en zones, en de app (F) groeien in de
   proefomgeving ([96], [94]). B wordt na de winter bewezen, dus dat werk gaat niet
   verloren.
 - **Daarna, in deze volgorde:** B echt schakelen, pas bij 30 winterdagen en
   100% functiedekking ([64]), met een bewijsrapport; E tarieven en prognoses;
   D het thermisch model ([46]); de app af ([71]); G de assistent ([44]); H een
-  product voor meer huizen ([34]).
+  product voor meer huizen ([34]). De dertig winterdagen beginnen op 1
+  december; voor B wordt pas gebouwd na de analyse, in januari ([310]).
 - **De app is af** (21 oktober 2026): nu opruimen, sneller maken, apparaten
   op zon in de voorrang, en wat nog op dit huis leunt een instelling maken. Nog
   te bouwen: een lichte versie met een kleur per bewoner, vier kaarten voor
@@ -991,4 +998,5 @@ verwijzing bestaat.
 [307]: DECISIONS.md#307-stroom-nu-op-thuis-en-wat-er-hangt-bij-de-plekken-buiten
 [308]: DECISIONS.md#308-je-huis-tekenen-één-tekentafel-op-ruitjes-en-het-huis-in-3d-uit-de-tekening
 [309]: DECISIONS.md#309-de-deuren-van-de-add-on-ook-op-een-eigen-server-hemsdeuren
+[310]: DECISIONS.md#310-geen-nieuwe-functies-tot-januari-en-één-plek-per-onderwerp
 <!-- links:einde -->

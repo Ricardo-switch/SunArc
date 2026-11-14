@@ -52,6 +52,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [278. De stand van evcc met de hand](#278-de-stand-van-evcc-met-de-hand)
 - [280. Laden met de hand met een zin](#280-laden-met-de-hand-met-een-zin)
 - [290. Een stekker op zon met één schakelaar, en op zon gaat meteen in](#290-een-stekker-op-zon-met-één-schakelaar-en-op-zon-gaat-meteen-in)
+- [310. Geen nieuwe functies tot januari, en één plek per onderwerp](#310-geen-nieuwe-functies-tot-januari-en-één-plek-per-onderwerp)
 
 **Kern en regeling**
 
@@ -14265,6 +14266,70 @@ instelling in plaats van aan de plek waar SunArc draait. Wie hem op een eigen
 server aanzet, moet zelf zorgen dat er niet nog een installatie met open deuren
 op hetzelfde huis draait. De tests van `startup.ts` houden vast dat een eigen
 server zonder de instelling dicht blijft.
+
+## 310. Geen nieuwe functies tot januari, en één plek per onderwerp
+
+*Onderwerp: visie en principes · Status: geldig*
+
+12 tot 14 november 2026. Arno, de tester die het meest meldde, schreef op 12
+november in issue 164 dat de samenhang lastig te doorgronden is, dat er veel
+schermen zijn met net weer andere informatie, en dat hij niet goed kan zien
+waar SunArc mee bezig is. Ricardo: "het is een spaghetti geworden van
+instellingen". Vanaf dat moment: geen nieuwe functies, eerst kwaliteit en
+gebruiksgemak.
+
+*Waarom:* een kwaliteitsrapport van 13 en 14 november (niet in de repo) liep
+de app, de code, GitHub en de meldingen na. De kern:
+
+- In 24 dagen kwamen er 212 versies uit, 57 daarvan in de week dat testers
+  meekeken. Elke melding werd opgelost met iets erbij, nooit met iets eraf.
+- De regeling is op twaalf plekken te vinden. De belangrijkste keuze, wat een
+  kamer regelt, zit vijf tikken diep onder Je huis.
+- Acht onderwerpen zijn op meer dan één plek in te stellen, zoals de kaart van
+  je huis en een laadpaal toevoegen, elk op drie plekken.
+- Vijf pagina's zeggen elk op hun eigen manier hoe ver je huis is.
+- De code zelf is gezond: weinig dood en weinig gekopieerd. Wel is het huis
+  vijf keer getekend, en heeft het script van de app geen lint, geen
+  typecontrole en weinig tests.
+- Van de 27 uitkomsten van meldingen waren er 25 "opgelost". "Later" is nooit
+  gezegd.
+
+*Besluit:*
+
+- **Geen nieuwe functies tot januari.** Een fout repareren mag. Een versie die
+  een scherm toevoegt, haalt er een weg.
+- **Eén plek per onderwerp.** De instellingen worden vier groepen: Je huis,
+  Klimaat, Energie, en App en bewoners.
+  - Kamers en indeling gaat als eerste weg, zodra Je huis tekenen ([308]) is
+    goedgekeurd.
+  - Comfort, Regeling en Verwarmen en koelen worden samen Klimaat, met per
+    kamer één blad. De naam Regeling verdwijnt.
+  - Een apparaat stel je in op zijn eigen kaart, op de tab Apparaten en met een
+    tik in het huis. Toevoegen staat alleen daar.
+  - Wat je huis kan wordt de ene pagina die zegt hoe ver je huis is, met de
+    waaier erin. Nog te doen, Hoe ver je huis is en Klaarzetten gaan erin op.
+  - Inrichten gaat van 23 naar ongeveer acht stappen.
+- **Op Thuis staat altijd wat SunArc nu doet of zou doen.**
+- **De schaduwpagina blijft, als De motor,** achter zeven tikken op het
+  versienummer bij Over deze app, in de vorm van de app. Vanaf de dag dat
+  SunArc zelf regelt, toont ze wat hij deed in plaats van wat hij zou doen.
+- **Testers krijgen hooguit één versie per week,** na een week op beta. Een
+  echte fout mag tussendoor. Melden staat in de add-on tot januari op pauze
+  (0.178.2), met een uitleg en een dankwoord.
+- **Elke melding wordt eerst gewogen:** fout, vraag, wens of apparaat. Een fout
+  wordt gerepareerd. Een wens krijgt het label *later* en wacht tot er drie
+  dezelfde zijn. Een issue waarin de bouwer het laatste woord heeft, krijgt
+  *wacht-op-melder* en gaat na een week stilte dicht.
+- **Duits komt na de herindeling** ([172]).
+- **Echt regelen wordt pas gebouwd na de analyse van de dataset.** De dertig
+  winterdagen beginnen op 1 december. Vanaf 1 januari de analyse en het
+  bewijsrapport ([64]), daarna het bouwen en eind januari de overstap. Het oude
+  systeem gaat na de overstap uit.
+
+*Kosten:* tot januari komt er voor testers niets nieuws bij, en melden kan
+alleen nog rechtstreeks op GitHub. Januari wordt vol: de analyse, het bouwen
+voor echt regelen en de laatste stappen van de herindeling vallen samen. Knelt
+het, dan gaat de regeling voor.
 
 ## Wat nog een besluit wacht
 
