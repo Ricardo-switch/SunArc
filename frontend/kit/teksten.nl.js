@@ -900,6 +900,7 @@
   'apparaten.rol.zon': 'Helpt op zon',
   'apparaten.rol.kijken': 'Alleen kijken',
   'apparaten.wachtZon': 'Wacht op zon',
+  'apparaten.wacht': 'Wacht',
   'apparaten.zouKiezen': 'SunArc zou: {wat}.',
   'apparaten.zouSamen': 'SunArc zou bij {n} apparaten: {wat}.',
   'apparaten.onbekend': 'Onbekend',
@@ -981,6 +982,7 @@
   'apparaten.soort.stekkers': 'Stekkers',
   'apparaten.bezig': '{n} bezig',
   'apparaten.wachtenOpZon': '{n} wacht op zon',
+  'apparaten.wachten': '{n} wacht',
   'apparaten.rustig': 'alles rustig',
   'apparaten.lampenAan': '{n} van {m} aan',
   'apparaten.lampenUit': 'alles uit',
@@ -2283,6 +2285,10 @@
 
   // Meld een probleem (melden.js, testerronde november 2026)
   'melden.kop': 'Meld een probleem',
+  'melden.pauze.kop': 'Melden staat even uit',
+  'melden.pauze.waarom': 'SunArc krijgt een opknapbeurt. Alles wordt makkelijker te vinden en te begrijpen. Tot dat klaar is, komen er geen nieuwe meldingen bij.',
+  'melden.pauze.dank': 'Bedankt voor het testen. Door jullie meldingen is de app veel beter geworden.',
+  'melden.pauze.januari': 'In januari komen er weer updates. Dan kun je hier ook weer melden.',
   'melden.soort': 'Wat voor melding',
   'melden.soort.fout': 'Iets werkt niet',
   'melden.soort.apparaat': 'Apparaat klopt niet',

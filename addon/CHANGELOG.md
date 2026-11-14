@@ -1,5 +1,37 @@
 # Wat is er nieuw · What is new
 
+## 0.178.2
+
+*14 november 2026*
+
+**Beter**
+
+- Melden staat tot januari uit. SunArc krijgt een opknapbeurt, zodat alles makkelijker te vinden en te begrijpen is. De knop Meld een probleem zegt dat nu ook
+- Bedankt aan iedereen die test. Door jullie meldingen is de app veel beter geworden. In januari komen er weer updates
+- Instellingen: Wat je huis kan en Hoe ver je huis is staan in één vak met twee helften, elk met een eigen titel en pijl
+
+**Opgelost**
+
+- Apparaten › Toevoegen › Losse sensoren: in het zoekveld kwam elke letter vóór het woord te staan. De cursor blijft nu waar je typt
+- Een thermostaat of airco die even wacht, heet op Apparaten nu Wacht. Alleen wat echt op zon wacht, heet Wacht op zon
+- Op de pagina Auto was Laadt op zon in het lichte thema niet te lezen
+- De knop terug bovenaan een pagina is op de telefoon groot genoeg om te raken
+
+*English*
+
+**Improved**
+
+- Reporting is paused until January. SunArc is getting an overhaul, so everything becomes easier to find and to understand. The Report a problem button now says so too
+- Thank you to everyone who tests. Your reports have made the app much better. Updates return in January
+- Settings: What your home can do and How far your home is share one box with two halves, each with its own title and arrow
+
+**Fixed**
+
+- Devices › Add › Separate sensors: in the search field every letter ended up before the word. The cursor now stays where you type
+- A thermostat or air conditioner that waits for a moment is now called Waiting under Devices. Only what really waits for sun is called Waiting for sun
+- On the Car page, Charging on sun could not be read in the light theme
+- The back button at the top of a page is now large enough to tap on the phone
+
 ## 0.178.1
 
 *12 november 2026 · 0.176.0 – 0.178.1*

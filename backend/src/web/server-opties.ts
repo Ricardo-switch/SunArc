@@ -409,6 +409,12 @@ export interface WebOptions {
    */
   readonly version?: Version;
   /**
+   * Of melden uit de app op pauze staat (14 november 2026). Weglaten geeft wat
+   * `MELDEN_PAUZE` in version.ts zegt, en dat alleen voor de add-on; een test zet het uit om het meldblad zelf
+   * te blijven bewaken.
+   */
+  readonly meldenPauze?: boolean;
+  /**
    * De ligging van het huis op één decimaal, of null zolang Home Assistant hem
    * niet gaf. Alleen voor de stand van de zon (besluit 93).
    */
