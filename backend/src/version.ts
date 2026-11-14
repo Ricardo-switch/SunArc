@@ -83,7 +83,7 @@ export const TERUGKIJKEN = 10;
  * main komt de bovenste versie erbij. Oudere versies staan elk apart.
  */
 export const OP_MAIN: readonly string[] = [
-  '0.178.1', '0.175.1', '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
+  '0.178.2', '0.178.1', '0.175.1', '0.172.1', '0.157.1', '0.156.1', '0.150.0', '0.144.2', '0.142.0', '0.137.0', '0.134.0', '0.131.2', '0.130.0', '0.129.3', '0.129.2', '0.121.2', '0.121.0', '0.120.0', '0.119.0', '0.118.0',
   '0.117.1', '0.117.0', '0.116.0', '0.115.2', '0.115.1', '0.115.0',
 ];
 
@@ -297,6 +297,43 @@ export const NIEUW: readonly Nieuw[] = [
         'Preparing for Draw your home: SunArc can store your rooms per floor as boxes on a 10 cm grid, with the line between the zones of a room. Nothing to see yet; the page comes in the next version',
       ],
     },
+  },
+  {
+    versie: '0.178.2',
+    datum: '2026-11-14',
+    beter: [
+      'Melden staat tot januari uit. SunArc krijgt een opknapbeurt, zodat alles makkelijker te vinden en te begrijpen is. De knop Meld een probleem zegt dat nu ook',
+      'Bedankt aan iedereen die test. Door jullie meldingen is de app veel beter geworden. In januari komen er weer updates',
+      'Instellingen: Wat je huis kan en Hoe ver je huis is staan in één vak met twee helften, elk met een eigen titel en pijl',
+    ],
+    opgelost: [
+      'Apparaten › Toevoegen › Losse sensoren: in het zoekveld kwam elke letter vóór het woord te staan. De cursor blijft nu waar je typt',
+      'Een thermostaat of airco die even wacht, heet op Apparaten nu Wacht. Alleen wat echt op zon wacht, heet Wacht op zon',
+      'Op de pagina Auto was Laadt op zon in het lichte thema niet te lezen',
+      'De knop terug bovenaan een pagina is op de telefoon groot genoeg om te raken',
+    ],
+    en: {
+      beter: [
+        'Reporting is paused until January. SunArc is getting an overhaul, so everything becomes easier to find and to understand. The Report a problem button now says so too',
+        'Thank you to everyone who tests. Your reports have made the app much better. Updates return in January',
+        'Settings: What your home can do and How far your home is share one box with two halves, each with its own title and arrow',
+      ],
+      opgelost: [
+        'Devices › Add › Separate sensors: in the search field every letter ended up before the word. The cursor now stays where you type',
+        'A thermostat or air conditioner that waits for a moment is now called Waiting under Devices. Only what really waits for sun is called Waiting for sun',
+        'On the Car page, Charging on sun could not be read in the light theme',
+        'The back button at the top of a page is now large enough to tap on the phone',
+      ],
+    },
+    meldingen: [
+      {
+        code: 'SA-7XNM',
+        uitkomst: 'opgelost',
+        tekst: 'In het zoekveld bij Losse sensoren blijft de cursor nu staan waar je typt.',
+        tekstEn: 'In the search field under Separate sensors, the cursor now stays where you type.',
+        issue: 167,
+      },
+    ],
   },
   {
     versie: '0.178.1',
