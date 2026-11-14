@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Instellingen · Wat je huis kan en Hoe ver je huis is</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Schets 13 november 2026: het vak Wat je huis kan op Instellingen bevat nu
+   * twee ingangen zonder dat je het ziet (het vak opent Wat je huis kan, de
+   * kleine waaier opent Hoe ver je huis is). Drie manieren om dat duidelijk te
+   * maken, op de telefoon en bovenaan de wand:
+   *   A  twee vakken naast elkaar, elk met een eigen pijl
+   *   B  één vak, twee helften met een lijn ertussen, elk met een eigen pijl
+   *   C  zoals nu, maar de waaier is een eigen knopje met "Hoe ver ›"
+   */
+  body { margin: 0; padding: 28px 32px 60px; min-width: 1340px; }
+  .uitleg { max-width: 900px; margin-bottom: 26px; }
+  .uitleg h1 { margin: 0 0 8px; }
+  .uitleg p { margin: 0; color: var(--zacht); font-size: 15px; line-height: 1.5; }
+  .rij { display: flex; gap: 34px; align-items: flex-start; }
+  .optie > .naam { font-family: var(--kop); font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .optie > .wat { margin: 0 0 12px; font-size: 13.5px; color: var(--zacht); max-width: 390px; min-height: 40px; }
+  .optie > .wat b { color: var(--mint-t); }
+  .telefoon { width: 390px; border-radius: 34px; overflow: hidden; border: 1px solid rgb(var(--wit) / 0.12); background: var(--achtergrond, #0b1220); }
+  .telefoon .inhoud { padding: 18px 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .terugje { font-size: 14px; font-weight: 600; color: var(--zacht); }
+  .wandrij { width: 1280px; padding: 0 0 0 98px; box-sizing: border-box; }
+  .wandvak { margin-top: 34px; }
+  .wandvak .naam { font-family: var(--kop); font-size: 20px; font-weight: 600; margin: 0 0 10px; }
+  .wandkader { width: 1280px; border-radius: 24px; border: 1px solid rgb(var(--wit) / 0.12); padding: 18px 26px 18px 98px; box-sizing: border-box; background: var(--achtergrond, #0b1220); }
+
+  /* Zoals op instellingen.html */
+  .mist { padding: 14px 20px; border-color: rgba(110, 231, 183, 0.3); background: linear-gradient(160deg, rgba(110, 231, 183, 0.08), rgb(var(--wit) / 0.03)); }
+  .mist h2 { margin: 0 0 4px; }
+  a.glas { color: inherit; text-decoration: none; display: block; }
+  .stand { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+  .stand::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .stand.werkt { color: var(--mint-t); background: rgba(110, 231, 183, 0.1); }
+  .stand.kijkt { color: var(--ijs-t); background: rgba(111, 211, 255, 0.1); }
+  .stand.leert { color: var(--violet-t); background: rgba(143, 134, 255, 0.14); }
+  .stand.nodig { color: var(--zon-t); box-shadow: inset 0 0 0 1px rgba(247, 181, 72, 0.45); }
+  .standen { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .pijl { margin-left: auto; color: var(--gedempt); font-size: 22px; line-height: 1; }
+  .kopregel { display: flex; align-items: center; gap: 10px; }
+  .kopregel h2 { margin: 0; }
+  .tegel { padding: 16px 18px; }
+  .tegel .titel { display: flex; align-items: center; gap: 12px; }
+  .tegel .icoon { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); }
+  .tegel h3 { margin: 0; font-family: var(--kop); font-size: 19px; font-weight: 600; }
+
+  /* A: twee vakken */
+  .twee { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .vakje { padding: 14px 14px 12px; display: flex !important; flex-direction: column; }
+  .vakje h2 { font-size: 16px; line-height: 1.2; }
+  .tellen { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; color: var(--zacht); }
+  .tellen li { display: flex; align-items: center; gap: 8px; }
+  .tellen li b { margin-left: auto; color: var(--tekst); font-family: var(--kop); font-size: 15px; }
+  .tellen i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .vakje .waaier { display: block; width: 100%; height: auto; margin-top: auto; padding-top: 8px; }
+  .vakje .onder { font-size: 12.5px; color: var(--gedempt); text-align: center; margin-top: 2px; }
+  .boven3 { display: grid; grid-template-columns: 1.2fr 1fr 0.78fr; gap: 16px; }
+  .boven3 .vakje { padding: 14px 18px; }
+  .boven3 .vakje h2 { font-size: 17px; }
+  .boven3 .standen { margin-top: 8px; }
+  .boven3 .wvak { flex-direction: row !important; align-items: center; gap: 10px; }
+  .boven3 .wvak .links { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .boven3 .wvak .links .groot { font-family: var(--kop); font-size: 30px; font-weight: 700; color: var(--zon-t); line-height: 1; }
+  .boven3 .wvak svg { width: 150px; height: 87px; flex: none; }
+
+  /* B: één vak, twee helften */
+  .helften { padding: 0; overflow: hidden; }
+  .helften > a { display: block; padding: 14px 18px; color: inherit; text-decoration: none; }
+  .helften > a + a { border-top: 1px solid rgb(var(--wit) / 0.09); }
+  .hoever { display: flex !important; align-items: center; gap: 12px; }
+  .hoever svg { width: 96px; height: 56px; flex: none; }
+  .hoever b { display: block; font-family: var(--kop); font-size: 16px; }
+  .hoever span { font-size: 13px; color: var(--zacht); }
+  .boven2 { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; }
+  .wandhelften { display: grid !important; grid-template-columns: 1.15fr 1fr; padding: 0; overflow: hidden; }
+  .wandhelften > a { padding: 14px 18px; color: inherit; text-decoration: none; display: block; }
+  .wandhelften > a + a { border-top: 0; border-left: 1px solid rgb(var(--wit) / 0.09); display: flex; flex-direction: column; align-items: center; }
+  .wandhelften > a + a .kopregel { align-self: stretch; }
+  .wandhelften svg { width: 140px; height: 81px; margin-top: 6px; }
+
+  /* C: zoals nu, met een knopje */
+  .nu { padding: 16px 18px; display: grid !important; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; }
+  .knopje { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 8px 6px; border-radius: 16px; background: rgb(var(--wit) / 0.06); border: 1px solid rgb(var(--wit) / 0.12); color: inherit; text-decoration: none; }
+  .knopje svg { width: 104px; height: 60px; }
+  .knopje span { font-size: 12.5px; font-weight: 700; color: var(--ijs-t); }
+</style>
+</head>
+<body>
+  <div class="uitleg">
+    <h1 class="kop-1">Wat je huis kan: twee ingangen</h1>
+    <p>Nu opent het vak <b>Wat je huis kan</b>, maar een tik op de kleine waaier opent <b>Hoe ver je huis is</b>. Dat zie je niet. Drie manieren om het duidelijk te maken. Telefoon boven, de bovenste rij van de wand eronder.</p>
+  </div>
+
+  <div class="rij">
+    <section class="optie">
+      <p class="naam">A · Twee vakken</p>
+      <p class="wat">Elk vak een eigen titel en pijl, net als de tegels eronder. De tellen worden een lijstje in plaats van bolletjes. <b>Mijn voorkeur.</b></p>
+      <div class="telefoon"><div class="inhoud">
+        <span class="terugje">‹ Thuis</span>
+        <h1 class="kop-1" style="font-size: 34px">Instellingen</h1>
+        <section class="glas mist"><h2 class="kop-3">Alles staat goed</h2><p class="mini" style="margin: 0">Er mist niets wat SunArc nodig heeft.</p></section>
+        <div class="twee">
+          <a class="glas vakje" href="#">
+            <div class="kopregel"><h2 class="kop-3">Wat je huis kan</h2><span class="pijl">›</span></div>
+            <ul class="tellen" data-tellen></ul>
+          </a>
+          <a class="glas vakje" href="#">
+            <div class="kopregel"><h2 class="kop-3">Hoe ver je huis is</h2><span class="pijl">›</span></div>
+            <svg class="waaier" viewBox="0 0 190 110" data-waaier></svg>
+          </a>
+        </div>
+        <div class="glas tegel"><div class="titel"><span class="icoon" data-icoon="thuis"></span><h3>Je huis</h3><span class="pijl">›</span></div></div>
+      </div></div>
+    </section>
+
+    <section class="optie">
+      <p class="naam">B · Eén vak, twee helften</p>
+      <p class="wat">Het vak blijft één geheel, met een lijn ertussen. Boven Wat je huis kan, onder Hoe ver je huis is, elk met een pijl.</p>
+      <div class="telefoon"><div class="inhoud">
+        <span class="terugje">‹ Thuis</span>
+        <h1 class="kop-1" style="font-size: 34px">Instellingen</h1>
+        <section class="glas mist"><h2 class="kop-3">Alles staat goed</h2><p class="mini" style="margin: 0">Er mist niets wat SunArc nodig heeft.</p></section>
+        <div class="glas helften">
+          <a href="#">
+            <div class="kopregel"><h2 class="kop-3">Wat je huis kan</h2><span class="pijl">›</span></div>
+            <p class="mini" style="margin: 4px 0 0">Alles wat SunArc voor je doet, en hoe het ervoor staat.</p>
+            <div class="standen" data-standen></div>
+          </a>
+          <a href="#" class="hoever">
+            <svg viewBox="0 0 190 110" data-waaier></svg>
+            <div><b>Hoe ver je huis is</b><span data-hoever></span></div>
+            <span class="pijl">›</span>
+          </a>
+        </div>
+        <div class="glas tegel"><div class="titel"><span class="icoon" data-icoon="thuis"></span><h3>Je huis</h3><span class="pijl">›</span></div></div>
+      </div></div>
+    </section>
+
+    <section class="optie">
+      <p class="naam">C · Zoals nu, met een knopje</p>
+      <p class="wat">De kleinste wijziging: de waaier krijgt een eigen rand en het woord "Hoe ver". Wel nog steeds een knop in een knop.</p>
+      <div class="telefoon"><div class="inhoud">
+        <span class="terugje">‹ Thuis</span>
+        <h1 class="kop-1" style="font-size: 34px">Instellingen</h1>
+        <section class="glas mist"><h2 class="kop-3">Alles staat goed</h2><p class="mini" style="margin: 0">Er mist niets wat SunArc nodig heeft.</p></section>
+        <a class="glas nu" href="#">
+          <div>
+            <div class="kopregel"><h2 class="kop-3">Wat je huis kan</h2><span class="pijl">›</span></div>
+            <p class="mini" style="margin: 4px 0 0">Alles wat SunArc voor je doet.</p>
+            <div class="standen" data-standen></div>
+          </div>
+          <span class="knopje"><svg viewBox="0 0 190 110" data-waaier></svg><span>Hoe ver ›</span></span>
+        </a>
+        <div class="glas tegel"><div class="titel"><span class="icoon" data-icoon="thuis"></span><h3>Je huis</h3><span class="pijl">›</span></div></div>
+      </div></div>
+    </section>
+  </div>
+
+  <section class="wandvak">
+    <p class="naam">A op de wand · drie vakken bovenaan</p>
+    <div class="wandkader"><div class="boven3">
+      <section class="glas mist"><h2 class="kop-3">Alles staat goed</h2><p class="mini" style="margin: 0">Er mist niets wat SunArc nodig heeft. Wat er nog bij kan, staat bij Wat je huis kan.</p></section>
+      <a class="glas vakje" href="#">
+        <div class="kopregel"><h2 class="kop-3">Wat je huis kan</h2><span class="pijl">›</span></div>
+        <p class="mini" style="margin: 4px 0 0">Alles wat SunArc voor je doet.</p>
+        <div class="standen" data-standen></div>
+      </a>
+      <a class="glas vakje wvak" href="#">
+        <div class="links"><div class="kopregel"><h2 class="kop-3">Hoe ver je huis is</h2></div><span class="mini">Hoe meer een straal reikt, hoe meer het zelf doet.</span></div>
+        <svg viewBox="0 0 190 110" data-waaier></svg>
+        <span class="pijl" style="align-self: flex-start">›</span>
+      </a>
+    </div></div>
+  </section>
+
+  <section class="wandvak">
+    <p class="naam">B op de wand · één vak, twee helften naast elkaar</p>
+    <div class="wandkader"><div class="boven2">
+      <section class="glas mist"><h2 class="kop-3">Alles staat goed</h2><p class="mini" style="margin: 0">Er mist niets wat SunArc nodig heeft. Wat er nog bij kan, staat bij Wat je huis kan.</p></section>
+      <div class="glas wandhelften">
+        <a href="#">
+          <div class="kopregel"><h2 class="kop-3">Wat je huis kan</h2><span class="pijl">›</span></div>
+          <p class="mini" style="margin: 4px 0 0">Alles wat SunArc voor je doet.</p>
+          <div class="standen" data-standen></div>
+        </a>
+        <a href="#">
+          <div class="kopregel"><h2 class="kop-3">Hoe ver je huis is</h2><span class="pijl">›</span></div>
+          <svg viewBox="0 0 190 110" data-waaier></svg>
+        </a>
+      </div>
+    </div></div>
+  </section>
+
+  <script src="../../frontend/kit/iconen.js"></script>
+  <script src="../../frontend/kit/waaier.js"></script>
+  <script src="voortgang-voorbeeld.js"></script>
+  <script>
+    // De tellen zoals op Ricardo's telefoon (13-11): 11 werken, 6 kijken mee, 2 leren nog, 3 met iets erbij.
+    const TEL = [['werkt', 'werken', 11, 'var(--mint)'], ['kijkt', 'kijken mee', 6, 'var(--ijs)'], ['leert', 'leren nog', 2, 'var(--violet)'], ['nodig', 'met iets erbij', 3, 'var(--zon)']];
+    const hoofd = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    for (const el of document.querySelectorAll('[data-standen]')) el.innerHTML = TEL.map(([c, w, n]) => `<span class="stand ${c}">${n} ${w}</span>`).join('');
+    for (const el of document.querySelectorAll('[data-tellen]')) el.innerHTML = TEL.map(([, w, n, k]) => `<li><i style="background: ${k}"></i>${hoofd(w)}<b>${n}</b></li>`).join('');
+    for (const el of document.querySelectorAll('[data-hoever]')) el.textContent = `${TOTAAL}% van alles is af`;
+    for (const el of document.querySelectorAll('[data-getal]')) el.textContent = `${TOTAAL}%`;
+    for (const el of document.querySelectorAll('[data-icoon]')) el.innerHTML = iconen.svg(el.dataset.icoon);
+    for (const svg of document.querySelectorAll('[data-waaier]')) window.waaier.teken(svg, { groepen: W_GROEPEN, cx: 95, cy: 104, r0: 32, R: 92, getal: `${TOTAAL}%`, groei: false, knoppen: false });
+  </script>
+</body>
+</html>

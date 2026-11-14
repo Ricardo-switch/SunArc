@@ -17,7 +17,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { bewaarRegel, leegLogboek } from '../src/web/logboek.js';
 import { BETA_ICOON, WebServer, versionFromEnv, type Version } from '../src/web/server.js';
-import { NIEUW, TERUGKIJKEN, VERSIE } from '../src/version.js';
+import { MELDEN_PAUZE, NIEUW, TERUGKIJKEN, VERSIE } from '../src/version.js';
 import { DivergenceCache, type DivergenceReport } from '../src/web/divergence.js';
 import { Onboarding } from '../src/web/onboarding.js';
 import { FeedbackLog } from '../src/web/feedback.js';
@@ -96,6 +96,7 @@ async function start(options: {
   feedback?: FeedbackLog;
   withoutConfig?: boolean;
   version?: Version;
+  meldenPauze?: boolean;
   location?: { latDeg: number; lonDeg: number } | null;
   house?: (lang?: 'nl' | 'en') => HouseReport | null;
   layout?: { store: LayoutStore; proposal: () => Layout | null };
@@ -143,6 +144,7 @@ async function start(options: {
         ...(options.wandMeldt ? { wandMeldt: options.wandMeldt } : {}),
         ...(options.feedback ? { feedback: options.feedback } : {}),
         ...(options.version ? { version: options.version } : {}),
+        ...(options.meldenPauze != null ? { meldenPauze: options.meldenPauze } : {}),
         ...(options.location !== undefined ? { location: () => options.location ?? null } : {}),
         ...(options.house ? { house: options.house } : {}),
         ...(options.layout ? { layout: options.layout } : {}),
@@ -504,6 +506,12 @@ describe('welke versie er draait (besluit 54)', () => {
     const { base } = await start({ version: versionFromEnv({ HEMS_COMMIT: 'abc1234' }) });
     const v = (await (await fetch(`${base}/api/versie`)).json()) as Version & { nieuw: typeof NIEUW };
     expect(v).toMatchObject({ nummer: VERSIE, commit: 'abc1234' });
+    // Melden staat op pauze tot januari (14 november 2026), alleen in de add-on van de testers: op een eigen server blijft het aan.
+    const pauzeVan = async (o: Parameters<typeof start>[0]) => ((await (await fetch(`${(await start(o)).base}/api/versie`)).json()) as { meldenPauze?: boolean }).meldenPauze;
+    const addOn = { nummer: VERSIE, installatie: 'add-on' as const, commit: 'abc1234', gebouwd: null };
+    expect((v as { meldenPauze?: boolean }).meldenPauze).toBe(false);
+    expect(await pauzeVan({ version: addOn })).toBe(MELDEN_PAUZE);
+    expect(await pauzeVan({ version: addOn, meldenPauze: false })).toBe(false);
     expect(v.nieuw[0]?.versie).toBe(VERSIE);
     expect(v.nieuw.length).toBeLessThanOrEqual(10);
     // Woorden die voor elk huis kloppen: geen NAS (dezelfde regel als de paginatest, maar meteen).

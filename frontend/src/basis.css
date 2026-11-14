@@ -155,6 +155,9 @@ body.offline #wand main, body.offline #tel .inhoud { filter: grayscale(0.85); op
  */
 #wand main.groep { display: flex; flex-direction: column; gap: 16px; height: 100%; min-height: 0; }
 #tel .terugje { font-size: 14px; font-weight: 600; color: var(--zacht); text-decoration: none; }
+/* Terug is op de telefoon een knop om te raken (14 november 2026): hij was 17 punten hoog. De marges houden de pagina waar hij stond. */
+#tel a.terugje { display: inline-flex; align-items: center; min-height: 44px; padding-right: 20px; margin-top: -13px; margin-bottom: -14px; }
+#tel .terug { min-height: 44px; padding-right: 20px; margin-top: -13px; margin-bottom: -8px; }
 .groep .groepkop { display: flex; align-items: center; gap: 14px; }
 .groep .groepkop .kop-1 { font-size: 40px; margin-left: 4px; white-space: nowrap; }
 .groep .terugje { display: inline-flex; align-items: center; height: 44px; padding: 0 16px 0 12px; border-radius: 14px; background: rgb(var(--wit) / 0.07); border: 1px solid var(--glas-rand); font-size: 14.5px; font-weight: 600; color: var(--zacht); text-decoration: none; white-space: nowrap; }

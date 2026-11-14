@@ -264,7 +264,15 @@ function teken() {
   const hash = decodeURIComponent(location.hash.slice(1));
   const open = hash.startsWith('s-') ? schakelaars.find((s) => s.id === hash.slice(2)) : null;
   if (!open) concept = null;
-  const focus = document.activeElement?.matches?.('input, select') ? document.activeElement.dataset : null;
+  const actief = document.activeElement?.matches?.('input, select') ? document.activeElement : null;
+  const focus = actief ? actief.dataset : null;
+  // Waar de cursor stond (issue 167): een opnieuw getekend veld begint vooraan, en dan kwam elke letter vóór het woord.
+  let cursor = null;
+  try {
+    if (actief?.selectionStart != null) cursor = [actief.selectionStart, actief.selectionEnd];
+  } catch {
+    // Een getalveld kent geen cursorplek.
+  }
   const rechts = open ? paneel(open) : hash === 'schakelaars' ? lijstSchakelaars() : hash === 'losse' ? lossePaneel() : null;
   $$('[data-rechts]').forEach((el) => {
     el.hidden = rechts == null;
@@ -278,7 +286,18 @@ function teken() {
     a.lastElementChild.textContent = t(rechts != null ? 'toev.titelKort' : 'nav.apparaten');
   });
   // Wie aan het typen was, blijft in hetzelfde veld.
-  if (focus) $$(`[data-rechts] ${focus.knop ? `[data-knop="${focus.knop}"]` : focus.naam != null ? '[data-naam]' : focus.vermogen != null ? '[data-vermogen]' : focus.lzoek != null ? '[data-lzoek]' : focus.lnaam != null ? '[data-lnaam]' : '[data-kamer]'}`).find((x) => x.offsetParent)?.focus();
+  if (focus) {
+    const veldKeuze = `[data-rechts] ${focus.knop ? `[data-knop="${focus.knop}"]` : focus.naam != null ? '[data-naam]' : focus.vermogen != null ? '[data-vermogen]' : focus.lzoek != null ? '[data-lzoek]' : focus.lnaam != null ? '[data-lnaam]' : '[data-kamer]'}`;
+    const veld = $$(veldKeuze).find((x) => x.offsetParent);
+    veld?.focus();
+    if (veld && cursor) {
+      try {
+        veld.setSelectionRange(cursor[0], cursor[1]);
+      } catch {
+        // Niet elk veld kent een cursorplek.
+      }
+    }
+  }
   const tegels = SOORTEN.filter(([id]) => (id !== 'schakelaars' || schakelaars.length > 0))
     .map(([id, icoon, vlak, href]) => `<a class="soort" href="${href}" data-soort="${id}"><span class="ik" style="background: rgba(${vlak}, 0.14)">${iconen.svg(icoon)}</span><b>${esc(t(`apparaten.soort.${id}`))}</b><span>${esc(t(`toev.soort.${id}`))}</span></a>`)
     .join('');

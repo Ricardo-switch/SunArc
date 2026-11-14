@@ -895,6 +895,7 @@
   'apparaten.rol.zon': 'Helps with solar',
   'apparaten.rol.kijken': 'Watch only',
   'apparaten.wachtZon': 'Waiting for sun',
+  'apparaten.wacht': 'Waiting',
   'apparaten.zouKiezen': 'SunArc would: {wat}.',
   'apparaten.zouSamen': 'For {n} devices SunArc would: {wat}.',
   'apparaten.onbekend': 'Unknown',
@@ -976,6 +977,7 @@
   'apparaten.soort.stekkers': 'Plugs',
   'apparaten.bezig': '{n} active',
   'apparaten.wachtenOpZon': '{n} waiting for sun',
+  'apparaten.wachten': '{n} waiting',
   'apparaten.rustig': 'all quiet',
   'apparaten.lampenAan': '{n} of {m} on',
   'apparaten.lampenUit': 'all off',
@@ -2278,6 +2280,10 @@
 
   // Report a problem (melden.js, tester round November 2026)
   'melden.kop': 'Report a problem',
+  'melden.pauze.kop': 'Reporting is paused',
+  'melden.pauze.waarom': 'SunArc is getting an overhaul. Everything becomes easier to find and to understand. Until that is done, no new reports are taken.',
+  'melden.pauze.dank': 'Thank you for testing. Your reports have made the app much better.',
+  'melden.pauze.januari': 'Updates return in January. You can report here again then.',
   'melden.soort': 'What kind of report',
   'melden.soort.fout': 'Something does not work',
   'melden.soort.apparaat': 'Device not right',
