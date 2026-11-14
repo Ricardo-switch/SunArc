@@ -96,7 +96,7 @@ export async function energieRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
       return true;
     }
     if (!k.zet) {
-      sendJson(res, 503, { fout: 'Een kinderslot zetten kan alleen in de add-on' });
+      sendJson(res, 503, { fout: 'Een kinderslot zetten kan alleen in de add-on, of op een eigen server met HEMS_DEUREN=1' });
       return true;
     }
     let body: Record<string, unknown>;
@@ -141,7 +141,7 @@ export async function energieRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
       return true;
     }
     if (!zet) {
-      sendJson(res, 503, { fout: 'Een schakelaar bedienen kan alleen in de add-on' });
+      sendJson(res, 503, { fout: 'Een schakelaar bedienen kan alleen in de add-on, of op een eigen server met HEMS_DEUREN=1' });
       return true;
     }
     let body: Record<string, unknown>;
@@ -239,7 +239,7 @@ async function ladenRoute(d: Diensten, req: IncomingMessage, res: ServerResponse
     return;
   }
   if (!laden) {
-    sendJson(res, 503, { fout: 'Laden met de hand kan alleen in de add-on' });
+    sendJson(res, 503, { fout: 'Laden met de hand kan alleen in de add-on, of op een eigen server met HEMS_DEUREN=1' });
     return;
   }
   let body: Record<string, unknown>;
@@ -287,7 +287,7 @@ async function stekkerRoute(d: Diensten, req: IncomingMessage, res: ServerRespon
     return;
   }
   if (!s?.zet || !s.terug) {
-    sendJson(res, 503, { fout: 'Een stekker schakelen kan alleen in de add-on' });
+    sendJson(res, 503, { fout: 'Een stekker schakelen kan alleen in de add-on, of op een eigen server met HEMS_DEUREN=1' });
     return;
   }
   let body: Record<string, unknown>;

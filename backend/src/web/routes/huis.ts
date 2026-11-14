@@ -121,7 +121,7 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
     const w = d.options.witgoed;
     const config = d.config();
     if (w == null || config == null) {
-      sendJson(res, 503, { wachten: 'witgoed starten kan alleen in de add-on' });
+      sendJson(res, 503, { wachten: 'witgoed starten kan alleen in de add-on, of op een eigen server met HEMS_DEUREN=1' });
       return true;
     }
     if (method === 'GET') {
@@ -150,7 +150,7 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
     const h = d.options.hand;
     const config = d.config();
     if (h == null || config == null) {
-      sendJson(res, 503, { wachten: 'klimaat met de hand kan alleen in de add-on' });
+      sendJson(res, 503, { wachten: 'klimaat met de hand kan alleen in de add-on, of op een eigen server met HEMS_DEUREN=1' });
       return true;
     }
     if (method === 'GET') {

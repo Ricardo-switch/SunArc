@@ -190,6 +190,25 @@ HEMS_HOSTS=klimaat.thuis.nl
 `HEMS_OPEN=1` zet alles open zoals vóór dit besluit, met een waarschuwing in
 het logboek. Niet doen buiten een test.
 
+### Bedienen zoals de add-on (besluit 309)
+
+Standaard kijkt de NAS alleen mee: met de hand bedienen, schakelaars en de
+knoppen van een IR-afstandsbediening, stekkers, laden, witgoed, lijsten en
+meldingen op de telefoon werken alleen in de add-on. Gebruik je de NAS als je
+SunArc, en staat de add-on op de Pi uit, zet dan in `.env`:
+
+```
+# Dezelfde deuren als de add-on.
+HEMS_DEUREN=1
+```
+
+en start de container opnieuw (`docker restart hems-shadow`). Het logboek zegt
+bij het opstarten welke deuren open staan. Elk apparaat laat je daarna nog
+steeds zelf toe in de app. Zet het nooit in twee installaties tegelijk aan op
+hetzelfde Home Assistant: dan bedienen ze elkaars apparaten en komen meldingen
+dubbel. Bijwerken vanuit de app, de koppeling met Assist en de stem in huis
+blijven alleen in de add-on: die vragen de Supervisor.
+
 ### Plaatjes bij de Hue-scènes (besluit 100)
 
 De app toont bij een scène het plaatje uit `logs/scene-plaatjes/` met zijn naam;

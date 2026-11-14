@@ -120,6 +120,30 @@ describe('licht bedienen (besluit 97)', () => {
   });
 });
 
+describe('de deuren van de add-on (besluit 309)', () => {
+  it('staan open in de add-on, tenzij HEMS_DEUREN=0', () => {
+    expect(readStartup(ADDON).deuren).toEqual({ enabled: true, withoutLogin: false });
+    expect(readStartup({ ...ADDON, HEMS_DEUREN: '0' }).deuren.enabled).toBe(false);
+  });
+
+  it('staan op een eigen server alleen open met HEMS_DEUREN=1, en zeggen het zonder inlog', () => {
+    expect(readStartup(NAS).deuren.enabled).toBe(false);
+    expect(readStartup({ ...NAS, HEMS_DEUREN: '1' }).deuren).toEqual({ enabled: true, withoutLogin: false });
+    expect(readStartup({ ...NAS, HEMS_DEUREN: '1', HEMS_OPEN: '1' }).deuren).toEqual({ enabled: true, withoutLogin: true });
+  });
+
+  it('hangen niet aan de weergave: op zon schakelen gebeurt ook zonder pagina', () => {
+    const { HEMS_WEB_PORT: _omitted, ...withoutPort } = NAS;
+    expect(readStartup({ ...withoutPort, HEMS_DEUREN: '1' }).deuren.enabled).toBe(true);
+  });
+
+  it('weigert iets anders dan 1 of 0', () => {
+    const o = readStartup({ ...NAS, HEMS_DEUREN: 'ja' });
+    expect(o.deuren.enabled).toBe(false);
+    expect(o.errors.join(' ')).toContain('HEMS_DEUREN');
+  });
+});
+
 describe('schermen bedienen (besluit 121)', () => {
   it('volgt licht bedienen, tenzij HEMS_SCREENS het anders zegt', () => {
     expect(readStartup(NAS).screens.enabled).toBe(false);

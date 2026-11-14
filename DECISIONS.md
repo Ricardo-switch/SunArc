@@ -318,6 +318,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [106. De camera's bekijken in de app, alleen lezen en alleen met inlog](#106-de-cameras-bekijken-in-de-app-alleen-lezen-en-alleen-met-inlog)
 - [121. Schermen bedien je in de app; alleen Somfy io mag later in de regeling](#121-schermen-bedien-je-in-de-app-alleen-somfy-io-mag-later-in-de-regeling)
 - [151. Een gast zonder persoon, een back-up, opnieuw beginnen, en een export voor onderzoek](#151-een-gast-zonder-persoon-een-back-up-opnieuw-beginnen-en-een-export-voor-onderzoek)
+- [309. De deuren van de add-on ook op een eigen server (HEMS_DEUREN)](#309-de-deuren-van-de-add-on-ook-op-een-eigen-server-hemsdeuren)
 
 **Uitrol en beheer**
 
@@ -14221,6 +14222,49 @@ deuren, ramen, screens en een trap. Zijn keuzes:
   het trapgat.
 
 ---
+
+## 309. De deuren van de add-on ook op een eigen server (HEMS_DEUREN)
+
+*Onderwerp: veiligheid · Status: geldig*
+
+14 november 2026, versie 0.187.3. Ricardo: "Beta moet ook hetzelfde kunnen als
+main, zodat ik het zelf kan gebruiken op de wand. De main op de Pi zet ik de
+add-on uit." En: "ik kan de ingeleerde knoppen van de IR-afstandsbediening niet
+bedienen."
+
+*Waarom:* de deuren die SunArc naar Home Assistant laten schrijven, hingen aan
+het token van de Supervisor. Dat bestaat alleen in de add-on. Op de NAS, een
+eigen server, bleven ze daardoor altijd dicht: met de hand bedienen (235, 262,
+265), schakelaars en IR-knoppen (297), stekkers op zon (267), witgoed, het
+kinderslot (299), lijsten (216, 218), de klimaatbrug (210) en meldingen op de
+telefoon (183). De IR-koppeling werkte wel; de knop mocht er alleen niet zijn.
+Wie de NAS gebruikt als het huis zelf, mist zo alles wat de add-on kan.
+
+*Besluit:*
+
+- **Eén instelling, `HEMS_DEUREN`.** In de add-on staan de deuren open zoals
+  voorheen, tenzij `HEMS_DEUREN=0`. Op een eigen server alleen met
+  `HEMS_DEUREN=1`. Het is dezelfde schakelaar als in de add-on, met dezelfde
+  regels per deur: elk apparaat moet de bewoner nog steeds zelf toelaten.
+- **Meldingen op de telefoon horen erbij.** Ze hingen apart aan "is het de
+  add-on", en gaan nu met dezelfde instelling mee.
+- **Niet erbij** wat de Supervisor zelf vraagt: bijwerken en zoeken naar
+  updates, de koppeling met Assist neerzetten, de stem in huis en de eigen
+  poort. Dat kan op een eigen server niet.
+- **Een waarschuwing bij het opstarten** op een eigen server: welke deuren
+  open staan, dat twee installaties met open deuren op hetzelfde Home
+  Assistant elkaars apparaten bedienen en meldingen dubbel sturen, en zonder
+  inlog (`HEMS_OPEN=1`) dat iedereen kan bedienen.
+- **Niet in het compose-bestand.** De NAS leest zijn eigen `.env`; de
+  bewoner zet het daar zelf, zodat een uitrol het nooit voor hem beslist. Een
+  gewijzigd compose-bestand zou bovendien de uitrol stilzetten tot iemand het
+  met de hand kopieert ([20]).
+
+*Kosten:* de grens van [15] (de schaduw schrijft niet) hangt nu aan een
+instelling in plaats van aan de plek waar SunArc draait. Wie hem op een eigen
+server aanzet, moet zelf zorgen dat er niet nog een installatie met open deuren
+op hetzelfde huis draait. De tests van `startup.ts` houden vast dat een eigen
+server zonder de instelling dicht blijft.
 
 ## Wat nog een besluit wacht
 

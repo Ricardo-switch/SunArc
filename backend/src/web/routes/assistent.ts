@@ -254,7 +254,7 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
         if (g) return stuur({ body: g, terug: null });
       }
       // Meer in één zin (besluit 213): "screens dicht en de lamp aan", elk deel apart.
-      // Laden met de hand met een zin (besluit 280): alleen in de add-on, en alleen wat bij Energie toegelaten is.
+      // Laden met de hand met een zin (besluit 280): alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309), en alleen wat bij Energie toegelaten is.
       if (lijst && d.options.laden && isLadenZin(tekst)) {
         const autos = ladenAutos(await d.options.laden.standen().catch(() => []), d.options.house?.()?.opslag?.autos ?? []);
         const l = herkenLaden(tekst, autos, lang, Date.now(), config.timezone);

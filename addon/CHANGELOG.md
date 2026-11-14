@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.187.2
+## 0.187.3
 
-*14 november 2026 · 0.179.0 – 0.187.2*
+*14 november 2026 · 0.179.0 – 0.187.3*
 
 **Nieuw**
 
@@ -34,6 +34,7 @@
 
 **Beter**
 
+- Draait SunArc op een eigen server, buiten Home Assistant? Met HEMS_DEUREN=1 kun je daar alles wat de add-on kan: met de hand bedienen, schakelaars en de knoppen van een IR-afstandsbediening, stekkers, laden, lijsten en meldingen op je telefoon
 - Melden staat tot januari uit. SunArc krijgt een opknapbeurt, zodat alles makkelijker te vinden en te begrijpen is. De knop Meld een probleem zegt dat nu ook
 - Bedankt aan iedereen die test. Door jullie meldingen is de app veel beter geworden. In januari komen er weer updates
 
@@ -76,6 +77,7 @@
 
 **Improved**
 
+- Does SunArc run on its own server, outside Home Assistant? With HEMS_DEUREN=1 you can do everything the add-on can there: control by hand, switches and the buttons of an IR remote, plugs, charging, lists and notifications on your phone
 - Reporting is paused until January. SunArc is getting an overhaul, so everything becomes easier to find and to understand. The Report a problem button now says so too
 - Thank you to everyone who tests. Your reports have made the app much better. Updates return in January
 

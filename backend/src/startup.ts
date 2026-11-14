@@ -48,6 +48,14 @@ export interface Startup {
    */
   readonly screens: { readonly enabled: boolean };
   /**
+   * Gaan de deuren open die in de add-on open staan (besluit 309)? Met de hand
+   * bedienen, schakelaars en IR-knoppen, stekkers, laden met de hand, witgoed,
+   * het kinderslot, lijsten, de klimaatbrug en meldingen op de telefoon. In de
+   * add-on altijd, tenzij `HEMS_DEUREN=0`; op een eigen server alleen met
+   * `HEMS_DEUREN=1`, en dan met een waarschuwing.
+   */
+  readonly deuren: { readonly enabled: boolean; readonly withoutLogin: boolean };
+  /**
    * Wie mag bedienen (besluit 99). In de add-on staat Ingress ervoor; elders een
    * eigen inlog via Home Assistant, met het adres waaronder de browser Home
    * Assistant bereikt. `HEMS_OPEN=1` zet alles open, zoals vóór 99, met een
@@ -154,6 +162,17 @@ export function readStartup(env: Environment): Startup {
   }
   const screensOn = port != null && (screensRaw === '1' || (screensRaw == null && lightsOn));
 
+  /*
+   * De deuren van de add-on (besluit 309). Ze hingen aan het token van de
+   * Supervisor; zo bleef een eigen server, zoals de NAS, altijd alleen kijken.
+   * Het token blijft de standaard, zodat er in de add-on niets verandert.
+   */
+  const deurenRaw = readPoint(env, 'HEMS_DEUREN');
+  if (deurenRaw != null && deurenRaw !== '0' && deurenRaw !== '1') {
+    errors.push(`HEMS_DEUREN is 1 (dezelfde deuren als de add-on) of 0 (niet), niet "${deurenRaw}".`);
+  }
+  const deurenOn = deurenRaw === '1' || (supervisorToken != null && deurenRaw !== '0');
+
   const openRaw = readPoint(env, 'HEMS_OPEN');
   if (openRaw != null && openRaw !== '0' && openRaw !== '1') {
     errors.push(`HEMS_OPEN is 1 (iedereen mag bedienen) of 0, niet "${openRaw}".`);
@@ -198,6 +217,7 @@ export function readStartup(env: Environment): Startup {
     onboarding: { enabled: onboardingOn, withoutIngress: onboardingOn && !asAddon },
     // Zonder Ingress en zonder inlog kan iedereen die de weergave opent schakelen.
     lights: { enabled: lightsOn, withoutIngress: lightsOn && access.kind === 'open' },
+    deuren: { enabled: deurenOn, withoutLogin: deurenOn && access.kind === 'open' },
     screens: { enabled: screensOn },
     access,
     eigenPoort,

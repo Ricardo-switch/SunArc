@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.187.2';
+export const VERSIE = '0.187.3';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.187.3',
+    datum: '2026-11-14',
+    beter: [
+      'Draait SunArc op een eigen server, buiten Home Assistant? Met HEMS_DEUREN=1 kun je daar alles wat de add-on kan: met de hand bedienen, schakelaars en de knoppen van een IR-afstandsbediening, stekkers, laden, lijsten en meldingen op je telefoon',
+    ],
+    en: {
+      beter: [
+        'Does SunArc run on its own server, outside Home Assistant? With HEMS_DEUREN=1 you can do everything the add-on can there: control by hand, switches and the buttons of an IR remote, plugs, charging, lists and notifications on your phone',
+      ],
+    },
+  },
   {
     versie: '0.187.2',
     datum: '2026-11-14',

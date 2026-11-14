@@ -68,7 +68,7 @@ export class Witgoed {
 
   /** Kan dit apparaat nu gestart worden, en zo nee, waarom niet. */
   #kan(d: Deferrable): StartUitkomst {
-    if (!this.#o.aan()) return { ok: false, reden: 'starten kan alleen in de add-on' };
+    if (!this.#o.aan()) return { ok: false, reden: 'starten kan alleen in de add-on, of op een eigen server met HEMS_DEUREN=1' };
     const knop = this.knopVan(d);
     if (!knop) return { ok: false, reden: 'geen startknop gevonden bij dit apparaat' };
     if (this.#o.state(d.remoteStart.id)?.state !== 'on') return { ok: false, reden: 'zet op het apparaat op afstand starten aan' };

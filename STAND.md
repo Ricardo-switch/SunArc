@@ -635,6 +635,9 @@ verwijzing bestaat.
   eigen deur: de laadstroom, de laadschakelaar en de pauzeknoppen van een
   laadpaal die de bewoner toeliet ([262]). Klimaat en screens blijven
   dicht tot B.
+- **De deuren van de add-on** staan op een eigen server, zoals de NAS, alleen
+  open met `HEMS_DEUREN=1`, met een waarschuwing bij het opstarten; in de
+  add-on staan ze open zoals voorheen ([309]).
 - **De weergave luistert,** maar alleen om te lezen ([23]). De hele app vraagt
   een inlog met je Home Assistant-account, ook kijken ([147]); de dienst
   antwoordt alleen op bekende hostnamen ([99]).
@@ -987,4 +990,5 @@ verwijzing bestaat.
 [306]: DECISIONS.md#306-een-zone-apart-regelen-en-de-radiatorknop-per-zone-met-de-hand
 [307]: DECISIONS.md#307-stroom-nu-op-thuis-en-wat-er-hangt-bij-de-plekken-buiten
 [308]: DECISIONS.md#308-je-huis-tekenen-één-tekentafel-op-ruitjes-en-het-huis-in-3d-uit-de-tekening
+[309]: DECISIONS.md#309-de-deuren-van-de-add-on-ook-op-een-eigen-server-hemsdeuren
 <!-- links:einde -->

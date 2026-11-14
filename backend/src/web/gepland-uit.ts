@@ -25,7 +25,7 @@ export interface GeplandeDeuren {
   } | null;
   /** Witgoed starten (besluit 238). */
   readonly witgoed?: ((id: string) => Promise<Uitkomst>) | null;
-  /** Een slimme stekker (besluit 266); alleen in de add-on, en alleen als de bewoner hem toeliet. */
+  /** Een slimme stekker (besluit 266); alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309), en alleen als de bewoner hem toeliet. */
   readonly stekker?: ((id: string, aan: boolean, tot: { readonly duurMin: number } | { readonly klok: string }) => Promise<Uitkomst>) | null;
   readonly tz: string;
 }

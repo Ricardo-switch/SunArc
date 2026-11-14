@@ -299,12 +299,12 @@ const webDir = startup.web.dir ?? defaultWebDir(packageRoot);
 
 /*
  * Het voorbeeldhuis (besluit 237) draait deze dienst in een eigen proces, op een
- * nagemaakt Home Assistant. De deuren die alleen in de add-on open staan
- * (meldingen, lijsten, de klimaatbrug, met de hand) staan daar ook open: ze gaan
- * naar het nagemaakte huis.
+ * nagemaakt Home Assistant. De deuren die in de add-on open staan (meldingen,
+ * lijsten, de klimaatbrug, met de hand) staan daar ook open: ze gaan naar het
+ * nagemaakte huis. Op een eigen server zet `HEMS_DEUREN=1` ze open (besluit 309).
  */
 const voorbeeldProces = process.env['HEMS_VOORBEELD'] === '1';
-const inHuisMetDeuren = Boolean(process.env['SUPERVISOR_TOKEN']) || voorbeeldProces;
+const inHuisMetDeuren = startup.deuren.enabled || voorbeeldProces;
 
 const strategies = defaultStrategies();
 
@@ -500,7 +500,7 @@ const client = new HaClient({
   allowKnoppen: (): { readonly entiteiten: readonly string[]; readonly opties: readonly string[] } =>
     klimaatAan() || (klimaatBrug?.terugzetten.length ?? 0) > 0 || (handbediening?.terugzetten.length ?? 0) > 0 ? { entiteiten: [...new Set([...BRUG_ENTITEITEN, ...HAND_KNOPPEN])], opties: MODUS_OPTIES } : { entiteiten: [], opties: [] },
   // Klimaat met de hand (besluit 235): de airco's op verwarmen en de stekkers, als de brug aan staat of er nog iets terug moet.
-  // Witgoed starten (ronde 5, besluit 238): alleen de startknop van een droger of vaatwasser, alleen in de add-on.
+  // Witgoed starten (ronde 5, besluit 238): alleen de startknop van een droger of vaatwasser, alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309).
   allowStart: (): readonly string[] => witgoed?.knoppen() ?? [],
   // Laden met de hand (besluit 262): de laadpalen die de bewoner aanzette, en wat er nog terug moet. Alleen in de add-on.
   allowLaden: () => (laadhand ? laadMag(laadBedieningenNu(), laadhand.terugzetten) : { stroom: [], schakelaars: [], knoppen: [], easee: [], selects: [] }),
@@ -518,7 +518,7 @@ const client = new HaClient({
     const klimaat = klimaatAan() || (handbediening?.terugzetten.length ?? 0) > 0
       ? { klimaat: [...new Set([...HAND_KLIMAAT, ...handKnoppen().map((k) => k.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.thermostaat).map((t) => t.id)])], schakelaars: [...handSchakelaars().map((s) => s.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.modus === 'aan').map((t) => t.id)] }
       : { klimaat: [], schakelaars: [] };
-    // Schakelaars die de bewoner met de hand toeliet (besluit 297): dezelfde deur, alleen in de add-on.
+    // Schakelaars die de bewoner met de hand toeliet (besluit 297): dezelfde deur, alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309).
     const relais = (() => {
       try {
         return inHuisMetDeuren ? schakelaarsMag(vindSchakelaarsNu(), schakelaarKeuzes()) : [];
@@ -526,7 +526,7 @@ const client = new HaClient({
         return [];
       }
     })();
-    // Een kinderslot op een thermostaat of witgoed (besluit 299): dezelfde deur, alleen in de add-on.
+    // Een kinderslot op een thermostaat of witgoed (besluit 299): dezelfde deur, alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309).
     const sloten = (() => {
       try {
         return inHuisMetDeuren ? Object.values(kinderslotten()).map((s) => s.id) : [];
@@ -731,7 +731,7 @@ const laadhand: Laadhand | null = inHuisMetDeuren
   : null;
 /*
  * Een slimme stekker met de hand (besluit 265): aan of uit met een eind,
- * alleen de stekkers die de bewoner toeliet. Schakelen alleen in de add-on;
+ * alleen de stekkers die de bewoner toeliet. Schakelen alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309);
  * elders kijkt het blad mee.
  */
 function stekkersBekend(): StekkerBekend[] {
@@ -751,7 +751,7 @@ const stekkerhand = new Stekkerhand({
 /*
  * Een stekker op zon, echt geschakeld (besluit 267): wat de regeling zegt, zet
  * SunArc door, alleen bij een stekker die op zon staat en die de bewoner
- * toeliet, en alleen in de add-on.
+ * toeliet, en alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309).
  */
 const stekkerZon = new StekkerZon({
   state: (id) => allStates.get(id),
@@ -1584,9 +1584,11 @@ let meldingenVinger: string | null = null;
 
 /*
  * Meldingen op de telefoon (besluit 183): na elke ronde van de bel kijken wat
- * er naar welke telefoon moet. Alleen in de add-on (zie allowNotify).
+ * er naar welke telefoon moet. In de add-on, of op een eigen server met
+ * HEMS_DEUREN=1 (besluit 309); niet in het voorbeeldhuis.
  */
-const pushStore = logDir !== '' && version.installatie === 'add-on' ? new PushStore(logDir) : null;
+const telefoonDeur = startup.deuren.enabled;
+const pushStore = logDir !== '' && telefoonDeur ? new PushStore(logDir) : null;
 await pushStore?.load();
 let telefoonsVoor: HouseRegisters | null = null;
 let telefoonsNu: Telefoon[] = [];
@@ -1636,7 +1638,7 @@ async function pushRonde(): Promise<void> {
 }
 /** Een proefmelding naar je eigen telefoon (besluit 183), vanaf Jij. */
 async function proefmelding(userId: string | null): Promise<{ ok: true; naam: string } | { ok: false; status: number; reden: string }> {
-  if (version.installatie !== 'add-on') return { ok: false, status: 409, reden: 'meldingen op de telefoon gaan alleen vanuit de add-on' };
+  if (!telefoonDeur) return { ok: false, status: 409, reden: 'meldingen op de telefoon gaan alleen vanuit de add-on, of met HEMS_DEUREN=1' };
   if (!userId || !voorkeuren) return { ok: false, status: 403, reden: 'log in met je eigen account' };
   const t = telefoonVan(userId, voorkeuren.meldingen(userId), telefoons());
   if (!t) return { ok: false, status: 404, reden: 'geen telefoon met de app van Home Assistant gevonden' };
@@ -1755,7 +1757,7 @@ async function herinnerRonde(): Promise<void> {
     }
     const nieuw = alles.filter((x) => !x.opdracht);
     // Een melding naar de telefoon van wie hem vroeg; een herinnering voor het huis alleen op de wand.
-    if (version.installatie !== 'add-on' || !voorkeuren) return;
+    if (!telefoonDeur || !voorkeuren) return;
     for (const h of nieuw) {
       if (h.voor == null) continue;
       const t = telefoonVan(h.voor, voorkeuren.meldingen(h.voor), telefoons());
@@ -2038,6 +2040,17 @@ client.on('stateChanged', (state: HaEntityState) => {
  * Licht bedienen (besluit 97): alleen de lampen die het huis toont, en alleen
  * aan en uit. SunArc regelt het licht niet (92); dit is een knop.
  */
+/*
+ * De deuren van de add-on op een eigen server (besluit 309): dezelfde regels,
+ * maar zonder Ingress ervoor. Twee installaties met open deuren op hetzelfde Home
+ * Assistant bedienen elkaars apparaten en sturen meldingen dubbel.
+ */
+if (startup.deuren.enabled && !startup.asAddon) {
+  console.warn('LET OP: de deuren van de add-on staan open op deze server (HEMS_DEUREN=1).');
+  console.warn('  Met de hand bedienen, schakelaars, stekkers, laden, witgoed, lijsten en meldingen op de telefoon werken hier.');
+  console.warn('  Zet ze nooit in twee installaties tegelijk open op hetzelfde Home Assistant.');
+  if (startup.deuren.withoutLogin) console.warn('  Zonder inlog (HEMS_OPEN=1) kan iedereen die deze weergave opent, bedienen.');
+}
 if (startup.lights.withoutIngress) {
   console.warn('LET OP: licht bedienen staat aan zonder Ingress ervoor.');
   console.warn('  Iedereen die deze weergave kan openen, kan je lampen schakelen.');
@@ -2574,7 +2587,7 @@ if (webPort != null) {
         };
       },
     },
-    // Laden met de hand (besluit 262): alleen in de add-on; de NAS laat het blad zonder knoppen zien.
+    // Laden met de hand (besluit 262): alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309); zonder HEMS_DEUREN laat een eigen server het blad zonder knoppen zien.
     ...(laadhand
       ? {
           laden: {
@@ -2584,7 +2597,7 @@ if (webPort != null) {
           },
         }
       : {}),
-    // Een slimme stekker met de hand (besluit 265): de stand overal, schakelen alleen in de add-on.
+    // Een slimme stekker met de hand (besluit 265): de stand overal, schakelen alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309).
     // Een laadpaal uit losse sensoren (besluit 301): de keuzes in het eigen bestand van de schakelaars.
     losseLaadpalen: {
       lijst: () => ({ laadpalen: schakelaarStore?.current?.laadpalen ?? {}, sensoren: houseRegisters ? losseSensoren(houseRegisters.entities, allStates) : [] }),
@@ -2596,7 +2609,7 @@ if (webPort != null) {
         return { ok: true as const };
       },
     },
-    // Het kinderslot in het blad (besluit 299): zien overal, zetten alleen in de add-on.
+    // Het kinderslot in het blad (besluit 299): zien overal, zetten alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309).
     kinderslot: {
       lijst: () => kinderslotten(),
       ...(inHuisMetDeuren
@@ -2623,7 +2636,7 @@ if (webPort != null) {
         await schakelaarStore.save(metKeuze(schakelaarStore.current, k.id, k.keuze));
         return { ok: true as const };
       },
-      // Met de hand aan of uit (besluit 297): alleen in de add-on, alleen een knop die de bewoner toeliet.
+      // Met de hand aan of uit (besluit 297): alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309), alleen een knop die de bewoner toeliet.
       ...(inHuisMetDeuren
         ? {
             zet: async (knop: string, aan: boolean) => {
