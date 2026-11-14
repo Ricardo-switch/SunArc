@@ -129,7 +129,8 @@ function standDeel(a) {
   let onder = '';
   if (a.thuis === false && a.pct != null) onder = `${nl(a.pct, 0)}%${a.bereikKm != null ? `<small>${esc(t('auto.bereik', { km: nl(a.bereikKm, 0) }))}</small>` : ''}`;
   else if (a.laadt && a.vermogenW != null) onder = `${nl(a.vermogenW / 1000)} kW${fasenKort(a.stroomA) ? `<small>${esc(fasenKort(a.stroomA))}</small>` : ''}`;
-  return `<div><div class="stand"${s.gloed ? ' data-gloed' : ''} style="color: ${s.kleur}"><i></i><span>${esc(s.tekst)}</span></div>${onder ? `<div class="vermogen">${onder}</div>` : ''}</div>`;
+  // De kleur als tekst (14 november 2026): het geel van de zon was op een lichte achtergrond niet te lezen.
+  return `<div><div class="stand"${s.gloed ? ' data-gloed' : ''} style="color: ${app.tekstKleur(s.kleur)}"><i></i><span>${esc(s.tekst)}</span></div>${onder ? `<div class="vermogen">${onder}</div>` : ''}</div>`;
 }
 
 /** Een paar woorden achter elkaar, met een hoofdletter vooraan. */
@@ -264,7 +265,7 @@ function paalKaart(a, metLaden = false) {
     : `<div class="regel"><span>${esc(t('auto.paal.stroom'))}</span><b>${esc(t('auto.paal.nietGemeten'))}</b></div>`;
   return `<section class="glas kaart">
       <h2>${esc(a.paalNaam)}</h2><p class="onder">${esc(huismodelZin([a.paalNaam === t('auto.paal.kop') ? '' : t('auto.paal.kop'), plekWoord(a)]))}</p>
-      <div class="regel"><span>${esc(t('auto.paal.stand'))}</span><b style="color: ${s.kleur === 'var(--zacht)' ? 'var(--tekst)' : s.kleur}">${esc(s.tekst)}</b></div>
+      <div class="regel"><span>${esc(t('auto.paal.stand'))}</span><b style="color: ${s.kleur === 'var(--zacht)' ? 'var(--tekst)' : app.tekstKleur(s.kleur)}">${esc(s.tekst)}</b></div>
       ${rij}
       ${rij ? '' : `<div class="regel"><span>${esc(t('auto.paal.vermogen'))}</span><b>${a.vermogenW != null ? `${nl(a.vermogenW / 1000)} kW` : esc(t('auto.paal.nietGemeten'))}</b></div>`}
       ${fasen}

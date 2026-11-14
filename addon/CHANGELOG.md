@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.187.0
+## 0.187.1
 
-*13 november 2026 · 0.179.0 – 0.187.0*
+*14 november 2026 · 0.179.0 – 0.187.1*
 
 **Nieuw**
 
@@ -31,6 +31,13 @@
 - Je huis: teken je kamers op ruitjes van 10 cm, per etage. Begin met een indeling uit je kamers of met de muren van beneden, trek een vak voor een nieuwe ruimte, schuif een muur, en tik een vak aan om te zeggen welke kamer het is
 - Je huis staat naast Kamers en indeling, met een knop Je huis tekenen; Vorm, Apparaten en Huis komen in de volgende versies
 - Voorbereiding op Je huis tekenen: SunArc kan per etage je kamers als vakken op ruitjes van 10 cm bewaren, met de lijn tussen de zones van een kamer. Er is nog niets te zien; de pagina komt in de volgende versie
+
+**Opgelost**
+
+- Apparaten › Toevoegen › Losse sensoren: in het zoekveld kwam elke letter vóór het woord te staan. De cursor blijft nu waar je typt
+- Een thermostaat of airco die even wacht, heet op Apparaten nu Wacht. Alleen wat echt op zon wacht, heet Wacht op zon
+- Op de pagina Auto was Laadt op zon in het lichte thema niet te lezen
+- De knop terug bovenaan een pagina is op de telefoon groot genoeg om te raken
 
 *English*
 
@@ -61,6 +68,13 @@
 - Your home: draw your rooms on a 10 cm grid, floor by floor. Start with a layout from your rooms or with the walls from below, drag a box for a new space, move a wall, and tap a box to say which room it is
 - Your home sits next to Rooms and layout, with a Draw your home button; Shape, Devices and Home come in the next versions
 - Preparing for Draw your home: SunArc can store your rooms per floor as boxes on a 10 cm grid, with the line between the zones of a room. Nothing to see yet; the page comes in the next version
+
+**Fixed**
+
+- Devices › Add › Separate sensors: in the search field every letter ended up before the word. The cursor now stays where you type
+- A thermostat or air conditioner that waits for a moment is now called Waiting under Devices. Only what really waits for sun is called Waiting for sun
+- On the Car page, Charging on sun could not be read in the light theme
+- The back button at the top of a page is now large enough to tap on the phone
 
 ## 0.178.1
 

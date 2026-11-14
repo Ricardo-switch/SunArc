@@ -123,6 +123,7 @@ function kaart(d) {
   el.dataset.actief = String(d.stand === 'running' || d.stand === 'would_start' || d.stand === 'waiting');
   // Voor de kop van de soort (besluit 293): wachten op zon is niet hetzelfde als bezig.
   el.dataset.wacht = String(d.stand === 'would_start' || d.stand === 'waiting');
+  el.dataset.wachtzon = el.dataset.wacht;
   el.innerHTML = `
     <div class="boven">${boven}<div><b>${esc(d.naam)}</b><span class="klein ${toon}">${esc(d.kop)}</span></div></div>
     <p class="mini zin">${esc(zin)}</p>
@@ -181,6 +182,7 @@ function stekkerKaart(b) {
   el.className = 'glas app';
   el.dataset.actief = String(aan || b.stand === 'would_heat');
   el.dataset.wacht = String(!aan && b.stand === 'waiting');
+  el.dataset.wachtzon = el.dataset.wacht;
   // Met de hand (besluit 265): in zonkleur, met tot wanneer.
   const st = hand.stekker(b.id);
   const metHand = st?.actief;
@@ -285,7 +287,8 @@ function klimaatKaart({ a, r }) {
   const wacht = (state?.rejected ?? []).find((x) => x.blockedBy === 'insufficient_power_budget' && x.intent?.actuatorId === id && x.intent?.budgetW > 0);
   const code = a.klimaat?.actieCode ?? '';
   const doet = /^(koelt|verwarmt|verwarmt-voor|droogt|ventileert)$/.test(code);
-  const stand = bew?.soort === 'wait' ? [t('apparaten.wachtZon'), 'var(--zon)'] : doet ? [huismodel.metHoofdletter(a.klimaat.actie), code === 'koelt' ? 'var(--ijs)' : 'var(--gloed)'] : [huismodel.metHoofdletter(a.stand ?? t('apparaten.onbekend')), 'var(--mint)'];
+  // Alleen wie op zon wacht, heet zo (14 november 2026): een thermostaat die op zijn draaitijd wacht, kreeg ook "Wacht op zon".
+  const stand = bew?.soort === 'wait' ? (wacht ? [t('apparaten.wachtZon'), 'var(--zon)'] : [t('apparaten.wacht'), '#8796a8']) : doet ? [huismodel.metHoofdletter(a.klimaat.actie), code === 'koelt' ? 'var(--ijs)' : 'var(--gloed)'] : [huismodel.metHoofdletter(a.stand ?? t('apparaten.onbekend')), 'var(--mint)'];
   // Niet twee keer hetzelfde (29 oktober 2026): de zin begon met de stand ("Verwarmen naar 20° · onder het doel"),
   // en een stand die het doel al noemt ("Automatisch naar 18°") kreeg "Doel 18°." eronder. Een radiatorknop noemt het ook al.
   // Een warmtepomp met een stooklijn of watertemperatuur als doel (testerronde, november 2026): dat zegt hij, geen kamer.
@@ -318,6 +321,7 @@ function klimaatKaart({ a, r }) {
   el.href = `kamer.html#${encodeURIComponent(r.id)}/${encodeURIComponent(a.id)}`;
   el.dataset.actief = String(doet || bew?.soort === 'wait');
   el.dataset.wacht = String(!doet && bew?.soort === 'wait');
+  el.dataset.wachtzon = String(!doet && bew?.soort === 'wait' && !!wacht);
   // Alleen "SunArc zou: …": dan kan hij samen met de andere kaarten bovenaan (besluit 226).
   if (vanSC && zin === vanSC && rest && !doet && bew?.soort !== 'wait') el.dataset.zou = rest;
   // Met de hand (besluit 235): in zonkleur, met wanneer het terug gaat. Een tik opent het blad (besluit 238).
@@ -735,9 +739,10 @@ async function schakelKnop(knop, aan) {
 
 /** In een paar woorden wat een soort nu doet, voor zijn kop. */
 function samenvatting(kaarten) {
-  const wacht = kaarten.filter((k) => k.dataset.wacht === 'true').length;
+  const opZon = kaarten.filter((k) => k.dataset.wachtzon === 'true').length;
+  const wacht = kaarten.filter((k) => k.dataset.wacht === 'true' && k.dataset.wachtzon !== 'true').length;
   const bezig = kaarten.filter((k) => k.dataset.actief === 'true' && k.dataset.wacht !== 'true').length;
-  return [bezig ? t('apparaten.bezig', { n: bezig }) : '', wacht ? t('apparaten.wachtenOpZon', { n: wacht }) : ''].filter(Boolean).join(' · ') || t('apparaten.rustig');
+  return [bezig ? t('apparaten.bezig', { n: bezig }) : '', opZon ? t('apparaten.wachtenOpZon', { n: opZon }) : '', wacht ? t('apparaten.wachten', { n: wacht }) : ''].filter(Boolean).join(' · ') || t('apparaten.rustig');
 }
 
 /** Een soort: de kop met het icoon, en de kaarten of de kamers met lampen. */

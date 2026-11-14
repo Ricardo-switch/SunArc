@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.187.0';
+export const VERSIE = '0.187.1';
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +80,33 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.187.1',
+    datum: '2026-11-14',
+    opgelost: [
+      'Apparaten › Toevoegen › Losse sensoren: in het zoekveld kwam elke letter vóór het woord te staan. De cursor blijft nu waar je typt',
+      'Een thermostaat of airco die even wacht, heet op Apparaten nu Wacht. Alleen wat echt op zon wacht, heet Wacht op zon',
+      'Op de pagina Auto was Laadt op zon in het lichte thema niet te lezen',
+      'De knop terug bovenaan een pagina is op de telefoon groot genoeg om te raken',
+    ],
+    en: {
+      opgelost: [
+        'Devices › Add › Separate sensors: in the search field every letter ended up before the word. The cursor now stays where you type',
+        'A thermostat or air conditioner that waits for a moment is now called Waiting under Devices. Only what really waits for sun is called Waiting for sun',
+        'On the Car page, Charging on sun could not be read in the light theme',
+        'The back button at the top of a page is now large enough to tap on the phone',
+      ],
+    },
+    meldingen: [
+      {
+        code: 'SA-7XNM',
+        uitkomst: 'opgelost',
+        tekst: 'In het zoekveld bij Losse sensoren blijft de cursor nu staan waar je typt.',
+        tekstEn: 'In the search field under Separate sensors, the cursor now stays where you type.',
+        issue: 167,
+      },
+    ],
+  },
   {
     versie: '0.187.0',
     datum: '2026-11-13',
