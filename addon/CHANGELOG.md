@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.187.1
+## 0.187.2
 
-*14 november 2026 · 0.179.0 – 0.187.1*
+*14 november 2026 · 0.179.0 – 0.187.2*
 
 **Nieuw**
 
@@ -31,6 +31,11 @@
 - Je huis: teken je kamers op ruitjes van 10 cm, per etage. Begin met een indeling uit je kamers of met de muren van beneden, trek een vak voor een nieuwe ruimte, schuif een muur, en tik een vak aan om te zeggen welke kamer het is
 - Je huis staat naast Kamers en indeling, met een knop Je huis tekenen; Vorm, Apparaten en Huis komen in de volgende versies
 - Voorbereiding op Je huis tekenen: SunArc kan per etage je kamers als vakken op ruitjes van 10 cm bewaren, met de lijn tussen de zones van een kamer. Er is nog niets te zien; de pagina komt in de volgende versie
+
+**Beter**
+
+- Melden staat tot januari uit. SunArc krijgt een opknapbeurt, zodat alles makkelijker te vinden en te begrijpen is. De knop Meld een probleem zegt dat nu ook
+- Bedankt aan iedereen die test. Door jullie meldingen is de app veel beter geworden. In januari komen er weer updates
 
 **Opgelost**
 
@@ -68,6 +73,11 @@
 - Your home: draw your rooms on a 10 cm grid, floor by floor. Start with a layout from your rooms or with the walls from below, drag a box for a new space, move a wall, and tap a box to say which room it is
 - Your home sits next to Rooms and layout, with a Draw your home button; Shape, Devices and Home come in the next versions
 - Preparing for Draw your home: SunArc can store your rooms per floor as boxes on a 10 cm grid, with the line between the zones of a room. Nothing to see yet; the page comes in the next version
+
+**Improved**
+
+- Reporting is paused until January. SunArc is getting an overhaul, so everything becomes easier to find and to understand. The Report a problem button now says so too
+- Thank you to everyone who tests. Your reports have made the app much better. Updates return in January
 
 **Fixed**
 

@@ -12,7 +12,7 @@ import { MAX_BACKUP, backupNaam } from '../gegevens.js';
 import { keuzesInTaal } from '../onboarding.js';
 import { logboek } from '../logboek.js';
 import { controleer as controleerFuncties, functiesVoorstel, volledig } from '../functies.js';
-import { NIEUW, TERUGKIJKEN, VERSIE, nieuwInTaal } from '../../version.js';
+import { MELDEN_PAUZE, NIEUW, TERUGKIJKEN, VERSIE, nieuwInTaal } from '../../version.js';
 import { UNKNOWN_VERSION } from '../server-opties.js';
 import { MAX_BODY, readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
@@ -304,7 +304,7 @@ export async function beheerRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
 
   if (path === '/api/versie') {
     // Hooguit tien versies terug (besluit 133).
-    sendJson(res, 200, { ...(d.options.version ?? UNKNOWN_VERSION), nieuw: nieuwInTaal(NIEUW.slice(0, TERUGKIJKEN), taalVan(url.searchParams.get('taal') ?? req.headers['x-taal'])) });
+    sendJson(res, 200, { ...(d.options.version ?? UNKNOWN_VERSION), meldenPauze: d.options.meldenPauze ?? (MELDEN_PAUZE && (d.options.version ?? UNKNOWN_VERSION).installatie === 'add-on'), nieuw: nieuwInTaal(NIEUW.slice(0, TERUGKIJKEN), taalVan(url.searchParams.get('taal') ?? req.headers['x-taal'])) });
     return true;
   }
 

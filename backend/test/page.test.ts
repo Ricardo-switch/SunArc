@@ -578,6 +578,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
             call: async (service, id, data) => void coverCalls.push(`${service} ${id}${data['position'] != null ? ` ${String(data['position'])}` : ''}`),
           }),
           version: { nummer: VERSIE, installatie: 'server', commit: 'bbbbbbb', gebouwd: '2026-09-30T12:00:00Z' },
+          // Melden staat in de app op pauze (14 november 2026); hier aan, zodat het meldblad zelf bewaakt blijft.
+          meldenPauze: false,
           // De camera (besluit 106): een nagemaakte Home Assistant die een plaatje geeft.
           camera: { base: `http://127.0.0.1:${haCameraPort}`, token: 'test', ids: () => new Set(['camera.camera_oprit_vloeiend', 'camera.deurbel_duidelijk', 'camera.deurbel_vloeiend']) },
           // Camera's en de deurbel als instelling (besluit 109).
@@ -1439,6 +1441,35 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const zin = p.locator('[data-weggelaten]').first();
     await zin.waitFor({ timeout: 10_000 });
     expect(await zin.innerText()).toContain('Wat SunArc nog niet begrijpt, liet hij weg (2).');
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
+  it('zegt bij Meld een probleem dat melden op pauze staat, met een dankwoord (14 november 2026)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.addInitScript("localStorage.setItem('sc-rondleiding-gezien', '1');");
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    // De dienst van deze tests heeft melden aan; hier zegt hij wat de app bij testers hoort: op pauze.
+    await context.route(`${baseUrl}/api/versie*`, async (route) => {
+      const echt = await route.fetch();
+      await route.fulfill({ json: { ...((await echt.json()) as object), meldenPauze: true } });
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/vandaag.html`);
+    await p.locator('#wand .balk [data-meld-probleem]').click();
+    const blad = p.locator('[data-meldpop]');
+    await blad.waitFor({ timeout: 10_000 });
+    expect(await blad.locator('h2').innerText()).toBe('Melden staat even uit');
+    expect(await blad.innerText()).toContain('Bedankt voor het testen');
+    expect(await blad.innerText()).toContain('In januari komen er weer updates');
+    // Geen vak om in te vullen en geen knop naar GitHub.
+    expect(await blad.locator('textarea').count()).toBe(0);
+    expect(await blad.locator('[data-meldpop-stuur]').count()).toBe(0);
+    await blad.locator('[data-meldpop-dicht]').click();
+    expect(await p.locator('[data-meldpop]').count()).toBe(0);
     expect(fouten).toEqual([]);
     await context.close();
   }, 30_000);

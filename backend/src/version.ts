@@ -9,7 +9,16 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.187.1';
+export const VERSIE = '0.187.2';
+
+/**
+ * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
+ * komen er geen nieuwe meldingen bij. De knop Meld een probleem blijft staan en
+ * zegt waarom, met een dankwoord aan de testers. Weer aan: zet dit op false.
+ * Alleen voor de add-on, dus voor de testers: op een eigen server (de NAS van
+ * Ricardo) blijft melden aan, zodat hij op de wand kan blijven melden.
+ */
+export const MELDEN_PAUZE = true;
 
 export interface Nieuw {
   readonly versie: string;
@@ -80,6 +89,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.187.2',
+    datum: '2026-11-14',
+    beter: [
+      'Melden staat tot januari uit. SunArc krijgt een opknapbeurt, zodat alles makkelijker te vinden en te begrijpen is. De knop Meld een probleem zegt dat nu ook',
+      'Bedankt aan iedereen die test. Door jullie meldingen is de app veel beter geworden. In januari komen er weer updates',
+    ],
+    en: {
+      beter: [
+        'Reporting is paused until January. SunArc is getting an overhaul, so everything becomes easier to find and to understand. The Report a problem button now says so too',
+        'Thank you to everyone who tests. Your reports have made the app much better. Updates return in January',
+      ],
+    },
+  },
   {
     versie: '0.187.1',
     datum: '2026-11-14',

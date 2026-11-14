@@ -2285,6 +2285,10 @@
 
   // Meld een probleem (melden.js, testerronde november 2026)
   'melden.kop': 'Meld een probleem',
+  'melden.pauze.kop': 'Melden staat even uit',
+  'melden.pauze.waarom': 'SunArc krijgt een opknapbeurt. Alles wordt makkelijker te vinden en te begrijpen. Tot dat klaar is, komen er geen nieuwe meldingen bij.',
+  'melden.pauze.dank': 'Bedankt voor het testen. Door jullie meldingen is de app veel beter geworden.',
+  'melden.pauze.januari': 'In januari komen er weer updates. Dan kun je hier ook weer melden.',
   'melden.soort': 'Wat voor melding',
   'melden.soort.fout': 'Iets werkt niet',
   'melden.soort.apparaat': 'Apparaat klopt niet',

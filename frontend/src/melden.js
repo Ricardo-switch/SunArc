@@ -50,6 +50,8 @@
   }
 
   let s = null;
+  /** Of melden op pauze staat (14 november 2026); null zolang de dienst het nog niet zei. */
+  let pauze = null;
 
   async function open({ apparaat = null, naam = null, wat = '' } = {}) {
     s = { apparaat, naam, soort: apparaat ? 'apparaat' : 'fout', wat: wat ?? '', mee: !!apparaat, gegevens: null, log: [], metLog: true, code: nieuweCode(), klaar: false, klembord: false };
@@ -70,11 +72,17 @@
 
   async function laadErbij() {
     const { apparaat } = s;
-    teken();
+    // Een nieuwe melding wacht even op de dienst: staat melden op pauze, dan komt het blad om in te vullen niet eerst in beeld.
+    if (s.vervolg || pauze != null) {
+      s.pauze = !s.vervolg && pauze === true;
+      teken();
+    }
     const [g, v, l] = await Promise.all([apparaat ? haal(`api/apparaat-gegevens?id=${encodeURIComponent(apparaat)}`).catch(() => null) : null, haal('api/versie').catch(() => null), haal('api/logboek').catch(() => null)]);
     if (!s) return;
     s.gegevens = g;
     s.versie = v;
+    pauze = v?.meldenPauze === true;
+    s.pauze = !s.vervolg && pauze;
     s.log = Array.isArray(l?.regels) ? l.regels : [];
     teken();
   }
@@ -94,7 +102,14 @@
     // Het logboek meesturen (4 november 2026): wat er meegaat, staat eronder te lezen.
     const logVak = s.log.length ? `<label class="klein" style="display: flex; gap: 8px; align-items: center"><input type="checkbox" data-meldlog ${s.metLog ? 'checked' : ''}>${esc(t('melden.logMee', { n: Math.min(s.log.length, LOG_REGELS) }))}</label>
           ${s.metLog ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto; margin: 6px 0 0">${esc(logTekst(s.log))}</pre></details>` : ''}` : '';
-    const inhoud = s.vervolg && s.klaar
+    // Melden op pauze: waarom, een dankwoord en wanneer het weer kan. Reageren op een eerdere melding (Werkt nog niet) blijft.
+    const inhoud = s.pauze
+      ? `<h2 class="kop-2" id="meldkop" style="margin: 0">${esc(t('melden.pauze.kop'))}</h2>
+        <p class="klein" style="margin: 0">${esc(t('melden.pauze.waarom'))}</p>
+        <p class="klein" style="margin: 0">${esc(t('melden.pauze.dank'))}</p>
+        <p class="klein" style="margin: 0">${esc(t('melden.pauze.januari'))}</p>
+        <div class="knoppen"><button type="button" class="knop knop-licht" data-meldpop-dicht>${esc(t('algemeen.oke'))}</button></div>`
+      : s.vervolg && s.klaar
       ? `<h2 class="kop-2" id="meldkop" style="margin: 0">${esc(t('melden.vervolgKlaar'))}</h2>
         <p class="klein" style="margin: 0">${esc(t(s.klembord ? 'melden.vervolgKlembord' : 'melden.vervolgZelf'))}</p>
         ${s.klembord ? '' : `<pre class="klein" data-meldtekst style="white-space: pre-wrap; user-select: all; max-height: 200px; overflow: auto; margin: 0">${esc(s.tekst)}</pre>`}
