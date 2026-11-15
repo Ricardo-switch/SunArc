@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Meldingen, wat niet klopt (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Wat nu alleen in het logboek staat, als melding met een knop, op de wand
+   * (schets, 15 november 2026). De vorm is die van Wand-Meldingen; de inhoud en
+   * de standen staan in meldingen-klopt.js.
+   */
+  main { position: relative; padding: 22px 26px 20px 22px; }
+  .klok { font-family: var(--kop); font-size: 56px; font-weight: 600; line-height: 1; }
+  .podium { position: absolute; left: 60px; top: 150px; width: 720px; height: 560px; opacity: 0.5; }
+  .achter { position: absolute; inset: 0; background: rgba(4, 8, 16, 0.45); }
+  .blad { position: absolute; top: 20px; right: 20px; bottom: 20px; width: 470px; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; background: rgba(12, 20, 34, 0.97); z-index: 5; }
+  .blad .kop { display: flex; justify-content: space-between; align-items: center; }
+  .sluit { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); display: grid; place-items: center; font-size: 18px; }
+  [data-lijst] { display: flex; flex-direction: column; gap: 12px; }
+  .blad h3 { margin: 6px 0 0; font-size: 13px; font-weight: 700; color: var(--gedempt); }
+  .melding { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 4px 12px; padding: 12px 14px; border-radius: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.07); }
+  .melding .ik { grid-row: 1 / 4; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; }
+  .melding .ik svg { width: 20px; height: 20px; }
+  .melding b { font-size: 15px; }
+  .melding p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--zacht); }
+  .melding .acties { display: flex; gap: 8px; margin-top: 6px; align-items: center; }
+  .melding .acties span { height: 34px; padding: 0 14px; border-radius: 11px; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700; background: rgba(255, 255, 255, 0.08); }
+  .melding .acties span.licht { background: var(--tekst); color: var(--inkt); }
+  .melding .acties .tijd { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--gedempt); background: none; padding: 0; }
+  .melding.oud { background: transparent; border-color: transparent; padding: 4px 14px; }
+  .melding.oud b { font-size: 14px; font-weight: 600; color: var(--zacht); }
+  .melding.oud .ik { width: 30px; height: 30px; grid-row: 1 / 3; }
+  .rood { background: rgba(255, 122, 77, 0.14); color: #ffb090; }
+  .geel { background: rgba(247, 181, 72, 0.14); color: var(--zon); }
+  .blauw { background: rgba(111, 211, 255, 0.14); color: var(--ijs); }
+  .groen { background: rgba(110, 231, 183, 0.12); color: var(--mint); }
+  .paars { background: rgba(143, 134, 255, 0.14); color: var(--violet); }
+  .onderhoud { margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: rgba(255, 255, 255, 0.05); }
+  .onderhoud b { display: block; font-size: 14.5px; }
+  .onderhoud span { font-size: 12.5px; color: var(--gedempt); }
+  .onderhoud .pijl { margin-left: auto; color: var(--gedempt); font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-avond">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="klok">15:20</div>
+    <div class="podium" id="podium"></div>
+  </main>
+  <div class="achter"></div>
+  <aside class="glas blad" aria-label="Meldingen">
+    <div class="kop"><h2 class="kop-2" style="margin: 0">Meldingen</h2><span class="sluit">×</span></div>
+    <div data-lijst></div>
+    <div class="onderhoud"><span class="ik groen" style="width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2"/></svg></span><div><b>Onderhoud</b><span>14 batterijen en 2 filters, alles goed</span></div><span class="pijl">›</span></div>
+  </aside>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="../../frontend/kit/huis.js"></script>
+<script src="meldingen-klopt.js"></script>
+<script>
+  nav.balk(document.getElementById('balk'), 'thuis');
+  huis.teken(document.getElementById('podium'), {
+    beschrijving: 'Het huis op de achtergrond.',
+    tijd: 'avond',
+    zon: { aandeel: 0, panelen: 12 },
+    etages: [
+      { kamers: [{ naam: 'Beneden', gewicht: 1.5, stil: true, apparaten: [{ soort: 'airco' }, { soort: 'lamp', aan: true, x: 0.4 }] }, { naam: 'Hal', gewicht: 0.6, stil: true, apparaten: [] }] },
+      { kamers: [{ naam: 'Badkamer', stil: true, apparaten: [] }, { naam: 'Hobbykamer', stil: true, apparaten: [] }, { naam: 'Slaapkamer', stil: true, apparaten: [] }] },
+      { dak: true, kamers: [{ naam: 'Zolder', stil: true, apparaten: [{ soort: 'airco' }, { soort: 'droger' }] }] },
+    ],
+    net: true,
+  }, { breedte: 720, hoogte: 560, marge: 0.06 });
+</script>
+</body>
+</html>
