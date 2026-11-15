@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.188.1';
+export const VERSIE = '0.189.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,26 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.189.0',
+    datum: '2026-11-15',
+    nieuw: [
+      'Wat niet klopt, staat nu in de bel met een knop. Koos je een zekering van 3 × 25 A en zijn er geen stroommeters per fase gevonden, dan stond dat alleen in het logboek. Nu zie je het, met één zin over het gevolg en een knop naar de plek waar je het oplost',
+    ],
+    beter: [
+      'Ook in de bel: een apparaat dat op zon moet helpen zonder vermogen, een kamer waar niets op temperatuur houdt, terugzetten na met de hand dat niet lukte, een stekker die niet aanging op zon, een geplande taak die niet is gedaan, en een weersverwachting die zes uur wegblijft',
+      'Een melding gaat vanzelf weg zodra het klopt. Is het een keuze die mag blijven, dan staat er Laat zo bij',
+    ],
+    en: {
+      nieuw: [
+        'What is not right now shows in the bell with a button. If you chose a 3 × 25 A main fuse and no current meters per phase were found, that was only in the log. Now you see it, with one sentence about the consequence and a button to the place where you fix it',
+      ],
+      beter: [
+        'Also in the bell: a device that should help on solar without its power, a room where nothing keeps the temperature, setting back after by hand that failed, a plug that did not switch on with solar, a planned task that was not done, and a weather forecast that stays away for six hours',
+        'A notification goes away by itself once it is right. If it is a choice that may stay, it has a Leave it button',
+      ],
+    },
+  },
   {
     versie: '0.188.1',
     datum: '2026-11-15',

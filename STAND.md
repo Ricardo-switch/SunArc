@@ -18,6 +18,9 @@ verwijzing bestaat.
   stel je in op zijn eigen kaart, en op Thuis staat altijd wat SunArc doet:
   sinds 0.188.0 een vaste strook met wat het anders zou doen of waar het op
   wacht, en een blad per kamer; de kop zegt alleen wat echt gebeurt ([313]).
+  Wat niet klopt, staat sinds 0.189.0 in de bel met een knop, in plaats van
+  alleen in het logboek: een keuze die niet is overgenomen, iets dat mislukte,
+  de weersverwachting die wegblijft ([314]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1015,4 +1018,5 @@ verwijzing bestaat.
 [311]: DECISIONS.md#311-lezen-van-binnenuit-op-een-eigen-server-hemslokaallezen
 [312]: DECISIONS.md#312-de-wintertest-is-van-dit-huis-een-nieuw-huis-leert-kijkt-mee-en-regelt-als-de-bewoner-dat-kiest
 [313]: DECISIONS.md#313-op-thuis-staat-vast-wat-sunarc-doet-en-de-kop-zegt-alleen-wat-echt-gebeurt
+[314]: DECISIONS.md#314-wat-niet-klopt-staat-in-de-bel-met-een-knop
 <!-- links:einde -->

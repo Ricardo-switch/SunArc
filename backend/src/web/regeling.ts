@@ -83,6 +83,18 @@ export interface RegelingApplied {
   readonly toegevoegd: readonly string[];
   /** Wat niet kon, zoals een apparaat dat Home Assistant niet (meer) kent. */
   readonly overgeslagen: readonly string[];
+  /** Hetzelfde als `overgeslagen`, maar als gegevens: voor de melding in de bel (besluit 314). */
+  readonly niet?: readonly RegelingNiet[];
+}
+
+/** Een apparaat dat de bewoner een taak gaf, en dat de regeling niet kon overnemen. */
+export interface RegelingNiet {
+  readonly id: string;
+  readonly naam: string;
+  readonly kamerId: string;
+  readonly kamer: string;
+  /** `vermogen`: helpt op zon kan pas met een vermogen. `geenKlimaat`: geen klimaatapparaat. `kanNiet`: Home Assistant zegt niet wat het kan. */
+  readonly waarom: 'vermogen' | 'geenKlimaat' | 'kanNiet';
 }
 
 /** Hoe snel een apparaat aan en uit mag: een airco wat rustiger dan een thermostaat. */
@@ -180,6 +192,7 @@ export function withRegeling(
   if (metRollen.length === 0) return { raw, toegevoegd: [], overgeslagen: [] };
   const toegevoegd: string[] = [];
   const overgeslagen: string[] = [];
+  const niet: RegelingNiet[] = [];
   let actuators = Array.isArray(raw['actuators']) ? [...(raw['actuators'] as Record<string, unknown>[])] : [];
   let zones = Array.isArray(raw['zones']) ? [...(raw['zones'] as Record<string, unknown>[])] : [];
   const geclaimd = new Set<string>();
@@ -211,6 +224,7 @@ export function withRegeling(
         const w = bron?.vermogenW ?? (caps?.['canCool'] === true ? AIRCO_W : null);
         if (zonderVermogen && w == null) {
           overgeslagen.push(`${String(a['name'] ?? id)}: helpt op zon kan pas met een vermogen`);
+          niet.push({ id, naam: String(a['name'] ?? id), kamerId: k.id, kamer: k.naam, waarom: 'vermogen' });
           continue;
         }
         if (a['role'] !== role || zonderVermogen) {
@@ -224,18 +238,21 @@ export function withRegeling(
       // Nieuw: een klimaatapparaat uit Home Assistant.
       if (!id.startsWith('climate.')) {
         overgeslagen.push(`${id}: geen klimaatapparaat`);
+        niet.push({ id, naam: String(ha.state(id)?.attributes['friendly_name'] ?? id), kamerId: k.id, kamer: k.naam, waarom: 'geenKlimaat' });
         continue;
       }
       const st = ha.state(id);
       const kan = vermogensVan(st);
       if (!kan) {
         overgeslagen.push(`${id}: Home Assistant zegt niet wat het kan`);
+        niet.push({ id, naam: String(st?.attributes['friendly_name'] ?? id), kamerId: k.id, kamer: k.naam, waarom: 'kanNiet' });
         continue;
       }
       const sensor = ha.vermogenSensor?.(id) ?? null;
       const w = bron?.vermogenW ?? (kan.canCool ? AIRCO_W : role === 'assist' ? null : 0);
       if (w == null) {
         overgeslagen.push(`${id}: helpt op zon kan pas met een vermogen`);
+        niet.push({ id, naam: String(st?.attributes['friendly_name'] ?? id), kamerId: k.id, kamer: k.naam, waarom: 'vermogen' });
         continue;
       }
       const standby = kan.canCool && kan.canHeat && kan.range[0] <= 18 && kan.range[1] >= 25 ? { standby: { heat: 18, cool: 25 } } : {};
@@ -305,5 +322,5 @@ export function withRegeling(
   const mig = raw['migration'] as Record<string, unknown> | undefined;
   const sp = mig?.['setpoints'] as Record<string, unknown> | undefined;
   const migration = sp && Object.keys(sp).some((z) => !ids.has(z)) ? { ...mig, setpoints: Object.fromEntries(Object.entries(sp).filter(([z]) => ids.has(z))) } : mig;
-  return { raw: { ...raw, actuators, zones, ...(migration !== undefined ? { migration } : {}) }, toegevoegd, overgeslagen };
+  return { raw: { ...raw, actuators, zones, ...(migration !== undefined ? { migration } : {}) }, toegevoegd, overgeslagen, niet };
 }

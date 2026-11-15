@@ -47,6 +47,7 @@
   'basis.bel.liveVan': 'Live beeld van {naam}',
   'basis.bel.andere': 'Andere camera’s',
   'basis.meld.allesWissen': 'Alles wissen',
+  'basis.meld.laatZo': 'Laat zo',
   'basis.meld.verwijder': 'Verwijder: {titel}',
   'basis.meld.aandacht': 'Vraagt aandacht',
   'basis.meld.allesWerkt': 'Alles werkt',

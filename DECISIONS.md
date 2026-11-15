@@ -305,6 +305,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [307. Stroom nu op Thuis, en wat er hangt bij de plekken buiten](#307-stroom-nu-op-thuis-en-wat-er-hangt-bij-de-plekken-buiten)
 - [308. Je huis tekenen: één tekentafel op ruitjes, en het huis in 3D uit de tekening](#308-je-huis-tekenen-één-tekentafel-op-ruitjes-en-het-huis-in-3d-uit-de-tekening)
 - [313. Op Thuis staat vast wat SunArc doet, en de kop zegt alleen wat echt gebeurt](#313-op-thuis-staat-vast-wat-sunarc-doet-en-de-kop-zegt-alleen-wat-echt-gebeurt)
+- [314. Wat niet klopt, staat in de bel met een knop](#314-wat-niet-klopt-staat-in-de-bel-met-een-knop)
 
 **Veiligheid**
 
@@ -14482,6 +14483,54 @@ waar eerst "Het huis wacht op zon" stond. Hoe ver je huis is houdt zijn weg
 naar zelf regelen met winterdagen, en de melding bij 10, 20 en 30 winterdagen
 blijft: die hangen aan de datasetmeter en veranderen met [312] in januari.
 Voor de testers verandert er tot dan niets ([310]).
+
+## 314. Wat niet klopt, staat in de bel met een knop
+
+*Onderwerp: weergave · Status: geldig*
+
+15 november 2026, versie 0.189.0. In elk logboek dat een tester meestuurde
+stond zes keer "Uit de app niet overgenomen: 3 × 25 A, maar 0 stroommeters per
+fase gevonden". De app wist een week dat er iets niet klopte en zei het alleen
+tegen het logboek. [7] zegt dat een fout luid faalt; in de praktijk hoorde
+alleen het logboek het. De dienst schreef 46 waarschuwingen weg die de bewoner
+nooit zag. Stap 1 van de kwaliteitsronde ([310]). Schets:
+`design/app2/Wand-Meldingen-Klopt.html` en `Tel-Meldingen-Klopt.html`.
+
+*Besluit:*
+
+- **Drie groepen worden een melding in de bel** ([136]), en tellen mee in het
+  getal:
+  - *Je koos iets, en SunArc kon het niet overnemen.* De zekering zonder
+    stroommeters per fase, een apparaat dat op zon moet helpen zonder vermogen,
+    een apparaat dat geen klimaatapparaat is of waarvan Home Assistant niet zegt
+    wat het kan, en een kamer waar alleen iets op zon helpt.
+  - *SunArc deed iets, en het lukte niet.* Terugzetten na met de hand,
+    aanzetten op zon, een geplande taak.
+  - *Iets van buiten komt niet binnen.* De weersverwachting van de bron die de
+    bewoner koos, pas na zes uur: een korte storing is geen melding.
+- **De vorm van de bel blijft:** een titel die zegt wat er is, één zin met het
+  gevolg, en één knop naar de plek waar je het oplost.
+- **Vanzelf weg.** De eerste groep volgt elke ronde uit de keuzes van nu, dus
+  de melding schuift naar Eerder zodra de keuze klopt ("De zekering telt weer
+  mee"). De tweede gaat weg als het daarna wel lukt, of na een halve dag (een
+  geplande taak na een dag).
+- ***Laat zo*** staat alleen bij iets dat een keuze kan zijn die mag blijven:
+  een kamer waar alleen een airco op zon helpt, en een apparaat dat geen
+  klimaatapparaat is. De melding komt dan niet terug zolang het zo blijft.
+- **Het logboek krijgt het ook nog**, voor wie een melding deelt.
+
+*Wat afviel:* wat over de server gaat (de deuren open, lezen zonder inlog,
+zonder Ingress) als melding: dat is voor wie de server beheert en blijft in
+het logboek. Elke melding weg te tikken met *Laat zo*: dan wordt een echte
+fout vergeten. De meldingen ook op Thuis of op de pagina zelf: op Thuis staat
+net de strook ([313]), en de pagina's worden in stap 3 opnieuw gebouwd.
+
+*Kosten:* wat mislukte, zegt niet welk apparaat het was: de ronde die
+terugzet, meldt alleen dat het niet lukte. De melding zegt dan "Een airco of
+thermostaat staat nog met de hand". Het register van wat mislukte wordt niet
+bewaard: na een herstart is het leeg, en wat nog steeds mislukt, meldt zich
+opnieuw. De 77 fouten die ook alleen naar het logboek gaan, zijn hiermee nog
+niet zichtbaar.
 
 ## Wat nog een besluit wacht
 

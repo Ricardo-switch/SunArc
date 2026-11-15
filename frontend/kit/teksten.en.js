@@ -42,6 +42,7 @@
   'basis.bel.liveVan': 'Live picture from {naam}',
   'basis.bel.andere': 'Other cameras',
   'basis.meld.allesWissen': 'Clear all',
+  'basis.meld.laatZo': 'Leave it',
   'basis.meld.verwijder': 'Remove: {titel}',
   'basis.meld.aandacht': 'Needs attention',
   'basis.meld.allesWerkt': 'Everything works',

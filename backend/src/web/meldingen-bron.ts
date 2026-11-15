@@ -39,6 +39,8 @@ export interface BronInvoer {
   readonly handKlaar?: MeldingenBron['handKlaar'];
   /** De slimme stekkers (besluit 264), of null als de registers er nog niet zijn. */
   readonly stekkers?: MeldingenBron['stekkers'];
+  /** Wat niet klopt (besluit 314), of null als de dienst het nog niet weet. */
+  readonly klopt?: MeldingenBron['klopt'];
 }
 
 /** De bron voor de bel, of null als bijna alles tegelijk weg is: dan is Home Assistant zelf weg. */
@@ -88,6 +90,7 @@ export function meldingenBron(i: BronInvoer): MeldingenBron | null {
     accus: i.accus ?? null,
     handKlaar: i.handKlaar ?? [],
     stekkers: i.stekkers ?? null,
+    klopt: i.klopt ?? null,
     winterdagen: i.winterdagen,
     // Wiens comfort er geldt (besluit 147), voor één melding bij een wissel.
     comfort: (() => {

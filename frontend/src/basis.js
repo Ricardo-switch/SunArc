@@ -1409,6 +1409,10 @@
   let meld = { actief: [], eerder: [] };
   let meldZicht = 'lijst';
   const MELDICOON = {
+    // Wat niet klopt (besluit 314): een keuze die niet is overgenomen, iets dat mislukte, een bron die wegblijft.
+    klopt: ['geel', '<path d="M12 4 2.5 20h19z"/><path d="M12 10v4.5M12 17.4v.1"/>'],
+    mislukt: ['rood', '<path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4h4"/><path d="M12 9v3.5M12 15.4v.1"/>'],
+    bron: ['blauw', '<path d="M7 18h10a4 4 0 0 0 .5-8 6 6 0 0 0-11.6 1.6A3.5 3.5 0 0 0 7 18z"/><path d="M4 4l16 16"/>'],
     nieuw: ['blauw', iconen.binnen('nieuw')],
     // Weg uit Home Assistant (25 oktober 2026): een min in een rondje.
     weg: ['geel', iconen.binnen('weg')],
@@ -1449,7 +1453,7 @@
   const doel = (m) => (m.soort === 'versie' ? `data-meld-versie="${esc(m.id.replace(/^versie:/, ''))}"` : m.soort === 'update' ? 'data-meld-update' : m.actie ? `data-meld-href="${esc(m.actie.href)}"` : '');
   function meldLijst() {
     const kaart = (m) => `<div class="melding" ${doel(m)}>${meldIcoon(m.soort)}<b>${esc(m.titel)}</b>${weg(m)}<p>${esc(m.tekst)}</p>
-      <div class="acties">${m.actie ? `<a class="licht" href="${esc(m.actie.href)}">${esc(m.actie.label)}</a>` : ''}<span class="tijd">${esc(wanneerMeld(m.sindsMs))}</span></div></div>`;
+      <div class="acties">${m.actie ? `<a class="licht" href="${esc(m.actie.href)}">${esc(m.actie.label)}</a>` : ''}${m.laat ? `<button type="button" data-meld-weg="${esc(m.id)}">${esc(global.t('basis.meld.laatZo'))}</button>` : ''}<span class="tijd">${esc(wanneerMeld(m.sindsMs))}</span></div></div>`;
     const oud = (m) => `<div class="melding oud" ${doel(m)}>${meldIcoon(m.soort === 'versie' || m.soort === 'mijlpaal' ? m.soort : 'goed')}<b>${esc(m.titel)}</b>${weg(m)}<p>${esc(m.tekst)}</p></div>`;
     const aandacht = meld.actief.length
       ? `<h3>${esc(global.t('basis.meld.aandacht'))}</h3>${meld.actief.map(kaart).join('')}`

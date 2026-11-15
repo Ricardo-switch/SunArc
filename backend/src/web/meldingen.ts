@@ -34,10 +34,11 @@ import { join } from 'node:path';
 import type { Lang } from './assistant.js';
 import { STANDAARD_DREMPELS, onderDrempel, type Drempels } from './house.js';
 import { metLidwoord } from './kamerwoorden.js';
+import { kloptMelding, type KloptFeit } from './klopt.js';
 
 export const MELDINGEN_FILE = 'meldingen.json';
 
-export type MeldingSoort = 'nieuw' | 'weg' | 'stil' | 'batterij' | 'filter' | 'meter' | 'versie' | 'mijlpaal' | 'comfort' | 'panelen' | 'rook' | 'update' | 'sluip' | 'dak' | 'auto' | 'stekker' | 'accu';
+export type MeldingSoort = 'nieuw' | 'weg' | 'stil' | 'batterij' | 'filter' | 'meter' | 'versie' | 'mijlpaal' | 'comfort' | 'panelen' | 'rook' | 'update' | 'sluip' | 'dak' | 'auto' | 'stekker' | 'accu' | 'klopt' | 'mislukt' | 'bron';
 
 export interface Melding {
   /** Vast per onderwerp, zoals `stil:light.hal`: zo komt hetzelfde niet dubbel. */
@@ -54,6 +55,8 @@ export interface Melding {
   readonly aandacht: boolean;
   /** Wat er bij opgelost staat, zoals "Airco zolder weer goed". */
   readonly klaar?: { readonly titel: string; readonly tekst: string };
+  /** Een keuze die mag blijven (besluit 314): dan staat er *Laat zo* bij. */
+  readonly laat?: boolean;
   /**
    * Dezelfde woorden in het Engels (besluit 185): de dienst maakt een melding
    * in beide talen, en de bel en de telefoon kiezen. Een melding van voor
@@ -123,6 +126,12 @@ export interface MeldingenBron {
    * niet bekend (de registers zijn er nog niet); dan blijft wat er stond.
    */
   readonly stekkers?: readonly { readonly id: string; readonly naam: string; readonly opZon: boolean; readonly meter: string | null; readonly meterErin: boolean }[] | null;
+  /**
+   * Wat niet klopt (besluit 314): wat de bewoner koos en de regeling niet kon
+   * overnemen, wat mislukte, en wat van buiten niet binnenkomt. Weg: nog niet
+   * bekend (net gestart); dan blijft wat er stond.
+   */
+  readonly klopt?: readonly KloptFeit[] | null;
   /**
    * De thuisaccu's (besluit 276): hoe vol, een fout, sinds wanneer ze niets
    * zeggen, en hoeveel er nu naar het net gaat. Weg zonder accu.
@@ -661,6 +670,8 @@ export function wat(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[] {
       return { id: 'sluip', soort: 'sluip', aandacht: true, titel: s.nachten > 1 ? w.sluip.reeks(s.nachten) : w.sluip.titel(s.bovenW), tekst: w.sluip.tekst(s.w, s.gewoonW), actie: { label: w.bekijk, href: 'sluipverbruik.html' }, klaar: { titel: w.sluip.klaar, tekst: w.sluip.klaarTekst } };
     }));
   }
+  // Wat niet klopt (besluit 314): de woorden staan in klopt.ts.
+  for (const f of bron.klopt ?? []) uit.push(tweetalig((lang) => kloptMelding(f, lang, nu)));
   return uit;
 }
 
@@ -839,6 +850,8 @@ export class MeldingenStore {
     const ids = new Set(nuSpeelt.map((m) => m.id));
     // Weet de dienst de stekkers nog niet (net gestart), dan blijft staan wat er stond (besluit 264).
     if (bron.stekkers == null) for (const m of b.meldingen) if (m.soort === 'stekker' && m.opgelostMs == null) ids.add(m.id);
+    // Net zo voor wat niet klopt (besluit 314).
+    if (bron.klopt == null) for (const m of b.meldingen) if ((m.soort === 'klopt' || m.soort === 'mislukt' || m.soort === 'bron') && m.opgelostMs == null) ids.add(m.id);
     const meldingen = [...b.meldingen];
     for (const m of nuSpeelt) {
       const i = meldingen.findIndex((x) => x.id === m.id && x.opgelostMs == null);

@@ -21,9 +21,10 @@ import { klaarzetten, type KlaarPunt } from './web/klaarzetten.js';
 import { klaarFuncties, wolkenVan, type WandMelding } from './web/klaarzetten-functies.js';
 import { Stem, kiesTaal } from './web/stem.js';
 import { InHuis, addOnInfo, bevestigViaRest, maakViaWebsocket, type AddOnInfo, type Stroom } from './web/stem-in-huis.js';
-import { rollenUitConfig } from './web/regeling.js';
+import { rollenUitConfig, type RegelingNiet } from './web/regeling.js';
 import { MeldingenStore } from './web/meldingen.js';
 import { meldingenBron } from './web/meldingen-bron.js';
+import { KloptRegister, kloptVast } from './web/klopt.js';
 import { VERSIE } from './version.js';
 import { existsSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -426,10 +427,31 @@ await bewonersStore?.load();
  * prijs van nu bij een prijs per uur. Leeg tot de meters en prijzen geladen zijn.
  */
 let prijzenVoorHelpen: () => { gas: number | null; stroom: number | null } = () => ({ gas: null, stroom: null });
+/*
+ * Wat niet klopt, als melding in de bel (besluit 314): wat de regeling niet kon
+ * overnemen uit de laatste keer dat de configuratie is opgebouwd, hoeveel
+ * stroommeters per fase de configuratie zelf noemt, en het register voor wat
+ * mislukt. Het logboek krijgt het ook nog.
+ */
+const klopt = new KloptRegister();
+let regelingNiet: readonly RegelingNiet[] = [];
+const fasenIn = (raw: Record<string, unknown>): number => {
+  const grid = typeof raw['grid'] === 'object' && raw['grid'] != null ? (raw['grid'] as Record<string, unknown>) : null;
+  return Array.isArray(grid?.['phases']) ? (grid['phases'] as unknown[]).length : 0;
+};
+let basisFasen = 0;
+if (site) {
+  try {
+    basisFasen = fasenIn(JSON.parse(await readFile(site.source, 'utf-8')) as Record<string, unknown>);
+  } catch {
+    // Niet te lezen: dan telt alleen wat de app over de meters weet.
+  }
+}
 /** De ruwe configuratie met alles wat de app erover legt, en comfort zoals gegeven. */
 async function configWithComfort(comfort: Comfort | null, bewoners: Bewoners = bewonersStore?.current ?? GEEN_BEWONERS): Promise<{ ok: true; config: SiteConfig; toegevoegd: string[] } | { ok: false; reden: string }> {
   if (!site) return { ok: false, reden: 'er is geen configuratie' };
   const base = JSON.parse(await readFile(site.source, 'utf-8')) as Record<string, unknown>;
+  basisFasen = fasenIn(base);
   // De stapel zelf staat in config-uit-app.ts; hier de stand van nu.
   return configUitDeApp(base, {
     aansluiting: answersInGebruik,
@@ -451,6 +473,9 @@ async function configWithComfort(comfort: Comfort | null, bewoners: Bewoners = b
       return { thermostaat: vw?.thermostaat ?? null, stroom: p.stroom, gas: gasKetel ? p.gas : null };
     })(),
     waarschuw: (t) => console.warn(t),
+    niet: (lijst) => {
+      regelingNiet = lijst;
+    },
   });
 }
 /** De indeling van nu, zodra de opslag er is; daarvoor die van het starten. */
@@ -767,16 +792,28 @@ const stekkerZon = new StekkerZon({
 if (inHuisMetDeuren) {
   setInterval(() => {
     stekkerhand.ronde().then(
-      (gedaan) => gedaan.forEach((g) => console.log(`[stekker met de hand] ${g}`)),
-      (e: unknown) => console.warn(`[stekker met de hand] terugzetten lukte niet: ${(e as Error).message}`),
+      (gedaan) => {
+        klopt.gelukt('terug', 'stekker');
+        gedaan.forEach((g) => console.log(`[stekker met de hand] ${g}`));
+      },
+      (e: unknown) => {
+        klopt.meld({ soort: 'terug', id: 'stekker', naam: 'Een stekker', sindsMs: Date.now() });
+        console.warn(`[stekker met de hand] terugzetten lukte niet: ${(e as Error).message}`);
+      },
     );
   }, 60_000).unref();
 }
 if (laadhand) {
   setInterval(() => {
     laadhand.ronde().then(
-      (gedaan) => gedaan.forEach((g) => console.log(`[laden met de hand] ${g}`)),
-      (e: unknown) => console.warn(`[laden met de hand] terugzetten lukte niet: ${(e as Error).message}`),
+      (gedaan) => {
+        klopt.gelukt('terug', 'laden');
+        gedaan.forEach((g) => console.log(`[laden met de hand] ${g}`));
+      },
+      (e: unknown) => {
+        klopt.meld({ soort: 'terug', id: 'laden', naam: 'Het laden van de auto', sindsMs: Date.now() });
+        console.warn(`[laden met de hand] terugzetten lukte niet: ${(e as Error).message}`);
+      },
     );
   }, 60_000).unref();
 }
@@ -875,12 +912,24 @@ function handSchakelaars(): { id: string; kamer: string; naam: string; aan: bool
 if (klimaatBrug) {
   setInterval(() => {
     klimaatBrug.ronde().then(
-      (gedaan) => gedaan.forEach((g) => console.log(`[klimaatbrug] ${g}`)),
-      (e: unknown) => console.warn(`[klimaatbrug] terugzetten lukte niet: ${(e as Error).message}`),
+      (gedaan) => {
+        klopt.gelukt('terug', 'klimaat');
+        gedaan.forEach((g) => console.log(`[klimaatbrug] ${g}`));
+      },
+      (e: unknown) => {
+        klopt.meld({ soort: 'terug', id: 'klimaat', naam: 'Een airco of thermostaat', sindsMs: Date.now() });
+        console.warn(`[klimaatbrug] terugzetten lukte niet: ${(e as Error).message}`);
+      },
     );
     handbediening?.ronde().then(
-      (gedaan) => gedaan.forEach((g) => console.log(`[met de hand] ${g}`)),
-      (e: unknown) => console.warn(`[met de hand] terugzetten lukte niet: ${(e as Error).message}`),
+      (gedaan) => {
+        klopt.gelukt('terug', 'hand');
+        gedaan.forEach((g) => console.log(`[met de hand] ${g}`));
+      },
+      (e: unknown) => {
+        klopt.meld({ soort: 'terug', id: 'hand', naam: 'Een airco of thermostaat', sindsMs: Date.now() });
+        console.warn(`[met de hand] terugzetten lukte niet: ${(e as Error).message}`);
+      },
     );
   }, 60_000).unref();
 }
@@ -1138,8 +1187,14 @@ const runner: ShadowRunner | null =
                 void witgoed?.opBesluit(snapshot).catch(() => []);
                 // En een stekker op zon (besluit 267).
                 void stekkerZon.opBesluit(snapshot.explanation.heatStores).then(
-                  (gedaan) => gedaan.forEach((g) => console.log(`[stekker op zon] ${g}`)),
-                  (e: unknown) => console.warn(`[stekker op zon] lukte niet: ${(e as Error).message}`),
+                  (gedaan) => {
+                    klopt.gelukt('opZon', 'stekker');
+                    gedaan.forEach((g) => console.log(`[stekker op zon] ${g}`));
+                  },
+                  (e: unknown) => {
+                    klopt.meld({ soort: 'opZon', id: 'stekker', naam: 'Een stekker', sindsMs: Date.now() }, 6 * 3_600_000);
+                    console.warn(`[stekker op zon] lukte niet: ${(e as Error).message}`);
+                  },
                 );
                 web?.publish(snapshot);
                 // De stand van de kamers in het huis hangt aan het besluit.
@@ -1567,6 +1622,17 @@ function meldingenRonde(): void {
     accus: accuBel(cfg),
     // De slimme stekkers (besluit 264): gevonden, en zijn meter bij Energie.
     stekkers: stekkerBel(cfg),
+    // Wat niet klopt (besluit 314): uit de keuzes van nu, en wat mislukte.
+    klopt: [
+      ...kloptVast({
+        answers: connectionStore?.current ?? null,
+        configFasen: basisFasen,
+        regelingNiet,
+        config: cfg,
+        kamerVanZone: (zoneId) => regelKamers(layoutNu?.()?.kamers ?? []).find((k) => k.regelzone === zoneId)?.id ?? null,
+      }),
+      ...klopt.lijst(Date.now()),
+    ],
   });
   if (bron == null) return;
   meldingen.bij(bron);
@@ -1736,6 +1802,8 @@ async function voerGeplandUit(h: Herinnering): Promise<void> {
     const r = await voerStapUit(s, deuren);
     if (r == null) console.warn(`[gepland] ${s.pad} staat niet aan; "${h.tekst}" niet gedaan`);
     else if (!r.ok) console.warn(`[gepland] "${h.tekst}" lukte niet: ${r.reden ?? ''}`);
+    // Niet gedaan: dat hoort de bewoner te zien (besluit 314), een dag lang.
+    if (r == null || !r.ok) klopt.meld({ soort: 'gepland', id: h.tekst, tekst: h.tekst, sindsMs: Date.now() }, 24 * 3_600_000);
   }
 }
 
@@ -2149,7 +2217,16 @@ const weerBron = (): string | null => {
 };
 const volgWeer = () => {
   const bron = weerBron();
-  client.followForecast(bron?.startsWith('weather.') ? bron : null).catch((e: unknown) => console.warn(`Verwachting van ${bron} niet te volgen: ${(e as Error).message}`));
+  const vanHa = bron?.startsWith('weather.') === true;
+  client.followForecast(vanHa ? bron : null).then(
+    () => {
+      if (vanHa) klopt.weer(true, Date.now());
+    },
+    (e: unknown) => {
+      if (vanHa) klopt.weer(false, Date.now());
+      console.warn(`Verwachting van ${bron} niet te volgen: ${(e as Error).message}`);
+    },
+  );
 };
 setInterval(volgWeer, 60_000).unref();
 setTimeout(volgWeer, 15_000).unref();
@@ -2164,7 +2241,16 @@ const haalWeer = () => {
   const f = functiesNu();
   const w = f ? volledig(f, functiesKeuzes()).weer : null;
   if (w == null || (!w.uren && w.bron !== OPEN_METEO)) return;
-  openMeteo.refresh(w.uren).catch((e: unknown) => console.warn(`Weer van Open-Meteo niet opgehaald: ${(e as Error).message}`));
+  const gekozen = w.bron === OPEN_METEO;
+  openMeteo.refresh(w.uren).then(
+    () => {
+      if (gekozen) klopt.weer(true, Date.now());
+    },
+    (e: unknown) => {
+      if (gekozen) klopt.weer(false, Date.now());
+      console.warn(`Weer van Open-Meteo niet opgehaald: ${(e as Error).message}`);
+    },
+  );
 };
 setInterval(haalWeer, 5 * 60_000).unref();
 setTimeout(haalWeer, 20_000).unref();

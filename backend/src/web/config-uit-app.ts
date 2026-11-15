@@ -18,7 +18,7 @@ import { withComfort, type Comfort } from './comfort.js';
 import { helpenNu, withCvHelp, type HelpenKeuze } from './helpen.js';
 import { regelKamers, zoneKamerId, type Layout } from './layout.js';
 import { withMeasurement } from './meten.js';
-import { doelenBinnenBereik, withBereik, withRegeling } from './regeling.js';
+import { doelenBinnenBereik, withBereik, withRegeling, type RegelingNiet } from './regeling.js';
 import { withHeatSources } from './warmte.js';
 
 export interface UitDeApp {
@@ -37,6 +37,8 @@ export interface UitDeApp {
   readonly helpen?: HelpenKeuze;
   /** Voor wat er niet over te nemen viel, zoals een regeling die een apparaat mist. */
   readonly waarschuw?: (tekst: string) => void;
+  /** Hetzelfde als gegevens, voor de melding in de bel (besluit 314): elke keer de hele lijst van nu. */
+  readonly niet?: (lijst: readonly RegelingNiet[]) => void;
 }
 
 /** De ruwe configuratie met alles wat de app erover legt, getoetst. */
@@ -56,6 +58,7 @@ export function configUitDeApp(base: Record<string, unknown>, i: UitDeApp): { ok
     kamerVan: (id) => zoneVan(id) ?? layout?.apparaten[id]?.kamer ?? null,
   });
   for (const t of metRegeling.overgeslagen) i.waarschuw?.(`Regeling uit de app: ${t}`);
+  i.niet?.(metRegeling.niet ?? []);
   // Het bereik per apparaat (besluit 197), als de bewoner een ander koos dan Home Assistant opgeeft.
   const metBereik = withBereik(metRegeling.raw, layout?.apparaten ?? null);
   // Meten met (besluit 123) uit de indeling van nu: de regeling neemt een andere sensor meteen over (138).

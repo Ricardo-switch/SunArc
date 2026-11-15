@@ -2031,6 +2031,76 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     }
   }, 30_000);
 
+  /*
+   * Wat niet klopt, als melding met een knop (besluit 314): een keuze die de
+   * regeling niet kon overnemen staat in de bel, met de weg naar de plek waar
+   * je het oplost, en Laat zo als het een keuze is die mag blijven.
+   */
+  it('meldt wat niet klopt in de bel, met een knop en Laat zo (besluit 314)', async () => {
+    for (const scherm of ['wand', 'tel'] as const) {
+      const context = await browser.newContext(
+        scherm === 'wand'
+          ? { viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' }
+          : { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' },
+      );
+      await context.addInitScript((v) => {
+        localStorage.setItem('sc-rondleiding-gezien', '1');
+        localStorage.setItem('sc-versie-gezien', v);
+      }, VERSIE);
+      await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+      await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+      const p = await context.newPage();
+      const fouten: string[] = [];
+      p.on('pageerror', (e) => fouten.push(e.message));
+      const bron = { nu: Date.now(), zonderRuimte: [], volgen: [], batterijen: [], filters: [], meters: [], versie: null, winterdagen: null };
+      meldingenStore.bij({
+        ...bron,
+        klopt: [
+          { soort: 'zekering', fasen: 3, ampere: 25, meters: 0 },
+          { soort: 'alleenHelpt', zoneId: `zolder-${scherm}`, kamer: 'Wasruimte', kamerId: 'zolder' },
+        ],
+      });
+      try {
+        await p.goto(`${baseUrl}/vandaag.html`);
+        const bel = p.locator(`#${scherm} [data-meldbel]`);
+        await expect.poll(() => bel.locator('[data-meldaantal]').textContent(), { timeout: 10_000 }).toBe('2');
+        await bel.click({ timeout: 5_000 });
+        const blad = p.locator('[data-meldblad]');
+        const zekering = blad.locator('.melding', { hasText: 'De zekering telt nog niet mee' });
+        await zekering.waitFor();
+        expect(await zekering.locator('p').textContent()).toBe('Je koos 3 × 25 A, maar er is geen stroommeter per fase gevonden. Zonder die meters bewaakt SunArc de zekering niet.');
+        // Eén knop naar de plek waar je het oplost; geen Laat zo, want dit is geen keuze.
+        expect(await zekering.locator('.acties a.licht').textContent()).toBe('Kies de meters');
+        expect(await zekering.locator('.acties a.licht').getAttribute('href')).toBe('energie.html#meters');
+        expect(await zekering.locator('.acties button').count()).toBe(0);
+        // Een kamer waar alleen iets op zon helpt, mag zo blijven.
+        const kamer = blad.locator('.melding', { hasText: 'Niets houdt de wasruimte op temperatuur' });
+        expect(await kamer.locator('.acties a.licht').getAttribute('href')).toBe('indeling.html#zolder/warmte');
+        expect(await kamer.locator('.acties button').textContent()).toBe('Laat zo');
+        // De knoppen passen in de melding, ook op de telefoon.
+        const vak = (await kamer.boundingBox())!;
+        for (const knop of await kamer.locator('.acties > *').all()) {
+          const k = (await knop.boundingBox())!;
+          expect(k.x + k.width).toBeLessThanOrEqual(vak.x + vak.width + 1);
+        }
+        if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', `-klopt-${scherm}.png`) });
+        await kamer.locator('.acties button').click();
+        await expect.poll(() => blad.locator('.melding', { hasText: 'Niets houdt de wasruimte op temperatuur' }).count(), { timeout: 5_000 }).toBe(0);
+        expect(await zekering.count()).toBe(1);
+        // De meters zijn gekozen: de melding schuift naar Eerder.
+        meldingenStore.bij({ ...bron, nu: Date.now(), klopt: [{ soort: 'alleenHelpt', zoneId: `zolder-${scherm}`, kamer: 'Wasruimte', kamerId: 'zolder' }] });
+        server.meldingenVeranderd();
+        await blad.locator('.melding.oud', { hasText: 'De zekering telt weer mee' }).waitFor({ timeout: 5_000 });
+        expect(fouten).toEqual([]);
+      } finally {
+        meldingenStore.bij({ ...bron, nu: Date.now(), klopt: [] });
+        // Alleen wat deze test maakte weer weg, zodat de bel voor de andere tests is zoals hij was.
+        for (const id of ['klopt:zekering', `klopt:zone:zolder-${scherm}`]) meldingenStore.verwijder(id);
+        await context.close();
+      }
+    }
+  }, 60_000);
+
   /* Schermen (besluit 121) en batterijen (besluit 122). */
   it('bedient een scherm vanuit Kamer, en meldt een lege batterij op Thuis', async () => {
     const context = await browser.newContext({ viewport: { width: 1340, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
