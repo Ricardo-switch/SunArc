@@ -202,8 +202,10 @@ SunArc, en staat de add-on op de Pi uit, zet dan in `.env`:
 HEMS_DEUREN=1
 ```
 
-en start de container opnieuw (`docker restart hems-shadow`). Het logboek zegt
-bij het opstarten welke deuren open staan. Elk apparaat laat je daarna nog
+en maak de container opnieuw aan in de map van de NAS (`docker compose up -d`).
+Een gewone herstart (`docker restart`) leest de `.env` niet opnieuw in. Het
+logboek zegt bij het opstarten welke deuren open staan. Zet eerst de add-on op
+de Pi uit. Elk apparaat laat je daarna nog
 steeds zelf toe in de app. Zet het nooit in twee installaties tegelijk aan op
 hetzelfde Home Assistant: dan bedienen ze elkaars apparaten en komen meldingen
 dubbel. Bijwerken vanuit de app, de koppeling met Assist en de stem in huis
