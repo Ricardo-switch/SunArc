@@ -1,0 +1,72 @@
+/*
+ * Wat SunArc doet, vast op Thuis (schets, 15 november 2026). Voor Wand-Thuis-Doet
+ * en Tel-Thuis-Doet; thuis-doet.js tekent de inhoud.
+ */
+body { margin: 0; background: #0b1424; }
+.scherm { position: relative; overflow: hidden; background: #0b1424 0 0 no-repeat; }
+.groet, .kop-1, .lead { position: absolute; margin: 0; }
+.groet { font-size: 15px; font-weight: 600; color: var(--zacht); display: flex; align-items: center; white-space: nowrap; }
+.groet .sep { margin: 0 8px; color: var(--gedempt); }
+.standregel { display: inline-flex; align-items: center; gap: 7px; color: var(--zacht); }
+.standregel i, .doet i.d-pijl { font-style: normal; color: var(--gedempt); font-size: 17px; line-height: 1; }
+
+/*
+ * De strook, op de wand tussen het huis en de vraagbalk, op de telefoon tussen
+ * het huis en de stromen. De stip heeft de kleur van de stand, zoals in de
+ * waaier: ijs kijkt mee, mint regelt.
+ */
+[data-doet] { position: absolute; z-index: 5; }
+.doet { --k: var(--ijs); border: 0; padding: 0; font: inherit; color: var(--tekst); text-align: left; cursor: pointer; }
+.doet .stip { width: 9px; height: 9px; border-radius: 50%; background: var(--k); box-shadow: 0 0 0 4px color-mix(in srgb, var(--k) 22%, transparent); flex: none; }
+.doet b { font-weight: 700; color: color-mix(in srgb, var(--k) 70%, white); }
+.doet.strook { display: grid; align-items: center; box-sizing: border-box; width: 100%; border-radius: 22px; background: rgb(var(--nacht) / 0.72); border: 1px solid color-mix(in srgb, var(--k) 30%, var(--glas-rand)); backdrop-filter: blur(14px); }
+.doet.strook .d-wie { display: flex; align-items: center; gap: 10px; }
+.doet.strook .d-wie b { font-size: 15.5px; }
+.doet.strook .d-wie span { font-size: 13.5px; color: var(--zacht); }
+.doet.strook .d-zou { font-size: 16px; font-weight: 600; color: var(--tekst); }
+.doet.strook .d-tel { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--zacht); white-space: nowrap; }
+.doet.strook .blokjes { display: flex; gap: 3px; }
+.doet.strook .blokjes i { width: 16px; height: 8px; border-radius: 3px; background: rgb(var(--wit) / 0.14); }
+.doet.strook .blokjes i.ja { background: var(--k); }
+
+/* Het blad, zoals het blad van de stand. */
+.sb-achter { position: absolute; inset: 0; background: rgba(4, 8, 16, 0.55); z-index: 40; }
+.sb-achter[hidden], .kiesblad[hidden] { display: none; }
+.kiesblad { position: absolute; z-index: 41; display: flex; flex-direction: column; padding: 18px 22px; border-radius: 26px; background: rgb(var(--nacht) / 0.98); border: 1px solid var(--glas-rand); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5); box-sizing: border-box; }
+.kiesblad .bladkop { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 6px; }
+.kiesblad .bladkop .knop { height: 38px; padding: 0 14px; font-size: 14px; }
+.kiesblad .bladkop .knop-licht { color: var(--op-accent); }
+.kiesblad h3 { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); margin: 18px 0 4px; }
+.sb-kolommen { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 0 28px; }
+.sb-held { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; margin-top: 4px; }
+.sb-held b { font-family: var(--kop); font-size: 34px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
+/* Onder de stand, op een eigen regel. */
+.sb-held > span.onder { order: 3; flex-basis: 100%; margin-top: 6px; font-size: 14px; color: var(--zacht); }
+.sb-stip { align-self: center; width: 12px; height: 12px; border-radius: 50%; background: var(--k); box-shadow: 0 0 0 5px color-mix(in srgb, var(--k) 22%, transparent); flex: none; }
+
+/* Leren, kijkt mee, regelt: dezelfde balk als bij Regeling › Klimaat. */
+.sb-fase { margin-left: auto; align-self: center; display: inline-flex; padding: 3px; border-radius: 999px; background: rgb(var(--wit) / 0.06); }
+.sb-held .sb-fase i { font-style: normal; font-size: 12.5px; font-weight: 600; color: var(--gedempt); padding: 5px 11px; border-radius: 999px; white-space: nowrap; }
+.sb-held .sb-fase i.nu { background: color-mix(in srgb, var(--k, var(--ijs)) 24%, transparent); color: var(--tekst); }
+.sb-bij { margin: 4px 0 0; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
+
+/* Per kamer: wat er nu in huis gebeurt en wat SunArc zou doen. */
+.sb-kamer { display: grid; grid-template-columns: 112px minmax(0, 1fr) minmax(0, 1fr) 22px; gap: 0 14px; align-items: center; padding: 10px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
+.sb-kamer.een { grid-template-columns: 112px minmax(0, 1fr); }
+.sb-kamer.kop { padding: 0 0 4px; border-top: 0; font-size: 12px; color: var(--gedempt); }
+.sb-kamer b { display: block; font-size: 15px; }
+.sb-kamer small { display: block; font-size: 13px; color: var(--gedempt); }
+.sb-kamer .echt, .sb-kamer .zouhij { font-size: 14px; line-height: 1.35; color: var(--zacht); }
+.sb-kamer .zouhij { color: var(--tekst); }
+.sb-kamer .gelijk { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.sb-kamer .gelijk.ja { background: color-mix(in srgb, var(--mint) 20%, transparent); color: var(--mint); }
+.sb-kamer .gelijk.nee { background: color-mix(in srgb, var(--zon) 18%, transparent); color: var(--zon); }
+
+/* Wat SunArc zelf schakelt: een regel met een waarde. */
+.sb-wel { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 12px; align-items: center; padding: 9px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
+.sb-wel:first-of-type { border-top: 0; }
+.sb-wel b { display: block; font-size: 15px; }
+.sb-wel small { display: block; font-size: 13px; color: var(--gedempt); }
+.sb-wel .waarde { font-family: var(--kop); font-size: 15px; font-weight: 600; white-space: nowrap; }
+.sb-knoppen { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.sb-knoppen .knop { height: 40px; font-size: 14px; }

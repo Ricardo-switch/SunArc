@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Thuis, wat SunArc doet (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="thuis-doet.css">
+<style>
+  /*
+   * Wat SunArc doet, vast op Thuis, op de telefoon (schets, 15 november 2026).
+   * Uitleg en standen in thuis-doet.js. Het blad komt van onderen.
+   */
+  .scherm { width: 390px; height: 844px; background-size: 390px 844px; }
+  .groet { left: 18px; top: 72px; right: 18px; }
+  .kop-1 { left: 18px; top: 94px; width: 354px; font-size: 32px; }
+  .lead { left: 18px; top: 172px; width: 354px; font-size: 15px; line-height: 1.45; max-width: none; }
+  /* Tussen het huis en de stromen. */
+  [data-doet] { left: 16px; top: 474px; width: 358px; }
+  .doet.strook { height: 60px; padding: 0 14px; border-radius: 18px; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0 11px; }
+  .doet.strook .d-twee { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 12.5px; color: var(--zacht); }
+  .doet.strook .d-twee b { font-size: 13.5px; }
+  .doet.strook .d-zou { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kiesblad { left: 8px; right: 8px; bottom: 8px; max-height: 90%; overflow: auto; padding: 12px 18px 18px; }
+  .kiesblad::before { content: ''; display: block; width: 44px; height: 5px; border-radius: 3px; background: rgb(var(--wit) / 0.2); margin: 0 auto 10px; flex: none; }
+  .sb-kolommen { grid-template-columns: minmax(0, 1fr); }
+  .sb-held b { font-size: 28px; }
+  .sb-kamer { grid-template-columns: 78px minmax(0, 1fr) minmax(0, 1fr) 22px; gap: 0 10px; }
+  .sb-kamer .echt, .sb-kamer .zouhij { font-size: 13px; }
+  .sb-held .sb-fase i { padding: 4px 8px; font-size: 11.5px; }
+</style>
+</head>
+<body data-scherm="tel">
+  <div class="scherm">
+    <span class="groet" data-groet></span>
+    <h1 class="kop-1" data-kop></h1>
+    <p class="lead" data-zin></p>
+    <div data-doet></div>
+    <div class="sb-achter" data-achter hidden></div>
+    <aside class="kiesblad" data-blad hidden></aside>
+  </div>
+  <script src="thuis-doet.js"></script>
+</body>
+</html>

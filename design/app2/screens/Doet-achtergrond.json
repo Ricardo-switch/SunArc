@@ -1,0 +1,78 @@
+{
+  "kop": {
+    "boven": "Nu · Dag",
+    "titel": "De woonkamer wordt verwarmd",
+    "zin": "Het is er 20,8°, het doel is 20,5°. Zolder: wacht: pauzeert even na het uitgaan."
+  },
+  "rust": "Droger: niets te doen",
+  "kamers": [
+    {
+      "zoneId": "woonkamer",
+      "soort": "heat",
+      "kort": "Verwarmt",
+      "zin": "In de woonkamer is het 20,8°, precies goed. Ik zou pas ingrijpen onder 20,5° of boven 23°. De warmtepomp verwarmt nu.",
+      "echt": "Warmtepomp verwarmen naar 20,5°",
+      "actuatorId": "nest",
+      "klopt": true
+    },
+    {
+      "zoneId": "badkamer",
+      "soort": "ok",
+      "kort": "Op temperatuur",
+      "zin": "In de badkamer is het 21,5°, warm genoeg. Pas onder 21° zou ik gaan verwarmen.",
+      "echt": "Thermostaat badkamer verwarmen naar 21°",
+      "actuatorId": null,
+      "klopt": false
+    },
+    {
+      "zoneId": "zolder",
+      "soort": "wait",
+      "kort": "Wacht: pauzeert even na het uitgaan",
+      "zin": "De zolder wil verwarmen: het is er 17° en het doel is 18°. Dat wacht nog even, omdat het apparaat na het uitgaan eerst even moet pauzeren, dat spaart de compressor.",
+      "echt": "uit",
+      "actuatorId": null,
+      "klopt": false
+    }
+  ],
+  "stand": "Dag tot 22:00",
+  "uitstelbaar": [
+    {
+      "naam": "Droger",
+      "stand": "not_ready",
+      "kop": "Niet klaargezet",
+      "zin": "Kies een programma, sluit de deur en zet \"op afstand starten\" aan op de droger. Dan kiest SunArc het moment."
+    }
+  ],
+  "warmtebuffers": [
+    {
+      "naam": "Ontvochtiger",
+      "kop": "Wacht op zon",
+      "zin": "Hij gaat aan zodra er 0,4 kW zon over is. Komt die niet, dan gaat hij om 19:30 aan: zo staat hij vóór 22:00 toch 2 uur aan."
+    }
+  ],
+  "winter": {
+    "dagen": 0.4583333333333333,
+    "doel": 30
+  },
+  "vanMs": 1768258800000,
+  "perZone": [
+    {
+      "zoneId": "woonkamer",
+      "temperatureC": 20.8,
+      "targetC": 20.5,
+      "demand": "none"
+    },
+    {
+      "zoneId": "badkamer",
+      "temperatureC": 21.5,
+      "targetC": 21,
+      "demand": "none"
+    },
+    {
+      "zoneId": "zolder",
+      "temperatureC": 17,
+      "targetC": 18,
+      "demand": "heat"
+    }
+  ]
+}

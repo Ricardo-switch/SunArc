@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wand · Thuis, wat SunArc doet (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="thuis-doet.css">
+<style>
+  /*
+   * Wat SunArc doet, vast op Thuis, op de wand (schets, 15 november 2026).
+   * Uitleg en standen in thuis-doet.js.
+   */
+  .scherm { width: 1280px; height: 800px; background-size: 1280px 800px; }
+  .groet { left: 98px; top: 108px; }
+  .kop-1 { left: 98px; top: 132px; width: 380px; font-size: 46px; }
+  .lead { left: 98px; top: 238px; width: 370px; font-size: 17px; line-height: 1.45; max-width: none; }
+  /* Tussen het huis en de vraagbalk, even breed als de vraagbalk. */
+  [data-doet] { left: 98px; top: 658px; width: 757px; }
+  .doet.strook { height: 44px; padding: 0 18px; border-radius: 16px; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 0 20px; }
+  .doet.strook .d-zou { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kiesblad { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 900px; }
+</style>
+</head>
+<body data-scherm="wand">
+  <div class="scherm">
+    <span class="groet" data-groet></span>
+    <h1 class="kop-1" data-kop></h1>
+    <p class="lead" data-zin></p>
+    <div data-doet></div>
+    <div class="sb-achter" data-achter hidden></div>
+    <aside class="kiesblad" data-blad hidden></aside>
+  </div>
+  <script src="thuis-doet.js"></script>
+</body>
+</html>
