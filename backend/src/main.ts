@@ -2093,7 +2093,12 @@ if (startup.access.kind === 'sessions') {
     store: new SessionStore({ logDir: logDir === '' ? null : logDir }),
     login: homeAssistantLogin(loginUrl),
     hosts: startup.access.hosts,
+    lokaalLezen: startup.lokaalLezen,
   };
+  if (startup.lokaalLezen) {
+    console.warn('LET OP: lezen zonder inlog van binnen deze server staat aan (HEMS_LOKAAL_LEZEN=1).');
+    console.warn('  Alleen GET van 127.0.0.1, zoals via docker exec; bedienen vraagt altijd een inlog.');
+  }
 } else {
   // Achter Ingress vraagt de dienst Home Assistant wie er beheerder is (besluit 161).
   access = startup.access.kind === 'ingress' ? { kind: 'ingress', beheerders: haBeheerders(() => client.query<HaAccount[]>('config/auth/list')) } : { kind: 'open' };

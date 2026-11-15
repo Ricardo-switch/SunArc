@@ -645,7 +645,10 @@ verwijzing bestaat.
   dicht tot B.
 - **De deuren van de add-on** staan op een eigen server, zoals de NAS, alleen
   open met `HEMS_DEUREN=1`, met een waarschuwing bij het opstarten; in de
-  add-on staan ze open zoals voorheen ([309]).
+  add-on staan ze open zoals voorheen ([309]). Met `HEMS_LOKAAL_LEZEN=1`
+  mag een verzoek dat alleen leest en van de server zelf komt, zonder inlog:
+  zo kan wie op de server is meekijken; bedienen vraagt altijd een inlog
+  ([311]).
 - **De weergave luistert,** maar alleen om te lezen ([23]). De hele app vraagt
   een inlog met je Home Assistant-account, ook kijken ([147]); de dienst
   antwoordt alleen op bekende hostnamen ([99]).
@@ -1000,4 +1003,5 @@ verwijzing bestaat.
 [308]: DECISIONS.md#308-je-huis-tekenen-één-tekentafel-op-ruitjes-en-het-huis-in-3d-uit-de-tekening
 [309]: DECISIONS.md#309-de-deuren-van-de-add-on-ook-op-een-eigen-server-hemsdeuren
 [310]: DECISIONS.md#310-geen-nieuwe-functies-tot-januari-en-één-plek-per-onderwerp
+[311]: DECISIONS.md#311-lezen-van-binnenuit-op-een-eigen-server-hemslokaallezen
 <!-- links:einde -->

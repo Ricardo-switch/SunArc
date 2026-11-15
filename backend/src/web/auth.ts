@@ -333,9 +333,30 @@ function currentUser(base: string, accessToken: string): Promise<{ id: string; n
 /* ------------------------------------------------------------------ toegang */
 
 export type Access =
-  | { readonly kind: 'sessions'; readonly store: SessionStore; readonly login: HaLogin; readonly hosts?: readonly string[] }
+  | {
+      readonly kind: 'sessions';
+      readonly store: SessionStore;
+      readonly login: HaLogin;
+      readonly hosts?: readonly string[];
+      /** Lezen zonder inlog van binnen de server zelf (HEMS_LOKAAL_LEZEN, besluit 311). */
+      readonly lokaalLezen?: boolean;
+    }
   | { readonly kind: 'ingress'; readonly beheerders?: Beheerders }
   | { readonly kind: 'open' };
+
+/**
+ * Lezen van binnenuit (besluit 311): een verzoek dat alleen leest (GET of HEAD)
+ * en van de server zelf komt (127.0.0.1), mag zonder inlog, als de installatie
+ * dat uitdrukkelijk toestaat. Zo kan wie op de server zelf is, zoals via SSH en
+ * `docker exec`, meekijken zonder iemands sessie. Van buitenaf komt een verzoek
+ * nooit van 127.0.0.1 binnen de container; bedienen vraagt altijd een inlog.
+ */
+export function lokaalLezen(access: Access, req: IncomingMessage, method: string): boolean {
+  if (access.kind !== 'sessions' || access.lokaalLezen !== true) return false;
+  if (method !== 'GET' && method !== 'HEAD') return false;
+  const adres = req.socket.remoteAddress ?? '';
+  return adres === '127.0.0.1' || adres === '::1' || adres === '::ffff:127.0.0.1';
+}
 
 /** Een terugweg na het inloggen: alleen een pad op deze dienst, nooit een andere site. */
 export function safeReturn(raw: string | null): string {

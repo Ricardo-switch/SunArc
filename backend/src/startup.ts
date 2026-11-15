@@ -56,6 +56,12 @@ export interface Startup {
    */
   readonly deuren: { readonly enabled: boolean; readonly withoutLogin: boolean };
   /**
+   * Lezen zonder inlog van binnen de server zelf (besluit 311): alleen GET van
+   * 127.0.0.1, voor wie op de server meekijkt. Alleen met `HEMS_LOKAAL_LEZEN=1`
+   * en alleen met een eigen inlog (niet in de add-on, daar staat Ingress voor).
+   */
+  readonly lokaalLezen: boolean;
+  /**
    * Wie mag bedienen (besluit 99). In de add-on staat Ingress ervoor; elders een
    * eigen inlog via Home Assistant, met het adres waaronder de browser Home
    * Assistant bereikt. `HEMS_OPEN=1` zet alles open, zoals vóór 99, met een
@@ -172,6 +178,10 @@ export function readStartup(env: Environment): Startup {
     errors.push(`HEMS_DEUREN is 1 (dezelfde deuren als de add-on) of 0 (niet), niet "${deurenRaw}".`);
   }
   const deurenOn = deurenRaw === '1' || (supervisorToken != null && deurenRaw !== '0');
+  const lokaalRaw = readPoint(env, 'HEMS_LOKAAL_LEZEN');
+  if (lokaalRaw != null && lokaalRaw !== '0' && lokaalRaw !== '1') {
+    errors.push(`HEMS_LOKAAL_LEZEN is 1 (lezen van binnenuit) of 0 (niet), niet "${lokaalRaw}".`);
+  }
 
   const openRaw = readPoint(env, 'HEMS_OPEN');
   if (openRaw != null && openRaw !== '0' && openRaw !== '1') {
@@ -218,6 +228,7 @@ export function readStartup(env: Environment): Startup {
     // Zonder Ingress en zonder inlog kan iedereen die de weergave opent schakelen.
     lights: { enabled: lightsOn, withoutIngress: lightsOn && access.kind === 'open' },
     deuren: { enabled: deurenOn, withoutLogin: deurenOn && access.kind === 'open' },
+    lokaalLezen: lokaalRaw === '1' && access.kind === 'sessions',
     screens: { enabled: screensOn },
     access,
     eigenPoort,

@@ -2249,6 +2249,23 @@ describe('bedienen vraagt een inlog via Home Assistant (besluit 99)', () => {
     expect((await fetch(`${base}/api/gevoel`, { method: 'POST', headers: JSON_HEADERS, body: gevoel })).status).toBe(401);
   });
 
+  it('laat met lezen van binnenuit een GET van de server zelf toe, en nooit bedienen (besluit 311)', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'hems-lokaal-'));
+    cleanups.push(() => rm(dir, { recursive: true, force: true }));
+    const login = fakeLogin({ userId: 'u1', naam: 'Ricardo', isAdmin: true });
+    const comfort = { view: () => comfortView(exampleSite, null), save: async () => ({ ok: true as const, view: comfortView(exampleSite, null) }) };
+    // De test praat met 127.0.0.1: precies zoals docker exec binnen de container.
+    const { base } = await start({ comfort, access: { kind: 'sessions', store: new SessionStore({ logDir: dir }), login, lokaalLezen: true } });
+    expect((await fetch(`${base}/api/comfort`)).status).toBe(200);
+    expect((await fetch(`${base}/api/versie`)).status).toBe(200);
+    // Bedienen of iets veranderen vraagt nog steeds een inlog.
+    expect((await fetch(`${base}/api/comfort`, { method: 'POST', headers: JSON_HEADERS, body: comfortBody })).status).toBe(401);
+    expect((await fetch(`${base}/api/gevoel`, { method: 'POST', headers: JSON_HEADERS, body: gevoel })).status).toBe(401);
+    // Zonder de instelling blijft lezen dicht, ook van de server zelf.
+    const dicht = await start({ comfort, access: { kind: 'sessions', store: new SessionStore({ logDir: dir }), login } });
+    expect((await fetch(`${dicht.base}/api/comfort`)).status).toBe(401);
+  });
+
   it('vraagt een inlog voor de hele app, en laat alleen het inloggen, de gezondheid en opmaak open (besluit 147)', async () => {
     const { base } = await withLogin(false, { sleutel: 'een-lange-sleutel-voor-de-assistent' });
     // Een pagina gaat naar het inloggen, met de weg terug.

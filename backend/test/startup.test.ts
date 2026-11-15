@@ -144,6 +144,22 @@ describe('de deuren van de add-on (besluit 309)', () => {
   });
 });
 
+describe('lezen van binnenuit (besluit 311)', () => {
+  it('staat alleen aan met HEMS_LOKAAL_LEZEN=1, en alleen met een eigen inlog', () => {
+    expect(readStartup(NAS).lokaalLezen).toBe(false);
+    expect(readStartup({ ...NAS, HEMS_LOKAAL_LEZEN: '1' }).lokaalLezen).toBe(true);
+    // In de add-on staat Ingress ervoor, en zonder inlog is er niets om langs te gaan.
+    expect(readStartup({ ...ADDON, HEMS_LOKAAL_LEZEN: '1' }).lokaalLezen).toBe(false);
+    expect(readStartup({ ...NAS, HEMS_LOKAAL_LEZEN: '1', HEMS_OPEN: '1' }).lokaalLezen).toBe(false);
+  });
+
+  it('weigert iets anders dan 1 of 0', () => {
+    const o = readStartup({ ...NAS, HEMS_LOKAAL_LEZEN: 'ja' });
+    expect(o.lokaalLezen).toBe(false);
+    expect(o.errors.join(' ')).toContain('HEMS_LOKAAL_LEZEN');
+  });
+});
+
 describe('schermen bedienen (besluit 121)', () => {
   it('volgt licht bedienen, tenzij HEMS_SCREENS het anders zegt', () => {
     expect(readStartup(NAS).screens.enabled).toBe(false);

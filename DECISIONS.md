@@ -320,6 +320,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [121. Schermen bedien je in de app; alleen Somfy io mag later in de regeling](#121-schermen-bedien-je-in-de-app-alleen-somfy-io-mag-later-in-de-regeling)
 - [151. Een gast zonder persoon, een back-up, opnieuw beginnen, en een export voor onderzoek](#151-een-gast-zonder-persoon-een-back-up-opnieuw-beginnen-en-een-export-voor-onderzoek)
 - [309. De deuren van de add-on ook op een eigen server (HEMS_DEUREN)](#309-de-deuren-van-de-add-on-ook-op-een-eigen-server-hemsdeuren)
+- [311. Lezen van binnenuit op een eigen server (HEMS_LOKAAL_LEZEN)](#311-lezen-van-binnenuit-op-een-eigen-server-hemslokaallezen)
 
 **Uitrol en beheer**
 
@@ -14333,6 +14334,32 @@ de app, de code, GitHub en de meldingen na. De kern:
 alleen nog rechtstreeks op GitHub. Januari wordt vol: de analyse, het bouwen
 voor echt regelen en de laatste stappen van de herindeling vallen samen. Knelt
 het, dan gaat de regeling voor.
+
+## 311. Lezen van binnenuit op een eigen server (HEMS_LOKAAL_LEZEN)
+
+*Onderwerp: veiligheid · Status: geldig*
+
+15 november 2026, versie 0.187.5. Ricardo: "hoe kan ik zorgen dat je goed kan
+meekijken op de NAS zoals in de Pi". Sinds [147] vraagt de hele app een inlog,
+ook kijken. Wie op de NAS zelf is (via SSH), kon daardoor alleen het logboek en
+de bestanden lezen, niet wat de app laat zien: welke apparaten het huis kent,
+wat er bediend mag worden, wat de regeling denkt.
+
+*Besluit:*
+
+- **`HEMS_LOKAAL_LEZEN=1`** laat een verzoek zonder inlog toe als het alleen
+  leest (GET of HEAD) en van de server zelf komt (127.0.0.1). Binnen de
+  container is dat `docker exec`; van buitenaf, ook via de reverse proxy of
+  Tailscale, komt een verzoek nooit van 127.0.0.1 binnen de container.
+- **Bedienen vraagt altijd een inlog.** Een POST van 127.0.0.1 krijgt nog
+  steeds 401.
+- **Alleen met een eigen inlog** (een eigen server). In de add-on staat Ingress
+  ervoor, en met `HEMS_OPEN=1` is er niets om langs te gaan.
+- **Een waarschuwing bij het opstarten** als het aan staat.
+
+*Kosten:* wie op de server een shell heeft, kan alles lezen wat de app laat
+zien, zonder iemands sessie. Dat kon hij al via de bestanden; nu is het wat de
+app ervan maakt. Het staat uit tenzij de bewoner het aanzet.
 
 ## Wat nog een besluit wacht
 

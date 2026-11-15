@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.187.4';
+export const VERSIE = '0.187.5';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.187.5',
+    datum: '2026-11-15',
+    beter: [
+      'Draait SunArc op een eigen server, buiten Home Assistant? Met HEMS_LOKAAL_LEZEN=1 kan wie op die server zelf is de app lezen zonder inlog, bijvoorbeeld om mee te kijken bij een probleem. Bedienen vraagt altijd een inlog',
+    ],
+    en: {
+      beter: [
+        'Does SunArc run on its own server, outside Home Assistant? With HEMS_LOKAAL_LEZEN=1, someone on that server itself can read the app without signing in, for example to look along with a problem. Controlling always asks for a sign-in',
+      ],
+    },
+  },
   {
     versie: '0.187.4',
     datum: '2026-11-15',

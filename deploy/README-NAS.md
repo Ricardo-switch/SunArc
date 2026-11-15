@@ -211,6 +211,24 @@ hetzelfde Home Assistant: dan bedienen ze elkaars apparaten en komen meldingen
 dubbel. Bijwerken vanuit de app, de koppeling met Assist en de stem in huis
 blijven alleen in de add-on: die vragen de Supervisor.
 
+### Meekijken vanaf de NAS zelf (besluit 311)
+
+De app vraagt een inlog, ook om te kijken. Wie via SSH op de NAS is, kan met
+deze regel in `.env` de app lezen zonder inlog, maar alleen van binnen de
+container:
+
+```
+HEMS_LOKAAL_LEZEN=1
+```
+
+Daarna `docker compose up -d` in de map van de NAS, en lezen gaat zo:
+
+```
+sudo docker exec hems-shadow node -e "fetch('http://127.0.0.1:8080/api/huis').then(r => r.text()).then(console.log)"
+```
+
+Alleen lezen: bedienen vraagt altijd een inlog. Van buitenaf verandert er niets.
+
 ### Plaatjes bij de Hue-scènes (besluit 100)
 
 De app toont bij een scène het plaatje uit `logs/scene-plaatjes/` met zijn naam;

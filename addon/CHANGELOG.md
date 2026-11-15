@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.187.4
+## 0.187.5
 
-*15 november 2026 · 0.179.0 – 0.187.4*
+*15 november 2026 · 0.179.0 – 0.187.5*
 
 **Nieuw**
 
@@ -34,6 +34,7 @@
 
 **Beter**
 
+- Draait SunArc op een eigen server, buiten Home Assistant? Met HEMS_LOKAAL_LEZEN=1 kan wie op die server zelf is de app lezen zonder inlog, bijvoorbeeld om mee te kijken bij een probleem. Bedienen vraagt altijd een inlog
 - Draait SunArc op een eigen server, buiten Home Assistant? Met HEMS_DEUREN=1 kun je daar alles wat de add-on kan: met de hand bedienen, schakelaars en de knoppen van een IR-afstandsbediening, stekkers, laden, lijsten en meldingen op je telefoon
 - Melden staat tot januari uit. SunArc krijgt een opknapbeurt, zodat alles makkelijker te vinden en te begrijpen is. De knop Meld een probleem zegt dat nu ook
 - Bedankt aan iedereen die test. Door jullie meldingen is de app veel beter geworden. In januari komen er weer updates
@@ -78,6 +79,7 @@
 
 **Improved**
 
+- Does SunArc run on its own server, outside Home Assistant? With HEMS_LOKAAL_LEZEN=1, someone on that server itself can read the app without signing in, for example to look along with a problem. Controlling always asks for a sign-in
 - Does SunArc run on its own server, outside Home Assistant? With HEMS_DEUREN=1 you can do everything the add-on can there: control by hand, switches and the buttons of an IR remote, plugs, charging, lists and notifications on your phone
 - Reporting is paused until January. SunArc is getting an overhaul, so everything becomes easier to find and to understand. The Report a problem button now says so too
 - Thank you to everyone who tests. Your reports have made the app much better. Updates return in January

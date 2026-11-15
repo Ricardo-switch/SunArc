@@ -28,7 +28,7 @@ import { gevoeligheidVan } from './wekwoord.js';
 import { accepteer, isUpgrade, weiger } from './websocket.js';
 import type { Duplex } from 'node:stream';
 import type { WeatherReport } from './weather.js';
-import { DOOR_ROLES, SESSION_COOKIE, cookieValue, hostAllowed, ingressVisitor, openZonderInlog, viaTailscale } from './auth.js';
+import { DOOR_ROLES, SESSION_COOKIE, cookieValue, hostAllowed, ingressVisitor, lokaalLezen, openZonderInlog, viaTailscale } from './auth.js';
 import type { AlarmMelder } from './live.js';
 import type { WebOptions } from './server-opties.js';
 import { INPAKKEN, inpakkingVoor, sameOrigin, sendFile, sendJson } from './http.js';
@@ -186,7 +186,7 @@ export class WebServer {
      * inloggen zelf, of de dienst draait, en opmaak en script. De assistent van
      * Home Assistant stelt zijn vraag met een eigen sleutel.
      */
-    if (access.kind === 'sessions' && !openZonderInlog(path) && !this.#d.metSleutel(req, url, path)) {
+    if (access.kind === 'sessions' && !openZonderInlog(path) && !this.#d.metSleutel(req, url, path) && !lokaalLezen(access, req, method)) {
       const visitor = await access.store.visitor(cookieValue(req, SESSION_COOKIE));
       if (visitor == null) {
         if (path.startsWith('/api/') || path.startsWith('/scene-plaatjes/')) {
