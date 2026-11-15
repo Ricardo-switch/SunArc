@@ -257,6 +257,40 @@ function tekenStand(e) {
   });
 }
 
+/** De kleur van de stand van SunArc, zoals in de waaier: ijs kijkt mee, mint regelt. */
+const DOET_KLEUR = { kijkt: 'var(--ijs)', regelt: 'var(--mint)', zon: 'var(--zon)' };
+
+/**
+ * Wat SunArc doet (besluit 313): de vaste strook. Op de wand één regel met de
+ * stand, de zin en hoeveel kamers gelijk zijn; op de telefoon twee korte
+ * regels. De zin komt kant-en-klaar uit de dienst. Zonder iets te zeggen (een
+ * huis zonder kamers die meedoen en zonder apparaten op zon) is er geen strook.
+ */
+function tekenDoet() {
+  const d = state?.bewoner?.doet ?? null;
+  // Met de strook is het vak van het huis op de wand iets lager: vóór het huis getekend wordt.
+  document.body.classList.toggle('met-doet', !!d);
+  const stip = '<span class="standstip" aria-hidden="true"></span>';
+  const pijl = '<span class="dt-pijl" aria-hidden="true">›</span>';
+  $$('[data-doet]').forEach((el) => {
+    el.hidden = !d;
+    if (!d) return;
+    el.style.setProperty('--k', DOET_KLEUR[d.stand] ?? 'var(--ijs)');
+    const lang = t(`thuis.doet.lang.${d.stand}`);
+    const tel = d.van > 0 ? t('thuis.doet.gelijk', { n: d.van, gelijk: d.gelijk }) : '';
+    el.setAttribute('aria-label', [lang, d.zin, tel].filter(Boolean).join('. '));
+    if (el.closest('#tel')) {
+      const onder = d.stand === 'kijkt' ? ` · ${esc(t('thuis.doet.nogNiet'))}` : '';
+      el.innerHTML = `${stip}<span class="dt-twee"><span><b>${esc(t(`thuis.doet.stand.${d.stand}`))}</b>${onder}</span><span class="dt-zin">${esc(d.zin)}</span></span>${pijl}`;
+      return;
+    }
+    const blokjes = d.van > 0 && d.van <= 8 ? `<span class="dt-blokjes" aria-hidden="true">${Array.from({ length: d.van }, (_, i) => `<i class="${i < d.gelijk ? 'ja' : ''}"></i>`).join('')}</span>` : '';
+    el.innerHTML = `${stip}<b>${esc(lang)}</b><span class="dt-zin">${esc(d.zin)}</span><span class="dt-tel">${blokjes}${esc(tel)}</span>${pijl}`;
+  });
+  const blad = document.querySelector('[data-kiesblad]');
+  if (blad && !blad.hidden && blad.dataset.blad === 'doet') tekenDoetBlad();
+}
+
 function tekenNu() {
   app.schaal();
   if (!state || !huisData) return;
@@ -267,6 +301,7 @@ function tekenNu() {
   zet('[data-zin]', kop.zin ?? '');
   tekenWeerknop();
   tekenStand(e);
+  tekenDoet();
 
   const model = huisModel();
   lucht(model.tijd, model.seizoen, model.wolken);
@@ -1353,6 +1388,72 @@ async function openModus() {
 }
 document.addEventListener('click', (e) => {
   if (e.target.closest('[data-modus]') && !eigen.bewerkt) void openModus();
+});
+
+/* --------------------------------------- wat SunArc doet (besluit 313) */
+
+/** Sinds wanneer SunArc meekijkt: pas opgehaald als het blad opent. `undefined` is nog niet gevraagd. */
+let doetSinds;
+/** Boven dit aantal kamers staan alleen de kamers die anders zijn in het blad, zodat de wand niet schuift. */
+const DOET_MAX_KAMERS = 7;
+
+/**
+ * Het blad Wat SunArc doet: de stand met dezelfde balk als bij Regeling ›
+ * Klimaat, per kamer wat er nu in huis gebeurt naast wat SunArc zou doen, en
+ * de apparaten op zon. Geen teller van winterdagen (besluit 312).
+ */
+function tekenDoetBlad() {
+  const el = document.querySelector('[data-kiesblad]');
+  const d = state?.bewoner?.doet;
+  if (!el || !d) return;
+  const kijkt = d.stand === 'kijkt';
+  const fasen = d.stand === 'zon'
+    ? ''
+    : `<span class="dt-fase" role="img" aria-label="${esc(t(`regeling.fase.${kijkt ? 'kijken' : 'regelen'}`))}">${['leren', 'kijken', 'regelen'].map((f) => `<i class="${f === (kijkt ? 'kijken' : 'regelen') ? 'nu' : ''}">${esc(t(`regeling.fase.${f}`))}</i>`).join('')}</span>`;
+  const onder = kijkt ? [doetSinds ? t('thuis.doet.sinds', { datum: doetSinds }) : null, t('thuis.doet.nogNiet')].filter(Boolean).join(', ') : '';
+  const bij = d.stand === 'zon' ? '' : `<p class="dt-bij">${esc(t(kijkt ? 'thuis.doet.zegt' : 'thuis.doet.valt'))}</p>`;
+  const temp = (k) => (k.temperatureC == null ? '' : `<small>${esc(getal(k.temperatureC, 1))}°</small>`);
+  // Veel kamers: alleen wat anders is of niet meetelt, en de rest als één regel.
+  const veel = kijkt && d.kamers.length > DOET_MAX_KAMERS;
+  const lijst = veel ? d.kamers.filter((k) => k.gelijk !== true) : d.kamers;
+  const rest = veel ? d.kamers.length - lijst.length : 0;
+  const rij = (k) => (kijkt
+    ? `<div class="dt-kamer"><span><b>${esc(k.naam)}</b>${temp(k)}</span><span class="dt-echt">${esc(k.echt)}</span><span class="dt-zou">${esc(k.zou)}</span>${k.gelijk == null ? '<span></span>' : `<span class="dt-teken ${k.gelijk ? 'ja' : 'nee'}" role="img" aria-label="${esc(t(k.gelijk ? 'thuis.doet.isGelijk' : 'thuis.doet.isAnders'))}">${k.gelijk ? '=' : '≠'}</span>`}</div>`
+    : `<div class="dt-kamer een"><span><b>${esc(k.naam)}</b>${temp(k)}</span><span class="dt-zou">${esc(k.zou)}</span></div>`);
+  const kamers = d.kamers.length
+    ? `<h3>${esc(t('thuis.doet.perKamer'))}</h3>${kijkt ? `<div class="dt-kamer kolomkop"><span></span><span>${esc(t('thuis.doet.inHuis'))}</span><span>${esc(t('thuis.doet.zou'))}</span><span></span></div>` : ''}${lijst.map(rij).join('')}${rest > 0 ? `<p class="dt-bij">${esc(t('thuis.doet.rest', { n: rest }))}</p>` : ''}`
+    : '';
+  // Wat op zon gaat: de boiler, de stekkers en het witgoed, met hun stand van nu.
+  const opZon = [...(state.bewoner.warmtebuffers ?? []), ...(state.bewoner.uitstelbaar ?? [])];
+  const klimaat = d.stand === 'zon' ? '' : `<div class="dt-wel"><span><b>${esc(t('thuis.doet.klimaat'))}</b><small>${esc(t(kijkt ? 'thuis.doet.klimaatNog' : 'thuis.doet.klimaatAan'))}</small></span><span class="dt-waarde">${esc(t(`thuis.doet.stand.${d.stand}`))}</span></div>`;
+  const zelf = `<h3>${esc(t('thuis.doet.zelf'))}</h3>${opZon.map((x) => `<div class="dt-wel"><span><b>${esc(x.naam)}</b></span><span class="dt-waarde">${esc(x.kop)}</span></div>`).join('')}${klimaat}`;
+  const kop = `<div class="bladkop"><h2 class="kop-2">${esc(t('thuis.doet.kop'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>`;
+  el.innerHTML = `${kop}<div class="sb-kolommen">
+      <div><div class="sb-held" style="--k: ${DOET_KLEUR[d.stand]}"><span class="standstip"></span><b>${esc(t(`thuis.doet.stand.${d.stand}`))}</b>${onder ? `<span class="dt-onder">${esc(onder)}</span>` : ''}${fasen}</div>${bij}${kamers}</div>
+      <div>${zelf}<a class="knop dt-naar" href="vandaag.html">${esc(t('thuis.doet.naarVandaag'))} ›</a></div>
+    </div>`;
+}
+
+async function openDoet() {
+  const el = document.querySelector('[data-kiesblad]');
+  if (!el || !state?.bewoner?.doet) return;
+  el.dataset.blad = 'doet';
+  el.classList.remove('standblad');
+  el.setAttribute('aria-label', t('thuis.doet.kop'));
+  tekenDoetBlad();
+  document.querySelector('[data-kies-achter]').hidden = false;
+  el.hidden = false;
+  el.querySelector('button')?.focus();
+  if (doetSinds !== undefined) return;
+  // Sinds wanneer SunArc meekijkt, komt uit de terugblik: pas ophalen als iemand het blad opent.
+  doetSinds = null;
+  const terug = await haal('api/divergence').catch(() => null);
+  const van = terug?.dataset?.vanMs ?? terug?.vanMs;
+  if (van) doetSinds = taal.datum(van, { day: 'numeric', month: 'long' });
+  if (doetSinds && !el.hidden && el.dataset.blad === 'doet') tekenDoetBlad();
+}
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-doet]') && !eigen.bewerkt) void openDoet();
 });
 
 document.querySelector('[data-weer-achter]').addEventListener('click', sluitWeer);

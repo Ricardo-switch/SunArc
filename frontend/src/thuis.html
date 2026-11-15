@@ -637,6 +637,63 @@
   .kiesblad .bladkop .knop { height: 38px; padding: 0 14px; font-size: 14px; color: inherit; }
   .kiesblad .bladkop .knop-licht { color: var(--op-accent); }
   .kiesblad h3 { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); margin: 14px 0 2px; }
+  /*
+   * Wat SunArc doet (besluit 313, schets Wand-Thuis-Doet): een vaste strook, op
+   * de wand tussen het huis en de vraagbalk, op de telefoon tussen het huis en
+   * de stromen. De stip heeft de kleur van de stand, zoals in de waaier: ijs
+   * kijkt mee, mint regelt. Een tik opent het blad.
+   */
+  .doet { --k: var(--ijs); display: grid; align-items: center; box-sizing: border-box; background: rgb(var(--nacht) / 0.72); border: 1px solid color-mix(in srgb, var(--k) 30%, var(--glas-rand)); backdrop-filter: blur(14px); color: var(--tekst); font: inherit; text-align: left; cursor: pointer; }
+  .doet[hidden] { display: none; }
+  .doet b { font-weight: 700; color: color-mix(in srgb, var(--k) 70%, var(--tekst)); white-space: nowrap; }
+  .doet .dt-zin { font-weight: 600; min-width: 0; }
+  .doet .dt-pijl { color: var(--gedempt); font-size: 17px; line-height: 1; }
+  .doet .dt-tel { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--zacht); white-space: nowrap; }
+  .doet .dt-blokjes { display: flex; gap: 3px; }
+  .doet .dt-blokjes i { width: 16px; height: 8px; border-radius: 3px; background: rgb(var(--wit) / 0.14); }
+  .doet .dt-blokjes i.ja { background: var(--k); }
+  /* Op de wand één regel van 44 punten; het vak van het huis is dan 16 punten lager. */
+  #wand .doet { position: absolute; left: 22px; right: calc(26px + 384px + 14px + (var(--wandbreedte, 1280px) - 1280px) / 3); bottom: 98px; height: 44px; padding: 0 18px; border-radius: 16px; grid-template-columns: auto auto minmax(0, 1fr) auto auto; gap: 0 12px; font-size: 15.5px; }
+  #wand .doet .dt-zin { margin-left: 8px; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  body.met-doet #wand .podium { height: 596px; }
+  body.aanpassen #wand .doet, body.aanpassen #tel .doet { opacity: 0.3; pointer-events: none; }
+  /* Op de telefoon twee korte regels: de stand, en wat SunArc zou doen. */
+  #tel .doet { width: calc(100% - 32px); margin: -2px 16px 18px; min-height: 60px; padding: 9px 14px; border-radius: 18px; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0 11px; }
+  #tel .doet .dt-twee { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 12.5px; color: var(--zacht); }
+  #tel .doet .dt-twee b { font-size: 13.5px; }
+  #tel .doet .dt-zin { font-size: 14px; color: var(--tekst); }
+  /* Het blad: links de stand en per kamer, rechts wat op zon gaat. Op de telefoon onder elkaar. */
+  html:not(.tel-stand) .kiesblad[data-blad='doet'] { width: min(900px, 94vw); }
+  .kiesblad[data-blad='doet'] .sb-kolommen { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 0 28px; }
+  html.tel-stand .kiesblad[data-blad='doet'] .sb-kolommen { grid-template-columns: minmax(0, 1fr); }
+  .kiesblad[data-blad='doet'] .sb-held { gap: 0 10px; }
+  .kiesblad[data-blad='doet'] .sb-held b { font-size: 34px; white-space: nowrap; }
+  html.tel-stand .kiesblad[data-blad='doet'] .sb-held b { font-size: 28px; }
+  .dt-onder { order: 3; flex-basis: 100%; margin-top: 6px; font-size: 14px; color: var(--zacht); }
+  .dt-fase { margin-left: auto; align-self: center; display: inline-flex; padding: 3px; border-radius: 999px; background: rgb(var(--wit) / 0.06); }
+  .dt-fase i { font-style: normal; font-size: 12.5px; font-weight: 600; color: var(--gedempt); padding: 5px 11px; border-radius: 999px; white-space: nowrap; }
+  .dt-fase i.nu { background: color-mix(in srgb, var(--k) 24%, transparent); color: var(--tekst); }
+  html.tel-stand .dt-fase i { padding: 4px 8px; font-size: 11.5px; }
+  .dt-bij { margin: 4px 0 0; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
+  .dt-kamer { display: grid; grid-template-columns: 112px minmax(0, 1fr) minmax(0, 1fr) 22px; gap: 0 14px; align-items: center; padding: 10px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
+  .dt-kamer.een { grid-template-columns: 112px minmax(0, 1fr); }
+  .dt-kamer.kolomkop { padding: 0 0 4px; border-top: 0; font-size: 12px; color: var(--gedempt); }
+  .dt-kamer b { display: block; font-size: 15px; overflow-wrap: anywhere; }
+  .dt-kamer small { display: block; font-size: 13px; color: var(--gedempt); }
+  .dt-kamer .dt-echt, .dt-kamer .dt-zou { font-size: 14px; line-height: 1.35; color: var(--zacht); }
+  .dt-kamer .dt-zou { color: var(--tekst); }
+  .dt-kamer .dt-teken { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+  .dt-kamer .dt-teken.ja { background: color-mix(in srgb, var(--mint) 20%, transparent); color: var(--mint-t, var(--mint)); }
+  .dt-kamer .dt-teken.nee { background: color-mix(in srgb, var(--zon) 18%, transparent); color: var(--zon-t, var(--zon)); }
+  html.tel-stand .dt-kamer { grid-template-columns: 78px minmax(0, 1fr) minmax(0, 1fr) 22px; gap: 0 10px; }
+  html.tel-stand .dt-kamer.een { grid-template-columns: 78px minmax(0, 1fr); }
+  html.tel-stand .dt-kamer .dt-echt, html.tel-stand .dt-kamer .dt-zou { font-size: 13px; }
+  .dt-wel { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 12px; align-items: center; padding: 9px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
+  .dt-wel:first-of-type { border-top: 0; }
+  .dt-wel b { display: block; font-size: 15px; }
+  .dt-wel small { display: block; font-size: 13px; color: var(--gedempt); }
+  .dt-wel .dt-waarde { font-family: var(--kop); font-size: 15px; font-weight: 600; color: var(--zacht); text-align: right; }
+  .dt-naar { display: inline-flex; align-items: center; height: 40px; margin-top: 14px; font-size: 14px; text-decoration: none; }
   /* De scènes van een kamer, ingeklapt onder zijn lampen (besluit 168). */
   .favscenes { border-top: 1px solid rgb(var(--wit) / 0.06); }
   .favscenes summary { padding: 10px 0; font-size: 14px; font-weight: 600; color: var(--zacht); cursor: pointer; list-style: none; }
@@ -797,6 +854,7 @@
       </aside>
       <section class="glas weer" id="weer-wand" role="dialog" data-t-aria-label="thuis.weer.kop" hidden data-weer></section>
       <div class="bewerkkop" data-bewerkkop hidden><span data-bewerkwie data-t-html="thuis.bewerkIedereen"></span><button type="button" class="knop" data-kaart-erbij><span data-t="thuis.kaartErbij"></span></button><button type="button" class="knop knop-licht" data-klaar><span data-t="algemeen.klaar"></span></button></div>
+      <button type="button" class="doet" data-doet aria-haspopup="dialog" hidden></button>
       <div class="dok">
         <a class="bol adem" href="assistent.html#nu" data-t-aria-label="thuis.vraagNu" style="width: 46px; height: 46px; flex: none"></a>
         <a class="vraag" href="assistent.html#typ"><span data-t="thuis.vraagTik"></span></a>
@@ -820,6 +878,7 @@
       <div class="titel"><div class="groetregel"><span class="groet" data-groet></span><button type="button" class="standregel" data-modus aria-haspopup="dialog" data-t-aria-label="thuis.modus.kop" hidden></button><span class="groetrechts"><button type="button" class="wie" data-wie aria-haspopup="dialog" hidden></button></span></div><h1 class="kop-1" data-kop><span data-t="algemeen.laden"></span></h1><p class="lead" data-zin></p></div>
     </div>
     <div class="podium" id="podium-tel"></div>
+    <button type="button" class="doet" data-doet aria-haspopup="dialog" hidden></button>
     <section class="glas stromen" data-stromen data-t-aria-label="thuis.stromen.kop" hidden></section>
     <div class="inhoud" data-kaarten="tel">
       <button type="button" class="glas kaart td-kaart" data-tedoen data-kaart="tedoen" data-t-data-naam="thuis.kaart.tedoen" data-t-data-leeg="thuis.leeg.tedoen" hidden></button>

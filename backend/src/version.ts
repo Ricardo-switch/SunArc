@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.187.6';
+export const VERSIE = '0.188.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,26 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.188.0',
+    datum: '2026-11-15',
+    nieuw: [
+      'Thuis zegt nu altijd wat SunArc doet. Een vaste strook onder het huis zegt dat SunArc meekijkt, en wat het nu anders zou doen dan er in huis gebeurt of waar het op wacht, zoals "Zou de zolder verwarmen zodra er zon over is". Een tik opent per kamer wat er nu gebeurt naast wat SunArc zou doen, en wat de apparaten op zon doen',
+    ],
+    beter: [
+      'De grote kop op Thuis zegt alleen nog wat er in huis echt gebeurt. "Het huis wacht op zon" stond er ook als alleen SunArc wachtte en in huis niets. Dat staat nu in de strook',
+      'SunArc zegt niet meer dat klimaat pas na 30 winterdagen zelf regelt. Die dertig dagen zijn een eenmalige test in het huis van de maker. Zelf regelen zet je straks per kamer aan. Aangepast in de rondleiding, bij Regeling en bij Wat je huis kan',
+    ],
+    en: {
+      nieuw: [
+        'Home now always says what SunArc is doing. A fixed strip below the house says SunArc is watching, and what it would do differently from what happens in the house right now, or what it is waiting for, such as "Would heat the attic as soon as there is solar to spare". A tap shows per room what happens now next to what SunArc would do, and what the devices on solar are doing',
+      ],
+      beter: [
+        'The large headline on Home now only says what really happens in the house. "The house is waiting for sun" also appeared when only SunArc was waiting and nothing in the house was. That is now in the strip',
+        'SunArc no longer says that climate only takes control after 30 winter days. Those thirty days are a one-off test in the maker’s house. Later you turn on control per room. Changed in the tour, under Control and under What your house can do',
+      ],
+    },
+  },
   {
     versie: '0.187.6',
     datum: '2026-11-15',

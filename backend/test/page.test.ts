@@ -3431,6 +3431,69 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
    * kaart; en daaronder Straks, het apparaat, Hoe voelt het en Vandaag. De
    * microfoon in de balk opent de Assistent, die dan meteen luistert.
    */
+  it('zegt op Thuis vast wat SunArc doet, op de wand en de telefoon, met het blad per kamer (besluit 313)', async () => {
+    for (const scherm of ['wand', 'tel'] as const) {
+      const context = await browser.newContext(
+        scherm === 'wand'
+          ? { viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' }
+          : { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' },
+      );
+      await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+      await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+      const p = await context.newPage();
+      const fouten: string[] = [];
+      p.on('pageerror', (e) => fouten.push(e.message));
+      await p.goto(`${baseUrl}/thuis.html`);
+      await p.locator(`#${scherm} [data-kop]`).filter({ hasNotText: 'Even laden' }).waitFor();
+      const doet = await p.evaluate<{ stand: string; zin: string; gelijk: number; van: number; kamers: { naam: string; zou: string }[] }>('fetch("api/state").then((r) => r.json()).then((s) => s.bewoner.doet)');
+      expect(doet.stand).toBe('kijkt');
+
+      // De strook staat er, met de zin van de dienst, en niet over de vraagbalk of buiten beeld.
+      const strook = p.locator(`#${scherm} [data-doet]`);
+      await strook.waitFor();
+      const tekst = (await strook.textContent()) ?? '';
+      expect(tekst).toContain(doet.zin);
+      expect(tekst).toMatch(scherm === 'wand' ? /^SunArc kijkt mee/ : /^Kijkt mee · schakelt je klimaat nog niet/);
+      if (scherm === 'wand') expect(tekst).toContain(`${doet.gelijk} van ${doet.van} kamer`);
+      const vak = (await strook.boundingBox())!;
+      expect(vak.x).toBeGreaterThanOrEqual(0);
+      expect(vak.x + vak.width).toBeLessThanOrEqual(scherm === 'wand' ? 1280 : 390);
+      if (scherm === 'wand') {
+        // Eén regel van 44 punten, boven de vraagbalk; de wand schuift niet.
+        const dok = (await p.locator('#wand .dok').boundingBox())!;
+        expect(Math.round(vak.height)).toBe(44);
+        expect(vak.y + vak.height).toBeLessThanOrEqual(dok.y);
+        expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight')).toBe(true);
+      } else {
+        // Tussen het huis en de stromen.
+        const huis = (await p.locator('#podium-tel').boundingBox())!;
+        const stromen = await p.locator('#tel [data-stromen]').boundingBox();
+        expect(vak.y).toBeGreaterThanOrEqual(huis.y + huis.height - 12);
+        if (stromen) expect(vak.y + vak.height).toBeLessThanOrEqual(stromen.y + 1);
+      }
+      expect(await p.evaluate<boolean>('document.documentElement.scrollWidth <= innerWidth')).toBe(true);
+
+      // Een tik opent het blad: per kamer een regel, zonder teller van winterdagen (besluit 312).
+      if (scherm === 'tel') await strook.tap();
+      else await strook.click();
+      const blad = p.locator('[data-kiesblad][data-blad="doet"]');
+      await blad.waitFor();
+      expect(await blad.locator('h2').textContent()).toBe('Wat SunArc doet');
+      expect(await blad.locator('.dt-kamer:not(.kolomkop)').count()).toBe(doet.kamers.length);
+      expect(await blad.locator('.dt-kamer:not(.kolomkop) .dt-zou').first().textContent()).toBe(doet.kamers[0]!.zou);
+      expect(await blad.locator('.dt-fase i.nu').textContent()).toBe('Kijkt mee');
+      expect((await blad.textContent()) ?? '').not.toMatch(/winterdag/i);
+      expect(await blad.locator('a.dt-naar').getAttribute('href')).toBe('vandaag.html');
+      // Op de wand past het blad zonder schuiven.
+      if (scherm === 'wand') expect(await blad.evaluate((e) => e.scrollHeight <= e.clientHeight + 1)).toBe(true);
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', `-thuis-doet-${scherm}.png`) });
+      await blad.locator('[data-blad-dicht]').click();
+      await expect.poll(() => blad.isHidden()).toBe(true);
+      expect(fouten).toEqual([]);
+      await context.close();
+    }
+  });
+
   it('toont Thuis op de telefoon met de Assistent altijd in beeld', async () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());

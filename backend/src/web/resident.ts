@@ -5,7 +5,9 @@
  * kant-en-klaar uit de dienst. De stand per kamer kwam er al uit
  * (`residentRooms`); hier de rest van Thuis en de woorden bij een besluit:
  *
- * - **de kop**: "Het huis wacht op zon", met een zin eronder;
+ * - **de kop**: "De woonkamer wordt verwarmd", met een zin eronder: wat er in
+ *   huis echt gebeurt (besluit 313);
+ * - **wat SunArc doet of zou doen**, voor de strook op Thuis (`doet.ts`);
  * - **de stromen** in de tekening, in kW en zo afgerond dat ze optellen: zon
  *   plus net is wat het huis gebruikt, en dat is de airco plus de rest;
  * - **wat SunArc per apparaat zou doen**, met de reden;
@@ -21,6 +23,7 @@ import type { Deferrable, SiteConfig } from '../core/model.js';
 import { SHORT, cap, residentRooms, withArticle, type DecisionView, type Lang, type ResidentRoom } from './assistant.js';
 import { clockIn, nextLocalTime, partsIn } from './today.js';
 import { residentBuffers, type ResidentBuffer } from './buffers-bewoner.js';
+import { residentDoet, type ResidentDoet } from './doet.js';
 import { BASIS_ZONDER_METER_W } from './energy.js';
 import { standNu, type ResidentStand, type StandOpties } from './stand-nu.js';
 
@@ -125,6 +128,8 @@ export interface ResidentView {
   readonly accu?: ResidentAccu;
   /** De stand van het huis met wat er meespeelt (besluit 286). */
   readonly stand?: ResidentStand;
+  /** Wat SunArc doet of zou doen, voor de strook op Thuis (besluit 313); null als er niets te zeggen is. */
+  readonly doet: ResidentDoet | null;
 }
 
 /**
@@ -266,7 +271,6 @@ const SFEER = {
     warmer: (kamers: string, veel: boolean) => `${cap(kamers)} ${veel ? 'zijn' : 'is'} warmer dan je wilt.`,
     gemengd: 'Een paar kamers zijn kouder of warmer dan je wilt.',
     tel: (n: number) => `${['', 'Eén', 'Twee', 'Drie', 'Vier', 'Vijf', 'Zes', 'Zeven', 'Acht', 'Negen', 'Tien'][n] ?? n} kamers`,
-    kijkt: ['Het huis kijkt nog mee.', 'Het huis kijkt mee en leert.'],
     panelen: (kw: string) => `Je panelen geven ${kw} kW.`,
     niets: 'Geen kamer heeft iets nodig.',
     buitenZin: (b: string) => `Buiten is het ${b}°.`,
@@ -284,7 +288,6 @@ const SFEER = {
     warmer: (kamers: string, veel: boolean) => `${cap(kamers)} ${veel ? 'are' : 'is'} warmer than you like.`,
     gemengd: 'A few rooms are colder or warmer than you like.',
     tel: (n: number) => `${['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'][n] ?? n} rooms`,
-    kijkt: ['The house is still watching.', 'The house is watching and learning.'],
     panelen: (kw: string) => `Your panels give ${kw} kW.`,
     niets: 'No room needs anything.',
     buitenZin: (b: string) => `It is ${b}° outside.`,
@@ -318,7 +321,10 @@ export function residentHeadline(config: SiteConfig, snap: DecisionView, rooms: 
   const mid = (name: string) => withArticle(name, lang);
   const line = (list: typeof named) => list.map(({ r, name }) => `${name}: ${r.kort.toLowerCase()}.`).join(' ');
   const active = named.filter(({ r }) => r.soort === 'cool' || r.soort === 'heat');
-  const waiting = named.filter(({ r }) => r.soort === 'wait');
+  // Zolang SunArc meekijkt, zegt de kop alleen wat er in huis echt gebeurt (besluit 313): waar
+  // SunArc op wacht, staat in de strook. Wat de bewoner met de hand overnam, is wel echt.
+  const waiting = named.filter(({ r }) => r.soort === 'wait' && (!shadow || r.hand === true));
+  const wachtend = named.some(({ r }) => r.soort === 'wait');
   if (e.failsafe.active) return { boven, titel: w.fault[0], zin: w.fault[1] };
   const s = SFEER[lang];
   const deel = dagdeelVan(snap.atMs, config.timezone);
@@ -335,7 +341,7 @@ export function residentHeadline(config: SiteConfig, snap: DecisionView, rooms: 
       const kamers = active.length > 3 ? s.tel(active.length) : joinRooms(active.map(({ name }) => mid(name)), lang);
       const wat = !zelfde ? s.gemengd : koel ? s.warmer(kamers, true) : s.kouder(kamers, true);
       const getal = binnen ? `${binnen}${buiten != null ? `, ${s.buiten(buiten)}` : ''}.` : null;
-      return { boven, titel: kies(zelfde ? (koel ? s.warm : s.koud)[deel] : [w.manyWould], snap.atMs), zin: [getal, wat, kies(s.kijkt, snap.atMs)].filter((x) => x != null).join(' ') };
+      return { boven, titel: kies(zelfde ? (koel ? s.warm : s.koud)[deel] : [w.manyWould], snap.atMs), zin: [getal, wat].filter((x) => x != null).join(' ') };
     }
     const titel =
       active.length === 1
@@ -374,7 +380,7 @@ export function residentHeadline(config: SiteConfig, snap: DecisionView, rooms: 
     ? zonOp
       ? w.nothingSunNoRooms
       : w.nothingDarkNoRooms
-    : [zonOp ? s.panelen(decimal(solar / 1000, lang)) : null, s.niets, buiten != null ? s.buitenZin(buiten) : null].filter((x) => x != null).join(' ');
+    : [zonOp ? s.panelen(decimal(solar / 1000, lang)) : null, wachtend ? null : s.niets, buiten != null ? s.buitenZin(buiten) : null].filter((x) => x != null).join(' ');
   // Geen kamer heeft iets nodig, maar de droger draait: dan niet "Er draait niets" (besluit 166).
   const naam = (id: string) => config.deferrables?.find((x) => x.id === id)?.name ?? id;
   const draait = (e.deferrables ?? []).filter((d) => d.state === 'running' && d.doneSinceMs == null).map((d) => naam(d.id));
@@ -471,6 +477,8 @@ export function decisionWords(
 export function residentView(config: SiteConfig, snap: DecisionView, lang: Lang = 'nl', shadow = true, accuW: number | null = null, stand: Omit<StandOpties, 'shadow'> | null = null): ResidentView {
   const kamers = residentRooms(config, snap, lang, shadow);
   const { apparaten, rust } = residentDevices(config, snap, lang);
+  const uitstelbaar = residentDeferrables(config, snap.explanation.deferrables ?? [], snap.atMs, lang);
+  const warmtebuffers = residentBuffers(config, snap.explanation.heatStores ?? [], snap.atMs, lang);
   const touched = new Set(snap.commands.flatMap((c) => ('actuatorId' in c ? [c.actuatorId] : [])));
   const redenen = snap.accepted
     .filter((i) => touched.has(i.actuatorId))
@@ -482,10 +490,11 @@ export function residentView(config: SiteConfig, snap: DecisionView, lang: Lang 
     apparaten,
     rust,
     besluit: snap.commands.length > 0 ? decisionWords(config, snap.commands, redenen, lang) : null,
-    uitstelbaar: residentDeferrables(config, snap.explanation.deferrables ?? [], snap.atMs, lang),
-    warmtebuffers: residentBuffers(config, snap.explanation.heatStores ?? [], snap.atMs, lang),
+    uitstelbaar,
+    warmtebuffers,
     ...(snap.explanation.accu ? { accu: residentAccu(config, snap.explanation.accu) } : {}),
     ...(stand ? { stand: standNu(config, snap, lang, { ...stand, shadow }) } : {}),
+    doet: residentDoet(config, snap, kamers, lang, shadow, [...warmtebuffers, ...uitstelbaar]),
   };
 }
 

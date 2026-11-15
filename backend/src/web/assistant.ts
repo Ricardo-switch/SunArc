@@ -1510,6 +1510,8 @@ export interface ResidentRoom {
    * wat er in huis gebeurt, ook al regelt de oude regeling het.
    */
   readonly klopt: boolean;
+  /** De bewoner nam de kamer met de hand over: dat is echt, ook als SunArc meekijkt (besluit 313). */
+  readonly hand?: boolean;
 }
 
 function shortStatusOf(
@@ -1518,7 +1520,7 @@ function shortStatusOf(
   zone: Zone,
   lang: Lang,
   shadow = true,
-): { soort: RoomKind; kort: string; actuatorId: string | null; klopt?: boolean } {
+): { soort: RoomKind; kort: string; actuatorId: string | null; klopt?: boolean; hand?: boolean } {
   const w = SHORT[lang];
   const e = snap.explanation;
   const ids = new Set(zone.actuatorIds);
@@ -1526,14 +1528,14 @@ function shortStatusOf(
   if (e.failsafe.active) return { soort: 'bad', kort: w.failsafe, actuatorId: null };
   const taken = (e.overrides ?? []).find((o) => ids.has(o.actuatorId));
   if (taken) {
-    if (taken.untilMs == null) return { soort: 'wait', kort: w.taken, actuatorId: null };
+    if (taken.untilMs == null) return { soort: 'wait', kort: w.taken, actuatorId: null, hand: true };
     const t = new Intl.DateTimeFormat(lang === 'nl' ? 'nl-NL' : 'en-GB', {
       timeZone: config.timezone,
       hour: '2-digit',
       minute: '2-digit',
       hourCycle: 'h23',
     }).format(taken.untilMs);
-    return { soort: 'wait', kort: w.takenUntil(t), actuatorId: null };
+    return { soort: 'wait', kort: w.takenUntil(t), actuatorId: null, hand: true };
   }
   const mine = snap.accepted.filter((i) => ids.has(i.actuatorId));
   const running = mine.find((i) => i.action === 'cool' || i.action === 'heat');
@@ -1600,6 +1602,7 @@ export function residentRooms(config: SiteConfig, snap: DecisionView, lang: Lang
       echt: realShort(config, snap, zone, lang),
       actuatorId: s.actuatorId,
       klopt: s.klopt === true,
+      ...(s.hand ? { hand: true } : {}),
     };
   });
 }

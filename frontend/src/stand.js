@@ -294,14 +294,12 @@
     const geenRegeling = d.site != null && (d.site.zones ?? []).length === 0;
     const airco = acts.some((x) => x.capabilities?.canCool);
     const panelen = (d.zon?.panelen ?? []).length > 0 || (d.aansluiting?.configuratie?.panelen ?? []).length > 0;
-    // Klimaat kijkt mee tot het zelf regelt (besluit 64); dan wordt het "werkt".
+    // Klimaat kijkt mee tot de bewoner zelf regelen aanzet (besluit 312); dan wordt het "werkt".
     const meekijk = 'kijkt';
     const kamers = d.state?.bewoner?.kamers ?? [];
     const f = d.functies?.instellingen ?? d.functies?.voorstel;
     const e = d.energie?.instellingen;
     const p = e?.prijzen;
-    const winter = d.divergence?.dataset?.seizoenen?.find((x) => x.seizoen === 'winter');
-    const bewijs = winter ? t('kan.winterdagen', { n: winter.dagen, doel: winter.doel }) : null;
     const lampenAan = alles.filter((x) => x.soort === 'licht' && x.aan).length;
     const screens = alles.filter((x) => x.soort === 'screen');
     const leegB = (d.huis?.batterijen ?? []).filter((b) => app.bijnaOp(b.pct, 'batterij', d.huis)).length;
@@ -346,7 +344,8 @@
         ...teksten('temperatuur'), groep: 'comfort', stand: acts.length ? meekijk : 'nodig', label: acts.length ? null : t('kan.temperatuur.nodig'),
         nu: geregeld.length ? huismodel.inKamers(geregeld.map((r) => r.naam)) : t('kan.temperatuur.nu'), href: 'comfort.html',
         waar: geregeld.map((r) => ({ naam: r.naam, wat: kamers.find((k) => k.zoneId === r.zoneId)?.kort ?? (r.temperatuurC != null ? `${global.taal.getal(r.temperatuurC, Number.isInteger(r.temperatuurC) ? 0 : 1)}°` : '') })),
-        extra: bewijs ? t('kan.temperatuur.extra', { bewijs }) : null,
+        // Geen teller van winterdagen meer (besluit 312).
+        extra: null,
       },
       // Hoe je huis warmte vasthoudt (besluit 231): het thermisch model, uit het logboek.
       ...(geenRegeling ? [] : [thermischRegel(d)]),

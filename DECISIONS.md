@@ -304,6 +304,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [305. De laadpaal in de tekening, met de stromen en een blad](#305-de-laadpaal-in-de-tekening-met-de-stromen-en-een-blad)
 - [307. Stroom nu op Thuis, en wat er hangt bij de plekken buiten](#307-stroom-nu-op-thuis-en-wat-er-hangt-bij-de-plekken-buiten)
 - [308. Je huis tekenen: één tekentafel op ruitjes, en het huis in 3D uit de tekening](#308-je-huis-tekenen-één-tekentafel-op-ruitjes-en-het-huis-in-3d-uit-de-tekening)
+- [313. Op Thuis staat vast wat SunArc doet, en de kop zegt alleen wat echt gebeurt](#313-op-thuis-staat-vast-wat-sunarc-doet-en-de-kop-zegt-alleen-wat-echt-gebeurt)
 
 **Veiligheid**
 
@@ -14424,6 +14425,63 @@ regelen in Hoe ver je huis is ([214]) telt winterdagen en moet dan ook anders.
 Tot januari wordt er niets aan de regeling gebouwd ([310]). Beginwaarden uit
 meer huizen dan dit ene vragen dat gebruikers gegevens delen: daar hoort een
 eigen besluit bij.
+
+## 313. Op Thuis staat vast wat SunArc doet, en de kop zegt alleen wat echt gebeurt
+
+*Onderwerp: weergave · Status: geldig*
+
+15 november 2026, versie 0.188.0. Het kernpunt van de trouwste tester (issue
+164): "niet makkelijk kunnen zien waarmee het bezig is". Dat SunArc het klimaat
+nog niet schakelt, stond als klein woord *kijkt mee* verspreid over de app, en
+op Thuis alleen als wisselende slotzin in de kop. Wat SunArc zou doen, stond
+wel op het kamerblad, de apparaatkaarten en Vandaag, maar niet op de plek waar
+iedereen begint. Stap 1 van de kwaliteitsronde ([310]). Schets:
+`design/app2/Wand-Thuis-Doet.html` en `Tel-Thuis-Doet.html`.
+
+*Besluit:*
+
+- **Een vaste strook op Thuis.** Op de wand één regel van 44 punten tussen het
+  huis en de vraagbalk: *SunArc kijkt mee*, één zin, en hoeveel kamers gelijk
+  zijn. Het vak van het huis wordt daar 16 punten lager. Op de telefoon twee
+  korte regels tussen het huis en de stromen, met *schakelt je klimaat nog
+  niet* erbij. De stip heeft de kleur van de waaier ([214]): ijs kijkt mee,
+  mint regelt.
+- **De zin, in deze volgorde:** wat SunArc nu anders zou doen ("Zou de
+  badkamer nu niet verwarmen"); anders waar het op wacht ("Zou de zolder
+  verwarmen zodra er zon over is"); anders "Zou nu hetzelfde doen".
+- **Gelijk is: nu dezelfde kant op.** Allebei verwarmen, allebei koelen of
+  allebei niets. Een kamer die wacht, doet nu niets. Een apparaat dat van
+  SunArc zijn minimale draaitijd nog moet afmaken, draait ook bij SunArc nog
+  door. Een apparaat dat niet zegt of het bezig is, is bezig zolang zijn doel
+  niet gehaald is. Met de hand overgenomen of zonder meting telt een kamer
+  niet mee.
+- **De kop zegt alleen nog wat er in huis echt gebeurt**, zolang SunArc
+  meekijkt. "Het huis wacht op zon" stond er ook als alleen SunArc wachtte en
+  in huis niets; dat zegt nu de strook. De slotzin "Het huis kijkt nog mee" is
+  weg. Wat de bewoner met de hand overnam, is echt en blijft in de kop.
+- **Een tik opent het blad *Wat SunArc doet*:** de stand met de balk van
+  Regeling › Klimaat en sinds wanneer SunArc meekijkt, per kamer wat er nu in
+  huis gebeurt naast wat SunArc zou doen, de apparaten op zon met hun stand, en
+  de weg naar Vandaag. Boven de zeven kamers staan alleen de kamers die anders
+  zijn, zodat de wand niet schuift.
+- **Zonder kamers die meedoen** zegt de strook wat het eerste apparaat op zon
+  doet. Is er ook daarvan niets, dan is er geen strook.
+- **De dertig winterdagen zijn uit de teksten** ([312]): de rondleiding,
+  Regeling › Klimaat (ook de teller) en Wat je huis kan.
+
+*Wat afviel:* een regel onder de zin van de kop (te krap naast het dak) en de
+stand in de begroeting (dan schuift de stand van het huis op de telefoon weg).
+Een strook van twee regels op de wand: die maakte het huis 6% kleiner. Een
+stand *Leert*: voor klimaat zegt SunArc vanaf de eerste dag wat het zou doen
+([312] brengt hem later terug als echte stand). Licht en screens in het blad:
+die bedient de bewoner zelf.
+
+*Kosten:* het blad haalt de datum van het meekijken op uit de terugblik, pas
+als iemand het opent. De kop is rustiger als SunArc wacht: "Rustige ochtend"
+waar eerst "Het huis wacht op zon" stond. Hoe ver je huis is houdt zijn weg
+naar zelf regelen met winterdagen, en de melding bij 10, 20 en 30 winterdagen
+blijft: die hangen aan de datasetmeter en veranderen met [312] in januari.
+Voor de testers verandert er tot dan niets ([310]).
 
 ## Wat nog een besluit wacht
 

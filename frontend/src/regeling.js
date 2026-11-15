@@ -72,7 +72,6 @@ const kamersMee = () => binnenKamers().filter((r) => actiefIn(r).length);
 const naarKamer = (r) => `indeling.html#${encodeURIComponent(r.id)}/warmte`;
 
 function klimaatVorm() {
-  const winter = terugblik?.dataset?.seizoenen?.find((x) => x.seizoen === 'winter');
   const van = terugblik?.dataset?.vanMs ?? terugblik?.vanMs;
   const sinds = van ? taal.datum(van, { day: 'numeric', month: 'long' }) : null;
   const rijen = huisData
@@ -88,10 +87,8 @@ function klimaatVorm() {
     ? `<p class="klein" style="margin: 0">${esc(t('regeling.nietMee'))} ${nietMee.map((r) => `<a href="${naarKamer(r)}">${esc(r.naam)}</a>`).join(', ')}. ${esc(t('regeling.kiesBijKamer'))}</p>`
     : '';
   const stand = `<div class="regelrij"><div class="l"><b>${esc(sinds ? t('regeling.kijktSinds', { datum: sinds }) : t('regeling.fase.kijken'))}</b><span>${esc(t('regeling.zegtWat'))}</span></div>${fase('kijken')}</div>`;
-  const bewijs = winter
-    ? `<div class="bewijs"><span class="mini">${esc(t('regeling.winterdagen', { n: nl(winter.dagen, 0), doel: winter.doel }))}</span><span class="balkje"><i style="width: ${Math.min(100, (winter.dagen / winter.doel) * 100).toFixed(0)}%"></i></span></div>
-       <p class="mini" style="margin: 0">${esc(t('regeling.pasZelf', { doel: winter.doel }))}</p>`
-    : '';
+  // Geen teller van winterdagen (besluit 312): die test is van één huis, een nieuw huis wacht er niet op.
+  const bewijs = `<p class="mini" style="margin: 0">${esc(t('regeling.pasZelf'))}</p>`;
   return `<h2 class="kop-2">${esc(t('regeling.klimaat'))}</h2>
     <p class="klein" style="margin: 0">${esc(t('regeling.perKamer'))}</p>
     ${stand}

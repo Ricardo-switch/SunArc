@@ -114,9 +114,9 @@
       ? `<h3>Nu per kamer</h3><div class="sb-kamer kop"><span></span><span>${s.kamerkop[0]}</span><span>${s.kamerkop[1]}</span><span></span></div>`
         + s.kamers.map((k) => `<div class="sb-kamer"><span><b>${k.naam}</b><small>${k.temp}</small></span><span class="echt">${k.echt}</span><span class="zouhij">${k.zou}</span><span class="gelijk ${k.gelijk ? 'ja' : 'nee'}" aria-label="${k.gelijk ? 'gelijk' : 'anders'}">${k.gelijk ? '=' : '≠'}</span></div>`).join('')
       : '<h3>Nu per kamer</h3>' + s.kamers.map((k) => `<div class="sb-kamer een"><span><b>${k.naam}</b><small>${k.temp}</small></span><span class="zouhij">${k.doet}</span></div>`).join('');
-    const zelf = `<h3>Wat SunArc zelf schakelt</h3>
-      <div class="sb-wel"><span><b>Ontvochtiger</b><small>Gaat aan zodra er 0,4 kW zon over is</small></span><span class="waarde" style="color: var(--zon)">Wacht op zon</span></div>
-      <div class="sb-wel"><span><b>Droger</b><small>SunArc kiest het moment als hij klaarstaat</small></span><span class="waarde" style="color: var(--gedempt)">Niet klaargezet</span></div>
+    const zelf = `<h3>Apparaten op zon</h3>
+      <div class="sb-wel"><span><b>Ontvochtiger</b></span><span class="waarde" style="color: var(--zon)">Wacht op zon</span></div>
+      <div class="sb-wel"><span><b>Droger</b></span><span class="waarde" style="color: var(--gedempt)">Niet klaargezet</span></div>
       <div class="sb-wel"><span><b>Klimaat</b><small>${s.fase === 2 ? 'Woonkamer, badkamer en zolder' : 'Nog niet. Met de hand kan wel'}</small></span><span class="waarde" style="color: ${s.fase === 2 ? 'var(--mint)' : 'var(--gedempt)'}">${s.fase === 2 ? 'Regelt' : 'Kijkt mee'}</span></div>`;
     return `<div class="bladkop"><h2 class="kop-2">Wat SunArc doet</h2><button type="button" class="knop knop-licht">Klaar</button></div>
       <div class="sb-kolommen">
