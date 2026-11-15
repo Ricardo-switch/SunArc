@@ -53,6 +53,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [280. Laden met de hand met een zin](#280-laden-met-de-hand-met-een-zin)
 - [290. Een stekker op zon met één schakelaar, en op zon gaat meteen in](#290-een-stekker-op-zon-met-één-schakelaar-en-op-zon-gaat-meteen-in)
 - [310. Geen nieuwe functies tot januari, en één plek per onderwerp](#310-geen-nieuwe-functies-tot-januari-en-één-plek-per-onderwerp)
+- [312. De wintertest is van dit huis; een nieuw huis leert, kijkt mee en regelt als de bewoner dat kiest](#312-de-wintertest-is-van-dit-huis-een-nieuw-huis-leert-kijkt-mee-en-regelt-als-de-bewoner-dat-kiest)
 
 **Kern en regeling**
 
@@ -337,7 +338,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [36. De add-on is dezelfde dienst, niet een tweede](#36-de-add-on-is-dezelfde-dienst-niet-een-tweede)
 - [37. De add-on wordt platgeslagen voordat de Supervisor hem bouwt](#37-de-add-on-wordt-platgeslagen-voordat-de-supervisor-hem-bouwt) — *aangevuld door 118*
 - [53. De NAS is de primaire omgeving; de add-on wacht tot stap B](#53-de-nas-is-de-primaire-omgeving-de-add-on-wacht-tot-stap-b)
-- [64. Echt schakelen pas met een complete winter en alle functies](#64-echt-schakelen-pas-met-een-complete-winter-en-alle-functies)
+- [64. Echt schakelen pas met een complete winter en alle functies](#64-echt-schakelen-pas-met-een-complete-winter-en-alle-functies) — *aangevuld door 312*
 - [67. Een mail als de opname stilvalt](#67-een-mail-als-de-opname-stilvalt)
 - [118. Uitrollen via een eigen add-on-bibliotheek op GitHub](#118-uitrollen-via-een-eigen-add-on-bibliotheek-op-github)
 - [135. Tot 1 november vrijgeven op de eigen pc](#135-tot-1-november-vrijgeven-op-de-eigen-pc) — *vervangen door 152*
@@ -2721,7 +2722,7 @@ De pagina toont erbij hoeveel dagbestanden er die ronde echt gelezen zijn.
 
 ## 64. Echt schakelen pas met een complete winter en alle functies
 
-*Onderwerp: uitrol en beheer · Status: geldig*
+*Onderwerp: uitrol en beheer · Status: aangevuld door 312*
 
 Stap B, de overdracht, had geen moment. De voorbereiding kon al, maar wanneer
 de arbiter werkelijk iets mag aanzetten, was nooit besloten.
@@ -14360,6 +14361,69 @@ wat er bediend mag worden, wat de regeling denkt.
 *Kosten:* wie op de server een shell heeft, kan alles lezen wat de app laat
 zien, zonder iemands sessie. Dat kon hij al via de bestanden; nu is het wat de
 app ervan maakt. Het staat uit tenzij de bewoner het aanzet.
+
+## 312. De wintertest is van dit huis; een nieuw huis leert, kijkt mee en regelt als de bewoner dat kiest
+
+*Onderwerp: visie en principes · Status: geldig*
+
+15 november 2026. Ricardo, bij de schets van wat SunArc doet op Thuis: "er
+wordt steeds over de 30 dagen wintertest gesproken. Dit is een eenmalige test
+die mijn oude yaml systeem controleert. Niet iets wat vast in sunarc komt. Een
+nieuwe gebruiker heeft het oude systeem niet en we gaan die geen 30 dagen
+winter af laten wachten."
+
+[64] is op 1 oktober geschreven voor dit ene huis: pas schakelen na dertig
+winterdagen en met alle functies gezien, omdat de oude regeling zolang als
+vergelijking dient. Daarna is het ongemerkt een belofte aan elke gebruiker
+geworden. De app zegt het op vier plekken: de rondleiding ("Na 30 winterdagen
+weet het genoeg om zelf te regelen"), Regeling › Klimaat ("Winterdagen: 0 van
+30"), Wat je huis kan en Hoe ver je huis is. Het kwaliteitsrapport nam het
+over, en de schets van het blad op Thuis ook.
+
+*Besluit:*
+
+- **De dertig winterdagen zijn het bewijs voor dit huis, één keer.** Ze
+  toetsen de regeling tegen de oude regeling van Ricardo. [64] blijft daarvoor
+  gelden, en de datasetmeter telt gewoon door vanaf 1 december. Het is geen
+  regel van het product.
+- **Een nieuw huis gaat per kamer door drie standen, zonder kalender.**
+  *Leert*: een paar dagen meten, tot de kamer een paar keer is verwarmd of
+  gekoeld. *Kijkt mee*: SunArc zegt wat het zou doen, en de bewoner ziet op
+  Thuis in hoeveel kamers dat gelijk is aan wat er in huis gebeurt. Dat is zijn
+  eigen bewijs. *Regelt*: de bewoner zet het zelf aan, per kamer. Valt SunArc
+  stil, dan neemt de eigen thermostaat het over.
+- **Per richting.** Wie in de zomer begint, kan koelen laten regelen;
+  verwarmen leert de app bij de eerste koude dagen.
+- **Uit de gegevens van dit huis komt een basis voor elk huis.** De analyse in
+  januari levert twee dingen: het bewijsrapport tegenover de oude regeling, en
+  de basis. Die basis is: regels waarvan bewezen is dat ze goed beslissen,
+  veilige standaardinstellingen (marges, pauzes, minimale draaitijden) en
+  beginwaarden per soort huis en soort verwarming.
+- **De basis is een begin, geen waarheid.** Eén huis is één meting: een kamer
+  met vloerverwarming of weinig isolatie kan een paar keer sneller of trager
+  zijn dan de woonkamer hier. De app stelt de beginwaarden bij met wat hij in
+  het huis zelf meet. Hoe langer hij draait, hoe meer de eigen waarden van het
+  huis de basis vervangen.
+- **De teksten volgen.** Het blad op Thuis krijgt geen teller van winterdagen.
+  De vier plekken in de app die elke gebruiker dertig winterdagen beloven,
+  worden aangepast in de versie die de strook op Thuis brengt.
+
+*Wat afviel:*
+
+- **Elke gebruiker dertig winterdagen laten wachten.** Wie in maart begint,
+  wacht dan tot de volgende winter, zonder oude regeling om mee te vergelijken.
+  SunArc levert zo het eerste jaar alleen inzicht.
+- **De gegevens van dit huis als waarheid voor andere huizen.** Het is één
+  huis, met radiatoren op 60 °C en twee airco's.
+
+*Kosten:* de maat waarmee een kamer van *Leert* naar *Kijkt mee* gaat, en
+wanneer de app zegt dat een kamer klaar is om te regelen, is nog niet bepaald.
+Dat hoort bij de analyse in januari. De stand *Leert* bestaat voor klimaat nog
+niet: de app zegt nu vanaf de eerste dag wat hij zou doen. De weg naar zelf
+regelen in Hoe ver je huis is ([214]) telt winterdagen en moet dan ook anders.
+Tot januari wordt er niets aan de regeling gebouwd ([310]). Beginwaarden uit
+meer huizen dan dit ene vragen dat gebruikers gegevens delen: daar hoort een
+eigen besluit bij.
 
 ## Wat nog een besluit wacht
 

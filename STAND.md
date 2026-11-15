@@ -36,6 +36,12 @@ verwijzing bestaat.
   D het thermisch model ([46]); de app af ([71]); G de assistent ([44]); H een
   product voor meer huizen ([34]). De dertig winterdagen beginnen op 1
   december; voor B wordt pas gebouwd na de analyse, in januari ([310]).
+- **De wintertest is van dit huis** ([312]): hij toetst de regeling één keer
+  tegen de oude regeling. Een nieuw huis wacht geen dertig winterdagen: per
+  kamer leert SunArc een paar dagen, kijkt mee, en regelt zodra de bewoner dat
+  aanzet. De analyse in januari levert naast het bewijs een basis voor elk
+  huis (bewezen regels, veilige instellingen, beginwaarden), die de app
+  bijstelt met wat hij in het huis zelf meet.
 - **De app is af** (21 oktober 2026): nu opruimen, sneller maken, apparaten
   op zon in de voorrang, en wat nog op dit huis leunt een instelling maken. Nog
   te bouwen: een lichte versie met een kleur per bewoner, vier kaarten voor
@@ -671,7 +677,8 @@ verwijzing bestaat.
   kent de valkuilen van de Taakplanner ([22]).
 - **De configuratie** blijft op de NAS buiten git ([21]). Een bewaking tegen
   vastlopen ([18]) en een mail als de opname stilvalt ([67]).
-- **Echt schakelen** pas met een complete winter en alle functies ([64]).
+- **Echt schakelen** in dit huis pas met een complete winter en alle functies
+  ([64]). Dat is het bewijs van dit ene huis, geen regel voor elk huis ([312]).
 
 ## Kwaliteitsbewaking
 
@@ -1004,4 +1011,5 @@ verwijzing bestaat.
 [309]: DECISIONS.md#309-de-deuren-van-de-add-on-ook-op-een-eigen-server-hemsdeuren
 [310]: DECISIONS.md#310-geen-nieuwe-functies-tot-januari-en-één-plek-per-onderwerp
 [311]: DECISIONS.md#311-lezen-van-binnenuit-op-een-eigen-server-hemslokaallezen
+[312]: DECISIONS.md#312-de-wintertest-is-van-dit-huis-een-nieuw-huis-leert-kijkt-mee-en-regelt-als-de-bewoner-dat-kiest
 <!-- links:einde -->
