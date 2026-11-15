@@ -14313,9 +14313,12 @@ de app, de code, GitHub en de meldingen na. De kern:
 - **De schaduwpagina blijft, als De motor,** achter zeven tikken op het
   versienummer bij Over deze app, in de vorm van de app. Vanaf de dag dat
   SunArc zelf regelt, toont ze wat hij deed in plaats van wat hij zou doen.
-- **Testers krijgen hooguit één versie per week,** na een week op beta. Een
-  echte fout mag tussendoor. Melden staat in de add-on tot januari op pauze
-  (0.178.2), met een uitleg en een dankwoord.
+- **Tot januari gaat er niets meer naar de testers.** 0.178.2 was de laatste
+  uitgave; Ricardo, 15 november: "ik breng niks meer naar de testers
+  voorlopig". Reparaties blijven op beta, ook een echte fout. Vanaf januari
+  krijgen testers hooguit één versie per week, na een week op beta. Melden
+  staat in de add-on tot januari op pauze (0.178.2), met een uitleg en een
+  dankwoord.
 - **Elke melding wordt eerst gewogen:** fout, vraag, wens of apparaat. Een fout
   wordt gerepareerd. Een wens krijgt het label *later* en wacht tot er drie
   dezelfde zijn. Een issue waarin de bouwer het laatste woord heeft, krijgt

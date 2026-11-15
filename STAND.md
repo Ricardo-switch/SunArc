@@ -16,8 +16,9 @@ verwijzing bestaat.
 - **Sinds 12 november: geen nieuwe functies tot januari** ([310]). Eerst
   één plek per onderwerp: de instellingen worden vier groepen, een apparaat
   stel je in op zijn eigen kaart, en op Thuis staat altijd wat SunArc doet.
-  Testers krijgen hooguit één versie per week, en melden staat tot januari op
-  pauze in de add-on.
+  Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
+  daarna hooguit één versie per week. Melden staat tot januari op pauze in de
+  add-on.
 - **De naam is SunArc** (sinds 31 oktober 2026; eerst Smart Climate): de zon
   op de horizon met stralen in mint, ijs en violet. Wat je ziet heet zo; de
   technische namen bleven ([222]). Het logo staat naast de klok en opent Over
