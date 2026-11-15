@@ -568,9 +568,11 @@ describe('de weergave leest alleen', () => {
     }
     // De echte bestanden staan er, en het beta-manifest wijst naar de beta-iconen.
     const src = new URL('../../frontend/src/', import.meta.url);
-    const manifest = JSON.parse(await readFile(new URL('manifest-beta.webmanifest', src), 'utf-8')) as { name: string; icons: { src: string }[] };
+    const manifest = JSON.parse(await readFile(new URL('manifest-beta.webmanifest', src), 'utf-8')) as { name: string; short_name: string; icons: { src: string }[] };
     expect(manifest.name).toBe('SunArc beta');
-    for (const i of manifest.icons) expect(Object.values(BETA_ICOON)).toContain(i.src);
+    // Op het startscherm SunArc beta, niet meer SC beta (15 november 2026); het ?v= laat een geïnstalleerde app de nieuwe iconen ophalen.
+    expect(manifest.short_name).toBe('SunArc beta');
+    for (const i of manifest.icons) expect(Object.values(BETA_ICOON)).toContain(i.src.split('?')[0]);
     for (const beta of Object.values(BETA_ICOON)) await expect(readFile(new URL(beta, src))).resolves.toBeTruthy();
   });
 

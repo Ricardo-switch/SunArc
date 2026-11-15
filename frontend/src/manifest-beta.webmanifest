@@ -1,7 +1,7 @@
 {
   "name": "SunArc beta",
-  "short_name": "SC beta",
-  "description": "De beta van SunArc, op de NAS: wat er nieuw is, voordat het naar de Pi gaat.",
+  "short_name": "SunArc beta",
+  "description": "De beta van SunArc: wat er nieuw is, voordat het naar de testers gaat.",
   "lang": "nl",
   "start_url": "thuis.html",
   "scope": "./",
@@ -10,8 +10,8 @@
   "background_color": "#0b1424",
   "theme_color": "#0b1424",
   "icons": [
-    { "src": "icoon-beta-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icoon-beta-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icoon-beta-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icoon-beta-192.png?v=sunarc", "sizes": "192x192", "type": "image/png" },
+    { "src": "icoon-beta-512.png?v=sunarc", "sizes": "512x512", "type": "image/png" },
+    { "src": "icoon-beta-512-maskable.png?v=sunarc", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

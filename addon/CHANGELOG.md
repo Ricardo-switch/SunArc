@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.187.5
+## 0.187.6
 
-*15 november 2026 · 0.179.0 – 0.187.5*
+*15 november 2026 · 0.179.0 – 0.187.6*
 
 **Nieuw**
 
@@ -41,6 +41,7 @@
 
 **Opgelost**
 
+- Op het startscherm heette de beta nog SC beta, met het oude icoon. Nu heet hij SunArc beta, met het teken van SunArc. Een app die al op je startscherm staat, krijgt het mee zodra je browser hem bijwerkt, of als je hem opnieuw toevoegt
 - Kamers en indeling: kreeg een sensor of thermostaat in Home Assistant een andere naam, dan kon niets in de indeling meer bewaard worden (meten is een lijst van hooguit zes bekende sensoren). Die oude naam valt nu weg en de rest wordt bewaard. Zet het apparaat daarna opnieuw in zijn kamer
 - Apparaten › Toevoegen › Losse sensoren: in het zoekveld kwam elke letter vóór het woord te staan. De cursor blijft nu waar je typt
 - Een thermostaat of airco die even wacht, heet op Apparaten nu Wacht. Alleen wat echt op zon wacht, heet Wacht op zon
@@ -86,6 +87,7 @@
 
 **Fixed**
 
+- On the home screen the beta was still called SC beta, with the old icon. It is now called SunArc beta, with the SunArc mark. An app already on your home screen gets it once your browser updates it, or when you add it again
 - Rooms and layout: when a sensor or thermostat got a different name in Home Assistant, nothing in the layout could be saved any more (measure is a list of at most six known sensors). That old name is now dropped and the rest is saved. Put the device in its room again afterwards
 - Devices › Add › Separate sensors: in the search field every letter ended up before the word. The cursor now stays where you type
 - A thermostat or air conditioner that waits for a moment is now called Waiting under Devices. Only what really waits for sun is called Waiting for sun

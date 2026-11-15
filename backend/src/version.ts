@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.187.5';
+export const VERSIE = '0.187.6';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.187.6',
+    datum: '2026-11-15',
+    opgelost: [
+      'Op het startscherm heette de beta nog SC beta, met het oude icoon. Nu heet hij SunArc beta, met het teken van SunArc. Een app die al op je startscherm staat, krijgt het mee zodra je browser hem bijwerkt, of als je hem opnieuw toevoegt',
+    ],
+    en: {
+      opgelost: [
+        'On the home screen the beta was still called SC beta, with the old icon. It is now called SunArc beta, with the SunArc mark. An app already on your home screen gets it once your browser updates it, or when you add it again',
+      ],
+    },
+  },
   {
     versie: '0.187.5',
     datum: '2026-11-15',
