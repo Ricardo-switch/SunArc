@@ -287,6 +287,22 @@ export interface LayoutKnown {
  * bij de losse lamp. Wat het huis helemaal niet meer kent, valt weg: een oude
  * indeling mag het bewaren van een nieuwe nooit blokkeren.
  */
+/**
+ * Meten met (besluit 123): sensoren die het huis kent, hooguit zes, zonder
+ * dubbele. Een sensor die het huis niet meer kent, valt stil weg, net als bij de
+ * rollen en de bronnen; een hernoemde gaat naar zijn opvolger als het huis die
+ * kent. Op 15 november 2026 heette `climate.sonoff_thermostaat` in Home
+ * Assistant intussen anders, en daarna kon niets in de indeling meer bewaard
+ * worden. Viel alles weg, dan kiest de app weer zelf (geen lijst): leeg blijft
+ * alleen leeg als de bewoner dat koos.
+ */
+function leesMeten(waarde: unknown, known: Pick<LayoutKnown, 'deviceIds' | 'opvolgers'>): { ok: true; meten: string[] | undefined } | { ok: false } {
+  if (!Array.isArray(waarde) || waarde.some((x) => typeof x !== 'string')) return { ok: false };
+  const ids = [...new Set((waarde as string[]).map((id) => (known.deviceIds.has(id) ? id : (known.opvolgers?.get(id) ?? id))).filter((id) => known.deviceIds.has(id)))];
+  if (ids.length > 6) return { ok: false };
+  return { ok: true, meten: ids.length === 0 && waarde.length > 0 ? undefined : ids };
+}
+
 export function carryOver(apparaten: Readonly<Record<string, unknown>>, known: Pick<LayoutKnown, 'deviceIds' | 'opvolgers'>): Record<string, unknown> {
   const kept: Record<string, unknown> = {};
   const moved: Record<string, unknown> = {};
@@ -422,10 +438,9 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
         zRollen = c.rollen;
         const zm = zz['meten'];
         if (zm !== undefined && zm !== null) {
-          if (!Array.isArray(zm) || zm.length > 6 || zm.some((x) => typeof x !== 'string' || !known.deviceIds.has(x)) || new Set(zm).size !== zm.length) {
-            return { ok: false, reden: `zone ${zid}: meten is een lijst van hooguit zes bekende sensoren` };
-          }
-          zMeten = zm as string[];
+          const m = leesMeten(zm, known);
+          if (!m.ok) return { ok: false, reden: `zone ${zid}: meten is een lijst van hooguit zes sensoren` };
+          zMeten = m.meten;
         }
         const r = zz['regelzone'];
         if (typeof r === 'string' && ID.test(r)) zRz = r;
@@ -473,15 +488,13 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
     const so = k['soort'];
     if (so !== undefined && so !== null && !(ROOM_TYPES as readonly unknown[]).includes(so)) return { ok: false, reden: `kamer ${id}: soort is ${ROOM_TYPES.join(', ')}` };
     const soort = so != null && etage !== OUTSIDE_FLOOR ? (so as RoomType) : undefined;
-    // Meten met (besluit 123): apparaten die het huis kent, hooguit zes, geen dubbele.
+    // Meten met (besluit 123): zie leesMeten. Leeg is een keuze (issue 133/134): geen meter in deze kamer, niet "laat de app kiezen".
     const me = k['meten'];
     let meten: string[] | undefined;
     if (me !== undefined && me !== null) {
-      if (!Array.isArray(me) || me.length > 6 || me.some((x) => typeof x !== 'string' || !known.deviceIds.has(x)) || new Set(me).size !== me.length) {
-        return { ok: false, reden: `kamer ${id}: meten is een lijst van hooguit zes bekende sensoren` };
-      }
-      // Leeg is een keuze (issue 133/134): geen meter in deze kamer, niet "laat de app kiezen".
-      meten = me as string[];
+      const m = leesMeten(me, known);
+      if (!m.ok) return { ok: false, reden: `kamer ${id}: meten is een lijst van hooguit zes sensoren` };
+      meten = m.meten;
     }
     // Wat er verwarmt en koelt (besluit 132); buiten valt het weg. Een apparaat dat
     // het huis niet meer kent, valt weg, en daarmee op zon: anders kan de

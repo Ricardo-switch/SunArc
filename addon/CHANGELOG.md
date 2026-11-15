@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.187.3
+## 0.187.4
 
-*14 november 2026 · 0.179.0 – 0.187.3*
+*15 november 2026 · 0.179.0 – 0.187.4*
 
 **Nieuw**
 
@@ -40,6 +40,7 @@
 
 **Opgelost**
 
+- Kamers en indeling: kreeg een sensor of thermostaat in Home Assistant een andere naam, dan kon niets in de indeling meer bewaard worden (meten is een lijst van hooguit zes bekende sensoren). Die oude naam valt nu weg en de rest wordt bewaard. Zet het apparaat daarna opnieuw in zijn kamer
 - Apparaten › Toevoegen › Losse sensoren: in het zoekveld kwam elke letter vóór het woord te staan. De cursor blijft nu waar je typt
 - Een thermostaat of airco die even wacht, heet op Apparaten nu Wacht. Alleen wat echt op zon wacht, heet Wacht op zon
 - Op de pagina Auto was Laadt op zon in het lichte thema niet te lezen
@@ -83,6 +84,7 @@
 
 **Fixed**
 
+- Rooms and layout: when a sensor or thermostat got a different name in Home Assistant, nothing in the layout could be saved any more (measure is a list of at most six known sensors). That old name is now dropped and the rest is saved. Put the device in its room again afterwards
 - Devices › Add › Separate sensors: in the search field every letter ended up before the word. The cursor now stays where you type
 - A thermostat or air conditioner that waits for a moment is now called Waiting under Devices. Only what really waits for sun is called Waiting for sun
 - On the Car page, Charging on sun could not be read in the light theme

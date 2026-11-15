@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.187.3';
+export const VERSIE = '0.187.4';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.187.4',
+    datum: '2026-11-15',
+    opgelost: [
+      'Kamers en indeling: kreeg een sensor of thermostaat in Home Assistant een andere naam, dan kon niets in de indeling meer bewaard worden (meten is een lijst van hooguit zes bekende sensoren). Die oude naam valt nu weg en de rest wordt bewaard. Zet het apparaat daarna opnieuw in zijn kamer',
+    ],
+    en: {
+      opgelost: [
+        'Rooms and layout: when a sensor or thermostat got a different name in Home Assistant, nothing in the layout could be saved any more (measure is a list of at most six known sensors). That old name is now dropped and the rest is saved. Put the device in its room again afterwards',
+      ],
+    },
+  },
   {
     versie: '0.187.3',
     datum: '2026-11-14',

@@ -74,10 +74,13 @@ describe('een zone apart regelen (besluit 306)', () => {
     expect(kijken.ok && kijken.layout.kamers[0]!.zones[0]!.regelzone).toBeNull();
   });
 
-  it('weigert een zone met een onbekend apparaat te laten meten', () => {
+  it('laat een onbekend apparaat bij meten van een zone stil vallen (15 november 2026)', () => {
     const k = indeling(true);
     const fout = { ...k, kamers: [{ ...k.kamers[0]!, zones: [{ id: 'keuken', naam: 'Keuken', rollen: { 'climate.knop_keuken': 'houdt' }, meten: ['sensor.bestaat_niet'] }] }, ...k.kamers.slice(1)] };
-    expect(validateLayout(fout, known)).toMatchObject({ ok: false });
+    // Een oude naam blokkeerde het bewaren van de hele indeling; nu valt hij weg en kiest de app weer zelf.
+    const v = validateLayout(fout, known);
+    expect(v.ok).toBe(true);
+    expect(v.ok ? v.layout.kamers[0]!.zones[0]!.meten : 'fout').toBeUndefined();
   });
 
   it('maakt van elke zone met een eigen regeling een kamer voor de regeling', () => {

@@ -109,12 +109,39 @@ describe('de indeling toetsen', () => {
     const kamer = good.kamers[0]!;
     const met = validateLayout({ ...good, kamers: [{ ...kamer, meten: ['nest', 'cover.screen'] }, ...good.kamers.slice(1)] }, known);
     expect(met.ok && met.layout.kamers[0]!.meten).toEqual(['nest', 'cover.screen']);
-    for (const meten of [['sensor.onbekend'], ['nest', 'nest'], 'nest', [1]]) {
+    for (const meten of ['nest', [1]]) {
       expect(validateLayout({ ...good, kamers: [{ ...kamer, meten }, ...good.kamers.slice(1)] }, known).ok, JSON.stringify(meten)).toBe(false);
     }
+    // Meer dan zes sensoren die het huis kent, blijft een fout: de app stuurt er nooit meer.
+    const zeven = ['nest', 'light.sfeerverlichting', 'cover.screen', 's1', 's2', 's3', 's4'];
+    expect(validateLayout({ ...good, kamers: [{ ...kamer, meten: zeven }, ...good.kamers.slice(1)] }, { ...known, deviceIds: new Set(zeven) }).ok).toBe(false);
+    const dubbel = validateLayout({ ...good, kamers: [{ ...kamer, meten: ['nest', 'nest'] }, ...good.kamers.slice(1)] }, known);
+    expect(dubbel.ok && dubbel.layout.kamers[0]!.meten).toEqual(['nest']);
     const leeg = validateLayout({ ...good, kamers: [{ ...kamer, meten: [] }, ...good.kamers.slice(1)] }, known);
     // Leeg is een keuze (issue 134): geen meter, en dat blijft bewaard.
     expect(leeg.ok && leeg.layout.kamers[0]!.meten).toEqual([]);
+  });
+
+  it('laat een meter die het huis niet meer kent stil vallen, zodat de rest bewaard kan worden (15 november 2026)', () => {
+    const kamer = good.kamers[0]!;
+    // Een thermostaat die in Home Assistant hernoemd is: de oude naam blokkeerde elke wijziging in de indeling.
+    const r = validateLayout({ ...good, kamers: [{ ...kamer, meten: ['nest', 'climate.sonoff_thermostaat'] }, ...good.kamers.slice(1)], verborgen: ['light.sfeerverlichting'] }, known);
+    expect(r.ok).toBe(true);
+    expect(r.ok && r.layout.kamers[0]!.meten).toEqual(['nest']);
+    expect(r.ok && r.layout.verborgen).toEqual(['light.sfeerverlichting']);
+    // Viel alles weg, dan kiest de app weer zelf: geen lijst, geen "geen meter".
+    const alles = validateLayout({ ...good, kamers: [{ ...kamer, meten: ['climate.sonoff_thermostaat'] }, ...good.kamers.slice(1)] }, known);
+    expect(alles.ok && alles.layout.kamers[0]!.meten).toBeUndefined();
+    // Kent het huis een opvolger, dan meet de kamer daarmee.
+    const opvolger = validateLayout({ ...good, kamers: [{ ...kamer, meten: ['climate.sonoff_thermostaat'] }, ...good.kamers.slice(1)] }, { ...known, opvolgers: new Map([['climate.sonoff_thermostaat', 'nest']]) });
+    expect(opvolger.ok && opvolger.layout.kamers[0]!.meten).toEqual(['nest']);
+    // Hetzelfde in een zone met een eigen regeling (besluit 306): daar stond de oude naam ook, met een rol.
+    const zone = { id: 'keuken', naam: 'Keuken', rollen: { nest: 'houdt', 'climate.sonoff_thermostaat': 'houdt' }, meten: ['climate.sonoff_thermostaat', 'nest'] };
+    const z = validateLayout({ ...good, kamers: [{ ...kamer, zones: [zone] }, ...good.kamers.slice(1)] }, known);
+    expect(z.ok).toBe(true);
+    const zk = z.ok ? z.layout.kamers[0]!.zones[0] : null;
+    expect(zk?.meten).toEqual(['nest']);
+    expect(zk?.rollen).toEqual({ nest: 'houdt' });
   });
 
   it('bewaart wat voor kamer het is, alleen binnen (besluit 119)', () => {
