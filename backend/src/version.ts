@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.188.0';
+export const VERSIE = '0.188.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.188.1',
+    datum: '2026-11-15',
+    opgelost: [
+      'Thuis op de telefoon: met een naam en twee bewoners werden de begroeting en de stand allebei afgekapt. De stand staat nu op een eigen regel onder de begroeting',
+      'Het blad Wat SunArc doet op de telefoon: een kamernaam zoals Woonkamer brak midden in het woord. De naam staat nu op een eigen regel, met de temperatuur erachter',
+    ],
+    en: {
+      opgelost: [
+        'Home on the phone: with a name and two residents, both the greeting and the mode were cut off. The mode is now on its own line below the greeting',
+        'The What SunArc does sheet on the phone: a room name such as Living room broke in the middle of the word. The name is now on its own line, with the temperature after it',
+      ],
+    },
+  },
   {
     versie: '0.188.0',
     datum: '2026-11-15',

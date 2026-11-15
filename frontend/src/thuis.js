@@ -1418,10 +1418,10 @@ function tekenDoetBlad() {
   const lijst = veel ? d.kamers.filter((k) => k.gelijk !== true) : d.kamers;
   const rest = veel ? d.kamers.length - lijst.length : 0;
   const rij = (k) => (kijkt
-    ? `<div class="dt-kamer"><span><b>${esc(k.naam)}</b>${temp(k)}</span><span class="dt-echt">${esc(k.echt)}</span><span class="dt-zou">${esc(k.zou)}</span>${k.gelijk == null ? '<span></span>' : `<span class="dt-teken ${k.gelijk ? 'ja' : 'nee'}" role="img" aria-label="${esc(t(k.gelijk ? 'thuis.doet.isGelijk' : 'thuis.doet.isAnders'))}">${k.gelijk ? '=' : '≠'}</span>`}</div>`
-    : `<div class="dt-kamer een"><span><b>${esc(k.naam)}</b>${temp(k)}</span><span class="dt-zou">${esc(k.zou)}</span></div>`);
+    ? `<div class="dt-kamer"><span class="dt-naam"><b>${esc(k.naam)}</b>${temp(k)}</span><span class="dt-echt">${esc(k.echt)}</span><span class="dt-zou">${esc(k.zou)}</span>${k.gelijk == null ? '<span class="dt-geen"></span>' : `<span class="dt-teken ${k.gelijk ? 'ja' : 'nee'}" role="img" aria-label="${esc(t(k.gelijk ? 'thuis.doet.isGelijk' : 'thuis.doet.isAnders'))}">${k.gelijk ? '=' : '≠'}</span>`}</div>`
+    : `<div class="dt-kamer een"><span class="dt-naam"><b>${esc(k.naam)}</b>${temp(k)}</span><span class="dt-zou">${esc(k.zou)}</span></div>`);
   const kamers = d.kamers.length
-    ? `<h3>${esc(t('thuis.doet.perKamer'))}</h3>${kijkt ? `<div class="dt-kamer kolomkop"><span></span><span>${esc(t('thuis.doet.inHuis'))}</span><span>${esc(t('thuis.doet.zou'))}</span><span></span></div>` : ''}${lijst.map(rij).join('')}${rest > 0 ? `<p class="dt-bij">${esc(t('thuis.doet.rest', { n: rest }))}</p>` : ''}`
+    ? `<h3>${esc(t('thuis.doet.perKamer'))}</h3>${kijkt ? `<div class="dt-kamer kolomkop"><span class="dt-naam"></span><span class="dt-echt">${esc(t('thuis.doet.inHuis'))}</span><span class="dt-zou">${esc(t('thuis.doet.zou'))}</span><span class="dt-geen"></span></div>` : ''}${lijst.map(rij).join('')}${rest > 0 ? `<p class="dt-bij">${esc(t('thuis.doet.rest', { n: rest }))}</p>` : ''}`
     : '';
   // Wat op zon gaat: de boiler, de stekkers en het witgoed, met hun stand van nu.
   const opZon = [...(state.bewoner.warmtebuffers ?? []), ...(state.bewoner.uitstelbaar ?? [])];

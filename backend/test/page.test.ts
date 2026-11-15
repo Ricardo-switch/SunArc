@@ -3484,6 +3484,16 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await blad.locator('.dt-fase i.nu').textContent()).toBe('Kijkt mee');
       expect((await blad.textContent()) ?? '').not.toMatch(/winterdag/i);
       expect(await blad.locator('a.dt-naar').getAttribute('href')).toBe('vandaag.html');
+      // Op de telefoon staat de kamernaam op een eigen regel en breekt hij niet midden in een woord (0.188.1).
+      if (scherm === 'tel') {
+        const namen = await blad.locator('.dt-kamer:not(.kolomkop) .dt-naam b').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
+        expect(Math.max(...namen)).toBeLessThanOrEqual(24);
+        // En de stand staat onder de begroeting, niet afgekapt ernaast.
+        const groet = (await p.locator('#tel [data-groet]').boundingBox())!;
+        const stand = (await p.locator('#tel [data-modus]').boundingBox())!;
+        expect(stand.y).toBeGreaterThanOrEqual(groet.y + groet.height - 2);
+        expect(await p.locator('#tel [data-modus]').evaluate((e) => e.scrollWidth <= e.clientWidth + 1)).toBe(true);
+      }
       // Op de wand past het blad zonder schuiven.
       if (scherm === 'wand') expect(await blad.evaluate((e) => e.scrollHeight <= e.clientHeight + 1)).toBe(true);
       if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', `-thuis-doet-${scherm}.png`) });

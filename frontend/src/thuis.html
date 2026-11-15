@@ -137,16 +137,17 @@
    * Thuis op de telefoon, opnieuw (besluit 159, schets Thuis-Tel): de stand
    * naast de begroeting, zodat de knoppen bovenin op één regel passen.
    */
-  #tel .groetregel { display: flex; align-items: center; gap: 10px; }
-  #tel .groetrechts { margin-left: auto; }
+  #tel .groetregel { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+  #tel .groetrechts { margin-left: auto; order: 2; }
   /*
-   * De stand als regel naast de begroeting (besluit 286): altijd, met een stip
-   * in de kleur van wat er meespeelt. De begroeting maakt plaats als het krap is.
+   * De stand als regel bij de begroeting (besluit 286): altijd, met een stip in
+   * de kleur van wat er meespeelt. Sinds 0.188.1 op een eigen regel eronder:
+   * naast een naam en twee bewoners werden de begroeting en de stand allebei
+   * afgekapt ("Goedemiddag, R…", "De airco zou bij…").
    */
-  #tel .groetregel .groet { flex: 0 1 auto; }
-  #tel .standregel { flex: 0 1 auto; min-width: 0; display: inline-flex; align-items: center; gap: 7px; padding: 0; border: 0; background: none; color: var(--zacht); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  #tel .groetregel .groet { flex: 1 1 0; order: 1; }
+  #tel .standregel { order: 3; flex: 0 0 100%; max-width: 100%; min-width: 0; display: inline-flex; align-items: center; gap: 7px; padding: 0; border: 0; background: none; color: var(--zacht); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; text-align: left; }
   #tel .standregel[hidden] { display: none; }
-  #tel .standregel::before { content: '·'; color: var(--gedempt); margin-right: 3px; }
   #tel .standregel > span:not(.stip) { overflow: hidden; text-overflow: ellipsis; }
   #tel .standregel i { font-style: normal; color: var(--gedempt); font-size: 17px; line-height: 1; }
   .standregel.speelt, button.pil[data-modus] .wat.speelt { color: color-mix(in srgb, var(--k) 70%, var(--tekst)); }
@@ -678,16 +679,28 @@
   .dt-kamer { display: grid; grid-template-columns: 112px minmax(0, 1fr) minmax(0, 1fr) 22px; gap: 0 14px; align-items: center; padding: 10px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
   .dt-kamer.een { grid-template-columns: 112px minmax(0, 1fr); }
   .dt-kamer.kolomkop { padding: 0 0 4px; border-top: 0; font-size: 12px; color: var(--gedempt); }
-  .dt-kamer b { display: block; font-size: 15px; overflow-wrap: anywhere; }
+  .dt-kamer.kolomkop .dt-echt, .dt-kamer.kolomkop .dt-zou { font-size: 12px; color: var(--gedempt); }
+  .dt-kamer b { display: block; font-size: 15px; overflow-wrap: break-word; }
   .dt-kamer small { display: block; font-size: 13px; color: var(--gedempt); }
   .dt-kamer .dt-echt, .dt-kamer .dt-zou { font-size: 14px; line-height: 1.35; color: var(--zacht); }
   .dt-kamer .dt-zou { color: var(--tekst); }
   .dt-kamer .dt-teken { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
   .dt-kamer .dt-teken.ja { background: color-mix(in srgb, var(--mint) 20%, transparent); color: var(--mint-t, var(--mint)); }
   .dt-kamer .dt-teken.nee { background: color-mix(in srgb, var(--zon) 18%, transparent); color: var(--zon-t, var(--zon)); }
-  html.tel-stand .dt-kamer { grid-template-columns: 78px minmax(0, 1fr) minmax(0, 1fr) 22px; gap: 0 10px; }
-  html.tel-stand .dt-kamer.een { grid-template-columns: 78px minmax(0, 1fr); }
-  html.tel-stand .dt-kamer .dt-echt, html.tel-stand .dt-kamer .dt-zou { font-size: 13px; }
+  /*
+   * Op de telefoon de naam op een eigen regel, met de temperatuur erachter, en
+   * eronder twee kolommen. In een smalle kolom brak "Woonkamer" na de e (0.188.1).
+   */
+  html.tel-stand .dt-kamer { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 22px; grid-template-areas: 'naam naam teken' 'echt zou zou'; gap: 5px 12px; align-items: start; }
+  html.tel-stand .dt-kamer .dt-naam { grid-area: naam; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; }
+  html.tel-stand .dt-kamer .dt-naam b, html.tel-stand .dt-kamer .dt-naam small { display: inline; }
+  html.tel-stand .dt-kamer .dt-echt { grid-area: echt; }
+  html.tel-stand .dt-kamer .dt-zou { grid-area: zou; }
+  html.tel-stand .dt-kamer .dt-teken, html.tel-stand .dt-kamer .dt-geen { grid-area: teken; }
+  html.tel-stand .dt-kamer.een { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'naam' 'zou'; }
+  html.tel-stand .dt-kamer.kolomkop { grid-template-areas: 'echt zou zou'; }
+  html.tel-stand .dt-kamer.kolomkop .dt-naam, html.tel-stand .dt-kamer.kolomkop .dt-geen { display: none; }
+  html.tel-stand .dt-kamer .dt-echt, html.tel-stand .dt-kamer .dt-zou { font-size: 13.5px; }
   .dt-wel { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 12px; align-items: center; padding: 9px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
   .dt-wel:first-of-type { border-top: 0; }
   .dt-wel b { display: block; font-size: 15px; }
