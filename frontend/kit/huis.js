@@ -683,7 +683,10 @@
         const cx = mid[0] + (i / Math.max(1, n - 1) - 0.5) * boog * 1.7;
         const cy = mid[1] - boog * (0.35 + 0.18 * ((i * 37) % 3) / 2);
         const s = k * (0.7 + ((i * 53) % 5) * 0.12);
-        lucht.push(`<g opacity="${((licht ? 0.6 : 0.25) + 0.35 * model.wolken).toFixed(2)}" filter="url(#${id}-zacht)"><ellipse cx="${cx}" cy="${cy}" rx="${s * 1.5}" ry="${s * 0.42}" fill="${licht || (opts.wereld && !nacht) ? '#ffffff' : winter ? '#9fb0c2' : '#8a9bb0'}"/><ellipse cx="${cx + s * 0.4}" cy="${cy - s * 0.25}" rx="${s * 0.8}" ry="${s * 0.45}" fill="${licht || (opts.wereld && !nacht) ? '#f4f7fb' : winter ? '#aebdcc' : '#94a5b9'}"/></g>`);
+        // In het lichte thema grijs (16 november 2026): witte wolken waren tegen de lichte lucht niet te zien.
+        const wolkOnder = licht ? '#aab7c8' : opts.wereld && !nacht ? '#ffffff' : winter ? '#9fb0c2' : '#8a9bb0';
+        const wolkBoven = licht ? '#bcc7d6' : opts.wereld && !nacht ? '#f4f7fb' : winter ? '#aebdcc' : '#94a5b9';
+        lucht.push(`<g opacity="${((licht ? 0.6 : 0.25) + 0.35 * model.wolken).toFixed(2)}" filter="url(#${id}-zacht)"><ellipse cx="${cx}" cy="${cy}" rx="${s * 1.5}" ry="${s * 0.42}" fill="${wolkOnder}"/><ellipse cx="${cx + s * 0.4}" cy="${cy - s * 0.25}" rx="${s * 0.8}" ry="${s * 0.45}" fill="${wolkBoven}"/></g>`);
       }
     }
 

@@ -70,13 +70,23 @@ describe('wat niet klopt: wat de bewoner koos en de regeling niet kon overnemen 
   it('meldt een kamer waar alleen iets op zon helpt, met Laat zo: het mag een keuze zijn', () => {
     const alleen = config({ nest: 'primary', 'ac-zolder': 'assist' }, { woonkamer: ['nest'], zolder: ['ac-zolder'] });
     const feiten = vast({ config: alleen, kamerVanZone: (z) => (z === 'zolder' ? 'kamer-zolder' : null) });
-    expect(feiten).toEqual([{ soort: 'alleenHelpt', zoneId: 'zolder', kamer: 'Wasruimte', kamerId: 'kamer-zolder' }]);
+    expect(feiten).toEqual([{ soort: 'alleenHelpt', zoneId: 'zolder', kamer: 'Wasruimte', kamerId: 'kamer-zolder', meeMet: null }]);
     expect(kloptMelding(feiten[0]!, 'nl', T0)).toMatchObject({
       id: 'klopt:zone:zolder',
       titel: 'Niets houdt de wasruimte op temperatuur',
       actie: { label: 'Kies wat regelt', href: 'indeling.html#kamer-zolder/warmte' },
       laat: true,
     });
+    // Verwarmt de kamer mee met een thermostaat van een andere kamer, dan zegt de melding dat.
+    const mee = vast({ config: alleen, kamerVanZone: (z) => (z === 'zolder' ? 'kamer-zolder' : null), meeMet: (z) => (z === 'zolder' ? 'Nest (beneden)' : null) });
+    expect(mee).toEqual([{ soort: 'alleenHelpt', zoneId: 'zolder', kamer: 'Wasruimte', kamerId: 'kamer-zolder', meeMet: 'Nest (beneden)' }]);
+    expect(kloptMelding(mee[0]!, 'nl', T0)).toMatchObject({
+      id: 'klopt:zone:zolder',
+      titel: 'De wasruimte verwarmt mee met Nest (beneden)',
+      tekst: 'SunArc kan deze kamer niet apart verwarmen. Wat er verder hangt, helpt alleen als er zon over is.',
+      laat: true,
+    });
+    expect(kloptMelding(mee[0]!, 'en', T0).titel).not.toMatch(/verwarmt|kamer/);
     // Zonder kamer in de indeling gaat de knop naar Regeling.
     expect(kloptMelding({ soort: 'alleenHelpt', zoneId: 'zolder', kamer: 'Wasruimte', kamerId: null }, 'nl', T0).actie.href).toBe('regeling.html');
     // Een zone zonder apparaten is geen melding.

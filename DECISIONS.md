@@ -14486,6 +14486,26 @@ naar zelf regelen met winterdagen, en de melding bij 10, 20 en 30 winterdagen
 blijft: die hangen aan de datasetmeter en veranderen met [312] in januari.
 Voor de testers verandert er tot dan niets ([310]).
 
+*Aangevuld 16 november 2026, versie 0.190.2,* na de terugblik op stap 1:
+
+- **De strook is er alleen zolang SunArc meekijkt.** Regelt SunArc zelf, dan
+  is wat het doet hetzelfde als wat er gebeurt, en zegt de kop het al. De
+  stand *Regelt* en de strook voor een huis met alleen apparaten op zon zijn
+  weg: zonder kamers die meedoen is er geen strook.
+- **De vakken per kamer zijn hele zinnetjes.** Onder *SunArc zou* stond *Ook
+  niets*, en dat las niet door. Nu: "Nest (beneden) staat op 20° en staat
+  stil" naast "Niets doen", "Hetzelfde doen", "Verwarmen naar 20° met de
+  airco zolder", "Wachten, en verwarmen zodra er zon over is".
+- **De stand van het huis zegt niet meer *zou bijspringen*.** Staat de airco
+  in huis uit, dan hoort wat SunArc zou doen in de strook en niet in de
+  stand. Helpen bij de cv zegt om dezelfde reden *Zou helpen sinds 07:36* en
+  *zou 1× helpen*, zolang SunArc de airco's niet schakelt.
+- **Een kamer die mee verwarmt met de thermostaat van een andere kamer**
+  ([314]) heet in de bel niet meer "Niets houdt de wasruimte op temperatuur"
+  maar "De wasruimte verwarmt mee met Nest (beneden)", met *Laat zo*.
+- In het lichte thema zijn de wolken grijs en is de stand in de strook
+  donkerblauw: wit en ijsblauw vielen daar weg.
+
 ## 314. Wat niet klopt, staat in de bel met een knop
 
 *Onderwerp: weergave · Status: geldig*

@@ -68,8 +68,12 @@ describe('de stand van het huis (besluit 286)', () => {
     expect(echt.noot).toContain('na 5 minuten stoken en vanaf 0,5° te koud');
     // Een kwartier later: nog steeds sinds 10:02.
     expect(standNu(config, view(om(10, 17), koud, { accepted: [bijspringen], observed: { 'ac-woonkamer': 'heat@20' } }), 'nl', { geheugen }).meldingen[0]!.waarde).toBe('sinds 10:02');
+    // Kijkt SunArc mee en verwarmt de airco niet echt, dan zegt de stand het niet: wat SunArc zou doen,
+    // staat in de strook op Thuis (besluit 313). De stand zegt wat er echt speelt.
     const zou = standNu(config, view(om(10, 20), koud, { accepted: [bijspringen] }), 'nl', { geheugen: new Map() });
-    expect(zou.knop).toBe('de airco zou bijspringen');
+    expect(zou.soort).toBeNull();
+    expect(zou.meldingen).toEqual([]);
+    expect(zou.knop).not.toContain('bijspringen');
     expect(standNu(config, view(om(10, 20), koud, { accepted: [bijspringen] }), 'nl', { geheugen: new Map(), shadow: false }).knop).toBe('de airco springt bij');
   });
 

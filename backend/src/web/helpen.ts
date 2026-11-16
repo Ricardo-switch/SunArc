@@ -165,6 +165,11 @@ export interface HelpenView {
   readonly bereik: typeof HELPEN_BEREIK;
   /** Null zonder prijzen of buitentemperatuur. */
   readonly kosten: HelpenKosten | null;
+  /**
+   * SunArc kijkt mee en schakelt het klimaat nog niet (besluit 313): wat hier
+   * staat, is wat SunArc zou doen. De pagina zegt dan "zou helpen", niet "helpt".
+   */
+  readonly kijktMee: boolean;
 }
 
 /** Bij welke buitentemperatuur de airco even duur is als de ketel; null als dat niet tussen −30° en 20° ligt. */
@@ -287,7 +292,7 @@ export interface HelpenBalk {
 }
 
 /** Helpen bij de cv zoals de pagina het toont: per airco zijn kamer, wat hij doet en wat hij vandaag deed. */
-export function helpenView(config: SiteConfig, latest: Pick<Decision, 'accepted' | 'explanation'> | null, dag: HelpenDag | null, nowMs: number): HelpenView {
+export function helpenView(config: SiteConfig, latest: Pick<Decision, 'accepted' | 'explanation'> | null, dag: HelpenDag | null, nowMs: number, shadow = true): HelpenView {
   const help = config.cvHelp;
   const hulp = (latest?.accepted ?? []).filter((i) => i.strategyId === 'heat-assist');
   const helpend = new Set(hulp.map((i) => i.actuatorId));
@@ -333,6 +338,7 @@ export function helpenView(config: SiteConfig, latest: Pick<Decision, 'accepted'
     minRestMinutes: help?.minRestMinutes ?? CV_HELP_DEFAULTS.minRestMinutes,
     bereik: HELPEN_BEREIK,
     kosten,
+    kijktMee: shadow,
   };
 }
 

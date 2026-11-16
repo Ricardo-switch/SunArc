@@ -20,8 +20,10 @@
  *   wacht. Die kop wordt dan "Rustige ochtend", en de strook zegt "Zou de
  *   zolder verwarmen zodra er zon over is". De slotzin "Het huis kijkt nog mee"
  *   en de staart over kamers die wachten gaan uit de kop.
- * - De strook staat er altijd, op een vaste plek: SunArc kijkt mee (of regelt)
- *   en één zin. Op de wand is hij één regel van 44 punten, zodat het huis zijn
+ * - De strook staat op een vaste plek, zolang SunArc meekijkt: SunArc kijkt mee
+ *   en één zin. Regelt SunArc zelf, dan is wat het doet hetzelfde als wat er
+ *   gebeurt: de kop zegt het dan en de strook is weg (16 november, keuze
+ *   Ricardo). Op de wand is hij één regel van 44 punten, zodat het huis zijn
  *   maat houdt (keuze Ricardo); dat SunArc je klimaat nog niet schakelt, staat
  *   daar in het blad. Op de telefoon staat het er wel bij. De zin is, in deze volgorde:
  *     1. wat SunArc nu anders zou doen      "Zou de badkamer nu niet verwarmen"
@@ -36,21 +38,24 @@
  *   meekijkt, per kamer wat er nu in huis gebeurt
  *   naast wat SunArc zou doen, en wat SunArc wel zelf schakelt: de apparaten op
  *   zon. Licht en screens staan er niet bij: die bedien je zelf.
+ * - De twee vakken per kamer zijn hele zinnetjes (16 november): "Thermostaat
+ *   staat op 21° en staat stil", en onder de kop "SunArc zou": "Niets doen",
+ *   "Hetzelfde doen", "Wachten, en verwarmen na een pauze". Eerst stond er
+ *   "Ook niets" onder "SunArc zou", en dat las niet door.
  * - Een stand "Leert" is er niet: voor klimaat kijkt SunArc vanaf de eerste dag mee.
  *
  * Hash: de stand en -blad.
  *   (geen)    10:15, alles gelijk, SunArc wacht met de zolder op een korte pauze
  *   #anders   bedacht: de thermostaat in de badkamer staat op 22° en verwarmt
  *   #gelijk   bedacht: de zolder heeft niets nodig
- *   #regelt   eind januari: SunArc regelt zelf
  *   -blad     het blad open, zoals #anders-blad
  */
 (function () {
   'use strict';
 
-  const WOONKAMER = { naam: 'Woonkamer', temp: '20,8°', echt: 'Warmtepomp verwarmt naar 20,5°', zou: 'Hetzelfde', gelijk: true, doet: 'Warmtepomp verwarmt naar 20,5°' };
-  const BADKAMER = { naam: 'Badkamer', temp: '21,5°', echt: 'Thermostaat op 21°, staat stil', zou: 'Niets, het is er warm genoeg', gelijk: true, doet: 'Niets, het is er warm genoeg' };
-  const ZOLDER = { naam: 'Zolder', temp: '17°', echt: 'Uit', zou: 'Nog even niets, verwarmt na een korte pauze', gelijk: true, doet: 'Verwarmt naar 18° na een korte pauze' };
+  const WOONKAMER = { naam: 'Woonkamer', temp: '20,8°', echt: 'Warmtepomp verwarmt naar 20,5°', zou: 'Hetzelfde doen', gelijk: true };
+  const BADKAMER = { naam: 'Badkamer', temp: '21,5°', echt: 'Thermostaat staat op 21° en staat stil', zou: 'Niets doen', gelijk: true };
+  const ZOLDER = { naam: 'Zolder', temp: '17°', echt: 'Airco zolder staat uit', zou: 'Wachten, en verwarmen na een pauze', gelijk: true };
 
   const MEEKIJKEN = {
     kleur: 'var(--ijs)',
@@ -59,8 +64,6 @@
     sinds: 'sinds 13 januari',
     kop: 'De woonkamer wordt verwarmd',
     zin: 'Het is er 20,8°, het doel is 20,5°.',
-    fase: 1,
-    kamerkop: ['Nu in huis', 'SunArc zou'],
   };
 
   const STANDEN = {
@@ -69,22 +72,9 @@
       ...MEEKIJKEN,
       zou: 'Zou de badkamer nu niet verwarmen',
       tel: { ja: 2, van: 3 },
-      kamers: [WOONKAMER, { ...BADKAMER, echt: 'Thermostaat verwarmt naar 22°', gelijk: false }, ZOLDER],
+      kamers: [WOONKAMER, { ...BADKAMER, echt: 'Thermostaat verwarmt naar 22°', zou: 'Niets doen, het is er warm genoeg', gelijk: false }, ZOLDER],
     },
-    gelijk: { ...MEEKIJKEN, zou: 'Zou nu hetzelfde doen', tel: { ja: 3, van: 3 }, kamers: [WOONKAMER, BADKAMER, { ...ZOLDER, zou: 'Niets, het is er warm genoeg' }] },
-    regelt: {
-      kleur: 'var(--mint)',
-      naam: 'Regelt je klimaat',
-      kort: 'Regelt',
-      onder: 'sinds 26 januari',
-      zou: 'De zolder volgt na een pauze',
-      tel: null,
-      kop: 'De woonkamer wordt verwarmd',
-      zin: 'Het is er 20,8°, het doel is 20,5°.',
-      fase: 2,
-      kamerkop: null,
-      kamers: [WOONKAMER, BADKAMER, ZOLDER],
-    },
+    gelijk: { ...MEEKIJKEN, zou: 'Zou nu hetzelfde doen', tel: { ja: 3, van: 3 }, kamers: [WOONKAMER, BADKAMER, { ...ZOLDER, zou: 'Niets doen' }] },
   };
 
   const FASEN = ['Leren', 'Kijkt mee', 'Regelt'];
@@ -99,25 +89,21 @@
 
   /** De strook: op de telefoon twee korte regels, op de wand met het aantal kamers dat gelijk is. */
   function strook(s, scherm) {
-    if (scherm === 'tel') return `<button type="button" class="doet strook" style="--k: ${s.kleur}">${stip}<span class="d-twee"><span><b>${s.kort ?? s.naam}</b> · ${s.onder}</span><span class="d-zou">${s.zou}</span></span>${pijl}</button>`;
-    const tel = s.tel ? `<span class="d-tel">${blokjes(s.tel)}${telZin(s.tel)}</span>` : '<span></span>';
+    if (scherm === 'tel') return `<button type="button" class="doet strook" style="--k: ${s.kleur}">${stip}<span class="d-twee"><span><b>${s.naam}</b> · ${s.onder}</span><span class="d-zou">${s.zou}</span></span>${pijl}</button>`;
+    const tel = `<span class="d-tel">${blokjes(s.tel)}${telZin(s.tel)}</span>`;
     return `<button type="button" class="doet strook" style="--k: ${s.kleur}"><span class="d-wie">${stip}<b>SunArc ${s.naam.toLowerCase()}</b></span><span class="d-zou">${s.zou}</span>${tel}${pijl}</button>`;
   }
 
   function blad(s) {
-    const fasen = `<span class="sb-fase" role="img" aria-label="${FASEN[s.fase]}">${FASEN.map((f, i) => `<i class="${i === s.fase ? 'nu' : ''}">${f}</i>`).join('')}</span>`;
+    const fasen = `<span class="sb-fase" role="img" aria-label="${FASEN[1]}">${FASEN.map((f, i) => `<i class="${i === 1 ? 'nu' : ''}">${f}</i>`).join('')}</span>`;
     // Geen teller van winterdagen (besluit 312): die test is van het huis van Ricardo, niet van elk huis.
-    const bewijs = s.fase === 1
-      ? '<p class="sb-bij">Zegt wat het zou doen. Zelf regelen zet je per kamer aan, zodra dat kan.</p>'
-      : '<p class="sb-bij">Valt SunArc stil, dan nemen je thermostaten het weer over.</p>';
-    const kamers = s.kamerkop
-      ? `<h3>Nu per kamer</h3><div class="sb-kamer kop"><span></span><span>${s.kamerkop[0]}</span><span>${s.kamerkop[1]}</span><span></span></div>`
-        + s.kamers.map((k) => `<div class="sb-kamer"><span><b>${k.naam}</b><small>${k.temp}</small></span><span class="echt">${k.echt}</span><span class="zouhij">${k.zou}</span><span class="gelijk ${k.gelijk ? 'ja' : 'nee'}" aria-label="${k.gelijk ? 'gelijk' : 'anders'}">${k.gelijk ? '=' : '≠'}</span></div>`).join('')
-      : '<h3>Nu per kamer</h3>' + s.kamers.map((k) => `<div class="sb-kamer een"><span><b>${k.naam}</b><small>${k.temp}</small></span><span class="zouhij">${k.doet}</span></div>`).join('');
+    const bewijs = '<p class="sb-bij">Zegt wat het zou doen. Zelf regelen zet je per kamer aan, zodra dat kan.</p>';
+    const kamers = '<h3>Nu per kamer</h3><div class="sb-kamer kop"><span></span><span>Nu in huis</span><span>SunArc zou</span><span></span></div>'
+        + s.kamers.map((k) => `<div class="sb-kamer"><span><b>${k.naam}</b><small>${k.temp}</small></span><span class="echt">${k.echt}</span><span class="zouhij">${k.zou}</span><span class="gelijk ${k.gelijk ? 'ja' : 'nee'}" aria-label="${k.gelijk ? 'gelijk' : 'anders'}">${k.gelijk ? '=' : '≠'}</span></div>`).join('');
     const zelf = `<h3>Apparaten op zon</h3>
       <div class="sb-wel"><span><b>Ontvochtiger</b></span><span class="waarde" style="color: var(--zon)">Wacht op zon</span></div>
       <div class="sb-wel"><span><b>Droger</b></span><span class="waarde" style="color: var(--gedempt)">Niet klaargezet</span></div>
-      <div class="sb-wel"><span><b>Klimaat</b><small>${s.fase === 2 ? 'Woonkamer, badkamer en zolder' : 'Nog niet. Met de hand kan wel'}</small></span><span class="waarde" style="color: ${s.fase === 2 ? 'var(--mint)' : 'var(--gedempt)'}">${s.fase === 2 ? 'Regelt' : 'Kijkt mee'}</span></div>`;
+      <div class="sb-wel"><span><b>Klimaat</b><small>Nog niet. Met de hand kan wel</small></span><span class="waarde" style="color: var(--gedempt)">Kijkt mee</span></div>`;
     return `<div class="bladkop"><h2 class="kop-2">Wat SunArc doet</h2><button type="button" class="knop knop-licht">Klaar</button></div>
       <div class="sb-kolommen">
         <div>

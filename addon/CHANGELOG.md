@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.190.1
+## 0.190.2
 
-*16 november 2026 · 0.179.0 – 0.190.1*
+*16 november 2026 · 0.179.0 – 0.190.2*
 
 **Nieuw**
 
@@ -37,6 +37,10 @@
 
 **Beter**
 
+- Het blad Wat SunArc doet leest nu als hele zinnetjes: "Nest (beneden) staat op 20° en staat stil" naast "Niets doen". Eerst stond er "Ook niets" onder "SunArc zou"
+- De strook Wat SunArc doet is er alleen zolang SunArc meekijkt. Regelt SunArc zelf, dan zegt de zin boven het huis het al
+- Helpen bij de cv zegt "Zou helpen sinds 07:36" en "zou 1× helpen" zolang SunArc de airco nog niet schakelt, en noemt de kamer zoals jij hem noemde
+- Een kamer die mee verwarmt met de thermostaat van een andere kamer, heet in de bel "De wasruimte verwarmt mee met Nest (beneden)". Eerst stond er dat niets de kamer op temperatuur hield
 - Een boiler die nog geen kamer heeft, staat toch in het huis: op de begane grond, in de kleinste ruimte. Geef je hem later een kamer, dan staat hij daar
 - Ook in de bel: een apparaat dat op zon moet helpen zonder vermogen, een kamer waar niets op temperatuur houdt, terugzetten na met de hand dat niet lukte, een stekker die niet aanging op zon, een geplande taak die niet is gedaan, en een weersverwachting die zes uur wegblijft
 - Een melding gaat vanzelf weg zodra het klopt. Is het een keuze die mag blijven, dan staat er Laat zo bij
@@ -49,6 +53,8 @@
 
 **Opgelost**
 
+- De stand van het huis zei "zou bijspringen" terwijl de airco uit stond. Wat SunArc zou doen, staat nu alleen in de strook
+- In het lichte thema waren de wolken niet te zien en was "Kijkt mee" in de strook te licht. De wolken zijn grijs, de tekst is donkerblauw
 - In het blad Wat SunArc doet stond bij een thermostaat soms een code, zoals "heat_cool naar 18°". Nu staat er "verwarmen of koelen naar 18°"
 - De melding over een kamer waar niets op temperatuur houdt, noemde de kamer bij een oude naam. Nu heet hij zoals in je indeling
 - Thuis op de telefoon: met een naam en twee bewoners werden de begroeting en de stand allebei afgekapt. De stand staat nu op een eigen regel onder de begroeting
@@ -95,6 +101,10 @@
 
 **Improved**
 
+- The What SunArc does sheet now reads as whole phrases: "Nest (downstairs) is set to 20° and is idle" next to "Do nothing". It used to say "Nothing either" under "SunArc would"
+- The What SunArc does strip is only there while SunArc is watching. Once SunArc controls the climate itself, the line above the house already says it
+- Helping the boiler says "Would help since 07:36" and "would help 1×" while SunArc does not switch the air conditioner yet, and uses the room name you gave it
+- A room that heats along with the thermostat of another room is called "The laundry room heats along with Nest (downstairs)" in the bell. It used to say nothing kept the room at temperature
 - A boiler that has no room yet is still in the house: on the ground floor, in the smallest room. Give it a room later and it stands there
 - Also in the bell: a device that should help on solar without its power, a room where nothing keeps the temperature, setting back after by hand that failed, a plug that did not switch on with solar, a planned task that was not done, and a weather forecast that stays away for six hours
 - A notification goes away by itself once it is right. If it is a choice that may stay, it has a Leave it button
@@ -107,6 +117,8 @@
 
 **Fixed**
 
+- The state of the house said "would help out" while the air conditioner was off. What SunArc would do is now only in the strip
+- In the light theme the clouds were invisible and "Watching" in the strip was too light. The clouds are grey, the text is dark blue
 - In the What SunArc does sheet a thermostat sometimes showed a code, such as "heat_cool at 18°". It now says "heating or cooling at 18°"
 - The notification about a room where nothing keeps the temperature used an old name for the room. It now uses the name from your layout
 - Home on the phone: with a name and two residents, both the greeting and the mode were cut off. The mode is now on its own line below the greeting

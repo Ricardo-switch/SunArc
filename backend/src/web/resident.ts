@@ -494,7 +494,7 @@ export function residentView(config: SiteConfig, snap: DecisionView, lang: Lang 
     warmtebuffers,
     ...(snap.explanation.accu ? { accu: residentAccu(config, snap.explanation.accu) } : {}),
     ...(stand ? { stand: standNu(config, snap, lang, { ...stand, shadow }) } : {}),
-    doet: residentDoet(config, snap, kamers, lang, shadow, [...warmtebuffers, ...uitstelbaar]),
+    doet: residentDoet(config, snap, lang, shadow),
   };
 }
 

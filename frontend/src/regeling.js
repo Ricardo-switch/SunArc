@@ -113,7 +113,8 @@ function helpenZin() {
   const aan = helpen.aircos.filter((a) => a.aan);
   if (!aan.length) return t('regeling.helpen.allesUit');
   const nu = aan.filter((a) => a.stand === 'helpt').length;
-  return [t('regeling.helpen.nAirco', { n: aan.length }), nu ? t('regeling.helpen.nHelpt', { n: nu }) : ''].filter(Boolean).join(', ');
+  // Kijkt SunArc mee, dan helpt er nog niets echt (besluit 313): "zou nu helpen".
+  return [t('regeling.helpen.nAirco', { n: aan.length }), nu ? t(helpen.kijktMee ? 'regeling.helpen.nZouHelpen' : 'regeling.helpen.nHelpt', { n: nu }) : ''].filter(Boolean).join(', ');
 }
 
 /** Bij Klimaat: een rij naar Helpen bij de cv, in plaats van bijspringen onder de kamer. */
@@ -139,14 +140,16 @@ function kostenBlok() {
 function helperKaart(a) {
   const kijkt = a.kamer ? t('regeling.helpen.kijkt', { kamer: a.kamer, nu: a.kamerC != null ? graden(a.kamerC) : '–', doel: a.doelC != null ? graden(a.doelC) : '–' }) : '';
   const klok = a.sindsMs ? app.klokVan(a.sindsMs) : '';
+  const zou = helpen?.kijktMee === true;
   const stand = {
-    helpt: t('regeling.helpen.helpt', { klok, doel: a.doelC != null ? graden(a.doelC) : '' }),
-    klaar: t('regeling.helpen.klaar', { klok, kamer: (a.kamer ?? '').toLowerCase() }),
+    // Zolang SunArc meekijkt, schakelt het de airco niet: dan "zou helpen" (0.190.2).
+    helpt: t(zou ? 'regeling.helpen.zouHelpt' : 'regeling.helpen.helpt', { klok, doel: a.doelC != null ? graden(a.doelC) : '' }),
+    klaar: t(zou ? 'regeling.helpen.zouKlaar' : 'regeling.helpen.klaar', { klok, kamer: (a.kamer ?? '').toLowerCase() }),
     wacht: t('regeling.helpen.wacht'),
     uit: t('regeling.helpen.uit'),
   }[a.stand];
   const kleur = a.stand === 'helpt' ? 'var(--gloed)' : a.stand === 'klaar' ? 'var(--mint)' : 'var(--net)';
-  const vandaag = a.vandaag.keer ? t('regeling.helpen.vandaag', { n: a.vandaag.keer, duur: duur(a.vandaag.minuten) }) : t('regeling.helpen.nogNiet');
+  const vandaag = a.vandaag.keer ? t(zou ? 'regeling.helpen.zouVandaag' : 'regeling.helpen.vandaag', { n: a.vandaag.keer, duur: duur(a.vandaag.minuten) }) : t('regeling.helpen.nogNiet');
   return `<div class="helper${a.aan ? '' : ' uit'}">
     <div class="regelrij"><div class="l"><b>${esc(a.naam)}</b><span>${esc(kijkt)}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${a.aan}" aria-label="${esc(t('regeling.helpen.van', { naam: a.naam }))}" data-helpen-aan="${esc(a.id)}"></button></div>
     <p class="helpstand"><i style="background: ${kleur}"></i>${esc(stand)}</p>
@@ -160,6 +163,7 @@ function helpenVorm() {
   const regel = (kop, zin) => `<div class="regelrij gaat"><div class="l"><b>${esc(kop)}</b><span>${esc(zin)}</span></div></div>`;
   return `<h2 class="kop-2">${esc(t('regeling.helpen'))}</h2>
     <p class="klein" style="margin: 0">${esc(t('regeling.helpen.lead'))}</p>
+    ${helpen.kijktMee ? `<p class="klein" style="margin: 0; color: var(--ijs-t)">${esc(t('regeling.helpen.kijktMee'))}</p>` : ''}
     ${kostenBlok()}
     <div class="helpers">${helpen.aircos.map(helperKaart).join('')}</div>
     <h3 class="kop-3" style="margin: 6px 0 0">${esc(t('regeling.helpen.zoGaatHet'))}</h3>

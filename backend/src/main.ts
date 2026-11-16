@@ -1631,6 +1631,17 @@ function meldingenRonde(): void {
         // Met de namen uit de indeling: een kamer heet zoals de bewoner hem noemde (0.190.0, "de zolder" was de wasruimte).
         config: webConfig() ?? cfg,
         kamerVanZone: (zoneId) => regelKamers(layoutNu?.()?.kamers ?? []).find((k) => k.regelzone === zoneId)?.id ?? null,
+        // Een radiator of vloer die een thermostaat in een andere kamer volgt: dan verwarmt de kamer mee.
+        meeMet: (zoneId) => {
+          const eigen = new Set(cfg.zones.find((z) => z.id === zoneId)?.actuatorIds ?? []);
+          const kamer = regelKamers(layoutNu?.()?.kamers ?? []).find((k) => k.regelzone === zoneId);
+          for (const b of kamer?.bronnen ?? []) {
+            if (!b.apparaat) continue;
+            const a = cfg.actuators.find((x) => x.id === b.apparaat || x.ref.id === b.apparaat);
+            if (a && !eigen.has(a.id)) return a.name;
+          }
+          return null;
+        },
       }),
       ...klopt.lijst(Date.now()),
     ],
@@ -2829,7 +2840,8 @@ if (webPort != null) {
           },
           // Helpen bij de cv (besluit 292): van het huis, net als bijspringen.
           helpen: {
-            view: () => helpenView(siteConfig!, runner?.latest ?? null, helpenDag, Date.now()),
+            // Met de namen uit de indeling: de kamer heet zoals de bewoner hem noemde (0.190.2, "Zolder" was de wasruimte).
+            view: () => helpenView(webConfig() ?? siteConfig!, runner?.latest ?? null, helpenDag, Date.now()),
             save: async (body: unknown) => {
               const check = controleerHelpen(body, siteConfig!);
               if (!check.ok) return { ok: false as const, status: 400, reden: check.reden };
@@ -2840,7 +2852,7 @@ if (webPort != null) {
               if (runner && !runner.setConfig(met.config, allStates.values())) return { ok: false as const, status: 409, reden: 'de regeling kon het niet overnemen; het gaat in na de volgende start' };
               await comfortStore.save(comfort);
               siteConfig = met.config;
-              return { ok: true as const, view: helpenView(met.config, runner?.latest ?? null, helpenDag, Date.now()) };
+              return { ok: true as const, view: helpenView(webConfig() ?? met.config, runner?.latest ?? null, helpenDag, Date.now()) };
             },
           },
           // Bijspringen per kamer (besluit 283): van het huis, dus wie het comfort van het huis mag aanpassen.

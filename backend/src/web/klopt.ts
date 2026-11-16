@@ -31,7 +31,8 @@ import type { RegelingNiet } from './regeling.js';
 export type KloptFeit =
   | { readonly soort: 'zekering'; readonly fasen: number; readonly ampere: number; readonly meters: number }
   | ({ readonly soort: 'vermogen' | 'geenKlimaat' | 'kanNiet' } & Omit<RegelingNiet, 'waarom'>)
-  | { readonly soort: 'alleenHelpt'; readonly zoneId: string; readonly kamer: string; readonly kamerId: string | null }
+  /** `meeMet`: de thermostaat in een andere kamer die deze kamer mee verwarmt, of null. */
+  | { readonly soort: 'alleenHelpt'; readonly zoneId: string; readonly kamer: string; readonly kamerId: string | null; readonly meeMet?: string | null }
   | { readonly soort: 'terug' | 'opZon'; readonly id: string; readonly naam: string; readonly sindsMs: number }
   | { readonly soort: 'gepland'; readonly id: string; readonly tekst: string; readonly sindsMs: number }
   | { readonly soort: 'weer'; readonly sindsMs: number };
@@ -58,6 +59,12 @@ export interface KloptVast {
   readonly config: SiteConfig;
   /** De kamer in de indeling die bij een zone hoort, voor de knop. */
   readonly kamerVanZone: (zoneId: string) => string | null;
+  /**
+   * De thermostaat in een andere kamer die deze kamer mee verwarmt, zoals een
+   * radiator op de cv die de Nest beneden volgt. Dan wordt de kamer wel
+   * verwarmd, alleen niet apart.
+   */
+  readonly meeMet?: (zoneId: string) => string | null;
 }
 
 /** Groep 1: wat de bewoner koos en de regeling niet kon overnemen, uit de keuzes van nu. */
@@ -71,7 +78,7 @@ export function kloptVast(i: KloptVast): KloptFeit[] {
   for (const n of i.regelingNiet) uit.push({ soort: n.waarom, id: n.id, naam: n.naam, kamerId: n.kamerId, kamer: n.kamer });
   for (const z of i.config.zones) {
     const rollen = z.actuatorIds.map((id) => i.config.actuators.find((a) => a.id === id)).filter((a) => a != null);
-    if (rollen.length > 0 && rollen.every((a) => a.role === 'assist')) uit.push({ soort: 'alleenHelpt', zoneId: z.id, kamer: z.name, kamerId: i.kamerVanZone(z.id) });
+    if (rollen.length > 0 && rollen.every((a) => a.role === 'assist')) uit.push({ soort: 'alleenHelpt', zoneId: z.id, kamer: z.name, kamerId: i.kamerVanZone(z.id), meeMet: i.meeMet?.(z.id) ?? null });
   }
   return uit;
 }
@@ -144,6 +151,9 @@ const WOORD = {
     alleenHelpt: {
       titel: (kamer: string) => `Niets houdt ${kamer} op temperatuur`,
       tekst: 'Wat er hangt, helpt alleen als er zon over is. Zonder zon wordt de kamer niet verwarmd of gekoeld.',
+      // Er hangt een radiator of vloer die een thermostaat in een andere kamer volgt (16 november 2026).
+      titelMee: (kamer: string, met: string) => `${cap(kamer)} verwarmt mee met ${met}`,
+      tekstMee: 'SunArc kan deze kamer niet apart verwarmen. Wat er verder hangt, helpt alleen als er zon over is.',
       actie: 'Kies wat regelt',
     },
     terug: {
@@ -189,6 +199,8 @@ const WOORD = {
     alleenHelpt: {
       titel: (kamer: string) => `Nothing keeps ${kamer} at temperature`,
       tekst: 'What is there only helps when there is solar to spare. Without sun the room is not heated or cooled.',
+      titelMee: (kamer: string, met: string) => `${cap(kamer)} heats along with ${met}`,
+      tekstMee: 'SunArc cannot heat this room separately. What else is there only helps when there is solar to spare.',
       actie: 'Choose what controls',
     },
     terug: {
@@ -225,7 +237,7 @@ export function kloptMelding(f: KloptFeit, lang: Lang, nu: number): KloptMelding
     case 'kanNiet':
       return { id: `klopt:kanniet:${f.id}`, soort: 'klopt', aandacht: true, titel: w.kanNiet.titel(f.naam), tekst: w.kanNiet.tekst, actie: { label: w.bekijk, href: naarKamer(f.kamerId) } };
     case 'alleenHelpt':
-      return { id: `klopt:zone:${f.zoneId}`, soort: 'klopt', aandacht: true, titel: w.alleenHelpt.titel(withArticle(f.kamer, lang)), tekst: w.alleenHelpt.tekst, actie: { label: w.alleenHelpt.actie, href: naarKamer(f.kamerId) }, laat: true };
+      return { id: `klopt:zone:${f.zoneId}`, soort: 'klopt', aandacht: true, titel: f.meeMet ? w.alleenHelpt.titelMee(withArticle(f.kamer, lang), f.meeMet) : w.alleenHelpt.titel(withArticle(f.kamer, lang)), tekst: f.meeMet ? w.alleenHelpt.tekstMee : w.alleenHelpt.tekst, actie: { label: w.alleenHelpt.actie, href: naarKamer(f.kamerId) }, laat: true };
     case 'terug':
       return { id: `mislukt:terug:${f.id}`, soort: 'mislukt', aandacht: true, titel: w.terug.titel(f.naam), tekst: w.terug.tekst, actie: { label: w.bekijk, href: 'apparaten.html' }, sindsMs: f.sindsMs };
     case 'opZon':

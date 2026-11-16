@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.190.1';
+export const VERSIE = '0.190.2';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,32 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.190.2',
+    datum: '2026-11-16',
+    beter: [
+      'Het blad Wat SunArc doet leest nu als hele zinnetjes: "Nest (beneden) staat op 20° en staat stil" naast "Niets doen". Eerst stond er "Ook niets" onder "SunArc zou"',
+      'De strook Wat SunArc doet is er alleen zolang SunArc meekijkt. Regelt SunArc zelf, dan zegt de zin boven het huis het al',
+      'Helpen bij de cv zegt "Zou helpen sinds 07:36" en "zou 1× helpen" zolang SunArc de airco nog niet schakelt, en noemt de kamer zoals jij hem noemde',
+      'Een kamer die mee verwarmt met de thermostaat van een andere kamer, heet in de bel "De wasruimte verwarmt mee met Nest (beneden)". Eerst stond er dat niets de kamer op temperatuur hield',
+    ],
+    opgelost: [
+      'De stand van het huis zei "zou bijspringen" terwijl de airco uit stond. Wat SunArc zou doen, staat nu alleen in de strook',
+      'In het lichte thema waren de wolken niet te zien en was "Kijkt mee" in de strook te licht. De wolken zijn grijs, de tekst is donkerblauw',
+    ],
+    en: {
+      beter: [
+        'The What SunArc does sheet now reads as whole phrases: "Nest (downstairs) is set to 20° and is idle" next to "Do nothing". It used to say "Nothing either" under "SunArc would"',
+        'The What SunArc does strip is only there while SunArc is watching. Once SunArc controls the climate itself, the line above the house already says it',
+        'Helping the boiler says "Would help since 07:36" and "would help 1×" while SunArc does not switch the air conditioner yet, and uses the room name you gave it',
+        'A room that heats along with the thermostat of another room is called "The laundry room heats along with Nest (downstairs)" in the bell. It used to say nothing kept the room at temperature',
+      ],
+      opgelost: [
+        'The state of the house said "would help out" while the air conditioner was off. What SunArc would do is now only in the strip',
+        'In the light theme the clouds were invisible and "Watching" in the strip was too light. The clouds are grey, the text is dark blue',
+      ],
+    },
+  },
   {
     versie: '0.190.1',
     datum: '2026-11-16',

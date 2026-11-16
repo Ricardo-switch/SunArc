@@ -268,9 +268,10 @@ export function standNu(config: SiteConfig, snap: DecisionView, lang: Lang = 'nl
 
   // Bijspringen: de regel heat-assist zet een airco aan omdat de verwarming het niet bijhoudt.
   const bij = snap.accepted.filter((i) => i.strategyId === 'heat-assist');
-  if (bij.length) {
-    // In de schaduw "zou", tenzij de airco echt al verwarmt (besluit 124).
-    const zou = shadow && !bij.every((i) => (snap.observed[i.actuatorId] ?? '').startsWith('heat'));
+  // Kijkt SunArc mee en verwarmt de airco niet echt, dan is dit wat SunArc zou doen. Dat staat
+  // in de strook op Thuis (besluit 313), niet in de stand: de stand zegt wat er echt speelt.
+  const zou = shadow && !bij.every((i) => (snap.observed[i.actuatorId] ?? '').startsWith('heat'));
+  if (bij.length && !zou) {
     for (const i of bij) {
       const zone = config.zones.find((z) => z.id === i.zoneId);
       const a = config.actuators.find((x) => x.id === i.actuatorId);

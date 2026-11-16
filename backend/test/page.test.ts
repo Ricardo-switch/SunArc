@@ -6978,6 +6978,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       minRestMinutes: 15,
       bereik: { naMin: { min: 1, max: 30 }, vanafC: { min: 0.1, max: 2 } },
       kosten: { airco: 0.09, ketel: 0.156, cop: 3.1, buitenC: 3, gelijkBijC: -15, gas: 1.37, stroom: 0.27 },
+      kijktMee: false,
     };
     await p.route('**/api/helpen', async (route) => {
       if (route.request().method() === 'POST') {
@@ -6997,6 +6998,16 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     expect(tekst).toContain('Gelijk wordt het bij ongeveer −15°');
     expect(tekst).toContain('kijkt naar Zolder: 19,2°, doel 19,5°');
     expect(tekst).toContain('2× geholpen, samen 1 uur 26 min');
+    // Kijkt SunArc mee, dan schakelt het de airco niet: de pagina zegt wat het zou doen (0.190.2).
+    view = { ...view, kijktMee: true };
+    await p.reload();
+    await wand.locator('[data-vorm] h2', { hasText: 'Helpen bij de cv' }).waitFor(kort);
+    const zou = await wand.locator('[data-vorm]').textContent();
+    expect(zou).toContain('schakelt nog geen airco');
+    expect(zou).toContain('Zou helpen sinds');
+    expect(zou).toContain('zou 2× helpen, samen 1 uur 26 min');
+    expect(zou).not.toContain('2× geholpen');
+    view = { ...view, kijktMee: false };
     // De zolder-airco uit: meteen bewaard, de woonkamer blijft aan.
     await wand.locator('[data-helpen-aan="ac-zolder"]').click();
     await expect.poll(() => bewaard.length, kort).toBe(1);

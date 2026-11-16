@@ -647,6 +647,8 @@
   .doet { --k: var(--ijs); display: grid; align-items: center; box-sizing: border-box; background: rgb(var(--nacht) / 0.72); border: 1px solid color-mix(in srgb, var(--k) 30%, var(--glas-rand)); backdrop-filter: blur(14px); color: var(--tekst); font: inherit; text-align: left; cursor: pointer; }
   .doet[hidden] { display: none; }
   .doet b { font-weight: 700; color: color-mix(in srgb, var(--k) 70%, var(--tekst)); white-space: nowrap; }
+  /* Licht thema: ijsblauw op een lichte strook leest niet, dus de donkere tekstkleur ervan. */
+  html.sc-licht .doet b { color: var(--ijs-t); }
   .doet .dt-zin { font-weight: 600; min-width: 0; }
   .doet .dt-pijl { color: var(--gedempt); font-size: 17px; line-height: 1; }
   .doet .dt-tel { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--zacht); white-space: nowrap; }
@@ -677,7 +679,6 @@
   html.tel-stand .dt-fase i { padding: 4px 8px; font-size: 11.5px; }
   .dt-bij { margin: 4px 0 0; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
   .dt-kamer { display: grid; grid-template-columns: 112px minmax(0, 1fr) minmax(0, 1fr) 22px; gap: 0 14px; align-items: center; padding: 10px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
-  .dt-kamer.een { grid-template-columns: 112px minmax(0, 1fr); }
   .dt-kamer.kolomkop { padding: 0 0 4px; border-top: 0; font-size: 12px; color: var(--gedempt); }
   .dt-kamer.kolomkop .dt-echt, .dt-kamer.kolomkop .dt-zou { font-size: 12px; color: var(--gedempt); }
   .dt-kamer b { display: block; font-size: 15px; overflow-wrap: break-word; }
@@ -697,7 +698,6 @@
   html.tel-stand .dt-kamer .dt-echt { grid-area: echt; }
   html.tel-stand .dt-kamer .dt-zou { grid-area: zou; }
   html.tel-stand .dt-kamer .dt-teken, html.tel-stand .dt-kamer .dt-geen { grid-area: teken; }
-  html.tel-stand .dt-kamer.een { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'naam' 'zou'; }
   html.tel-stand .dt-kamer.kolomkop { grid-template-areas: 'echt zou zou'; }
   html.tel-stand .dt-kamer.kolomkop .dt-naam, html.tel-stand .dt-kamer.kolomkop .dt-geen { display: none; }
   html.tel-stand .dt-kamer .dt-echt, html.tel-stand .dt-kamer .dt-zou { font-size: 13.5px; }

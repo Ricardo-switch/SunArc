@@ -291,14 +291,12 @@ function tekenStand(e) {
   });
 }
 
-/** De kleur van de stand van SunArc, zoals in de waaier: ijs kijkt mee, mint regelt. */
-const DOET_KLEUR = { kijkt: 'var(--ijs)', regelt: 'var(--mint)', zon: 'var(--zon)' };
-
 /**
  * Wat SunArc doet (besluit 313): de vaste strook. Op de wand één regel met de
  * stand, de zin en hoeveel kamers gelijk zijn; op de telefoon twee korte
- * regels. De zin komt kant-en-klaar uit de dienst. Zonder iets te zeggen (een
- * huis zonder kamers die meedoen en zonder apparaten op zon) is er geen strook.
+ * regels. De zin komt kant-en-klaar uit de dienst. De strook is er alleen
+ * zolang SunArc meekijkt: regelt het zelf, of doet er geen kamer mee, dan zegt
+ * de zin boven het huis genoeg en is er geen strook.
  */
 function tekenDoet() {
   const d = state?.bewoner?.doet ?? null;
@@ -309,13 +307,11 @@ function tekenDoet() {
   $$('[data-doet]').forEach((el) => {
     el.hidden = !d;
     if (!d) return;
-    el.style.setProperty('--k', DOET_KLEUR[d.stand] ?? 'var(--ijs)');
-    const lang = t(`thuis.doet.lang.${d.stand}`);
+    const lang = t('thuis.doet.lang.kijkt');
     const tel = d.van > 0 ? t('thuis.doet.gelijk', { n: d.van, gelijk: d.gelijk }) : '';
     el.setAttribute('aria-label', [lang, d.zin, tel].filter(Boolean).join('. '));
     if (el.closest('#tel')) {
-      const onder = d.stand === 'kijkt' ? ` · ${esc(t('thuis.doet.nogNiet'))}` : '';
-      el.innerHTML = `${stip}<span class="dt-twee"><span><b>${esc(t(`thuis.doet.stand.${d.stand}`))}</b>${onder}</span><span class="dt-zin">${esc(d.zin)}</span></span>${pijl}`;
+      el.innerHTML = `${stip}<span class="dt-twee"><span><b>${esc(t('thuis.doet.stand.kijkt'))}</b> · ${esc(t('thuis.doet.nogNiet'))}</span><span class="dt-zin">${esc(d.zin)}</span></span>${pijl}`;
       return;
     }
     const blokjes = d.van > 0 && d.van <= 8 ? `<span class="dt-blokjes" aria-hidden="true">${Array.from({ length: d.van }, (_, i) => `<i class="${i < d.gelijk ? 'ja' : ''}"></i>`).join('')}</span>` : '';
@@ -1441,30 +1437,25 @@ function tekenDoetBlad() {
   const el = document.querySelector('[data-kiesblad]');
   const d = state?.bewoner?.doet;
   if (!el || !d) return;
-  const kijkt = d.stand === 'kijkt';
-  const fasen = d.stand === 'zon'
-    ? ''
-    : `<span class="dt-fase" role="img" aria-label="${esc(t(`regeling.fase.${kijkt ? 'kijken' : 'regelen'}`))}">${['leren', 'kijken', 'regelen'].map((f) => `<i class="${f === (kijkt ? 'kijken' : 'regelen') ? 'nu' : ''}">${esc(t(`regeling.fase.${f}`))}</i>`).join('')}</span>`;
-  const onder = kijkt ? [doetSinds ? t('thuis.doet.sinds', { datum: doetSinds }) : null, t('thuis.doet.nogNiet')].filter(Boolean).join(', ') : '';
-  const bij = d.stand === 'zon' ? '' : `<p class="dt-bij">${esc(t(kijkt ? 'thuis.doet.zegt' : 'thuis.doet.valt'))}</p>`;
+  const fasen = `<span class="dt-fase" role="img" aria-label="${esc(t('regeling.fase.kijken'))}">${['leren', 'kijken', 'regelen'].map((f) => `<i class="${f === 'kijken' ? 'nu' : ''}">${esc(t(`regeling.fase.${f}`))}</i>`).join('')}</span>`;
+  const onder = [doetSinds ? t('thuis.doet.sinds', { datum: doetSinds }) : null, t('thuis.doet.nogNiet')].filter(Boolean).join(', ');
+  const bij = `<p class="dt-bij">${esc(t('thuis.doet.zegt'))}</p>`;
   const temp = (k) => (k.temperatureC == null ? '' : `<small>${esc(getal(k.temperatureC, 1))}°</small>`);
   // Veel kamers: alleen wat anders is of niet meetelt, en de rest als één regel.
-  const veel = kijkt && d.kamers.length > DOET_MAX_KAMERS;
+  const veel = d.kamers.length > DOET_MAX_KAMERS;
   const lijst = veel ? d.kamers.filter((k) => k.gelijk !== true) : d.kamers;
   const rest = veel ? d.kamers.length - lijst.length : 0;
-  const rij = (k) => (kijkt
-    ? `<div class="dt-kamer"><span class="dt-naam"><b>${esc(k.naam)}</b>${temp(k)}</span><span class="dt-echt">${esc(k.echt)}</span><span class="dt-zou">${esc(k.zou)}</span>${k.gelijk == null ? '<span class="dt-geen"></span>' : `<span class="dt-teken ${k.gelijk ? 'ja' : 'nee'}" role="img" aria-label="${esc(t(k.gelijk ? 'thuis.doet.isGelijk' : 'thuis.doet.isAnders'))}">${k.gelijk ? '=' : '≠'}</span>`}</div>`
-    : `<div class="dt-kamer een"><span class="dt-naam"><b>${esc(k.naam)}</b>${temp(k)}</span><span class="dt-zou">${esc(k.zou)}</span></div>`);
+  const rij = (k) => `<div class="dt-kamer"><span class="dt-naam"><b>${esc(k.naam)}</b>${temp(k)}</span><span class="dt-echt">${esc(k.echt)}</span><span class="dt-zou">${esc(k.zou)}</span>${k.gelijk == null ? '<span class="dt-geen"></span>' : `<span class="dt-teken ${k.gelijk ? 'ja' : 'nee'}" role="img" aria-label="${esc(t(k.gelijk ? 'thuis.doet.isGelijk' : 'thuis.doet.isAnders'))}">${k.gelijk ? '=' : '≠'}</span>`}</div>`;
   const kamers = d.kamers.length
-    ? `<h3>${esc(t('thuis.doet.perKamer'))}</h3>${kijkt ? `<div class="dt-kamer kolomkop"><span class="dt-naam"></span><span class="dt-echt">${esc(t('thuis.doet.inHuis'))}</span><span class="dt-zou">${esc(t('thuis.doet.zou'))}</span><span class="dt-geen"></span></div>` : ''}${lijst.map(rij).join('')}${rest > 0 ? `<p class="dt-bij">${esc(t('thuis.doet.rest', { n: rest }))}</p>` : ''}`
+    ? `<h3>${esc(t('thuis.doet.perKamer'))}</h3><div class="dt-kamer kolomkop"><span class="dt-naam"></span><span class="dt-echt">${esc(t('thuis.doet.inHuis'))}</span><span class="dt-zou">${esc(t('thuis.doet.zou'))}</span><span class="dt-geen"></span></div>${lijst.map(rij).join('')}${rest > 0 ? `<p class="dt-bij">${esc(t('thuis.doet.rest', { n: rest }))}</p>` : ''}`
     : '';
   // Wat op zon gaat: de boiler, de stekkers en het witgoed, met hun stand van nu.
   const opZon = [...(state.bewoner.warmtebuffers ?? []), ...(state.bewoner.uitstelbaar ?? [])];
-  const klimaat = d.stand === 'zon' ? '' : `<div class="dt-wel"><span><b>${esc(t('thuis.doet.klimaat'))}</b><small>${esc(t(kijkt ? 'thuis.doet.klimaatNog' : 'thuis.doet.klimaatAan'))}</small></span><span class="dt-waarde">${esc(t(`thuis.doet.stand.${d.stand}`))}</span></div>`;
+  const klimaat = `<div class="dt-wel"><span><b>${esc(t('thuis.doet.klimaat'))}</b><small>${esc(t('thuis.doet.klimaatNog'))}</small></span><span class="dt-waarde">${esc(t('thuis.doet.stand.kijkt'))}</span></div>`;
   const zelf = `<h3>${esc(t('thuis.doet.zelf'))}</h3>${opZon.map((x) => `<div class="dt-wel"><span><b>${esc(x.naam)}</b></span><span class="dt-waarde">${esc(x.kop)}</span></div>`).join('')}${klimaat}`;
   const kop = `<div class="bladkop"><h2 class="kop-2">${esc(t('thuis.doet.kop'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>`;
   el.innerHTML = `${kop}<div class="sb-kolommen">
-      <div><div class="sb-held" style="--k: ${DOET_KLEUR[d.stand]}"><span class="standstip"></span><b>${esc(t(`thuis.doet.stand.${d.stand}`))}</b>${onder ? `<span class="dt-onder">${esc(onder)}</span>` : ''}${fasen}</div>${bij}${kamers}</div>
+      <div><div class="sb-held" style="--k: var(--ijs)"><span class="standstip"></span><b>${esc(t('thuis.doet.stand.kijkt'))}</b><span class="dt-onder">${esc(onder)}</span>${fasen}</div>${bij}${kamers}</div>
       <div>${zelf}<a class="knop dt-naar" href="vandaag.html">${esc(t('thuis.doet.naarVandaag'))} ›</a></div>
     </div>`;
 }

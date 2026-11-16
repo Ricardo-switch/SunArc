@@ -710,18 +710,18 @@ describe('wat SunArc doet, voor de strook op Thuis (besluit 313)', () => {
     const v = view({ accepted: [coolOnSun] });
     const d = doet(v);
     expect([d.stand, d.zin, d.gelijk, d.van]).toEqual(['kijkt', 'Zou nu hetzelfde doen', 3, 3]);
-    expect(zolder(v)).toEqual({ zoneId: 'zolder', naam: 'Zolder', temperatureC: 24.3, echt: 'Airco zolder koelen naar 22°', zou: 'Hetzelfde', gelijk: true });
+    expect(zolder(v)).toEqual({ zoneId: 'zolder', naam: 'Zolder', temperatureC: 24.3, echt: 'Airco zolder koelt naar 22°', zou: 'Hetzelfde doen', gelijk: true });
   });
 
   it('zegt eerst wat het nu anders zou doen', () => {
     // SunArc zou koelen, in huis gebeurt niets.
     const wel = view({ accepted: [coolOnSun], observed: uit });
     expect([doet(wel).zin, doet(wel).gelijk, doet(wel).van]).toEqual(['Zou nu de zolder koelen', 2, 3]);
-    expect([zolder(wel).zou, zolder(wel).gelijk]).toEqual(['Koelen naar 23°', false]);
+    expect([zolder(wel).zou, zolder(wel).gelijk]).toEqual(['Koelen naar 23° met de airco zolder', false]);
     // De airco koelt, SunArc zou op zon wachten.
     const niet = view({ rejected: [{ intent: coolOnSun, blockedBy: 'insufficient_power_budget' }] });
     expect([doet(niet).zin, doet(niet).gelijk]).toEqual(['Zou de zolder nu niet koelen', 2]);
-    expect(zolder(niet).zou).toBe('Nog niets, koelt zodra er zon over is');
+    expect(zolder(niet).zou).toBe('Wachten, en koelen zodra er zon over is');
     // In meer kamers anders: het aantal.
     const perZone = explanation().perZone.map((z) => (z.zoneId === 'woonkamer' ? { ...z, temperatureC: 23.4, targetC: 22, demand: 'cool' as const, reason: 'zone_above_setpoint' as const } : z));
     const twee = view({ explanation: explanation({ perZone }), accepted: [coolOnSun, { ...coolOnSun, zoneId: 'woonkamer', actuatorId: 'ac-woonkamer' }], observed: uit });
@@ -733,20 +733,34 @@ describe('wat SunArc doet, voor de strook op Thuis (besluit 313)', () => {
     const d = doet(wacht('insufficient_power_budget'));
     // Wachten is nu niets doen, en in huis gebeurt ook niets: gelijk.
     expect([d.zin, d.gelijk, d.van]).toEqual(['Zou de zolder koelen zodra er zon over is', 3, 3]);
-    expect(zolder(wacht('insufficient_power_budget'))).toMatchObject({ echt: 'Uit', zou: 'Nog niets, koelt zodra er zon over is', gelijk: true });
+    expect(zolder(wacht('insufficient_power_budget'))).toMatchObject({ echt: 'Airco zolder staat uit', zou: 'Wachten, en koelen zodra er zon over is', gelijk: true });
+    expect(zolder(wacht('insufficient_power_budget', 'weg')).zou).toBe('Wachten, en morgen op zon koelen');
     expect(doet(wacht('min_rest_not_elapsed')).zin).toBe('Zou de zolder koelen na een pauze');
     expect(doet(wacht('insufficient_power_budget', 'nog')).zin).toBe('Zou de zolder koelen als de zon op is');
     expect(doet(wacht('insufficient_power_budget', 'weg')).zin).toBe('Zou de zolder morgen op zon koelen');
   });
 
+  it('zegt per vak een heel zinnetje, dat ook zonder de kop erboven te lezen is', () => {
+    // "Nu in huis" is een zin met een werkwoord, "SunArc zou" loopt door in wat eronder staat.
+    const v = view({ accepted: [coolOnSun], observed: uit });
+    for (const k of doet(v).kamers) {
+      expect(k.echt, k.naam).toMatch(/ staat | verwarmt | koelt /);
+      expect(k.zou, k.naam).toMatch(/^(Hetzelfde doen|Verwarmen|Koelen|Wachten, en|Niets)/);
+    }
+    for (const k of doet(v, 'en').kamers) {
+      expect(k.echt, k.naam).toMatch(/ is | heats | cools /);
+      expect(k.zou, k.naam).toMatch(/^(Do the same|Heat|Cool|Wait, and|Do nothing|Nothing)/);
+    }
+  });
+
   it('zegt bij een apparaat dat in een stand staat maar niets doet, dat het stil staat', () => {
     // De Nest staat op verwarmen naar 20° bij 21,4°: hij staat stil, en SunArc zou ook niets doen.
     const v = view({ accepted: [coolOnSun] });
-    expect([woonkamer(v).echt, woonkamer(v).zou, woonkamer(v).gelijk]).toEqual(['Nest (beneden) verwarmen naar 20°, staat stil', 'Ook niets', true]);
+    expect([woonkamer(v).echt, woonkamer(v).zou, woonkamer(v).gelijk]).toEqual(['Nest (beneden) staat op 20° en staat stil', 'Niets doen', true]);
     // Zegt hij zelf dat hij stookt, dan telt dat, en zou SunArc het laten.
     const stookt = view({ accepted: [coolOnSun], observedAction: { nest: 'heating' } });
     expect(doet(stookt).zin).toBe('Zou de woonkamer nu niet verwarmen');
-    expect(woonkamer(stookt).zou).toBe('Niets, het is er warm genoeg');
+    expect([woonkamer(stookt).echt, woonkamer(stookt).zou]).toEqual(['Nest (beneden) verwarmt naar 20°', 'Niets doen, het is er warm genoeg']);
   });
 
   it('noemt het geen verschil als SunArc nog even door zou gaan en het doel al gehaald is', () => {
@@ -763,13 +777,13 @@ describe('wat SunArc doet, voor de strook op Thuis (besluit 313)', () => {
     // De airco koelt; SunArc zou stoppen, maar mag dat nog niet: dan draait hij ook bij SunArc nog door.
     const stop = { ...coolOnSun, action: 'off' as const };
     const v = view({ rejected: [{ intent: stop, blockedBy: 'min_run_not_elapsed' }] });
-    expect([zolder(v).zou, zolder(v).gelijk, doet(v).zin]).toEqual(['Hetzelfde', true, 'Zou nu hetzelfde doen']);
+    expect([zolder(v).zou, zolder(v).gelijk, doet(v).zin]).toEqual(['Hetzelfde doen', true, 'Zou nu hetzelfde doen']);
   });
 
   it('telt een kamer die met de hand is overgenomen niet mee', () => {
     const v = view({ accepted: [coolOnSun], observed: uit, explanation: explanation({ overrides: [{ actuatorId: 'ac-zolder', sinceMs: AT - 60_000, untilMs: Date.parse('2026-10-05T13:00:00Z') }] }) });
     expect([doet(v).zin, doet(v).gelijk, doet(v).van]).toEqual(['Zou nu hetzelfde doen', 2, 2]);
-    expect([zolder(v).zou, zolder(v).gelijk]).toEqual(['Met de hand', null]);
+    expect([zolder(v).zou, zolder(v).gelijk]).toEqual(['Niets, je bedient het met de hand', null]);
   });
 
   it('zegt bij een storing dat het stil staat, zonder kamers', () => {
@@ -777,17 +791,13 @@ describe('wat SunArc doet, voor de strook op Thuis (besluit 313)', () => {
     expect([d.zin, d.van, d.kamers]).toEqual(['Staat stil door een storing', 0, []]);
   });
 
-  it('zegt als SunArc zelf regelt wat het doet, zonder gelijk of anders', () => {
-    const d = doet(view({ accepted: [coolOnSun] }), 'nl', false);
-    expect([d.stand, d.zin, d.van]).toEqual(['regelt', 'Houdt je huis op temperatuur', 0]);
-    expect(d.kamers.find((k) => k.zoneId === 'zolder')).toMatchObject({ zou: 'Koelen naar 23°', gelijk: null });
-    const wacht = doet(view({ rejected: [{ intent: coolOnSun, blockedBy: 'min_rest_not_elapsed' }], observed: uit }), 'nl', false);
-    expect(wacht.zin).toBe('Koelt de zolder na een pauze');
-    const rust = view({ observed: uit, explanation: explanation({ perZone: explanation().perZone.map((z) => ({ ...z, demand: 'none' as const, reason: 'zone_satisfied' as const })) }) });
-    expect(doet(rust, 'nl', false).zin).toBe('Niets te doen');
+  it('heeft geen strook meer zodra SunArc zelf regelt: de zin boven het huis zegt het dan', () => {
+    // De strook is er alleen zolang SunArc meekijkt.
+    expect(residentView(config, view({ accepted: [coolOnSun] }), 'nl', false).doet).toBeNull();
+    expect(residentView(config, view({ accepted: [coolOnSun] }), 'nl', true).doet).not.toBeNull();
   });
 
-  it('heeft in een huis zonder kamers en zonder apparaten op zon geen strook', () => {
+  it('heeft in een huis zonder kamers die meedoen geen strook', () => {
     expect(residentView({ ...config, zones: [] }, view({ explanation: explanation({ perZone: [] }) })).doet).toBeNull();
   });
 
