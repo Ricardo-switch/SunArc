@@ -1441,7 +1441,8 @@ export const SHORT = {
       nobody_home: 'niemand thuis',
       failsafe_unreliable_input: 'een meting is onbetrouwbaar',
     } satisfies Record<ReasonCode, string>,
-    action: { cool: 'koelen', heat: 'verwarmen', standby: 'geparkeerd', off: 'uit' } as Record<string, string>,
+    // Ook de standen die een thermostaat in Home Assistant zelf kent (0.190.1): anders stond er "heat_cool naar 18°".
+    action: { cool: 'koelen', heat: 'verwarmen', standby: 'geparkeerd', off: 'uit', heat_cool: 'verwarmen of koelen', auto: 'automatisch', dry: 'drogen', fan_only: 'ventileren' } as Record<string, string>,
     towards: 'naar',
   },
   en: {
@@ -1488,7 +1489,7 @@ export const SHORT = {
       nobody_home: 'nobody home',
       failsafe_unreliable_input: 'a measurement is unreliable',
     } satisfies Record<ReasonCode, string>,
-    action: { cool: 'cooling', heat: 'heating', standby: 'parked', off: 'off' } as Record<string, string>,
+    action: { cool: 'cooling', heat: 'heating', standby: 'parked', off: 'off', heat_cool: 'heating or cooling', auto: 'automatic', dry: 'drying', fan_only: 'fan only' } as Record<string, string>,
     towards: 'at',
   },
 } as const;

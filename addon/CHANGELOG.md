@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.190.0
+## 0.190.1
 
-*16 november 2026 · 0.179.0 – 0.190.0*
+*16 november 2026 · 0.179.0 – 0.190.1*
 
 **Nieuw**
 
@@ -49,6 +49,7 @@
 
 **Opgelost**
 
+- In het blad Wat SunArc doet stond bij een thermostaat soms een code, zoals "heat_cool naar 18°". Nu staat er "verwarmen of koelen naar 18°"
 - De melding over een kamer waar niets op temperatuur houdt, noemde de kamer bij een oude naam. Nu heet hij zoals in je indeling
 - Thuis op de telefoon: met een naam en twee bewoners werden de begroeting en de stand allebei afgekapt. De stand staat nu op een eigen regel onder de begroeting
 - Het blad Wat SunArc doet op de telefoon: een kamernaam zoals Woonkamer brak midden in het woord. De naam staat nu op een eigen regel, met de temperatuur erachter
@@ -106,6 +107,7 @@
 
 **Fixed**
 
+- In the What SunArc does sheet a thermostat sometimes showed a code, such as "heat_cool at 18°". It now says "heating or cooling at 18°"
 - The notification about a room where nothing keeps the temperature used an old name for the room. It now uses the name from your layout
 - Home on the phone: with a name and two residents, both the greeting and the mode were cut off. The mode is now on its own line below the greeting
 - The What SunArc does sheet on the phone: a room name such as Living room broke in the middle of the word. The name is now on its own line, with the temperature after it

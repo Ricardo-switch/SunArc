@@ -670,6 +670,11 @@ describe('de stand per kamer voor de kaart (besluit 94)', () => {
   it('zegt wat het echte apparaat doet, of "uit"', () => {
     expect(room(view(), 'zolder').echt).toBe('Airco zolder koelen naar 22°');
     expect(room(view(), 'badkamer').echt).toBe('uit');
+    // Een stand die Home Assistant zelf kent, in gewone woorden (0.190.1): er stond "heat_cool naar 18°".
+    const metStand = (stand: string) => room(view({ observed: { nest: 'heat@20', badkamer: `${stand}@18`, 'ac-woonkamer': 'off', 'ac-zolder': 'off' } }), 'badkamer').echt;
+    expect(metStand('heat_cool')).toMatch(/ verwarmen of koelen naar 18°$/);
+    expect(metStand('auto')).toMatch(/ automatisch naar 18°$/);
+    for (const stand of ['heat_cool', 'auto', 'dry', 'fan_only']) expect(metStand(stand), stand).not.toMatch(/(heat_cool|auto|dry|fan_only)/);
   });
 
   it('noemt een ingreep met de tijd tot wanneer', () => {

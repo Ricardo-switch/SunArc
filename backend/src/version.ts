@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.190.0';
+export const VERSIE = '0.190.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.190.1',
+    datum: '2026-11-16',
+    opgelost: [
+      'In het blad Wat SunArc doet stond bij een thermostaat soms een code, zoals "heat_cool naar 18°". Nu staat er "verwarmen of koelen naar 18°"',
+    ],
+    en: {
+      opgelost: [
+        'In the What SunArc does sheet a thermostat sometimes showed a code, such as "heat_cool at 18°". It now says "heating or cooling at 18°"',
+      ],
+    },
+  },
   {
     versie: '0.190.0',
     datum: '2026-11-16',
