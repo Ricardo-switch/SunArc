@@ -306,6 +306,8 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [308. Je huis tekenen: één tekentafel op ruitjes, en het huis in 3D uit de tekening](#308-je-huis-tekenen-één-tekentafel-op-ruitjes-en-het-huis-in-3d-uit-de-tekening)
 - [313. Op Thuis staat vast wat SunArc doet, en de kop zegt alleen wat echt gebeurt](#313-op-thuis-staat-vast-wat-sunarc-doet-en-de-kop-zegt-alleen-wat-echt-gebeurt)
 - [314. Wat niet klopt, staat in de bel met een knop](#314-wat-niet-klopt-staat-in-de-bel-met-een-knop)
+- [315. De boiler staat in de tekening met zijn temperatuur, zijn doel en zijn stroom](#315-de-boiler-staat-in-de-tekening-met-zijn-temperatuur-zijn-doel-en-zijn-stroom)
+- [316. De woordenlijst: één woord per ding](#316-de-woordenlijst-één-woord-per-ding)
 
 **Veiligheid**
 
@@ -14531,6 +14533,81 @@ thermostaat staat nog met de hand". Het register van wat mislukte wordt niet
 bewaard: na een herstart is het leeg, en wat nog steeds mislukt, meldt zich
 opnieuw. De 77 fouten die ook alleen naar het logboek gaan, zijn hiermee nog
 niet zichtbaar.
+
+## 315. De boiler staat in de tekening met zijn temperatuur, zijn doel en zijn stroom
+
+*Onderwerp: weergave · Status: geldig*
+
+16 november 2026, versie 0.190.0. Issue 168: "Zou mooi zijn als je in de
+animatie kan zien hoe warm de boiler is en wat de doeltemperatuur is. Ook mooi
+als hiervan de energiestroom zichtbaar is." De boiler stond al als witte tank
+in zijn kamer, met een strook die zegt hoe warm hij is ([186]), en er is een
+kaart op Thuis ([189]). Er stond geen getal bij, er liep geen stroom naartoe,
+en een boiler zonder kamer stond nergens in het huis: wie hem toevoegde bij
+Apparaten op zon, zag hem daarna niet terug. Stap 1 van de kwaliteitsronde
+([310]). Schets: `design/app2/Wand-Boiler.html` en `Tel-Boiler.html`.
+
+*Besluit:*
+
+- **Een label bij de boiler**, zoals bij de panelen en de laadpaal: hoe warm hij
+  is, waar hij heen gaat en waarvan. "52°, naar 60° op zon, 2,0 kW". Altijd,
+  ook als hij niets doet: "60°, warm genoeg", of "48°, wacht op zon, doel 60°".
+  Zonder temperatuursensor staat er zijn naam en "geen temperatuur". Het
+  vermogen staat er alleen bij als er een meter is.
+- **De stroom naar zijn kamer** als hij verwarmt: goud van de zon, violet van
+  het net, zoals de andere lijnen.
+- **Zonder kamer een vaste plek:** op de begane grond, in de kleinste ruimte.
+  Zo is elk toegevoegd apparaat te zien zonder dat de bewoner eerst een plek
+  kiest. Geeft hij hem later een kamer, dan staat hij daar. Ook de kaart op
+  Thuis toont een boiler zonder kamer.
+- **De jacuzzi krijgt hetzelfde label**, bij zijn plek in de tuin.
+- **Ook op de telefoon**, kleiner, naast het label van de panelen.
+
+*Wat afviel:* het label alleen als hij verwarmt (dan zie je de temperatuur
+meestal niet, en daar vroeg de melder om), alleen de temperatuur zonder doel,
+en een melding in de bel die om een plek vraagt in plaats van een vaste plek
+(een extra stap voor iets dat de app zelf kan).
+
+*Kosten:* de plek zonder kamer is geraden: de kleinste ruimte beneden is vaak
+de hal of de berging, maar niet altijd waar de boiler hangt. De labels in de
+tekening letten niet op elkaar: het label van de boiler staat boven dat van de
+thuisaccu, en kan in een ander huis iets anders raken. Een tik op de boiler
+opent nog niets eigens; zijn kaart staat bij Apparaten.
+
+## 316. De woordenlijst: één woord per ding
+
+*Onderwerp: weergave · Status: geldig*
+
+16 november 2026. Voor één ding stonden er meer woorden in de app, en één
+woord betekende meer dingen. De tester die afhaakte, schreef dat hij op elk
+scherm "net weer andere info" zag. Stap 1 van de kwaliteitsronde ([310]): de
+woorden kiezen. Doorvoeren gebeurt per scherm dat opnieuw gebouwd wordt, in
+stap 3; nieuwe teksten houden zich er nu al aan.
+
+*Besluit:*
+
+| Ding | Het woord | Wat verdwijnt |
+| --- | --- | --- |
+| Wie iets doet | **SunArc** doet; **je huis** is het gebouw | "Het huis kijkt mee", "Het huis zegt wat het zou doen". De ik-vorm blijft alleen bij de assistent als je ermee praat |
+| De stand van SunArc voor klimaat | **Leert**, **Kijkt mee**, **Regelt** ([312]) | *Kijkt mee* als stand van een apparaat |
+| De taak van een apparaat in een kamer | **Houdt op temperatuur**, **Helpt op zon**, **Doet niet mee** | Alleen kijken, Slim, Niet geregeld, Eigen regeling |
+| Zelf iets bedienen | **Met de hand** | "Jij hebt het overgenomen", handmatig |
+| Waar de vorm van je huis vandaan komt | **3D-kaart**, **Plattegrond**, **Zelf tekenen** | OpenStreetMap als naam; dat staat er klein bij als herkomst |
+| De regeling | **Klimaat** ([310]) | Regeling, Comfort, Verwarmen en koelen en De regeling als naam van een plek |
+| Instellen | **Instellingen** is de plek, **Inrichten** de eerste keer | Klaarzetten: dat gaat op in Wat je huis kan ([310]) |
+| Wat SunArc anders zou doen dan er gebeurt | **gelijk** en **anders** ([313]) | |
+| Wat op zon gaat | **op zon** | op eigen zon, zon over als naam |
+
+*Wat afviel:* "Het huis doet" (warmer, maar de strook en de bel zeggen SunArc,
+en *je huis* is dan twee dingen), teksten zonder onderwerp (kort, maar soms
+onduidelijk wie het doet), *Alleen kijken* als taak (lijkt op *Kijkt mee*, en
+dat was de verwarring), *Regelt, Helpt, Uit* (*Uit* leest alsof het apparaat
+uit staat), en OpenStreetMap als naam van een keuze.
+
+*Kosten:* de app heeft ruim vijfduizend teksten per taal, en de oude woorden
+staan er nog in tot stap 3. Een test die de afgevallen woorden weert, kan pas
+als ze weg zijn. Het Engels krijgt dezelfde lijst zodra de Nederlandse is
+doorgevoerd.
 
 ## Wat nog een besluit wacht
 

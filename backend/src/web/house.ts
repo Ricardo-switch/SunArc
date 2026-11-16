@@ -217,6 +217,8 @@ export interface HouseDevice {
     readonly zonC: number;
     /** Wacht hij op zon, of verwarmt hij er nu mee. */
     readonly opZon: boolean;
+    /** Wat hij nu trekt, in W, als er een meter is (besluit 315): voor het label en de lijn in de tekening. */
+    readonly vermogenW?: number | null;
   };
   /**
    * Alleen bij een rookmelder (21 oktober 2026): wat hij ziet (rook, koolmonoxide
@@ -364,6 +366,8 @@ export interface HouseReport {
     readonly voorstelKamer: string | null;
     /** Bij een lamp: of hij aan staat, voor Apparaten › Licht (besluit 293). */
     readonly aan?: boolean;
+    /** Een boiler of jacuzzi zonder kamer (besluit 315): de tekening geeft hem dan zelf een plek. */
+    readonly warmte?: NonNullable<HouseDevice['warmte']>;
   }[];
   /**
    * De lampgroepen uit Home Assistant: groepen en Hue-kamers en -zones. Ze staan
@@ -1033,6 +1037,7 @@ function bufferOf(h: HeatStore, e: HeatStoreExplanation | undefined, lang: Lang)
       minC: h.minC,
       zonC: h.sunC,
       opZon: e != null && (e.state === 'waiting' || e.reason === 'surplus_available'),
+      vermogenW: e?.powerW != null ? Math.round(e.powerW) : null,
     },
   };
 }
@@ -1972,6 +1977,7 @@ export function buildHouse(
     groepen: readonly string[];
     voorstelKamer: string | null;
     aan?: boolean;
+    warmte?: NonNullable<HouseDevice['warmte']>;
   }[] = [];
   const hiddenIds = new Set(layout.verborgen ?? []);
   const hidden: { id: string; naam: string; soort: DeviceKind }[] = [];
@@ -1994,6 +2000,8 @@ export function buildHouse(
         voorstelKamer: roomForGroups(f.groepen, layout.kamers) ?? roomForName(naam, layout.kamers),
         // Een lamp zonder kamer staat ook bij Apparaten › Licht, met zijn schakelaar (besluit 293).
         ...(f.device.soort === 'licht' ? { aan: f.device.aan } : {}),
+        // Een boiler of jacuzzi zonder kamer staat toch in de tekening (besluit 315): met wat hij doet.
+        ...(f.device.warmte && f.device.warmte.soort !== 'stekker' ? { aan: f.device.aan, warmte: f.device.warmte } : {}),
       });
       continue;
     }

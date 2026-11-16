@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.189.0
+## 0.190.0
 
-*15 november 2026 · 0.179.0 – 0.189.0*
+*16 november 2026 · 0.179.0 – 0.190.0*
 
 **Nieuw**
 
+- De boiler staat in de tekening met zijn temperatuur en zijn doel: "52°, naar 60° op zon". Verwarmt hij, dan loopt de stroom naar zijn kamer, goud van de zon en violet van het net. De jacuzzi krijgt hetzelfde
 - Wat niet klopt, staat nu in de bel met een knop. Koos je een zekering van 3 × 25 A en zijn er geen stroommeters per fase gevonden, dan stond dat alleen in het logboek. Nu zie je het, met één zin over het gevolg en een knop naar de plek waar je het oplost
 - Thuis zegt nu altijd wat SunArc doet. Een vaste strook onder het huis zegt dat SunArc meekijkt, en wat het nu anders zou doen dan er in huis gebeurt of waar het op wacht, zoals "Zou de zolder verwarmen zodra er zon over is". Een tik opent per kamer wat er nu gebeurt naast wat SunArc zou doen, en wat de apparaten op zon doen
 - Je huis › Kamers: tik een muur aan en zet er een deur in, of in de buitenmuur een raam of de voordeur. Sleep hem langs de muur en zet de breedte in het blad
@@ -36,6 +37,7 @@
 
 **Beter**
 
+- Een boiler die nog geen kamer heeft, staat toch in het huis: op de begane grond, in de kleinste ruimte. Geef je hem later een kamer, dan staat hij daar
 - Ook in de bel: een apparaat dat op zon moet helpen zonder vermogen, een kamer waar niets op temperatuur houdt, terugzetten na met de hand dat niet lukte, een stekker die niet aanging op zon, een geplande taak die niet is gedaan, en een weersverwachting die zes uur wegblijft
 - Een melding gaat vanzelf weg zodra het klopt. Is het een keuze die mag blijven, dan staat er Laat zo bij
 - De grote kop op Thuis zegt alleen nog wat er in huis echt gebeurt. "Het huis wacht op zon" stond er ook als alleen SunArc wachtte en in huis niets. Dat staat nu in de strook
@@ -47,6 +49,7 @@
 
 **Opgelost**
 
+- De melding over een kamer waar niets op temperatuur houdt, noemde de kamer bij een oude naam. Nu heet hij zoals in je indeling
 - Thuis op de telefoon: met een naam en twee bewoners werden de begroeting en de stand allebei afgekapt. De stand staat nu op een eigen regel onder de begroeting
 - Het blad Wat SunArc doet op de telefoon: een kamernaam zoals Woonkamer brak midden in het woord. De naam staat nu op een eigen regel, met de temperatuur erachter
 - Op het startscherm heette de beta nog SC beta, met het oude icoon. Nu heet hij SunArc beta, met het teken van SunArc. Een app die al op je startscherm staat, krijgt het mee zodra je browser hem bijwerkt, of als je hem opnieuw toevoegt
@@ -60,6 +63,7 @@
 
 **New**
 
+- The boiler is in the drawing with its temperature and its target: "52°, to 60° on solar". When it heats, the flow runs to its room, gold from the sun and violet from the grid. The hot tub gets the same
 - What is not right now shows in the bell with a button. If you chose a 3 × 25 A main fuse and no current meters per phase were found, that was only in the log. Now you see it, with one sentence about the consequence and a button to the place where you fix it
 - Home now always says what SunArc is doing. A fixed strip below the house says SunArc is watching, and what it would do differently from what happens in the house right now, or what it is waiting for, such as "Would heat the attic as soon as there is solar to spare". A tap shows per room what happens now next to what SunArc would do, and what the devices on solar are doing
 - Your home › Rooms: tap a wall and put a door in it, or a window or the front door in the outside wall. Drag it along the wall and set the width in the panel
@@ -90,6 +94,7 @@
 
 **Improved**
 
+- A boiler that has no room yet is still in the house: on the ground floor, in the smallest room. Give it a room later and it stands there
 - Also in the bell: a device that should help on solar without its power, a room where nothing keeps the temperature, setting back after by hand that failed, a plug that did not switch on with solar, a planned task that was not done, and a weather forecast that stays away for six hours
 - A notification goes away by itself once it is right. If it is a choice that may stay, it has a Leave it button
 - The large headline on Home now only says what really happens in the house. "The house is waiting for sun" also appeared when only SunArc was waiting and nothing in the house was. That is now in the strip
@@ -101,6 +106,7 @@
 
 **Fixed**
 
+- The notification about a room where nothing keeps the temperature used an old name for the room. It now uses the name from your layout
 - Home on the phone: with a name and two residents, both the greeting and the mode were cut off. The mode is now on its own line below the greeting
 - The What SunArc does sheet on the phone: a room name such as Living room broke in the middle of the word. The name is now on its own line, with the temperature after it
 - On the home screen the beta was still called SC beta, with the old icon. It is now called SunArc beta, with the SunArc mark. An app already on your home screen gets it once your browser updates it, or when you add it again

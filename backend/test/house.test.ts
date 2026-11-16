@@ -460,6 +460,30 @@ describe('het voorstel uit Home Assistant', () => {
     expect(tuin.licht).toEqual({ wit: null, kleur: false, kelvin: null, tint: null });
   });
 
+  it('geeft een boiler zonder kamer mee met wat hij doet, zodat de tekening hem een plek kan geven (besluit 315)', () => {
+    const boiler = {
+      id: 'boiler',
+      name: 'Boiler',
+      kind: 'boiler' as const,
+      control: 'setpoint' as const,
+      actuator: { adapter: 'homeassistant' as const, id: 'water_heater.boiler' },
+      estimatedW: 2000,
+      minC: 45,
+      sunC: 60,
+      heatRateCPerHour: 6,
+      legionellaC: 60,
+    };
+    const metBoiler = { ...config, heatStores: [boiler] } as typeof config;
+    const stookt = { ...snapshot, explanation: { ...snapshot.explanation, heatStores: [{ id: 'boiler', state: 'would_heat', reason: 'surplus_available', temperatureC: 52.4, targetC: 60, heating: true, powerW: 1987.6 }] } } as typeof snapshot;
+    const los = buildHouse(metBoiler, registers, states, stookt).zonderRuimte.find((d) => d.id === 'boiler')!;
+    expect(los).toMatchObject({ naam: 'Boiler', soort: 'apparaat', aan: true, warmte: { soort: 'boiler', tempC: 52, doelC: 60, minC: 45, zonC: 60, opZon: true, vermogenW: 1988 } });
+    // Zonder meter geen vermogen, en zonder besluit nog geen temperatuur.
+    expect(buildHouse(metBoiler, registers, states, null).zonderRuimte.find((d) => d.id === 'boiler')).toMatchObject({ aan: false, warmte: { tempC: null, vermogenW: null } });
+    // Een stekker op zon is geen tank: die krijgt geen plek in de tekening.
+    const stekker = { ...boiler, id: 'stekker', name: 'Stekker', kind: 'stekker' as const, control: 'switch' as const, actuator: { adapter: 'homeassistant' as const, id: 'switch.stekker' } };
+    expect(buildHouse({ ...config, heatStores: [stekker] } as typeof config, registers, states, null).zonderRuimte.find((d) => d.id === 'stekker')?.warmte).toBeUndefined();
+  });
+
   it('zet wat in geen gebied hangt bij "nog in te delen", met de kamer van zijn groep als voorstel', () => {
     const tuin = proposeLayout(config, registers, states).kamers.find((k) => k.naam === 'Tuin')!;
     expect(house.zonderRuimte).toEqual([

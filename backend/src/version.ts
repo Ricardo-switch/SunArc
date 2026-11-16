@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.189.0';
+export const VERSIE = '0.190.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,30 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.190.0',
+    datum: '2026-11-16',
+    nieuw: [
+      'De boiler staat in de tekening met zijn temperatuur en zijn doel: "52°, naar 60° op zon". Verwarmt hij, dan loopt de stroom naar zijn kamer, goud van de zon en violet van het net. De jacuzzi krijgt hetzelfde',
+    ],
+    beter: [
+      'Een boiler die nog geen kamer heeft, staat toch in het huis: op de begane grond, in de kleinste ruimte. Geef je hem later een kamer, dan staat hij daar',
+    ],
+    opgelost: [
+      'De melding over een kamer waar niets op temperatuur houdt, noemde de kamer bij een oude naam. Nu heet hij zoals in je indeling',
+    ],
+    en: {
+      nieuw: [
+        'The boiler is in the drawing with its temperature and its target: "52°, to 60° on solar". When it heats, the flow runs to its room, gold from the sun and violet from the grid. The hot tub gets the same',
+      ],
+      beter: [
+        'A boiler that has no room yet is still in the house: on the ground floor, in the smallest room. Give it a room later and it stands there',
+      ],
+      opgelost: [
+        'The notification about a room where nothing keeps the temperature used an old name for the room. It now uses the name from your layout',
+      ],
+    },
+  },
   {
     versie: '0.189.0',
     datum: '2026-11-15',

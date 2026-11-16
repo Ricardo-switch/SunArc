@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · De boiler in de tekening (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * De boiler in de tekening, met zijn temperatuur en zijn stroom, op de wand
+   * (schets, 15 november 2026). Uitleg en standen in boiler.js.
+   */
+  main { position: relative; padding: 22px 26px 20px 22px; }
+  .klok { font-family: var(--kop); font-size: 56px; font-weight: 600; line-height: 1; }
+  .groet { display: block; margin-top: 22px; font-size: 15px; font-weight: 600; color: var(--zacht); }
+  .kop-1 { margin: 6px 0 0; font-size: 46px; max-width: 420px; }
+  .lead { margin: 10px 0 0; font-size: 17px; max-width: 400px; }
+  .podium { position: absolute; left: 190px; top: 150px; width: 860px; height: 600px; }
+</style>
+</head>
+<body data-scherm="wand">
+<div class="wand lucht lucht-dag" data-lucht data-basis="wand">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="klok">13:20</div>
+    <span class="groet">Goedemiddag</span>
+    <h1 class="kop-1" data-kop></h1>
+    <p class="lead" data-zin></p>
+    <div class="podium" id="podium"></div>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="../../frontend/kit/huis.js"></script>
+<script>nav.balk(document.getElementById('balk'), 'thuis');</script>
+<script src="boiler.js"></script>
+</body>
+</html>

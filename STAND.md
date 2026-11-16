@@ -20,7 +20,11 @@ verwijzing bestaat.
   wacht, en een blad per kamer; de kop zegt alleen wat echt gebeurt ([313]).
   Wat niet klopt, staat sinds 0.189.0 in de bel met een knop, in plaats van
   alleen in het logboek: een keuze die niet is overgenomen, iets dat mislukte,
-  de weersverwachting die wegblijft ([314]).
+  de weersverwachting die wegblijft ([314]). De boiler staat sinds 0.190.0 in
+  de tekening met zijn temperatuur, zijn doel en zijn stroom, ook zonder kamer
+  ([315]). De woorden zijn gekozen, één per ding: SunArc doet en je huis is het
+  gebouw, een apparaat houdt op temperatuur, helpt op zon of doet niet mee, en
+  zelf bedienen heet met de hand ([316]). Doorvoeren volgt per scherm.
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1019,4 +1023,6 @@ verwijzing bestaat.
 [312]: DECISIONS.md#312-de-wintertest-is-van-dit-huis-een-nieuw-huis-leert-kijkt-mee-en-regelt-als-de-bewoner-dat-kiest
 [313]: DECISIONS.md#313-op-thuis-staat-vast-wat-sunarc-doet-en-de-kop-zegt-alleen-wat-echt-gebeurt
 [314]: DECISIONS.md#314-wat-niet-klopt-staat-in-de-bel-met-een-knop
+[315]: DECISIONS.md#315-de-boiler-staat-in-de-tekening-met-zijn-temperatuur-zijn-doel-en-zijn-stroom
+[316]: DECISIONS.md#316-de-woordenlijst-één-woord-per-ding
 <!-- links:einde -->

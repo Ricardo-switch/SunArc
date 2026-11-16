@@ -3574,6 +3574,57 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     }
   });
 
+  /*
+   * De boiler in de tekening (besluit 315, issue 168): hoe warm hij is, waar
+   * hij heen gaat en waarvan, ook als hij geen kamer heeft.
+   */
+  it('zet de boiler in de tekening met zijn temperatuur en zijn doel, ook zonder kamer (besluit 315)', async () => {
+    const standen = {
+      zon: { aan: true, warmte: { soort: 'boiler', tempC: 52, doelC: 60, minC: 45, zonC: 60, opZon: true, vermogenW: 2000 }, verwacht: ['52°', 'naar 60° op zon', '2,0 kW'] },
+      warm: { aan: false, warmte: { soort: 'boiler', tempC: 60, doelC: null, minC: 45, zonC: 60, opZon: false, vermogenW: null }, verwacht: ['60°', 'warm genoeg'] },
+      wacht: { aan: false, warmte: { soort: 'boiler', tempC: 48, doelC: 60, minC: 45, zonC: 60, opZon: true, vermogenW: null }, verwacht: ['48°', 'wacht op zon', 'doel 60°'] },
+      zonder: { aan: false, warmte: { soort: 'boiler', tempC: null, doelC: null, minC: 45, zonC: 60, opZon: false, vermogenW: null }, verwacht: ['Boiler', 'geen temperatuur'] },
+    };
+    for (const scherm of ['wand', 'tel'] as const) {
+      for (const [naam, s] of Object.entries(standen)) {
+        const context = await browser.newContext(
+          scherm === 'wand'
+            ? { viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' }
+            : { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' },
+        );
+        await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+        await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+        const p = await context.newPage();
+        const fouten: string[] = [];
+        p.on('pageerror', (e) => fouten.push(e.message));
+        // Het huis van de test heeft geen boiler: hij komt erbij als apparaat zonder kamer.
+        await p.route('**/api/huis', async (route) => {
+          const r = await route.fetch();
+          const huis = (await r.json()) as { zonderRuimte?: unknown[] };
+          huis.zonderRuimte = [...(huis.zonderRuimte ?? []), { id: 'boiler', naam: 'Boiler', soort: 'apparaat', voorstel: null, groepen: [], voorstelKamer: null, aan: s.aan, warmte: s.warmte }];
+          await route.fulfill({ response: r, json: huis });
+        });
+        await p.goto(`${baseUrl}/thuis.html`);
+        await p.locator(`#${scherm} svg.sc-huis`).waitFor();
+        const teksten = () => p.locator(`#${scherm} svg.sc-huis text`).allTextContents();
+        await expect.poll(async () => (await teksten()).map((t) => t.trim()), { timeout: 10_000 }).toEqual(expect.arrayContaining(s.verwacht));
+        // Het label valt binnen de tekening.
+        const binnen = await p.evaluate<boolean>(`(() => {
+          const svg = document.querySelector(${JSON.stringify(`#${scherm} svg.sc-huis`)});
+          const vak = svg.getBoundingClientRect();
+          const el = [...svg.querySelectorAll('text')].find((t) => (t.textContent || '').trim() === ${JSON.stringify(s.verwacht[1])});
+          if (!el) return false;
+          const r = el.getBoundingClientRect();
+          return r.width > 0 && r.left >= vak.left - 1 && r.right <= vak.right + 1;
+        })()`);
+        expect(binnen, `${scherm} ${naam}`).toBe(true);
+        if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', `-boiler-${scherm}-${naam}.png`) });
+        expect(fouten).toEqual([]);
+        await context.close();
+      }
+    }
+  }, 90_000);
+
   it('toont Thuis op de telefoon met de Assistent altijd in beeld', async () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());

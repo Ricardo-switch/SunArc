@@ -106,6 +106,13 @@ function huisModel() {
     if (autoKw - autoZon > 0.05) stromen.push({ van: 'net', naar: 'auto', sterkte: Math.min(1, (autoKw - autoZon) / 3) });
   }
   if (paalAuto && autoKw < -0.05) stromen.push({ van: 'auto', naar: 'huis', sterkte: Math.min(1, -autoKw / 3) });
+  // De boiler (besluit 315, issue 168): verwarmt hij, dan loopt de stroom naar zijn kamer, van de zon of van het net.
+  const water = huismodel.waterVan(huisData);
+  const boiler = tek.boilerKamer ? (water.boiler?.a ?? null) : null;
+  if (boiler?.aan) {
+    const kw = (boiler.warmte.vermogenW ?? 0) / 1000;
+    stromen.push({ van: boiler.warmte.opZon && zonKw > 0.05 ? 'zon' : 'net', naar: `kamer:${tek.boilerKamer}`, sterkte: kw > 0.05 ? Math.min(1, kw / 3) : 0.5 });
+  }
   // Een tik op een lijn opent Stroom nu bij zijn bron (idee 135); de lijn naar de auto opent de laadpaal.
   for (const st of stromen) {
     const bron = st.naar === 'auto' ? null : st.van === 'zon' ? 'zon' : st.van === 'net' ? 'net' : st.van === 'batterij' ? 'accu' : null;
@@ -140,6 +147,33 @@ function huisModel() {
   } else if (paalLabel && autoKw < -0.05) labels.push({ bij: 'laadpaal', titel: t('thuis.label.autoLevert', { kw: getal(-autoKw) }), toon: 'ijs', dx: -30, dy: -96 });
   // Van het net in violet, terug in groen: dezelfde kleur als de lijn (besluit 187).
   if (!s.geschat) labels.push({ bij: 'net', titel: netKw > 0.05 ? t('thuis.label.vanNet', { kw: getal(netKw) }) : netKw < -0.05 ? t('thuis.label.terug', { kw: getal(-netKw) }) : t('thuis.label.nietsNet'), toon: netKw > 0.05 ? 'violet' : 'mint', dx: 40, dy: 64, tik: 'stroom:net', tikLabel: t('stroom.label') });
+  /*
+   * Bij de boiler en de jacuzzi (besluit 315, issue 168): hoe warm hij is, waar
+   * hij heen gaat en waarvan. Altijd, ook als hij niets doet: "60°, warm genoeg".
+   */
+  for (const [bij, x] of [['boiler', boiler], ['jacuzzi', tek.tuin?.jacuzzi ? (water.jacuzzi?.a ?? null) : null]]) {
+    if (!x) continue;
+    const w = x.warmte;
+    const doel = w.doelC ?? (w.opZon ? w.zonC : w.minC);
+    const kw = w.vermogenW ? [`${getal(w.vermogenW / 1000)} kW`] : [];
+    const regels = w.tempC == null
+      ? [t('thuis.water.geenTemp')]
+      : x.aan
+        ? [t(w.opZon ? 'thuis.water.naarZon' : 'thuis.water.naarNet', { doel }), ...kw]
+        : w.opZon
+          ? [t('thuis.water.wachtZon'), t('thuis.water.doel', { doel: w.zonC })]
+          : [t('thuis.water.genoeg')];
+    labels.push({
+      bij,
+      titel: w.tempC == null ? x.naam : `${getal(w.tempC, 0)}°`,
+      groot: w.tempC != null && !app.telStand(),
+      ...(w.tempC == null ? {} : { toon: x.aan ? (w.opZon ? 'zon' : 'violet') : w.opZon ? 'zon' : 'mint' }),
+      regels,
+      // Boven het label van de thuisaccu aan de gevel, rechts van het dak.
+      dx: 90,
+      dy: -124,
+    });
+  }
 
   return {
     beschrijving: `${state?.bewoner?.kop?.titel ?? t('thuis.hetHuis')}. ${state?.bewoner?.kop?.zin ?? ''}`,
@@ -319,7 +353,7 @@ function tekenNu() {
   const wandPodium = document.getElementById('podium-wand');
   if (!app.telStand()) huis.teken(wandPodium, model, { breedte: wandPodium.clientWidth || 860, hoogte: 612, marge: 0.04, schuifX: 10, schuifY: 10, tik: true });
   // Eenvoudig (besluit 164): geen getallen op het huis.
-  else huis.teken(document.getElementById('podium-tel'), { ...model, etages: model.etages.map((et) => ({ ...et, kamers: et.kamers.map((k) => ({ ...k, stil: true })) })), labels: app.weergave().eenvoudig ? [] : model.labels.filter((l) => l.bij === 'panelen').map((l) => ({ ...l, dx: -40, dy: -84 })) }, { breedte: 390, hoogte: 330, marge: 0.03, schuifY: -6, tik: true });
+  else huis.teken(document.getElementById('podium-tel'), { ...model, etages: model.etages.map((et) => ({ ...et, kamers: et.kamers.map((k) => ({ ...k, stil: true })) })), labels: app.weergave().eenvoudig ? [] : model.labels.filter((l) => l.bij === 'panelen' || l.bij === 'boiler' || l.bij === 'jacuzzi').map((l) => (l.bij === 'panelen' ? { ...l, dx: -40, dy: -84 } : { ...l, groot: false, dx: 30, dy: -52 })) }, { breedte: 390, hoogte: 330, marge: 0.03, schuifY: -6, tik: true });
   tekenStromenTel();
 
   tekenVandaag();
@@ -1052,8 +1086,9 @@ document.addEventListener('click', (e) => {
 
 /** De boiler of de jacuzzi (besluit 189): hoe warm, en of hij op zon verwarmt; een tik opent Apparaten. */
 function tekenBoiler() {
-  const alles = (huisData?.etages ?? []).flatMap((e) => e.ruimtes ?? []).flatMap((r) => r.apparaten ?? []);
-  const x = alles.find((a) => a.warmte?.soort === 'boiler') ?? alles.find((a) => a.warmte?.soort === 'jacuzzi');
+  // Ook een boiler zonder kamer (besluit 315): die staat in de tekening, dus ook op zijn kaart.
+  const water = huismodel.waterVan(huisData);
+  const x = water.boiler?.a ?? water.jacuzzi?.a ?? null;
   const w = x?.warmte;
   const vol = !w ? 0 : w.tempC == null ? 0.5 : Math.max(0.05, Math.min(1, (w.tempC - (w.minC - 10)) / Math.max(1, w.zonC - (w.minC - 10))));
   const zin = !w ? '' : w.tempC == null ? t('thuis.boiler.onbekend') : x.aan ? `${t(w.opZon ? 'thuis.boiler.opZon' : 'thuis.boiler.verwarmt')}${w.doelC != null ? `, ${t('thuis.boiler.naar', { doel: w.doelC })}` : ''}` : t('thuis.boiler.rust');

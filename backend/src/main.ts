@@ -1628,7 +1628,8 @@ function meldingenRonde(): void {
         answers: connectionStore?.current ?? null,
         configFasen: basisFasen,
         regelingNiet,
-        config: cfg,
+        // Met de namen uit de indeling: een kamer heet zoals de bewoner hem noemde (0.190.0, "de zolder" was de wasruimte).
+        config: webConfig() ?? cfg,
         kamerVanZone: (zoneId) => regelKamers(layoutNu?.()?.kamers ?? []).find((k) => k.regelzone === zoneId)?.id ?? null,
       }),
       ...klopt.lijst(Date.now()),

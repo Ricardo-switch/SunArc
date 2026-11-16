@@ -83,6 +83,17 @@
     return Math.max(0.05, Math.min(1, (w.tempC - (w.minC - 10)) / Math.max(1, w.zonC - (w.minC - 10))));
   }
 
+  /**
+   * De boiler en de jacuzzi van het huis (besluit 315), ook als ze geen kamer
+   * hebben: dan staan ze bij wat nog geen kamer heeft, met wat ze doen.
+   */
+  function waterVan(huis) {
+    const inKamer = (huis?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).flatMap((r) => (r.apparaten ?? []).map((a) => ({ a, kamer: r }))));
+    const los = (huis?.zonderRuimte ?? []).map((a) => ({ a, kamer: null }));
+    const lijst = [...inKamer, ...los].filter((x) => x.a.warmte && x.a.warmte.soort !== 'stekker');
+    return { boiler: lijst.find((x) => x.a.warmte.soort === 'boiler') ?? null, jacuzzi: lijst.find((x) => x.a.warmte.soort === 'jacuzzi') ?? null };
+  }
+
   /** Een kamer uit `api/huis` naar de beschrijving voor de tekenmotor, met de stand uit `api/state`. */
   function kamerModel(r, state) {
     const apps = r.apparaten ?? [];
@@ -395,6 +406,18 @@
     const top = etages.at(-1);
     if (top && (huis?.dakEtage !== undefined ? top.id === huis.dakEtage : etages.length >= 3 || /zolder|dak/i.test(top.naam))) top.dak = true;
     const alles = (huis?.etages ?? []).flatMap((e) => e.ruimtes ?? []).flatMap((r) => r.apparaten ?? []);
+    /*
+     * Een boiler zonder kamer (besluit 315, issue 168) staat toch in het huis:
+     * op de begane grond, in de kleinste ruimte. Zo is elk apparaat dat is
+     * toegevoegd ook te zien, zonder dat de bewoner eerst een plek kiest.
+     */
+    const water = waterVan(huis);
+    let boilerKamer = water.boiler?.kamer?.naam ?? null;
+    if (water.boiler && !water.boiler.kamer && etages[0]?.kamers.length) {
+      const kleinste = [...etages[0].kamers].sort((x, y) => (x.gewicht ?? 1) - (y.gewicht ?? 1))[0];
+      kleinste.apparaten = [...(kleinste.apparaten ?? []), { soort: 'boiler', aan: !!water.boiler.a.aan, vol: hoeVol(water.boiler.a.warmte) }];
+      boilerKamer = kleinste.naam;
+    }
     const aircos = alles.filter((a) => a.soort === 'klimaat' && a.klimaat?.kanKoelen);
     const delen = buiten(buitenRuimtes, huis?.rond ?? null);
     // De deurbel en de camera op de oprit, met hun bewegingsmelders (rapport 15 oktober).
@@ -405,7 +428,7 @@
     const camZiet = alles.find((a) => a.meting?.beweging && /camera/i.test(naam(a)) && !isBel(a));
     if (delen.oprit?.camera) delen.oprit.camera.beweging = !!camZiet?.meting.beweging.nu;
     // De jacuzzi (besluit 186) staat in de tuin, op zijn vlonder; zonder tuin komt er een.
-    const jacuzzi = alles.find((a) => a.warmte?.soort === 'jacuzzi');
+    const jacuzzi = water.jacuzzi?.a ?? null;
     if (jacuzzi) {
       const w = jacuzzi.warmte;
       delen.tuin = { ...(delen.tuin ?? { id: null, naam: global.t('huis.buiten.tuin'), tuinhuis: false, tuinhuisAan: false, overstekAan: false, lampen: [], zonnescherm: null }), jacuzzi: { temp: w.tempC, stand: jacuzzi.aan ? 'verwarmt' : 'rust', zon: jacuzzi.aan && w.opZon } };
@@ -417,6 +440,8 @@
     return {
       etages,
       kelder,
+      // In welke kamer de boiler staat, ook als de tekening hem zelf een plek gaf (besluit 315).
+      boilerKamer,
       woning,
       ...(woning === 'appartement' ? { gebouw: { onder: 2, boven: 1 } } : {}),
       buitenRuimtes,
@@ -627,5 +652,5 @@
   const BUITEN_ZONES = soorten('buitenZone', ['gazon', 'border', 'terras', 'tuinhuis', 'overstek', 'moestuin', 'vijver', 'pad', 'speelplek', 'oprit', 'carport']);
   global.huismodel = { KAMER_SOORTEN, ZONE_SOORTEN, BUITEN_SOORTEN, BUITEN_ZONES, buitenUitNaam, buitenZoneUitNaam, thermostaten, cvThermostaat, isKetelKoppeling, kanOpZon, ACTIEF,
 
- BUITEN, GANG, kleurVanLicht, zoneNaam, metLidwoord, metHoofdletter, etagesNaast, BRON_NAAM, ELEKTRISCH, bronNaam, opsomming, isElektrischSlim, inKamers, standVan, kortVan, kamerModel, isBuiten, soortBuiten, buiten, rondNu, rondom, OP_OPRIT, IN_TUIN, hangtAan, rondAan, rondWissel, huisjeVan, huisjeNaam, HUISJES, rondMet, tekening, huisDelen, panelenOpDak, kompasVan, zonOpRechts, zonNu, groetNamen, groetWie };
+ BUITEN, GANG, kleurVanLicht, zoneNaam, metLidwoord, metHoofdletter, etagesNaast, BRON_NAAM, ELEKTRISCH, bronNaam, opsomming, isElektrischSlim, inKamers, standVan, kortVan, kamerModel, waterVan, isBuiten, soortBuiten, buiten, rondNu, rondom, OP_OPRIT, IN_TUIN, hangtAan, rondAan, rondWissel, huisjeVan, huisjeNaam, HUISJES, rondMet, tekening, huisDelen, panelenOpDak, kompasVan, zonOpRechts, zonNu, groetNamen, groetWie };
 })(window);
