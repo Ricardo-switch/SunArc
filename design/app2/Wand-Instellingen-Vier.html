@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Instellingen in vier groepen (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Instellingen in vier groepen (schets stap 2, 16 november 2026). Drie vormen
+   * om uit te kiezen, met dezelfde inhoud (instellingen-vier.js):
+   *   (geen hash)  het huis in het midden, de groepen eromheen
+   *   #tegels      vier grote tegels, twee bij twee
+   *   #lijst       links de groepen, rechts de geopende groep (hier Klimaat)
+   * In alle drie: de stand als één regel bovenin, Jij en het zoekveld rechtsboven,
+   * geen tegel Inrichten meer (de standpagina biedt de open stap aan).
+   */
+  main { padding: 22px 26px 22px 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .boven { display: flex; align-items: center; gap: 16px; }
+  .boven .kop-1 { flex: none; }
+  .boven .rechts { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .zoek { width: 300px; height: 44px; border-radius: 14px; display: flex; align-items: center; gap: 10px; padding: 0 16px; font-size: 14px; color: var(--gedempt); }
+  .jij { height: 44px; display: inline-flex; align-items: center; gap: 10px; padding: 0 16px 0 6px; border-radius: 14px; font-size: 14px; font-weight: 600; }
+  .jij .rond { width: 32px; height: 32px; border-radius: 50%; background: var(--violet); color: #0b1424; display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+
+  /* De stand: één regel. */
+  .stand { display: flex; align-items: center; gap: 14px; padding: 10px 16px 10px 12px; border-radius: 18px; }
+  .ring { width: 44px; height: 44px; flex: none; position: relative; }
+  .ring svg { width: 44px; height: 44px; transform: rotate(-90deg); }
+  .ring span { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .stand b { font-size: 15.5px; }
+  .stand .stip { background: var(--ijs); }
+  .stand .zin { color: var(--zacht); font-size: 14px; }
+  .stand .pijl { margin-left: auto; color: var(--gedempt); font-size: 14px; display: flex; align-items: center; gap: 8px; }
+
+  /* Een groep als vak. */
+  .groep { padding: 16px 18px 14px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .groep .titel { display: flex; align-items: center; gap: 12px; }
+  .groep .icoon { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); flex: none; }
+  .groep .icoon svg { width: 22px; height: 22px; }
+  .groep h3 { margin: 0; font-family: var(--kop); font-size: 20px; font-weight: 600; }
+  .groep .pijl { margin-left: auto; color: var(--gedempt); font-size: 22px; }
+  .groep .zin { margin: 0; font-size: 13px; line-height: 1.4; color: var(--gedempt); }
+  .groep ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--zacht); }
+  .groep li { display: flex; justify-content: space-between; gap: 12px; }
+  .groep li b { color: var(--tekst); font-weight: 600; white-space: nowrap; }
+  .groep .delen { margin-top: auto; font-size: 12.5px; color: var(--gedempt); line-height: 1.5; }
+
+  /* Vorm 1: het huis in het midden. */
+  .midden { flex: 1; min-height: 0; display: grid; grid-template-columns: 300px 1fr 300px; grid-template-rows: 1fr 1fr; gap: 14px; position: relative; }
+  .midden .groep:nth-of-type(1) { grid-column: 1; grid-row: 1; }
+  .midden .groep:nth-of-type(2) { grid-column: 3; grid-row: 1; }
+  .midden .groep:nth-of-type(3) { grid-column: 1; grid-row: 2; }
+  .midden .groep:nth-of-type(4) { grid-column: 3; grid-row: 2; }
+  .midden .podium { grid-column: 2; grid-row: 1 / 3; position: relative; }
+  .midden .lijnen { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  .midden .groep .zin { display: block; }
+  .groep .delen { display: flex; flex-wrap: wrap; gap: 6px; }
+  .groep .delen span { padding: 4px 10px; border-radius: 999px; background: rgb(var(--wit) / 0.05); color: var(--zacht); font-size: 12.5px; }
+  .midden .wijst { position: absolute; z-index: 3; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgb(var(--nacht) / 0.75); border: 1px solid var(--glas-rand); white-space: nowrap; }
+
+  /* Vorm 2: vier tegels. */
+  .tegels { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 14px; }
+  .tegels .groep { padding: 20px 22px 18px; gap: 12px; }
+  .tegels .groep h3 { font-size: 22px; }
+  .tegels .groep ul { font-size: 15px; gap: 8px; }
+
+  /* Vorm 3: lijst en inhoud. */
+  .lijst { flex: 1; min-height: 0; display: grid; grid-template-columns: 300px 1fr; gap: 14px; }
+  .lijst nav { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .lijst nav a { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; color: inherit; text-decoration: none; position: relative; }
+  .lijst nav a .icoon { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); flex: none; }
+  .lijst nav a .icoon svg { width: 22px; height: 22px; }
+  .lijst nav a b { display: block; font-size: 16px; }
+  .lijst nav a span { font-size: 12.5px; color: var(--gedempt); }
+  .lijst nav a.aan { background: rgb(var(--wit) / 0.08); }
+  .lijst nav a.aan::before { content: ''; position: absolute; left: -2px; top: 16px; bottom: 16px; width: 3px; border-radius: 3px; background: var(--tekst); }
+  .lijst nav hr { border: 0; border-top: 1px solid var(--glas-rand); margin: 6px 12px; }
+  .inhoud { padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .inhoud h2 { margin: 0; }
+  .inhoud h4 { margin: 4px 0 0; font-size: 12.5px; font-weight: 700; color: var(--gedempt); }
+  .kamer { display: grid; grid-template-columns: 1fr auto 18px; gap: 2px 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--glas-rand); }
+  .kamer b { font-size: 15.5px; }
+  .kamer .doel { font-size: 13px; color: var(--zacht); }
+  .kamer .taak { grid-column: 1; font-size: 13px; color: var(--gedempt); }
+  .kamer .nu { grid-row: 1 / 3; grid-column: 2; font-family: var(--kop); font-size: 20px; font-weight: 600; }
+  .kamer .pijl { grid-row: 1 / 3; grid-column: 3; color: var(--gedempt); }
+  .nietmee { font-size: 13px; color: var(--zacht); }
+  .nietmee a { color: var(--ijs-t); font-weight: 600; text-decoration: none; }
+  .huisrijen { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .huisrij { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.05); font-size: 14px; }
+  .huisrij span { color: var(--gedempt); font-size: 13px; }
+
+  /* De stand met de kleine waaier. */
+  .stand { padding: 8px 20px 0 14px; align-items: flex-end; }
+  .stand .mini { width: 112px; height: 64px; flex: none; }
+  .standtekst { display: flex; flex-direction: column; gap: 2px; padding-bottom: 12px; }
+  .standtekst b { display: flex; align-items: center; gap: 10px; }
+  .stand .pijl { padding-bottom: 14px; }
+
+  /* Vier tegels met knoppen. */
+  .tegels .groep .titel { align-items: flex-start; }
+  .tegels .groep .titel .zin { margin-top: 3px; }
+  .knoppen { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .deelknop { min-height: 60px; padding: 8px 34px 8px 16px; border-radius: 14px; background: rgb(var(--wit) / 0.06); border: 1px solid var(--glas-rand); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left; gap: 2px; position: relative; }
+  .deelknop::after { content: '›'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--gedempt); font-size: 18px; }
+  .deelknop b { font-size: 14.5px; }
+  .deelknop span { font-size: 12.5px; color: var(--gedempt); }
+
+  /* De pagina achter een tegel. */
+  .terug { height: 44px; padding: 0 16px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; }
+  .groeppagina { flex: 1; min-height: 0; display: grid; grid-template-columns: 320px 1fr; gap: 14px; }
+  .groeppagina nav { padding: 10px; display: flex; flex-direction: column; gap: 2px; }
+  .groeppagina nav h4 { margin: 8px 12px 4px; font-size: 12.5px; color: var(--gedempt); }
+  .groeppagina nav a { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 14px; position: relative; }
+  .groeppagina nav a .icoon { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); flex: none; }
+  .groeppagina nav a .icoon svg { width: 20px; height: 20px; }
+  .groeppagina nav a b { display: block; font-size: 15px; }
+  .groeppagina nav a span { font-size: 12.5px; color: var(--gedempt); }
+  .groeppagina nav a em { margin-left: auto; font-style: normal; font-family: var(--kop); font-weight: 600; }
+  .groeppagina nav a.aan { background: rgb(var(--wit) / 0.08); }
+  .groeppagina nav a.aan::before { content: ''; position: absolute; left: -2px; top: 12px; bottom: 12px; width: 3px; border-radius: 3px; background: var(--tekst); }
+  .groeppagina nav .nietmee { margin: 2px 12px 4px; font-size: 12.5px; color: var(--gedempt); }
+  .groeppagina .inhoud { gap: 14px; }
+  .kamerkop { display: flex; align-items: baseline; gap: 14px; }
+  .kamerkop .nu { margin-left: auto; font-family: var(--kop); font-size: 20px; font-weight: 600; }
+  .blok { display: flex; flex-direction: column; gap: 6px; }
+  .blok h4 { margin: 0 0 2px; }
+  .regel { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.05); font-size: 14px; }
+  .regel .icoon { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); flex: none; color: var(--gloed); }
+  .regel .icoon svg { width: 20px; height: 20px; }
+  .regel div b { display: block; font-size: 14.5px; }
+  .regel div span, .regel > span { color: var(--zacht); font-size: 13px; }
+  .regel .tijd { color: var(--gedempt); width: 110px; }
+  .regel > b { width: 80px; }
+  .regel em, .regel .taak { margin-left: auto; font-style: normal; color: var(--gedempt); }
+  .regel .taak { color: var(--tekst); font-weight: 600; font-size: 13.5px; padding: 8px 12px; border-radius: 11px; background: rgb(var(--wit) / 0.07); white-space: nowrap; }
+  .blok.nu p { margin: 0; padding: 10px 14px; border-radius: 14px; background: rgba(111, 211, 255, 0.08); color: var(--ijs-zacht); font-size: 14px; }
+  .voet { margin: auto 0 0; font-size: 12.5px; color: var(--gedempt); }
+
+  [data-vorm] { display: none !important; }
+  body.v-huis [data-vorm='huis'], body.v-tegels [data-vorm='tegels'], body.v-lijst [data-vorm='lijst'] { display: grid !important; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-avond">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="boven">
+      <h1 class="kop-1">Instellingen</h1>
+      <div class="rechts">
+        <div class="glas-klein zoek" data-zoek></div>
+        <div class="glas-klein jij"><span class="rond">R</span>Jij</div>
+      </div>
+    </div>
+    <div class="glas stand" data-stand></div>
+    <section class="midden" data-vorm="huis"></section>
+    <section class="tegels" data-vorm="tegels"></section>
+    <section class="lijst" data-vorm="lijst"></section>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="../../frontend/kit/huis.js"></script>
+<script src="../../frontend/kit/waaier.js"></script>
+<script src="voortgang-voorbeeld.js"></script>
+<script src="instellingen-vier.js"></script>
+<script>
+  const { GROEPEN: G4, STAND, KLIMAAT, KAMERBLAD } = instellingenVier;
+  const vorm = ['tegels', 'lijst', 'klimaat'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'huis';
+  document.body.classList.add(`v-${vorm}`);
+  nav.balk(document.getElementById('balk'), 'instellingen');
+  const ik = (naam, kleur) => `<span class="icoon" style="color: var(--${kleur})">${iconen.svg(naam)}</span>`;
+
+  document.querySelector('[data-zoek]').innerHTML = `${iconen.svg('nu', { grootte: 18 })}Zoek een instelling, zoals "zekering"`;
+
+  // De stand: de kleine zonnewaaier van Hoe ver je huis is (keuze Ricardo, 17 november), wat SunArc doet, en of er iets mist.
+  document.querySelector('[data-stand]').innerHTML = `
+    <svg class="mini" viewBox="0 0 190 108" data-mini></svg>
+    <div class="standtekst"><b><span class="stip"></span>${STAND.wat}</b><span class="zin">${STAND.zin}</span></div>
+    <span class="pijl">Hoe ver je huis is ›</span>`;
+  waaier.teken(document.querySelector('[data-mini]'), { groepen: W_GROEPEN, cx: 95, cy: 104, r0: 32, R: 92, getal: `${TOTAAL}%`, groei: false, knoppen: false });
+
+  const vak = (g, met = {}) => `
+    <article class="glas groep">
+      <div class="titel">${ik(g.icoon, g.kleur)}<h3>${g.naam}</h3><span class="pijl">›</span></div>
+      ${met.zin ? `<p class="zin">${g.zin}</p>` : ''}
+      <ul>${g.rijen.map(([a, b]) => `<li>${a}<b>${b}</b></li>`).join('')}</ul>
+      <div class="delen">${g.delen.map((d) => `<span>${d}</span>`).join('')}</div>
+    </article>`;
+
+  if (vorm === 'huis') {
+    const el = document.querySelector('[data-vorm="huis"]');
+    el.innerHTML = `${G4.map((g) => vak(g, { zin: true })).join('')}<div class="podium" id="podium"></div><svg class="lijnen" id="lijnen"></svg>`;
+    const podium = document.getElementById('podium');
+    const { width, height } = podium.getBoundingClientRect();
+    huis.teken(podium, {
+      beschrijving: 'Het voorbeeldhuis, met de vier groepen eromheen.',
+      tijd: 'avond',
+      zon: { aandeel: 0, panelen: 12 },
+      etages: [
+        { kamers: [{ naam: 'Woonkamer', temp: '20,8°', gewicht: 1.4, apparaten: [{ soort: 'airco' }, { soort: 'lamp', aan: true, x: 0.4 }] }, { naam: 'Keuken', temp: '20,4°', apparaten: [{ soort: 'lamp', aan: true }] }, { naam: 'Hal', gewicht: 0.6, stil: true, apparaten: [] }] },
+        { kamers: [{ naam: 'Badkamer', temp: '21,2°', apparaten: [] }, { naam: 'Slaapkamer', stil: true, apparaten: [] }, { naam: 'Kinderkamer', stil: true, apparaten: [] }] },
+        { dak: true, kamers: [{ naam: 'Zolder', temp: '17,9°', apparaten: [{ soort: 'airco' }, { soort: 'droger' }] }] },
+      ],
+      net: true,
+    }, { breedte: width, hoogte: height, marge: 0.04 });
+    // Waar elke groep in het huis over gaat: een label op het huis, een dunne lijn naar het vak.
+    const doos = el.getBoundingClientRect();
+    const p = podium.getBoundingClientRect();
+    const op = (fx, fy) => [p.left - doos.left + fx * p.width, p.top - doos.top + fy * p.height];
+    // [groep, label, punt op het huis, kleur, waar het label staat ten opzichte van het punt]
+    // App en bewoners wijst nergens heen: dat zit niet in het gebouw.
+    const wijzers = [
+      [0, 'Kamers en daken', op(0.2, 0.42), 'mint', [-90, -44]],
+      [1, 'Airco en thermostaat', op(0.4, 0.34), 'gloed', [-60, -46]],
+      [2, 'Meters en aansluiting', op(0.094, 0.74), 'zon', [-40, 22]],
+    ];
+    const vakken = [...el.querySelectorAll('.groep')].map((x) => x.getBoundingClientRect());
+    const lijnen = document.getElementById('lijnen');
+    lijnen.setAttribute('viewBox', `0 0 ${doos.width} ${doos.height}`);
+    lijnen.innerHTML = wijzers.map(([i, , [x, y], kleur]) => {
+      const v = vakken[i];
+      const links = i === 0 || i === 2;
+      const vx = (links ? v.right : v.left) - doos.left;
+      const vy = v.top - doos.top + 34;
+      return `<path d="M${vx} ${vy} C ${(vx + x) / 2} ${vy}, ${(vx + x) / 2} ${y}, ${x} ${y}" fill="none" stroke="var(--${kleur})" stroke-opacity="0.55" stroke-width="1.5" stroke-dasharray="3 4"/><circle cx="${x}" cy="${y}" r="5" fill="var(--${kleur})" stroke="rgb(var(--nacht))" stroke-width="2"/>`;
+    }).join('');
+    for (const [, tekst, [x, y], kleur, [dx, dy]] of wijzers) {
+      const s = document.createElement('span');
+      s.className = 'wijst';
+      s.style.cssText = `left: ${x + dx}px; top: ${y + dy}px; color: var(--${kleur})`;
+      s.textContent = tekst;
+      el.append(s);
+    }
+  }
+
+  // Vier tegels (keuze Ricardo, 17 november): elk deel een grote knop die zegt wat hij opent, met wat er nu staat.
+  if (vorm === 'tegels') document.querySelector('[data-vorm="tegels"]').innerHTML = G4.map((g) => `
+    <article class="glas groep">
+      <div class="titel">${ik(g.icoon, g.kleur)}<div><h3>${g.naam}</h3><p class="zin">${g.zin}</p></div><span class="pijl">›</span></div>
+      <div class="knoppen">${g.knoppen.map(([a, b]) => `<a class="deelknop"><b>${a}</b><span>${b}</span></a>`).join('')}</div>
+    </article>`).join('');
+
+  // De pagina achter de tegel Klimaat: links de delen, rechts het gekozen deel (hier de woonkamer).
+  if (vorm === 'klimaat') {
+    const g = G4.find((x) => x.id === 'klimaat');
+    const k = KAMERBLAD;
+    document.querySelector('main').innerHTML = `
+      <div class="boven"><a class="glas-klein terug">‹ Instellingen</a><h1 class="kop-1">Klimaat</h1><span class="rechts mini" style="font-size: 13px">Alles wordt meteen bewaard</span></div>
+      <section class="groeppagina">
+        <nav class="glas">
+          <h4>Kamers</h4>
+          ${KLIMAAT.kamers.map(([naam, doel, , nu], i) => `<a class="${i === 0 ? 'aan' : ''}">${ik({ Zolder: 'dak' }[naam] ?? naam.toLowerCase(), 'gloed')}<div><b>${naam}</b><span>${doel}</span></div><em>${nu}</em></a>`).join('')}
+          <p class="nietmee">Doen nog niet mee: ${KLIMAAT.nietMee}</p>
+          <h4>Het hele huis</h4>
+          ${g.knoppen.slice(1).map(([a, b], i) => `<a>${ik(['dagdelen', 'voorrang', 'afwezig', 'verwarming', 'airco'][i], 'net')}<div><b>${a}</b><span>${b}</span></div></a>`).join('')}
+        </nav>
+        <div class="glas inhoud">
+          <div class="kamerkop"><h2 class="kop-2">${k.naam}</h2><span class="nu">nu ${k.nu}</span></div>
+          <div class="blok"><h4>Hoe warm</h4>${k.warm.map(([d, t, z]) => `<div class="regel"><b>${d}</b><span class="tijd">${t}</span><span>${z}</span><em>›</em></div>`).join('')}</div>
+          <div class="blok"><h4>Wat ervoor zorgt</h4>${k.zorgt.map(([icoon, naam, taak, zin]) => `<div class="regel">${ik(icoon, 'gloed')}<div><b>${naam}</b><span>${zin}</span></div><span class="taak">${taak} ▾</span></div>`).join('')}
+            <div class="regel"><span class="icoon">${iconen.svg('thermostaat')}</span><div><b>Gemeten met</b><span>${k.meten}</span></div><span class="taak">Kies ▾</span></div></div>
+          <div class="blok nu"><h4>Wat er nu gebeurt</h4>${k.gebeurt.map((z) => `<p>${z}</p>`).join('')}</div>
+          <p class="voet">Ruw: het blad per kamer wordt schets 2, Klimaat per kamer in één blad.</p>
+        </div>
+      </section>`;
+  }
+
+  if (vorm === 'lijst') {
+    const open = 'klimaat';
+    document.querySelector('[data-vorm="lijst"]').innerHTML = `
+      <nav class="glas">${G4.map((g) => `<a class="${g.id === open ? 'aan' : ''}">${ik(g.icoon, g.kleur)}<div><b>${g.naam}</b><span>${g.rijen[0][1]}</span></div></a>`).join('')}
+        <hr><a>${ik('kleur', 'net')}<div><b>Jij</b><span>thema, kleur, taal, dit scherm</span></div></a></nav>
+      <div class="glas inhoud">
+        <h2 class="kop-2">Klimaat</h2>
+        <h4>Per kamer</h4>
+        <div>${KLIMAAT.kamers.map(([naam, doel, taak, nu]) => `<div class="kamer"><div><b>${naam}</b> <span class="doel">· ${doel}</span></div><span class="nu">${nu}</span><span class="pijl">›</span><div class="taak">${taak}</div></div>`).join('')}</div>
+        <p class="nietmee" style="margin: 0">Doen nog niet mee: ${KLIMAAT.nietMee.split(', ').map((k) => `<a>${k}</a>`).join(', ')}.</p>
+        <h4>Het hele huis</h4>
+        <div class="huisrijen">${KLIMAAT.huis.map(([a, b]) => `<div class="huisrij"><b>${a}</b><span>${b} ›</span></div>`).join('')}</div>
+      </div>`;
+  }
+</script>
+</body>
+</html>

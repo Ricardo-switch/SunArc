@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Instellingen in vier groepen (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Instellingen in vier groepen op de telefoon (schets stap 2, 17 november
+   * 2026), bij Wand-Instellingen-Vier. Dezelfde inhoud (instellingen-vier.js):
+   *   (geen hash)  de zonnewaaier bovenin, de vier groepen onder elkaar, elk
+   *                deel een hele regel met wat er nu staat
+   *   #klimaat     achter de groep Klimaat: de kamers en het hele huis
+   *   #kamer       een kamer geopend (ruw; de uitwerking is schets 2)
+   * Op de telefoon mag een pagina scrollen; de wand nooit.
+   */
+  body { margin: 0; width: 390px; }
+  .tel { padding: 54px 16px 100px; display: flex; flex-direction: column; gap: 14px; }
+  .boven { display: flex; align-items: center; gap: 10px; }
+  .boven .kop-1 { font-size: 36px; }
+  .rond { margin-left: auto; width: 38px; height: 38px; border-radius: 50%; background: var(--violet); color: #0b1424; display: grid; place-items: center; font-weight: 700; }
+  .zoek { height: 44px; border-radius: 14px; display: flex; align-items: center; gap: 10px; padding: 0 14px; font-size: 14px; color: var(--gedempt); }
+  .terug { font-size: 15px; font-weight: 700; color: var(--zacht); }
+
+  /* De stand met de kleine zonnewaaier. */
+  .stand { display: flex; align-items: flex-end; gap: 12px; padding: 8px 14px 0 10px; border-radius: 20px; }
+  .stand .mini { width: 100px; height: 57px; flex: none; }
+  .stand .tekst { padding-bottom: 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .stand b { font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .stand .stip { background: var(--ijs); }
+  .stand span.zin { font-size: 13px; color: var(--zacht); line-height: 1.35; }
+  .stand .pijl { margin-left: auto; padding-bottom: 16px; color: var(--gedempt); font-size: 20px; }
+
+  /* Een groep: kop en de delen als hele regels. */
+  .groep { padding: 6px 6px 6px; border-radius: 22px; }
+  .groep .titel { display: flex; align-items: center; gap: 12px; padding: 10px 10px 8px; }
+  .icoon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); flex: none; }
+  .icoon svg { width: 21px; height: 21px; }
+  .groep h3 { margin: 0; font-family: var(--kop); font-size: 20px; font-weight: 600; }
+  .groep .zin { margin: 1px 0 0; font-size: 12.5px; color: var(--gedempt); line-height: 1.35; }
+  .regel { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 12px; border-top: 1px solid var(--glas-rand); }
+  .regel .naam { flex: 1; min-width: 0; }
+  .regel b { display: block; font-size: 15px; font-weight: 600; }
+  .regel .waarde { font-size: 13px; color: var(--gedempt); }
+  .regel .nu { font-family: var(--kop); font-size: 18px; font-weight: 600; }
+  .regel .pijl { color: var(--gedempt); font-size: 18px; }
+  h4 { margin: 4px 4px -4px; font-size: 12.5px; color: var(--gedempt); }
+  .nietmee { margin: -4px 6px 0; font-size: 12.5px; color: var(--gedempt); }
+
+  /* Een kamer geopend. */
+  .kamerkop { display: flex; align-items: baseline; }
+  .kamerkop .getal { margin-left: auto; font-size: 26px; }
+  .blok { padding: 6px; border-radius: 22px; }
+  .blok .regel:first-of-type { border-top: 0; }
+  .regel.boven-uit { align-items: flex-start; padding: 12px; }
+  .regel.boven-uit .waarde { display: block; }
+  .blok .taak { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; padding: 7px 10px; border-radius: 10px; background: rgb(var(--wit) / 0.07); white-space: nowrap; }
+  .gebeurt p { margin: 0; padding: 10px 14px; border-radius: 14px; background: rgba(111, 211, 255, 0.08); color: var(--ijs-zacht); font-size: 14px; }
+  .gebeurt { display: flex; flex-direction: column; gap: 6px; }
+  .voet { font-size: 12.5px; color: var(--gedempt); margin: 0 4px; }
+</style>
+</head>
+<body>
+<div class="tel lucht lucht-avond" id="tel"></div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="../../frontend/kit/waaier.js"></script>
+<script src="voortgang-voorbeeld.js"></script>
+<script src="instellingen-vier.js"></script>
+<script>
+  const { GROEPEN: G4, STAND, KLIMAAT, KAMERBLAD } = instellingenVier;
+  const toon = ['klimaat', 'kamer'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overzicht';
+  const scherm = document.getElementById('tel');
+  const ik = (naam, kleur) => `<span class="icoon" style="color: var(--${kleur})">${iconen.svg(naam)}</span>`;
+  const regel = (naam, waarde, voor = '', na = '') => `<div class="regel">${voor}<div class="naam"><b>${naam}</b>${waarde ? `<span class="waarde">${waarde}</span>` : ''}</div>${na}<span class="pijl">›</span></div>`;
+
+  if (toon === 'overzicht') {
+    scherm.innerHTML = `
+      <div class="boven"><h1 class="kop-1">Instellingen</h1><span class="rond">R</span></div>
+      <div class="glas-klein zoek">${iconen.svg('nu', { grootte: 18 })}Zoek een instelling</div>
+      <div class="glas stand"><svg class="mini" viewBox="0 0 190 108" data-mini></svg>
+        <div class="tekst"><b><span class="stip"></span>${STAND.wat}</b><span class="zin">${STAND.zin}</span></div><span class="pijl">›</span></div>
+      ${G4.map((g) => `
+        <section class="glas groep">
+          <div class="titel">${ik(g.icoon, g.kleur)}<div><h3>${g.naam}</h3><p class="zin">${g.zin}</p></div></div>
+          ${g.knoppen.map(([a, b]) => regel(a, b)).join('')}
+        </section>`).join('')}`;
+    waaier.teken(document.querySelector('[data-mini]'), { groepen: W_GROEPEN, cx: 95, cy: 104, r0: 32, R: 92, getal: `${TOTAAL}%`, groei: false, knoppen: false });
+  }
+
+  if (toon === 'klimaat') {
+    const g = G4.find((x) => x.id === 'klimaat');
+    scherm.innerHTML = `
+      <span class="terug">‹ Instellingen</span>
+      <h1 class="kop-1" style="font-size: 36px">Klimaat</h1>
+      <h4>Kamers</h4>
+      <section class="glas groep">${KLIMAAT.kamers.map(([naam, doel, , nu]) => regel(naam, doel, ik({ Zolder: 'dak' }[naam] ?? naam.toLowerCase(), 'gloed'), `<span class="nu">${nu}</span>`)).join('').replace('class="regel"', 'class="regel" style="border-top: 0"')}</section>
+      <p class="nietmee">Doen nog niet mee: ${KLIMAAT.nietMee}. Kies bij de kamer wat ervoor zorgt.</p>
+      <h4>Het hele huis</h4>
+      <section class="glas groep">${g.knoppen.slice(1).map(([a, b], i) => regel(a, b, ik(['dagdelen', 'voorrang', 'afwezig', 'verwarming', 'airco'][i], 'net'))).join('').replace('class="regel"', 'class="regel" style="border-top: 0"')}</section>`;
+  }
+
+  if (toon === 'kamer') {
+    const k = KAMERBLAD;
+    scherm.innerHTML = `
+      <span class="terug">‹ Klimaat</span>
+      <div class="kamerkop"><h1 class="kop-1" style="font-size: 36px">${k.naam}</h1><span class="getal">${k.nu}</span></div>
+      <h4>Hoe warm</h4>
+      <section class="glas blok">${k.warm.map(([d, t, z]) => regel(d, `${t} · ${z}`)).join('')}</section>
+      <h4>Wat ervoor zorgt</h4>
+      <section class="glas blok">${k.zorgt.map(([icoon, naam, taak, zin]) => `<div class="regel boven-uit">${ik(icoon, 'gloed')}<div class="naam"><b>${naam}</b><span class="waarde">${zin}</span><span class="taak">${taak} ▾</span></div></div>`).join('')}
+        <div class="regel boven-uit">${ik('thermostaat', 'gloed')}<div class="naam"><b>Gemeten met</b><span class="waarde">${k.meten}</span><span class="taak">Kies ▾</span></div></div></section>
+      <h4>Wat er nu gebeurt</h4>
+      <div class="gebeurt">${k.gebeurt.map((z) => `<p>${z}</p>`).join('')}</div>
+      <p class="voet">Ruw: het blad per kamer wordt schets 2, Klimaat per kamer in één blad.</p>`;
+  }
+
+  const tabs = document.createElement('nav');
+  tabs.className = 'tabs';
+  scherm.append(tabs);
+  nav.tabs(tabs, 'instellingen');
+</script>
+</body>
+</html>
