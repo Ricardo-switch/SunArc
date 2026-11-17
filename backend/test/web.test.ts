@@ -1656,7 +1656,8 @@ describe('licht bedienen (besluit 97)', () => {
     const vraag = async (tekst: string) => (await (await fetch(`${started.base}/api/vraag?${new URLSearchParams({ v: 'vrij', tekst })}`)).json()) as { vraag: string; antwoord: string; opdracht?: unknown };
     const b = await vraag('Zet over 5 minuten het licht in de hal uit');
     expect(b.vraag).toBe('tedoen');
-    expect(b.antwoord).toMatch(/^Goed, om \d\d:\d\d doe ik dit: zet het licht in de hal uit\.$/);
+    // Vlak voor middernacht staat er "morgen om": dat hoort zo.
+    expect(b.antwoord).toMatch(/^Goed, (morgen )?om \d\d:\d\d doe ik dit: zet het licht in de hal uit\.$/);
     // Er gaat nu niets naar de deur: de dienst doet het straks zelf.
     expect(b.opdracht).toBeUndefined();
     expect(calls).toEqual([]);
