@@ -82,7 +82,7 @@
 .zorgt .metenregel { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 14px; border-radius: 14px; border: 0; background: rgb(var(--wit) / 0.05); color: var(--tekst); font: inherit; text-align: left; cursor: pointer; }
 .zorgt .metenregel .l { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .zorgt .metenregel .l b { font-size: 14px; }
-.zorgt .metenregel .l span { font-size: 12.5px; color: var(--gedempt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zorgt .metenregel .l span { font-size: 12.5px; color: var(--gedempt); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .zorgt .metenregel .pijl { color: var(--gedempt); font-size: 18px; }
 .zorgt .metenregel:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
 .zorgt .terug { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 0; background: rgb(var(--wit) / 0.07); color: var(--zacht); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
@@ -96,7 +96,7 @@
 .zorgt .bron[data-kort] .boven { grid-template-columns: 30px minmax(0, 1fr) auto; gap: 8px; }
 .zorgt .bron[data-kort] .ikoon { width: 30px; height: 30px; }
 .zorgt .bron[data-kort] b { font-size: 13.5px; line-height: 1.25; overflow-wrap: break-word; hyphens: auto; }
-.zorgt .bron[data-kort] .wat { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zorgt .bron[data-kort] .wat { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 1.3; }
 .zorgt .rolkeuze.kort { width: auto; max-width: 172px; height: 32px; padding: 0 6px; font-size: 12px; font-weight: 700; }
 .zorgt .bron[data-kort] .cvregel { padding-top: 4px; }
 .zorgt .bron[data-kort] .vraagknop { height: 26px; font-size: 12px; }

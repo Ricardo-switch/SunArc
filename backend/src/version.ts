@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.192.0';
+export const VERSIE = '0.192.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,26 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.192.1',
+    datum: '2026-11-17',
+    beter: [
+      'Een zone met een eigen regeling, zoals de zithoek, zegt bij Klimaat welk apparaat hem regelt, met een knop naar de kamer waar je dat kiest',
+      'Bij Klimaat staan wat een apparaat is en waarmee de kamer meet op twee regels, in plaats van afgekapt',
+    ],
+    opgelost: [
+      'Helpen bij de cv paste niet op de wand. Stopt, pomp sparen en stil staan nu naast elkaar',
+    ],
+    en: {
+      beter: [
+        'A zone with its own control, such as the seating area, says under Climate which device controls it, with a button to the room where you choose that',
+        'Under Climate, what a device is and what the room measures with take two lines instead of being cut off',
+      ],
+      opgelost: [
+        'Helping the boiler did not fit on the wall display. Stops, saving the pump and quiet now sit side by side',
+      ],
+    },
+  },
   {
     versie: '0.192.0',
     datum: '2026-11-17',

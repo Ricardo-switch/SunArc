@@ -161,6 +161,10 @@
   .helpdag { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid rgb(var(--wit) / 0.07); display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--gedempt); }
   .helpdag b { color: var(--tekst); font-weight: 600; }
   .tel-stand .kostbalk { grid-template-columns: 1fr auto; }
+  /* Stopt, pomp sparen en stil naast elkaar: zo past Helpen bij de cv op de wand (besluit 317). */
+  .helpdrie { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 18px; }
+  .helpdrie .regelrij { align-items: flex-start; }
+  #tel .helpdrie { grid-template-columns: 1fr; }
   .tel-stand .kostbalk i { grid-column: 1 / -1; grid-row: 2; }
 </style>
 </head>

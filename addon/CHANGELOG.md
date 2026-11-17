@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.192.0
+## 0.192.1
 
-*17 november 2026 · 0.179.0 – 0.192.0*
+*17 november 2026 · 0.179.0 – 0.192.1*
 
 **Nieuw**
 
@@ -44,6 +44,8 @@
 
 **Beter**
 
+- Een zone met een eigen regeling, zoals de zithoek, zegt bij Klimaat welk apparaat hem regelt, met een knop naar de kamer waar je dat kiest
+- Bij Klimaat staan wat een apparaat is en waarmee de kamer meet op twee regels, in plaats van afgekapt
 - Het blad Wat SunArc doet leest nu als hele zinnetjes: "Nest (beneden) staat op 20° en staat stil" naast "Niets doen". Eerst stond er "Ook niets" onder "SunArc zou"
 - De strook Wat SunArc doet is er alleen zolang SunArc meekijkt. Regelt SunArc zelf, dan zegt de zin boven het huis het al
 - Helpen bij de cv zegt "Zou helpen sinds 07:36" en "zou 1× helpen" zolang SunArc de airco nog niet schakelt, en noemt de kamer zoals jij hem noemde
@@ -60,6 +62,7 @@
 
 **Opgelost**
 
+- Helpen bij de cv paste niet op de wand. Stopt, pomp sparen en stil staan nu naast elkaar
 - De stand van het huis zei "zou bijspringen" terwijl de airco uit stond. Wat SunArc zou doen, staat nu alleen in de strook
 - In het lichte thema waren de wolken niet te zien en was "Kijkt mee" in de strook te licht. De wolken zijn grijs, de tekst is donkerblauw
 - In het blad Wat SunArc doet stond bij een thermostaat soms een code, zoals "heat_cool naar 18°". Nu staat er "verwarmen of koelen naar 18°"
@@ -115,6 +118,8 @@
 
 **Improved**
 
+- A zone with its own control, such as the seating area, says under Climate which device controls it, with a button to the room where you choose that
+- Under Climate, what a device is and what the room measures with take two lines instead of being cut off
 - The What SunArc does sheet now reads as whole phrases: "Nest (downstairs) is set to 20° and is idle" next to "Do nothing". It used to say "Nothing either" under "SunArc would"
 - The What SunArc does strip is only there while SunArc is watching. Once SunArc controls the climate itself, the line above the house already says it
 - Helping the boiler says "Would help since 07:36" and "would help 1×" while SunArc does not switch the air conditioner yet, and uses the room name you gave it
@@ -131,6 +136,7 @@
 
 **Fixed**
 
+- Helping the boiler did not fit on the wall display. Stops, saving the pump and quiet now sit side by side
 - The state of the house said "would help out" while the air conditioner was off. What SunArc would do is now only in the strip
 - In the light theme the clouds were invisible and "Watching" in the strip was too light. The clouds are grey, the text is dark blue
 - In the What SunArc does sheet a thermostat sometimes showed a code, such as "heat_cool at 18°". It now says "heating or cooling at 18°"

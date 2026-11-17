@@ -286,13 +286,29 @@ function kamerVorm(k) {
   const kop = `<div class="bovenrij"><h2 class="kop-2">${esc(k.naam)}</h2>${kort ? `<span class="nukort">${esc(kort)}</span>` : ''}${terug}${nu != null ? `<span class="nu-temp">${esc(t('thuis.nuKlein'))} <b>${graden(Math.round(nu * 10) / 10)}</b></span>` : ''}</div>`;
   // Wat ervoor zorgt (besluit 317): alleen bij het comfort van het huis; het eigen comfort van een bewoner gaat over hoe warm.
   const ind = vanHetHuis() ? indelingVan(k.id) : null;
-  const zorgt = ind ? zorgVoor(ind.id) : '';
+  const zorgt = ind ? zorgVoor(ind.id) : vanHetHuis() ? zoneZorgt(k) : '';
   if (!zorgt) return `${kop}${banden}${zonEnNet(k)}`;
   return `${kop}
     <div class="kolommen">
       <div class="kolom"><h4 class="kolomkop">${esc(t('klimaat.hoeWarm'))}</h4>${banden}${zonEnNet(k)}</div>
       <div class="kolom zorgt" data-zorgt><h4 class="kolomkop">${esc(t('klimaat.zorgt'))}</h4>${zorgt}</div>
     </div>`;
+}
+
+/**
+ * Een zone met een eigen regeling (besluit 306), zoals de zithoek van de
+ * woonkamer: welke apparaten hier regelen, en de weg naar de kamer, waar je
+ * de taak kiest. Geen zone, dan niets.
+ */
+function zoneZorgt(k) {
+  const kamer = indelingKamers().find((x) => (x.zones ?? []).some((z) => z.regelzone === k.id));
+  const zone = kamer?.zones.find((z) => z.regelzone === k.id);
+  if (!kamer || !zone) return '';
+  const r = ruimteVan(kamer.id);
+  const namen = (r?.apparaten ?? []).filter((a) => a.soort === 'klimaat' && a.zone === zone.id).map((a) => a.naam);
+  const naar = comfort.kamers.find((z) => indelingVan(z.id)?.id === kamer.id)?.id ?? ANDER + kamer.id;
+  return `<p class="klein" style="margin: 0">${esc(namen.length ? t('klimaat.zoneMet', { namen: huismodel.opsomming(namen), zone: zone.naam, kamer: kamer.naam }) : t('klimaat.zoneLeeg', { zone: zone.naam, kamer: kamer.naam }))}</p>
+    <a class="knop" href="#${encodeURIComponent(naar)}" style="align-self: flex-start">${esc(t('klimaat.naarKamer', { kamer: kamer.naam }))}</a>`;
 }
 
 /** Een kamer zonder eigen regeling (besluit 317): alleen wat ervoor zorgt, met de keuze om mee te doen. */
@@ -383,9 +399,7 @@ function helpenVorm() {
     <div>
       ${regel(t('regeling.helpen.begint'), t('regeling.helpen.beginZin', { min: helpen.naMin, graden: gradenMin(helpen.vanafC) }))}
       <div class="regelrij bijgetallen">${stap('naMin', 1, t('regeling.bij.na'), t('regeling.bij.minuten', { n: helpen.naMin }))}${stap('vanafC', 0.1, t('regeling.bij.vanaf'), t('regeling.bij.graden', { graden: gradenMin(helpen.vanafC) }))}</div>
-      ${regel(t('regeling.helpen.stopt'), t('regeling.helpen.stoptZin'))}
-      ${regel(t('regeling.helpen.pomp'), t('regeling.helpen.pompZin', { aan: helpen.minRunMinutes, uit: helpen.minRestMinutes }))}
-      ${regel(t('regeling.helpen.stil'), t('regeling.helpen.stilZin'))}
+      <div class="helpdrie">${regel(t('regeling.helpen.stopt'), t('regeling.helpen.stoptZin'))}${regel(t('regeling.helpen.pomp'), t('regeling.helpen.pompZin', { aan: helpen.minRunMinutes, uit: helpen.minRestMinutes }))}${regel(t('regeling.helpen.stil'), t('regeling.helpen.stilZin'))}</div>
     </div>`;
 }
 
