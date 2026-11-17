@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Een apparaat instellen op zijn kaart (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Een apparaat instellen op zijn kaart (schets stap 3, 17 november 2026).
+   *
+   * Alles wat bij één apparaat hoort, staat in zijn blad op Apparaten: waar
+   * het staat, of het op zon mag, wat het trekt en hoe lang per dag, en met de
+   * hand. Regeling verdwijnt; Energie houdt de zekering, de meters en de
+   * prijzen; de laadpaal, de auto en de thuisaccu stel je in op hun kaart.
+   * Toevoegen maakt een gevonden apparaat meteen klaar.
+   *
+   * Standen: #stekker (op zon, minstens per dag), #nieuw (een stekker zonder
+   * kamer), #waar (Waar staat hij? open), #droger, #boiler, #laadpaal, #auto, #accu,
+   * #toevoegen (een gevonden stekker meteen klaar).
+   */
+  main { position: relative; padding: 22px 26px 20px 22px; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+  .kopregel { display: flex; justify-content: space-between; align-items: end; gap: 16px; }
+  .kopregel .lead { margin-top: 4px; }
+  .toevoegknop { height: 52px; padding: 0 20px; border-radius: 16px; border: 0; background: var(--tekst); color: var(--inkt); font: inherit; font-weight: 700; font-size: 15.5px; display: inline-flex; align-items: center; gap: 10px; }
+  .veld { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 470px; gap: 16px; }
+  .kaarten { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: start; }
+  .kaart { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .kaart .kop { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+  .kaart .ik { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); color: var(--zacht); }
+  .kaart .ik svg { width: 22px; height: 22px; }
+  .kaart b { display: block; font-size: 16px; font-weight: 600; }
+  .kaart small { display: block; font-size: 12.5px; color: var(--gedempt); }
+  .kaart .kw { font-family: var(--kop); font-size: 22px; font-weight: 600; text-align: right; }
+  .kaart .stand { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+  .kaart .stand i { width: 8px; height: 8px; border-radius: 50%; }
+  .kaart .zin { font-size: 13px; color: var(--zacht); }
+  .kaart.gekozen { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5); }
+  .kaart.stil { opacity: 0.55; }
+
+  /* Het blad: regels met een waarde of een schakelaar (minder bubbels). */
+  .blad { padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .blad .boven { display: flex; justify-content: space-between; align-items: start; }
+  .blad h2 { margin: 0; font-family: var(--kop); font-size: 25px; font-weight: 600; }
+  .blad .nu { margin: 3px 0 0; font-size: 14px; color: var(--zacht); }
+  .blad .sluit { width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.08); color: var(--tekst); font-size: 18px; }
+  .groep h4 { margin: 6px 0 2px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); }
+  .rij { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .groep h4 + .rij { border-top: 0; }
+  .rij .l { flex: 1; min-width: 0; }
+  .rij .l b { display: block; font-size: 14.5px; font-weight: 600; }
+  .rij .l span { font-size: 12.5px; color: var(--gedempt); }
+  .rij .w { font-size: 14px; font-weight: 600; color: var(--zacht); text-align: right; }
+  .rij .pijl { color: var(--gedempt); font-size: 18px; }
+  .rij.mist { margin: 2px -10px; padding: 9px 10px; border-radius: 12px; border-top-color: transparent; background: rgba(255, 122, 77, 0.08); box-shadow: inset 0 0 0 1px rgba(255, 122, 77, 0.35); }
+  .rij.mist .w { color: var(--gloed-t); }
+  .schakel { position: relative; flex: none; width: 44px; height: 26px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); }
+  .schakel::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #c9d3dc; }
+  .schakel.aan { background: var(--mint); }
+  .schakel.aan::after { left: 21px; background: #fff; }
+  .stap { display: flex; align-items: center; gap: 8px; }
+  .stap i { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-style: normal; background: rgba(255, 255, 255, 0.08); }
+  .stap b { min-width: 52px; text-align: center; font-family: var(--kop); font-size: 16px; }
+  .invul { min-width: 92px; height: 34px; padding: 0 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.18); display: inline-flex; align-items: center; font-weight: 600; font-size: 14px; }
+  .seg { display: flex; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, 0.06); }
+  .seg span { flex: 1; padding: 0 8px; height: 30px; display: grid; place-items: center; border-radius: 9px; color: var(--zacht); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+  .seg span.aan { background: rgba(255, 255, 255, 0.14); color: var(--tekst); }
+  .hoe { padding: 11px 13px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); font-size: 13px; line-height: 1.5; color: var(--zacht); }
+  .onder { margin-top: auto; display: flex; justify-content: flex-end; }
+  .zet { height: 46px; padding: 0 22px; border-radius: 15px; border: 0; background: var(--tekst); color: var(--inkt); font: inherit; font-weight: 700; font-size: 15px; }
+  /* Waar staat hij? Dezelfde kamers als in Je huis. */
+  .waar h4 { margin: 8px 0 6px; }
+  .twee { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .twee span { height: 38px; padding: 0 12px; border-radius: 11px; display: flex; align-items: center; background: rgba(255, 255, 255, 0.05); font-size: 13.5px; font-weight: 600; }
+  .twee span.aan { background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4); }
+  .terugje { align-self: flex-start; border: 0; background: rgba(255, 255, 255, 0.07); color: var(--zacht); height: 32px; padding: 0 12px; border-radius: 999px; font: inherit; font-weight: 700; font-size: 13px; }
+
+  /* Toevoegen: links wat gevonden is, rechts het blad om hem meteen klaar te maken. */
+  .gevonden { padding: 18px 20px; display: flex; flex-direction: column; gap: 4px; align-self: start; }
+  .gevonden h3 { margin: 0; font-family: var(--kop); font-size: 19px; }
+  .gevonden p { margin: 0 0 6px; font-size: 13px; color: var(--gedempt); }
+  .vond { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px; border-radius: 14px; }
+  .vond.aan { background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3); }
+  .vond .ik { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); color: var(--zacht); }
+  .vond .ik svg { width: 22px; height: 22px; }
+  .vond b { display: block; font-size: 15px; }
+  .vond small { font-size: 12.5px; color: var(--gedempt); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { height: 34px; padding: 0 13px; border-radius: 999px; display: inline-flex; align-items: center; background: rgba(255, 255, 255, 0.07); font-size: 13.5px; font-weight: 600; color: var(--zacht); }
+  .chips span.aan { background: var(--tekst); color: var(--inkt); }
+  .vraag > b { display: block; margin: 4px 0 6px; font-size: 13px; font-weight: 700; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-dag">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="kopregel">
+      <div><h1 class="kop-1" data-kop>Apparaten</h1><p class="lead" data-lead>Wat elk apparaat nu doet. Tik er een aan om het in te stellen of te bedienen.</p></div>
+      <button class="toevoegknop" type="button" data-toevoegknop><span style="font-size: 20px">+</span>Toevoegen</button>
+    </div>
+    <div class="veld">
+      <div class="kaarten" data-kaarten></div>
+      <aside class="glas blad" data-blad></aside>
+    </div>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script>localStorage.setItem('sc-taal', 'nl');</script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="apparaat-kaart.js"></script>
+<script>
+  const { WAAR, KAARTEN, BLADEN, TOEVOEGEN } = apparaatKaart;
+  const stand = location.hash.slice(1) || 'stekker';
+  nav.balk(document.getElementById('balk'), 'apparaten');
+  const $ = (s) => document.querySelector(s);
+  const ik = (naam) => iconen.svg(naam);
+  const gekozen = stand === 'nieuw' || stand === 'waar' ? 'stekker' : stand;
+
+  function kaarten() {
+    return KAARTEN.map((k) => `<section class="glas kaart ${k.id === gekozen ? 'gekozen' : 'stil'}">
+      <div class="kop"><span class="ik">${ik(k.icoon)}</span><div><b>${k.naam}</b><small${stand === 'nieuw' && k.id === 'stekker' ? ' style="color: var(--gloed-t)"' : ''}>${stand === 'nieuw' && k.id === 'stekker' ? 'Nog geen plek' : k.waar}</small></div><div class="kw">${k.kw}<small>kW nu</small></div></div>
+      <div class="stand"><i style="background: var(--${k.stand[0]})"></i>${k.stand[1]}</div>
+      <div class="zin">${k.zin}</div>
+    </section>`).join('');
+  }
+
+  function rij([wat, waarde, soort]) {
+    const [kop, onder] = soort === 'aan' || soort === 'uit' ? [wat, waarde] : [wat, ''];
+    const rechts = soort === 'aan' || soort === 'uit' ? `<span class="schakel ${soort === 'aan' ? 'aan' : ''}"></span>`
+      : soort === 'stap' ? `<span class="stap"><i>−</i><b>${waarde}</b><i>+</i></span>`
+      : soort === 'invul' ? `<span class="invul">${waarde}</span>`
+      : soort === 'seg' ? `<span class="seg">${waarde.split('|').map((x) => `<span class="${x.endsWith('*') ? 'aan' : ''}">${x.replace('*', '')}</span>`).join('')}</span>`
+      : `<span class="w">${waarde}</span>${soort === 'pijl' || soort === 'mist' ? '<span class="pijl">›</span>' : ''}`;
+    return `<div class="rij${soort === 'mist' ? ' mist' : ''}"><div class="l"><b>${kop}</b>${onder ? `<span>${onder}</span>` : ''}</div>${rechts}</div>`;
+  }
+
+  function blad(id) {
+    const b = BLADEN[id];
+    const k = KAARTEN.find((x) => x.id === (id === 'nieuw' ? 'stekker' : id));
+    return `<div class="boven"><div><h2>${k.naam}</h2><p class="nu">${b.nu}</p></div><button class="sluit" type="button" aria-label="Sluiten">×</button></div>
+      ${b.groepen.map(([kop, rijen]) => `<div class="groep"><h4>${kop}</h4>${rijen.map(rij).join('')}</div>`).join('')}
+      <div class="hoe">${b.hoe}</div>
+      ${b.knop ? `<div class="onder"><button class="zet" type="button">${b.knop}</button></div>` : ''}`;
+  }
+
+  function waarBlad() {
+    return `<button class="terugje" type="button">‹ Stekker kachel tuinhuis</button>
+      <div><h2 style="margin: 4px 0 0; font-family: var(--kop); font-size: 24px">Waar staat hij?</h2><p class="nu" style="margin: 2px 0 0; font-size: 13.5px; color: var(--zacht)">Dezelfde kamers als in Je huis. Kies je hier, dan staat hij daar ook.</p></div>
+      <div class="waar">${WAAR.map(([etage, kamers]) => `<h4 style="font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt)">${etage}</h4><div class="twee">${kamers.map((x) => `<span class="${x === 'Tuinhuis' ? 'aan' : ''}">${x}</span>`).join('')}</div>`).join('')}</div>
+      <div class="hoe">Staat hij nergens? Kies dan Buiten › Tuinhuis of een kamer die het dichtst bij is. Op de tekening in Je huis kun je hem daarna precies neerzetten.</div>`;
+  }
+
+  function toevoegen() {
+    $('[data-kop]').textContent = 'Apparaat toevoegen';
+    $('[data-lead]').textContent = 'Wat SunArc in Home Assistant vond. Tik er een aan en maak hem hier meteen klaar.';
+    $('[data-toevoegknop]').hidden = true;
+    $('[data-kaarten]').outerHTML = `<section class="glas gevonden"><h3>Nieuw gevonden</h3><p>In Home Assistant, nog niet bij Apparaten.</p>
+      ${TOEVOEGEN.gevonden.map(([icoon, naam, zin], i) => `<div class="vond ${i === 0 ? 'aan' : ''}"><span class="ik">${ik(icoon)}</span><div><b>${naam}</b><small>${zin}</small></div><span style="color: var(--gedempt)">›</span></div>`).join('')}
+      <p style="margin-top: 10px">Iets anders? Zoek op naam, of kies een soort: Klimaat, Licht, Warm water, Witgoed, Auto en laden, Thuisaccu, Stekkers, Schakelaars, Losse sensoren.</p></section>`;
+    $('[data-blad]').innerHTML = `<div class="boven"><div><h2>Stekker kachel tuinhuis</h2><p class="nu">Slimme stekker uit Home Assistant · staat uit</p></div></div>
+      ${TOEVOEGEN.vragen.map(([vraag, keuzes]) => `<div class="vraag"><b>${vraag}</b><div class="chips">${keuzes.map((x) => `<span class="${x.endsWith('*') ? 'aan' : ''}">${x.replace('*', '')}</span>`).join('')}</div></div>`).join('')}
+      <div class="hoe">${TOEVOEGEN.meet}</div>
+      <div class="onder" style="justify-content: space-between; align-items: center"><span style="font-size: 13px; color: var(--gedempt)">Daarna staat hij bij Apparaten › Stekkers</span><button class="zet" type="button">Toevoegen</button></div>`;
+  }
+
+  $('[data-kaarten]').innerHTML = kaarten();
+  if (stand === 'toevoegen') toevoegen();
+  else $('[data-blad]').innerHTML = stand === 'waar' ? waarBlad() : blad(stand);
+</script>
+</body>
+</html>

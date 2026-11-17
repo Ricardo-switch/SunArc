@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Een apparaat instellen op zijn kaart (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Een apparaat instellen op zijn kaart, op de telefoon (schets bij
+   * Wand-Apparaat-Kaart, stap 3, 17 november 2026). Het blad komt van onderen
+   * over de hele breedte, met dezelfde regels als op de wand; het mag op de
+   * telefoon schuiven. Standen: #stekker, #waar, #toevoegen.
+   */
+  .tel { position: relative; overflow: hidden; }
+  .inhoud { padding: 16px 16px 110px; display: flex; flex-direction: column; gap: 12px; }
+  .inhoud h1 { font-size: 34px; margin: 0; }
+  .kaart { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .kaart .kop { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+  .kaart .ik { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); color: var(--zacht); }
+  .kaart .ik svg { width: 21px; height: 21px; }
+  .kaart b { display: block; font-size: 16px; font-weight: 600; }
+  .kaart small { display: block; font-size: 12.5px; color: var(--gedempt); }
+  .kaart .kw { font-family: var(--kop); font-size: 21px; font-weight: 600; text-align: right; }
+  .kaart .stand { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+  .kaart .stand i { width: 8px; height: 8px; border-radius: 50%; }
+  .tabs { position: fixed; left: 12px; right: 12px; bottom: 14px; }
+  .achter { position: fixed; inset: 0; background: rgba(4, 8, 16, 0.6); z-index: 60; }
+  .blad { position: fixed; left: 0; right: 0; bottom: 0; max-height: 86%; overflow: hidden; padding: 18px 18px 22px; border-radius: 26px 26px 0 0; display: flex; flex-direction: column; gap: 8px; background: #0e1726; border-top: 1px solid rgba(255, 255, 255, 0.1); z-index: 61; }
+  .blad .greep { width: 40px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); align-self: center; margin-top: -6px; }
+  .blad h2 { margin: 0; font-family: var(--kop); font-size: 23px; font-weight: 600; }
+  .blad .nu { margin: 2px 0 0; font-size: 13.5px; color: var(--zacht); }
+  .groep h4 { margin: 6px 0 2px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); }
+  .rij { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .groep h4 + .rij { border-top: 0; }
+  .rij .l { flex: 1; min-width: 0; }
+  .rij .l b { display: block; font-size: 15px; font-weight: 600; }
+  .rij .l span { font-size: 12.5px; color: var(--gedempt); }
+  .rij .w { font-size: 14px; font-weight: 600; color: var(--zacht); text-align: right; }
+  .rij .pijl { color: var(--gedempt); font-size: 18px; }
+  .schakel { position: relative; flex: none; width: 46px; height: 28px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); }
+  .schakel::after { content: ''; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #c9d3dc; }
+  .schakel.aan { background: var(--mint); }
+  .schakel.aan::after { left: 21px; background: #fff; }
+  .stap { display: flex; align-items: center; gap: 6px; }
+  .stap i { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-style: normal; background: rgba(255, 255, 255, 0.08); }
+  .stap b { min-width: 48px; text-align: center; font-family: var(--kop); font-size: 16px; }
+  .twee { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .twee span { height: 40px; padding: 0 12px; border-radius: 11px; display: flex; align-items: center; background: rgba(255, 255, 255, 0.05); font-size: 14px; font-weight: 600; }
+  .twee span.aan { background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { height: 36px; padding: 0 13px; border-radius: 999px; display: inline-flex; align-items: center; background: rgba(255, 255, 255, 0.07); font-size: 14px; font-weight: 600; color: var(--zacht); }
+  .chips span.aan { background: var(--tekst); color: var(--inkt); }
+  .vraag > b { display: block; margin: 6px 0 6px; font-size: 13.5px; font-weight: 700; }
+  .zet { height: 50px; border-radius: 16px; border: 0; background: var(--tekst); color: var(--inkt); font: inherit; font-weight: 700; font-size: 16px; margin-top: 6px; }
+  .terugje { align-self: flex-start; border: 0; background: rgba(255, 255, 255, 0.07); color: var(--zacht); height: 32px; padding: 0 12px; border-radius: 999px; font: inherit; font-weight: 700; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="tel lucht lucht-dag">
+  <div class="inhoud">
+    <h1 class="kop-1">Apparaten</h1>
+    <div data-kaarten style="display: flex; flex-direction: column; gap: 10px"></div>
+  </div>
+  <nav class="tabs" id="tabs" aria-label="Hoofdmenu"></nav>
+  <div class="achter"></div>
+  <section class="blad" data-blad></section>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script>localStorage.setItem('sc-taal', 'nl');</script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="apparaat-kaart.js"></script>
+<script>
+  const { WAAR, KAARTEN, BLADEN, TOEVOEGEN } = apparaatKaart;
+  const stand = location.hash.slice(1) || 'stekker';
+  if (nav.tabs) nav.tabs(document.getElementById('tabs'), 'apparaten');
+  const $ = (s) => document.querySelector(s);
+  $('[data-kaarten]').innerHTML = KAARTEN.slice(0, 3).map((k) => `<section class="glas kaart"><div class="kop"><span class="ik">${iconen.svg(k.icoon)}</span><div><b>${k.naam}</b><small>${k.waar}</small></div><div class="kw">${k.kw}</div></div><div class="stand"><i style="background: var(--${k.stand[0]})"></i>${k.stand[1]}</div></section>`).join('');
+  const rij = ([wat, waarde, soort]) => {
+    const schakel = soort === 'aan' || soort === 'uit';
+    const rechts = schakel ? `<span class="schakel ${soort === 'aan' ? 'aan' : ''}"></span>` : soort === 'stap' ? `<span class="stap"><i>−</i><b>${waarde}</b><i>+</i></span>` : `<span class="w">${waarde}</span>${soort === 'pijl' ? '<span class="pijl">›</span>' : ''}`;
+    return `<div class="rij"><div class="l"><b>${wat}</b>${schakel ? `<span>${waarde}</span>` : ''}</div>${rechts}</div>`;
+  };
+  const b = BLADEN.stekker;
+  if (stand === 'stekker') {
+    $('[data-blad]').innerHTML = `<div class="greep"></div><div><h2>Stekker kachel tuinhuis</h2><p class="nu">${b.nu}</p></div>
+      ${b.groepen.map(([kop, rijen]) => `<div class="groep"><h4>${kop}</h4>${rijen.map(rij).join('')}</div>`).join('')}
+      <button class="zet" type="button">${b.knop}</button>`;
+  } else if (stand === 'waar') {
+    $('[data-blad]').innerHTML = `<div class="greep"></div><button class="terugje" type="button">‹ Stekker kachel tuinhuis</button><h2>Waar staat hij?</h2>
+      ${WAAR.map(([etage, kamers]) => `<div class="groep"><h4>${etage}</h4><div class="twee">${kamers.map((x) => `<span class="${x === 'Tuinhuis' ? 'aan' : ''}">${x}</span>`).join('')}</div></div>`).join('')}`;
+  } else {
+    $('[data-blad]').innerHTML = `<div class="greep"></div><div><h2>Stekker kachel tuinhuis</h2><p class="nu">Gevonden in Home Assistant · meet zelf</p></div>
+      ${TOEVOEGEN.vragen.map(([vraag, keuzes]) => `<div class="vraag"><b>${vraag}</b><div class="chips">${keuzes.map((x) => `<span class="${x.endsWith('*') ? 'aan' : ''}">${x.replace('*', '')}</span>`).join('')}</div></div>`).join('')}
+      <button class="zet" type="button">Toevoegen</button>`;
+  }
+</script>
+</body>
+</html>
