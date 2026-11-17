@@ -195,7 +195,7 @@ The service is TypeScript on Node 22, the app plain HTML and JavaScript with Tai
 cd backend && npm ci && npm test
 ```
 
-Work goes to `beta`. CI checks every push (typecheck, lint, tests, the page in a browser and the image), and only a pull request goes to `main`. `main` is what Home Assistant installs. A bug or an idea? Open an [issue](https://github.com/Ricardo-switch/SunArc/issues/new/choose); English or Dutch.
+Work goes to `beta`. CI checks every push (typecheck, lint, tests, the page in a browser and the image), and only a pull request goes to `main`. Run `git config core.hooksPath tools/githooks` once in your clone, and typecheck, lint and the tests run before every push (about a minute). `main` is what Home Assistant installs. A bug or an idea? Open an [issue](https://github.com/Ricardo-switch/SunArc/issues/new/choose); English or Dutch.
 
 ## Support
 

@@ -9,6 +9,8 @@
 # Shellscripts, Dockerfiles en configuratie draaien op Linux. Altijd LF,
 # ongeacht op welke machine ze zijn bewerkt.
 *.sh        text eol=lf
+# De git-hooks hebben geen extensie (de controle vóór het pushen, 17 november 2026).
+tools/githooks/* text eol=lf
 Dockerfile  text eol=lf
 .dockerignore text eol=lf
 *.yml       text eol=lf

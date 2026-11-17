@@ -1,0 +1,20 @@
+#!/bin/sh
+# De controle vóór het pushen (kwaliteitsronde, stap 2, 17 november 2026).
+#
+# Draait wat ook in de CI het eerst draait: de typecontrole, lint en de gewone
+# tests van de dienst. Ongeveer een minuut. De paginatests (acht minuten in een
+# echte browser) blijven in de CI. Faalt er iets, dan gaat de push niet door.
+#
+# Aanzetten, eenmalig per kloon:  git config core.hooksPath tools/githooks
+# Overslaan in nood:              git push --no-verify
+set -e
+cd "$(git rev-parse --show-toplevel)/backend"
+if [ ! -d node_modules ]; then
+  echo "vóór het pushen: eerst npm ci in backend/" >&2
+  exit 1
+fi
+echo "vóór het pushen: typecontrole, lint en tests van de dienst…"
+npm run --silent typecheck
+npm run --silent lint
+TZ=UTC npx vitest run --reporter=dot
+echo "vóór het pushen: alles in orde."

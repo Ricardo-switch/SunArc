@@ -193,7 +193,7 @@ De dienst is TypeScript op Node 22, de app gewone HTML en JavaScript met Tailwin
 cd backend && npm ci && npm test
 ```
 
-Het werk gaat naar `beta`. De CI controleert elke push (typecheck, lint, tests, de pagina in een browser en het image), en naar `main` gaat het alleen via een pull request. `main` is wat Home Assistant installeert. Een fout of een idee? Open een [issue](https://github.com/Ricardo-switch/SunArc/issues/new/choose); Nederlands mag.
+Het werk gaat naar `beta`. De CI controleert elke push (typecheck, lint, tests, de pagina in een browser en het image), en naar `main` gaat het alleen via een pull request. Zet in je kloon één keer `git config core.hooksPath tools/githooks`, dan draaien de typecontrole, lint en de tests vóór elke push (ongeveer een minuut). `main` is wat Home Assistant installeert. Een fout of een idee? Open een [issue](https://github.com/Ricardo-switch/SunArc/issues/new/choose); Nederlands mag.
 
 ## Steunen
 
