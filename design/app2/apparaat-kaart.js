@@ -19,14 +19,17 @@
   ];
 
   const KAARTEN = [
-    { id: 'stekker', icoon: 'stekker', naam: 'Stekker kachel tuinhuis', waar: 'Tuinhuis', stand: ['zon', 'Wacht op zon'], zin: 'Gaat aan zodra er 1,2 kW zon over is.', kw: '0,0' },
-    { id: 'ontvochtiger', icoon: 'stekker', naam: 'Ontvochtiger', waar: 'Kelder', stand: ['mint', 'Aan op zon'], zin: 'Sinds 11:20, nog 1 uur 10.', kw: '0,3' },
-    { id: 'droger', icoon: 'droger', naam: 'Droger', waar: 'Zolder', stand: ['gedempt', 'Niet klaargezet'], zin: 'Start op zon als je hem klaarzet.', kw: '0,0' },
-    { id: 'boiler', icoon: 'boiler', naam: 'Boiler', waar: 'Zolder', stand: ['gloed', 'Verwarmt op zon'], zin: '52°, naar 60° zolang er zon is.', kw: '2,0' },
-    { id: 'laadpaal', icoon: 'laadpaal', naam: 'Laadpaal', waar: 'Oprit', stand: ['gedempt', 'Aangesloten, laadt niet'], zin: 'Laadt op zon, of goedkoop vannacht.', kw: '0,0' },
-    { id: 'auto', icoon: 'auto', naam: 'Elektrische auto', waar: 'Oprit', stand: ['mint', 'Thuis, 58%'], zin: 'Nog 215 km rijden.', kw: '0,0' },
-    { id: 'accu', icoon: 'accu', naam: 'Thuisaccu', waar: 'Garage', stand: ['mint', 'Laadt op zon'], zin: '64%, 1,2 kW erin.', kw: '1,2' },
+    { id: 'stekker', soort: 'stekkers', icoon: 'stekker', naam: 'Stekker kachel tuinhuis', waar: 'Tuinhuis', stand: ['zon', 'Wacht op zon'], zin: 'Gaat aan zodra er 1,2 kW zon over is.', kw: '0,0' },
+    { id: 'ontvochtiger', soort: 'stekkers', icoon: 'stekker', naam: 'Ontvochtiger', waar: 'Kelder', stand: ['mint', 'Aan op zon'], zin: 'Sinds 11:20, nog 1 uur 10.', kw: '0,3' },
+    { id: 'droger', soort: 'witgoed', icoon: 'droger', naam: 'Droger', waar: 'Zolder', stand: ['gedempt', 'Niet klaargezet'], zin: 'Start op zon als je hem klaarzet.', kw: '0,0' },
+    { id: 'boiler', soort: 'water', icoon: 'boiler', naam: 'Boiler', waar: 'Zolder', stand: ['gloed', 'Verwarmt op zon'], zin: '52°, naar 60° zolang er zon is.', kw: '2,0' },
+    { id: 'laadpaal', soort: 'auto', icoon: 'laadpaal', naam: 'Laadpaal', waar: 'Oprit', stand: ['gedempt', 'Aangesloten, laadt niet'], zin: 'Laadt op zon, of goedkoop vannacht.', kw: '0,0' },
+    { id: 'auto', soort: 'auto', icoon: 'auto', naam: 'Elektrische auto', waar: 'Oprit', stand: ['mint', 'Thuis, 58%'], zin: 'Nog 215 km rijden.', kw: '0,0' },
+    { id: 'accu', soort: 'energie', icoon: 'accu', naam: 'Thuisaccu', waar: 'Garage', stand: ['mint', 'Laadt op zon'], zin: '64%, 1,2 kW erin.', kw: '1,2' },
   ];
+
+  /** De soorten van Apparaten (schets Wand-Apparaten-Soorten, 11 november 2026), in deze volgorde; met hoeveel er zijn in het voorbeeldhuis. */
+  const SOORTEN = [['klimaat', 'Klimaat', 6], ['licht', 'Licht', 9], ['water', 'Warm water en bad', 1], ['witgoed', 'Witgoed', 1], ['auto', 'Auto en laden', 2], ['energie', 'Thuisaccu', 1], ['stekkers', 'Stekkers', 2], ['schakelaars', 'Schakelaars', 2]];
 
   /**
    * De bladen. Een regel: [wat, waarde, soort] met soort 'pijl' (tik opent een
@@ -115,5 +118,5 @@
     meet: 'Hij meet zelf wat hij trekt: 1,2 kW als hij aan is. Dat is genoeg om te weten wanneer hij op zon kan.',
   };
 
-  global.apparaatKaart = { WAAR, KAARTEN, BLADEN, TOEVOEGEN };
+  global.apparaatKaart = { WAAR, SOORTEN, KAARTEN, BLADEN, TOEVOEGEN };
 })(window);

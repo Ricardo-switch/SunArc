@@ -80,7 +80,9 @@
   const stand = location.hash.slice(1) || 'stekker';
   if (nav.tabs) nav.tabs(document.getElementById('tabs'), 'apparaten');
   const $ = (s) => document.querySelector(s);
-  $('[data-kaarten]').innerHTML = KAARTEN.slice(0, 3).map((k) => `<section class="glas kaart"><div class="kop"><span class="ik">${iconen.svg(k.icoon)}</span><div><b>${k.naam}</b><small>${k.waar}</small></div><div class="kw">${k.kw}</div></div><div class="stand"><i style="background: var(--${k.stand[0]})"></i>${k.stand[1]}</div></section>`).join('');
+  // De soorten als rij, zoals op Apparaten; met een blad open de soort van dat apparaat.
+  $('[data-kaarten]').insertAdjacentHTML('beforebegin', `<div style="display: flex; gap: 6px; overflow: hidden">${['Alles', 'Klimaat', 'Licht', 'Stekkers', 'Witgoed'].map((x) => `<span style="flex: none; height: 34px; padding: 0 13px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 13.5px; font-weight: 600; background: ${x === 'Stekkers' ? 'var(--tekst)' : 'rgba(255,255,255,0.07)'}; color: ${x === 'Stekkers' ? 'var(--inkt)' : 'var(--zacht)'}">${x}</span>`).join('')}</div>`);
+  $('[data-kaarten]').innerHTML = KAARTEN.filter((k) => k.soort === 'stekkers').map((k) => `<section class="glas kaart"><div class="kop"><span class="ik">${iconen.svg(k.icoon)}</span><div><b>${k.naam}</b><small>${k.waar}</small></div><div class="kw">${k.kw}</div></div><div class="stand"><i style="background: var(--${k.stand[0]})"></i>${k.stand[1]}</div></section>`).join('');
   const rij = ([wat, waarde, soort]) => {
     const schakel = soort === 'aan' || soort === 'uit';
     const rechts = schakel ? `<span class="schakel ${soort === 'aan' ? 'aan' : ''}"></span>` : soort === 'stap' ? `<span class="stap"><i>−</i><b>${waarde}</b><i>+</i></span>` : `<span class="w">${waarde}</span>${soort === 'pijl' ? '<span class="pijl">›</span>' : ''}`;

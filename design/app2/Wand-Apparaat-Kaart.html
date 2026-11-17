@@ -25,7 +25,16 @@
   .kopregel .lead { margin-top: 4px; }
   .toevoegknop { height: 52px; padding: 0 20px; border-radius: 16px; border: 0; background: var(--tekst); color: var(--inkt); font: inherit; font-weight: 700; font-size: 15.5px; display: inline-flex; align-items: center; gap: 10px; }
   .veld { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 470px; gap: 16px; }
-  .kaarten { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: start; }
+  /* Links de soorten zoals op Apparaten nu (besluit 294): de rij bovenaan en per soort een kop; de pagina mag hier schuiven. */
+  .links { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: hidden; }
+  .soortrij { display: flex; gap: 2px; overflow: hidden; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+  .soortrij span { flex: none; padding: 0 9px 10px; font-size: 13.5px; font-weight: 600; color: var(--zacht); white-space: nowrap; }
+  .soortrij span small { color: var(--gedempt); font-weight: 500; margin-left: 4px; }
+  .soortrij span.aan { color: var(--tekst); box-shadow: inset 0 -2px 0 var(--tekst); }
+  .soortkop { display: flex; align-items: baseline; gap: 10px; margin: 6px 0 0; }
+  .soortkop h3 { margin: 0; font-family: var(--kop); font-size: 20px; font-weight: 600; }
+  .soortkop span { font-size: 13px; color: var(--gedempt); }
+  .kaarten { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-content: start; }
   .kaart { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
   .kaart .kop { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
   .kaart .ik { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); color: var(--zacht); }
@@ -102,7 +111,7 @@
       <button class="toevoegknop" type="button" data-toevoegknop><span style="font-size: 20px">+</span>Toevoegen</button>
     </div>
     <div class="veld">
-      <div class="kaarten" data-kaarten></div>
+      <div class="links" data-kaarten></div>
       <aside class="glas blad" data-blad></aside>
     </div>
   </main>
@@ -115,15 +124,23 @@
 <script src="../../frontend/kit/nav.js"></script>
 <script src="apparaat-kaart.js"></script>
 <script>
-  const { WAAR, KAARTEN, BLADEN, TOEVOEGEN } = apparaatKaart;
+  const { WAAR, SOORTEN, KAARTEN, BLADEN, TOEVOEGEN } = apparaatKaart;
   const stand = location.hash.slice(1) || 'stekker';
   nav.balk(document.getElementById('balk'), 'apparaten');
   const $ = (s) => document.querySelector(s);
   const ik = (naam) => iconen.svg(naam);
   const gekozen = stand === 'nieuw' || stand === 'waar' ? 'stekker' : stand;
 
+  /** Een kaart per apparaat, gegroepeerd per soort met de rij soorten erboven. */
   function kaarten() {
-    return KAARTEN.map((k) => `<section class="glas kaart ${k.id === gekozen ? 'gekozen' : 'stil'}">
+    const soort = KAARTEN.find((k) => k.id === gekozen)?.soort;
+    const rij = `<div class="soortrij"><span>Alles<small>20</small></span>${SOORTEN.map(([id, naam, n]) => `<span class="${id === soort ? 'aan' : ''}">${naam}<small>${n}</small></span>`).join('')}</div>`;
+    // Met een blad open: de soort van dat apparaat, zoals het filter van de rij (besluit 296).
+    const groepen = SOORTEN.filter(([id]) => id === soort).map(([id, naam]) => `<div class="soortkop"><h3>${naam}</h3><span>${KAARTEN.filter((k) => k.soort === id).length} apparaten</span></div><div class="kaarten">${kaartenVan(id)}</div>`).join('');
+    return rij + groepen;
+  }
+  function kaartenVan(soort) {
+    return KAARTEN.filter((k) => k.soort === soort).map((k) => `<section class="glas kaart ${k.id === gekozen ? 'gekozen' : 'stil'}">
       <div class="kop"><span class="ik">${ik(k.icoon)}</span><div><b>${k.naam}</b><small${stand === 'nieuw' && k.id === 'stekker' ? ' style="color: var(--gloed-t)"' : ''}>${stand === 'nieuw' && k.id === 'stekker' ? 'Nog geen plek' : k.waar}</small></div><div class="kw">${k.kw}<small>kW nu</small></div></div>
       <div class="stand"><i style="background: var(--${k.stand[0]})"></i>${k.stand[1]}</div>
       <div class="zin">${k.zin}</div>
@@ -170,6 +187,8 @@
   }
 
   $('[data-kaarten]').innerHTML = kaarten();
+  const actief = document.querySelector('.soortrij .aan');
+  if (actief) actief.parentElement.scrollLeft = Math.max(0, actief.offsetLeft - actief.parentElement.clientWidth / 2);
   if (stand === 'toevoegen') toevoegen();
   else $('[data-blad]').innerHTML = stand === 'waar' ? waarBlad() : blad(stand);
 </script>
