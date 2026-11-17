@@ -533,7 +533,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
             return {
               dagen: 7,
               beurten: [
-                { van: iso(nu - 80 * 60_000), tot: iso(nu), bezig: true, kWh: 4.2, zonKWh: 3, kosten: 0.31 },
+                // Niet voor middernacht (UTC, zoals de browser hier), net als de deurbel: anders zegt de kaart terecht "Gisteren" (CI van 17 november, 01:11).
+                { van: iso(Math.max(nu - 80 * 60_000, nu - (nu % 86_400_000))), tot: iso(nu), bezig: true, kWh: 4.2, zonKWh: 3, kosten: 0.31 },
                 { van: iso(nu - 2 * 86_400_000), tot: iso(nu - 2 * 86_400_000 + 4 * 3_600_000), bezig: false, kWh: 22.1, zonKWh: 2.6, kosten: 5.27 },
                 { van: iso(nu - 3 * 86_400_000), tot: iso(nu - 3 * 86_400_000 + 3 * 3_600_000), bezig: false, kWh: 15, zonKWh: 0, kosten: 3.75 },
               ],
@@ -868,7 +869,9 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-watkan.png') });
     expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
     await wk.locator('[data-dak-bron="bag3d"]').click();
-    await wand.locator('.kk-balk a[href="https://docs.3dbag.nl/en/copyright"]').waitFor({ timeout: 5_000 });
+    // Eerst wachten tot de keuze bewaard is, dan pas tot de kaart opnieuw getekend is; op de bouwserver duurt dat soms langer dan 5 seconden (CI van 17 november).
+    await expect.poll(() => connStore.current?.daken?.gebouwen?.find((g) => g.soort === 'hoofdhuis')?.kaart, { timeout: 15_000 }).toBe('bag3d');
+    await wand.locator('.kk-balk a[href="https://docs.3dbag.nl/en/copyright"]').waitFor({ timeout: 15_000 });
     expect(await wk.locator('.wk-regel', { hasText: '3D-kaart van Nederland' }).textContent()).toContain('In gebruik');
     // Het tuinhuis staat niet in 3D BAG, wel in OpenStreetMap: die bron staat er dan ook bij.
     await wand.locator('.kk-balk a[href="https://www.openstreetmap.org/copyright"]').waitFor();
