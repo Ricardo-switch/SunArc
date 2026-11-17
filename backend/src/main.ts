@@ -871,8 +871,15 @@ function laadReg<R extends { readonly devices: readonly HaDevice[]; readonly ent
 function stekkersVoorHuis(): HuisStekker[] {
   const reg = houseRegisters;
   if (!reg) return [];
+  // Een stekker die bij een schakelaar hoort (de kachel in het tuinhuis, besluit 300), is daar al een deel van.
+  let bijSchakelaar: Set<string>;
+  try {
+    bijSchakelaar = new Set(Object.values(schakelaarKeuzes().apparaten).flatMap((k) => (k.stekker ? [k.stekker] : [])));
+  } catch {
+    bijSchakelaar = new Set();
+  }
   return vindBuffersHa()
-    .filter((b) => b.soort === 'stekker')
+    .filter((b) => b.soort === 'stekker' && !bijSchakelaar.has(b.id))
     .map((b) => {
       const e = reg.entities.find((x) => x.entity_id === b.actuator);
       const dev = e?.device_id ? reg.devices.find((d) => d.id === e.device_id) : undefined;

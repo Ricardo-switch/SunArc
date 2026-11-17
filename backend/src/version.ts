@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.193.0';
+export const VERSIE = '0.193.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.193.1',
+    datum: '2026-11-17',
+    opgelost: [
+      'Een stekker die bij een schakelaar hoort, zoals die van de kachel in het tuinhuis, stond ook nog als los apparaat zonder kamer in het huis. Hij hoort bij de kachel',
+    ],
+    en: {
+      opgelost: [
+        'A plug that belongs to a switch, such as the one of the heater in the garden house, also showed as a loose device without a room. It belongs to the heater',
+      ],
+    },
+  },
   {
     versie: '0.193.0',
     datum: '2026-11-17',

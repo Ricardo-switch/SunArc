@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.193.0
+## 0.193.1
 
-*17 november 2026 · 0.179.0 – 0.193.0*
+*17 november 2026 · 0.179.0 – 0.193.1*
 
 **Nieuw**
 
@@ -65,6 +65,7 @@
 
 **Opgelost**
 
+- Een stekker die bij een schakelaar hoort, zoals die van de kachel in het tuinhuis, stond ook nog als los apparaat zonder kamer in het huis. Hij hoort bij de kachel
 - Helpen bij de cv paste niet op de wand. Stopt, pomp sparen en stil staan nu naast elkaar
 - De stand van het huis zei "zou bijspringen" terwijl de airco uit stond. Wat SunArc zou doen, staat nu alleen in de strook
 - In het lichte thema waren de wolken niet te zien en was "Kijkt mee" in de strook te licht. De wolken zijn grijs, de tekst is donkerblauw
@@ -142,6 +143,7 @@
 
 **Fixed**
 
+- A plug that belongs to a switch, such as the one of the heater in the garden house, also showed as a loose device without a room. It belongs to the heater
 - Helping the boiler did not fit on the wall display. Stops, saving the pump and quiet now sit side by side
 - The state of the house said "would help out" while the air conditioner was off. What SunArc would do is now only in the strip
 - In the light theme the clouds were invisible and "Watching" in the strip was too light. The clouds are grey, the text is dark blue
