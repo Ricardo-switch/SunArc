@@ -7527,7 +7527,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await p.goto(`${baseUrl}/indeling.html`);
       await p.waitForURL(/jehuis\.html/, { timeout: 10_000 });
       await p.goto(`${baseUrl}/indeling.html#verborgen`);
-      await p.waitForURL(/jehuis\.html#verborgen/, { timeout: 10_000 });
+      // Je huis zet het adres daarna zelf op de etage: of het blad Verborgen open staat, telt.
+      await p.waitForFunction('window.tekenaar?.st.blad?.naam === "verborgen"', null, { timeout: 15_000 });
       await p.goto(`${baseUrl}/indeling.html#zolder/warmte`);
       await p.waitForURL(/comfort\.html#/, { timeout: 10_000 });
       await oud.close();
