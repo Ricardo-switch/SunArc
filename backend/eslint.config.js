@@ -8,7 +8,7 @@
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'web/**', 'node_modules/**', 'data/**', 'eslint.config.js'] },
+  { ignores: ['dist/**', 'web/**', 'node_modules/**', 'data/**', 'dekking/**', 'eslint.config.js'] },
   {
     files: ['src/**/*.ts', 'test/**/*.ts', 'tools/**/*.ts'],
     languageOptions: {
