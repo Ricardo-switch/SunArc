@@ -4,3 +4,5 @@ dist/
 data/replay/*.ndjson.gz
 data/shadow/
 .env
+# De kaart van de dekking (npm run dekking), alleen lokaal.
+dekking/

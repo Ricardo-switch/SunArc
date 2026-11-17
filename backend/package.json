@@ -13,6 +13,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "dekking": "vitest run --testTimeout=30000 --coverage --coverage.include=src/** --coverage.reporter=text-summary --coverage.reporter=html --coverage.reportsDirectory=dekking",
     "export:history": "tsx tools/export-history.ts",
     "replay": "tsx tools/onderzoek/run.ts",
     "sweep": "tsx tools/onderzoek/sweep.ts",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@types/node": "^24.13.3",
     "@types/ws": "^8.18.1",
+    "@vitest/coverage-v8": "^5.1.0",
     "axe-core": "^4.10.2",
     "eslint": "^10.15.0",
     "playwright": "^1.63.0",
