@@ -309,6 +309,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [315. De boiler staat in de tekening met zijn temperatuur, zijn doel en zijn stroom](#315-de-boiler-staat-in-de-tekening-met-zijn-temperatuur-zijn-doel-en-zijn-stroom)
 - [316. De woordenlijst: één woord per ding](#316-de-woordenlijst-één-woord-per-ding)
 - [317. Klimaat per kamer in één blad; Kamers en indeling is weg](#317-klimaat-per-kamer-in-één-blad-kamers-en-indeling-is-weg)
+- [318. Een apparaat stel je in op zijn kaart; Regeling is weg](#318-een-apparaat-stel-je-in-op-zijn-kaart-regeling-is-weg)
 
 **Veiligheid**
 
@@ -14682,6 +14683,53 @@ koelen per dagdeel staan naast elkaar.
 regel. De uitleg onder *Helpt op zon* staat niet meer onder het apparaat. Het
 slepen van een apparaat naar een andere kamer in een lijst is weg: in Je huis
 sleep je op de tekening.
+
+## 318. Een apparaat stel je in op zijn kaart; Regeling is weg
+
+*Onderwerp: weergave · Status: geldig*
+
+17 november 2026. Iets op zon zetten kon op vier plekken (Regeling › Apparaten
+op zon, Toevoegen › Stekkers, Inrichten, Klimaat), en een slimme stekker kon
+geen kamer krijgen: hij stond niet eens in het huis. Op de kaart van de stekker
+stond "Zet hem op zon bij Regeling": de app wist wat je wilde en stuurde je weg.
+Stap 3 van de kwaliteitsronde ([310]), schets Wand-Apparaat-Kaart (goedgekeurd),
+keuzes Ricardo: op zon in het blad, laden en de thuisaccu op hun kaart, Toevoegen
+maakt meteen klaar, en Waar staat hij? in het blad.
+
+*Besluit, versie 1 (0.193.0):*
+
+- **Het blad van een apparaat begint met wat je instelt**, in groepen regels:
+  *Waar* (Waar staat hij?), *Op zon* (de schakelaar, wat hij trekt, minstens per
+  dag en uiterlijk klaar om) en *Met de hand* (of SunArc hem mag schakelen).
+  Daaronder, als dat kan, het bedienen zoals het was. Voor een stekker, witgoed
+  en een boiler of jacuzzi. Wat uit het instellingenbestand komt, staat er als
+  "Staat in het instellingenbestand", zonder schakelaar: daar gaat het bestand
+  voor.
+- **Waar staat hij?** toont dezelfde kamers als Je huis, per etage met Buiten,
+  en bewaart in dezelfde indeling. Het is één keuze met twee ingangen, geen
+  tweede instelling.
+- **Een slimme stekker is een apparaat in het huis**, ook als hij niet op zon
+  staat (de dienst voegt hem toe zoals de lampen achter een schakelaar, [297]).
+  Zo krijgt hij een kamer, bij Je huis en in zijn blad, met het gebied uit Home
+  Assistant als voorstel.
+- **Toestaan met de hand is een schakelaar**, in plaats van de knop Toestaan en
+  het linkje Intrekken. Op zon is ook de toestemming ([290]).
+- **Regeling is weg.** Klimaat en Helpen bij de cv stonden al bij Klimaat
+  ([317]); op zon staat nu bij elk apparaat. Een oude link komt op de goede plek
+  uit; Instellingen heeft een tegel minder.
+
+*Wat volgt:* versie 2 zet de laadpaal, de auto en de thuisaccu op hun kaart
+(Energie houdt de zekering, de meters en de prijzen), versie 3 laat Toevoegen
+een gevonden apparaat meteen klaarmaken.
+
+*Wat afviel:* een overzicht van alles op zon naast de bladen (een tweede plek
+voor dezelfde schakelaar), en Waar staat hij? alleen via Je huis (een stap meer
+voor wie op zijn kaart begint).
+
+*Kosten:* het blad van een stekker is langer; op de wand schuift het blad als
+de stekker ook met de hand kan. Een boiler uit het instellingenbestand zet je
+hier niet van zon af, net als eerst bij Regeling (daar deed de schakelaar
+niets).
 
 ## Wat nog een besluit wacht
 

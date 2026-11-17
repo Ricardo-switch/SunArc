@@ -652,7 +652,7 @@ export function wat(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[] {
     if (!x.opZon) {
       uit.push(tweetalig((lang) => {
         const w = WOORDEN[lang].stekker;
-        return { id: `stekker:${x.id}`, soort: 'stekker', aandacht: true, titel: w.titel(x.naam), tekst: w.tekst, actie: { label: w.actie, href: 'regeling.html#opzon' } };
+        return { id: `stekker:${x.id}`, soort: 'stekker', aandacht: true, titel: w.titel(x.naam), tekst: w.tekst, actie: { label: w.actie, href: 'apparaten.html' } };
       }));
     }
     if (x.meter && !x.meterErin) {
@@ -705,7 +705,7 @@ function accuMeldingen(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[]
     if (x.pct != null && x.pct >= ACCU_VOL_PCT && a.terugW != null && a.terugW >= ACCU_VOL_TERUG_W) {
       uit.push(tweetalig((lang) => {
         const w = WOORDEN[lang];
-        return { id: `accu-vol:${x.id}:${a.dag}`, soort: 'accu', aandacht: false, titel: w.accu.vol(x.naam), tekst: w.accu.volTekst, actie: { label: w.bekijk, href: 'regeling.html#opzon' }, klaar: { titel: w.accu.volKlaar(x.naam), tekst: w.accu.volKlaarTekst } };
+        return { id: `accu-vol:${x.id}:${a.dag}`, soort: 'accu', aandacht: false, titel: w.accu.vol(x.naam), tekst: w.accu.volTekst, actie: { label: w.bekijk, href: 'apparaten.html' }, klaar: { titel: w.accu.volKlaar(x.naam), tekst: w.accu.volKlaarTekst } };
       }));
     }
   }

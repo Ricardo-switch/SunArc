@@ -28,6 +28,8 @@ verwijzing bestaat.
   Sinds 0.192.0 staat per kamer in één blad bij Klimaat (eerst Comfort) hoe
   warm en wat ervoor zorgt, met Helpen bij de cv; Kamers en indeling is weg,
   het gebouw staat bij Je huis ([317]).
+  Sinds 0.193.0 stel je een apparaat in op zijn kaart: waar het staat, op zon
+  en met de hand in zijn blad; Regeling is weg ([318]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1029,4 +1031,5 @@ verwijzing bestaat.
 [315]: DECISIONS.md#315-de-boiler-staat-in-de-tekening-met-zijn-temperatuur-zijn-doel-en-zijn-stroom
 [316]: DECISIONS.md#316-de-woordenlijst-één-woord-per-ding
 [317]: DECISIONS.md#317-klimaat-per-kamer-in-één-blad-kamers-en-indeling-is-weg
+[318]: DECISIONS.md#318-een-apparaat-stel-je-in-op-zijn-kaart-regeling-is-weg
 <!-- links:einde -->

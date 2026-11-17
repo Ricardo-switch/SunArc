@@ -35,7 +35,7 @@ const opnieuw = process.argv.includes('--basis');
 
 /** De namen die de kit en basis.js op window zetten (zie ook eslint.config.js). */
 const OP_WINDOW = [
-  'app', 't', 'taal', 'iconen', 'nav', 'huis', 'huisMaat', 'huismodel', 'huistekenen', 'huistekenen3d', 'autoTekening', 'warmte',
+  'app', 't', 'taal', 'iconen', 'nav', 'huis', 'huisMaat', 'huismodel', 'huistekenen', 'huistekenen3d', 'autoTekening', 'warmte', 'instellen',
   'waaier', 'zon', 'sankey', 'stromen', 'tekenaar', 'tedoen', 'stroomblad', 'stroomNu', 'stand', 'rondleiding', 'plannen',
   'paalblad', 'niemand', 'melden', 'luisteren', 'klaarstappen', 'hand', 'groep', 'gevoel', 'film', 'fasekaart', 'eigen',
   'buitenBlad', 'scThema', 'scVoorbeeldVerschil', 'qrcode',

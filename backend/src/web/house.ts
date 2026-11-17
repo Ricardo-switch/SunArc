@@ -1006,6 +1006,41 @@ function applianceOf(id: string, name: string, state: string | undefined, lang: 
   };
 }
 
+/** Een slimme stekker die het huis kent (besluit 318): de naam uit Home Assistant, en de schakelaar. */
+export interface HuisStekker {
+  readonly id: string;
+  readonly naam: string;
+  /** De schakelaar van de stekker in Home Assistant. */
+  readonly actuator: string;
+  /** Het gebied in Home Assistant, voor een voorstel van de kamer. */
+  readonly gebied: string | null;
+}
+
+/** Een slimme stekker die (nog) niet op zon staat (besluit 318): aan of uit, zonder temperatuur. */
+function stekkerOf(s: HuisStekker, state: HaEntityState | undefined, lang: Lang): HouseDevice {
+  const aan = state?.state === 'on';
+  return {
+    id: s.id,
+    naam: s.naam,
+    haNaam: s.naam,
+    soort: 'apparaat',
+    stand: state == null || state.state === 'unavailable' ? WOORDEN[lang].meldtNogNiets : aan ? WOORDEN[lang].stekker['stookt']! : lang === 'en' ? 'off' : 'uit',
+    standCode: aan ? 'draait' : 'uit',
+    aan,
+    helderheidPct: null,
+    positiePct: null,
+    actuatorId: null,
+    zone: null,
+    groepen: [],
+    dimbaar: false,
+    kleurtemp: false,
+    meting: null,
+    klimaat: null,
+    meetKamer: false,
+    warmte: { soort: 'stekker', tempC: null, doelC: null, minC: 0, zonC: 0, opZon: false, vermogenW: null },
+  };
+}
+
 /** Een boiler of jacuzzi (besluit 186): de temperatuur en wat hij doet. */
 function bufferOf(h: HeatStore, e: HeatStoreExplanation | undefined, lang: Lang): HouseDevice {
   const { id, name } = h;
@@ -1944,6 +1979,12 @@ export function buildHouse(
   lang: Lang = 'nl',
   /** Lampen achter een schakelaar (besluit 297): een gewone lamp in zijn kamer, met waarlangs. */
   relaisLampen: readonly { readonly id: string; readonly naam: string; readonly kamer: string | null; readonly gebied: string | null; readonly via: string }[] = [],
+  /**
+   * De slimme stekkers die Home Assistant heeft (besluit 318): een apparaat in
+   * het huis, ook als ze niet op zon staan, zodat ze een kamer krijgen. Staat
+   * een stekker op zon, dan is hij er al als boiler-achtige buffer.
+   */
+  stekkers: readonly HuisStekker[] = [],
 ): HouseReport {
   const verzameld = collect(config, registers, states, snapshot, cameras, lang);
   const { groups, successors, unreachable } = verzameld;
@@ -1952,6 +1993,10 @@ export function buildHouse(
     if (found.some((f) => f.device.id === r.id)) continue;
     const { naam: _n, haNaam: _h, zone: _z, groepen: _g, ...device } = lightOf(r.id, states.get(r.id), '', lang);
     found.push({ device: { ...device, via: r.via }, haNaam: r.naam, haArea: r.gebied, groepen: [] });
+  }
+  for (const s of stekkers) {
+    if (found.some((f) => f.device.id === s.id)) continue;
+    found.push({ device: stekkerOf(s, states.get(s.actuator), lang), haNaam: s.naam, haArea: s.gebied, groepen: [] });
   }
   const gekozen = saved ?? proposeLayout(config, registers, states);
   // De kamer die de bewoner bij Apparaat toevoegen koos, tenzij Indeling hem al ergens zette.

@@ -11,7 +11,6 @@
     huis: 'jehuis.html',
     comfort: 'comfort.html',
     energie: 'energie.html',
-    regeling: 'regeling.html',
     functies: 'functies.html',
     assistent: 'functies.html?groep=assistent',
     // Inrichten, stap voor stap, als tegel (0.90.1).
@@ -70,8 +69,9 @@
     ['meters', 'energie', 'energie.html#meters'],
     ['prijzen', 'energie', 'energie.html#prijzen'],
     ['verwarming', 'energie', 'energie.html#verwarming'],
-    ['regelt', 'regeling', 'comfort.html'],
-    ['opzon', 'regeling', 'regeling.html#opzon'],
+    ['regelt', 'comfort', 'comfort.html'],
+    // Op zon staat in het blad van elk apparaat (besluit 318).
+    ['opzon', 'nav.apparaten', 'apparaten.html'],
     ['kamers', 'huis', 'jehuis.html'],
     ['meten', 'huis', 'comfort.html'],
     ['cameras', 'functies', 'functies.html#cameras'],
@@ -375,7 +375,7 @@
       {
         // Zonder panelen of zonder slimme meter kan dit niet (besluit 196).
         ...teksten('apparaten'), groep: 'zon', stand: !panelen || geenP1 ? 'nodig' : opZon ? meekijk : kanOpZon ? 'uit' : 'nodig', label: !panelen ? t('kan.opzon.nodig') : geenP1 ? t('kan.meterNodig') : opZon || kanOpZon ? null : t('kan.apparaten.nodig'),
-        nu: !panelen ? t('kan.zonderPanelen') : geenP1 ? t('kan.zonderMeter') : t(opZon ? 'kan.apparaten.start' : kanOpZon ? 'kan.apparaten.zetAan' : 'kan.apparaten.nu'), href: geenP1 ? 'energie.html#meters' : 'regeling.html#opzon',
+        nu: !panelen ? t('kan.zonderPanelen') : geenP1 ? t('kan.zonderMeter') : t(opZon ? 'kan.apparaten.start' : kanOpZon ? 'kan.apparaten.zetAan' : 'kan.apparaten.nu'), href: geenP1 ? 'energie.html#meters' : 'apparaten.html',
       },
       ...['boiler', 'jacuzzi'].flatMap((soort) => {
         const x = buffer(soort);

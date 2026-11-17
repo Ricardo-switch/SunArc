@@ -425,13 +425,12 @@ function nietOpZon(a) {
     ${s?.actief ? `<p class="mini zin" style="color: var(--zon-t); font-weight: 600">${esc(hand.stekkerZin(s))}</p>` : `<p class="mini zin">${esc(t('apparaten.stekkerOpZon'))}</p>`}`;
     return stekkerBlad(el, a.id, a.naam);
   }
-  const el = document.createElement('a');
+  const el = document.createElement('section');
   el.className = 'glas app niet';
-  el.href = 'regeling.html#opzon';
   el.innerHTML = `
     <div class="boven">${ring({ gestippeld: true })}<div><b>${esc(a.naam)}</b><span class="klein">${esc(t('apparaten.nietOpZon'))}</span></div></div>
     <p class="mini zin">${esc(t('apparaten.zetOpZon'))}</p>`;
-  return el;
+  return metBlad(el, `opzon:${a.id}`, a.naam);
 }
 
 /* ------------------------------------------------------------- de zon */
@@ -659,11 +658,22 @@ function bufferBlad(id) {
   const temp = b.temperatuurC == null ? null : regel(t('apparaten.blad.nu'), `<b>${nl(b.temperatuurC, 0)}°</b>`);
   const kw = b.vermogenW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(b.vermogenW / 1000)} kW</b>`) : '';
   const kamer = plekVan(b.id, b.actuator);
+  // Waar staat hij? open (besluit 318): dan alleen de kamers.
+  const kiezen = instellen.kiezen(b.id, b.naam);
+  if (kiezen) return { naam: b.naam, zin: b.kop, html: kiezen };
   return {
     naam: b.naam,
     zin: b.kop,
-    html: `<p class="hand-hoe">${esc(b.zin)}</p>${temp ?? ''}${kw}${onder([...(kamer ? [[kamer, t('apparaten.blad.inKamer')]] : []), ['regeling.html#opzon', t('apparaten.blad.instellen')]])}`,
+    html: `${instellen.regels('buffer', b.id)}<p class="hand-hoe">${esc(b.zin)}</p>${temp ?? ''}${kw}${onder(kamer ? [[kamer, t('apparaten.blad.inKamer')]] : [])}`,
   };
+}
+
+/** Een apparaat dat niet op zon staat (besluit 318): waar het staat, en op zon zetten, in zijn blad. */
+function opZonBlad(id) {
+  const a = (aansluiting?.gevonden?.apparaten ?? []).find((x) => x.id === id) ?? (aansluiting?.configuratie?.apparaten ?? []).find((x) => x.id === id);
+  if (!a) return null;
+  const kiezen = instellen.kiezen(id, a.naam);
+  return { naam: a.naam, zin: t('apparaten.nietOpZon'), html: kiezen ?? `${instellen.regels('witgoed', id, { naam: a.naam })}<p class="hand-hoe">${esc(t('apparaten.opZonHoe'))}</p>` };
 }
 
 function accuBlad() {
@@ -687,7 +697,7 @@ function schakelaarBlad(id) {
   return {
     naam: s.keuze.naam || s.naam,
     zin: [t(`toev.wat.${s.keuze.wat}`), t('apparaten.via', { via: s.model ?? s.koppeling })].join(' · '),
-    html: `${s.temperatuurC != null ? regel(t('apparaten.blad.nu'), `<b>${nl(s.temperatuurC, 1)}°</b>`) : ''}<div class="knoprijen vrij-knoppen">${knopRijen(s)}${stekkerRegel(s)}</div>${s.nuW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(s.nuW / 1000)} kW</b>`) : ''}${!s.meet && s.keuze.vermogenW != null ? `<p class="hand-hoe">${esc(t('apparaten.ingevuldZin', { w: s.keuze.vermogenW }))}</p>` : ''}${zonBlok(s)}${mag ? '' : `<p class="hand-hoe">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}${onder([[`toevoegen.html#s-${encodeURIComponent(s.id)}`, t('apparaten.blad.instellen')], ...(s.opZonId ? [['regeling.html#opzon', t('apparaten.blad.naarOpZon')]] : [])])}`,
+    html: `${s.temperatuurC != null ? regel(t('apparaten.blad.nu'), `<b>${nl(s.temperatuurC, 1)}°</b>`) : ''}<div class="knoprijen vrij-knoppen">${knopRijen(s)}${stekkerRegel(s)}</div>${s.nuW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(s.nuW / 1000)} kW</b>`) : ''}${!s.meet && s.keuze.vermogenW != null ? `<p class="hand-hoe">${esc(t('apparaten.ingevuldZin', { w: s.keuze.vermogenW }))}</p>` : ''}${zonBlok(s)}${mag ? '' : `<p class="hand-hoe">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}${onder([[`toevoegen.html#s-${encodeURIComponent(s.id)}`, t('apparaten.blad.instellen')]])}`,
   };
 }
 
@@ -707,9 +717,16 @@ function vrijBlad(sleutel) {
   if (soort === 'buffer') return bufferBlad(id);
   if (soort === 'accu') return accuBlad();
   if (soort === 'schakelaar') return schakelaarBlad(id);
+  if (soort === 'opzon') return opZonBlad(id);
   return null;
 }
-const openVrijBlad = (sleutel) => hand.openVrij(sleutel, () => vrijBlad(sleutel));
+const openVrijBlad = (sleutel) => {
+  instellen.sluit();
+  void instellen.laad();
+  hand.openVrij(sleutel, () => vrijBlad(sleutel));
+};
+// Iets ingesteld op de kaart (besluit 318): de kaarten en het open blad opnieuw.
+addEventListener('instellen', () => hand.verfris());
 
 /** De helderheid van een lamp, zodra je de schuif loslaat; door dezelfde deur als een kamer. */
 document.addEventListener('change', (e) => {

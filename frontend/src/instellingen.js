@@ -105,17 +105,6 @@ function feitenVan(id) {
         [t('instellingen.stroomprijs'), euro(p?.stroom), d.energie ? t('instellingen.nogInvullen') : '…'],
       ];
     }
-    case 'regeling': {
-      const acts = d.site?.actuators ?? [];
-      const airco = acts.filter((x) => x.capabilities?.canCool).length;
-      const warm = acts.filter((x) => !x.capabilities?.canCool).length;
-      const opZon = Object.values(d.aansluiting?.antwoorden?.opZon ?? {}).filter(Boolean).length + (d.aansluiting?.configuratie?.apparaten?.length ?? 0);
-      return [
-        [t('instellingen.aircos'), airco ? t('instellingen.kijktMee', { n: airco }) : t('instellingen.geen')],
-        [t('instellingen.cv'), warm ? t('instellingen.kijktMee', { n: warm }) : t('instellingen.geen')],
-        [t('instellingen.opZon'), opZon ? `${opZon}` : t('instellingen.geen')],
-      ];
-    }
     case 'functies': {
       const f = d.functies?.instellingen ?? d.functies?.voorstel;
       const weer = (d.functies?.gevonden?.weerbronnen ?? []).find((b) => b.id === f?.weer?.bron)?.naam ?? (f?.weer?.bron ? f.weer.bron : t('instellingen.geen'));
@@ -176,7 +165,8 @@ function nagelopen() {
 }
 
 // Inrichten als achtste tegel (0.90.1): op de wand twee rijen van vier, op de telefoon onderaan de lijst. Eerst stond hij als knop bovenin.
-const GROEPEN = ['huis', 'comfort', 'energie', 'regeling', 'functies', 'assistent', 'toegang', 'inrichten'];
+// Regeling is weg (besluit 318): op zon staat in het blad van elk apparaat, Klimaat bij Klimaat.
+const GROEPEN = ['huis', 'comfort', 'energie', 'functies', 'assistent', 'toegang', 'inrichten'];
 
 function groepen() {
   const mis = isGast() ? [] : stand.nogTeDoen(d);

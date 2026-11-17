@@ -35,11 +35,11 @@ let concept = null;
 const SOORTEN = [
   ['klimaat', 'airco', '111, 211, 255', 'inrichten.html#klimaat'],
   ['licht', 'lamp', '247, 181, 72', 'jehuis.html'],
-  ['water', 'boiler', '255, 122, 77', 'regeling.html#opzon'],
-  ['witgoed', 'witgoed', '110, 231, 183', 'regeling.html#opzon'],
+  ['water', 'boiler', '255, 122, 77', 'apparaten.html'],
+  ['witgoed', 'witgoed', '110, 231, 183', 'apparaten.html'],
   ['auto', 'auto', '143, 134, 255', 'energie.html#auto'],
   ['energie', 'batterij', '110, 231, 183', 'energie.html#accu'],
-  ['stekkers', 'stekker', '201, 211, 220', 'regeling.html#opzon'],
+  ['stekkers', 'stekker', '201, 211, 220', 'apparaten.html'],
   ['schakelaars', 'apparaat', '201, 211, 220', '#schakelaars'],
   ['losse', 'laadpaal', '143, 134, 255', '#losse'],
 ];
@@ -155,7 +155,7 @@ function nieuwGevonden() {
   const vast = new Set((aansluiting?.configuratie?.apparaten ?? []).map((x) => x.id));
   // Een stekker die al bij een schakelaar hoort (besluit 300), is niet nieuw.
   const bijSchakelaar = new Set(schakelaars.map((x) => x.keuze?.stekker).filter(Boolean));
-  for (const d of aansluiting?.gevonden?.apparaten ?? []) if (opZon[d.id] !== true && !vast.has(d.id) && !bijSchakelaar.has(d.id)) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.nietOpZon', href: 'regeling.html#opzon' });
+  for (const d of aansluiting?.gevonden?.apparaten ?? []) if (opZon[d.id] !== true && !vast.has(d.id) && !bijSchakelaar.has(d.id)) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.nietOpZon', href: 'apparaten.html' });
   for (const d of aansluiting?.laden?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: d.rol, zin: 'toev.uit', href: 'energie.html#auto' });
   for (const d of aansluiting?.accu?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: 'accu', zin: 'toev.uit', href: 'energie.html#accu' });
   return uit;

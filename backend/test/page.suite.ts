@@ -981,18 +981,22 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // De daken bleven staan toen de aansluiting en de verwarming bewaarden.
     expect(connStore.current?.daken?.vlakken.some((v) => v.plek === 'uitbouw')).toBe(true);
     await wand.locator('[data-bewaard]', { hasText: 'Bewaard' }).waitFor();
-    // Apparaten op zon staan bij Regeling.
+    // Op zon staat in het blad van het apparaat (besluit 318); de oude link naar Regeling komt bij Apparaten uit.
     await p.goto(`${baseUrl}/regeling.html#opzon`);
-    // Elk apparaat een schakelaar, ook de droger uit de configuratie (besluit 167).
-    await wand.locator('[aria-label="Vaatwasser op zon"][role="switch"]').click();
+    await p.waitForURL(/apparaten\.html/, { timeout: 10_000 });
+    // Een apparaat dat nog niet op zon staat: een tik opent zijn blad, met de schakelaar.
+    await wand.locator('[data-vrij="opzon:vaatwasser"]').click({ timeout: 10_000 });
+    await p.locator('[data-hand] [aria-label="Vaatwasser op zon"][role="switch"]').click({ timeout: 10_000 });
     await expect.poll(() => connStore.current?.apparaten, { timeout: 5_000 }).toMatchObject([{ id: 'droger', opZon: false }, { id: 'vaatwasser', opZon: true }]);
-    await wand.locator('[data-bewaard]', { hasText: 'Bewaard' }).waitFor();
-    const droger = wand.locator('[aria-label="Droger op zon"][role="switch"]');
-    expect(await droger.getAttribute('aria-checked')).toBe('true');
+    // Ook de droger uit de configuratie (besluit 167): in zijn eigen blad.
+    await p.locator('[data-hand] [data-hand-sluit]').first().click();
+    await p.evaluate(`window.instellen.laad()`);
+    await p.evaluate(`window.hand.openVrij('opzon:droger', () => ({ naam: 'Droger', zin: '', html: window.instellen.regels('witgoed', 'droger', { naam: 'Droger' }) }))`);
+    const droger = p.locator('[data-hand] [aria-label="Droger op zon"][role="switch"]');
+    await expect.poll(() => droger.getAttribute('aria-checked'), { timeout: 5_000 }).toBe('true');
     await droger.click();
     await expect.poll(() => connStore.current?.opZonUit, { timeout: 5_000 }).toEqual(['droger']);
-    expect(await droger.getAttribute('aria-checked')).toBe('false');
-    // De verwarming bleef staan toen Regeling bewaarde.
+    // De verwarming bleef staan toen het blad bewaarde.
     expect(connStore.current).toMatchObject({ verwarming: { soort: 'cv', aanvoerC: 60 } });
     // De eigen lettertypen zijn geladen, en er ging niets naar buiten.
     const fonts = await p.evaluate("document.fonts.ready.then(() => [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family.replaceAll('\"', '')))");
@@ -1110,7 +1114,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
     const p = await context.newPage();
     const teVol: string[] = [];
-    for (const pagina of ['comfort', 'energie', 'regeling', 'functies', 'toegang']) {
+    for (const pagina of ['comfort', 'energie', 'functies', 'toegang']) {
       await p.goto(`${baseUrl}/${pagina}.html`);
       await p.locator('#wand [data-delen] .deel').first().waitFor();
       await p.waitForTimeout(300);
@@ -1916,7 +1920,6 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         ['instellingen.html', /Settings[\s\S]*What your house can do/],
         ['jij.html', /How the app looks[\s\S]*Theme and colour/],
         ['comfort.html', /Climate[\s\S]*What is this for\?/],
-        ['regeling.html', /Control[\s\S]*Climate[\s\S]*Appliances on solar/],
         ['energie.html', /Energy setup[\s\S]*Roofs and panels[\s\S]*Connection[\s\S]*Meters/],
         ['functies.html', /Features[\s\S]*Cameras[\s\S]*Doorbell[\s\S]*Lights and screens/],
         ['toegang.html', /Residents and access[\s\S]*Version/],
@@ -4363,7 +4366,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect((await slecht()).some((x) => x.includes('"proef"'))).toBe(true);
       const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { ruimtes: { id: string; apparaten: unknown[] }[] }[] };
       const vol = huisNu.etages.flatMap((e) => e.ruimtes).sort((x, y) => y.apparaten.length - x.apparaten.length)[0]!;
-      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'regeling.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'jehuis.html', 'jehuis.html#bg/apparaten', 'jehuis.html#bg/huis', 'jehuis.html#bg/vorm', 'inrichten.html'];
+      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'jehuis.html', 'jehuis.html#bg/apparaten', 'jehuis.html#bg/huis', 'jehuis.html#bg/vorm', 'inrichten.html'];
       const weg: string[] = [];
       for (const pagina of paginas) {
         await p.goto(`${baseUrl}/${pagina}`);
@@ -5173,7 +5176,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const cdp = await context.newCDPSession(p);
     const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { ruimtes: { id: string; apparaten: unknown[] }[] }[] };
     const vol = huisNu.etages.flatMap((e) => e.ruimtes).sort((x, y) => y.apparaten.length - x.apparaten.length)[0]!;
-    const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', `kamer.html#${encodeURIComponent(vol.id)}`, `comfort.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'comfort.html', 'energie.html', 'functies.html', 'regeling.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'inrichten.html#warmte'];
+    const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', `kamer.html#${encodeURIComponent(vol.id)}`, `comfort.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'comfort.html', 'energie.html', 'functies.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'inrichten.html#warmte'];
     const vast: string[] = [];
     let geveegd = 0;
     for (const pagina of paginas) {
@@ -5231,7 +5234,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const cdp = await context.newCDPSession(p);
     const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { ruimtes: { id: string; apparaten: unknown[] }[] }[] };
     const vol = huisNu.etages.flatMap((e) => e.ruimtes).sort((x, y) => y.apparaten.length - x.apparaten.length)[0]!;
-    const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, `comfort.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'comfort.html', 'energie.html', 'functies.html', 'regeling.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'inrichten.html#warmte', 'inrichten.html#welkom'];
+    const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, `comfort.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'comfort.html', 'energie.html', 'functies.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'inrichten.html#warmte', 'inrichten.html#welkom'];
     const vast: string[] = [];
     let geveegd = 0;
     for (const pagina of paginas) {
@@ -5295,7 +5298,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     p.on('pageerror', (e) => fouten.push(e.message));
     await p.goto(`${baseUrl}/instellingen.html`);
     await p.locator('#wand [data-groepen] .tegel').first().waitFor();
-    expect(await p.locator('#wand [data-groepen] .tegel h3').allTextContents()).toEqual(['Je huis', 'Klimaat', 'Energie', 'Regeling', 'Functies', 'Assistent', 'Bewoners en toegang', 'Inrichten']);
+    expect(await p.locator('#wand [data-groepen] .tegel h3').allTextContents()).toEqual(['Je huis', 'Klimaat', 'Energie', 'Functies', 'Assistent', 'Bewoners en toegang', 'Inrichten']);
     expect(await p.locator('#balk [aria-current="page"]').getAttribute('aria-label')).toBe('Instellingen');
     expect(await p.evaluate('document.scrollingElement.scrollHeight <= innerHeight')).toBe(true);
     // Zoeken: "zekering" vindt de aansluiting bij Energie.
@@ -6817,7 +6820,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
    * Regeling. Bewaard bij de aansluiting met de rest zoals het was; en zonder
    * op zon kan het er ook weer weg.
    */
-  it('staat een stekker toe in zijn blad, en trekt het weer in', async () => {
+  it('staat een stekker toe in zijn blad met een schakelaar, en trekt het weer in (besluit 318)', async () => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
     const p = await context.newPage();
@@ -6835,22 +6838,26 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         bewaard.push(body);
         toegelaten = (body['bedienen'] as Record<string, boolean>)['tuinhuis'] === true;
       }
-      await route.fulfill({ json: { antwoorden: { panelen: { ligging: 'voor', aantal: 10, voorkant: null, achterkant: null }, zekering: { fasen: 1, ampere: 35 }, tarief: 'dynamisch', verwarming: { soort: 'cv', aanvoerC: 60 }, voorkantZon: null, dak: null, elders: {}, opZon: { droger: true }, opZonUit: [] } } });
+      await route.fulfill({ json: { antwoorden: { panelen: { ligging: 'voor', aantal: 10, voorkant: null, achterkant: null }, zekering: { fasen: 1, ampere: 35 }, tarief: 'dynamisch', verwarming: { soort: 'cv', aanvoerC: 60 }, voorkantZon: null, dak: null, elders: {}, opZon: { droger: true }, opZonUit: [], bedienen: toegelaten ? ['tuinhuis'] : [] } } });
     });
     await p.goto(`${baseUrl}/apparaten.html`);
     await p.waitForFunction(() => typeof (globalThis as unknown as { hand?: unknown }).hand === 'object');
     await p.evaluate(() => (globalThis as unknown as { hand: { openStekker: (id: string) => Promise<void> } }).hand.openStekker('tuinhuis'));
     const blad = p.locator('[data-hand]');
-    await blad.locator('[data-st-toestaan="ja"]').click(kort);
+    // Met de hand is een schakelaar in het blad (besluit 318), onder Op zon.
+    const mag = blad.locator('[data-in-mag="tuinhuis"]');
+    expect(await mag.getAttribute('aria-checked')).toBe('false');
+    expect(await blad.locator('[data-st-zet]').count()).toBe(0);
+    await mag.click(kort);
     await expect.poll(() => bewaard.length, kort).toBe(1);
     // De rest gaat mee zoals het was; alleen deze stekker erbij.
     expect(bewaard[0]).toMatchObject({ zekering: { fasen: 1, ampere: 35 }, tarief: 'dynamisch', verwarming: { soort: 'cv', aanvoerC: 60 }, opZon: { droger: true }, bedienen: { tuinhuis: true } });
     // Nu kan hij met de hand, en het kan weer weg.
     await blad.locator('[data-st-zet]').waitFor(kort);
-    await blad.locator('[data-st-toestaan="nee"]').click(kort);
+    await blad.locator('[data-in-mag="tuinhuis"]').click(kort);
     await expect.poll(() => bewaard.length, kort).toBe(2);
     expect(bewaard[1]).toMatchObject({ bedienen: { tuinhuis: false } });
-    await blad.locator('[data-st-toestaan="ja"]').waitFor(kort);
+    await expect.poll(() => blad.locator('[data-st-zet]').count(), kort).toBe(0);
     expect(fouten).toEqual([]);
     await context.close();
   }, 30_000);

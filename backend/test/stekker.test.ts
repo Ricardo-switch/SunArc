@@ -281,7 +281,7 @@ describe('de bel bij een stekker (besluit 264)', () => {
   it('meldt een gevonden stekker en zijn meter, elk met een eigen weg', () => {
     const m = wat(bron([{ id, naam, opZon: false, meter: `sensor.${P}_energy`, meterErin: false }]));
     expect(m.map((x) => [x.id, x.titel, x.actie?.href])).toEqual([
-      [`stekker:${id}`, `Stekker gevonden: ${naam}`, 'regeling.html#opzon'],
+      [`stekker:${id}`, `Stekker gevonden: ${naam}`, 'apparaten.html'],
       [`stekker-meter:sensor.${P}_energy`, `Meter van ${naam} toevoegen`, 'energie.html#meters'],
     ]);
     expect(m[1]?.en.titel).toBe(`Add the meter of ${naam}`);

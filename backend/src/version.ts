@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.192.1';
+export const VERSIE = '0.193.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.193.0',
+    datum: '2026-11-17',
+    nieuw: [
+      'Een apparaat stel je in op zijn kaart: tik het aan bij Apparaten, en bovenaan het blad staat waar het staat, of het op zon mag, wat het trekt en hoe lang per dag, en of SunArc het met de hand mag schakelen',
+      'Een slimme stekker krijgt een kamer: bij Waar staat hij? in zijn blad, of in Je huis. Dezelfde kamers, één keuze',
+      'Regeling is weg. Klimaat staat bij Klimaat, op zon bij elk apparaat. Een oude link komt vanzelf op de goede plek',
+    ],
+    en: {
+      nieuw: [
+        'You set up a device on its card: tap it under Devices, and the top of the sheet shows where it is, whether it may run on solar, what it draws and how long per day, and whether SunArc may switch it by hand',
+        'A smart plug gets a room: under Where is it? in its sheet, or in Your home. The same rooms, one choice',
+        'Control is gone. Climate is under Climate, on solar with each device. An old link takes you to the right place',
+      ],
+    },
+  },
   {
     versie: '0.192.1',
     datum: '2026-11-17',

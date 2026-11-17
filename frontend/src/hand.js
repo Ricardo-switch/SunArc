@@ -253,6 +253,7 @@
     const nu = stand?.kan ? `<button type="button" class="hand-terug" data-wg-start>${esc(t('witgoed.nuStarten'))}</button>` : '';
     // De zin van de kaart niet nog eens: de stappen zeggen hetzelfde, uitgebreider.
     return `${kopVan(d.naam, d.kop)}
+      ${global.instellen?.regels('witgoed', d.id, { naam: d.naam }) ?? ''}
       <div class="hand-vraag hand-kolom"><span>${esc(t(draait ? 'witgoed.straks' : 'witgoed.zoKlaar'))}</span><ol class="wg-stappen">${stappen}</ol></div>
       <div class="hand-hoe">${esc(t('witgoed.hoe'))}</div>
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
@@ -315,12 +316,15 @@
       ? [t('hand.stekkerOpZon'), s.minimum ? t('hand.stekkerMinimum', { duur: duurVan(s.minimum.minuten), klok: s.minimum.klok, gehad: duurVan(s.gehadMin ?? 0) }) : ''].filter(Boolean).join(' ')
       : '';
     const zon = zonZin ? `<div class="hand-hoe">${esc(zonZin)}</div>` : '';
-    // Op de NAS, of nog niet toegelaten: alleen de stand en waarom.
-    if (!stekkers?.aan) return `${kop}<div class="hand-hoe let">${esc(t('hand.stekkerAlleenAddon'))}</div>${zon}`;
-    // Nog niet toegelaten: hier toestaan (besluit 290), zonder eerst naar Regeling.
-    if (!s.toegelaten) return `${kop}<div class="hand-hoe let">${esc(t('hand.stekkerToelaten'))}</div>${zon}${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}<div class="hand-onder"><button type="button" class="hand-zet" data-st-toestaan="ja">${esc(t('hand.stekkerToestaan'))}</button></div>`;
-    // Toegelaten zonder op zon: dat kan hier ook weer weg. Op zon is zelf de toestemming (besluit 290).
-    const intrekken = s.zon?.schakelt ? '' : `<p class="mini" style="margin: 0"><button type="button" class="hand-intrek" data-st-toestaan="nee">${esc(t('hand.stekkerIntrekken'))}</button></p>`;
+    // Waar staat hij? open (besluit 318): dan alleen de kamers.
+    const kiezen = global.instellen?.kiezen(s.id, s.naam);
+    if (kiezen) return kiezen;
+    // Instellen op zijn kaart (besluit 318): waar, op zon, wat hij trekt en of SunArc hem mag schakelen.
+    const instellen = global.instellen?.regels('stekker', s.id, { naam: s.naam, nuW: s.vermogenW, kanSchakelen: !!stekkers?.aan }) ?? '';
+    // Op de NAS zonder deuren: alleen de stand en wat je instelt; schakelen kan daar niet.
+    if (!stekkers?.aan) return `${kop}${instellen}<div class="hand-hoe let">${esc(t('hand.stekkerAlleenAddon'))}</div>${zon}`;
+    // Nog niet toegelaten: met de schakelaar hierboven (besluit 290 en 318); bedienen pas daarna.
+    if (!s.toegelaten) return `${kop}${instellen}${zon}`;
 
     const vast = open.wanneer !== 'nu';
     // Uit, nu: meteen uit, zonder hoe lang (7 november 2026).
@@ -363,6 +367,8 @@
         ? t('hand.stekkerZetUitKort')
         : t(open.aan ? 'hand.stekkerZetAan' : 'hand.stekkerZetUit', { klok });
     return `${kop}
+      ${instellen}
+      <div class="in-groep"><h4>${esc(t('in.kopNu'))}</h4></div>
       <div class="hand-vraag"><span>${esc(t('hand.watWil'))}</span>${wat}</div>
       ${meteenUit ? '' : `<div class="hand-vraag"><span>${esc(t('hand.hoeLang'))}</span>${lang}</div>`}
       ${tijd}
@@ -374,32 +380,7 @@
       ${lijst}
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
       <div class="hand-onder">${terugKnop}<button type="button" class="hand-zet" data-st-zet ${s.mag ? '' : 'disabled'}>${esc(knopTekst)}</button></div>
-      ${intrekken}`;
-  }
-
-  /**
-   * Toestaan of weer intrekken, in het blad (besluit 290): SunArc mag de stekker
-   * met de hand en op vaste tijden schakelen. Bewaard bij de aansluiting, met de
-   * rest zoals het was.
-   */
-  async function stekkerToestaan(id, ja) {
-    let a;
-    try {
-      a = (await haal('api/aansluiting'))?.antwoorden ?? null;
-    } catch {
-      a = null;
-    }
-    const res = a
-      ? await deur('api/aansluiting', { panelen: a.panelen, zekering: a.zekering, tarief: a.tarief, verwarming: a.verwarming, voorkantZon: a.voorkantZon, dak: a.dak, elders: a.elders ?? {}, opZon: a.opZon ?? {}, opZonUit: a.opZonUit ?? [], bedienen: { [id]: ja } })
-      : null;
-    if (!res || !res.ok) {
-      fout = (res ? (await res.json().catch(() => null))?.fout : null) ?? t('hand.lukteNiet');
-      return false;
-    }
-    fout = '';
-    await laadStekkers();
-    global.dispatchEvent(new CustomEvent('handveranderd'));
-    return true;
+`;
   }
 
   /**
@@ -463,7 +444,8 @@
 
   /** Opent het blad van een stekker; staat hij uit, dan begint het blad bij aan. */
   async function openStekker(id) {
-    await Promise.all([laadStekkers(), laadTaken()]);
+    global.instellen?.sluit();
+    await Promise.all([laadStekkers(), laadTaken(), global.instellen?.laad()]);
     const s = stekkerVan(id);
     if (!s) return;
     open = { st: id, aan: s.actief ? s.actief.aan : s.aan !== true, tot: 'u1', tijd: '22:00', wanneer: 'nu', om: '07:00' };
@@ -473,6 +455,8 @@
 
   /** Het blad van witgoed: uiterlijk klaar, en Nu starten (besluit 238); staat hij niet klaar, de uitleg. */
   function witgoedBlad(d) {
+    const kiezen = global.instellen?.kiezen(d.id, d.naam);
+    if (kiezen) return kiezen;
     if (!d.kanKiezen) return witgoedUitleg(d, (witgoed?.apparaten ?? []).find((x) => x.id === d.id));
     const stappen = [{ tekst: t('apparaten.geenHaast'), waarde: null }, ...(d.stappen ?? [])];
     const s = stappen[open.stap] ?? stappen[0];
@@ -481,6 +465,7 @@
     const duur = d.duurMin != null ? t('witgoed.programma', { duur: `${Math.floor(d.duurMin / 60)}:${String(d.duurMin % 60).padStart(2, '0')}` }) : null;
     const nu = stand?.kan ? `<button type="button" class="hand-terug" data-wg-start>${esc(t('witgoed.nuStarten'))}</button>` : '';
     return `${kopVan(d.naam, [d.kop, duur].filter(Boolean).join(' · '))}
+      ${global.instellen?.regels('witgoed', d.id, { naam: d.naam }) ?? ''}
       <p class="hand-hoe" style="margin: 0">${esc(d.zin)}</p>
       <div class="hand-vraag hand-kolom"><span>${esc(t('witgoed.uiterlijkKlaar'))}</span>
         <div class="hand-tijd"><button type="button" data-wg-stap="-1" aria-label="${esc(t('witgoed.eerder'))}" ${open.stap <= 0 ? 'disabled' : ''}>−</button><div class="getal"><b${s.waarde == null ? ' class="woord"' : ''}>${esc(s.tekst)}</b><span>${esc(zin)}</span></div><button type="button" data-wg-stap="1" aria-label="${esc(t('witgoed.later'))}" ${open.stap >= stappen.length - 1 ? 'disabled' : ''}>+</button></div>
@@ -591,6 +576,8 @@
 
   /** Opent het blad van witgoed dat op zon wacht (besluit 238), met de stand van Resident. */
   async function openWitgoed(d) {
+    global.instellen?.sluit();
+    void global.instellen?.laad();
     try {
       witgoed = await haal('api/witgoed');
     } catch {
@@ -669,9 +656,6 @@
       const res = await deur('api/te-doen', { actie: 'annuleer', id: x.dataset.stWeg });
       if (res && !res.ok) fout = (await res.json().catch(() => null))?.fout ?? t('gp.lukteNiet');
       await laadTaken();
-    } else if ((x = el('[data-st-toestaan]'))) {
-      x.disabled = true;
-      await stekkerToestaan(open.st, x.dataset.stToestaan === 'ja');
     } else if (el('[data-st-terug]')) {
       if (await stuur('api/stekker', { id: open.st, terug: true })) open = null;
     } else if (el('[data-st-zet]') && open.wanneer !== 'nu') {
@@ -733,6 +717,11 @@
       open = null;
       teken();
     }
+  });
+
+  // Iets ingesteld op de kaart (besluit 318): het blad opnieuw, met de nieuwe stand.
+  global.addEventListener('instellen', () => {
+    if (open && !open.plek) void laadStekkers().then(teken);
   });
 
   global.hand = { laad, laadNu, nuHtml, openen, inPlek, openWitgoed, openStekker, openVrij, verfris, vrijOpen: () => open?.vrijId ?? null, laadStekkers, stekker: stekkerVan, stekkerZin, bij, data: () => data, nuZin, sluit: () => { open = null; teken(); } };

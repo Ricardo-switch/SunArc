@@ -44,7 +44,7 @@ import {
   type HaFloor,
   type HaRegistryEntity,
 } from './adapters/homeassistant/discovery.js';
-import { buildHouse, houseBeforeSetup, knownForLayout, proposeLayout, type HouseRegisters } from './web/house.js';
+import { buildHouse, houseBeforeSetup, knownForLayout, proposeLayout, type HouseRegisters, type HuisStekker } from './web/house.js';
 import { LayoutStore, herstelMeedoen, regelKamers, withLayoutNames, type Layout } from './web/layout.js';
 import { noteSensors, readLayoutFile, withMeasurement } from './web/meten.js';
 import { configUitDeApp } from './web/config-uit-app.js';
@@ -863,6 +863,22 @@ function laadReg<R extends { readonly devices: readonly HaDevice[]; readonly ent
   }
   return metLosseLaadpalen(r, laadpalen);
 }
+/**
+ * De slimme stekkers als apparaat in het huis (besluit 318), met het gebied
+ * van Home Assistant als voorstel voor de kamer. Zo krijgt een stekker een
+ * kamer, bij Je huis en in zijn eigen blad.
+ */
+function stekkersVoorHuis(): HuisStekker[] {
+  const reg = houseRegisters;
+  if (!reg) return [];
+  return vindBuffersHa()
+    .filter((b) => b.soort === 'stekker')
+    .map((b) => {
+      const e = reg.entities.find((x) => x.entity_id === b.actuator);
+      const dev = e?.device_id ? reg.devices.find((d) => d.id === e.device_id) : undefined;
+      return { id: b.id, naam: b.naam, actuator: b.actuator, gebied: e?.area_id ?? dev?.area_id ?? null };
+    });
+}
 function vindSchakelaarsNu(): GevondenSchakelaar[] {
   if (!houseRegisters) return [];
   const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...vindBuffersHa().map((b) => b.actuator)]);
@@ -1268,7 +1284,7 @@ const layoutStore =
     ? new LayoutStore({
         logDir,
         // Met de lampen achter een schakelaar (besluit 297): anders bleef hun kamer niet bewaard (melding 163).
-        known: () => (houseRegisters ? knownForLayout(siteConfig!, houseRegisters, houseStates, lampSchakelaars(vindSchakelaarsNu(), schakelaarKeuzes()).map((r) => r.id)) : null),
+        known: () => (houseRegisters ? knownForLayout(siteConfig!, houseRegisters, houseStates, [...lampSchakelaars(vindSchakelaarsNu(), schakelaarKeuzes()).map((r) => r.id), ...stekkersVoorHuis().map((s) => s.id)]) : null),
         // Een bron die op zon mag (besluit 132): de regeling neemt het meteen over, net als comfort.
         onSaved: () => void herlaadUitDeApp('de indeling'),
       })
@@ -1977,6 +1993,8 @@ const huisNu = (lang: Lang) => {
         lang,
         // Lampen achter een schakelaar (besluit 297): bij het licht van hun kamer.
         lampSchakelaars(vindSchakelaarsNu(), schakelaarKeuzes()),
+        // De slimme stekkers (besluit 318): een apparaat met een kamer, ook niet op zon.
+        stekkersVoorHuis(),
       )
     : null;
   // Een plat dak op het hoofdhuis (issue 131): zoals de bewoner het opgaf bij Daken en panelen of Inrichten (143).

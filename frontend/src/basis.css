@@ -878,3 +878,29 @@ html.sc-voorbeeld .rl-kaart { z-index: 92; }
 .tel-stand .kz-rij .kz-doe.mini { max-width: none; text-align: left; }
 /* Klaarzetten (besluit 246): rechts in de lijst hoeveel stappen er nog open zijn. */
 .deel .eind .nog { font-size: 12.5px; font-weight: 700; color: var(--zon-t); white-space: nowrap; }
+
+/*
+ * Een apparaat instellen op zijn kaart (besluit 318, schets Wand-Apparaat-Kaart):
+ * groepen regels bovenaan het blad, met een waarde of een schakelaar.
+ */
+.in-groep { display: flex; flex-direction: column; }
+.in-groep h4 { margin: 4px 0 2px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); }
+.in-rij { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
+.in-groep h4 + .in-rij { border-top: 0; }
+.in-rij .l { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.in-rij .l b { font-size: 14.5px; font-weight: 600; }
+.in-rij .l span { font-size: 12.5px; color: var(--gedempt); line-height: 1.35; }
+.in-rij .w { font-size: 14px; font-weight: 600; color: var(--zacht); text-align: right; }
+.in-rij .pijl { color: var(--gedempt); font-size: 18px; }
+button.in-rij { width: 100%; border-left: 0; border-right: 0; border-bottom: 0; background: none; color: var(--tekst); font: inherit; text-align: left; cursor: pointer; }
+.in-rij.mist { margin: 2px -10px; padding: 9px 10px; width: calc(100% + 20px); border-radius: 12px; border-top-color: transparent; background: rgb(255 122 77 / 0.08); box-shadow: inset 0 0 0 1px rgb(255 122 77 / 0.35); }
+.in-rij.mist .w { color: var(--gloed-t); }
+.in-klein { width: auto; min-width: 96px; height: 36px; padding: 0 10px; font-size: 14px; }
+.in-invul { display: inline-flex; align-items: center; gap: 6px; color: var(--gedempt); font-size: 13px; }
+.in-invul input { width: 96px; }
+.in-kop { margin: 0; font-family: var(--kop); font-size: 24px; font-weight: 600; }
+.in-terug { align-self: flex-start; }
+.in-twee { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.in-plek { height: 40px; padding: 0 12px; border-radius: 11px; border: 0; background: rgb(var(--wit) / 0.05); color: var(--tekst); font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; }
+.in-plek.aan { background: rgb(var(--wit) / 0.16); box-shadow: inset 0 0 0 1px rgb(var(--wit) / 0.4); }
+.in-plek:focus-visible, button.in-rij:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }

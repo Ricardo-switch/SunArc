@@ -16,7 +16,7 @@ import globals from 'globals';
 
 const GEDEELD = [
   // Via window, uit de kit en basis.js.
-  'app', 't', 'taal', 'iconen', 'nav', 'huis', 'huisMaat', 'huismodel', 'huistekenen', 'huistekenen3d', 'autoTekening', 'warmte',
+  'app', 't', 'taal', 'iconen', 'nav', 'huis', 'huisMaat', 'huismodel', 'huistekenen', 'huistekenen3d', 'autoTekening', 'warmte', 'instellen',
   'waaier', 'zon', 'sankey', 'stromen', 'tekenaar', 'tedoen', 'stroomblad', 'stroomNu', 'stand', 'rondleiding', 'plannen',
   'paalblad', 'niemand', 'melden', 'luisteren', 'klaarstappen', 'hand', 'groep', 'gevoel', 'film', 'fasekaart', 'eigen',
   'buitenBlad', 'scThema', 'scVoorbeeldVerschil',

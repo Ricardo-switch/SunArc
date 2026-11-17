@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.192.1
+## 0.193.0
 
-*17 november 2026 · 0.179.0 – 0.192.1*
+*17 november 2026 · 0.179.0 – 0.193.0*
 
 **Nieuw**
 
+- Een apparaat stel je in op zijn kaart: tik het aan bij Apparaten, en bovenaan het blad staat waar het staat, of het op zon mag, wat het trekt en hoe lang per dag, en of SunArc het met de hand mag schakelen
+- Een slimme stekker krijgt een kamer: bij Waar staat hij? in zijn blad, of in Je huis. Dezelfde kamers, één keuze
+- Regeling is weg. Klimaat staat bij Klimaat, op zon bij elk apparaat. Een oude link komt vanzelf op de goede plek
 - Comfort heet nu Klimaat. Per kamer staat in één blad hoe warm je het wilt en wat ervoor zorgt: welk apparaat wat doet, waarmee de kamer meet, en of een airco ook de cv helpt
 - Kamers zonder eigen regeling staan bij Andere kamers: daar kies je wat er verwarmt en of de kamer meedoet
 - Helpen bij de cv staat bij Klimaat onder Het hele huis. Bij Regeling blijft Apparaten op zon
@@ -80,6 +83,9 @@
 
 **New**
 
+- You set up a device on its card: tap it under Devices, and the top of the sheet shows where it is, whether it may run on solar, what it draws and how long per day, and whether SunArc may switch it by hand
+- A smart plug gets a room: under Where is it? in its sheet, or in Your home. The same rooms, one choice
+- Control is gone. Climate is under Climate, on solar with each device. An old link takes you to the right place
 - Comfort is now called Climate. Each room has one sheet with how warm you want it and what takes care of it: which device does what, what the room measures with, and whether an air conditioner also helps the boiler
 - Rooms without their own control are under Other rooms: there you choose what heats them and whether the room takes part
 - Helping the boiler is under Climate, The whole house. Control keeps Appliances on solar
