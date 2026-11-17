@@ -131,6 +131,8 @@ import { SessionStore } from '../src/web/auth.js';
 import { BewonersStore, GEEN_BEWONERS, alsScherm, bewonersView, comfortVanBewoner, gastStand, herken, leesActie, personenUit, profielenVan, voegToe, voerUit, type Bewoners } from '../src/web/bewoners.js';
 import { registers as houseRegisters, states as houseStates } from './house-fixture.js';
 import { klaarzetten } from '../src/web/klaarzetten.js';
+import { leesLosseLaadpaal, losseSensoren } from '../src/web/schakelaars.js';
+import type { LosseLaadpaal } from '../src/web/opslag.js';
 import { klaarFuncties } from '../src/web/klaarzetten-functies.js';
 import { Sluipverbruik } from '../src/web/sluipverbruik.js';
 import { CoverSwitch } from '../src/web/covers.js';
@@ -180,6 +182,7 @@ function nepBagVak(): CityJson {
 let extraDeurbel: { camera: string; naam: string; laatsteMs: number | null; reserve?: string[] } | null = null;
 /** Nog een camera naast de deurbel, voor de kaart Camera's (besluit 201); hij ziet nu een persoon. */
 let extraOprit = false;
+let losseNu: Record<string, LosseLaadpaal> = {};
 const metBatterijen = (h: HouseReport): HouseReport => ({ ...(extraBatterijen.length ? { ...h, batterijen: extraBatterijen } : h), ...(extraOpslag ? { opslag: extraOpslag } : {}) });
 import { onUsablePort } from './ports.js';
 import { exampleSite, exampleSitePath } from './site.js';
@@ -457,6 +460,19 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
           webDir: WEB_DIR,
           config: exampleSite,
           configNow: () => configNu,
+          // Een laadpaal uit losse sensoren (besluit 301), voor de route Toevoegen; bewaard in het geheugen.
+          losseLaadpalen: {
+            lijst: () => ({ laadpalen: losseNu, sensoren: losseSensoren(houseRegisters.entities, houseStates) }),
+            bewaar: async (body: unknown) => {
+              const l = leesLosseLaadpaal(body);
+              if (!l.ok) return l;
+              if (l.laadpaal === 'weg') {
+                const { [l.id]: _weg, ...rest } = losseNu;
+                losseNu = rest;
+              } else losseNu = { ...losseNu, [l.id]: l.laadpaal };
+              return { ok: true as const };
+            },
+          },
           // Wiens comfort (besluit 147): dat van wie er kijkt, of van wie er gevraagd wordt.
           comfort: { view: (wie, bewoner) => comfortVanBewoner(configNu, comfortNu, bewonersStore.current, wie, bewoner).view, save: comfortDeur.save },
           bijspringen: bijspringenDeur,
@@ -8189,4 +8205,305 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     expect(fouten).toEqual([]);
     await context.close();
   }, 90_000);
+  /*
+   * Routes van een gebruiker (kwaliteitsronde stap 2, 17 november 2026). Waar
+   * de tests hierboven één scherm grondig nalopen, loopt een route zoals een
+   * bewoner: hij begint op Thuis, gaat via het menu, doet één ding, en kijkt
+   * aan het eind of het te zien is waar hij het verwacht. Dezelfde twaalf
+   * routes lopen drie testers in januari zonder uitleg. Als de schermen in
+   * stap 3 veranderen, veranderen de stappen; het doel en de controle aan het
+   * eind blijven. Ze staan achteraan, zodat wat ze bewaren geen andere test
+   * raakt.
+   */
+  const routeOpWand = async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addInitScript((v) => {
+      localStorage.setItem('sc-rondleiding-gezien', '1');
+      localStorage.setItem('sc-versie-gezien', v);
+    }, VERSIE);
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/thuis.html`);
+    await p.locator('#wand [data-kop]').filter({ hasNotText: 'Even laden' }).waitFor({ timeout: 10_000 });
+    return { context, p, fouten };
+  };
+
+  it('route 2: op Thuis zien wat SunArc doet, en waarom', async () => {
+    const { context, p, fouten } = await routeOpWand();
+    const doet = await p.evaluate<{ zin: string; kamers: { naam: string; zou: string }[] }>('fetch("api/state").then((r) => r.json()).then((s) => s.bewoner.doet)');
+    // De strook zegt het in één zin; een tik geeft het waarom per kamer.
+    const strook = p.locator('#wand [data-doet]');
+    expect(await strook.textContent()).toContain(doet.zin);
+    await strook.click();
+    const blad = p.locator('[data-kiesblad][data-blad="doet"]');
+    await blad.waitFor();
+    for (const k of doet.kamers) expect(await blad.textContent()).toContain(k.naam);
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
+  it('route 5: een lamp aan- of uitzetten vanuit het huis', async () => {
+    const { context, p, fouten } = await routeOpWand();
+    const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { id: string; ruimtes: { id: string; apparaten: { soort: string }[] }[] }[] };
+    // Een kamer binnen, zo laag mogelijk: een tik buiten opent een blad op Thuis zelf, en op de
+    // zolder vangt het dak de tik af (gevonden 17 november 2026, voor stap 3 en 4).
+    const metLamp = [...huisNu.etages].reverse().filter((e) => e.id !== 'buiten').flatMap((e) => e.ruimtes).find((r) => r.apparaten.some((d) => d.soort === 'licht'))!;
+    // Tik op de kamer in het huis, dan op de schakelaar van de lamp.
+    await p.locator(`#wand .sc-tik[data-kamer="${metLamp.id}"]`).first().click({ timeout: 5_000 });
+    await p.waitForURL(/kamer\.html#/, { timeout: 5_000 });
+    const voor = lightCalls.length;
+    await p.locator('#wand [data-blad] [data-schakel]').first().click({ timeout: 5_000 });
+    await expect.poll(() => lightCalls.length, { timeout: 5_000 }).toBeGreaterThan(voor);
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
+  it('route 9: een melding in de bel afhandelen met Laat zo', async () => {
+    const { context, p, fouten } = await routeOpWand();
+    const bron = { nu: Date.now(), zonderRuimte: [], volgen: [], batterijen: [], filters: [], meters: [], versie: null, winterdagen: null };
+    meldingenStore.bij({ ...bron, klopt: [{ soort: 'alleenHelpt', zoneId: 'zolder-route', kamer: 'Wasruimte', kamerId: 'zolder' }] });
+    server.meldingenVeranderd();
+    try {
+      // De bel telt de melding; open, en kies Laat zo.
+      const bel = p.locator('#wand [data-meldbel]');
+      await expect.poll(() => bel.locator('[data-meldaantal]').textContent(), { timeout: 10_000 }).not.toBe(null);
+      await bel.click();
+      const melding = p.locator('[data-meldblad] .melding', { hasText: 'wasruimte' });
+      await melding.waitFor();
+      await melding.locator('.acties button', { hasText: 'Laat zo' }).click();
+      await expect.poll(() => p.locator('[data-meldblad] .melding:not(.oud)', { hasText: 'wasruimte' }).count(), { timeout: 5_000 }).toBe(0);
+      expect(fouten).toEqual([]);
+    } finally {
+      meldingenStore.bij({ ...bron, nu: Date.now(), klopt: [] });
+      meldingenStore.verwijder('klopt:zone:zolder-route');
+      await context.close();
+    }
+  }, 30_000);
+
+  it('route 11: de assistent een vraag stellen, en naar het antwoord doorgaan', async () => {
+    const { context, p, fouten } = await routeOpWand();
+    // Via het menu naar de assistent, typen in plaats van praten.
+    await p.locator('#wand #balk a[data-tab="assistent"]').click();
+    await p.waitForURL(/assistent\.html/);
+    const veld = p.locator('#wand [data-vrij] input');
+    await veld.waitFor({ timeout: 10_000 });
+    await veld.fill('Waar vul ik de prijzen in?');
+    await veld.press('Enter');
+    await p.locator('#wand [data-stop]').click();
+    const knop = p.locator('#wand .verder a', { hasText: 'Naar Contract en prijzen' });
+    await knop.click();
+    await p.waitForURL(/energie\.html#prijzen/);
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+  /** Van Thuis naar een tegel op Instellingen, via het tandwiel in het menu. */
+  const naarInstelling = async (p: Page, href: string) => {
+    await p.locator('#wand #balk a.onder').click();
+    await p.waitForURL(/instellingen\.html/);
+    await p.locator(`#wand a[href="${href}"]`).first().click();
+    await p.waitForURL(new RegExp(href.replace('.', '\\.')));
+  };
+
+  it('route 3: één kamer warmer zetten', async () => {
+    const { context, p, fouten } = await routeOpWand();
+    const zone = exampleSite.zones[0]!;
+    await naarInstelling(p, 'comfort.html');
+    const wand = p.locator('#wand');
+    await wand.locator('[data-delen] .deel', { hasText: zone.name }).first().click();
+    const greep = wand.locator('[data-modus="dag"] [data-greep="heat"]');
+    await greep.waitFor({ timeout: 10_000 });
+    const voor = (comfortNu?.kamers[zone.id]?.modi.dag?.heat ?? zone.setpoints.dag.heat)!;
+    // Een halve graad warmer, en weer terug zodat de andere routes het gewone huis zien.
+    await greep.focus();
+    await p.keyboard.press('ArrowRight');
+    await expect.poll(() => comfortNu?.kamers[zone.id]?.modi.dag?.heat, { timeout: 5_000 }).toBe(voor + 0.5);
+    await expect.poll(() => wand.locator('[data-bewaard]').textContent()).toContain('Bewaard');
+    await greep.focus();
+    await p.keyboard.press('ArrowLeft');
+    await expect.poll(() => comfortNu?.kamers[zone.id]?.modi.dag?.heat, { timeout: 5_000 }).toBe(voor);
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
+  it('route 4: een airco laten helpen op zon', async () => {
+    const { context, p, fouten } = await routeOpWand();
+    const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
+    const kamer = huis.etages.flatMap((e) => e.ruimtes).find((r) => r.zoneId && r.apparaten.some((d) => d.klimaat?.rol === 'zon'))!;
+    const airco = kamer.apparaten.find((d) => d.klimaat?.rol === 'zon')!;
+    const rollen = () => layoutStore.current?.kamers.find((k) => k.id === kamer.id)?.rollen ?? null;
+    // Via Regeling › Klimaat naar de kamer; eerst op temperatuur, dan op zon, zoals iemand die het omzet.
+    await naarInstelling(p, 'regeling.html');
+    await p.locator('#wand .kamerrij', { hasText: kamer.naam }).click();
+    await p.waitForURL(/indeling\.html#/);
+    const keuze = p.locator(`#wand [data-blad] [data-rol="${airco.actuatorId}"]`);
+    await keuze.waitFor({ timeout: 10_000 });
+    await keuze.selectOption('houdt');
+    await expect.poll(() => rollen()?.[airco.actuatorId!]).toBe('houdt');
+    await keuze.selectOption('zon');
+    await expect.poll(() => rollen()?.[airco.actuatorId!]).toBe('zon');
+    // Terug bij Regeling zegt de kamer het.
+    await p.goto(`${baseUrl}/regeling.html#klimaat`);
+    await expect.poll(() => p.locator('#wand .kamerrij', { hasText: kamer.naam }).textContent(), { timeout: 10_000 }).toContain('helpt op zon');
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 40_000);
+
+  it('route 6: een laadpaal uit losse sensoren toevoegen (issue 160)', async () => {
+    const { context, p, fouten } = await routeOpWand();
+    try {
+      await p.locator('#wand #balk a[data-tab="apparaten"]').click();
+      await p.waitForURL(/apparaten\.html/);
+      await p.locator('#wand a[href="toevoegen.html"]').first().click();
+      await p.waitForURL(/toevoegen\.html/);
+      await p.locator('#wand [data-soort="losse"]').click();
+      const rechts = p.locator('#wand [data-rechts]');
+      // Een naam, zoeken (het zoekveld van issue 167 typt in de goede volgorde), een sensor aanvinken, toevoegen.
+      await rechts.locator('[data-lnaam]').fill('Laadpaal oprit');
+      await rechts.locator('[data-lzoek]').pressSequentially('temp');
+      expect(await rechts.locator('[data-lzoek]').inputValue()).toBe('temp');
+      await rechts.locator('[data-lsensor="sensor.temperatuur"]').check();
+      await rechts.locator('[data-lbewaar]').click();
+      await expect.poll(() => Object.values(losseNu).map((l) => l.naam), { timeout: 5_000 }).toContain('Laadpaal oprit');
+      expect(Object.values(losseNu)[0]!.sensoren).toEqual(['sensor.temperatuur']);
+      expect(fouten).toEqual([]);
+    } finally {
+      losseNu = {};
+      await context.close();
+    }
+  }, 40_000);
+
+  it('route 7: de stroomprijs invullen en zien wat het oplevert', async () => {
+    const { context, p, fouten } = await routeOpWand();
+    const voor = energyStore.current?.prijzen ?? null;
+    try {
+      await naarInstelling(p, 'energie.html');
+      const wand = p.locator('#wand');
+      await wand.locator('[data-delen] .deel', { hasText: 'Contract en prijzen' }).click();
+      await wand.locator('[data-prijs="stroom"]').fill('0.31');
+      await wand.locator('[data-prijs="stroom"]').press('Tab');
+      await expect.poll(() => energyStore.current?.prijzen?.stroom, { timeout: 5_000 }).toBe(0.31);
+      // Bij Opbrengst staan de kosten dan in euro's.
+      await p.locator('#wand #balk a[data-tab="opbrengst"]').click();
+      await p.waitForURL(/opbrengst\.html/);
+      await expect.poll(() => p.locator('#wand main').textContent(), { timeout: 10_000 }).toContain('€');
+      expect(fouten).toEqual([]);
+    } finally {
+      if (voor) await energyStore.save({ ...energyStore.current!, prijzen: voor });
+      await context.close();
+    }
+  }, 40_000);
+
+  it('route 8: een bewoner die voor het eerst inlogt, staat bij Bewoners', async () => {
+    const was = bewonersStore.current;
+    const sessie = await sessions.create({ userId: 'u-route', naam: 'Sam', rol: 'bewoner' });
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, zonderInlog: true, timezoneId: 'UTC', locale: 'nl-NL' } as BrowserContextOptions);
+    await context.addCookies([{ name: 'hems_sessie', value: sessie, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    try {
+      // Zoals na het inloggen bij Home Assistant: de app vraagt wie er binnenkomt.
+      await p.goto(`${baseUrl}/welkom.html?terug=%2Fthuis.html#vraag`);
+      await p.locator('[data-keus="bewoner"]').click();
+      await p.locator('[data-verder]').click();
+      await p.locator('[data-bron]').first().click();
+      await p.locator('[data-klaar]').click();
+      await p.locator('h1', { hasText: 'Welkom, Sam' }).waitFor({ timeout: 10_000 });
+      await p.locator('[data-klopt]').click();
+      await p.waitForURL(/thuis\.html/, { timeout: 10_000 });
+      await expect.poll(() => Object.values(bewonersStore.current.bewoners).map((b) => b.naam), { timeout: 5_000 }).toContain('Sam');
+      expect(fouten).toEqual([]);
+    } finally {
+      await bewonersStore.save(was);
+      await context.close();
+    }
+  }, 40_000);
+
+  it('route 10: een probleem melden', async () => {
+    const { context, p, fouten } = await routeOpWand();
+    // Het adres naar GitHub opvangen in plaats van een venster te openen.
+    await p.evaluate('window.geopend = []; window.open = (url) => { window.geopend.push(url); return null; }');
+    await p.locator('#wand .balk [data-meld-probleem]').click();
+    const blad = p.locator('[data-meldpop]');
+    await blad.locator('h2', { hasText: 'Meld een probleem' }).waitFor();
+    await blad.locator('[data-meldwat]').fill('De lamp in de keuken gaat niet aan');
+    await blad.locator('[data-meldpop-stuur]').click();
+    await blad.locator('h2', { hasText: 'Dank je wel' }).waitFor();
+    const [url] = await p.evaluate<string[]>('window.geopend');
+    expect(new URL(url!).searchParams.get('wat')).toBe('De lamp in de keuken gaat niet aan');
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
+  it('route 12: je huis tekenen, een kamer erbij', async () => {
+    const { context, p, fouten } = await routeOpWand();
+    const was = layoutStore.current;
+    try {
+      // Beginnen zoals een nieuwe bewoner, zonder tekening: een test hiervoor kan er een hebben achtergelaten.
+      if (was?.plattegrond) {
+        const { plattegrond: _weg, ...zonder } = was;
+        await layoutStore.save(zonder);
+      }
+      // Via Kamers en indeling naar Je huis tekenen.
+      await naarInstelling(p, 'indeling.html');
+      await p.locator('#wand [data-naar-jehuis]').first().click();
+      await p.waitForURL(/jehuis\.html/);
+      await p.waitForFunction(`window.tekenaar && document.querySelector('#wand #tekening [data-l="vlak"] g')`);
+      if (await p.evaluate<boolean>('window.tekenaar.isLeeg()')) {
+        await p.locator('#wand [data-ht="indeling"]').first().click();
+        await expect.poll(() => p.evaluate<boolean>('window.tekenaar.isLeeg()')).toBe(false);
+      }
+      // Een vak trekken in de grootste ruimte, met de vinger, en het is bewaard.
+      const plek = await p.evaluate<[number, number] | null>(`(() => {
+        const t = window.tekenaar; const v = t.vloer();
+        const m = Object.values(t.maten()).sort((a, b) => b.n - a.n)[0].r;
+        const lijnen = (as) => huistekenen.randen(v, huistekenen.isMuur).filter((r) => r.as === as).map((r) => r.op);
+        const vrij = (lijst, ...op) => op.every((o) => lijst.every((l) => Math.abs(l - o) >= 4));
+        const xs = lijnen('x'); const ys = lijnen('y');
+        for (let y = m.y0 + 6; y + 28 <= m.y1; y++) for (let x = m.x0 + 6; x + 28 <= m.x1; x++) {
+          if (vrij(xs, x, x + 6, x + 12, x + 16, x + 22) && vrij(ys, y, y + 6, y + 16, y + 22)) return [x - t.MARGE, y - t.MARGE];
+        }
+        return null;
+      })()`);
+      expect(plek).not.toBeNull();
+      const [x0, y0] = plek!;
+      const v = await vinger(p);
+      const voor = Object.keys(await v.stand()).length;
+      await v.veeg([x0 / 10, y0 / 10], [(x0 + 8) / 10, (y0 + 8) / 10], [(x0 + 16) / 10, (y0 + 16) / 10]);
+      expect(Object.keys(await v.stand()).length).toBe(voor + 1);
+      await expect.poll(() => p.locator('#wand [data-bewaard]').textContent(), { timeout: 10_000 }).toBe('Bewaard');
+      expect(fouten).toEqual([]);
+    } finally {
+      if (was) await layoutStore.save(was);
+      await context.close();
+    }
+  }, 60_000);
+
+  it('route 1: een huis inrichten, van Welkom tot Thuis', async () => {
+    const { context, p, fouten } = await routeOpWand();
+    const was = layoutStore.current;
+    try {
+      await naarInstelling(p, 'inrichten.html');
+      const kaart = p.locator('#wand [data-kaart]');
+      await p.locator('#wand [data-welkom] a', { hasText: 'Begin' }).click();
+      // Elke stap: Volgende als het kan, anders Later; tot Klaar.
+      for (let i = 0; i < 40 && !/#klaar$/.test(p.url()); i++) {
+        const volgende = kaart.locator('[data-volgende]');
+        await kaart.locator('[data-volgende], [data-later]').first().waitFor({ timeout: 10_000 });
+        const hash = p.url();
+        if ((await volgende.count()) && (await volgende.isEnabled())) await volgende.click();
+        else await kaart.locator('[data-later]').click();
+        await expect.poll(() => p.url(), { timeout: 10_000 }).not.toBe(hash);
+      }
+      expect(p.url()).toMatch(/#klaar$/);
+      expect(fouten).toEqual([]);
+    } finally {
+      if (was) await layoutStore.save(was);
+      await context.close();
+    }
+  }, 120_000);
 });
