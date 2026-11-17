@@ -18,5 +18,5 @@ npm run --silent typecheck
 npm run --silent lint
 TZ=UTC npx vitest run --reporter=dot
 cd ../frontend
-if [ -d node_modules ]; then npm run --silent lint; else echo "vóór het pushen: lint van de app overgeslagen (eerst npm ci in frontend/)"; fi
+if [ -d node_modules ]; then npm run --silent lint; npm run --silent typecheck; else echo "vóór het pushen: lint van de app overgeslagen (eerst npm ci in frontend/)"; fi
 echo "vóór het pushen: alles in orde."

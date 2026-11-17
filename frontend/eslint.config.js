@@ -53,7 +53,7 @@ export default [
     rules: REGELS,
   },
   {
-    files: ['build.js', 'eslint.config.js'],
+    files: ['build.js', 'eslint.config.js', 'typecheck.js'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: globals.node },
     rules: js.configs.recommended.rules,
   },

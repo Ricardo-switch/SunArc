@@ -119,7 +119,7 @@ const laden = (() => {
     const klimaat = x.some((y) => y.rol === 'auto') ? `<p class="mini">${esc(t('laden.klimaatNoot'))}</p>` : '';
     const links = `<div class="deelvraag"><h3 class="kop-3">${esc(t('laden.gevonden'))}</h3>${rijen}${kiezen(info, t('laden.anderKiezen'))}${klimaat}${losseRegel}</div>`;
     const wie = aan(info).length > 1 ? `<div class="keuzes ld-wie" role="tablist">${aan(info).map((y) => `<button type="button" role="tab" data-laad="wie" data-id="${esc(y.id)}" aria-pressed="${y === gekozen}">${esc(y.naam)}</button>`).join('')}</div>` : '';
-    const rechts = gekozen ? `<div class="deelvraag">${wie}${instellen(info, a, gekozen, staat)}${evcc}</div>` : `<div class="deelvraag"><p class="uitleg">${esc(t('laden.allesUit'))}</p>${evcc}</div>`;
+    const rechts = gekozen ? `<div class="deelvraag">${wie}${instellen(info, a, gekozen)}${evcc}</div>` : `<div class="deelvraag"><p class="uitleg">${esc(t('laden.allesUit'))}</p>${evcc}</div>`;
     return `${kop}<div class="kolommen"><div>${links}</div><div>${rechts}</div></div>`;
   }
 

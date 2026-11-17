@@ -7,7 +7,8 @@
   "scripts": {
     "build": "node build.js",
     "watch": "node build.js --watch",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "node typecheck.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -17,6 +18,7 @@
     "eslint": "^10.15.0",
     "globals": "^17.14.0",
     "qrcode-generator": "^2.0.4",
-    "tailwindcss": "^4.1.14"
+    "tailwindcss": "^4.1.14",
+    "typescript": "^5.9.3"
   }
 }

@@ -267,7 +267,7 @@ const dakvlakken = (() => {
     const een = (d.meters ?? []).length === 1 ? d.meters[0] : null;
     const allesKnop = een ? `<button type="button" class="lig-knop zacht dk-alles" data-dak-alles="${esc(een.id)}">${esc(t('daken.meter.alles', { naam: een.naam }))}</button>` : '';
     const lijst = [
-      ...groepen.map((g) => kaart(kleur.get(g.m.id), g.m.naam, t(g.vlakken.length > 1 ? 'daken.meter.samen' : 'daken.meter.precies'), g.vlakken, `${grens(g.m)}${verdeelGrafiek(d, g.m.id, g.vlakken)}`)),
+      ...groepen.map((g) => kaart(kleur.get(g.m.id), g.m.naam, t(g.vlakken.length > 1 ? 'daken.meter.samen' : 'daken.meter.precies'), g.vlakken, `${grens(g.m)}${verdeelGrafiek(d, g.m.id)}`)),
       ...(zonder.length ? [kaart('rgb(255 255 255 / 0.35)', t('daken.meter.geen'), t('daken.meter.geenZin'), zonder, allesKnop)] : []),
     ].join('');
     return `<div class="pan-kop3"><h3 class="kop-3">${esc(t('daken.metersKop'))}</h3></div>

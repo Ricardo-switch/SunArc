@@ -82,6 +82,11 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
+      # De typecontrole per pagina, tegen een basis die alleen omlaag mag (typecheck.js).
+      - name: weergave — typecheck
+        working-directory: frontend
+        run: npm run typecheck
+
   image:
     name: image bouwen zoals de NAS
     runs-on: ubuntu-latest
