@@ -308,6 +308,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [314. Wat niet klopt, staat in de bel met een knop](#314-wat-niet-klopt-staat-in-de-bel-met-een-knop)
 - [315. De boiler staat in de tekening met zijn temperatuur, zijn doel en zijn stroom](#315-de-boiler-staat-in-de-tekening-met-zijn-temperatuur-zijn-doel-en-zijn-stroom)
 - [316. De woordenlijst: één woord per ding](#316-de-woordenlijst-één-woord-per-ding)
+- [317. Klimaat per kamer in één blad; Kamers en indeling is weg](#317-klimaat-per-kamer-in-één-blad-kamers-en-indeling-is-weg)
 
 **Veiligheid**
 
@@ -14628,6 +14629,59 @@ uit staat), en OpenStreetMap als naam van een keuze.
 staan er nog in tot stap 3. Een test die de afgevallen woorden weert, kan pas
 als ze weg zijn. Het Engels krijgt dezelfde lijst zodra de Nederlandse is
 doorgevoerd.
+
+## 317. Klimaat per kamer in één blad; Kamers en indeling is weg
+
+*Onderwerp: weergave · Status: geldig*
+
+17 november 2026. Wat er in een kamer verwarmt en koelt, stond op drie
+plekken: hoe warm bij Comfort, welk apparaat wat doet bij Kamers en indeling
+onder Verwarmen en koelen, en Helpen bij de cv bij Regeling. Wie één kamer
+wilde regelen, moest langs alle drie. Stap 3 van de kwaliteitsronde ([310]),
+schets Wand-Klimaat-Kamer (goedgekeurd), met Je huis als de plek voor het
+gebouw (schets Wand-Huis-Aanvulling, 0.191.0).
+
+*Besluit:*
+
+- **Comfort heet Klimaat.** Per kamer één blad: links *Hoe warm* (de schuif
+  zoals hij was, op zon en koelen van het net), rechts *Wat ervoor zorgt*: de
+  apparaten met hun taak (*Houdt op temperatuur*, *Helpt op zon*, *Doet niet
+  mee*, [316]), wat er aan de cv hangt, waarmee de kamer meet en of hij een
+  eigen regeling heeft of meedoet met een andere kamer. Onder een airco die de
+  ketel kan helpen een schakelaar *Helpt ook de cv*.
+- **Kamers zonder eigen regeling** staan bij *Andere kamers*, met hetzelfde
+  blad zonder de schuif: daar kies je wat er verwarmt en of hij meedoet.
+- **Onder Het hele huis** komen *Helpen bij de cv* (van Regeling) en een regel
+  *Soort verwarming* naar Energie, waar hij al stond: niet dubbel instellen.
+- **Kamers en indeling is weg.** Het gebouw (etages, kamers, buiten,
+  verborgen apparaten, de thuisaccu) staat bij Je huis; daar kan nu ook een
+  apparaat buiten staan, bij de voordeur of in de garage, en een plek zonder
+  gebied in Home Assistant komt er dan bij ([269]). Een oude link
+  (`indeling.html#zolder/warmte`, een melding, een bladwijzer) komt op de goede
+  plek uit.
+- **Regeling houdt alleen Apparaten op zon**, met een regel naar Klimaat. Die
+  verhuist later in stap 3 naar Apparaten.
+
+*Hoe:* de code van Verwarmen en koelen verhuisde ongewijzigd naar een eigen
+bestand (`warmte.js`), zodat het geteste gedrag meeging; Klimaat geeft het de
+kamer en bewaart zoals Kamers en indeling deed, met de hele indeling. De
+paginatests van Verwarmen en koelen lopen nu op Klimaat.
+
+*Wat afviel:* een aparte pagina Klimaat naast Comfort (twee plekken voor één
+kamer), het blad van Verwarmen en koelen herschrijven (meer risico, hetzelfde
+gedrag), en de soort verwarming ook bij Klimaat laten kiezen (dan staat hij op
+twee plekken). De bestandsnaam `comfort.html` bleef: oude links en de dienst
+wijzen ernaar.
+
+*Op de wand past het blad zonder scrollen:* per apparaat één regel met zijn
+naam, wat het is en de taak ernaast; meten, de regeling en de zones staan achter
+één regel *Meten en regeling*, met waarmee de kamer nu meet erin. Verwarmen en
+koelen per dagdeel staan naast elkaar.
+
+*Kosten:* de schets zette *Gemeten met* als keuze in de kop; nu is het die
+regel. De uitleg onder *Helpt op zon* staat niet meer onder het apparaat. Het
+slepen van een apparaat naar een andere kamer in een lijst is weg: in Je huis
+sleep je op de tekening.
 
 ## Wat nog een besluit wacht
 

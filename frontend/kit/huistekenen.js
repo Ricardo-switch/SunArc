@@ -2426,6 +2426,8 @@
             if (!ks.length) continue;
             s += `<h4>${esc(e.naam)}</h4><div class="ht-twee">${ks.map((k) => `<button type="button" class="ht-klein${a.ha === k.id ? ' tip' : ''}${a.kamer === k.id ? ' aan' : ''}" data-ht="app-kamer" data-app="${esc(a.id)}" data-kamer="${esc(k.id)}">${esc(k.naam)}</button>`).join('')}</div>`;
           }
+          // Buiten (besluit 269 en 317): de voordeur en wat er rond het huis is; een plek zonder ruimte komt erbij.
+          if (ix?.plekken?.length) s += `<h4>${esc(T('ht.buiten.kop'))}</h4><div class="ht-twee">${ix.plekken.map((p) => `<button type="button" class="ht-klein" data-ht="ix" data-actie="app-buiten" data-waarde="${esc(`${a.id}|${p.waarde}`)}">${esc(p.naam)}</button>`).join('')}</div>`;
           if (a.ha) s += `<p class="ht-voet">${esc(T('ht.app.inHA', { naam: t.kamers[a.ha]?.naam ?? a.ha }))}</p>`;
         } else if (kies) {
           const p = punten.find((x) => x.a.id === kies.id);

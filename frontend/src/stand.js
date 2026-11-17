@@ -8,7 +8,7 @@
 (function (global) {
   /** Waar elke groep staat. */
   const GROEPEN = {
-    huis: 'indeling.html',
+    huis: 'jehuis.html',
     comfort: 'comfort.html',
     energie: 'energie.html',
     regeling: 'regeling.html',
@@ -50,7 +50,7 @@
     const zonder = d.huis?.zonderRuimte?.length ?? 0;
     if (zonder > 0) {
       const namen = d.huis.zonderRuimte.slice(0, 2).map((x) => x.naam).join(` ${t('algemeen.en')} `);
-      uit.push({ id: 'indelen', groep: 'huis', wat: t('stand.indelen.wat', { n: zonder }), waarom: t(zonder > 2 ? 'stand.indelen.zinMeer' : 'stand.indelen.zin', { namen }), knop: t('stand.indelen'), href: 'indeling.html' });
+      uit.push({ id: 'indelen', groep: 'huis', wat: t('stand.indelen.wat', { n: zonder }), waarom: t(zonder > 2 ? 'stand.indelen.zinMeer' : 'stand.indelen.zin', { namen }), knop: t('stand.indelen'), href: 'jehuis.html#bg/apparaten' });
     }
     return uit;
   }
@@ -70,10 +70,10 @@
     ['meters', 'energie', 'energie.html#meters'],
     ['prijzen', 'energie', 'energie.html#prijzen'],
     ['verwarming', 'energie', 'energie.html#verwarming'],
-    ['regelt', 'regeling', 'regeling.html'],
+    ['regelt', 'regeling', 'comfort.html'],
     ['opzon', 'regeling', 'regeling.html#opzon'],
-    ['kamers', 'huis', 'indeling.html'],
-    ['meten', 'huis', 'indeling.html'],
+    ['kamers', 'huis', 'jehuis.html'],
+    ['meten', 'huis', 'comfort.html'],
     ['cameras', 'functies', 'functies.html#cameras'],
     ['deurbel', 'functies', 'functies.html#deurbel'],
     ['licht', 'functies', 'functies.html#licht'],
@@ -93,8 +93,8 @@
     ['thema', 'zoek.waar.jij', 'jij.html'],
     ['export', 'toegang', 'toegang.html#gegevens'],
     ['batterijen', 'zoek.waar.thuis', 'thuis.html#batterijen'],
-    ['warmte', 'huis', 'indeling.html'],
-    ['naam', 'huis', 'indeling.html'],
+    ['warmte', 'huis', 'comfort.html'],
+    ['naam', 'huis', 'jehuis.html'],
     ['kan', 'zoek.waar.instellingen', 'huis-kan.html'],
     ['voortgang', 'zoek.waar.instellingen', 'voortgang.html'],
     ['klaarzetten', 'inrichten', 'klaarzetten.html'],
@@ -119,7 +119,7 @@
     for (const x of kan(d)) uit.push({ titel: x.titel, waar: global.taal.t('zoek.kan'), href: `huis-kan.html#${x.id}`, woorden: `${x.wat ?? ''} ${x.nu ?? ''}` });
     for (const e of d.huis?.etages ?? []) {
       for (const r of e.ruimtes ?? []) {
-        uit.push({ titel: r.naam, waar: global.taal.t('stand.kamerIn', { etage: e.naam }), href: `indeling.html#${encodeURIComponent(r.id)}`, woorden: global.taal.t('stand.kamerWoord') });
+        uit.push({ titel: r.naam, waar: global.taal.t('stand.kamerIn', { etage: e.naam }), href: `kamer.html#${encodeURIComponent(r.id)}`, woorden: global.taal.t('stand.kamerWoord') });
         for (const a of r.apparaten ?? []) uit.push({ titel: a.naam, waar: r.naam, href: `kamer.html#${encodeURIComponent(r.id)}/${encodeURIComponent(a.id)}`, woorden: `${a.haNaam ?? ''} ${a.soort}` });
       }
     }
@@ -255,18 +255,18 @@
     const uit = [];
     for (const r of binnen(d)) {
       for (const b of r.bronnen ?? []) {
-        if (huismodel.isElektrischSlim(b) && b.vermogenW && b.apparaat && !b.opZon) uit.push({ id: `zon-${r.id}`, soort: 'aan', titel: t('kan.idee.zon', { kamer: huismodel.metHoofdletter(huismodel.zoneNaam(r.zoneId ?? r.id, d.huis)) }), zin: t('kan.idee.zonZin', { bron: huismodel.bronNaam(b).toLowerCase() }), wint: t('kan.idee.zonWint'), href: `indeling.html#${encodeURIComponent(r.id)}/warmte` });
+        if (huismodel.isElektrischSlim(b) && b.vermogenW && b.apparaat && !b.opZon) uit.push({ id: `zon-${r.id}`, soort: 'aan', titel: t('kan.idee.zon', { kamer: huismodel.metHoofdletter(huismodel.zoneNaam(r.zoneId ?? r.id, d.huis)) }), zin: t('kan.idee.zonZin', { bron: huismodel.bronNaam(b).toLowerCase() }), wint: t('kan.idee.zonWint'), href: `comfort.html#${encodeURIComponent(r.id)}/warmte` });
       }
     }
     const accu = batterijSom(d);
     if (accu) uit.push({ id: 'batterij', soort: 'som', titel: t('kan.idee.batterij'), zin: t('kan.idee.batterijZin'), euro: accu.euro, wint: t('kan.idee.batterijWint'), href: 'opbrengst.html' });
     for (const r of binnen(d)) {
       for (const b of r.bronnen ?? []) {
-        if (b.aan === 'hand' && b.soorten.some((x) => huismodel.ELEKTRISCH.has(x))) uit.push({ id: `slim-${r.id}-${b.id}`, soort: 'koop', titel: t('kan.idee.slim', { bron: huismodel.bronNaam(b).toLowerCase(), kamer: r.naam }), zin: t('kan.idee.slimZin'), wint: t('kan.idee.slimWint'), href: `indeling.html#${encodeURIComponent(r.id)}/warmte` });
+        if (b.aan === 'hand' && b.soorten.some((x) => huismodel.ELEKTRISCH.has(x))) uit.push({ id: `slim-${r.id}-${b.id}`, soort: 'koop', titel: t('kan.idee.slim', { bron: huismodel.bronNaam(b).toLowerCase(), kamer: r.naam }), zin: t('kan.idee.slimZin'), wint: t('kan.idee.slimWint'), href: `comfort.html#${encodeURIComponent(r.id)}/warmte` });
       }
     }
     const zonderMeting = binnen(d).filter((r) => r.temperatuurC == null && !huismodel.GANG.test(r.naam));
-    if (zonderMeting.length) uit.push({ id: 'meten', soort: 'koop', titel: zonderMeting.length === 1 ? t('kan.idee.meten', { kamer: zonderMeting[0].naam }) : t('kan.idee.metenN', { n: zonderMeting.length }), zin: t('kan.idee.metenZin'), wint: t('kan.idee.metenWint'), href: 'indeling.html' });
+    if (zonderMeting.length) uit.push({ id: 'meten', soort: 'koop', titel: zonderMeting.length === 1 ? t('kan.idee.meten', { kamer: zonderMeting[0].naam }) : t('kan.idee.metenN', { n: zonderMeting.length }), zin: t('kan.idee.metenZin'), wint: t('kan.idee.metenWint'), href: 'comfort.html' });
     return uit;
   }
 
@@ -355,7 +355,7 @@
         : { ...teksten('optijd'), groep: 'leert', stand: 'leert', nu: d.thermisch?.stand === 'leert' ? t('kan.optijd.wacht') : dagen ? t('kan.optijd.dagen', { n: dagen }) : t('kan.optijd.nu'), href: 'vandaag.html' },
       {
         ...teksten('perkamer'), groep: 'comfort', stand: perKamer.length && !geenRegeling ? meekijk : 'nodig', label: perKamer.length && !geenRegeling ? null : t('kan.perkamer.nodig'),
-        nu: perKamer.length && !geenRegeling ? huismodel.inKamers(perKamer.map((r) => r.naam)) : t('kan.perkamer.nu'), href: 'indeling.html',
+        nu: perKamer.length && !geenRegeling ? huismodel.inKamers(perKamer.map((r) => r.naam)) : t('kan.perkamer.nu'), href: 'comfort.html',
         waar: perKamer.map((r) => ({ naam: r.naam, wat: warmteVan(r).join(', ') || t('kan.thermostaat') })),
         idee: idee.find((x) => x.soort === 'koop' && x.id.startsWith('slim-')) ?? null,
       },

@@ -128,6 +128,44 @@ function concept() {
 const volgordeVan = (d) => (d.volgorde?.length ? [...d.volgorde] : (info?.etages ?? []).map((e) => e.id).filter((id) => id !== 'buiten'));
 // Een lijstje van vóór 6 november 2026 kent de border niet: die stond er toen altijd.
 const rondVan = (d) => (d?.rond ? { border: true, allebei: false, ...d.rond } : huismodel.rondNu(huisData));
+
+/*
+ * De plekken buiten voor een apparaat (besluit 269; sinds besluit 317 hier, eerst
+ * bij Kamers en indeling): de voordeur altijd, en elk deel rond het huis dat
+ * aan staat. Een plek zonder ruimte krijgt er een als je er een apparaat zet.
+ */
+const binnenEtage = (k) => k.etage !== 'buiten' && !huismodel.isBuiten({ id: k.etage }, k);
+const ruimteVanId = (id) => (huisData?.etages ?? []).flatMap((e) => e.ruimtes ?? []).find((r) => r.id === id) ?? null;
+const buitenSoort = (k) => (k.buiten ?? ruimteVanId(k.id)?.buiten ?? huismodel.soortBuiten(k)).soort;
+function plekNaam(soort, rond) {
+  if (soort === 'voordeur') return t('huis.buiten.voordeur');
+  if (soort === 'tuinhuis') return t(huismodel.huisjeNaam(rond));
+  if (soort === 'carport') return t('soort.buiten.carport');
+  return t(`huis.buiten.${soort}`);
+}
+/** [{ waarde: kamer-id of `plek:soort`, naam }] */
+function plekkenBuiten(d) {
+  const rond = rondVan(d);
+  const kamers = (d?.kamers ?? []).filter((k) => !binnenEtage(k));
+  const soorten = ['voordeur', ...huismodel.rondom().filter(([w, , s]) => s && huismodel.rondAan(rond, w)).map(([, , s]) => s)];
+  const vast = soorten.map((soort) => {
+    const k = kamers.find((x) => buitenSoort(x) === soort);
+    return { waarde: k ? k.id : `plek:${soort}`, naam: k?.naam ?? plekNaam(soort, rond) };
+  });
+  const rest = kamers.filter((k) => !vast.some((p) => p.waarde === k.id)).map((k) => ({ waarde: k.id, naam: k.naam }));
+  return [...vast, ...rest];
+}
+/** De ruimte van een plek in een indeling, of een nieuwe als hij er nog niet is. Geeft het id. */
+function plekErbij(next, soort) {
+  const bestaat = next.kamers.find((k) => !binnenEtage(k) && buitenSoort(k) === soort);
+  if (bestaat) return bestaat.id;
+  const rond = rondVan(next);
+  const naam = plekNaam(soort, rond);
+  let id = naam.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 36) || 'buiten';
+  for (let i = 2, basis = id; next.kamers.some((k) => k.id === id); i++) id = `${basis}-${i}`;
+  next.kamers.push({ id, naam, etage: 'buiten', buiten: { soort, auto: (soort === 'oprit' || soort === 'carport') && !!rond.auto, tuinhuis: false }, zones: [], regelzone: null, haGebied: null });
+  return id;
+}
 /** Een vaste etage op zijn plek: de kelder onderaan, de derde verdieping bovenaan. */
 function opZijnPlek(volgorde, id) {
   const plek = (x) => (info?.standaard ?? []).findIndex((s) => s.id === x);
@@ -162,14 +200,15 @@ const indeling = {
         ? { naam: accu.naam, nu: accuNu, opties: [['gevel', t('indeling.accu.gevel')], ...(rond.garage ? [['garage', t('indeling.accu.garage')]] : []), ...binnen.map((k) => [`binnen:${k.id}`, k.naam])] }
         : null,
       soorten: huismodel.KAMER_SOORTEN,
+      plekken: plekkenBuiten(d),
     };
   },
 
   /** Een tik of een veld: de indeling aanpassen en bewaren, daarna het blad en de tekening opnieuw. */
   async doe(actie, w) {
     if (actie === 'klimaat') {
-      // Verwarmen en koelen staat tot het blad Klimaat per kamer er is nog bij Kamers en indeling.
-      location.href = `indeling.html#${encodeURIComponent(w)}/warmte`;
+      // Verwarmen en koelen staat bij Klimaat, in het blad van de kamer (besluit 317).
+      location.href = `comfort.html#${encodeURIComponent(w)}`;
       return;
     }
     const next = concept();
@@ -218,7 +257,15 @@ const indeling = {
       next.verborgen = [...new Set([...(next.verborgen ?? []), w])];
       delete next.apparaten[w];
     } else if (actie === 'terug') next.verborgen = (next.verborgen ?? []).filter((x) => x !== w);
-    else return;
+    else if (actie === 'app-buiten') {
+      // Een apparaat buiten (besluit 269 en 317): bij de voordeur, in de garage; een plek zonder ruimte komt er nu bij.
+      const [app, plek] = String(w).split('|');
+      const kamer = plek.startsWith('plek:') ? plekErbij(next, plek.slice(5)) : plek;
+      next.apparaten[app] = { ...(next.apparaten[app] ?? {}), kamer, zone: null };
+      next.verborgen = (next.verborgen ?? []).filter((x) => x !== app);
+      tekenaar.st.wapen = null;
+      tekenaar.st.kies = null;
+    } else return;
     const res = await deur('api/indeling', next);
     const body = res ? await res.json().catch(() => ({})) : {};
     if (!res?.ok) {
@@ -256,9 +303,14 @@ async function vernieuw() {
   tk.ververs();
 }
 
-/** Een apparaat openen, of de verborgen apparaten bij Kamers en indeling. */
+/** Een apparaat openen; de verborgen apparaten staan in een eigen blad (zonder indeling: bij Apparaten). */
 function naar(wat, a) {
-  location.href = wat === 'verborgen' ? 'indeling.html#verborgen' : `kamer.html#${encodeURIComponent(a.kamer)}/${encodeURIComponent(a.id)}`;
+  if (wat === 'verborgen') {
+    if (tekenaar?.indeling) tekenaar.toonBlad('verborgen');
+    else location.href = 'apparaten.html';
+    return;
+  }
+  location.href = `kamer.html#${encodeURIComponent(a.kamer)}/${encodeURIComponent(a.id)}`;
 }
 
 const wacht = (ms) => new Promise((ok) => setTimeout(ok, ms));
@@ -409,6 +461,8 @@ async function start() {
   document.querySelectorAll('[data-ik]').forEach((el) => el.insertAdjacentHTML('afterbegin', iconen.svg(el.dataset.ik)));
   tk.op(bij);
   bij();
+  // Een oude link naar Kamers en indeling (`#buiten`, `#verborgen`): dat blad meteen open (besluit 317).
+  if (info && ['buiten', 'verborgen'].includes(gevraagd)) tk.toonBlad(gevraagd);
 
   document.addEventListener('click', (e) => {
     const doel = /** @type {HTMLElement} */ (e.target);

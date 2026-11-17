@@ -177,7 +177,7 @@
   function hulpBlok(a) {
     const h = helpen?.aircos?.find((x) => x.id === a.actuatorId);
     if (!h || !h.balk) return '';
-    if (!h.aan) return `<div class="hand-koppel"><span>${esc(t('hand.hulp.uit'))}</span><a href="regeling.html#helpen">${esc(t('hand.hulp.naar'))}</a></div>`;
+    if (!h.aan) return `<div class="hand-koppel"><span>${esc(t('hand.hulp.uit'))}</span><a href="comfort.html#helpen">${esc(t('hand.hulp.naar'))}</a></div>`;
     const b = h.balk;
     const nu = Date.now();
     const van = b.vanMs + 6 * 3_600_000;
@@ -211,7 +211,7 @@
         <div class="hand-hulp-legenda"><span><i class="ketel"></i>${esc(t('hand.hulp.lKetel'))}</span><span><i class="airco"></i>${esc(t('hand.hulp.lAirco'))}</span><span><i class="stil"></i>${esc(t('hand.hulp.lStil'))}</span>${b.kort.length ? `<span><i class="kort"></i>${esc(t('hand.hulp.lKort'))}</span>` : ''}</div>
         <div class="hand-hulp-samen">${regels.map(([r, opvallen]) => `<span${opvallen ? ' class="let"' : ''}>${esc(r)}</span>`).join('')}</div>
       </div>
-      <div class="hand-koppel"><span>${esc(t('hand.hulp.aan', { kamer: h.kamer ?? a.kamer ?? '' }))}</span><a href="regeling.html#helpen">${esc(t('hand.hulp.naar'))}</a></div>`;
+      <div class="hand-koppel"><span>${esc(t('hand.hulp.aan', { kamer: h.kamer ?? a.kamer ?? '' }))}</span><a href="comfort.html#helpen">${esc(t('hand.hulp.naar'))}</a></div>`;
   }
 
   /** Het blad van een klimaatapparaat; in een kamer zonder eigen kop. */

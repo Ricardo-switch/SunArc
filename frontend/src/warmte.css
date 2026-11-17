@@ -1,0 +1,102 @@
+/*
+ * Wat er in een kamer verwarmt en koelt (warmte.js, besluit 317): de kaarten,
+ * de keuzes en het formulier van een bron. Overgenomen van Kamers en indeling,
+ * alles binnen .zorgt, zodat het niet botst met Klimaat zelf.
+ */
+.zorgt { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.zorgt > * { flex-shrink: 0; }
+.zorgt .schakel[disabled] { opacity: 0.35; cursor: default; }
+.zorgt .bladkop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.zorgt .bladkop h2 { margin: 0; }
+.zorgt .label { font-size: 12.5px; color: var(--gedempt); margin-bottom: 6px; display: block; }
+.zorgt .veld { width: 100%; height: 42px; border-radius: 12px; border: 1px solid rgb(var(--wit) / 0.18); background: rgb(var(--wit) / 0.05); color: var(--tekst); padding: 0 12px; font: inherit; font-size: 15px; font-weight: 600; }
+.zorgt .veld:focus { outline: 2px solid var(--ijs); outline-offset: 1px; }
+.zorgt select.veld { cursor: pointer; }
+.zorgt select.veld option { background: #13203a; color: var(--tekst); }
+.zorgt .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.zorgt .chip { height: 32px; padding: 0 12px; border-radius: 999px; background: rgb(var(--wit) / 0.07); display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; font-weight: 600; color: var(--tekst); border: 0; cursor: pointer; user-select: none; }
+.zorgt .chip.plus { background: transparent; border: 1px dashed rgba(111, 211, 255, 0.6); color: var(--ijs-t); }
+.zorgt .chip:focus-visible, .zorgt .app:focus-visible, .zorgt .kamerrij:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
+.zorgt .chip.zon { background: transparent; border: 1px dashed var(--zon); }
+.zorgt .chip[aria-pressed='true'] { background: var(--accent); color: var(--op-accent); }
+.zorgt .chip.uitchip { color: var(--zacht); }
+.zorgt .chip .weg { color: var(--gedempt); font-weight: 700; }
+.zorgt .gevaar { color: var(--gloed-zacht); border-color: rgba(255, 122, 77, 0.35); }
+.zorgt .bron { padding: 12px 14px; border-radius: 16px; background: rgb(var(--wit) / 0.05); border: 1px solid rgb(var(--wit) / 0.07); display: flex; flex-direction: column; gap: 8px; }
+.zorgt .bron[data-bron-open] { cursor: pointer; }
+.zorgt .bron[data-bron-open]:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
+.zorgt .bron .boven { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.zorgt .bron .ikoon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(255, 122, 77, 0.14); }
+.zorgt .bron .ikoon.koel { background: rgba(111, 211, 255, 0.14); }
+.zorgt .bron .ikoon svg { width: 20px; height: 20px; }
+.zorgt .bron b { display: block; font-size: 15px; }
+.zorgt .bron .wat { font-size: 12.5px; color: var(--gedempt); }
+.zorgt .bron .w { font-family: var(--kop); font-size: 16px; font-weight: 600; color: var(--zacht); white-space: nowrap; }
+.zorgt .bron .regelt { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--zacht); padding-top: 8px; border-top: 1px solid rgb(var(--wit) / 0.06); }
+.zorgt .bron .regelt b { display: inline; font-size: 13px; }
+.zorgt .bron .regelt .mini, .zorgt .bron .regelt .stand { margin-left: auto; }
+.zorgt .stand { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.zorgt .stand::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.zorgt .stand.slim { color: var(--mint-t); background: rgba(110, 231, 183, 0.1); }
+.zorgt .stand.hand { color: var(--zacht); background: rgb(var(--wit) / 0.07); }
+.zorgt .bron .opzon { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--zacht); }
+.zorgt .schakel { position: relative; flex: none; margin-left: auto; width: 44px; height: 26px; border-radius: 999px; border: 0; padding: 0; background: rgb(var(--wit) / 0.14); cursor: pointer; }
+.zorgt .schakel::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #c9d3dc; transition: left 0.15s; }
+.zorgt .schakel[aria-checked='true'] { background: var(--mint); }
+.zorgt .schakel[aria-checked='true']::after { left: 21px; background: #fff; }
+.zorgt .bron .idee { padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(247, 181, 72, 0.3); background: rgba(247, 181, 72, 0.06); font-size: 13px; color: var(--zacht); line-height: 1.45; }
+.zorgt .bron .idee b { display: block; color: var(--zon-t); font-size: 13px; margin-bottom: 2px; }
+.zorgt .rolrij { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 8px; border-top: 1px solid rgb(var(--wit) / 0.06); font-size: 13px; color: var(--gedempt); }
+.zorgt .rolrij .veld { width: auto; height: 34px; padding: 0 10px; font-size: 13px; font-weight: 700; }
+.zorgt .rolzin { margin: 0; font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+.zorgt .keuzes { display: flex; flex-direction: column; gap: 6px; }
+.zorgt .keuze { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 9px 12px; border-radius: 12px; border: 1px solid transparent; background: rgb(var(--wit) / 0.04); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.zorgt .keuzes button.keuze { height: auto; font-weight: inherit; font-size: inherit; color: inherit; border-color: transparent; }
+.zorgt .keuzes button.keuze.aan { border-color: rgb(var(--wit) / 0.35); }
+.zorgt .keuze.aan { border-color: rgb(var(--wit) / 0.35); background: rgb(var(--wit) / 0.08); }
+.zorgt .keuze i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--gedempt); margin-top: 2px; box-sizing: border-box; }
+.zorgt .keuze.aan i { border: 5px solid var(--tekst); }
+.zorgt .keuze b { display: block; font-size: 13.5px; }
+.zorgt .keuze span span { font-size: 12px; color: var(--gedempt); line-height: 1.35; }
+.zorgt .uitleg { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
+.zorgt .zones-blok { display: flex; flex-direction: column; gap: 8px; }
+.zorgt .zone-regel { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 14px; background: rgb(var(--wit) / 0.045); }
+.zorgt .zone-kop { display: flex; align-items: baseline; gap: 10px; }
+.zorgt .zone-temp { font-size: 13px; color: var(--zacht); font-weight: 600; }
+.zorgt .zone-regel .chips.seg { align-self: flex-start; }
+.zorgt .zone-regel .chips.seg > .chip[data-leeg] { color: var(--gedempt); opacity: 0.6; }
+.zorgt .zone-uitleg { margin: 2px 0 0; padding: 10px 12px; border-radius: 12px; background: rgb(247 181 72 / 0.07); box-shadow: inset 0 0 0 1px rgb(247 181 72 / 0.25); font-size: 13.5px; line-height: 1.45; color: var(--zacht); }
+.zorgt .uitleg b { color: var(--zacht); }
+.zorgt .vraagknop { align-self: start; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px dashed rgba(111, 211, 255, 0.55); background: none; color: var(--ijs-t); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.zorgt .plus { height: 42px; border-radius: 14px; border: 1px dashed rgba(111, 211, 255, 0.55); background: none; color: var(--ijs-t); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.zorgt .vraag { display: flex; flex-direction: column; gap: 6px; }
+.zorgt .vraag .label { margin: 0; }
+.zorgt .invoer { display: flex; align-items: center; gap: 8px; height: 42px; border-radius: 12px; border: 1px solid rgb(var(--wit) / 0.18); background: rgb(var(--wit) / 0.05); padding: 0 12px; }
+.zorgt .invoer input { flex: 1; min-width: 0; border: 0; background: none; color: var(--tekst); font: inherit; font-size: 15px; font-weight: 600; }
+.zorgt .invoer input:focus { outline: none; }
+.zorgt .invoer:focus-within { outline: 2px solid var(--ijs); outline-offset: 1px; }
+.zorgt .invoer span { color: var(--gedempt); font-size: 13px; }
+.zorgt .knoppenrij { display: flex; gap: 8px; flex-wrap: wrap; }
+.zorgt .knoppenrij .knop { flex: 1; }
+/* Meten en regeling achter één regel, en terug naar de apparaten (besluit 317). */
+.zorgt .metenregel { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 14px; border-radius: 14px; border: 0; background: rgb(var(--wit) / 0.05); color: var(--tekst); font: inherit; text-align: left; cursor: pointer; }
+.zorgt .metenregel .l { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.zorgt .metenregel .l b { font-size: 14px; }
+.zorgt .metenregel .l span { font-size: 12.5px; color: var(--gedempt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zorgt .metenregel .pijl { color: var(--gedempt); font-size: 18px; }
+.zorgt .metenregel:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
+.zorgt .terug { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 0; background: rgb(var(--wit) / 0.07); color: var(--zacht); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+/* In de kolom van het blad: wat kleiner, zodat het op de wand past. */
+.kolom.zorgt { gap: 8px; }
+.kolom.zorgt .bron { padding: 8px 12px; gap: 6px; }
+.kolom.zorgt .bron .regelt, .kolom.zorgt .rolrij { padding-top: 6px; }
+.kolom.zorgt .plus { height: 36px; }
+/* Een apparaat als één regel (data-kort): de taak rechts, de rest eronder alleen als het er is. */
+.zorgt .bron[data-kort] { padding: 6px 8px 6px 10px; gap: 4px; }
+.zorgt .bron[data-kort] .boven { grid-template-columns: 30px minmax(0, 1fr) auto; gap: 8px; }
+.zorgt .bron[data-kort] .ikoon { width: 30px; height: 30px; }
+.zorgt .bron[data-kort] b { font-size: 13.5px; line-height: 1.25; overflow-wrap: break-word; hyphens: auto; }
+.zorgt .bron[data-kort] .wat { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zorgt .rolkeuze.kort { width: auto; max-width: 172px; height: 32px; padding: 0 6px; font-size: 12px; font-weight: 700; }
+.zorgt .bron[data-kort] .cvregel { padding-top: 4px; }
+.zorgt .bron[data-kort] .vraagknop { height: 26px; font-size: 12px; }

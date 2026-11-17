@@ -25,6 +25,9 @@ verwijzing bestaat.
   ([315]). De woorden zijn gekozen, één per ding: SunArc doet en je huis is het
   gebouw, een apparaat houdt op temperatuur, helpt op zon of doet niet mee, en
   zelf bedienen heet met de hand ([316]). Doorvoeren volgt per scherm.
+  Sinds 0.192.0 staat per kamer in één blad bij Klimaat (eerst Comfort) hoe
+  warm en wat ervoor zorgt, met Helpen bij de cv; Kamers en indeling is weg,
+  het gebouw staat bij Je huis ([317]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -247,7 +250,7 @@ verwijzing bestaat.
   (`vandaag.html`), Apparaten (`apparaten.html`), Opbrengst (`opbrengst.html`),
   de Assistent (`assistent.html`), Kamer met de bladen per apparaat
   (`kamer.html`), Instellingen (`instellingen.html`), Wat je huis kan
-  (`huis-kan.html`), Kamers en indeling (`indeling.html`), Zon en aansluiting
+  (`huis-kan.html`), Je huis (`jehuis.html`), Klimaat (`comfort.html`), Zon en aansluiting
   (`aansluiting.html`) en Meters en prijzen (`meters.html`). De proef
   `nieuw.html` is weg. Zonder verbinding toont elke pagina de laatste stand,
   grijs ([82]). De app blijft dun: alles komt
@@ -534,7 +537,7 @@ verwijzing bestaat.
   mist bovenaan. Op de telefoon opent een deel als eigen scherm met terug naar
   de lijst, en onderaan Vorige en Volgende; op de wand past elk deel zonder
   scrollen en zit de uitleg achter *Waarvoor is dit?* ([163]).
-- **Kamers en indeling** is ook zo'n groep: de etages met Buiten, Nog in te
+- **Kamers en indeling** was ook zo'n groep (sinds 0.192.0 weg: het gebouw staat bij Je huis, Verwarmen en koelen bij Klimaat, [317]): de etages met Buiten, Nog in te
   delen en Verborgen. Buiten heeft hetzelfde lijstje als Inrichten, en wat je
   bij een buitenruimte kiest, zet dat deel ook aan ([193]). Een huis zonder
   slimme verwarming of airco draait ook: dan doet de app de rest, en comfort
@@ -1025,4 +1028,5 @@ verwijzing bestaat.
 [314]: DECISIONS.md#314-wat-niet-klopt-staat-in-de-bel-met-een-knop
 [315]: DECISIONS.md#315-de-boiler-staat-in-de-tekening-met-zijn-temperatuur-zijn-doel-en-zijn-stroom
 [316]: DECISIONS.md#316-de-woordenlijst-één-woord-per-ding
+[317]: DECISIONS.md#317-klimaat-per-kamer-in-één-blad-kamers-en-indeling-is-weg
 <!-- links:einde -->

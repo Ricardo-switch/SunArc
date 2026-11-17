@@ -1,11 +1,15 @@
 # Wat is er nieuw · What is new
 
-## 0.191.0
+## 0.192.0
 
-*17 november 2026 · 0.179.0 – 0.191.0*
+*17 november 2026 · 0.179.0 – 0.192.0*
 
 **Nieuw**
 
+- Comfort heet nu Klimaat. Per kamer staat in één blad hoe warm je het wilt en wat ervoor zorgt: welk apparaat wat doet, waarmee de kamer meet, en of een airco ook de cv helpt
+- Kamers zonder eigen regeling staan bij Andere kamers: daar kies je wat er verwarmt en of de kamer meedoet
+- Helpen bij de cv staat bij Klimaat onder Het hele huis. Bij Regeling blijft Apparaten op zon
+- Kamers en indeling is weg: het gebouw staat bij Je huis. Daar zet je een apparaat nu ook buiten, bij de voordeur of in de garage
 - Je huis kan nu alles wat Kamers en indeling kon, behalve Verwarmen en koelen: tik een etage aan voor de naam, het schuine dak, de volgorde en een etage erbij; tik Buiten aan voor wat er rond het huis is en waar de thuisaccu staat
 - Bij een kamer in Je huis kies je de soort kamer en een eigen naam in de app. In Home Assistant houdt hij zijn eigen naam
 - Een apparaat verberg je in Je huis bij Apparaten, en bij Verborgen haal je het terug
@@ -73,6 +77,10 @@
 
 **New**
 
+- Comfort is now called Climate. Each room has one sheet with how warm you want it and what takes care of it: which device does what, what the room measures with, and whether an air conditioner also helps the boiler
+- Rooms without their own control are under Other rooms: there you choose what heats them and whether the room takes part
+- Helping the boiler is under Climate, The whole house. Control keeps Appliances on solar
+- Rooms and layout is gone: the building is under Your home. There you can now also put a device outside, at the front door or in the garage
 - Your home can now do everything Rooms and layout could, except Heating and cooling: tap a floor for its name, the sloping roof, the order and adding a floor; tap Outside for what is around the house and where the home battery is
 - For a room in Your home you choose the kind of room and its own name in the app. Home Assistant keeps its own name
 - You hide a device in Your home under Devices, and bring it back under Hidden

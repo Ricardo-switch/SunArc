@@ -102,7 +102,7 @@ const thuisaccu = (() => {
   }
 
   function vorm(info, a, staat) {
-    const kop = `<div class="kopregel"><h2 class="kop-2">${esc(t('accu.titel'))}</h2><a class="ac-waar" href="indeling.html#buiten">${esc(t('accu.waarStaat'))}</a></div>`;
+    const kop = `<div class="kopregel"><h2 class="kop-2">${esc(t('accu.titel'))}</h2><a class="ac-waar" href="jehuis.html#buiten">${esc(t('accu.waarStaat'))}</a></div>`;
     if (!info?.accu) return `${kop}<p class="uitleg">${esc(t('accu.geenHA'))}</p>`;
     const x = lijst(info);
     if (!x.length) {

@@ -1,18 +1,20 @@
 /*
- * Regeling (besluit 130): wie wat regelt, en welke apparaten op zon mogen
- * starten. Wat hier stond bij "Wie stuurt" op de oude Instellingen, en de
- * apparaten op zon van Zon en aansluiting.
+ * Regeling (besluit 130): welke apparaten op zon mogen starten, de apparaten op
+ * zon van Zon en aansluiting. Licht en screens regelt het huis niet: die staan
+ * bij Functies (besluit 167).
  *
- * Eerlijk over de stand: klimaat kijkt mee tot het bewijs er is (besluit 64);
- * dan staat er "Kijkt mee", met hoe ver het is. Licht en screens regelt het huis
- * niet: die staan bij Functies (besluit 167).
+ * Klimaat en Helpen bij de cv stonden hier ook; sinds besluit 317 staan ze bij
+ * Klimaat, per kamer en onder Het hele huis. Een oude link gaat daarheen.
  */
 'use strict';
 
-const { $$, nl, esc, haal } = app;
+{
+  const oud = location.hash.slice(1);
+  if (oud === 'klimaat' || oud === 'helpen') location.replace(oud === 'helpen' ? 'comfort.html#helpen' : 'comfort.html');
+}
 
-let site = null;
-let terugblik = null;
+const { $$, esc, haal } = app;
+
 let huisData = null;
 let aInfo = null;
 let opZon = {};
@@ -23,13 +25,9 @@ let vermogen = {};
 /** Hoe lang een stekker per dag minstens aan moet, en uiterlijk wanneer (besluit 267). */
 let minimum = {};
 let zon = null;
-/** Helpen bij de cv (besluit 292): welke airco's de ketel helpen, wanneer, en wat warmte kost. */
-let helpen = null;
 
 async function laadAlles() {
-  const [s, d, h, a, z, b] = await Promise.allSettled([haal('api/site'), haal('api/divergence'), haal('api/huis'), haal('api/aansluiting'), haal('api/zon'), haal('api/helpen')]);
-  if (s.status === 'fulfilled') site = s.value;
-  if (d.status === 'fulfilled') terugblik = d.value;
+  const [h, a, z] = await Promise.allSettled([haal('api/huis'), haal('api/aansluiting'), haal('api/zon')]);
   if (h.status === 'fulfilled') huisData = h.value;
   if (a.status === 'fulfilled') {
     aInfo = a.value;
@@ -39,141 +37,20 @@ async function laadAlles() {
     minimum = { ...(aInfo.antwoorden?.minimum ?? {}) };
   }
   if (z.status === 'fulfilled') zon = z.value;
-  if (b.status === 'fulfilled') helpen = b.value;
   teken();
 }
 
 /* ------------------------------------------------------------ de delen */
 
-const klimaat = () => site?.actuators ?? [];
 const uitstelbaar = () => (huisData?.etages ?? []).flatMap((e) => e.ruimtes).flatMap((r) => r.apparaten).filter((x) => x.soort === 'apparaat');
 
 function delen() {
   const opZonAan = Object.values(opZon).filter(Boolean).length + (aInfo?.configuratie?.apparaten ?? []).filter((x) => !opZonUit.includes(x.id)).length;
   return [
-    { id: 'klimaat', titel: t('regeling.klimaat'), zin: huisData ? t('regeling.kamersMee', { n: kamersMee().length }) : klimaat().length ? t('regeling.apparatenMee', { n: klimaat().length }) : '…', stand: site ? 'goed' : null },
-    // Helpen bij de cv (besluit 292): alleen als er een airco is die kan helpen.
-    ...(helpen?.aircos?.length ? [{ id: 'helpen', titel: t('regeling.helpen'), zin: helpenZin(), stand: 'goed' }] : []),
+    // Klimaat per kamer en Helpen bij de cv staan bij Klimaat (besluit 317): een regel erheen.
+    { id: 'klimaat', titel: t('groep.comfort'), zin: t('regeling.naarKlimaat'), stand: 'goed', href: 'comfort.html' },
     { id: 'opzon', titel: t('instellingen.opZon'), zin: aInfo ? (opZonAan ? t('regeling.nOpZon', { n: opZonAan }) : t('instellingen.geen')) : '…', stand: aInfo ? 'goed' : null },
   ];
-}
-
-const FASEN = ['leren', 'kijken', 'regelen'].map((k) => [k, t(`regeling.fase.${k}`)]);
-const fase = (nu) => `<span class="fase" role="img" aria-label="${FASEN.find(([k]) => k === nu)[1]}">${FASEN.map(([k, l]) => `<i class="${k === nu ? k : ''}">${l}</i>`).join('')}</span>`;
-
-/*
- * Per kamer wat er regelt (besluit 138). Vastleggen gebeurt bij de kamer, in
- * Indeling bij Verwarmen en koelen; hier het overzicht, met een tik erheen.
- */
-const ROL_ZIN = { houdt: 'regeling.rol.houdt', zon: 'regeling.rol.zon' };
-const binnenKamers = () => (huisData?.etages ?? []).filter((e) => e.id !== 'buiten').flatMap((e) => e.ruimtes ?? []);
-const actiefIn = (r) => (r.apparaten ?? []).filter((a) => a.soort === 'klimaat' && a.klimaat?.rol && a.klimaat.rol !== 'kijken').sort((a, b) => (a.klimaat.rol === b.klimaat.rol ? 0 : a.klimaat.rol === 'houdt' ? -1 : 1));
-const kamersMee = () => binnenKamers().filter((r) => actiefIn(r).length);
-const naarKamer = (r) => `indeling.html#${encodeURIComponent(r.id)}/warmte`;
-
-function klimaatVorm() {
-  const van = terugblik?.dataset?.vanMs ?? terugblik?.vanMs;
-  const sinds = van ? taal.datum(van, { day: 'numeric', month: 'long' }) : null;
-  const rijen = huisData
-    ? kamersMee().map((r) => {
-        // Kamers die meedoen met deze (besluit 142), erbij genoemd.
-        const mee = binnenKamers().filter((x) => x.meedoenMet?.kamerId === r.id).map((x) => x.naam);
-        const wat = actiefIn(r).map((a) => t(ROL_ZIN[a.klimaat.rol], { naam: a.naam })).join(', ');
-        return `<a class="regelrij kamerrij" href="${naarKamer(r)}"><div class="l"><b>${esc([r.naam, ...mee].join(` ${t('algemeen.en')} `))}</b><span>${esc(wat)}</span></div><span class="pijl" aria-hidden="true">›</span></a>`;
-      }).join('')
-    : '';
-  const nietMee = binnenKamers().filter((r) => !actiefIn(r).length && !r.meedoenMet);
-  const rest = nietMee.length
-    ? `<p class="klein" style="margin: 0">${esc(t('regeling.nietMee'))} ${nietMee.map((r) => `<a href="${naarKamer(r)}">${esc(r.naam)}</a>`).join(', ')}. ${esc(t('regeling.kiesBijKamer'))}</p>`
-    : '';
-  const stand = `<div class="regelrij"><div class="l"><b>${esc(sinds ? t('regeling.kijktSinds', { datum: sinds }) : t('regeling.fase.kijken'))}</b><span>${esc(t('regeling.zegtWat'))}</span></div>${fase('kijken')}</div>`;
-  // Geen teller van winterdagen (besluit 312): die test is van één huis, een nieuw huis wacht er niet op.
-  const bewijs = `<p class="mini" style="margin: 0">${esc(t('regeling.pasZelf'))}</p>`;
-  return `<h2 class="kop-2">${esc(t('regeling.klimaat'))}</h2>
-    <p class="klein" style="margin: 0">${esc(t('regeling.perKamer'))}</p>
-    ${stand}
-    <div>${rijen || `<p class="klein">${esc(t('regeling.geenKamer'))}</p>`}${naarHelpen()}</div>
-    ${rest}
-    ${bewijs}`;
-}
-
-
-/* ------------------------------------------------- helpen bij de cv */
-
-/** "1 uur 26 min", "45 min". */
-function duur(min) {
-  const u = Math.floor(min / 60);
-  const m = Math.round(min % 60);
-  return u === 0 ? t('regeling.helpen.min', { n: m }) : m === 0 ? t('regeling.helpen.uur', { n: u }) : t('regeling.helpen.uurMin', { u, m });
-}
-const graden = (c) => `${nl(c, 1).replace('-', '−')}°`;
-
-/** "2 airco's, 1 helpt nu". */
-function helpenZin() {
-  const aan = helpen.aircos.filter((a) => a.aan);
-  if (!aan.length) return t('regeling.helpen.allesUit');
-  const nu = aan.filter((a) => a.stand === 'helpt').length;
-  // Kijkt SunArc mee, dan helpt er nog niets echt (besluit 313): "zou nu helpen".
-  return [t('regeling.helpen.nAirco', { n: aan.length }), nu ? t(helpen.kijktMee ? 'regeling.helpen.nZouHelpen' : 'regeling.helpen.nHelpt', { n: nu }) : ''].filter(Boolean).join(', ');
-}
-
-/** Bij Klimaat: een rij naar Helpen bij de cv, in plaats van bijspringen onder de kamer. */
-function naarHelpen() {
-  if (!helpen?.aircos?.length) return '';
-  const n = helpen.aircos.filter((a) => a.aan).length;
-  return `<a class="regelrij kamerrij naar-helpen" href="#helpen"><div class="l"><b>${esc(t('regeling.helpen'))}</b><span>${esc(n ? t('regeling.helpen.naar', { n }) : t('regeling.helpen.allesUit'))}</span></div><span class="pijl" aria-hidden="true">›</span></a>`;
-}
-
-/** Wat warmte nu kost, van de airco en van de ketel: twee balken en wat goedkoper is. */
-function kostenBlok() {
-  const k = helpen.kosten;
-  if (!k) return `<p class="klein" style="margin: 0">${esc(t('regeling.helpen.geenPrijzen'))} <a href="energie.html#prijzen">${esc(t('regeling.helpen.naarPrijzen'))}</a></p>`;
-  const max = Math.max(k.airco, k.ketel);
-  const balk = (label, w, kleur) => `<div class="kostbalk"><span>${esc(label)}</span><i><b style="width: ${Math.round((w / max) * 100)}%; background: ${kleur}"></b></i><em>${esc(t('regeling.helpen.ct', { ct: nl(w * 100, 0) }))}</em></div>`;
-  const goedkoper = k.airco < k.ketel;
-  const sub = [t('regeling.helpen.bijBuiten', { graden: graden(k.buitenC) }), k.gelijkBijC != null ? t('regeling.helpen.gelijkBij', { graden: `${nl(Math.round(k.gelijkBijC), 0).replace('-', '−')}°` }) : ''].filter(Boolean).join(' ');
-  return `<div class="kost">${balk(t('regeling.helpen.warmteAirco'), k.airco, 'var(--ijs)')}${balk(t('regeling.helpen.warmteKetel'), k.ketel, 'var(--gloed)')}
-    <p class="oordeel"><b class="${goedkoper ? 'goed' : ''}">${esc(t(goedkoper ? 'regeling.helpen.aircoGoedkoper' : 'regeling.helpen.ketelGoedkoper'))}</b><span>${esc(sub)}</span></p></div>`;
-}
-
-/** Per airco: zijn eigen kamer, of hij helpt, wat hij nu doet en wat hij vandaag deed. */
-function helperKaart(a) {
-  const kijkt = a.kamer ? t('regeling.helpen.kijkt', { kamer: a.kamer, nu: a.kamerC != null ? graden(a.kamerC) : '–', doel: a.doelC != null ? graden(a.doelC) : '–' }) : '';
-  const klok = a.sindsMs ? app.klokVan(a.sindsMs) : '';
-  const zou = helpen?.kijktMee === true;
-  const stand = {
-    // Zolang SunArc meekijkt, schakelt het de airco niet: dan "zou helpen" (0.190.2).
-    helpt: t(zou ? 'regeling.helpen.zouHelpt' : 'regeling.helpen.helpt', { klok, doel: a.doelC != null ? graden(a.doelC) : '' }),
-    klaar: t(zou ? 'regeling.helpen.zouKlaar' : 'regeling.helpen.klaar', { klok, kamer: (a.kamer ?? '').toLowerCase() }),
-    wacht: t('regeling.helpen.wacht'),
-    uit: t('regeling.helpen.uit'),
-  }[a.stand];
-  const kleur = a.stand === 'helpt' ? 'var(--gloed)' : a.stand === 'klaar' ? 'var(--mint)' : 'var(--net)';
-  const vandaag = a.vandaag.keer ? t(zou ? 'regeling.helpen.zouVandaag' : 'regeling.helpen.vandaag', { n: a.vandaag.keer, duur: duur(a.vandaag.minuten) }) : t('regeling.helpen.nogNiet');
-  return `<div class="helper${a.aan ? '' : ' uit'}">
-    <div class="regelrij"><div class="l"><b>${esc(a.naam)}</b><span>${esc(kijkt)}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${a.aan}" aria-label="${esc(t('regeling.helpen.van', { naam: a.naam }))}" data-helpen-aan="${esc(a.id)}"></button></div>
-    <p class="helpstand"><i style="background: ${kleur}"></i>${esc(stand)}</p>
-    ${a.aan ? `<p class="helpdag"><span>${esc(t('regeling.helpen.vandaagKop'))}</span><b>${esc(vandaag)}</b></p>` : ''}
-  </div>`;
-}
-
-function helpenVorm() {
-  if (!helpen) return `<p class="klein">${esc(t('algemeen.laden'))}…</p>`;
-  const stap = (veld, stapje, label, tekst) => `<div class="bijstap"><span>${esc(label)}</span><button type="button" data-helpen="${veld}:-${stapje}" aria-label="${esc(t('regeling.bij.minder', { wat: label }))}">−</button><b>${esc(tekst)}</b><button type="button" data-helpen="${veld}:${stapje}" aria-label="${esc(t('regeling.bij.meer', { wat: label }))}">+</button></div>`;
-  const regel = (kop, zin) => `<div class="regelrij gaat"><div class="l"><b>${esc(kop)}</b><span>${esc(zin)}</span></div></div>`;
-  return `<h2 class="kop-2">${esc(t('regeling.helpen'))}</h2>
-    <p class="klein" style="margin: 0">${esc(t('regeling.helpen.lead'))}</p>
-    ${helpen.kijktMee ? `<p class="klein" style="margin: 0; color: var(--ijs-t)">${esc(t('regeling.helpen.kijktMee'))}</p>` : ''}
-    ${kostenBlok()}
-    <div class="helpers">${helpen.aircos.map(helperKaart).join('')}</div>
-    <h3 class="kop-3" style="margin: 6px 0 0">${esc(t('regeling.helpen.zoGaatHet'))}</h3>
-    <div>
-      ${regel(t('regeling.helpen.begint'), t('regeling.helpen.beginZin', { min: helpen.naMin, graden: graden(helpen.vanafC) }))}
-      <div class="regelrij bijgetallen">${stap('naMin', 1, t('regeling.bij.na'), t('regeling.bij.minuten', { n: helpen.naMin }))}${stap('vanafC', 0.1, t('regeling.bij.vanaf'), t('regeling.bij.graden', { graden: graden(helpen.vanafC) }))}</div>
-      ${regel(t('regeling.helpen.stopt'), t('regeling.helpen.stoptZin'))}
-      ${regel(t('regeling.helpen.pomp'), t('regeling.helpen.pompZin', { aan: helpen.minRunMinutes, uit: helpen.minRestMinutes }))}
-      ${regel(t('regeling.helpen.stil'), t('regeling.helpen.stilZin'))}
-    </div>`;
 }
 
 /** Een schakelaar per apparaat (besluit 167): aan start hij op zon, uit niet. Ook voor wat de configuratie noemt. */
@@ -216,18 +93,13 @@ function opZonVorm() {
 }
 
 /** Per deel een kopje en drie of twee punten (regeling.naast.*). */
-const NAAST = { klimaat: 3, helpen: 3, opzon: 2 };
+const NAAST = { opzon: 2 };
 
 function naast(id) {
-  const deel = NAAST[id] ? id : 'klimaat';
+  const deel = 'opzon';
   const lijst = Array.from({ length: NAAST[deel] }, (_, i) => t(`regeling.naast.${deel}.${i + 1}`));
   const later = aInfo?.volgendeStart && id === 'opzon' ? `<div class="glas"><h3>${esc(t('regeling.ingaat'))}</h3><p style="margin: 0">${esc(t('regeling.ingaatZin'))}</p><button type="button" class="knop" data-herstart style="align-self: start; margin-top: 8px">${esc(t('basis.herstart'))}</button></div>` : '';
-  // Helpen bij de cv (besluit 292): de rekensom erbij.
-  const k = deel === 'helpen' ? helpen?.kosten : null;
-  const som = k
-    ? `<div class="glas"><h3>${esc(t('regeling.helpen.somKop', { graden: graden(k.buitenC) }))}</h3><p class="mini" style="margin: 0">${esc(t('regeling.helpen.somKetel', { gas: nl(k.gas, 2), ct: nl(k.ketel * 100, 0) }))}</p><p class="mini" style="margin: 0">${esc(t('regeling.helpen.somAirco', { stroom: nl(k.stroom, 2), cop: nl(k.cop, 1), ct: nl(k.airco * 100, 0) }))}</p><p class="mini" style="margin: 0">${esc(t('regeling.helpen.somTabel'))}</p></div>`
-    : '';
-  return `<div class="glas"><h3>${esc(t(`regeling.naast.${deel}`))}</h3><ul>${lijst.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>${som}${later}`;
+  return `<div class="glas"><h3>${esc(t(`regeling.naast.${deel}`))}</h3><ul>${lijst.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>${later}`;
 }
 
 /* ------------------------------------------------------------ tekenen */
@@ -236,38 +108,12 @@ function tekenNu() {
   app.schaal();
   app.luchtVan(zon, 0);
   const nu = groep.tekenDelen(delen());
-  const vorm = { klimaat: klimaatVorm, helpen: helpenVorm, opzon: opZonVorm }[nu]?.() ?? '';
+  const vorm = nu === 'opzon' ? opZonVorm() : '';
   $$('[data-vorm]').forEach((el) => (el.innerHTML = vorm));
   $$('[data-naast]').forEach((el) => (el.innerHTML = naast(nu)));
 }
 
 /* ------------------------------------------------------------ bewaren */
-
-// Helpen bij de cv (besluit 292): meteen bewaard, voor het hele huis.
-document.addEventListener('click', (e) => {
-  const knop = e.target.closest('[data-helpen-aan], [data-helpen]');
-  if (!knop || !helpen) return;
-  let { naMin, vanafC } = helpen;
-  let aircos = helpen.aircos;
-  if (knop.dataset.helpenAan) aircos = aircos.map((a) => (a.id === knop.dataset.helpenAan ? { ...a, aan: !a.aan } : a));
-  else {
-    const [veld, stap] = knop.dataset.helpen.split(':');
-    const { min, max } = helpen.bereik[veld];
-    const nieuw = Math.round(Math.min(max, Math.max(min, helpen[veld] + Number(stap))) * 10) / 10;
-    if (veld === 'naMin') naMin = nieuw;
-    else vanafC = nieuw;
-  }
-  helpen = { ...helpen, naMin, vanafC, aircos };
-  teken();
-  groep.bewaarStraks(async () => {
-    const uit = await groep.stuur('api/helpen', { naMin, vanafC, aan: Object.fromEntries(aircos.map((a) => [a.id, a.aan])) });
-    if (uit?.ok) {
-      helpen = uit.antwoord;
-      teken();
-    }
-    return uit;
-  });
-});
 
 document.addEventListener('click', (e) => {
   const knop = e.target.closest('[data-opzon], [data-opzon-vast]');

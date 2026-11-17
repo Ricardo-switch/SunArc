@@ -114,7 +114,7 @@
       ${meer.length ? `<h3 class="bb-sectie">${esc(t('buiten.ookHier'))}</h3><div class="bb-lijst">${meer.join('')}</div>` : ''}
       ${andere.length ? `<h3 class="bb-sectie">${esc(t('buiten.ookIn', { naam: r.naam }))}</h3><div class="bb-lijst">${andere.join('')}</div>` : ''}
       <div class="bb-voet"><button type="button" class="knop" data-bb-open="alles">${esc(t('buiten.allesBuiten'))}</button><a class="knop" href="kamer.html#${encodeURIComponent(r.id)}">${esc(t('buiten.openRuimte', { naam: r.naam }))}</a></div>
-      <p class="mini voet">${esc(t(r.buitenSoort === 'garage' || (huis?.toegang ?? []).some((x) => x.kamerId === r.id) ? 'buiten.voetDeur' : 'buiten.voet'))} <a href="indeling.html#${encodeURIComponent(r.id)}">${esc(t('buiten.zonesInrichten', { naam: r.naam }))}</a></p>`;
+      <p class="mini voet">${esc(t(r.buitenSoort === 'garage' || (huis?.toegang ?? []).some((x) => x.kamerId === r.id) ? 'buiten.voetDeur' : 'buiten.voet'))} <a href="jehuis.html#buiten">${esc(t('buiten.zonesInrichten', { naam: r.naam }))}</a></p>`;
   }
 
   /** Alles buiten: per deel aan of uit, voor het huis en in de tuin, en alles in één keer uit. */

@@ -59,7 +59,7 @@ describe('wat niet klopt: wat de bewoner koos en de regeling niet kon overnemen 
     expect(kloptMelding(feiten[0]!, 'nl', T0)).toMatchObject({
       id: 'klopt:vermogen:climate.zolder',
       titel: 'Airco zolder helpt nog niet op zon',
-      actie: { label: 'Vul het vermogen in', href: 'indeling.html#zolder/warmte' },
+      actie: { label: 'Vul het vermogen in', href: 'comfort.html#zolder' },
       klaar: { titel: 'Airco zolder helpt op zon' },
     });
     expect(kloptMelding({ soort: 'kanNiet', id: 'climate.x', naam: 'Kachel', kamerId: 'hal', kamer: 'Hal' }, 'nl', T0).titel).toBe('Kachel doet nog niet mee');
@@ -74,7 +74,7 @@ describe('wat niet klopt: wat de bewoner koos en de regeling niet kon overnemen 
     expect(kloptMelding(feiten[0]!, 'nl', T0)).toMatchObject({
       id: 'klopt:zone:zolder',
       titel: 'Niets houdt de wasruimte op temperatuur',
-      actie: { label: 'Kies wat regelt', href: 'indeling.html#kamer-zolder/warmte' },
+      actie: { label: 'Kies wat regelt', href: 'comfort.html#kamer-zolder' },
       laat: true,
     });
     // Verwarmt de kamer mee met een thermostaat van een andere kamer, dan zegt de melding dat.
@@ -88,7 +88,7 @@ describe('wat niet klopt: wat de bewoner koos en de regeling niet kon overnemen 
     });
     expect(kloptMelding(mee[0]!, 'en', T0).titel).not.toMatch(/verwarmt|kamer/);
     // Zonder kamer in de indeling gaat de knop naar Regeling.
-    expect(kloptMelding({ soort: 'alleenHelpt', zoneId: 'zolder', kamer: 'Wasruimte', kamerId: null }, 'nl', T0).actie.href).toBe('regeling.html');
+    expect(kloptMelding({ soort: 'alleenHelpt', zoneId: 'zolder', kamer: 'Wasruimte', kamerId: null }, 'nl', T0).actie.href).toBe('comfort.html');
     // Een zone zonder apparaten is geen melding.
     expect(vast({ config: config({ nest: 'primary' }, { woonkamer: ['nest'], zolder: [] }) })).toEqual([]);
   });

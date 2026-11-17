@@ -34,7 +34,7 @@ let concept = null;
 /** Per soort: het icoon, het vlak erachter en waar je hem toevoegt. */
 const SOORTEN = [
   ['klimaat', 'airco', '111, 211, 255', 'inrichten.html#klimaat'],
-  ['licht', 'lamp', '247, 181, 72', 'indeling.html'],
+  ['licht', 'lamp', '247, 181, 72', 'jehuis.html'],
   ['water', 'boiler', '255, 122, 77', 'regeling.html#opzon'],
   ['witgoed', 'witgoed', '110, 231, 183', 'regeling.html#opzon'],
   ['auto', 'auto', '143, 134, 255', 'energie.html#auto'],
@@ -149,7 +149,7 @@ const schakelaarZin = (s) => (s.ir ? t('toev.ir', { n: s.knoppen.length }) : s.k
 function nieuwGevonden() {
   const uit = [];
   for (const s of schakelaars) if (!s.keuze) uit.push({ naam: s.naam, icoon: s.ir ? 'warm' : 'apparaat', klein: `${schakelaarZin(s)} · ${t('toev.nietIngesteld')}`, href: `#s-${encodeURIComponent(s.id)}` });
-  for (const d of huisData?.zonderRuimte ?? []) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.zonderKamer', href: 'indeling.html#los' });
+  for (const d of huisData?.zonderRuimte ?? []) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.zonderKamer', href: 'jehuis.html#bg/apparaten' });
   const opZon = aansluiting?.antwoorden?.opZon ?? {};
   // Wat al in de configuratie op zon staat (zoals een droger uit het bestand), is niet nieuw: Regeling toont het al (besluit 296).
   const vast = new Set((aansluiting?.configuratie?.apparaten ?? []).map((x) => x.id));

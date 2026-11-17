@@ -523,7 +523,7 @@ function kamerVak({ id: kamer, naam, lampen }) {
   const aan = lampen.filter(lampAan).length;
   const kop = naam
     ? `<b>${esc(naam)}</b><small>${esc(aan ? t('apparaten.lampenAan', { n: aan, m: lampen.length }) : t('apparaten.lampenUit'))}</small>`
-    : `<b>${esc(t('apparaten.zonderKamer'))}</b><a class="mist" href="indeling.html#los">${esc(t('apparaten.kiesKamer'))}</a>`;
+    : `<b>${esc(t('apparaten.zonderKamer'))}</b><a class="mist" href="jehuis.html#bg/apparaten">${esc(t('apparaten.kiesKamer'))}</a>`;
   const rijen = lampen
     .map((d) => {
       const op = lampAan(d);
@@ -645,7 +645,7 @@ function lampBlad(id) {
   const zin = [kamer?.naam ?? t('apparaten.zonderKamer'), t(op ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit'), d.via ? t('apparaten.via', { via: d.via }) : null].filter(Boolean).join(' · ');
   const schakel = `<button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button>`;
   const helder = mag && d.dimbaar ? regel(t('apparaten.blad.helder'), `<input type="range" min="1" max="100" step="1" value="${d.helderheidPct ?? 100}" data-helder="${esc(d.id)}" aria-label="${esc(t('apparaten.blad.helder'))}">`) : '';
-  const plek = kamer ? `kamer.html#${encodeURIComponent(kamer.id)}/${encodeURIComponent(d.id)}` : 'indeling.html#los';
+  const plek = kamer ? `kamer.html#${encodeURIComponent(kamer.id)}/${encodeURIComponent(d.id)}` : 'jehuis.html#bg/apparaten';
   return {
     naam: d.naam,
     zin,

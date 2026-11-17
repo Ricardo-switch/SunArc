@@ -127,7 +127,7 @@ requires every field to be read somewhere or to be on a list with a reason
 (Tailwind built locally), and the resident app in design 2 (decision 104), one
 page per tab: `thuis.html` (home), `vandaag.html` (today), `apparaten.html`
 (devices), `opbrengst.html` (yield), `assistent.html` (assistant), `kamer.html`
-(room), `instellingen.html` (settings), `indeling.html` (rooms and layout),
+(room), `instellingen.html` (settings), `jehuis.html` (your home), `comfort.html` (climate),
 `aansluiting.html` (connection), `meters.html` and `huis-kan.html` (what your
 house can do), with the drawing engine from `frontend/kit/`. They read what the
 service hands them ready-made and recalculate nothing. The shadow service

@@ -222,7 +222,7 @@ const WOORD = {
 } as const;
 
 const paar = (p: readonly [string, string] | readonly string[]) => ({ titel: p[0]!, tekst: p[1]! });
-const naarKamer = (kamerId: string | null) => (kamerId ? `indeling.html#${encodeURIComponent(kamerId)}/warmte` : 'regeling.html');
+const naarKamer = (kamerId: string | null) => (kamerId ? `comfort.html#${encodeURIComponent(kamerId)}` : 'comfort.html');
 
 /** Een feit als melding, in één taal. */
 export function kloptMelding(f: KloptFeit, lang: Lang, nu: number): KloptMelding {

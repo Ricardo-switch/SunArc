@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="only dark">
-<title>Comfort · SunArc</title>
+<title>Klimaat · SunArc</title>
 <link rel="stylesheet" href="kit/kit.css">
 <link rel="stylesheet" href="basis.css">
+<link rel="stylesheet" href="warmte.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b1424">
 <link rel="icon" href="icoon-192.png?v=sunarc">
@@ -110,6 +111,57 @@
   /* Wiens comfort (besluit 147). */
   .wiekies { height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid rgb(var(--wit) / 0.16); background: rgb(var(--wit) / 0.06); color: var(--tekst); font: inherit; font-size: 14.5px; font-weight: 600; color-scheme: dark; }
   .wiekies option { background: #14203a; }
+  /* Klimaat per kamer (besluit 317, schets Wand-Klimaat-Kamer): links hoe warm, rechts wat ervoor zorgt. */
+  .kolommen { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .kolom { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .kolom.zorgt { gap: 12px; padding-left: 22px; border-left: 1px solid rgb(var(--wit) / 0.07); }
+  .kolomkop { margin: 0 0 2px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); }
+  .kolom .band { grid-template-columns: 1fr; gap: 6px; }
+  .kolom .regels { grid-column: 1; }
+  .kolom .zonnet { grid-template-columns: 1fr; gap: 8px; padding-top: 8px; }
+  /* Compact in de kolom (de wand scrolt nooit): de naam van het dagdeel op een regel, verwarmen en koelen naast elkaar. */
+  .kolom .band { padding: 6px 0; gap: 4px; }
+  .kolom .band .naam { display: flex; align-items: baseline; gap: 8px; }
+  .kolom .band .naam b { display: inline; }
+  .kolom .regels { grid-template-columns: 1fr 1fr; }
+  .kolom .regel { padding: 4px 6px 4px 10px; }
+  .kolom .regel .wat { font-size: 12.5px; gap: 4px; }
+  .kolom .regel .wat b { font-size: 14px; }
+  .kolom .kolom.zorgt, .kolom.zorgt { padding-left: 18px; }
+  .kolom .regel small { grid-column: 1 / -1; }
+  .kolom .zonnet .blok { padding: 8px 12px; gap: 6px; }
+  #tel .kolom .regels { grid-template-columns: 1fr; }
+  #tel .kolommen { grid-template-columns: 1fr; gap: 18px; }
+  #tel .kolom.zorgt { padding-left: 0; border-left: 0; padding-top: 14px; border-top: 1px solid rgb(var(--wit) / 0.07); }
+  /* Helpt ook de cv, onder een airco (besluit 292 en 317). */
+  .cvregel { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 8px; border-top: 1px solid rgb(var(--wit) / 0.07); }
+  .cvregel .l { display: flex; flex-direction: column; min-width: 0; }
+  .cvregel .l b { font-size: 13.5px; }
+  .cvregel .l span { font-size: 12.5px; color: var(--gedempt); }
+  /* Helpen bij de cv (besluit 292, schets Wand-Helpen-Cv), van Regeling: wat warmte kost, en per airco een kaart. */
+  .bijgetallen { flex-wrap: wrap; gap: 8px 22px; justify-content: flex-start; }
+  .bijstap { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gedempt); }
+  .bijstap button { width: 30px; height: 30px; border-radius: 50%; border: 0; background: rgb(var(--wit) / 0.08); color: var(--tekst); font-size: 16px; cursor: pointer; }
+  .bijstap b { min-width: 64px; text-align: center; color: var(--tekst); font-size: 14.5px; }
+  .regelrij .l b { font-size: 15px; }
+  .vorm p a { color: var(--ijs-t); text-decoration: none; font-weight: 600; }
+  .kost { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.045); }
+  .kostbalk { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr) auto; align-items: center; gap: 12px; font-size: 13.5px; color: var(--zacht); }
+  .kostbalk i { height: 10px; border-radius: 5px; background: rgb(var(--wit) / 0.06); overflow: hidden; }
+  .kostbalk i b { display: block; height: 100%; border-radius: 5px; }
+  .kostbalk em { font-style: normal; font-weight: 700; color: var(--tekst); white-space: nowrap; }
+  .oordeel { margin: 2px 0 0; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 13px; color: var(--gedempt); }
+  .oordeel b { color: var(--tekst); }
+  .oordeel b.goed { color: var(--mint-t); }
+  .helpers { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .helper { padding: 4px 14px 12px; border-radius: 18px; background: rgb(var(--wit) / 0.045); border: 1px solid rgb(var(--wit) / 0.07); }
+  .helper.uit { opacity: 0.7; }
+  .helpstand { margin: 2px 0 0; display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; }
+  .helpstand i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .helpdag { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid rgb(var(--wit) / 0.07); display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--gedempt); }
+  .helpdag b { color: var(--tekst); font-weight: 600; }
+  .tel-stand .kostbalk { grid-template-columns: 1fr auto; }
+  .tel-stand .kostbalk i { grid-column: 1 / -1; grid-row: 2; }
 </style>
 </head>
 <body class="lucht lucht-dag">
@@ -156,6 +208,9 @@
   <script src="kit/nav.js"></script>
   <script src="basis.js"></script>
   <script src="groep.js"></script>
+  <script src="kit/huis.js"></script>
+  <script src="huismodel.js"></script>
+  <script src="warmte.js"></script>
   <script src="comfort.js"></script>
 </body>
 </html>

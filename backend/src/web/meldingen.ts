@@ -534,7 +534,7 @@ export function wat(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[] {
   for (const d of bron.zonderRuimte) {
     uit.push(tweetalig((lang) => {
       const w = WOORDEN[lang].nieuw;
-      return { id: `nieuw:${d.id}`, soort: 'nieuw', aandacht: true, titel: w.titel(d.naam), tekst: w.tekst, actie: { label: w.actie, href: 'indeling.html' } };
+      return { id: `nieuw:${d.id}`, soort: 'nieuw', aandacht: true, titel: w.titel(d.naam), tekst: w.tekst, actie: { label: w.actie, href: 'jehuis.html#bg/apparaten' } };
     }));
   }
   for (const d of bron.volgen) {
@@ -813,7 +813,7 @@ export function wegUit(
     weg.push({
       ...tweetalig((lang) => {
         const w = WOORDEN[lang].weg;
-        return { id: `weg:${id}`, soort: 'weg', aandacht: true, titel: w.titel(d.naam), tekst: d.kamer ? w.inKamer(inKamer(d.kamer, lang)) : w.los, actie: { label: w.actie, href: 'indeling.html' } };
+        return { id: `weg:${id}`, soort: 'weg', aandacht: true, titel: w.titel(d.naam), tekst: d.kamer ? w.inKamer(inKamer(d.kamer, lang)) : w.los, actie: { label: w.actie, href: 'jehuis.html#bg/apparaten' } };
       }),
       sindsMs: sinds,
     });

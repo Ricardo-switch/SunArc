@@ -73,18 +73,18 @@ interface Onderwerp {
 const ONDERWERPEN: readonly Onderwerp[] = [
   {
     id: 'indeling',
-    href: 'indeling.html',
+    href: 'jehuis.html',
     sterk: ['indeling', 'plattegrond', 'etage*', 'verdieping*', 'buitenruimte*', 'layout', 'floor', 'floors', 'floor plan', 'outdoor space*'],
     zwak: ['kamer toevoegen', 'kamers', 'ruimte*', 'tuin', 'oprit', 'terras', 'balkon', 'voortuin', 'zolder toevoegen', 'kelder', 'rooms', 'add a room', 'garden', 'driveway', 'patio', 'balcony', 'basement'],
     nl: {
       antwoord:
-        'De indeling pas je aan bij Instellingen, onder Indeling. Daar sleep je een apparaat naar een andere kamer, voeg je een etage toe of haal je er een weg, en kies je wat er buiten is, zoals een tuin of een oprit.',
-      label: 'Naar Indeling',
+        'De indeling pas je aan bij Instellingen, onder Je huis. Daar teken je de kamers, zet je een apparaat in een kamer, voeg je een etage toe of haal je er een weg, en kies je wat er buiten is, zoals een tuin of een oprit.',
+      label: 'Naar Je huis',
     },
     en: {
       antwoord:
-        'You change the layout under Settings, Rooms and layout. Drag a device to another room, add or remove a floor, and choose what is outside, such as a garden or a driveway.',
-      label: 'Go to Rooms and layout',
+        'You change the layout under Settings, Your home. There you draw the rooms, put a device in a room, add or remove a floor, and choose what is outside, such as a garden or a driveway.',
+      label: 'Go to Your home',
     },
   },
   {
@@ -141,12 +141,12 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     sterk: ['comfort', 'dagdeel', 'dagdelen', 'nachttemperatuur', 'vakantie', 'part of the day', 'night temperature', 'holiday'],
     zwak: ['temperatuur', 'instellen', 'temperature'],
     nl: {
-      antwoord: 'Hoe warm of koel je het wilt, zet je bij Instellingen, onder Comfort: per kamer en per dagdeel, en wanneer de dag en de nacht beginnen. De regeling rekent er meteen mee.',
-      label: 'Naar Comfort',
+      antwoord: 'Hoe warm of koel je het wilt, zet je bij Instellingen, onder Klimaat: per kamer en per dagdeel, en wanneer de dag en de nacht beginnen. Daar staat ook wat er in elke kamer verwarmt en koelt. De regeling rekent er meteen mee.',
+      label: 'Naar Klimaat',
     },
     en: {
-      antwoord: 'How warm or cool you want it is under Settings, Comfort: per room and per part of the day, and when day and night begin. The control uses it right away.',
-      label: 'Go to Comfort',
+      antwoord: 'How warm or cool you want it is under Settings, Climate: per room and per part of the day, and when day and night begin. It also shows what heats and cools each room. The control uses it right away.',
+      label: 'Go to Climate',
     },
   },
   {

@@ -53,12 +53,12 @@ describe('woordzoeker in het Engels (besluit 185, stap 9 deel 6)', () => {
 
   it('verstaat vragen over de app, met de namen zoals de Engelse app ze toont', () => {
     expect(en('Where do I enter the prices?')).toBe('energie.html#prijzen');
-    expect(en('How do I add a floor?')).toBe('indeling.html');
+    expect(en('How do I add a floor?')).toBe('jehuis.html');
     expect(en('Where can I set my main fuse?')).toBe('energie.html#aansluiting');
     expect(en('How do I sign out?')).toBe('toegang.html');
     expect(en('Where are the cameras?')).toBe('functies.html');
     const b = begrijp('Where do I change the layout?', config, 'en');
-    expect(b.soort === 'app' && b.link.label).toBe('Go to Rooms and layout');
+    expect(b.soort === 'app' && b.link.label).toBe('Go to Your home');
   });
 
   it('geeft Engelse voorbeelden die het zelf verstaat', () => {
@@ -99,8 +99,8 @@ describe('woordzoeker', () => {
   it('vindt de pagina bij een vraag over de app', () => {
     expect(app('Waar vul ik de prijzen in?')).toBe('energie.html#prijzen');
     expect(app('Hoe stel ik het daltarief in')).toBe('energie.html#prijzen');
-    expect(app('Hoe pas ik de indeling aan?')).toBe('indeling.html');
-    expect(app('Hoe voeg ik een etage toe')).toBe('indeling.html');
+    expect(app('Hoe pas ik de indeling aan?')).toBe('jehuis.html');
+    expect(app('Hoe voeg ik een etage toe')).toBe('jehuis.html');
     expect(app('Waar stel ik mijn hoofdzekering in')).toBe('energie.html#aansluiting');
     // Comfort zet je in de app (besluit 130).
     expect(app('Waar stel ik de temperatuur in?')).toBe('comfort.html');

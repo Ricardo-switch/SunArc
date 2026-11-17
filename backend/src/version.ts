@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.191.0';
+export const VERSIE = '0.192.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,24 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.192.0',
+    datum: '2026-11-17',
+    nieuw: [
+      'Comfort heet nu Klimaat. Per kamer staat in één blad hoe warm je het wilt en wat ervoor zorgt: welk apparaat wat doet, waarmee de kamer meet, en of een airco ook de cv helpt',
+      'Kamers zonder eigen regeling staan bij Andere kamers: daar kies je wat er verwarmt en of de kamer meedoet',
+      'Helpen bij de cv staat bij Klimaat onder Het hele huis. Bij Regeling blijft Apparaten op zon',
+      'Kamers en indeling is weg: het gebouw staat bij Je huis. Daar zet je een apparaat nu ook buiten, bij de voordeur of in de garage',
+    ],
+    en: {
+      nieuw: [
+        'Comfort is now called Climate. Each room has one sheet with how warm you want it and what takes care of it: which device does what, what the room measures with, and whether an air conditioner also helps the boiler',
+        'Rooms without their own control are under Other rooms: there you choose what heats them and whether the room takes part',
+        'Helping the boiler is under Climate, The whole house. Control keeps Appliances on solar',
+        'Rooms and layout is gone: the building is under Your home. There you can now also put a device outside, at the front door or in the garage',
+      ],
+    },
+  },
   {
     versie: '0.191.0',
     datum: '2026-11-17',

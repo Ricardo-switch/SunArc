@@ -120,7 +120,7 @@ lijst staat (besluit 54).
 **De weergave (`frontend/`).** Vanilla JS: `index.html` voor de schaduw (Tailwind
 lokaal gebouwd), en de bewonersapp in ontwerp 2 (besluit 104), één pagina per tab:
 `thuis.html`, `vandaag.html`, `apparaten.html`, `opbrengst.html`, `assistent.html`,
-`kamer.html`, `instellingen.html`, `indeling.html`, `aansluiting.html`,
+`kamer.html`, `instellingen.html`, `jehuis.html` (het gebouw), `comfort.html` (Klimaat), `aansluiting.html`,
 `meters.html` en `huis-kan.html`, met de tekenmotor uit `frontend/kit/`. Ze lezen
 wat de dienst kant-en-klaar geeft en herberekenen niets. De schaduwdienst serveert ze zelf:
 

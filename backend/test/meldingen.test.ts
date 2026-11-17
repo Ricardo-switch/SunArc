@@ -39,7 +39,7 @@ describe('meldingen (besluit 136)', () => {
     const nu = s.lijst(T0 + 12 * 60_000).actief;
     expect(nu.map((m) => [m.soort, m.titel])).toEqual([['weg', 'Weg uit Home Assistant: De droger']]);
     expect(nu[0]?.tekst).toContain('Het stond in de zolder.');
-    expect(nu[0]?.actie?.href).toBe('indeling.html');
+    expect(nu[0]?.actie?.href).toBe('jehuis.html#bg/apparaten');
     expect(s.lijst(T0 + 12 * 60_000, 'en').actief[0]?.titel).toBe('Gone from Home Assistant: De droger');
     // Onthouden na een herstart; komt hij terug, dan gaat de melding stil weg, niet naar Eerder.
     await s.bewaar();
