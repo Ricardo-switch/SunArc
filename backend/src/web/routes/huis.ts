@@ -489,7 +489,8 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     tekeningBron: basis.plattegrondBron ?? vorm.bron,
     woning: huis.woning,
     // Van boven naar beneden, zoals het huis opzij.
-    etages: binnen.map((e, i) => ({ id: e.id, naam: e.naam, hoogte: hoogtes[i] })),
+    // Stap 3 (Je huis aangevuld): welke etage onder het schuine dak ligt, voor het blad van de etage.
+    etages: binnen.map((e, i) => ({ id: e.id, naam: e.naam, hoogte: hoogtes[i], dak: huis.dakEtage === e.id })),
     kamers: binnen.flatMap((e) => e.ruimtes.map((r) => ({ id: r.id, naam: r.naam, soort: r.soort, etage: e.id, zones: r.zones.map((z) => z.naam) }))),
     tekening: verschuif(basis.plattegrond ?? {}, nu, nv),
     // De deuren en ramen, en welk screen voor welk raam hangt (0.187.0).
@@ -499,6 +500,9 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     plekken,
     apparaten,
     verborgen: huis.verborgen.length,
+    // Stap 3: de verborgen apparaten met hun naam, om ze in Je huis terug te halen, en of er een thuisaccu is (waar hij staat, bij Buiten).
+    verborgenLijst: huis.verborgen.map((a) => ({ id: a.id, naam: a.naam, soort: a.soort })),
+    thuisaccu: huis.opslag?.batterij?.naam ?? null,
   });
 }
 

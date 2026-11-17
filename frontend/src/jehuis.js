@@ -17,8 +17,11 @@
  * bij Daken en panelen; een buitenmuur rechttrekken blijft in de tekening. De
  * kaarten vraagt hij pas na de melding van Daken en panelen (besluit 256).
  *
- * Kamers en indeling blijft zoals hij was, met een ingang hiernaartoe; pas als
- * Ricardo zegt dat deze goed is, gaat de oude eruit.
+ * Ricardo keurde Je huis goed op 17 november 2026 (kwaliteitsronde, stap 3).
+ * Sinds 0.191.0 kan hier ook wat eerst alleen bij Kamers en indeling kon: de
+ * etage, de soort en naam van een kamer, buiten en verbergen (zie "de
+ * indeling" hieronder). Kamers en indeling gaat weg in dezelfde versie als het
+ * blad Klimaat per kamer, waar Verwarmen en koelen heen gaat.
  */
 'use strict';
 
@@ -91,12 +94,166 @@ function huisVoorMotor(d) {
     nietGevonden,
     ...(kanKijken ? { kijk } : {}),
     // Kort voor de balk op de telefoon en het huis opzij: "Eerste verdieping" wordt "Eerste", "First floor" wordt "First".
-    etages: d.etages.map((e) => ({ id: e.id, naam: e.naam, kort: kortNaam(e.naam), hoogte: e.hoogte, blokken: e.id === beneden ? d.vorm.blokken : hoofd })),
+    etages: d.etages.map((e) => ({ id: e.id, naam: e.naam, kort: kortNaam(e.naam), hoogte: e.hoogte, dak: !!e.dak, blokken: e.id === beneden ? d.vorm.blokken : hoofd })),
     kamers: d.kamers.map((k) => ({ id: k.id, naam: k.naam, soort: k.soort ?? null, etage: k.etage, zones: k.zones })),
     // Stap 3: de apparaten binnen, in hun kamer of nog zonder (de strook).
     apparaten: d.apparaten ?? [],
     verborgen: d.verborgen ?? 0,
+    // Stap 3: om ze in Je huis terug te halen.
+    verborgenLijst: d.verborgenLijst ?? [],
   };
+}
+
+/* ------------------------------------------------------------ de indeling */
+
+/*
+ * Stap 3 van de kwaliteitsronde (17 november 2026, schets Wand-Huis-Aanvulling):
+ * wat eerst alleen bij Kamers en indeling kon, staat in de bladen van Je huis.
+ * De etage (naam, onder het dak, volgorde, erbij of weg), de soort en de naam
+ * van een kamer, wat er rond het huis is en waar de thuisaccu staat, en een
+ * apparaat verbergen of terughalen. Het bewaart in dezelfde indeling als
+ * Kamers en indeling, met dezelfde regels (`api/indeling`).
+ */
+let info = null;
+let huisData = null;
+async function laadIndeling() {
+  const [i, h] = await Promise.allSettled([haal('api/indeling'), haal('api/huis')]);
+  if (i.status === 'fulfilled') info = i.value;
+  if (h.status === 'fulfilled') huisData = h.value;
+}
+function concept() {
+  const basis = info?.indeling ?? info?.voorstel;
+  return basis ? JSON.parse(JSON.stringify(basis)) : null;
+}
+const volgordeVan = (d) => (d.volgorde?.length ? [...d.volgorde] : (info?.etages ?? []).map((e) => e.id).filter((id) => id !== 'buiten'));
+// Een lijstje van vóór 6 november 2026 kent de border niet: die stond er toen altijd.
+const rondVan = (d) => (d?.rond ? { border: true, allebei: false, ...d.rond } : huismodel.rondNu(huisData));
+/** Een vaste etage op zijn plek: de kelder onderaan, de derde verdieping bovenaan. */
+function opZijnPlek(volgorde, id) {
+  const plek = (x) => (info?.standaard ?? []).findIndex((s) => s.id === x);
+  const mijn = plek(id);
+  const voor = volgorde.findIndex((x) => plek(x) > mijn && plek(x) !== -1);
+  const uit = [...volgorde];
+  uit.splice(voor === -1 ? uit.length : voor, 0, id);
+  return uit;
+}
+
+const indeling = {
+  /** Wat de bladen tonen. */
+  gegevens() {
+    const d = concept();
+    if (!d || !tekenaar) return null;
+    const v = volgordeVan(d);
+    const e = tekenaar.st.etage;
+    const i = v.indexOf(e);
+    const rond = rondVan(d);
+    const accu = huisData?.opslag?.batterij ?? null;
+    const accuNu = d.accu?.plek === 'binnen' ? `binnen:${d.accu.kamer}` : d.accu?.plek === 'garage' && rond.garage ? 'garage' : 'gevel';
+    const binnen = (d.kamers ?? []).filter((k) => k.etage !== 'buiten' && !huismodel.isBuiten({ id: k.etage }, k));
+    return {
+      etage: { kanHoger: i > 0, kanLager: i >= 0 && i < v.length - 1, kanWeg: e !== 'bg' && !(d.kamers ?? []).some((k) => k.etage === e) },
+      nieuweEtages: (info?.standaard ?? []).filter((s) => s.id !== 'buiten' && !v.includes(s.id)).map((s) => [s.id, s.naam]),
+      // Wat aan iets anders hangt (de auto aan de oprit, de border aan de tuin), alleen als dat er is.
+      rond: huismodel.rondom()
+        .filter(([w]) => !huismodel.hangtAan(w) || huismodel.rondAan(rond, huismodel.hangtAan(w)))
+        .map(([w, naam, , icoon]) => ({ w, naam, icoon, aan: huismodel.rondAan(rond, w) })),
+      huisje: huismodel.rondAan(rond, 'tuinhuis') ? { nu: huismodel.huisjeVan(rond), opties: huismodel.HUISJES.map(([x, sleutel]) => [x, t(sleutel)]) } : null,
+      accu: accu
+        ? { naam: accu.naam, nu: accuNu, opties: [['gevel', t('indeling.accu.gevel')], ...(rond.garage ? [['garage', t('indeling.accu.garage')]] : []), ...binnen.map((k) => [`binnen:${k.id}`, k.naam])] }
+        : null,
+      soorten: huismodel.KAMER_SOORTEN,
+    };
+  },
+
+  /** Een tik of een veld: de indeling aanpassen en bewaren, daarna het blad en de tekening opnieuw. */
+  async doe(actie, w) {
+    if (actie === 'klimaat') {
+      // Verwarmen en koelen staat tot het blad Klimaat per kamer er is nog bij Kamers en indeling.
+      location.href = `indeling.html#${encodeURIComponent(w)}/warmte`;
+      return;
+    }
+    const next = concept();
+    if (!next || !tekenaar) return;
+    const etage = tekenaar.st.etage;
+    /** @type {string | boolean} Een etage erbij of weg: naar welke etage daarna; verschoven: true. */
+    let structuur = false;
+    if (actie === 'etage-naam') {
+      const standaard = info.etages.find((x) => x.id === etage)?.standaardNaam;
+      if (!w || w === standaard) delete next.etages[etage];
+      else next.etages[etage] = w;
+    } else if (actie === 'dak') {
+      if (w === '1') next.dak = etage;
+      else if (huisData?.dakEtage === etage || next.dak === etage) next.dak = 'geen';
+      else return;
+    } else if (actie === 'schuif') {
+      const v = volgordeVan(next);
+      const i = v.indexOf(etage);
+      const j = i + Number(w);
+      if (i < 0 || j < 0 || j >= v.length) return;
+      [v[i], v[j]] = [v[j], v[i]];
+      next.volgorde = v;
+      structuur = true;
+    } else if (actie === 'etage-erbij') {
+      next.volgorde = opZijnPlek(volgordeVan(next), w);
+      structuur = w;
+    } else if (actie === 'etage-weg') {
+      next.volgorde = volgordeVan(next).filter((x) => x !== etage);
+      delete next.etages[etage];
+      if (next.dak === etage) delete next.dak;
+      structuur = 'bg';
+    } else if (actie === 'kamer-soort' || actie === 'kamer-naam') {
+      const k = (next.kamers ?? []).find((x) => x.id === w?.kamer);
+      if (!k) return;
+      if (actie === 'kamer-naam') {
+        if (!w.w || w.w === k.naam) return;
+        k.naam = w.w;
+      } else if (w.w) k.soort = w.w;
+      else delete k.soort;
+    } else if (actie === 'rond') next.rond = huismodel.rondWissel(rondVan(next), w);
+    else if (actie === 'huisje') next.rond = { ...rondVan(next), schuur: w === 'schuur', allebei: w === 'beide' };
+    else if (actie === 'accu') {
+      if (w === 'gevel') delete next.accu;
+      else next.accu = w === 'garage' ? { plek: 'garage', kamer: null } : { plek: 'binnen', kamer: w.slice(7) };
+    } else if (actie === 'verberg') {
+      next.verborgen = [...new Set([...(next.verborgen ?? []), w])];
+      delete next.apparaten[w];
+    } else if (actie === 'terug') next.verborgen = (next.verborgen ?? []).filter((x) => x !== w);
+    else return;
+    const res = await deur('api/indeling', next);
+    const body = res ? await res.json().catch(() => ({})) : {};
+    if (!res?.ok) {
+      tekenaar.st.fout = res?.status === 403 ? t('indeling.beheerder') : (body.fout ?? t('jehuis.nietBewaard'));
+      tekenaar.ververs();
+      return;
+    }
+    tekenaar.st.fout = null;
+    info = { ...info, indeling: body };
+    // Een etage erbij, weg of verschoven: het huis opzij verandert, dus de pagina opnieuw, op de goede etage.
+    if (structuur) {
+      if (typeof structuur === 'string') location.hash = `#${encodeURIComponent(structuur)}`;
+      location.reload();
+      return;
+    }
+    await vernieuw();
+  },
+};
+
+/** Na bewaren: de namen, de soorten en de apparaten opnieuw van de dienst, in de tekenaar die er staat. */
+async function vernieuw() {
+  const [d] = await Promise.all([haal('api/huistekening'), laadIndeling()]);
+  const nieuw = huisVoorMotor(d);
+  const tk = tekenaar;
+  if (nieuw.etages.map((e) => e.id).join() !== tk.huis.etages.map((e) => e.id).join()) return location.reload();
+  for (const e of tk.huis.etages) Object.assign(e, nieuw.etages.find((x) => x.id === e.id));
+  tk.huis.kamers.splice(0, tk.huis.kamers.length, ...nieuw.kamers);
+  for (const k of nieuw.kamers) tk.kamers[k.id] = Object.assign(tk.kamers[k.id] ?? {}, k);
+  tk.huis.verborgen = nieuw.verborgen;
+  tk.huis.verborgenLijst = nieuw.verborgenLijst;
+  // Wat verborgen is, gaat uit de tekening; wat terug is, komt erbij (in de strook als het geen kamer heeft).
+  const ids = new Set(nieuw.apparaten.map((a) => a.id));
+  tk.st.apparaten = [...tk.st.apparaten.filter((a) => ids.has(a.id)), ...nieuw.apparaten.filter((a) => !tk.st.apparaten.some((b) => b.id === a.id))];
+  tk.teken();
+  tk.ververs();
 }
 
 /** Een apparaat openen, of de verborgen apparaten bij Kamers en indeling. */
@@ -225,7 +382,7 @@ async function start() {
   plaats();
   let d;
   try {
-    d = await haal('api/huistekening');
+    [d] = await Promise.all([haal('api/huistekening'), laadIndeling()]);
   } catch {
     $('#blad').innerHTML = `<p class="jh-leeg">${esc(t('jehuis.geenHuis'))}</p>`;
     return;
@@ -241,25 +398,32 @@ async function start() {
   const [gevraagd, gevraagdeStand] = decodeURIComponent(location.hash.slice(1)).split('/');
   const etage = huis.etages.some((e) => e.id === gevraagd) ? gevraagd : (huis.etages.find((e) => e.id === 'bg') ?? huis.etages.at(-1)).id;
   const stand = STANDEN.includes(gevraagdeStand) ? gevraagdeStand : 'kamers';
-  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: d, opslaan, wacht: 900, naar, kijk: vraagKaarten, gebouw, openingen: true });
+  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: d, opslaan, wacht: 900, naar, kijk: vraagKaarten, gebouw, openingen: true, ...(info ? { indeling } : {}) });
   tekenaar = tk;
   window.tekenaar = tk;
   huistekenen.paneel($('#blad'), tk);
   huistekenen.stapel($('#stapel'), tk);
   huistekenen.strook($('#strook'), tk);
   // Op de telefoon de etages als balk.
-  $('[data-etages]').innerHTML = huis.etages.map((e) => `<button type="button" data-etage-kies="${esc(e.id)}">${esc(e.kort ?? e.naam)}</button>`).join('');
+  $('[data-etages]').innerHTML = `${huis.etages.map((e) => `<button type="button" data-etage-kies="${esc(e.id)}">${esc(e.kort ?? e.naam)}</button>`).join('')}${info ? `<button type="button" class="tk-buiten" data-buiten-kies aria-label="${esc(t('ht.buiten.kop'))}" title="${esc(t('ht.buiten.kop'))}">${iconen.svg('buiten')}</button>` : ''}`;
   document.querySelectorAll('[data-ik]').forEach((el) => el.insertAdjacentHTML('afterbegin', iconen.svg(el.dataset.ik)));
   tk.op(bij);
   bij();
 
   document.addEventListener('click', (e) => {
-    const et = e.target.closest('[data-etage-kies]');
-    if (et) tk.zetEtage(et.dataset.etageKies);
-    const s = e.target.closest('[data-stand]');
+    const doel = /** @type {HTMLElement} */ (e.target);
+    const et = /** @type {HTMLElement | null} */ (doel.closest('[data-etage-kies]'));
+    // Op de telefoon: de etage die al gekozen is nog eens, dan zijn blad; Buiten als laatste knop.
+    if (et && info && et.dataset.etageKies === tk.st.etage && !tk.st.blad) tk.toonBlad('etage');
+    else if (et) {
+      tk.st.blad = null;
+      tk.zetEtage(et.dataset.etageKies);
+    }
+    if (doel.closest('[data-buiten-kies]')) tk.toonBlad('buiten');
+    const s = /** @type {HTMLButtonElement | null} */ (doel.closest('[data-stand]'));
     if (s && !s.disabled) tk.zetStand(s.dataset.stand);
-    if (e.target.closest('[data-stap-terug]')) tk.terug();
-    if (e.target.closest('[data-stap-vooruit]')) tk.vooruit();
+    if (doel.closest('[data-stap-terug]')) tk.terug();
+    if (doel.closest('[data-stap-vooruit]')) tk.vooruit();
   });
   // Een ander adres op dezelfde pagina (een link, terug in de browser): naar die etage en stand.
   addEventListener('hashchange', () => {

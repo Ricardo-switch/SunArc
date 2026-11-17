@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.190.2';
+export const VERSIE = '0.191.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.191.0',
+    datum: '2026-11-17',
+    nieuw: [
+      'Je huis kan nu alles wat Kamers en indeling kon, behalve Verwarmen en koelen: tik een etage aan voor de naam, het schuine dak, de volgorde en een etage erbij; tik Buiten aan voor wat er rond het huis is en waar de thuisaccu staat',
+      'Bij een kamer in Je huis kies je de soort kamer en een eigen naam in de app. In Home Assistant houdt hij zijn eigen naam',
+      'Een apparaat verberg je in Je huis bij Apparaten, en bij Verborgen haal je het terug',
+    ],
+    en: {
+      nieuw: [
+        'Your home can now do everything Rooms and layout could, except Heating and cooling: tap a floor for its name, the sloping roof, the order and adding a floor; tap Outside for what is around the house and where the home battery is',
+        'For a room in Your home you choose the kind of room and its own name in the app. Home Assistant keeps its own name',
+        'You hide a device in Your home under Devices, and bring it back under Hidden',
+      ],
+    },
+  },
   {
     versie: '0.190.2',
     datum: '2026-11-16',

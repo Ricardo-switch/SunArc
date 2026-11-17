@@ -8206,6 +8206,73 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await context.close();
   }, 90_000);
   /*
+   * Je huis aangevuld (stap 3 van de kwaliteitsronde, 17 november 2026, schets
+   * Wand-Huis-Aanvulling): wat eerst alleen bij Kamers en indeling kon. De naam
+   * van een etage, wat er rond het huis is, de soort en de naam van een kamer, en
+   * een apparaat verbergen en terughalen, alles bewaard in de indeling.
+   */
+  it('zet bij Je huis de etage, buiten, de soort en naam van een kamer, en verbergt een apparaat (stap 3)', async () => {
+    const was = layoutStore.current;
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const nu = () => layoutStore.current;
+    try {
+      await p.goto(`${baseUrl}/jehuis.html#bg`);
+      await p.waitForFunction(`window.tekenaar && document.querySelector('#wand #tekening [data-l="vlak"] g')`);
+      // De etage: naam, en weer terug naar het blad met de kamers.
+      await p.locator('#wand [data-ht="blad"][data-blad="etage"]').click();
+      const naam = p.locator('#wand [data-ht-ix="etage-naam"]');
+      await naam.fill('Benedenhuis');
+      await naam.press('Enter');
+      await expect.poll(() => nu()?.etages?.['bg'], { timeout: 5_000 }).toBe('Benedenhuis');
+      expect(await p.locator('#wand [data-actie="dak"]').count()).toBe(2);
+      expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
+      // Buiten: in het huis opzij aan te tikken, een deel aan of uit, en het blad past op de wand.
+      await p.locator('#wand [data-buiten-blad]').click();
+      const terras = p.locator('#wand [data-actie="rond"][data-waarde="terras"]');
+      const terrasWas = (await terras.getAttribute('aria-pressed')) === 'true';
+      await terras.click();
+      await expect.poll(() => !!nu()?.rond?.terras, { timeout: 5_000 }).toBe(!terrasWas);
+      const blad = (await p.locator('#wand #blad').boundingBox())!;
+      const laatste = (await p.locator('#wand #blad .ht-twee').last().boundingBox())!;
+      expect(laatste.y + laatste.height).toBeLessThanOrEqual(blad.y + blad.height + 1);
+      // Een kamer: de soort en de naam in de app (eerst een indeling als de etage nog leeg is).
+      await p.locator('#wand [data-etage="bg"]').click();
+      if (await p.evaluate<boolean>('window.tekenaar.isLeeg()')) {
+        await p.locator('#wand [data-ht="indeling"]').first().click();
+        await expect.poll(() => p.evaluate<boolean>('window.tekenaar.isLeeg()')).toBe(false);
+      }
+      const ruimte = await p.evaluate<{ id: number; kamer: string }>(`(() => { const v = window.tekenaar.vloer(); const [id, r] = Object.entries(v.ruimtes).find(([, r]) => r.kamer); return { id: Number(id), kamer: r.kamer }; })()`);
+      await p.evaluate(`window.tekenaar.kies({ soort: 'ruimte', id: ${ruimte.id} })`);
+      await p.locator('#wand [data-ht-ix="kamer-soort"]').selectOption('werkkamer');
+      await expect.poll(() => nu()?.kamers.find((k) => k.id === ruimte.kamer)?.soort, { timeout: 5_000 }).toBe('werkkamer');
+      const kamerNaam = p.locator('#wand [data-ht-ix="kamer-naam"]');
+      await kamerNaam.fill('Studeerkamer');
+      await kamerNaam.press('Enter');
+      await expect.poll(() => nu()?.kamers.find((k) => k.id === ruimte.kamer)?.naam, { timeout: 5_000 }).toBe('Studeerkamer');
+      // Verwarmen en koelen: tot het blad Klimaat er is, bij Kamers en indeling.
+      expect(await p.locator('#wand [data-actie="klimaat"]').count()).toBe(1);
+      // Een apparaat verbergen bij Apparaten, en bij Verborgen terughalen.
+      await p.locator('#wand [data-stand="apparaten"]').click();
+      const app = await p.evaluate<string>('window.tekenaar.st.apparaten.find((a) => a.kamer).id');
+      await p.evaluate(`window.tekenaar.kies({ soort: 'apparaat', id: ${JSON.stringify(app)} })`);
+      await p.locator('#wand [data-actie="verberg"]').click();
+      await expect.poll(() => nu()?.verborgen ?? [], { timeout: 5_000 }).toContain(app);
+      await expect.poll(() => p.evaluate<boolean>(`window.tekenaar.st.apparaten.some((a) => a.id === ${JSON.stringify(app)})`)).toBe(false);
+      await p.evaluate(`window.tekenaar.toonBlad('verborgen')`);
+      await p.locator(`#wand [data-actie="terug"][data-waarde="${app}"]`).click();
+      await expect.poll(() => nu()?.verborgen ?? [], { timeout: 5_000 }).not.toContain(app);
+      expect(fouten).toEqual([]);
+    } finally {
+      if (was) await layoutStore.save(was);
+      await context.close();
+    }
+  }, 60_000);
+
+  /*
    * Routes van een gebruiker (kwaliteitsronde stap 2, 17 november 2026). Waar
    * de tests hierboven één scherm grondig nalopen, loopt een route zoals een
    * bewoner: hij begint op Thuis, gaat via het menu, doet één ding, en kijkt

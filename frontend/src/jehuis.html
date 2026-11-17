@@ -51,7 +51,11 @@
   #tel .hm-seg { display: grid; grid-template-columns: repeat(4, 1fr); }
   #tel .hm-seg button { justify-content: center; padding: 0 2px; font-size: 13.5px; }
   #tel .hm-seg button svg { display: none; }
-  .tk-etages { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; padding: 4px; border-radius: 14px; background: rgb(var(--wit) / 0.05); }
+  .tk-etages { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgb(var(--wit) / 0.05); }
+  .tk-etages button { flex: 1 1 0; min-width: 0; }
+  /* Buiten (stap 3): een smalle knop met alleen het icoon, zodat de etages hun ruimte houden. */
+  .tk-etages button.tk-buiten { flex: 0 0 44px; display: grid; place-items: center; padding: 0; }
+  .tk-etages button.tk-buiten svg { width: 20px; height: 20px; }
   .tk-etages button { height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--zacht); font: 700 13.5px var(--romp); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
   .tk-etages button[aria-pressed='true'] { background: rgb(111 211 255 / 0.2); color: var(--tekst); box-shadow: inset 0 0 0 2px rgb(111 211 255 / 0.7); }
   .tk-podium { position: relative; padding: 6px; border-radius: 22px; }
@@ -134,6 +138,7 @@
   <script src="basis.js"></script>
   <script src="kit/huistekenen.js"></script>
   <script src="kit/huistekenen-3d.js"></script>
+  <script src="huismodel.js"></script>
   <script src="dakvlakken.js"></script>
   <script src="jehuis.js"></script>
 </body>

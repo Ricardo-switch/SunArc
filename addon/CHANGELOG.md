@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.190.2
+## 0.191.0
 
-*16 november 2026 · 0.179.0 – 0.190.2*
+*17 november 2026 · 0.179.0 – 0.191.0*
 
 **Nieuw**
 
+- Je huis kan nu alles wat Kamers en indeling kon, behalve Verwarmen en koelen: tik een etage aan voor de naam, het schuine dak, de volgorde en een etage erbij; tik Buiten aan voor wat er rond het huis is en waar de thuisaccu staat
+- Bij een kamer in Je huis kies je de soort kamer en een eigen naam in de app. In Home Assistant houdt hij zijn eigen naam
+- Een apparaat verberg je in Je huis bij Apparaten, en bij Verborgen haal je het terug
 - De boiler staat in de tekening met zijn temperatuur en zijn doel: "52°, naar 60° op zon". Verwarmt hij, dan loopt de stroom naar zijn kamer, goud van de zon en violet van het net. De jacuzzi krijgt hetzelfde
 - Wat niet klopt, staat nu in de bel met een knop. Koos je een zekering van 3 × 25 A en zijn er geen stroommeters per fase gevonden, dan stond dat alleen in het logboek. Nu zie je het, met één zin over het gevolg en een knop naar de plek waar je het oplost
 - Thuis zegt nu altijd wat SunArc doet. Een vaste strook onder het huis zegt dat SunArc meekijkt, en wat het nu anders zou doen dan er in huis gebeurt of waar het op wacht, zoals "Zou de zolder verwarmen zodra er zon over is". Een tik opent per kamer wat er nu gebeurt naast wat SunArc zou doen, en wat de apparaten op zon doen
@@ -70,6 +73,9 @@
 
 **New**
 
+- Your home can now do everything Rooms and layout could, except Heating and cooling: tap a floor for its name, the sloping roof, the order and adding a floor; tap Outside for what is around the house and where the home battery is
+- For a room in Your home you choose the kind of room and its own name in the app. Home Assistant keeps its own name
+- You hide a device in Your home under Devices, and bring it back under Hidden
 - The boiler is in the drawing with its temperature and its target: "52°, to 60° on solar". When it heats, the flow runs to its room, gold from the sun and violet from the grid. The hot tub gets the same
 - What is not right now shows in the bell with a button. If you chose a 3 × 25 A main fuse and no current meters per phase were found, that was only in the log. Now you see it, with one sentence about the consequence and a button to the place where you fix it
 - Home now always says what SunArc is doing. A fixed strip below the house says SunArc is watching, and what it would do differently from what happens in the house right now, or what it is waiting for, such as "Would heat the attic as soon as there is solar to spare". A tap shows per room what happens now next to what SunArc would do, and what the devices on solar are doing
