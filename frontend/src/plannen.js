@@ -137,7 +137,7 @@
     // "nu" boven de zon, of eronder als er vlakbij een opdracht staat.
     const dichtbij = lijst.some((o2) => Math.abs(uurVan(o2.ms) - nu) < 1.5);
     const zonY = nu > op && nu < onder ? y(nu) : HOR;
-    if (!klein) s += `<text x="${x(nu)}" y="${dichtbij ? zonY + r + 18 : zonY - r - 10}" text-anchor="middle" font-size="13" font-weight="700" fill="#ffd27a">${esc(t('gp.nu'))}</text>`;
+    if (!klein) s += `<text x="${x(nu)}" y="${dichtbij ? zonY + r + 18 : zonY - r - 10}" text-anchor="middle" font-size="13" font-weight="700" fill="#ffd27a">${esc(t('gp.nuGrafiek'))}</text>`;
     // De opdrachten van vandaag; op de telefoon de eerstvolgende met zijn tijd, naast een nieuwe taak die nieuwe.
     const eerstvolgende = lijst.find((o2) => !o2.gedaan && o2.ms >= Date.now());
     for (const o2 of lijst) {

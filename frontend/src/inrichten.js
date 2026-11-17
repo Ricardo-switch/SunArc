@@ -514,9 +514,9 @@ const geenKlimaat = (lijst) => (lijst ?? []).filter((a) => a.soort !== 'klimaat'
 function welkomLijst() {
   const n = tellingen();
   const perEtage = (d.huis?.etages ?? []).filter((e) => (e.ruimtes ?? []).length);
-  let kop = '';
-  let uitleg = '';
-  let rijen = [];
+  let kop;
+  let uitleg;
+  let rijen;
   if (lijst === 'etages' || lijst === 'kamers') {
     kop = lijst === 'etages' ? t('instellingen.etages', { n: n.etages }) : t('instellingen.kamers', { n: n.kamers });
     uitleg = t('inr.lijst.kamers');
@@ -760,7 +760,7 @@ function buitenStap() {
   const kamers = buitenKamers();
   // De jacuzzi (besluit 186): gevonden in Home Assistant, of alleen getekend.
   const jacuzzi = (d.aans?.gevonden?.apparaten ?? []).find((x) => x.soort === 'jacuzzi');
-  const delen = RONDOM.map(([w, naam, soort, icoon]) => {
+  const delen = RONDOM.map(([w, naam, , icoon]) => {
     const aan = huismodel.rondAan(rond, w);
     const ouder = huismodel.hangtAan(w);
     // Aanvinken is genoeg (28 oktober 2026): het deel komt op zijn vaste plek; de ruimte

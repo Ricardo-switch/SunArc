@@ -308,7 +308,7 @@ function versieVorm() {
     <p class="klein" style="margin: 0">${esc(t('over.steun'))}</p>
     <div style="display: flex; gap: 8px; flex-wrap: wrap">${app.koffieKnop()}<button type="button" class="knop" data-meld-probleem>${esc(t('melden.kop'))}</button></div>
     ${app.jouwMeldingen()}
-    <details class="logboek" data-logboek><summary>${esc(t('toegang.logboek'))}</summary><p class="mini" style="margin: 6px 0">${esc(t('toegang.logboekZin'))}</p><pre data-logboek-tekst></pre></details>
+    <details class="logboek" data-logboek><summary>${esc(t('toegang.logboekBekijken'))}</summary><p class="mini" style="margin: 6px 0">${esc(t('toegang.logboekBekijkenZin'))}</p><pre data-logboek-tekst></pre></details>
     ${nieuw ? `<h3 class="kop-3" style="margin: 6px 0 0">${esc(t('toegang.watNieuw'))}</h3>${nieuw}` : ''}
     <p class="mini" style="margin: 0">${esc(t('toegang.bouw', { commit: v.commit }))}</p>`;
 }
@@ -337,7 +337,7 @@ document.addEventListener('toggle', async (e) => {
   const d = e.target;
   if (!(d instanceof HTMLDetailsElement) || !d.matches('[data-logboek]') || !d.open) return;
   const pre = d.querySelector('[data-logboek-tekst]');
-  let regels = [];
+  let regels;
   try {
     regels = (await haal('api/logboek')).regels ?? [];
   } catch {

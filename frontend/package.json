@@ -6,12 +6,16 @@
   "type": "module",
   "scripts": {
     "build": "node build.js",
-    "watch": "node build.js --watch"
+    "watch": "node build.js --watch",
+    "lint": "eslint"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/figtree": "^5.3.0",
     "@tailwindcss/cli": "^4.1.14",
+    "eslint": "^10.15.0",
+    "globals": "^17.14.0",
     "qrcode-generator": "^2.0.4",
     "tailwindcss": "^4.1.14"
   }

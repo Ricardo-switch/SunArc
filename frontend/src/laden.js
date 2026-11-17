@@ -77,8 +77,7 @@ const laden = (() => {
   }
 
   /** Rechts: wat je bij het gekozen apparaat instelt. */
-  function instellen(info, a, x, staat) {
-    const autos = aan(info).filter((y) => y.rol === 'auto');
+  function instellen(info, a, x) {
     const palen = aan(info).filter((y) => y.rol === 'laadpaal');
     const i = instelling(a, x.id);
     const keuzes = (sleutel, opties, huidig) => `<div class="keuzes" role="group">${opties.map(([w, tekst]) => `<button type="button" data-laad="${sleutel}" data-id="${esc(x.id)}" data-waarde="${esc(w ?? '')}" aria-pressed="${w === huidig}">${esc(tekst)}</button>`).join('')}</div>`;

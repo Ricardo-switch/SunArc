@@ -440,7 +440,7 @@ function zeg(tekst, gesproken = tekst) {
  * inslikken.
  */
 async function zegMetPiper(tekst, totLetter, apparaat, geweigerd) {
-  let golf = false;
+  let golf;
   try {
     ctx ??= new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state !== 'running') await Promise.race([ctx.resume(), new Promise((r) => setTimeout(r, 250))]);

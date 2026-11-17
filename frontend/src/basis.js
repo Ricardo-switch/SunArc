@@ -1386,7 +1386,7 @@
   }
 
   function luisterStart() {
-    let aan = false;
+    let aan;
     try {
       aan = localStorage.getItem('sc-luisteren') === 'aan';
     } catch {
@@ -1836,7 +1836,7 @@
     } else {
       // Niet in het voorbeeldhuis: wat er nieuw is, hoort bij je eigen huis, en daar zie je het straks.
       if (/\/voorbeeld\//.test(global.location.pathname)) return;
-      let gezien = null;
+      let gezien;
       try {
         gezien = localStorage.getItem(VERSIE_GEZIEN);
         localStorage.setItem(VERSIE_GEZIEN, v.nummer);

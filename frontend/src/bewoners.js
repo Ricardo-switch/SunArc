@@ -172,7 +172,7 @@ function adresVoorErbij() {
 
 function erbij() {
   const adres = adresVoorErbij();
-  let qr = '';
+  let qr;
   try {
     const q = window.qrcode(0, 'M');
     q.addData(adres);

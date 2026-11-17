@@ -43,7 +43,6 @@ const dagStart = (ms) => new Date(ms).setHours(0, 0, 0, 0);
 const dagenVan = (ms) => Math.round((dagStart(ms) - dagStart(Date.now())) / 86_400_000);
 const herhaalVan = (g) => g.opdracht?.herhaal ?? { soort: 'een' };
 const momentVan = (g) => g.opdracht?.moment ?? (g.opdracht?.zon ? { soort: 'zon', zon: g.opdracht.zon, minuten: 0 } : { soort: 'tijd', uur: new Date(g.ms).getHours(), minuut: new Date(g.ms).getMinutes() });
-const isVast = (g) => herhaalVan(g).soort !== 'een';
 const aan = (g) => g.opdracht?.aan !== false;
 
 /** "vandaag", "morgen", "di". */

@@ -211,7 +211,6 @@ const dakvlakken = (() => {
     const nieuw = !d.vlakken.some((x) => x.letter === v.letter);
     const hellingen = v.plek === 'gevel' ? [60, 70, 80, 90] : HELLINGEN[v.opstelling] ?? [];
     const eigen = !hellingen.includes(Math.round(v.tiltDeg));
-    const metersHier = d.meters ?? [];
     const kanten = v.opstelling === 'oostwest'
       ? `${veld(kort(v.azimuthDeg), stapper('aantal', v.aantal, kort(v.azimuthDeg)))}${veld(kort(v.azimuthDeg + 180), stapper('aantal2', v.aantal2 ?? 0, kort(v.azimuthDeg + 180)))}`
       : veld(t('daken.aantal'), stapper('aantal', v.aantal, t('daken.aantal')));
@@ -588,7 +587,7 @@ const dakvlakken = (() => {
    * wat ze vonden. Geeft wat de kaarten zeiden (om te bewaren), of null.
    */
   async function kijk(s) {
-    let body = null;
+    let body;
     try {
       const res = await app.deur('api/daken-kaart', {});
       body = res ? await res.json().catch(() => ({})) : {};
@@ -776,7 +775,7 @@ const dakvlakken = (() => {
   const LETTERKLEUR = ['#f7b548', '#6fd3ff', '#a99cff', '#6ee7b7', '#ff8a6b', '#f3d48a', '#9cc0e4', '#d98c3a'];
 
   /** Wat de meter gisteren mat, gestapeld per vlak (stap 4); alleen als hij meer vlakken meet. */
-  function verdeelGrafiek(d, id, vlakken) {
+  function verdeelGrafiek(d, id) {
     const v = d.verdeling?.[id];
     if (!v || v.letters.length < 2 || !v.punten.length) return '';
     const W = 400;

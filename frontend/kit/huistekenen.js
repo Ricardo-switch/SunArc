@@ -2235,7 +2235,7 @@
       const etage = t.huis.etages.find((e) => e.id === st.etage);
       const hier = t.huis.kamers.filter((k) => k.etage === st.etage);
       const waar = t.kamerPlek();
-      let s = '';
+      let s;
       if (st.stand === 'vorm' && st.kies?.soort === 'omgeving') {
         // Een grijs gebouw van de kaart aangetikt: wat is het? Zoals bij Daken en panelen, en het geldt op allebei.
         s = `<header><h3>${esc(T('ht.gebouw.kop'))}</h3></header>

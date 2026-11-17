@@ -153,7 +153,7 @@ async function haalKaarten() {
   kijk.bezig = true;
   kijk.fout = null;
   tekenaar.ververs();
-  let res = null;
+  let res;
   try {
     res = await deur('api/huistekening', { kijk: true });
   } catch {
@@ -178,7 +178,7 @@ async function haalKaarten() {
  */
 async function gebouw(wat) {
   for (let i = 0; i < 60 && !tekenaar.st.bewaard && !tekenaar.st.fout; i++) await wacht(100);
-  let res = null;
+  let res;
   try {
     res = await deur('api/huistekening', { gebouw: wat });
   } catch {

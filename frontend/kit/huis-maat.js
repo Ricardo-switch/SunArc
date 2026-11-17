@@ -132,7 +132,7 @@
 
   function teken(t, B, Hpx, o = {}) {
     const K = global.huistekenen;
-    const { MARGE, CEL, BUITEN, randen, isMuur, maten, omtrek, TINT, SOORT_TINT, APP_KLEUR } = K;
+    const { MARGE, CEL, BUITEN, randen, isMuur, maten, omtrek, TINT, SOORT_TINT } = K;
     const st = t.st;
     const huis = t.huis;
     const bron = huis.bronnen?.[st.bron] ?? {};

@@ -581,7 +581,7 @@ function stemVorm() {
 
 /** Rechts ernaast: het luisteren, dat de app zelf doet (besluit 208, 211). */
 function luisterVak() {
-  let hier = false;
+  let hier;
   try {
     hier = localStorage.getItem('sc-luisteren') === 'aan';
   } catch {

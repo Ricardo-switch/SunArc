@@ -168,7 +168,8 @@
       if (open && !open.vrij && !open.wg && !open.st) teken();
     });
   }
-  function duurVan(min) {
+  // Een eigen naam (17 november 2026): onder dezelfde naam verderop overschreef de duur van Met de hand deze.
+  function hulpDuur(min) {
     const u = Math.floor(min / 60);
     const m = Math.round(min % 60);
     return u === 0 ? t('regeling.helpen.min', { n: m }) : m === 0 ? t('regeling.helpen.uur', { n: u }) : t('regeling.helpen.uurMin', { u, m });
@@ -195,9 +196,9 @@
     const kort = b.kort.map((ms) => `<i class="kort" style="left: ${pos(ms).toFixed(2)}%"></i>`).join('');
     const uren = [6, 9, 12, 15, 18, 21, 24].map((u) => `<span style="left: ${(((u - 6) / 18) * 100).toFixed(2)}%">${u}</span>`).join('');
     const regels = [];
-    if (h.vandaag.keer) regels.push([t('hand.hulp.keer', { n: h.vandaag.keer, duur: duurVan(h.vandaag.minuten) }), false]);
+    if (h.vandaag.keer) regels.push([t('hand.hulp.keer', { n: h.vandaag.keer, duur: hulpDuur(h.vandaag.minuten) }), false]);
     else regels.push([t('hand.hulp.nogNiet'), false]);
-    if (b.langerMin >= 1) regels.push([t('hand.hulp.langer', { duur: duurVan(b.langerMin), kamer: h.kamer ?? a.kamer ?? '' }), false]);
+    if (b.langerMin >= 1) regels.push([t('hand.hulp.langer', { duur: hulpDuur(b.langerMin), kamer: h.kamer ?? a.kamer ?? '' }), false]);
     if (b.kort.length) regels.push([t('hand.hulp.kort', { n: b.kort.length }), true]);
     if (h.bijC > 0) regels.push([t('hand.hulp.hoger', { graden: nl(h.bijC, h.bijC % 1 ? 1 : 0) }), false]);
     return `<div class="hand-hulp">
@@ -382,7 +383,7 @@
    * rest zoals het was.
    */
   async function stekkerToestaan(id, ja) {
-    let a = null;
+    let a;
     try {
       a = (await haal('api/aansluiting'))?.antwoorden ?? null;
     } catch {
