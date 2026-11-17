@@ -76,10 +76,10 @@ werkplaats: waar het omzetten staat, en hoe je een pagina omzet.
    element zelf leeg. Een tekst met eigen HTML (`<b>`) mag; wat erin komt,
    ontsnap je eerst.
 5. Zet het bestand in `OMGEZET` in `backend/test/taal.test.ts`, en de pagina in
-   de paginatest "toont Thuis in het Engels" (`backend/test/page.test.ts`),
+   de paginatest "toont Thuis in het Engels" (`backend/test/page.suite.ts`),
    met de toegankelijkheidscontrole. `HEMS_PAGE_SHOTS=<map>` maakt per pagina
    een afdruk.
-6. De checks (in `backend/`: `npm run typecheck`, `npm run lint`, `TZ=UTC npx vitest run`; in `frontend/` `npm run build`, dan `HEMS_PAGE_TEST=1 TZ=UTC npx vitest run test/page.test.ts`), een versie (`VERSIE` en `NIEUW` in `version.ts`, de package-nummers, `addon/config.yaml`, `npm run changelog`), commit en push naar beta; main alleen via een PR die Ricardo samenvoegt.
+6. De checks (in `backend/`: `npm run typecheck`, `npm run lint`, `TZ=UTC npx vitest run`; in `frontend/` `npm run build`, dan `HEMS_PAGE_TEST=1 TZ=UTC npx vitest run test/page-`), een versie (`VERSIE` en `NIEUW` in `version.ts`, de package-nummers, `addon/config.yaml`, `npm run changelog`), commit en push naar beta; main alleen via een PR die Ricardo samenvoegt.
 
 Lange tekst niet via een heredoc in de shell (die breekt op aanhalingstekens):
 schrijf hem naar een bestand en geef dat aan het script.

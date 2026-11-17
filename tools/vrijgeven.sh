@@ -45,7 +45,7 @@ stap "3. de weergave: build"
 (cd frontend && npm run --silent build)
 
 stap "4. de pagina in een browser"
-(cd backend && HEMS_PAGE_TEST=1 npx vitest run test/page.test.ts)
+(cd backend && HEMS_PAGE_TEST=1 npx vitest run test/page-)
 
 stap "5. de index van de besluiten"
 (cd backend && npm run --silent decisions:index)

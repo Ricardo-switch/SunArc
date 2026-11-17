@@ -162,7 +162,8 @@ jobs:
 
       - name: de pagina
         working-directory: backend
-        run: npx vitest run test/page.test.ts
+        # In vier delen die tegelijk draaien, elk met een eigen server en browser (page.suite.ts).
+        run: npx vitest run test/page-
 
       # Bij een fout: de trace van de pagina, met elke stap en een schermafdruk.
       # Openen op trace.playwright.dev.

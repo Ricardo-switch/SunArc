@@ -13,7 +13,13 @@
  *
  * Alleen met `HEMS_PAGE_TEST=1`: de rest van de suite heeft geen browser nodig.
  * De CI zet hem aan in een eigen taak. Lokaal kan het met de Edge die er al
- * staat: `HEMS_PAGE_TEST=1 HEMS_PAGE_BROWSER=msedge npx vitest run test/page.test.ts`.
+ * staat: `HEMS_PAGE_TEST=1 HEMS_PAGE_BROWSER=msedge npx vitest run test/page-`.
+ *
+ * In vier delen (17 november 2026, kwaliteitsronde stap 2): dit bestand is de
+ * suite, `page-1.test.ts` tot `page-4.test.ts` laden hem elk in een eigen
+ * proces met een eigen server en browser, en draaien elk een aaneengesloten
+ * kwart van de tests, in de volgorde van dit bestand. Zo draaien ze tegelijk.
+ * Eén deel apart: `npx vitest run test/page-2`.
  *
  * Faalt een weergavetest, dan bewaart hij een Playwright-trace in
  * `test-results/`: elke stap met een schermafdruk, de netwerkverzoeken en de
@@ -29,7 +35,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it as vitestIt } from 'vitest';
 import { chromium, type Browser, type BrowserContextOptions, type Page } from 'playwright';
 
 import type { LiveSnapshot } from '../src/adapters/homeassistant/shadow.js';
@@ -225,6 +231,23 @@ const helpenDeur = {
 };
 
 const ENABLED = process.env['HEMS_PAGE_TEST'] === '1';
+
+/*
+ * Welk deel dit proces draait (zie boven). Elke test krijgt bij het
+ * verzamelen een volgnummer; bij het draaien is bekend hoeveel er zijn, en
+ * slaat een test zichzelf over als hij niet in dit kwart valt. Zonder deel
+ * (de suite rechtstreeks geladen) draait alles.
+ */
+const DEEL = (globalThis as { __paginaDeel?: { deel: number; van: number } }).__paginaDeel ?? { deel: 1, van: 1 };
+let aantalTests = 0;
+const it = ((naam: string, fn: (ctx: { skip: () => never }) => unknown, opties?: number) => {
+  const nr = aantalTests++;
+  return vitestIt(naam, (ctx) => {
+    const per = Math.ceil(aantalTests / DEEL.van);
+    if (Math.floor(nr / per) + 1 !== DEEL.deel) ctx.skip();
+    return fn(ctx as unknown as { skip: () => never });
+  }, opties);
+}) as unknown as typeof vitestIt;
 const WEB_DIR = fileURLToPath(new URL('../web', import.meta.url));
 const FIXTURE = fileURLToPath(new URL('./fixtures/replay-2026-08-26.ndjson.gz', import.meta.url));
 
