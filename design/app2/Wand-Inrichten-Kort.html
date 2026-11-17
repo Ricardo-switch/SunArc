@@ -63,6 +63,42 @@
   /* Klaar. */
   .klaarbeeld { display: flex; justify-content: center; }
   .klaarbeeld svg { width: 300px; height: auto; }
+
+  /* Welkom (17 november 2026, wens Ricardo): zoals de eerste pagina nu, maar groter: het logo groot met de naam en ARC voluit eronder. */
+  .welkom { position: absolute; inset: 0; display: none; }
+  body.is-welkom .welkom { display: block; }
+  body.is-welkom .bovenbalk, body.is-welkom .midden { display: none; }
+  .welkom .podium-w { position: absolute; right: -10px; top: 70px; width: 800px; height: 680px; }
+  .welkom .links { position: absolute; left: 64px; top: 48px; bottom: 36px; width: 500px; display: flex; flex-direction: column; }
+  .merk { display: flex; flex-direction: column; align-items: flex-start; position: relative; }
+  .merk::before { content: ''; position: absolute; left: -40px; top: -30px; width: 300px; height: 220px; background: radial-gradient(closest-side, rgba(247, 181, 72, 0.22), transparent); pointer-events: none; }
+  .merk img { width: 210px; height: auto; display: block; position: relative; }
+  .merk .woord { margin-top: 6px; font-family: var(--kop); font-weight: 700; font-size: 76px; letter-spacing: -0.045em; line-height: 0.95; }
+  .merk .arc { margin-top: 10px; font-size: 14px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--zacht); }
+  .merk .arc b { color: var(--zon-t); font-weight: 800; }
+  .welkom .hallo { margin-top: 30px; font-size: 18px; font-weight: 700; color: var(--mint-t); }
+  .welkom h1 { margin: 2px 0 0; font-family: var(--kop); font-size: 80px; font-weight: 700; line-height: 0.98; letter-spacing: -0.035em; white-space: nowrap; }
+  .welkom h1 em { font-style: normal; background: linear-gradient(90deg, #f7b548, #ff7a4d 50%, #8f86ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .welkom .zin { margin: 16px 0 0; font-size: 19px; line-height: 1.5; color: var(--zacht); max-width: 30ch; }
+  .welkom .zin b { color: var(--tekst); font-weight: 600; }
+  .welkom .doen { margin-top: auto; display: flex; align-items: center; gap: 22px; }
+  .welkom .begin { height: 60px; padding: 0 30px; border-radius: 18px; background: #6fd3ff; color: #0b1424; font-size: 19px; font-weight: 700; display: inline-flex; align-items: center; gap: 12px; box-shadow: 0 10px 40px rgba(111, 211, 255, 0.35); }
+  .welkom .doen a { font-size: 15px; font-weight: 600; color: var(--zacht); text-decoration: underline; text-underline-offset: 4px; }
+  .welkom .voet { margin-top: 18px; font-size: 13px; color: var(--gedempt); display: flex; gap: 18px; white-space: nowrap; }
+  .beloof { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .beloof li { display: flex; align-items: center; gap: 14px; }
+  .beloof i { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); flex: none; }
+  .beloof i svg { width: 21px; height: 21px; }
+  .beloof b { display: block; font-size: 15.5px; }
+  .beloof span { font-size: 13.5px; color: var(--gedempt); }
+  .welkom .voet b { color: var(--violet-t); font-weight: 700; }
+  .welkom .sluit { position: absolute; top: 22px; right: 26px; }
+  .label-w { position: absolute; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 16px 0 8px; border-radius: 999px; background: rgb(var(--nacht) / 0.7); border: 1px solid var(--glas-rand); font-size: 14px; color: var(--zacht); }
+  .label-w i { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); color: var(--tekst); }
+  .label-w i svg { width: 16px; height: 16px; }
+  .label-w b { font-family: var(--kop); font-size: 22px; color: var(--tekst); }
+  .gelezen { position: absolute; right: 26px; bottom: 26px; display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 16px; border-radius: 999px; background: rgb(var(--nacht) / 0.7); border: 1px solid var(--glas-rand); font-size: 13.5px; font-weight: 700; color: var(--mint-t); }
+  .gelezen::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--mint); }
 </style>
 </head>
 <body>
@@ -72,6 +108,7 @@
     <div class="podium" id="podium"></div>
     <aside class="glas paneel" data-paneel></aside>
   </div>
+  <section class="welkom" data-welkom></section>
 </div>
 <script src="../../frontend/kit/iconen.js"></script>
 <script src="../../frontend/kit/teksten.nl.js"></script>
@@ -131,6 +168,40 @@
     inhoud = `${vond(c.gevonden)}<div class="klopt"><b>Klopt dit?</b><span class="k">${c.aanpassen}</span><span class="k hoofd">Ja</span></div>${onder()}`;
   }
   document.querySelector('[data-paneel]').innerHTML = `<span class="waar">${waar}</span><h2>${c.kop}</h2><p class="zin">${c.zin}</p>${inhoud}`;
+  if (stap === 'welkom') {
+    document.body.classList.add('is-welkom');
+    const el = document.querySelector('[data-welkom]');
+    const label = (icoon, getal, tekst, x, y) => `<span class="label-w" style="left: ${x}px; top: ${y}px"><i>${iconen.svg(icoon)}</i><b>${getal}</b>${tekst}</span>`;
+    el.innerHTML = `
+      <div class="podium-w" id="podium-w"></div>
+      ${label('etages', 3, 'etages', 640, 650)}${label('kamers', 9, 'kamers', 1060, 380)}${label('apparaten', 28, 'apparaten', 1075, 470)}
+      <span class="glas-klein sluit" style="width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center">×</span>
+      <div class="links">
+        <div class="merk"><img src="../../frontend/kit/merk.svg" alt=""><span class="woord">SunArc</span><span class="arc"><b>A</b>utonomous <b>R</b>esidential <b>C</b>limate</span></div>
+        <span class="hallo">Hallo</span>
+        <h1>Welkom <em>thuis.</em></h1>
+        <p class="zin">Je huis staat er al: SunArc las het uit Home Assistant. <b>Jij kijkt of het klopt.</b></p>
+        <ul class="beloof">
+          <li><i style="color: var(--gloed)">${iconen.svg('thermostaat')}</i><div><b>Warm in elke kamer</b><span>Op tijd, en koel als het nodig is.</span></div></li>
+          <li><i style="color: var(--zon)">${iconen.svg('zon')}</i><div><b>Op je eigen zon</b><span>Zon over gaat eerst naar je huis.</span></div></li>
+          <li><i style="color: var(--violet)">${iconen.svg('praten')}</i><div><b>Zegt altijd waarom</b><span>Bij elk besluit, of vraag het je huis.</span></div></li>
+        </ul>
+        <div class="doen"><span class="begin">Begin <span aria-hidden="true">→</span></span><a>Ik heb een back-up</a></div>
+        <div class="voet"><span>Zeven stappen, zo'n vijf minuten. Alles blijft in je eigen huis.</span><b>Eerst een voorbeeldhuis ›</b></div>
+      </div>
+      <span class="gelezen">Gevonden in Home Assistant</span>`;
+    huis.teken(document.getElementById('podium-w'), {
+      beschrijving: 'Het huis zoals SunArc het uit Home Assistant las.',
+      tijd: 'avond',
+      zon: { aandeel: 0, panelen: 12 },
+      etages: [
+        { kamers: [{ naam: 'Woonkamer', gewicht: 1.4, apparaten: [{ soort: 'airco' }, { soort: 'lamp', aan: true, x: 0.4 }] }, { naam: 'Keuken', apparaten: [{ soort: 'lamp', aan: true }] }, { naam: 'Hal', gewicht: 0.6, apparaten: [] }] },
+        { kamers: [{ naam: 'Badkamer', apparaten: [] }, { naam: 'Slaapkamer', apparaten: [] }, { naam: 'Kinderkamer', apparaten: [] }] },
+        { dak: true, kamers: [{ naam: 'Zolder', apparaten: [{ soort: 'airco' }, { soort: 'droger' }] }] },
+      ],
+      net: true,
+    }, { breedte: 800, hoogte: 680, marge: 0.05 });
+  }
   const w = document.querySelector('[data-waaier]');
   if (w) window.waaier.teken(w, { groepen: W_GROEPEN, cx: 370, cy: 392, r0: 88, R: 238, getal: `${TOTAAL}%`, onder: 'zo ver is je huis', groei: false, knoppen: false });
 </script>

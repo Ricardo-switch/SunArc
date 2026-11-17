@@ -12,7 +12,7 @@
    * Inrichten in zeven stappen op de telefoon (schets stap 2, 17 november
    * 2026), bij Wand-Inrichten-Kort: bovenin zeven streepjes, dan de stap, en
    * Klopt dit? onderaan onder je duim. Inhoud uit inrichten-kort.js.
-   *   (geen hash) #meter, #prijzen, #verwarming, #klaar
+   *   #welkom, (geen hash) #meter, #prijzen, #verwarming, #klaar
    */
   body { margin: 0; width: 390px; }
   .tel { width: 390px; height: 844px; padding: 54px 18px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; }
@@ -46,6 +46,21 @@
   .veldje div span { font-size: 12.5px; color: var(--gedempt); }
   .velden { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .waaier { width: 300px; height: auto; align-self: center; }
+  /* Welkom: het logo groot, de naam en ARC voluit, het huis, Welkom thuis. */
+  .wk { align-items: center; text-align: center; gap: 0; padding-top: 50px; }
+  .wk .sluit { position: absolute; top: 46px; right: 18px; }
+  .wk img { width: 150px; height: auto; }
+  .wk .woord { margin-top: 4px; font-family: var(--kop); font-weight: 700; font-size: 52px; letter-spacing: -0.045em; line-height: 0.95; }
+  .wk .arc { margin-top: 8px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--zacht); }
+  .wk .arc b { color: var(--zon-t); font-weight: 800; }
+  .wk .podium-t { width: 354px; height: 250px; margin-top: 8px; }
+  .wk h1 { margin: 0; font-family: var(--kop); font-size: 52px; font-weight: 700; letter-spacing: -0.035em; line-height: 1; }
+  .wk h1 em { font-style: normal; background: linear-gradient(90deg, #f7b548, #ff7a4d 50%, #8f86ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .wk .zin { margin-top: 10px; font-size: 15.5px; max-width: 32ch; }
+  .wk .zin b { color: var(--tekst); font-weight: 600; }
+  .wk .onderaan { width: 100%; }
+  .wk .noot { text-align: center; margin-top: 6px; }
+  .wk .noot b { color: var(--violet-t); }
 </style>
 </head>
 <body>
@@ -54,13 +69,14 @@
 <script src="../../frontend/kit/teksten.nl.js"></script>
 <script src="../../frontend/kit/teksten.en.js"></script>
 <script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/huis.js"></script>
 <script src="../../frontend/kit/waaier.js"></script>
 <script src="voortgang-voorbeeld.js"></script>
 <script src="inrichten-kort.js"></script>
 <script>
   const { STAPPEN, INHOUD } = inrichtenKort;
   const hash = location.hash.slice(1);
-  const stap = hash in INHOUD && hash !== 'welkom' ? hash : 'meter';
+  const stap = hash in INHOUD ? hash : 'meter';
   const nr = STAPPEN.findIndex(([id]) => id === stap);
   const c = INHOUD[stap];
   const vond = (lijst) => `<div class="vond">${lijst.map(([b, s]) => `<div class="vondregel"><span class="vink">✓</span><div><b>${b}</b><span>${s}</span></div></div>`).join('')}</div>`;
@@ -76,10 +92,28 @@
     inhoud = `${vond([[c.soort[0], c.soort[1]]])}<div class="vond">${c.kamers.map(([k, z]) => `<div class="kamerregel"><b>${k}</b>${z}</div>`).join('')}</div><p class="noot">${c.nietMee}.</p>${klopt(c.aanpassen)}`;
   } else if (stap === 'klaar') {
     inhoud = `<svg class="waaier" viewBox="0 0 740 440" data-waaier></svg>${vond(c.regels)}<div class="onderaan"><span class="k hoofd">Naar Thuis</span><span class="k">Laat zien hoe het werkt</span></div>`;
-  } else {
+  } else if (stap !== 'welkom') {
     inhoud = `${vond(c.gevonden)}${klopt(c.aanpassen)}`;
   }
-  document.getElementById('scherm').innerHTML = `
+  if (stap === 'welkom') {
+    const el = document.getElementById('scherm');
+    el.classList.add('wk');
+    el.innerHTML = `<span class="sluit">×</span>
+      <img src="../../frontend/kit/merk.svg" alt=""><span class="woord">SunArc</span><span class="arc"><b>A</b>utonomous <b>R</b>esidential <b>C</b>limate</span>
+      <div class="podium-t" id="podium-t"></div>
+      <h1>Welkom <em>thuis.</em></h1>
+      <p class="zin">Je huis staat er al: SunArc las het uit Home Assistant. <b>Jij kijkt of het klopt.</b></p>
+      <div class="onderaan"><span class="k hoofd">Begin →</span><span class="k">Ik heb een back-up</span>
+        <p class="noot">Zeven stappen, zo'n vijf minuten. <b>Eerst een voorbeeldhuis ›</b></p></div>`;
+    huis.teken(document.getElementById('podium-t'), {
+      beschrijving: 'Het huis zoals SunArc het uit Home Assistant las.', tijd: 'avond', zon: { aandeel: 0, panelen: 12 },
+      etages: [
+        { kamers: [{ naam: 'Woonkamer', gewicht: 1.4, apparaten: [{ soort: 'airco' }, { soort: 'lamp', aan: true, x: 0.4 }] }, { naam: 'Keuken', apparaten: [{ soort: 'lamp', aan: true }] }, { naam: 'Hal', gewicht: 0.6, apparaten: [] }] },
+        { kamers: [{ naam: 'Badkamer', apparaten: [] }, { naam: 'Slaapkamer', apparaten: [] }, { naam: 'Kinderkamer', apparaten: [] }] },
+        { dak: true, kamers: [{ naam: 'Zolder', apparaten: [{ soort: 'airco' }, { soort: 'droger' }] }] },
+      ].map((e) => ({ ...e, kamers: e.kamers.map((k) => ({ ...k, naam: '' })) })), net: true,
+    }, { breedte: 354, hoogte: 250, marge: 0.03 });
+  } else document.getElementById('scherm').innerHTML = `
     <div class="bovenrij"><div class="streepjes">${STAPPEN.map((_, i) => `<i class="${i < nr ? 'klaar' : i === nr ? 'nu' : ''}"></i>`).join('')}</div><span class="sluit">×</span></div>
     <span class="waar">${nr + 1} van 7 · ${STAPPEN[nr][1]}</span>
     <h2>${c.kop}</h2><p class="zin">${c.zin}</p>${inhoud}`;
