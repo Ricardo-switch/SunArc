@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · De ene standpagina (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * De ene standpagina (schets stap 2, 17 november 2026), achter de standregel
+   * van Wand-Instellingen-Vier. Wat je huis kan, Hoe ver je huis is,
+   * Klaarzetten en het vak Nog te doen worden één pagina: links de zonnewaaier,
+   * rechts eerst wat echt ontbreekt en dan elke functie op één regel met zijn
+   * stand, wat er nog bij kan met de knop op de regel, onderaan de weg naar
+   * zelf regelen. De inhoud: voortgang-voorbeeld.js en stand-een.js.
+   *   (geen hash)  het huis van Ricardo: kijkt mee, de wintertest
+   *   #nieuw       een nieuw huis: de weg zoals besluit 312
+   */
+  main { padding: 22px 26px 22px 22px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .boven { display: flex; align-items: flex-end; gap: 16px; }
+  .boven .terug { font-size: 14px; font-weight: 700; color: var(--zacht); display: block; margin-bottom: 4px; }
+  .tellers { margin-left: auto; display: flex; gap: 16px; font-size: 14px; color: var(--zacht); padding-bottom: 6px; }
+  .tellers span { display: flex; align-items: center; gap: 7px; }
+  .tellers b { color: var(--tekst); font-family: var(--kop); font-size: 16px; }
+  .midden { flex: 1; min-height: 0; display: grid; grid-template-columns: 500px 1fr; gap: 16px; }
+  .links { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .beeld { position: relative; flex: 1; min-height: 0; display: flex; align-items: flex-end; justify-content: center; }
+  .beeld svg { width: 470px; height: auto; }
+  .rechts { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+
+  .eerst { display: flex; align-items: center; gap: 14px; padding: 12px 14px 12px 16px; border-radius: 18px; background: rgba(255, 122, 77, 0.08); border: 1px solid rgba(255, 122, 77, 0.35); }
+  .eerst .stip { background: var(--gloed); }
+  .eerst b { display: block; font-size: 15px; }
+  .eerst span.zin { font-size: 13px; color: var(--zacht); line-height: 1.4; }
+  .eerst .knopje { margin-left: auto; }
+  .knopje { flex: none; height: 34px; padding: 0 14px; border-radius: 11px; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700; background: var(--tekst); color: var(--inkt); white-space: nowrap; }
+  .knopje.zacht { background: rgba(247, 181, 72, 0.12); color: var(--zon-t); border: 1px solid rgba(247, 181, 72, 0.4); }
+
+  .groepen { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: start; }
+  .groep { padding: 8px 12px 6px; border-radius: 18px; }
+  .groep h3 { margin: 0 0 2px 4px; font-size: 13px; font-weight: 700; color: var(--gedempt); }
+  .func { display: flex; align-items: center; gap: 10px; padding: 3px 4px; border-top: 1px solid var(--glas-rand); font-size: 13.5px; }
+  .func:first-of-type { border-top: 0; }
+  .func .naam { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .func .naam span { display: block; font-size: 11.5px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stand { flex: none; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; }
+  .stand .stip { width: 7px; height: 7px; }
+  .erbij .func { padding: 4px 4px; }
+  .erbij .func .naam span { display: inline; margin-left: 6px; }
+  .erbij .knopje { height: 30px; font-size: 12.5px; padding: 0 10px; }
+
+  /* De weg naar zelf regelen. */
+  .weg { padding: 12px 20px; border-radius: 20px; display: grid; grid-template-columns: 230px 1fr 320px; gap: 22px; align-items: center; }
+  .weg h3 { margin: 0; font-family: var(--kop); font-size: 18px; font-weight: 600; }
+  .weg p { margin: 3px 0 0; font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+  .lijn { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); }
+  .lijn::before { content: ''; position: absolute; left: 12%; right: 12%; top: 9px; height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--mint) 0 30%, rgb(var(--wit) / 0.14) 30%); }
+  .halte { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; }
+  .halte i { width: 20px; height: 20px; border-radius: 50%; background: rgb(var(--wit) / 0.2); border: 3px solid rgb(var(--nacht)); }
+  .halte.klaar i { background: var(--mint); }
+  .halte.nu i { background: #fff; box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15); }
+  .halte.doel i { background: var(--zon); }
+  .halte b { font-size: 13px; }
+  .halte span { font-size: 11.5px; color: var(--gedempt); line-height: 1.3; max-width: 150px; }
+  .halte.doel b { color: var(--zon-t); }
+  .maten { display: flex; flex-direction: column; gap: 6px; }
+  .maat { display: grid; grid-template-columns: 1fr 70px 58px; gap: 10px; align-items: center; font-size: 12.5px; color: var(--zacht); }
+  .maat .meter { height: 6px; border-radius: 6px; background: rgb(var(--wit) / 0.1); overflow: hidden; }
+  .maat .meter i { display: block; height: 100%; background: var(--mint); border-radius: 6px; }
+  .maat b { text-align: right; color: var(--tekst); }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-avond">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="boven">
+      <div><span class="terug">‹ Instellingen</span><h1 class="kop-1">Wat je huis kan</h1></div>
+      <div class="tellers" data-tellers></div>
+    </div>
+    <section class="midden">
+      <div class="links"><div class="beeld"><svg class="waaier" viewBox="0 0 740 440" data-waaier></svg></div><div data-erbij></div></div>
+      <div class="rechts">
+        <div data-eerst></div>
+        <div class="groepen" data-groepen></div>
+      </div>
+    </section>
+    <section class="glas weg" data-weg></section>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="../../frontend/kit/waaier.js"></script>
+<script src="voortgang-voorbeeld.js"></script>
+<script src="stand-een.js"></script>
+<script>
+  const { EERST, KAN_ERBIJ, WEG } = standEen;
+  const huis = location.hash.slice(1) === 'nieuw' ? 'nieuw' : 'jouw';
+  nav.balk(document.getElementById('balk'), 'instellingen');
+  const KL = { werkt: 'var(--mint)', kijkt: 'var(--ijs)', leert: 'var(--violet)' };
+  const TK = { werkt: 'var(--mint-t)', kijkt: 'var(--ijs-t)', leert: 'var(--violet-t)' };
+
+  document.querySelector('[data-tellers]').innerHTML = ['werkt', 'kijkt', 'leert'].map((s) => `<span><i class="stip" style="background: ${KL[s]}"></i>${LABEL[s]} <b>${tel(s)}</b></span>`).join('') + `<span><i class="stip" style="background: var(--zon)"></i>Kan erbij <b>${KAN_ERBIJ.length}</b></span>`;
+
+  window.waaier.teken(document.querySelector('[data-waaier]'), { groepen: W_GROEPEN, cx: 370, cy: 392, r0: 88, R: 238, namen: true, groepnamen: true, horizon: 140, ringen: TREDEN.map((x) => x.toLowerCase()), getal: `${TOTAAL}%`, onder: 'zo ver is je huis', groei: false });
+
+  document.querySelector('[data-eerst]').innerHTML = EERST.map((e) => `<div class="eerst"><i class="stip"></i><div><b>Eerst dit: ${e.titel}</b><span class="zin">${e.zin}</span></div><span class="knopje">${e.knop} ›</span></div>`).join('');
+
+  // Elke functie op één regel met zijn stand; dezelfde groepen als de waaier. Een tik opent het blad met de uitleg.
+  const korte = { gemak: 'Gemak', overzicht: 'Overzicht', comfort: 'Comfort', leert: 'Wat het huis eerst leert', zon: 'Op zon', kosten: 'Kosten' };
+  const groepen = W_GROEPEN.map((g) => `<div class="glas groep"><h3>${korte[g.id] ?? g.naam}</h3>${g.onderwerpen.map((x) => `<div class="func"><span class="naam">${x.titel}</span><span class="stand" style="color: ${TK[x.stand]}"><i class="stip" style="background: ${KL[x.stand]}"></i>${LABEL[x.stand]}</span></div>`).join('')}</div>`);
+  const erbij = `<div class="glas groep erbij"><h3>Kan er nog bij</h3>${KAN_ERBIJ.map(([n, z, k]) => `<div class="func"><span class="naam">${n}<span>${z}</span></span><span class="knopje zacht">${k} ›</span></div>`).join('')}</div>`;
+  // Twee kolommen: links gemak, overzicht, comfort; rechts leert, op zon, kosten. Kan er nog bij staat onder de waaier.
+  const el = document.querySelector('[data-groepen]');
+  el.innerHTML = `<div style="display: flex; flex-direction: column; gap: 10px">${groepen.slice(0, 3).join('')}</div><div style="display: flex; flex-direction: column; gap: 10px">${groepen.slice(3).join('')}</div>`;
+  document.querySelector('[data-erbij]').innerHTML = erbij;
+
+  const w = WEG[huis];
+  document.querySelector('[data-weg]').innerHTML = `
+    <div><h3>${w.kop}</h3><p>${w.zin}</p></div>
+    <div class="lijn">${w.stappen.map(([b, s, k]) => `<div class="halte ${k}"><i></i><b>${b}</b><span>${s}</span></div>`).join('')}</div>
+    <div class="maten">${w.maten.map(([n, t, p]) => `<div class="maat">${n}<span class="meter"><i style="width: ${Math.max(3, p * 100)}%"></i></span><b>${t}</b></div>`).join('')}</div>`;
+</script>
+</body>
+</html>

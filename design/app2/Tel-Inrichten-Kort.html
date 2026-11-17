@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Inrichten in zeven stappen (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Inrichten in zeven stappen op de telefoon (schets stap 2, 17 november
+   * 2026), bij Wand-Inrichten-Kort: bovenin zeven streepjes, dan de stap, en
+   * Klopt dit? onderaan onder je duim. Inhoud uit inrichten-kort.js.
+   *   (geen hash) #meter, #prijzen, #verwarming, #klaar
+   */
+  body { margin: 0; width: 390px; }
+  .tel { width: 390px; height: 844px; padding: 54px 18px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; }
+  .bovenrij { display: flex; align-items: center; gap: 10px; }
+  .streepjes { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .streepjes i { height: 5px; border-radius: 5px; background: rgb(var(--wit) / 0.14); }
+  .streepjes i.klaar { background: var(--mint); }
+  .streepjes i.nu { background: var(--tekst); }
+  .sluit { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); font-size: 16px; }
+  .waar { font-size: 13px; color: var(--gedempt); font-weight: 600; }
+  h2 { margin: 0; font-family: var(--kop); font-size: 30px; font-weight: 600; letter-spacing: -0.01em; }
+  .zin { margin: 0; font-size: 15px; color: var(--zacht); line-height: 1.5; }
+  .vond { display: flex; flex-direction: column; gap: 6px; }
+  .vondregel { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 15px; background: rgb(var(--wit) / 0.06); }
+  .vink { width: 24px; height: 24px; border-radius: 50%; background: rgba(110, 231, 183, 0.16); color: var(--mint); display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none; }
+  .vondregel b { display: block; font-size: 15px; }
+  .vondregel span { font-size: 12.5px; color: var(--gedempt); }
+  .kamerregel { padding: 10px 14px; border-radius: 15px; background: rgb(var(--wit) / 0.06); font-size: 13.5px; color: var(--zacht); }
+  .kamerregel b { display: block; color: var(--tekst); font-size: 15px; }
+  .noot { margin: 0; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
+  .onderaan { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+  .onderaan .vraag { font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 2px; }
+  .k { height: 52px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; background: rgb(var(--wit) / 0.08); border: 1px solid var(--glas-rand); }
+  .k.hoofd { background: #6fd3ff; color: #0b1424; border-color: transparent; }
+  .terugrij { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: var(--zacht); padding: 4px 4px 0; }
+  .segment { display: flex; padding: 4px; border-radius: 14px; background: rgb(var(--nacht) / 0.5); }
+  .segment span { flex: 1; text-align: center; padding: 10px; border-radius: 11px; font-size: 14.5px; font-weight: 700; color: var(--zacht); }
+  .segment span.aan { background: var(--tekst); color: var(--inkt); }
+  .veldje { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--gedempt); font-weight: 600; }
+  .veldje div { height: 48px; border-radius: 13px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.04); display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-size: 16px; color: var(--tekst); }
+  .veldje div span { font-size: 12.5px; color: var(--gedempt); }
+  .velden { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .waaier { width: 300px; height: auto; align-self: center; }
+</style>
+</head>
+<body>
+<div class="tel lucht lucht-avond" id="scherm"></div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/waaier.js"></script>
+<script src="voortgang-voorbeeld.js"></script>
+<script src="inrichten-kort.js"></script>
+<script>
+  const { STAPPEN, INHOUD } = inrichtenKort;
+  const hash = location.hash.slice(1);
+  const stap = hash in INHOUD && hash !== 'welkom' ? hash : 'meter';
+  const nr = STAPPEN.findIndex(([id]) => id === stap);
+  const c = INHOUD[stap];
+  const vond = (lijst) => `<div class="vond">${lijst.map(([b, s]) => `<div class="vondregel"><span class="vink">✓</span><div><b>${b}</b><span>${s}</span></div></div>`).join('')}</div>`;
+  const klopt = (aanpassen) => `<div class="onderaan"><div class="vraag">Klopt dit?</div><span class="k hoofd">Ja</span><span class="k">${aanpassen}</span><div class="terugrij"><span>Terug</span><span>Later</span></div></div>`;
+  let inhoud;
+  if (stap === 'prijzen') {
+    inhoud = `<div class="segment"><span class="aan">Vaste prijs</span><span>Per uur</span></div>
+      <div class="velden"><label class="veldje">Stroom, normaal<div>€ 0,— <span>kWh</span></div></label><label class="veldje">Stroom, dal<div>€ 0,— <span>kWh</span></div></label>
+      <label class="veldje">Terug, je krijgt<div>€ 0,— <span>kWh</span></div></label><label class="veldje">Gas<div>€ 0,— <span>m³</span></div></label></div>
+      <p class="noot">${c.overslaan}</p>
+      <div class="onderaan"><span class="k hoofd">Volgende</span><span class="k">Overslaan</span><div class="terugrij"><span>Terug</span><span></span></div></div>`;
+  } else if (stap === 'verwarming') {
+    inhoud = `${vond([[c.soort[0], c.soort[1]]])}<div class="vond">${c.kamers.map(([k, z]) => `<div class="kamerregel"><b>${k}</b>${z}</div>`).join('')}</div><p class="noot">${c.nietMee}.</p>${klopt(c.aanpassen)}`;
+  } else if (stap === 'klaar') {
+    inhoud = `<svg class="waaier" viewBox="0 0 740 440" data-waaier></svg>${vond(c.regels)}<div class="onderaan"><span class="k hoofd">Naar Thuis</span><span class="k">Laat zien hoe het werkt</span></div>`;
+  } else {
+    inhoud = `${vond(c.gevonden)}${klopt(c.aanpassen)}`;
+  }
+  document.getElementById('scherm').innerHTML = `
+    <div class="bovenrij"><div class="streepjes">${STAPPEN.map((_, i) => `<i class="${i < nr ? 'klaar' : i === nr ? 'nu' : ''}"></i>`).join('')}</div><span class="sluit">×</span></div>
+    <span class="waar">${nr + 1} van 7 · ${STAPPEN[nr][1]}</span>
+    <h2>${c.kop}</h2><p class="zin">${c.zin}</p>${inhoud}`;
+  const w = document.querySelector('[data-waaier]');
+  if (w) window.waaier.teken(w, { groepen: W_GROEPEN, cx: 370, cy: 392, r0: 88, R: 238, getal: `${TOTAAL}%`, onder: 'zo ver is je huis', groei: false, knoppen: false });
+</script>
+</body>
+</html>

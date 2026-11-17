@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Inrichten in zeven stappen (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Inrichten in zeven stappen (schets stap 2, 17 november 2026), in plaats van
+   * 23 stappen in acht hoofdstukken. Dezelfde vorm als nu (het huis links, de
+   * stap rechts), maar elke stap is een voorstel: wat SunArc vond, en Klopt
+   * dit? Eén tik als het goed is. De inhoud staat in inrichten-kort.js.
+   *   #welkom, #huis, (geen hash) #meter, #panelen, #prijzen (niets gevonden:
+   *   dan vraagt het), #verwarming, #bewoners, #klaar
+   */
+  body { margin: 0; }
+  .scherm { width: 1280px; height: 800px; position: relative; display: grid; grid-template-rows: 64px 1fr; }
+  .bovenbalk { display: flex; align-items: center; gap: 10px; padding: 18px 26px 0; }
+  .logo { width: 40px; height: 40px; border-radius: 12px; background: rgb(var(--nacht) / 0.6) url('../../frontend/kit/zon.svg') center / 26px no-repeat; flex: none; }
+  .stappen { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-left: 6px; }
+  .chip-s { height: 40px; border-radius: 13px; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 13px; font-weight: 600; color: var(--gedempt); background: rgb(var(--wit) / 0.04); border: 1px solid transparent; white-space: nowrap; overflow: hidden; }
+  .chip-s i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: rgb(var(--wit) / 0.08); flex: none; }
+  .chip-s.klaar { color: var(--zacht); }
+  .chip-s.klaar i { background: var(--mint); color: #0b1424; }
+  .chip-s.nu { color: var(--tekst); background: rgb(var(--wit) / 0.1); border-color: var(--glas-rand); }
+  .chip-s.nu i { background: var(--tekst); color: var(--inkt); }
+  .sluit { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); font-size: 18px; flex: none; }
+  .midden { display: grid; grid-template-columns: 1fr 470px; gap: 0; padding: 0 26px 24px 10px; min-height: 0; }
+  .podium { position: relative; }
+  .paneel { margin-top: 10px; padding: 24px 26px 18px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .waar { font-size: 13px; color: var(--gedempt); font-weight: 600; }
+  .paneel h2 { margin: 0; font-family: var(--kop); font-size: 30px; font-weight: 600; letter-spacing: -0.01em; }
+  .paneel .zin { margin: 0; font-size: 15.5px; color: var(--zacht); line-height: 1.5; }
+  .vond { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+  .vondregel { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.05); }
+  .vondregel .vink { width: 24px; height: 24px; border-radius: 50%; background: rgba(110, 231, 183, 0.16); color: var(--mint); display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none; }
+  .vondregel .vink.grijs { background: rgb(var(--wit) / 0.08); color: var(--zacht); }
+  .vondregel b { display: block; font-size: 15px; }
+  .vondregel span { font-size: 12.5px; color: var(--gedempt); }
+  .klopt { margin-top: 6px; padding: 14px 16px; border-radius: 16px; background: rgb(var(--wit) / 0.06); display: flex; align-items: center; gap: 10px; }
+  .klopt b { font-size: 16px; margin-right: auto; }
+  .k { height: 44px; padding: 0 18px; border-radius: 13px; display: inline-flex; align-items: center; font-size: 15px; font-weight: 700; background: rgb(var(--wit) / 0.08); border: 1px solid var(--glas-rand); white-space: nowrap; }
+  .k.hoofd { background: var(--accent, #6fd3ff); color: var(--op-accent, #0b1424); border-color: transparent; }
+  .onder { margin-top: auto; display: flex; align-items: center; gap: 14px; padding-top: 12px; border-top: 1px solid var(--glas-rand); font-size: 14px; font-weight: 700; color: var(--zacht); }
+  .onder .rechts { margin-left: auto; }
+  .noot { font-size: 13px; color: var(--gedempt); line-height: 1.45; margin: 0; }
+
+  /* Prijzen: niets gevonden, dan vragen. */
+  .segment { display: flex; padding: 4px; border-radius: 14px; background: rgb(var(--nacht) / 0.5); }
+  .segment span { flex: 1; text-align: center; padding: 10px; border-radius: 11px; font-size: 14.5px; font-weight: 700; color: var(--zacht); }
+  .segment span.aan { background: var(--tekst); color: var(--inkt); }
+  .velden { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .veldje { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--gedempt); font-weight: 600; }
+  .veldje div { height: 48px; border-radius: 13px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.04); display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-size: 16px; color: var(--tekst); font-weight: 600; }
+  .veldje div span { font-size: 12.5px; color: var(--gedempt); font-weight: 500; }
+
+  /* Verwarming: per kamer. */
+  .kamerregel { display: grid; grid-template-columns: 100px 1fr; gap: 10px; padding: 9px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.05); font-size: 13.5px; color: var(--zacht); }
+  .kamerregel b { color: var(--tekst); font-size: 14.5px; }
+
+  /* Klaar. */
+  .klaarbeeld { display: flex; justify-content: center; }
+  .klaarbeeld svg { width: 300px; height: auto; }
+</style>
+</head>
+<body>
+<div class="scherm lucht lucht-avond">
+  <div class="bovenbalk"><span class="logo"></span><div class="stappen" data-stappen></div><span class="sluit">×</span></div>
+  <div class="midden">
+    <div class="podium" id="podium"></div>
+    <aside class="glas paneel" data-paneel></aside>
+  </div>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/huis.js"></script>
+<script src="../../frontend/kit/waaier.js"></script>
+<script src="voortgang-voorbeeld.js"></script>
+<script src="inrichten-kort.js"></script>
+<script>
+  const { STAPPEN, INHOUD } = inrichtenKort;
+  const hash = location.hash.slice(1);
+  const stap = hash in INHOUD ? hash : 'meter';
+  const nr = STAPPEN.findIndex(([id]) => id === stap);
+  const c = INHOUD[stap];
+
+  document.querySelector('[data-stappen]').innerHTML = STAPPEN.map(([id, naam], i) => {
+    const soort = stap === 'welkom' ? '' : i < nr ? 'klaar' : i === nr ? 'nu' : '';
+    return `<span class="chip-s ${soort}"><i>${soort === 'klaar' ? '✓' : i + 1}</i>${naam}</span>`;
+  }).join('');
+
+  const podium = document.getElementById('podium');
+  huis.teken(podium, {
+    beschrijving: 'Het voorbeeldhuis tijdens het inrichten.',
+    tijd: 'avond',
+    zon: { aandeel: 0, panelen: stap === 'welkom' || nr < 2 ? 0 : 12 },
+    etages: [
+      { kamers: [{ naam: 'Woonkamer', gewicht: 1.4, apparaten: [{ soort: 'airco' }, { soort: 'lamp', aan: true, x: 0.4 }] }, { naam: 'Keuken', apparaten: [{ soort: 'lamp', aan: true }] }, { naam: 'Hal', gewicht: 0.6, apparaten: [] }] },
+      { kamers: [{ naam: 'Badkamer', apparaten: [] }, { naam: 'Slaapkamer', apparaten: [] }, { naam: 'Kinderkamer', apparaten: [] }] },
+      { dak: true, kamers: [{ naam: 'Zolder', apparaten: [{ soort: 'airco' }, { soort: 'droger' }] }] },
+    ],
+    net: true,
+  }, { breedte: 760, hoogte: 680, marge: 0.06 });
+
+  const waar = stap === 'welkom' ? 'Inrichten' : `${nr + 1} van 7 · ${STAPPEN[nr][1]}`;
+  const vond = (lijst, grijs) => `<div class="vond">${lijst.map(([b, s]) => `<div class="vondregel"><span class="vink ${grijs ? 'grijs' : ''}">${grijs ? '•' : '✓'}</span><div><b>${b}</b><span>${s}</span></div></div>`).join('')}</div>`;
+  const onder = (rechts = 'Later') => `<div class="onder"><span>${stap === 'welkom' ? '' : 'Terug'}</span><span class="rechts">${rechts}</span></div>`;
+  let inhoud = '';
+  if (stap === 'welkom') {
+    inhoud = `${vond(c.regels, true)}<div class="klopt"><b></b><span class="k hoofd">Beginnen</span></div>${onder('Een voorbeeldhuis bekijken')}`;
+  } else if (stap === 'prijzen') {
+    inhoud = `<div class="segment"><span class="aan">Vaste prijs</span><span>Per uur</span></div>
+      <div class="velden"><label class="veldje">Stroom, normaal<div>€ 0,— <span>per kWh</span></div></label><label class="veldje">Stroom, dal<div>€ 0,— <span>per kWh</span></div></label>
+      <label class="veldje">Terug, je krijgt<div>€ 0,— <span>per kWh</span></div></label><label class="veldje">Gas<div>€ 0,— <span>per m³</span></div></label></div>
+      <p class="noot">${c.overslaan}</p>
+      <div class="klopt"><b></b><span class="k">Overslaan</span><span class="k hoofd">Volgende</span></div>${onder('')}`;
+  } else if (stap === 'verwarming') {
+    inhoud = `${vond([[c.soort[0], c.soort[1]]])}
+      <div class="vond">${c.kamers.map(([k, z]) => `<div class="kamerregel"><b>${k}</b>${z}</div>`).join('')}</div>
+      <p class="noot">${c.nietMee}. Wat ze krijgen, kies je later per kamer bij Klimaat.</p>
+      <div class="klopt"><b>Klopt dit?</b><span class="k">${c.aanpassen}</span><span class="k hoofd">Ja</span></div>${onder()}`;
+  } else if (stap === 'klaar') {
+    inhoud = `<div class="klaarbeeld"><svg class="waaier" viewBox="0 0 740 440" data-waaier></svg></div>${vond(c.regels)}
+      <p class="noot">${c.later}</p>
+      <div class="klopt"><b></b><span class="k">Laat zien hoe het werkt</span><span class="k hoofd">Naar Thuis</span></div>`;
+  } else {
+    inhoud = `${vond(c.gevonden)}<div class="klopt"><b>Klopt dit?</b><span class="k">${c.aanpassen}</span><span class="k hoofd">Ja</span></div>${onder()}`;
+  }
+  document.querySelector('[data-paneel]').innerHTML = `<span class="waar">${waar}</span><h2>${c.kop}</h2><p class="zin">${c.zin}</p>${inhoud}`;
+  const w = document.querySelector('[data-waaier]');
+  if (w) window.waaier.teken(w, { groepen: W_GROEPEN, cx: 370, cy: 392, r0: 88, R: 238, getal: `${TOTAAL}%`, onder: 'zo ver is je huis', groei: false, knoppen: false });
+</script>
+</body>
+</html>
