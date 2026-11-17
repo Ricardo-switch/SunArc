@@ -614,7 +614,8 @@ describe('elk getal heeft een bron, in elke toestand', () => {
         }
       }
     }
-  });
+    // Apart ruim 3 seconden; als alle tests tegelijk draaien soms meer dan de standaard 5 (vitest 5, 17 november 2026).
+  }, 30_000);
 });
 
 describe('de stand per kamer voor de kaart (besluit 94)', () => {

@@ -1,0 +1,50 @@
+# Dependabot (kwaliteitsronde, stap 2, 17 november 2026).
+#
+# Alleen het gereedschap om te bouwen en te testen: de dienst zelf draait op
+# Node zonder een enkel pakket van buiten. Eens per maand één gebundeld
+# voorstel per map, naar beta (de NAS volgt beta; main krijgt pas in januari
+# weer iets, via een PR die Ricardo samenvoegt).
+#
+# Let op: voorstellen voor lekken (security updates) gaan bij GitHub altijd
+# naar de standaardtak (main), wat hier ook staat. Die staan daarom uit; de
+# meldingen staan aan en een lek wordt met de hand op beta gerepareerd.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /backend
+    target-branch: beta
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      gereedschap:
+        patterns: ['*']
+        update-types: [minor, patch]
+    ignore:
+      # TypeScript 7 wordt door typescript-eslint nog niet ondersteund (tot 6.1).
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+      # De types volgen de Node van de images (22), niet de nieuwste Node.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: npm
+    directory: /frontend
+    target-branch: beta
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      gereedschap:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: beta
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      acties:
+        patterns: ['*']

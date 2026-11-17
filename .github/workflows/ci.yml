@@ -22,7 +22,10 @@ on:
   push:
     branches: [beta]
   pull_request:
-    branches: [main]
+    # beta erbij (17 november 2026): de maandelijkse voorstellen van Dependabot
+    # gaan naar beta en krijgen zo dezelfde controles. Stable schuift alleen bij
+    # een push naar beta op, niet bij een voorstel.
+    branches: [main, beta]
   workflow_dispatch:
 
 permissions:
