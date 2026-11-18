@@ -18,6 +18,24 @@
     toegang: 'toegang.html',
   };
 
+  /*
+   * Inrichten in zeven stappen (besluit 323): welke er op dit apparaat nog
+   * open zijn (inrichten.js bewaart wat nagelopen is). Null als er hier nog
+   * niet aan de zeven stappen begonnen is: wie het huis al lang heeft
+   * ingericht, krijgt het dan niet opnieuw voorgeschoteld.
+   */
+  const INRICHTEN = ['jehuis', 'meter', 'panelen', 'prijzen', 'verwarming', 'bewoners'];
+  function inrichtenOpen() {
+    let al = [];
+    try {
+      al = JSON.parse(global.localStorage.getItem('sc-inrichten-bevestigd') ?? '[]');
+    } catch {
+      al = [];
+    }
+    if (!Array.isArray(al) || !INRICHTEN.some((x) => al.includes(x))) return null;
+    return INRICHTEN.filter((x) => !al.includes(x));
+  }
+
   /**
    * Wat er nog mist: elk met waarom het telt en een knop ernaartoe. Alleen wat
    * SunArc echt nodig heeft; wat erbij kan, staat bij Wat je huis kan.
@@ -25,6 +43,15 @@
   function nogTeDoen(d) {
     const t = global.taal.t;
     const uit = [];
+    // Inrichten (besluit 323): voor een huis dat nog niet is ingericht, of de stappen die hier nog open zijn.
+    const open = d.huis?.indeling === 'voorstel' ? null : inrichtenOpen();
+    if (d.huis?.indeling === 'voorstel') {
+      uit.push({ id: 'inrichten', groep: 'inrichten', wat: t('stand.inrichten'), waarom: t('stand.inrichtenZin'), knop: t('stand.begin'), href: 'inrichten.html' });
+    } else if (open?.length) {
+      const namen = open.map((x) => t(`inr.k.${x}`).toLowerCase());
+      const zin = namen.length > 1 ? `${namen.slice(0, -1).join(', ')} ${t('algemeen.en')} ${namen.at(-1)}` : namen[0];
+      uit.push({ id: 'inrichten', groep: 'inrichten', wat: t('stand.inrichtenAf'), waarom: t('stand.inrichtenOpen', { stappen: zin }), knop: t('stand.verder'), href: `inrichten.html#${open[0]}` });
+    }
     const e = d.energie?.instellingen;
     const p = e?.prijzen;
     // Een huis zonder slimme meter (besluit 196) mist geen meter van het net: dan alleen als er helemaal niets gekozen is.
@@ -98,6 +125,7 @@
     ['kan', 'zoek.waar.instellingen', 'huis-kan.html'],
     ['voortgang', 'zoek.waar.instellingen', 'huis-kan.html'],
     ['klaarzetten', 'inrichten', 'klaarzetten.html'],
+    ['inrichten', 'inrichten', 'inrichten.html'],
     ['versie', 'toegang', 'toegang.html#versie'],
   ];
   const zoekLijst = () => {

@@ -139,6 +139,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [254. Daken en panelen: elk dakvlak apart (ontwerp)](#254-daken-en-panelen-elk-dakvlak-apart-ontwerp)
 - [256. De kaart is experimenteel, met 3D BAG naast OpenStreetMap](#256-de-kaart-is-experimenteel-met-3d-bag-naast-openstreetmap)
 - [261. Wat kan bij jouw huis: de kaarten nagaan, de bewoner kiest](#261-wat-kan-bij-jouw-huis-de-kaarten-nagaan-de-bewoner-kiest)
+- [323. Inrichten in zeven stappen](#323-inrichten-in-zeven-stappen)
 
 **Meten, data en analyse**
 
@@ -230,7 +231,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [187. Huis 3.0: het huis als eiland, kaarten smal of breed, en de panelen op elk dak](#187-huis-30-het-huis-als-eiland-kaarten-smal-of-breed-en-de-panelen-op-elk-dak)
 - [188. In de schaduw zegt de app wat er echt gebeurt, als het klopt](#188-in-de-schaduw-zegt-de-app-wat-er-echt-gebeurt-als-het-klopt)
 - [189. De kaarten op de wand als tegel, en een kaart Boiler](#189-de-kaarten-op-de-wand-als-tegel-en-een-kaart-boiler)
-- [190. Inrichten 3.0: acht hoofdstukken, en het huis groeit mee op zijn eiland](#190-inrichten-30-acht-hoofdstukken-en-het-huis-groeit-mee-op-zijn-eiland)
+- [190. Inrichten 3.0: acht hoofdstukken, en het huis groeit mee op zijn eiland](#190-inrichten-30-acht-hoofdstukken-en-het-huis-groeit-mee-op-zijn-eiland) — *deels vervangen door 323*
 - [191. Huis 3.0 overal: het eiland is de standaard van de tekening](#191-huis-30-overal-het-eiland-is-de-standaard-van-de-tekening)
 - [192. Sluipverbruik: elke nacht gemeten, een eigen scherm onder Opbrengst, en een melding als het opvalt](#192-sluipverbruik-elke-nacht-gemeten-een-eigen-scherm-onder-opbrengst-en-een-melding-als-het-opvalt)
 - [193. Kamers en indeling als groep, en één lijstje voor wat er rond het huis is](#193-kamers-en-indeling-als-groep-en-één-lijstje-voor-wat-er-rond-het-huis-is)
@@ -8819,7 +8820,7 @@ eerst tikken om iets te doen).
 
 ## 190. Inrichten 3.0: acht hoofdstukken, en het huis groeit mee op zijn eiland
 
-*Onderwerp: weergave · Status: geldig*
+*Onderwerp: weergave · Status: deels vervangen door 323*
 
 Op 24 oktober 2026, voor de makeover naar het grote publiek. Inrichten had zes
 hoofdstukken (besluit 144) en tekende het oude perceel; wat het huis nu kan
@@ -14930,6 +14931,52 @@ meekijken, per kamer zelf regelen, besluit [312]). Nu ziet elk huis met een
 regeling de winterdagen; dat hoort bij de winterdagen in januari. Inrichten
 staat nog als knop bij Instellingen (besluit [321]); die gaat weg met
 Inrichten in zeven stappen.
+
+## 323. Inrichten in zeven stappen
+
+*Onderwerp: configuratie en onboarding · Status: geldig*
+
+18 november 2026. Inrichten had 23 stappen in acht hoofdstukken (besluit
+[190]), en vroeg ook wat SunArc al wist. Het rapport van de kwaliteitsronde
+zei: in zeven stappen, met wat Home Assistant al weet als voorstel. Schets
+`Wand-Inrichten-Kort` en `Tel-Inrichten-Kort`, keuzes van Ricardo op 17
+november: zeven stappen na Welkom, elke stap een voorstel met *Klopt dit?*,
+en aan het eind wat SunArc nu doet met de rondleiding als keuze.
+
+*Besluit (0.200.0):*
+
+- **Zeven stappen**: Je huis, Meter en zekering, Panelen, Prijzen,
+  Verwarming, Wie woont hier, Klaar. Bovenin als zeven knoppen met een
+  nummer, een vinkje als hij nagelopen is, omlijnd als hij al ingevuld is uit
+  Home Assistant (besluit [158]). Op de telefoon zeven streepjes.
+- **Elke stap een voorstel**: wat SunArc vond, elk met een vinkje en een
+  zin (de etages en kamers, de slimme meter met wat hij nu meet, de
+  hoofdzekering, de panelen met hun dakvlakken, de prijzen, per kamer wat
+  op temperatuur houdt of helpt op zon, wie er woont). *Ja* bewaart wat er
+  staat, zoals Volgende dat deed (besluit [158]); *Aanpassen* opent de
+  schermen van eerst als delen van die stap, en na het laatste deel gaat het
+  door naar de volgende stap. Vond SunArc iets belangrijks niet (geen
+  kamers, geen zekering, geen panelen, geen soort verwarming), dan staat er
+  een vraagteken en is de knop *Invullen*. Bij Prijzen en Wie woont hier
+  komen meteen de vragen als er nog niets is.
+- **Klaar** zegt wat er werkt, wat meekijkt en wat het huis eerst leert,
+  met de zonnewaaier van de standpagina (besluit [322]). Twee knoppen:
+  *Laat zien hoe het werkt* (de film en de rondleiding) en *Naar Thuis*
+  (zonder rondleiding).
+- **Wat er niet meer in zit**: je dag, comfort per kamer, afwezig, op zon,
+  licht en camera's, een eigen account, de wand, klaarzetten in Home
+  Assistant en de stem. SunArc begint met een basis (besluit [312]); de
+  schermen openen nog met een link, en Volgende gaat daar naar Klaar.
+- **Inrichten staat niet meer bij Instellingen** (besluit [321]). De
+  standpagina biedt het aan bij *Eerst dit*: *Je huis inrichten* voor een
+  huis dat nog niet is ingericht, en *Inrichten afmaken* als je op dit
+  apparaat aan de zeven stappen begon en er nog open zijn. Zoeken bij
+  Instellingen vindt het ook.
+- Welkom zegt zeven stappen en zo'n vijf minuten.
+
+*Nog niet:* de vorm van het huis uit de kaart als eigen regel bij Je huis
+(nu alleen als zin bij de soort woning), en Aanpassen bij Je huis naar de
+tekentafel van Je huis (besluit [308]); nu opent het de schermen van eerst.
 
 ## Wat nog een besluit wacht
 

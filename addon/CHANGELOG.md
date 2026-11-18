@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.199.1
+## 0.200.0
 
-*18 november 2026 · 0.179.0 – 0.199.1*
+*18 november 2026 · 0.179.0 – 0.200.0*
 
 **Nieuw**
 
+- Inrichten in zeven stappen: je huis, meter en zekering, panelen, prijzen, verwarming, wie woont hier, en klaar
+- Elke stap laat zien wat SunArc in Home Assistant vond, met Klopt dit? Ja gaat door, Aanpassen opent de vragen
+- Klaar zegt wat er werkt en meekijkt, met de zonnewaaier; de rondleiding is een keuze
 - Wat je huis kan is nu de ene pagina over hoe ver je huis is: de zonnewaaier, wat er nog bij kan, wat eerst moet, elke functie met zijn stand en de weg naar zelf regelen
 - Bij wat er nog bij kan staat de knop op de regel: een ander contract, een laadpaal, of klaarzetten
 - Instellingen staat in vier tegels: Je huis, Klimaat, Energie en App en bewoners, elk onderdeel als knop met wat er nu staat
@@ -60,6 +63,7 @@
 
 **Beter**
 
+- Inrichten staat niet meer bij Instellingen: Wat je huis kan biedt het aan als er nog iets open is, en zoeken vindt het
 - Bij Instellingen is de regel met de zonnewaaier één knop naar Wat je huis kan; de tweede knop ernaast deed hetzelfde
 - Hoe ver je huis is en de knop Klaarzetten in Home Assistant staan nu op Wat je huis kan; een oude link komt daar uit
 - Functies, de assistent, bewoners en Inrichten staan samen onder App en bewoners
@@ -118,6 +122,9 @@
 
 **New**
 
+- Set up in seven steps: your house, meter and fuse, solar panels, prices, heating, who lives here, and done
+- Each step shows what SunArc found in Home Assistant, with Is this right? Yes moves on, Change opens the questions
+- Done says what works and what watches along, with the sun fan; the tour is a choice
 - What your house can do is now the one page about how far your home is: the sun fan, what can be added, what comes first, every feature with its state and the way to self-control
 - For what can be added, the button is on the line: another contract, a charger, or set up
 - Settings has four tiles: Your home, Climate, Energy and App and residents, each part as a button showing what is set now
@@ -172,6 +179,7 @@
 
 **Improved**
 
+- Set up is no longer in Settings: What your house can do offers it when something is still open, and search finds it
 - In Settings, the line with the sun fan is one button to What your house can do; the second button next to it did the same
 - How far your house is and the button Set up in Home Assistant are now on What your house can do; an old link ends up there
 - Features, the assistant, residents and Set up are together under App and residents

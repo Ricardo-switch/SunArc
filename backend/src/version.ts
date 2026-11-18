@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.199.1';
+export const VERSIE = '0.200.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,28 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.200.0',
+    datum: '2026-11-18',
+    nieuw: [
+      'Inrichten in zeven stappen: je huis, meter en zekering, panelen, prijzen, verwarming, wie woont hier, en klaar',
+      'Elke stap laat zien wat SunArc in Home Assistant vond, met Klopt dit? Ja gaat door, Aanpassen opent de vragen',
+      'Klaar zegt wat er werkt en meekijkt, met de zonnewaaier; de rondleiding is een keuze',
+    ],
+    beter: [
+      'Inrichten staat niet meer bij Instellingen: Wat je huis kan biedt het aan als er nog iets open is, en zoeken vindt het',
+    ],
+    en: {
+      nieuw: [
+        'Set up in seven steps: your house, meter and fuse, solar panels, prices, heating, who lives here, and done',
+        'Each step shows what SunArc found in Home Assistant, with Is this right? Yes moves on, Change opens the questions',
+        'Done says what works and what watches along, with the sun fan; the tour is a choice',
+      ],
+      beter: [
+        'Set up is no longer in Settings: What your house can do offers it when something is still open, and search finds it',
+      ],
+    },
+  },
   {
     versie: '0.199.1',
     datum: '2026-11-18',

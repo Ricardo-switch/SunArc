@@ -26,23 +26,38 @@
   .merk { display: flex; align-items: center; gap: 12px; font-family: var(--kop); font-weight: 600; font-size: 20px; color: var(--tekst); text-decoration: none; }
   .merk i { width: 34px; height: 34px; border-radius: 10px; background: url('kit/icoon-klein.svg') center / cover; display: block; }
   /*
-   * Het pad (besluit 190, schets Wand-Inrichten-3): acht hoofdstukken naast
-   * het logo, elk met zijn naam en een streepje per stap.
+   * Zeven stappen (besluit 323, schets Wand-Inrichten-Kort): naast het logo,
+   * elk een knop met zijn nummer, of een vinkje als hij nagelopen is.
    */
-  .stappen { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
-  .stap { display: flex; flex-direction: column; gap: 6px; padding: 7px 10px 8px; border-radius: 14px; border: 1px solid transparent; background: rgb(var(--wit) / 0.04); color: var(--tekst); font: inherit; cursor: pointer; text-decoration: none; min-width: 0; }
-  .stap .naam { font-size: 12.5px; font-weight: 700; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .stap.klaar .naam { color: var(--zacht); }
-  .stap.nu .naam { color: var(--tekst); }
-  .stap .n, .stap .kort, .stap .sub { display: none; }
-  .stap.nu { border-color: rgb(var(--wit) / 0.16); background: rgb(var(--wit) / 0.09); }
-  .stap:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
-  .stap .stipjes { display: flex; gap: 3px; }
-  .stap .stipjes i { flex: 1; height: 3px; border-radius: 2px; background: rgb(var(--wit) / 0.12); }
-  .stap .stipjes i.al { background: var(--mint); }
-  .stap .stipjes i.nu { background: var(--tekst); }
+  .stappen { display: flex; gap: 8px; }
+  .stap { flex: 1 1 auto; height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 13px; border: 1px solid transparent; background: rgb(var(--wit) / 0.04); color: var(--gedempt); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; min-width: 0; }
+  .stap .naam { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stap .n { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; flex: none; font-size: 12px; font-weight: 700; background: rgb(var(--wit) / 0.08); }
+  .stap.klaar { color: var(--zacht); }
+  .stap.klaar .n { background: var(--mint); color: #0b1424; }
   /* Al ingevuld uit Home Assistant, nog niet nagelopen (besluit 158): omlijnd. */
-  .stap .stipjes i.half { background: none; box-shadow: inset 0 0 0 1px var(--mint); }
+  .stap.half .n { background: none; box-shadow: inset 0 0 0 1.5px var(--mint); }
+  .stap.nu { color: var(--tekst); border-color: rgb(var(--wit) / 0.16); background: rgb(var(--wit) / 0.1); }
+  .stap.nu .n { background: var(--tekst); color: var(--inkt, #0b1424); }
+  .stap:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
+
+  /* Een voorstel (besluit 323): wat SunArc vond, met een vinkje, en Klopt dit? */
+  .vond { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+  .vondregel { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 12px; align-items: center; padding: 9px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.05); }
+  .vondregel .vink { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: rgba(110, 231, 183, 0.16); color: var(--mint); }
+  .vondregel.mist .vink { background: rgba(255, 122, 77, 0.16); color: var(--gloed); }
+  .vondregel .tekst { min-width: 0; }
+  .vondregel b { display: block; font-size: 15px; }
+  .vondregel .tekst span { display: block; font-size: 12.5px; color: var(--gedempt); }
+  .noot-k { margin: 0; font-size: 13px; line-height: 1.45; color: var(--gedempt); }
+  .noot-k a { color: var(--ijs-t); font-weight: 600; text-decoration: none; white-space: nowrap; }
+  .klopt { display: flex; align-items: center; gap: 10px; padding: 12px 14px 12px 18px; border-radius: 16px; background: rgb(var(--wit) / 0.06); flex-shrink: 0; }
+  .klopt b { font-size: 16px; margin-right: auto; }
+  .kloptknop { height: 44px; padding: 0 18px; border-radius: 13px; border: 1px solid rgb(var(--wit) / 0.14); background: rgb(var(--wit) / 0.08); color: var(--tekst); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .klopt .knop { height: 44px; text-decoration: none; display: inline-flex; align-items: center; white-space: nowrap; }
+  .kloptknop:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
+  .klaarwaaier { display: flex; justify-content: center; flex-shrink: 0; }
+  .klaarwaaier svg { width: 260px; height: auto; }
   /* Wat elk apparaat doet: drie knoppen naast elkaar, zon in zijn kleur. */
   .seg { display: flex; gap: 3px; padding: 3px; border-radius: 11px; background: rgb(var(--wit) / 0.05); }
   /* Het apparaat boven, de drie knoppen eronder over de volle breedte: zo past "Op temperatuur". */
@@ -211,7 +226,7 @@
   .noot a { color: var(--ijs-t); font-weight: 600; text-decoration: none; }
   .voet { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 6px; }
   .voet .zachtknop { border: 0; background: none; color: var(--zacht); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; padding: 8px 0; text-decoration: none; }
-  .voet .knop { text-decoration: none; display: inline-flex; align-items: center; }
+  .voet .knop { text-decoration: none; display: inline-flex; align-items: center; white-space: nowrap; }
   .voet .rechts { display: flex; align-items: center; gap: 18px; }
   .prijs { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px; border-radius: 999px; background: rgb(var(--wit) / 0.08); font-size: 13.5px; font-weight: 600; }
   .prijs input { width: 64px; border: 0; background: none; color: var(--tekst); font: inherit; font-weight: 700; }
@@ -532,6 +547,16 @@
   #tel .kp-plekken { grid-template-columns: 1fr; }
   #tel .kaart h1 { font-size: 27px !important; line-height: 1.1 !important; }
   #tel .kaart .uitleg { font-size: 14.5px; }
+  /* Klopt dit? op de telefoon: de vraag boven, de knoppen eronder naast elkaar. */
+  #tel .klopt { flex-wrap: wrap; padding: 12px; }
+  #tel .klopt b { flex-basis: 100%; }
+  #tel .klopt b:empty { display: none; }
+  #tel .klopt > :not(b) { flex: 1; justify-content: center; }
+  #tel .klaarwaaier svg { width: 240px; }
+  /* Klaar op de telefoon: de twee knoppen over de hele breedte, Terug eronder. */
+  #tel .voet:has([data-naar-thuis]) { flex-wrap: wrap; }
+  #tel .voet:has([data-naar-thuis]) .rechts { order: -1; flex-basis: 100%; gap: 10px; }
+  #tel .voet:has([data-naar-thuis]) .rechts > * { flex: 1; justify-content: center; padding: 0 10px; }
   /* Onderaan vast in beeld, over de hele breedte: de knoppen blijven staan terwijl de vraag schuift. */
   #tel .kaart > .voet { position: sticky; bottom: 0; z-index: 5; margin: auto -18px 0; padding: 22px 18px calc(18px + env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, rgb(var(--nacht) / 0.96) 34%); }
   /* Op de telefoon schuift de pagina, niet de lijst: een eigen schuifvak hield de vinger vast. */
@@ -597,8 +622,10 @@
   <script src="kit/taal.js"></script>
   <script src="kit/nav.js"></script>
   <script src="kit/huis.js"></script>
+  <script src="kit/waaier.js"></script>
   <script src="basis.js"></script>
   <script src="huismodel.js"></script>
+  <script src="stand.js"></script>
   <script src="film.js"></script>
   <script src="qrcode.js"></script>
   <script src="panelen.js"></script>

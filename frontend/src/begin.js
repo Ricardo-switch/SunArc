@@ -246,7 +246,7 @@ async function bewaar() {
     weggelaten = Array.isArray(uit?.weggelaten) ? uit.weggelaten : [];
     if (weggelaten.length) tekenLinks();
     // Meteen naar de eerste stap (30 oktober 2026): het welkom van Inrichten zei hetzelfde nog een keer.
-    void wachtOpHerstart('inrichten.html#woning');
+    void wachtOpHerstart('inrichten.html#jehuis');
   } catch (err) {
     fout = err.message;
     foutLijst = err.problemen ?? [];

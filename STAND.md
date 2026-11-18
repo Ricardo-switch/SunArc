@@ -41,6 +41,8 @@ verwijzing bestaat.
   Sinds 0.199.0 is Wat je huis kan de ene standpagina: de waaier, wat er
   nog bij kan, eerst dit, elke functie met zijn stand en de weg naar zelf
   regelen; Hoe ver je huis is verwijst ernaar ([322]).
+  Sinds 0.200.0 is Inrichten zeven stappen, elk een voorstel met Klopt dit?;
+  de standpagina biedt Inrichten aan, niet meer Instellingen ([323]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1047,4 +1049,5 @@ verwijzing bestaat.
 [320]: DECISIONS.md#320-een-zone-is-een-deel-van-de-kamer-geen-kamer
 [321]: DECISIONS.md#321-instellingen-in-vier-tegels
 [322]: DECISIONS.md#322-eén-standpagina-wat-je-huis-kan
+[323]: DECISIONS.md#323-inrichten-in-zeven-stappen
 <!-- links:einde -->

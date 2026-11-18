@@ -102,16 +102,13 @@ function knoppenVan(id) {
       const f = d.functies?.instellingen ?? d.functies?.voorstel;
       const weer = (d.functies?.gevonden?.weerbronnen ?? []).find((b) => b.id === f?.weer?.bron)?.naam ?? (f?.weer?.bron ? f.weer.bron : t('instellingen.geen'));
       const namen = d.bewoners ? d.bewoners.bewoners.map((b) => b.naam).join(', ') || t('instellingen.nogNiemand') : laden;
-      const n = nagelopen();
-      const open = klaarOpen().length;
       return [
         [t('inst4.bewoners'), namen, 'toegang.html#bewoners'],
         [t('groep.assistent'), f ? t(f.praten?.taalmodel ? 'functies.deel.eigen' : 'functies.deel.vast') : laden, 'functies.html?groep=assistent'],
         [t('inst4.licht'), f ? t('inst4.weer', { weer: weer.replace(' (via internet)', '') }) : laden, 'functies.html'],
         [t('inst4.meldingen'), f ? t('inst4.meldingenZin') : laden, 'functies.html#meldingen'],
+        // Inrichten staat hier niet meer (besluit 323): de standpagina biedt het aan, en Klaarzetten staat bij Kan er nog bij (besluit 322).
         [t('inst4.versie'), d.health?.versie?.nummer ?? laden, 'toegang.html#versie'],
-        // Inrichten blijft hier tot de standpagina de open stap aanbiedt (stap 3); na Inrichten naar Klaarzetten (besluit 246).
-        [t('groep.inrichten'), open && n ? t('instellingen.inr.open', { n: open }) : n ? t('instellingen.inr.nStappen', { n }) : t('instellingen.inr.begin'), open && n ? 'klaarzetten.html' : 'inrichten.html'],
       ];
     }
     default:
@@ -126,20 +123,6 @@ function panelenZin() {
   // Een ligging die je bij Inrichten bevestigde, telt ook (30 oktober 2026: "Klopt" gaf hier toch "nog kiezen").
   const lig = ['bevestigd', 'configuratie'].includes(a?.ligging?.stand) ? a.ligging.nu : null;
   return aantal ? (a.antwoorden.panelen.ligging === 'beide' ? t('instellingen.tweeKanten', { n: aantal }) : t('inst4.panelen', { n: aantal })) : (a?.configuratie?.panelen ?? []).length ? t('instellingen.vlakken', { n: a.configuratie.panelen.length }) : lig ? (lig.vermogenKort ?? lig.vermogen ?? lig.richting ?? null) : null;
-}
-
-/** De open stappen van Klaarzetten voor iedereen (besluit 246), met hun functie. */
-function klaarOpen() {
-  return (d.klaar?.functies ?? []).filter((f) => f.niveau === 'iedereen').flatMap((f) => f.stappen.filter((s) => s.stand === 'open').map((s) => ({ f, s })));
-}
-
-/** Hoeveel stappen van Inrichten op dit apparaat al nagelopen zijn (inrichten.js bewaart ze zo). */
-function nagelopen() {
-  try {
-    return JSON.parse(localStorage.getItem('sc-inrichten-bevestigd') ?? '[]').filter((x) => x !== 'welkom').length;
-  } catch {
-    return 0;
-  }
 }
 
 /*

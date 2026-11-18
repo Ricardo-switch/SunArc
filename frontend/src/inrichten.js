@@ -1,5 +1,14 @@
 /*
- * Inrichten in één keer (besluit 139, 144 en 190, schets Wand-Inrichten-3).
+ * Inrichten in zeven stappen (besluit 323, schets Wand-Inrichten-Kort): je
+ * huis, meter en zekering, panelen, prijzen, verwarming, wie woont hier, en
+ * klaar. Elke stap is een voorstel uit wat Home Assistant al weet, met "Klopt
+ * dit?": één tik als het goed is. Achter Aanpassen staan de schermen van eerst
+ * (hieronder), als delen van die stap. Wat er niet meer in zit (je dag,
+ * comfort, afwezig, op zon, licht, de wand, de stem) opent nog met een link;
+ * de standpagina biedt het aan (besluit 322). SunArc begint met een basis
+ * (besluit 312).
+ *
+ * Van eerst: Inrichten in één keer (besluit 139, 144 en 190, schets Wand-Inrichten-3).
  * Acht hoofdstukken op één pagina, zonder menu, met kleine stappen erin: je huis
  * (wat voor huis, de kamers, de apparaten), buiten, wie er woont, klimaat (wat
  * elk apparaat doet, meten, comfort, afwezig en vakantie), energie (zekering,
@@ -43,25 +52,35 @@ setInterval(() => {
 
 /* ------------------------------------------------------------ de stappen */
 
-/** Acht hoofdstukken, elk met kleine stappen (besluit 144 en 190, schets Wand-Inrichten-3). */
-const HOOFDSTUKKEN = [
-  ['huis', ['woning', 'huis', 'apparaten']],
-  ['buiten', ['buiten']],
+/*
+ * Zeven stappen (besluit 323, schets Wand-Inrichten-Kort), elk met de delen
+ * die Aanpassen opent: de schermen van eerst. Prijzen en Wie woont hier zijn
+ * één scherm: het voorstel, of met Aanpassen de vragen.
+ */
+/** @type {[string, string[]][]} */
+const ZEVEN = [
+  ['jehuis', ['woning', 'huis', 'apparaten', 'buiten']],
+  ['meter', ['zekering', 'vermogen']],
+  ['panelen', ['zon', 'ligging']],
+  ['prijzen', ['prijzen']],
+  ['verwarming', ['warmte', 'apparaat', 'meten']],
   ['bewoners', ['bewoners']],
-  ['klimaat', ['warmte', 'apparaat', 'meten', 'dag', 'comfort', 'afwezig']],
-  ['energie', ['zekering', 'vermogen', 'zon', 'ligging', 'opzon', 'prijzen']],
-  ['gemak', ['functies']],
-  ['schermen', ['account', 'wand']],
-  ['klaar', ['ha', 'stem', 'klaar']],
-].map(([h, stappen]) => [t(`inr.h.${h}`), stappen.map((s) => [s, t(`inr.stap.${s}`)])]);
-const STAPPEN = HOOFDSTUKKEN.flatMap(([, stappen]) => stappen);
-const ALLE = ['welkom', ...STAPPEN.map(([id]) => id)];
-/** "4. Klimaat · Comfort"; een hoofdstuk met één stap heet alleen zo. */
+  ['klaar', []],
+];
+/** Niet meer in de zeven stappen, maar met een link nog te openen (de standpagina biedt het aan). */
+const LOS = ['dag', 'comfort', 'afwezig', 'opzon', 'functies', 'account', 'wand', 'ha', 'stem'];
+const HOOFD = ZEVEN.map(([id]) => id);
+const STAPPEN = ZEVEN.map(([id]) => [id, t(`inr.k.${id}`)]);
+const ALLE = [...new Set(['welkom', ...ZEVEN.flatMap(([id, delen]) => [id, ...delen]), ...LOS])];
+const hoofdVan = (id) => ZEVEN.find(([h, delen]) => h === id || delen.includes(id))?.[0] ?? null;
+const delenVan = (h) => ZEVEN.find(([x]) => x === h)?.[1] ?? [];
+/** "2 van 7 · Meter en zekering"; een deel achter Aanpassen zegt ook welk deel. */
 function waarVan(id) {
-  const h = HOOFDSTUKKEN.findIndex(([, st]) => st.some(([x]) => x === id));
-  const stap = STAPPEN.find(([x]) => x === id);
-  if (h < 0) return '';
-  return HOOFDSTUKKEN[h][1].length === 1 ? `${h + 1}. ${HOOFDSTUKKEN[h][0]}` : `${h + 1}. ${HOOFDSTUKKEN[h][0]} · ${stap[1]}`;
+  const h = hoofdVan(id);
+  if (!h) return t(`inr.stap.${id}`);
+  const i = HOOFD.indexOf(h);
+  const deel = id !== h && delenVan(h).length > 1 ? ` · ${t(`inr.stap.${id}`)}` : '';
+  return `${t('inr.k.van', { i: i + 1, n: HOOFD.length })} · ${STAPPEN[i][1]}${deel}`;
 }
 
 const binnen = () => (d.huis?.etages ?? []).filter((e) => e.id !== 'buiten').flatMap((e) => (e.ruimtes ?? []).filter((r) => !huismodel.isBuiten(e, r)));
@@ -130,8 +149,34 @@ function stapNu() {
   return ALLE.includes(h) ? h : 'welkom';
 }
 const naar = (id) => (location.hash = id);
-const volgende = (id) => ALLE[Math.min(ALLE.length - 1, ALLE.indexOf(id) + 1)];
-const vorige = (id) => ALLE[Math.max(0, ALLE.indexOf(id) - 1)];
+/** Na een voorstel de volgende stap; na een deel het volgende deel, en na het laatste de volgende stap. Wat los is, gaat naar Klaar. */
+function volgende(id) {
+  const h = hoofdVan(id);
+  if (!h) return id === 'welkom' ? HOOFD[0] : 'klaar';
+  const delen = delenVan(h);
+  const j = delen.indexOf(id);
+  if (id !== h && j < delen.length - 1) return delen[j + 1];
+  return HOOFD[Math.min(HOOFD.length - 1, HOOFD.indexOf(h) + 1)];
+}
+/** Terug: het vorige deel, dan het voorstel van de stap, dan de stap ervoor. */
+function vorige(id) {
+  const h = hoofdVan(id);
+  if (!h) return id === 'welkom' ? 'welkom' : 'klaar';
+  const delen = delenVan(h);
+  if (id !== h) return delen.indexOf(id) > 0 ? delen[delen.indexOf(id) - 1] : h;
+  return HOOFD.indexOf(h) > 0 ? HOOFD[HOOFD.indexOf(h) - 1] : 'welkom';
+}
+/** Nagelopen is een stap als hij zelf, of elk deel ervan, nagelopen is (wie eerst de 23 stappen deed). */
+const stapNagelopen = (h) => nagelopen.has(h) || (delenVan(h).length > 0 && delenVan(h).every((x) => nagelopen.has(x)));
+const stapGedaan = (h) => delenVan(h).some(gedaan);
+/** Door naar wat volgt; wie het laatste deel van een stap afrondt, rondt de stap af. */
+function verder(nu) {
+  markeer(nu);
+  const nx = volgende(nu);
+  const h = hoofdVan(nu);
+  if (h && hoofdVan(nx) !== h) markeer(h);
+  naar(nx);
+}
 
 /* ------------------------------------------------------------ opslaan */
 
@@ -194,10 +239,12 @@ function idVan(naam, bezet) {
  * apparaten, buiten, de temperatuur, de panelen; bij Klaar is het avond.
  */
 function model(stap) {
-  const i = ALLE.indexOf(stap);
+  // Per stap van de zeven (besluit 323): het huis met wat er al nagelopen is; wat los is, telt als Klaar.
+  const plek = (id) => (id === 'welkom' ? -1 : HOOFD.indexOf(hoofdVan(id) ?? 'klaar'));
+  const i = plek(stap);
   // Bij het grote welkom (besluit 200) staat alles er al wat Home Assistant weet: de namen, de apparaten, buiten en de panelen.
   const groot = stap === 'welkom' && !lijst;
-  const na = (id) => groot || i >= ALLE.indexOf(id);
+  const na = (id) => groot || i >= plek(id);
   // De tekening uit huismodel, net als op Thuis (5S), met de kelder in de grond.
   const a = antwoorden();
   const tek = huismodel.tekening(d.huis, {
@@ -336,7 +383,7 @@ function welkom() {
     inhoud: d.huis
       ? `<div class="tellen">${tellers.join('')}</div>${tip(t('inr.welkomNoot'))}`
       : `<p class="zacht">${esc(t('inr.huisLezen'))}</p>`,
-    voet: ['', `<a class="knop knop-licht" href="#woning">${esc(t('inr.begin'))}</a>`],
+    voet: ['', `<a class="knop knop-licht" href="#jehuis">${esc(t('inr.begin'))}</a>`],
   };
 }
 /*
@@ -363,7 +410,7 @@ function welkomSkelet(tel) {
   const belofte = (ik, kleur, b, zin) => `<li><span class="wk-ik" style="color: ${kleur}">${S(IK[ik])}</span><div><b>${esc(t(b))}</b><span>${esc(t(zin))}</span></div></li>`;
   const beloftes = `<ul class="wk-beloof">${belofte('thermo', 'var(--gloed)', 'inr.wk.b1', 'inr.wk.b1z')}${belofte('zon', 'var(--zon)', 'inr.wk.b2', 'inr.wk.b2z')}${belofte('praat', 'var(--violet)', 'inr.wk.b3', 'inr.wk.b3z')}</ul>`;
   const woorden = `<span class="wk-hallo" data-wk-hallo></span><h1 class="wk-kop">${esc(t('inr.wk.kop1'))} <em>${esc(t('inr.wk.kop2'))}</em></h1><p class="wk-zin">${esc(t('inr.wk.zin'))} <b>${esc(t('inr.wk.klopt'))}</b></p>${beloftes}`;
-  const begin = `<a class="knop knop-licht wk-begin" href="#woning">${esc(t('inr.begin'))}${PIJL}</a>`;
+  const begin = `<a class="knop knop-licht wk-begin" href="#jehuis">${esc(t('inr.begin'))}${PIJL}</a>`;
   const terug = `<a class="wk-terug" href="toegang.html">${esc(t('inr.wk.backup'))}</a>`;
   // Het logo voluit (1 november 2026): het teken, de naam en wat ARC betekent.
   const merk = `<span class="wk-merk"><img src="kit/merk.svg" alt=""><span><span class="wk-woord">SunArc</span><span class="wk-arc">${t('over.arc')}</span></span></span>`;
@@ -963,7 +1010,7 @@ function zonderKlimaatStap() {
   const f = d.functies;
   const r = (icoon, sleutel, ja) => regel({ ik: icoon, titel: t(`inr.zk.${sleutel}`), zin: t(`inr.zk.${sleutel}Zin`), rechts: esc(t(ja ? 'inr.zk.werkt' : 'inr.zk.nietGevonden')), toon: ja ? 'mint' : '' });
   return {
-    waar: `${HOOFDSTUKKEN.findIndex(([, st]) => st.some(([x]) => x === 'warmte')) + 1}. ${t('inr.h.klimaat')}`,
+    waar: waarVan('warmte'),
     kop: t('inr.zk.kop'),
     uitleg: t('inr.zk.zin'),
     inhoud: `<div class="rijen lijst">
@@ -1935,32 +1982,171 @@ async function bewaarPrijzen(wijzig) {
   return !!uit;
 }
 
+/* ------------------------------------------------------------ de voorstellen */
+
 /*
- * Klaar (besluit 190): wat nog te doen is (niet nagelopen, of wat in Home
- * Assistant mist), Wat je huis kan, en de film.
+ * Elke stap een voorstel (besluit 323, schets Wand-Inrichten-Kort): wat SunArc
+ * vond, met een vinkje, en Klopt dit? met Ja en Aanpassen. Vond het iets
+ * belangrijks niet, dan staat er een vraagteken en is de knop Invullen.
  */
+let aanpas = null; // 'prijzen' of 'bewoners' als Aanpassen hun vragen opent
+const kW = (w) => (Math.abs(w) >= 1000 ? `${nl(w / 1000, 1)} kW` : `${Math.round(w)} W`);
+function vond(regels) {
+  return `<div class="vond">${regels.map((r) => `<div class="vondregel${r.mist ? ' mist' : ''}"><span class="vink" aria-hidden="true">${r.mist ? '?' : '✓'}</span><span class="tekst"><b>${esc(r.b)}</b>${r.zin ? `<span>${esc(r.zin)}</span>` : ''}</span></div>`).join('')}</div>`;
+}
+function voorstel(h, { kop, zin, regels, mist = false, noot = '', aanpassen = t('inr.k.aanpassen') }) {
+  const klopt = mist
+    ? `<div class="klopt"><b>${esc(t('inr.k.mist'))}</b><button type="button" class="knop knop-licht" data-aanpassen>${esc(t('inr.k.invullen'))}</button></div>`
+    : `<div class="klopt"><b>${esc(t('inr.k.klopt'))}</b><button type="button" class="kloptknop" data-aanpassen>${esc(aanpassen)}</button><button type="button" class="knop knop-licht" data-ja>${esc(t('inr.k.ja'))}</button></div>`;
+  return {
+    waar: waarVan(h),
+    kop,
+    uitleg: zin,
+    inhoud: `${vond(regels)}${noot ? `<p class="noot-k">${esc(noot)}</p>` : ''}${klopt}`,
+    voet: [terugKnop(), `<span class="rechts"><button type="button" class="zachtknop" data-later>${esc(t('inr.later'))}</button></span>`],
+  };
+}
+
+function jeHuisStap() {
+  if (!d.huis) return { waar: waarVan('jehuis'), kop: t('inr.k.huisKop'), uitleg: t('inr.huisLezen'), inhoud: '', voet: [terugKnop(), ''] };
+  const n = tellingen();
+  const etages = (d.huis.etages ?? []).filter((e) => e.id !== 'buiten' && (e.ruimtes ?? []).some((r) => !huismodel.isBuiten(e, r)));
+  const los = (d.huis.zonderRuimte ?? []).length;
+  const kaart = (d.aans?.daken?.gebouwen ?? []).some((g) => g.bron === 'kaart');
+  const regels = [
+    { b: `${t('inr.k.etages', { n: n.etages })}, ${t('inr.k.kamers', { n: n.kamers })}`, zin: lijstje(etages.map((e) => e.naam ?? e.id)), mist: n.kamers === 0 },
+    ...(n.buiten ? [{ b: t('inr.stap.buiten'), zin: lijstje(buitenRuimtes().map((r) => r.naam.toLowerCase())) }] : []),
+    { b: t('inr.k.apparaten', { n: n.apparaten + n.klimaat }), zin: los ? t('inr.k.zonderPlek', { n: los }) : t('inr.k.allePlek') },
+    { b: t(`inr.woning.${woningNu()}`), zin: kaart ? t('inr.k.vormKaart') : '' },
+  ];
+  return voorstel('jehuis', { kop: t('inr.k.huisKop'), zin: t('inr.k.huisZin'), regels, mist: n.kamers === 0 });
+}
+
+function meterStap() {
+  const a = antwoorden();
+  const e = energieNu();
+  const zek = (a.zekering && a.zekering !== 'weetniet' ? a.zekering : null) ?? d.aans?.configuratie?.zekering ?? null;
+  const net = vermogens.netNu(d.aans, null);
+  const w = (id) => (d.aans?.vermogens ?? []).find((v) => v.id === id)?.w ?? null;
+  const netW = net ? w(net.afname) : null;
+  const netTerug = net?.terug ? w(net.terug) : null;
+  const nu = netW == null ? null : netW - (netTerug ?? 0);
+  const omv = vermogens.zonNu(d.aans, null);
+  const zonW = omv.reduce((s, id) => s + (w(id) ?? 0), 0);
+  const regels = [
+    net || (e?.net?.afname ?? []).length
+      ? { b: t('inr.k.slimmeMeter'), zin: nu == null ? t('inr.k.meetHuis') : t(nu < 0 ? 'inr.k.netTerug' : 'inr.k.netAf', { w: kW(Math.abs(nu)) }) }
+      : { b: t('inr.k.slimmeMeter'), zin: t('inr.k.nietGevonden'), mist: true },
+    zek ? { b: t('inr.k.zekering', { z: `${zek.fasen} × ${zek.ampere} A` }), zin: t(a.zekering ? 'inr.k.zelfIngevuld' : 'inr.k.uitInstellingen') } : { b: t('instellingen.zekering'), zin: t('inr.k.nogNiet'), mist: true },
+    ...(omv.length ? [{ b: t('inr.k.omvormers', { n: omv.length }), zin: t('inr.k.zonNu', { w: kW(zonW) }) }] : []),
+    ...(e?.gas ? [{ b: t('inr.k.gas'), zin: t('inr.k.gasZin') }] : []),
+  ];
+  return voorstel('meter', { kop: t('inr.k.meterKop'), zin: t('inr.k.meterZin'), regels, mist: !zek });
+}
+
+function panelenStap() {
+  const a = antwoorden();
+  if (a.panelen.ligging === 'geen') return voorstel('panelen', { kop: t('inr.k.panelenKop'), zin: t('inr.k.panelenZin'), regels: [{ b: t('inr.k.geenPanelen'), zin: t('inr.k.geenPanelenZin') }] });
+  const n = tellingen().panelen;
+  const lig = d.aans?.ligging?.nu ?? null;
+  const piekW = lig?.peakW ?? (d.zon?.panelen ?? []).reduce((s, p) => s + (p.wattpiek ?? 0), 0);
+  const kwp = piekW ? `${nl(piekW / 1000, 2)} kWp` : '';
+  const vlakken = d.aans?.daken?.vlakken ?? [];
+  const gemeten = vlakken.some((v) => v.bron === 'gemeten') || d.aans?.ligging?.stand === 'bevestigd';
+  const regels = [
+    n || kwp ? { b: n ? `${t('inr.k.nPanelen', { n })}${kwp ? `, ${kwp}` : ''}` : kwp, zin: vermogens.zonNu(d.aans, null).length ? t('inr.k.uitOmvormer') : '' } : { b: t('inr.k.panelenNaam'), zin: t('inr.k.nogNiet'), mist: true },
+    ...(vlakken.length
+      ? [{ b: t('inr.k.vlakken', { n: vlakken.length }), zin: lijstje(vlakken.map((v) => dakvlakken.waar(v))) }]
+      : lig ? [{ b: lig.richting, zin: lig.helling }] : []),
+    ...(n || kwp ? [{ b: t('inr.k.waar'), zin: t(gemeten ? 'inr.k.gemeten' : 'inr.k.leertVanzelf') }] : []),
+  ];
+  return voorstel('panelen', { kop: t('inr.k.panelenKop'), zin: t('inr.k.panelenZin'), regels, mist: !n && !kwp });
+}
+
+function prijzenHoofd() {
+  // Een voorstel als de prijzen er al zijn, ook uit Home Assistant (het dashboard Energie); Ja bewaart ze dan.
+  const al = energieNu()?.prijzen;
+  if (aanpas !== 'prijzen' && (gedaan('prijzen') || al?.stroom != null || al?.dynamisch)) {
+    const e = energieNu();
+    const p = e?.prijzen ?? {};
+    const geld = (x) => taal.geld(x, 2);
+    const c = contractNu();
+    const regels = [
+      ...(c ? [{ b: t(`inr.contract.${c}`), zin: c === 'dynamisch' && p.dynamisch ? t('inr.k.uurprijs') : '' }] : []),
+      ...(p.stroom != null ? [{ b: t('inr.k.stroom', { prijs: geld(p.stroom) }), zin: p.stroomDal != null ? t('inr.k.dal', { prijs: geld(p.stroomDal) }) : '' }] : []),
+      ...(p.gas != null ? [{ b: t('inr.k.gasPrijs', { prijs: geld(p.gas) }), zin: '' }] : []),
+      ...(p.vanaf2027?.vergoeding != null ? [{ b: t('inr.terug2027'), zin: t('inr.k.terug', { krijgt: geld(p.vanaf2027.vergoeding), betaalt: geld(p.vanaf2027.kosten ?? 0) }) }] : []),
+    ];
+    return voorstel('prijzen', { kop: t('inr.k.prijzenKop'), zin: t('inr.k.prijzenZin'), regels });
+  }
+  return { ...prijzenStap(), waar: waarVan('prijzen') };
+}
+
+function verwarmingStap() {
+  if (zonderKlimaat ?? geenKlimaatToestel()) return voorstel('verwarming', { kop: t('inr.k.verwKop'), zin: t('inr.k.verwZin'), regels: [{ b: t('inr.k.geenKlimaat'), zin: t('inr.k.geenKlimaatZin') }] });
+  const a = antwoorden();
+  const c = concept();
+  const ketel = huismodel.cvThermostaat(d.huis, a.verwarming);
+  const doen = [];
+  const niet = [];
+  for (const r of binnen()) {
+    const k = c?.kamers.find((x) => x.id === r.id);
+    const wie = klimaatIn(r).map((x) => [x, rolVan(k, r, sleutel(x))]).filter(([, rol]) => rol === 'houdt' || rol === 'zon');
+    if (wie.length) doen.push({ b: r.naam, zin: wie.map(([x, rol]) => t(`inr.k.rol.${rol}`, { naam: x.naam })).join(', ') });
+    else niet.push(r.naam);
+  }
+  const soort = a.verwarming.soort && a.verwarming.soort !== 'weetniet' ? a.verwarming.soort : null;
+  const regels = [
+    soort ? { b: t(`energie.bron.${soort}`), zin: ketel ? t('inr.k.ketel', { naam: ketel.naam }) : '' } : { b: t('energie.verwarming'), zin: t('inr.k.nogNiet'), mist: true },
+    ...doen,
+  ];
+  return voorstel('verwarming', { kop: t('inr.k.verwKop'), zin: t('inr.k.verwZin'), regels, mist: !soort && !doen.length, noot: niet.length ? t('inr.k.nietMee', { kamers: lijstje(niet) }) : '', aanpassen: t('inr.k.perKamer') });
+}
+
+function bewonersHoofd() {
+  const lijst = d.bewoners?.bewoners ?? [];
+  if (aanpas !== 'bewoners' && lijst.length) {
+    const regels = lijst.map((x) => {
+      const bron = x.gekoppeld ? x.aanwezigheidNaam : (x.kiesbaar ?? []).find((y) => y.id === x.aanwezigheid)?.naam;
+      return { b: `${x.naam}${x.ik ? t('toegang.jij') : ''}`, zin: bron ? t('inr.thuisMet', { naam: bron }) : t('inr.k.geenLocatie') };
+    });
+    return voorstel('bewoners', { kop: t('inr.k.bewKop'), zin: t('inr.k.bewZin'), regels });
+  }
+  return { ...bewonersStap(), waar: waarVan('bewoners') };
+}
+
+/*
+ * Klaar (besluit 323): wat SunArc nu doet, met de zonnewaaier van de
+ * standpagina, en de rondleiding als keuze. Wat er nog bij kan, staat bij Wat
+ * je huis kan (besluit 322).
+ */
+const sd = {};
+let sdGeladen = false;
+function laadStand() {
+  if (sdGeladen) return;
+  sdGeladen = true;
+  const deuren = { site: 'api/site', huis: 'api/huis', functies: 'api/functies', energie: 'api/energie', aansluiting: 'api/aansluiting', state: 'api/state', divergence: 'api/divergence', opbrengst: 'api/opbrengst?soort=maand', accu: 'api/accu', thermisch: 'api/thermisch', zon: 'api/zon', klaar: 'api/klaarzetten', sluip: 'api/sluipverbruik' };
+  void app.laadBronnen(deuren, sd, teken, ['site', 'huis', 'functies']);
+}
 function klaarStap() {
-  // Open is wat niet nagelopen is én niet al ingevuld (30 oktober 2026): op een ander apparaat telde anders alles weer als open.
-  const open = STAPPEN.filter(([id]) => id !== 'klaar' && !nagelopen.has(id) && !gedaan(id));
-  const mist = (d.klaar?.punten ?? []).filter((p) => p.stand === 'mist');
-  // Een open vraag bij Wat elk apparaat kan (besluit 197): je mocht door, en hij staat hier.
-  const vragen = kanToestellen().filter(({ a }) => kanVraagOpen(a)).map(({ a }) => t('inr.kan.nogVraag', { naam: a.naam }));
-  const n = open.length + mist.length + vragen.length;
-  const nogTeDoen = n
-    ? regel({ tag: 'a', attrs: `href="#${open[0]?.[0] ?? (vragen.length ? 'apparaat' : 'ha')}"`, ik: 'huis', titel: t('inr.nogTeDoen'), zin: lijstje([...open.map(([, naam]) => naam.toLowerCase()), ...vragen, ...mist.map((p) => p.titel.toLowerCase())]), rechts: String(n), toon: 'zon' })
-    : regel({ ik: 'zon', titel: t('inr.allesNagelopen'), zin: t('inr.allesNagelopenZin'), rechts: '✓', toon: 'mint' });
-  const kan = regel({ tag: 'a', attrs: 'href="huis-kan.html"', ik: 'meter', titel: t('inr.kanTitel'), zin: t('inr.kanZin'), rechts: '›' });
-  // Laadde de pagina opnieuw terwijl Home Assistant herstart, of ging het mis (besluit 202): hier de stand.
+  laadStand();
+  const open = STAPPEN.filter(([id]) => id !== 'klaar' && !stapNagelopen(id) && !stapGedaan(id));
+  const v = sd.huis && sd.functies ? stand.voortgang(sd) : null;
+  const namen = (s) => lijstje(v.onderwerpen.filter((x) => x.stand === s).slice(0, 3).map((x) => x.titel.toLowerCase()));
+  const regels = v
+    ? [['werkt', 'inr.k.werkt'], ['kijkt', 'inr.k.kijkt'], ['leert', 'inr.k.leert']].filter(([s]) => v.tel(s) > 0).map(([s, sleutel]) => ({ b: t(sleutel, { n: v.tel(s) }), zin: namen(s) }))
+    : [];
+  const nogOpen = open.length ? `<div class="lijst">${regel({ tag: 'a', attrs: `href="#${open[0][0]}"`, ik: 'huis', titel: t('inr.nogTeDoen'), zin: lijstje(open.map(([, naam]) => naam.toLowerCase())), rechts: String(open.length), toon: 'zon' })}</div>` : '';
   const as = d.integ?.aanzetten?.bezig || d.integ?.aanzetten?.fout ? assistentBlok() : '';
   return {
-    waar: t('inr.klaar'),
-    kop: t('inr.klaarKop'),
-    groot: true,
-    uitleg: t('inr.klaarZin'),
-    inhoud: `${as}<div class="lijst">${nogTeDoen}${kan}</div>
-      <button type="button" class="filmkaart" data-film aria-label="${esc(t('inr.filmLabel'))}"><span class="speel" aria-hidden="true"></span><span>${esc(t('inr.film'))}</span></button>
-      ${tip(t('inr.daarna'))}`,
-    voet: [`<a class="zachtknop" href="#${vorige('klaar')}">${esc(t('panelen.terug'))}</a>`, `<span class="rechts"><a class="zachtknop" href="thuis.html#rondleiding" data-naar-rond>${esc(t('rond.overslaan'))}</a><button type="button" class="knop knop-licht" data-film>${esc(t('inr.speelAf'))}</button></span>`],
+    waar: waarVan('klaar'),
+    kop: t('inr.k.klaarKop'),
+    uitleg: t('inr.k.klaarZin'),
+    inhoud: `${as}${v?.onderwerpen.length ? `<div class="klaarwaaier"><svg viewBox="0 0 390 214" data-klaarwaaier aria-label="${esc(t('voortgang.beschrijving', { pct: v.totaal }))}"></svg></div>` : ''}
+      ${regels.length ? vond(regels) : ''}${nogOpen}
+      <p class="noot-k">${esc(t('inr.k.later'))} <a href="huis-kan.html">${esc(t('inr.kanTitel'))} ›</a></p>`,
+    // De knoppen onderaan vast (besluit 158): de rondleiding als keuze, of meteen naar Thuis.
+    voet: [terugKnop(), `<span class="rechts"><button type="button" class="kloptknop" data-film>${esc(t('inr.k.laatZien'))}</button><a class="knop knop-licht" href="thuis.html" data-naar-thuis>${esc(t('inr.k.naarThuis'))}</a></span>`],
   };
 }
 
@@ -2064,27 +2250,24 @@ function tekenNu() {
   // Je dag: de lucht van het uur bij de grens die je het laatst bewoog (ook in de winter de ochtend en de avond).
   if (stapNu() === 'dag') app.lucht(dagMoment(dagUur()).tijd, 'zomer', 0.3);
   const nu = stapNu();
+  const hier = hoofdVan(nu);
+  // Zeven stappen (besluit 323): bovenin als knoppen, met een vinkje wat nagelopen is; al ingevuld uit Home Assistant omlijnd (besluit 158).
+  const standVan = (id) => (id === hier ? 'nu' : id !== 'klaar' && stapNagelopen(id) ? 'klaar' : id !== 'klaar' && stapGedaan(id) ? 'half' : '');
   $$('[data-stappen]').forEach((el) => {
-    // Acht hoofdstukken (besluit 190): de naam en een streepje per stap.
-    el.innerHTML = HOOFDSTUKKEN.map(([titel, stappen], i) => {
-      const hier = stappen.some(([id]) => id === nu);
-      const klaar = stappen.every(([id]) => id === 'klaar' || nagelopen.has(id));
-      // Drie standen (besluit 158): nagelopen is groen, al ingevuld uit Home Assistant omlijnd.
-      const stipjes = stappen.map(([id]) => `<i class="${id === nu ? 'nu' : nagelopen.has(id) ? 'al' : gedaan(id) ? 'half' : ''}"></i>`).join('');
-      const sub = stappen.map(([, naam], j) => (j ? naam.toLowerCase() : naam)).join(' · ');
-      return `<a class="stap${hier ? ' nu' : ''}${klaar ? ' klaar' : ''}" href="#${stappen[0][0]}" ${hier ? 'aria-current="step"' : ''}><span class="n" aria-hidden="true">${klaar && !hier ? '✓' : i + 1}</span><span class="kort">${esc(titel)}</span><span class="naam">${i + 1}. ${esc(titel)}</span><span class="stipjes" aria-hidden="true">${stipjes}</span><span class="sub">${esc(sub)}</span></a>`;
+    el.innerHTML = STAPPEN.map(([id, naam], i) => {
+      const s = standVan(id);
+      return `<a class="stap ${s}" href="#${id}" ${s === 'nu' ? 'aria-current="step"' : ''}><span class="n" aria-hidden="true">${s === 'klaar' ? '✓' : i + 1}</span><span class="naam">${esc(naam)}</span></a>`;
     }).join('');
   });
-  // Op de telefoon (schets Tel-Inrichten-3): bovenin het hoofdstuk en hoe ver je bent, een streepje per stap.
-  const h = HOOFDSTUKKEN.findIndex(([, st]) => st.some(([x]) => x === nu));
-  const i = STAPPEN.findIndex(([x]) => x === nu);
+  // Op de telefoon (schets Tel-Inrichten-Kort): bovenin de stap en hoe ver je bent, zeven streepjes.
+  const i = HOOFD.indexOf(hier);
   $$('[data-telwaar]').forEach((el) => {
-    el.innerHTML = h < 0 ? `<b>${esc(t('inr.welkom'))}</b><span>${esc(t('inr.telStappen', { n: STAPPEN.length }))}</span>` : `<b>${h + 1}. ${esc(HOOFDSTUKKEN[h][0])}</b><span>${esc(t('inr.stapVan', { i: i + 1, n: STAPPEN.length }))}</span>`;
+    el.innerHTML = i < 0 ? `<b>${esc(nu === 'welkom' ? t('inr.welkom') : t(`inr.stap.${nu}`))}</b><span>${esc(t('inr.telStappen', { n: STAPPEN.length }))}</span>` : `<b>${i + 1}. ${esc(STAPPEN[i][1])}</b><span>${esc(t('inr.stapVan', { i: i + 1, n: STAPPEN.length }))}</span>`;
   });
   $$('[data-voortgang]').forEach((el) => {
-    el.innerHTML = STAPPEN.map(([id]) => `<i class="${id === nu ? 'nu' : nagelopen.has(id) ? 'al' : gedaan(id) ? 'half' : ''}"></i>`).join('');
+    el.innerHTML = STAPPEN.map(([id]) => `<i class="${{ nu: 'nu', klaar: 'al', half: 'half' }[standVan(id)] ?? ''}"></i>`).join('');
   });
-  const v = { welkom, woning: woningStap, huis: huisStap, buiten: buitenStap, bewoners: bewonersStap, apparaten: apparatenStap, meten: metenStap, warmte: warmteStap, apparaat: kanStap, dag: dagStap, comfort: comfortStap, afwezig: afwezigStap, zon: zonStap, ligging: liggingStap, zekering: zekeringStap, vermogen: vermogenStap, opzon: opzonStap, prijzen: prijzenStap, functies: functiesStap, wand: wandStap, ha: haStap, stem: stemStap, klaar: klaarStap, account: accountStap }[nu]();
+  const v = { welkom, jehuis: jeHuisStap, meter: meterStap, panelen: panelenStap, verwarming: verwarmingStap, woning: woningStap, huis: huisStap, buiten: buitenStap, bewoners: bewonersHoofd, apparaten: apparatenStap, meten: metenStap, warmte: warmteStap, apparaat: kanStap, dag: dagStap, comfort: comfortStap, afwezig: afwezigStap, zon: zonStap, ligging: liggingStap, zekering: zekeringStap, vermogen: vermogenStap, opzon: opzonStap, prijzen: prijzenHoofd, functies: functiesStap, wand: wandStap, ha: haStap, stem: stemStap, klaar: klaarStap, account: accountStap }[nu]();
   // Onderaan overal hetzelfde (besluit 158): Terug, Later en Volgende, tenzij de stap iets anders zegt.
   const [links, rechts] = v.voet ?? [terugKnop(), volgendeKnoppen()];
   const actief = document.activeElement;
@@ -2109,6 +2292,12 @@ function tekenNu() {
     app.segmenten(el);
   });
   markeerMeer();
+  // Klaar (besluit 323): de zonnewaaier van de standpagina, klein.
+  const kw = document.querySelector(`${app.zicht()} [data-klaarwaaier]`);
+  if (kw) {
+    const vg = stand.voortgang(sd);
+    waaier.teken(kw, { groepen: vg.groepen, cx: 195, cy: 204, r0: 62, R: 178, getal: `${vg.totaal}%`, onder: t('voortgang.zo'), groei: false });
+  }
   // Een kamer die open gaat, schuift in beeld.
   document.querySelector(`${app.zicht()} [data-kaart] .bewerk`)?.scrollIntoView({ block: 'nearest' });
   const m = model(nu);
@@ -2217,8 +2406,55 @@ document.addEventListener('click', async (e) => {
     await naarRondleiding();
     return;
   }
+  if (el.hasAttribute('data-naar-thuis')) {
+    // Naar Thuis (besluit 323): de rondleiding is een keuze, dus niet meer vanzelf; de assistent gaat wel eerst aan.
+    e.preventDefault();
+    try {
+      localStorage.setItem('sc-rondleiding-gezien', '1');
+    } catch {
+      // Zonder opslag begint de rondleiding op Thuis, zoals eerst.
+    }
+    if (assistentNogAan()) await zetAssistentAan();
+    location.href = 'thuis.html';
+    return;
+  }
   if (el.hasAttribute('data-terug')) {
+    // Terug uit de vragen van Prijzen of Wie woont hier: naar het voorstel.
+    if (aanpas && aanpas === stapNu()) {
+      aanpas = null;
+      teken();
+      return;
+    }
     naar(vorige(stapNu()));
+    return;
+  }
+  if (el.hasAttribute('data-aanpassen')) {
+    // Aanpassen (besluit 323): de schermen van eerst, als delen van deze stap.
+    const h = stapNu();
+    const delen = delenVan(h);
+    if (delen.length === 1 && delen[0] === h) {
+      aanpas = h;
+      teken();
+    } else if (delen.length) naar(delen[0]);
+    return;
+  }
+  if (el.hasAttribute('data-ja')) {
+    // Ja (besluit 323): wat er staat, geldt; Volgende van elk deel bewaart wat er in beeld zou staan, zoals eerst (besluit 158).
+    if (bezig) return;
+    const h = stapNu();
+    bezig = true;
+    el.disabled = true;
+    try {
+      for (const deel of delenVan(h)) {
+        if (BEVESTIG[deel] && !(await BEVESTIG[deel]())) return;
+        markeer(deel);
+      }
+      markeer(h);
+      naar(volgende(h));
+    } finally {
+      bezig = false;
+      el.disabled = false;
+    }
     return;
   }
   if (el.hasAttribute('data-volgende')) {
@@ -2229,8 +2465,8 @@ document.addEventListener('click', async (e) => {
     el.disabled = true;
     try {
       if (BEVESTIG[nu] && !(await BEVESTIG[nu]())) return;
-      markeer(nu);
-      naar(volgende(nu));
+      aanpas = null;
+      verder(nu);
     } finally {
       bezig = false;
       el.disabled = false;
@@ -2238,8 +2474,10 @@ document.addEventListener('click', async (e) => {
     return;
   }
   if (el.hasAttribute('data-later')) {
-    // Later (besluit 190): door zonder te bewaren; de stap staat dan bij Mist nog.
-    naar(volgende(stapNu()));
+    // Later (besluit 190): door zonder te bewaren; de stap staat dan bij Mist nog. Uit een deel naar de volgende stap.
+    aanpas = null;
+    const nu = stapNu();
+    naar(hoofdVan(nu) && hoofdVan(nu) !== nu ? volgende(hoofdVan(nu)) : volgende(nu));
     return;
   }
   if (el.dataset.woning || el.dataset.dak || el.dataset.schuur) {
@@ -2340,10 +2578,7 @@ document.addEventListener('click', async (e) => {
     const wat = ligging.klik(el, d.aans?.ligging, a, ligStaat);
     if (wat === 'bewaar') await bewaarAansluiting(a);
     else if (wat === 'teken') teken();
-    if (klopt && d.aans?.ligging?.stand === 'bevestigd') {
-      markeer('ligging');
-      naar(volgende('ligging'));
-    }
+    if (klopt && d.aans?.ligging?.stand === 'bevestigd') verder('ligging');
     return;
   }
   if (el.dataset.lijst !== undefined) {
@@ -2911,6 +3146,7 @@ addEventListener('hashchange', () => {
   weghalen = null;
   ligStaat.aanpassen = false;
   toevoegenIn = null;
+  aanpas = null;
   afwezigKeuze = null;
   if (stapNu() !== 'welkom') lijst = null;
   zeg('');
