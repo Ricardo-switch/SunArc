@@ -303,7 +303,10 @@ export function withComfort(raw: Record<string, unknown>, comfort: Comfort | nul
   const out: Record<string, unknown> = { ...raw, zones: metVoorrang };
   // Op zon (besluit 176): kamers en apparaten in één volgorde voor de regeling.
   if (comfort.voorrang?.zon) {
-    out['sunOrder'] = comfort.voorrang.zon.map((z) => ({ kind: ZON_KIND[z.soort], id: z.id }));
+    // Een kamer die er niet meer is, zoals een zone die weer met de kamer mee gaat (18 november 2026), valt uit de volgorde:
+    // anders weigerde de configuratie de hele nieuwe indeling, en rekende de regeling met de oude.
+    const zones = new Set(metVoorrang.map((z) => String(z['id'] ?? '')));
+    out['sunOrder'] = comfort.voorrang.zon.filter((z) => z.soort !== 'kamer' || zones.has(z.id)).map((z) => ({ kind: ZON_KIND[z.soort], id: z.id }));
     toegevoegd.push('de volgorde op zon');
   }
   /*

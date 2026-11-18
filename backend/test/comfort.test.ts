@@ -217,6 +217,16 @@ describe('op zon: kamers en apparaten in één volgorde (besluit 176)', () => {
     expect(comfortView(parsed.config, c.comfort).voorrang.zon).toEqual(zon);
   });
 
+  it('laat een kamer die er niet meer is uit de volgorde op zon, zodat de indeling toch overgaat (18-11)', () => {
+    // Zoals bij Ricardo: de zithoek stond als eigen zone op zon, en ging weer met de woonkamer mee.
+    const zon = [{ soort: 'kamer', id: 'zolder' }, { soort: 'kamer', id: 'beneden-zithoek' }];
+    const { raw: nieuw } = withComfort(raw, { kamers: {}, voorrang: { koelen: [], verwarmen: [], zon } } as unknown as Parameters<typeof withComfort>[1]);
+    const parsed = parseSiteConfig(nieuw, opties);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.config.sunOrder).toEqual([{ kind: 'zone', id: 'zolder' }]);
+  });
+
   it('weigert een onbekend of dubbel apparaat', () => {
     const met = (zon: unknown) => controleerComfort({ kamers: {}, voorrang: { koelen: [], verwarmen: [], zon } }, exampleSite).ok;
     expect(met([{ soort: 'apparaat', id: 'wasmachine' }])).toBe(false);

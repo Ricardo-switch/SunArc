@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.197.0';
+export const VERSIE = '0.197.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.197.1',
+    datum: '2026-11-18',
+    opgelost: [
+      'Een zone terugzetten op Met de kamer mee werd niet overgenomen als die zone op zon stond: de volgorde op zon noemde hem nog. Nu valt hij daaruit, en neemt de regeling de nieuwe indeling over',
+    ],
+    en: {
+      opgelost: [
+        'Setting a zone back to With the room was not taken over when that zone was on solar: the solar order still named it. Now it drops out of it, and the control takes over the new layout',
+      ],
+    },
+  },
   {
     versie: '0.197.0',
     datum: '2026-11-18',

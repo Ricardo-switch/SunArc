@@ -158,7 +158,7 @@
         const eigen = !!z.rollen && Object.values(z.rollen).some((x) => x !== 'kijken');
         const temp = zoneTemp(k.id, z.id);
         const rechts = eigen
-          ? `${z.regelzone ? `<a class="zone-eigen" href="#${esc(encodeURIComponent(z.regelzone))}">${esc(t('indeling.zone.eigenTemp'))} ›</a>` : ''}<button type="button" class="schakel" role="switch" aria-checked="true" aria-label="${esc(t('indeling.zone.eigenTemp'))}" data-zone-regeling="${esc(z.id)}" data-waarde="kamer"></button>`
+          ? `${z.regelzone && (ctx.info?.regelzones ?? []).some((x) => x.id === z.regelzone) ? `<a class="zone-eigen" href="#${esc(encodeURIComponent(z.regelzone))}">${esc(t('indeling.zone.eigenTemp'))} ›</a>` : ''}<button type="button" class="schakel" role="switch" aria-checked="true" aria-label="${esc(t('indeling.zone.eigenTemp'))}" data-zone-regeling="${esc(z.id)}" data-waarde="kamer"></button>`
           : toestellen.length
             ? `<span>${esc(t('indeling.zone.eigenTemp'))}</span><button type="button" class="schakel" role="switch" aria-checked="false" aria-label="${esc(t('indeling.zone.eigenTemp'))}" data-zone-regeling="${esc(z.id)}" data-waarde="eigen"></button>`
             : `<span>${esc(t('indeling.zone.metKamer'))}</span>`;
