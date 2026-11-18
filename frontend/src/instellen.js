@@ -126,12 +126,26 @@
     return [groep(t('in.kopWaar'), [waarRij(id)]), groep(t('in.kopZon'), [zon])].join('');
   }
 
+  /** Een kopie van de antwoorden om in te veranderen, zoals Energie dat deed (laden.js, thuisaccu.js). */
+  const werk = () => JSON.parse(JSON.stringify(aans?.antwoorden ?? {}));
+  /** Welke auto, laadpaal of accu er gekozen is; in een blad is dat het apparaat zelf. */
+  const staat = { wie: null };
+  const foutRegel = () => (fout ? `<p class="hand-fout">${esc(fout)}</p>` : '');
+
   /** De regels voor een apparaat in het blad; leeg zolang de gegevens er niet zijn. */
   function regels(soort, id, opties = {}) {
     if (!aans && !huis) {
       void laad();
       return '';
     }
+    // Een auto of laadpaal, en de thuisaccu (besluit 318): dezelfde keuzes als eerst bij Energie.
+    if (soort === 'laden') return `${global.laden?.blad(aans, werk(), id)?.html ?? ''}${foutRegel()}`;
+    // De hele lijst, zoals eerst bij Energie: wat gevonden is met een schakelaar, en een ander apparaat kiezen.
+    if (soort === 'laden-lijst' || soort === 'accu-lijst') {
+      const vorm = soort === 'laden-lijst' ? global.laden?.vorm(aans, werk(), staat) : global.thuisaccu?.vorm(aans, werk(), staat);
+      return `<div class="in-lijst">${(vorm ?? '').replace(/^<div class="kopregel">[\s\S]*?<\/div>/, '')}</div>${foutRegel()}`;
+    }
+    if (soort === 'accu') return `${global.thuisaccu?.blad(aans, id)?.html ?? ''}${foutRegel()}`;
     if (soort === 'stekker') return stekkerRegels(id, opties);
     if (soort === 'witgoed') return witgoedRegels(id, opties);
     return bufferRegels(id);
@@ -252,6 +266,29 @@
         else b.opZon[id] = aan;
       });
     }
+  });
+
+  /** Een keuze bij laden of de accu, in het blad: bewaren zoals Energie, met de rest zoals het was. */
+  async function ladenOfAccu(el, wat) {
+    if (!aans) return;
+    const a = werk();
+    staat.wie = el.dataset.id ?? staat.wie;
+    const r = wat(a);
+    if (r === 'teken') return meld();
+    if (r === true) await bewaarAansluiting((b) => {
+      if (a.laden) b.laden = a.laden;
+      if (a.accu) b.accu = a.accu;
+    });
+  }
+  document.addEventListener('click', (e) => {
+    const knop = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest?.('[data-hand] [data-laad], [data-hand] [data-accu]'));
+    if (!knop || /** @type {HTMLButtonElement} */ (knop).disabled) return;
+    void ladenOfAccu(knop, (a) => (knop.dataset.laad ? global.laden.klik(knop, aans, a, staat) : global.thuisaccu.klik(knop, aans, a, staat)));
+  });
+  document.addEventListener('change', (e) => {
+    const el = /** @type {HTMLInputElement | null} */ (/** @type {HTMLElement} */ (e.target).closest?.('[data-hand] select, [data-hand] input'));
+    if (!el || !(el.matches('[data-laad-kies], [data-laad-accu], [data-laad-kabelom], [data-laad-paal], [data-accu-kies], [data-accu-maat], [data-accu-sensor]'))) return;
+    void ladenOfAccu(el, (a) => global.laden?.verander(el, aans, a, staat) || global.thuisaccu?.verander(el, aans, a, staat));
   });
 
   document.addEventListener('change', (e) => {

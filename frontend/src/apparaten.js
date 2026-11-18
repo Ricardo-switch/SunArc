@@ -148,7 +148,16 @@ function kaart(d) {
 const witgoedNu = new Map();
 /** Van Te doen (apparaten.html#wg-droger): dat blad meteen open, één keer. */
 let wgUitAdres = location.hash.startsWith('#wg-') ? decodeURIComponent(location.hash.slice(4)) : null;
+let bladUitAdres = /^#(laden|accu)/.test(location.hash) ? decodeURIComponent(location.hash.slice(1)) : null;
 function openUitAdres() {
+  if (bladUitAdres && aansluiting) {
+    const [wat, ...rest] = bladUitAdres.split('-');
+    const id = rest.join('-');
+    const alle = aansluiting.laden?.apparaten ?? [];
+    const doel = id === 'lijst' ? (wat === 'accu' ? 'acculijst' : 'ladenlijst') : wat === 'accu' ? (huisData?.opslag?.batterij ? 'accu' : 'acculijst') : alle.some((x) => x.id === id) ? `laden:${id}` : 'ladenlijst';
+    bladUitAdres = null;
+    openVrijBlad(doel);
+  }
   if (!wgUitAdres || !witgoedNu.has(wgUitAdres)) return;
   void hand.openWitgoed(witgoedNu.get(wgUitAdres));
   wgUitAdres = null;
@@ -395,9 +404,8 @@ function ladingKaart(soort, o) {
     : [accuMaatZin(o), accuSchaduwZin() ?? t('apparaten.batterijKijkt')].filter(Boolean).join(' ');
   const lijstAccus = soort === 'batterij' ? huisData?.opslag?.batterijen : null;
   const naam = lijstAccus?.length > 1 ? t('apparaten.accuSamen', { n: lijstAccus.length }) : o.naam;
-  // De auto opent zijn eigen pagina (besluit 259, stap 2).
-  const el = document.createElement(soort === 'auto' ? 'a' : 'div');
-  if (soort === 'auto') el.href = `auto.html#${encodeURIComponent(o.id)}`;
+  // De auto opent zijn blad (besluit 318), met de weg naar de pagina Auto erin.
+  const el = document.createElement('div');
   el.className = 'glas app';
   el.dataset.lading = soort;
   el.dataset.actief = String(soort === 'auto' ? !!o.laadt : o.stand === 'laadt' || o.stand === 'levert');
@@ -408,9 +416,20 @@ function ladingKaart(soort, o) {
     <div class="verdeel"><i style="width: ${pct ?? 0}%; background: ${kleur}"></i></div>
     ${accuRegels(lijstAccus)}
     ${zin ? `<p class="mini zin">${esc(zin)}</p>` : ''}`;
-  // De thuisaccu opent zijn blad (besluit 298); de auto heeft zijn eigen pagina.
+  // De thuisaccu en de auto openen hun blad (besluit 298 en 318).
   if (soort === 'batterij') return metBlad(el, 'accu', naam);
-  return el;
+  return metBlad(el, `laden:${o.id}`, naam);
+}
+
+/** Een laadpaal bij Auto en laden (besluit 318): een tik opent zijn blad, waar je hem instelt. */
+function paalKaart(x) {
+  const el = document.createElement('div');
+  el.className = 'glas app';
+  el.dataset.actief = 'false';
+  el.innerHTML = `
+    <div class="kopje"><span class="ik">${iconen.svg('laadpaal')}</span><div><b>${esc(x.naam)}</b><span class="mini">${esc(t('laden.rol.laadpaal'))}</span></div></div>
+    <p class="mini zin">${esc(x.stroomA ? t('laden.paalKan', { min: x.stroomA.min, max: x.stroomA.max }) : t('laden.paalKanNiet'))}</p>`;
+  return metBlad(el, `laden:${x.id}`, x.naam);
 }
 
 /** Een apparaat dat de dienst vond maar dat (nog) niet op zon staat. */
@@ -686,7 +705,7 @@ function accuBlad() {
   return {
     naam,
     zin: doet,
-    html: `${regel(t('apparaten.lading'), `<b>${o.pct == null ? esc(t('apparaten.onbekendKlein')) : `${nl(o.pct, 0)}%`}</b>`)}${w != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(Math.abs(w) / 1000)} kW</b>`) : ''}${accuRegels(lijst)}${[accuMaatZin(o), accuSchaduwZin() ?? t('apparaten.batterijKijkt')].filter(Boolean).map((z) => `<p class="hand-hoe">${esc(z)}</p>`).join('')}${onder([['energie.html#accu', t('apparaten.blad.instellen')]])}`,
+    html: `${regel(t('apparaten.lading'), `<b>${o.pct == null ? esc(t('apparaten.onbekendKlein')) : `${nl(o.pct, 0)}%`}</b>`)}${w != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(Math.abs(w) / 1000)} kW</b>`) : ''}${accuRegels(lijst)}${[accuMaatZin(o), accuSchaduwZin() ?? t('apparaten.batterijKijkt')].filter(Boolean).map((z) => `<p class="hand-hoe">${esc(z)}</p>`).join('')}<div class="in-groep"><h4>${esc(t('in.kopInstellen'))}</h4></div>${instellen.regels('accu', o.id ?? '')}`,
   };
 }
 
@@ -718,7 +737,22 @@ function vrijBlad(sleutel) {
   if (soort === 'accu') return accuBlad();
   if (soort === 'schakelaar') return schakelaarBlad(id);
   if (soort === 'opzon') return opZonBlad(id);
+  if (soort === 'laden') return ladenBlad(id);
+  // De lijst van laden en van de thuisaccu (besluit 318): zoals eerst bij Energie, nu vanuit Toevoegen.
+  if (soort === 'ladenlijst') return { naam: t('laden.titel'), zin: t('in.lijstZin'), html: instellen.regels('laden-lijst', '') };
+  if (soort === 'acculijst') return { naam: t('accu.titel'), zin: t('in.lijstZin'), html: instellen.regels('accu-lijst', '') };
   return null;
+}
+
+/** Een auto of laadpaal (besluit 318): dezelfde keuzes als eerst bij Energie, en de weg naar de pagina Auto. */
+function ladenBlad(id) {
+  const x = (aansluiting?.laden?.apparaten ?? []).find((y) => y.id === id);
+  if (!x) return null;
+  return {
+    naam: x.naam,
+    zin: t(x.rol === 'auto' ? 'laden.rol.auto' : 'laden.rol.laadpaal'),
+    html: `${instellen.regels('laden', id)}${onder([[x.rol === 'auto' ? `auto.html#${encodeURIComponent(id)}` : 'auto.html', t('apparaten.naarAuto')]])}`,
+  };
 }
 const openVrijBlad = (sleutel) => {
   instellen.sluit();
@@ -864,7 +898,7 @@ function kaartenPerSoort() {
     water: buffers.filter((b) => b.soort !== 'stekker').map(bufferKaart),
     // Een stekker die bij een schakelaar hoort (besluit 300), staat bij die schakelaar.
     stekkers: buffers.filter((b) => b.soort === 'stekker' && !stekkersBijSchakelaar().has(b.id)).map(bufferKaart),
-    auto: (opslag.autos ?? (opslag.auto ? [opslag.auto] : [])).map((x) => ladingKaart('auto', x)),
+    auto: [...(opslag.autos ?? (opslag.auto ? [opslag.auto] : [])).map((x) => ladingKaart('auto', x)), ...(aansluiting?.laden?.apparaten ?? []).filter((x) => x.rol === 'laadpaal' && x.aan).map(paalKaart)],
     energie: opslag.batterij ? [ladingKaart('batterij', opslag.batterij)] : [],
     // Een schakelaar met iets anders dan een lamp (besluit 297); een lamp staat bij Licht.
     schakelaars: (schakelaarData?.schakelaars ?? []).filter((x) => x.keuze && x.keuze.wat !== 'lamp' && !KLIMAAT_WAT.has(x.keuze.wat)).map(schakelaarKaart),

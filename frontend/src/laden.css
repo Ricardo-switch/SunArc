@@ -1,0 +1,38 @@
+/*
+ * Laden en de thuisaccu instellen (besluiten 259, 262, 271 en 318): de rijen,
+ * de vragen en de schakelaars. Gedeeld door Energie en het blad van een
+ * apparaat bij Apparaten.
+ */
+.ld-rij { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 0 12px; align-items: center; padding: 9px 12px; border-radius: 15px; background: rgb(var(--wit) / 0.04); border: 1px solid transparent; }
+.ld-rij.nu { background: rgb(var(--wit) / 0.09); border-color: rgb(var(--wit) / 0.22); }
+.ld-rij.uit .ld-ik, .ld-rij.uit .ld-tekst { opacity: 0.5; }
+.ld-ik { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); }
+.ld-ik svg { width: 21px; height: 21px; }
+.ld-tekst { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding: 0; border: 0; background: none; color: var(--tekst); font: inherit; text-align: left; cursor: pointer; }
+.ld-tekst:disabled { cursor: default; }
+.ld-tekst b { font-size: 15px; font-weight: 600; }
+.ld-tekst span { font-size: 12.5px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ld-vraag { display: flex; flex-direction: column; gap: 6px; }
+.ld-schakel { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.04); }
+.ld-schakel > div { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.ld-schakel b { font-size: 14.5px; }
+.ld-schakel .schakelaar { flex: none; }
+.ld-vraag > b { font-size: 14.5px; }
+.ld-met { display: flex; align-items: center; gap: 8px; }
+.ld-met .invoer { flex: 1; }
+.ld-met span { color: var(--gedempt); font-size: 13px; }
+.ld-evcc { display: flex; gap: 10px; align-items: start; padding: 11px 14px; border-radius: 14px; background: rgba(111, 211, 255, 0.08); border: 1px solid rgba(111, 211, 255, 0.25); font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+.ld-evcc .stip { margin-top: 6px; flex: none; }
+.ld-evcc b { color: var(--tekst); }
+.ld-leeg { display: flex; flex-direction: column; gap: 10px; align-items: start; max-width: 480px; }
+.ld-leeg b { font-size: 17px; }
+.ac-sensoren { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 12px; }
+.ac-sensor { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.ac-sensor .veldnaam { display: flex; flex-direction: row; align-items: baseline; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--zacht); margin: 0; }
+.ac-sensor .veldnaam em { font-style: normal; margin-left: auto; color: var(--gedempt); font-weight: 600; }
+.ac-sensor select { min-width: 0; width: 100%; }
+.ac-nu { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--zacht); }
+.ac-nu i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.ac-waar { margin-left: auto; font-size: 14px; font-weight: 700; color: var(--ijs-t); }
+#tel .ac-sensoren { grid-template-columns: minmax(0, 1fr); }
+.ac-maat { max-width: 220px; }

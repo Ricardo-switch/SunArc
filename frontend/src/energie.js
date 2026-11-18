@@ -5,8 +5,14 @@
  * (102, 110, 116) samen: het contract stond bij het een en de prijzen bij het
  * ander. Twee deuren in de dienst, één pagina; wat je verandert, wordt meteen
  * bewaard. Bewaren vraagt een beheerder.
+ *
+ * Auto en laadpaal en de thuisaccu stel je sinds besluit 318 in op hun kaart
+ * bij Apparaten; laden.js en thuisaccu.js tekenen daar hetzelfde. Een oude
+ * link naar die delen gaat naar Apparaten.
  */
 'use strict';
+
+if (location.hash === '#auto' || location.hash === '#accu') location.replace(location.hash === '#auto' ? 'apparaten.html#laden-lijst' : 'apparaten.html#accu-lijst');
 
 const { $$, esc, haal, nl } = app;
 
@@ -138,10 +144,7 @@ function delen() {
     { id: 'meters', titel: t('energie.meters'), zin: e ? [e.net.afname.length ? t('energie.stroom') : null, e.gas ? t('energie.gas') : null, e.apparaten.length ? t('energie.nApparaten', { n: e.apparaten.length }) : null].filter(Boolean).join(', ') || t('instellingen.nogKiezen') : '…', stand: !e ? null : e.net.afname.length ? 'goed' : 'mist' },
     { id: 'prijzen', titel: t('energie.prijzen'), zin: !e ? '…' : p.dynamisch ? t('energie.prijsPerUur') : p.stroom == null ? t('energie.prijsMist') : t('energie.prijsPerKwh', { prijs: nl(p.stroom, 2) }), stand: !e ? null : prijsMist ? 'mist' : 'goed' },
     { id: 'verwarming', titel: t('energie.verwarming'), zin: soort ? (a.verwarming.aanvoerC ? t('energie.aanvoer', { soort, c: a.verwarming.aanvoerC }) : soort) : t('instellingen.nogKiezen'), stand: !aInfo ? null : a.verwarming.soort ? 'goed' : 'leeg' },
-    // Auto en laadpaal (besluit 259): niets gevonden mist niet; niet elk huis heeft een auto.
-    { id: 'auto', titel: t('laden.titel'), zin: laden.kortZin(aInfo) ?? '…', stand: !aInfo ? null : (aInfo.laden?.apparaten ?? []).some((x) => x.aan) ? 'goed' : 'leeg' },
-    // Thuisaccu (besluit 271): net als de auto mist niets als het huis er geen heeft.
-    { id: 'accu', titel: t('accu.titel'), zin: thuisaccu.kortZin(aInfo) ?? '…', stand: !aInfo ? null : (aInfo.accu?.apparaten ?? []).some((x) => x.aan) ? 'goed' : 'leeg' },
+    // Auto en laadpaal en de thuisaccu staan op hun kaart bij Apparaten (besluit 318).
   ];
 }
 

@@ -14718,9 +14718,15 @@ maakt meteen klaar, en Waar staat hij? in het blad.
   ([317]); op zon staat nu bij elk apparaat. Een oude link komt op de goede plek
   uit; Instellingen heeft een tegel minder.
 
-*Wat volgt:* versie 2 zet de laadpaal, de auto en de thuisaccu op hun kaart
-(Energie houdt de zekering, de meters en de prijzen), versie 3 laat Toevoegen
-een gevonden apparaat meteen klaarmaken.
+*Versie 2 (0.194.0, 18 november):* de auto, de laadpaal en de thuisaccu openen
+hun blad bij Apparaten, met dezelfde keuzes als eerst bij Energie (laden.js en
+thuisaccu.js tekenen ze daar ook). Een laadpaal kreeg een eigen kaart bij Auto en
+laden. Wat SunArc vond met een schakelaar en een ander apparaat kiezen staan in
+een eigen blad, dat Toevoegen › Auto en laden en › Thuisaccu openen. Energie
+houdt de panelen, de aansluiting, de meters, de prijzen en de verwarming; een
+oude link naar Energie › Auto of › Thuisaccu komt bij Apparaten uit.
+
+*Wat volgt:* versie 3 laat Toevoegen een gevonden apparaat meteen klaarmaken.
 
 *Wat afviel:* een overzicht van alles op zon naast de bladen (een tweede plek
 voor dezelfde schakelaar), en Waar staat hij? alleen via Je huis (een stap meer

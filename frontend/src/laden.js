@@ -204,5 +204,18 @@ const laden = (() => {
     return false;
   }
 
-  return { vorm, klik, verander, kortZin };
+  /**
+   * Het blad van één auto of laadpaal bij Apparaten (besluit 318): of hij
+   * meedoet, en wat je bij hem instelt. Dezelfde keuzes als eerst bij Energie.
+   */
+  function blad(info, a, id) {
+    const x = lijst(info).find((y) => y.id === id);
+    if (!x) return null;
+    const mee = `<div class="ld-schakel"><div><b>${esc(t('laden.doetMee'))}</b><span class="mini">${esc(watZin(x))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${x.aan}" aria-label="${esc(t('laden.vanDitHuis', { naam: x.naam }))}" data-laad="aan" data-id="${esc(x.id)}"></button></div>`;
+    return { naam: x.naam, rol: x.rol, html: `${mee}${x.aan ? instellen(info, a, x) : ''}` };
+  }
+
+  return { vorm, klik, verander, kortZin, blad, lijst };
 })();
+// Ook als window.laden, voor het blad bij Apparaten (instellen.js, besluit 318).
+window.laden = laden;

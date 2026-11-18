@@ -37,8 +37,8 @@ const SOORTEN = [
   ['licht', 'lamp', '247, 181, 72', 'jehuis.html'],
   ['water', 'boiler', '255, 122, 77', 'apparaten.html'],
   ['witgoed', 'witgoed', '110, 231, 183', 'apparaten.html'],
-  ['auto', 'auto', '143, 134, 255', 'energie.html#auto'],
-  ['energie', 'batterij', '110, 231, 183', 'energie.html#accu'],
+  ['auto', 'auto', '143, 134, 255', 'apparaten.html#laden-lijst'],
+  ['energie', 'batterij', '110, 231, 183', 'apparaten.html#accu-lijst'],
   ['stekkers', 'stekker', '201, 211, 220', 'apparaten.html'],
   ['schakelaars', 'apparaat', '201, 211, 220', '#schakelaars'],
   ['losse', 'laadpaal', '143, 134, 255', '#losse'],
@@ -65,7 +65,7 @@ function lossePaneel() {
     .join('');
   const bestaand = Object.entries(losse.laadpalen ?? {});
   const lijst = bestaand.length
-    ? `<div class="stap"><b>${esc(t('toev.losse.al'))}</b><div class="lijst">${bestaand.map(([id, l]) => `<div class="rij"><span class="ik">${iconen.svg('laadpaal')}</span><b>${esc(l.naam)}</b><small>${esc(t('toev.losse.n', { n: l.sensoren.length }))} · <a href="energie.html#auto">${esc(t('toev.losse.energie'))}</a></small><button type="button" class="stil" data-lweg="${esc(id)}">${esc(t('toev.weg'))}</button></div>`).join('')}</div></div>`
+    ? `<div class="stap"><b>${esc(t('toev.losse.al'))}</b><div class="lijst">${bestaand.map(([id, l]) => `<div class="rij"><span class="ik">${iconen.svg('laadpaal')}</span><b>${esc(l.naam)}</b><small>${esc(t('toev.losse.n', { n: l.sensoren.length }))} · <a href="apparaten.html#laden-lijst">${esc(t('toev.losse.energie'))}</a></small><button type="button" class="stil" data-lweg="${esc(id)}">${esc(t('toev.weg'))}</button></div>`).join('')}</div></div>`
     : '';
   return `
     <div class="wie"><span class="ik">${iconen.svg('laadpaal')}</span><div><h2>${esc(t('toev.losse.titel'))}</h2><small>${esc(t('toev.losse.lead'))}</small></div></div>
@@ -156,8 +156,8 @@ function nieuwGevonden() {
   // Een stekker die al bij een schakelaar hoort (besluit 300), is niet nieuw.
   const bijSchakelaar = new Set(schakelaars.map((x) => x.keuze?.stekker).filter(Boolean));
   for (const d of aansluiting?.gevonden?.apparaten ?? []) if (opZon[d.id] !== true && !vast.has(d.id) && !bijSchakelaar.has(d.id)) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.nietOpZon', href: 'apparaten.html' });
-  for (const d of aansluiting?.laden?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: d.rol, zin: 'toev.uit', href: 'energie.html#auto' });
-  for (const d of aansluiting?.accu?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: 'accu', zin: 'toev.uit', href: 'energie.html#accu' });
+  for (const d of aansluiting?.laden?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: d.rol, zin: 'toev.uit', href: 'apparaten.html#laden-lijst' });
+  for (const d of aansluiting?.accu?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: 'accu', zin: 'toev.uit', href: 'apparaten.html#accu-lijst' });
   return uit;
 }
 

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.193.1';
+export const VERSIE = '0.194.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,28 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.194.0',
+    datum: '2026-11-18',
+    nieuw: [
+      'De auto, de laadpaal en de thuisaccu stel je in op hun kaart bij Apparaten: of hij meedoet, de accu van de auto, aan welke laadpaal hij laadt, Kabel vergeten, en welke sensor van de accu wat is',
+      'Een laadpaal heeft een eigen kaart bij Auto en laden',
+      'Bij Toevoegen › Auto en laden en › Thuisaccu staat wat SunArc vond, met een schakelaar, en een ander apparaat kiezen',
+    ],
+    beter: [
+      'Energie houdt alleen je panelen, de aansluiting, de meters, de prijzen en de verwarming',
+    ],
+    en: {
+      nieuw: [
+        'You set up the car, the charger and the home battery on their card under Devices: whether it takes part, the car battery, which charger it uses, Forgotten cable, and which battery sensor is what',
+        'A charger has its own card under Car and charging',
+        'Under Add › Car and charging and › Home battery you see what SunArc found, with a switch, and you can choose another device',
+      ],
+      beter: [
+        'Energy keeps only your panels, the connection, the meters, the prices and the heating',
+      ],
+    },
+  },
   {
     versie: '0.193.1',
     datum: '2026-11-17',

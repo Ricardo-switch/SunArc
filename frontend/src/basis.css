@@ -904,3 +904,6 @@ button.in-rij { width: 100%; border-left: 0; border-right: 0; border-bottom: 0; 
 .in-plek { height: 40px; padding: 0 12px; border-radius: 11px; border: 0; background: rgb(var(--wit) / 0.05); color: var(--tekst); font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; }
 .in-plek.aan { background: rgb(var(--wit) / 0.16); box-shadow: inset 0 0 0 1px rgb(var(--wit) / 0.4); }
 .in-plek:focus-visible, button.in-rij:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
+/* De lijst van laden en de thuisaccu in een blad (besluit 318): de twee kolommen van Energie onder elkaar. */
+.in-lijst { display: flex; flex-direction: column; gap: 12px; }
+.in-lijst .kolommen { display: flex; flex-direction: column; gap: 12px; }

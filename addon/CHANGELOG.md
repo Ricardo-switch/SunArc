@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.193.1
+## 0.194.0
 
-*17 november 2026 · 0.179.0 – 0.193.1*
+*18 november 2026 · 0.179.0 – 0.194.0*
 
 **Nieuw**
 
+- De auto, de laadpaal en de thuisaccu stel je in op hun kaart bij Apparaten: of hij meedoet, de accu van de auto, aan welke laadpaal hij laadt, Kabel vergeten, en welke sensor van de accu wat is
+- Een laadpaal heeft een eigen kaart bij Auto en laden
+- Bij Toevoegen › Auto en laden en › Thuisaccu staat wat SunArc vond, met een schakelaar, en een ander apparaat kiezen
 - Een apparaat stel je in op zijn kaart: tik het aan bij Apparaten, en bovenaan het blad staat waar het staat, of het op zon mag, wat het trekt en hoe lang per dag, en of SunArc het met de hand mag schakelen
 - Een slimme stekker krijgt een kamer: bij Waar staat hij? in zijn blad, of in Je huis. Dezelfde kamers, één keuze
 - Regeling is weg. Klimaat staat bij Klimaat, op zon bij elk apparaat. Een oude link komt vanzelf op de goede plek
@@ -47,6 +50,7 @@
 
 **Beter**
 
+- Energie houdt alleen je panelen, de aansluiting, de meters, de prijzen en de verwarming
 - Een zone met een eigen regeling, zoals de zithoek, zegt bij Klimaat welk apparaat hem regelt, met een knop naar de kamer waar je dat kiest
 - Bij Klimaat staan wat een apparaat is en waarmee de kamer meet op twee regels, in plaats van afgekapt
 - Het blad Wat SunArc doet leest nu als hele zinnetjes: "Nest (beneden) staat op 20° en staat stil" naast "Niets doen". Eerst stond er "Ook niets" onder "SunArc zou"
@@ -84,6 +88,9 @@
 
 **New**
 
+- You set up the car, the charger and the home battery on their card under Devices: whether it takes part, the car battery, which charger it uses, Forgotten cable, and which battery sensor is what
+- A charger has its own card under Car and charging
+- Under Add › Car and charging and › Home battery you see what SunArc found, with a switch, and you can choose another device
 - You set up a device on its card: tap it under Devices, and the top of the sheet shows where it is, whether it may run on solar, what it draws and how long per day, and whether SunArc may switch it by hand
 - A smart plug gets a room: under Where is it? in its sheet, or in Your home. The same rooms, one choice
 - Control is gone. Climate is under Climate, on solar with each device. An old link takes you to the right place
@@ -125,6 +132,7 @@
 
 **Improved**
 
+- Energy keeps only your panels, the connection, the meters, the prices and the heating
 - A zone with its own control, such as the seating area, says under Climate which device controls it, with a button to the room where you choose that
 - Under Climate, what a device is and what the room measures with take two lines instead of being cut off
 - The What SunArc does sheet now reads as whole phrases: "Nest (downstairs) is set to 20° and is idle" next to "Do nothing". It used to say "Nothing either" under "SunArc would"

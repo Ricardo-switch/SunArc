@@ -174,5 +174,15 @@ const thuisaccu = (() => {
     return false;
   }
 
-  return { vorm, klik, verander, kortZin };
+  /** Het blad van één thuisaccu bij Apparaten (besluit 318): of hij meedoet, en welke sensor wat is. */
+  function blad(info, id) {
+    const x = lijst(info).find((y) => y.id === id) ?? aan(info)[0] ?? null;
+    if (!x) return null;
+    const mee = `<div class="ld-schakel"><div><b>${esc(t('laden.doetMee'))}</b><span class="mini">${esc(watZin(x))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${x.aan}" aria-label="${esc(t('accu.vanDitHuis', { naam: x.naam }))}" data-accu="aan" data-id="${esc(x.id)}"></button></div>`;
+    return { naam: x.naam, html: `${mee}${x.aan ? instellen(info, x) : ''}<a class="ac-waar" href="jehuis.html#buiten" style="margin: 0">${esc(t('accu.waarStaat'))}</a>` };
+  }
+
+  return { vorm, klik, verander, kortZin, blad, lijst };
 })();
+// Ook als window.thuisaccu, voor het blad bij Apparaten (instellen.js, besluit 318).
+window.thuisaccu = thuisaccu;
