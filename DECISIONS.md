@@ -312,6 +312,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [318. Een apparaat stel je in op zijn kaart; Regeling is weg](#318-een-apparaat-stel-je-in-op-zijn-kaart-regeling-is-weg)
 - [320. Een zone is een deel van de kamer, geen kamer](#320-een-zone-is-een-deel-van-de-kamer-geen-kamer)
 - [321. Instellingen in vier tegels](#321-instellingen-in-vier-tegels)
+- [322. Eén standpagina: Wat je huis kan](#322-eén-standpagina-wat-je-huis-kan)
 
 **Veiligheid**
 
@@ -14888,6 +14889,47 @@ de standregel en elk onderdeel als grote knop met wat er nu staat.
 *Wat afviel:* het huis in het midden met de groepen eromheen (de schets
 zonder `#`) en `#lijst` met de geopende groep rechts. De pagina achter een
 tegel (`#klimaat`) blijft voor later.
+
+## 322. Eén standpagina: Wat je huis kan
+
+*Onderwerp: weergave · Status: geldig*
+
+18 november 2026. Hoe ver je huis is stond op vier plekken: Wat je huis kan
+(het huis met aanwijzers en zes vakken), Hoe ver je huis is (de zonnewaaier),
+het vak Nog te doen bij Instellingen, en de knop Klaarzetten in Home Assistant.
+Keuze 4 van 14 november: één standpagina, Wat je huis kan, met de waaier
+erin. Schets `Wand-Stand-Een` en `Tel-Stand-Een`, goedgekeurd door Ricardo op
+17 november.
+
+*Besluit (0.199.0):*
+
+- **Eén pagina, `huis-kan.html`.** Links de zonnewaaier met daaronder *Kan er
+  nog bij*: wat een apparaat of contract nodig heeft, en wat je nog kunt
+  klaarzetten voor iedereen (besluit [246]), elk met de knop op de regel.
+  Rechts bovenaan *Eerst dit*: wat echt ontbreekt (hooguit drie, het eerste
+  groot) en wat in Home Assistant mist voor de regeling (besluit [179]).
+  Daaronder elke functie op één regel met zijn stand, in de zes groepen van de
+  waaier. Onderaan *De weg naar zelf regelen*: de haltes en drie maten
+  (winterdagen, elke stand gezien, klaar om over te nemen).
+- **Een tik** op een functie, een straal of de knop van iets dat erbij kan,
+  opent het blad met de uitleg; het blad ligt over de rechterkant, tot
+  onderaan.
+- **Hoe ver je huis is** (`voortgang.html`) verwijst door naar deze pagina,
+  met hetzelfde onderwerp open. De standregel bij Instellingen (besluit [321])
+  gaat hierheen.
+- **Weg:** het huis met aanwijzers, het filter op stand, *Haal er meer uit*
+  (de ideeën staan nog in het blad), de vier treden per functie en de
+  tijdlijn op schaal.
+- **Op de wand** staat wat een functie nu doet achter zijn naam, op één
+  regel; de waaier krimpt als er veel bij kan, zodat alles past zonder te
+  scrollen. **Op de telefoon** onder elkaar: eerst dit, de waaier, de weg, wat
+  erbij kan, de functies.
+
+*Nog niet:* de weg voor een nieuw huis (schets `#nieuw`: basis, leren,
+meekijken, per kamer zelf regelen, besluit [312]). Nu ziet elk huis met een
+regeling de winterdagen; dat hoort bij de winterdagen in januari. Inrichten
+staat nog als knop bij Instellingen (besluit [321]); die gaat weg met
+Inrichten in zeven stappen.
 
 ## Wat nog een besluit wacht
 

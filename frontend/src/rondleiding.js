@@ -108,7 +108,7 @@
       pagina: 'huis-kan.html',
       plek: 'huisKan',
       id: 'huisKan',
-      doel: ['#wand [data-vakken]', '#tel [data-vakken]'],
+      doel: ['#wand [data-groepen]', '#tel [data-groepen]'],
     },
     {
       pagina: 'thuis.html',

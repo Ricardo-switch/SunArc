@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.198.0
+## 0.199.0
 
-*18 november 2026 · 0.179.0 – 0.198.0*
+*18 november 2026 · 0.179.0 – 0.199.0*
 
 **Nieuw**
 
+- Wat je huis kan is nu de ene pagina over hoe ver je huis is: de zonnewaaier, wat er nog bij kan, wat eerst moet, elke functie met zijn stand en de weg naar zelf regelen
+- Bij wat er nog bij kan staat de knop op de regel: een ander contract, een laadpaal, of klaarzetten
 - Instellingen staat in vier tegels: Je huis, Klimaat, Energie en App en bewoners, elk onderdeel als knop met wat er nu staat
 - Bovenin staat hoe ver je huis is als één regel: de zonnewaaier, wat er nog mist met een knop ernaartoe, en Wat je huis kan
 - Een zone is een deel van de kamer: bij Klimaat staat hij ingesprongen onder zijn kamer, met wat er gemeten wordt
@@ -58,6 +60,7 @@
 
 **Beter**
 
+- Hoe ver je huis is en de knop Klaarzetten in Home Assistant staan nu op Wat je huis kan; een oude link komt daar uit
 - Functies, de assistent, bewoners en Inrichten staan samen onder App en bewoners
 - Elk klimaatapparaat staat er zelf met zijn taak, ook als een radiator het volgt. De radiator zegt Volgt Nest (beneden) in plaats van Slim
 - Een zone waar de radiator van de kamer meeverwarmt, krijgt geen melding Niets houdt meer, maar: verwarmt mee met de thermostaat
@@ -114,6 +117,8 @@
 
 **New**
 
+- What your house can do is now the one page about how far your home is: the sun fan, what can be added, what comes first, every feature with its state and the way to self-control
+- For what can be added, the button is on the line: another contract, a charger, or set up
 - Settings has four tiles: Your home, Climate, Energy and App and residents, each part as a button showing what is set now
 - At the top, how far your home is shows as one line: the sun fan, what is still missing with a button to it, and What your home can do
 - A zone is part of the room: under Climate it shows indented below its room, with what is measured there
@@ -166,6 +171,7 @@
 
 **Improved**
 
+- How far your house is and the button Set up in Home Assistant are now on What your house can do; an old link ends up there
 - Features, the assistant, residents and Set up are together under App and residents
 - Every climate device shows itself with its task, also when a radiator follows it. The radiator says Follows Nest (beneden) instead of Smart
 - A zone that the room radiator heats along no longer gets the warning Nothing keeps, but: heats along with the thermostat

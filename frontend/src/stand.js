@@ -96,7 +96,7 @@
     ['warmte', 'huis', 'comfort.html'],
     ['naam', 'huis', 'jehuis.html'],
     ['kan', 'zoek.waar.instellingen', 'huis-kan.html'],
-    ['voortgang', 'zoek.waar.instellingen', 'voortgang.html'],
+    ['voortgang', 'zoek.waar.instellingen', 'huis-kan.html'],
     ['klaarzetten', 'inrichten', 'klaarzetten.html'],
     ['versie', 'toegang', 'toegang.html#versie'],
   ];

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.198.0';
+export const VERSIE = '0.199.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,26 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.199.0',
+    datum: '2026-11-18',
+    nieuw: [
+      'Wat je huis kan is nu de ene pagina over hoe ver je huis is: de zonnewaaier, wat er nog bij kan, wat eerst moet, elke functie met zijn stand en de weg naar zelf regelen',
+      'Bij wat er nog bij kan staat de knop op de regel: een ander contract, een laadpaal, of klaarzetten',
+    ],
+    beter: [
+      'Hoe ver je huis is en de knop Klaarzetten in Home Assistant staan nu op Wat je huis kan; een oude link komt daar uit',
+    ],
+    en: {
+      nieuw: [
+        'What your house can do is now the one page about how far your home is: the sun fan, what can be added, what comes first, every feature with its state and the way to self-control',
+        'For what can be added, the button is on the line: another contract, a charger, or set up',
+      ],
+      beter: [
+        'How far your house is and the button Set up in Home Assistant are now on What your house can do; an old link ends up there',
+      ],
+    },
+  },
   {
     versie: '0.198.0',
     datum: '2026-11-18',

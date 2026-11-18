@@ -36,7 +36,7 @@ function standregel() {
   const zin = mis.length ? mis[0].wat : k ? t('inst4.kanZin', { werkt: tel('werkt'), bij: tel('nodig') + tel('uit') }) : '';
   const waaierDeel = v?.onderwerpen.length ? `<svg viewBox="0 0 190 110" aria-hidden="true" data-mini></svg>` : '';
   const doe = mis.length ? `<a class="doe" href="${mis[0].href}">${esc(mis[0].knop)}</a>` : '';
-  return `<a class="hoever" href="voortgang.html">${waaierDeel}<span class="tekst"><b>${mis.length ? '' : '<i class="punt" aria-hidden="true"></i>'}${esc(titel)}</b><span class="zin">${esc(zin)}</span></span></a>${doe}<a class="naarkan" href="huis-kan.html">${esc(t('instellingen.kan'))} ›</a>`;
+  return `<a class="hoever" href="huis-kan.html">${waaierDeel}<span class="tekst"><b>${mis.length ? '' : '<i class="punt" aria-hidden="true"></i>'}${esc(titel)}</b><span class="zin">${esc(zin)}</span></span></a>${doe}<a class="naarkan" href="huis-kan.html">${esc(t('instellingen.kan'))} ›</a>`;
 }
 
 /* --------------------------------------------------------- de tegels */

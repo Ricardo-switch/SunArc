@@ -1937,7 +1937,6 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         ['bewoners.html', /Who lives here, in order/],
         // Deel 4: Wat je huis kan, Indeling, Inrichten en het begin.
         ['huis-kan.html', /What your house can do[\s\S]*Comfort[\s\S]*What the house learns first[\s\S]*On solar/],
-        ['voortgang.html', /How far your house is[\s\S]*Fully working/],
         ['jehuis.html', /Your home[\s\S]*Rooms/],
         ['jehuis.html#bg/apparaten', /Your home[\s\S]*Devices/],
         ['jehuis.html#bg/huis', /Your home[\s\S]*House[\s\S]*Open[\s\S]*Closed/],
@@ -4445,7 +4444,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect((await slecht()).some((x) => x.includes('"proef"'))).toBe(true);
       const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { ruimtes: { id: string; apparaten: unknown[] }[] }[] };
       const vol = huisNu.etages.flatMap((e) => e.ruimtes).sort((x, y) => y.apparaten.length - x.apparaten.length)[0]!;
-      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'jehuis.html', 'jehuis.html#bg/apparaten', 'jehuis.html#bg/huis', 'jehuis.html#bg/vorm', 'inrichten.html'];
+      const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'jij.html', 'comfort.html', 'energie.html', 'functies.html', 'huis-kan.html', 'klaarzetten.html', 'toegang.html', 'bewoners.html', 'jehuis.html', 'jehuis.html#bg/apparaten', 'jehuis.html#bg/huis', 'jehuis.html#bg/vorm', 'inrichten.html'];
       const weg: string[] = [];
       for (const pagina of paginas) {
         await p.goto(`${baseUrl}/${pagina}`);
@@ -5255,7 +5254,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const cdp = await context.newCDPSession(p);
     const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { ruimtes: { id: string; apparaten: unknown[] }[] }[] };
     const vol = huisNu.etages.flatMap((e) => e.ruimtes).sort((x, y) => y.apparaten.length - x.apparaten.length)[0]!;
-    const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', `kamer.html#${encodeURIComponent(vol.id)}`, `comfort.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'comfort.html', 'energie.html', 'functies.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'inrichten.html#warmte'];
+    const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', `kamer.html#${encodeURIComponent(vol.id)}`, `comfort.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'comfort.html', 'energie.html', 'functies.html', 'huis-kan.html', 'klaarzetten.html', 'toegang.html', 'inrichten.html#warmte'];
     const vast: string[] = [];
     let geveegd = 0;
     for (const pagina of paginas) {
@@ -5313,7 +5312,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const cdp = await context.newCDPSession(p);
     const huisNu = (await (await fetch(`${baseUrl}/api/huis`)).json()) as { etages: { ruimtes: { id: string; apparaten: unknown[] }[] }[] };
     const vol = huisNu.etages.flatMap((e) => e.ruimtes).sort((x, y) => y.apparaten.length - x.apparaten.length)[0]!;
-    const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, `comfort.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'comfort.html', 'energie.html', 'functies.html', 'huis-kan.html', 'klaarzetten.html', 'voortgang.html', 'toegang.html', 'bewoners.html', 'inrichten.html#warmte', 'inrichten.html#welkom'];
+    const paginas = ['thuis.html', 'vandaag.html', 'apparaten.html', 'toevoegen.html', 'opbrengst.html', 'assistent.html', `kamer.html#${encodeURIComponent(vol.id)}`, `comfort.html#${encodeURIComponent(vol.id)}`, 'instellingen.html', 'comfort.html', 'energie.html', 'functies.html', 'huis-kan.html', 'klaarzetten.html', 'toegang.html', 'bewoners.html', 'inrichten.html#warmte', 'inrichten.html#welkom'];
     const vast: string[] = [];
     let geveegd = 0;
     for (const pagina of paginas) {
@@ -5397,22 +5396,22 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await p.locator('#wand [data-zoek]').fill(eenKamer.toLowerCase());
     await p.locator('#wand [data-gevonden] a', { hasText: eenKamer }).first().waitFor();
     await p.locator('#wand [data-zoek]').press('Escape');
-    await p.locator('#wand .kan a[href="huis-kan.html"]').click();
+    await p.locator('#wand .kan a.naarkan').click();
     await p.locator('#wand h1', { hasText: 'Wat je huis kan' }).waitFor();
-    await p.locator('#wand svg.sc-huis').first().waitFor();
-    // Zes groepen (besluit 187): wat het huis eerst leert apart, en de kosten ook.
-    expect(await p.locator('#wand [data-vakken] .vak h3').allTextContents()).toEqual(['Comfort', 'Wat het huis eerst leert', 'Op zon', 'Kosten', 'Gemak', 'Overzicht']);
-    // Een tik opent het blad, met wat het is en wanneer het werkt.
-    await p.locator('#wand [data-vakken] .regel', { hasText: 'Thuisbatterij' }).click();
+    await p.locator('#wand [data-groepen] .groep').first().waitFor();
+    // Zes groepen (besluit 187), in twee kolommen zoals de waaier (besluit 322).
+    expect(await p.locator('#wand [data-groepen] .groep h3').allTextContents()).toEqual(['Gemak', 'Overzicht', 'Comfort', 'Wat het huis eerst leert', 'Op zon', 'Kosten']);
+    // Wat er nog bij kan, met de knop op de regel; de knop opent het blad, met wat het is en wanneer het werkt.
+    await p.locator('#wand [data-erbij] .func', { hasText: 'Thuisbatterij' }).locator('.knopje').click();
     await p.locator('#wand [data-blad]', { hasText: 'Wanneer het werkt' }).waitFor();
     await p.locator('#wand [data-blad] [data-sluit]').click();
     await expect.poll(() => p.locator('#wand [data-blad]').isHidden()).toBe(true);
-    // Klaarzetten in Home Assistant (besluit 179): de knop zegt wat er mist, en opent de lijst per groep.
+    // Klaarzetten in Home Assistant (besluit 179): bij Eerst dit staat wat er mist, en de knop opent de lijst per groep.
     const lijstMist = async () => ((await (await fetch(`${baseUrl}/api/klaarzetten`, { headers: { cookie: `hems_sessie=${sessionId}` } })).json()) as { punten: { stand: string }[] }).punten.filter((x) => x.stand === 'mist').length;
-    const knop = p.locator('#wand [data-klaarknop] button');
+    const regel = p.locator('#wand [data-eerst] .regel', { hasText: 'Klaarzetten in Home Assistant' });
     const mist = await lijstMist();
-    expect(await knop.textContent()).toContain(`${mist} mist`);
-    await knop.click();
+    expect(await regel.textContent()).toContain(`${mist} mist`);
+    await regel.locator('a.knopje').click();
     const lijst = p.locator('#wand [data-blad]');
     await lijst.locator('h2', { hasText: 'Klaarzetten in Home Assistant' }).waitFor();
     expect(await lijst.locator('.klaargroep h4').allTextContents()).toEqual(['De basis', 'Klimaat', 'Zon en energie', 'Bewoners', 'Gemak', 'Praten met je huis', 'De wand en je telefoon']);
@@ -5441,7 +5440,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
     const p = await context.newPage();
     const dubbel: string[] = [];
-    for (const pagina of ['thuis.html', 'vandaag.html', 'tedoen.html', 'apparaten.html', 'opbrengst.html', 'instellingen.html', 'huis-kan.html', 'voortgang.html', 'klaarzetten.html', 'gepland.html']) {
+    for (const pagina of ['thuis.html', 'vandaag.html', 'tedoen.html', 'apparaten.html', 'opbrengst.html', 'instellingen.html', 'huis-kan.html', 'klaarzetten.html', 'gepland.html']) {
       await p.goto(`${baseUrl}/${pagina}`);
       await p.waitForTimeout(1200);
       const namen = await p.evaluate<string[]>("[...document.querySelectorAll('svg :is(linearGradient, radialGradient, clipPath, mask, pattern, filter)[id]')].map((e) => e.id)");
@@ -5506,13 +5505,13 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 25_000);
 
   /*
-   * Hoe ver je huis is (schets Wand-Voortgang): de zonnewaaier met een straal
-   * voor alles wat er in Home Assistant is, zonder wat er nog bij kan. Open
-   * vanaf de kaart bij Instellingen en vanaf Wat je huis kan.
+   * De ene standpagina (besluit 322, schets Wand-Stand-Een): Wat je huis kan en
+   * Hoe ver je huis is op één pagina. Links de zonnewaaier en wat er nog bij
+   * kan, rechts elke functie met zijn stand, onderaan de weg naar zelf regelen.
    */
-  it('toont Hoe ver je huis is als zonnewaaier, met een blad per straal', async () => {
+  it('toont Wat je huis kan als één standpagina, met een blad per functie (besluit 322)', async () => {
     // Zonder beweging: dan staan de stralen meteen, ook op de schermafdrukken.
-    const context = await browser.newContext({ viewport: { width: 1340, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL', reducedMotion: 'reduce' });
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL', reducedMotion: 'reduce' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
     await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
@@ -5520,52 +5519,61 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const fouten: string[] = [];
     p.on('pageerror', (e) => fouten.push(e.message));
     const shot = (naam: string, vol = false) => (process.env.HEMS_PAGE_SHOT ? p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', `-${naam}.png`), fullPage: vol }) : null);
-    // Bij Instellingen staat de stand als één regel (besluit 321): de waaier van Hoe ver je huis is, en Wat je huis kan.
+    // Bij Instellingen staat de stand als één regel (besluit 321); de waaier en Wat je huis kan gaan allebei naar de standpagina.
     await p.goto(`${baseUrl}/instellingen.html`);
     await p.locator('#wand .kan a.hoever .straal').first().waitFor();
     expect(await p.locator('#wand .kan a.naarkan').getAttribute('href')).toBe('huis-kan.html');
     expect(await p.locator('#tel .kan a.hoever').textContent()).toMatch(/\d+%/);
-    await shot('voortgang-instellingen');
+    await shot('stand-instellingen');
     await p.locator('#wand .kan a.hoever').click();
-    await p.waitForURL(/voortgang\.html$/);
-    await p.locator('#wand h1', { hasText: 'Hoe ver je huis is' }).waitFor();
+    await p.waitForURL(/huis-kan\.html$/);
+    await p.locator('#wand h1', { hasText: 'Wat je huis kan' }).waitFor();
     await p.locator('#wand [data-waaier] .straal').first().waitFor();
-    // Een straal per onderwerp, net zoveel als regels in de lijst op de telefoon; wat er nog bij kan, staat er niet.
+    // Een straal per functie, net zoveel als regels rechts; wat er nog bij kan, staat apart, met de knop op de regel.
     const stralen = await p.locator('#wand [data-waaier] .straal').count();
     expect(stralen).toBeGreaterThan(0);
-    expect(await p.locator('#tel [data-lijst] .rij').count()).toBe(stralen);
-    expect(await p.locator('#tel [data-lijst]').textContent()).not.toContain('Thuisbatterij');
+    expect(await p.locator('#wand [data-groepen] .func').count()).toBe(stralen);
+    expect(await p.locator('#wand [data-groepen]').textContent()).not.toContain('Thuisbatterij');
+    expect(await p.locator('#wand [data-erbij] .func', { hasText: 'Thuisbatterij' }).locator('.knopje').count()).toBe(1);
     expect(await p.locator('#wand [data-waaier] .zongetal').textContent()).toMatch(/^\d+%$/);
-    expect(await p.locator('#wand [data-legenda]').textContent()).toContain('Werkt');
+    expect(await p.locator('#wand [data-tellers]').textContent()).toMatch(/Werkt \d+[\s\S]*Kan erbij \d+/);
+    // De weg naar zelf regelen onderaan, en alles past op de wand.
+    await p.locator('#wand [data-weg] .halte.nu').waitFor();
+    expect(await p.locator('#wand [data-weg] .maat').count()).toBeGreaterThanOrEqual(2);
+    await shot('stand');
     expect(await p.evaluate('document.scrollingElement.scrollHeight <= innerHeight')).toBe(true);
-    await shot('voortgang');
-    // Een tik op een straal opent het blad met de vier treden; Escape sluit het.
+    expect(await p.locator('#wand .groepen, #wand .links').evaluateAll((els) => els.every((e) => e.scrollHeight <= e.clientHeight + 2))).toBe(true);
+    // Een tik op een straal opent het blad met de uitleg; Escape sluit het.
     await p.locator('#wand [data-waaier] .straal').first().click();
     const blad = p.locator('#wand [data-blad]');
-    await blad.locator('h4', { hasText: 'Hoe ver' }).waitFor();
-    expect(await blad.locator('.trede').count()).toBe(4);
-    expect(await p.locator('#wand [data-samen]').isHidden()).toBe(true);
-    await shot('voortgang-blad');
+    await blad.locator('h4', { hasText: 'Zo werkt het' }).waitFor();
+    await shot('stand-blad');
     await p.keyboard.press('Escape');
-    await expect.poll(() => p.locator('#wand [data-paneel-blad]').isHidden()).toBe(true);
-    // Op de telefoon: de waaier zonder namen, de lijst eronder, en het blad van onderen.
+    await expect.poll(() => blad.isHidden()).toBe(true);
+    // Een functie op de regel opent hetzelfde blad; de knop bij de batterij de uitleg van de batterij.
+    await p.locator('#wand [data-groepen] .func').first().click();
+    await blad.locator('h4', { hasText: 'Zo werkt het' }).waitFor();
+    await p.keyboard.press('Escape');
+    await p.locator('#wand [data-erbij] .func', { hasText: 'Thuisbatterij' }).locator('.knopje').click();
+    await blad.locator('h2', { hasText: 'Thuisbatterij' }).waitFor();
+    await p.keyboard.press('Escape');
+    // Een oude link naar Hoe ver je huis is komt hier uit, met hetzelfde onderwerp.
+    await p.goto(`${baseUrl}/voortgang.html#optijd`);
+    await p.waitForURL(/huis-kan\.html#optijd$/);
+    await blad.locator('h2', { hasText: 'Op tijd warm of koel' }).waitFor();
+    // Op de telefoon: de waaier zonder namen, de weg, wat erbij kan, de functies, en het blad van onderen.
+    await p.goto(`${baseUrl}/huis-kan.html`);
     await p.setViewportSize({ width: 390, height: 844 });
     await p.locator('#tel [data-waaier] .straal').first().waitFor();
     expect(await p.locator('#tel [data-waaier] .straal text').count()).toBe(0);
-    await shot('voortgang-tel', true);
-    await p.locator('#tel [data-lijst] .rij').first().click();
-    await p.locator('#tel [data-blad] .trede').first().waitFor();
-    await shot('voortgang-tel-blad');
+    expect(await p.locator('#tel [data-groepen] .func').count()).toBe(stralen);
+    expect(await p.evaluate('document.documentElement.scrollWidth <= innerWidth')).toBe(true);
+    await shot('stand-tel', true);
+    await p.locator('#tel [data-groepen] .func').first().click();
+    await p.locator('#tel [data-blad] h4', { hasText: 'Zo werkt het' }).waitFor();
+    await shot('stand-tel-blad');
     await p.locator('#tel [data-blad] [data-sluit]').click();
     await expect.poll(() => p.locator('#tel [data-blad]').isHidden()).toBe(true);
-    // Op Wat je huis kan staat de knop ernaartoe, met de kleine waaier.
-    await p.setViewportSize({ width: 1340, height: 800 });
-    await p.goto(`${baseUrl}/huis-kan.html`);
-    const knop = p.locator('#wand [data-voortgangknop] a.voortgangknop');
-    await knop.locator('.straal').first().waitFor();
-    expect(await knop.getAttribute('href')).toBe('voortgang.html');
-    expect(await knop.textContent()).toContain('Hoe ver je huis is');
-    await shot('voortgang-huiskan');
     expect(fouten).toEqual([]);
     await context.close();
   }, 30_000);
@@ -5997,10 +6005,10 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const fouten: string[] = [];
     p.on('pageerror', (e) => fouten.push(e.message));
     await p.goto(`${baseUrl}/huis-kan.html`);
-    const regel = p.locator('#wand .vak.leren .regel', { hasText: 'Hoe je huis warmte vasthoudt' });
+    const regel = p.locator('#wand [data-groepen] .func', { hasText: 'Hoe je huis warmte vasthoudt' });
     await regel.waitFor();
     expect(await regel.textContent()).toContain('kent het afkoelen, wacht op het stoken');
-    expect(await p.locator('#wand .vak.leren .regel', { hasText: 'Op tijd warm of koel' }).textContent()).toContain('begint zodra het huis het stoken kent');
+    expect(await p.locator('#wand [data-groepen] .func', { hasText: 'Op tijd warm of koel' }).textContent()).toContain('begint zodra het huis het stoken kent');
     await regel.click();
     const blad = p.locator('.thermisch').first();
     await blad.locator('.lijn').first().waitFor();
