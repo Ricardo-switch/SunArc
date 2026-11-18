@@ -25,7 +25,9 @@ async function laadAlles() {
 /*
  * Instellingen in vier tegels (schets Wand-Instellingen-Vier #tegels, goedgekeurd
  * 17 november 2026). Bovenaan de stand als één regel: de zonnewaaier van Hoe ver
- * je huis is, wat er nog mist (het eerste, met een knop), en Wat je huis kan.
+ * je huis is en wat er nog mist (het eerste, met een knop). De hele regel
+ * opent Wat je huis kan (18 november 2026: eerst stond er ook een tweede knop
+ * naar dezelfde pagina).
  */
 function standregel() {
   const mis = isGast() ? [] : stand.nogTeDoen(d);
@@ -36,7 +38,7 @@ function standregel() {
   const zin = mis.length ? mis[0].wat : k ? t('inst4.kanZin', { werkt: tel('werkt'), bij: tel('nodig') + tel('uit') }) : '';
   const waaierDeel = v?.onderwerpen.length ? `<svg viewBox="0 0 190 110" aria-hidden="true" data-mini></svg>` : '';
   const doe = mis.length ? `<a class="doe" href="${mis[0].href}">${esc(mis[0].knop)}</a>` : '';
-  return `<a class="hoever" href="huis-kan.html">${waaierDeel}<span class="tekst"><b>${mis.length ? '' : '<i class="punt" aria-hidden="true"></i>'}${esc(titel)}</b><span class="zin">${esc(zin)}</span></span></a>${doe}<a class="naarkan" href="huis-kan.html">${esc(t('instellingen.kan'))} ›</a>`;
+  return `<a class="hoever" href="huis-kan.html">${waaierDeel}<span class="tekst"><b>${mis.length ? '' : '<i class="punt" aria-hidden="true"></i>'}${esc(titel)}</b><span class="zin">${esc(zin)}</span></span><span class="pijl" aria-hidden="true">›</span></a>${doe}`;
 }
 
 /* --------------------------------------------------------- de tegels */

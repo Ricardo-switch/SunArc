@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.199.0
+## 0.199.1
 
-*18 november 2026 · 0.179.0 – 0.199.0*
+*18 november 2026 · 0.179.0 – 0.199.1*
 
 **Nieuw**
 
@@ -60,6 +60,7 @@
 
 **Beter**
 
+- Bij Instellingen is de regel met de zonnewaaier één knop naar Wat je huis kan; de tweede knop ernaast deed hetzelfde
 - Hoe ver je huis is en de knop Klaarzetten in Home Assistant staan nu op Wat je huis kan; een oude link komt daar uit
 - Functies, de assistent, bewoners en Inrichten staan samen onder App en bewoners
 - Elk klimaatapparaat staat er zelf met zijn taak, ook als een radiator het volgt. De radiator zegt Volgt Nest (beneden) in plaats van Slim
@@ -171,6 +172,7 @@
 
 **Improved**
 
+- In Settings, the line with the sun fan is one button to What your house can do; the second button next to it did the same
 - How far your house is and the button Set up in Home Assistant are now on What your house can do; an old link ends up there
 - Features, the assistant, residents and Set up are together under App and residents
 - Every climate device shows itself with its task, also when a radiator follows it. The radiator says Follows Nest (beneden) instead of Smart

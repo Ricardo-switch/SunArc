@@ -1928,7 +1928,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         ['opbrengst.html', /Day[\s\S]*Week[\s\S]*Month[\s\S]*Year/],
         ['assistent.html', /How can I help you|What can I do for you|Go ahead, I am listening/],
         // Deel 3: Instellingen en de pagina's erachter.
-        ['instellingen.html', /Settings[\s\S]*What your house can do/],
+        ['instellingen.html', /Settings[\s\S]*(Everything is set|still missing)/],
         ['jij.html', /How the app looks[\s\S]*Theme and colour/],
         ['comfort.html', /Climate[\s\S]*What is this for\?/],
         ['energie.html', /Energy setup[\s\S]*Roofs and panels[\s\S]*Connection[\s\S]*Meters/],
@@ -5396,7 +5396,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await p.locator('#wand [data-zoek]').fill(eenKamer.toLowerCase());
     await p.locator('#wand [data-gevonden] a', { hasText: eenKamer }).first().waitFor();
     await p.locator('#wand [data-zoek]').press('Escape');
-    await p.locator('#wand .kan a.naarkan').click();
+    await p.locator('#wand .kan a.hoever').click();
     await p.locator('#wand h1', { hasText: 'Wat je huis kan' }).waitFor();
     await p.locator('#wand [data-groepen] .groep').first().waitFor();
     // Zes groepen (besluit 187), in twee kolommen zoals de waaier (besluit 322).
@@ -5519,10 +5519,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const fouten: string[] = [];
     p.on('pageerror', (e) => fouten.push(e.message));
     const shot = (naam: string, vol = false) => (process.env.HEMS_PAGE_SHOT ? p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', `-${naam}.png`), fullPage: vol }) : null);
-    // Bij Instellingen staat de stand als één regel (besluit 321); de waaier en Wat je huis kan gaan allebei naar de standpagina.
+    // Bij Instellingen staat de stand als één regel (besluit 321); de hele regel is één knop naar de standpagina.
     await p.goto(`${baseUrl}/instellingen.html`);
     await p.locator('#wand .kan a.hoever .straal').first().waitFor();
-    expect(await p.locator('#wand .kan a.naarkan').getAttribute('href')).toBe('huis-kan.html');
+    expect(await p.locator('#wand .kan a.hoever').getAttribute('href')).toBe('huis-kan.html');
+    expect(await p.locator('#wand .kan a[href="huis-kan.html"]').count()).toBe(1);
     expect(await p.locator('#tel .kan a.hoever').textContent()).toMatch(/\d+%/);
     await shot('stand-instellingen');
     await p.locator('#wand .kan a.hoever').click();

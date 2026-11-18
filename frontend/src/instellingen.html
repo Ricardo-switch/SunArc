@@ -39,7 +39,8 @@
   .kan .tekst b { display: flex; align-items: center; gap: 8px; font-size: 16px; }
   .kan .tekst .punt { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); }
   .kan .tekst .zin { font-size: 13.5px; color: var(--zacht); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .kan .naarkan { flex: none; font-size: 13.5px; font-weight: 600; color: var(--gedempt); text-decoration: none; white-space: nowrap; }
+  .kan .tekst { flex: 1; }
+  .kan .pijl { flex: none; font-size: 22px; color: var(--gedempt); }
   .kan .gast { padding: 6px 8px; }
   .doe { display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 12px; background: var(--accent); color: var(--op-accent); font-weight: 700; font-size: 13.5px; white-space: nowrap; text-decoration: none; flex: none; }
   .stand { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
@@ -80,7 +81,7 @@
   #tel .kan .hoever svg { width: 96px; height: 56px; }
   #tel .kan .tekst .zin { white-space: normal; }
   #tel .kan .hoever { flex-basis: 100%; }
-  #tel .kan .naarkan { margin-left: auto; }
+  #tel .kan .doe { margin-left: auto; }
   /* Jij (besluit 181): je profiel, bovenaan; eerst stond hier alleen Weergave (besluit 164). */
   .jijregel { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: inherit; text-decoration: none; }
   .jijregel > span:not(.jijrondje):not(.pijl) { flex: 1; }
