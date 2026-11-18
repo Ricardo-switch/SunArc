@@ -125,7 +125,7 @@
         ? `<h4>${esc(d.kop)}</h4>`
         : d.erbij
           ? `<a class="deel erbij${d.id === nu ? ' nu' : ''}" href="#${encodeURIComponent(d.id)}" ${d.id === nu ? 'aria-current="page"' : ''}>${esc(d.titel)}</a>`
-          : `<a class="deel${d.id === nu ? ' nu' : ''}${d.stand === 'mist' ? ' mist' : ''}" href="${d.href ? esc(d.href) : `#${encodeURIComponent(d.id)}`}" ${d.id === nu ? 'aria-current="page"' : ''}>${icoonVan(d)}<b>${esc(d.titel)}</b><span class="zin">${esc(d.zin ?? '')}</span><span class="eind">${d.nog ? `<span class="nog">${esc(d.nog)}</span>` : ''}${stip(d)}<span class="pijl" aria-hidden="true">›</span></span></a>`))
+          : `<a class="deel${d.sub ? ' sub' : ''}${d.id === nu ? ' nu' : ''}${d.stand === 'mist' ? ' mist' : ''}" href="${d.href ? esc(d.href) : `#${encodeURIComponent(d.id)}`}" ${d.id === nu ? 'aria-current="page"' : ''}>${icoonVan(d)}<b>${esc(d.titel)}</b><span class="zin">${esc(d.zin ?? '')}</span><span class="eind">${d.nog ? `<span class="nog">${esc(d.nog)}</span>` : ''}${stip(d)}<span class="pijl" aria-hidden="true">›</span></span></a>`))
       .join('');
     $$('[data-delen]').forEach((el) => (el.innerHTML = html));
 

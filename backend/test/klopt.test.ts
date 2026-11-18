@@ -11,7 +11,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { SiteConfig } from '../src/core/model.js';
 import type { ConnectionAnswers } from '../src/web/aansluiting.js';
-import { KloptRegister, WEER_NA_MS, kloptMelding, kloptVast, type KloptFeit } from '../src/web/klopt.js';
+import { KloptRegister, WEER_NA_MS, kloptMelding, kloptVast, verwarmtMeeMet, type KloptFeit } from '../src/web/klopt.js';
+import type { LayoutRoom } from '../src/web/layout.js';
 import { MeldingenStore, type MeldingenBron } from '../src/web/meldingen.js';
 
 const UUR = 3_600_000;
@@ -213,5 +214,33 @@ describe('wat niet klopt in de bel (besluit 314)', () => {
     expect(s.lijst(T0).actief.map((m) => [m.soort, m.sindsMs])).toEqual([['mislukt', T0 - UUR]]);
     s.bij(leeg({ nu: T0 + UUR, klopt: [] }));
     expect(s.lijst(T0 + UUR)).toEqual({ actief: [], eerder: [] });
+  });
+});
+
+describe('een zone die meeverwarmt met de radiator van zijn kamer (zones als deel van de kamer, 18 november 2026)', () => {
+  // Zoals bij Ricardo: de zithoek een eigen regeling met alleen de airco op zon; de radiator van de woonkamer volgt de Nest.
+  const cfg = ({
+    actuators: [{ id: 'nest', name: 'Nest (beneden)', role: 'primary', ref: { id: 'climate.beneden' } }, { id: 'ac-woonkamer', name: 'Airco woonkamer', role: 'assist', ref: { id: 'climate.air_conditioning_woonkamer' } }],
+    zones: [{ id: 'woonkamer', name: 'Woonkamer', actuatorIds: ['nest'] }, { id: 'beneden-zithoek', name: 'Woonkamer · Zithoek', actuatorIds: ['ac-woonkamer'] }],
+  }) as unknown as SiteConfig;
+  const woonkamer = (zone?: string): LayoutRoom =>
+    ({
+      id: 'beneden',
+      naam: 'Woonkamer',
+      etage: 'bg',
+      regelzone: 'woonkamer',
+      haGebied: null,
+      rollen: { nest: 'houdt' },
+      zones: [{ id: 'zithoek', naam: 'Zithoek', rollen: { 'ac-woonkamer': 'zon' }, regelzone: 'beneden-zithoek' }, { id: 'keuken', naam: 'Keuken', rollen: {}, regelzone: null }],
+      bronnen: [{ id: 'radiator', soorten: ['radiator'], aan: 'thermostaat', apparaat: 'nest', ...(zone ? { zone } : {}) }],
+    }) as unknown as LayoutRoom;
+
+  it('noemt de Nest als de radiator in de hele kamer of in de zone hangt', () => {
+    expect(verwarmtMeeMet('beneden-zithoek', cfg, [woonkamer()])).toBe('Nest (beneden)');
+    expect(verwarmtMeeMet('beneden-zithoek', cfg, [woonkamer('zithoek')])).toBe('Nest (beneden)');
+  });
+
+  it('niet als de radiator in een andere zone hangt', () => {
+    expect(verwarmtMeeMet('beneden-zithoek', cfg, [woonkamer('keuken')])).toBeNull();
   });
 });

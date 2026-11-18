@@ -113,6 +113,10 @@
   .wiekies option { background: #14203a; }
   /* Klimaat per kamer (besluit 317, schets Wand-Klimaat-Kamer): links hoe warm, rechts wat ervoor zorgt. */
   .kolommen { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  /* Een kamer met zones (schets Wand-Klimaat-Subzone): Wat ervoor zorgt krijgt de ruimte, zodat elk apparaat op één regel past. */
+  .kolommen.metzones { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+  /* Alleen verwarmen of alleen koelen: de regel over de hele breedte, anders twee naast elkaar. */
+  .kolommen.metzones .kolom .regels { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
   .kolom { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .kolom.zorgt { gap: 12px; padding-left: 22px; border-left: 1px solid rgb(var(--wit) / 0.07); }
   .kolomkop { margin: 0 0 2px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); }

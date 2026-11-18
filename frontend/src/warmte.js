@@ -21,7 +21,7 @@
   /**
    * @param {{ info: any, huis: any, verwarming: any, kamer: string | null,
    *   bewaar: (next: any, zin: string) => Promise<boolean>, teken: () => void,
-   *   bijToestel?: (sleutel: string) => string, kort?: boolean }} ctx
+   *   bijToestel?: (sleutel: string) => string, kort?: boolean, zone?: string | null }} ctx
    */
   function maak(ctx) {
     /** De indeling om te bewerken: de eigen, of anders het voorstel uit Home Assistant. */
@@ -135,6 +135,48 @@
       const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon' || rol === 'zon' || !a || huismodel.kanOpZon(a, ctx.huis, ctx.verwarming));
       return `<select class="veld rolkeuze kort" data-rol="${esc(sleutel)}" aria-label="${esc(`${t('indeling.deRegeling')}: ${naam}`)}">${keuzes.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
     }
+    /** De temperatuur in een zone: van de eigen regeling, of het gemiddelde van wat er in die zone meet. */
+    function zoneTemp(kamerId, zoneId) {
+      const r = ruimteVan(kamerId);
+      const reg = (r?.zones ?? []).find((x) => x.id === zoneId)?.regeling?.temperatuurC;
+      if (reg != null) return reg;
+      const c = (r?.apparaten ?? []).filter((a) => a.zone === zoneId && a.meting?.temperatuurC != null).map((a) => a.meting.temperatuurC);
+      return c.length ? c.reduce((s, x) => s + x, 0) / c.length : null;
+    }
+    /**
+     * Wat ervoor zorgt, per zone (zones als deel van de kamer, schets Wand-Klimaat-Subzone, 18 november 2026):
+     * een kop met de naam en wat daar gemeten wordt, en rechts met de kamer mee of een eigen temperatuur.
+     * Een eigen temperatuur kan alleen met een klimaatapparaat in die zone, zoals een radiatorknop.
+     */
+    function perZone(k, kaarten) {
+      const zones = k.zones ?? [];
+      if (!zones.length) return kaarten.map((x) => x.html).join('');
+      const r = ruimteVan(k.id);
+      const groepen = zones.map((z) => {
+        const lijst = kaarten.filter((x) => x.zone === z.id);
+        const toestellen = (r?.apparaten ?? []).filter((a) => a.soort === 'klimaat' && a.zone === z.id);
+        const eigen = !!z.rollen && Object.values(z.rollen).some((x) => x !== 'kijken');
+        const temp = zoneTemp(k.id, z.id);
+        const rechts = eigen
+          ? `${z.regelzone ? `<a class="zone-eigen" href="#${esc(encodeURIComponent(z.regelzone))}">${esc(t('indeling.zone.eigenTemp'))} ›</a>` : ''}<button type="button" class="schakel" role="switch" aria-checked="true" aria-label="${esc(t('indeling.zone.eigenTemp'))}" data-zone-regeling="${esc(z.id)}" data-waarde="kamer"></button>`
+          : toestellen.length
+            ? `<span>${esc(t('indeling.zone.eigenTemp'))}</span><button type="button" class="schakel" role="switch" aria-checked="false" aria-label="${esc(t('indeling.zone.eigenTemp'))}" data-zone-regeling="${esc(z.id)}" data-waarde="eigen"></button>`
+            : `<span>${esc(t('indeling.zone.metKamer'))}</span>`;
+        const kop = `<div class="zonekop${ctx.zone === z.id ? ' aan' : ''}" data-zonekop="${esc(z.id)}"><b>${esc(z.naam)}</b>${temp != null ? `<em>${esc(nl(temp, 1))}°</em>` : ''}<span class="r">${rechts}</span></div>`;
+        return `<div class="zonegroep${ctx.zone === z.id ? ' aan' : ''}">${kop}${lijst.map((x) => x.html).join('') || `<p class="mini" style="margin: 0 4px">${esc(t('indeling.zone.leeg'))}</p>`}</div>`;
+      });
+      const los = kaarten.filter((x) => !x.zone || !zones.some((z) => z.id === x.zone));
+      const heel = los.length ? `<div class="zonegroep"><div class="zonekop"><b>${esc(t('indeling.zone.heleKamer'))}</b></div>${los.map((x) => x.html).join('')}</div>` : '';
+      return groepen.join('') + heel;
+    }
+
+    /** De taak in een zone met een eigen regeling, op de regel van het apparaat (schrijft `zones[].rollen`). */
+    function zoneRolKort(k, z, a) {
+      const sleutel = a.actuatorId ?? a.id;
+      const rol = z.rollen?.[sleutel] ?? 'kijken';
+      const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon' || rol === 'zon' || huismodel.kanOpZon(a, ctx.huis, ctx.verwarming));
+      return `<select class="veld rolkeuze kort" data-zone-rol="${esc(`${k.id}|${z.id}|${sleutel}`)}" aria-label="${esc(`${t('indeling.deRegeling')}: ${a.naam}`)}">${keuzes.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+    }
     /** Een apparaat dat een zone regelt (besluit 306): de taak kies je in de zone; een knop erheen (18-11). */
     function naarZone(z) {
       return z.regelzone ? `<a class="knop klein naarzone" href="#${esc(encodeURIComponent(z.regelzone))}">${esc(t('indeling.zone.naarZone', { naam: z.naam }))} ›</a>` : `<span class="mini">${esc(t('indeling.zone.regelt', { naam: z.naam }))}</span>`;
@@ -176,48 +218,56 @@
       const meetRij = `${metenKeuze(k)}${regelingKeuze(d, k)}${zonesBlok(k)}`;
 
       const bronnen = k.bronnen ?? [];
-      const vast = new Set(bronnen.map((b) => b.apparaat).filter(Boolean));
-      const gevonden = (r?.apparaten ?? []).filter((a) => a.soort === 'klimaat' && !vast.has(a.actuatorId ?? a.id));
-      const slim = `<span class="stand slim">${esc(t('indeling.slim'))}</span>`;
+      // Elk klimaatapparaat staat er zelf, met zijn taak, ook als een radiator het volgt (zones als deel van de kamer,
+      // 18 november 2026): eerst verdween de Nest, en stond zijn taak onder de radiator.
+      const gevonden = (r?.apparaten ?? []).filter((a) => a.soort === 'klimaat');
+      // Slim is weg (woordenlijst, besluit 316): een radiator op de cv volgt zijn thermostaat.
+      const slim = '';
+      const volgt = (sleutel) => `<span class="volgt">${esc(t('indeling.volgt', { naam: toestelNaam(sleutel) }))}</span>`;
       const via = (naam) => `${esc(t('indeling.via'))} <b>${esc(naam)}</b>`;
+      /** @type {{ zone: string | null, html: string }[]} */
       const kaarten = [];
+      const zoneVan = (a) => a.zone ?? null;
       for (const a of gevonden) {
         const sleutel = a.actuatorId ?? a.id;
         if (ctx.kort) {
           // Eén regel per apparaat (besluit 317, Klimaat op de wand): de naam, wat het is, en de taak ernaast.
           const zoneEigen = (k.zones ?? []).find((z) => z.rollen?.[sleutel] != null && z.rollen[sleutel] !== 'kijken');
-          const taak = zoneEigen ? naarZone(zoneEigen) : rolKort(k, sleutel, a.naam);
+          // In de zone waar hij hangt meteen de taak van de zone; hangt hij elders, een knop erheen.
+          const taak = zoneEigen ? (zoneEigen.id === a.zone ? zoneRolKort(k, zoneEigen, a) : naarZone(zoneEigen)) : rolKort(k, sleutel, a.naam);
           const ketel = cvThermo()?.sleutel === sleutel;
           const soort = a.klimaat?.kanKoelen ? t('indeling.airco') : a.radiatorknop ? t('indeling.knopRadiator') : ketel ? t('indeling.cvThermostaat') : huismodel.metHoofdletter(t('kan.thermostaat'));
           const meer = [a.klimaat?.filter?.pct != null ? t('indeling.filterPct', { pct: a.klimaat.filter.pct }) : null, a.radiatorknop?.klepPct != null ? t('indeling.klepPct', { pct: a.radiatorknop.klepPct }) : null].filter(Boolean).join(' · ');
-          const vraag = !a.klimaat?.kanKoelen && !a.radiatorknop ? `<button type="button" class="vraagknop" data-bron-nieuw="${esc(sleutel)}">${esc(t('indeling.watHangt'))}</button>` : '';
+          // Wat hangt eraan? alleen zolang er nog niets aan hangt.
+          const vraag = !a.klimaat?.kanKoelen && !a.radiatorknop && !bronnen.some((b) => b.apparaat === sleutel) ? `<button type="button" class="vraagknop" data-bron-nieuw="${esc(sleutel)}">${esc(t('indeling.watHangt'))}</button>` : '';
           const icoon = a.klimaat?.kanKoelen ? ICOON_KOEL : a.radiatorknop ? ICOON_RADIATOR : ICOON_THERMO;
-          kaarten.push(bronKaart(a.naam, [soort, meer].filter(Boolean).join(' · '), icoon, !!a.klimaat?.kanKoelen, taak, `${ctx.bijToestel?.(sleutel) ?? ''}${vraag}`, ' data-kort'));
+          kaarten.push({ zone: zoneVan(a), html: bronKaart(a.naam, [soort, meer].filter(Boolean).join(' · '), icoon, !!a.klimaat?.kanKoelen, taak, `${ctx.bijToestel?.(sleutel) ?? ''}${vraag}`, ' data-kort') });
           continue;
         }
         const viaRegel = `<div class="regelt">${via(a.naam)}${a.klimaat?.filter?.pct != null ? `<span class="mini">${esc(t('indeling.filterPct', { pct: a.klimaat.filter.pct }))}</span>` : ''}${a.radiatorknop?.klepPct != null ? `<span class="mini">${esc(t('indeling.klepPct', { pct: a.radiatorknop.klepPct }))}</span>` : ''}</div>`;
         const zoneEigen = (k.zones ?? []).find((z) => z.rollen?.[sleutel] != null && z.rollen[sleutel] !== 'kijken');
         const rol = zoneEigen ? naarZone(zoneEigen) : rolRegel(k, sleutel);
-        if (a.klimaat?.kanKoelen) kaarten.push(bronKaart(t('indeling.airco'), huismodel.opsomming([t('indeling.koelt'), a.klimaat.kanVerwarmen ? t('indeling.verwarmt') : null, a.klimaat.kanDrogen ? t('indeling.droogt') : null].filter(Boolean)), ICOON_KOEL, true, slim, viaRegel + rol + (ctx.bijToestel?.(sleutel) ?? '')));
-        else if (a.radiatorknop) kaarten.push(bronKaart(t('indeling.knopRadiator'), t('indeling.opCv'), ICOON_RADIATOR, false, slim, viaRegel + rol));
+        const z = zoneVan(a);
+        if (a.klimaat?.kanKoelen) kaarten.push({ zone: z, html: bronKaart(t('indeling.airco'), huismodel.opsomming([t('indeling.koelt'), a.klimaat.kanVerwarmen ? t('indeling.verwarmt') : null, a.klimaat.kanDrogen ? t('indeling.droogt') : null].filter(Boolean)), ICOON_KOEL, true, slim, viaRegel + rol + (ctx.bijToestel?.(sleutel) ?? '')) });
+        else if (a.radiatorknop) kaarten.push({ zone: z, html: bronKaart(t('indeling.knopRadiator'), t('indeling.opCv'), ICOON_RADIATOR, false, slim, viaRegel + rol) });
         // De thermostaat van de ketel (besluit 167): wat eraan hangt, gaat mee. Wat dat is, kies je
         // zoals bij elke thermostaat (issue 140): anders bleef het een radiator, ook bij vloerverwarming.
-        else if (cvThermo()?.sleutel === sleutel) kaarten.push(bronKaart(t('indeling.cvThermostaat'), t('indeling.cvThermostaatZin'), ICOON_THERMO, false, slim, `${viaRegel}${rol}<button type="button" class="vraagknop" data-bron-nieuw="${esc(sleutel)}">${esc(t('indeling.watHangt'))}</button>`));
-        else kaarten.push(bronKaart(t('kan.thermostaat').replace(/^./, (c) => c.toUpperCase()), t('indeling.gevondenHA'), ICOON_THERMO, false, slim, `${viaRegel}${rol}<button type="button" class="vraagknop" data-bron-nieuw="${esc(sleutel)}">${esc(t('indeling.watHangt'))}</button>`));
+        else if (cvThermo()?.sleutel === sleutel) kaarten.push({ zone: z, html: bronKaart(t('indeling.cvThermostaat'), t('indeling.cvThermostaatZin'), ICOON_THERMO, false, slim, `${viaRegel}${rol}<button type="button" class="vraagknop" data-bron-nieuw="${esc(sleutel)}">${esc(t('indeling.watHangt'))}</button>`) });
+        else kaarten.push({ zone: z, html: bronKaart(t('kan.thermostaat').replace(/^./, (c) => c.toUpperCase()), t('indeling.gevondenHA'), ICOON_THERMO, false, slim, `${viaRegel}${rol}<button type="button" class="vraagknop" data-bron-nieuw="${esc(sleutel)}">${esc(t('indeling.watHangt'))}</button>`) });
       }
       for (const b of bronnen) {
         const elektrisch = b.soorten.some((x) => huismodel.ELEKTRISCH.has(x));
         const wat = b.aan === 'hand' ? t('indeling.metHand') : [elektrisch ? t('indeling.elektrisch') : b.soorten.includes('airco') ? null : t('indeling.opCv'), b.soorten.length > 1 ? t('indeling.samenAan') : null].filter(Boolean).join(', ') || AAN_KEUZE.find(([v]) => v === b.aan)?.[1].toLowerCase();
-        const rechts = b.aan === 'hand' ? `<span class="stand hand">${esc(t('indeling.aan.hand'))}</span>` : b.vermogenW ? `<span class="w">${b.vermogenW} W</span>` : slim;
+        // Wat aan een thermostaat of knop hangt, volgt die: dat zegt de regel, de taak staat bij het apparaat zelf.
+        const rechts = b.aan === 'hand' ? `<span class="stand hand">${esc(t('indeling.aan.hand'))}</span>` : b.apparaat ? volgt(b.apparaat) : b.vermogenW ? `<span class="w">${b.vermogenW} W</span>` : slim;
         const ikoon = b.soorten.includes('airco') ? ICOON_KOEL : b.soorten.includes('radiator') ? ICOON_RADIATOR : ICOON_WARM;
         let regels = '';
-        if (b.apparaat) regels += `<div class="regelt">${via(toestelNaam(b.apparaat))}${b.aan !== 'hand' && b.vermogenW ? slim : ''}</div>`;
-        if (b.apparaat && klimaatToestellen().some((x) => x.sleutel === b.apparaat && x.kamer.id === k.id)) regels += rolRegel(k, b.apparaat) + (ctx.bijToestel?.(b.apparaat) ?? '');
+        if (b.apparaat && b.vermogenW && !ctx.kort) regels += `<div class="regelt"><span class="w">${b.vermogenW} W</span></div>`;
         // Op zon (besluit 132): alleen elektrisch, met vermogen, en een apparaat van de regeling in deze kamer.
         const vanRegeling = !!b.apparaat && !!r?.zoneId && (r?.apparaten ?? []).some((a) => a.soort === 'klimaat' && a.actuatorId === b.apparaat);
         if (huismodel.isElektrischSlim(b) && b.vermogenW && vanRegeling) regels += `<div class="opzon">${esc(t('indeling.magZon'))}<button type="button" class="schakel" role="switch" aria-checked="${!!b.opZon}" aria-label="${esc(t('indeling.magZon'))}" data-bron-zon="${esc(b.id)}"></button></div>`;
         if (b.aan === 'hand' && elektrisch) regels += `<div class="idee"><b>${esc(t('indeling.maakSlim'))}</b>${esc(t('indeling.maakSlimZin'))}</div>`;
-        kaarten.push(bronKaart(huismodel.bronNaam(b), wat, ikoon, b.soorten.includes('airco'), rechts, regels, ` data-bron-open="${esc(b.id)}" role="button" tabindex="0"`));
+        kaarten.push({ zone: b.zone ?? null, html: bronKaart(huismodel.bronNaam(b), wat, ikoon, b.soorten.includes('airco'), rechts, regels, ` data-bron-open="${esc(b.id)}" role="button" tabindex="0"${ctx.kort ? ' data-kort' : ''}`) });
       }
       const leeg = !kaarten.length ? `<p class="klein" style="margin: 0">${esc(t('indeling.nogNietsWarm'))}</p>` : '';
       const doetMee = Object.values(rollenNu(k)).some((x) => x !== 'kijken');
@@ -232,8 +282,9 @@
           ${meetRij}
           <p class="mini" style="margin: 0">${esc(t('indeling.zekeringMee'))}</p>`;
       }
-      // Eerst de apparaten (schets Wand-Klimaat-Kamer), dan een regel naar waarmee de kamer meet en wie hem regelt.
-      return `${kop}${kaarten.join('')}${leeg}${nietMee}
+      // Eerst de apparaten (schets Wand-Klimaat-Kamer), per zone als de kamer zones heeft (schets Wand-Klimaat-Subzone),
+      // dan een regel naar waarmee de kamer meet en wie hem regelt.
+      return `${kop}${perZone(k, kaarten)}${leeg}${nietMee}
         <button type="button" class="plus" data-bron-nieuw="">${esc(t('indeling.plusIets'))}</button>
         ${metenRegel(d, k)}`;
     }
@@ -321,6 +372,7 @@
         ${welke}
         ${vermogen}
         ${rol}
+        ${(k.zones ?? []).length ? `<div class="vraag"><span class="label">${esc(t('indeling.bronWaar'))}</span><div class="chips">${[...k.zones.map((z) => [z.id, z.naam]), ['', t('indeling.zone.heleKamer')]].map(([w, x]) => chip('bron-zone', w, x, (v.zone ?? '') === w)).join('')}</div></div>` : ''}
         <div class="knoppenrij" style="margin-top: auto">${v.id ? `<button type="button" class="knop gevaar" data-bron-weg>${esc(t('bewoners.weghalen'))}</button>` : ''}<button type="button" class="knop" data-bron-annuleer>${esc(t('indeling.annuleren'))}</button><button type="button" class="knop knop-licht" data-bron-bewaar ${v.soorten.size && v.aan ? '' : 'disabled'}>${esc(t(v.id ? 'indeling.bewaren' : 'indeling.toevoegen'))}</button></div>`;
     }
 
@@ -338,6 +390,8 @@
       } else if (v.aan !== 'hand' && v.apparaat) b.apparaat = v.apparaat;
       if (huismodel.isElektrischSlim(b) && w >= 50) b.vermogenW = Math.round(w);
       if (v.opZon && b.vermogenW) b.opZon = true;
+      // Waar hij hangt, als de kamer zones heeft (zones als deel van de kamer, 18 november 2026).
+      if (v.zone && (k.zones ?? []).some((z) => z.id === v.zone)) b.zone = v.zone;
       return b;
     }
 
@@ -348,18 +402,22 @@
       if (knop.dataset.bronNieuw !== undefined) {
         const a = knop.dataset.bronNieuw;
         // Aan de thermostaat van de ketel hangt vloerverwarming op water, niet elektrisch.
-        bronVorm = { id: null, soorten: new Set(), vloer: a && a === cvThermo()?.sleutel ? 'water' : 'elektrisch', aan: a ? 'thermostaat' : null, apparaat: a || null, vermogenW: null, rol: null };
+        bronVorm = { id: null, soorten: new Set(), vloer: a && a === cvThermo()?.sleutel ? 'water' : 'elektrisch', aan: a ? 'thermostaat' : null, apparaat: a || null, vermogenW: null, rol: null, zone: knop.dataset.bronZoneVan ?? ctx.zone ?? null };
         ctx.teken();
       } else if (knop.dataset.bronOpen) {
         const b = (k.bronnen ?? []).find((x) => x.id === knop.dataset.bronOpen);
         if (!b) return true;
-        bronVorm = { id: b.id, soorten: new Set(b.soorten.map((x) => (x === 'vloer-elektrisch' ? 'vloer' : x))), vloer: b.soorten.includes('vloer-elektrisch') ? 'elektrisch' : 'water', aan: b.aan, apparaat: b.apparaat ?? null, vermogenW: b.vermogenW ?? null, opZon: !!b.opZon };
+        bronVorm = { id: b.id, soorten: new Set(b.soorten.map((x) => (x === 'vloer-elektrisch' ? 'vloer' : x))), vloer: b.soorten.includes('vloer-elektrisch') ? 'elektrisch' : 'water', aan: b.aan, apparaat: b.apparaat ?? null, vermogenW: b.vermogenW ?? null, opZon: !!b.opZon, zone: b.zone ?? null };
         ctx.teken();
       } else if (knop.dataset.bronSoort) {
         const w = knop.dataset.bronSoort;
         if (bronVorm.soorten.has(w)) bronVorm.soorten.delete(w);
         else bronVorm.soorten.add(w);
         if (bronVorm.aan === 'knop' && !bronVorm.soorten.has('radiator')) bronVorm.aan = null;
+        ctx.teken();
+      } else if (knop.dataset.bronZone !== undefined) {
+        bronVorm.vermogenW = Number(veldW()) || bronVorm.vermogenW;
+        bronVorm.zone = knop.dataset.bronZone || null;
         ctx.teken();
       } else if (knop.dataset.bronVloer) {
         bronVorm.vloer = knop.dataset.bronVloer;

@@ -2360,6 +2360,73 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await context.close();
   }, 20_000);
 
+  it('Klimaat: zones staan onder hun kamer, en wat ervoor zorgt per zone (zones als deel van de kamer, 18-11)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const zone = exampleSite.zones[0]!;
+    type Kamer = { id: string; regelzone: string | null; zones: unknown[]; bronnen?: unknown[] };
+    type Ruimte = { id: string; zoneId: string | null; apparaten: { id: string; soort: string; zone?: string | null; klimaat?: { kanKoelen?: boolean }; meting?: { temperatuurC: number | null } }[] };
+    let kamerId = '';
+    let airco = '';
+    let thermo = '';
+    // Het huis zoals bij Ricardo: de airco in de zithoek, een radiator die de thermostaat volgt in de zithoek.
+    await context.route(`${baseUrl}/api/huis`, async (route) => {
+      const huis = (await (await route.fetch()).json()) as { etages: { ruimtes: Ruimte[] }[] };
+      const r = huis.etages.flatMap((e) => e.ruimtes).find((x) => x.zoneId === zone.id)!;
+      const ac = r.apparaten.find((a) => a.soort === 'klimaat' && a.klimaat?.kanKoelen);
+      if (ac) {
+        ac.zone = 'zithoek';
+        ac.meting = { ...(ac.meting ?? {}), temperatuurC: 19.5 };
+        airco = ac.id;
+      }
+      thermo = r.apparaten.find((a) => a.soort === 'klimaat' && !a.klimaat?.kanKoelen)?.id ?? '';
+      return route.fulfill({ json: huis });
+    });
+    await context.route(`${baseUrl}/api/indeling`, async (route) => {
+      if (route.request().method() !== 'GET') return route.abort();
+      const info = (await (await route.fetch()).json()) as { indeling?: { kamers: Kamer[] }; voorstel?: { kamers: Kamer[] } };
+      const d = info.indeling ?? info.voorstel!;
+      const k = d.kamers.find((x) => x.regelzone === zone.id)!;
+      kamerId = k.id;
+      k.zones = [{ id: 'zithoek', naam: 'Zithoek', rollen: {}, regelzone: null }, { id: 'keuken', naam: 'Keuken', rollen: {}, regelzone: null }];
+      k.bronnen = [{ id: 'radiator', soorten: ['radiator'], aan: 'thermostaat', apparaat: 'nest', zone: 'zithoek' }];
+      return route.fulfill({ json: info });
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    try {
+      await p.goto(`${baseUrl}/comfort.html#${zone.id}`);
+      const wand = p.locator('#wand');
+      await wand.locator('[data-delen] .deel.sub').first().waitFor({ timeout: 15_000 });
+      // In de lijst: de zones ingesprongen direct onder hun kamer, met wat daar gemeten wordt.
+      const namen = await wand.locator('[data-delen] .deel b').allTextContents();
+      const i = namen.indexOf(zone.name);
+      expect(namen.slice(i, i + 3)).toEqual([zone.name, 'Zithoek', 'Keuken']);
+      expect(await wand.locator('[data-delen] .deel.sub', { hasText: 'Zithoek' }).textContent()).toContain('19,5°');
+      // In het blad: per zone wat er hangt; de radiator volgt, de taak staat bij het apparaat zelf.
+      const zit = wand.locator('[data-zorgt] .zonegroep', { has: p.locator('.zonekop b', { hasText: 'Zithoek' }) });
+      await zit.waitFor({ timeout: 5_000 });
+      expect(await zit.locator('.volgt').textContent()).toMatch(/^Volgt /);
+      if (airco) expect(await zit.locator('.bron').count()).toBe(2);
+      expect(await wand.locator('[data-zorgt] .stand.slim').count()).toBe(0);
+      if (thermo) expect(await wand.locator('[data-zorgt] .zonegroep', { has: p.locator('.zonekop b', { hasText: 'Hele kamer' }) }).locator('[data-rol]').count()).toBeGreaterThan(0);
+      // Een tik op de zone in de lijst: hetzelfde blad, die zone gekozen.
+      await wand.locator('[data-delen] .deel.sub', { hasText: 'Keuken' }).click();
+      await expect.poll(() => wand.locator('[data-zorgt] .zonegroep.aan .zonekop b').textContent(), { timeout: 5_000 }).toBe('Keuken');
+      // Iets toevoegen vraagt waar het hangt, met de gekozen zone voorgekozen.
+      await wand.locator('[data-zorgt] [data-bron-nieuw=""]').click();
+      await expect.poll(() => wand.locator('[data-zorgt] [data-bron-zone][aria-pressed="true"]').textContent(), { timeout: 5_000 }).toBe('Keuken');
+      expect(await wand.locator('[data-zorgt] [data-bron-zone]').allTextContents()).toEqual(['Zithoek', 'Keuken', 'Hele kamer']);
+      expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1')).toBe(true);
+      expect(kamerId).not.toBe('');
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  }, 40_000);
+
   it('zet comfort per kamer met een greep, en bewaart meteen', async () => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);

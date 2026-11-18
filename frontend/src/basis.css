@@ -185,6 +185,13 @@ body.offline #wand main, body.offline #tel .inhoud { filter: grayscale(0.85); op
 .deel .pijl { display: none; color: var(--gedempt); font-size: 22px; line-height: 1; }
 .deel.mist .zin { color: var(--gloed-t); }
 .deel.mist .ik { background: rgba(255, 122, 77, 0.14); }
+/* Een zone onder zijn kamer (zones als deel van de kamer, 18 november 2026): ingesprongen, zonder icoon. */
+.deel.sub { min-height: 44px; margin-left: 30px; padding: 4px 12px 4px 14px; border-left: 2px solid rgb(var(--wit) / 0.12); border-radius: 0 12px 12px 0; grid-template-columns: minmax(0, 1fr) auto; }
+.deel.sub .ik { display: none; }
+.deel.sub b { grid-column: 1; font-size: 14px; }
+.deel.sub .zin { grid-column: 1; font-size: 12px; }
+.deel.sub .eind { grid-column: 2; }
+.deel.sub.nu { border-left-color: var(--tekst); }
 .deel.nu { background: rgb(var(--wit) / 0.1); }
 .deel.nu::before { content: ''; position: absolute; left: -2px; top: 18px; bottom: 18px; width: 4px; border-radius: 2px; background: var(--tekst); }
 .deel:focus-visible { outline: 2px solid var(--tekst); outline-offset: -2px; }

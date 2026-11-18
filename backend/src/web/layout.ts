@@ -504,6 +504,8 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
       const c = controleerBronnen(id, k['bronnen']);
       if (!c.ok) return { ok: false, reden: c.reden };
       bronnen = c.bronnen.map((b) => (b.apparaat && !known.deviceIds.has(b.apparaat) ? (({ apparaat: _a, opZon: _z, ...rest }) => rest)(b) : b));
+      // Een zone die de kamer niet (meer) heeft: dan hangt hij in de hele kamer.
+      bronnen = bronnen.map((b) => (b.zone && !zones.some((z) => z.id === b.zone) ? (({ zone: _z, ...rest }) => rest)(b) : b));
       if (bronnen.length === 0) bronnen = undefined;
     }
     // De zonelijn in de tekening (besluit 308): klopt hij niet meer, dan valt hij weg.

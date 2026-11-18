@@ -35,6 +35,8 @@ export interface Warmtebron {
   readonly vermogenW?: number;
   /** Mag op zon opwarmen (besluit 132); alleen elektrisch, met vermogen. */
   readonly opZon?: boolean;
+  /** In welke zone van de kamer hij hangt (zones als deel van de kamer, 18 november 2026); weg is de hele kamer. */
+  readonly zone?: string;
 }
 
 export const MAX_BRONNEN = 8;
@@ -72,6 +74,8 @@ export function controleerBronnen(kamer: string, waarde: unknown): { ok: true; b
       if (slim) vermogenW = vw;
     }
     const opZon = b['opZon'] === true && slim && vermogenW != null && aan !== 'hand';
+    const zo = b['zone'];
+    if (zo !== undefined && zo !== null && (typeof zo !== 'string' || !/^[a-z0-9_-]{1,40}$/.test(zo))) return { ok: false, reden: `kamer ${kamer}: de zone van bron ${id} klopt niet` };
     bronnen.push({
       id,
       soorten,
@@ -79,6 +83,7 @@ export function controleerBronnen(kamer: string, waarde: unknown): { ok: true; b
       ...(aan !== 'hand' && typeof ap === 'string' ? { apparaat: ap } : {}),
       ...(vermogenW != null ? { vermogenW } : {}),
       ...(opZon ? { opZon: true } : {}),
+      ...(typeof zo === 'string' ? { zone: zo } : {}),
     });
   }
   return { ok: true, bronnen };

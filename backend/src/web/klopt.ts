@@ -27,6 +27,7 @@ import type { SiteConfig } from '../core/model.js';
 import type { ConnectionAnswers } from './aansluiting.js';
 import { cap, withArticle, type Lang } from './assistant.js';
 import type { RegelingNiet } from './regeling.js';
+import { regelKamers, type LayoutRoom } from './layout.js';
 
 export type KloptFeit =
   | { readonly soort: 'zekering'; readonly fasen: number; readonly ampere: number; readonly meters: number }
@@ -247,4 +248,25 @@ export function kloptMelding(f: KloptFeit, lang: Lang, nu: number): KloptMelding
     case 'weer':
       return { id: 'bron:weer', soort: 'bron', aandacht: true, titel: w.weer.titel, tekst: w.weer.tekst(Math.floor((nu - f.sindsMs) / UUR)), actie: { label: w.weer.actie, href: 'functies.html#weer' }, klaar: paar(w.weer.klaar), sindsMs: f.sindsMs };
   }
+}
+
+/**
+ * De thermostaat die een kamer mee verwarmt (16 november 2026): een radiator of
+ * vloer die een thermostaat in een andere kamer volgt. Bij een zone met een
+ * eigen regeling (zones als deel van de kamer, 18 november 2026) ook de
+ * radiator van de kamer waar de zone bij hoort, in die zone of in de hele kamer.
+ * De naam van dat apparaat, of null.
+ */
+export function verwarmtMeeMet(zoneId: string, config: SiteConfig, kamers: readonly LayoutRoom[]): string | null {
+  const eigen = new Set(config.zones.find((z) => z.id === zoneId)?.actuatorIds ?? []);
+  const kamer = regelKamers(kamers).find((k) => k.regelzone === zoneId);
+  const ouder = kamers.find((k) => k.zones.some((z) => z.regelzone === zoneId));
+  const zone = ouder?.zones.find((z) => z.regelzone === zoneId);
+  const vanOuder = (ouder?.bronnen ?? []).filter((b) => !b.zone || b.zone === zone?.id);
+  for (const b of [...(kamer?.bronnen ?? []), ...vanOuder]) {
+    if (!b.apparaat) continue;
+    const a = config.actuators.find((x) => x.id === b.apparaat || x.ref.id === b.apparaat);
+    if (a && !eigen.has(a.id)) return a.name;
+  }
+  return null;
 }

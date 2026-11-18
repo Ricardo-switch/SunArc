@@ -95,6 +95,20 @@ function andereKamers() {
   return indelingKamers().filter((k) => binnen(k) && !hoofd.has(k.id));
 }
 const ANDER = 'k-';
+/** Een zone onder zijn kamer, met de kamer mee (zones als deel van de kamer, 18 november 2026): `z:kamer:zone`. */
+const ZONE = 'z:';
+/** De zones van een kamer van Klimaat, uit de indeling. */
+const zonesVan = (kamerId) => indelingVan(kamerId)?.zones ?? [];
+/** De kamer van Klimaat die een zone met een eigen regeling is: die staat onder zijn kamer, niet als kamer. */
+const isZoneKamer = (id) => indelingKamers().some((k) => (k.zones ?? []).some((z) => z.regelzone === id));
+/** Wat er in een zone gemeten wordt: van zijn regeling, of het gemiddelde van wat daar meet. */
+function zoneTempVan(kamerId, zoneId) {
+  const r = ruimteVan(kamerId);
+  const reg = (r?.zones ?? []).find((x) => x.id === zoneId)?.regeling?.temperatuurC;
+  if (reg != null) return reg;
+  const c = (r?.apparaten ?? []).filter((a) => a.zone === zoneId && a.meting?.temperatuurC != null).map((a) => a.meting.temperatuurC);
+  return c.length ? c.reduce((s, x) => s + x, 0) / c.length : null;
+}
 
 /**
  * Een oude link (`indeling.html#zolder/warmte`, een melding of een knop) wijst
@@ -166,7 +180,19 @@ function delen() {
   const soort = verwarming?.soort ? t(`energie.soort.${verwarming.soort}`) : null;
   return [
     { kop: t('comfort.kamers') },
-    ...comfort.kamers.map((k) => ({ id: k.id, titel: k.naam, zin: samenvatting(k), stand: leeg(k) ? 'leeg' : 'goed' })),
+    // Een zone staat ingesprongen onder zijn kamer, niet als kamer (schets Wand-Klimaat-Subzone).
+    ...comfort.kamers.filter((k) => !isZoneKamer(k.id)).flatMap((k) => {
+      const ind = indelingVan(k.id);
+      const subs = zonesVan(k.id).map((z) => {
+        const eigen = z.regelzone ? comfort.kamers.find((x) => x.id === z.regelzone) : null;
+        const temp = zoneTempVan(ind?.id ?? k.id, z.id);
+        const tempTekst = temp != null ? `${nl(Math.round(temp * 10) / 10, 1)}°` : '';
+        return eigen
+          ? { id: eigen.id, titel: z.naam, zin: t('klimaat.zoneEigen', { zin: samenvatting(eigen) }), stand: 'goed', sub: true }
+          : { id: `${ZONE}${k.id}:${z.id}`, titel: z.naam, zin: tempTekst ? t('klimaat.zoneZin', { temp: tempTekst }) : t('indeling.zone.metKamer'), stand: 'goed', sub: true };
+      });
+      return [{ id: k.id, titel: k.naam, zin: samenvatting(k), stand: leeg(k) ? 'leeg' : 'goed' }, ...subs];
+    }),
     ...anderDeel,
     { kop: t('comfort.heleHuis') },
     // Helpen bij de cv (besluit 292): alleen als er een airco is die kan helpen. Eerst bij Regeling.
@@ -289,7 +315,7 @@ function kamerVorm(k) {
   const zorgt = ind ? zorgVoor(ind.id) : vanHetHuis() ? zoneZorgt(k) : '';
   if (!zorgt) return `${kop}${banden}${zonEnNet(k)}`;
   return `${kop}
-    <div class="kolommen">
+    <div class="kolommen${zonesVan(k.id).length ? ' metzones' : ''}">
       <div class="kolom"><h4 class="kolomkop">${esc(t('klimaat.hoeWarm'))}</h4>${banden}${zonEnNet(k)}</div>
       <div class="kolom zorgt" data-zorgt><h4 class="kolomkop">${esc(t('klimaat.zorgt'))}</h4>${zorgt}</div>
     </div>`;
@@ -604,7 +630,10 @@ function tekenNu() {
   if (sleept) return;
   tekenWie();
   const nu = groep.tekenDelen(delen());
-  const k = comfort.kamers.find((x) => x.id === nu);
+  // Een zone met de kamer mee: het blad van zijn kamer, met die zone gekozen.
+  const zoneAdres = nu?.startsWith(ZONE) ? nu.slice(ZONE.length).split(':') : null;
+  zorg.zone = zoneAdres?.[1] ?? null;
+  const k = comfort.kamers.find((x) => x.id === (zoneAdres ? zoneAdres[0] : nu));
   const vorm = k ? kamerVorm(k) : nu?.startsWith(ANDER) ? anderVorm(nu.slice(ANDER.length)) : nu === 'helpen' ? helpenVorm() : nu === 'erbij' ? erbijVorm() : nu === 'dagdelen' ? dagdelenVorm() : nu === 'voorrang' ? voorrangVorm() : nu === 'standaard' ? standaardVorm() : afwezigVorm();
   // Een veld waar je in typt, niet onder je vingers vervangen (het vermogen van een bron).
   const typt = document.activeElement?.closest?.('[data-zorgt]') && document.activeElement.matches('input');

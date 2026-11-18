@@ -310,6 +310,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [316. De woordenlijst: één woord per ding](#316-de-woordenlijst-één-woord-per-ding)
 - [317. Klimaat per kamer in één blad; Kamers en indeling is weg](#317-klimaat-per-kamer-in-één-blad-kamers-en-indeling-is-weg)
 - [318. Een apparaat stel je in op zijn kaart; Regeling is weg](#318-een-apparaat-stel-je-in-op-zijn-kaart-regeling-is-weg)
+- [320. Een zone is een deel van de kamer, geen kamer](#320-een-zone-is-een-deel-van-de-kamer-geen-kamer)
 
 **Veiligheid**
 
@@ -14813,6 +14814,46 @@ neemt, kies je dan opnieuw.
 *Kosten:* Helpen bij de cv staat niet in het blad zolang de airco droogt of
 ventileert; met verwarmen is het blad van een airco met dat blok op de wand nog
 te hoog (al zo sinds besluit [303]).
+
+## 320. Een zone is een deel van de kamer, geen kamer
+
+*Onderwerp: weergave · Status: geldig*
+
+18 november 2026. Ricardo kreeg de melding "Niets houdt de woonkamer · Zithoek
+op temperatuur". De zithoek had een eigen regeling (besluit [306]) met alleen de
+airco op *Helpt op zon*, en stond bij Klimaat als eigen kamer. De radiator op de
+cv hoorde bij de woonkamer als geheel, niet bij de zone. Zodra hij die radiator
+via de Nest toevoegde, verdween de Nest uit het blad en stond zijn taak onder de
+radiator, met het etiket *Slim*. Schets Wand-Klimaat-Subzone en
+Tel-Klimaat-Subzone, goedgekeurd door Ricardo.
+
+*Besluit (0.197.0):*
+
+- **In de lijst bij Klimaat** staat een zone ingesprongen onder zijn kamer, met
+  wat daar gemeten wordt (het gemiddelde van de meters in die zone), of met
+  *eigen temperatuur* als hij een eigen regeling heeft. Een tik op een zone
+  zonder eigen regeling opent het blad van de kamer, met die zone gekozen.
+- **In het blad van de kamer** staat *Wat ervoor zorgt* per zone: een kop met
+  de naam, de temperatuur en rechts *Met de kamer mee* of *Eigen temperatuur*;
+  wat in geen zone hangt, staat onder *Hele kamer*. *Hoe warm* staat één keer,
+  voor de kamer. Een eigen temperatuur kan alleen met een klimaatapparaat in
+  die zone; in die zone kies je de taak meteen op de regel van het apparaat.
+- **Elk klimaatapparaat staat er zelf**, met zijn taak, ook als een radiator
+  het volgt. Een radiator of vloer die aan een thermostaat of knop hangt, zegt
+  *Volgt Nest (beneden)*. *Slim* is weg (woordenlijst, [316]).
+- **Een warmtebron krijgt een zone** (`bronnen[].zone`): *Waar hangt hij?* in
+  het formulier, met de gekozen zone voorgekozen. Een zone die de kamer niet
+  (meer) heeft, valt weg: dan hangt hij in de hele kamer.
+- **De melding** ziet de radiator van de kamer: een zone met een eigen
+  regeling waar alleen iets op zon helpt, maar waar een radiator hangt die een
+  thermostaat volgt (in die zone of in de hele kamer), krijgt *verwarmt mee
+  met Nest (beneden)*, met *Laat zo*, zoals de wasruimte.
+
+*Wat afviel:* de zones automatisch terugzetten naar *Met de kamer mee*. Dat is
+een keuze van de bewoner; bij Ricardo hoort de airco in het instellingenbestand
+en de oude regeling bij de woonkamer, dus voor de vergelijking vanaf 1 december
+zet hij de zithoek zelf terug. Meten per zone als eigen blad (in de schets
+`#meten`): de regel *Meten en regeling* blijft zoals hij was.
 
 ## Wat nog een besluit wacht
 

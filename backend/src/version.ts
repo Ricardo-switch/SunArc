@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.196.1';
+export const VERSIE = '0.197.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,28 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.197.0',
+    datum: '2026-11-18',
+    nieuw: [
+      'Een zone is een deel van de kamer: bij Klimaat staat hij ingesprongen onder zijn kamer, met wat er gemeten wordt',
+      'Wat ervoor zorgt staat per zone, met rechts Met de kamer mee of Eigen temperatuur; een radiator geef je een zone met Waar hangt hij?',
+    ],
+    beter: [
+      'Elk klimaatapparaat staat er zelf met zijn taak, ook als een radiator het volgt. De radiator zegt Volgt Nest (beneden) in plaats van Slim',
+      'Een zone waar de radiator van de kamer meeverwarmt, krijgt geen melding Niets houdt meer, maar: verwarmt mee met de thermostaat',
+    ],
+    en: {
+      nieuw: [
+        'A zone is part of the room: under Climate it shows indented below its room, with what is measured there',
+        'What keeps it comfortable shows per zone, with With the room or Own temperature on the right; you give a radiator a zone with Where is it?',
+      ],
+      beter: [
+        'Every climate device shows itself with its task, also when a radiator follows it. The radiator says Follows Nest (beneden) instead of Smart',
+        'A zone that the room radiator heats along no longer gets the warning Nothing keeps, but: heats along with the thermostat',
+      ],
+    },
+  },
   {
     versie: '0.196.1',
     datum: '2026-11-18',

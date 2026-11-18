@@ -24,7 +24,7 @@ import { InHuis, addOnInfo, bevestigViaRest, maakViaWebsocket, type AddOnInfo, t
 import { rollenUitConfig, type RegelingNiet } from './web/regeling.js';
 import { MeldingenStore } from './web/meldingen.js';
 import { meldingenBron } from './web/meldingen-bron.js';
-import { KloptRegister, kloptVast } from './web/klopt.js';
+import { KloptRegister, kloptVast, verwarmtMeeMet } from './web/klopt.js';
 import { VERSIE } from './version.js';
 import { existsSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -1693,16 +1693,7 @@ function meldingenRonde(): void {
         config: webConfig() ?? cfg,
         kamerVanZone: (zoneId) => regelKamers(layoutNu?.()?.kamers ?? []).find((k) => k.regelzone === zoneId)?.id ?? null,
         // Een radiator of vloer die een thermostaat in een andere kamer volgt: dan verwarmt de kamer mee.
-        meeMet: (zoneId) => {
-          const eigen = new Set(cfg.zones.find((z) => z.id === zoneId)?.actuatorIds ?? []);
-          const kamer = regelKamers(layoutNu?.()?.kamers ?? []).find((k) => k.regelzone === zoneId);
-          for (const b of kamer?.bronnen ?? []) {
-            if (!b.apparaat) continue;
-            const a = cfg.actuators.find((x) => x.id === b.apparaat || x.ref.id === b.apparaat);
-            if (a && !eigen.has(a.id)) return a.name;
-          }
-          return null;
-        },
+        meeMet: (zoneId) => verwarmtMeeMet(zoneId, cfg, layoutNu?.()?.kamers ?? []),
       }),
       ...klopt.lijst(Date.now()),
     ],

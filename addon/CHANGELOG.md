@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.196.1
+## 0.197.0
 
-*18 november 2026 · 0.179.0 – 0.196.1*
+*18 november 2026 · 0.179.0 – 0.197.0*
 
 **Nieuw**
 
+- Een zone is een deel van de kamer: bij Klimaat staat hij ingesprongen onder zijn kamer, met wat er gemeten wordt
+- Wat ervoor zorgt staat per zone, met rechts Met de kamer mee of Eigen temperatuur; een radiator geef je een zone met Waar hangt hij?
 - Een airco met de hand kan ook drogen of alleen ventileren, tot een tijd. Daarna gaat hij uit, als hij dan nog zo staat
 - Het tuinhuis met de hand: verwarmen naar een doel met de kachel die je kiest (Haard, Heater of Beide), tot een tijd, en Zet uit
 - Toevoegen maakt een gevonden apparaat meteen klaar: links de soort, in het midden wat SunArc vond, rechts waar het staat, op zon en met de hand
@@ -54,6 +56,8 @@
 
 **Beter**
 
+- Elk klimaatapparaat staat er zelf met zijn taak, ook als een radiator het volgt. De radiator zegt Volgt Nest (beneden) in plaats van Slim
+- Een zone waar de radiator van de kamer meeverwarmt, krijgt geen melding Niets houdt meer, maar: verwarmt mee met de thermostaat
 - Staat een airco met de hand aan, dan zegt de knop wat hij doet: Uit, terug naar je regeling
 - Een stekker met een kamer staat klaar, ook als hij niet op zon staat
 - Bij een airco of thermostaat kies je hier waar hij staat; wat SunArc ermee doet, kies je bij Klimaat
@@ -106,6 +110,8 @@
 
 **New**
 
+- A zone is part of the room: under Climate it shows indented below its room, with what is measured there
+- What keeps it comfortable shows per zone, with With the room or Own temperature on the right; you give a radiator a zone with Where is it?
 - An air conditioner by hand can also dry or run the fan only, until a time. Then it switches off, if it is still set that way
 - The garden house by hand: heating to a target with the heater you choose (Haard, Heater or Beide), until a time, and Switch off
 - Add sets up a found device right away: the kind on the left, what SunArc found in the middle, and on the right where it is, on solar and by hand
@@ -154,6 +160,8 @@
 
 **Improved**
 
+- Every climate device shows itself with its task, also when a radiator follows it. The radiator says Follows Nest (beneden) instead of Smart
+- A zone that the room radiator heats along no longer gets the warning Nothing keeps, but: heats along with the thermostat
 - When an air conditioner runs by hand, the button says what it does: Off, back to your schedule
 - A plug with a room is set up, even when it is not on solar
 - For an air conditioner or thermostat you choose here where it is; what SunArc does with it, you choose under Climate

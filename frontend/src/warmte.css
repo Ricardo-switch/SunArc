@@ -101,3 +101,20 @@
 .zorgt .naarzone { height: 32px; display: inline-flex; align-items: center; padding: 0 10px; font-size: 12px; font-weight: 700; white-space: nowrap; max-width: 172px; overflow: hidden; text-overflow: ellipsis; text-decoration: none; }
 .zorgt .bron[data-kort] .cvregel { padding-top: 4px; }
 .zorgt .bron[data-kort] .vraagknop { height: 26px; font-size: 12px; }
+
+/* Wat ervoor zorgt, per zone (zones als deel van de kamer, schets Wand-Klimaat-Subzone, 18 november 2026). */
+.zorgt .zonegroep { display: flex; flex-direction: column; gap: 6px; padding: 8px 8px 8px; border-radius: 16px; background: rgb(var(--wit) / 0.03); border: 1px solid rgb(var(--wit) / 0.06); }
+.zorgt .zonegroep.aan { border-color: rgb(var(--wit) / 0.35); background: rgb(var(--wit) / 0.06); }
+.zorgt .zonekop { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 4px; }
+.zorgt .zonekop b { font-size: 12.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--zacht); }
+.zorgt .zonekop em { font-style: normal; font-size: 13px; font-weight: 700; }
+.zorgt .zonekop .r { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gedempt); }
+.zorgt .zonekop .schakel { flex: none; }
+.zorgt .zone-eigen { color: var(--zon-t); font-weight: 700; text-decoration: none; }
+.zorgt .volgt { height: 30px; padding: 0 10px; border-radius: 10px; border: 1px dashed var(--glas-rand); display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; color: var(--zacht); white-space: nowrap; }
+/* Binnen een zone regels, geen vakjes: zo past het blad van een kamer met zones op de wand. */
+.zorgt .zonegroep { gap: 0; padding: 4px 6px 6px; }
+.zorgt .zonegroep .bron { background: none; border: 0; border-radius: 0; padding: 6px 4px; }
+.zorgt .zonegroep .bron + .bron { border-top: 1px solid rgb(var(--wit) / 0.06); }
+.zorgt .zonegroep .bron b { font-size: 14px; }
+.zorgt .zonegroep .rolkeuze.kort { max-width: 158px; }

@@ -30,6 +30,12 @@ describe('de bronnen van een kamer', () => {
     expect(c).toEqual({ ok: true, bronnen: [{ id: 'r', soorten: ['radiator'], aan: 'knop', apparaat: 'climate.knop' }] });
   });
 
+  it('houdt de zone waar hij hangt (zones als deel van de kamer, 18 november 2026)', () => {
+    const c = controleerBronnen('beneden', [{ id: 'r', soorten: ['radiator'], aan: 'thermostaat', apparaat: 'nest', zone: 'zithoek' }]);
+    expect(c).toEqual({ ok: true, bronnen: [{ id: 'r', soorten: ['radiator'], aan: 'thermostaat', apparaat: 'nest', zone: 'zithoek' }] });
+    expect(controleerBronnen('beneden', [{ id: 'r', soorten: ['radiator'], aan: 'thermostaat', zone: 'Zit hoek!' }]).ok).toBe(false);
+  });
+
   it('weigert wat niet kan', () => {
     for (const fout of [
       'geen lijst',
