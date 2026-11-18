@@ -2427,8 +2427,17 @@
             s += `<h4>${esc(e.naam)}</h4><div class="ht-twee">${ks.map((k) => `<button type="button" class="ht-klein${a.ha === k.id ? ' tip' : ''}${a.kamer === k.id ? ' aan' : ''}" data-ht="app-kamer" data-app="${esc(a.id)}" data-kamer="${esc(k.id)}">${esc(k.naam)}</button>`).join('')}</div>`;
           }
           // Buiten (besluit 269 en 317): de voordeur en wat er rond het huis is; een plek zonder ruimte komt erbij.
-          if (ix?.plekken?.length) s += `<h4>${esc(T('ht.buiten.kop'))}</h4><div class="ht-twee">${ix.plekken.map((p) => `<button type="button" class="ht-klein" data-ht="ix" data-actie="app-buiten" data-waarde="${esc(`${a.id}|${p.waarde}`)}">${esc(p.naam)}</button>`).join('')}</div>`;
+          // Een ruimte buiten met delen (de tuin met het terras en de border) onder zijn eigen kopje (18 november 2026).
+          const groepen = [];
+          for (const p of ix?.plekken ?? []) {
+            const g = p.groep ?? T('ht.buiten.kop');
+            const x = groepen.find(([y]) => y === g) ?? groepen[groepen.push([g, []]) - 1];
+            x[1].push(p);
+          }
+          s += groepen.map(([g, ps]) => `<h4>${esc(g)}</h4><div class="ht-twee">${ps.map((p) => `<button type="button" class="ht-klein" data-ht="ix" data-actie="app-buiten" data-waarde="${esc(`${a.id}|${p.waarde}`)}">${esc(p.naam)}</button>`).join('')}</div>`).join('');
           if (a.ha) s += `<p class="ht-voet">${esc(T('ht.app.inHA', { naam: t.kamers[a.ha]?.naam ?? a.ha }))}</p>`;
+          // Verbergen kan ook hier (18 november 2026): eerst alleen bij een apparaat dat al een kamer had.
+          if (ix) s += `<div class="ht-onder">${rij({ ik: 'verborgen', titel: T('ht.app.verbergen'), zin: T('ht.app.verbergenZin'), data: `data-ht="ix" data-actie="verberg" data-waarde="${esc(a.id)}"` })}</div>`;
         } else if (kies) {
           const p = punten.find((x) => x.a.id === kies.id);
           s = `<header><h3>${esc(kies.naam)}</h3><span>${esc(t.kamers[kies.kamer]?.naam ?? T('ht.app.geenKamer'))}</span></header>

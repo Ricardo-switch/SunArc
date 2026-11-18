@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.200.1';
+export const VERSIE = '0.200.2';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,28 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.200.2',
+    datum: '2026-11-18',
+    beter: [
+      'Je huis › Buiten: het tuinhuis en het schuurtje zijn twee losse knoppen, zodat je ze allebei kunt hebben',
+      'Waar staat het? toont ook de delen van een ruimte buiten, zoals het terras en de border in de tuin, onder hun eigen kopje',
+    ],
+    opgelost: [
+      'Een apparaat zonder kamer kon je niet verbergen; nu staat Verbergen ook bij Waar staat het?',
+      'Een verborgen apparaat dat je terughaalde, stond daarna zonder kamer; nu komt het terug waar het stond',
+    ],
+    en: {
+      beter: [
+        'Your house › Outside: the garden house and the shed are two separate buttons, so you can have both',
+        'Where is it? also shows the parts of a space outside, like the terrace and the border in the garden, under their own heading',
+      ],
+      opgelost: [
+        'A device without a room could not be hidden; Hide is now also under Where is it?',
+        'A hidden device you brought back had no room afterwards; now it returns where it was',
+      ],
+    },
+  },
   {
     versie: '0.200.1',
     datum: '2026-11-18',

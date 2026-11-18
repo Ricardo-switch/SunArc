@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.200.1
+## 0.200.2
 
-*18 november 2026 · 0.179.0 – 0.200.1*
+*18 november 2026 · 0.179.0 – 0.200.2*
 
 **Nieuw**
 
@@ -63,6 +63,8 @@
 
 **Beter**
 
+- Je huis › Buiten: het tuinhuis en het schuurtje zijn twee losse knoppen, zodat je ze allebei kunt hebben
+- Waar staat het? toont ook de delen van een ruimte buiten, zoals het terras en de border in de tuin, onder hun eigen kopje
 - Inrichten staat niet meer bij Instellingen: Wat je huis kan biedt het aan als er nog iets open is, en zoeken vindt het
 - Bij Instellingen is de regel met de zonnewaaier één knop naar Wat je huis kan; de tweede knop ernaast deed hetzelfde
 - Hoe ver je huis is en de knop Klaarzetten in Home Assistant staan nu op Wat je huis kan; een oude link komt daar uit
@@ -97,6 +99,8 @@
 
 **Opgelost**
 
+- Een apparaat zonder kamer kon je niet verbergen; nu staat Verbergen ook bij Waar staat het?
+- Een verborgen apparaat dat je terughaalde, stond daarna zonder kamer; nu komt het terug waar het stond
 - Bij Apparaat toevoegen stonden de knoppen van Wat is er nieuw onder elkaar, met Oké als een wit vak
 - Een zone terugzetten op Met de kamer mee werd niet overgenomen als die zone op zon stond: de volgorde op zon noemde hem nog. Nu valt hij daaruit, en neemt de regeling de nieuwe indeling over
 - Een verborgen stekker stond bij Toevoegen › Stekkers nog als klaar, met een vinkje bij Nog geen kamer. Wat verborgen is, staat nu alleen bij Verborgen
@@ -180,6 +184,8 @@
 
 **Improved**
 
+- Your house › Outside: the garden house and the shed are two separate buttons, so you can have both
+- Where is it? also shows the parts of a space outside, like the terrace and the border in the garden, under their own heading
 - Set up is no longer in Settings: What your house can do offers it when something is still open, and search finds it
 - In Settings, the line with the sun fan is one button to What your house can do; the second button next to it did the same
 - How far your house is and the button Set up in Home Assistant are now on What your house can do; an old link ends up there
@@ -214,6 +220,8 @@
 
 **Fixed**
 
+- A device without a room could not be hidden; Hide is now also under Where is it?
+- A hidden device you brought back had no room afterwards; now it returns where it was
 - In Add a device, the buttons of What is new were stacked, with OK as a white box
 - Setting a zone back to With the room was not taken over when that zone was on solar: the solar order still named it. Now it drops out of it, and the control takes over the new layout
 - A hidden plug still showed as set up under Add › Plugs, with a tick next to No room yet. What is hidden now only shows under Hidden

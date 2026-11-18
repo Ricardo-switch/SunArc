@@ -807,16 +807,21 @@ function buitenStap() {
   const kamers = buitenKamers();
   // De jacuzzi (besluit 186): gevonden in Home Assistant, of alleen getekend.
   const jacuzzi = (d.aans?.gevonden?.apparaten ?? []).find((x) => x.soort === 'jacuzzi');
-  const delen = RONDOM.map(([w, naam, , icoon]) => {
-    const aan = huismodel.rondAan(rond, w);
-    const ouder = huismodel.hangtAan(w);
+  const delen = RONDOM.flatMap(([w, naam, , icoon]) => {
     // Aanvinken is genoeg (28 oktober 2026): het deel komt op zijn vaste plek; de ruimte
     // uit Home Assistant die erbij hoort, volgt uit zijn naam of wat hij is bij Kamers en indeling.
-    // In de tuin: het tuinhuis met plat dak, het schuurtje met puntdak, of allebei (6 november 2026).
-    const huisje = huismodel.huisjeVan(rond);
-    const soortKeuze = w === 'tuinhuis' && aan ? `<span class="chips">${huismodel.HUISJES.map(([v, sleutel]) => knop(`data-schuur="${v}"`, t(sleutel), huisje === v)).join('')}</span>` : '';
+    // Het tuinhuis en het schuurtje als twee losse schakelaars (18 november 2026): je kunt ze allebei hebben.
+    if (w === 'tuinhuis') {
+      const h = huismodel.huisjesVan(rond);
+      return ['tuinhuis', 'schuurtje'].map((x) => {
+        const n = t(x === 'tuinhuis' ? 'inr.tuinhuis' : 'inr.schuurtje');
+        return regel({ ik: x === 'tuinhuis' ? 'tuinhuis' : 'schuur', titel: n, rechts: schakelaar(`data-rond="huisje:${x}"`, n, h[x]) });
+      });
+    }
+    const aan = huismodel.rondAan(rond, w);
+    const ouder = huismodel.hangtAan(w);
     const zin = w === 'jacuzzi' ? (jacuzzi ? jacuzzi.naam : t('inr.nietInHA')) : '';
-    return regel({ ik: w === 'tuinhuis' && huisje === 'schuur' ? 'schuur' : icoon, titel: naam, zin, rechts: schakelaar(`data-rond="${w}"`, naam, aan, !!ouder && !rond[ouder]), onder: soortKeuze });
+    return [regel({ ik: icoon, titel: naam, zin, rechts: schakelaar(`data-rond="${w}"`, naam, aan, !!ouder && !rond[ouder]) })];
   });
   // Ruimtes die bij geen deel horen dat aan staat: die tekent het huis nergens.
   const los = kamers.filter((k) => !RONDOM.some(([w, , s]) => s && rond[w] && buitenNu(k).soort === s));
@@ -2907,7 +2912,7 @@ document.addEventListener('click', async (e) => {
     // Wat er rond het huis is (besluit 158): elk deel apart aan of uit.
     const next = concept();
     if (!next) return;
-    next.rond = huismodel.rondWissel(rondVanConcept(next), el.dataset.rond);
+    next.rond = el.dataset.rond.startsWith('huisje:') ? huismodel.huisjeWissel(rondVanConcept(next), el.dataset.rond.slice(7)) : huismodel.rondWissel(rondVanConcept(next), el.dataset.rond);
     await bewaarIndeling(next);
     return;
   }

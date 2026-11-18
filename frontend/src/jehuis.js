@@ -150,12 +150,19 @@ function plekkenBuiten(d) {
   // Ook wat nog niet aan staat (18-11), na wat aan staat: kiezen zet het aan (plekErbij).
   const delen = huismodel.rondom().filter(([, , s]) => s);
   const soorten = ['voordeur', ...delen.filter(([w]) => huismodel.rondAan(rond, w)).map(([, , s]) => s), ...delen.filter(([w]) => !huismodel.rondAan(rond, w)).map(([, , s]) => s)];
-  const vast = soorten.map((soort) => {
+  // Een deel dat al een zone is van een ruimte buiten (het terras in de tuin), staat niet nog eens los (18 november 2026).
+  const alsZone = new Set(kamers.flatMap((k) => (k.zones ?? []).flatMap((z) => [z.id, z.naam.toLowerCase()])));
+  const vast = soorten.filter((soort) => kamers.some((x) => buitenSoort(x) === soort) || !alsZone.has(soort)).map((soort) => {
     const k = kamers.find((x) => buitenSoort(x) === soort);
     return { waarde: k ? k.id : `plek:${soort}`, naam: k?.naam ?? plekNaam(soort, rond) };
   });
   const rest = kamers.filter((k) => !vast.some((p) => p.waarde === k.id)).map((k) => ({ waarde: k.id, naam: k.naam }));
-  return [...vast, ...rest];
+  // De delen van een ruimte buiten (18 november 2026), zoals het terras en de border in de tuin, elk achter zijn ruimte.
+  return [...vast, ...rest].flatMap((p) => {
+    const k = kamers.find((x) => x.id === p.waarde);
+    // Een ruimte met delen krijgt een eigen kopje: Achtertuin met Tuinhuis, Border en Terras.
+    return k?.zones?.length ? [{ ...p, groep: k.naam }, ...k.zones.map((z) => ({ waarde: `${k.id}~${z.id}`, naam: z.naam, groep: k.naam }))] : [p];
+  });
 }
 /** De ruimte van een plek in een indeling, of een nieuwe als hij er nog niet is. Geeft het id. */
 function plekErbij(next, soort) {
@@ -202,10 +209,13 @@ const indeling = {
       etage: { kanHoger: i > 0, kanLager: i >= 0 && i < v.length - 1, kanWeg: e !== 'bg' && !(d.kamers ?? []).some((k) => k.etage === e) },
       nieuweEtages: (info?.standaard ?? []).filter((s) => s.id !== 'buiten' && !v.includes(s.id)).map((s) => [s.id, s.naam]),
       // Wat aan iets anders hangt (de auto aan de oprit, de border aan de tuin), alleen als dat er is.
+      // Het tuinhuis en het schuurtje als twee losse knoppen (18 november 2026): je kunt ze allebei hebben.
       rond: huismodel.rondom()
         .filter(([w]) => !huismodel.hangtAan(w) || huismodel.rondAan(rond, huismodel.hangtAan(w)))
-        .map(([w, naam, , icoon]) => ({ w, naam, icoon, aan: huismodel.rondAan(rond, w) })),
-      huisje: huismodel.rondAan(rond, 'tuinhuis') ? { nu: huismodel.huisjeVan(rond), opties: huismodel.HUISJES.map(([x, sleutel]) => [x, t(sleutel)]) } : null,
+        .flatMap(([w, naam, , icoon]) => (w === 'tuinhuis'
+          ? ['tuinhuis', 'schuurtje'].map((x) => ({ w: `huisje:${x}`, naam: t(x === 'tuinhuis' ? 'inr.tuinhuis' : 'inr.schuurtje'), icoon: x === 'tuinhuis' ? 'tuinhuis' : 'schuur', aan: huismodel.huisjesVan(rond)[x] }))
+          : [{ w, naam, icoon, aan: huismodel.rondAan(rond, w) }])),
+      huisje: null,
       accu: accu
         ? { naam: accu.naam, nu: accuNu, opties: [['gevel', t('indeling.accu.gevel')], ...(rond.garage ? [['garage', t('indeling.accu.garage')]] : []), ...binnen.map((k) => [`binnen:${k.id}`, k.naam])] }
         : null,
@@ -258,20 +268,24 @@ const indeling = {
         k.naam = w.w;
       } else if (w.w) k.soort = w.w;
       else delete k.soort;
-    } else if (actie === 'rond') next.rond = huismodel.rondWissel(rondVan(next), w);
+    } else if (actie === 'rond') next.rond = String(w).startsWith('huisje:') ? huismodel.huisjeWissel(rondVan(next), w.slice(7)) : huismodel.rondWissel(rondVan(next), w);
     else if (actie === 'huisje') next.rond = { ...rondVan(next), schuur: w === 'schuur', allebei: w === 'beide' };
     else if (actie === 'accu') {
       if (w === 'gevel') delete next.accu;
       else next.accu = w === 'garage' ? { plek: 'garage', kamer: null } : { plek: 'binnen', kamer: w.slice(7) };
     } else if (actie === 'verberg') {
+      // De kamer blijft bewaard (18 november 2026): Terughalen zet hem weer waar hij stond.
       next.verborgen = [...new Set([...(next.verborgen ?? []), w])];
-      delete next.apparaten[w];
+      tekenaar.st.wapen = null;
+      tekenaar.st.kies = null;
     } else if (actie === 'terug') next.verborgen = (next.verborgen ?? []).filter((x) => x !== w);
     else if (actie === 'app-buiten') {
       // Een apparaat buiten (besluit 269 en 317): bij de voordeur, in de garage; een plek zonder ruimte komt er nu bij.
+      // Ook in een deel van een ruimte buiten (18 november 2026), zoals het terras of de border in de tuin: `kamer~zone`.
       const [app, plek] = String(w).split('|');
-      const kamer = plek.startsWith('plek:') ? plekErbij(next, plek.slice(5)) : plek;
-      next.apparaten[app] = { ...(next.apparaten[app] ?? {}), kamer, zone: null };
+      const [ruimte, zone = null] = plek.split('~');
+      const kamer = ruimte.startsWith('plek:') ? plekErbij(next, ruimte.slice(5)) : ruimte;
+      next.apparaten[app] = { ...(next.apparaten[app] ?? {}), kamer, zone };
       next.verborgen = (next.verborgen ?? []).filter((x) => x !== app);
       tekenaar.st.wapen = null;
       tekenaar.st.kies = null;

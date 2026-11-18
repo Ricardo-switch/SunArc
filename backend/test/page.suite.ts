@@ -2714,8 +2714,9 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await p.waitForURL(/#buiten$/);
     await kaart.locator('h1', { hasText: 'Wat is er rond je huis?' }).waitFor();
     // Elk deel rond het huis apart aan of uit (besluit 158), met garage en carport (besluit 166), de jacuzzi (besluit 190)
-    // en de border (6 november 2026), die alleen kan met een achtertuin.
-    expect(await kaart.locator('[data-rond]').count()).toBe(11);
+    // en de border (6 november 2026), die alleen kan met een achtertuin. Het tuinhuis en het schuurtje los (18 november 2026).
+    expect(await kaart.locator('[data-rond]').count()).toBe(12);
+    expect(await kaart.locator('[data-rond="huisje:schuurtje"]').count()).toBe(1);
     const border = kaart.locator('[data-rond="border"]');
     const tuinAan = (await kaart.locator('[data-rond="tuin"]').getAttribute('aria-checked')) === 'true';
     expect(await border.isDisabled()).toBe(!tuinAan);
@@ -8289,6 +8290,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       // Een apparaat verbergen bij Apparaten, en bij Verborgen terughalen.
       await p.locator('#wand [data-stand="apparaten"]').click();
       const app = await p.evaluate<string>('window.tekenaar.st.apparaten.find((a) => a.kamer).id');
+      const kamerWas = await p.evaluate<string>(`window.tekenaar.st.apparaten.find((a) => a.id === ${JSON.stringify(app)}).kamer`);
       await p.evaluate(`window.tekenaar.kies({ soort: 'apparaat', id: ${JSON.stringify(app)} })`);
       await p.locator('#wand [data-actie="verberg"]').click();
       await expect.poll(() => nu()?.verborgen ?? [], { timeout: 5_000 }).toContain(app);
@@ -8296,6 +8298,25 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await p.evaluate(`window.tekenaar.toonBlad('verborgen')`);
       await p.locator(`#wand [data-actie="terug"][data-waarde="${app}"]`).click();
       await expect.poll(() => nu()?.verborgen ?? [], { timeout: 5_000 }).not.toContain(app);
+      // Terughalen zet hem weer waar hij stond (18 november 2026): verbergen bewaart de kamer.
+      await expect.poll(() => p.evaluate<string | null>(`window.tekenaar.st.apparaten.find((a) => a.id === ${JSON.stringify(app)})?.kamer ?? null`), { timeout: 5_000 }).toBe(kamerWas);
+      // Ook bij Waar staat het? kan verbergen, voor een apparaat zonder kamer.
+      await p.evaluate(`window.tekenaar.kies({ soort: 'apparaat', id: ${JSON.stringify(app)} })`);
+      await p.locator('#wand [data-ht="app-waar"]').click();
+      await p.locator('#wand [data-actie="verberg"]').click();
+      await expect.poll(() => nu()?.verborgen ?? [], { timeout: 5_000 }).toContain(app);
+      await p.evaluate(`window.tekenaar.toonBlad('verborgen')`);
+      await p.locator(`#wand [data-actie="terug"][data-waarde="${app}"]`).click();
+      await expect.poll(() => nu()?.verborgen ?? [], { timeout: 5_000 }).not.toContain(app);
+      // Het tuinhuis en het schuurtje als twee losse knoppen (18 november 2026): allebei kan.
+      await p.evaluate(`window.tekenaar.toonBlad('buiten')`);
+      const huisjes = async () => huismodelVan(nu()?.rond as Record<string, unknown> | undefined);
+      const huismodelVan = (r: Record<string, unknown> | undefined) => (!r?.tuinhuis ? 'geen' : r.allebei ? 'beide' : r.schuur ? 'schuur' : 'tuinhuis');
+      const tuinhuisWas = await huisjes();
+      await p.locator('#wand [data-actie="rond"][data-waarde="huisje:schuurtje"]').click();
+      await expect.poll(huisjes, { timeout: 5_000 }).toBe(tuinhuisWas === 'tuinhuis' ? 'beide' : tuinhuisWas === 'geen' ? 'schuur' : tuinhuisWas === 'beide' ? 'tuinhuis' : 'geen');
+      await p.locator('#wand [data-actie="rond"][data-waarde="huisje:schuurtje"]').click();
+      await expect.poll(huisjes, { timeout: 5_000 }).toBe(tuinhuisWas);
       expect(fouten).toEqual([]);
     } finally {
       if (was) await layoutStore.save(was);

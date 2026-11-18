@@ -347,6 +347,22 @@
   /** Wat er in de tuin staat (6 november 2026): het tuinhuis, het schuurtje of allebei. */
   const huisjeVan = (rond) => (rond?.allebei ? 'beide' : rond?.schuur ? 'schuur' : 'tuinhuis');
   const HUISJES = [['tuinhuis', 'inr.tuinhuis'], ['schuur', 'inr.schuurtje'], ['beide', 'inr.allebei']];
+  /*
+   * Het tuinhuis en het schuurtje als twee losse knoppen (18 november 2026,
+   * Ricardo: je kunt ze allebei hebben). Bewaard zoals eerst: `tuinhuis` als er
+   * iets in de tuin staat, `schuur` als het alleen een schuurtje is, `allebei`
+   * als het er twee zijn.
+   */
+  function huisjesVan(rond) {
+    if (!rond?.tuinhuis) return { tuinhuis: false, schuurtje: false };
+    const h = huisjeVan(rond);
+    return { tuinhuis: h !== 'schuur', schuurtje: h !== 'tuinhuis' };
+  }
+  function huisjeWissel(rond, welk) {
+    const h = huisjesVan(rond);
+    h[welk] = !h[welk];
+    return { ...rond, tuinhuis: h.tuinhuis || h.schuurtje, schuur: h.schuurtje && !h.tuinhuis, allebei: h.tuinhuis && h.schuurtje };
+  }
   /** De naam van wat er in de tuin staat, voor een zin. */
   const huisjeNaam = (rond) => ({ tuinhuis: 'inr.tuinhuis', schuur: 'inr.schuurtje', beide: 'inr.tuinhuisEnSchuurtje' })[huisjeVan(rond)];
   /** Een deel aan of uit; de oprit uit haalt de auto en de carport weg. */
@@ -652,5 +668,5 @@
   const BUITEN_ZONES = soorten('buitenZone', ['gazon', 'border', 'terras', 'tuinhuis', 'overstek', 'moestuin', 'vijver', 'pad', 'speelplek', 'oprit', 'carport']);
   global.huismodel = { KAMER_SOORTEN, ZONE_SOORTEN, BUITEN_SOORTEN, BUITEN_ZONES, buitenUitNaam, buitenZoneUitNaam, thermostaten, cvThermostaat, isKetelKoppeling, kanOpZon, ACTIEF,
 
- BUITEN, GANG, kleurVanLicht, zoneNaam, metLidwoord, metHoofdletter, etagesNaast, BRON_NAAM, ELEKTRISCH, bronNaam, opsomming, isElektrischSlim, inKamers, standVan, kortVan, kamerModel, waterVan, isBuiten, soortBuiten, buiten, rondNu, rondom, OP_OPRIT, IN_TUIN, hangtAan, rondAan, rondWissel, huisjeVan, huisjeNaam, HUISJES, rondMet, tekening, huisDelen, panelenOpDak, kompasVan, zonOpRechts, zonNu, groetNamen, groetWie };
+ BUITEN, GANG, kleurVanLicht, zoneNaam, metLidwoord, metHoofdletter, etagesNaast, BRON_NAAM, ELEKTRISCH, bronNaam, opsomming, isElektrischSlim, inKamers, standVan, kortVan, kamerModel, waterVan, isBuiten, soortBuiten, buiten, rondNu, rondom, OP_OPRIT, IN_TUIN, hangtAan, rondAan, rondWissel, huisjeVan, huisjeNaam, HUISJES, huisjesVan, huisjeWissel, rondMet, tekening, huisDelen, panelenOpDak, kompasVan, zonOpRechts, zonNu, groetNamen, groetWie };
 })(window);
