@@ -28,6 +28,10 @@ import { KNOPPEN, KOELSTRATEGIE, MODUS, MODUS_ACTIEF, klok, totWanneer } from '.
 import { doelSoort } from './doelsoort.js';
 
 export type HandModus = 'verwarmen' | 'koelen';
+/** Een airco met de hand op drogen of alleen ventileren (besluit 319): direct, zonder temperatuur. */
+export type HandStandModus = 'drogen' | 'ventilator';
+/** De stand in Home Assistant bij elke modus. */
+export const HAND_HVAC: Readonly<Record<HandStandModus, string>> = { drogen: 'dry', ventilator: 'fan_only' };
 
 interface ModusDef {
   readonly knop: string;
@@ -86,6 +90,10 @@ export interface HandDeur {
   readonly schakel: (id: string, aan: boolean) => Promise<void>;
   /** Alleen het doel van een thermostaat, zoals een radiatorknop. */
   readonly temperatuur: (id: string, c: number) => Promise<void>;
+  /** Een airco op drogen of ventileren (besluit 319). */
+  readonly stand?: (id: string, hvac: string) => Promise<void>;
+  /** Een voorinstelling, zoals welke kachel in het tuinhuis (besluit 319). */
+  readonly voorinstelling?: (id: string, preset: string) => Promise<void>;
   readonly nu?: () => number;
   readonly map: string | null;
 }
@@ -94,8 +102,10 @@ export interface HandDeur {
 export interface HandTerug {
   /** Het apparaat (`climate.` of `switch.`). */
   readonly id: string;
-  readonly modus: HandModus | 'aan';
+  readonly modus: HandModus | HandStandModus | 'aan';
   readonly knop?: string;
+  /** De stand die de app zette (drogen of ventileren, besluit 319): alleen die gaat aan het eind uit. */
+  readonly hvac?: string;
   readonly gezet?: number;
   readonly terug?: number;
   /** De airco die de app zelf op verwarmen zette, of de stekker die hij aanzette. */
@@ -123,14 +133,26 @@ export interface HandModusStand {
 
 export interface HandStand {
   readonly id: string;
-  /** Een radiatorknop buiten de regeling (besluit 126); weg bij een apparaat van de regeling. */
-  readonly soort?: 'radiatorknop';
+  /** Een radiatorknop buiten de regeling (besluit 126), of klimaat buiten de regeling zoals het tuinhuis (`los`, besluit 319); weg bij een apparaat van de regeling. */
+  readonly soort?: 'radiatorknop' | 'los';
   readonly modi: readonly HandModusStand[];
+  /** Drogen en ventileren, als de airco dat kan (besluit 319). */
+  readonly standen?: readonly HandStandModus[];
+  /** Klimaat buiten de regeling: zijn voorinstellingen en welke nu (besluit 319). */
+  readonly voorinstellingen?: readonly string[];
+  readonly voorinstelling?: string | null;
   /** Wat het apparaat nu doet (`heat`, `cool`, `off`), en zijn eigen temperatuur. */
   readonly hvac: string | null;
   readonly nuC: number | null;
-  readonly actief: { readonly modus: HandModus | 'aan'; readonly doelC: number | null; readonly totMs: number; readonly totDoel?: boolean } | null;
+  readonly actief: { readonly modus: HandModus | HandStandModus | 'aan'; readonly doelC: number | null; readonly totMs: number; readonly totDoel?: boolean } | null;
 }
+
+/** De standen van Home Assistant die een airco kan, als modi van de hand. */
+function standenVan(s: Toestand | undefined): HandStandModus[] {
+  const kan = Array.isArray(s?.attributes['hvac_modes']) ? (s.attributes['hvac_modes'] as unknown[]) : [];
+  return (Object.keys(HAND_HVAC) as HandStandModus[]).filter((m) => kan.includes(HAND_HVAC[m]));
+}
+const lijstVan = (x: unknown): string[] => (Array.isArray(x) ? x.filter((y): y is string => typeof y === 'string') : []);
 
 const getal = (s: Toestand | undefined): number | null => {
   const n = Number(s?.state);
@@ -166,7 +188,7 @@ export class Handbediening {
    * De apparaten waarvan de knoppen er zijn, met hun stand, en de
    * radiatorknoppen buiten de regeling: hun eigen doel, binnen hun eigen bereik.
    */
-  async standen(knoppen: readonly string[] = []): Promise<HandStand[]> {
+  async standen(knoppen: readonly string[] = [], los: readonly string[] = []): Promise<HandStand[]> {
     await this.#laad();
     const uit: HandStand[] = [];
     for (const a of HAND) {
@@ -189,9 +211,12 @@ export class Handbediening {
       if (!modi.length) continue;
       const k = this.#d.state(a.klimaat);
       const t = this.#terug.find((x) => x.id === a.klimaat);
+      // Een airco die de app zelf mag zetten, kan ook drogen of ventileren als hij dat kent (besluit 319).
+      const standen = a.verwarmen?.direct ? standenVan(k) : [];
       uit.push({
         id: a.klimaat,
         modi,
+        ...(standen.length ? { standen } : {}),
         hvac: k?.state ?? null,
         nuC: typeof k?.attributes['current_temperature'] === 'number' ? (k.attributes['current_temperature'] as number) : null,
         actief: t ? { modus: t.modus, doelC: t.gezet ?? null, totMs: t.totMs, ...(t.totDoel ? { totDoel: true } : {}) } : null,
@@ -213,7 +238,83 @@ export class Handbediening {
         actief: t ? { modus: t.modus, doelC: t.gezet ?? null, totMs: t.totMs, ...(t.totDoel ? { totDoel: true } : {}) } : null,
       });
     }
+    // Klimaat buiten de regeling, zoals het tuinhuis (besluit 319): verwarmen of uit, het doel, en zijn voorinstellingen.
+    for (const id of los) {
+      const k = this.#d.state(id);
+      const doel = Number(k?.attributes['temperature']);
+      if (!k) continue;
+      const t = this.#terug.find((x) => x.id === id);
+      const min = Number(k.attributes['min_temp'] ?? 5);
+      const max = Number(k.attributes['max_temp'] ?? 30);
+      uit.push({
+        id,
+        soort: 'los',
+        modi: [{ modus: 'verwarmen', doelC: Number.isFinite(doel) ? doel : Math.min(max, Math.max(min, 20)), standaardC: null, min, max, stap: Number(k.attributes['target_temp_step'] ?? 0.5) || 0.5, via: 'direct', niet: null }],
+        voorinstellingen: lijstVan(k.attributes['preset_modes']),
+        voorinstelling: typeof k.attributes['preset_mode'] === 'string' ? (k.attributes['preset_mode'] as string) : null,
+        hvac: k.state,
+        nuC: typeof k.attributes['current_temperature'] === 'number' ? (k.attributes['current_temperature'] as number) : null,
+        actief: t ? { modus: t.modus, doelC: t.gezet ?? null, totMs: t.totMs, ...(t.totDoel ? { totDoel: true } : {}) } : null,
+      });
+    }
     return uit;
+  }
+
+  /**
+   * Een airco met de hand op drogen of alleen ventileren (besluit 319), tot een
+   * tijd. Direct, zonder de knoppen van de regeling; wat er met de hand op stond,
+   * gaat eerst terug. Aan het eind uit, maar alleen als hij nog zo staat.
+   */
+  async zetStand(id: string, modus: HandStandModus, totMs: number): Promise<HandUitkomst> {
+    await this.#laad();
+    const a = HAND.find((x) => x.klimaat === id && x.verwarmen?.direct);
+    if (!a || !this.#d.stand) return { ok: false, reden: 'dat apparaat kan dat niet met de hand' };
+    const nu = this.#nu();
+    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt in de komende twaalf uur' };
+    const hvac = HAND_HVAC[modus];
+    if (!standenVan(this.#d.state(id)).includes(modus)) return { ok: false, reden: `die airco kan niet ${modus === 'drogen' ? 'drogen' : 'alleen ventileren'}` };
+    const eerder = this.#terug.find((t) => t.id === id);
+    if (eerder?.knop) await this.#zetTerug(eerder, true);
+    await this.#d.stand(id, hvac);
+    this.#terug = [...this.#terug.filter((t) => t.id !== id), { id, modus, direct: true, hvac, totMs }];
+    await this.#bewaar();
+    return { ok: true, doelC: null, totMs };
+  }
+
+  /**
+   * Klimaat buiten de regeling met de hand (besluit 319), zoals het tuinhuis:
+   * verwarmen naar een doel, met een voorinstelling (welke kachel), tot een tijd.
+   * Daarna uit, maar alleen als hij nog staat zoals de app hem zette.
+   */
+  async zetLos(id: string, doelC: number, voorinstelling: string | null, totMs: number, totDoel = false): Promise<HandUitkomst> {
+    await this.#laad();
+    const nu = this.#nu();
+    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt in de komende twaalf uur' };
+    const k = this.#d.state(id);
+    if (!k) return { ok: false, reden: 'dat apparaat is er niet' };
+    const stap = Number(k.attributes['target_temp_step'] ?? 0.5) || 0.5;
+    const doel = Math.round(doelC / stap) * stap;
+    const min = Number(k.attributes['min_temp'] ?? 5);
+    const max = Number(k.attributes['max_temp'] ?? 30);
+    if (!Number.isFinite(doel) || doel < min || doel > max) return { ok: false, reden: `het doel gaat van ${min} tot ${max}` };
+    if (voorinstelling != null) {
+      if (!lijstVan(k.attributes['preset_modes']).includes(voorinstelling) || !this.#d.voorinstelling) return { ok: false, reden: 'die keuze kent het apparaat niet' };
+      if (k.attributes['preset_mode'] !== voorinstelling) await this.#d.voorinstelling(id, voorinstelling);
+    }
+    await this.#d.klimaat(id, { warm: doel });
+    this.#terug = [...this.#terug.filter((t) => t.id !== id), { id, modus: 'verwarmen', gezet: doel, direct: true, ...(totDoel ? { totDoel: true } : {}), totMs }];
+    await this.#bewaar();
+    return { ok: true, doelC: doel, totMs };
+  }
+
+  /** Klimaat buiten de regeling meteen uit, zonder eind (besluit 319). */
+  async uitLos(id: string): Promise<void> {
+    await this.#laad();
+    await this.#d.klimaat(id, 'uit');
+    if (this.#terug.some((t) => t.id === id)) {
+      this.#terug = this.#terug.filter((t) => t.id !== id);
+      await this.#bewaar();
+    }
   }
 
   /**
@@ -382,6 +483,12 @@ export class Handbediening {
       if (t.modus === 'aan') {
         if (altijd || s?.state === 'on') {
           await this.#d.schakel(t.id, false);
+          gedaan.push(`${t.id} uit`);
+        }
+      } else if (t.hvac) {
+        // Drogen of ventileren (besluit 319): uit, maar alleen als hij nog zo staat.
+        if (altijd || s?.state === t.hvac) {
+          await this.#d.klimaat(t.id, 'uit');
           gedaan.push(`${t.id} uit`);
         }
       } else if (altijd || (s?.state === 'heat' && Number(s.attributes['temperature']) === t.gezet)) {

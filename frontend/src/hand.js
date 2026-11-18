@@ -69,17 +69,22 @@
 
   /** Het klimaatapparaat bij een apparaat uit het huis: via het apparaat uit de configuratie, of zijn naam in Home Assistant. */
   function bij(d) {
-    if (!data?.aan) return null;
-    return (data.apparaten ?? []).find((a) => (d.actuatorId != null && a.actuatorId === d.actuatorId) || a.id === d.id) ?? null;
+    const a = (data?.apparaten ?? []).find((x) => (d.actuatorId != null && x.actuatorId === d.actuatorId) || x.id === d.id) ?? null;
+    // Klimaat buiten de regeling, zoals het tuinhuis (besluit 319), hangt niet aan de klimaatbrug.
+    return a && (data?.aan || a.soort === 'los') ? a : null;
   }
+  /** Drogen of ventileren (besluit 319): geen doel, alleen tot wanneer. */
+  const isStand = (modus) => modus === 'drogen' || modus === 'ventilator';
 
   /** Wat het apparaat nu doet, als korte zin. */
   function nuZin(a) {
     if (a.actief) {
       const tot = a.actief.totDoel ? t('hand.totHetDoel', { doel: graden(a.actief.doelC) }) : t('hand.totKlokKort', { klok: klokVan(a.actief.totMs) });
+      if (isStand(a.actief.modus)) return t('hand.handStandTot', { wat: t(`hand.modus.${a.actief.modus}`).toLowerCase(), tot });
       return a.actief.modus === 'koelen' ? t('hand.handKoelenTot', { doel: graden(a.actief.doelC), tot }) : t('hand.handOpTot', { doel: graden(a.actief.doelC), tot });
     }
-    const hvac = a.hvac === 'heat' ? t('hand.verwarmt') : a.hvac === 'cool' ? t('hand.koelt') : a.hvac === 'off' ? t('hand.uit') : '';
+    const hvac = a.hvac === 'heat' ? t('hand.verwarmt') : a.hvac === 'cool' ? t('hand.koelt') : a.hvac === 'dry' ? t('hand.droogt') : a.hvac === 'fan_only' ? t('hand.ventileert') : a.hvac === 'off' ? t('hand.uit') : '';
+    if (a.soort === 'los') return hvac;
     return [t('hand.volgt'), hvac].filter(Boolean).join(' · ');
   }
 
@@ -124,6 +129,8 @@
   /** Eerlijk: via welke knop, wat de regeling ermee doet, en wanneer het terug gaat. */
   function hoeZin(a, m, totMs) {
     const klok = klokVan(totMs);
+    if (isStand(open.modus)) return { tekst: t('hand.zinStand', { wat: t(`hand.modus.${open.modus}`).toLowerCase(), klok }) };
+    if (a.soort === 'los') return { tekst: t(open.tot === 'doel' ? 'hand.zinLosDoel' : 'hand.zinLos', { doel: graden(open.doel), klok }) };
     if (!data.aan) return { let: true, tekst: t('hand.staatUitZin') };
     if (m.niet === 'koelstrategie') return { let: true, tekst: t('hand.nietKoelen') };
     if (m.niet === 'vakantie') return { let: true, tekst: t('hand.nietVakantie') };
@@ -217,28 +224,43 @@
   /** Het blad van een klimaatapparaat; in een kamer zonder eigen kop. */
   function blad(a, metKop) {
     const totMs = totVan(open.tot);
+    const stand = isStand(open.modus);
+    const los = a.soort === 'los';
     const m = a.modi.find((x) => x.modus === open.modus) ?? a.modi[0];
+    // Drogen of ventileren heeft geen doel, dus ook geen "tot het doel".
+    if (stand && open.tot === 'doel') open.tot = 'dagdeel';
     const lang = seg(t('hand.hoeLang'), [
       ['u1', t('hand.uur1'), open.tot === 'u1', 'data-hand-tot'],
       ['u2', t('hand.uur2'), open.tot === 'u2', 'data-hand-tot'],
       ['dagdeel', t('hand.totKlok', { klok: klokVan(data.dagdeelTotMs) }), open.tot === 'dagdeel', 'data-hand-tot'],
-      ['doel', t('hand.totDoel', { doel: graden(open.doel) }), open.tot === 'doel', 'data-hand-tot'],
+      ...(stand ? [] : [['doel', t('hand.totDoel', { doel: graden(open.doel) }), open.tot === 'doel', 'data-hand-tot']]),
     ]);
     const kop = metKop ? kopVan(a.naam, [a.kamer, a.nuC != null ? t('hand.nuGraden', { graden: graden(a.nuC) }) : null, nuZin(a)].filter(Boolean).join(' · ')) : '';
-    const terugKnop = a.actief ? `<button type="button" class="hand-terug" data-hand-terug>${esc(t('hand.terug'))}</button>` : '';
-    const wat = a.modi.length > 1 ? seg(t('hand.wat'), a.modi.map((x) => [x.modus, t(`hand.modus.${x.modus}`), x.modus === m.modus, 'data-hand-modus'])) : '';
+    // Een knop die zegt wat hij doet (15 november): een airco die de app zelf aanzette, gaat ook uit.
+    const zetUit = a.actief && (isStand(a.actief.modus) || m.via === 'direct') && a.soort !== 'radiatorknop';
+    const terugKnop = los
+      ? (a.actief || (a.hvac && a.hvac !== 'off') ? `<button type="button" class="hand-terug" data-hand-uit>${esc(t('hand.zetUit'))}</button>` : '')
+      : a.actief ? `<button type="button" class="hand-terug" data-hand-terug>${esc(t(zetUit ? 'hand.uitTerug' : 'hand.terug'))}</button>` : '';
+    const keuzes = [...a.modi.map((x) => x.modus), ...(a.standen ?? [])];
+    const wat = keuzes.length > 1 ? seg(t('hand.wat'), keuzes.map((x) => [x, t(`hand.modus.${x}`), x === open.modus, 'data-hand-modus'])) : '';
+    // Welke kachel (het tuinhuis, besluit 319): de voorinstellingen van het apparaat zelf.
+    const voor = los && (a.voorinstellingen ?? []).length ? `<div class="hand-vraag"><span>${esc(t('hand.welke'))}</span>${seg(t('hand.welke'), a.voorinstellingen.map((x) => [x, x, x === (open.voor ?? a.voorinstelling), 'data-hand-voor']))}</div>` : '';
     const hoe = hoeZin(a, m, totMs);
-    const kan = data.aan && !m.niet;
-    const zet = a.actief ? t('hand.bewaar') : m.modus === 'koelen' ? t('hand.zetKoel', { doel: graden(open.doel) }) : m.via === 'direct' && open.tot !== 'doel' ? t('hand.zetWarm', { klok: klokVan(totMs) }) : t('hand.zetOp', { doel: graden(open.doel) });
+    const kan = (data.aan || los) && (stand || !m.niet);
+    const zet = stand ? t('hand.zetStand', { wat: t(`hand.modus.${open.modus}`), klok: klokVan(totMs) }) : a.actief ? t('hand.bewaar') : m.modus === 'koelen' ? t('hand.zetKoel', { doel: graden(open.doel) }) : m.via === 'direct' && open.tot !== 'doel' ? t('hand.zetWarm', { klok: klokVan(totMs) }) : t('hand.zetOp', { doel: graden(open.doel) });
     const label = open.tot === 'doel' ? t('hand.balkDoel', { doel: graden(open.doel), klok: klokVan(totMs) }) : t('hand.terugOm', { klok: klokVan(totMs) });
+    const knoprij = stand
+      ? `<div class="hand-stand">${iconen.svg(open.modus === 'drogen' ? 'vocht' : 'ventilatie')}<b>${esc(t(`hand.modus.${open.modus}`))}</b><span>${esc(t(`hand.standZin.${open.modus}`))}</span></div>`
+      : `<div class="hand-knoprij"><button type="button" data-hand-doel="-1" aria-label="${esc(t('hand.lager'))}" ${open.doel - m.stap < m.min ? 'disabled' : ''}>−</button>${wijzer(a, m)}<button type="button" data-hand-doel="1" aria-label="${esc(t('hand.hoger'))}" ${open.doel + m.stap > m.max ? 'disabled' : ''}>+</button></div>`;
     return `${kop}
-      <div class="hand-knoprij"><button type="button" data-hand-doel="-1" aria-label="${esc(t('hand.lager'))}" ${open.doel - m.stap < m.min ? 'disabled' : ''}>−</button>${wijzer(a, m)}<button type="button" data-hand-doel="1" aria-label="${esc(t('hand.hoger'))}" ${open.doel + m.stap > m.max ? 'disabled' : ''}>+</button></div>
+      ${knoprij}
       ${wat}
+      ${voor}
       <div class="hand-vraag"><span>${esc(t('hand.hoeLang'))}</span>${lang}</div>
       ${dagbalk(totMs, label)}
       <div class="hand-hoe${hoe.let ? ' let' : ''}">${esc(hoe.tekst)}</div>
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
-      ${hulpBlok(a)}
+      ${stand ? '' : hulpBlok(a)}
       ${slotHtml(a.id, a.naam)}
       <div class="hand-onder">${terugKnop}<button type="button" class="hand-zet" data-hand-zet ${kan ? '' : 'disabled'}>${esc(zet)}</button></div>`;
   }
@@ -539,7 +561,8 @@
     const actief = a.actief ?? null;
     const doetNu = a.hvac === 'cool' ? 'koelen' : a.hvac === 'heat' ? 'verwarmen' : null;
     const m = a.modi?.find((x) => x.modus === actief?.modus) ?? a.modi?.find((x) => x.modus === doetNu && !x.niet) ?? a.modi?.find((x) => !x.niet) ?? a.modi?.[0];
-    return { id, modus: m?.modus ?? null, doel: actief?.doelC ?? m?.doelC ?? 20, tot: actief?.totDoel ? 'doel' : 'dagdeel', plek };
+    const modus = isStand(actief?.modus) ? actief.modus : (m?.modus ?? null);
+    return { id, modus, doel: actief?.doelC ?? m?.doelC ?? 20, tot: actief?.totDoel ? 'doel' : 'dagdeel', plek, voor: a.voorinstelling ?? null };
   }
 
   async function laad() {
@@ -630,13 +653,22 @@
     else if ((x = el('[data-hand-modus]'))) {
       const m = vind(open.id)?.modi.find((y) => y.modus === x.dataset.handModus);
       if (m) Object.assign(open, { modus: m.modus, doel: m.doelC ?? open.doel });
+      else if (isStand(x.dataset.handModus)) open.modus = x.dataset.handModus;
+    } else if ((x = el('[data-hand-voor]'))) open.voor = x.dataset.handVoor;
+    else if (el('[data-hand-uit]')) {
+      // Klimaat buiten de regeling (besluit 319): meteen uit, zonder eind.
+      if (await stuur('api/hand', { id: open.id, uit: true })) open = open.plek ? begin(open.id, open.plek) : null;
     } else if ((x = el('[data-hand-doel]'))) {
       const m = vind(open.id)?.modi.find((y) => y.modus === open.modus);
       if (m) open.doel = Math.max(m.min, Math.min(m.max, Math.round((open.doel + Number(x.dataset.handDoel) * m.stap) * 10) / 10));
     } else if (el('[data-hand-terug]')) {
       if (await stuur('api/hand', { id: open.id, terug: true })) open = open.plek ? begin(open.id, open.plek) : null;
     } else if (el('[data-hand-zet]')) {
-      const ok = await stuur('api/hand', { id: open.id, modus: open.modus, doelC: open.doel, totMs: totVan(open.tot), ...(open.tot === 'doel' ? { totDoel: true } : {}) });
+      const a = vind(open.id);
+      const body = isStand(open.modus)
+        ? { id: open.id, modus: open.modus, totMs: totVan(open.tot) }
+        : { id: open.id, modus: open.modus, doelC: open.doel, totMs: totVan(open.tot), ...(open.tot === 'doel' ? { totDoel: true } : {}), ...(a?.soort === 'los' && open.voor ? { voorinstelling: open.voor } : {}) };
+      const ok = await stuur('api/hand', body);
       if (ok && !open.plek) open = null;
     } else if ((x = el('[data-wg-stap]'))) {
       const n = (open.wg.stappen ?? []).length;

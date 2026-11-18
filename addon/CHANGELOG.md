@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.195.0
+## 0.196.0
 
-*18 november 2026 · 0.179.0 – 0.195.0*
+*18 november 2026 · 0.179.0 – 0.196.0*
 
 **Nieuw**
 
+- Een airco met de hand kan ook drogen of alleen ventileren, tot een tijd. Daarna gaat hij uit, als hij dan nog zo staat
+- Het tuinhuis met de hand: verwarmen naar een doel met de kachel die je kiest (Haard, Heater of Beide), tot een tijd, en Zet uit
 - Toevoegen maakt een gevonden apparaat meteen klaar: links de soort, in het midden wat SunArc vond, rechts waar het staat, op zon en met de hand
 - Verbergen in plaats van Dit is geen apparaat. Wat je verbergt, staat nergens meer; bij Verborgen haal je het terug
 - De auto, de laadpaal en de thuisaccu stel je in op hun kaart bij Apparaten: of hij meedoet, de accu van de auto, aan welke laadpaal hij laadt, Kabel vergeten, en welke sensor van de accu wat is
@@ -52,6 +54,7 @@
 
 **Beter**
 
+- Staat een airco met de hand aan, dan zegt de knop wat hij doet: Uit, terug naar je regeling
 - Een stekker met een kamer staat klaar, ook als hij niet op zon staat
 - Bij een airco of thermostaat kies je hier waar hij staat; wat SunArc ermee doet, kies je bij Klimaat
 - Bij Toevoegen › Losse sensoren staan alleen sensoren van koppelingen als Modbus, MQTT of REST, geen sjablonen, helpers of het weer
@@ -102,6 +105,8 @@
 
 **New**
 
+- An air conditioner by hand can also dry or run the fan only, until a time. Then it switches off, if it is still set that way
+- The garden house by hand: heating to a target with the heater you choose (Haard, Heater or Beide), until a time, and Switch off
 - Add sets up a found device right away: the kind on the left, what SunArc found in the middle, and on the right where it is, on solar and by hand
 - Hide instead of This is not a device. What you hide shows up nowhere; under Hidden you bring it back
 - You set up the car, the charger and the home battery on their card under Devices: whether it takes part, the car battery, which charger it uses, Forgotten cable, and which battery sensor is what
@@ -148,6 +153,7 @@
 
 **Improved**
 
+- When an air conditioner runs by hand, the button says what it does: Off, back to your schedule
 - A plug with a room is set up, even when it is not on solar
 - For an air conditioner or thermostat you choose here where it is; what SunArc does with it, you choose under Climate
 - Under Add › Loose sensors you only see sensors from integrations such as Modbus, MQTT or REST, no templates, helpers or weather

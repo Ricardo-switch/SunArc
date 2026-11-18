@@ -190,3 +190,118 @@ describe('de smalle deur voor met de hand (besluit 235)', () => {
     expect(HAND_KLIMAAT).toEqual(['climate.air_conditioning_woonkamer', 'climate.air_conditioning_zolder']);
   });
 });
+
+/*
+ * Besluit 319: drogen en ventileren met een airco, en klimaat buiten de
+ * regeling (het tuinhuis) met de hand. Direct, met een eind, en alleen wat in de
+ * lijsten staat.
+ */
+async function huis319(extra: Record<string, Staat> = {}) {
+  const staten: Record<string, Staat> = {
+    'input_number.temp_airco_zolder': knop(19),
+    'input_number.temp_airco_zolder_standaard': knop(19),
+    'input_select.verwarming_modus': { state: 'automatisch', attributes: {} },
+    'input_select.verwarming_modus_actief': { state: 'dag', attributes: {} },
+    'input_select.koel_strategie': { state: 'uit', attributes: {} },
+    'climate.air_conditioning_zolder': { state: 'off', attributes: { current_temperature: 17.8, hvac_modes: ['off', 'heat', 'cool', 'dry', 'fan_only', 'auto'] } },
+    'climate.tuinhuis': { state: 'off', attributes: { hvac_modes: ['off', 'heat'], preset_modes: ['Haard', 'Heater', 'Beide'], preset_mode: 'Heater', min_temp: 10, max_temp: 25, temperature: 20, current_temperature: 9.7 } },
+    ...extra,
+  };
+  const gedaan: string[] = [];
+  const nu = { ms: Date.UTC(2026, 10, 18, 14, 10) };
+  const zet = (id: string, state: string, attr: Record<string, unknown> = {}) => (staten[id] = { state, attributes: { ...staten[id]!.attributes, ...attr } });
+  const h = new Handbediening({
+    state: (id) => staten[id],
+    zet: async (k, w) => {
+      gedaan.push(`${k}=${w}`);
+      staten[k] = { ...staten[k]!, state: String(w) };
+    },
+    kies: async () => {},
+    klimaat: async (id, stand) => {
+      gedaan.push(`${id}=${stand === 'uit' ? 'uit' : `warm ${stand.warm}`}`);
+      if (stand === 'uit') zet(id, 'off');
+      else zet(id, 'heat', { temperature: stand.warm });
+    },
+    temperatuur: async () => {},
+    schakel: async () => {},
+    stand: async (id, hvac) => {
+      gedaan.push(`${id}=${hvac}`);
+      zet(id, hvac);
+    },
+    voorinstelling: async (id, p) => {
+      gedaan.push(`${id}=${p}`);
+      zet(id, staten[id]!.state, { preset_mode: p });
+    },
+    nu: () => nu.ms,
+    map: await mkdtemp(join(tmpdir(), 'hand319-')),
+  });
+  return { h, staten, gedaan, nu, zet };
+}
+
+describe('drogen, ventileren en het tuinhuis met de hand (besluit 319)', () => {
+  it('zet een airco op drogen tot een tijd, en daarna uit', async () => {
+    const { h, gedaan, nu } = await huis319();
+    const stand = (await h.standen()).find((s) => s.id === 'climate.air_conditioning_zolder');
+    expect(stand?.standen).toEqual(['drogen', 'ventilator']);
+    expect(await h.zetStand('climate.air_conditioning_zolder', 'drogen', nu.ms + 3_600_000)).toMatchObject({ ok: true });
+    expect(gedaan).toEqual(['climate.air_conditioning_zolder=dry']);
+    nu.ms += 3_600_000;
+    expect(await h.ronde()).toEqual(['climate.air_conditioning_zolder uit']);
+    expect(h.terugzetten).toEqual([]);
+  });
+
+  it('laat hem staan als iemand hem intussen anders zette', async () => {
+    const { h, gedaan, nu, zet } = await huis319();
+    await h.zetStand('climate.air_conditioning_zolder', 'ventilator', nu.ms + 3_600_000);
+    zet('climate.air_conditioning_zolder', 'cool');
+    nu.ms += 3_600_000;
+    expect(await h.ronde()).toEqual([]);
+    expect(gedaan).toEqual(['climate.air_conditioning_zolder=fan_only']);
+  });
+
+  it('weigert drogen bij een airco die het niet kent, of buiten twaalf uur', async () => {
+    const { h, nu } = await huis319({ 'climate.air_conditioning_zolder': { state: 'off', attributes: { hvac_modes: ['off', 'heat', 'cool'] } } });
+    expect(await h.zetStand('climate.air_conditioning_zolder', 'drogen', nu.ms + 3_600_000)).toMatchObject({ ok: false });
+    expect(await h.zetStand('climate.air_conditioning_zolder', 'ventilator', nu.ms + 13 * 3_600_000)).toMatchObject({ ok: false });
+    expect(await h.zetStand('climate.thermostaat_badkamer', 'drogen', nu.ms + 3_600_000)).toMatchObject({ ok: false });
+  });
+
+  it('zet het tuinhuis op verwarmen met een kachel tot een tijd, en daarna uit', async () => {
+    const { h, gedaan, nu } = await huis319();
+    const tuin = (await h.standen([], ['climate.tuinhuis'])).find((s) => s.id === 'climate.tuinhuis');
+    expect(tuin).toMatchObject({ soort: 'los', voorinstellingen: ['Haard', 'Heater', 'Beide'], voorinstelling: 'Heater', modi: [{ modus: 'verwarmen', min: 10, max: 25 }] });
+    expect(await h.zetLos('climate.tuinhuis', 21, 'Beide', nu.ms + 2 * 3_600_000)).toMatchObject({ ok: true, doelC: 21 });
+    expect(gedaan).toEqual(['climate.tuinhuis=Beide', 'climate.tuinhuis=warm 21']);
+    nu.ms += 2 * 3_600_000;
+    expect(await h.ronde()).toEqual(['climate.tuinhuis uit']);
+  });
+
+  it('weigert een kachel of doel die het tuinhuis niet kent, en zet hem meteen uit', async () => {
+    const { h, gedaan, nu } = await huis319();
+    expect(await h.zetLos('climate.tuinhuis', 21, 'Kampvuur', nu.ms + 3_600_000)).toMatchObject({ ok: false });
+    expect(await h.zetLos('climate.tuinhuis', 28, null, nu.ms + 3_600_000)).toMatchObject({ ok: false });
+    await h.zetLos('climate.tuinhuis', 18, null, nu.ms + 3_600_000);
+    await h.uitLos('climate.tuinhuis');
+    expect(gedaan).toEqual(['climate.tuinhuis=warm 18', 'climate.tuinhuis=uit']);
+    expect(h.terugzetten).toEqual([]);
+  });
+
+  it('laat door de deur alleen drogen en ventileren op de airco\'s van de lijst, en het tuinhuis met zijn eigen keuzes', () => {
+    const MAG = { klimaat: HAND_KLIMAAT, schakelaars: [], standen: ['climate.air_conditioning_zolder'], los: { 'climate.tuinhuis': ['Haard', 'Heater', 'Beide'] } };
+    expect(isHandCall('climate', 'set_hvac_mode', { hvac_mode: 'dry' }, { entity_id: 'climate.air_conditioning_zolder' }, MAG)).toBe(true);
+    expect(isHandCall('climate', 'set_hvac_mode', { hvac_mode: 'fan_only' }, { entity_id: 'climate.air_conditioning_zolder' }, MAG)).toBe(true);
+    // Niet op de lijst van standen: alleen warm of uit.
+    expect(isHandCall('climate', 'set_hvac_mode', { hvac_mode: 'dry' }, { entity_id: 'climate.air_conditioning_woonkamer' }, MAG)).toBe(false);
+    expect(isHandCall('climate', 'set_hvac_mode', { hvac_mode: 'cool' }, { entity_id: 'climate.air_conditioning_zolder' }, MAG)).toBe(false);
+    // Het tuinhuis: warm of uit, een temperatuur, zijn eigen voorinstellingen.
+    expect(isHandCall('climate', 'set_hvac_mode', { hvac_mode: 'heat' }, { entity_id: 'climate.tuinhuis' }, MAG)).toBe(true);
+    expect(isHandCall('climate', 'set_temperature', { temperature: 21 }, { entity_id: 'climate.tuinhuis' }, MAG)).toBe(true);
+    expect(isHandCall('climate', 'set_preset_mode', { preset_mode: 'Haard' }, { entity_id: 'climate.tuinhuis' }, MAG)).toBe(true);
+    expect(isHandCall('climate', 'turn_off', {}, { entity_id: 'climate.tuinhuis' }, MAG)).toBe(true);
+    expect(isHandCall('climate', 'set_preset_mode', { preset_mode: 'Kampvuur' }, { entity_id: 'climate.tuinhuis' }, MAG)).toBe(false);
+    expect(isHandCall('climate', 'set_hvac_mode', { hvac_mode: 'dry' }, { entity_id: 'climate.tuinhuis' }, MAG)).toBe(false);
+    // Zonder lijsten (zoals voor besluit 319) blijft alles dicht.
+    expect(isHandCall('climate', 'set_preset_mode', { preset_mode: 'Haard' }, { entity_id: 'climate.tuinhuis' }, { klimaat: HAND_KLIMAAT, schakelaars: [] })).toBe(false);
+    expect(isHandCall('climate', 'set_hvac_mode', { hvac_mode: 'dry' }, { entity_id: 'climate.air_conditioning_zolder' }, { klimaat: HAND_KLIMAAT, schakelaars: [] })).toBe(false);
+  });
+});

@@ -140,7 +140,7 @@ export interface HaClientOptions {
    * zetten, en de stekkers met een warmtebron die hij aan en uit mag zetten.
    * Leeg of weg: dicht.
    */
-  readonly allowHand?: () => { readonly klimaat: readonly string[]; readonly schakelaars: readonly string[] };
+  readonly allowHand?: () => HandMag;
   /**
    * Witgoed starten (ronde 5): alleen de startknop (`button.`) van een droger of
    * vaatwasser uit de lijst, zonder iets erbij. Leeg of weg: dicht.
@@ -302,24 +302,47 @@ export function isKnopCall(
   return false;
 }
 
+/** Wat met de hand mag (besluit 235, 319): de lijsten die de dienst elke keer opnieuw geeft. */
+export interface HandMag {
+  readonly klimaat: readonly string[];
+  readonly schakelaars: readonly string[];
+  /** Airco's die met de hand ook mogen drogen of ventileren (besluit 319). */
+  readonly standen?: readonly string[];
+  /** Klimaat buiten de regeling, zoals het tuinhuis (besluit 319), met de voorinstellingen die het zelf kent. */
+  readonly los?: Readonly<Record<string, readonly string[]>>;
+}
+
 /**
  * Klimaat met de hand (besluit 235): een airco uit de lijst op verwarmen, op een
  * temperatuur, of uit; een stekker uit de lijst aan of uit. Precies die
  * velden, op één entiteit; koelen of een andere stand komt er niet door.
+ *
+ * Besluit 319: een airco uit `standen` ook op drogen of alleen ventileren; en
+ * klimaat buiten de regeling (`los`, zoals het tuinhuis) op verwarmen of uit,
+ * een temperatuur, of één van zijn eigen voorinstellingen.
  */
 export function isHandCall(
   domain: string,
   service: string,
   data: Record<string, unknown>,
   target: Record<string, unknown>,
-  mag: { readonly klimaat: readonly string[]; readonly schakelaars: readonly string[] },
+  mag: HandMag,
 ): boolean {
   if (Object.keys(target).some((k) => k !== 'entity_id')) return false;
   const id = target['entity_id'];
   if (typeof id !== 'string' || !id.startsWith(`${domain}.`)) return false;
   const keys = Object.keys(data);
-  if (domain === 'climate' && mag.klimaat.includes(id)) {
+  const los = domain === 'climate' ? mag.los?.[id] : undefined;
+  if (los) {
     if (service === 'set_hvac_mode') return keys.length === 1 && (data['hvac_mode'] === 'heat' || data['hvac_mode'] === 'off');
+    if (service === 'set_temperature') return keys.length === 1 && typeof data['temperature'] === 'number' && Number.isFinite(data['temperature']) && data['temperature'] >= 5 && data['temperature'] <= 30;
+    if (service === 'set_preset_mode') return keys.length === 1 && typeof data['preset_mode'] === 'string' && los.includes(data['preset_mode']);
+    if (service === 'turn_off') return keys.length === 0;
+    return false;
+  }
+  if (domain === 'climate' && mag.klimaat.includes(id)) {
+    const stand = data['hvac_mode'];
+    if (service === 'set_hvac_mode') return keys.length === 1 && (stand === 'heat' || stand === 'off' || ((stand === 'dry' || stand === 'fan_only') && (mag.standen ?? []).includes(id)));
     if (service === 'set_temperature') return keys.length === 1 && typeof data['temperature'] === 'number' && Number.isFinite(data['temperature']) && data['temperature'] >= 5 && data['temperature'] <= 30;
     if (service === 'turn_off') return keys.length === 0;
     return false;
@@ -456,7 +479,7 @@ export class HaClient extends EventEmitter {
   readonly #options: Required<Omit<HaClientOptions, 'allowWrites' | 'allowLights' | 'allowScenes' | 'allowCovers' | 'allowAiTask' | 'allowListen' | 'allowUpdate' | 'allowNotify' | 'allowKnoppen' | 'allowHand' | 'allowStart' | 'allowLaden' | 'allowTodo'>> & {
     allowUpdate: () => string | null;
     allowKnoppen: () => { readonly entiteiten: readonly string[]; readonly opties: readonly string[] };
-    allowHand: () => { readonly klimaat: readonly string[]; readonly schakelaars: readonly string[] };
+    allowHand: () => HandMag;
     allowStart: () => readonly string[];
     allowLaden: () => LaadMagDeur;
     allowNotify: boolean;

@@ -32,7 +32,9 @@ verwijzing bestaat.
   en met de hand in zijn blad; Regeling is weg ([318]). Sinds 0.194.0 ook de
   auto, de laadpaal en de thuisaccu; Energie houdt panelen, aansluiting, meters,
   prijzen en verwarming. Sinds 0.195.0 maakt Toevoegen een gevonden apparaat
-  meteen klaar, met Verbergen in plaats van Dit is geen apparaat.
+  meteen klaar, met Verbergen in plaats van Dit is geen apparaat. Sinds
+  0.196.0 kan een airco met de hand ook drogen of ventileren, en het tuinhuis
+  verwarmen met de kachel die je kiest ([319]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1035,4 +1037,5 @@ verwijzing bestaat.
 [316]: DECISIONS.md#316-de-woordenlijst-één-woord-per-ding
 [317]: DECISIONS.md#317-klimaat-per-kamer-in-één-blad-kamers-en-indeling-is-weg
 [318]: DECISIONS.md#318-een-apparaat-stel-je-in-op-zijn-kaart-regeling-is-weg
+[319]: DECISIONS.md#319-met-de-hand-drogen-en-ventileren-met-een-airco-en-het-tuinhuis
 <!-- links:einde -->

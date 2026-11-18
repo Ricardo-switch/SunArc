@@ -664,6 +664,11 @@ html.sc-voorbeeld #tel .td-keuze { bottom: calc(250px + env(safe-area-inset-bott
 .hand-laag.op-tel .hand-vel > .hand-blad { border-radius: 26px 26px 0 0; }
 /* De draaiknop met min en plus, en de tijd voor witgoed. */
 .hand-knoprij { display: flex; align-items: center; justify-content: center; gap: 16px; }
+/* Drogen of ventileren met de hand (besluit 319): geen doel, wel wat hij doet. */
+.hand-stand { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 0 10px; color: var(--ijs-t); }
+.hand-stand svg { width: 44px; height: 44px; }
+.hand-stand b { font-family: var(--kop); font-size: 26px; font-weight: 600; color: var(--tekst); }
+.hand-stand span { font-size: 13px; color: var(--zacht); }
 .hand-knoprij button, .hand-tijd button { width: 52px; height: 52px; flex: none; border-radius: 50%; border: 1px solid rgb(var(--wit) / 0.14); background: rgb(var(--wit) / 0.04); color: var(--tekst); font-size: 24px; cursor: pointer; }
 .hand-knoprij button:disabled, .hand-tijd button:disabled { opacity: 0.35; cursor: default; }
 .hand-wijzer { width: 210px; height: 190px; color: var(--tekst); }

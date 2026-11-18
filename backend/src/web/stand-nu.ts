@@ -68,7 +68,7 @@ export interface ResidentStand {
 /** Met de hand vanuit de app (besluit 235): wat de pagina Apparaten zette. */
 export interface StandHand {
   readonly id: string;
-  readonly modus: 'verwarmen' | 'koelen' | 'aan';
+  readonly modus: 'verwarmen' | 'koelen' | 'drogen' | 'ventilator' | 'aan';
   readonly gezet?: number;
   readonly totMs: number;
   readonly totDoel?: boolean;

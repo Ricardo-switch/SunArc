@@ -35,7 +35,7 @@ import { dirname, join, resolve } from 'node:path';
 import { ConfigError, loadSiteConfig } from './config/load.js';
 import { parseSiteConfig } from './config/schema.js';
 import type { SiteConfig } from './core/model.js';
-import { HaClient, type HaEntityState } from './adapters/homeassistant/client.js';
+import { HaClient, type HaEntityState, type HandMag } from './adapters/homeassistant/client.js';
 import {
   fetchRegistries,
   type HaArea,
@@ -530,7 +530,7 @@ const client = new HaClient({
   // Laden met de hand (besluit 262): de laadpalen die de bewoner aanzette, en wat er nog terug moet. Alleen in de add-on.
   allowLaden: () => (laadhand ? laadMag(laadBedieningenNu(), laadhand.terugzetten) : { stroom: [], schakelaars: [], knoppen: [], easee: [], selects: [] }),
   // De slimme stekkers die de bewoner toeliet (besluit 265) gaan door dezelfde deur, los van de klimaatbrug.
-  allowHand: (): { readonly klimaat: readonly string[]; readonly schakelaars: readonly string[] } => {
+  allowHand: (): HandMag => {
     // Zolang de dienst nog opstart, bestaat `stekkerhand` nog niet: dan geen stekkers.
     const stekkers = (() => {
       try {
@@ -543,6 +543,16 @@ const client = new HaClient({
     const klimaat = klimaatAan() || (handbediening?.terugzetten.length ?? 0) > 0
       ? { klimaat: [...new Set([...HAND_KLIMAAT, ...handKnoppen().map((k) => k.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.thermostaat).map((t) => t.id)])], schakelaars: [...handSchakelaars().map((s) => s.id), ...(handbediening?.terugzetten ?? []).filter((t) => t.modus === 'aan').map((t) => t.id)] }
       : { klimaat: [], schakelaars: [] };
+    // Drogen en ventileren (besluit 319): dezelfde airco's als verwarmen met de hand, en wat er nog terug moet.
+    const standen = klimaat.klimaat.length ? [...new Set([...HAND_KLIMAAT, ...(handbediening?.terugzetten ?? []).filter((t) => t.hvac).map((t) => t.id)])] : [];
+    // Klimaat buiten de regeling, zoals het tuinhuis (besluit 319): los van de klimaatbrug, alleen met de deuren open.
+    const los = (() => {
+      try {
+        return inHuisMetDeuren && handbediening ? Object.fromEntries(losKlimaat().map((k) => [k.id, k.voorinstellingen])) : {};
+      } catch {
+        return {};
+      }
+    })();
     // Schakelaars die de bewoner met de hand toeliet (besluit 297): dezelfde deur, alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309).
     const relais = (() => {
       try {
@@ -559,7 +569,7 @@ const client = new HaClient({
         return [];
       }
     })();
-    return { klimaat: klimaat.klimaat, schakelaars: [...new Set([...klimaat.schakelaars, ...stekkers, ...relais, ...sloten])] };
+    return { klimaat: klimaat.klimaat, schakelaars: [...new Set([...klimaat.schakelaars, ...stekkers, ...relais, ...sloten])], standen, los };
   },
 });
 
@@ -728,6 +738,9 @@ const handbediening: Handbediening | null = inHuisMetDeuren
       },
       schakel: (id, aan): Promise<void> => client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: id }),
       temperatuur: (id, c): Promise<void> => client.callService('climate', 'set_temperature', { temperature: c }, { entity_id: id }),
+      // Drogen of ventileren, en welke kachel in het tuinhuis (besluit 319).
+      stand: (id, hvac): Promise<void> => client.callService('climate', 'set_hvac_mode', { hvac_mode: hvac }, { entity_id: id }),
+      voorinstelling: (id, preset): Promise<void> => client.callService('climate', 'set_preset_mode', { preset_mode: preset }, { entity_id: id }),
       map: logDir !== '' ? logDir : null,
     })
   : null;
@@ -922,6 +935,29 @@ function handKnoppen(): { id: string; naam: string; kamer: string; zone?: string
     const zone = inZone.has(a.actuatorId ?? a.id) ? r.zones.find((z) => z.id === a.zone && z.regeling)?.naam : undefined;
     return { id: a.id, naam: a.naam, kamer: r.naam, ...(zone ? { zone } : {}) };
   })));
+}
+/**
+ * Klimaat buiten de regeling (besluit 319), zoals het tuinhuis: een `climate.`
+ * in het huis die geen apparaat van de regeling is, geen radiatorknop en geen
+ * airco van de hand, en die alleen kan verwarmen. Met de hand: verwarmen of
+ * uit, het doel, en zijn eigen voorinstellingen.
+ */
+function losKlimaat(): { id: string; naam: string; kamer: string; voorinstellingen: string[] }[] {
+  const regeling = new Set((siteConfig?.actuators ?? []).map((a) => a.ref.id));
+  return (houseReport()?.etages ?? []).flatMap((e) =>
+    e.ruimtes.flatMap((r) =>
+      r.apparaten
+        .filter((a) => a.soort === 'klimaat' && a.id.startsWith('climate.') && !a.radiatorknop && !regeling.has(a.id) && !regeling.has(a.actuatorId ?? '') && !HAND_KLIMAAT.includes(a.id))
+        .filter((a) => {
+          const modes = allStates.get(a.id)?.attributes['hvac_modes'];
+          return Array.isArray(modes) && modes.includes('heat') && !modes.includes('cool');
+        })
+        .map((a) => {
+          const p = allStates.get(a.id)?.attributes['preset_modes'];
+          return { id: a.id, naam: a.naam, kamer: r.naam, voorinstellingen: Array.isArray(p) ? p.filter((x): x is string => typeof x === 'string') : [] };
+        }),
+    ),
+  );
 }
 /** De stekkers met een warmtebron die niet in de regeling zitten (besluit 235). */
 function handSchakelaars(): { id: string; kamer: string; naam: string; aan: boolean }[] {
@@ -2797,7 +2833,7 @@ if (webPort != null) {
     ...(lightSwitch ? { lights: lightSwitch } : {}),
     ...(coverSwitch ? { covers: coverSwitch } : {}),
     ...(klimaatBrug ? { klimaat: { brug: klimaatBrug, aan: klimaatAan } } : {}),
-    ...(handbediening ? { hand: { hand: handbediening, aan: klimaatAan, schakelaars: handSchakelaars, knoppen: handKnoppen } } : {}),
+    ...(handbediening ? { hand: { hand: handbediening, aan: klimaatAan, schakelaars: handSchakelaars, knoppen: handKnoppen, los: losKlimaat } } : {}),
     verstaanInHuis: () => kiesVerstaan([...allStates.keys()]),
     ...(layoutStore && siteConfig
       ? {

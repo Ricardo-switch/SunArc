@@ -328,6 +328,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [151. Een gast zonder persoon, een back-up, opnieuw beginnen, en een export voor onderzoek](#151-een-gast-zonder-persoon-een-back-up-opnieuw-beginnen-en-een-export-voor-onderzoek)
 - [309. De deuren van de add-on ook op een eigen server (HEMS_DEUREN)](#309-de-deuren-van-de-add-on-ook-op-een-eigen-server-hemsdeuren)
 - [311. Lezen van binnenuit op een eigen server (HEMS_LOKAAL_LEZEN)](#311-lezen-van-binnenuit-op-een-eigen-server-hemslokaallezen)
+- [319. Met de hand: drogen en ventileren met een airco, en het tuinhuis](#319-met-de-hand-drogen-en-ventileren-met-een-airco-en-het-tuinhuis)
 
 **Uitrol en beheer**
 
@@ -14766,6 +14767,52 @@ voor wie op zijn kaart begint).
 de stekker ook met de hand kan. Een boiler uit het instellingenbestand zet je
 hier niet van zon af, net als eerst bij Regeling (daar deed de schakelaar
 niets).
+
+## 319. Met de hand: drogen en ventileren met een airco, en het tuinhuis
+
+*Onderwerp: veiligheid · Status: geldig*
+
+18 november 2026. Met de hand kon een airco alleen verwarmen of uit (besluit
+[235]), en het tuinhuis, sinds 14 november één `climate.tuinhuis` in Home
+Assistant met de haard en de terrasheater, kon in SunArc alleen meekijken: het
+hoort bij geen regeling. Keuzes Ricardo (18 november): het tuinhuis met de hand,
+nu; bij de airco's Drogen en Ventilator, zwaaien en de ventilatorstand niet.
+Zelf regelen blijft na 31 december ([310]).
+
+*Besluit (0.196.0):*
+
+- **Een airco met de hand op drogen of alleen ventileren**, naast verwarmen en
+  koelen, als hij die stand kent. Direct, zonder de knoppen van de regeling en
+  zonder temperatuur, met een eind (een uur, twee uur of tot het dagdeel; geen
+  "tot het doel"). Wat er met de hand op stond, gaat eerst terug. Aan het eind
+  gaat hij uit, maar alleen als hij nog zo staat: zette iemand of de regeling
+  hem intussen anders, dan wint die.
+- **Klimaat buiten de regeling met de hand**, zoals het tuinhuis: een
+  `climate.` in het huis die geen apparaat van de regeling is, geen
+  radiatorknop en geen airco van de hand, en die alleen kan verwarmen.
+  Verwarmen naar een doel binnen zijn eigen bereik, met één van zijn eigen
+  voorinstellingen (welke kachel), tot een tijd; daarna uit, alleen als hij nog
+  zo staat. *Zet uit* is meteen uit. Dit gaat niet via de knoppen van het oude
+  systeem, dus ook als klimaat via je eigen regeling (Functies › Praten) uit
+  staat. De regelaar in Home Assistant doet de rest, ook veilig uit.
+- **De knop zegt wat hij doet:** staat een airco met de hand aan, dan heet de
+  knop *Uit, terug naar je regeling* in plaats van *Terug naar je regeling*
+  (punt van 15 november).
+- **De deur in de dienst** (`isHandCall`) wordt alleen hiervoor breder:
+  `set_hvac_mode` op `dry` of `fan_only` voor de airco's van de hand (lijst
+  `standen`), en voor klimaat buiten de regeling (lijst `los`, met zijn
+  voorinstellingen) `set_hvac_mode` heat of off, `set_temperature` van 5 tot
+  30, `set_preset_mode` met één van zijn eigen voorinstellingen, en
+  `turn_off`. Alleen met de deuren open (add-on of `HEMS_DEUREN`, [309]), en
+  altijd met een eind van hooguit twaalf uur.
+
+*Wat afviel:* zwaaien en de ventilatorstand (keuze Ricardo). De voorinstelling
+na het eind terugzetten: het tuinhuis gaat uit, welke kachel hij volgende keer
+neemt, kies je dan opnieuw.
+
+*Kosten:* Helpen bij de cv staat niet in het blad zolang de airco droogt of
+ventileert; met verwarmen is het blad van een airco met dat blok op de wand nog
+te hoog (al zo sinds besluit [303]).
 
 ## Wat nog een besluit wacht
 

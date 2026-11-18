@@ -6196,6 +6196,85 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 30_000);
 
   /*
+   * Besluit 319: een airco met de hand op drogen of ventileren, de knop Uit die
+   * zegt wat hij doet, en het tuinhuis met welke kachel en Zet uit; het tuinhuis
+   * ook als de klimaatbrug uit staat.
+   */
+  it('met de hand: drogen met een airco, en het tuinhuis met zijn eigen standen (besluit 319)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'Europe/Amsterdam', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const nu = Date.now();
+    const modus = (m: string, doel: number, via: string, min = 16, max = 25) => ({ modus: m, doelC: doel, standaardC: doel, min, max, stap: 0.5, via, niet: null });
+    const hand = {
+      aan: true,
+      nu,
+      dagdeelTotMs: nu + 5 * 3_600_000,
+      apparaten: [
+        { id: 'climate.air_conditioning_zolder', actuatorId: 'ac-zolder', naam: 'Airco zolder', kamer: 'Zolder', zoneId: 'zolder', modi: [modus('verwarmen', 19, 'direct')], standen: ['drogen', 'ventilator'], hvac: 'heat', nuC: 17.8, actief: { modus: 'verwarmen', doelC: 20, totMs: nu + 3_600_000 } },
+        { id: 'climate.tuinhuis', soort: 'los', actuatorId: null, naam: 'Tuinhuis', kamer: 'Tuinhuis', zoneId: null, modi: [modus('verwarmen', 20, 'direct', 10, 25)], voorinstellingen: ['Haard', 'Heater', 'Beide'], voorinstelling: 'Heater', hvac: 'heat', nuC: 9.7, actief: null },
+      ],
+      schakelaars: [],
+    };
+    const gestuurd: Record<string, unknown>[] = [];
+    await context.route(`${baseUrl}/api/hand`, async (route) => {
+      if (route.request().method() === 'POST') {
+        gestuurd.push(route.request().postDataJSON() as Record<string, unknown>);
+        return route.fulfill({ json: { ok: true } });
+      }
+      return route.fulfill({ json: hand });
+    });
+    try {
+      await p.goto(`${baseUrl}/apparaten.html`);
+      const laag = p.locator('[data-hand]');
+      const open = (id: string) => p.evaluate((x) => (globalThis as unknown as { hand: { openen: (id: string) => Promise<void> } }).hand.openen(x), id);
+      // De airco: met de hand aan, dus de knop zegt dat hij ook uitgaat.
+      await expect.poll(() => p.evaluate(() => (globalThis as unknown as { hand: { data: () => unknown } }).hand.data() != null), { timeout: 10_000 }).toBe(true);
+      await open('climate.air_conditioning_zolder');
+      await laag.locator('.hand-blad').waitFor();
+      expect(await laag.locator('.hand-terug').textContent()).toBe('Uit, terug naar je regeling');
+      // Drogen: geen draaiknop, geen "tot het doel", en zo naar de dienst.
+      await laag.locator('[data-hand-modus="drogen"]').click();
+      expect(await laag.locator('.hand-wijzer').count()).toBe(0);
+      expect(await laag.locator('.hand-stand b').textContent()).toBe('Drogen');
+      expect(await laag.locator('[data-hand-tot="doel"]').count()).toBe(0);
+      expect(await laag.locator('.hand-hoe').textContent()).toContain('zonder te verwarmen of te koelen');
+      await laag.locator('[data-hand-tot="u1"]').click();
+      await laag.locator('[data-hand-zet]').click();
+      await expect.poll(() => gestuurd.length).toBe(1);
+      expect(gestuurd[0]).toMatchObject({ id: 'climate.air_conditioning_zolder', modus: 'drogen' });
+      expect(gestuurd[0]).not.toHaveProperty('doelC');
+
+      // Het tuinhuis, met de klimaatbrug uit: welke stand, verwarmen tot een tijd, en Zet uit.
+      hand.aan = false;
+      await p.evaluate(() => (globalThis as unknown as { hand: { laad: () => Promise<unknown> } }).hand.laad());
+      await open('climate.tuinhuis');
+      await laag.locator('.hand-blad h2', { hasText: 'Tuinhuis' }).waitFor();
+      expect(await laag.locator('[data-hand-voor][aria-pressed="true"]').textContent()).toBe('Heater');
+      await laag.locator('[data-hand-voor="Beide"]').click();
+      await laag.locator('[data-hand-doel="1"]').click();
+      expect(await laag.locator('[data-hand-zet]').isDisabled()).toBe(false);
+      await laag.locator('[data-hand-zet]').click();
+      await expect.poll(() => gestuurd.length).toBe(2);
+      expect(gestuurd[1]).toMatchObject({ id: 'climate.tuinhuis', modus: 'verwarmen', doelC: 20.5, voorinstelling: 'Beide' });
+      // Na Zet gaat het blad dicht; daarna opnieuw open voor Zet uit.
+      await expect.poll(() => p.locator('[data-hand] .hand-blad').count(), { timeout: 5_000 }).toBe(0);
+      await open('climate.tuinhuis');
+      await laag.locator('[data-hand-uit]').click();
+      await expect.poll(() => gestuurd.length).toBe(3);
+      expect(gestuurd[2]).toEqual({ id: 'climate.tuinhuis', uit: true });
+      expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight')).toBe(true);
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  }, 40_000);
+
+  /*
    * Klimaat met de hand (besluit 235): een knop op Apparaten opent de laag met
    * de apparaten en het blad; de zolder warm gaat direct, met een eindtijd.
    */

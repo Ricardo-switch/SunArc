@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.195.0';
+export const VERSIE = '0.196.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,26 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.196.0',
+    datum: '2026-11-18',
+    nieuw: [
+      'Een airco met de hand kan ook drogen of alleen ventileren, tot een tijd. Daarna gaat hij uit, als hij dan nog zo staat',
+      'Het tuinhuis met de hand: verwarmen naar een doel met de kachel die je kiest (Haard, Heater of Beide), tot een tijd, en Zet uit',
+    ],
+    beter: [
+      'Staat een airco met de hand aan, dan zegt de knop wat hij doet: Uit, terug naar je regeling',
+    ],
+    en: {
+      nieuw: [
+        'An air conditioner by hand can also dry or run the fan only, until a time. Then it switches off, if it is still set that way',
+        'The garden house by hand: heating to a target with the heater you choose (Haard, Heater or Beide), until a time, and Switch off',
+      ],
+      beter: [
+        'When an air conditioner runs by hand, the button says what it does: Off, back to your schedule',
+      ],
+    },
+  },
   {
     versie: '0.195.0',
     datum: '2026-11-18',

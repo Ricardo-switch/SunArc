@@ -157,9 +157,13 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
       const nu = Date.now();
       const zoneVan = (id: string) => config.zones.find((z) => z.actuatorIds.some((a) => config.actuators.find((x) => x.id === a)?.ref.id === id));
       const knoppen = h.knoppen();
-      const apparaten = (await h.hand.standen(knoppen.map((k) => k.id))).map((s) => {
+      // Klimaat buiten de regeling, zoals het tuinhuis (besluit 319).
+      const los = h.los?.() ?? [];
+      const apparaten = (await h.hand.standen(knoppen.map((k) => k.id), los.map((k) => k.id))).map((s) => {
         const knop = knoppen.find((k) => k.id === s.id);
         if (knop) return { ...s, naam: knop.naam, kamer: knop.kamer, zoneId: null, actuatorId: null, ...(knop.zone ? { zone: knop.zone } : {}) };
+        const l = los.find((k) => k.id === s.id);
+        if (l) return { ...s, naam: l.naam, kamer: l.kamer, zoneId: null, actuatorId: null };
         const a = config.actuators.find((x) => x.ref.id === s.id);
         const zone = zoneVan(s.id);
         // Het klimaatapparaat uit de configuratie: zo vindt het blad van een apparaat in het huis zijn stand (ronde 5).
@@ -174,10 +178,6 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
       sendJson(res, 405, { fout: 'met de hand: GET of POST' });
       return true;
     }
-    if (!h.aan()) {
-      sendJson(res, 409, { fout: 'klimaat met de hand staat uit bij Functies › Praten' });
-      return true;
-    }
     let body: Record<string, unknown>;
     try {
       const b = await readJson(req);
@@ -188,6 +188,12 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
       return true;
     }
     const id = typeof body['id'] === 'string' ? body['id'] : '';
+    // Klimaat buiten de regeling (besluit 319) gaat niet via de knoppen van je regeling: daarvoor hoeft de brug niet aan.
+    const isLos = (h.los?.() ?? []).some((k) => k.id === id);
+    if (!h.aan() && !isLos) {
+      sendJson(res, 409, { fout: 'klimaat met de hand staat uit bij Functies › Praten' });
+      return true;
+    }
     const totMs = Number(body['totMs']);
     // Tot het doel (ronde 5): terug zodra de kamer het doel haalt, en uiterlijk op totMs.
     const totDoel = body['totDoel'] === true;
@@ -207,6 +213,28 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
       }
       const modus = body['modus'];
       const doel = Number(body['doelC']);
+      if (isLos) {
+        // Uit is meteen uit; anders verwarmen naar een doel, met welke kachel, tot een tijd.
+        if (body['uit'] === true) {
+          await h.hand.uitLos(id);
+          sendJson(res, 200, { ok: true });
+          return true;
+        }
+        if (!Number.isFinite(doel)) {
+          sendJson(res, 400, { fout: 'doelC is een getal' });
+          return true;
+        }
+        const keuze = typeof body['voorinstelling'] === 'string' ? body['voorinstelling'] : null;
+        const uit = await h.hand.zetLos(id, doel, keuze, totMs, totDoel);
+        sendJson(res, uit.ok ? 200 : 400, uit.ok ? uit : { fout: uit.reden });
+        return true;
+      }
+      // Drogen of ventileren (besluit 319): een airco van de hand, direct, zonder doel.
+      if (modus === 'drogen' || modus === 'ventilator') {
+        const uit = await h.hand.zetStand(id, modus, totMs);
+        sendJson(res, uit.ok ? 200 : 400, uit.ok ? uit : { fout: uit.reden });
+        return true;
+      }
       // Een radiatorknop buiten de regeling: zijn eigen doel, direct.
       if (h.knoppen().some((k) => k.id === id)) {
         if (!Number.isFinite(doel)) {
