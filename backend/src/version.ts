@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.194.0';
+export const VERSIE = '0.194.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,38 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.194.1',
+    datum: '2026-11-18',
+    beter: [
+      'Bij Toevoegen › Losse sensoren staan alleen sensoren van koppelingen als Modbus, MQTT of REST, geen sjablonen, helpers of het weer',
+      'Een airco of thermostaat die op zon kan maar er niet op staat, zegt op zijn kaart: Op zon zetten bij Klimaat',
+      'In het blad van een zone bij Klimaat, zoals de zithoek, kies je de taak van zijn apparaten. Bij de kamer staat een knop naar de zone',
+      'Waar staat hij? in Je huis toont alle delen rond het huis; een deel kiezen zet het aan',
+      'Een thermostaat of airco die ook de luchtvochtigheid meet, laat die zien in zijn regel en zijn blad',
+      'Alleen kijken heet nu Doet niet mee',
+    ],
+    opgelost: [
+      'Een stekker zonder kamer stond twee keer bij Nieuw gevonden en in de bel',
+      'Op de telefoon schoof Losse sensoren opzij door een lange naam of stand',
+      'Op de telefoon opende Buiten in Je huis zijn blad onder de tekening, buiten beeld',
+    ],
+    en: {
+      beter: [
+        'Under Add › Loose sensors you only see sensors from integrations such as Modbus, MQTT or REST, no templates, helpers or weather',
+        'An air conditioner or thermostat that can run on solar but does not, says on its card: Put on solar in Climate',
+        'In the sheet of a zone under Climate, such as the sitting area, you choose the task of its devices. The room has a button to the zone',
+        'Where is it? in Your home shows every part around the house; choosing a part switches it on',
+        'A thermostat or air conditioner that also measures humidity shows it in its row and its sheet',
+        'Watch only is now called Does not take part',
+      ],
+      opgelost: [
+        'A plug without a room showed twice under Newly found and in the bell',
+        'On the phone, Loose sensors slid sideways with a long name or state',
+        'On the phone, Outside in Your home opened its sheet below the drawing, out of view',
+      ],
+    },
+  },
   {
     versie: '0.194.0',
     datum: '2026-11-18',

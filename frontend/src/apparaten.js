@@ -325,6 +325,12 @@ function klimaatKaart({ a, r }) {
     : `<div class="vandaag">${vandaagKop}<b>${esc(aanMs > 0 ? t('apparaten.aan', { duur: uren(aanMs) }) : t('apparaten.nietAan'))}</b></div>`;
   // Gewone tekst in één regel, geen etiketjes (besluit 228): "Houdt op temperatuur · filter 20%".
   const labels = [a.klimaat?.rol ? ROL(a.klimaat.rol) : '', a.klimaat?.filter?.pct != null ? t('apparaten.filter', { pct: a.klimaat.filter.pct }) : ''].filter(Boolean).join(' · ');
+  // Kan hij op zon maar staat hij er niet op: de weg erheen, naar de kamer bij Klimaat (18-11, keuze Ricardo: één plek).
+  // Alleen met een kamer of zone bij Klimaat (een zone met eigen regeling, zoals de zithoek): anders is er daar niets te kiezen.
+  const klimaatKamer = (r.zones ?? []).find((z) => z.id === a.zone)?.regeling?.zoneId ?? r.zoneId ?? null;
+  const naarZon = klimaatKamer && a.klimaat?.rol && a.klimaat.rol !== 'zon' && huismodel.kanOpZon(a, huisData, aansluiting?.antwoorden?.verwarming ?? null)
+    ? `<span class="mini opzon" data-opzon-klimaat="comfort.html#${esc(encodeURIComponent(klimaatKamer))}">${esc(t('apparaten.opZonBijKlimaat'))} ›</span>`
+    : '';
   const el = document.createElement('a');
   el.className = 'glas app';
   el.href = `kamer.html#${encodeURIComponent(r.id)}/${encodeURIComponent(a.id)}`;
@@ -349,6 +355,7 @@ function klimaatKaart({ a, r }) {
     <div class="stand"><i style="background: ${stand[1]}"></i>${esc(stand[0])}</div>
     ${metHand ? `<p class="mini zin" style="color: var(--zon-t); font-weight: 600">${esc(huismodel.metHoofdletter(hand.nuZin(metHand)))}</p>` : zin ? `<p class="mini zin">${esc(zin)}</p>` : ''}
     ${labels ? `<p class="mini etiket">${esc(labels)}</p>` : ''}
+    ${naarZon}
     ${dag}
     <button type="button" class="meld-app" data-meld-probleem data-apparaat="${esc(a.id)}" data-naam="${esc(a.naam)}">${esc(t('melden.klopt'))}</button>`;
   return el;
@@ -959,7 +966,7 @@ function tekenNu() {
   // Hoeveel er nieuw gevonden is, zoals het scherm Toevoegen het telt (besluit 293).
   const opZonKeuze = aansluiting?.antwoorden?.opZon ?? {};
   const vast = new Set((aansluiting?.configuratie?.apparaten ?? []).map((x) => x.id));
-  const nieuw = (schakelaarData?.schakelaars ?? []).filter((x) => !x.keuze).length + (huisData?.zonderRuimte ?? []).length + (aansluiting?.gevonden?.apparaten ?? []).filter((d) => opZonKeuze[d.id] !== true && !vast.has(d.id) && !stekkersBijSchakelaar().has(d.id)).length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
+  const nieuw = (schakelaarData?.schakelaars ?? []).filter((x) => !x.keuze).length + (huisData?.zonderRuimte ?? []).length + (aansluiting?.gevonden?.apparaten ?? []).filter((d) => opZonKeuze[d.id] !== true && !vast.has(d.id) && !stekkersBijSchakelaar().has(d.id) && !(huisData?.zonderRuimte ?? []).some((z) => z.id === d.id)).length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
   $$('[data-nieuw-tel]').forEach((el) => {
     el.hidden = nieuw === 0;
     el.textContent = String(nieuw);
@@ -977,6 +984,15 @@ function tekenNu() {
   openUitAdres();
 }
 let naarKaart = false;
+
+// De regel naar Klimaat op een kaart die zelf een link of een blad is: eerst, en alleen hij.
+document.addEventListener('click', (e) => {
+  const z = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('[data-opzon-klimaat]'));
+  if (!z) return;
+  e.preventDefault();
+  e.stopPropagation();
+  location.href = z.dataset.opzonKlimaat ?? 'comfort.html';
+}, true);
 
 /* -------------------------------------------------------------- starten */
 

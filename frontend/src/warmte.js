@@ -135,6 +135,31 @@
       const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon' || rol === 'zon' || !a || huismodel.kanOpZon(a, ctx.huis, ctx.verwarming));
       return `<select class="veld rolkeuze kort" data-rol="${esc(sleutel)}" aria-label="${esc(`${t('indeling.deRegeling')}: ${naam}`)}">${keuzes.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
     }
+    /** Een apparaat dat een zone regelt (besluit 306): de taak kies je in de zone; een knop erheen (18-11). */
+    function naarZone(z) {
+      return z.regelzone ? `<a class="knop klein naarzone" href="#${esc(encodeURIComponent(z.regelzone))}">${esc(t('indeling.zone.naarZone', { naam: z.naam }))} ›</a>` : `<span class="mini">${esc(t('indeling.zone.regelt', { naam: z.naam }))}</span>`;
+    }
+    /**
+     * In het blad van een zone (18-11): de apparaten van de zone met hun taak.
+     * Schrijft `zones[].rollen` in de indeling, zoals de kamer `rollen`.
+     */
+    function zoneTaken(kamerId, zoneId) {
+      const d = concept();
+      const k = d?.kamers.find((x) => x.id === kamerId);
+      const z = k?.zones?.find((x) => x.id === zoneId);
+      if (!k || !z) return '';
+      const toestellen = (ruimteVan(k.id)?.apparaten ?? []).filter((a) => a.soort === 'klimaat' && a.zone === z.id);
+      return toestellen
+        .map((a) => {
+          const sleutel = a.actuatorId ?? a.id;
+          const rol = z.rollen?.[sleutel] ?? 'kijken';
+          const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon' || rol === 'zon' || huismodel.kanOpZon(a, ctx.huis, ctx.verwarming));
+          const select = `<select class="veld rolkeuze kort" data-zone-rol="${esc(`${k.id}|${z.id}|${sleutel}`)}" aria-label="${esc(`${t('indeling.deRegeling')}: ${a.naam}`)}">${keuzes.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+          const soort = a.klimaat?.kanKoelen ? t('indeling.airco') : a.radiatorknop ? t('indeling.knopRadiator') : huismodel.metHoofdletter(t('kan.thermostaat'));
+          return bronKaart(a.naam, soort, a.klimaat?.kanKoelen ? ICOON_KOEL : a.radiatorknop ? ICOON_RADIATOR : ICOON_THERMO, !!a.klimaat?.kanKoelen, select, rol === 'zon' ? `<p class="rolzin">${esc(t('indeling.rolZon'))}</p>` : '', ' data-kort');
+        })
+        .join('');
+    }
     function rolKeuzes(gekozen) {
       return `<div class="keuzes" role="radiogroup" aria-label="${esc(t('indeling.watRegeling'))}">${ROL_KEUZE.map(([w, x, u]) => `<button type="button" class="keuze${w === gekozen ? ' aan' : ''}" role="radio" aria-checked="${w === gekozen}" data-bron-rol="${w}"><i></i><span><b>${esc(x)}</b><span>${esc(u)}</span></span></button>`).join('')}</div>`;
     }
@@ -161,7 +186,7 @@
         if (ctx.kort) {
           // Eén regel per apparaat (besluit 317, Klimaat op de wand): de naam, wat het is, en de taak ernaast.
           const zoneEigen = (k.zones ?? []).find((z) => z.rollen?.[sleutel] != null && z.rollen[sleutel] !== 'kijken');
-          const taak = zoneEigen ? `<span class="mini">${esc(t('indeling.zone.regelt', { naam: zoneEigen.naam }))}</span>` : rolKort(k, sleutel, a.naam);
+          const taak = zoneEigen ? naarZone(zoneEigen) : rolKort(k, sleutel, a.naam);
           const ketel = cvThermo()?.sleutel === sleutel;
           const soort = a.klimaat?.kanKoelen ? t('indeling.airco') : a.radiatorknop ? t('indeling.knopRadiator') : ketel ? t('indeling.cvThermostaat') : huismodel.metHoofdletter(t('kan.thermostaat'));
           const meer = [a.klimaat?.filter?.pct != null ? t('indeling.filterPct', { pct: a.klimaat.filter.pct }) : null, a.radiatorknop?.klepPct != null ? t('indeling.klepPct', { pct: a.radiatorknop.klepPct }) : null].filter(Boolean).join(' · ');
@@ -172,7 +197,7 @@
         }
         const viaRegel = `<div class="regelt">${via(a.naam)}${a.klimaat?.filter?.pct != null ? `<span class="mini">${esc(t('indeling.filterPct', { pct: a.klimaat.filter.pct }))}</span>` : ''}${a.radiatorknop?.klepPct != null ? `<span class="mini">${esc(t('indeling.klepPct', { pct: a.radiatorknop.klepPct }))}</span>` : ''}</div>`;
         const zoneEigen = (k.zones ?? []).find((z) => z.rollen?.[sleutel] != null && z.rollen[sleutel] !== 'kijken');
-        const rol = zoneEigen ? `<p class="rolzin">${esc(t('indeling.zone.regelt', { naam: zoneEigen.naam }))}</p>` : rolRegel(k, sleutel);
+        const rol = zoneEigen ? naarZone(zoneEigen) : rolRegel(k, sleutel);
         if (a.klimaat?.kanKoelen) kaarten.push(bronKaart(t('indeling.airco'), huismodel.opsomming([t('indeling.koelt'), a.klimaat.kanVerwarmen ? t('indeling.verwarmt') : null, a.klimaat.kanDrogen ? t('indeling.droogt') : null].filter(Boolean)), ICOON_KOEL, true, slim, viaRegel + rol + (ctx.bijToestel?.(sleutel) ?? '')));
         else if (a.radiatorknop) kaarten.push(bronKaart(t('indeling.knopRadiator'), t('indeling.opCv'), ICOON_RADIATOR, false, slim, viaRegel + rol));
         // De thermostaat van de ketel (besluit 167): wat eraan hangt, gaat mee. Wat dat is, kies je
@@ -487,6 +512,15 @@
         return true;
       }
       const next = concept();
+      // De taak van een apparaat in een zone (18-11): in de zone van die kamer.
+      if (el.dataset.zoneRol) {
+        const [kamerId, zoneId, sleutel] = el.dataset.zoneRol.split('|');
+        const z = next?.kamers.find((x) => x.id === kamerId)?.zones?.find((x) => x.id === zoneId);
+        if (!z) return true;
+        z.rollen = { ...(z.rollen ?? {}), [sleutel]: el.value };
+        await ctx.bewaar(next, t(['houdt', 'zon'].includes(el.value) ? `indeling.rolGezet.${el.value}` : 'indeling.rolGezet.kijken', { naam: toestelNaam(sleutel) }));
+        return true;
+      }
       const k = kamerIn(next);
       if (!k) return false;
       const v = el.value.trim();
@@ -524,7 +558,7 @@
       metenOpen = false;
     }
 
-    return { blad, klik, wissel, sluit, open: () => bronVorm != null, klimaatToestellen, rollenNu, toestelNaam };
+    return { blad, klik, wissel, sluit, open: () => bronVorm != null, klimaatToestellen, rollenNu, toestelNaam, zoneTaken };
   }
 
   // Een bronkaart opent met Enter of spatie, net als een knop.

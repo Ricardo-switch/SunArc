@@ -16,23 +16,35 @@ const states = new Map<string, HaEntityState>([
   st('sensor.nexblue_charging_state', 'Charging', {}),
   st('sensor.buiten', '7', { unit_of_measurement: '°C', device_class: 'temperature' }),
   st('sensor.p1_vermogen', '300', { unit_of_measurement: 'W', device_class: 'power' }),
+  st('sensor.airco_totaal_vermogen_w', '900', { unit_of_measurement: 'W', device_class: 'power' }),
+  st('sensor.gratis_airco_kwh_dag', '2.1', { unit_of_measurement: 'kWh', device_class: 'energy' }),
+  st('sensor.windrichting', 'ZW', {}),
+  // Niet in de registers: een stroom telt (Modbus in YAML), een datum niet.
+  st('sensor.nexblue_current_l2', '6', { unit_of_measurement: 'A' }),
+  st('sensor.date_time', '2026-11-18, 10:00', {}),
 ]);
 const entities: HaRegistryEntity[] = [
   { entity_id: 'sensor.nexblue_power', device_id: null, platform: 'modbus' },
   { entity_id: 'sensor.nexblue_current_l1', device_id: null, platform: 'modbus' },
   { entity_id: 'sensor.nexblue_energy_total', device_id: null, platform: 'modbus' },
+  { entity_id: 'sensor.nexblue_charging_state', device_id: null, platform: 'modbus' },
   { entity_id: 'sensor.buiten', device_id: null, platform: 'buienradar' },
+  // Helpers, sjablonen en het weer zonder apparaat zijn geen laadpaal (melding Ricardo, 18-11).
+  { entity_id: 'sensor.airco_totaal_vermogen_w', device_id: null, platform: 'template' },
+  { entity_id: 'sensor.gratis_airco_kwh_dag', device_id: null, platform: 'utility_meter' },
+  { entity_id: 'sensor.windrichting', device_id: null, platform: 'buienradar' },
   // Op een apparaat: geen losse sensor.
   { entity_id: 'sensor.p1_vermogen', device_id: 'p1', platform: 'homewizard' },
 ];
 const devices: HaDevice[] = [{ id: 'p1', area_id: null, name: 'P1-meter' }];
 
 describe('een laadpaal uit losse sensoren (besluit 301)', () => {
-  it('geeft de sensoren zonder apparaat met hun soort, ook als ze niet in de registers staan', () => {
+  it('geeft de sensoren zonder apparaat van een koppeling als Modbus, geen helpers of sjablonen', () => {
     const s = losseSensoren(entities, states);
     expect(s.map((x) => [x.id, x.soort])).toEqual([
       ['sensor.nexblue_charging_state', 'stand'],
       ['sensor.nexblue_current_l1', 'stroom'],
+      ['sensor.nexblue_current_l2', 'stroom'],
       ['sensor.nexblue_energy_total', 'energie'],
       ['sensor.nexblue_power', 'vermogen'],
     ]);

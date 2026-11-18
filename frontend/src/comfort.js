@@ -297,17 +297,19 @@ function kamerVorm(k) {
 
 /**
  * Een zone met een eigen regeling (besluit 306), zoals de zithoek van de
- * woonkamer: welke apparaten hier regelen, en de weg naar de kamer, waar je
- * de taak kiest. Geen zone, dan niets.
+ * woonkamer: de apparaten van de zone met hun taak (18-11; eerst stond hier
+ * "kies je bij de kamer", en daar stond "geregeld door de zone"), en de weg
+ * naar de kamer. Geen zone, dan niets.
  */
 function zoneZorgt(k) {
   const kamer = indelingKamers().find((x) => (x.zones ?? []).some((z) => z.regelzone === k.id));
   const zone = kamer?.zones.find((z) => z.regelzone === k.id);
   if (!kamer || !zone) return '';
-  const r = ruimteVan(kamer.id);
-  const namen = (r?.apparaten ?? []).filter((a) => a.soort === 'klimaat' && a.zone === zone.id).map((a) => a.naam);
   const naar = comfort.kamers.find((z) => indelingVan(z.id)?.id === kamer.id)?.id ?? ANDER + kamer.id;
-  return `<p class="klein" style="margin: 0">${esc(namen.length ? t('klimaat.zoneMet', { namen: huismodel.opsomming(namen), zone: zone.naam, kamer: kamer.naam }) : t('klimaat.zoneLeeg', { zone: zone.naam, kamer: kamer.naam }))}</p>
+  if (zorg.kamer !== kamer.id) warm.sluit();
+  Object.assign(zorg, { info: indeling, huis: huisData, verwarming, kamer: kamer.id });
+  const taken = warm.zoneTaken(kamer.id, zone.id);
+  return `${taken || `<p class="klein" style="margin: 0">${esc(t('klimaat.zoneLeeg', { zone: zone.naam, kamer: kamer.naam }))}</p>`}
     <a class="knop" href="#${encodeURIComponent(naar)}" style="align-self: flex-start">${esc(t('klimaat.naarKamer', { kamer: kamer.naam }))}</a>`;
 }
 

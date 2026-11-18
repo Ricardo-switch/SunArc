@@ -531,7 +531,10 @@ const kamerHref = (kamerId: string | null, id?: string) => (kamerId ? `kamer.htm
 export function wat(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[] {
   const uit: (Nieuwe & { en: MeldingWoorden })[] = [];
   const nu = bron.nu;
+  // Een stekker die nog niet op zon staat, heeft zijn eigen melding met een weg naar zijn kaart, waar ook Waar staat hij? staat (besluit 318): niet twee keer.
+  const stekkerMelding = new Set((bron.stekkers ?? []).filter((x) => !x.opZon).map((x) => x.id));
   for (const d of bron.zonderRuimte) {
+    if (stekkerMelding.has(d.id)) continue;
     uit.push(tweetalig((lang) => {
       const w = WOORDEN[lang].nieuw;
       return { id: `nieuw:${d.id}`, soort: 'nieuw', aandacht: true, titel: w.titel(d.naam), tekst: w.tekst, actie: { label: w.actie, href: 'jehuis.html#bg/apparaten' } };

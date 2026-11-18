@@ -67,14 +67,25 @@ export interface LosseSensor {
 }
 
 /**
+ * Koppelingen die een apparaat zelf uitlezen zonder er een apparaat van te
+ * maken: daar komt een laadpaal uit losse sensoren vandaan. Sjablonen, helpers,
+ * tellers en het weer (template, utility_meter, integration, buienradar) niet.
+ */
+const LOSSE_KOPPELINGEN = new Set(['modbus', 'mqtt', 'rest', 'command_line', 'scrape', 'snmp', 'serial', 'tcp', 'udp']);
+
+/**
  * De sensoren zonder apparaat in Home Assistant, zoals die van Modbus (besluit
  * 301): een vermogen, een stroom, een totaal in kWh, of een stand in woorden.
+ * Alleen van een koppeling die een apparaat uitleest; wat niet in de registers
+ * staat (Modbus in YAML zonder unique_id) telt als getal mee, niet als woord:
+ * dat zijn datum, tijd en sjablonen van vroeger.
  */
 export function losseSensoren(entities: readonly HaRegistryEntity[], states: ReadonlyMap<string, HaEntityState>): LosseSensor[] {
   const uit: LosseSensor[] = [];
-  const ids = new Set(entities.filter((e) => !e.device_id && !e.disabled_by && e.entity_id.startsWith('sensor.')).map((e) => e.entity_id));
-  // Wat in de registers niet staat (Modbus in YAML zonder unique_id) telt ook.
-  for (const id of states.keys()) if (id.startsWith('sensor.') && !entities.some((e) => e.entity_id === id)) ids.add(id);
+  const inRegister = new Set(entities.map((e) => e.entity_id));
+  const ids = new Set(entities.filter((e) => !e.device_id && !e.disabled_by && e.entity_id.startsWith('sensor.') && LOSSE_KOPPELINGEN.has(e.platform ?? '')).map((e) => e.entity_id));
+  const buiten = new Set<string>();
+  for (const id of states.keys()) if (id.startsWith('sensor.') && !inRegister.has(id)) { ids.add(id); buiten.add(id); }
   for (const id of ids) {
     const s = states.get(id);
     if (!s) continue;
@@ -82,7 +93,7 @@ export function losseSensoren(entities: readonly HaRegistryEntity[], states: Rea
     const klasse = String(s.attributes['device_class'] ?? '');
     // Een Modbus-register zonder eenheid (melding 164): als getal, zodat hij te vinden is.
     const soort = klasse === 'power' || /^k?W$/.test(eenheid) ? 'vermogen' : klasse === 'current' || eenheid === 'A' ? 'stroom' : klasse === 'energy' || /^[kM]?Wh$/.test(eenheid) ? 'energie' : !eenheid && Number.isNaN(Number(s.state)) && !/^(unknown|unavailable)$/.test(s.state) ? 'stand' : !eenheid && !klasse ? 'overig' : null;
-    if (!soort) continue;
+    if (!soort || (soort === 'stand' && buiten.has(id))) continue;
     uit.push({ id, naam: String(s.attributes['friendly_name'] ?? id).slice(0, 80), soort, staat: s.state, eenheid });
   }
   return uit.sort((a, b) => a.id.localeCompare(b.id)).slice(0, 400);

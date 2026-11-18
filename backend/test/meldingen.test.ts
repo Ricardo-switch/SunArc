@@ -8,7 +8,7 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { MeldingenStore, type MeldingenBron } from '../src/web/meldingen.js';
+import { MeldingenStore, wat, type MeldingenBron } from '../src/web/meldingen.js';
 
 const dirs: string[] = [];
 afterEach(async () => {
@@ -212,5 +212,15 @@ describe('meldingen (besluit 136)', () => {
       ['Version 0.59.5: what is new', 'Notifications in English'],
       ['Version 0.59.6: what is new', 'See what is better.'],
     ]);
+  });
+});
+
+describe('een stekker zonder kamer (18-11)', () => {
+  it('staat één keer in de bel: als stekker die nog niet op zon staat, niet ook als nieuw in Home Assistant', () => {
+    const ids = wat(leeg({ zonderRuimte: [{ id: 'stekker-heater', naam: 'Heater' }, { id: 'light.tuinhuis', naam: 'Lamp tuinhuis' }], stekkers: [{ id: 'stekker-heater', naam: 'Heater', opZon: false, meter: null, meterErin: true }] })).map((m) => m.id);
+    expect(ids).toEqual(['nieuw:light.tuinhuis', 'stekker:stekker-heater']);
+    // Op zon, maar nog zonder kamer: dan wel de melding om hem in een kamer te zetten.
+    const opZon = wat(leeg({ zonderRuimte: [{ id: 'stekker-heater', naam: 'Heater' }], stekkers: [{ id: 'stekker-heater', naam: 'Heater', opZon: true, meter: null, meterErin: true }] })).map((m) => m.id);
+    expect(opZon).toEqual(['nieuw:stekker-heater']);
   });
 });

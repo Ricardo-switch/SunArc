@@ -98,5 +98,6 @@
 .zorgt .bron[data-kort] b { font-size: 13.5px; line-height: 1.25; overflow-wrap: break-word; hyphens: auto; }
 .zorgt .bron[data-kort] .wat { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 1.3; }
 .zorgt .rolkeuze.kort { width: auto; max-width: 172px; height: 32px; padding: 0 6px; font-size: 12px; font-weight: 700; }
+.zorgt .naarzone { height: 32px; display: inline-flex; align-items: center; padding: 0 10px; font-size: 12px; font-weight: 700; white-space: nowrap; max-width: 172px; overflow: hidden; text-overflow: ellipsis; text-decoration: none; }
 .zorgt .bron[data-kort] .cvregel { padding-top: 4px; }
 .zorgt .bron[data-kort] .vraagknop { height: 26px; font-size: 12px; }

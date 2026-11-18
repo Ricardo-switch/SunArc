@@ -150,7 +150,9 @@ function standZonderAccu(d) {
   if (d.soort === 'meter') return meting(d.meting);
   if (d.soort === 'klimaat') {
     const m = d.meting?.temperatuurC;
-    return m == null ? d.stand : t('kamer.standMet', { stand: d.stand, graden: graden(m) });
+    // Meet hij ook de luchtvochtigheid (de Nest), dan staat die erbij (18-11).
+    const vocht = d.meting?.vochtPct != null ? ` · ${t('kamer.vocht', { pct: Math.round(d.meting.vochtPct) })}` : '';
+    return (m == null ? d.stand : t('kamer.standMet', { stand: d.stand, graden: graden(m) })) + vocht;
   }
   return d.stand;
 }
@@ -442,6 +444,9 @@ function handBlad(k, d, a, soort) {
     ${strookVandaag(d, soort === 'airco' ? '#6FD3FF' : '#FF7A4D')}`;
 }
 
+/** De luchtvochtigheid die het apparaat zelf meet, klein onder de temperatuur in de schijf (18-11). */
+const vochtTekst = (d, y) => (d.meting?.vochtPct == null ? '' : `<text x="150" y="${y}" text-anchor="middle" font-family="Figtree" font-size="12" fill="#7F8E9C">${esc(t('kamer.vocht', { pct: Math.round(d.meting.vochtPct) }))}</text>`);
+
 function aircoBlad(k, d) {
   const doel = doelen.get(d.id) ?? d.klimaat?.doelC ?? 22;
   const nu = d.meting?.temperatuurC ?? k.temperatuurC;
@@ -473,6 +478,7 @@ function aircoBlad(k, d) {
     <g font-family="Figtree" font-size="11" fill="#7F8E9C"><text x="54" y="262" text-anchor="middle">16°</text><text x="246" y="262" text-anchor="middle">30°</text></g>
     <text x="150" y="146" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="600" font-size="58" fill="#EEF3F7">${nl(doel)}°</text>
     <text x="150" y="172" text-anchor="middle" font-family="Figtree" font-size="13" fill="#B8C4CF">${esc(nu == null ? t('kamer.doel') : t('kamer.doelHetIs', { graden: nl(nu) }))}</text>
+    ${vochtTekst(d, 192)}
     ${lucht}
   </svg>`;
   const kan = d.klimaat ?? { kanKoelen: true, kanVerwarmen: true };
@@ -531,6 +537,7 @@ function nestBlad(k, d) {
     <g stroke-width="3" stroke-linecap="round">${tikken.join('')}</g>
     <text x="150" y="150" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="600" font-size="56" fill="#EEF3F7">${nl(doel, Number.isInteger(doel) ? 0 : 1)}</text>
     <text x="150" y="176" text-anchor="middle" font-family="Figtree" font-size="13" fill="${brandt ? '#FFB090' : '#B8C4CF'}">${esc(t(brandt ? 'kamer.verwarmt' : d.radiatorknop && d.stand !== 'uit' ? 'kamer.klaar' : 'kamer.uit'))}${nu == null ? '' : `, ${esc(t('kamer.nu', { graden: nl(nu) }))}`}</text>
+    ${vochtTekst(d, 196)}
   </svg>`;
   return `${kopVan(d, brandt ? 'gloed-t' : '')}
     <div class="beeld">${svg}</div>

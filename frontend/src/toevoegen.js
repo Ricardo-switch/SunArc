@@ -155,7 +155,9 @@ function nieuwGevonden() {
   const vast = new Set((aansluiting?.configuratie?.apparaten ?? []).map((x) => x.id));
   // Een stekker die al bij een schakelaar hoort (besluit 300), is niet nieuw.
   const bijSchakelaar = new Set(schakelaars.map((x) => x.keuze?.stekker).filter(Boolean));
-  for (const d of aansluiting?.gevonden?.apparaten ?? []) if (opZon[d.id] !== true && !vast.has(d.id) && !bijSchakelaar.has(d.id)) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.nietOpZon', href: 'apparaten.html' });
+  // Een stekker zonder kamer staat er al (besluit 318): één regel per stekker.
+  const zonderKamer = new Set((huisData?.zonderRuimte ?? []).map((d) => d.id));
+  for (const d of aansluiting?.gevonden?.apparaten ?? []) if (opZon[d.id] !== true && !vast.has(d.id) && !bijSchakelaar.has(d.id) && !zonderKamer.has(d.id)) uit.push({ naam: d.naam, soort: d.soort, zin: 'toev.nietOpZon', href: 'apparaten.html' });
   for (const d of aansluiting?.laden?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: d.rol, zin: 'toev.uit', href: 'apparaten.html#laden-lijst' });
   for (const d of aansluiting?.accu?.apparaten ?? []) if (!d.aan) uit.push({ naam: d.naam, soort: 'accu', zin: 'toev.uit', href: 'apparaten.html#accu-lijst' });
   return uit;

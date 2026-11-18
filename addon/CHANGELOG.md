@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.194.0
+## 0.194.1
 
-*18 november 2026 · 0.179.0 – 0.194.0*
+*18 november 2026 · 0.179.0 – 0.194.1*
 
 **Nieuw**
 
@@ -50,6 +50,12 @@
 
 **Beter**
 
+- Bij Toevoegen › Losse sensoren staan alleen sensoren van koppelingen als Modbus, MQTT of REST, geen sjablonen, helpers of het weer
+- Een airco of thermostaat die op zon kan maar er niet op staat, zegt op zijn kaart: Op zon zetten bij Klimaat
+- In het blad van een zone bij Klimaat, zoals de zithoek, kies je de taak van zijn apparaten. Bij de kamer staat een knop naar de zone
+- Waar staat hij? in Je huis toont alle delen rond het huis; een deel kiezen zet het aan
+- Een thermostaat of airco die ook de luchtvochtigheid meet, laat die zien in zijn regel en zijn blad
+- Alleen kijken heet nu Doet niet mee
 - Energie houdt alleen je panelen, de aansluiting, de meters, de prijzen en de verwarming
 - Een zone met een eigen regeling, zoals de zithoek, zegt bij Klimaat welk apparaat hem regelt, met een knop naar de kamer waar je dat kiest
 - Bij Klimaat staan wat een apparaat is en waarmee de kamer meet op twee regels, in plaats van afgekapt
@@ -69,6 +75,9 @@
 
 **Opgelost**
 
+- Een stekker zonder kamer stond twee keer bij Nieuw gevonden en in de bel
+- Op de telefoon schoof Losse sensoren opzij door een lange naam of stand
+- Op de telefoon opende Buiten in Je huis zijn blad onder de tekening, buiten beeld
 - Een stekker die bij een schakelaar hoort, zoals die van de kachel in het tuinhuis, stond ook nog als los apparaat zonder kamer in het huis. Hij hoort bij de kachel
 - Helpen bij de cv paste niet op de wand. Stopt, pomp sparen en stil staan nu naast elkaar
 - De stand van het huis zei "zou bijspringen" terwijl de airco uit stond. Wat SunArc zou doen, staat nu alleen in de strook
@@ -132,6 +141,12 @@
 
 **Improved**
 
+- Under Add › Loose sensors you only see sensors from integrations such as Modbus, MQTT or REST, no templates, helpers or weather
+- An air conditioner or thermostat that can run on solar but does not, says on its card: Put on solar in Climate
+- In the sheet of a zone under Climate, such as the sitting area, you choose the task of its devices. The room has a button to the zone
+- Where is it? in Your home shows every part around the house; choosing a part switches it on
+- A thermostat or air conditioner that also measures humidity shows it in its row and its sheet
+- Watch only is now called Does not take part
 - Energy keeps only your panels, the connection, the meters, the prices and the heating
 - A zone with its own control, such as the seating area, says under Climate which device controls it, with a button to the room where you choose that
 - Under Climate, what a device is and what the room measures with take two lines instead of being cut off
@@ -151,6 +166,9 @@
 
 **Fixed**
 
+- A plug without a room showed twice under Newly found and in the bell
+- On the phone, Loose sensors slid sideways with a long name or state
+- On the phone, Outside in Your home opened its sheet below the drawing, out of view
 - A plug that belongs to a switch, such as the one of the heater in the garden house, also showed as a loose device without a room. It belongs to the heater
 - Helping the boiler did not fit on the wall display. Stops, saving the pump and quiet now sit side by side
 - The state of the house said "would help out" while the air conditioner was off. What SunArc would do is now only in the strip

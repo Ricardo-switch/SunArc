@@ -131,8 +131,8 @@ const rondVan = (d) => (d?.rond ? { border: true, allebei: false, ...d.rond } : 
 
 /*
  * De plekken buiten voor een apparaat (besluit 269; sinds besluit 317 hier, eerst
- * bij Kamers en indeling): de voordeur altijd, en elk deel rond het huis dat
- * aan staat. Een plek zonder ruimte krijgt er een als je er een apparaat zet.
+ * bij Kamers en indeling): de voordeur altijd, en elk deel rond het huis;
+ * wat nog niet aan staat, gaat aan als je het kiest (18-11). Een plek zonder ruimte krijgt er een als je er een apparaat zet.
  */
 const binnenEtage = (k) => k.etage !== 'buiten' && !huismodel.isBuiten({ id: k.etage }, k);
 const ruimteVanId = (id) => (huisData?.etages ?? []).flatMap((e) => e.ruimtes ?? []).find((r) => r.id === id) ?? null;
@@ -147,7 +147,9 @@ function plekNaam(soort, rond) {
 function plekkenBuiten(d) {
   const rond = rondVan(d);
   const kamers = (d?.kamers ?? []).filter((k) => !binnenEtage(k));
-  const soorten = ['voordeur', ...huismodel.rondom().filter(([w, , s]) => s && huismodel.rondAan(rond, w)).map(([, , s]) => s)];
+  // Ook wat nog niet aan staat (18-11), na wat aan staat: kiezen zet het aan (plekErbij).
+  const delen = huismodel.rondom().filter(([, , s]) => s);
+  const soorten = ['voordeur', ...delen.filter(([w]) => huismodel.rondAan(rond, w)).map(([, , s]) => s), ...delen.filter(([w]) => !huismodel.rondAan(rond, w)).map(([, , s]) => s)];
   const vast = soorten.map((soort) => {
     const k = kamers.find((x) => buitenSoort(x) === soort);
     return { waarde: k ? k.id : `plek:${soort}`, naam: k?.naam ?? plekNaam(soort, rond) };
@@ -159,7 +161,15 @@ function plekkenBuiten(d) {
 function plekErbij(next, soort) {
   const bestaat = next.kamers.find((k) => !binnenEtage(k) && buitenSoort(k) === soort);
   if (bestaat) return bestaat.id;
-  const rond = rondVan(next);
+  let rond = rondVan(next);
+  // Een deel dat nog niet aan stond, gaat aan, met waar het aan hangt (de carport aan de oprit).
+  const deel = huismodel.rondom().find(([, , s]) => s === soort)?.[0];
+  if (deel && !huismodel.rondAan(rond, deel)) {
+    const aan = huismodel.hangtAan(deel);
+    if (aan && !rond[aan]) rond = huismodel.rondWissel(rond, aan);
+    if (!rond[deel]) rond = huismodel.rondWissel(rond, deel);
+    next.rond = rond;
+  }
   const naam = plekNaam(soort, rond);
   let id = naam.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 36) || 'buiten';
   for (let i = 2, basis = id; next.kamers.some((k) => k.id === id); i++) id = `${basis}-${i}`;
@@ -460,6 +470,13 @@ async function start() {
   $('[data-etages]').innerHTML = `${huis.etages.map((e) => `<button type="button" data-etage-kies="${esc(e.id)}">${esc(e.kort ?? e.naam)}</button>`).join('')}${info ? `<button type="button" class="tk-buiten" data-buiten-kies aria-label="${esc(t('ht.buiten.kop'))}" title="${esc(t('ht.buiten.kop'))}">${iconen.svg('buiten')}</button>` : ''}`;
   document.querySelectorAll('[data-ik]').forEach((el) => el.insertAdjacentHTML('afterbegin', iconen.svg(el.dataset.ik)));
   tk.op(bij);
+  // Op de telefoon staat het blad onder de tekening: een blad dat opengaat (Buiten, een etage), in beeld schuiven (18-11).
+  let vorigBlad = null;
+  tk.op(() => {
+    const nu = tk.st.blad?.naam ?? null;
+    if (nu && nu !== vorigBlad && app.telStand()) requestAnimationFrame(() => $('#blad').scrollIntoView({ block: 'start', behavior: 'smooth' }));
+    vorigBlad = nu;
+  });
   bij();
   // Een oude link naar Kamers en indeling (`#buiten`, `#verborgen`): dat blad meteen open (besluit 317).
   if (info && ['buiten', 'verborgen'].includes(gevraagd)) tk.toonBlad(gevraagd);

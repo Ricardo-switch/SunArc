@@ -133,6 +133,7 @@ import { registers as houseRegisters, states as houseStates } from './house-fixt
 import { klaarzetten } from '../src/web/klaarzetten.js';
 import { leesLosseLaadpaal, losseSensoren } from '../src/web/schakelaars.js';
 import type { LosseLaadpaal } from '../src/web/opslag.js';
+import type { HaEntityState } from '../src/adapters/homeassistant/client.js';
 import { klaarFuncties } from '../src/web/klaarzetten-functies.js';
 import { Sluipverbruik } from '../src/web/sluipverbruik.js';
 import { CoverSwitch } from '../src/web/covers.js';
@@ -462,7 +463,19 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
           configNow: () => configNu,
           // Een laadpaal uit losse sensoren (besluit 301), voor de route Toevoegen; bewaard in het geheugen.
           losseLaadpalen: {
-            lijst: () => ({ laadpalen: losseNu, sensoren: losseSensoren(houseRegisters.entities, houseStates) }),
+            // Erbij: een Modbus-register met een lange naam en een lange stand (de telefoon schoof opzij, 18-11), en een sjabloon dat niet mag meedoen.
+            lijst: () => ({
+              laadpalen: losseNu,
+              sensoren: losseSensoren(
+                [...houseRegisters.entities, { entity_id: 'sensor.nexblue_edge_max_laadpaal_oprit_actuele_laadstatus_register_40100', device_id: null, platform: 'modbus' }, { entity_id: 'sensor.paal_temperatuur', device_id: null, platform: 'modbus' }, { entity_id: 'sensor.agenda_en_werk_data', device_id: null, platform: 'template' }],
+                new Map([
+                  ...houseStates,
+                  ['sensor.nexblue_edge_max_laadpaal_oprit_actuele_laadstatus_register_40100', { entity_id: 'sensor.nexblue_edge_max_laadpaal_oprit_actuele_laadstatus_register_40100', state: 'Wachtend_op_autorisatie_van_de_gebruiker_via_de_app', attributes: { friendly_name: 'NexBlue Edge Max laadpaal oprit actuele laadstatus (register 40100)' }, last_changed: '', last_updated: '' }],
+                  ['sensor.paal_temperatuur', { entity_id: 'sensor.paal_temperatuur', state: '21', attributes: { friendly_name: 'Paal temperatuur' }, last_changed: '', last_updated: '' }],
+                  ['sensor.agenda_en_werk_data', { entity_id: 'sensor.agenda_en_werk_data', state: 'Werk', attributes: { friendly_name: 'Agenda en Werk Data' }, last_changed: '', last_updated: '' }],
+                ] as [string, HaEntityState][]),
+              ),
+            }),
             bewaar: async (body: unknown) => {
               const l = leesLosseLaadpaal(body);
               if (!l.ok) return l;
@@ -2368,17 +2381,18 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const g = (await greep.boundingBox())!;
     await p.mouse.move(g.x + g.width / 2, g.y + g.height / 2);
     await p.mouse.down();
-    // 10 tot 30 graden over de balk: naar 75% is 25°, maar koelen ligt erboven, dus een graad eronder.
-    await p.mouse.move(vak.x + vak.width * 0.5, g.y + g.height / 2, { steps: 5 });
+    // 10 tot 30 graden over de balk: naar 45% is 19°. Niet 20°: zo staat het voorbeeldhuis al, en hangt de
+    // test niet af van wat een test ervoor bewaarde (de volgorde verschuift als er tests bijkomen, 18-11).
+    await p.mouse.move(vak.x + vak.width * 0.45, g.y + g.height / 2, { steps: 5 });
     await p.mouse.up();
-    await expect.poll(() => comfortNu?.kamers[zone.id]?.modi.dag?.heat, { timeout: 5_000 }).toBe(20);
-    expect(configNu.zones[0]!.setpoints.dag.heat).toBe(20);
+    await expect.poll(() => comfortNu?.kamers[zone.id]?.modi.dag?.heat, { timeout: 5_000 }).toBe(19);
+    expect(configNu.zones[0]!.setpoints.dag.heat).toBe(19);
     await expect.poll(() => wand.locator('[data-bewaard]').textContent()).toContain('Bewaard');
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT });
     // Met de pijltjes een halve graad omhoog.
     await wand.locator('[data-modus="dag"] [data-greep="heat"]').focus();
     await p.keyboard.press('ArrowRight');
-    await expect.poll(() => comfortNu?.kamers[zone.id]?.modi.dag?.heat, { timeout: 5_000 }).toBe(20.5);
+    await expect.poll(() => comfortNu?.kamers[zone.id]?.modi.dag?.heat, { timeout: 5_000 }).toBe(19.5);
     // Een tik op de regel: wanneer het aan- en uitgaat (besluit 133).
     await wand.locator('[data-modus="dag"] [data-uitleg$=":heat"]').click();
     expect(await wand.locator('[data-modus="dag"] .regel small').first().textContent()).toMatch(/^Aan onder .*, uit bij /);
@@ -2429,7 +2443,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await voor.locator(`[data-voor="${zone.id}:-0.5"]`).click();
     await expect.poll(() => comfortNu?.kamers[zone.id]?.modi.voorverwarmen?.heat, { timeout: 5_000 }).toBe(voorNu - 0.5);
     expect(configNu.zones[0]!.setpoints.voorverwarmen.heat).toBe(voorNu - 0.5);
-    expect(configNu.zones[0]!.setpoints.dag.heat).toBe(20.5);
+    expect(configNu.zones[0]!.setpoints.dag.heat).toBe(19.5);
     expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1')).toBe(true);
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-dagdelen.png') });
     expect(fouten).toEqual([]);
@@ -6420,6 +6434,52 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
    * apparaat heen zet: sinds besluit 317 in Je huis, bij Waar staat hij? Op
    * Thuis opent een tik op de voordeur zijn blad.
    */
+  it('Apparaten: een klimaatapparaat dat op zon kan maar er niet op staat, wijst naar Klimaat (18-11)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    try {
+      await p.goto(`${baseUrl}/apparaten.html`);
+      await p.locator('#wand .glas.app').first().waitFor({ timeout: 15_000 });
+      const regels = p.locator('#wand [data-opzon-klimaat]');
+      await expect.poll(() => regels.count(), { timeout: 10_000 }).toBeGreaterThan(0);
+      // Alleen op een kaart die nog niet Helpt op zon.
+      const kaarten = await regels.evaluateAll((els) => els.map((e) => e.closest('.app')!.textContent ?? ''));
+      for (const k of kaarten) expect(k).not.toContain('Helpt op zon');
+      const doel = await regels.first().getAttribute('data-opzon-klimaat');
+      await regels.first().click();
+      await p.waitForURL(/comfort\.html#/);
+      expect(doel).toMatch(/^comfort\.html#.+/);
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  }, 30_000);
+
+  it('Je huis op de telefoon: Buiten opent zijn blad in beeld (18-11)', async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    try {
+      await p.goto(`${baseUrl}/jehuis.html#bg`);
+      const knop = p.locator('#tel .tk-buiten');
+      await knop.waitFor({ timeout: 15_000 });
+      await knop.tap();
+      await expect.poll(() => p.evaluate('window.tekenaar.st.blad?.naam ?? null'), { timeout: 5000 }).toBe('buiten');
+      // De bovenkant van het blad staat in beeld, niet onder de tekening.
+      await expect.poll(() => p.locator('#blad').evaluate((el) => { const r = el.getBoundingClientRect(); return r.top >= -1 && r.top < 844 / 2; }), { timeout: 5000 }).toBe(true);
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  }, 30_000);
+
   it('maakt buiten plekken voor apparaten, ook zonder gebied in Home Assistant, met de voordeur (besluit 269)', async () => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
@@ -6435,8 +6495,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const rondAlles = { oprit: true, auto: false, voortuin: false, tuin: true, terras: false, balkon: false, tuinhuis: false, garage: true, carport: false, schuur: false, jacuzzi: false, border: false, allebei: false };
     const opgeslagen = await layoutStore.save({
       ...voor,
-      rond: { ...rondAlles, ...voor.rond, garage: true },
-      kamers: voor.kamers.filter((k) => !weg.has(k.id)),
+      rond: { ...rondAlles, ...voor.rond, garage: true, terras: false },
+      kamers: voor.kamers.filter((k) => !weg.has(k.id) && k.buiten?.soort !== 'terras'),
       apparaten: Object.fromEntries(Object.entries(voor.apparaten).filter(([, a]) => !weg.has(a.kamer))),
     });
     expect(opgeslagen).toMatchObject({ ok: true });
@@ -6450,7 +6510,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         await p.evaluate(`window.tekenaar.kies({ soort: 'apparaat', id: ${JSON.stringify(app)} })`);
         await p.locator('#wand [data-ht="app-waar"]').click(kort);
         const knop = p.locator('#wand [data-actie="app-buiten"]', { hasText: naam });
-        expect(await p.locator('#wand [data-actie="app-buiten"]').allTextContents()).toEqual(expect.arrayContaining(['Voordeur', 'Garage']));
+        // Ook wat nog niet aan staat, zoals het terras (18-11).
+        expect(await p.locator('#wand [data-actie="app-buiten"]').allTextContents()).toEqual(expect.arrayContaining(['Voordeur', 'Garage', 'Terras']));
         await knop.click(kort);
         return app;
       };
@@ -6463,6 +6524,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       const inGarage = await zetBuiten('Garage');
       await expect.poll(() => plek('garage')?.naam, kort).toBe('Garage');
       await expect.poll(() => layoutStore.current?.apparaten[inGarage]?.kamer, kort).toBe(plek('garage')!.id);
+      // Het terras stond uit: kiezen zet het aan, met een ruimte erbij.
+      const opTerras = await zetBuiten('Terras');
+      await expect.poll(() => plek('terras')?.naam, kort).toBe('Terras');
+      expect(layoutStore.current?.rond?.terras).toBe(true);
+      await expect.poll(() => layoutStore.current?.apparaten[opTerras]?.kamer, kort).toBe(plek('terras')!.id);
 
       // Op Thuis: een tik op de voordeur opent zijn blad.
       await p.goto(`${baseUrl}/thuis.html`);
@@ -8185,16 +8251,41 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await rechts.locator('[data-lnaam]').fill('Laadpaal oprit');
       await rechts.locator('[data-lzoek]').pressSequentially('temp');
       expect(await rechts.locator('[data-lzoek]').inputValue()).toBe('temp');
-      await rechts.locator('[data-lsensor="sensor.temperatuur"]').check();
+      await rechts.locator('[data-lsensor="sensor.paal_temperatuur"]').check();
       await rechts.locator('[data-lbewaar]').click();
       await expect.poll(() => Object.values(losseNu).map((l) => l.naam), { timeout: 5_000 }).toContain('Laadpaal oprit');
-      expect(Object.values(losseNu)[0]!.sensoren).toEqual(['sensor.temperatuur']);
+      expect(Object.values(losseNu)[0]!.sensoren).toEqual(['sensor.paal_temperatuur']);
+      // Het weer en een sjabloon zonder apparaat doen niet mee (18-11).
+      await rechts.locator('[data-lzoek]').fill('');
+      expect(await rechts.locator('[data-lsensor="sensor.temperatuur"], [data-lsensor="sensor.agenda_en_werk_data"]').count()).toBe(0);
       expect(fouten).toEqual([]);
     } finally {
       losseNu = {};
       await context.close();
     }
   }, 40_000);
+
+  it('Losse sensoren op de telefoon: een lange naam en stand schuiven de pagina niet opzij (18-11)', async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    try {
+      await p.goto(`${baseUrl}/toevoegen.html`);
+      await p.locator('#tel [data-soort="losse"]').click();
+      await p.locator('#tel [data-lsensor="sensor.nexblue_edge_max_laadpaal_oprit_actuele_laadstatus_register_40100"]').waitFor();
+      if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT, fullPage: true });
+      expect(await p.evaluate<boolean>('document.documentElement.scrollWidth <= innerWidth + 1')).toBe(true);
+      // Elke rij en zijn stand binnen het vak (dat knipt af, dus de pagina zelf schuift niet).
+      const breed = await p.locator('#tel .lsensor').evaluateAll((els) => els.filter((e) => { const vak = e.closest('.stap')!.getBoundingClientRect().right; return e.getBoundingClientRect().right > vak + 1 || e.querySelector('em')!.getBoundingClientRect().right > vak + 1; }).length);
+      expect(breed).toBe(0);
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  }, 30_000);
 
   it('route 7: de stroomprijs invullen en zien wat het oplevert', async () => {
     const { context, p, fouten } = await routeOpWand();
