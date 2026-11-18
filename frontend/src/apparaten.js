@@ -912,7 +912,9 @@ function kaartenPerSoort() {
   };
   // Een kachel of ventilator achter een schakelaar bij Klimaat (besluit 300).
   per.klimaat.push(...(schakelaarData?.schakelaars ?? []).filter((x) => x.keuze && KLIMAAT_WAT.has(x.keuze.wat)).map(schakelaarKaart));
-  for (const a of gevonden) if (!stekkersBijSchakelaar().has(a.id)) (per[soortVanGevonden(a.soort)] ??= []).push(nietOpZon(a));
+  // Verborgen bij Toevoegen of in Je huis (versie 3): geen kaart.
+  const verborgen = new Set((huisData?.verborgen ?? []).map((x) => x.id));
+  for (const a of gevonden) if (!stekkersBijSchakelaar().has(a.id) && !verborgen.has(a.id)) (per[soortVanGevonden(a.soort)] ??= []).push(nietOpZon(a));
   for (const s of Object.keys(per)) per[s] = [...per[s].filter((k) => k.dataset.actief === 'true'), ...per[s].filter((k) => k.dataset.actief !== 'true')];
   return per;
 }
@@ -966,7 +968,11 @@ function tekenNu() {
   // Hoeveel er nieuw gevonden is, zoals het scherm Toevoegen het telt (besluit 293).
   const opZonKeuze = aansluiting?.antwoorden?.opZon ?? {};
   const vast = new Set((aansluiting?.configuratie?.apparaten ?? []).map((x) => x.id));
-  const nieuw = (schakelaarData?.schakelaars ?? []).filter((x) => !x.keuze).length + (huisData?.zonderRuimte ?? []).length + (aansluiting?.gevonden?.apparaten ?? []).filter((d) => opZonKeuze[d.id] !== true && !vast.has(d.id) && !stekkersBijSchakelaar().has(d.id) && !(huisData?.zonderRuimte ?? []).some((z) => z.id === d.id)).length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
+  // Dezelfde telling als Nieuw gevonden bij Toevoegen (versie 3): witgoed of een boiler is nieuw zonder kamer en niet op zon;
+  // een stekker met een kamer staat klaar, ook als hij niet op zon staat.
+  const inKamer = (id) => (huisData?.etages ?? []).some((e) => (e.ruimtes ?? []).some((r) => (r.apparaten ?? []).some((a) => a.id === id || a.actuatorId === id)));
+  const losNieuw = (aansluiting?.gevonden?.apparaten ?? []).filter((d) => /^(wasmachine|droger|vaatwasser|wasdroger|boiler|jacuzzi)$/.test(d.soort) && opZonKeuze[d.id] !== true && !vast.has(d.id) && !inKamer(d.id) && !(huisData?.zonderRuimte ?? []).some((z) => z.id === d.id));
+  const nieuw = (schakelaarData?.schakelaars ?? []).filter((x) => !x.keuze).length + (huisData?.zonderRuimte ?? []).length + losNieuw.length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
   $$('[data-nieuw-tel]').forEach((el) => {
     el.hidden = nieuw === 0;
     el.textContent = String(nieuw);

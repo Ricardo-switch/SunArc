@@ -8265,6 +8265,82 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     }
   }, 40_000);
 
+  it('Toevoegen maakt klaar: een lamp zonder kamer krijgt een kamer, of gaat naar Verborgen (versie 3)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kort = { timeout: 5_000 };
+    const start = layoutStore.current ? structuredClone(layoutStore.current) : null;
+    try {
+      // De teller op Apparaten is dezelfde als Nieuw gevonden bij Toevoegen.
+      await p.goto(`${baseUrl}/apparaten.html`);
+      const tel = p.locator('#wand [data-nieuw-tel]').first();
+      await expect.poll(() => tel.textContent(), { timeout: 15_000 }).toMatch(/^\d+$/);
+      const opApparaten = Number(await tel.textContent());
+      await p.goto(`${baseUrl}/toevoegen.html`);
+      const wand = p.locator('#wand');
+      await wand.locator('[data-midden] .vond').first().waitFor({ timeout: 15_000 });
+      expect(await wand.locator('[data-midden] h3').textContent()).toBe('Nieuw gevonden');
+      expect(await wand.locator('[data-midden] .vond').count()).toBe(opApparaten);
+      // Het eerste nieuwe apparaat staat meteen in het blad.
+      await wand.locator('[data-rechts] .wie h2').waitFor(kort);
+
+      // Licht: de lamp zonder kamer. Eerst Verbergen: hij staat bij Verborgen, en komt terug met Terughalen.
+      await wand.locator('[data-soort="licht"]').click();
+      const nieuw = wand.locator('[data-midden] .vond', { has: p.locator('small.nieuw') }).first();
+      const id = (await nieuw.getAttribute('data-item'))!;
+      await nieuw.click();
+      await wand.locator('[data-rechts] [data-verberg]').click(kort);
+      await expect.poll(() => layoutStore.current?.verborgen ?? [], kort).toContain(id);
+      await wand.locator('[data-midden] .verborgenregel').click(kort);
+      await wand.locator(`[data-midden] [data-terughalen="${id}"]`).click(kort);
+      await expect.poll(() => layoutStore.current?.verborgen ?? [], kort).not.toContain(id);
+      // Dan Zet klaar: dat opent Waar staat hij?, en een kamer kiezen bewaart hem daar.
+      await p.goto(`${baseUrl}/toevoegen.html#licht/${encodeURIComponent(id)}`);
+      await wand.locator('[data-rechts] .zet[data-in-waar]').click(kort);
+      const kamer = wand.locator('[data-rechts] [data-in-plek]').first();
+      const kamerId = await kamer.getAttribute('data-in-plek');
+      await kamer.click();
+      await expect.poll(() => layoutStore.current?.apparaten?.[id]?.kamer, kort).toBe(kamerId);
+      // Nu staat hij bij Al klaar, met een vinkje.
+      await expect.poll(() => wand.locator(`[data-midden] .vond[data-item="${id}"] .af`).count(), kort).toBe(1);
+      expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1')).toBe(true);
+      expect(fouten).toEqual([]);
+    } finally {
+      if (start) await layoutStore.save(start);
+      await context.close();
+    }
+  }, 60_000);
+
+  it('Toevoegen op de telefoon: de soorten, de lijst, en het blad van onderen (versie 3)', async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    try {
+      await p.goto(`${baseUrl}/toevoegen.html`);
+      await p.locator('#tel [data-soort="licht"]').tap({ timeout: 15_000 });
+      await expect.poll(() => p.locator('#tel [data-telkop]').textContent(), { timeout: 5_000 }).toBe('Licht');
+      await p.locator('#tel [data-stap] .vond').first().tap();
+      const blad = p.locator('#tel [data-laag] .blad');
+      await blad.waitFor({ timeout: 5_000 });
+      expect(await blad.evaluate((el) => { const r = el.getBoundingClientRect(); return r.bottom <= 845 && r.top >= 0; })).toBe(true);
+      expect(await p.evaluate<boolean>('document.documentElement.scrollWidth <= innerWidth + 1')).toBe(true);
+      // Buiten het blad tikken sluit het; de lijst blijft.
+      await p.locator('#tel [data-laag] .achter').tap({ position: { x: 20, y: 40 } });
+      await expect.poll(() => p.locator('#tel [data-laag] .blad').count(), { timeout: 5_000 }).toBe(0);
+      expect(await p.locator('#tel [data-telkop]').textContent()).toBe('Licht');
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  }, 30_000);
+
   it('Losse sensoren op de telefoon: een lange naam en stand schuiven de pagina niet opzij (18-11)', async () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);

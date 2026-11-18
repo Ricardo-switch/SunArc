@@ -1613,8 +1613,10 @@ function stekkerBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBro
   const gekozen = new Set((connectionStore?.current?.buffers ?? []).filter((b) => b.opZon).map((b) => b.actuator));
   const meters = energyStore?.current ? new Set(energyStore.current.apparaten.map((a) => a.id)) : null;
   // Een schakelaar op zon (besluit 304) is niet gevonden maar ingesteld: geen melding.
+  // Verborgen bij Toevoegen of in Je huis (versie 3 van de apparaatkaart): dan ook geen melding meer.
+  const verborgen = new Set(layoutStore?.current?.verborgen ?? []);
   return vindBuffersHa()
-    .filter((b) => b.soort === 'stekker')
+    .filter((b) => b.soort === 'stekker' && !verborgen.has(b.id))
     .map((b) => ({ id: b.id, naam: b.naam, opZon: inRegeling.has(b.actuator) || gekozen.has(b.actuator), meter: b.energy ?? null, meterErin: meters == null || (b.energy != null && meters.has(b.energy)) }));
 }
 function meldingenRonde(): void {
@@ -2756,6 +2758,7 @@ if (webPort != null) {
     },
     schakelaars: {
       lijst: () => schakelaarViews(vindSchakelaarsNu(), schakelaarKeuzes(), allStates),
+      verborgen: () => vindSchakelaarsNu().filter((g) => schakelaarKeuzes().geen.includes(g.id)).map((g) => ({ id: g.id, naam: g.naam })),
       bewaar: async (body) => {
         if (!schakelaarStore) return { ok: false as const, reden: 'er is geen map om de keuze te bewaren' };
         const k = leesSchakelaarKeuze(body);

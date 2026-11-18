@@ -14726,7 +14726,37 @@ een eigen blad, dat Toevoegen › Auto en laden en › Thuisaccu openen. Energie
 houdt de panelen, de aansluiting, de meters, de prijzen en de verwarming; een
 oude link naar Energie › Auto of › Thuisaccu komt bij Apparaten uit.
 
-*Wat volgt:* versie 3 laat Toevoegen een gevonden apparaat meteen klaarmaken.
+*Versie 3 (0.195.0, 18 november):* Toevoegen maakt klaar in plaats van door te
+sturen. Van de negen knoppen stuurden er zeven door, en Warm water, Witgoed en
+Stekkers kwamen op Apparaten uit zonder dat er iets gebeurde. Schets
+Wand-Toevoegen-Klaar en Tel-Toevoegen-Klaar, goedgekeurd door Ricardo.
+
+- **Drie kolommen op de wand:** links de soorten met wat nieuw is of klaar
+  staat, in het midden wat SunArc van die soort vond (nieuw bovenaan, wat klaar
+  is met een vinkje), rechts het blad om hem meteen klaar te zetten. Op de
+  telefoon zijn het drie stappen, met het blad van onderen.
+- **Het blad gebruikt dezelfde regels als de kaart** (Waar, Op zon, Met de
+  hand). Er komt geen tweede instelling bij: het is dezelfde keuze, die je hier
+  al kunt maken voordat het apparaat een kaart heeft.
+- **Klaar is: het staat ergens.** Een apparaat zonder kamer is nieuw; *Zet
+  klaar* opent Waar staat hij?. Witgoed en een boiler zijn ook klaar als ze op
+  zon staan. Een stekker met een kamer is klaar, ook als hij niet op zon staat:
+  eerst bleef die voor altijd nieuw. Een schakelaar is klaar als hij is
+  ingesteld, een auto, laadpaal of accu als hij meedoet. De teller op de knop
+  Toevoegen bij Apparaten telt hetzelfde.
+- **Een klimaatapparaat**: waar hij staat kies je hier, wat SunArc ermee doet
+  bij Klimaat (keuze Ricardo, 18 november: één plek voor de taak).
+- **Verbergen in plaats van Dit is geen apparaat**, voor een stekker,
+  schakelaar of apparaat zonder kamer. Verborgen staat nergens meer: niet bij
+  Nieuw gevonden, niet in het huis, niet als kaart, niet in de bel. Onder in de
+  lijst staat *Verborgen*, met *Terughalen*. Een apparaat gaat in de
+  `verborgen` van de indeling (zoals in Je huis), een schakelaar in `geen` van
+  zijn keuzes; `api/schakelaars` geeft de verborgen schakelaars nu mee.
+
+*Wat afviel:* "Wat zit erin?" bij een stekker uit de schets: de dienst kent
+voor een stekker nog geen soort ding, en dat zou een nieuwe instelling zijn. En
+een eigen knop Zet klaar die bewaart: de regels bewaren meteen, net als op de
+kaart, dus Zet klaar opent alleen wat nog mist.
 
 *Wat afviel:* een overzicht van alles op zon naast de bladen (een tweede plek
 voor dezelfde schakelaar), en Waar staat hij? alleen via Je huis (een stap meer

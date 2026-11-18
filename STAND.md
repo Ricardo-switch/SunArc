@@ -31,7 +31,8 @@ verwijzing bestaat.
   Sinds 0.193.0 stel je een apparaat in op zijn kaart: waar het staat, op zon
   en met de hand in zijn blad; Regeling is weg ([318]). Sinds 0.194.0 ook de
   auto, de laadpaal en de thuisaccu; Energie houdt panelen, aansluiting, meters,
-  prijzen en verwarming.
+  prijzen en verwarming. Sinds 0.195.0 maakt Toevoegen een gevonden apparaat
+  meteen klaar, met Verbergen in plaats van Dit is geen apparaat.
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.

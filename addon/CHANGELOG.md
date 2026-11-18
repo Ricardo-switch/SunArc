@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.194.1
+## 0.195.0
 
-*18 november 2026 · 0.179.0 – 0.194.1*
+*18 november 2026 · 0.179.0 – 0.195.0*
 
 **Nieuw**
 
+- Toevoegen maakt een gevonden apparaat meteen klaar: links de soort, in het midden wat SunArc vond, rechts waar het staat, op zon en met de hand
+- Verbergen in plaats van Dit is geen apparaat. Wat je verbergt, staat nergens meer; bij Verborgen haal je het terug
 - De auto, de laadpaal en de thuisaccu stel je in op hun kaart bij Apparaten: of hij meedoet, de accu van de auto, aan welke laadpaal hij laadt, Kabel vergeten, en welke sensor van de accu wat is
 - Een laadpaal heeft een eigen kaart bij Auto en laden
 - Bij Toevoegen › Auto en laden en › Thuisaccu staat wat SunArc vond, met een schakelaar, en een ander apparaat kiezen
@@ -50,6 +52,8 @@
 
 **Beter**
 
+- Een stekker met een kamer staat klaar, ook als hij niet op zon staat
+- Bij een airco of thermostaat kies je hier waar hij staat; wat SunArc ermee doet, kies je bij Klimaat
 - Bij Toevoegen › Losse sensoren staan alleen sensoren van koppelingen als Modbus, MQTT of REST, geen sjablonen, helpers of het weer
 - Een airco of thermostaat die op zon kan maar er niet op staat, zegt op zijn kaart: Op zon zetten bij Klimaat
 - In het blad van een zone bij Klimaat, zoals de zithoek, kies je de taak van zijn apparaten. Bij de kamer staat een knop naar de zone
@@ -75,6 +79,7 @@
 
 **Opgelost**
 
+- Bij Losse sensoren stonden de regen van Buienradar en andere gegevens van command_line of REST. Daarvan staat nu alleen wat een vermogen, stroom of kWh meet
 - Een stekker zonder kamer stond twee keer bij Nieuw gevonden en in de bel
 - Op de telefoon schoof Losse sensoren opzij door een lange naam of stand
 - Op de telefoon opende Buiten in Je huis zijn blad onder de tekening, buiten beeld
@@ -97,6 +102,8 @@
 
 **New**
 
+- Add sets up a found device right away: the kind on the left, what SunArc found in the middle, and on the right where it is, on solar and by hand
+- Hide instead of This is not a device. What you hide shows up nowhere; under Hidden you bring it back
 - You set up the car, the charger and the home battery on their card under Devices: whether it takes part, the car battery, which charger it uses, Forgotten cable, and which battery sensor is what
 - A charger has its own card under Car and charging
 - Under Add › Car and charging and › Home battery you see what SunArc found, with a switch, and you can choose another device
@@ -141,6 +148,8 @@
 
 **Improved**
 
+- A plug with a room is set up, even when it is not on solar
+- For an air conditioner or thermostat you choose here where it is; what SunArc does with it, you choose under Climate
 - Under Add › Loose sensors you only see sensors from integrations such as Modbus, MQTT or REST, no templates, helpers or weather
 - An air conditioner or thermostat that can run on solar but does not, says on its card: Put on solar in Climate
 - In the sheet of a zone under Climate, such as the sitting area, you choose the task of its devices. The room has a button to the zone
@@ -166,6 +175,7 @@
 
 **Fixed**
 
+- Loose sensors showed the rain from Buienradar and other data from command_line or REST. Now only what measures power, current or kWh shows there
 - A plug without a room showed twice under Newly found and in the bell
 - On the phone, Loose sensors slid sideways with a long name or state
 - On the phone, Outside in Your home opened its sheet below the drawing, out of view

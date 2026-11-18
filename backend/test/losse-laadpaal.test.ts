@@ -19,6 +19,9 @@ const states = new Map<string, HaEntityState>([
   st('sensor.airco_totaal_vermogen_w', '900', { unit_of_measurement: 'W', device_class: 'power' }),
   st('sensor.gratis_airco_kwh_dag', '2.1', { unit_of_measurement: 'kWh', device_class: 'energy' }),
   st('sensor.windrichting', 'ZW', {}),
+  st('sensor.neerslag_buienradar_regen_data_2', '2026-11-18 10:00', {}),
+  st('sensor.neerslag_buienalarm_regen_data_2', 'unknown', {}),
+  st('sensor.paal_rest_vermogen', '700', { unit_of_measurement: 'W' }),
   // Niet in de registers: een stroom telt (Modbus in YAML), een datum niet.
   st('sensor.nexblue_current_l2', '6', { unit_of_measurement: 'A' }),
   st('sensor.date_time', '2026-11-18, 10:00', {}),
@@ -33,6 +36,11 @@ const entities: HaRegistryEntity[] = [
   { entity_id: 'sensor.airco_totaal_vermogen_w', device_id: null, platform: 'template' },
   { entity_id: 'sensor.gratis_airco_kwh_dag', device_id: null, platform: 'utility_meter' },
   { entity_id: 'sensor.windrichting', device_id: null, platform: 'buienradar' },
+  // De regen van Buienradar via command_line (Ricardo, 18-11): geen vermogen, stroom of kWh, dus geen laadpaal.
+  { entity_id: 'sensor.neerslag_buienradar_regen_data_2', device_id: null, platform: 'command_line' },
+  { entity_id: 'sensor.neerslag_buienalarm_regen_data_2', device_id: null, platform: 'command_line' },
+  // Wel: een vermogen via REST.
+  { entity_id: 'sensor.paal_rest_vermogen', device_id: null, platform: 'rest' },
   // Op een apparaat: geen losse sensor.
   { entity_id: 'sensor.p1_vermogen', device_id: 'p1', platform: 'homewizard' },
 ];
@@ -47,6 +55,7 @@ describe('een laadpaal uit losse sensoren (besluit 301)', () => {
       ['sensor.nexblue_current_l2', 'stroom'],
       ['sensor.nexblue_energy_total', 'energie'],
       ['sensor.nexblue_power', 'vermogen'],
+      ['sensor.paal_rest_vermogen', 'vermogen'],
     ]);
   });
 

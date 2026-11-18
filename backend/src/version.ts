@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.194.1';
+export const VERSIE = '0.195.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,34 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.195.0',
+    datum: '2026-11-18',
+    nieuw: [
+      'Toevoegen maakt een gevonden apparaat meteen klaar: links de soort, in het midden wat SunArc vond, rechts waar het staat, op zon en met de hand',
+      'Verbergen in plaats van Dit is geen apparaat. Wat je verbergt, staat nergens meer; bij Verborgen haal je het terug',
+    ],
+    beter: [
+      'Een stekker met een kamer staat klaar, ook als hij niet op zon staat',
+      'Bij een airco of thermostaat kies je hier waar hij staat; wat SunArc ermee doet, kies je bij Klimaat',
+    ],
+    opgelost: [
+      'Bij Losse sensoren stonden de regen van Buienradar en andere gegevens van command_line of REST. Daarvan staat nu alleen wat een vermogen, stroom of kWh meet',
+    ],
+    en: {
+      nieuw: [
+        'Add sets up a found device right away: the kind on the left, what SunArc found in the middle, and on the right where it is, on solar and by hand',
+        'Hide instead of This is not a device. What you hide shows up nowhere; under Hidden you bring it back',
+      ],
+      beter: [
+        'A plug with a room is set up, even when it is not on solar',
+        'For an air conditioner or thermostat you choose here where it is; what SunArc does with it, you choose under Climate',
+      ],
+      opgelost: [
+        'Loose sensors showed the rain from Buienradar and other data from command_line or REST. Now only what measures power, current or kWh shows there',
+      ],
+    },
+  },
   {
     versie: '0.194.1',
     datum: '2026-11-18',

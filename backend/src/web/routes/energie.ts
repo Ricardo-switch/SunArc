@@ -120,7 +120,7 @@ export async function energieRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
   if (path === '/api/schakelaars' && d.options.schakelaars) {
     const s = d.options.schakelaars;
     if (method !== 'POST') {
-      sendJson(res, 200, { schakelaars: s.lijst(), bedienen: s.zet != null });
+      sendJson(res, 200, { schakelaars: s.lijst(), bedienen: s.zet != null, verborgen: s.verborgen?.() ?? [] });
       return true;
     }
     let body: unknown;

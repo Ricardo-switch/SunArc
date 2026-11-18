@@ -94,6 +94,11 @@ export function losseSensoren(entities: readonly HaRegistryEntity[], states: Rea
     // Een Modbus-register zonder eenheid (melding 164): als getal, zodat hij te vinden is.
     const soort = klasse === 'power' || /^k?W$/.test(eenheid) ? 'vermogen' : klasse === 'current' || eenheid === 'A' ? 'stroom' : klasse === 'energy' || /^[kM]?Wh$/.test(eenheid) ? 'energie' : !eenheid && Number.isNaN(Number(s.state)) && !/^(unknown|unavailable)$/.test(s.state) ? 'stand' : !eenheid && !klasse ? 'overig' : null;
     if (!soort || (soort === 'stand' && buiten.has(id))) continue;
+    // Een algemene koppeling (command_line, REST, scrape) haalt van alles op, zoals de regen van Buienradar
+    // (Ricardo, 18-11): daarvan alleen wat een vermogen, stroom of kWh meet. Een stand of getal zonder eenheid
+    // alleen van Modbus of MQTT, die een apparaat zelf uitlezen.
+    const platform = entities.find((e) => e.entity_id === id)?.platform ?? null;
+    if ((soort === 'stand' || soort === 'overig') && platform != null && platform !== 'modbus' && platform !== 'mqtt') continue;
     uit.push({ id, naam: String(s.attributes['friendly_name'] ?? id).slice(0, 80), soort, staat: s.state, eenheid });
   }
   return uit.sort((a, b) => a.id.localeCompare(b.id)).slice(0, 400);

@@ -247,6 +247,8 @@ export interface WebOptions {
   };
   readonly schakelaars?: {
     readonly lijst: () => readonly SchakelaarView[];
+    /** Wat verborgen is ("Verbergen" bij Toevoegen, versie 3 van de apparaatkaart): om terug te halen. */
+    readonly verborgen?: () => readonly { readonly id: string; readonly naam: string }[];
     readonly bewaar: (body: unknown) => Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }>;
     readonly zet?: (knop: string, aan: boolean) => Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }>;
   };
