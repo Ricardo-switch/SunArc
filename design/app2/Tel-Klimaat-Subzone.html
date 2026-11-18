@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Zones als deel van de kamer (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Zones als deel van de kamer, op de telefoon (schets bij Wand-Klimaat-Subzone,
+   * 18 november 2026). De lijst met de zones ingesprongen onder hun kamer; het
+   * blad van de kamer met eerst wat ervoor zorgt, per zone (zoals Tel-Klimaat-Kamer),
+   * dan hoe warm. Op de telefoon mag de pagina schuiven.
+   *   #lijst       de kamers, met Zithoek en Keuken onder de woonkamer
+   *   #woonkamer   het blad van de woonkamer
+   */
+  .tel { position: relative; }
+  .inhoud { padding: 16px 16px 110px; display: flex; flex-direction: column; gap: 10px; }
+  .inhoud h1 { font-size: 32px; margin: 0; }
+  .terug { font-size: 13px; font-weight: 700; color: var(--zacht); }
+  h4 { margin: 8px 4px 2px; font-size: 12px; font-weight: 700; color: var(--gedempt); text-transform: uppercase; letter-spacing: 0.06em; }
+  .groep { padding: 6px; display: flex; flex-direction: column; border-radius: 22px; }
+  .kamer { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; min-height: 58px; padding: 6px 10px; }
+  .kamer + .kamer { border-top: 1px solid rgb(var(--wit) / 0.05); }
+  .icoon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); color: var(--gloed); }
+  .icoon svg { width: 21px; height: 21px; }
+  .kamer b { display: block; font-size: 16px; }
+  .kamer span { font-size: 12.5px; color: var(--gedempt); }
+  .kamer em { font-style: normal; font-family: var(--kop); font-weight: 600; font-size: 16px; }
+  .kamer i { font-style: normal; color: var(--gedempt); }
+  .zone { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; min-height: 44px; margin-left: 50px; padding: 4px 10px 4px 14px; border-left: 2px solid rgb(var(--wit) / 0.12); }
+  .zone b { font-size: 14.5px; font-weight: 600; }
+  .zone em { font-style: normal; font-family: var(--kop); font-weight: 600; font-size: 15px; }
+  .zone i { font-style: normal; color: var(--gedempt); }
+  .kop2 { display: flex; align-items: center; gap: 12px; }
+  .kop2 .getal { margin-left: auto; font-size: 30px; }
+  .nuzin { padding: 11px 14px; border-radius: 16px; background: rgba(111, 211, 255, 0.08); border: 1px solid rgba(111, 211, 255, 0.18); font-size: 14px; line-height: 1.4; }
+  .nuzin .zou { color: var(--ijs-zacht); }
+  .zonegroep { padding: 8px 10px 10px; border-radius: 18px; display: flex; flex-direction: column; gap: 2px; }
+  .zonekop { display: flex; align-items: baseline; gap: 8px; padding: 2px 4px 4px; }
+  .zonekop b { font-size: 12.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--zacht); }
+  .zonekop em { font-style: normal; font-weight: 700; font-size: 13px; }
+  .zonekop .r { margin-left: auto; font-size: 12px; color: var(--gedempt); }
+  .toestel { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 4px 10px; align-items: center; padding: 8px 4px; }
+  .toestel + .toestel { border-top: 1px solid rgb(var(--wit) / 0.05); }
+  .toestel .icoon { width: 32px; height: 32px; border-radius: 10px; }
+  .toestel .icoon svg { width: 18px; height: 18px; }
+  .toestel b { display: block; font-size: 14.5px; }
+  .toestel span { font-size: 12px; color: var(--gedempt); }
+  .toestel .taak, .toestel .volgt { grid-column: 2; justify-self: start; height: 32px; padding: 0 11px; border-radius: 10px; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700; }
+  .toestel .taak { background: rgb(var(--wit) / 0.08); color: var(--tekst); }
+  .toestel .volgt { color: var(--zacht); }
+  .volgt { border: 1px dashed var(--glas-rand); color: var(--zacht); font-weight: 600 !important; }
+  .cv { grid-column: 2; display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 11px; background: rgba(255, 122, 77, 0.07); border: 1px solid rgba(255, 122, 77, 0.16); font-size: 13px; font-weight: 700; }
+  .schakel { margin-left: auto; width: 40px; height: 24px; border-radius: 999px; background: rgb(var(--wit) / 0.15); position: relative; flex: none; }
+  .schakel::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; }
+  .schakel.aan { background: var(--gloed); }
+  .schakel.aan::after { left: 18px; }
+  .rij { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 16px; font-size: 14px; }
+  .rij .naam { flex: 1; }
+  .rij .naam b { display: block; }
+  .rij .naam span { font-size: 12.5px; color: var(--gedempt); }
+  .voet { margin: 0 4px; font-size: 12.5px; color: var(--gedempt); line-height: 1.45; }
+  .tabs { position: fixed; left: 12px; right: 12px; bottom: 14px; }
+</style>
+</head>
+<body>
+<div class="tel lucht lucht-avond">
+  <div class="inhoud" data-inhoud></div>
+  <nav class="tabs" id="tabs" aria-label="Hoofdmenu"></nav>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script>localStorage.setItem('sc-taal', 'nl');</script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script>
+  const stand = location.hash.slice(1) || 'lijst';
+  if (nav.tabs) nav.tabs(document.getElementById('tabs'), 'instellingen');
+  const ik = (naam, kleur = 'gloed') => `<span class="icoon" style="color: var(--${kleur})">${iconen.svg(naam)}</span>`;
+  const kamer = (icoon, naam, zin, nu) => `<div class="kamer">${ik(icoon)}<div><b>${naam}</b><span>${zin}</span></div><em>${nu}</em><i>›</i></div>`;
+  const zone = (naam, nu) => `<div class="zone"><b>${naam}</b><em>${nu}</em><i>›</i></div>`;
+
+  const lijst = `<span class="terug">‹ Instellingen</span><h1 class="kop-1">Klimaat</h1>
+    <h4>Kamers</h4>
+    <section class="glas groep">
+      ${kamer('kamers', 'Wasruimte', "overdag 19 tot 25°, 's nachts 16°", '17,8°')}
+      ${kamer('kamers', 'Badkamer', "overdag 18°, 's nachts 16°", '20°')}
+      ${kamer('woonkamer', 'Woonkamer', "overdag 20 tot 25°, 's nachts 16°", '20,1°')}
+      ${zone('Zithoek', '19,5°')}
+      ${zone('Keuken', '20,6°')}
+    </section>
+    <h4>Andere kamers</h4>
+    <section class="glas groep">
+      ${kamer('kamers', 'Hobbykamer', 'doet nog niet mee', '')}
+      ${kamer('bed', 'Slaapkamer', 'doet mee met de wasruimte', '17,8°')}
+    </section>`;
+
+  const toestel = (icoon, naam, zin, rechts, kleur = 'gloed', extra = '') => `<div class="toestel">${ik(icoon, kleur)}<div><b>${naam}</b><span>${zin}</span></div>${rechts}${extra}</div>`;
+  const blad = `<span class="terug">‹ Klimaat</span>
+    <div class="kop2">${ik('woonkamer')}<h1 class="kop-1" style="font-size: 30px">Woonkamer</h1><span class="getal">20,1°</span></div>
+    <div class="nuzin">De Nest staat op 20° en staat stil. <span class="zou">De zithoek is 0,6° kouder: de airco zou helpen zodra er zon over is.</span></div>
+    <h4>Wat ervoor zorgt · per zone</h4>
+    <section class="glas zonegroep"><div class="zonekop"><b>Zithoek</b><em>19,5°</em><span class="r">Met de kamer mee</span></div>
+      ${toestel('airco', 'Airco woonkamer', 'Airco · filter 87%', '<span class="taak">Helpt op zon ▾</span>', 'ijs', '<div class="cv">Helpt ook de cv<span class="schakel aan"></span></div>')}
+      ${toestel('verwarming', 'Radiator', 'op de cv', '<span class="volgt">Volgt Nest</span>')}
+    </section>
+    <section class="glas zonegroep"><div class="zonekop"><b>Keuken</b><em>20,6°</em><span class="r">Eigen temperatuur <span class="schakel" style="display: inline-block; vertical-align: middle; margin-left: 6px"></span></span></div>
+      ${toestel('klimaat', 'Nest (beneden)', 'Thermostaat van de cv-ketel', '<span class="taak">Houdt op temperatuur ▾</span>')}
+      ${toestel('verwarming', 'Radiator', 'op de cv', '<span class="volgt">Volgt Nest</span>')}
+      ${toestel('verwarming', 'Radiatorknop keuken', 'Radiator met een slimme knop', '<span class="taak">Doet niet mee ▾</span>')}
+    </section>
+    <p class="voet">Een zone is een plek in de kamer. Een eigen temperatuur kan alleen waar iets de zone zelf warm houdt, zoals een slimme radiatorknop.</p>
+    <h4>Hoe warm · de hele woonkamer</h4>
+    <section class="glas rij"><div class="naam"><b>Overdag</b><span>verwarmen onder 20°, koelen boven 25°</span></div><span style="color: var(--gedempt)">›</span></section>
+    <section class="glas rij"><div class="naam"><b>'s Nachts</b><span>verwarmen onder 16°</span></div><span style="color: var(--gedempt)">›</span></section>
+    <section class="glas rij"><div class="naam"><b>Gemeten met</b><span>4 meters, per zone</span></div><span style="color: var(--gedempt)">›</span></section>`;
+
+  document.querySelector('[data-inhoud]').innerHTML = stand === 'woonkamer' ? blad : lijst;
+</script>
+</body>
+</html>

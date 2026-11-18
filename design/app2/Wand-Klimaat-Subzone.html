@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Zones als deel van de kamer (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Zones als deel van de kamer (schets 18 november 2026, na de melding
+   * "Niets houdt de woonkamer · Zithoek op temperatuur"). Een zone is een plek
+   * in de kamer, geen kamer: in de lijst staat hij ingesprongen onder zijn
+   * kamer, en in het blad van de kamer staat per zone wat er hangt. Hoe warm
+   * staat één keer, voor de hele kamer. Een eigen temperatuur voor een zone
+   * kan alleen als daar iets hangt dat de zone zelf warm houdt, zoals een
+   * radiatorknop. Een radiator krijgt een zone, zodat je ziet waar hij hangt.
+   *   (geen hash)  de woonkamer, zones als subgroep
+   *   #zithoek     een tik op Zithoek: hetzelfde blad, de zithoek gekozen
+   *   #eigen       de keuken met een eigen temperatuur (de radiatorknop houdt hem warm)
+   *   #radiator    een radiator toevoegen: waar hangt hij?
+   *   #meten       waarmee de woonkamer meet, per zone
+   */
+  main { padding: 22px 26px 22px 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .boven { display: flex; align-items: center; gap: 16px; }
+  .boven .bewaard { margin-left: auto; font-size: 13px; color: var(--gedempt); }
+  .terug { height: 44px; padding: 0 16px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; }
+  .pagina { flex: 1; min-height: 0; display: grid; grid-template-columns: 290px 1fr; gap: 14px; }
+
+  /* Links: de kamers, met hun zones ingesprongen eronder. */
+  .lijst { padding: 10px; display: flex; flex-direction: column; gap: 2px; }
+  .lijst h4 { margin: 8px 12px 4px; font-size: 12.5px; color: var(--gedempt); }
+  .lijst a { display: flex; align-items: center; gap: 12px; padding: 7px 12px; border-radius: 14px; position: relative; }
+  .icoon { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); flex: none; }
+  .icoon svg { width: 20px; height: 20px; }
+  .lijst a b { display: block; font-size: 15px; }
+  .lijst a span { font-size: 12.5px; color: var(--gedempt); }
+  .lijst a em { margin-left: auto; font-style: normal; font-family: var(--kop); font-weight: 600; }
+  .lijst a.aan { background: rgb(var(--wit) / 0.08); }
+  .lijst a.aan::before { content: ''; position: absolute; left: -2px; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--tekst); }
+  .lijst a.zone { margin-left: 30px; padding: 4px 12px 4px 14px; gap: 10px; border-left: 2px solid rgb(var(--wit) / 0.12); border-radius: 0 12px 12px 0; }
+  .lijst a.zone b { font-size: 13.5px; font-weight: 600; }
+  .lijst a.zone em { font-size: 14px; }
+  .lijst a.zone.aan { background: rgb(var(--wit) / 0.08); border-left-color: var(--tekst); }
+  .lijst a.zone.aan::before { display: none; }
+  .lijst a.zone .eigen { font-size: 11.5px; color: var(--zon-t); font-weight: 700; }
+  .lijst .nietmee { margin: 2px 12px 4px; font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+
+  /* Het blad van de kamer. */
+  .blad { padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .kamerkop { display: flex; align-items: center; gap: 12px; }
+  .kamerkop .icoon { width: 42px; height: 42px; color: var(--gloed); }
+  .kamerkop h2 { margin: 0; }
+  .kamerkop .rechts { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .kamerkop .getal { font-size: 30px; }
+  .pilkeus { height: 34px; padding: 0 12px; border-radius: 11px; background: rgb(var(--wit) / 0.07); display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--zacht); white-space: nowrap; }
+  .pilkeus b { color: var(--tekst); font-weight: 600; }
+  .nuzin { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-radius: 16px; background: rgba(111, 211, 255, 0.08); border: 1px solid rgba(111, 211, 255, 0.18); font-size: 14.5px; }
+  .nuzin .wie { flex: none; font-size: 12px; font-weight: 700; color: var(--ijs-t); padding: 4px 10px; border-radius: 999px; background: rgba(111, 211, 255, 0.12); }
+  .nuzin span.zou { color: var(--ijs-zacht); }
+  .kolommen { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .kolom { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .kolom h4 { margin: 2px 0 0; font-size: 12.5px; font-weight: 700; color: var(--gedempt); }
+
+  /* Hoe warm: de schuif per dagdeel, zoals in Comfort. */
+  .dagdeel { padding: 10px 14px; border-radius: 16px; background: rgb(var(--wit) / 0.045); display: flex; flex-direction: column; gap: 4px; }
+  .dagdeel .kop { display: flex; align-items: baseline; gap: 10px; }
+  .dagdeel .kop b { font-size: 15px; }
+  .dagdeel .kop span { font-size: 12.5px; color: var(--gedempt); }
+  .schuif { position: relative; height: 50px; margin: 0 6px; }
+  .schuif .baan { position: absolute; left: 0; right: 0; top: 24px; height: 8px; border-radius: 8px; background: linear-gradient(90deg, rgba(255, 122, 77, 0.45), rgba(255, 255, 255, 0.08) 50%, rgba(111, 211, 255, 0.45)); }
+  .schuif .goed { position: absolute; top: 24px; height: 8px; background: repeating-linear-gradient(135deg, rgba(110, 231, 183, 0.75) 0 6px, rgba(247, 181, 72, 0.6) 6px 12px); }
+  .schuif .knop-s { position: absolute; top: 17px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); display: grid; place-items: center; }
+  .schuif .knop-s::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--k); }
+  .schuif .waarde { position: absolute; top: 40px; transform: translateX(-50%); font-size: 11.5px; color: var(--zacht); font-weight: 600; }
+  .schuif .nu { position: absolute; top: -2px; white-space: nowrap; transform: translateX(-50%); font-size: 10.5px; font-weight: 700; color: var(--tekst); display: flex; flex-direction: column; align-items: center; }
+  .schuif .nu::after { content: ''; width: 2px; height: 6px; background: var(--tekst); margin-top: 1px; border-radius: 2px; }
+  .schakels { display: flex; gap: 8px; margin-top: 6px; }
+  .schakelregel { flex: 1; display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 10px; border-radius: 11px; background: rgb(var(--wit) / 0.05); font-size: 12.5px; color: var(--zacht); white-space: nowrap; }
+  .schakelregel .stip { width: 7px; height: 7px; }
+  .schakel { margin-left: auto; width: 36px; height: 21px; border-radius: 999px; background: rgb(var(--wit) / 0.15); position: relative; flex: none; }
+  .schakel::after { content: ''; position: absolute; top: 2px; left: 2px; width: 17px; height: 17px; border-radius: 50%; background: #fff; }
+  .schakel.aan { background: var(--k, var(--mint)); }
+  .schakel.aan::after { left: 17px; }
+  .rij { display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.045); font-size: 14px; min-height: 44px; }
+  .rij .naam { flex: 1; min-width: 0; }
+  .rij .naam b { display: block; font-size: 14px; }
+  .rij .naam span { font-size: 12px; color: var(--gedempt); }
+  .segment { display: flex; padding: 3px; border-radius: 11px; background: rgb(var(--nacht) / 0.5); }
+  .segment span { padding: 5px 11px; border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--zacht); }
+  .segment span.aan { background: var(--zon); color: #0b1424; }
+  .stapper { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; }
+  .stapper i { font-style: normal; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); }
+  .rij .pijl { color: var(--gedempt); }
+
+  /* Wat ervoor zorgt: per zone een groep, met de temperatuur die daar gemeten wordt. */
+  .zonegroep { border-radius: 16px; background: rgb(var(--wit) / 0.035); border: 1px solid rgb(var(--wit) / 0.06); padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 4px; }
+  .zonegroep.aan { border-color: rgb(var(--wit) / 0.35); background: rgb(var(--wit) / 0.06); }
+  .zonekop { display: flex; align-items: baseline; gap: 8px; padding: 0 4px 2px; }
+  .zonekop b { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--zacht); }
+  .zonekop em { font-style: normal; font-size: 13px; font-weight: 700; }
+  .zonekop .eigen { margin-left: auto; font-size: 12px; color: var(--gedempt); display: flex; align-items: center; gap: 8px; }
+  .zonekop .eigen .schakel { margin: 0; }
+  .toestel { display: flex; align-items: center; gap: 10px; padding: 6px 4px; }
+  .toestel + .toestel { border-top: 1px solid rgb(var(--wit) / 0.05); }
+  .toestel .icoon { width: 32px; height: 32px; border-radius: 10px; color: var(--gloed); }
+  .toestel .icoon svg { width: 18px; height: 18px; }
+  .toestel .naam { flex: 1; min-width: 0; }
+  .toestel .naam b { display: block; font-size: 14px; }
+  .toestel .naam span { font-size: 12px; color: var(--gedempt); display: block; }
+  .taak { height: 32px; padding: 0 11px; border-radius: 10px; background: rgb(var(--wit) / 0.08); display: inline-flex; align-items: center; font-size: 12.5px; font-weight: 700; white-space: nowrap; flex: none; }
+  .volgt { height: 32px; padding: 0 11px; border-radius: 10px; border: 1px dashed var(--glas-rand); display: inline-flex; align-items: center; font-size: 12.5px; color: var(--zacht); white-space: nowrap; flex: none; }
+  .cv { margin: 0 4px 2px 46px; display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 11px; background: rgba(255, 122, 77, 0.07); border: 1px solid rgba(255, 122, 77, 0.16); font-size: 12.5px; }
+  .cv .naam { flex: 1; }
+  .cv .naam b { font-size: 13px; }
+  .cv .naam span { font-size: 11.5px; color: var(--gedempt); margin-left: 6px; }
+  .eigenwarm { margin: 2px 4px 0; padding: 8px 10px; border-radius: 11px; background: rgba(247, 181, 72, 0.08); border: 1px solid rgba(247, 181, 72, 0.22); display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--zacht); }
+  .eigenwarm b { color: var(--tekst); }
+  .eigenwarm .stapper { margin-left: auto; font-size: 13px; }
+  .eigenwarm .stapper i { width: 26px; height: 26px; }
+  .waarom { margin: 0 4px; font-size: 12px; color: var(--gedempt); line-height: 1.4; }
+  .plus { height: 38px; border-radius: 12px; border: 1px dashed rgb(var(--ijs-rgb, 111 211 255) / 0.5); display: grid; place-items: center; font-size: 13.5px; font-weight: 700; color: var(--ijs-t); }
+  .voet { margin-top: auto; font-size: 12.5px; color: var(--gedempt); line-height: 1.45; }
+
+  /* Een radiator toevoegen, en Meten: de vragen in het blad zelf. */
+  .vorm { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
+  .terugje { align-self: flex-start; border: 0; background: rgb(var(--wit) / 0.07); color: var(--zacht); height: 32px; padding: 0 12px; border-radius: 999px; font: inherit; font-weight: 700; font-size: 13px; }
+  .vorm h3 { margin: 0; font-family: var(--kop); font-size: 22px; font-weight: 600; }
+  .vorm p.lead { margin: -8px 0 0; font-size: 13.5px; color: var(--zacht); max-width: none; }
+  .vraag > b { display: block; margin: 0 0 7px; font-size: 13.5px; font-weight: 700; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { height: 36px; padding: 0 14px; border-radius: 999px; display: inline-flex; align-items: center; background: rgb(var(--wit) / 0.07); font-size: 13.5px; font-weight: 600; color: var(--zacht); }
+  .chips span.aan { background: var(--tekst); color: var(--inkt); }
+  .hoe { padding: 11px 13px; border-radius: 14px; background: rgb(var(--wit) / 0.04); font-size: 13px; line-height: 1.5; color: var(--zacht); }
+  .zet { align-self: flex-end; margin-top: auto; height: 46px; padding: 0 22px; border-radius: 15px; border: 0; background: var(--tekst); color: var(--inkt); font: inherit; font-weight: 700; font-size: 15px; }
+  .meter { display: flex; align-items: center; gap: 10px; padding: 8px 4px; }
+  .meter + .meter { border-top: 1px solid rgb(var(--wit) / 0.05); }
+  .meter .vink { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; background: var(--mint); color: #0b1424; font-size: 13px; font-weight: 800; flex: none; }
+  .meter .vink.uit { background: rgb(var(--wit) / 0.1); color: transparent; }
+  .meter .naam { flex: 1; }
+  .meter .naam b { display: block; font-size: 14px; }
+  .meter .naam span { font-size: 12px; color: var(--gedempt); }
+  .meter em { font-style: normal; font-family: var(--kop); font-weight: 600; font-size: 16px; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-avond">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="boven"><a class="glas-klein terug">‹ Instellingen</a><h1 class="kop-1">Klimaat</h1><span class="bewaard">Alles wordt meteen bewaard</span></div>
+    <section class="pagina">
+      <nav class="glas lijst" data-lijst></nav>
+      <article class="glas blad" data-blad></article>
+    </section>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script>localStorage.setItem('sc-taal', 'nl');</script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script>
+  const stand = location.hash.slice(1);
+  const eigen = stand === 'eigen';
+  nav.balk(document.getElementById('balk'), 'instellingen');
+  const ik = (naam, kleur = 'gloed') => `<span class="icoon" style="color: var(--${kleur})">${iconen.svg(naam)}</span>`;
+  const komma = (x) => `${String(x).replace('.', ',')}°`;
+  const plek = (t) => `${((t - 10) / 20) * 100}%`;
+  const gekozenZone = stand === 'zithoek' ? 'zithoek' : eigen ? 'keuken' : null;
+
+  /* Links: de woonkamer één keer, met zijn zones ingesprongen eronder. */
+  document.querySelector('[data-lijst]').innerHTML = `
+    <h4>Kamers</h4>
+    <a>${ik('kamers')}<div><b>Wasruimte</b><span>overdag 19 tot 25°</span></div><em>17,8°</em></a>
+    <a>${ik('kamers')}<div><b>Badkamer</b><span>overdag 18°, 's nachts 16°</span></div><em>20°</em></a>
+    <a class="${gekozenZone ? '' : 'aan'}">${ik('woonkamer')}<div><b>Woonkamer</b><span>overdag 20 tot 25°</span></div><em>20,1°</em></a>
+    <a class="zone ${gekozenZone === 'zithoek' ? 'aan' : ''}"><div><b>Zithoek</b></div><em>19,5°</em></a>
+    <a class="zone ${gekozenZone === 'keuken' ? 'aan' : ''}"><div><b>Keuken</b>${eigen ? '<span class="eigen"> · eigen 21°</span>' : ''}</div><em>20,6°</em></a>
+    <h4>Andere kamers</h4>
+    <p class="nietmee">Doen nog niet mee: Hobbykamer, Slaapkamer Matts, Hal, Slaapkamer Mylan. Doet mee met de wasruimte: Slaapkamer.</p>
+    <h4>Het hele huis</h4>
+    <a>${ik('klok', 'net')}<div><b>Dagdelen</b><span>7:00 tot 22:00</span></div></a>
+    <a>${ik('airco', 'net')}<div><b>Helpen bij de cv</b><span>na 5 min stoken, vanaf 0,5° te koud</span></div></a>`;
+
+  // Zonder koelen (koel null) alleen de greep van verwarmen.
+  const schuif = (warm, koel, nu) => `<div class="schuif"><div class="baan"></div>
+    <div class="goed" style="left: ${plek(warm)}; right: ${koel == null ? '0' : `calc(100% - ${plek(koel)})`}"></div>
+    ${nu != null ? `<span class="nu" style="left: ${plek(nu)}">nu ${komma(nu)}</span>` : ''}
+    <span class="knop-s" style="left: ${plek(warm)}; --k: var(--gloed)"></span><span class="waarde" style="left: ${plek(warm)}">${komma(warm)}</span>
+    ${koel == null ? '' : `<span class="knop-s" style="left: ${plek(koel)}; --k: var(--ijs)"></span><span class="waarde" style="left: ${plek(koel)}">${komma(koel)}</span>`}</div>`;
+
+  const toestel = (icoon, naam, zin, rechts, kleur = 'gloed') => `<div class="toestel">${ik(icoon, kleur)}<div class="naam"><b>${naam}</b><span>${zin}</span></div>${rechts}</div>`;
+  const taak = (x) => `<span class="taak">${x} ▾</span>`;
+  const volgt = (x) => `<span class="volgt">${x}</span>`;
+
+  /* Wat ervoor zorgt, per zone. Een eigen temperatuur alleen waar iets de zone zelf warm houdt. */
+  const zithoek = `<div class="zonegroep ${gekozenZone === 'zithoek' ? 'aan' : ''}">
+      <div class="zonekop"><b>Zithoek</b><em>19,5°</em><span class="eigen">Met de kamer mee</span></div>
+      ${toestel('airco', 'Airco woonkamer', 'Airco · filter 87%', taak('Helpt op zon'), 'ijs')}
+      <div class="cv"><div class="naam"><b>Helpt ook de cv</b><span>nog niet geholpen</span></div><span class="schakel aan" style="--k: var(--gloed)"></span></div>
+      ${toestel('verwarming', 'Radiator', 'op de cv', volgt('Volgt Nest'))}
+      ${gekozenZone === 'zithoek' ? `<p class="waarom">Een eigen temperatuur kan hier niet: de airco helpt alleen, en de radiator volgt de Nest in de keuken. Een slimme radiatorknop zou het kunnen.</p>` : ''}
+    </div>`;
+  const keuken = `<div class="zonegroep ${gekozenZone === 'keuken' ? 'aan' : ''}">
+      <div class="zonekop"><b>Keuken</b><em>20,6°</em><span class="eigen">Eigen temperatuur<span class="schakel ${eigen ? 'aan' : ''}" style="--k: var(--zon)"></span></span></div>
+      ${toestel('klimaat', 'Nest (beneden)', eigen ? 'Cv-ketel, voor de hele woonkamer' : 'Thermostaat van de cv-ketel', taak('Houdt op temperatuur'))}
+      ${toestel('verwarming', 'Radiator', 'op de cv', volgt('Volgt Nest'))}
+      ${toestel('verwarming', 'Radiatorknop keuken', 'Radiator met een slimme knop', taak(eigen ? 'Houdt op temperatuur' : 'Doet niet mee'))}
+      ${eigen ? `<div class="eigenwarm"><span><b>Keuken</b> overdag</span><span class="stapper"><i>−</i>21°<i>+</i></span><span>'s nachts</span><span class="stapper"><i>−</i>16°<i>+</i></span></div>` : ''}
+    </div>`;
+
+  const kamerBlad = `
+    <div class="kamerkop">${ik('woonkamer')}<h2 class="kop-2">Woonkamer</h2>
+      <div class="rechts"><span class="pilkeus">Gemeten met <b>4 meters</b> ▾</span><span class="getal">20,1°</span></div></div>
+    <div class="nuzin"><span class="wie">Kijkt mee</span><span>De Nest staat op 20° en staat stil. <span class="zou">De zithoek is 0,6° kouder: de airco zou helpen zodra er zon over is.</span></span></div>
+    <div class="kolommen">
+      <div class="kolom">
+        <h4>Hoe warm · de hele woonkamer</h4>
+        <div class="dagdeel"><div class="kop"><b>Overdag</b><span>7:00 tot 22:00</span></div>${schuif(20, 25, 20.1)}
+          <div class="schakels"><span class="schakelregel"><span class="stip" style="background: var(--gloed)"></span>Verwarmen onder <b>20°</b><span class="schakel aan" style="--k: var(--gloed)"></span></span><span class="schakelregel"><span class="stip" style="background: var(--ijs)"></span>Koelen boven <b>25°</b><span class="schakel aan" style="--k: var(--ijs)"></span></span></div></div>
+        <div class="dagdeel"><div class="kop"><b>'s Nachts</b><span>22:00 tot 7:00</span></div>${schuif(16, null, null)}
+          <div class="schakels"><span class="schakelregel"><span class="stip" style="background: var(--gloed)"></span>Verwarmen onder <b>16°</b><span class="schakel aan" style="--k: var(--gloed)"></span></span><span class="schakelregel"><span class="stip" style="background: var(--ijs)"></span>Koelen uit<span class="schakel" style="--k: var(--ijs)"></span></span></div></div>
+        <div class="rij"><div class="naam"><b>Op zon mag het</b><span>verder dan je doel, om zon te bewaren</span></div><div class="segment"><span>Niet</span><span>½°</span><span class="aan">1°</span><span>2°</span></div></div>
+        <div class="rij"><div class="naam"><b>Afwezig</b><span>15°, vanzelf als niemand thuis is</span></div><span class="pijl">›</span></div>
+      </div>
+      <div class="kolom">
+        <h4>Wat ervoor zorgt · per zone</h4>
+        ${zithoek}
+        ${keuken}
+        <div class="plus">+ Iets toevoegen</div>
+        ${eigen ? '' : `<p class="voet">Een zone is een plek in de kamer. Een eigen temperatuur kan alleen waar iets de zone zelf warm houdt, zoals een slimme radiatorknop.</p>`}
+      </div>
+    </div>`;
+
+  const radiatorBlad = `<div class="vorm">
+    <button class="terugje" type="button">‹ Woonkamer</button>
+    <h3>Iets toevoegen in de woonkamer</h3>
+    <p class="lead">Wat in Home Assistant geen apparaat is, zoals een radiator op de cv.</p>
+    <div class="vraag"><b>Wat is het?</b><div class="chips"><span class="aan">Radiator</span><span>Vloerverwarming</span><span>Elektrisch paneel</span><span>Kachel</span></div></div>
+    <div class="vraag"><b>Gaat aan met</b><div class="chips"><span class="aan">Nest (beneden)</span><span>Een slimme radiatorknop</span><span>Een slimme stekker</span><span>Met de hand</span></div></div>
+    <div class="vraag"><b>Waar hangt hij?</b><div class="chips"><span class="aan">Zithoek</span><span>Keuken</span><span>De hele woonkamer</span></div></div>
+    <div class="hoe">Hij volgt de Nest: hij wordt warm als de Nest de ketel aanzet. Zo zie je bij de zithoek wat daar warm wordt. Een eigen temperatuur voor de zithoek geeft hij niet: daarvoor is een slimme radiatorknop nodig.</div>
+    <button class="zet" type="button">Toevoegen</button>
+  </div>`;
+
+  const meter = (aan, naam, zin, temp) => `<div class="meter"><span class="vink ${aan ? '' : 'uit'}">✓</span><div class="naam"><b>${naam}</b><span>${zin}</span></div><em>${temp}</em></div>`;
+  const metenBlad = `<div class="vorm">
+    <button class="terugje" type="button">‹ Woonkamer</button>
+    <h3>Waarmee meet de woonkamer?</h3>
+    <p class="lead">Elke meter die je aanvinkt telt mee. De woonkamer is het gemiddelde; per zone zie je wat daar gemeten wordt.</p>
+    <div class="zonegroep"><div class="zonekop"><b>Zithoek</b><em>19,5°</em></div>
+      ${meter(true, 'Airco woonkamer', 'meet bij de airco, aan het plafond', '19,4°')}
+      ${meter(true, 'Schakelaar screen groot', 'in de schakelaar bij het raam', '19,6°')}</div>
+    <div class="zonegroep"><div class="zonekop"><b>Keuken</b><em>20,6°</em></div>
+      ${meter(true, 'Nest (beneden)', 'de thermostaat zelf', '20,8°')}
+      ${meter(true, 'Schakelaar screen klein', 'in de schakelaar bij de achterdeur', '20,4°')}</div>
+    <div class="hoe">De Nest regelt de ketel op zijn eigen meting; dat verandert niet. SunArc gebruikt het gemiddelde om te zien of het goed is, en de zone om te zien waar het kouder is: daar helpt de airco eerst.</div>
+  </div>`;
+
+  document.querySelector('[data-blad]').innerHTML = stand === 'radiator' ? radiatorBlad : stand === 'meten' ? metenBlad : kamerBlad;
+</script>
+</body>
+</html>
