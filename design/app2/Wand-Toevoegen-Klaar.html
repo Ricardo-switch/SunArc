@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Toevoegen maakt klaar (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Toevoegen maakt klaar (schets versie 3 van de apparaatkaart, 18 november 2026).
+   *
+   * Eerst stuurden zeven van de negen knoppen alleen door, en Warm water,
+   * Witgoed en Stekkers kwamen op Apparaten uit zonder dat er iets gebeurde.
+   * Nu: links de soort, in het midden wat SunArc van die soort vond, rechts het
+   * blad om er een meteen klaar te zetten. Onderaan Verbergen, in plaats van
+   * "Dit is geen apparaat". Wat al klaar is, staat erbij met een vinkje en
+   * opent zijn kaart op Apparaten.
+   *
+   * Standen: #nieuw (alles wat nieuw is, van elke soort), #stekkers (een
+   * stekker klaarzetten), #klimaat (een airco: waar hij staat; de taak bij
+   * Klimaat, keuze Ricardo 18-11), #witgoed (de droger op zon), #klaar (iets
+   * dat al klaar is), #verbergen (wat verborgen is, met Terughalen).
+   */
+  main { position: relative; padding: 18px 26px 20px 22px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .terug { font-size: 13px; font-weight: 700; color: var(--zacht); }
+  .veld { flex: 1; min-height: 0; display: grid; grid-template-columns: 252px 300px minmax(0, 1fr); gap: 14px; }
+
+  /* Links: de soorten, met wat er nieuw is. */
+  .soorten { padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; min-height: 0; }
+  .soorten h4 { margin: 2px 10px 6px; }
+  .srt { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 10px; border-radius: 13px; }
+  .srt.aan { background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28); }
+  .srt .ik { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.06); color: var(--zacht); }
+  .srt .ik svg { width: 19px; height: 19px; }
+  .srt b { font-size: 14.5px; font-weight: 600; }
+  .srt small { font-size: 12px; font-weight: 700; color: var(--gedempt); white-space: nowrap; }
+  .srt small.nieuw { color: var(--gloed-t); }
+  .srt.eerst { margin-bottom: 6px; }
+  .srt.eerst + h4 { margin-top: 4px; }
+  h4 { font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); margin: 6px 0 2px; }
+
+  /* Midden: wat SunArc van die soort vond. */
+  .lijst { padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+  .lijst h3 { margin: 0 8px; font-family: var(--kop); font-size: 20px; font-weight: 600; }
+  .lijst > p { margin: 2px 8px 8px; font-size: 12.5px; color: var(--gedempt); }
+  .vond { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 9px 8px; border-radius: 13px; }
+  .vond.aan { background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3); }
+  .vond .ik { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); color: var(--zacht); }
+  .vond .ik svg { width: 21px; height: 21px; }
+  .vond b { display: block; font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vond small { display: block; font-size: 12px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vond small.nieuw { color: var(--gloed-t); }
+  .vond .r { font-size: 16px; color: var(--gedempt); }
+  .vond .r.klaar { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; background: rgba(110, 231, 183, 0.18); color: var(--mint); }
+  .lijst .tussen { margin: 8px 8px 2px; }
+  .lijst .voet { margin-top: auto; padding: 10px 8px 0; border-top: 1px solid rgba(255, 255, 255, 0.07); display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; color: var(--gedempt); }
+  .lijst .voet span { display: flex; justify-content: space-between; font-weight: 700; color: var(--zacht); }
+
+  /* Rechts: het blad om hem klaar te zetten (de vragen van Wand-Apparaat-Kaart #toevoegen). */
+  .blad { padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .blad h2 { margin: 0; font-family: var(--kop); font-size: 25px; font-weight: 600; }
+  .blad .nu { margin: 3px 0 0; font-size: 14px; color: var(--zacht); }
+  .vraag > b { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 700; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { height: 34px; padding: 0 13px; border-radius: 999px; display: inline-flex; align-items: center; background: rgba(255, 255, 255, 0.07); font-size: 13.5px; font-weight: 600; color: var(--zacht); }
+  .chips span.aan { background: var(--tekst); color: var(--inkt); }
+  .chips span.meer { background: transparent; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+  .rij { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .rij .l { flex: 1; min-width: 0; }
+  .rij .l b { display: block; font-size: 14.5px; font-weight: 600; }
+  .rij .l span { font-size: 12.5px; color: var(--gedempt); }
+  .rij .w { font-size: 14px; font-weight: 600; color: var(--zacht); }
+  .rij .w.zon { color: var(--zon-t); }
+  .schakel { position: relative; flex: none; width: 44px; height: 26px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); }
+  .schakel::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #c9d3dc; }
+  .schakel.aan { background: var(--mint); }
+  .schakel.aan::after { left: 21px; background: #fff; }
+  .hoe { padding: 11px 13px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); font-size: 13px; line-height: 1.5; color: var(--zacht); }
+  .onder { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .verberg { border: 0; background: transparent; color: var(--zacht); font: inherit; font-size: 13.5px; font-weight: 700; padding: 0; display: inline-flex; align-items: center; gap: 8px; }
+  .verberg svg { width: 18px; height: 18px; }
+  .verberg > span { text-align: left; }
+  .verberg small { display: block; font-weight: 500; font-size: 12px; color: var(--gedempt); text-align: left; }
+  .zet { height: 46px; padding: 0 22px; border-radius: 15px; border: 0; background: var(--tekst); color: var(--inkt); font: inherit; font-weight: 700; font-size: 15px; white-space: nowrap; }
+  .zet.stil { background: rgba(255, 255, 255, 0.1); color: var(--tekst); }
+  .verborgen .vond { grid-template-columns: 38px minmax(0, 1fr) auto; }
+  .terughalen { height: 34px; padding: 0 13px; border-radius: 999px; border: 0; background: rgba(255, 255, 255, 0.1); color: var(--tekst); font: inherit; font-size: 13px; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-dag">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div><span class="terug">‹ Apparaten</span><h1 class="kop-1" style="margin-top: 2px">Apparaat toevoegen</h1></div>
+    <div class="veld">
+      <aside class="glas soorten" data-soorten></aside>
+      <section class="glas lijst" data-lijst></section>
+      <section class="glas blad" data-blad></section>
+    </div>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script>localStorage.setItem('sc-taal', 'nl');</script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script>
+  const stand = location.hash.slice(1) || 'stekkers';
+  nav.balk(document.getElementById('balk'), 'apparaten');
+  const $ = (s) => document.querySelector(s);
+  const ik = (naam) => iconen.svg(naam);
+
+  /* De negen soorten van Toevoegen, met wat er nieuw is en wat al klaar staat. */
+  const SOORTEN = [
+    ['klimaat', 'airco', 'Klimaat', 1, 5],
+    ['licht', 'lamp', 'Licht', 0, 17],
+    ['water', 'boiler', 'Warm water en bad', 0, 1],
+    ['witgoed', 'droger', 'Witgoed', 1, 0],
+    ['auto', 'auto', 'Auto en laden', 0, 2],
+    ['accu', 'batterij', 'Thuisaccu', 0, 1],
+    ['stekkers', 'stekker', 'Stekkers', 2, 1],
+    ['schakelaars', 'apparaat', 'Schakelaars', 1, 2],
+    ['losse', 'laadpaal', 'Losse sensoren', 0, 0],
+  ];
+  const nieuwTotaal = SOORTEN.reduce((s, x) => s + x[3], 0);
+
+  /* Per soort wat SunArc vond: [icoon, naam, zin, nieuw?]. */
+  const VOND = {
+    stekkers: { kop: 'Stekkers', zin: 'SunArc vond 3 slimme stekkers in Home Assistant.', nieuw: [['stekker', 'Elektrische haard', 'Nog geen kamer · meet zelf'], ['stekker', 'Heater tuinhuis', 'Nog geen kamer · meet zelf']], klaar: [['stekker', 'Ontvochtiger', 'Kelder · op zon']] },
+    klimaat: { kop: 'Klimaat', zin: 'SunArc vond 6 klimaatapparaten in Home Assistant.', nieuw: [['airco', 'Airco hobbykamer', 'Nog geen kamer']], klaar: [['airco', 'Airco zolder', 'Wasruimte'], ['airco', 'Airco woonkamer', 'Woonkamer · Zithoek'], ['klimaat', 'Nest (beneden)', 'Woonkamer'], ['klimaat', 'Thermostaat badkamer', 'Badkamer'], ['verwarming', 'Radiatorknop keuken', 'Woonkamer · Keuken']] },
+    witgoed: { kop: 'Witgoed', zin: 'SunArc vond 1 wasmachine, droger of vaatwasser.', nieuw: [['droger', 'Droger', 'Zolder · nog niet op zon']], klaar: [] },
+    nieuw: { kop: 'Nieuw gevonden', zin: 'In Home Assistant, nog niet klaargezet. Van elke soort.', nieuw: [['airco', 'Airco hobbykamer', 'Klimaat · nog geen kamer'], ['droger', 'Droger', 'Witgoed · nog niet op zon'], ['stekker', 'Elektrische haard', 'Stekker · nog geen kamer'], ['stekker', 'Heater tuinhuis', 'Stekker · nog geen kamer'], ['apparaat', 'Shelly 1 mini Gen3', 'Schakelaar · nog niet ingesteld']], klaar: [] },
+  };
+  const welke = stand === 'klaar' ? 'stekkers' : stand === 'verbergen' ? 'stekkers' : stand;
+  const soortNu = welke === 'nieuw' ? 'nieuw' : welke;
+
+  function soorten() {
+    const nieuw = `<div class="srt eerst ${soortNu === 'nieuw' ? 'aan' : ''}"><span class="ik"><span style="font-size: 20px; font-weight: 700">+</span></span><b>Nieuw gevonden</b><small class="nieuw">${nieuwTotaal}</small></div>`;
+    return `${nieuw}<h4>Per soort</h4>${SOORTEN.map(([id, icoon, naam, n, klaar]) => `<div class="srt ${id === soortNu ? 'aan' : ''}"><span class="ik">${ik(icoon)}</span><b>${naam}</b><small class="${n ? 'nieuw' : ''}">${n ? `${n} nieuw` : klaar ? `${klaar} klaar` : ''}</small></div>`).join('')}`;
+  }
+
+  function lijst() {
+    const v = VOND[welke];
+    const gekozen = stand === 'klaar' ? 'Ontvochtiger' : stand === 'verbergen' ? null : v.nieuw[stand === 'nieuw' ? 2 : 0]?.[1];
+    const rij = ([icoon, naam, zin], klaar) => `<div class="vond ${naam === gekozen ? 'aan' : ''}"><span class="ik">${ik(icoon)}</span><div><b>${naam}</b><small class="${klaar ? '' : 'nieuw'}">${zin}</small></div>${klaar ? '<span class="r klaar">✓</span>' : '<span class="r">›</span>'}</div>`;
+    const klaarDeel = v.klaar.length ? `<h4 class="tussen">Al klaar · staat bij Apparaten</h4>${v.klaar.slice(0, 3).map((x) => rij(x, true)).join('')}${v.klaar.length > 3 ? `<p style="margin: 4px 8px 0; font-size: 12.5px; color: var(--gedempt)">en nog ${v.klaar.length - 3}</p>` : ''}` : '';
+    const voet = welke === 'nieuw'
+      ? `<div class="voet">Staat iets er niet bij? Kies links de soort; Losse sensoren is voor een laadpaal via Modbus.</div>`
+      : `<div class="voet"><span${stand === 'verbergen' ? ' style="color: var(--tekst)"' : ''}>Verborgen <em style="font-style: normal; color: var(--gedempt)">1 ›</em></span>Staat hij er niet bij? Dan kent Home Assistant hem niet als ${welke === 'klimaat' ? 'klimaatapparaat' : 'stekker'}. Kijk bij Schakelaars of Losse sensoren.</div>`;
+    return `<h3>${v.kop}</h3><p>${v.zin}</p>${v.nieuw.length ? `<h4 class="tussen" style="color: var(--gloed-t)">Nieuw · nog niet klaar</h4>` : ''}${v.nieuw.map((x) => rij(x, false)).join('')}${klaarDeel}${voet}`;
+  }
+
+  const vraag = (titel, keuzes) => `<div class="vraag"><b>${titel}</b><div class="chips">${keuzes.map((x) => `<span class="${x.endsWith('*') ? 'aan' : x.endsWith('…') ? 'meer' : ''}">${x.replace('*', '')}</span>`).join('')}</div></div>`;
+  const onder = (knop, wat = 'apparaat') => `<div class="onder"><button class="verberg" type="button">${ik('verborgen')}<span>Verbergen<small>Geen ${wat} om te regelen? Dan staat hij nergens meer.</small></span></button><button class="zet" type="button">${knop}</button></div>`;
+
+  const BLAD = {
+    stekkers: () => `<div><h2>Elektrische haard</h2><p class="nu">Slimme stekker uit Home Assistant · staat uit · 0 W</p></div>
+      ${vraag('Wat zit erin?', ['Kachel*', 'Ventilator', 'Boiler', 'Lamp', 'Iets anders'])}
+      ${vraag('Waar staat hij?', ['Woonkamer*', 'Tuinhuis', 'Garage', 'Andere kamer…'])}
+      ${vraag('Op zon?', ['Ja, aan als er zon over is*', 'Nee'])}
+      ${vraag('Minstens per dag', ['Niet*', '1 uur', '2 uur', '4 uur'])}
+      <div class="rij"><div class="l"><b>Met de hand</b><span>SunArc mag hem aan- en uitzetten als jij dat vraagt</span></div><span class="schakel aan"></span></div>
+      <div class="hoe">Hij meet zelf wat hij trekt: 1,8 kW als hij aan is. Dat is genoeg om te weten wanneer hij op zon kan.</div>
+      ${onder('Zet klaar', 'stekker')}`,
+    nieuw: () => BLAD.stekkers(),
+    klimaat: () => `<div><h2>Airco hobbykamer</h2><p class="nu">Airco uit Home Assistant · uit · 19,5°</p></div>
+      ${vraag('Waar staat hij?', ['Hobbykamer*', 'Slaapkamer', 'Wasruimte', 'Andere kamer…'])}
+      <div class="rij"><div class="l"><b>Wat SunArc ermee doet</b><span>Houdt op temperatuur, Helpt op zon of Doet niet mee: dat kies je bij Klimaat, bij de kamer</span></div><span class="w zon">Bij Klimaat ›</span></div>
+      <div class="rij"><div class="l"><b>Met de hand</b><span>Warm, koel of uit vanaf zijn kaart</span></div><span class="schakel aan"></span></div>
+      <div class="hoe">Na Zet klaar staat hij bij Apparaten › Klimaat en in Je huis in de hobbykamer. Doet de hobbykamer nog niet mee bij Klimaat, dan zegt de knop dat erbij.</div>
+      ${onder('Zet klaar en naar Klimaat', 'airco')}`,
+    witgoed: () => `<div><h2>Droger</h2><p class="nu">Home Connect · klaar om te starten</p></div>
+      ${vraag('Waar staat hij?', ['Zolder*', 'Wasruimte', 'Garage', 'Andere kamer…'])}
+      ${vraag('Op zon?', ['Ja, starten als er zon over is*', 'Nee'])}
+      <div class="rij"><div class="l"><b>Uiterlijk klaar</b><span>Ook zonder zon start hij op tijd</span></div><span class="w">18:00 ›</span></div>
+      <div class="hoe">Zet op de droger "op afstand starten" aan, en zet hem klaar met de knop Start. Dan wacht hij op zonnestroom.</div>
+      ${onder('Zet klaar', 'droger')}`,
+    klaar: () => `<div><h2>Ontvochtiger</h2><p class="nu">Slimme stekker · Kelder · aan op zon sinds 11:20</p></div>
+      <div class="rij"><div class="l"><b>Staat klaar</b><span>Bij Apparaten › Stekkers, en in Je huis in de kelder</span></div><span class="w">Kelder · op zon</span></div>
+      <div class="hoe">Hij is al klaargezet. Iets veranderen doe je op zijn kaart: waar hij staat, op zon, minstens per dag en met de hand.</div>
+      <div class="onder"><span></span><button class="zet" type="button">Naar zijn kaart ›</button></div>`,
+    verbergen: () => `<div><h2>Verborgen</h2><p class="nu">Wat je verborg, staat nergens meer: niet bij Nieuw gevonden, niet in het huis, niet in de bel.</p></div>
+      <div class="verborgen">
+        <div class="vond"><span class="ik">${ik('stekker')}</span><div><b>Stekker printer</b><small>Slimme stekker · verborgen 12 november</small></div><button class="terughalen" type="button">Terughalen</button></div>
+      </div>
+      <div class="hoe">Verbergen is voor wat in Home Assistant een stekker of schakelaar is, maar waar niets aan hangt om te regelen. Terughalen zet hem weer bij Nieuw gevonden.</div>`,
+  };
+
+  $('[data-soorten]').innerHTML = soorten();
+  $('[data-lijst]').innerHTML = lijst();
+  $('[data-blad]').innerHTML = BLAD[stand]();
+</script>
+</body>
+</html>
