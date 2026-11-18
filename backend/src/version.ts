@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.200.0';
+export const VERSIE = '0.200.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.200.1',
+    datum: '2026-11-18',
+    opgelost: [
+      'Bij Apparaat toevoegen stonden de knoppen van Wat is er nieuw onder elkaar, met Oké als een wit vak',
+    ],
+    en: {
+      opgelost: [
+        'In Add a device, the buttons of What is new were stacked, with OK as a white box',
+      ],
+    },
+  },
   {
     versie: '0.200.0',
     datum: '2026-11-18',

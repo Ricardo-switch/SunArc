@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.200.0
+## 0.200.1
 
-*18 november 2026 · 0.179.0 – 0.200.0*
+*18 november 2026 · 0.179.0 – 0.200.1*
 
 **Nieuw**
 
@@ -97,6 +97,7 @@
 
 **Opgelost**
 
+- Bij Apparaat toevoegen stonden de knoppen van Wat is er nieuw onder elkaar, met Oké als een wit vak
 - Een zone terugzetten op Met de kamer mee werd niet overgenomen als die zone op zon stond: de volgorde op zon noemde hem nog. Nu valt hij daaruit, en neemt de regeling de nieuwe indeling over
 - Een verborgen stekker stond bij Toevoegen › Stekkers nog als klaar, met een vinkje bij Nog geen kamer. Wat verborgen is, staat nu alleen bij Verborgen
 - Bij Losse sensoren stonden de regen van Buienradar en andere gegevens van command_line of REST. Daarvan staat nu alleen wat een vermogen, stroom of kWh meet
@@ -213,6 +214,7 @@
 
 **Fixed**
 
+- In Add a device, the buttons of What is new were stacked, with OK as a white box
 - Setting a zone back to With the room was not taken over when that zone was on solar: the solar order still named it. Now it drops out of it, and the control takes over the new layout
 - A hidden plug still showed as set up under Add › Plugs, with a tick next to No room yet. What is hidden now only shows under Hidden
 - Loose sensors showed the rain from Buienradar and other data from command_line or REST. Now only what measures power, current or kWh shows there

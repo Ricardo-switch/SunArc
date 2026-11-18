@@ -352,8 +352,9 @@ html.tel-stand .meldblad { top: auto; left: 8px; right: 8px; bottom: 8px; width:
 details.logboek summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--zacht); }
 details.logboek pre { margin: 0; max-height: 260px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11.5px; line-height: 1.45; color: var(--zacht); padding: 10px 12px; border-radius: 12px; background: rgb(var(--wit) / 0.05); }
 .jouw-meldingen li { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 12px; background: rgb(var(--wit) / 0.05); font-size: 14px; }
-.nieuwpop .knoppen { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
-.nieuwpop .knop { display: inline-flex; align-items: center; text-decoration: none; }
+/* De knoppen in één rij, ook op een pagina met een eigen .knoppen (18 november 2026: bij Apparaat toevoegen stonden ze onder elkaar). */
+.nieuwpop .knoppen { display: flex; flex-direction: row; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+.nieuwpop .knop { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 
 /* Naar Home Assistant (besluit 155): boven de bel, alleen als de app volledig scherm draait. */
 .balk .meldbel + .meldbel { margin-top: 0; }
