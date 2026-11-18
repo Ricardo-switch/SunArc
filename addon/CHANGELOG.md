@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.197.1
+## 0.198.0
 
-*18 november 2026 · 0.179.0 – 0.197.1*
+*18 november 2026 · 0.179.0 – 0.198.0*
 
 **Nieuw**
 
+- Instellingen staat in vier tegels: Je huis, Klimaat, Energie en App en bewoners, elk onderdeel als knop met wat er nu staat
+- Bovenin staat hoe ver je huis is als één regel: de zonnewaaier, wat er nog mist met een knop ernaartoe, en Wat je huis kan
 - Een zone is een deel van de kamer: bij Klimaat staat hij ingesprongen onder zijn kamer, met wat er gemeten wordt
 - Wat ervoor zorgt staat per zone, met rechts Met de kamer mee of Eigen temperatuur; een radiator geef je een zone met Waar hangt hij?
 - Een airco met de hand kan ook drogen of alleen ventileren, tot een tijd. Daarna gaat hij uit, als hij dan nog zo staat
@@ -56,6 +58,7 @@
 
 **Beter**
 
+- Functies, de assistent, bewoners en Inrichten staan samen onder App en bewoners
 - Elk klimaatapparaat staat er zelf met zijn taak, ook als een radiator het volgt. De radiator zegt Volgt Nest (beneden) in plaats van Slim
 - Een zone waar de radiator van de kamer meeverwarmt, krijgt geen melding Niets houdt meer, maar: verwarmt mee met de thermostaat
 - Staat een airco met de hand aan, dan zegt de knop wat hij doet: Uit, terug naar je regeling
@@ -111,6 +114,8 @@
 
 **New**
 
+- Settings has four tiles: Your home, Climate, Energy and App and residents, each part as a button showing what is set now
+- At the top, how far your home is shows as one line: the sun fan, what is still missing with a button to it, and What your home can do
 - A zone is part of the room: under Climate it shows indented below its room, with what is measured there
 - What keeps it comfortable shows per zone, with With the room or Own temperature on the right; you give a radiator a zone with Where is it?
 - An air conditioner by hand can also dry or run the fan only, until a time. Then it switches off, if it is still set that way
@@ -161,6 +166,7 @@
 
 **Improved**
 
+- Features, the assistant, residents and Set up are together under App and residents
 - Every climate device shows itself with its task, also when a radiator follows it. The radiator says Follows Nest (beneden) instead of Smart
 - A zone that the room radiator heats along no longer gets the warning Nothing keeps, but: heats along with the thermostat
 - When an air conditioner runs by hand, the button says what it does: Off, back to your schedule

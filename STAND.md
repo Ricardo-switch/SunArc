@@ -36,7 +36,8 @@ verwijzing bestaat.
   0.196.0 kan een airco met de hand ook drogen of ventileren, en het tuinhuis
   verwarmen met de kachel die je kiest ([319]). Sinds 0.197.0 is een zone een
   deel van de kamer: ingesprongen in de lijst, en wat ervoor zorgt per zone
-  ([320]).
+  ([320]). Sinds 0.198.0 staat Instellingen in vier tegels (Je huis, Klimaat,
+  Energie, App en bewoners), met de stand als één regel bovenin ([321]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1041,4 +1042,5 @@ verwijzing bestaat.
 [318]: DECISIONS.md#318-een-apparaat-stel-je-in-op-zijn-kaart-regeling-is-weg
 [319]: DECISIONS.md#319-met-de-hand-drogen-en-ventileren-met-een-airco-en-het-tuinhuis
 [320]: DECISIONS.md#320-een-zone-is-een-deel-van-de-kamer-geen-kamer
+[321]: DECISIONS.md#321-instellingen-in-vier-tegels
 <!-- links:einde -->

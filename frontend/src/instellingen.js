@@ -1,7 +1,7 @@
 /*
- * Instellingen (besluit 130, schets Wand-Instellingen). Achter het tandwiel:
- * wat er nog mist, Wat je huis kan, en acht groepen die je herkent aan wat ze
- * regelen. Elke groep toont zijn belangrijkste waarden en of er iets mist.
+ * Instellingen (besluit 130; sinds besluit 321 in vier tegels, schets
+ * Wand-Instellingen-Vier #tegels). Achter het tandwiel: de stand als één regel,
+ * en vier groepen met hun onderdelen als knoppen, elk met wat er nu staat.
  * Bedienen doe je in het huis; hier stel je in.
  */
 'use strict';
@@ -9,10 +9,10 @@
 const { $$, nl, esc, haal } = app;
 
 /** Alles wat de pagina leest, per deur; null zolang die niets gaf. */
-const d = { energie: null, aansluiting: null, huis: null, functies: null, comfort: null, site: null, sessie: null, export: null, health: null, zon: null, bewoners: null, divergence: null, sluip: null, klaar: null };
+const d = { energie: null, aansluiting: null, huis: null, functies: null, comfort: null, site: null, sessie: null, export: null, health: null, zon: null, bewoners: null, divergence: null, sluip: null, klaar: null, tekening: null, helpen: null };
 
 async function laadAlles() {
-  const deuren = { energie: 'api/energie', aansluiting: 'api/aansluiting', huis: 'api/huis', functies: 'api/functies', comfort: 'api/comfort', site: 'api/site', sessie: 'api/sessie', export: 'api/export/info', health: 'api/health', zon: 'api/zon', bewoners: 'api/bewoners', divergence: 'api/divergence', sluip: 'api/sluipverbruik', klaar: 'api/klaarzetten' };
+  const deuren = { energie: 'api/energie', aansluiting: 'api/aansluiting', huis: 'api/huis', functies: 'api/functies', comfort: 'api/comfort', site: 'api/site', sessie: 'api/sessie', export: 'api/export/info', health: 'api/health', zon: 'api/zon', bewoners: 'api/bewoners', divergence: 'api/divergence', sluip: 'api/sluipverbruik', klaar: 'api/klaarzetten', tekening: 'api/huistekening', helpen: 'api/helpen' };
   const r = await Promise.allSettled(Object.values(deuren).map((p) => haal(p)));
   Object.keys(deuren).forEach((k, i) => {
     if (r[i].status === 'fulfilled') d[k] = r[i].value;
@@ -20,134 +20,110 @@ async function laadAlles() {
   teken();
 }
 
-/* ----------------------------------------------------------- wat mist */
+/* ------------------------------------------------- de stand, één regel */
 
-function mist() {
-  const lijst = stand.nogTeDoen(d);
-  if (!lijst.length) {
-    return { klaar: true, html: `<h2 class="kop-3">${esc(t('instellingen.allesGoed'))}</h2><p class="mini" style="margin: 2px 0 0">${esc(t('instellingen.allesGoedZin'))}</p>` };
-  }
-  const rijen = lijst.slice(0, 3).map((x) => `<div class="regel"><div><b>${esc(x.wat)}</b><span>${esc(x.waarom)}</span></div><a class="doe" href="${x.href}">${esc(x.knop)}</a></div>`).join('');
-  return { klaar: false, html: `<h2 class="kop-3"><span class="stip" style="background: var(--gloed)"></span>${esc(t('instellingen.nogTeDoen'))}</h2>${rijen}${lijst.length > 3 ? `<p class="mini" style="margin: 6px 0 0">${esc(t('instellingen.enNog', { n: lijst.length - 3 }))}</p>` : ''}` };
-}
-
-function kan() {
+/*
+ * Instellingen in vier tegels (schets Wand-Instellingen-Vier #tegels, goedgekeurd
+ * 17 november 2026). Bovenaan de stand als één regel: de zonnewaaier van Hoe ver
+ * je huis is, wat er nog mist (het eerste, met een knop), en Wat je huis kan.
+ */
+function standregel() {
+  const mis = isGast() ? [] : stand.nogTeDoen(d);
+  const v = window.waaier ? stand.voortgang(d) : null;
   const k = window.stand.kan ? stand.kan(d) : null;
   const tel = (s) => (k ? k.filter((x) => x.stand === s).length : 0);
-  const standen = k
-    ? ['werkt', 'kijkt', 'leert', 'mis', 'uit', 'nodig']
-        .map((s) => (tel(s) ? `<span class="stand ${s}">${esc(t(`instellingen.telt.${s}`, { n: tel(s) }))}</span>` : ''))
-        .join('')
-    : '';
-  const pijl = '<span class="pijl" aria-hidden="true">›</span>';
-  // Twee helften van één vak (0.180.2): Wat je huis kan, en Hoe ver je huis is met de kleine zonnewaaier. Elk een eigen pijl.
-  const v = k && window.waaier ? stand.voortgang(d) : null;
-  const hoever = v?.onderwerpen.length
-    ? `<a class="hoever" href="voortgang.html"><div class="kopregel"><div><h2 class="kop-3">${esc(t('voortgang.knop'))}</h2><span class="zin">${esc(t('voortgang.knopZin', { pct: v.totaal, n: v.tel('werkt'), totaal: v.onderwerpen.length }))}</span></div>${pijl}</div><svg viewBox="0 0 190 110" aria-hidden="true" data-mini></svg></a>`
-    : '';
-  return `<a href="huis-kan.html"><div class="kopregel"><h2 class="kop-3">${esc(t('instellingen.kan'))}</h2>${pijl}</div><p class="mini" style="margin: 4px 0 0">${esc(t('instellingen.kanZin'))}</p><div class="standen">${standen}</div></a>${hoever}`;
+  const titel = mis.length ? t('inst4.mist', { n: mis.length }) : t('instellingen.allesGoed');
+  const zin = mis.length ? mis[0].wat : k ? t('inst4.kanZin', { werkt: tel('werkt'), bij: tel('nodig') + tel('uit') }) : '';
+  const waaierDeel = v?.onderwerpen.length ? `<svg viewBox="0 0 190 110" aria-hidden="true" data-mini></svg>` : '';
+  const doe = mis.length ? `<a class="doe" href="${mis[0].href}">${esc(mis[0].knop)}</a>` : '';
+  return `<a class="hoever" href="voortgang.html">${waaierDeel}<span class="tekst"><b>${mis.length ? '' : '<i class="punt" aria-hidden="true"></i>'}${esc(titel)}</b><span class="zin">${esc(zin)}</span></span></a>${doe}<a class="naarkan" href="huis-kan.html">${esc(t('instellingen.kan'))} ›</a>`;
 }
 
-/* --------------------------------------------------------- de groepen */
+/* --------------------------------------------------------- de tegels */
 
 const ICOON = {
-  huis: iconen.svg('thuis'),
-  comfort: iconen.svg('comfort'),
+  jehuis: iconen.svg('thuis'),
+  klimaat: iconen.svg('comfort'),
   energie: iconen.svg('zon'),
-  regeling: iconen.svg('voorrang'),
-  functies: iconen.svg('kaarten'),
-  // Inrichten (0.90.1): een pad met stappen.
-  inrichten: iconen.svg('lijst'),
-  // De assistent (besluit 217): een spraakwolk.
-  assistent: iconen.svg('assistent'),
-  toegang: iconen.svg('inloggen'),
+  app: iconen.svg('inloggen'),
 };
 
 const euro = (v) => (v == null ? null : `${taal.valuta()} ${nl(v, 2)}`);
-const getal = (c) => nl(c, Number.isInteger(c) ? 0 : 1);
-const graden = (c) => `${getal(c)}°`;
 
-function feitenVan(id) {
+/** Wat er nu staat, per knop: [label, wat er staat, adres]. Null als het nog niet geladen is. */
+function knoppenVan(id) {
   const kamers = (d.huis?.etages ?? []).flatMap((e) => e.ruimtes ?? []);
+  const laden = '…';
   switch (id) {
-    case 'huis': {
+    case 'jehuis': {
       const etages = (d.huis?.etages ?? []).filter((e) => e.id !== 'buiten' && e.ruimtes?.length).length;
       const apps = kamers.reduce((n, r) => n + r.apparaten.length, 0);
       const zonder = d.huis?.zonderRuimte?.length ?? 0;
+      const bron = d.tekening?.bron ? t(`ht.bron.${d.tekening.bron}`) : null;
       return [
-        [t('instellingen.etagesKamers'), d.huis ? `${t('instellingen.etages', { n: etages })}, ${t('instellingen.kamers', { n: kamers.length })}` : '…'],
-        [t('instellingen.inKamer'), d.huis ? t('instellingen.vanTotaal', { a: apps, b: apps + zonder }) : '…'],
-        [t('instellingen.verborgen'), d.huis ? t('instellingen.apparaten', { n: d.huis.verborgen?.length ?? 0 }) : '…'],
+        [t('inst4.vorm'), bron ?? (d.tekening ? t('instellingen.nogKiezen') : laden), 'jehuis.html#bg/vorm'],
+        [t('instellingen.etagesKamers'), d.huis ? `${t('instellingen.etages', { n: etages })}, ${t('instellingen.kamers', { n: kamers.length })}` : laden, 'jehuis.html#bg'],
+        [t('inst4.waar'), d.huis ? (zonder ? t('instellingen.vanTotaal', { a: apps, b: apps + zonder }) : t('inst4.allePlek', { n: apps })) : laden, 'jehuis.html#bg/apparaten'],
+        [t('inst4.daken'), panelenZin() ?? (d.aansluiting ? t('instellingen.nogKiezen') : laden), 'energie.html#panelen'],
       ];
     }
-    case 'comfort': {
-      const k = d.comfort?.kamers ?? [];
-      const zin = (x) => {
-        const p = x.modi.dag;
-        return p.heat != null && p.cool != null ? t('instellingen.van', { van: getal(p.heat), tot: graden(p.cool) }) : p.heat != null ? graden(p.heat) : p.cool != null ? t('instellingen.tot', { tot: graden(p.cool) }) : t('instellingen.niets');
-      };
-      const dd = d.comfort?.dagdelen;
-      return [...k.slice(0, 2).map((x) => [t('instellingen.overdag', { naam: x.naam }), zin(x)]), [t('instellingen.dagdelen'), dd ? t('instellingen.van', { van: `${dd.dag}:00`, tot: `${dd.nacht}:00` }) : '…']];
+    case 'klimaat': {
+      const c = d.comfort;
+      const dd = c?.dagdelen;
+      const eerst = c?.voorrang?.verwarmen?.[0];
+      const naam = (zoneId) => c?.kamers?.find((k) => k.id === zoneId)?.naam ?? zoneId;
+      const soort = d.aansluiting?.antwoorden?.verwarming?.soort;
+      const aircos = d.helpen?.aircos?.length ?? 0;
+      return [
+        [t('inst4.hoeWarm'), c ? t('inst4.kamersMee', { n: c.kamers.length }) : laden, 'comfort.html'],
+        [t('instellingen.dagdelen'), dd ? t('instellingen.van', { van: `${dd.dag}:00`, tot: `${dd.nacht}:00` }) : laden, 'comfort.html#dagdelen'],
+        [t('comfort.voorrang'), eerst ? t('inst4.eerst', { naam: naam(eerst).toLowerCase() }) : c ? t('inst4.geenVoorrang') : laden, 'comfort.html#voorrang'],
+        [t('comfort.afwezig'), c ? t('inst4.vanzelf') : laden, 'comfort.html#afwezig'],
+        [t('klimaat.soort'), soort ? t(`energie.soort.${soort}`) : d.aansluiting ? t('instellingen.nogKiezen') : laden, 'energie.html#verwarming'],
+        ...(aircos ? [[t('regeling.helpen'), t('inst4.aircos', { n: aircos }), 'comfort.html#helpen']] : []),
+      ];
     }
     case 'energie': {
       const a = d.aansluiting;
-      const p = d.energie?.instellingen?.prijzen;
-      const aantal = a?.antwoorden?.panelen?.aantal;
-      // Een ligging die je bij Inrichten bevestigde, telt ook (30 oktober 2026: "Klopt" gaf hier toch "nog kiezen").
-      const lig = ['bevestigd', 'configuratie'].includes(a?.ligging?.stand) ? a.ligging.nu : null;
-      const panelen = aantal ? (a.antwoorden.panelen.ligging === 'beide' ? t('instellingen.tweeKanten', { n: aantal }) : `${aantal}`) : (a?.configuratie?.panelen ?? []).length ? t('instellingen.vlakken', { n: a.configuratie.panelen.length }) : lig ? (lig.vermogenKort ?? lig.vermogen ?? lig.richting ?? null) : null;
-      // "Weet ik niet" is geen zekering: dan die uit de configuratie, of nog kiezen.
       const zAntwoord = a?.antwoorden?.zekering;
+      // "Weet ik niet" is geen zekering: dan die uit de configuratie, of nog kiezen.
       const z = (zAntwoord && zAntwoord !== 'weetniet' ? zAntwoord : null) ?? a?.configuratie?.zekering ?? null;
+      const omv = a?.antwoorden?.omvormers?.length ?? 0;
+      const p = d.energie?.instellingen?.prijzen;
       return [
-        [t('instellingen.panelen'), panelen, !a ? '…' : t('instellingen.nogKiezen')],
-        [t('instellingen.zekering'), z ? `${z.fasen} × ${z.ampere} A` : null, !a ? '…' : t('instellingen.nogKiezen')],
-        [t('instellingen.stroomprijs'), euro(p?.stroom), d.energie ? t('instellingen.nogInvullen') : '…'],
+        [t('inst4.zekering'), z ? `${z.fasen} × ${z.ampere} A` : a ? t('instellingen.nogKiezen') : laden, 'energie.html#aansluiting'],
+        [t('inst4.meters'), a ? (omv ? t('inst4.omvormers', { n: omv }) : t('inst4.slimmeMeter')) : laden, 'energie.html#meters'],
+        [t('inst4.prijzen'), euro(p?.stroom) ?? (d.energie ? t('instellingen.nogInvullen') : laden), 'energie.html#prijzen'],
       ];
     }
-    case 'functies': {
+    case 'app': {
       const f = d.functies?.instellingen ?? d.functies?.voorstel;
       const weer = (d.functies?.gevonden?.weerbronnen ?? []).find((b) => b.id === f?.weer?.bron)?.naam ?? (f?.weer?.bron ? f.weer.bron : t('instellingen.geen'));
-      const duur = (s) => (s >= 60 ? t('algemeen.minuten', { n: s / 60 }) : t('instellingen.seconden', { n: s }));
-      return [
-        [t('instellingen.licht'), f ? t(f.licht?.bedienen === false ? 'instellingen.alleenKijken' : 'instellingen.bedienen') : '…'],
-        [t('instellingen.deurbel'), f ? (f.deurbel?.aan ? t('instellingen.beeld', { duur: duur(f.deurbel.seconden) }) : t('instellingen.uit')) : '…'],
-        [t('instellingen.weer'), f ? weer.replace(' (via internet)', '') : '…'],
-      ];
-    }
-    case 'assistent': {
-      const f = d.functies?.instellingen ?? d.functies?.voorstel;
-      const aanUit = (x) => t(x ? 'instellingen.aan' : 'instellingen.uit');
-      return [
-        [t('instellingen.praten'), f ? t(f.praten?.taalmodel ? 'functies.deel.eigen' : 'functies.deel.vast') : '…'],
-        [t('instellingen.bedienenZin'), f ? aanUit(f.praten?.bedienen !== false) : '…'],
-        [t('nav.tedoen'), f ? aanUit(f.tedoen?.aan === true) : '…'],
-      ];
-    }
-    case 'inrichten': {
+      const namen = d.bewoners ? d.bewoners.bewoners.map((b) => b.naam).join(', ') || t('instellingen.nogNiemand') : laden;
       const n = nagelopen();
-      // Klaarzetten (besluit 246): wat er nog open is voor iedereen, hooguit drie.
-      const open = klaarOpen();
-      if (open.length) return open.slice(0, 3).map(({ f, s }) => [s.titel, f.titel]);
+      const open = klaarOpen().length;
       return [
-        [t('instellingen.inr.wat'), t('instellingen.inr.watWaarde')],
-        [t('instellingen.inr.nagelopen'), n ? t('instellingen.inr.nStappen', { n }) : t('instellingen.inr.nogNiet')],
-      ];
-    }
-    case 'toegang': {
-      const s = d.sessie;
-      const ingelogd = !s ? '…' : s.toegang === 'open' ? t('instellingen.geenInlog') : s.ingelogd ? `${s.naam ?? ''}${s.rol ? `, ${s.rol}` : ''}` : t('instellingen.nogNiet');
-      // Bewoners (besluit 147): wie hier woont, de hoofdgebruiker eerst.
-      const namen = d.bewoners ? d.bewoners.bewoners.map((b) => b.naam).join(', ') || t('instellingen.nogNiemand') : '…';
-      return [
-        [t('instellingen.bewoners'), namen],
-        [t('instellingen.inloggen'), ingelogd],
-        [t('instellingen.versie'), d.health?.versie?.nummer ?? '…'],
+        [t('inst4.bewoners'), namen, 'toegang.html#bewoners'],
+        [t('groep.assistent'), f ? t(f.praten?.taalmodel ? 'functies.deel.eigen' : 'functies.deel.vast') : laden, 'functies.html?groep=assistent'],
+        [t('inst4.licht'), f ? t('inst4.weer', { weer: weer.replace(' (via internet)', '') }) : laden, 'functies.html'],
+        [t('inst4.meldingen'), f ? t('inst4.meldingenZin') : laden, 'functies.html#meldingen'],
+        [t('inst4.versie'), d.health?.versie?.nummer ?? laden, 'toegang.html#versie'],
+        // Inrichten blijft hier tot de standpagina de open stap aanbiedt (stap 3); na Inrichten naar Klaarzetten (besluit 246).
+        [t('groep.inrichten'), open && n ? t('instellingen.inr.open', { n: open }) : n ? t('instellingen.inr.nStappen', { n }) : t('instellingen.inr.begin'), open && n ? 'klaarzetten.html' : 'inrichten.html'],
       ];
     }
     default:
       return [];
   }
+}
+
+/** De panelen kort: hoeveel, of de vlakken uit de configuratie, of wat Inrichten bevestigde. */
+function panelenZin() {
+  const a = d.aansluiting;
+  const aantal = a?.antwoorden?.panelen?.aantal;
+  // Een ligging die je bij Inrichten bevestigde, telt ook (30 oktober 2026: "Klopt" gaf hier toch "nog kiezen").
+  const lig = ['bevestigd', 'configuratie'].includes(a?.ligging?.stand) ? a.ligging.nu : null;
+  return aantal ? (a.antwoorden.panelen.ligging === 'beide' ? t('instellingen.tweeKanten', { n: aantal }) : t('inst4.panelen', { n: aantal })) : (a?.configuratie?.panelen ?? []).length ? t('instellingen.vlakken', { n: a.configuratie.panelen.length }) : lig ? (lig.vermogenKort ?? lig.vermogen ?? lig.richting ?? null) : null;
 }
 
 /** De open stappen van Klaarzetten voor iedereen (besluit 246), met hun functie. */
@@ -164,35 +140,30 @@ function nagelopen() {
   }
 }
 
-// Inrichten als achtste tegel (0.90.1): op de wand twee rijen van vier, op de telefoon onderaan de lijst. Eerst stond hij als knop bovenin.
-// Regeling is weg (besluit 318): op zon staat in het blad van elk apparaat, Klimaat bij Klimaat.
-const GROEPEN = ['huis', 'comfort', 'energie', 'functies', 'assistent', 'toegang', 'inrichten'];
+/*
+ * Vier tegels (schets #tegels): Je huis, Klimaat, Energie, App en bewoners. Elke
+ * tegel een kop die naar de groep gaat, en de onderdelen als knoppen met wat er
+ * nu staat. Wat mist, telt per tegel (de groepen van Nog te doen vallen erin).
+ */
+const TEGELS = [
+  ['jehuis', 'jehuis.html', ['huis']],
+  ['klimaat', 'comfort.html', ['comfort']],
+  ['energie', 'energie.html', ['energie']],
+  ['app', 'toegang.html', ['functies', 'assistent', 'toegang', 'inrichten']],
+];
 
 function groepen() {
   const mis = isGast() ? [] : stand.nogTeDoen(d);
-  return GROEPEN.map((id) => [id, t(`groep.${id}`), t(`groep.${id}Zin`)]).filter(([id]) => !isGast() || id === 'toegang').map(([id, titel, onder]) => {
-    const n = mis.filter((x) => x.groep === id).length;
-    const feiten = feitenVan(id)
-      .map(([naam, waarde, leeg]) => `<li>${esc(naam)}<b class="${waarde == null && leeg !== '…' ? 'leeg' : ''}">${esc(waarde ?? leeg ?? '')}</b></li>`)
+  // Een gast (besluit 151) ziet alleen App en bewoners.
+  return TEGELS.filter(([id]) => !isGast() || id === 'app').map(([id, href, oud]) => {
+    const n = mis.filter((x) => oud.includes(x.groep)).length;
+    const knoppen = knoppenVan(id)
+      .map(([naam, waarde, adres]) => `<a class="deelknop" href="${adres}"><span><b>${esc(naam)}</b><span>${esc(waarde ?? '')}</span></span><span class="pijl" aria-hidden="true">›</span></a>`)
       .join('');
-    // Na Inrichten gaat de tegel naar Klaarzetten, zolang daar iets open is (besluit 246).
-    const klaar = id === 'inrichten' ? klaarOpen().length : 0;
-    const href = klaar && nagelopen() ? 'klaarzetten.html' : stand.GROEPEN[id];
-    return `<a class="glas tegel${n || klaar ? ' aandacht' : ''}" href="${href}">
-      <div class="titel"><span class="icoon">${ICOON[id]}</span><h3>${esc(titel)}</h3><span class="pijl" aria-hidden="true">›</span></div>
-      <ul>${feiten}</ul>
-      <div class="onder"><span>${esc(onder)}</span>${
-        // Inrichten is geen groep die klaar is of iets mist: beginnen, of verder waar je was.
-        id === 'inrichten' && klaar
-          ? `<span class="stand nodig">${esc(t('instellingen.inr.open', { n: klaar }))}</span>`
-          : id === 'inrichten'
-          ? `<span class="stand kijkt">${esc(t(nagelopen() ? 'instellingen.inr.verder' : 'instellingen.inr.begin'))}</span>`
-          : n
-            ? `<span class="stand mis">${esc(t('instellingen.mist', { n }))}</span>`
-            : // Wat klaar is, zegt niets extra (besluit 227): alleen wat mist krijgt een pil.
-              ''
-      }</div>
-    </a>`;
+    return `<section class="glas tegel${n ? ' aandacht' : ''}" data-tegel="${id}">
+      <a class="titel" href="${href}"><span class="icoon">${ICOON[id]}</span><span class="kop"><h3>${esc(t(`inst4.${id}`))}</h3><span class="zin">${esc(t(`inst4.${id}Zin`))}</span></span>${n ? `<span class="stand mis">${esc(t('instellingen.mist', { n }))}</span>` : ''}<span class="pijl" aria-hidden="true">›</span></a>
+      <div class="deelknoppen">${knoppen}</div>
+    </section>`;
   }).join('');
 }
 
@@ -216,18 +187,9 @@ const GAST = `<h2 class="kop-3">${esc(t('instellingen.gast'))}</h2><p class="min
 function tekenNu() {
   app.schaal();
   app.luchtVan(d.zon, 0);
-  const m = isGast() ? { klaar: true, html: GAST } : mist();
-  // Inrichten en zoeken leiden een gast alleen naar pagina's die hij niet kan gebruiken.
-  // Met hidden en niet met style.display: dat wiste het centreren van de knop Inrichten.
-  $$('a[href="inrichten.html"], [data-zoekvak]').forEach((el) => (el.hidden = isGast()));
-  $$('[data-mist]').forEach((el) => {
-    el.innerHTML = m.html;
-    el.classList.toggle('klaar', m.klaar);
-  });
-  $$('[data-kan]').forEach((el) => {
-    el.innerHTML = kan();
-    el.classList.toggle('een', el.children.length < 2);
-  });
+  // Zoeken leidt een gast alleen naar pagina's die hij niet kan gebruiken.
+  $$('[data-zoekvak]').forEach((el) => (el.hidden = isGast()));
+  $$('[data-kan]').forEach((el) => (el.innerHTML = isGast() ? `<div class="gast">${GAST}</div>` : standregel()));
   const v = $$('[data-mini]').length ? stand.voortgang(d) : null;
   $$('[data-mini]').forEach((svg) => waaier.teken(svg, { groepen: v.groepen, cx: 95, cy: 104, r0: 32, R: 92, getal: `${v.totaal}%`, groei: false, knoppen: false }));
   $$('[data-groepen]').forEach((el) => (el.innerHTML = groepen()));

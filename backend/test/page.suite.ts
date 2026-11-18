@@ -2586,7 +2586,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const fouten: string[] = [];
     p.on('pageerror', (e) => fouten.push(e.message));
     await p.goto(`${baseUrl}/instellingen.html`);
-    await p.locator('#wand a.tegel[href="functies.html"]').click();
+    await p.locator('#wand .deelknop[href="functies.html"]').click();
     const wand = p.locator('#wand');
     await wand.locator('.regelrij', { hasText: 'Camera oprit' }).waitFor();
     expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
@@ -5377,7 +5377,13 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     p.on('pageerror', (e) => fouten.push(e.message));
     await p.goto(`${baseUrl}/instellingen.html`);
     await p.locator('#wand [data-groepen] .tegel').first().waitFor();
-    expect(await p.locator('#wand [data-groepen] .tegel h3').allTextContents()).toEqual(['Je huis', 'Klimaat', 'Energie', 'Functies', 'Assistent', 'Bewoners en toegang', 'Inrichten']);
+    // Vier tegels (besluit 321, schets Wand-Instellingen-Vier #tegels), elk met zijn onderdelen als knoppen.
+    expect(await p.locator('#wand [data-groepen] .tegel h3').allTextContents()).toEqual(['Je huis', 'Klimaat', 'Energie', 'App en bewoners']);
+    expect(await p.locator('#wand [data-tegel="jehuis"] .deelknop b').allTextContents()).toEqual(['Vorm van het huis', 'Etages en kamers', 'Waar elk apparaat staat', 'Daken en panelen']);
+    expect(await p.locator('#wand [data-tegel="energie"] .deelknop[href="energie.html#aansluiting"]').count()).toBe(1);
+    expect(await p.locator('#wand [data-tegel="app"] .deelknop[href="inrichten.html"], #wand [data-tegel="app"] .deelknop[href="klaarzetten.html"]').count()).toBe(1);
+    // Elke tegel past zonder te scrollen.
+    expect(await p.locator('#wand .tegel').evaluateAll((els) => els.every((e) => e.scrollHeight <= e.clientHeight + 2))).toBe(true);
     expect(await p.locator('#balk [aria-current="page"]').getAttribute('aria-label')).toBe('Instellingen');
     expect(await p.evaluate('document.scrollingElement.scrollHeight <= innerHeight')).toBe(true);
     // Zoeken: "zekering" vindt de aansluiting bij Energie.
@@ -5514,11 +5520,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const fouten: string[] = [];
     p.on('pageerror', (e) => fouten.push(e.message));
     const shot = (naam: string, vol = false) => (process.env.HEMS_PAGE_SHOT ? p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', `-${naam}.png`), fullPage: vol }) : null);
-    // Bij Instellingen is Hoe ver je huis is de tweede helft van het vak Wat je huis kan, met een eigen pijl (0.180.2).
+    // Bij Instellingen staat de stand als één regel (besluit 321): de waaier van Hoe ver je huis is, en Wat je huis kan.
     await p.goto(`${baseUrl}/instellingen.html`);
     await p.locator('#wand .kan a.hoever .straal').first().waitFor();
-    expect(await p.locator('#wand .kan > a').count()).toBe(2);
-    expect(await p.locator('#tel .kan a.hoever').textContent()).toMatch(/Hoe ver je huis is\d+%, \d+ van \d+ werken helemaal/);
+    expect(await p.locator('#wand .kan a.naarkan').getAttribute('href')).toBe('huis-kan.html');
+    expect(await p.locator('#tel .kan a.hoever').textContent()).toMatch(/\d+%/);
     await shot('voortgang-instellingen');
     await p.locator('#wand .kan a.hoever').click();
     await p.waitForURL(/voortgang\.html$/);

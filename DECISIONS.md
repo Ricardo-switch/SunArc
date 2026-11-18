@@ -192,7 +192,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [125. Het screen zoals de schets, en Opbrengst onthoudt wat al uitgerekend is](#125-het-screen-zoals-de-schets-en-opbrengst-onthoudt-wat-al-uitgerekend-is)
 - [128. Wat je koos blijft staan, het zonnescherm, het weer per uur en een bredere wand](#128-wat-je-koos-blijft-staan-het-zonnescherm-het-weer-per-uur-en-een-bredere-wand)
 - [129. Drogen en het filter van de airco, gekleurd licht, en wat er nog wegviel](#129-drogen-en-het-filter-van-de-airco-gekleurd-licht-en-wat-er-nog-wegviel)
-- [130. Instellingen in zes groepen, en comfort zet je in de app](#130-instellingen-in-zes-groepen-en-comfort-zet-je-in-de-app)
+- [130. Instellingen in zes groepen, en comfort zet je in de app](#130-instellingen-in-zes-groepen-en-comfort-zet-je-in-de-app) — *deels vervangen door 321*
 - [131. Versie 0.9.0, één naam per kamer, en wat na een grondige test niet klopte](#131-versie-090-één-naam-per-kamer-en-wat-na-een-grondige-test-niet-klopte)
 - [133. Comfort zegt wanneer en waarmee: aan en uit, zon en net](#133-comfort-zegt-wanneer-en-waarmee-aan-en-uit-zon-en-net)
 - [136. Meldingen in de app](#136-meldingen-in-de-app)
@@ -311,6 +311,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [317. Klimaat per kamer in één blad; Kamers en indeling is weg](#317-klimaat-per-kamer-in-één-blad-kamers-en-indeling-is-weg)
 - [318. Een apparaat stel je in op zijn kaart; Regeling is weg](#318-een-apparaat-stel-je-in-op-zijn-kaart-regeling-is-weg)
 - [320. Een zone is een deel van de kamer, geen kamer](#320-een-zone-is-een-deel-van-de-kamer-geen-kamer)
+- [321. Instellingen in vier tegels](#321-instellingen-in-vier-tegels)
 
 **Veiligheid**
 
@@ -5654,7 +5655,7 @@ Gevraagd door de bewoner op 14 oktober 2026.
 
 ## 130. Instellingen in zes groepen, en comfort zet je in de app
 
-*Onderwerp: weergave · Status: geldig*
+*Onderwerp: weergave · Status: deels vervangen door 321*
 
 Gevraagd door de bewoner op 14 oktober 2026, met de schetsen
 `Wand-Instellingen`, `Wand-Instellingen-Energie` en `Wand-Instellingen-Comfort`
@@ -14854,6 +14855,39 @@ een keuze van de bewoner; bij Ricardo hoort de airco in het instellingenbestand
 en de oude regeling bij de woonkamer, dus voor de vergelijking vanaf 1 december
 zet hij de zithoek zelf terug. Meten per zone als eigen blad (in de schets
 `#meten`): de regel *Meten en regeling* blijft zoals hij was.
+
+## 321. Instellingen in vier tegels
+
+*Onderwerp: weergave · Status: geldig*
+
+18 november 2026. Achter het tandwiel stonden acht tegels (Je huis, Klimaat,
+Energie, Functies, Assistent, Bewoners en toegang, Inrichten), met bovenin
+twee helften: Nog te doen en Wat je huis kan. Het was veel om te lezen en je
+zag niet welke onderdelen er in een groep zaten. Stap 2 van de
+kwaliteitsronde gaf drie vormen in de schets `Wand-Instellingen-Vier`; op 17
+november koos Ricardo `#tegels`, met de zonnewaaier van Hoe ver je huis is in
+de standregel en elk onderdeel als grote knop met wat er nu staat.
+
+*Besluit (0.198.0):*
+
+- **Vier tegels, twee bij twee:** Je huis, Klimaat, Energie en App en
+  bewoners. De kop van een tegel gaat naar de groep; de onderdelen staan als
+  knoppen eronder, elk met wat er nu staat (*3 etages, 9 kamers*, *1 × 35 A*,
+  *woonkamer eerst*). Wat mist, telt per tegel, met een oranje rand.
+- **De stand als één regel bovenin:** de zonnewaaier met het percentage, wat
+  er nog mist (het eerste, met een knop ernaartoe) of *Alles staat goed*, en
+  rechts *Wat je huis kan*. Nog te doen als eigen vak is weg.
+- **Functies, Assistent, Bewoners en Inrichten** vallen samen in App en
+  bewoners. Inrichten blijft daar als knop tot de standpagina de open stap
+  aanbiedt (stap 3 van de kwaliteitsronde); daarna gaat hij weg.
+- **Daken en panelen** staat bij Je huis, maar opent voorlopig nog de panelen
+  bij Energie; de verhuizing van het scherm zelf volgt later.
+- **Op de telefoon** de tegels onder elkaar, de onderdelen als regels.
+- Een gast ziet alleen App en bewoners (besluit [151]).
+
+*Wat afviel:* het huis in het midden met de groepen eromheen (de schets
+zonder `#`) en `#lijst` met de geopende groep rechts. De pagina achter een
+tegel (`#klimaat`) blijft voor later.
 
 ## Wat nog een besluit wacht
 

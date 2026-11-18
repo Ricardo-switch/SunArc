@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.197.1';
+export const VERSIE = '0.198.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,26 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.198.0',
+    datum: '2026-11-18',
+    nieuw: [
+      'Instellingen staat in vier tegels: Je huis, Klimaat, Energie en App en bewoners, elk onderdeel als knop met wat er nu staat',
+      'Bovenin staat hoe ver je huis is als één regel: de zonnewaaier, wat er nog mist met een knop ernaartoe, en Wat je huis kan',
+    ],
+    beter: [
+      'Functies, de assistent, bewoners en Inrichten staan samen onder App en bewoners',
+    ],
+    en: {
+      nieuw: [
+        'Settings has four tiles: Your home, Climate, Energy and App and residents, each part as a button showing what is set now',
+        'At the top, how far your home is shows as one line: the sun fan, what is still missing with a button to it, and What your home can do',
+      ],
+      beter: [
+        'Features, the assistant, residents and Set up are together under App and residents',
+      ],
+    },
+  },
   {
     versie: '0.197.1',
     datum: '2026-11-18',
