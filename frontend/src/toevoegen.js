@@ -303,7 +303,9 @@ function itemsVan(soort) {
     // Zonder kamer en van geen soort hierboven: alleen bij Nieuw gevonden, met Waar en Verbergen.
     for (const d of huisData?.zonderRuimte ?? []) if (d.soort !== 'klimaat' && d.soort !== 'licht' && !isStekker(d.id)) uit.push({ id: d.id, naam: d.naam, icoon: 'apparaat', zin: t('toev.nogGeenKamer'), nieuw: true, wat: 'buffer' });
   }
-  return uit;
+  // Verborgen (bij Toevoegen of in Je huis) staat nergens, ook niet als het in een andere lijst van de dienst nog voorkomt (Ricardo, 18-11).
+  const verborgen = new Set((huisData?.verborgen ?? []).map((d) => d.id));
+  return uit.filter((x) => !verborgen.has(x.id));
 }
 
 /** Alles wat nieuw is, van elke soort, met de soort erbij. */

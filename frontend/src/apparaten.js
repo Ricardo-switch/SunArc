@@ -971,7 +971,7 @@ function tekenNu() {
   // Dezelfde telling als Nieuw gevonden bij Toevoegen (versie 3): witgoed of een boiler is nieuw zonder kamer en niet op zon;
   // een stekker met een kamer staat klaar, ook als hij niet op zon staat.
   const inKamer = (id) => (huisData?.etages ?? []).some((e) => (e.ruimtes ?? []).some((r) => (r.apparaten ?? []).some((a) => a.id === id || a.actuatorId === id)));
-  const losNieuw = (aansluiting?.gevonden?.apparaten ?? []).filter((d) => /^(wasmachine|droger|vaatwasser|wasdroger|boiler|jacuzzi)$/.test(d.soort) && opZonKeuze[d.id] !== true && !vast.has(d.id) && !inKamer(d.id) && !(huisData?.zonderRuimte ?? []).some((z) => z.id === d.id));
+  const losNieuw = (aansluiting?.gevonden?.apparaten ?? []).filter((d) => /^(wasmachine|droger|vaatwasser|wasdroger|boiler|jacuzzi)$/.test(d.soort) && opZonKeuze[d.id] !== true && !vast.has(d.id) && !inKamer(d.id) && !(huisData?.zonderRuimte ?? []).some((z) => z.id === d.id) && !(huisData?.verborgen ?? []).some((z) => z.id === d.id));
   const nieuw = (schakelaarData?.schakelaars ?? []).filter((x) => !x.keuze).length + (huisData?.zonderRuimte ?? []).length + losNieuw.length + [...(aansluiting?.laden?.apparaten ?? []), ...(aansluiting?.accu?.apparaten ?? [])].filter((d) => !d.aan).length;
   $$('[data-nieuw-tel]').forEach((el) => {
     el.hidden = nieuw === 0;

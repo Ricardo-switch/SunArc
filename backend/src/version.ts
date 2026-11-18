@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.196.0';
+export const VERSIE = '0.196.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.196.1',
+    datum: '2026-11-18',
+    opgelost: [
+      'Een verborgen stekker stond bij Toevoegen › Stekkers nog als klaar, met een vinkje bij Nog geen kamer. Wat verborgen is, staat nu alleen bij Verborgen',
+    ],
+    en: {
+      opgelost: [
+        'A hidden plug still showed as set up under Add › Plugs, with a tick next to No room yet. What is hidden now only shows under Hidden',
+      ],
+    },
+  },
   {
     versie: '0.196.0',
     datum: '2026-11-18',

@@ -8394,6 +8394,41 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     }
   }, 60_000);
 
+  it('Toevoegen: een verborgen stekker staat niet bij Stekkers, ook niet als klaar (Ricardo, 18-11)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    // Zoals bij Ricardo: de Heater is verborgen, maar de dienst kent hem nog bij wat op zon kan.
+    await context.route(`${baseUrl}/api/huis`, async (route) => {
+      const r = await route.fetch();
+      const huis = (await r.json()) as { verborgen?: unknown[] };
+      huis.verborgen = [...(huis.verborgen ?? []), { id: 'stekker-heater', naam: 'Heater', soort: 'apparaat' }];
+      return route.fulfill({ json: huis });
+    });
+    await context.route(`${baseUrl}/api/aansluiting`, async (route) => {
+      if (route.request().method() !== 'GET') return route.continue();
+      const r = await route.fetch();
+      const a = (await r.json()) as { gevonden?: { apparaten?: unknown[] } };
+      a.gevonden = { ...(a.gevonden ?? {}), apparaten: [...(a.gevonden?.apparaten ?? []), { id: 'stekker-heater', naam: 'Heater', soort: 'stekker', meet: true }] };
+      return route.fulfill({ json: a });
+    });
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    try {
+      await p.goto(`${baseUrl}/toevoegen.html#stekkers`);
+      const wand = p.locator('#wand');
+      await wand.locator('[data-midden] h3', { hasText: 'Stekkers' }).waitFor({ timeout: 15_000 });
+      await expect.poll(() => wand.locator('[data-midden] .verborgenregel').count(), { timeout: 10_000 }).toBe(1);
+      expect(await wand.locator('[data-midden] [data-item="stekker-heater"]').count()).toBe(0);
+      await wand.locator('[data-midden] .verborgenregel').click();
+      await expect.poll(() => wand.locator('[data-midden] [data-terughalen="stekker-heater"]').count(), { timeout: 5_000 }).toBe(1);
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  }, 30_000);
+
   it('Toevoegen op de telefoon: de soorten, de lijst, en het blad van onderen (versie 3)', async () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
