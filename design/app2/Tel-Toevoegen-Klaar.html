@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Toevoegen maakt klaar (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Toevoegen maakt klaar, op de telefoon (schets bij Wand-Toevoegen-Klaar,
+   * goedgekeurd 18 november 2026). De drie kolommen van de wand worden drie
+   * stappen: de soorten, wat SunArc van die soort vond, en het blad van onderen
+   * om hem klaar te zetten. Op de telefoon mag de pagina schuiven.
+   * Standen: #soorten, #stekkers, #blad.
+   */
+  .tel { position: relative; overflow: hidden; }
+  .inhoud { padding: 16px 16px 110px; display: flex; flex-direction: column; gap: 10px; }
+  .inhoud h1 { font-size: 32px; margin: 0; }
+  .terug { font-size: 13px; font-weight: 700; color: var(--zacht); }
+  .lead { margin: 0; font-size: 13.5px; color: var(--zacht); }
+  h4 { margin: 8px 4px 2px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); }
+  .groep { padding: 6px; display: flex; flex-direction: column; }
+  .srt, .vond { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 52px; padding: 7px 10px; border-radius: 14px; }
+  .srt + .srt, .vond + .vond { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+  .ik { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); color: var(--zacht); }
+  .ik svg { width: 21px; height: 21px; }
+  .srt b, .vond b { display: block; font-size: 15.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vond small { display: block; font-size: 12.5px; color: var(--gedempt); }
+  small.nieuw, .srt small.nieuw { color: var(--gloed-t); }
+  .srt small { font-size: 12.5px; font-weight: 700; color: var(--gedempt); white-space: nowrap; }
+  .r { color: var(--gedempt); font-size: 17px; }
+  .r.klaar { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; background: rgba(110, 231, 183, 0.18); color: var(--mint); }
+  .voet { margin: 4px 4px 0; font-size: 12.5px; color: var(--gedempt); line-height: 1.45; }
+  .tabs { position: fixed; left: 12px; right: 12px; bottom: 14px; }
+  .achter { position: fixed; inset: 0; background: rgba(4, 8, 16, 0.6); z-index: 60; }
+  .blad { position: fixed; left: 0; right: 0; bottom: 0; max-height: 88%; overflow: hidden; padding: 18px 18px 22px; border-radius: 26px 26px 0 0; display: flex; flex-direction: column; gap: 10px; background: #0e1726; border-top: 1px solid rgba(255, 255, 255, 0.1); z-index: 61; }
+  .blad .greep { width: 40px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); align-self: center; margin-top: -6px; }
+  .blad h2 { margin: 0; font-family: var(--kop); font-size: 23px; font-weight: 600; }
+  .blad .nu { margin: 2px 0 0; font-size: 13.5px; color: var(--zacht); }
+  .vraag > b { display: block; margin: 0 0 6px; font-size: 13.5px; font-weight: 700; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { height: 36px; padding: 0 13px; border-radius: 999px; display: inline-flex; align-items: center; background: rgba(255, 255, 255, 0.07); font-size: 14px; font-weight: 600; color: var(--zacht); }
+  .chips span.aan { background: var(--tekst); color: var(--inkt); }
+  .chips span.meer { background: transparent; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+  .rij { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .rij .l { flex: 1; min-width: 0; }
+  .rij .l b { display: block; font-size: 15px; font-weight: 600; }
+  .rij .l span { font-size: 12.5px; color: var(--gedempt); }
+  .schakel { position: relative; flex: none; width: 46px; height: 28px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); }
+  .schakel::after { content: ''; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #c9d3dc; }
+  .schakel.aan { background: var(--mint); }
+  .schakel.aan::after { left: 21px; background: #fff; }
+  .zet { height: 50px; border-radius: 16px; border: 0; background: var(--tekst); color: var(--inkt); font: inherit; font-weight: 700; font-size: 16px; }
+  .verberg { height: 44px; border: 0; background: transparent; color: var(--zacht); font: inherit; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .verberg svg { width: 18px; height: 18px; }
+  .terugje { align-self: flex-start; border: 0; background: rgba(255, 255, 255, 0.07); color: var(--zacht); height: 32px; padding: 0 12px; border-radius: 999px; font: inherit; font-weight: 700; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="tel lucht lucht-dag">
+  <div class="inhoud" data-inhoud></div>
+  <nav class="tabs" id="tabs" aria-label="Hoofdmenu"></nav>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script>localStorage.setItem('sc-taal', 'nl');</script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script>
+  const stand = location.hash.slice(1) || 'soorten';
+  if (nav.tabs) nav.tabs(document.getElementById('tabs'), 'apparaten');
+  const ik = (naam) => iconen.svg(naam);
+  const SOORTEN = [
+    ['airco', 'Klimaat', '1 nieuw'], ['lamp', 'Licht', '17 klaar'], ['boiler', 'Warm water en bad', '1 klaar'], ['droger', 'Witgoed', '1 nieuw'], ['auto', 'Auto en laden', '2 klaar'],
+    ['batterij', 'Thuisaccu', '1 klaar'], ['stekker', 'Stekkers', '2 nieuw'], ['apparaat', 'Schakelaars', '1 nieuw'], ['laadpaal', 'Losse sensoren', ''],
+  ];
+  const srt = ([icoon, naam, n]) => `<div class="srt"><span class="ik">${ik(icoon)}</span><b>${naam}</b><small class="${n.includes('nieuw') ? 'nieuw' : ''}">${n} ›</small></div>`;
+  const vond = ([icoon, naam, zin], klaar) => `<div class="vond"><span class="ik">${ik(icoon)}</span><div><b>${naam}</b><small class="${klaar ? '' : 'nieuw'}">${zin}</small></div>${klaar ? '<span class="r klaar">✓</span>' : '<span class="r">›</span>'}</div>`;
+
+  const soorten = `<span class="terug">‹ Apparaten</span><h1 class="kop-1">Toevoegen</h1><p class="lead">Wat SunArc in Home Assistant vond. Kies een soort, en zet het meteen klaar.</p>
+    <section class="glas groep"><div class="srt"><span class="ik" style="font-size: 20px; font-weight: 700">+</span><b>Nieuw gevonden</b><small class="nieuw">5 ›</small></div></section>
+    <h4>Per soort</h4><section class="glas groep">${SOORTEN.map(srt).join('')}</section>`;
+  const stekkers = `<span class="terug">‹ Toevoegen</span><h1 class="kop-1">Stekkers</h1><p class="lead">SunArc vond 3 slimme stekkers in Home Assistant.</p>
+    <h4 style="color: var(--gloed-t)">Nieuw · nog niet klaar</h4><section class="glas groep">${vond(['stekker', 'Elektrische haard', 'Nog geen kamer · meet zelf'])}${vond(['stekker', 'Heater tuinhuis', 'Nog geen kamer · meet zelf'])}</section>
+    <h4>Al klaar · staat bij Apparaten</h4><section class="glas groep">${vond(['stekker', 'Ontvochtiger', 'Kelder · op zon'], true)}</section>
+    <section class="glas groep"><div class="srt"><span class="ik">${ik('verborgen')}</span><b>Verborgen</b><small>1 ›</small></div></section>
+    <p class="voet">Staat hij er niet bij? Dan kent Home Assistant hem niet als stekker. Kijk bij Schakelaars of Losse sensoren.</p>`;
+  const vraag = (titel, keuzes) => `<div class="vraag"><b>${titel}</b><div class="chips">${keuzes.map((x) => `<span class="${x.endsWith('*') ? 'aan' : x.endsWith('…') ? 'meer' : ''}">${x.replace('*', '')}</span>`).join('')}</div></div>`;
+  const blad = `<div class="achter"></div><div class="blad"><span class="greep"></span>
+    <div><h2>Elektrische haard</h2><p class="nu">Slimme stekker · staat uit · 0 W</p></div>
+    ${vraag('Wat zit erin?', ['Kachel*', 'Ventilator', 'Boiler', 'Lamp', 'Iets anders'])}
+    ${vraag('Waar staat hij?', ['Woonkamer*', 'Tuinhuis', 'Garage', 'Andere kamer…'])}
+    ${vraag('Op zon?', ['Ja, aan als er zon over is*', 'Nee'])}
+    ${vraag('Minstens per dag', ['Niet*', '1 uur', '2 uur', '4 uur'])}
+    <div class="rij"><div class="l"><b>Met de hand</b><span>SunArc mag hem aan- en uitzetten als jij dat vraagt</span></div><span class="schakel aan"></span></div>
+    <button class="zet" type="button">Zet klaar</button>
+    <button class="verberg" type="button">${ik('verborgen')}Verbergen: geen stekker om te regelen</button></div>`;
+
+  document.querySelector('[data-inhoud]').innerHTML = stand === 'soorten' ? soorten : stekkers;
+  if (stand === 'blad') document.querySelector('.tel').insertAdjacentHTML('beforeend', blad);
+</script>
+</body>
+</html>
