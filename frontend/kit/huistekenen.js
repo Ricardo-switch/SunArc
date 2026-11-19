@@ -2280,6 +2280,25 @@
   /* ================================================================ het blad ernaast */
 
   const rij = (o) => `<button type="button" class="ht-rij${o.mist ? ' mist' : ''}${o.aan ? ' aan' : ''}" ${o.data}>${o.ik ? `<span class="ik"${o.kleur ? ` style="color: ${o.kleur}"` : ''}>${ik(o.ik)}</span>` : ''}<span class="t"><b>${esc(o.titel)}</b>${o.zin ? `<small>${esc(o.zin)}</small>` : ''}</span>${o.rechts ? `<em>${esc(o.rechts)}</em>` : ''}</button>`;
+  /*
+   * Het dak van een gebouw (stap 4, keuze Ricardo 19 november 2026): het dak
+   * teken je in Je huis, Zonnepanelen legt de panelen erop. De vier vormen en de
+   * nok een kwart draaien; alleen in de app (`t.gebouw`), niet in een schets.
+   */
+  /** De naamsvermelding van de kaarten bij Vorm (stap 4: de kaart staat alleen hier): 3D BAG met "vorm aangepast", OpenStreetMap voor de plattegrond en de gebouwen eromheen. */
+  const vermelding = (bron, omgeving) => {
+    const links = [
+      ...(bron === 'bag3d' ? [`<a href="https://docs.3dbag.nl/en/copyright" target="_blank" rel="noopener">${esc(T('daken.kk.bag'))}</a>`] : []),
+      ...(bron === 'osm' || ((bron === 'bag3d' || bron === 'osm') && omgeving) ? [`<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">${esc(T('daken.kk.osm'))}</a>`] : []),
+    ].join(' · ');
+    return links ? `<p class="ht-voet ht-vermelding">${links}</p>` : '';
+  };
+  const dakDeel = (t, b) => {
+    if (!b || !t.gebouw) return '';
+    const vormen = ['zadel', 'schild', 'lessenaar', 'plat'];
+    const nok = b.dak === 'plat' ? '' : `<button type="button" class="ht-dakknop" data-ht="gebouw-nok" data-id="${esc(b.id)}" title="${esc(T('ht.dak.nokZin'))}">${esc(T(b.dak === 'lessenaar' ? 'daken.andereKant' : 'daken.nokDraaien'))}</button>`;
+    return `<h4 class="ht-dakkop">${esc(T('ht.dak.kop'))}${nok}</h4><div class="ht-twee vier">${vormen.map((v) => `<button type="button" class="ht-klein${b.dak === v ? ' aan' : ''}" data-ht="gebouw-dak" data-id="${esc(b.id)}" data-dakvorm="${v}" aria-pressed="${b.dak === v}">${esc(T(`daken.dakvorm.${v}`))}</button>`).join('')}</div>`;
+  };
 
   /** Het blad rechts (wand) of onder (telefoon): wat je hier kunt, in regels. */
   const metOpeningenVan = (t) => !!t.metOpeningen;
@@ -2350,7 +2369,7 @@
         s = `<header><h3>${esc(naam.charAt(0).toUpperCase() + naam.slice(1))}</h3>${b ? `<span>${nl(b.b)} × ${nl(b.d)} m</span>` : ''}</header>
           <p class="ht-zin">${esc(T('ht.gebouw.blokZin'))}</p>
           ${st.gebouwFout ? `<p class="ht-niet">${esc(st.gebouwFout)}</p>` : ''}
-          ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : rij({ ik: 'kruis', titel: T('ht.gebouw.weg'), zin: T('ht.gebouw.wegZin'), data: 'data-ht="gebouw-weg"' })}
+          ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : `${dakDeel(t, b)}${rij({ ik: 'kruis', titel: T('ht.gebouw.weg'), zin: T('ht.gebouw.wegZin'), data: 'data-ht="gebouw-weg"' })}`}
           ${rij({ ik: 'thuis', titel: T('ht.gebouw.terug'), zin: '', data: 'data-ht="gebouw-terug"' })}`;
       } else if (st.stand === 'vorm') {
         // Vorm is ook de plek waar je ziet wat elke bron van je huis vindt, en waar je kiest.
@@ -2364,7 +2383,9 @@
           ${(t.huis.nietGevonden ?? []).map((x) => `<p class="ht-niet"><b>${esc(x.naam)}</b> ${esc(x.zin)}</p>`).join('')}
           ${t.kijk && t.huis.kijk ? rij({ ik: 'dak', titel: t.huis.kijk.bezig ? T('ht.vorm.kijkt') : T('ht.vorm.kijk'), zin: t.huis.kijk.fout ?? T('ht.vorm.kijkZin'), rechts: '›', data: t.huis.kijk.bezig ? 'disabled' : 'data-ht="kijk"' }) : ''}
           ${rij({ ik: 'etages', titel: T('ht.hoogte'), zin: nu?.hoogte ?? '', rechts: nu?.gemeten ? T('ht.gemeten') : T('ht.geschat'), data: 'disabled' })}
-          <p class="ht-voet">${esc(T(t.kijk ? 'ht.vorm.voetApp' : 'ht.vorm.voet'))}</p>`;
+          ${st.gebouwFout ? `<p class="ht-niet">${esc(st.gebouwFout)}</p>` : ''}
+          ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : dakDeel(t, (nu?.blokken ?? []).find((q) => q.soort === 'hoofdhuis'))}
+          <p class="ht-voet">${esc(T(t.kijk ? 'ht.vorm.voetApp' : 'ht.vorm.voet'))}</p>${vermelding(st.bron, (t.huis.bronnen?.[st.bron]?.omgeving ?? []).length > 0)}`;
       } else if (st.stand === 'kamers' && st.kies?.soort === 'opening' && (v.openingen ?? []).some((x) => x.id === st.kies.id)) {
         // Een deur, raam of de voordeur: de breedte, en weghalen.
         const o = v.openingen.find((x) => x.id === st.kies.id);
@@ -2527,6 +2548,14 @@
       else if (d.ht === 'opening-breed') t.openingBreed(Number(d.d));
       else if (d.ht === 'opening-weg') t.openingWeg();
       else if (d.ht === 'trap') t.zetTrap(st.kies.id, d.r);
+      else if ((d.ht === 'gebouw-dak' || d.ht === 'gebouw-nok') && t.gebouw && !st.gebouwBezig) {
+        st.gebouwBezig = true;
+        teken();
+        Promise.resolve(t.gebouw(d.ht === 'gebouw-nok' ? { dak: d.id, nok: true } : { dak: d.id, dakvorm: d.dakvorm })).finally(() => {
+          st.gebouwBezig = false;
+          teken();
+        });
+      }
       else if ((d.ht === 'gebouw-erbij' || d.ht === 'gebouw-weg') && t.gebouw && !st.gebouwBezig) {
         st.gebouwBezig = true;
         teken();

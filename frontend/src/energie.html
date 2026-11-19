@@ -6,7 +6,6 @@
 <meta name="color-scheme" content="only dark">
 <title>Energie · SunArc</title>
 <link rel="stylesheet" href="kit/kit.css">
-<link rel="stylesheet" href="kit/kaartmelding.css">
 <link rel="stylesheet" href="basis.css">
 <link rel="stylesheet" href="laden.css">
 <link rel="manifest" href="manifest.webmanifest">
@@ -105,34 +104,7 @@
   .dk-rechts { text-align: right; font-size: 12px; color: var(--zacht); line-height: 1.3; white-space: nowrap; }
   .dk-rechts b { display: inline; font: 600 15px var(--kop); color: var(--tekst); }
   /* Wat kan bij jouw huis (6 november 2026, schets Wand-Daken-Watkan). */
-  .wk { padding: 10px 10px 8px; border-radius: 18px; background: rgb(var(--wit) / 0.045); border: 1px solid rgb(var(--wit) / 0.08); display: flex; flex-direction: column; gap: 3px; }
-  .wk-kop { display: flex; align-items: center; gap: 10px; padding: 0 4px 2px; min-height: 32px; }
-  .wk-kop small { font-size: 12px; color: var(--gedempt); }
-  .wk-fout { margin: 2px 6px 0; color: var(--gloed-t); }
-  #tel .wk-kop small { display: none; }
-  .wk-kop h3 { margin: 0; font: 600 15px var(--kop); color: var(--tekst); flex: 1; }
-  .wk-regel { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 3px 6px; border-radius: 12px; min-height: 38px; }
-  .wk-regel.aan { background: rgba(247, 181, 72, 0.08); box-shadow: inset 0 0 0 1.5px rgba(247, 181, 72, 0.55); }
-  .wk-regel.uit { opacity: 0.5; }
-  .wk-ik { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); color: var(--zacht); }
-  .wk-ik svg { width: 16px; height: 16px; }
-  .wk-tekst { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-  .wk-tekst b { font-size: 13.5px; color: var(--tekst); }
-  .wk-tekst small { font-size: 12px; color: var(--zacht); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .wk-stand { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
-  .wk-stand i { width: 9px; height: 9px; border-radius: 50%; }
-  .wk-ja { color: var(--mint-t); } .wk-ja i { background: var(--mint-t); }
-  .wk-half { color: var(--zon-t); } .wk-half i { background: var(--zon-t); }
-  .wk-nee { color: var(--gloed-t); } .wk-nee i { background: var(--gloed-t); }
-  .wk-nog { color: var(--gedempt); } .wk-nog i { background: transparent; box-shadow: inset 0 0 0 1.5px var(--gedempt); }
   /* Zoekt (7 november 2026): zolang de kaarten nog antwoorden, knippert het bolletje. */
-  .wk-bezig { color: var(--zon-t); } .wk-bezig i { background: var(--zon-t); animation: wk-knipper 1s ease-in-out infinite; }
-  @keyframes wk-knipper { 50% { opacity: 0.25; transform: scale(0.7); } }
-  @media (prefers-reduced-motion: reduce) { .wk-bezig i { animation: none; } }
-  .wk-kies { height: 30px; padding: 0 12px; border-radius: 10px; border: 0; background: rgb(var(--wit) / 0.08); color: var(--tekst); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
-  .wk-gebruik { height: 30px; padding: 0 6px; color: var(--zon-t); font-size: 12.5px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
-  .wk-gebruik svg { width: 14px; height: 14px; }
-  .wk-knop { height: 32px; padding: 0 14px; border-radius: 12px; border: 0; background: #f3e9d6; color: #0b1424; font: inherit; font-size: 13.5px; font-weight: 800; white-space: nowrap; cursor: pointer; }
   .dk-som { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
   .dk-voet { margin-top: auto; padding-top: 6px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .dk-voet .mini { flex: 1; }
@@ -221,16 +193,9 @@
   .dk-podium { margin: 0; border-radius: 18px; background: radial-gradient(120% 100% at 50% 40%, rgb(var(--wit) / 0.04), transparent 70%); }
   .dk-boven { position: absolute; inset: 0; width: 100%; height: 100%; }
   .dk-boven [role="button"] { cursor: pointer; outline: none; }
-  .dk-kand polygon { fill: rgb(var(--wit) / 0.03); stroke: rgb(var(--wit) / 0.22); }
-  .dk-kand text { fill: rgb(var(--wit) / 0.35); font-weight: 800; font-family: var(--romp); }
-  .dk-kand:hover polygon, .dk-kand.aan polygon { fill: rgba(247, 181, 72, 0.12); stroke: var(--zon); }
   .dk-romp { fill: rgb(var(--wit) / 0.06); stroke: rgb(var(--wit) / 0.45); }
   .dk-gebouw.aan .dk-romp { stroke: var(--zon); }
   /* Stap 2b: het gekozen blok slepen en draaien. */
-  .dk-gebouw[data-dak-sleep] { cursor: grab; touch-action: none; }
-  .dk-gebouw[data-dak-sleep].sleept { cursor: grabbing; }
-  .dk-draaigreep { fill: var(--zon); stroke: rgb(var(--nacht)); cursor: grab; touch-action: none; }
-  .dk-draailijn { stroke: var(--zon); stroke-dasharray: 0.3 0.25; }
   .dk-maat .dk-stapper b { min-width: 58px; }
   .dk-sleepzin { margin: -2px 0 0; }
   .dk-dv { fill: rgb(var(--wit) / 0.05); stroke: rgb(var(--wit) / 0.28); }
@@ -245,7 +210,6 @@
   .dk-badge.open rect { stroke: var(--tekst); stroke-width: 0.2; }
   .dk-gnaam rect { fill: rgb(var(--nacht) / 0.78); stroke: rgb(var(--wit) / 0.2); stroke-width: 0.08; }
   .dk-gnaam text { fill: var(--zacht); font-weight: 700; font-family: var(--romp); }
-  .dk-gnaam:hover rect { stroke: var(--zon); }
   .dk-straat { fill: rgb(var(--wit) / 0.4); font-weight: 700; font-family: var(--romp); letter-spacing: 0.1em; pointer-events: none; }
   .dk-noord { position: absolute; top: 10px; right: 12px; width: 34px; height: 34px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; background: rgb(var(--nacht) / 0.6); border: 1px solid rgb(var(--wit) / 0.3); font-weight: 800; font-size: 12px; line-height: 1; color: var(--zon); }
   /* Een klein rood pijltje boven de N (6 november 2026): het noorden is boven. */
@@ -253,6 +217,13 @@
   .dk-kaart { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: rgb(var(--nacht) / 0.82); }
   .dk-kaart .lig-knop { height: 36px; padding: 0 14px; font-size: 13.5px; white-space: nowrap; }
   .dk-kaart small { font-size: 12px; color: var(--zacht); line-height: 1.35; }
+  /* Het dak uit Je huis (stap 4): de regel onder de tekening, en de tekening houdt er ruimte voor. */
+  .dk-brontekst { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13.5px; line-height: 1.3; }
+  .dk-vermelding { font-size: 11px !important; color: var(--gedempt) !important; }
+  .dk-vermelding a { color: inherit; }
+  #wand .dk-podium:has(.dk-bron) .dk-boven { height: calc(100% - 96px); }
+  #tel .dk-bron { flex-wrap: wrap; }
+  #tel .dk-bron .lig-knop { flex: 1 1 100%; justify-content: center; }
   .dk-podium .dk-noot { bottom: auto; top: 10px; right: 56px; }
   .dk-ligt { margin: -4px 0 0; }
   .dk-gicoon svg { width: 22px; height: 16px; }
@@ -261,15 +232,8 @@
   #tel .dk-podium .dk-boven { position: relative; inset: auto; height: 250px; flex: none; }
   #tel .dk-podium .dk-noot, #tel .dk-podium .dk-kaart { display: flex; position: static; margin: 0 6px; }
   #tel .dk-podium .dk-noot { display: block; }
-  #tel .kk-balk { flex-wrap: wrap; row-gap: 8px; }
-  #tel .kk-balktekst { flex: 1 1 60%; }
-  #tel .kk-balk [data-dak-zonderkaart] { margin-left: auto; }
   #tel .pan-kop .dk-wissel { margin-left: 0; }
   /* De kaart is experimenteel (schets Wand-Daken-Kaart, 5 november 2026): de balk, en de melding over de hele pagina. */
-  .kk-balk { gap: 10px; }
-  .kk-balktekst { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px; line-height: 1.3; }
-  .kk-balktekst small { font-size: 11.5px; color: var(--gedempt); }
-  .kk-balktekst a { color: inherit; }
 </style>
 </head>
 <body class="lucht lucht-dag">

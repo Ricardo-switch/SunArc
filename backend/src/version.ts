@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.203.0';
+export const VERSIE = '0.204.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.204.0',
+    datum: '2026-11-19',
+    beter: [
+      'De kaart staat nog op één plek: bij Je huis › Vorm. Daar kies je ook de dakvorm en draai je de nok',
+      'Daken en panelen heet Zonnepanelen en staat bij Energie: de panelen liggen op het dak uit Je huis, met de straat onder zoals in Je huis',
+      'Bij de kaart staat de naamsvermelding van 3D BAG en OpenStreetMap',
+    ],
+    en: {
+      beter: [
+        'The map is in one place now: Your home › Shape. That is also where you choose the roof shape and turn the ridge',
+        'Roofs and panels is now called Solar panels and sits under Energy: the panels lie on the roof from Your home, with the street at the bottom like in Your home',
+        'The map shows the credits for 3D BAG and OpenStreetMap',
+      ],
+    },
+  },
   {
     versie: '0.203.0',
     datum: '2026-11-19',

@@ -716,6 +716,26 @@ export function gebouwErbij(d: Daken, i: number, soort: ErbijSoort): { daken: Da
   return { daken: { ...d, vlakken: losVan(d.vlakken, geschat >= 0 ? [id] : []), gebouwen, omgeving }, id };
 }
 
+/**
+ * De dakvorm van een gebouw, of de nok een kwart gedraaid (stap 4, keuze
+ * Ricardo 19 november 2026: het dak teken je in Je huis, Zonnepanelen legt de
+ * panelen erop). `id` is het blok zoals Je huis het tekent: `hoofd` is het
+ * hoofdhuis. Wat de bewoner kiest, blijft (issue 143); de vlakken die erop
+ * lagen, zoekt SunArc opnieuw. Null als het gebouw er niet is.
+ */
+export function gebouwDak(d: Daken, id: string, wat: { readonly dakvorm?: Dakvorm; readonly nok?: boolean }): Daken | null {
+  const dt = dakTekening(d);
+  const gebouwen = d.gebouwen ?? dt.gebouwen.map(kaalGebouw);
+  // Een ander gebouw dat 'hoofd' heet, tekent Je huis als 'hoofd-2'.
+  const g = id === 'hoofd' ? gebouwen.find((x) => x.soort === 'hoofdhuis') : (gebouwen.find((x) => x.id === id) ?? (id === 'hoofd-2' ? gebouwen.find((x) => x.id === 'hoofd') : undefined));
+  if (!g) return null;
+  const norm = (n: number): number => ((Math.round(n) % 360) + 360) % 360;
+  const nieuw: Gebouw = wat.dakvorm
+    ? { ...g, dakvorm: wat.dakvorm, dakBron: 'bewoner' }
+    : { ...g, nokDeg: g.dakvorm === 'lessenaar' ? norm(g.nokDeg + 90) : (g.nokDeg + 90) % 180, dakBron: g.dakBron ?? 'bewoner' };
+  return { ...d, vlakken: losVan(d.vlakken, [g.id]), gebouwen: gebouwen.map((x) => (x === g ? nieuw : x)) };
+}
+
 /** Een gebouw weer weg (niet het hoofdhuis). Wat van de kaart kwam, staat daarna weer grijs om het huis. Null als het er niet is. */
 export function gebouwWeg(d: Daken, id: string): Daken | null {
   const dt = dakTekening(d);

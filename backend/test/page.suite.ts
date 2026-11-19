@@ -835,15 +835,15 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // Rechtstreeks naar het deel van Energie; de oude doorverwijzing is weg sinds besluit 142.
     await p.goto(`${baseUrl}/energie.html#panelen`);
     const wand = p.locator('#wand');
-    // Daken en panelen (besluit 254): de vlakken als kaartjes, met het huis van boven ernaast.
+    // Zonnepanelen (besluit 254, stap 4): de vlakken als kaartjes, met het dak uit Je huis van boven ernaast.
     await wand.locator('.dk h3', { hasText: 'Waar de panelen liggen' }).waitFor();
     await wand.locator('svg.dk-boven .dk-gebouw').first().waitFor();
     expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
-    // De eerste keer een eigen rondleiding (besluit 254): zes stops op de pagina (ook Wat kan bij jouw huis, 261), dan Klaar; daarna niet meer.
+    // De eerste keer een eigen rondleiding (besluit 254): vijf stops op de pagina, dan Klaar; daarna niet meer.
     const rond = p.locator('.rl-kaart');
     await rond.locator('h2', { hasText: 'Je huis van boven' }).waitFor({ timeout: 5_000 });
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-rond-daken1.png') });
-    for (const kop of ['Elk vlak apart', 'Van boven of het huis', 'Je huis, met de panelen erop', 'Een vlak erbij', 'Wat kan bij jouw huis', 'Omvormers en meters']) {
+    for (const kop of ['Elk vlak apart', 'Van boven of het huis', 'Je huis, met de panelen erop', 'Een vlak erbij', 'Omvormers en meters']) {
         await rond.locator('[data-rl-volgende]').click();
       await rond.locator('h2', { hasText: kop }).waitFor();
       if (process.env.HEMS_PAGE_SHOT) await p.waitForTimeout(500).then(() => p.screenshot({ path: process.env.HEMS_PAGE_SHOT!.replace('.png', `-rond-${kop.split(' ')[0]}.png`) }));
@@ -861,11 +861,9 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await wand.locator('[data-dak-zicht="huis"]').click();
     await wand.locator('[data-pan-podium] svg.sc-huis').waitFor();
     await wand.locator('[data-dak-zicht="boven"]').click();
-    // Het hoofdhuis: een andere dakvorm kiezen.
-    await wand.locator('svg.dk-boven [data-dak-gebouw="huis"]').click();
-    await wand.locator('[data-dak-dakvorm="schild"]').click();
-    await expect.poll(() => connStore.current?.daken?.gebouwen?.find((g) => g.id === 'huis')?.dakvorm, { timeout: 5_000 }).toBe('schild');
-    await wand.locator('[data-dak-scherm="alle"]').click();
+    // Het dak komt uit Je huis (stap 4): geen grijze gebouwen, geen kaart en geen blokken hier, wel de weg naar Je huis › Vorm.
+    expect(await wand.locator('.dk-kand, [data-dak-kaart], [data-dak-gebouw], [data-dak-sleep], .wk').count()).toBe(0);
+    expect(await wand.locator('.dk-bron a.lig-knop').getAttribute('href')).toBe('jehuis.html#bg/vorm');
     // Een vlak erbij: eerst wat voor dak, dan hoe ze liggen.
     // Een naam per vlak (Ricardo, 5 november 2026): zonder eigen naam de richting erbij, en een eigen naam bewaar je met het vlak.
     await wand.locator('[data-dak-open="B"] b', { hasText: 'Hoofddak west' }).waitFor();
@@ -892,44 +890,29 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await wand.locator('.dk h3', { hasText: 'Wat bij welke meter hoort' }).waitFor();
     expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
     await wand.locator('[data-dak-scherm="alle"]').click();
-    // De kaart is experimenteel (5 november 2026): eerst de melding, dan het huis uit 3D BAG met de bron, en Zonder kaart terug.
-    await wand.locator('[data-dak-kaart]').click();
-    const venster = p.locator('.kk-venster');
-    await venster.locator('h2', { hasText: 'Je huis uit de kaart' }).waitFor();
-    expect(await venster.textContent()).toContain('nooit je adres of je huis');
-    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-kaartmelding.png') });
-    await venster.locator('[data-kk-dicht]').first().click();
-    await venster.waitFor({ state: 'detached' });
-    await wand.locator('[data-dak-kaart]').click();
-    // Zolang de kaarten nog antwoorden, zegt elke kaart dat hij zoekt (7 november 2026).
-    await p.route('**/api/daken-kaart', async (route) => {
-      await new Promise((r) => setTimeout(r, 800));
-      await route.continue();
-    });
-    await venster.locator('[data-kk-kaart]').click();
-    const wk = wand.locator('.wk');
-    await expect.poll(() => wk.locator('.wk-regel .wk-bezig').count(), { timeout: 2_000 }).toBe(2);
-    expect(await wk.locator('.wk-regel', { hasText: 'Plattegrond' }).textContent()).toContain('Zoekt de omtrek van je huis');
-    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-kaartzoekt.png') });
-    // Wat kan bij jouw huis (6 november 2026): eerst zien wat de kaarten vonden, dan zelf kiezen.
-    await wk.locator('.wk-regel', { hasText: '3D-kaart van Nederland' }).locator('[data-dak-bron="bag3d"]').waitFor({ timeout: 5_000 });
-    await p.unroute('**/api/daken-kaart');
-    expect(await wk.locator('.wk-regel', { hasText: 'Plattegrond' }).textContent()).toContain('Je huis staat erin');
-    expect(await wk.locator('.wk-regel', { hasText: 'Zelf tekenen' }).textContent()).toContain('In gebruik');
-    await expect.poll(() => connStore.current?.daken?.kaartStand, { timeout: 5_000 }).toMatchObject({ osm: 'huis', bag3d: 'huis' });
-    expect(connStore.current?.daken?.gebouwen?.find((g) => g.soort === 'hoofdhuis')?.bron ?? 'schatting').toBe('schatting');
-    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-watkan.png') });
+    // De kaart kies je bij Je huis › Vorm (stap 4): eerst de melding, dan de 3D-kaart; Zonnepanelen legt de panelen op dat dak.
+    await p.goto(`${baseUrl}/jehuis.html#bg/vorm`);
+    await p.waitForFunction(`window.tekenaar && document.querySelector('#wand #tekening [data-l="vlak"] g')`);
+    const kijk = wand.locator('[data-ht="kijk"]');
+    if (await kijk.count()) {
+      await kijk.click();
+      const venster = p.locator('.kk-venster');
+      await venster.locator('h2', { hasText: 'Je huis uit de kaart' }).waitFor();
+      expect(await venster.textContent()).toContain('nooit je adres of je huis');
+      await Promise.all([p.waitForEvent('load'), p.locator('[data-kk-kaart]').click()]);
+      await p.waitForFunction(`window.tekenaar && document.querySelector('#wand #tekening [data-l="vlak"] g')`);
+    }
+    await wand.locator('[data-ht="bron"][data-bron="bag3d"]').click();
+    const hoofdhuis = () => connStore.current?.daken?.gebouwen?.find((g) => g.soort === 'hoofdhuis');
+    await expect.poll(() => hoofdhuis(), { timeout: 15_000 }).toMatchObject({ bron: 'kaart', kaart: 'bag3d', dakvorm: 'zadel' });
+    // De naamsvermelding staat bij de kaart: 3D BAG met "vorm aangepast", en OpenStreetMap voor de gebouwen eromheen.
+    await wand.locator('.ht-vermelding a[href="https://docs.3dbag.nl/en/copyright"]').waitFor({ timeout: 10_000 });
+    // Terug bij Zonnepanelen: het dak uit de 3D-kaart, met de naamsvermelding.
+    await p.goto(`${baseUrl}/energie.html#panelen`);
+    await wand.locator('.dk-bron', { hasText: '3D-kaart van Nederland' }).waitFor({ timeout: 10_000 });
+    await wand.locator('.dk-bron a[href="https://docs.3dbag.nl/en/copyright"]').waitFor();
     expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
-    await wk.locator('[data-dak-bron="bag3d"]').click();
-    // Eerst wachten tot de keuze bewaard is, dan pas tot de kaart opnieuw getekend is; op de bouwserver duurt dat soms langer dan 5 seconden (CI van 17 november).
-    await expect.poll(() => connStore.current?.daken?.gebouwen?.find((g) => g.soort === 'hoofdhuis')?.kaart, { timeout: 15_000 }).toBe('bag3d');
-    await wand.locator('.kk-balk a[href="https://docs.3dbag.nl/en/copyright"]').waitFor({ timeout: 15_000 });
-    expect(await wk.locator('.wk-regel', { hasText: '3D-kaart van Nederland' }).textContent()).toContain('In gebruik');
-    // Het tuinhuis staat niet in 3D BAG, wel in OpenStreetMap: die bron staat er dan ook bij.
-    await wand.locator('.kk-balk a[href="https://www.openstreetmap.org/copyright"]').waitFor();
-    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-kaartbalk.png') });
-    await expect.poll(() => connStore.current?.daken?.gebouwen?.find((g) => g.soort === 'hoofdhuis'), { timeout: 5_000 }).toMatchObject({ bron: 'kaart', kaart: 'bag3d', dakvorm: 'zadel', nokDeg: 0 });
-    expect(connStore.current?.daken?.omgeving).toHaveLength(2);
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-zonnepanelen.png') });
     // De helling uit de 3D-kaart naast de meting (6 november 2026): bij vlak A, met Neem over.
     await expect.poll(() => connStore.current?.daken?.kaartDak?.length ?? 0, { timeout: 5_000 }).toBeGreaterThan(1);
     await wand.locator('[data-dak-open="A"]').click();
@@ -939,45 +922,16 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await wand.locator('.dk-kaartdak', { hasText: 'Klopt met de 3D-kaart' }).waitFor();
     await wand.locator('[data-dak-bewaar]').click();
     await expect.poll(() => connStore.current?.daken?.vlakken.find((v) => v.letter === 'A'), { timeout: 5_000 }).toMatchObject({ azimuthDeg: 90, tiltDeg: 45, bron: 'bewoner' });
-    await wand.locator('[data-dak-zonderkaart]').click();
-    await p.locator('.kk-venster [data-kk-zonder]').click();
-    await expect.poll(() => connStore.current?.daken?.gebouwen ?? [], { timeout: 5_000 }).toEqual([]);
-    expect(connStore.current?.daken?.kaartDak).toBeUndefined();
-    await wand.locator('.wk-regel.aan', { hasText: 'Zelf tekenen' }).waitFor({ timeout: 5_000 });
-    if (process.env.HEMS_PAGE_SHOT) await p.waitForTimeout(400).then(() => p.screenshot({ path: process.env.HEMS_PAGE_SHOT!.replace('.png', '-zelf.png') }));
-    expect(connStore.current?.daken?.vlakken.some((v) => v.plek === 'uitbouw')).toBe(true);
-    // Stap 2b (6 november 2026): het huis slepen, op maat maken, en een blok erbij en weer weg.
-    // De ingang (7 november 2026): Teken je huis bij Zelf tekenen, en de tip in de tekening.
-    expect(await wand.locator('.dk-noot').textContent()).toContain('Tik op de naam van een gebouw');
-    await wand.locator('.wk-regel.aan [data-dak-gebouw="huis"]', { hasText: 'Teken je huis' }).click();
-    const romp = wand.locator('.dk-gebouw[data-dak-sleep="huis"] .dk-romp');
-    await romp.waitFor();
-    // De pagina kan net opnieuw tekenen (het antwoord op het vorige bewaren): wacht tot het blok stil staat.
-    await expect.poll(async () => (await romp.boundingBox()) != null, { timeout: 5_000 }).toBe(true);
-    await p.waitForTimeout(300);
-    const rb = (await romp.boundingBox())!;
-    await p.mouse.move(rb.x + rb.width / 2, rb.y + rb.height / 2);
-    await p.mouse.down();
-    await p.mouse.move(rb.x + rb.width / 2 + 40, rb.y + rb.height / 2, { steps: 6 });
-    await p.mouse.up();
-    const huisNu = () => connStore.current?.daken?.gebouwen?.find((g) => g.id === 'huis');
-    await expect.poll(() => huisNu()?.bron, { timeout: 5_000 }).toBe('bewoner');
-    const oost = (g: { omtrek: readonly (readonly [number, number])[] } | undefined) => (g ? g.omtrek.reduce((x, q) => x + q[0], 0) / g.omtrek.length : 0);
-    expect(oost(huisNu())).toBeGreaterThan(1);
-    // Na het slepen geen vlak erbij: het loslaten was geen tik op een dakvlak.
-    await wand.locator('.dk-maat').waitFor();
-    const lang = (await wand.locator('[data-dak-maat="lengte"]').first().locator('xpath=..').locator('b').textContent())!;
-    await wand.locator('[data-dak-maat="lengte"][data-d="1"]').click();
-    await expect.poll(async () => wand.locator('[data-dak-maat="lengte"]').first().locator('xpath=..').locator('b').textContent(), { timeout: 5_000 }).not.toBe(lang);
-    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-blok.png') });
-    expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
-    await wand.locator('[data-dak-scherm="alle"]').first().click();
-    await wand.locator('[data-dak-scherm="erbij"]').click();
-    await wand.locator('[data-dak-blok]').click();
-    await wand.locator('[data-dak-erbijgebouw="tuinhuis"]').click();
-    await expect.poll(() => connStore.current?.daken?.gebouwen?.find((g) => g.soort === 'tuinhuis'), { timeout: 5_000 }).toMatchObject({ bron: 'bewoner' });
-    await wand.locator('[data-dak-blokweg]').click();
-    await expect.poll(() => connStore.current?.daken?.gebouwen?.some((g) => g.soort === 'tuinhuis'), { timeout: 5_000 }).toBe(false);
+    // Het dak zelf (stap 4): de dakvorm kies je bij Je huis › Vorm, en Zonnepanelen tekent het nieuwe dak.
+    await p.goto(`${baseUrl}/jehuis.html#bg/vorm`);
+    await p.waitForFunction(`window.tekenaar && document.querySelector('#wand #tekening [data-l="vlak"] g')`);
+    await Promise.all([p.waitForEvent('load'), wand.locator('[data-ht="gebouw-dak"][data-dakvorm="schild"]').click()]);
+    await expect.poll(() => hoofdhuis(), { timeout: 5_000 }).toMatchObject({ dakvorm: 'schild', dakBron: 'bewoner' });
+    await p.waitForFunction(`window.tekenaar && document.querySelector('#wand #tekening [data-l="vlak"] g')`);
+    expect(await wand.locator('[data-ht="gebouw-dak"][data-dakvorm="schild"]').getAttribute('aria-pressed')).toBe('true');
+    expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1; })()`)).toBe(true);
+    await p.goto(`${baseUrl}/energie.html#panelen`);
+    await wand.locator('svg.dk-boven .dk-gebouw').first().waitFor();
     // De zekering uit de configuratie staat voorgekozen, en is te wijzigen (besluit 117).
     await wand.locator('[data-delen] .deel', { hasText: 'Aansluiting' }).click();
     await wand.locator('[data-vorm] h2', { hasText: 'Aansluiting' }).waitFor();
@@ -2002,7 +1956,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         ['instellingen.html', /Settings[\s\S]*(Everything is set|still missing)/],
         ['jij.html', /How the app looks[\s\S]*Theme and colour/],
         ['comfort.html', /Climate[\s\S]*What is this for\?/],
-        ['energie.html', /Energy setup[\s\S]*Roofs and panels[\s\S]*Connection[\s\S]*Meters/],
+        ['energie.html', /Energy setup[\s\S]*Solar panels[\s\S]*Connection[\s\S]*Meters/],
         ['functies.html', /Lights, cameras and weather[\s\S]*Cameras[\s\S]*Doorbell[\s\S]*Lights and screens/],
         ['toegang.html', /Residents and access[\s\S]*Version/],
         ['bewoners.html', /Who lives here, in order/],
@@ -3518,7 +3472,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await context.close();
   }, 30_000);
 
-  it('laat Daken en panelen op de telefoon de tekening vrij: de kaart eronder, het vraagteken rechts (5 november 2026)', async () => {
+  it('laat Zonnepanelen op de telefoon de tekening vrij: het dak uit Je huis eronder, het vraagteken rechts (5 november 2026)', async () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
     await context.addInitScript(() => {
@@ -3537,21 +3491,14 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const kop = await tel.locator('.pan-kop').boundingBox();
     const vraag = await tel.locator('[data-dak-uitleg]').boundingBox();
     expect(kop!.x + kop!.width - (vraag!.x + vraag!.width)).toBeLessThan(4);
-    // De kaart: de melding als blad, daarna de balk onder de tekening, niet erover.
-    await tel.locator('[data-dak-kaart]').click();
-    await p.locator('.kk-venster [data-kk-kaart]').click();
-    await tel.locator('[data-dak-bron="bag3d"]').click();
-    const balk = tel.locator('.kk-balk');
+    // Het dak uit Je huis: de regel onder de tekening, niet erover.
+    const balk = tel.locator('.dk-bron');
     await balk.waitFor({ timeout: 5_000 });
     const b = await boven.boundingBox();
     expect((await balk.boundingBox())!.y).toBeGreaterThanOrEqual(b!.y + b!.height - 1);
     expect(b!.height).toBeGreaterThan(200);
     expect(await p.evaluate<boolean>('document.documentElement.scrollWidth <= innerWidth + 1')).toBe(true);
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-daken-tel.png'), fullPage: true });
-    // En weer zonder kaart, zoals het was.
-    await tel.locator('[data-dak-zonderkaart]').click();
-    await p.locator('.kk-venster [data-kk-zonder]').click();
-    await tel.locator('[data-dak-kaart]').waitFor({ timeout: 5_000 });
     expect(fouten).toEqual([]);
     await context.close();
   }, 30_000);
@@ -5523,8 +5470,10 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     // Vier tegels (besluit 321, schets Wand-Instellingen-Vier #tegels), elk met zijn onderdelen als knoppen.
     expect(await p.locator('#wand [data-groepen] .tegel h3').allTextContents()).toEqual(['Je huis', 'Klimaat', 'Energie', 'App en bewoners']);
     // Wat mist staat op de telefoon bovenaan de tegel (19 november 2026); de vaste knoppen zijn dezelfde.
-    expect(await p.locator('#wand [data-tegel="jehuis"] .deelknop:not(.mist) b').allTextContents()).toEqual(['Vorm van het huis', 'Etages en kamers', 'Waar elk apparaat staat', 'Daken en panelen']);
+    expect(await p.locator('#wand [data-tegel="jehuis"] .deelknop:not(.mist) b').allTextContents()).toEqual(['Vorm van het huis', 'Etages en kamers', 'Waar elk apparaat staat']);
+    // Zonnepanelen staat bij Energie (stap 4): het dak zelf teken je bij Je huis.
     expect(await p.locator('#wand [data-tegel="energie"] .deelknop[href="energie.html#aansluiting"]').count()).toBe(1);
+    expect(await p.locator('#wand [data-tegel="energie"] .deelknop[href="energie.html#panelen"] b').textContent()).toBe('Zonnepanelen');
     // Inrichten staat hier niet meer (besluit 323): de standpagina biedt het aan.
     expect(await p.locator('#wand [data-tegel="app"] .deelknop:not(.mist)[href="inrichten.html"], #wand [data-tegel="app"] .deelknop:not(.mist)[href="klaarzetten.html"]').count()).toBe(0);
     // Elke tegel past zonder te scrollen.
@@ -8118,7 +8067,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         // De wand schuift nooit, ook met drie bronnen.
         if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
 
-        // De 3D-kaart kiezen: dat geldt ook bij Daken en panelen, en de tekening onthoudt de bron.
+        // De 3D-kaart kiezen: Zonnepanelen legt de panelen op dat dak, en de tekening onthoudt de bron.
         await p.locator(`${kant} [data-bron="bag3d"]`).click();
         await expect.poll(() => hoofdhuis(), { timeout: 10_000, message: naam }).toMatchObject({ bron: 'kaart', kaart: 'bag3d' });
         await expect.poll(() => layoutStore.current?.plattegrondBron, { timeout: 10_000, message: naam }).toBe('bag3d');

@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Daken, DakVlak, Gebouw, Xy } from '../src/web/daken.js';
-import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwErbij, gebouwWeg, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -405,6 +405,18 @@ describe('je huis tekenen: een gebouw erbij bij Vorm (0.185.0)', () => {
     const weg = gebouwWeg(erbij.daken, erbij.id)!;
     expect(weg.gebouwen!.map((g) => g.id)).toEqual(['huis']);
     expect(weg.omgeving).toEqual([tuinhuisVorm]);
+  });
+
+  it('zet het dak van een gebouw: de dakvorm blijft van de bewoner, de vlakken erop zoekt SunArc opnieuw (stap 4)', () => {
+    const vlak = { letter: 'A', gebouw: 'huis', kant: 90 } as unknown as DakVlak;
+    const uit = gebouwDak(daken({ vlakken: [vlak] }), 'hoofd', { dakvorm: 'plat' })!;
+    expect(uit.gebouwen![0]).toMatchObject({ id: 'huis', dakvorm: 'plat', dakBron: 'bewoner' });
+    expect(uit.vlakken[0]).not.toHaveProperty('gebouw');
+    // De nok een kwart: een zadeldak blijft onder de 180, een lessenaar draait helemaal rond.
+    expect(gebouwDak(daken(), 'hoofd', { nok: true })!.gebouwen![0]!.nokDeg).toBe(0);
+    const les = daken({ gebouwen: [{ ...huis, dakvorm: 'lessenaar', nokDeg: 300 }] });
+    expect(gebouwDak(les, 'huis', { nok: true })!.gebouwen![0]!.nokDeg).toBe(30);
+    expect(gebouwDak(daken(), 'niets', { nok: true })).toBeNull();
   });
 });
 

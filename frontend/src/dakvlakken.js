@@ -89,7 +89,6 @@ const dakvlakken = (() => {
 
   function alle(d, o) {
     const vlakken = d.vlakken;
-    const s = o.staat ?? {};
     const n = vlakken.reduce((s, v) => s + panelen(v), 0);
     const samen = vlakken.reduce((s, v) => s + piek(v), 0);
     const helder = o.helderW;
@@ -105,7 +104,6 @@ const dakvlakken = (() => {
     const zorg = o.achter ?? '';
     return `${zorg}<div class="pan-kop3"><h3 class="kop-3">${esc(t('daken.waarKop'))}</h3>${vlakken.length < LETTERS.length ? `<button type="button" class="lig-link" data-dak-scherm="erbij">${esc(t('daken.erbij'))}</button>` : ''}</div>
       ${lijst}
-      ${watKan(d, s)}
       <div class="dk-voet"><span class="mini">${esc(t('daken.uitleg'))}</span><button type="button" class="lig-knop zacht" data-dak-scherm="meters">${esc(t('daken.meters'))}</button></div>`;
   }
 
@@ -282,13 +280,6 @@ const dakvlakken = (() => {
 
   /** Welke plek een nieuw vlak krijgt op dit soort gebouw. */
   const NAAR_PLEK = { hoofdhuis: 'hoofddak', uitbouw: 'uitbouw', garage: 'garage', carport: 'carport', tuinhuis: 'tuinhuis', grond: 'grond', anders: 'tuinhuis' };
-  const DAKVORMEN = ['zadel', 'schild', 'lessenaar', 'plat'];
-  const VORM_BEELD = {
-    zadel: '<path d="M3 19 15 6l12 13z" fill="#4d7eac" stroke="#9cc0e4"/><path d="M15 6v13" stroke="#cfe2f5"/>',
-    schild: '<path d="M3 19 10 7h10l7 12z" fill="#4d7eac" stroke="#9cc0e4"/><path d="M10 7v12M20 7v12" stroke="#cfe2f5" stroke-width="0.8"/>',
-    lessenaar: '<path d="M3 19V8l24 11z" fill="#4d7eac" stroke="#9cc0e4"/>',
-    plat: '<path d="M3 19v-6h24v6z" fill="#4d7eac" stroke="#9cc0e4"/>',
-  };
   const gebouwNaam = (g) => t(`daken.gebouw.${g.soort}`);
   const sleutelVan = (kant) => (kant == null ? 'plat' : String(kant));
   /** De gebouwen zoals de dienst ze leest, uit de tekening. */
@@ -312,13 +303,39 @@ const dakvlakken = (() => {
     if (v.gebouw) return { gebouw: v.gebouw, kant: v.kant ?? null, getekend: true };
     return d.tekening?.plaats?.[v.letter] ?? { gebouw: null, kant: null, getekend: false };
   }
-  /** Weg met de verwijzing naar een gebouw dat er niet meer is of anders ligt. */
-  const losVan = (vlakken, ids) => vlakken.map((v) => (ids.includes(v.gebouw) ? (({ gebouw: _g, kant: _k, ...rest }) => rest)(kaal(v)) : kaal(v)));
 
   /** Het huis van boven als SVG: het noorden boven, in meters. */
+  /** Hoeveel de tekening draait zodat de voorgevel naar onder kijkt, zoals in Je huis (stap 4). */
+  const draaiVan = (d) => {
+    if (d.voorgevelDeg == null) return 0;
+    // Recht op de muren van het huis, zoals Je huis zijn assen kiest (kaderVan): u naar rechts als je vanaf de straat kijkt.
+    const as = d.tekening?.gebouwen.find((g) => g.soort === 'hoofdhuis')?.maat?.asDeg;
+    if (as == null) return norm(180 - d.voorgevelDeg);
+    const rechts = norm(d.voorgevelDeg + 270);
+    const u = [as, as + 90, as + 180, as + 270].reduce((b, x) => (hoek(x, rechts) < hoek(b, rechts) ? x : b));
+    return norm(90 - u);
+  };
+  /** De tekening van boven, `graden` met de klok mee om het midden van de wereld (alleen de punten). */
+  function gedraaid(tk, graden) {
+    if (!graden) return tk;
+    const r = (graden * Math.PI) / 180;
+    const [c, z] = [Math.cos(r), Math.sin(r)];
+    const P = (p) => [p[0] * c + p[1] * z, -p[0] * z + p[1] * c];
+    const L = (lijst) => lijst.map(P);
+    return {
+      ...tk,
+      gebouwen: tk.gebouwen.map((g) => ({ ...g, omtrek: L(g.omtrek), ...(g.nok ? { nok: L(g.nok) } : {}), dakvlakken: g.dakvlakken.map((dv) => ({ ...dv, punten: L(dv.punten) })) })),
+      omgeving: (tk.omgeving ?? []).map(L),
+      panelen: Object.fromEntries(Object.entries(tk.panelen ?? {}).map(([l, rects]) => [l, rects.map(L)])),
+    };
+  }
+
   function bovenSvg(d, s) {
-    const tk = d.tekening;
-    const pts = [...tk.gebouwen.flatMap((g) => g.omtrek), ...tk.omgeving.flat()];
+    // De straat onder, zoals in Je huis (stap 4): de tekening draait, de richtingen in de tekst blijven.
+    const draai = draaiVan(d);
+    const tk = gedraaid(d.tekening, draai);
+    const voorgevel = d.voorgevelDeg == null ? null : 180;
+    const pts = tk.gebouwen.flatMap((g) => g.omtrek);
     if (!pts.length) return '';
     const midden = (lijst) => [lijst.reduce((x, p) => x + p[0], 0) / lijst.length, lijst.reduce((x, p) => x + p[1], 0) / lijst.length];
     const doos = (lijst) => {
@@ -338,9 +355,9 @@ const dakvlakken = (() => {
     });
     // De straat voor de voorgevel past er ook in.
     const huis0 = tk.gebouwen.find((g) => g.soort === 'hoofdhuis');
-    if (huis0 && d.voorgevelDeg != null) {
+    if (huis0 && voorgevel != null) {
       const c = midden(huis0.omtrek);
-      const F = [Math.sin((d.voorgevelDeg * Math.PI) / 180), Math.cos((d.voorgevelDeg * Math.PI) / 180)];
+      const F = [Math.sin((voorgevel * Math.PI) / 180), Math.cos((voorgevel * Math.PI) / 180)];
       const voor = Math.max(...huis0.omtrek.map((p) => (p[0] - c[0]) * F[0] + (p[1] - c[1]) * F[1]));
       const s0 = [c[0] + F[0] * (voor + fs * 2.6), c[1] + F[1] * (voor + fs * 2.6)];
       extra.push([s0[0] - fs * 2.2, s0[1] - fs], [s0[0] + fs * 2.2, s0[1] + fs]);
@@ -364,27 +381,17 @@ const dakvlakken = (() => {
     }
     // De namen in de tekening krijgen per scherm een eigen voorvoegsel (energie.js): wand en telefoon staan allebei in de pagina.
     let svg = `<defs><pattern id="dkid-paneel" width="1.15" height="1.75" patternUnits="userSpaceOnUse"><rect x="0.05" y="0.05" width="1.05" height="1.65" fill="#3f6f9e" stroke="#9cc0e4" stroke-width="0.06"/></pattern></defs>`;
-    // De gebouwen eromheen: grijs, aan te tikken.
-    svg += tk.omgeving.map((o, i) => {
-      const c = midden(o);
-      const aan = s.scherm === 'kandidaat' && s.kandidaat === i;
-      return `<g class="dk-kand${aan ? ' aan' : ''}" data-dak-kandidaat="${i}" role="button" tabindex="0" aria-label="${esc(t('daken.kandidaatAria'))}"><polygon points="${poly(o)}" stroke-width="${sw}" stroke-dasharray="${sw * 4} ${sw * 3}"/><text x="${c[0].toFixed(2)}" y="${(-c[1] + fs * 0.35).toFixed(2)}" font-size="${fs * 1.2}" text-anchor="middle">+</text></g>`;
-    }).join('');
     // De straat voor de voorgevel.
     const huis = tk.gebouwen.find((g) => g.soort === 'hoofdhuis');
-    if (huis && d.voorgevelDeg != null) {
+    if (huis && voorgevel != null) {
       const c = midden(huis.omtrek);
-      const F = [Math.sin((d.voorgevelDeg * Math.PI) / 180), Math.cos((d.voorgevelDeg * Math.PI) / 180)];
+      const F = [Math.sin((voorgevel * Math.PI) / 180), Math.cos((voorgevel * Math.PI) / 180)];
       const voor = Math.max(...huis.omtrek.map((p) => (p[0] - c[0]) * F[0] + (p[1] - c[1]) * F[1]));
       const s0 = [c[0] + F[0] * (voor + fs * 2.6), c[1] + F[1] * (voor + fs * 2.6)];
       svg += `<text class="dk-straat" x="${s0[0].toFixed(2)}" y="${(-s0[1]).toFixed(2)}" font-size="${fs * 0.9}" text-anchor="middle">${esc(t('daken.straat'))}</text>`;
     }
     for (const g of tk.gebouwen) {
-      const gekozen = s.scherm === 'gebouw' && s.gebouw === g.id;
-      // Stap 2b: het gekozen blok is te slepen, met een rondje om te draaien; het midden in de tekening.
-      const mid = g.maat?.midden ?? midden(g.omtrek);
-      const sleep = gekozen ? ` data-dak-sleep="${esc(g.id)}" data-cx="${mid[0].toFixed(2)}" data-cy="${(-mid[1]).toFixed(2)}"` : '';
-      svg += `<g class="dk-gebouw${g.bron === 'schatting' ? ' geschat' : ''}${gekozen ? ' aan' : ''}" data-dak-van="${esc(g.id)}"${sleep}><clipPath id="dkid-k-${esc(g.id)}"><polygon points="${poly(g.omtrek)}"/></clipPath><polygon class="dk-romp" points="${poly(g.omtrek)}" stroke-width="${sw * 1.6}"${g.bron === 'schatting' ? ` stroke-dasharray="${sw * 5} ${sw * 4}"` : ''}/><g clip-path="url(#dkid-k-${esc(g.id)})">`;
+      svg += `<g class="dk-gebouw${g.bron === 'schatting' ? ' geschat' : ''}" data-dak-van="${esc(g.id)}"><clipPath id="dkid-k-${esc(g.id)}"><polygon points="${poly(g.omtrek)}"/></clipPath><polygon class="dk-romp" points="${poly(g.omtrek)}" stroke-width="${sw * 1.6}"${g.bron === 'schatting' ? ` stroke-dasharray="${sw * 5} ${sw * 4}"` : ''}/><g clip-path="url(#dkid-k-${esc(g.id)})">`;
       for (const dv of g.dakvlakken) {
         const k = `${g.id}|${sleutelVan(dv.kant)}`;
         const op = per.get(k) ?? [];
@@ -394,19 +401,11 @@ const dakvlakken = (() => {
       }
       svg += '</g>';
       if (g.nok) svg += `<line class="dk-nok" x1="${g.nok[0][0]}" y1="${-g.nok[0][1]}" x2="${g.nok[1][0]}" y2="${-g.nok[1][1]}" stroke-width="${sw * 1.4}"/>`;
-      // De naam boven het gebouw, om aan te tikken; de dakvorm staat dan rechts.
+      // De naam boven het gebouw; het gebouw zelf pas je aan bij Je huis › Vorm.
       const top = naamPlek(g, fs);
       const tekst = gebouwNaam(g);
       const br = tekst.length * fs * 0.5 + fs;
-      svg += `<g class="dk-gnaam" data-dak-gebouw="${esc(g.id)}" role="button" tabindex="0" aria-label="${esc(`${tekst}, ${t(`daken.dakvorm.${g.dakvorm}`)}`)}" transform="translate(${top[0].toFixed(2)} ${(-top[1]).toFixed(2)})"><rect x="${(-br / 2).toFixed(2)}" y="${(-fs * 0.8).toFixed(2)}" width="${br.toFixed(2)}" height="${(fs * 1.3).toFixed(2)}" rx="${(fs * 0.4).toFixed(2)}"/><text font-size="${(fs * 0.78).toFixed(2)}" text-anchor="middle" y="${(fs * 0.12).toFixed(2)}">${esc(tekst)}</text></g>`;
-      // Het rondje om te draaien: bij de hoek die het verst rechtsboven ligt.
-      if (gekozen) {
-        const hoekP = [...g.omtrek].sort((a, b) => b[0] + b[1] - (a[0] + a[1]))[0];
-        const v = [hoekP[0] - mid[0], hoekP[1] - mid[1]];
-        const l = Math.hypot(v[0], v[1]) || 1;
-        const q = [hoekP[0] + (v[0] / l) * fs * 1.2, hoekP[1] + (v[1] / l) * fs * 1.2];
-        svg += `<line class="dk-draailijn" x1="${hoekP[0].toFixed(2)}" y1="${(-hoekP[1]).toFixed(2)}" x2="${q[0].toFixed(2)}" y2="${(-q[1]).toFixed(2)}" stroke-width="${sw}"/><circle class="dk-draaigreep" data-dak-draaigreep="${esc(g.id)}" cx="${q[0].toFixed(2)}" cy="${(-q[1]).toFixed(2)}" r="${(fs * 0.55).toFixed(2)}" stroke-width="${sw * 1.5}" role="button" aria-label="${esc(t('daken.blok.draaiAria'))}"/>`;
-      }
+      svg += `<g class="dk-gnaam" aria-label="${esc(`${tekst}, ${t(`daken.dakvorm.${g.dakvorm}`)}`)}" transform="translate(${top[0].toFixed(2)} ${(-top[1]).toFixed(2)})"><rect x="${(-br / 2).toFixed(2)}" y="${(-fs * 0.8).toFixed(2)}" width="${br.toFixed(2)}" height="${(fs * 1.3).toFixed(2)}" rx="${(fs * 0.4).toFixed(2)}"/><text font-size="${(fs * 0.78).toFixed(2)}" text-anchor="middle" y="${(fs * 0.12).toFixed(2)}">${esc(tekst)}</text></g>`;
       svg += '</g>';
     }
     // De panelen zelf, zoveel als er zijn (het open vlak zoals het nu bewaard is).
@@ -422,7 +421,7 @@ const dakvlakken = (() => {
         // De letter naast de panelen van het eerste vlak, aan de kant waar het dakvlak naartoe kijkt.
         const eigen = (tk.panelen?.[op[0].letter] ?? []).flat();
         const pm = midden(eigen.length ? eigen : dv.punten);
-        const kant = dv.kant ?? op[0].azimuthDeg;
+        const kant = (dv.kant ?? op[0].azimuthDeg) + draai;
         const K = [Math.sin((kant * Math.PI) / 180), Math.cos((kant * Math.PI) / 180)];
         const ver = eigen.length ? Math.max(...eigen.map((p) => (p[0] - pm[0]) * K[0] + (p[1] - pm[1]) * K[1])) : 0;
         const c = [pm[0] + K[0] * (ver + fs * 0.9), pm[1] + K[1] * (ver + fs * 0.9)];
@@ -440,138 +439,37 @@ const dakvlakken = (() => {
     return `<svg class="dk-boven" viewBox="${vb.map((n) => n.toFixed(2)).join(' ')}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="${esc(t('daken.bovenAria'))}">${svg}</svg>`;
   }
 
-  /** Het grote vak links: van boven, met de kaart en wat er nog niet in staat. */
+  /** Waar het dak vandaan komt: de bron van Je huis › Vorm (stap 4). */
+  function bronVan(tk) {
+    const huis = tk?.gebouwen.find((g) => g.soort === 'hoofdhuis');
+    return !huis ? 'basis' : huis.bron === 'kaart' ? (huis.kaart ?? 'osm') : huis.bron === 'bewoner' ? 'zelf' : 'basis';
+  }
+
+  /** De naamsvermelding van de kaarten (3D BAG vraagt een link en dat de vorm aangepast is, OpenStreetMap een link), zolang er een gebouw uit een kaart komt. */
+  function vermelding(tk) {
+    const kaarten = new Set((tk?.gebouwen ?? []).filter((g) => g.bron === 'kaart').map((g) => g.kaart ?? 'osm'));
+    const links = [
+      ...(kaarten.has('bag3d') ? [`<a href="https://docs.3dbag.nl/en/copyright" target="_blank" rel="noopener">${esc(t('daken.kk.bag'))}</a>`] : []),
+      ...(kaarten.has('osm') ? [`<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">${esc(t('daken.kk.osm'))}</a>`] : []),
+    ].join(' · ');
+    return links ? `<small class="dk-vermelding">${links}</small>` : '';
+  }
+
+  /** Het grote vak links: het dak van boven zoals Je huis het tekent, en een regel naar Je huis › Vorm. */
   function podium(d, s) {
     if (s.zicht === 'huis') return `<div class="pan-podium" data-pan-podium role="img" aria-label="${esc(t('panelen3.huisLabel'))}"></div>`;
     const tk = d.tekening;
-    const huis = tk?.gebouwen.find((g) => g.soort === 'hoofdhuis');
-    // Uit de kaart (5 november 2026): experimenteel, met de bron; kiezen gaat bij Wat kan bij jouw huis (6 november).
-    const balk = huis?.bron === 'kaart' ? kaartBalk(huis, tk) : '';
     const mist = d.vlakken.filter((v) => !plaatsVan(d, v).getekend).map((v) => v.letter);
-    // Hoe je een gebouw schuift: tik op zijn naam (7 november 2026); in het scherm van het gebouw staat het al.
-    const schuifTip = huis && s.scherm !== 'gebouw' ? [t('daken.blok.tip')] : [];
-    const noten = [...(mist.length ? [t('daken.nietBoven', { n: mist.length, letters: mist.join(', ') })] : []), ...(huis?.bron === 'kaart' && tk?.omgeving.length ? [t('daken.kandidaatTip')] : []), ...schuifTip];
-    const noot = noten.length ? `<p class="dk-noot">${esc(noten.join(' '))}</p>` : '';
-    return `<div class="pan-podium dk-podium">${tk ? bovenSvg(d, s) : ''}<span class="dk-noord" aria-hidden="true"><svg viewBox="0 0 10 7"><path d="M5 0L10 7H0z"/></svg>N</span>${noot}${balk}</div>`;
+    const noot = mist.length ? `<p class="dk-noot">${esc(t('daken.nietBoven', { n: mist.length, letters: mist.join(', ') }))}</p>` : '';
+    const huis = tk?.gebouwen.find((g) => g.soort === 'hoofdhuis');
+    const maat = huis?.maat ? ` · ${t('daken.uitJeHuisMaat', { l: m1(Math.max(huis.maat.lengte, huis.maat.breedte)), b: m1(Math.min(huis.maat.lengte, huis.maat.breedte)) })}` : '';
+    const bron = tk ? `<div class="dk-kaart dk-bron"><span class="dk-brontekst"><b>${esc(t('daken.uitJeHuis'))}</b><small>${esc(t(`ht.bron.${bronVan(tk)}`))}${esc(maat)}</small>${vermelding(tk)}</span><a class="lig-knop zacht" href="jehuis.html#bg/vorm">${esc(t('daken.vormAanpassen'))}</a></div>` : '';
+    const noord = `<span class="dk-noord" aria-hidden="true"><svg viewBox="0 0 10 7" style="transform: rotate(${draaiVan(d)}deg)"><path d="M5 0L10 7H0z"/></svg>N</span>`;
+    return `<div class="pan-podium dk-podium">${tk ? bovenSvg(d, s) : ''}${noord}${noot}${bron}</div>`;
   }
 
-  function gebouwScherm(d, s) {
-    const g = d.tekening.gebouwen.find((x) => x.id === s.gebouw);
-    if (!g) return alle(d, {});
-    const op = d.vlakken.filter((v) => plaatsVan(d, v).gebouw === g.id);
-    const nok = g.dakvorm === 'plat' ? '' : `<button type="button" class="lig-knop zacht" data-dak-nok="${esc(g.id)}">${esc(t(g.dakvorm === 'lessenaar' ? 'daken.andereKant' : 'daken.nokDraaien'))}</button>`;
-    return `<div class="dk-vlak open"><span class="dk-letter dk-gicoon" style="background: rgb(255 255 255 / 0.14)"><svg viewBox="0 0 30 22" aria-hidden="true">${VORM_BEELD[g.dakvorm]}</svg></span><span><b>${esc(gebouwNaam(g))}</b><small>${esc(t(`daken.gebouwBron.${g.bron}`))}</small></span><span></span></div>
-      ${veld(t('daken.dakvormKop'), `<div class="dk-opstel" role="group" aria-label="${esc(t('daken.dakvormKop'))}">${DAKVORMEN.map((v) => `<button type="button" data-dak-dakvorm="${v}" aria-pressed="${g.dakvorm === v}" class="${g.dakvorm === v ? 'aan' : ''}"><svg viewBox="0 0 30 22" aria-hidden="true">${VORM_BEELD[v]}</svg>${esc(t(`daken.dakvorm.${v}`))}</button>`).join('')}</div>`)}
-      ${nok ? `<div class="dk-rij">${nok}</div>` : ''}
-      ${maatVeld(g)}
-      <p class="mini">${esc(t('daken.gebouwUitleg'))}</p>
-      ${op.length ? `<div class="dk-lijst">${op.map((v, i) => kaartje(v, i, d.vlakken, d)).join('')}</div>` : ''}
-      <div class="dk-voet"><button type="button" class="lig-knop zacht" data-dak-scherm="alle">${esc(t('daken.alle'))}</button>${g.soort !== 'hoofdhuis' && g.bron === 'kaart' ? `<button type="button" class="lig-link dk-weg" data-dak-gebouwweg="${esc(g.id)}">${esc(t('daken.hoortNiet'))}</button>` : g.soort !== 'hoofdhuis' && g.bron === 'bewoner' ? `<button type="button" class="lig-link dk-weg" data-dak-blokweg="${esc(g.id)}">${esc(t('daken.blok.weg'))}</button>` : ''}</div>`;
-  }
-
-  /*
-   * Blokken schuiven, draaien en op maat maken (besluit 254, stap 2b; keuze
-   * Ricardo: slepen met een rondje om te draaien, en de maten ernaast). Een
-   * geschat blok is daarna van de bewoner; een blok uit de kaart blijft uit de
-   * kaart tot hij een andere maat krijgt.
-   */
-  const RAD = Math.PI / 180;
-  const r2 = (n) => Math.round(n * 100) / 100;
+  /** Een maat met één cijfer achter de komma. */
   const m1 = (n) => n.toLocaleString(window.taal.locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  const maatKnop = (veld, waarde, label) =>
-    `<div class="dk-stapper"><button type="button" data-dak-maat="${veld}" data-d="-1" aria-label="${esc(t('daken.minder', { wat: label }))}">−</button><b>${esc(waarde)}</b><button type="button" data-dak-maat="${veld}" data-d="1" aria-label="${esc(t('daken.meer', { wat: label }))}">+</button></div>`;
-  function maatVeld(g) {
-    if (!g.maat) return '';
-    const { lengte, breedte, asDeg } = g.maat;
-    return `${veld(t('daken.blok.kop'), `<div class="dk-aantallen dk-maat">${veld(t('daken.blok.lengte'), maatKnop('lengte', `${m1(lengte)} m`, t('daken.blok.lengte')))}${veld(t('daken.blok.breedte'), maatKnop('breedte', `${m1(breedte)} m`, t('daken.blok.breedte')))}${veld(t('daken.blok.draai'), maatKnop('draai', `${Math.round(asDeg)}°`, t('daken.blok.draai')))}</div>`)}
-      <p class="mini dk-sleepzin">${esc(t('daken.blok.sleep'))}</p>`;
-  }
-  /** Een punt gedraaid om c, met de klok mee zoals een kompas. */
-  function draaiPunt(p, c, graden) {
-    const a = graden * RAD;
-    const x = p[0] - c[0];
-    const y = p[1] - c[1];
-    return [c[0] + x * Math.cos(a) + y * Math.sin(a), c[1] - x * Math.sin(a) + y * Math.cos(a)];
-  }
-  /** Een rechthoek om een midden, de lange kant langs `asDeg`, in meters. */
-  function blokOm(m, asDeg, lengte, breedte) {
-    const u = [Math.sin(asDeg * RAD), Math.cos(asDeg * RAD)];
-    const p = [Math.sin((asDeg + 90) * RAD), Math.cos((asDeg + 90) * RAD)];
-    return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => [r2(m[0] + (a * lengte * u[0]) / 2 + (b * breedte * p[0]) / 2), r2(m[1] + (a * lengte * u[1]) / 2 + (b * breedte * p[1]) / 2)]);
-  }
-  const nokNa = (g, graden) => (g.dakvorm === 'lessenaar' ? norm(g.nokDeg + graden) : norm(g.nokDeg + graden) % 180);
-
-  /**
-   * Een blok verschuiven (`dx`, `dy` in meters, naar het oosten en het
-   * noorden) of draaien (`graden`, met de klok mee). De nok draait mee, en de
-   * kant van een vlak dat de bewoner op dit blok legde ook. De tekening
-   * verandert meteen mee, zodat het blok niet even terugspringt.
-   */
-  function verplaats(d, id, { dx = 0, dy = 0, graden = 0 }) {
-    const tk = d.tekening;
-    const g0 = tk?.gebouwen.find((g) => g.id === id);
-    if (!g0 || (!dx && !dy && !graden)) return null;
-    const c = g0.maat?.midden ?? [0, 0];
-    const f = (p) => {
-      const q = graden ? draaiPunt(p, c, graden) : p;
-      return [r2(q[0] + dx), r2(q[1] + dy)];
-    };
-    const kant = (k) => (k == null ? k : norm(k + graden));
-    const bron = (g) => (g.bron === 'schatting' ? 'bewoner' : g.bron);
-    const gebouwen = gebouwenUit(d).map((g) => (g.id !== id ? g : { ...g, omtrek: g.omtrek.map(f), nokDeg: nokNa(g, graden), bron: bron(g) }));
-    const vlakken = d.vlakken.map((v) => (v.gebouw === id && graden ? { ...kaal(v), kant: kant(v.kant ?? null) } : kaal(v)));
-    const nieuw = (g) => ({
-      ...g,
-      bron: bron(g),
-      omtrek: g.omtrek.map(f),
-      nokDeg: nokNa(g, graden),
-      nok: g.nok ? g.nok.map(f) : null,
-      dakvlakken: g.dakvlakken.map((dv) => ({ ...dv, kant: kant(dv.kant), punten: dv.punten.map(f) })),
-      ...(g.maat ? { maat: { ...g.maat, midden: f(g.maat.midden), asDeg: norm(g.maat.asDeg + graden) % 180 } } : {}),
-    });
-    const plaats = Object.fromEntries(Object.entries(tk.plaats ?? {}).map(([l, p]) => [l, p.gebouw === id ? { ...p, kant: kant(p.kant) } : p]));
-    const panelen = Object.fromEntries(Object.entries(tk.panelen ?? {}).map(([l, rs]) => [l, tk.plaats?.[l]?.gebouw === id ? rs.map((r) => r.map(f)) : rs]));
-    return { vlakken, gebouwen, tekening: { ...tk, gebouwen: tk.gebouwen.map((g) => (g.id === id ? nieuw(g) : g)), plaats, panelen } };
-  }
-
-  /** Een blok op een andere maat: een rechthoek om hetzelfde midden. Uit de kaart is hij dan van de bewoner. */
-  function opMaat(d, id, lengte, breedte) {
-    const g0 = d.tekening?.gebouwen.find((g) => g.id === id);
-    if (!g0?.maat) return null;
-    const omtrek = blokOm(g0.maat.midden, g0.maat.asDeg, Math.min(60, Math.max(1.5, lengte)), Math.min(60, Math.max(1.5, breedte)));
-    const gebouwen = gebouwenUit(d).map((g) => {
-      if (g.id !== id) return g;
-      const { kaart: _k, ...rest } = g;
-      return { ...rest, omtrek, bron: 'bewoner' };
-    });
-    return { vlakken: d.vlakken.map(kaal), gebouwen };
-  }
-
-  /** Hoe groot een nieuw blok begint, lang bij breed in meters. */
-  const NIEUW_BLOK = { uitbouw: [4, 3], garage: [6, 3], carport: [5, 3], tuinhuis: [3, 2.5], anders: [4, 4] };
-  /** Een blok erbij, naast het huis langs zijn lange kant; daarna schuift de bewoner het op zijn plek. */
-  function nieuwBlok(d, soort) {
-    const huis = d.tekening?.gebouwen.find((g) => g.soort === 'hoofdhuis');
-    if (!huis?.maat) return null;
-    const gebouwen = gebouwenUit(d);
-    let id = soort;
-    for (let i = 2; gebouwen.some((g) => g.id === id); i++) id = `${soort}-${i}`;
-    const [l, b] = NIEUW_BLOK[soort] ?? NIEUW_BLOK.anders;
-    const u = [Math.sin(huis.maat.asDeg * RAD), Math.cos(huis.maat.asDeg * RAD)];
-    const af = huis.maat.lengte / 2 + l / 2 + 1.5;
-    const m = [huis.maat.midden[0] + u[0] * af, huis.maat.midden[1] + u[1] * af];
-    const dak = soort === 'tuinhuis' || soort === 'anders' ? 'zadel' : 'plat';
-    gebouwen.push({ id, soort, bron: 'bewoner', omtrek: blokOm(m, huis.maat.asDeg, l, b), dakvorm: dak, nokDeg: huis.maat.asDeg % 180 });
-    return { id, w: { vlakken: d.vlakken.map(kaal), gebouwen } };
-  }
-
-  function kandidaatScherm(s = {}) {
-    const nieuw = s.kandidaat === 'nieuw';
-    return `<div class="pan-kop3"><h3 class="kop-3">${esc(t(nieuw ? 'daken.blok.erbijKop' : 'daken.kandidaatKop'))}</h3></div>
-      <p class="mini">${esc(t(nieuw ? 'daken.blok.erbijZin' : 'daken.kandidaatZin'))}</p>
-      <div class="dk-tegels">${['uitbouw', 'garage', 'carport', 'tuinhuis', 'anders'].map((p) => `<button type="button" class="dk-tegel" data-dak-erbijgebouw="${p}"><svg viewBox="0 0 44 36" fill="none" stroke="#f7b548" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${TEGEL_BEELD[p === 'anders' ? 'tuinhuis' : p]}</svg><b>${esc(t(`daken.gebouw.${p}`))}</b><span></span></button>`).join('')}</div>
-      <div class="dk-voet"><button type="button" class="lig-knop zacht" data-dak-scherm="alle">${esc(t('daken.nietVanOns'))}</button></div>`;
-  }
 
   /** Waar het open vlak ligt, onder de kop. */
   function ligtOp(d, v) {
@@ -582,57 +480,6 @@ const dakvlakken = (() => {
     return `<p class="mini dk-ligt">${esc(t('daken.ligtOp', { gebouw: gebouwNaam(g), kant }))}</p>`;
   }
 
-  /**
-   * Kijk wat kan (6 november 2026): vraagt beide kaarten, en onthoudt in `s`
-   * wat ze vonden. Geeft wat de kaarten zeiden (om te bewaren), of null.
-   */
-  async function kijk(s) {
-    let body;
-    try {
-      const res = await app.deur('api/daken-kaart', {});
-      body = res ? await res.json().catch(() => ({})) : {};
-    } catch {
-      body = { fout: t('panelen.kaart.geenVerbinding') };
-    }
-    if (!body?.bronnen) {
-      s.kaart = { fout: body?.fout ?? body?.wachten ?? t('panelen.kaart.geenAntwoord') };
-      return null;
-    }
-    s.kaart = null;
-    const datum = new Date().toLocaleDateString('sv-SE');
-    s.bronnen = body.bronnen;
-    s.bronnenDatum = datum;
-    return { osm: body.bronnen.osm.stand, bag3d: body.bronnen.bag3d.stand, datum };
-  }
-
-  /**
-   * De omtrek uit de kaart (besluit 254), vanuit wat `kijk` vond: het hoofdhuis
-   * krijgt de omtrek van de gekozen kaart, geschatte blokken ernaast vallen weg
-   * (die zet SunArc opnieuw neer), en de gebouwen eromheen komen grijs erbij.
-   */
-  function vanKaart(d, s, bron) {
-    const body = s.bronnen?.[bron];
-    if (body?.stand !== 'huis' || !body.hoofdhuis) return null;
-    body.bron = bron;
-    const oud = gebouwenUit(d);
-    const weg = oud.filter((g) => g.soort !== 'hoofdhuis' && g.bron === 'schatting').map((g) => g.id);
-    // Uit 3D BAG ook het dak: de vorm en hoe de nok loopt (5 november 2026). Bij de plattegrond het dak en de
-    // hoogte van 3D BAG als die het huis ook kent: combineren in plaats van gokken (13 november 2026).
-    const bag = bron === 'bag3d' ? body : bron === 'osm' && s.bronnen?.bag3d?.stand === 'huis' ? s.bronnen.bag3d : null;
-    const dak = bag?.dak && DAKVORMEN.includes(bag.dak.dakvorm) ? { dakvorm: bag.dak.dakvorm, nokDeg: bag.dak.nokDeg, dakBron: 'kaart' } : {};
-    const kaart = body.bron === 'bag3d' || body.bron === 'osm' ? { kaart: body.bron } : {};
-    // Uit 3D BAG ook de hoogte (besluit 308); uit een andere kaart geen.
-    const h = bag?.hoogte ?? null;
-    const hoogte = { ...(h?.goot != null ? { hoogteGoot: h.goot } : {}), ...(h?.nok != null ? { hoogteNok: h.nok } : {}), ...(h?.lagen != null ? { lagen: h.lagen } : {}) };
-    const zonderHoogte = ({ hoogteGoot: _g, hoogteNok: _n, lagen: _l, ...g }) => g;
-    const gebouwen = oud.filter((g) => !weg.includes(g.id)).map((g) => (g.soort === 'hoofdhuis' ? { ...zonderHoogte(g), ...dak, ...hoogte, omtrek: body.hoofdhuis, bron: 'kaart', ...kaart } : g));
-    // Een ander dak: de kanten van het huis kunnen anders liggen, dus de vlakken op het huis opnieuw plaatsen.
-    const huisId = oud.find((g) => g.soort === 'hoofdhuis')?.id;
-    // De dakvlakken uit 3D BAG blijven bewaard zolang het huis daaruit komt, voor de helling naast de meting.
-    const kaartDak = Array.isArray(bag?.dak?.vlakken) ? bag.dak.vlakken.slice(0, 24).map(({ azimuthDeg, tiltDeg, m2, vorm, hoog }) => ({ azimuthDeg, tiltDeg, m2, ...(vorm ? { vorm } : {}), ...(hoog ? { hoog } : {}) })) : null;
-    return { vlakken: losVan(d.vlakken, [...weg, ...(bag?.dak && huisId ? [huisId] : [])]), gebouwen, omgeving: body.omgeving ?? [], kaartDak };
-  }
-
   /*
    * De kaart is experimenteel (schets Wand-Daken-Kaart, 5 november 2026): de
    * balk onder de tekening met de bron en Zonder kaart, de melding voor het
@@ -640,96 +487,14 @@ const dakvlakken = (() => {
    */
   const PROEF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/><path d="M7.5 15h9"/></svg>';
   const proef = () => `<span class="kk-proef">${PROEF}${esc(t('daken.kk.proef'))}</span>`;
-  function kaartBalk(huis, tk) {
-    // Naamsvermelding: 3D BAG vraagt de naam met een link en dat de vorm aangepast is; OpenStreetMap ook een link.
-    const bag = huis.kaart === 'bag3d';
-    const osm = !bag || (tk?.omgeving?.length ?? 0) > 0;
-    const bronnen = [
-      ...(bag ? [`<a href="https://docs.3dbag.nl/en/copyright" target="_blank" rel="noopener">${esc(t('daken.kk.bag'))}</a>`] : []),
-      ...(osm ? [`<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">${esc(t('daken.kk.osm'))}</a>`] : []),
-    ].join(' · ');
-    return `<div class="dk-kaart kk-balk">${proef()}<span class="kk-balktekst"><b>${esc(t('daken.kk.balk'))}</b><small>${bronnen}</small></span></div>`;
-  }
 
-  /*
-   * Wat kan bij jouw huis (Ricardo, 6 november 2026; schets Wand-Daken-Watkan):
-   * iedereen kan zelf tekenen; SunArc zegt of de plek in Home Assistant aan
-   * staat, of de plattegrond (OpenStreetMap) je wijk en je huis kent, en of de
-   * 3D-kaart van Nederland (3D BAG) dat doet. De plek en Nederland gaat hij in
-   * huis na; de kaarten pas na Kijk wat kan, met de melding van besluit 256.
-   * De bewoner kiest welke.
-   */
-  // De beelden van de melding; pas bij het tekenen, want KK_IK staat verderop.
-  const wkIk = (soort) => KK_IK[{ zelf: 'huis', plek: 'plek', osm: 'kaart', bag3d: 'dak' }[soort]];
-  const VINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17l9-10"/></svg>';
-  const wkStand = (soort, tekst) => `<span class="wk-stand wk-${soort}"><i></i>${esc(tekst)}</span>`;
-  const wkGebruik = () => `<span class="wk-gebruik">${VINK}${esc(t('daken.wk.gebruik'))}</span>`;
-  const wkKies = (attr, naam) => `<button type="button" class="wk-kies" ${attr} aria-label="${esc(t('daken.wk.kiesAria', { naam }))}">${esc(t('daken.wk.kies'))}</button>`;
-  function wkRegel(soort, naam, zin, rechts, extra = '') {
-    return `<div class="wk-regel${extra}"><span class="wk-ik"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${wkIk(soort)}</svg></span><span class="wk-tekst"><b>${esc(naam)}</b><small>${zin}</small></span>${rechts}</div>`;
-  }
-  /** Wat elke kaart zei: van het kijken van nu, anders wat bewaard is. */
-  function kaartStanden(d, s) {
-    if (s.bronnen) return { osm: s.bronnen.osm?.stand, bag3d: s.bronnen.bag3d?.stand, datum: s.bronnenDatum };
-    return d.kaartStand ?? null;
-  }
-  /** Welke bron het huis nu tekent: zelf, de plattegrond of de 3D-kaart. */
-  function inGebruik(d) {
-    const huis = d.tekening?.gebouwen.find((g) => g.soort === 'hoofdhuis');
-    return huis?.bron === 'kaart' ? (huis.kaart ?? 'osm') : 'zelf';
-  }
-  function watKan(d, s) {
-    const nu = inGebruik(d);
-    const ks = kaartStanden(d, s);
-    // Zelf tekenen in gebruik: een knop die het huis opent om te slepen en op maat te zetten (Ricardo, 7 november 2026: hij vond de ingang niet).
-    const huisId = d.tekening?.gebouwen.find((g) => g.soort === 'hoofdhuis')?.id;
-    const zelfAan = nu === 'zelf' && huisId;
-    const zelf = zelfAan
-      ? wkRegel('zelf', t('daken.wk.zelf'), `<span class="wk-ja">${esc(t('daken.wk.gebruik'))}</span> · ${esc(t('daken.wk.zelfAan'))}`, `<button type="button" class="wk-knop" data-dak-gebouw="${esc(huisId)}">${esc(t('daken.wk.teken'))}</button>`, ' aan')
-      : wkRegel('zelf', t('daken.wk.zelf'), esc(t('daken.wk.zelfZin')), nu === 'zelf' ? wkGebruik() : wkKies('data-dak-zonderkaart', t('daken.wk.zelf')), nu === 'zelf' ? ' aan' : '');
-    // De plek: staat hij uit, dan naar die instelling in Home Assistant.
-    const plekRechts = d.kaart ? wkStand('ja', t('daken.wk.aan')) : window.app?.inHA?.() ? `<button type="button" class="wk-kies" data-dak-plekha>${esc(t('daken.wk.stelIn'))}</button>` : wkStand('nee', t('daken.wk.uit'));
-    const plek = wkRegel('plek', t('daken.wk.plek'), d.kaart ? esc(t('daken.wk.plekZin')) : `<span class="wk-nee">${esc(t('daken.wk.uit'))}</span> ${esc(t('daken.wk.inHA'))}`, plekRechts);
-    const kaartRegel = (bron) => {
-      const naam = t(`daken.wk.${bron}`);
-      if (bron === 'bag3d' && !d.nederland) return wkRegel(bron, naam, esc(t('daken.wk.bag3dBuiten')), wkStand('nee', t('daken.wk.nietHier')), ' uit');
-      if (!d.kaart) return wkRegel(bron, naam, esc(t('daken.wk.wachtZin')), wkStand('nog', t('daken.wk.wacht')), ' uit');
-      // Tijdens het kijken zegt elke kaart dat hij zoekt (Ricardo, 7 november 2026).
-      if (s.kaart === 'bezig') return wkRegel(bron, naam, esc(t(`daken.wk.${bron}Zoekt`)), wkStand('bezig', t('daken.wk.zoekt')));
-      const stand = ks?.[bron];
-      if (stand == null) return wkRegel(bron, naam, esc(t(`daken.wk.${bron}Zin`)), wkStand('nog', t('daken.wk.nog')));
-      if (stand === 'huis') {
-        const r = s.bronnen?.[bron];
-        const n = r?.omgeving?.length ?? 0;
-        const meer = bron === 'bag3d' && r?.dak
-          ? `${t(`daken.dakvorm.${r.dak.dakvorm}`).toLowerCase()}${r.dak.hellingDeg != null ? `, ${r.dak.hellingDeg}°` : ''}`
-          : n ? t(n === 1 ? 'daken.wk.ernaast1' : 'daken.wk.ernaast', { n }) : '';
-        const zin = `<span class="wk-ja">${esc(t('daken.wk.stand.huis'))}</span>${meer ? ` · ${esc(meer)}` : ''}`;
-        return wkRegel(bron, naam, zin, nu === bron ? wkGebruik() : wkKies(`data-dak-bron="${bron}"`, naam), nu === bron ? ' aan' : '');
-      }
-      const soort = stand === 'wijk' ? 'half' : 'nee';
-      return wkRegel(bron, naam, `<span class="wk-${soort}">${esc(t(`daken.wk.stand.${stand}`))}</span>${stand === 'wijk' ? ` · ${esc(t('daken.wk.wijkZin'))}` : ''}`, wkStand(soort, t(`daken.wk.rechts.${stand}`)));
-    };
-    // Kijken staat in de kop (de wand schuift niet): de knop, of wanneer het was met Opnieuw kijken.
-    let kop = '';
-    if (s.kaart === 'bezig') kop = `<small>${esc(t('daken.wk.bezig'))}</small>`;
-    else if (d.kaart && ks?.datum) {
-      const dag = new Date(`${ks.datum}T12:00:00`).toLocaleDateString(window.taal.locale, { day: 'numeric', month: 'short' });
-      kop = `<small>${esc(dag)}</small><button type="button" class="lig-link" data-dak-kaart>${esc(t('daken.wk.opnieuw'))}</button>`;
-    } else if (d.kaart) kop = `<button type="button" class="wk-knop" data-dak-kaart title="${esc(t('daken.wk.voor'))}">${esc(t('daken.wk.kijk'))}</button>`;
-    const fout = s.kaart?.fout ? `<p class="mini wk-fout">${esc(s.kaart.fout)}</p>` : '';
-    return `<section class="wk" aria-labelledby="dkid-wk">
-      <div class="wk-kop"><h3 id="dkid-wk">${esc(t('daken.wk.kop'))}</h3>${kop}</div>
-      ${zelf}${plek}${kaartRegel('osm')}${kaartRegel('bag3d')}${fout}
-    </section>`;
-  }
-  /** Eén regel voor Inrichten: wat kan bij jouw huis, met een link naar Daken en panelen. */
+  /** Eén regel voor Inrichten: wat kan bij jouw huis, met een link naar Je huis › Vorm. */
   function watKanZin(d) {
     if (!d?.kaart) return '';
     const ks = d.kaartStand;
     const kan = ks ? [...(ks.bag3d === 'huis' ? [t('daken.wk.bag3d')] : []), ...(ks.osm === 'huis' && ks.bag3d !== 'huis' ? [t('daken.wk.osm')] : [])] : [];
     const zin = !ks ? t('daken.wk.inrNog') : kan.length ? t('daken.wk.inr', { wat: kan.join(` ${t('algemeen.en')} `) }) : t('daken.wk.inrZelf');
-    return `<p class="mini wk-inr">${esc(zin)} <a class="lig-link" href="energie.html#panelen">${esc(t('daken.wk.inrLink'))}</a></p>`;
+    return `<p class="mini wk-inr">${esc(zin)} <a class="lig-link" href="jehuis.html#bg/vorm">${esc(t('daken.wk.inrLink'))}</a></p>`;
   }
   const KK_IK = {
     kaart: '<path d="M4 7l5-2 6 2 5-2v12l-5 2-6-2-5 2z"/><path d="M9 5v12M15 7v12"/>',
@@ -757,18 +522,6 @@ const dakvlakken = (() => {
       </div>
       <div class="kk-voet"><button type="button" class="kk-niet" data-kk-dicht>${esc(t('daken.kk.nee'))}</button><button type="button" class="knop knop-licht" data-kk-kaart>${esc(t('daken.kk.ja'))}</button></div>
     </section>`;
-  }
-  /** De vraag voor Zonder kaart: wat er blijft. */
-  function zonderVenster() {
-    return `<div class="kk-dim" data-kk-dicht></div><section class="kk-venster kk-klein" role="dialog" aria-modal="true" aria-labelledby="kk-kop">
-      <div class="kk-inhoud"><div class="kk-kop"><h2 class="kop-2" id="kk-kop">${esc(t('daken.kk.zonderKop'))}</h2></div><p class="kk-lead">${esc(t('daken.kk.zonderZin'))}</p></div>
-      <div class="kk-voet"><button type="button" class="kk-niet" data-kk-dicht>${esc(t('daken.kk.annuleren'))}</button><button type="button" class="knop knop-licht" data-kk-zonder>${esc(t('daken.kk.zonder'))}</button></div>
-    </section>`;
-  }
-  /** Zonder kaart: geen gebouwen en geen omgeving meer, dan tekent SunArc weer een rechthoek; de vlakken blijven, los van de gebouwen. */
-  function zonderKaart(d) {
-    const eigen = gebouwenUit(d).filter((g) => g.bron === 'bewoner');
-    return { vlakken: losVan(d.vlakken, gebouwenUit(d).filter((g) => g.bron !== 'bewoner').map((g) => g.id)), gebouwen: eigen, omgeving: [], kaartDak: null };
   }
 
   /** Een kleur per letter voor de verdeling. */
@@ -817,11 +570,7 @@ const dakvlakken = (() => {
           ? erbij()
           : s.scherm === 'meters'
             ? meters(d, o)
-            : s.scherm === 'gebouw'
-              ? gebouwScherm(d, s)
-              : s.scherm === 'kandidaat'
-                ? kandidaatScherm(s)
-                : alle(d, { ...o, staat: s, achter: achterKaart(d, s) });
+            : alle(d, { ...o, staat: s, achter: achterKaart(d, s) });
     // Van boven of het huis (besluit 254): standaard van boven.
     const wissel = `<span class="dk-wissel" role="group">${['boven', 'huis'].map((z) => `<button type="button" data-dak-zicht="${z}" aria-pressed="${(s.zicht ?? 'boven') === z}">${esc(t(`daken.zicht.${z}`))}</button>`).join('')}</span>`;
     return `<div class="pan3 dk">
@@ -899,12 +648,6 @@ const dakvlakken = (() => {
       s.zicht = ds.dakZicht;
       return 'teken';
     }
-    if (knop.hasAttribute('data-dak-kaart')) {
-      s.kaart = 'bezig';
-      return { kaart: true };
-    }
-    // Wat kan bij jouw huis: een kaart kiezen (6 november 2026).
-    if (ds.dakBron) return { bron: ds.dakBron };
     if (ds.dakDakvlak) {
       const [gid, k] = ds.dakDakvlak.split('|');
       const kant = k === 'plat' ? null : Number(k);
@@ -947,77 +690,6 @@ const dakvlakken = (() => {
       s.concept = v;
       s.origineel = null;
       return 'teken';
-    }
-    if (ds.dakKandidaat != null) {
-      s.scherm = 'kandidaat';
-      s.kandidaat = Number(ds.dakKandidaat);
-      return 'teken';
-    }
-    // Stap 2b: een blok erbij, op maat, draaien of weg.
-    if (knop.hasAttribute('data-dak-blok')) {
-      s.scherm = 'kandidaat';
-      s.kandidaat = 'nieuw';
-      return 'teken';
-    }
-    if (ds.dakErbijgebouw && s.kandidaat === 'nieuw') {
-      const n = nieuwBlok(d, ds.dakErbijgebouw);
-      if (!n) return null;
-      s.scherm = 'gebouw';
-      s.gebouw = n.id;
-      return n.w;
-    }
-    if (ds.dakMaat) {
-      const g = d.tekening?.gebouwen.find((x) => x.id === s.gebouw);
-      if (!g?.maat) return null;
-      const stap = Number(ds.d);
-      if (ds.dakMaat === 'draai') return verplaats(d, g.id, { graden: stap * 5 });
-      const { lengte, breedte } = g.maat;
-      return opMaat(d, g.id, ds.dakMaat === 'lengte' ? lengte + stap * 0.5 : lengte, ds.dakMaat === 'breedte' ? breedte + stap * 0.5 : breedte);
-    }
-    if (ds.dakBlokweg) {
-      s.scherm = 'alle';
-      return { vlakken: losVan(d.vlakken, [ds.dakBlokweg]), gebouwen: gebouwenUit(d).filter((x) => x.id !== ds.dakBlokweg) };
-    }
-    if (ds.dakErbijgebouw) {
-      const soort = ds.dakErbijgebouw;
-      const omtrek = d.tekening.omgeving[s.kandidaat];
-      if (!omtrek) return null;
-      const gebouwen = gebouwenUit(d);
-      const geschat = gebouwen.find((g) => g.soort === soort && g.bron === 'schatting');
-      let id;
-      if (geschat) {
-        Object.assign(geschat, { omtrek, bron: 'kaart' });
-        id = geschat.id;
-      } else {
-        id = soort;
-        for (let i = 2; gebouwen.some((g) => g.id === id); i++) id = `${soort}-${i}`;
-        gebouwen.push({ id, soort, bron: 'kaart', omtrek, dakvorm: soort === 'tuinhuis' || soort === 'anders' ? 'zadel' : 'plat', nokDeg: 0 });
-      }
-      s.scherm = 'gebouw';
-      s.gebouw = id;
-      return { vlakken: losVan(d.vlakken, geschat ? [geschat.id] : []), gebouwen, omgeving: d.tekening.omgeving.filter((_o, i) => i !== s.kandidaat) };
-    }
-    if (ds.dakGebouw) {
-      s.scherm = 'gebouw';
-      s.gebouw = ds.dakGebouw;
-      return 'teken';
-    }
-    if (ds.dakDakvorm || ds.dakNok) {
-      const id = ds.dakNok ?? s.gebouw;
-      const gebouwen = gebouwenUit(d).map((g) => {
-        if (g.id !== id) return g;
-        // Wat de bewoner kiest, blijft; een voorstel volgt de vlakken (issue 143).
-        if (ds.dakDakvorm) return { ...g, dakvorm: ds.dakDakvorm, dakBron: 'bewoner' };
-        return { ...g, nokDeg: g.dakvorm === 'lessenaar' ? norm(g.nokDeg + 90) : (g.nokDeg + 90) % 180, dakBron: g.dakBron ?? 'bewoner' };
-      });
-      // De dakvlakken veranderen: wat erop lag, zoekt SunArc opnieuw.
-      return { vlakken: losVan(d.vlakken, [id]), gebouwen };
-    }
-    if (ds.dakGebouwweg) {
-      const g = gebouwenUit(d).find((x) => x.id === ds.dakGebouwweg);
-      if (!g) return null;
-      s.scherm = 'alle';
-      return { vlakken: losVan(d.vlakken, [g.id]), gebouwen: gebouwenUit(d).filter((x) => x.id !== g.id), omgeving: [...d.tekening.omgeving, g.omtrek] };
     }
     // Alle vlakken zonder meter bij deze omvormer.
     if (ds.dakAlles) return { vlakken: d.vlakken.map((v) => ({ ...kaal(v), meter: (d.meters ?? []).some((m) => m.id === v.meter) ? v.meter : ds.dakAlles })) };
@@ -1387,10 +1059,8 @@ const dakvlakken = (() => {
     // Het huis (Ricardo, 5 november 2026): de wissel gaat vanzelf om, en bij de volgende stop terug.
     { plek: 'daken', id: 'dakHuis', doe: ['#wand [data-dak-zicht="huis"]', '#tel [data-dak-zicht="huis"]'], doel: ['#wand [data-pan-podium]', '#tel [data-pan-podium]'] },
     { plek: 'daken', id: 'dakErbij', doe: ['#wand [data-dak-zicht="boven"]', '#tel [data-dak-zicht="boven"]'], doel: ['#wand [data-dak-scherm="erbij"]', '#tel [data-dak-scherm="erbij"]'] },
-    // Wat kan bij jouw huis (6 november 2026): de kaarten, en zelf blokken schuiven.
-    { plek: 'daken', id: 'dakWatkan', doel: ['#wand .wk', '#tel .wk'] },
     { plek: 'daken', id: 'dakMeters', doel: ['#wand [data-dak-scherm="meters"]', '#tel [data-dak-scherm="meters"]'], klaar: true },
   ];
 
-  return { naam, kaartVenster, zonderVenster, zonderKaart, verplaats, RONDJE, vorm, klik, verander, oudeAntwoorden, opHetHuis, nietGetekend, kortZin, piek, panelen, vanKaart, kijk, watKanZin, gebouwenUit, nuBlad, achterZin, KORT_PLEKKEN, STANDKLEUR, kortVan, kortNaar, kantNaam, kaal, waar };
+  return { naam, kaartVenster, RONDJE, vorm, klik, verander, oudeAntwoorden, opHetHuis, nietGetekend, kortZin, piek, panelen, watKanZin, gebouwenUit, nuBlad, achterZin, KORT_PLEKKEN, STANDKLEUR, kortVan, kortNaar, kantNaam, kaal, waar };
 })();

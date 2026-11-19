@@ -65,7 +65,6 @@ function knoppenVan(id) {
         [t('inst4.vorm'), bron ?? (d.tekening ? t('instellingen.nogKiezen') : laden), 'jehuis.html#bg/vorm'],
         [t('instellingen.etagesKamers'), d.huis ? `${t('instellingen.etages', { n: etages })}, ${t('instellingen.kamers', { n: kamers.length })}` : laden, 'jehuis.html#bg'],
         [t('inst4.waar'), d.huis ? (zonder ? t('instellingen.vanTotaal', { a: apps, b: apps + zonder }) : t('inst4.allePlek', { n: apps })) : laden, 'jehuis.html#bg/apparaten'],
-        [t('inst4.daken'), panelenZin() ?? (d.aansluiting ? t('instellingen.nogKiezen') : laden), 'energie.html#panelen'],
       ];
     }
     case 'klimaat': {
@@ -92,6 +91,8 @@ function knoppenVan(id) {
       const omv = a?.antwoorden?.omvormers?.length ?? 0;
       const p = d.energie?.instellingen?.prijzen;
       return [
+        // Zonnepanelen staat bij Energie (stap 4): het dak zelf teken je bij Je huis › Vorm.
+        [t('inst4.daken'), panelenZin() ?? (a ? t('instellingen.nogKiezen') : laden), 'energie.html#panelen'],
         [t('inst4.zekering'), z ? `${z.fasen} × ${z.ampere} A` : a ? t('instellingen.nogKiezen') : laden, 'energie.html#aansluiting'],
         [t('inst4.meters'), a ? (omv ? t('inst4.omvormers', { n: omv }) : t('inst4.slimmeMeter')) : laden, 'energie.html#meters'],
         [t('inst4.prijzen'), euro(p?.stroom) ?? (d.energie ? t('instellingen.nogInvullen') : laden), 'energie.html#prijzen'],

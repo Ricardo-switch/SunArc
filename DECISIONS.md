@@ -317,6 +317,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [324. Buiten als eigen tekening in Je huis](#324-buiten-als-eigen-tekening-in-je-huis)
 - [325. Hulp op de plek](#325-hulp-op-de-plek)
 - [326. Stap 3 af: één telling, bladen die passen, één woord, en de assistent](#326-stap-3-af-één-telling-bladen-die-passen-één-woord-en-de-assistent)
+- [327. Eén plek voor de kaart: het dak in Je huis, de panelen bij Energie](#327-eén-plek-voor-de-kaart-het-dak-in-je-huis-de-panelen-bij-energie)
 
 **Veiligheid**
 
@@ -15133,6 +15134,40 @@ hij op de telefoon bij App en bewoners "1 mist", zonder te zien wat.
 *Nog niet:* de temperatuur van een kamer die SunArc niet regelt, en wat de
 boiler nu doet als antwoord. Stap 4 begint met de laatste dubbele plekken
 (de kaart, een laadpaal toevoegen) en Weergave naar Jij.
+
+## 327. Eén plek voor de kaart: het dak in Je huis, de panelen bij Energie
+
+*Onderwerp: weergave · Status: geldig*
+
+19 november 2026, stap 4 punt 1. De kaart stond twee keer: bij Energie ›
+Daken en panelen én bij Je huis › Vorm, allebei met grijze buurgebouwen om
+aan te tikken en allebei met "kijk wat de kaarten vinden". Keuzes van
+Ricardo (schets `Wand-/Tel-Energie-Zonnepanelen`): de panelen blijven bij
+Energie en liggen op het dak dat in Je huis getekend is, zelf of van de
+kaart; kaart, bron en buurgebouwen staan alleen bij Je huis › Vorm.
+
+*Besluit (0.204.0):*
+
+- **Het dak teken je in Je huis.** Bij Vorm staat onder de bronnen *Het
+  dak*: zadeldak, schilddak, lessenaar of plat, en de nok een kwart draaien;
+  bij het hoofdhuis in het blad Buitenkant, bij een ander gebouw in zijn eigen
+  blad. De dienst (`gebouwDak`, `{ gebouw: { dak, dakvorm | nok } }`) bewaart
+  het bij de gebouwen; de vlakken die erop lagen, zoekt SunArc opnieuw.
+- **Zonnepanelen** heet zo (eerst Daken en panelen) en staat bij Energie en in
+  de tegel Energie van Instellingen. De tekening van boven is het dak uit Je
+  huis, met de straat onder en recht op de muren, zoals Je huis het tekent.
+  Geen grijze gebouwen, geen Wat kan bij jouw huis, geen blokken schuiven of
+  op maat maken. Onder de tekening: *Het dak uit Je huis*, de bron en de maat,
+  en *Vorm aanpassen in Je huis*.
+- **De naamsvermelding** van 3D BAG ("vorm aangepast") en OpenStreetMap staat
+  waar de kaart te zien is: bij Vorm, en onder het dak bij Zonnepanelen.
+
+*Nog niet:* een huis dat je zelf tekent (zonder kaart) geeft nog geen dak aan
+Zonnepanelen: daar staat een rechthoek uit het woningtype, en trek je de
+buitenmuur recht, dan blijft dat in Je huis. Een blok op maat maken of
+verschuiven kan nu nergens meer. Dat komt in een volgende versie: de
+buitenmuur van Je huis wordt het dak voor de panelen. Daarna: een laadpaal
+toevoegen op één plek, en Inrichten › Aanpassen met dezelfde bladen.
 
 ## Wat nog een besluit wacht
 

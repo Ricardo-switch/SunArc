@@ -9,8 +9,8 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwErbij, gebouwWeg, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
-import { leesDaken, type Daken, type Xy } from '../daken.js';
+import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { DAKVORMEN, leesDaken, type Daken, type Dakvorm, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
 
@@ -387,7 +387,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       sendJson(res, 200, { kaarten: stand });
       return;
     }
-    // Een gebouw van de kaart erbij, of weer weg (0.185.0): zoals bij Daken en panelen, en het geldt op allebei.
+    // Een gebouw van de kaart erbij, of weer weg (0.185.0), of zijn dak (stap 4: het dak teken je hier, Zonnepanelen legt de panelen erop).
     const gb = b['gebouw'];
     if (typeof gb === 'object' && gb != null && !Array.isArray(gb)) {
       const g = gb as Record<string, unknown>;
@@ -401,9 +401,11 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
           ? (gebouwErbij(vorm.daken, g['erbij'], soort as ErbijSoort)?.daken ?? null)
           : typeof g['weg'] === 'string'
             ? gebouwWeg(vorm.daken, g['weg'])
-            : undefined;
+            : typeof g['dak'] === 'string' && ((DAKVORMEN as readonly unknown[]).includes(g['dakvorm']) || g['nok'] === true)
+              ? gebouwDak(vorm.daken, g['dak'], g['nok'] === true ? { nok: true } : { dakvorm: g['dakvorm'] as Dakvorm })
+              : undefined;
       if (nieuw === undefined) {
-        sendJson(res, 400, { fout: 'verwacht { gebouw: { erbij, soort } } of { gebouw: { weg } }' });
+        sendJson(res, 400, { fout: 'verwacht { gebouw: { erbij, soort } }, { gebouw: { weg } } of { gebouw: { dak, dakvorm | nok } }' });
         return;
       }
       if (nieuw == null) {

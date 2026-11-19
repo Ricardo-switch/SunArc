@@ -37,7 +37,7 @@ const ligStaat = { aanpassen: false, concept: null, zelf: false, na: () => teken
 /** Daken en panelen (besluit 254, dakvlakken.js): welk scherm, en het vlak dat open staat. */
 /** Of de rondleiding van Daken en panelen al geprobeerd is, op deze pagina. */
 let rondjeGeprobeerd = false;
-const dakStaat = { scherm: 'alle', concept: null, origineel: null, genomen: false, zicht: 'boven', gebouw: null, kandidaat: null, kaart: null, achterGezien: (() => {
+const dakStaat = { scherm: 'alle', concept: null, origineel: null, genomen: false, zicht: 'boven', achterGezien: (() => {
   try {
     return localStorage.getItem('sc-dak-gezien');
   } catch {
@@ -469,7 +469,7 @@ function tekenNu() {
   const nu = groep.tekenDelen(delen());
   // Op de telefoon is de lijst zonder deel in het adres: dan staat er geen deel open.
   const open = location.hash.length > 1 ? nu : null;
-  if (open === 'panelen' && vorigDeel !== 'panelen') Object.assign(dakStaat, { scherm: 'alle', concept: null, origineel: null, genomen: false, gebouw: null, kandidaat: null });
+  if (open === 'panelen' && vorigDeel !== 'panelen') Object.assign(dakStaat, { scherm: 'alle', concept: null, origineel: null, genomen: false });
   vorigDeel = open;
   const wacht = `<p class="klein">${esc(t('algemeen.laden'))}…</p>`;
   const vorm = {
@@ -596,149 +596,9 @@ function netDalBij() {
   e.net.dal = (e.net.dal ?? []).filter((id) => net.has(id));
 }
 
-/* ------------------------------------------------------------ de kaart */
-
-/**
- * Kijk wat kan bij jouw huis (6 november 2026): beide kaarten vragen en
- * bewaren wat ze zeiden; de bewoner kiest daarna. Tikte hij al een kaart aan
- * (na het opnieuw openen van de pagina), dan neemt SunArc die meteen.
- */
-async function haalDeKaart() {
-  dakStaat.kaart = 'bezig';
-  teken();
-  const stand = await dakvlakken.kijk(dakStaat);
-  const keuze = dakStaat.naKijken;
-  dakStaat.naKijken = null;
-  teken();
-  if (!stand || !aInfo?.daken) return;
-  const w = keuze ? dakvlakken.vanKaart(aInfo.daken, dakStaat, keuze) : null;
-  bewaarDaken({ ...(w ?? { vlakken: aInfo.daken.vlakken.map(dakvlakken.kaal) }), kaartStand: stand });
-}
-
-/** Een kaart kiezen: met wat er net gevonden is, anders eerst kijken (met de melding). */
-function kiesKaart(bron) {
-  const w = dakvlakken.vanKaart(aInfo.daken, dakStaat, bron);
-  if (w) return bewaarDaken(w);
-  dakStaat.naKijken = bron;
-  openVenster(dakvlakken.kaartVenster());
-}
-
-/*
- * Blokken slepen en draaien (besluit 254, stap 2b): het gekozen blok in de
- * tekening van boven, met de vinger of de muis. Tijdens het slepen schuiven
- * het blok, zijn panelen en zijn letters mee; bij loslaten bewaart de pagina.
- */
-let sleep = null;
-/** Na slepen geen tik: anders legt het loslaten op een dakvlak er een vlak neer. */
-let sleepTik = false;
-document.addEventListener('pointerdown', (e) => {
-  const el = e.target.closest('[data-dak-sleep], [data-dak-draaigreep]');
-  if (!el || !aInfo?.daken) return;
-  const svg = el.closest('svg');
-  const groep = svg?.querySelector(`.dk-gebouw[data-dak-sleep]`);
-  const m = svg?.getScreenCTM()?.inverse();
-  if (!groep || !m) return;
-  const pt = (ev) => {
-    const p = new DOMPoint(ev.clientX, ev.clientY).matrixTransform(m);
-    return [p.x, p.y];
-  };
-  const id = groep.dataset.dakSleep;
-  sleep = {
-    id,
-    draai: el.hasAttribute('data-dak-draaigreep'),
-    van: pt(e),
-    pt,
-    c: [Number(groep.dataset.cx), Number(groep.dataset.cy)],
-    delen: [...svg.querySelectorAll(`[data-dak-van="${CSS.escape(id)}"]`)],
-    dx: 0,
-    dy: 0,
-    graden: 0,
-  };
-  groep.classList.add('sleept');
-  el.setPointerCapture?.(e.pointerId);
-  e.preventDefault();
-});
-document.addEventListener('pointermove', (e) => {
-  if (!sleep) return;
-  const p = sleep.pt(e);
-  if (sleep.draai) {
-    const hoek = (q) => (Math.atan2(q[1] - sleep.c[1], q[0] - sleep.c[0]) * 180) / Math.PI;
-    sleep.graden = Math.round(hoek(p) - hoek(sleep.van));
-  } else {
-    sleep.dx = p[0] - sleep.van[0];
-    sleep.dy = p[1] - sleep.van[1];
-  }
-  // In de tekening is y naar beneden: draaien met de klok mee is hier gewoon rotate.
-  const zet = sleep.draai ? `rotate(${sleep.graden} ${sleep.c[0]} ${sleep.c[1]})` : `translate(${sleep.dx.toFixed(2)} ${sleep.dy.toFixed(2)})`;
-  for (const el of sleep.delen) {
-    // Wat het deel al had (een letter staat op zijn plek met translate), komt erachter.
-    el.dataset.vast ??= el.getAttribute('transform') ?? '';
-    el.setAttribute('transform', `${zet} ${el.dataset.vast}`);
-  }
-});
-function sleepKlaar() {
-  if (!sleep) return;
-  const { id, dx, dy, graden, delen } = sleep;
-  sleep = null;
-  const zet = { dx: Math.round(dx * 100) / 100, dy: Math.round(-dy * 100) / 100, graden: ((graden % 360) + 360) % 360 };
-  // Niet bewogen: een gewone tik (bijvoorbeeld op een dakvlak), dan niets opnieuw tekenen.
-  if (Math.hypot(zet.dx, zet.dy) < 0.15 && !zet.graden) {
-    for (const el of delen) if (el.dataset.vast != null) el.setAttribute('transform', el.dataset.vast);
-    document.querySelector('.dk-gebouw.sleept')?.classList.remove('sleept');
-    return;
-  }
-  sleepTik = true;
-  setTimeout(() => (sleepTik = false), 0);
-  const w = dakvlakken.verplaats(aInfo.daken, id, zet);
-  if (w) bewaarDaken(w);
-  else teken();
-}
-document.addEventListener('pointerup', sleepKlaar);
-// Vegen door een lijst geeft ook pointercancel: alleen opnieuw tekenen als er echt een blok gesleept werd.
-document.addEventListener('pointercancel', () => {
-  if (!sleep) return;
-  sleep = null;
-  teken();
-});
-document.addEventListener(
-  'click',
-  (e) => {
-    if (!sleepTik) return;
-    sleepTik = false;
-    e.stopPropagation();
-    e.preventDefault();
-  },
-  true,
-);
-
-/** Een venster over de hele pagina: de melding voor de kaart, of de vraag voor Zonder kaart. */
-let venster = null;
-function sluitVenster() {
-  venster?.remove();
-  venster = null;
-  removeEventListener('keydown', venstertoets);
-}
-const venstertoets = (e) => e.key === 'Escape' && sluitVenster();
-function openVenster(html) {
-  sluitVenster();
-  venster = document.createElement('div');
-  venster.className = 'kk-scherm';
-  venster.innerHTML = html;
-  venster.addEventListener('click', async (e) => {
-    const el = e.target.closest('[data-kk-dicht], [data-kk-kaart], [data-kk-zonder]');
-    if (!el) return;
-    sluitVenster();
-    if (el.hasAttribute('data-kk-kaart')) await haalDeKaart();
-    else if (el.hasAttribute('data-kk-zonder') && aInfo?.daken) bewaarDaken(dakvlakken.zonderKaart(aInfo.daken));
-  });
-  document.body.append(venster);
-  addEventListener('keydown', venstertoets);
-  venster.querySelector('[data-kk-kaart], [data-kk-zonder]')?.focus();
-}
-
 document.addEventListener('click', async (ev) => {
-  // De dakvlakken en gebouwen in de tekening van boven zijn geen knoppen, maar wel aan te tikken (besluit 254).
-  const knop = ev.target.closest('button, [data-dak-dakvlak], [data-dak-kandidaat], [data-dak-gebouw]');
+  // De dakvlakken in de tekening van boven zijn geen knoppen, maar wel aan te tikken (besluit 254).
+  const knop = ev.target.closest('button, [data-dak-dakvlak]');
   if (!knop || knop.disabled) return;
   // Auto en laadpaal (besluit 259).
   if (a) {
@@ -758,17 +618,10 @@ document.addEventListener('click', async (ev) => {
     window.rondleiding?.eigen('daken', dakvlakken.RONDJE, true);
     return;
   }
-  // De kaart is experimenteel (5 november 2026): eerst de melding, en Zonder kaart vraagt het even.
-  if (a && knop.hasAttribute('data-dak-kaart')) return openVenster(dakvlakken.kaartVenster());
-  if (a && knop.hasAttribute('data-dak-zonderkaart')) return openVenster(dakvlakken.zonderVenster());
-  // De plek staat uit: naar die instelling in Home Assistant (6 november 2026).
-  if (knop.hasAttribute('data-dak-plekha')) return void app.naarHAScherm('/config/general');
   // Daken en panelen (besluit 254).
   if (a && Object.keys(knop.dataset).some((k) => k.startsWith('dak'))) {
     const wat = dakvlakken.klik(knop, aInfo?.daken, dakStaat);
     if (wat === 'teken') teken();
-    else if (wat?.kaart) await haalDeKaart();
-    else if (wat?.bron) kiesKaart(wat.bron);
     else if (wat) bewaarDaken(wat);
     return;
   }

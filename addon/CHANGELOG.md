@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.203.0
+## 0.204.0
 
-*19 november 2026 · 0.179.0 – 0.203.0*
+*19 november 2026 · 0.179.0 – 0.204.0*
 
 **Nieuw**
 
@@ -71,6 +71,9 @@
 
 **Beter**
 
+- De kaart staat nog op één plek: bij Je huis › Vorm. Daar kies je ook de dakvorm en draai je de nok
+- Daken en panelen heet Zonnepanelen en staat bij Energie: de panelen liggen op het dak uit Je huis, met de straat onder zoals in Je huis
+- Bij de kaart staat de naamsvermelding van 3D BAG en OpenStreetMap
 - Instellingen en Wat je huis kan tellen hetzelfde: wat er mist en wat er nog bij kan
 - Staat er bij een tegel van Instellingen dat er iets mist, dan zie je op de telefoon bovenaan de tegel wat, met een tik ernaartoe
 - Contract en prijzen, Meters en Licht en screens passen op de wand, ook met veel vaste kosten, meters of lampen
@@ -218,6 +221,9 @@
 
 **Improved**
 
+- The map is in one place now: Your home › Shape. That is also where you choose the roof shape and turn the ridge
+- Roofs and panels is now called Solar panels and sits under Energy: the panels lie on the roof from Your home, with the street at the bottom like in Your home
+- The map shows the credits for 3D BAG and OpenStreetMap
 - Settings and What your home can do count the same: what is missing and what can be added
 - When a tile in Settings says something is missing, on a phone the top of the tile shows what, with a tap to it
 - Contract and prices, Meters and Lights and screens fit on the wall screen, also with many fixed costs, meters or lights
