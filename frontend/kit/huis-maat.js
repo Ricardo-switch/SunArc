@@ -270,9 +270,12 @@
     const doos = (q, kleur) => {
       const { x, y, b, d, h } = q;
       const hoeken = [[x, y], [x + b, y], [x + b, y + d], [x, y + d]];
+      // Een lessenaar (een afdak): laag (`h0`) aan de kant met de kleinste y, hoog (`h`) aan de andere kant.
+      const les = /lessenaar/.test(q.dak ?? '');
+      const hoogOp = ([, c]) => (les && c <= y + 1e-6 ? (q.h0 ?? h) : h);
       const wanden = [0, 1, 2, 3].map((i) => {
         const [a, c] = [hoeken[i], hoeken[(i + 1) % 4]];
-        return { p: [[...a, 0], [...c, 0], [...c, h], [...a, h]], n: [c[1] - a[1], -(c[0] - a[0])] };
+        return { p: [[...a, 0], [...c, 0], [...c, hoogOp(c)], [...a, hoogOp(a)]], n: [c[1] - a[1], -(c[0] - a[0])] };
       });
       let x2 = '';
       for (const w of wanden.sort((p1, p2) => dp(p2.p) - dp(p1.p))) {
@@ -282,7 +285,7 @@
       if (/zadel/.test(q.dak ?? '')) {
         const dk = dakVan({ u: x, v: y, b, d, dak: 'zadeldak', nok: h + Math.min(b, d) * 0.45, goot0: h, goot1: h }, { goot: h, nok: h + 1 });
         for (const v of dk.vlakken.sort((p1, p2) => dp(p2.p) - dp(p1.p))) x2 += `<path d="${vlak(v.p)}" fill="${v.gevel ? kleur[0] : naarKijker(...v.n) ? kleur[2] : kleur[3]}" stroke="rgb(13 26 48 / 0.5)" stroke-width="0.7" stroke-linejoin="round"/>`;
-      } else x2 += `<path d="${vlak(hoeken.map(([a, c]) => [a, c, h]))}" fill="${kleur[2]}" ${q.buur ? 'stroke="rgb(255 255 255 / 0.2)" stroke-dasharray="4 4"' : 'stroke="rgb(13 26 48 / 0.5)"'}/>`;
+      } else x2 += `<path d="${vlak(hoeken.map(([a, c]) => [a, c, hoogOp([a, c])]))}" fill="${kleur[2]}" ${q.buur ? 'stroke="rgb(255 255 255 / 0.2)" stroke-dasharray="4 4"' : 'stroke="rgb(13 26 48 / 0.5)"'}/>`;
       if (q.naam && !o.stil) {
         const p = P(x + b / 2, y + d / 2, (/zadel/.test(q.dak ?? '') ? h + Math.min(b, d) * 0.45 : h) + 0.4);
         labels.push({ x: p[0] - q.naam.length * 3.6, y: p[1] - 10, b: q.naam.length * 7.2, h: 16, prio: 1, s: `<text x="${p[0].toFixed(1)}" y="${(p[1] + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="#dfe6ec" paint-order="stroke" stroke="#0d1a30" stroke-width="3.5" stroke-linejoin="round">${esc(q.naam)}</text>` });
