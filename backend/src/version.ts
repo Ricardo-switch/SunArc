@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.202.1';
+export const VERSIE = '0.202.2';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.202.2',
+    datum: '2026-11-19',
+    beter: [
+      'Wie alleen een andere taal spreekt dan Nederlands of Engels, zoals Frans of Duits, krijgt de app vanzelf in het Engels',
+    ],
+    en: {
+      beter: [
+        'Someone who speaks only a language other than Dutch or English, such as French or German, gets the app in English automatically',
+      ],
+    },
+  },
   {
     versie: '0.202.1',
     datum: '2026-11-19',

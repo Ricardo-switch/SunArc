@@ -8606,6 +8606,11 @@ gehouden met meervouden: ja, met de regels per taal.
   account in Home Assistant niet, de app wel. Dat wordt niet bewaard; na een
   herstart is het Nederlands tot de app weer opent. De paginatest opent zijn
   vensters in het Nederlands, tenzij een test anders vraagt.
+- **Een andere taal wordt Engels (0.202.2):** op 19 november 2026 koos de
+  bewoner dat wie alleen een taal spreekt die de app niet kent (Frans, Duits),
+  vanzelf Engels krijgt: "die snappen niks van Nederlands". Een Belg met
+  Nederlands in zijn account of browser, ook als tweede taal, krijgt
+  Nederlands. Zonder enige taal blijft het Nederlands.
 
 - **De laatste restjes (0.59.11):** op 23 oktober 2026 koos de bewoner beide
   talen in één bestand voor de notities bij een update: `addon/CHANGELOG.md`

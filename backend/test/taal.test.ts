@@ -101,3 +101,24 @@ describe('de talen van de app (besluit 185)', () => {
     expect(taalVan(undefined)).toBe('nl');
   });
 });
+
+describe('de taal die de app vanzelf kiest', () => {
+  function kies(taal: string | undefined, talen: string[] = []): string {
+    const window: Record<string, unknown> = {
+      TALEN: { nl: {}, en: {} },
+      navigator: taal == null && !talen.length ? undefined : { language: taal, languages: talen },
+    };
+    window.parent = window;
+    runInNewContext(lees('kit/taal.js'), { window, self: window, globalThis: window });
+    return (window.taal as { code: string }).code;
+  }
+
+  it('geeft Belgen met Nederlands Nederlands, en wie alleen Frans of Duits spreekt Engels', () => {
+    expect(kies('nl-BE', ['nl-BE', 'fr-BE'])).toBe('nl');
+    expect(kies('fr-BE', ['fr-BE', 'nl-BE'])).toBe('nl');
+    expect(kies('fr-BE', ['fr-BE', 'fr'])).toBe('en');
+    expect(kies('de-DE', ['de-DE'])).toBe('en');
+    expect(kies('en-GB', ['en-GB'])).toBe('en');
+    expect(kies(undefined)).toBe('nl');
+  });
+});

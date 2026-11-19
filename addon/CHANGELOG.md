@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.202.1
+## 0.202.2
 
-*19 november 2026 · 0.179.0 – 0.202.1*
+*19 november 2026 · 0.179.0 – 0.202.2*
 
 **Nieuw**
 
@@ -71,6 +71,7 @@
 
 **Beter**
 
+- Wie alleen een andere taal spreekt dan Nederlands of Engels, zoals Frans of Duits, krijgt de app vanzelf in het Engels
 - Het vraagteken bij de kop van Je huis en Apparaten opent een kort stukje over die pagina, in plaats van de hele handleiding
 - Onder elk stukje staat wat er nog meer op die pagina uitgelegd wordt; een tik zet het in hetzelfde blad
 - Het vraagteken is iets groter, makkelijker te raken op de telefoon
@@ -210,6 +211,7 @@
 
 **Improved**
 
+- Someone who speaks only a language other than Dutch or English, such as French or German, gets the app in English automatically
 - The question mark next to the title of Your home and Devices opens a short piece about that page, instead of the whole manual
 - Below each piece is what else that page explains; a tap puts it in the same sheet
 - The question mark is a little larger, easier to hit on a phone

@@ -54,8 +54,16 @@
       return null;
     }
   }
-  /** Vanzelf: het account, dan de browser; een taal die de app nog niet helemaal spreekt, telt niet. */
-  const vanzelf = () => past(haTaal(), HEEL) ?? past(global.navigator?.language, HEEL) ?? (global.navigator?.languages ?? []).map((x) => past(x, HEEL)).find(Boolean) ?? HEEL[0];
+  /**
+   * Vanzelf: het account, dan de browser; een taal die de app nog niet helemaal
+   * spreekt, telt niet. Spreekt iemand alleen een andere taal (Frans, Duits),
+   * dan Engels (19 november 2026): dat begrijpt hij eerder dan Nederlands.
+   * Zonder enige taal blijft het Nederlands.
+   */
+  const vanzelf = () => {
+    const talen = [haTaal(), global.navigator?.language, ...(global.navigator?.languages ?? [])].filter(Boolean);
+    return talen.map((x) => past(x, HEEL)).find(Boolean) ?? (talen.length ? 'en' : HEEL[0]);
+  };
   const code = gekozen() ?? vanzelf();
   const locale = LOCALE[code] ?? code;
   if (global.document?.documentElement) global.document.documentElement.lang = code;
