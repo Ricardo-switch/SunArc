@@ -37,6 +37,7 @@
     zones: { plek: 'jehuis', href: 'jehuis.html' },
     buiten: { plek: 'jehuis', href: 'jehuis.html#buiten/rond' },
     verbergen: { plek: 'jehuis', href: 'jehuis.html' },
+    apparaten: { plek: 'apparaten', href: 'apparaten.html' },
     'apparaat-op-zon': { plek: 'apparaten', href: 'apparaten.html' },
     'stekker-op-zon': { plek: 'apparaten', href: 'apparaten.html' },
     'met-de-hand': { plek: 'apparaten', href: 'apparaten.html' },
@@ -103,12 +104,18 @@
   }
 
   /** Het korte blad bij een vraagteken: op de wand eronder (of erboven), op de telefoon onderin. */
+  /** Het anker van het open blad: een ander stukje opent op dezelfde plek. */
+  let laatsteAnker = null;
   function open(id, anker) {
     const s = stukje(id);
     sluit();
+    laatsteAnker = anker ?? null;
     if (!s) return;
     const tel = global.app?.telStand?.() ?? global.innerHeight > global.innerWidth;
     const naar = hierAl(s.href) ? '' : `<a class="hulpnaar" href="${esc(s.href)}">${esc(t('hulp.instellen', { waar: s.waar }))} ›</a>`;
+    // Ook op deze pagina (19 november 2026): de andere stukjes van dezelfde plek, een tik zet ze in dit blad.
+    const ook = Object.keys(STUKJES).filter((x) => x !== id && STUKJES[x].plek === s.plek).slice(0, 5).map(stukje);
+    const ookHtml = ook.length ? `<div class="hulpook"><span>${esc(t('hulp.ook'))}</span>${ook.map((o) => `<button type="button" data-hulpander="${esc(o.id)}">${esc(o.kop)}</button>`).join('')}</div>` : '';
     const blad = document.createElement('div');
     blad.className = `hulpblad glas${tel ? ' onder' : ''}`;
     blad.setAttribute('role', 'dialog');
@@ -118,6 +125,7 @@
       <span class="hulpvan">${ik('lijst')}${esc(t('hulp.uitDe'))}</span>
       <h3>${esc(s.kop)}</h3><p>${esc(s.tekst)}</p>
       ${knoppen(s)}
+      ${ookHtml}
       <div class="hulponder">${naar}<button type="button" class="hulpmeer" data-hulplijst="${esc(id)}">${esc(t('hulp.meer'))} ›</button></div>`;
     if (tel) document.body.insertAdjacentHTML('beforeend', '<div class="hulpachter" data-hulpachter></div>');
     document.body.append(blad);
@@ -192,8 +200,10 @@
       if (v.classList.contains('aan')) return sluit();
       return open(v.dataset.hulp, v);
     }
+    const ander = /** @type {HTMLElement | null} */ (doel.closest?.('[data-hulpander]'));
+    if (ander) return open(ander.dataset.hulpander, laatsteAnker);
     const l = /** @type {HTMLElement | null} */ (doel.closest?.('[data-hulplijst]'));
-    if (l) return lijst(l.dataset.hulplijst || null, l.dataset.hulpplek || null);
+    if (l) return lijst(l.dataset.hulplijst || null, l.dataset.hulpplek || STUKJES[l.dataset.hulplijst]?.plek || null);
     if (doel.closest?.('[data-hulpsluit], [data-hulpachter]')) return sluit();
     // Melden opent zijn eigen blad: dit blad dicht.
     if (doel.closest?.('[data-hulpblad] [data-meld-probleem]')) return void setTimeout(sluit, 0);
@@ -207,7 +217,7 @@
   /* ------------------------------------------------- de vormgeving */
 
   const CSS = `
-.hulpvraag { display: inline-grid; place-items: center; width: 22px; height: 22px; padding: 0; margin-left: 6px; border-radius: 50%; border: 1.5px solid rgb(var(--wit) / 0.35); background: none; color: var(--zacht); font-family: inherit; font-size: 12px; font-weight: 800; line-height: 1; letter-spacing: 0; vertical-align: middle; flex: none; cursor: pointer; position: relative; }
+.hulpvraag { display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; margin-left: 6px; border-radius: 50%; border: 1.5px solid rgb(var(--wit) / 0.35); background: none; color: var(--zacht); font-family: inherit; font-size: 12px; font-weight: 800; line-height: 1; letter-spacing: 0; vertical-align: middle; flex: none; cursor: pointer; position: relative; }
 .hulpvraag::after { content: ''; position: absolute; inset: -11px; }
 h1 .hulpvraag { margin-left: 10px; vertical-align: 6px; }
 .metvraag { display: inline-flex; align-items: center; gap: 2px; min-width: 0; }
@@ -228,6 +238,9 @@ h1 .hulpvraag { margin-left: 10px; vertical-align: 6px; }
 .hulpknoppen { display: flex; gap: 8px; margin-top: 2px; }
 .hulpknoppen .knop { flex: 1; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; white-space: nowrap; text-decoration: none; }
 .hulpknoppen .knop svg { width: 17px; height: 17px; flex: none; }
+.hulpook { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding-top: 10px; border-top: 1px solid rgb(var(--wit) / 0.08); }
+.hulpook span { width: 100%; font-size: 12px; font-weight: 700; color: var(--gedempt); }
+.hulpook button { min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.05); color: var(--tekst); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .hulponder { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .hulpmeer, .hulpnaar { padding: 0; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--ijs-t); text-decoration: none; cursor: pointer; }
 .hulpmeer { margin-left: auto; }

@@ -15060,7 +15060,10 @@ gaan mee met een vinkje dat aanstaat; eerst waar testers vastliepen.
   stukje over een andere pagina, dan ook een knop erheen.
 - **Waarvoor is dit?** bij Klimaat en Energie krijgt onder de uitleg de
   stukjes van dat deel, open te tikken. Je huis en Apparaten hebben een
-  vraagteken bij de kop dat de handleiding opent.
+  vraagteken bij de kop met het stukje over die pagina (0.202.1; eerst
+  opende dat de hele handleiding, Ricardo verwachtte een kort stukje). Onder
+  elk stukje staan de andere stukjes van dezelfde pagina (*Ook op deze
+  pagina*, hooguit vijf); een tik zet het in hetzelfde blad.
 - **De handleiding** is een blad met alle stukjes per plek en een zoekveld.
 - **Ik snap iets niet** is een soort melding. Onder wat je typt staat het
   stukje dat past (*Dit helpt, dank je* sluit zonder melden; *Dit is het

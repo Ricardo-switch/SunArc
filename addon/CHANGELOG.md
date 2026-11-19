@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.202.0
+## 0.202.1
 
-*19 november 2026 · 0.179.0 – 0.202.0*
+*19 november 2026 · 0.179.0 – 0.202.1*
 
 **Nieuw**
 
@@ -71,6 +71,9 @@
 
 **Beter**
 
+- Het vraagteken bij de kop van Je huis en Apparaten opent een kort stukje over die pagina, in plaats van de hele handleiding
+- Onder elk stukje staat wat er nog meer op die pagina uitgelegd wordt; een tik zet het in hetzelfde blad
+- Het vraagteken is iets groter, makkelijker te raken op de telefoon
 - De luchtvochtigheid staat alleen bij een apparaat dat hem zelf meet; die van de kamer staat bij Klimaat
 - De luchtvochtigheid staat naast de temperatuur, in het blad van een kamer bij Klimaat en in het blad van een apparaat met de hand; meet het apparaat hem niet zelf, dan die van de kamer
 - De zin bij een kamer zegt nu wat SunArc doet of zou doen, niet meer in de ik-vorm
@@ -207,6 +210,9 @@
 
 **Improved**
 
+- The question mark next to the title of Your home and Devices opens a short piece about that page, instead of the whole manual
+- Below each piece is what else that page explains; a tap puts it in the same sheet
+- The question mark is a little larger, easier to hit on a phone
 - Humidity is only shown at a device that measures it itself; the room humidity is under Climate
 - Humidity is shown next to the temperature, in the sheet of a room under Climate and in the sheet of a device by hand; if the device does not measure it, the room does
 - The sentence for a room now says what SunArc does or would do, no longer in the first person

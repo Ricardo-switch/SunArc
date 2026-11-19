@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.202.0';
+export const VERSIE = '0.202.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.202.1',
+    datum: '2026-11-19',
+    beter: [
+      'Het vraagteken bij de kop van Je huis en Apparaten opent een kort stukje over die pagina, in plaats van de hele handleiding',
+      'Onder elk stukje staat wat er nog meer op die pagina uitgelegd wordt; een tik zet het in hetzelfde blad',
+      'Het vraagteken is iets groter, makkelijker te raken op de telefoon',
+    ],
+    en: {
+      beter: [
+        'The question mark next to the title of Your home and Devices opens a short piece about that page, instead of the whole manual',
+        'Below each piece is what else that page explains; a tap puts it in the same sheet',
+        'The question mark is a little larger, easier to hit on a phone',
+      ],
+    },
+  },
   {
     versie: '0.202.0',
     datum: '2026-11-19',

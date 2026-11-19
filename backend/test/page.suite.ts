@@ -8798,14 +8798,27 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await naast.locator('summary', { hasText: 'Helpt op zon' }).click();
       await shot('waarvoor', p);
       expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1')).toBe(true);
-      // Je huis: het vraagteken bij de kop opent de handleiding, met een zoekveld.
+      // Je huis: het vraagteken bij de kop opent het korte stukje van de pagina, met de andere stukjes ervan;
+      // Meer in de handleiding opent de hele lijst, met een zoekveld.
       await p.goto(`${baseUrl}/jehuis.html`);
       await p.locator('#wand h1 .hulpvraag').click();
+      const kort = p.locator('[data-hulpblad]');
+      await kort.locator('h3', { hasText: 'Je huis' }).waitFor({ timeout: 10_000 });
+      await kort.locator('[data-hulpander]', { hasText: 'Zones in een kamer' }).click();
+      await kort.locator('h3', { hasText: 'Zones in een kamer' }).waitFor();
+      await shot('pagina', p);
+      await kort.locator('[data-hulplijst]').click();
       const lijst = p.locator('.hulplijst');
-      await lijst.locator('details[open] summary', { hasText: 'Je huis' }).waitFor({ timeout: 10_000 });
+      await lijst.locator('details[open] summary', { hasText: 'Zones in een kamer' }).waitFor({ timeout: 10_000 });
       await lijst.locator('[data-hulpzoek]').fill('waar zet ik het tuinhuis');
       await expect.poll(() => lijst.locator('details summary').first().textContent(), { timeout: 5_000 }).toContain('Buiten');
       await shot('handleiding', p);
+      // Apparaten: hetzelfde korte blad, met het stukje over de pagina zelf.
+      await p.goto(`${baseUrl}/apparaten.html`);
+      await p.locator('#wand h1 .hulpvraag').click();
+      await p.locator('[data-hulpblad] h3', { hasText: 'Apparaten' }).waitFor({ timeout: 10_000 });
+      expect(await p.locator('[data-hulpblad] [data-hulpander]').allTextContents()).toContain('Witgoed op zon');
+      await shot('apparaten', p);
       // Vraag het je huis: de assistent antwoordt met hetzelfde stukje, en een knop erheen.
       await p.goto(`${baseUrl}/assistent.html#hulp/helpt-op-zon`);
       await expect.poll(() => p.locator(`${'#wand'} [data-zegt]`).textContent(), { timeout: 15_000 }).toContain('springt bij als er eigen zon over is');
