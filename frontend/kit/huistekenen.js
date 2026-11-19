@@ -337,7 +337,13 @@
    * Hoe ver een muur mag: aan de kant waar hij heen gaat houdt elke ruimte
    * minstens 60 cm. Buiten is ook een kant (bij Vorm): daar mag hij tot de rand.
    */
-  function muurRuimte(v, run) {
+  /**
+   * Hoe ver een muur kan: aan elke kant blijft de ruimte minstens MIN ruitjes.
+   * `erf` (19 november 2026, Ricardo: bij een twee-onder-een-kap loopt het erf
+   * gelijk met het huis): de rand van het erf mag tot tegen het volgende vak,
+   * de strook ertussen mag helemaal weg.
+   */
+  function muurRuimte(v, run, erf = false) {
     const { W, H, cel } = v;
     const langs = run.as === 'x' ? H : W;
     const dwars = run.as === 'x' ? W : H;
@@ -346,13 +352,14 @@
     let max = dwars - 2;
     for (let j = Math.max(0, run.van); j < Math.min(langs, run.tot); j++) {
       const na = op(run.op, j);
+      const voor = op(run.op - 1, j);
+      const rand = erf && (na === BUITEN || voor === BUITEN);
       let k = 0;
       while (run.op + k < dwars && op(run.op + k, j) === na) k++;
-      max = Math.min(max, na === BUITEN ? dwars - 2 : run.op + Math.max(0, k - MIN));
-      const voor = op(run.op - 1, j);
+      max = Math.min(max, na === BUITEN ? dwars - 2 : run.op + Math.max(0, k - (rand ? 0 : MIN)));
       k = 0;
       while (run.op - 1 - k >= 0 && op(run.op - 1 - k, j) === voor) k++;
-      min = Math.max(min, voor === BUITEN ? 2 : run.op - Math.max(0, k - MIN));
+      min = Math.max(min, voor === BUITEN ? 2 : run.op - Math.max(0, k - (rand ? 0 : MIN)));
     }
     return { min: Math.min(min, run.op), max: Math.max(max, run.op) };
   }
@@ -1491,10 +1498,12 @@
           // Recht van de muur af is schuiven; schuin of erlangs is een vak trekken dat bij de muur begint.
           const dwars = Math.abs(kd.m.as === 'x' ? dx : dy);
           const langs = Math.abs(kd.m.as === 'x' ? dy : dx);
-          if (dwars > langs * 1.4 && !(kd.m.soort === 2 && st.stand === 'kamers')) {
+          // Buiten is de buitenmuur de erfgrens: die schuif je ook bij Kamers (19 november 2026).
+          const opErf = !!etageVan(st.etage)?.buiten;
+          if (dwars > langs * 1.4 && !(kd.m.soort === 2 && st.stand === 'kamers' && !opErf)) {
             actie.type = 'muur';
             actie.begin = kopie(vloer());
-            actie.ruimte = muurRuimte(actie.begin, kd.m);
+            actie.ruimte = muurRuimte(actie.begin, kd.m, opErf);
             actie.nu = { ...kd.m };
             actie.magneet = magneten(kd.m.as, kd.m);
           } else actie.type = 'vak';
@@ -1934,7 +1943,7 @@
       if (st.kies?.soort !== 'muur') return;
       const run = st.kies.run;
       const begin = kopie(vloer());
-      const ruimte = muurRuimte(begin, run);
+      const ruimte = muurRuimte(begin, run, !!etageVan(st.etage)?.buiten);
       const op = klem(Math.round(nieuw), ruimte.min, ruimte.max);
       if (op === run.op) return;
       stap();
@@ -2429,6 +2438,8 @@
             const aan = r.kamer === km.id;
             s += rij({ ik: km.soort, titel: km.naam, zin: aan ? T('ht.staatHier') : w ? T('ht.wisselen') : T('ht.nogGeenPlek'), mist: !w, aan, rechts: aan ? '✓' : '', data: `data-ht="noem" data-kamer="${esc(km.id)}"` });
           }
+          // Buiten: een plek die nog niet bestaat, zoals de voortuin (Ricardo, 19 november 2026); kiezen zet hem in de indeling, met dit vak.
+          if (etage.buiten && ix?.nieuwBuiten?.length) for (const p of ix.nieuwBuiten) s += rij({ ik: p.icoon ?? 'tuin', titel: p.naam, zin: T('ht.buiten.komtErbij'), rechts: '+', data: `data-ht="ix" data-actie="vak-buiten" data-waarde="${esc(p.soort)}"` });
           // Zones: alleen bij een kamer die er in Home Assistant meer dan één heeft.
           const zn = r.kamer ? (t.kamers[r.kamer]?.zones ?? []) : [];
           if (zn.length > 1 && !etage.buiten) {

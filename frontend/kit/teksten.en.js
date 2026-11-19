@@ -3741,6 +3741,7 @@
   'ht.buiten.kop': 'Outside',
   'ht.buiten.span': 'around the house',
   'ht.buiten.zin': 'What is around your home. Home shows it next to the house, with what is there.',
+  'ht.buiten.komtErbij': 'Is added, with this area',
   'ht.buiten.rond': 'Around the house',
   // Outside as its own drawing (19 November 2026).
   'ht.buiten.rondZin': 'What Home draws next to the house',

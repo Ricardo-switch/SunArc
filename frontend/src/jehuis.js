@@ -293,6 +293,10 @@ const indeling = {
         : null,
       soorten: huismodel.KAMER_SOORTEN,
       plekken: plekkenBuiten(d),
+      // Wat buiten nog geen ruimte is (de voortuin, de achtertuin, de oprit…), om een vak meteen zo te noemen.
+      nieuwBuiten: plekkenBuiten(d)
+        .filter((p) => p.waarde.startsWith('plek:') && !['voordeur', 'garage', 'tuinhuis', 'schuur'].includes(p.waarde.slice(5)))
+        .map((p) => ({ soort: p.waarde.slice(5), naam: p.naam, icoon: p.waarde.slice(5) === 'oprit' ? 'oprit' : 'tuin' })),
     };
   },
 
@@ -363,6 +367,10 @@ const indeling = {
         }
       }
       van.zones = (van.zones ?? []).filter((z) => z.id !== w.zone);
+    } else if (actie === 'vak-buiten') {
+      // Een vak buiten wordt een plek die er nog niet was (19 november 2026): eerst de ruimte in de indeling, daarna noemt de tekening het vak zo.
+      const vak = tekenaar.st.kies?.soort === 'ruimte' ? tekenaar.st.kies.id : null;
+      naNoem = { vak, kamer: plekErbij(next, String(w)) };
     } else if (actie === 'app-buiten') {
       // Een apparaat buiten (besluit 269 en 317): bij de voordeur, in de garage; een plek zonder ruimte komt er nu bij.
       // Ook in een deel van een ruimte buiten (18 november 2026), zoals het terras of de border in de tuin: `kamer~zone`.
@@ -390,8 +398,12 @@ const indeling = {
       return;
     }
     await vernieuw();
+    if (naNoem?.vak != null) tekenaar.noem(naNoem.vak, { kamer: naNoem.kamer });
+    naNoem = null;
   },
 };
+/** Na een nieuwe plek buiten: welk vak en welke ruimte (actie vak-buiten). */
+let naNoem = null;
 
 /*
  * Een vraag boven de tekening van buiten (19 november 2026, schets

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.205.0';
+export const VERSIE = '0.205.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.205.1',
+    datum: '2026-11-19',
+    opgelost: [
+      'Je huis › Buiten: de erfgrens schuift tot tegen het huis of de garage, zoals bij een twee-onder-een-kap; een strook tuin langs de rand mag helemaal weg',
+      'Je huis › Buiten: bij Wat is dit? staan ook plekken die er nog niet zijn, zoals de voortuin; kiezen zet hem erbij, met dit vak',
+    ],
+    en: {
+      opgelost: [
+        'Your home › Outside: the plot boundary moves right up to the house or garage, as with a semi-detached house; a strip of garden along the edge may go entirely',
+        'Your home › Outside: What is this? also lists places that do not exist yet, such as the front garden; choosing one adds it, with this area',
+      ],
+    },
+  },
   {
     versie: '0.205.0',
     datum: '2026-11-19',

@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.205.0
+## 0.205.1
 
-*19 november 2026 · 0.179.0 – 0.205.0*
+*19 november 2026 · 0.179.0 – 0.205.1*
 
 **Nieuw**
 
@@ -129,6 +129,8 @@
 
 **Opgelost**
 
+- Je huis › Buiten: de erfgrens schuift tot tegen het huis of de garage, zoals bij een twee-onder-een-kap; een strook tuin langs de rand mag helemaal weg
+- Je huis › Buiten: bij Wat is dit? staan ook plekken die er nog niet zijn, zoals de voortuin; kiezen zet hem erbij, met dit vak
 - Toevoegen zei bij een soort zonder apparaten twee keer dat er niets gevonden was
 - Inrichten gaf op een eigen server een fout in de browser bij de stem in huis
 - Op de telefoon loopt de tekst van de assistent weer mee met de stem, in plaats van grijs te blijven tot hij klaar is
@@ -284,6 +286,8 @@
 
 **Fixed**
 
+- Your home › Outside: the plot boundary moves right up to the house or garage, as with a semi-detached house; a strip of garden along the edge may go entirely
+- Your home › Outside: What is this? also lists places that do not exist yet, such as the front garden; choosing one adds it, with this area
 - Add said twice that nothing was found for a kind without devices
 - Setup showed an error in the browser for the voice in the house on your own server
 - On a phone the text of the assistant follows the voice again, instead of staying grey until it is done
