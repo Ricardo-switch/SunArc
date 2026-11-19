@@ -28,7 +28,7 @@
  *             vlakken [{ p: [[x, y]...], soort: terras | oprit | pad | border }],
  *             gebouwen [{ x, y, b, d, h, dak?, h0?, naam?, buur?, kleur?, overstek? }] (een tuinhuis; buur: het huis ernaast, als schim;
  *             dak lessenaar loopt van h0 naar h; overstek { d, licht } bij een plat dak, aan de kant met de kleinste y),
- *             auto { x, y, b, d, kleur, laadt? }, apparaten [{ id, soort, x, y, z, naam? }]
+ *             auto { x, y, b, d, kleur, laadt? }, apparaten [{ id, soort, x, y, z, naam? }] (soort licht, screen of deurbel; een deurbel met n: de richting van zijn muur)
  */
 (function (global) {
   'use strict';
@@ -499,7 +499,9 @@
               const r0 = z0 + 0.9;
               const r1 = Math.min(top - 0.3, z0 + 2.1);
               const screen = st.apparaten.find((q) => q.raam === deel.id && q.plek?.etage === laag.e.id);
-              let x2 = voor ? muur(z0, z0 + 0.35, '#d7e0e9', 'fill-opacity="0.85"') + muur(z0 + 0.35, top, 'url(#hm-glas)') : muur(z0, r0, vul, `stroke="${vul}" stroke-width="0.6"`) + muur(r1, top, vul, `stroke="${vul}" stroke-width="0.6"`) + muur(r0, r1, o.avond && lichtIn.has(binnen) ? '#f3c77a' : '#8fb4d6', `fill-opacity="${o.avond && lichtIn.has(binnen) ? 0.6 : 0.35}" stroke="#c9d6e2" stroke-opacity="0.4" stroke-width="0.8"`);
+              // Aan de kant van de kijker: de gevel is glas, het raam krijgt een licht kozijn en wat helderder glas (19 november 2026).
+              const kozijn = voor ? muur(r0, r1, o.avond && lichtIn.has(binnen) ? 'rgb(243 199 122 / 0.35)' : 'rgb(207 230 255 / 0.16)', 'stroke="#eef5fb" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"') : '';
+              let x2 = voor ? muur(z0, z0 + 0.35, '#d7e0e9', 'fill-opacity="0.85"') + muur(z0 + 0.35, top, 'url(#hm-glas)') + kozijn : muur(z0, r0, vul, `stroke="${vul}" stroke-width="0.6"`) + muur(r1, top, vul, `stroke="${vul}" stroke-width="0.6"`) + muur(r0, r1, o.avond && lichtIn.has(binnen) ? '#f3c77a' : '#8fb4d6', `fill-opacity="${o.avond && lichtIn.has(binnen) ? 0.6 : 0.35}" stroke="#c9d6e2" stroke-opacity="0.4" stroke-width="0.8"`);
               // Een screen voor het raam: neer als hij dicht is, anders opgerold bovenaan.
               if (screen) x2 += muur(aan.has(screen.id) ? r0 + 0.25 : r1 - 0.12, r1 + 0.05, '#b9a98f', 'fill-opacity="0.9" stroke="#8d7e66" stroke-width="0.6"');
               stukken.push({ d: voor ? d - 50 : d, s: x2 });
@@ -508,8 +510,9 @@
               const kl = deel.soort === 'voordeur' ? '#8a5a3c' : '#5c6b80';
               stukken.push({ d, s: muur(z0, z0 + 2.1, kl, 'stroke="rgb(13 26 48 / 0.5)" stroke-width="0.6"') + muur(z0 + 2.1, top, vul, `stroke="${vul}" stroke-width="0.6"`) });
             } else if (run.soort === 2) {
-              // Aan de kant van de kijker: alleen het glas erboven, geen borstwering waar de deur is.
-              stukken.push({ d: d - 50, s: muur(z0 + 2.1, top, 'url(#hm-glas)') });
+              // Aan de kant van de kijker: het glas erboven, en de voordeur zelf in hout (een andere deur blijft open).
+              const deur = deel.soort === 'voordeur' ? muur(z0, z0 + 2.1, '#8a5a3c', 'stroke="#f0d9c4" stroke-opacity="0.7" stroke-width="1.2"') : '';
+              stukken.push({ d: d - 50, s: deur + muur(z0 + 2.1, top, 'url(#hm-glas)') });
             } else if (hoog > z0 + 2.1) stukken.push({ d, s: muur(z0 + 2.1, hoog, '#33445f') });
             continue;
           }
@@ -747,6 +750,17 @@
         const h = P(a.x, a.y, z);
         if (draait && o.avond) s += `<circle cx="${h[0].toFixed(1)}" cy="${h[1].toFixed(1)}" r="9" fill="url(#hm-gloed)" opacity="0.55"/>`;
         s += `<circle cx="${h[0].toFixed(1)}" cy="${h[1].toFixed(1)}" r="2.6" fill="${draait ? '#ffe2b0' : '#5c6876'}"/>`;
+      } else if (a.soort === 'deurbel') {
+        // Een deurbel (een camera bij de voordeur): een smal kastje aan de muur, de lens blauw; gloeit als er beweging is.
+        const z = a.z ?? 1.4;
+        const [n0, n1] = a.n ?? [-1, 0];
+        const [ex, ey] = [-n1 * 0.07, n0 * 0.07];
+        const kast = [[a.x - ex, a.y - ey, z - 0.13], [a.x + ex, a.y + ey, z - 0.13], [a.x + ex, a.y + ey, z + 0.13], [a.x - ex, a.y - ey, z + 0.13]];
+        s += `<path d="${vlak(kast)}" fill="#1b2633" stroke="#cfe6ff" stroke-opacity="0.7" stroke-width="1"/>`;
+        const l = P(a.x, a.y, z + 0.05);
+        if (draait) s += `<circle cx="${l[0].toFixed(1)}" cy="${l[1].toFixed(1)}" r="9" fill="url(#hm-gloed)" opacity="0.6"/>`;
+        s += `<circle cx="${l[0].toFixed(1)}" cy="${l[1].toFixed(1)}" r="2.4" fill="#6fd3ff"/>`;
+        if (a.naam && !o.stil) labels.push({ x: l[0] - a.naam.length * 3.4, y: l[1] - 22, b: a.naam.length * 6.8, h: 14, prio: 2, s: `<text x="${l[0].toFixed(1)}" y="${(l[1] - 12).toFixed(1)}" text-anchor="middle" ${FONT} font-size="11.5" font-weight="700" fill="#cfe6ff" paint-order="stroke" stroke="#0b1424" stroke-width="3">${esc(a.naam)}</text>` });
       } else if (a.soort === 'screen' && a.uit) {
         // Een zonnescherm: een doek schuin naar buiten, gestreept als hij uit staat.
         const [ux, uy] = a.uit;
