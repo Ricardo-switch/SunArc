@@ -314,6 +314,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [320. Een zone is een deel van de kamer, geen kamer](#320-een-zone-is-een-deel-van-de-kamer-geen-kamer)
 - [321. Instellingen in vier tegels](#321-instellingen-in-vier-tegels)
 - [322. Eén standpagina: Wat je huis kan](#322-eén-standpagina-wat-je-huis-kan)
+- [324. Buiten als eigen tekening in Je huis](#324-buiten-als-eigen-tekening-in-je-huis)
 
 **Veiligheid**
 
@@ -14977,6 +14978,59 @@ en aan het eind wat SunArc nu doet met de rondleiding als keuze.
 *Nog niet:* de vorm van het huis uit de kaart als eigen regel bij Je huis
 (nu alleen als zin bij de soort woning), en Aanpassen bij Je huis naar de
 tekentafel van Je huis (besluit [308]); nu opent het de schermen van eerst.
+
+## 324. Buiten als eigen tekening in Je huis
+
+*Onderwerp: weergave · Status: geldig*
+
+19 november 2026. Ricardo, 18 november: een apparaat kon je terughalen maar
+niet opnieuw verbergen; de garage en het tuinhuis van de kaart stonden als
+grijze vakken op de begane grond en waren niet aan je ruimtes te koppelen; in
+de garage, het tuinhuis, op het terras of in de border kon je niets slepen.
+"Een garage, tuinhuis, terras, schuur zijn ook ruimtes." De kleine reparaties
+kwamen in 0.200.2 (verbergen bewaart de kamer, Tuinhuis en Schuurtje los,
+de delen buiten bij Waar staat het?). Schets `Wand-Huis-Buiten` en
+`Tel-Huis-Buiten`; keuzes Ricardo: buiten krijgt een eigen tekening;
+garage, tuinhuis, schuurtje en carport zijn ruimtes, terras en border zijn
+delen van de tuin; de gebouwen van de kaart koppelen vanzelf, met één keer
+Klopt dit?
+
+*Besluit (0.201.0):*
+
+- **Buiten is een etage van Je huis**, onder de grond in het huis opzij en
+  als laatste knop op de telefoon. Een tweede tik opent het blad Rond het
+  huis (wat Thuis naast het huis tekent, de plek van de thuisaccu).
+- **Het erf** is een rechthoek om de gebouwen: 3 m opzij, 6 m voor het huis
+  naar de straat en 12 m erachter, en altijd 3 m om een gebouw dat verder
+  staat. Het ligt op hetzelfde ruitjespapier als het huis, dus de tekening
+  binnen schuift niet; het nulpunt dat de pagina krijgt, schuift mee.
+- **Het huis** ligt op het erf als één vast vak (`@huis`): geen muur te
+  pakken, er gaat niets in, een vak eroverheen laat het staan, en een tik
+  gaat naar binnen (de begane grond).
+- **Wat los staat** (een tuinhuis, een carport, een ander gebouw, en de
+  garage als geen kamer binnen een garage is) ligt op het erf en niet meer
+  op de begane grond. Een leeg vak zonder naam op zo'n gebouw valt op de
+  begane grond weg.
+- **De kaart koppelt vanzelf**: een gebouw krijgt de ruimte buiten van
+  dezelfde soort (de garage de Garage, het tuinhuis het Tuinhuis), de
+  achtertuin krijgt de rest van het erf. Boven de tekening staat *De kaart
+  vond je garage en tuinhuis* met Ja (bewaren) en Anders (het gebouw open:
+  wat is dit?).
+- **Een deel van een ruimte buiten is een eigen vak** (`kamer~zone`): het
+  terras, de border, zoveel als de tuin zones heeft, elk met zijn eigen vorm.
+  Een apparaat in zo'n vak krijgt die zone; in de ruimte zelf geen zone.
+  Zolang een deel geen vak heeft, staan zijn apparaten in de ruimte zelf, en
+  verschuiven ze daar zonder hun deel te verliezen.
+- **Een gebouw dat twee keer staat** (het tuinhuis als deel van de tuin én
+  als eigen ruimte): *Samenvoegen* zet wat in het deel stond in de ruimte, en
+  haalt het deel weg. *Zo laten* onthoudt de browser.
+- Buiten heeft eigen namen voor wat Home Assistant niet kent (schuur,
+  fietsenhok, kas, pad), eigen kleuren (de tuin groen, de oprit grijs, het
+  terras warm), geen zonelijn, en geen Vorm of 3D: die gaan over het huis.
+
+*Nog niet:* het erf zelf groter of kleiner maken (nu volgt het de
+gebouwen; een vak buiten het erf kan wel), de perceelgrens van de kaart, en
+het erf op Thuis (stap 4: één tekenaar voor het huis).
 
 ## Wat nog een besluit wacht
 

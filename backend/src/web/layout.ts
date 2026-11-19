@@ -21,7 +21,7 @@ import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SiteConfig } from '../core/model.js';
 import type { Lang } from './assistant.js';
-import { leesOpeningen, leesPlek, leesTekening, leesZoneLijn, VORM_BRONNEN, type Opening, type Plek, type TekenRuimte, type VormBron, type ZoneLijn } from './huistekening.js';
+import { erfRuimteOk, leesOpeningen, leesPlek, leesTekening, leesZoneLijn, VORM_BRONNEN, type Opening, type Plek, type TekenRuimte, type VormBron, type ZoneLijn } from './huistekening.js';
 import { controleerRollen, doetMee, type Rol, type Rollen } from './regeling.js';
 import { controleerBronnen, type Warmtebron } from './warmte.js';
 
@@ -577,7 +577,8 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
     const warmte = d['warmte'] ?? null;
     if (warmte !== null && !APPARAAT_WARMTE.includes(warmte as ApparaatWarmte)) return { ok: false, reden: `wat apparaat ${id} verwarmt is ${APPARAAT_WARMTE.join(', ')}` };
     // Waar het staat in de tekening (besluit 308); op een etage die er niet meer is, valt het weg.
-    const plek = leesPlek(d['plek'], binnenEtage);
+    // Ook buiten (19 november 2026): het erf is een eigen tekening.
+    const plek = leesPlek(d['plek'], (e) => e === OUTSIDE_FLOOR || binnenEtage(e));
     if (plek != null && 'fout' in plek) return { ok: false, reden: `apparaat ${id}: ${plek.fout}` };
     // Een screen voor een raam: alleen met een plek; of dat raam er is, zie onder.
     const raam = plek && typeof d['raam'] === 'string' && /^o\d{1,4}$/.test(d['raam']) ? d['raam'] : null;
@@ -616,7 +617,8 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
   // Je huis getekend (besluit 308). Een kamer die weg is of verhuisde, laat een vak zonder naam achter.
   let plattegrond: Record<FloorId, TekenRuimte[]> | undefined;
   if (b['plattegrond'] !== undefined && b['plattegrond'] !== null) {
-    const p = leesTekening(b['plattegrond'], binnenEtage, (e, kid) => kamers.some((k) => k.id === kid && k.etage === e));
+    // Buiten (19 november 2026): het huis op het erf, een ruimte buiten of een deel ervan (`kamer~zone`).
+    const p = leesTekening(b['plattegrond'], (e) => e === OUTSIDE_FLOOR || binnenEtage(e), (e, kid) => (e === OUTSIDE_FLOOR ? erfRuimteOk(kid, kamers, OUTSIDE_FLOOR) : kamers.some((k) => k.id === kid && k.etage === e)));
     if ('fout' in p) return { ok: false, reden: p.fout };
     if (Object.keys(p.tekening).length) plattegrond = p.tekening;
   }

@@ -65,7 +65,8 @@
     // Bij een scheef dak ligt de goot aan één kant lager: tot daar lopen de dichte muren.
     const laagGoot = bron.gootLaag ?? goot;
     const nok = bron.nok ?? goot + 3;
-    const etages = [...huis.etages].reverse();
+    // Buiten (het erf) is geen laag van het huis.
+    const etages = [...huis.etages].filter((e) => !e.buiten).reverse();
     const m = (c) => (c - MARGE) * CEL;
 
     // De lagen op hun hoogte: de bovenste loopt tot de goot. Een kelder ligt onder de grond: de begane grond begint op nul.

@@ -6669,6 +6669,51 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     }
   }, 30_000);
 
+  /*
+   * Buiten als eigen tekening (19 november 2026, schets Wand-Huis-Buiten): het
+   * erf met het huis als vast vak. Een vak over het huis heen laat het huis
+   * staan; bij Wat is dit? staan de ruimtes buiten, zonder het huis; een tik op
+   * het huis gaat naar binnen. Met een nagebootste vinger.
+   */
+  it('tekent buiten het erf met het huis als vast vak, en een tik op het huis gaat naar binnen', async () => {
+    const was = layoutStore.current ? structuredClone(layoutStore.current) : null;
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    try {
+      await p.goto(`${baseUrl}/jehuis.html#buiten`);
+      await p.waitForFunction(`window.tekenaar && window.tekenaar.st.etage === 'buiten' && document.querySelector('#wand #tekening [data-l="vlak"] g')`, null, { timeout: 15_000 });
+      // Buiten staat in het huis opzij als etage, onder de grond.
+      expect(await p.locator('#wand .ht-laag.buiten[aria-pressed="true"]').count()).toBe(1);
+      const huisVak = await p.evaluate<number | null>(`(() => { const v = window.tekenaar.vloer(); const e = Object.entries(v.ruimtes).find(([, r]) => r.kamer === '@huis'); return e ? Number(e[0]) : null; })()`);
+      expect(huisVak).not.toBeNull();
+      const cellen = () => p.evaluate<number>(`window.tekenaar.vloer().cel.filter((c) => c === ${huisVak}).length`);
+      const voor = await cellen();
+      const m = await p.evaluate<{ x0: number; y0: number; x1: number; y1: number }>(`(() => { const t = window.tekenaar; const m = t.maten(t.vloer())[${huisVak}]; return { x0: m.x0 - t.MARGE, y0: m.y0 - t.MARGE, x1: m.x1 - t.MARGE, y1: m.y1 - t.MARGE }; })()`);
+      const v = await vinger(p);
+      await v.log();
+      // Een vak dwars over het huis: het huis blijft heel.
+      await v.veeg([(m.x0 - 12) / 10, (m.y0 + 10) / 10], [m.x0 / 10, (m.y0 + 20) / 10], [(m.x1 + 12) / 10, (m.y0 + 30) / 10]);
+      expect(await v.log()).toBe('pointerdown pointerup');
+      expect(await cellen()).toBe(voor);
+      // Wat is dit? de ruimtes buiten, het huis niet.
+      const blad = p.locator('#wand #blad');
+      await blad.locator('h4', { hasText: 'Wat is dit?' }).waitFor();
+      expect(await blad.locator('[data-ht="noem"][data-kamer="@huis"]').count()).toBe(0);
+      expect(await blad.textContent()).not.toContain('Hal');
+      // Een tik op het huis: naar binnen, de begane grond.
+      await v.tik((m.x0 + m.x1) / 20, (m.y0 + m.y1) / 20);
+      await expect.poll(() => p.evaluate<string>('window.tekenaar.st.etage'), { timeout: 5_000 }).not.toBe('buiten');
+      expect(fouten).toEqual([]);
+    } finally {
+      if (was) await layoutStore.save(was);
+      await context.close();
+    }
+  }, 40_000);
+
   it('Je huis op de telefoon: Buiten opent zijn blad in beeld (18-11)', async () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
@@ -6680,6 +6725,9 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await p.goto(`${baseUrl}/jehuis.html#bg`);
       const knop = p.locator('#tel .tk-buiten');
       await knop.waitFor({ timeout: 15_000 });
+      // Buiten is een etage (19 november 2026): de eerste tik opent de tekening van buiten, de tweede zijn blad.
+      await knop.tap();
+      await expect.poll(() => p.evaluate('window.tekenaar.st.etage'), { timeout: 5000 }).toBe('buiten');
       await knop.tap();
       await expect.poll(() => p.evaluate('window.tekenaar.st.blad?.naam ?? null'), { timeout: 5000 }).toBe('buiten');
       // De bovenkant van het blad staat in beeld, niet onder de tekening.
@@ -6773,7 +6821,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     expect(await layoutStore.save({ ...zonder, rond: { ...rondAlles, ...voor.rond, garage: true } })).toMatchObject({ ok: true });
     extraOpslag = { batterij: { id: 'sessy', naam: 'Sessy', pct: 64, vermogenW: 1200, stand: 'laadt' }, auto: null, autos: [] };
     try {
-      await p.goto(`${baseUrl}/jehuis.html#buiten`);
+      await p.goto(`${baseUrl}/jehuis.html#buiten/rond`);
       const keuze = p.locator('#wand #blad [data-ht-ix="accu"]');
       await keuze.waitFor({ timeout: 15_000 });
       expect(await keuze.inputValue()).toBe('gevel');
@@ -6801,7 +6849,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       // Binnen: in een kamer die bestaat.
       const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
       const kamer = huis.etages.filter((e) => e.id !== 'buiten').flatMap((e) => e.ruimtes)[0]!;
-      await p.goto(`${baseUrl}/jehuis.html#buiten`);
+      await p.goto(`${baseUrl}/jehuis.html#buiten/rond`);
       await keuze.waitFor({ timeout: 15_000 });
       await keuze.selectOption(`binnen:${kamer.id}`);
       await expect.poll(() => layoutStore.current?.accu, kort).toEqual({ plek: 'binnen', kamer: kamer.id });
@@ -8124,8 +8172,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         await klaar();
         expect(extra(), naam).toBe(1);
         expect(await grijs.count(), naam).toBe(voorAantal - 1);
-        // Op de begane grond een eigen ruimte.
-        const ruimte = await p.evaluate<boolean>(`(() => { const t = window.tekenaar; const b = t.huis.bronnen[t.st.bron].blokken.find((x) => x.soort === 'tuinhuis'); const v = t.st.vloeren.bg; const x = 30 + Math.round((b.u + b.b / 2) * 10); const y = 30 + Math.round((b.v + b.d / 2) * 10); return v.cel[y * v.W + x] !== -1; })()`);
+        // Een eigen ruimte, op het erf (19 november 2026: wat los staat, staat buiten).
+        const ruimte = await p.evaluate<boolean>(`(() => { const t = window.tekenaar; const b = t.huis.bronnen[t.st.bron].blokken.find((x) => x.soort === 'tuinhuis'); const v = t.st.vloeren.buiten ?? t.st.vloeren.bg; const x = 30 + Math.round((b.u + b.b / 2) * 10); const y = 30 + Math.round((b.v + b.d / 2) * 10); return v.cel[y * v.W + x] !== -1; })()`);
         expect(ruimte, naam).toBe(true);
         if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
         // Weer weg: het gebouw aantikken, Weghalen; daarna staat het weer grijs.
@@ -8263,7 +8311,9 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       expect(await p.locator('#wand [data-actie="dak"]').count()).toBe(2);
       expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
       // Buiten: in het huis opzij aan te tikken, een deel aan of uit, en het blad past op de wand.
-      await p.locator('#wand [data-buiten-blad]').click();
+      // Buiten is een etage (19 november 2026): in het huis opzij, en daar het blad Rond het huis.
+      await p.locator('#wand .ht-laag.buiten').click();
+      await p.locator('#wand [data-ht="blad"][data-blad="buiten"]').click();
       const terras = p.locator('#wand [data-actie="rond"][data-waarde="terras"]');
       const terrasWas = (await terras.getAttribute('aria-pressed')) === 'true';
       await terras.click();

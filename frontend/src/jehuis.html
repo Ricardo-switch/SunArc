@@ -56,6 +56,21 @@
   /* Buiten (stap 3): een smalle knop met alleen het icoon, zodat de etages hun ruimte houden. */
   .tk-etages button.tk-buiten { flex: 0 0 44px; display: grid; place-items: center; padding: 0; }
   .tk-etages button.tk-buiten svg { width: 20px; height: 20px; }
+  .tk-etages button.tk-buiten[aria-pressed='true'] { background: rgb(111 211 255 / 0.2); color: var(--tekst); box-shadow: inset 0 0 0 2px rgb(111 211 255 / 0.7); }
+  /* Een vraag boven de tekening van buiten (19 november 2026): Klopt dit? van de kaart, of samenvoegen. */
+  .jh-vraag { position: absolute; left: 12px; right: 12px; top: 10px; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: rgb(11 20 36 / 0.94); border: 1px solid rgb(247 181 72 / 0.45); box-shadow: 0 10px 30px rgb(0 0 0 / 0.35); }
+  .jh-vraag[hidden] { display: none; }
+  .jh-vraag-ik { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgb(247 181 72 / 0.14); color: var(--zon); flex: none; }
+  .jh-vraag-ik svg { position: static; width: 21px; height: 21px; }
+  .jh-vraag-tekst { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .jh-vraag-tekst b { font-size: 14.5px; }
+  .jh-vraag-tekst span { font-size: 12.5px; color: var(--zacht); line-height: 1.35; }
+  .jh-vraag-knoppen { display: flex; gap: 8px; flex: none; }
+  .jh-vraag-knoppen button { height: 40px; padding: 0 16px; border-radius: 12px; font: 700 14px var(--romp); cursor: pointer; border: 1px solid var(--glas-rand); background: rgb(255 255 255 / 0.08); color: var(--tekst); }
+  .jh-vraag-knoppen .jh-hoofd { background: var(--accent, #6fd3ff); color: var(--op-accent, #0b1424); border-color: transparent; }
+  #tel .jh-vraag { position: static; flex-wrap: wrap; margin-bottom: 10px; }
+  #tel .jh-vraag-knoppen { flex-basis: 100%; }
+  #tel .jh-vraag-knoppen button { flex: 1; }
   .tk-etages button { height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--zacht); font: 700 13.5px var(--romp); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
   .tk-etages button[aria-pressed='true'] { background: rgb(111 211 255 / 0.2); color: var(--tekst); box-shadow: inset 0 0 0 2px rgb(111 211 255 / 0.7); }
   .tk-podium { position: relative; padding: 6px; border-radius: 22px; }
@@ -124,7 +139,7 @@
 
   <!-- De tekentafel zelf: één keer, jehuis.js zet hem in #wand of #tel. -->
   <div hidden>
-    <div class="jh-tekening" id="tafel"><svg id="tekening" role="application" data-t-aria-label="jehuis.tekening"></svg><span class="hm-straat" data-t="jehuis.straat"></span></div>
+    <div class="jh-tekening" id="tafel"><div class="jh-vraag" id="vraag" hidden></div><svg id="tekening" role="application" data-t-aria-label="jehuis.tekening"></svg><span class="hm-straat" data-t="jehuis.straat"></span></div>
     <div class="ht-strook" id="strook" hidden></div>
     <p class="hm-uitleg" id="uitleg"></p>
     <aside class="ht-blad" id="blad" aria-live="polite"></aside>

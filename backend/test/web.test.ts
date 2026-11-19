@@ -1809,15 +1809,18 @@ describe('de indeling (besluit 96)', () => {
     const tweeZones: Layout = { ...layout, kamers: [{ ...layout.kamers[0]!, zones: [{ id: 'a', naam: 'Keuken' }, { id: 'b', naam: 'Zithoek' }] }] };
     const { base } = await start({ latest: () => snapshot(), house, layout: { store, proposal: () => tweeZones } });
     const leeg = (await (await fetch(`${base}/api/huistekening`)).json()) as Record<string, unknown>;
-    expect(leeg).toMatchObject({ eigen: false, vorm: { maat: { breed: 5.4, diep: 9 }, bron: 'zelf' }, bron: 'zelf', nul: { u: 0, v: 0 }, kaarten: null, etages: [{ id: 'bg', naam: 'Beneden', hoogte: 2.8 }], kamers: [{ id: 'woonkamer', etage: 'bg', zones: ['Keuken', 'Zithoek'] }], tekening: {}, zones: {} });
+    // Het erf om het huis (19 november 2026): 3 m opzij, 6 m voor en 12 m erachter; het ruitjespapier schuift mee.
+    expect(leeg).toMatchObject({ eigen: false, vorm: { maat: { breed: 11.4, diep: 27 }, bron: 'zelf' }, bron: 'zelf', nul: { u: 3, v: 6 }, kaarten: null, etages: [{ id: 'bg', naam: 'Beneden', hoogte: 2.8 }], kamers: [{ id: 'woonkamer', etage: 'bg', zones: ['Keuken', 'Zithoek'] }], tekening: {}, zones: {}, buiten: { naam: 'Buiten', erf: { u: 0, v: 0, b: 11.4, d: 27 } } });
 
+    // Bewaard vanaf de hoek van het hoofdhuis: met de hoek die de pagina kreeg.
     const tekening = { bg: [{ kamer: 'woonkamer', vakken: [[0, 0, 4, 9]] }, { naam: 'Hal', soort: 'hal', vakken: [[4, 0, 1.4, 9]] }] };
-    const res = await fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening, zones: { woonkamer: { as: 'v', op: 4.5 } } }) });
+    const opPapier = { bg: tekening.bg.map((r) => ({ ...r, vakken: r.vakken.map(([u, v, b, d]) => [u! + 3, v! + 6, b, d]) })) };
+    const res = await fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening: opPapier, zones: { woonkamer: { as: 'v', op: 10.5 } }, nul: { u: 3, v: 6 } }) });
     expect(res.status).toBe(200);
     expect(store.current?.plattegrond).toEqual(tekening);
     expect(store.current?.apparaten['nest']?.naam).toBe('Thermostaat');
     const terug = (await (await fetch(`${base}/api/huistekening`)).json()) as Record<string, unknown>;
-    expect(terug).toMatchObject({ eigen: true, tekening, zones: { woonkamer: { as: 'v', op: 4.5 } } });
+    expect(terug).toMatchObject({ eigen: true, tekening: opPapier, zones: { woonkamer: { as: 'v', op: 10.5 } } });
 
     // Wat niet kan, weigert met een reden; wat er stond, blijft.
     const fout = await fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening: { bg: [{ vakken: [[0, 0, 0, 1]] }] }, zones: {} }) });
@@ -1859,11 +1862,13 @@ describe('de indeling (besluit 96)', () => {
 
     // De thermostaat achter de zonelijn (zone Zithoek), de lamp uit de strook de kamer in, zonder plek.
     const tekening = { bg: [{ kamer: 'woonkamer', vakken: [[0, 0, 5.4, 9]] }] };
-    const bewaar = (x: object) => fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening, zones: { woonkamer: { as: 'v', op: 4.5 } }, ...x }) });
+    // Met de hoek van nul (19 november 2026: het erf schuift het papier): zo is wat bewaard wordt gelijk aan wat de test stuurt.
+    const bewaar = (x: object) => fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening, zones: { woonkamer: { as: 'v', op: 4.5 } }, nul: { u: 0, v: 0 }, ...x }) });
+    const nul0 = (await lees())['nul'] as { u: number; v: number };
     expect((await bewaar({ plekken: { nest: { etage: 'bg', u: 2, v: 6 } }, apparaten: { nest: 'woonkamer', lamp: 'woonkamer' } })).status).toBe(200);
     expect(store.current?.apparaten['nest']).toEqual({ naam: 'Thermostaat', kamer: 'woonkamer', zone: 'b', plek: { etage: 'bg', u: 2, v: 6 } });
     expect(store.current?.apparaten['lamp']).toEqual({ kamer: 'woonkamer', zone: null });
-    expect(await lees()).toMatchObject({ plekken: { nest: { etage: 'bg', u: 2, v: 6 } } });
+    expect(await lees()).toMatchObject({ plekken: { nest: { etage: 'bg', u: 2 + nul0.u, v: 6 + nul0.v } } });
 
     // Naar de andere kant van de lijn: de zone gaat mee. Een kamer die er niet is, verandert niets.
     expect((await bewaar({ plekken: { nest: { etage: 'bg', u: 2, v: 1 } }, apparaten: { nest: 'zolder' } })).status).toBe(200);
@@ -1874,7 +1879,7 @@ describe('de indeling (besluit 96)', () => {
 
     // Deuren en ramen (0.187.0): een raam in de voorgevel met een screen ervoor, en een deur; de trap houdt zijn richting.
     const nul = (await lees())['nul'] as { u: number; v: number };
-    const met = { bg: [{ kamer: 'woonkamer', vakken: [[0, 0, 5.4, 6]] }, { naam: 'Trap', soort: 'trap', omhoog: 'z', vakken: [[0, 6, 5.4, 3]] }] };
+    const met = { bg: [{ kamer: 'woonkamer', vakken: [[nul.u, nul.v, 5.4, 6]] }, { naam: 'Trap', soort: 'trap', omhoog: 'z', vakken: [[nul.u, nul.v + 6, 5.4, 3]] }] };
     const openingen = { bg: [{ id: 'o1', soort: 'raam', as: 'v', op: nul.v, van: nul.u + 1, tot: nul.u + 2.2 }, { id: 'o2', soort: 'deur', as: 'v', op: nul.v + 6, van: nul.u + 2, tot: nul.u + 2.9 }] };
     const r1 = await fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening: met, zones: {}, nul, openingen, ramen: { nest: 'o1' }, plekken: { nest: { etage: 'bg', u: nul.u + 1.6, v: nul.v + 0.3 } } }) });
     expect(r1.status).toBe(200);
@@ -1892,6 +1897,53 @@ describe('de indeling (besluit 96)', () => {
     expect(store.current?.apparaten['nest']?.raam).toBeUndefined();
     // Wat niet klopt, wordt geweigerd.
     expect((await fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening: met, zones: {}, nul, openingen: { bg: [{ id: 'x', soort: 'luik', as: 'u', op: 0, van: 0, tot: 1 }] } }) })).status).toBe(400);
+  });
+
+  /*
+   * Buiten als eigen tekening (19 november 2026): de tekentafel krijgt de
+   * ruimtes buiten met hun delen en de apparaten buiten (`kamer~zone`), en
+   * bewaart het erf met het huis als vast vak. Een apparaat in een deel krijgt
+   * die zone; in de ruimte zelf geen zone.
+   */
+  it('tekent buiten met de delen van de tuin, en zet een apparaat in een deel', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'hems-huistekening-buiten-'));
+    cleanups.push(() => rm(dir, { recursive: true, force: true }));
+    const store = new LayoutStore({ logDir: dir, known: () => ({ ...known, deviceIds: new Set(['nest', 'lamp']) }) });
+    const house = () =>
+      ({
+        woning: 'rij',
+        zonderRuimte: [],
+        verborgen: [],
+        etages: [
+          { id: 'bg', naam: 'Beneden', ruimtes: [{ id: 'woonkamer', naam: 'Woonkamer', soort: 'woonkamer', zones: [], apparaten: [{ id: 'nest', naam: 'Thermostaat', soort: 'klimaat', klimaat: { kanKoelen: false } }] }] },
+          { id: 'buiten', naam: 'Buiten', ruimtes: [{ id: 'tuin', naam: 'Tuin', soort: null, buiten: { soort: 'tuin', auto: false, tuinhuis: false }, zones: [{ id: 'terras', naam: 'Terras' }, { id: 'border', naam: 'Border' }], apparaten: [{ id: 'lamp', naam: 'Lamp border', soort: 'licht' }] }] },
+        ],
+      }) as unknown as HouseReport;
+    const metTuin: Layout = {
+      ...layout,
+      kamers: [...layout.kamers, { id: 'tuin', naam: 'Tuin', etage: 'buiten', zones: [{ id: 'terras', naam: 'Terras' }, { id: 'border', naam: 'Border' }], regelzone: null, haGebied: null }],
+      apparaten: { ...layout.apparaten, lamp: { kamer: 'tuin', zone: 'border' } },
+    };
+    const { base } = await start({ latest: () => snapshot(), house, layout: { store, proposal: () => metTuin } });
+    const lees = async () => (await (await fetch(`${base}/api/huistekening`)).json()) as Record<string, unknown>;
+    const d = await lees();
+    expect(d).toMatchObject({ buiten: { naam: 'Buiten', erf: { u: 0, v: 0 } } });
+    expect(d['kamers']).toContainEqual({ id: 'tuin', naam: 'Tuin', soort: 'tuin', etage: 'buiten', zones: ['Terras', 'Border'], delen: [{ id: 'terras', naam: 'Terras', soort: null }, { id: 'border', naam: 'Border', soort: null }] });
+    expect(d['apparaten']).toContainEqual({ id: 'lamp', naam: 'Lamp border', soort: 'licht', kamer: 'tuin~border' });
+
+    // Het erf getekend, met het huis vast en het terras als eigen vak; de lamp naar het terras.
+    const nul = d['nul'] as { u: number; v: number };
+    const tekening = { bg: [{ kamer: 'woonkamer', vakken: [[nul.u, nul.v, 5.4, 9]] }], buiten: [{ kamer: '@huis', vakken: [[nul.u, nul.v, 5.4, 9]] }, { kamer: 'tuin', vakken: [[0, 0, 11.4, nul.v]] }, { kamer: 'tuin~terras', vakken: [[0, nul.v + 9, 11.4, 4]] }] };
+    const bewaar = (x: object) => fetch(`${base}/api/huistekening`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ tekening, zones: {}, nul, ...x }) });
+    expect((await bewaar({ apparaten: { nest: 'woonkamer', lamp: 'tuin~terras' }, plekken: { lamp: { etage: 'buiten', u: 2, v: nul.v + 10 } } })).status).toBe(200);
+    expect(store.current?.plattegrond?.['buiten']).toEqual([{ kamer: '@huis', vakken: [[0, 0, 5.4, 9]] }, { kamer: 'tuin', vakken: [[-nul.u, -nul.v, 11.4, nul.v]] }, { kamer: 'tuin~terras', vakken: [[-nul.u, 9, 11.4, 4]] }]);
+    expect(store.current?.apparaten['lamp']).toEqual({ kamer: 'tuin', zone: 'terras', plek: { etage: 'buiten', u: 2 - nul.u, v: 10 } });
+    // In de tuin zelf: geen zone meer.
+    expect((await bewaar({ apparaten: { nest: 'woonkamer', lamp: 'tuin' }, plekken: { lamp: { etage: 'buiten', u: 2, v: 1 } } })).status).toBe(200);
+    expect(store.current?.apparaten['lamp']).toMatchObject({ kamer: 'tuin', zone: null });
+    // Een deel dat er niet is, verandert niets aan de ruimte, en geeft geen zone.
+    expect((await bewaar({ apparaten: { nest: 'woonkamer', lamp: 'tuin~zwembad' } })).status).toBe(200);
+    expect(store.current?.apparaten['lamp']).toMatchObject({ kamer: 'tuin', zone: null });
   });
 
   /*

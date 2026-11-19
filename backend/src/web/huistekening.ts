@@ -36,6 +36,38 @@ export interface TekenRuimte {
   readonly vakken: readonly Vak[];
 }
 export const TRAP_RICHTINGEN = ['n', 'z', 'o', 'w'] as const;
+
+/*
+ * Buiten als eigen tekening (stap 3, 19 november 2026): het erf is een etage
+ * (`buiten`). Het huis ligt erop als één vast vak, `HUIS_OP_ERF`. Een deel van
+ * een ruimte buiten (het terras in de tuin) is een eigen vak: `kamer~zone`.
+ * Zo heeft de tuin zoveel delen als hij zones heeft, elk met zijn eigen vorm.
+ */
+export const HUIS_OP_ERF = '@huis';
+export const DEEL = '~';
+/** Een ruimte op het erf: het huis, een ruimte buiten, of een deel ervan (`kamer~zone`). */
+export function erfRuimteOk(id: string, kamers: readonly { readonly id: string; readonly etage: string; readonly zones: readonly { readonly id: string }[] }[], buiten: string): boolean {
+  if (id === HUIS_OP_ERF) return true;
+  const [kamer, zone, rest] = id.split(DEEL);
+  if (rest !== undefined) return false;
+  const k = kamers.find((x) => x.id === kamer && x.etage === buiten);
+  return !!k && (zone === undefined || k.zones.some((z) => z.id === zone));
+}
+/**
+ * Het erf om de gebouwen heen, als er nog niets getekend is: 3 m opzij van
+ * alles, 6 m voor het huis naar de straat en 12 m erachter, en altijd 3 m om
+ * een gebouw dat al verder staat (een tuinhuis achterin).
+ */
+export function erfOm(blokken: readonly { readonly soort: string; readonly u: number; readonly v: number; readonly b: number; readonly d: number }[]): { u: number; v: number; b: number; d: number } | null {
+  if (!blokken.length) return null;
+  const huis = blokken.filter((x) => x.soort === 'hoofdhuis');
+  const kern = huis.length ? huis : blokken;
+  const u0 = Math.min(...blokken.map((x) => x.u)) - 3;
+  const v0 = Math.min(Math.min(...kern.map((x) => x.v)) - 6, Math.min(...blokken.map((x) => x.v)) - 3);
+  const u1 = Math.max(...blokken.map((x) => x.u + x.b)) + 3;
+  const v1 = Math.max(Math.max(...kern.map((x) => x.v + x.d)) + 12, Math.max(...blokken.map((x) => x.v + x.d)) + 3);
+  return { u: m1(u0), v: m1(v0), b: m1(u1 - u0), d: m1(v1 - v0) };
+}
 export type TrapRichting = (typeof TRAP_RICHTINGEN)[number];
 
 /**

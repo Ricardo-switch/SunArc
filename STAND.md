@@ -43,6 +43,8 @@ verwijzing bestaat.
   regelen; Hoe ver je huis is verwijst ernaar ([322]).
   Sinds 0.200.0 is Inrichten zeven stappen, elk een voorstel met Klopt dit?;
   de standpagina biedt Inrichten aan, niet meer Instellingen ([323]).
+  Sinds 0.201.0 is buiten een eigen tekening in Je huis: het erf met het huis
+  als vast vak, de gebouwen van de kaart en de delen van de tuin ([324]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1050,4 +1052,5 @@ verwijzing bestaat.
 [321]: DECISIONS.md#321-instellingen-in-vier-tegels
 [322]: DECISIONS.md#322-eén-standpagina-wat-je-huis-kan
 [323]: DECISIONS.md#323-inrichten-in-zeven-stappen
+[324]: DECISIONS.md#324-buiten-als-eigen-tekening-in-je-huis
 <!-- links:einde -->

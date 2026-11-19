@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.200.2';
+export const VERSIE = '0.201.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,30 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.201.0',
+    datum: '2026-11-19',
+    nieuw: [
+      'Je huis › Buiten is een eigen tekening: je erf met het huis, de garage en het tuinhuis van de kaart, de oprit en de tuin',
+      'Het terras en de border zijn elk een eigen vak in de tuin; sleep er een lamp of een heater in, ook in de garage of het tuinhuis',
+      'De kaart koppelt zijn gebouwen vanzelf aan je ruimtes en vraagt één keer of het klopt',
+      'Staat een gebouw twee keer, als deel van de tuin en als eigen ruimte, dan kun je ze samenvoegen',
+    ],
+    beter: [
+      'Wat los in de tuin staat, staat niet meer als grijs vak op de begane grond',
+    ],
+    en: {
+      nieuw: [
+        'Your house › Outside is its own drawing: your plot with the house, the garage and garden house from the map, the driveway and the garden',
+        'The terrace and the border are each their own box in the garden; drag a light or a heater into it, also in the garage or garden house',
+        'The map links its buildings to your spaces by itself and asks once whether it is right',
+        'If a building is there twice, as part of the garden and as its own space, you can merge them',
+      ],
+      beter: [
+        'What stands loose in the garden no longer shows as a grey box on the ground floor',
+      ],
+    },
+  },
   {
     versie: '0.200.2',
     datum: '2026-11-18',

@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Daken, DakVlak, Gebouw, Xy } from '../src/web/daken.js';
-import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, leesOpeningen, verschuifOpeningen, gebouwErbij, gebouwWeg, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwErbij, gebouwWeg, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -97,8 +97,8 @@ describe('de tekening in de indeling', () => {
     const r = validateLayout(indeling({ plattegrond: tekening, kamers: indeling().kamers.map((k) => (k.id === 'woonkamer' ? { ...k, zoneLijn: { as: 'v', op: 4 } } : k)), apparaten: { nest: { kamer: 'woonkamer', zone: null, plek: { etage: 'bg', u: 0.2, v: 7.8 } } } }), known);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    // Buiten wordt niet getekend; de slaapkamer staat niet op de begane grond, dus daar is het een vak zonder naam.
-    expect(r.layout.plattegrond).toEqual({ bg: [{ kamer: 'woonkamer', vakken: [[0, 0, 6, 8]] }, { kamer: 'hal', vakken: [[6, 0, 2, 8]] }, { vakken: [[8, 0, 2, 8]] }], e1: [{ kamer: 'slaapkamer', vakken: [[0, 0, 10, 8]] }] });
+    // Buiten wordt sinds 19 november 2026 ook getekend; de slaapkamer staat niet op de begane grond, dus daar is het een vak zonder naam.
+    expect(r.layout.plattegrond).toEqual({ bg: [{ kamer: 'woonkamer', vakken: [[0, 0, 6, 8]] }, { kamer: 'hal', vakken: [[6, 0, 2, 8]] }, { vakken: [[8, 0, 2, 8]] }], e1: [{ kamer: 'slaapkamer', vakken: [[0, 0, 10, 8]] }], buiten: [{ vakken: [[0, 0, 1, 1]] }] });
     expect(r.layout.kamers.find((k) => k.id === 'woonkamer')?.zoneLijn).toEqual({ as: 'v', op: 4 });
     expect(r.layout.apparaten['nest']?.plek).toEqual({ etage: 'bg', u: 0.2, v: 7.8 });
   });
@@ -110,7 +110,7 @@ describe('de tekening in de indeling', () => {
     const r = validateLayout(indeling({ kamers, plattegrond: tekening, apparaten: { nest: { kamer: 'woonkamer', zone: null, plek: { etage: 'e7', u: 1, v: 1 } } } }), known);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.layout.plattegrond).toEqual({ bg: [{ kamer: 'woonkamer', vakken: [[0, 0, 6, 8]] }, { vakken: [[6, 0, 2, 8]] }, { kamer: 'slaapkamer', vakken: [[8, 0, 2, 8]] }], e1: [{ vakken: [[0, 0, 10, 8]] }] });
+    expect(r.layout.plattegrond).toEqual({ bg: [{ kamer: 'woonkamer', vakken: [[0, 0, 6, 8]] }, { vakken: [[6, 0, 2, 8]] }, { kamer: 'slaapkamer', vakken: [[8, 0, 2, 8]] }], e1: [{ vakken: [[0, 0, 10, 8]] }], buiten: [{ vakken: [[0, 0, 1, 1]] }] });
     expect(r.layout.kamers.find((k) => k.id === 'woonkamer')?.zoneLijn).toBeUndefined();
     expect(r.layout.apparaten['nest']?.plek).toBeUndefined();
   });
@@ -118,6 +118,41 @@ describe('de tekening in de indeling', () => {
   it('weigert een tekening die niet kan, met een reden', () => {
     const r = validateLayout(indeling({ plattegrond: { bg: [{ vakken: [[0, 0, 0, 1]] }] } }), known);
     expect(r).toEqual({ ok: false, reden: expect.stringContaining('plattegrond bg') });
+  });
+});
+
+/*
+ * Buiten als eigen tekening (19 november 2026, schets Wand-Huis-Buiten): het
+ * erf om de gebouwen, het huis als vast vak, en een deel van een ruimte buiten
+ * als eigen vak (`kamer~zone`).
+ */
+describe('buiten als eigen tekening', () => {
+  it('legt het erf om de gebouwen: 3 m opzij, 6 m voor en 12 m achter het huis, en 3 m om een gebouw dat verder staat', () => {
+    expect(erfOm([{ soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }])).toEqual({ u: -3, v: -6, b: 16, d: 26 });
+    // Een tuinhuis achterin, 20 m van de straat: het erf loopt tot 3 m erachter, niet 12 m.
+    expect(erfOm([{ soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }, { soort: 'tuinhuis', u: 2, v: 20, b: 3, d: 2 }])).toEqual({ u: -3, v: -6, b: 16, d: 31 });
+    expect(erfOm([])).toBeNull();
+  });
+
+  it('kent op het erf het huis, een ruimte buiten en een deel ervan', () => {
+    const kamers = [{ id: 'tuin', etage: 'buiten', zones: [{ id: 'terras' }, { id: 'border' }] }, { id: 'woonkamer', etage: 'bg', zones: [] }];
+    expect(erfRuimteOk(HUIS_OP_ERF, kamers, 'buiten')).toBe(true);
+    expect(erfRuimteOk('tuin', kamers, 'buiten')).toBe(true);
+    expect(erfRuimteOk(`tuin${DEEL}terras`, kamers, 'buiten')).toBe(true);
+    expect(erfRuimteOk(`tuin${DEEL}zwembad`, kamers, 'buiten')).toBe(false);
+    expect(erfRuimteOk('woonkamer', kamers, 'buiten')).toBe(false);
+    expect(erfRuimteOk(`tuin${DEEL}terras${DEEL}x`, kamers, 'buiten')).toBe(false);
+  });
+
+  it('bewaart de tekening van buiten met het huis en de delen, en een plek buiten', () => {
+    const buitenKamers = [...indeling().kamers, { id: 'tuin', naam: 'Tuin', etage: 'buiten', zones: [{ id: 'terras', naam: 'Terras' }], regelzone: null, haGebied: null }];
+    const plattegrond = { buiten: [{ kamer: HUIS_OP_ERF, vakken: [[3, 6, 10, 8]] }, { kamer: 'tuin', vakken: [[0, 0, 16, 6]] }, { kamer: `tuin${DEEL}terras`, vakken: [[3, 14, 10, 4]] }, { kamer: 'woonkamer', vakken: [[0, 20, 2, 2]] }] };
+    const r = validateLayout(indeling({ kamers: buitenKamers, plattegrond, apparaten: { nest: { kamer: 'woonkamer', zone: null }, 'light.sfeerverlichting': { kamer: 'tuin', zone: 'terras', plek: { etage: 'buiten', u: 5, v: 15 } } } }), known);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    // De woonkamer hoort niet buiten: daar is het een vak zonder naam.
+    expect(r.layout.plattegrond?.['buiten']).toEqual([{ kamer: HUIS_OP_ERF, vakken: [[3, 6, 10, 8]] }, { kamer: 'tuin', vakken: [[0, 0, 16, 6]] }, { kamer: `tuin${DEEL}terras`, vakken: [[3, 14, 10, 4]] }, { vakken: [[0, 20, 2, 2]] }]);
+    expect(r.layout.apparaten['light.sfeerverlichting']).toEqual({ kamer: 'tuin', zone: 'terras', plek: { etage: 'buiten', u: 5, v: 15 } });
   });
 });
 

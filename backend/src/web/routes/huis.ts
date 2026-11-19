@@ -9,7 +9,7 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { bronVanDaken, bronVorm, dakenMetBron, eenPapier, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwErbij, gebouwWeg, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwErbij, gebouwWeg, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
 import { leesDaken, type Daken, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
@@ -448,6 +448,8 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     const zones = (typeof b['zones'] === 'object' && b['zones'] != null ? b['zones'] : {}) as Record<string, { as?: unknown; op?: unknown }>;
     const kamers = basis.kamers.map((k) => {
       const { zoneLijn: _weg, ...rest } = k;
+      // Buiten heeft geen zonelijn: een deel is daar een eigen vak (`kamer~zone`).
+      if (k.etage === OUTSIDE_FLOOR) return rest;
       const z = zones[k.id];
       if (!z || (z.as !== 'u' && z.as !== 'v') || typeof z.op !== 'number') return rest;
       return { ...rest, zoneLijn: { as: z.as as 'u' | 'v', op: z.op - (z.as === 'u' ? nu : nv) } };
@@ -465,13 +467,18 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       apparaten = {};
       for (const id of new Set([...Object.keys(basis.apparaten), ...Object.keys(naarKamer ?? {})])) {
         const oud = basis.apparaten[id];
-        const gevraagd = naarKamer?.[id];
+        // Buiten (19 november 2026): `kamer~zone` is een deel van een ruimte buiten, zoals het terras in de tuin.
+        const gevraagdIn = naarKamer?.[id];
+        const [gevraagd, deel] = typeof gevraagdIn === 'string' ? gevraagdIn.split(DEEL) : [undefined, undefined];
         const kamer = typeof gevraagd === 'string' && kamerOp.has(gevraagd) ? gevraagd : oud?.kamer;
         if (!kamer) continue;
         const { plek: oudePlek, ...rest } = oud ?? { zone: null };
         const p = plekken?.[id];
         const plek = plekken ? (p && typeof p.u === 'number' && typeof p.v === 'number' && typeof p.etage === 'string' ? { etage: p.etage, u: p.u - nu, v: p.v - nv } : undefined) : oudePlek;
-        const zone = (plek && kamerOp.get(kamer) ? zoneVanPlek(kamerOp.get(kamer)!, plek) : null) ?? (oud?.kamer === kamer ? oud.zone : null);
+        const buiten = kamerOp.get(kamer)?.etage === OUTSIDE_FLOOR;
+        const zone = buiten && kamer === gevraagd
+          ? (deel && kamerOp.get(kamer)!.zones.some((z) => z.id === deel) ? deel : null)
+          : (plek && kamerOp.get(kamer) ? zoneVanPlek(kamerOp.get(kamer)!, plek) : null) ?? (oud?.kamer === kamer ? oud.zone : null);
         const { raam: oudRaam, ...zonderRaam } = rest as typeof rest & { raam?: string };
         const raam = ramen ? (typeof ramen[id] === 'string' ? (ramen[id] as string) : undefined) : oudRaam;
         apparaten[id] = { ...zonderRaam, kamer, zone, ...(plek ? { plek } : {}), ...(raam ? { raam } : {}) };
@@ -496,9 +503,16 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
   for (const [id, a] of Object.entries(basis.apparaten)) if (a.plek) plekken[id] = { etage: a.plek.etage, u: Math.round((a.plek.u + nu) * 100) / 100, v: Math.round((a.plek.v + nv) * 100) / 100 };
   // De apparaten binnen: in hun kamer, of nog zonder kamer (de strook), met de kamer uit Home Assistant als tip.
   const kamerIds = new Set(binnen.flatMap((e) => e.ruimtes.map((r) => r.id)));
+  // Buiten (19 november 2026): het erf als eigen tekening, met de ruimtes buiten en hun delen.
+  const erf = huis.etages.find((e) => e.id === OUTSIDE_FLOOR) ?? null;
+  const deelVan = (id: string, kamer: string) => {
+    const z = basis.apparaten[id]?.kamer === kamer ? basis.apparaten[id]?.zone : null;
+    return z ? `${kamer}${DEEL}${z}` : kamer;
+  };
   const kamerMetNaam = (naam: string | null) => (naam ? (binnen.flatMap((e) => e.ruimtes).find((r) => r.naam.toLowerCase() === naam.toLowerCase())?.id ?? null) : null);
   const apparaten = [
     ...binnen.flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten.map((a) => ({ id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: r.id })))),
+    ...(erf?.ruimtes ?? []).flatMap((r) => r.apparaten.map((a) => ({ id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: deelVan(a.id, r.id) }))),
     ...huis.zonderRuimte.map((a) => {
       const tip = a.voorstelKamer && kamerIds.has(a.voorstelKamer) ? a.voorstelKamer : kamerMetNaam(a.voorstel);
       return { id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: null, ...(tip ? { ha: tip } : {}) };
@@ -519,7 +533,13 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     // Van boven naar beneden, zoals het huis opzij.
     // Stap 3 (Je huis aangevuld): welke etage onder het schuine dak ligt, voor het blad van de etage.
     etages: binnen.map((e, i) => ({ id: e.id, naam: e.naam, hoogte: hoogtes[i], dak: huis.dakEtage === e.id })),
-    kamers: binnen.flatMap((e) => e.ruimtes.map((r) => ({ id: r.id, naam: r.naam, soort: r.soort, etage: e.id, zones: r.zones.map((z) => z.naam) }))),
+    kamers: [
+      ...binnen.flatMap((e) => e.ruimtes.map((r) => ({ id: r.id, naam: r.naam, soort: r.soort, etage: e.id, zones: r.zones.map((z) => z.naam) }))),
+      // Buiten: de soort is wat er rond het huis is (tuin, oprit, garage); de delen met hun id, voor `kamer~zone`.
+      ...(erf?.ruimtes ?? []).map((r) => ({ id: r.id, naam: r.naam, soort: r.buiten?.soort ?? null, etage: OUTSIDE_FLOOR, zones: r.zones.map((z) => z.naam), delen: r.zones.map((z) => ({ id: z.id, naam: z.naam, soort: z.soort ?? null })) })),
+    ],
+    // Het erf: de naam van de etage, en waar het ligt als er nog niets getekend is (op hetzelfde ruitjespapier).
+    buiten: erf ? { naam: erf.naam, erf: vorm.erf } : null,
     tekening: verschuif(basis.plattegrond ?? {}, nu, nv),
     // De deuren en ramen, en welk screen voor welk raam hangt (0.187.0).
     openingen: verschuifOpeningen(basis.openingen ?? {}, nu, nv),
@@ -553,6 +573,7 @@ async function vormVanHuis(
   kaarten: { osm: string | null; bag3d: string | null } | null;
   nul: { u: number; v: number };
   maat: { breed: number; diep: number };
+  erf: { u: number; v: number; b: number; d: number } | null;
 }> {
   const verbinding = d.options.connection ?? null;
   const zicht = verbinding?.view(taal).daken ?? null;
@@ -581,7 +602,10 @@ async function vormVanHuis(
     if (met) vormen[k] = bronVorm(met, voorgevel, woning, lagen);
   }
   if (bron !== 'zelf') vormen.zelf = bronVorm(daken ? dakenMetBron(daken, 'zelf', null)! : leeg, voorgevel, woning, lagen);
-  const papier = eenPapier(Object.fromEntries(Object.entries(vormen).map(([id, v]) => [id, v.blokken])), plattegrond);
+  // Het erf om de gebouwen van de bron van nu (19 november 2026): ook op het ruitjespapier, zodat buiten past.
+  const erfRuw = erfOm(vormen[bron]?.blokken ?? []);
+  const papier = eenPapier({ ...Object.fromEntries(Object.entries(vormen).map(([id, v]) => [id, v.blokken])), ...(erfRuw ? { _erf: [{ id: 'erf', soort: 'anders' as const, ...erfRuw }] } : {}) }, plattegrond);
+  const erfOpPapier = papier.blokken['_erf']?.[0];
   // In vaste volgorde: de 3D-kaart, de plattegrond, zonder kaart.
   const bronnen: Partial<Record<VormBron, BronVorm>> = {};
   // De gebouwen eromheen schuiven mee op het ruitjespapier.
@@ -594,6 +618,7 @@ async function vormVanHuis(
     kaarten: kaarten ? { osm: kaarten.osm?.stand ?? null, bag3d: kaarten.bag3d?.stand ?? null } : null,
     nul: papier.nul,
     maat: papier.maat,
+    erf: erfOpPapier ? { u: erfOpPapier.u, v: erfOpPapier.v, b: erfOpPapier.b, d: erfOpPapier.d } : null,
   };
 }
 

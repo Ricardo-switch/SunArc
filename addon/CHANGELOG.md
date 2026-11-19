@@ -1,11 +1,15 @@
 # Wat is er nieuw · What is new
 
-## 0.200.2
+## 0.201.0
 
-*18 november 2026 · 0.179.0 – 0.200.2*
+*19 november 2026 · 0.179.0 – 0.201.0*
 
 **Nieuw**
 
+- Je huis › Buiten is een eigen tekening: je erf met het huis, de garage en het tuinhuis van de kaart, de oprit en de tuin
+- Het terras en de border zijn elk een eigen vak in de tuin; sleep er een lamp of een heater in, ook in de garage of het tuinhuis
+- De kaart koppelt zijn gebouwen vanzelf aan je ruimtes en vraagt één keer of het klopt
+- Staat een gebouw twee keer, als deel van de tuin en als eigen ruimte, dan kun je ze samenvoegen
 - Inrichten in zeven stappen: je huis, meter en zekering, panelen, prijzen, verwarming, wie woont hier, en klaar
 - Elke stap laat zien wat SunArc in Home Assistant vond, met Klopt dit? Ja gaat door, Aanpassen opent de vragen
 - Klaar zegt wat er werkt en meekijkt, met de zonnewaaier; de rondleiding is een keuze
@@ -63,6 +67,7 @@
 
 **Beter**
 
+- Wat los in de tuin staat, staat niet meer als grijs vak op de begane grond
 - Je huis › Buiten: het tuinhuis en het schuurtje zijn twee losse knoppen, zodat je ze allebei kunt hebben
 - Waar staat het? toont ook de delen van een ruimte buiten, zoals het terras en de border in de tuin, onder hun eigen kopje
 - Inrichten staat niet meer bij Instellingen: Wat je huis kan biedt het aan als er nog iets open is, en zoeken vindt het
@@ -127,6 +132,10 @@
 
 **New**
 
+- Your house › Outside is its own drawing: your plot with the house, the garage and garden house from the map, the driveway and the garden
+- The terrace and the border are each their own box in the garden; drag a light or a heater into it, also in the garage or garden house
+- The map links its buildings to your spaces by itself and asks once whether it is right
+- If a building is there twice, as part of the garden and as its own space, you can merge them
 - Set up in seven steps: your house, meter and fuse, solar panels, prices, heating, who lives here, and done
 - Each step shows what SunArc found in Home Assistant, with Is this right? Yes moves on, Change opens the questions
 - Done says what works and what watches along, with the sun fan; the tour is a choice
@@ -184,6 +193,7 @@
 
 **Improved**
 
+- What stands loose in the garden no longer shows as a grey box on the ground floor
 - Your house › Outside: the garden house and the shed are two separate buttons, so you can have both
 - Where is it? also shows the parts of a space outside, like the terrace and the border in the garden, under their own heading
 - Set up is no longer in Settings: What your house can do offers it when something is still open, and search finds it

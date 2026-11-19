@@ -45,12 +45,15 @@
   const klem = (n, a, b) => Math.min(b, Math.max(a, n));
   const ik = (naam) => (global.iconen ? global.iconen.svg(global.iconen.heeft(naam) ? naam : 'apparaat') : '');
 
-  const TINT = { woon: '110 231 183', keuken: '247 181 72', slaap: '143 134 255', nat: '111 211 255', hal: '184 196 207', garage: '154 170 187', leeg: '255 255 255' };
-  const SOORT_TINT = { woonkamer: 'woon', woonkeuken: 'keuken', keuken: 'keuken', eetkamer: 'keuken', slaapkamer: 'slaap', kinderkamer: 'slaap', logeerkamer: 'slaap', werkkamer: 'slaap', zolder: 'slaap', badkamer: 'nat', toilet: 'nat', wasruimte: 'nat', hal: 'hal', overloop: 'hal', trap: 'hal', berging: 'hal', garage: 'garage', kelder: 'garage' };
+  const TINT = { woon: '110 231 183', keuken: '247 181 72', slaap: '143 134 255', nat: '111 211 255', hal: '184 196 207', garage: '154 170 187', groen: '120 196 110', huis: '96 112 136', leeg: '255 255 255' };
+  // Buiten (19 november 2026): de tuin groen, de oprit grijs, het terras warm, de gebouwen als de garage, het huis donker.
+  const SOORT_TINT = { woonkamer: 'woon', woonkeuken: 'keuken', keuken: 'keuken', eetkamer: 'keuken', slaapkamer: 'slaap', kinderkamer: 'slaap', logeerkamer: 'slaap', werkkamer: 'slaap', zolder: 'slaap', badkamer: 'nat', toilet: 'nat', wasruimte: 'nat', hal: 'hal', overloop: 'hal', trap: 'hal', berging: 'hal', garage: 'garage', kelder: 'garage', tuin: 'groen', voortuin: 'groen', zijtuin: 'groen', border: 'groen', oprit: 'hal', pad: 'hal', terras: 'keuken', dakterras: 'keuken', balkon: 'keuken', carport: 'garage', tuinhuis: 'garage', schuur: 'garage', jacuzzi: 'nat', thuis: 'huis' };
   /** Ruimtes die niet in Home Assistant hoeven te staan. */
   const EIGEN_SLEUTELS = [['hal', 'hal'], ['toilet', 'toilet'], ['overloop', 'overloop'], ['trap', 'trap'], ['berging', 'berging'], ['berging', 'meterkast']];
-  /** [soort, naam] in de taal van de app. */
-  const eigenNamen = () => EIGEN_SLEUTELS.map(([soort, k]) => [soort, T(`ht.eigen.${k}`)]);
+  /** Buiten (19 november 2026): wat er op een erf staat zonder dat Home Assistant het kent. */
+  const EIGEN_BUITEN = [['berging', 'schuur'], ['berging', 'fietsenhok'], ['berging', 'kas'], ['berging', 'pad']];
+  /** [soort, naam] in de taal van de app; buiten andere namen. */
+  const eigenNamen = (buiten = false) => (buiten ? EIGEN_BUITEN : EIGEN_SLEUTELS).map(([soort, k]) => [soort, T(`ht.eigen.${k}`)]);
   const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', koffie: '#f7b548', camera: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff', rookmelder: '#ff9a6b', boiler: '#ff9a6b', jacuzzi: '#6fd3ff' };
   const APP_ICOON = { meter: 'klimaat' };
 
@@ -602,12 +605,19 @@
       const o = omgeving().find((q) => binnen(q.punten, x, y));
       return o ? { soort: 'omgeving', i: o.i } : null;
     };
+    /*
+     * Buiten (19 november 2026): wat los in de tuin staat (een tuinhuis, een
+     * carport, iets anders, en de garage als die niet binnen hoort) ligt op het
+     * erf en niet meer op de begane grond. Het huis ligt op het erf als één vast vak.
+     */
+    const losBuiten = (x) => ['tuinhuis', 'carport', 'anders'].includes(x.soort) || (x.soort === 'garage' && !huis.garageBinnen);
     const zetBlokken = () => {
       const b = huis.bronnen?.[st.bron];
       if (!b) return;
       // De begane grond (`huis.beneden`, anders de onderste) krijgt alle gebouwen; een kelder en de etages erboven alleen het hoofdhuis.
-      const beneden = huis.beneden ?? huis.etages.at(-1)?.id;
-      huis.etages.forEach((e) => (e.blokken = b.blokken.filter((x) => e.id === beneden || x.soort === 'hoofdhuis')));
+      const beneden = huis.beneden ?? huis.etages.filter((e) => !e.buiten).at(-1)?.id;
+      const metErf = huis.etages.some((e) => e.buiten);
+      huis.etages.forEach((e) => (e.blokken = e.buiten ? [...(huis.erf ? [huis.erf] : []), ...b.blokken] : b.blokken.filter((x) => x.soort === 'hoofdhuis' || (e.id === beneden && !(metErf && losBuiten(x))))));
     };
     zetBlokken();
     let luisteraars = [];
@@ -735,11 +745,15 @@
 
     const vloer = () => st.vloeren[st.etage];
     const etageVan = (id) => huis.etages.find((e) => e.id === id);
+    // De etage eronder; buiten (het erf) ligt onder geen enkele etage.
     const onder = () => {
-      const i = huis.etages.findIndex((e) => e.id === st.etage);
-      return i >= 0 && i < huis.etages.length - 1 ? huis.etages[i + 1] : null;
+      const lijst = huis.etages.filter((e) => !e.buiten);
+      const i = lijst.findIndex((e) => e.id === st.etage);
+      return i >= 0 && i < lijst.length - 1 ? lijst[i + 1] : null;
     };
     const naamVan = (r) => (r?.kamer ? kamers[r.kamer]?.naam : r?.naam) ?? null;
+    /** Een vast vak (19 november 2026): het huis op het erf. Geen muur te pakken, er gaat niets in, een tik gaat naar binnen. */
+    const vastId = (v, id) => id != null && id !== BUITEN && !!opties.vast?.includes(v.ruimtes[id]?.kamer);
     /** De zonelijnen op een vloer: per kamer de lijn en de stukken die in de ruimte liggen. */
     const zonesOp = (v) => {
       const uit = [];
@@ -784,7 +798,9 @@
     let oy = 0;
     const heleKijk = () => {
       // Het hele huis, over alle etages: in de app kan er een kelder onder de begane grond liggen, op alleen het hoofdhuis.
-      const os = huis.etages.map((e) => omtrek(st.vloeren[e.id]));
+      // Buiten (het erf) heeft zijn eigen beeld, en telt binnen niet mee (19 november 2026).
+      const opErf = !!etageVan(st.etage)?.buiten;
+      const os = huis.etages.filter((e) => !!e.buiten === opErf).map((e) => omtrek(st.vloeren[e.id]));
       const o = { x0: Math.min(...os.map((x) => x.x0)), y0: Math.min(...os.map((x) => x.y0)), x1: Math.max(...os.map((x) => x.x1)), y1: Math.max(...os.map((x) => x.y1)) };
       const rand = st.stand === 'vorm' ? 16 : 7;
       if (st.stand === 'vorm') {
@@ -857,7 +873,8 @@
       const uit = [];
       const zonder = {};
       for (const a of st.apparaten) {
-        const w = a.kamer ? waar[a.kamer] : null;
+        // Een deel buiten zonder eigen vak (de border in de tuin): zijn apparaten staan in de ruimte zelf (19 november 2026).
+        const w = a.kamer ? (waar[a.kamer] ?? (kamers[a.kamer]?.deelVan ? waar[kamers[a.kamer].deelVan] : null)) : null;
         if (!w || w.etage !== st.etage) continue;
         const p = a.plek;
         const zelf = !!p && p.etage === st.etage && v.cel[Math.floor(p.y) * v.W + Math.floor(p.x)] === w.id;
@@ -1223,6 +1240,7 @@
         const vl = vloer();
         const kant = (r.as === 'x' ? p.x : p.y) < r.op ? -1 : 1;
         const lees = (i) => (r.as === 'x' ? ruimteOp(vl, i, langs) : ruimteOp(vl, langs, i));
+        if (vastId(vl, lees(r.op - 1)) || vastId(vl, lees(r.op))) continue;
         const eigen = lees(kant < 0 ? r.op - 1 : r.op);
         let breed = 0;
         while (breed < 60 && lees(kant < 0 ? r.op - 1 - breed : r.op + breed) === eigen) breed++;
@@ -1249,6 +1267,7 @@
     }
     /** Een ruimte is te verplaatsen als hij in een grotere staat of ertegenaan ligt; de grote kamer zelf niet. */
     function verplaatsbaar(v, id) {
+      if (vastId(v, id)) return false;
       const b = buurVoor(v, id);
       if (b == null) return false;
       let eigen = 0;
@@ -1630,7 +1649,7 @@
           px = X(x);
           py = Y(y);
         }
-        const kan = id !== BUITEN && !!v.ruimtes[id]?.kamer;
+        const kan = id !== BUITEN && !!v.ruimtes[id]?.kamer && !vastId(v, id);
         const anders = actie.doel !== (kan ? id : null);
         actie.doel = kan ? id : null;
         actie.px = px;
@@ -1731,7 +1750,10 @@
         if (a.plek && a.doel != null) {
           stap();
           const dev = st.apparaten.find((x) => x.id === a.a.id);
-          dev.kamer = vloer().ruimtes[a.doel].kamer;
+          const doelKamer = vloer().ruimtes[a.doel].kamer;
+          // Binnen de tuin verschoven terwijl zijn deel nog geen vak heeft: het blijft in dat deel.
+          const deelVan = dev.kamer ? kamers[dev.kamer]?.deelVan : null;
+          dev.kamer = deelVan && deelVan === doelKamer && !kamerPlek()[dev.kamer] ? dev.kamer : doelKamer;
           dev.plek = a.plek;
           if (metOpeningen && dev.soort === 'screen') {
             const r = raamBij(vloer(), a.plek.x, a.plek.y);
@@ -1769,6 +1791,11 @@
       const p = a.start;
       const v = vloer();
       const id = ruimteOp(v, p.x, p.y);
+      // Het huis op het erf: een tik gaat naar binnen, naar de begane grond (19 november 2026).
+      if (vastId(v, id) && a.kandidaat.soort !== 'apparaat') {
+        st.blad = null;
+        return t.zetEtage(huis.beneden ?? huis.etages.filter((e) => !e.buiten).at(-1)?.id);
+      }
       if (st.stand === 'apparaten') {
         if (a.kandidaat.soort === 'apparaat') {
           st.kies = { soort: 'apparaat', id: a.kandidaat.q.a.id };
@@ -1822,8 +1849,16 @@
       const v = kopie(vloer());
       const id = v.volg++;
       v.ruimtes[id] = {};
-      const n = vulRecht(v, r.x0, r.y0, r.x1, r.y1, id, st.stand === 'vorm' ? 'alleen' : false);
-      if (!n) return teken();
+      let n = vulRecht(v, r.x0, r.y0, r.x1, r.y1, id, st.stand === 'vorm' ? 'alleen' : false);
+      // Over het huis op het erf heen trek je geen vak: dat blijft staan.
+      const was = vloer();
+      for (let i = 0; i < v.cel.length; i++) {
+        if (v.cel[i] === id && vastId(was, was.cel[i])) {
+          v.cel[i] = was.cel[i];
+          n--;
+        }
+      }
+      if (n <= 0) return teken();
       stap();
       // Wat helemaal onder het nieuwe vak verdween, geeft zijn naam eraan door: dan was het vak over die ruimte heen getrokken.
       const oud = vloer();
@@ -2045,6 +2080,13 @@
        * bladen tonen (etage, buiten, soorten, verborgen), `doe(actie, waarde)` bewaart. Zonder (de schets) geen bladen.
        */
       indeling: opties.indeling ?? null,
+      /** Vaste vakken (het huis op het erf): niet in de lijsten. */
+      vast: opties.vast ?? [],
+      /** Nu bewaren, ook zonder dat er iets veranderde: wat de kaart voorstelde, klopt (19 november 2026). */
+      bewaarNu() {
+        bewaar();
+        meld();
+      },
       /** Een blad van de indeling tonen, of weer weg (null). */
       toonBlad(naam) {
         st.blad = naam ? { naam, etage: st.etage, stand: st.stand } : null;
@@ -2122,6 +2164,8 @@
         klaar();
       },
       zetStand(s) {
+        // Vorm en het huis in 3D gaan over het huis zelf: vanaf buiten naar de begane grond.
+        if ((s === 'vorm' || s === 'huis') && etageVan(st.etage)?.buiten) st.etage = huis.beneden ?? huis.etages.filter((e) => !e.buiten).at(-1)?.id;
         st.stand = s;
         st.kies = null;
         st.wapen = null;
@@ -2132,6 +2176,7 @@
       },
       zetEtage(id) {
         st.etage = id;
+        if (etageVan(id)?.buiten && (st.stand === 'vorm' || st.stand === 'huis')) st.stand = 'kamers';
         // Bij Huis zet een etage aantikken die etage open, ook als het huis dicht was.
         if (st.stand === 'huis') st.dicht = false;
         st.kies = null;
@@ -2187,7 +2232,7 @@
         return lijst[i] ? klein(vloerUitIndeling(huis.maat, e.blokken, lijst[i].bomen), kamers, b, h) : '';
       },
       /** Nog niets ingedeeld: elke ruimte is nog een heel blok zonder naam. */
-      isLeeg: () => Object.values(vloer().ruimtes).every((r) => !r.kamer && !r.naam) && Object.keys(vloer().ruimtes).length <= etageVan(st.etage).blokken.length,
+      isLeeg: () => !etageVan(st.etage)?.buiten && Object.values(vloer().ruimtes).every((r) => !r.kamer && !r.naam) && Object.keys(vloer().ruimtes).length <= etageVan(st.etage).blokken.length,
       terug() {
         const f = st.terug.pop();
         if (!f) return;
@@ -2286,7 +2331,7 @@
       const v = t.vloer();
       const m = t.maten();
       const etage = t.huis.etages.find((e) => e.id === st.etage);
-      const hier = t.huis.kamers.filter((k) => k.etage === st.etage);
+      const hier = t.huis.kamers.filter((k) => k.etage === st.etage && !t.vast?.includes(k.id));
       const waar = t.kamerPlek();
       let s;
       const ix = t.indeling?.gegevens?.() ?? null;
@@ -2365,14 +2410,14 @@
           }
           // Zones: alleen bij een kamer die er in Home Assistant meer dan één heeft.
           const zn = r.kamer ? (t.kamers[r.kamer]?.zones ?? []) : [];
-          if (zn.length > 1) {
+          if (zn.length > 1 && !etage.buiten) {
             const z = v.zones?.[r.kamer];
             s += `<h4>${esc(T('ht.zones.kop', { namen: zn.join(` ${T('algemeen.en')} `) }))}</h4>`;
             s += z
               ? `<div class="ht-twee twee">${`<button type="button" class="ht-klein" data-ht="zone" data-wat="draai">${esc(T('ht.zones.draai'))}</button><button type="button" class="ht-klein" data-ht="zone" data-wat="weg">${esc(T('ht.zones.weg'))}</button>`}</div>`
               : rij({ ik: 'kamers', titel: T('ht.zones.zet'), zin: T('ht.zones.zetZin'), data: 'data-ht="zone" data-wat="zet"' });
           }
-          const EIGEN = eigenNamen();
+          const EIGEN = eigenNamen(!!etage.buiten);
           const eigen = r.naam && !EIGEN.some(([, n]) => n === r.naam) ? r.naam : '';
           // Een trap: naar welke kant hij omhoog gaat.
           if (metOpeningenVan(t) && t.soortVan(r) === 'trap') {
@@ -2380,7 +2425,7 @@
           }
           s += `<h4>${esc(T('ht.geenKamerHA'))}</h4><div class="ht-twee">${EIGEN.map(([soort, n]) => `<button type="button" class="ht-klein${r.naam === n ? ' aan' : ''}" data-ht="noem" data-naam="${esc(n)}" data-soort="${soort}">${esc(n)}</button>`).join('')}</div>
             <input class="ht-naam" id="ht-naam" data-ht-naam value="${esc(eigen)}" placeholder="${esc(T('ht.eigenNaam'))}" maxlength="30" aria-label="${esc(T('ht.eigenNaamLabel'))}">`;
-          if (ix && r.kamer && t.kamers[r.kamer]) s += kamerIndeling(t, r.kamer, ix);
+          if (ix && r.kamer && t.kamers[r.kamer] && !etage.buiten) s += kamerIndeling(t, r.kamer, ix);
           // Weghalen: het vak wordt weer deel van de ruimte waar het het meest aan grenst.
           const bw = t.buurVoor(id);
           const bwNaam = bw != null ? t.naamVan(v.ruimtes[bw]) : null;
@@ -2401,7 +2446,10 @@
             s += rij({ ik: km.soort, titel: km.naam, zin: w ? '' : st.wapen?.kamer === km.id ? T('ht.tikVak') : T('ht.nogGeenPlek'), mist: !w, aan: st.wapen?.kamer === km.id, rechts: mm ? `${nl(mm.n * CEL * CEL, 0)} m²` : '', data: `data-ht="kamer" data-kamer="${esc(km.id)}"` });
           }
           for (const [id, r] of Object.entries(v.ruimtes)) if (r.naam) s += rij({ ik: r.soort ?? 'kamer', titel: r.naam, zin: T('ht.nietInHA'), rechts: `${nl(m[id].n * CEL * CEL, 0)} m²`, data: `data-ht="ruimte" data-id="${id}"`, kleur: 'var(--gedempt)' });
-          s += `<div class="ht-onder">${ix ? rij({ ik: 'etages', titel: T('ht.etage.instellen'), zin: T('ht.etage.instellenZin'), rechts: '›', data: 'data-ht="blad" data-blad="etage"' }) : ''}${rij({ ik: 'kamers', titel: T('ht.andereIndeling'), zin: T('ht.andereIndelingZin'), data: 'data-ht="leeg"' })}</div>`;
+          // Buiten: wat er rond het huis is (voor Thuis) in plaats van de etage, en geen andere indeling.
+          s += etage.buiten
+            ? `<div class="ht-onder">${ix ? rij({ ik: 'buiten', titel: T('ht.buiten.rond'), zin: T('ht.buiten.rondZin'), rechts: '›', data: 'data-ht="blad" data-blad="buiten"' }) : ''}</div>`
+            : `<div class="ht-onder">${ix ? rij({ ik: 'etages', titel: T('ht.etage.instellen'), zin: T('ht.etage.instellenZin'), rechts: '›', data: 'data-ht="blad" data-blad="etage"' }) : ''}${rij({ ik: 'kamers', titel: T('ht.andereIndeling'), zin: T('ht.andereIndelingZin'), data: 'data-ht="leeg"' })}</div>`;
         }
       } else if (st.stand === 'huis') {
         const b = t.huis.bronnen?.[st.bron];
@@ -2422,14 +2470,15 @@
           const a = t.st.apparaten.find((x) => x.id === (st.wapen.apparaat ?? kies.id));
           s = `<header><h3>${esc(a.naam)}</h3><span>${esc(T('ht.app.waar'))}</span></header><p class="ht-zin">${esc(T('ht.app.waarZin'))}</p>`;
           for (const e of t.huis.etages) {
-            const ks = t.huis.kamers.filter((k) => k.etage === e.id && waar[k.id]);
+            const ks = t.huis.kamers.filter((k) => k.etage === e.id && waar[k.id] && !t.vast?.includes(k.id));
             if (!ks.length) continue;
             s += `<h4>${esc(e.naam)}</h4><div class="ht-twee">${ks.map((k) => `<button type="button" class="ht-klein${a.ha === k.id ? ' tip' : ''}${a.kamer === k.id ? ' aan' : ''}" data-ht="app-kamer" data-app="${esc(a.id)}" data-kamer="${esc(k.id)}">${esc(k.naam)}</button>`).join('')}</div>`;
           }
           // Buiten (besluit 269 en 317): de voordeur en wat er rond het huis is; een plek zonder ruimte komt erbij.
           // Een ruimte buiten met delen (de tuin met het terras en de border) onder zijn eigen kopje (18 november 2026).
           const groepen = [];
-          for (const p of ix?.plekken ?? []) {
+          // Wat al in de tekening van buiten staat, staat daar al bij de etage Buiten.
+          for (const p of (ix?.plekken ?? []).filter((x) => !waar[x.waarde])) {
             const g = p.groep ?? T('ht.buiten.kop');
             const x = groepen.find(([y]) => y === g) ?? groepen[groepen.push([g, []]) - 1];
             x[1].push(p);
@@ -2555,17 +2604,23 @@
   function stapel(el, t) {
     const teken = () => {
       const waar = t.kamerPlek();
+      const erf = t.huis.etages.find((e) => e.buiten);
+      const zonderBuiten = erf ? t.huis.kamers.filter((k) => k.etage === erf.id && !t.vast?.includes(k.id) && !waar[k.id]).length : 0;
       el.innerHTML = `<div class="ht-dak" aria-hidden="true"></div>${t.huis.etages
+        .filter((e) => !e.buiten)
         .map((e) => {
           const zonder = t.huis.kamers.filter((k) => k.etage === e.id && !waar[k.id]).length;
           return `<button type="button" class="ht-laag${e.id === t.st.etage ? ' aan' : ''}" data-etage="${esc(e.id)}" aria-pressed="${e.id === t.st.etage}"><b>${esc(e.kort ?? e.naam)}</b><small>${esc(t.st.stand === 'vorm' ? T('ht.stapel.hoog', { maat: nl(e.hoogte ?? 2.8) }) : zonder && t.st.stand === 'kamers' ? T('ht.zonderPlek', { n: zonder }) : T('ht.kamers', { n: t.huis.kamers.filter((k) => k.etage === e.id).length }))}</small>${zonder && t.st.stand === 'kamers' ? '<i></i>' : ''}</button>`;
         })
-        .join('')}<div class="ht-grond" aria-hidden="true"></div><button type="button" class="ht-laag buiten${t.st.blad?.naam === 'buiten' ? ' aan' : ''}" ${t.indeling ? 'data-buiten-blad' : 'disabled'}><b>${esc(T('ht.stapel.buiten'))}</b><small>${esc(T('ht.stapel.buitenZin'))}</small></button>`;
+        .join('')}<div class="ht-grond" aria-hidden="true"></div>${erf
+        // Buiten als eigen tekening (19 november 2026): een etage zoals de andere.
+        ? `<button type="button" class="ht-laag buiten${t.st.etage === erf.id ? ' aan' : ''}" data-etage="${esc(erf.id)}" aria-pressed="${t.st.etage === erf.id}"><b>${esc(erf.kort ?? erf.naam)}</b><small>${esc(zonderBuiten && t.st.stand === 'kamers' ? T('ht.zonderPlek', { n: zonderBuiten }) : T('ht.stapel.buitenZin'))}</small>${zonderBuiten && t.st.stand === 'kamers' ? '<i></i>' : ''}</button>`
+        : `<button type="button" class="ht-laag buiten${t.st.blad?.naam === 'buiten' ? ' aan' : ''}" ${t.indeling ? 'data-buiten-blad' : 'disabled'}><b>${esc(T('ht.stapel.buiten'))}</b><small>${esc(T('ht.stapel.buitenZin'))}</small></button>`}`;
     };
     el.addEventListener('click', (e) => {
       const b = e.target.closest('[data-etage]');
-      // De etage die al gekozen is, nog eens aantikken: zijn blad (naam, dak, volgorde).
-      if (b && t.indeling && b.dataset.etage === t.st.etage && !t.st.blad) t.toonBlad('etage');
+      // De etage die al gekozen is, nog eens aantikken: zijn blad (naam, dak, volgorde); buiten wat er rond het huis is.
+      if (b && t.indeling && b.dataset.etage === t.st.etage && !t.st.blad) t.toonBlad(t.huis.etages.find((x) => x.id === b.dataset.etage)?.buiten ? 'buiten' : 'etage');
       else if (b) {
         t.st.blad = null;
         t.zetEtage(b.dataset.etage);
@@ -2656,10 +2711,13 @@
       if (st.kies?.soort === 'opening') return T('ht.uitleg.opening');
       if (st.kies?.soort === 'muur' && st.kies.run?.soort === 2) return T('ht.uitleg.buitenmuur');
       if (st.kies?.soort === 'muur') return T('ht.uitleg.muur');
+      // Buiten (19 november 2026): de oprit, de tuin en hun delen; het huis aantikken is naar binnen.
+      if (t.huis.etages.find((e) => e.id === st.etage)?.buiten) return T('ht.uitleg.buiten');
       return T('ht.uitleg.kamers');
     }
     if (st.wapen?.apparaat) return T('ht.uitleg.appWapen');
     if (st.zoom != null) return T('ht.uitleg.appZoom');
+    if (t.huis.etages.find((e) => e.id === st.etage)?.buiten) return T('ht.uitleg.appBuiten');
     return T('ht.uitleg.apparaten');
   }
 

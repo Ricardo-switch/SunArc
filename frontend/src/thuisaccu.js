@@ -102,7 +102,7 @@ const thuisaccu = (() => {
   }
 
   function vorm(info, a, staat) {
-    const kop = `<div class="kopregel"><h2 class="kop-2">${esc(t('accu.titel'))}</h2><a class="ac-waar" href="jehuis.html#buiten">${esc(t('accu.waarStaat'))}</a></div>`;
+    const kop = `<div class="kopregel"><h2 class="kop-2">${esc(t('accu.titel'))}</h2><a class="ac-waar" href="jehuis.html#buiten/rond">${esc(t('accu.waarStaat'))}</a></div>`;
     if (!info?.accu) return `${kop}<p class="uitleg">${esc(t('accu.geenHA'))}</p>`;
     const x = lijst(info);
     if (!x.length) {
@@ -179,7 +179,7 @@ const thuisaccu = (() => {
     const x = lijst(info).find((y) => y.id === id) ?? aan(info)[0] ?? null;
     if (!x) return null;
     const mee = `<div class="ld-schakel"><div><b>${esc(t('laden.doetMee'))}</b><span class="mini">${esc(watZin(x))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${x.aan}" aria-label="${esc(t('accu.vanDitHuis', { naam: x.naam }))}" data-accu="aan" data-id="${esc(x.id)}"></button></div>`;
-    return { naam: x.naam, html: `${mee}${x.aan ? instellen(info, x) : ''}<a class="ac-waar" href="jehuis.html#buiten" style="margin: 0">${esc(t('accu.waarStaat'))}</a>` };
+    return { naam: x.naam, html: `${mee}${x.aan ? instellen(info, x) : ''}<a class="ac-waar" href="jehuis.html#buiten/rond" style="margin: 0">${esc(t('accu.waarStaat'))}</a>` };
   }
 
   return { vorm, klik, verander, kortZin, blad, lijst };
