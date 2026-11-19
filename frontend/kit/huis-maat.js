@@ -193,6 +193,30 @@
       d.nok += dakOp;
       return { b, ...d };
     });
+    /*
+     * Onder het dak (19 november 2026, het huis van Ricardo): een lang achterdak
+     * komt lager dan de etages erboven. Hoe hoog het dak van het hoofdhuis op
+     * een plek is (Infinity buiten het hoofdhuis of bij een plat dak), zodat
+     * muren daar ophouden en een vloer niet onder het dak uitsteekt.
+     */
+    const hd = daken.find((d) => d.b.soort === 'hoofdhuis');
+    const dakZ = (x, y) => {
+      if (!hd || !/zadel|schild/.test(hd.b.dak ?? '')) return Infinity;
+      const haaks = hd.b.nokLangs === 'y';
+      const [a, c] = haaks ? [y, x] : [x, y];
+      if (a < hd.a0 - 0.01 || a > hd.a1 + 0.01 || c < hd.c0 - 0.01 || c > hd.c1 + 0.01) return Infinity;
+      const z = c <= hd.cr ? hd.g0 + ((hd.nok - dakOp - hd.g0) * (c - hd.c0)) / Math.max(0.01, hd.cr - hd.c0) : hd.g1 + ((hd.nok - dakOp - hd.g1) * (hd.c1 - c)) / Math.max(0.01, hd.c1 - hd.cr);
+      return z + dakOp;
+    };
+    /** Waar een vloer op hoogte `z` onder het dak ligt, langs de as dwars op de nok: [van, tot], of null zonder hoofdhuis. */
+    const onderDakBereik = (z) => {
+      if (!hd || !/zadel|schild/.test(hd.b.dak ?? '')) return null;
+      const n = hd.nok - dakOp;
+      const z1 = z - dakOp;
+      const van = hd.g0 >= z1 ? hd.c0 : hd.c0 + ((z1 - hd.g0) * (hd.cr - hd.c0)) / Math.max(0.01, n - hd.g0);
+      const tot = hd.g1 >= z1 ? hd.c1 : hd.c1 - ((z1 - hd.g1) * (hd.c1 - hd.cr)) / Math.max(0.01, n - hd.g1);
+      return { haaks: hd.b.nokLangs === 'y', van, tot, a0: hd.a0, a1: hd.a1 };
+    };
     // Passend maken: alles wat er staat in beeld, met ruimte eromheen.
     // Passend: om alles wat er staat, of (passend: 'huis') alleen om het huis, zodat het groot in beeld staat en de tuin eromheen wegloopt.
     const alleenHuis = o.passend === 'huis';
@@ -210,6 +234,9 @@
     };
     const pt = (x, y, zz) => P(x, y, zz).map((n) => n.toFixed(1)).join(' ');
     const vlak = (pp) => `M${pp.map((p) => pt(...p)).join('L')}Z`;
+    /** Een muur van het huis: niet hoger dan het dak op die plek. */
+    const onder = ([x, y, zz]) => [x, y, Math.min(zz, dakZ(x, y))];
+    const vlakHuis = (pp) => vlak(pp.map(onder));
     const dp = (pp) => pp.reduce((n, q) => n + diep(q[0], q[1]), 0) / pp.length;
 
     let s = `<defs><radialGradient id="hm-gloed"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="hm-glas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe6ff" stop-opacity="0.10"/><stop offset="1" stop-color="#bfe6ff" stop-opacity="0.03"/></linearGradient></defs>`;
@@ -253,9 +280,14 @@
       s += `<path d="${vlak(v.p.map(([x, y]) => [x, y, 0.02]))}" fill="${vul}" stroke="${rand}" stroke-width="0.8"/>`;
       if (v.soort === 'border') {
         // Struiken: een paar bolletjes langs de rand.
-        const [a, b] = [v.p[0], v.p[2]];
-        for (let i = 0; i < 6; i++) {
-          const f = (i + 0.5) / 6;
+        // Langs het midden van het vak, in de lengte (eerst over de diagonaal: scheef, Ricardo 19-11).
+        const [p0, p1, p2, p3] = v.p;
+        const lang = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) >= Math.hypot(p3[0] - p0[0], p3[1] - p0[1]);
+        const mid = (q, r) => [(q[0] + r[0]) / 2, (q[1] + r[1]) / 2];
+        const [a, b] = lang ? [mid(p0, p3), mid(p1, p2)] : [mid(p0, p1), mid(p3, p2)];
+        const n = Math.max(2, Math.min(8, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / 0.8)));
+        for (let i = 0; i < n; i++) {
+          const f = (i + 0.5) / n;
           const q = P(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, 0.35);
           s += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(0.45 * k).toFixed(1)}" fill="#3f7a52" stroke="#5fa577" stroke-opacity="0.5"/>`;
         }
@@ -326,7 +358,7 @@
       }
       return x2;
     };
-    const tekenBuiten = (lijst) => lijst.sort((a, b) => diep(b.q.x + b.q.b / 2, b.q.y + b.q.d / 2) - diep(a.q.x + a.q.b / 2, a.q.y + a.q.d / 2)).map((x) => (x.soort === 'auto' ? auto(x.q) : x.q.buur ? doos(x.q, ['rgb(255 255 255 / 0.05)', 'rgb(255 255 255 / 0.07)', 'rgb(255 255 255 / 0.06)', 'rgb(255 255 255 / 0.06)']) : doos(x.q, ['#8a7660', '#a08a70', '#5a4a3c', '#4a3d31']))).join('');
+    const tekenBuiten = (lijst) => lijst.sort((a, b) => diep(b.q.x + b.q.b / 2, b.q.y + b.q.d / 2) - diep(a.q.x + a.q.b / 2, a.q.y + a.q.d / 2)).map((x) => (x.soort === 'auto' ? auto(x.q) : x.q.buur ? doos(x.q, ['rgb(255 255 255 / 0.05)', 'rgb(255 255 255 / 0.07)', 'rgb(255 255 255 / 0.06)', 'rgb(255 255 255 / 0.06)']) : doos(x.q, ['#2d3d57', '#26354d', '#3b4a66', '#34425c']))).join('');
     s += tekenBuiten(achterHuis);
 
     // Het dak aan de achterkant: eerst, zodat alles ervoor er overheen valt.
@@ -382,7 +414,20 @@
       const ruimteSoort = (id) => t.soortVan(v.ruimtes[id]) ?? '';
       // De vloer per ruimte, op zijn kleur; wat aan staat of op temperatuur is gloeit zacht.
       const per = {};
-      for (const r of rechthoeken(v, BUITEN)) (per[r.id] ??= []).push(vlak([[m(r.x0), m(r.y0), z0], [m(r.x1), m(r.y0), z0], [m(r.x1), m(r.y1), z0], [m(r.x0), m(r.y1), z0]]));
+      const bereik = z0 > 0.5 ? onderDakBereik(z0) : null;
+      for (const r of rechthoeken(v, BUITEN)) {
+        let [x0, y0, x1, y1] = [m(r.x0), m(r.y0), m(r.x1), m(r.y1)];
+        // Onder het hoofdhuis: de vloer houdt op waar het dak hem raakt.
+        if (bereik) {
+          const [a0, a1] = bereik.haaks ? [y0, y1] : [x0, x1];
+          if (a1 > bereik.a0 && a0 < bereik.a1) {
+            if (bereik.haaks) [x0, x1] = [Math.max(x0, bereik.van), Math.min(x1, bereik.tot)];
+            else [y0, y1] = [Math.max(y0, bereik.van), Math.min(y1, bereik.tot)];
+          }
+        }
+        if (x1 - x0 < 0.05 || y1 - y0 < 0.05) continue;
+        (per[r.id] ??= []).push(vlak([[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0]]));
+      }
       for (const [id, paden] of Object.entries(per)) {
         const r = v.ruimtes[id];
         const naam = t.naamVan(r);
@@ -436,7 +481,7 @@
             // Een deur of raam uit de tekening.
             const [x0, y0, x1, y1] = run.as === 'x' ? [m(run.op), m(a), m(run.op), m(b)] : [m(a), m(run.op), m(b), m(run.op)];
             const d = diep((x0 + x1) / 2, (y0 + y1) / 2);
-            const muur = (h0, h1, vul, extra = '') => `<path d="${vlak([[x0, y0, h0], [x1, y1, h0], [x1, y1, h1], [x0, y0, h1]])}" fill="${vul}" ${extra}/>`;
+            const muur = (h0, h1, vul, extra = '') => `<path d="${vlakHuis([[x0, y0, h0], [x1, y1, h0], [x1, y1, h1], [x0, y0, h1]])}" fill="${vul}" ${extra}/>`;
             const hoog = run.soort === 1 ? z0 + 1.1 : top;
             const vul = run.as === 'x' ? '#26354d' : '#2d3d57';
             if (deel.soort === 'raam') {
@@ -459,7 +504,7 @@
           }
           const [x0, y0, x1, y1] = run.as === 'x' ? [m(run.op), m(a), m(run.op), m(b)] : [m(a), m(run.op), m(b), m(run.op)];
           const d = diep((x0 + x1) / 2, (y0 + y1) / 2);
-          const muur = (h0, h1, vul, extra = '') => `<path d="${vlak([[x0, y0, h0], [x1, y1, h0], [x1, y1, h1], [x0, y0, h1]])}" fill="${vul}" ${extra}/>`;
+          const muur = (h0, h1, vul, extra = '') => `<path d="${vlakHuis([[x0, y0, h0], [x1, y1, h0], [x1, y1, h1], [x0, y0, h1]])}" fill="${vul}" ${extra}/>`;
           if (run.soort === 1) {
             // Binnen: halfhoog, met een lichte bovenkant.
             const h = z0 + 1.1;
@@ -633,12 +678,24 @@
       }
       // De vloerrand van de etage erboven: een dunne plaat langs de glazen kant.
       if (erboven) {
+        // Alleen waar de vloer erboven onder het dak ligt (een lang achterdak komt lager).
+        const bereikBoven = onderDakBereik(top);
         for (const run of randen(erboven.v, isMuur).filter((r) => r.soort === 2)) {
           const mid = Math.floor((run.van + run.tot) / 2);
           const [ia] = run.as === 'x' ? [erboven.v.cel[mid * erboven.v.W + run.op - 1]] : [erboven.v.cel[(run.op - 1) * erboven.v.W + mid]];
           const n = run.as === 'x' ? [ia === BUITEN ? -1 : 1, 0] : [0, ia === BUITEN ? -1 : 1];
           if (!naarKijker(...n)) continue;
-          const [x0, y0, x1, y1] = run.as === 'x' ? [m(run.op), m(run.van), m(run.op), m(run.tot)] : [m(run.van), m(run.op), m(run.tot), m(run.op)];
+          let [x0, y0, x1, y1] = run.as === 'x' ? [m(run.op), m(run.van), m(run.op), m(run.tot)] : [m(run.van), m(run.op), m(run.tot), m(run.op)];
+          if (bereikBoven) {
+            // c: dwars op de nok. Een rand op een vaste c buiten het bereik valt weg; een rand langs c wordt korter.
+            const cVast = bereikBoven.haaks ? x0 === x1 : y0 === y1;
+            if (cVast) {
+              const c = bereikBoven.haaks ? x0 : y0;
+              if (c < bereikBoven.van - 0.05 || c > bereikBoven.tot + 0.05) continue;
+            } else if (bereikBoven.haaks) [x0, x1] = [Math.max(Math.min(x0, x1), bereikBoven.van), Math.min(Math.max(x0, x1), bereikBoven.tot)];
+            else [y0, y1] = [Math.max(Math.min(y0, y1), bereikBoven.van), Math.min(Math.max(y0, y1), bereikBoven.tot)];
+            if (Math.hypot(x1 - x0, y1 - y0) < 0.05) continue;
+          }
           erboven.rand = (erboven.rand ?? '') + `<path d="${vlak([[x0, y0, top - 0.22], [x1, y1, top - 0.22], [x1, y1, top], [x0, y0, top]])}" fill="#c9d4df" fill-opacity="0.9"/>`;
         }
       }
@@ -649,6 +706,11 @@
     for (const d of daken) {
       for (const v of d.vlakken) {
         if (!naarKijker(...v.n)) continue;
+        // Een afdak of uitbouw voor het huis is dicht: daar kijk je niet in (19 november 2026, het afdak van Ricardo).
+        if (d.b.soort !== 'hoofdhuis' && v.dak) {
+          s += `<path d="${vlak(v.p)}" fill="#3b4a66" stroke="rgb(13 26 48 / 0.6)" stroke-width="0.8" stroke-linejoin="round"/>`;
+          continue;
+        }
         s += `<path d="${vlak(v.p)}" fill="rgb(191 230 255 / 0.05)" stroke="#9fd8ff" stroke-opacity="0.4" stroke-width="1.1" stroke-dasharray="5 4" stroke-linejoin="round"/>`;
         if (d === hoofdDak && v.dak && paneelVan(v)) s += `<g opacity="0.55">${paneelVeld(d, v)}</g>`;
       }
