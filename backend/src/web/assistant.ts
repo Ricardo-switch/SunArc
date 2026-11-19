@@ -646,7 +646,8 @@ export function roomStatus(
   shadow: boolean,
 ): RoomStatus {
   const f = new Facts(lang, config.timezone);
-  const s = statusOf(config, snap, zone, lang, shadow, f);
+  // In de app (de kamer, de wand): geen ik-vorm, SunArc doet (besluit 316). De assistent zelf spreekt wel als ik.
+  const s = statusOf(config, snap, zone, lang, shadow, f, true, false);
   // Wat een apparaat van de kamer echt doet (1 november 2026): verwarmt of koelt het, dan zegt de
   // zin dat ook, want in de schaduw regelt de oude regeling en kan dat anders zijn dan SunArc zou doen.
   const echt = shadow ? zone.actuatorIds.map((id) => ({ a: config.actuators.find((x) => x.id === id), doet: snap.observedAction?.[id] })).filter((x) => x.a && (x.doet === 'heating' || x.doet === 'cooling')) : [];
@@ -668,7 +669,11 @@ function statusOf(
   f: Facts,
   // "Wat doe je nu?" noemt het net één keer voor het hele huis.
   withGrid = true,
+  // De assistent spreekt als ik; in de app staat er SunArc (19 november 2026, besluit 316).
+  ik = true,
 ): { kind: RoomKind; zin: string } {
+  const wie = ik ? 'ik' : 'SunArc';
+  const who = ik ? 'I' : 'SunArc';
   const w = WORDS[lang];
   const e = snap.explanation;
   const zn = zoneName(zone, lang);
@@ -682,8 +687,8 @@ function statusOf(
       kind: 'bad',
       zin:
         lang === 'nl'
-          ? `Ik heb alles veilig gezet, want ${what} is niet betrouwbaar.`
-          : `I have put everything in a safe state, because ${what} is unreliable.`,
+          ? ik ? `Ik heb alles veilig gezet, want ${what} is niet betrouwbaar.` : `Alles staat veilig, want ${what} is niet betrouwbaar.`
+          : ik ? `I have put everything in a safe state, because ${what} is unreliable.` : `Everything is in a safe state, because ${what} is unreliable.`,
     };
   }
 
@@ -694,13 +699,13 @@ function statusOf(
     if (taken.untilMs == null) {
       return {
         kind: 'wait',
-        zin: lang === 'nl' ? `Je hebt ${dn} zelf in handen. Ik blijf eraf tot je hem teruggeeft.` : `You have ${dn} in your own hands. I will leave it until you hand it back.`,
+        zin: lang === 'nl' ? `Je hebt ${dn} zelf in handen. ${ik ? 'Ik blijf' : 'SunArc blijft'} eraf tot je hem teruggeeft.` : `You have ${dn} in your own hands. ${ik ? 'I will leave' : 'SunArc leaves'} it until you hand it back.`,
       };
     }
     const t = f.time(`ingreep.${taken.actuatorId}.tot`, taken.untilMs);
     return {
       kind: 'wait',
-      zin: lang === 'nl' ? `Je hebt ${dn} zelf in handen, tot ${t}. Tot dan blijf ik eraf.` : `You have ${dn} in your own hands until ${t}. I will leave it until then.`,
+      zin: lang === 'nl' ? `Je hebt ${dn} zelf in handen, tot ${t}. Tot dan ${ik ? 'blijf ik' : 'blijft SunArc'} eraf.` : `You have ${dn} in your own hands until ${t}. ${ik ? 'I will leave' : 'SunArc leaves'} it until then.`,
     };
   }
 
@@ -718,10 +723,10 @@ function statusOf(
     const head =
       lang === 'nl'
         ? shadow
-          ? `Ik zou ${zn} nu laten ${w.infinitive[a]}${onSun ? ' op zon' : ''}`
+          ? `${ik ? 'Ik' : 'SunArc'} zou ${zn} nu laten ${w.infinitive[a]}${onSun ? ' op zon' : ''}`
           : `${cap(zn)} ${w.doing[a]}${onSun ? ' op zon' : ''}`
         : shadow
-          ? `I would ${w.infinitive[a]} ${zn} now${onSun ? ' on solar power' : ''}`
+          ? `${who} would ${w.infinitive[a]} ${zn} now${onSun ? ' on solar power' : ''}`
           : `${cap(zn)} ${w.doing[a]}${onSun ? ' on solar power' : ''}`;
     return {
       kind: a,
@@ -737,15 +742,15 @@ function statusOf(
       kind: 'wait',
       zin:
         lang === 'nl'
-          ? `${cap(dn)} ${shadow ? 'zou ik even stilzetten' : 'staat even stil'}, omdat ${w.reason[parked.reason]}. Komt er genoeg zon terug, dan gaat hij verder.`
-          : `${shadow ? `I would pause ${dn}` : `${cap(dn)} is paused`}, because ${w.reason[parked.reason]}. If enough sun comes back, it carries on.`,
+          ? `${cap(dn)} ${shadow ? `zou ${wie} even stilzetten` : 'staat even stil'}, omdat ${w.reason[parked.reason]}. Komt er genoeg zon terug, dan gaat hij verder.`
+          : `${shadow ? `${who} would pause ${dn}` : `${cap(dn)} is paused`}, because ${w.reason[parked.reason]}. If enough sun comes back, it carries on.`,
     };
   }
 
   if (pz == null || pz.temperatureC == null) {
     return {
       kind: 'bad',
-      zin: lang === 'nl' ? `Ik meet ${plek} nu geen temperatuur.` : `I have no temperature for ${zn} right now.`,
+      zin: lang === 'nl' ? (ik ? `Ik meet ${plek} nu geen temperatuur.` : `${cap(plek)} is nu geen temperatuur gemeten.`) : ik ? `I have no temperature for ${zn} right now.` : `There is no temperature for ${zn} right now.`,
     };
   }
 
@@ -777,7 +782,7 @@ function statusOf(
   if (heatC == null && coolC == null) {
     return {
       kind: 'idle',
-      zin: lang === 'nl' ? `${Plek} is het ${t}. Er is nu geen doel, dus ik laat het zo.` : `It is ${t} ${plek}. There is no target right now, so I leave it.`,
+      zin: lang === 'nl' ? `${Plek} is het ${t}. Er is nu geen doel${ik ? ', dus ik laat het zo' : ''}.` : `It is ${t} ${plek}. There is no target right now${ik ? ', so I leave it' : ''}.`,
     };
   }
   const nl = lang === 'nl';
@@ -791,15 +796,15 @@ function statusOf(
     const c = coolC == null ? null : f.temp(`zone.${zone.id}.doelKoelen`, coolC);
     return nl
       ? h && c
-        ? shadow ? `Ik zou pas ingrijpen onder ${h} of boven ${c}.` : `Pas onder ${h} of boven ${c} grijp ik in.`
+        ? shadow ? `${ik ? 'Ik' : 'SunArc'} zou pas ingrijpen onder ${h} of boven ${c}.` : `Pas onder ${h} of boven ${c} ${ik ? 'grijp ik' : 'grijpt SunArc'} in.`
         : h
-          ? shadow ? `Pas onder ${h} zou ik gaan verwarmen.` : `Pas onder ${h} ga ik verwarmen.`
-          : shadow ? `Pas boven ${c} zou ik gaan koelen.` : `Pas boven ${c} ga ik koelen.`
+          ? shadow ? `Pas onder ${h} zou ${wie} gaan verwarmen.` : `Pas onder ${h} ${ik ? 'ga ik' : 'gaat SunArc'} verwarmen.`
+          : shadow ? `Pas boven ${c} zou ${wie} gaan koelen.` : `Pas boven ${c} ${ik ? 'ga ik' : 'gaat SunArc'} koelen.`
       : h && c
-        ? `I ${shadow ? 'would only step in' : 'only step in'} below ${h} or above ${c}.`
+        ? `${who} ${shadow ? 'would only step in' : ik ? 'only step in' : 'only steps in'} below ${h} or above ${c}.`
         : h
-          ? `Only below ${h} ${shadow ? 'would I' : 'do I'} heat.`
-          : `Only above ${c} ${shadow ? 'would I' : 'do I'} cool.`;
+          ? `Only below ${h} ${shadow ? `would ${who}` : ik ? 'do I' : 'does SunArc'} heat.`
+          : `Only above ${c} ${shadow ? `would ${who}` : ik ? 'do I' : 'does SunArc'} cool.`;
   };
   // Op zon zou het nog verder mogen (besluit 133), maar er is te weinig over (besluit 141).
   const opZon = snap.rejected.find((r) => r.intent.zoneId === zone.id && (r.blockedBy === 'insufficient_power_budget' || r.blockedBy === 'start_threshold_not_met') && r.intent.budgetW > 0 && (r.intent.action === 'cool' || r.intent.action === 'heat'));
@@ -811,8 +816,8 @@ function statusOf(
     const over = Math.max(0, e.budget?.surplusW ?? 0);
     const rest = over >= 50 ? f.power('zon.over', over) : null;
     zon = nl
-      ? `Op zon zou ik nog ${w.infinitive[a]}${doel ? ` tot ${doel}` : ''}, maar dat vraagt ${vraagt} en er is ${rest ?? 'niets'} over.`
-      : `On solar I would ${w.infinitive[a]}${doel ? ` to ${doel}` : ''}, but that needs ${vraagt} and ${rest ?? 'nothing'} is spare.`;
+      ? `Op zon zou ${wie} nog ${w.infinitive[a]}${doel ? ` tot ${doel}` : ''}, maar dat vraagt ${vraagt} en er is ${rest ?? 'niets'} over.`
+      : `On solar ${who} would ${w.infinitive[a]}${doel ? ` to ${doel}` : ''}, but that needs ${vraagt} and ${rest ?? 'nothing'} is spare.`;
   }
   return { kind: 'ok', zin: [head, zon || wanneerZin()].join(' ') };
 }

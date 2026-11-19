@@ -208,6 +208,9 @@
     if (b.langerMin >= 1) regels.push([t('hand.hulp.langer', { duur: hulpDuur(b.langerMin), kamer: h.kamer ?? a.kamer ?? '' }), false]);
     if (b.kort.length) regels.push([t('hand.hulp.kort', { n: b.kort.length }), true]);
     if (h.bijC > 0) regels.push([t('hand.hulp.hoger', { graden: nl(h.bijC, h.bijC % 1 ? 1 : 0) }), false]);
+    // Op de wand één regel (19 november 2026): het hele blok duwde de knoppen 140 px uit het blad, en de wand schuift nooit.
+    // De dag als balk staat bij Helpen bij de cv; op de telefoon schuift het blad, en staat hij hier ook.
+    if (!telStand()) return `<div class="hand-koppel"><span>${esc(t('hand.hulp.aan', { kamer: h.kamer ?? a.kamer ?? '' }))} · ${esc(regels[0][0])}</span><a href="comfort.html#helpen">${esc(t('hand.hulp.naar'))}</a></div>`;
     return `<div class="hand-hulp">
         <div class="hand-hulp-kop"><b>${esc(t('hand.hulp.vandaag'))}</b><span>${esc(t('hand.hulp.tot', { klok: klokVan(Math.min(nu, tot)) }))}</span></div>
         <div class="hand-hulp-banen" role="img" aria-label="${esc(t('hand.hulp.label'))}">

@@ -149,8 +149,10 @@ function suggesties() {
   const zonOp = zon?.zon?.boven;
   // Naast de verwachting van vanochtend, net als op Thuis en Vandaag (opgelost 15 oktober).
   const vooraf = z?.verwachtVoorafKwh ?? null;
-  if (z) uit.push({ label: taal.t(zonOp ? 'assistent.zonNog' : 'assistent.zonWas'), hint: vooraf != null ? taal.t('thuis.vandaag.verwacht', { kwh: nl(z.opgewektKwh), verwacht: nl(vooraf) }) : `${nl(z.opgewektKwh)} kWh`, ik: 'grafiek', v: { soort: 'zon' } });
-  else uit.push({ label: taal.t('assistent.vraag.zon'), hint: '', ik: 'grafiek', v: { soort: 'zon' } });
+  // Een huis zonder panelen (19 november 2026): geen vraag over zon.
+  const metZon = app.huisSoort()?.zon !== false;
+  if (metZon && z) uit.push({ label: taal.t(zonOp ? 'assistent.zonNog' : 'assistent.zonWas'), hint: vooraf != null ? taal.t('thuis.vandaag.verwacht', { kwh: nl(z.opgewektKwh), verwacht: nl(vooraf) }) : `${nl(z.opgewektKwh)} kWh`, ik: 'grafiek', v: { soort: 'zon' } });
+  else if (metZon) uit.push({ label: taal.t('assistent.vraag.zon'), hint: '', ik: 'grafiek', v: { soort: 'zon' } });
   uit.push({ label: taal.t('assistent.vraag.vandaag'), hint: taal.t('assistent.dagTotNu'), ik: 'klok', v: { soort: 'vandaag' } });
   // 's Avonds is morgen interessanter dan straks (besluit 142).
   const m = weer?.dagen?.[0];

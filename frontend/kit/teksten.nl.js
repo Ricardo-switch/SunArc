@@ -980,6 +980,8 @@
   'apparaten.toevoegenWat': 'Airco, thermostaat of wasmachine',
   'apparaten.toevoegenWaar': 'Via Indeling of Regeling, bij Instellingen.',
   'apparaten.geenZon': 'Geen zon',
+  'apparaten.nuVanNet': 'Nu {kw} kW van het net',
+  'apparaten.geenPanelen': 'Geen zonnepanelen: wat het huis gebruikt, komt van het net',
   'apparaten.leverenNiets': 'De panelen leveren nu niets',
   'apparaten.geenZonOver': 'Geen zon over',
   'apparaten.naarHuis': '{kw} kW zon gaat naar het huis',

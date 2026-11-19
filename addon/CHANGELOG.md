@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.201.0
+## 0.201.1
 
-*19 november 2026 · 0.179.0 – 0.201.0*
+*19 november 2026 · 0.179.0 – 0.201.1*
 
 **Nieuw**
 
@@ -67,6 +67,9 @@
 
 **Beter**
 
+- De zin bij een kamer zegt nu wat SunArc doet of zou doen, niet meer in de ik-vorm
+- Een huis zonder zonnepanelen krijgt bij Apparaten, Vandaag, Instellingen en de assistent geen tekst meer over zon
+- Op de wand past het blad van een airco op verwarmen weer: Helpen bij de cv staat daar op één regel
 - Wat los in de tuin staat, staat niet meer als grijs vak op de begane grond
 - Je huis › Buiten: het tuinhuis en het schuurtje zijn twee losse knoppen, zodat je ze allebei kunt hebben
 - Waar staat het? toont ook de delen van een ruimte buiten, zoals het terras en de border in de tuin, onder hun eigen kopje
@@ -104,6 +107,7 @@
 
 **Opgelost**
 
+- Op Thuis opende een tik op de zolder de panelen: het dak lag erboven
 - Een apparaat zonder kamer kon je niet verbergen; nu staat Verbergen ook bij Waar staat het?
 - Een verborgen apparaat dat je terughaalde, stond daarna zonder kamer; nu komt het terug waar het stond
 - Bij Apparaat toevoegen stonden de knoppen van Wat is er nieuw onder elkaar, met Oké als een wit vak
@@ -193,6 +197,9 @@
 
 **Improved**
 
+- The sentence for a room now says what SunArc does or would do, no longer in the first person
+- A house without solar panels no longer gets text about sun in Devices, Today, Settings and the assistant
+- On the wall screen the sheet of an air conditioner on heating fits again: Helping the boiler is one line there
 - What stands loose in the garden no longer shows as a grey box on the ground floor
 - Your house › Outside: the garden house and the shed are two separate buttons, so you can have both
 - Where is it? also shows the parts of a space outside, like the terrace and the border in the garden, under their own heading
@@ -230,6 +237,7 @@
 
 **Fixed**
 
+- On Home, tapping the attic opened the panels: the roof lay on top of it
 - A device without a room could not be hidden; Hide is now also under Where is it?
 - A hidden device you brought back had no room afterwards; now it returns where it was
 - In Add a device, the buttons of What is new were stacked, with OK as a white box

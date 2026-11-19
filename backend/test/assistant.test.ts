@@ -627,7 +627,9 @@ describe('de stand per kamer voor de kaart (besluit 94)', () => {
     const r = room(view({ accepted: [coolOnSun], observed: uit }), 'zolder');
     expect([r.soort, r.kort, r.actuatorId, r.klopt]).toEqual(['cool', 'Zou koelen op zon', 'ac-zolder', false]);
     expect(residentRooms(config, view({ accepted: [coolOnSun] }), 'nl', false).find((x) => x.zoneId === 'zolder')!.kort).toBe('Koelt op zon');
-    expect(r.zin).toContain('Ik zou de zolder nu laten koelen op zon');
+    // In de app geen ik-vorm (19 november 2026, besluit 316): SunArc doet.
+    expect(r.zin).toContain('SunArc zou de zolder nu laten koelen op zon');
+    expect(r.zin).not.toMatch(/(ik|Ik)/);
   });
 
   it('zegt "koelt" als het apparaat al doet wat het besluit wil, ook in de schaduw (besluit 188)', () => {

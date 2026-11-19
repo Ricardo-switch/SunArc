@@ -477,10 +477,12 @@
     const tikken = [];
     /** Wat boven de kamers ligt om op te tikken: de panelen (besluit 254, stap 5). */
     const tikkenBoven = [];
-    const tik = (kamer, pts, extra = '') => {
+    /** De kamers onder het dak (de zolder): boven de panelen, anders vangt het dak de tik (19 november 2026). */
+    const tikkenDak = [];
+    const tik = (kamer, pts, extra = '', onderDak = false) => {
       if (!opts.tik) return;
       const naam = esc(kamer.naam ?? '');
-      tikken.push(poly(pts, `class="sc-tik" data-kamer="${esc(kamer.id ?? kamer.naam)}"${extra} fill="transparent" role="link" tabindex="0" aria-label="${naam}"`));
+      (onderDak ? tikkenDak : tikken).push(poly(pts, `class="sc-tik" data-kamer="${esc(kamer.id ?? kamer.naam)}"${extra} fill="transparent" role="link" tabindex="0" aria-label="${naam}"`));
     };
     // Waar apparaten staan, voor de labels.
     const plek = {};
@@ -936,7 +938,7 @@
           aircoDak = null;
           const xm = (x0 + x1) / 2;
           kamers.push({ id: kamer.id, naam: kamer.naam, xm, z0: zv, z1: zt + R });
-          tik(kamer, [[x0, D, zv], [x1, D, zv], [x1, nok, zt + R], [x0, nok, zt + R]]);
+          tik(kamer, [[x0, D, zv], [x1, D, zv], [x1, nok, zt + R], [x0, nok, zt + R]], '', true);
           kamerLabel(kamer, xm, zv + (zt + R - zv) * 0.4, true, (x1 - x0) * 0.8, R * 0.7);
         }
         x0 = x1;
@@ -982,7 +984,7 @@
         aircoDak = null;
         if (x0 > 0) huis.push(line([[x0, D, zv], [x0, D, dakZ(x0)]], `stroke="#C9D6E2" stroke-opacity="0.35" stroke-width="1.6"`));
         kamers.push({ id: kamer.id, naam: kamer.naam, xm, z0: zv, z1: zt + R });
-        tik(kamer, stukGevel(x0, x1).map(([x, , z]) => [x, D, z]));
+        tik(kamer, stukGevel(x0, x1).map(([x, , z]) => [x, D, z]), '', true);
         // Staat er een droger, dan de naam ernaast in plaats van eroverheen.
         let xl = xm;
         let laag = false;
@@ -3330,6 +3332,7 @@
       <g>${labels.join('')}</g>
       ${tikken.length ? `<g>${tikken.join('')}</g>` : ''}
       ${tikkenBoven.length ? `<g>${tikkenBoven.join('')}</g>` : ''}
+      ${tikkenDak.length ? `<g>${tikkenDak.join('')}</g>` : ''}
       ${opts.controle ? `<desc class="sc-controle">${esc(JSON.stringify(controle))}</desc>` : ''}
     </svg>`;
   }

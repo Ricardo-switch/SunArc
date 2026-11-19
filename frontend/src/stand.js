@@ -70,7 +70,8 @@
     if (a && a.antwoorden?.zekering == null && a.configuratie?.zekering == null) {
       uit.push({ id: 'zekering', groep: 'energie', wat: t('stand.zekering'), waarom: t('stand.zekeringZin'), knop: t('stand.kiezen'), href: 'energie.html#aansluiting' });
     }
-    if (a && a.antwoorden?.panelen?.ligging == null && !(a.configuratie?.panelen ?? []).length && !['bevestigd', 'configuratie'].includes(a.ligging?.stand)) {
+    // Zonder zonnemeting heeft het huis geen panelen (besluit 196): dan niet vragen waar ze liggen (19 november 2026).
+    if (a && d.site?.zonMeter !== false && a.antwoorden?.panelen?.ligging == null && !(a.configuratie?.panelen ?? []).length && !['bevestigd', 'configuratie'].includes(a.ligging?.stand)) {
       uit.push({ id: 'panelen', groep: 'energie', wat: t('stand.panelen'), waarom: t('stand.panelenZin'), knop: t('stand.kiezen'), href: 'energie.html#panelen' });
     }
     const zonder = d.huis?.zonderRuimte?.length ?? 0;

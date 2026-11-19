@@ -475,7 +475,11 @@ function tekenZonchip() {
   const overKw = Math.max(0, (state?.explanation?.budget?.surplusW ?? 0) / 1000);
   let kop;
   let onder;
-  if (zonKw < 0.05) {
+  // Een huis zonder panelen (19 november 2026): geen zon, maar wat het huis nu gebruikt.
+  if (app.huisSoort()?.zon === false) {
+    kop = t('apparaten.nuVanNet', { kw: nl(Math.max(0, s.netKw ?? 0)) });
+    onder = t('apparaten.geenPanelen');
+  } else if (zonKw < 0.05) {
     kop = t('apparaten.geenZon');
     onder = t('apparaten.leverenNiets');
   } else if (overKw < 0.05) {

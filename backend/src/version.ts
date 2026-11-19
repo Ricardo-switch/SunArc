@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.201.0';
+export const VERSIE = '0.201.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,28 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.201.1',
+    datum: '2026-11-19',
+    beter: [
+      'De zin bij een kamer zegt nu wat SunArc doet of zou doen, niet meer in de ik-vorm',
+      'Een huis zonder zonnepanelen krijgt bij Apparaten, Vandaag, Instellingen en de assistent geen tekst meer over zon',
+      'Op de wand past het blad van een airco op verwarmen weer: Helpen bij de cv staat daar op één regel',
+    ],
+    opgelost: [
+      'Op Thuis opende een tik op de zolder de panelen: het dak lag erboven',
+    ],
+    en: {
+      beter: [
+        'The sentence for a room now says what SunArc does or would do, no longer in the first person',
+        'A house without solar panels no longer gets text about sun in Devices, Today, Settings and the assistant',
+        'On the wall screen the sheet of an air conditioner on heating fits again: Helping the boiler is one line there',
+      ],
+      opgelost: [
+        'On Home, tapping the attic opened the panels: the roof lay on top of it',
+      ],
+    },
+  },
   {
     versie: '0.201.0',
     datum: '2026-11-19',

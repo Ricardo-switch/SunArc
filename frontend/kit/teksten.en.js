@@ -975,6 +975,8 @@
   'apparaten.toevoegenWat': 'Air conditioner, thermostat or washing machine',
   'apparaten.toevoegenWaar': 'Through Layout or Control, in Settings.',
   'apparaten.geenZon': 'No sun',
+  'apparaten.nuVanNet': 'Now {kw} kW from the grid',
+  'apparaten.geenPanelen': 'No solar panels: what the house uses comes from the grid',
   'apparaten.leverenNiets': 'The panels are delivering nothing now',
   'apparaten.geenZonOver': 'No sun to spare',
   'apparaten.naarHuis': '{kw} kW of sun goes to the house',

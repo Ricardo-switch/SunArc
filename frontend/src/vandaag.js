@@ -394,6 +394,8 @@ function tekenTijdlijn(r, verwacht, lijst) {
     : '';
   const nuStreep = nuX == null ? '' : `<line x1="${nuX.toFixed(1)}" y1="26" x2="${nuX.toFixed(1)}" y2="${hoog - 30}" stroke="#EEF3F7" stroke-width="1.5"/><rect x="${(nuX - 22).toFixed(1)}" y="${hoog - 30}" width="44" height="20" rx="10" fill="#EEF3F7"/><text x="${nuX.toFixed(1)}" y="${hoog - 16}" text-anchor="middle" class="nu">${esc(t('thuis.nuKlein'))}</text>`;
 
+  // Een huis zonder panelen (19 november 2026): geen zon in de tijdlijn, en ook geen getallen erover.
+  const metZon = app.huisSoort()?.zon !== false;
   box.innerHTML = `<svg viewBox="0 0 ${W} ${hoog}" role="img" aria-label="${esc(t('vandaag.tijdlijn'))}">
     <defs>
       <linearGradient id="zv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7B548" stop-opacity="0.5"/><stop offset="1" stop-color="#F7B548" stop-opacity="0.02"/></linearGradient>
@@ -402,12 +404,12 @@ function tekenTijdlijn(r, verwacht, lijst) {
       <style>.rij{font:600 13px Figtree,sans-serif;fill:var(--tekst)}.sub{font:11.5px Figtree,sans-serif;fill:var(--gedempt)}.plan{font:600 12px Figtree,sans-serif;fill:var(--violet-t)}.nu{font:700 12px Figtree,sans-serif;fill:#0b1424}.getal{font:600 18px 'Bricolage Grotesque',Figtree,sans-serif;fill:var(--tekst)}.af{font:700 12.5px Figtree,sans-serif;fill:#6EE7B7}.af.min{fill:var(--zacht)}</style>
     </defs>
     ${planVlak}
-    ${getallenSvg}
+    ${metZon ? getallenSvg : ''}
     <g stroke="#ffffff" stroke-opacity="0.05">${rasters}</g>
-    <text x="0" y="66" class="rij">${esc(t('vandaag.zon'))}</text><text x="0" y="84" class="sub">${esc(t('vandaag.jePanelen'))}</text>
-    ${echtVlak ? `<path d="${echtVlak}" fill="url(#zv)"/><path d="${echtPad}" fill="none" stroke="#F7B548" stroke-width="2.2"/>` : ''}
-    ${verwachtPad ? `<path d="${verwachtPad}" fill="none" stroke="#F7B548" stroke-width="2" stroke-dasharray="5 5" opacity="0.85"/>` : ''}
-    ${gisterPad ? `<path d="${gisterPad}" fill="none" stroke="#EEF3F7" stroke-width="1.6" stroke-dasharray="4 5" opacity="0.6"/>` : ''}
+    ${metZon ? `<text x="0" y="66" class="rij">${esc(t('vandaag.zon'))}</text><text x="0" y="84" class="sub">${esc(t('vandaag.jePanelen'))}</text>` : ''}
+    ${metZon && echtVlak ? `<path d="${echtVlak}" fill="url(#zv)"/><path d="${echtPad}" fill="none" stroke="#F7B548" stroke-width="2.2"/>` : ''}
+    ${metZon && verwachtPad ? `<path d="${verwachtPad}" fill="none" stroke="#F7B548" stroke-width="2" stroke-dasharray="5 5" opacity="0.85"/>` : ''}
+    ${metZon && gisterPad ? `<path d="${gisterPad}" fill="none" stroke="#EEF3F7" stroke-width="1.6" stroke-dasharray="4 5" opacity="0.6"/>` : ''}
     ${zoneSvg}
     ${baanSvg}
     ${nuStreep}
@@ -444,7 +446,12 @@ function tekenKaarten(r, verwacht, lijst) {
   const m = weer?.dagen?.[0];
   // Wat er morgen van je dak komt, in één zin; voor de avond en voor Morgen.
   const morgenZin = m?.verwachtKwh != null ? t(m.tekst ? 'vandaag.morgenVerwachtTekst' : 'vandaag.morgenVerwacht', { kwh: nl(m.verwachtKwh), tekst: m.tekst?.toLowerCase() }) : '';
-  if (dag === 'vandaag') {
+  if (dag === 'vandaag' && app.huisSoort()?.zon === false) {
+    // Zonder panelen (19 november 2026): het weer van morgen, zonder wat het dak levert.
+    rechts.innerHTML = m
+      ? `<div class="bovenrij"><span class="wanneer zon-t">${esc(t('vandaag.morgenWeer'))}</span><span class="mini">${esc(weer?.bron ?? 'Buienradar')}</span></div><h2 class="kop-2" style="margin-top: 8px">${esc(m.tekst ?? t('thuis.weer.kop'))}${m.maxC != null ? `, ${nl(m.maxC, 0)}°` : ''}</h2><p class="klein" style="margin: 8px 0 0">${esc([m.zonkansPct != null ? t('vandaag.kansZonPct', { pct: m.zonkansPct }) : '', m.regenkansPct != null ? t('vandaag.kansRegenPct', { pct: m.regenkansPct }) : ''].filter(Boolean).join(', '))}</p>`
+      : `<p class="klein">${esc(t('vandaag.geenMorgen'))}</p>`;
+  } else if (dag === 'vandaag') {
     const v = verwacht[0];
     const rest = weer?.vandaag?.verwachtKwh != null && weer?.vandaag?.opgewektKwh != null ? Math.max(0, weer.vandaag.verwachtKwh - weer.vandaag.opgewektKwh) : null;
     const onder = zon?.zon?.boven === false;
@@ -470,7 +477,9 @@ function tekenKaarten(r, verwacht, lijst) {
 /* --------------------------------------------------------- de telefoon */
 
 function tekenTelefoon(r, verwacht, lijst) {
-  const kaart = document.querySelector('[data-zonkaart]');
+  const kaart = /** @type {HTMLElement | null} */ (document.querySelector('[data-zonkaart]'));
+  // Een huis zonder panelen (19 november 2026): geen kaart over zon.
+  if (kaart) kaart.hidden = app.huisSoort()?.zon === false;
   const t0 = r?.vanMs ?? Date.now();
   const tA = t0 + 6 * 3_600_000;
   const tB = t0 + 22 * 3_600_000;
