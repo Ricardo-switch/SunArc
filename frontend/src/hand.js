@@ -341,7 +341,7 @@
     const zonZin = s.zon?.schakelt
       ? [t('hand.stekkerOpZon'), s.minimum ? t('hand.stekkerMinimum', { duur: duurVan(s.minimum.minuten), klok: s.minimum.klok, gehad: duurVan(s.gehadMin ?? 0) }) : ''].filter(Boolean).join(' ')
       : '';
-    const zon = zonZin ? `<div class="hand-hoe">${esc(zonZin)}</div>` : '';
+    const zon = zonZin ? `<div class="hand-hoe">${esc(zonZin)}${global.hulp?.vraag('stekker-op-zon') ?? ''}</div>` : '';
     // Waar staat hij? open (besluit 318): dan alleen de kamers.
     const kiezen = global.instellen?.kiezen(s.id, s.naam);
     if (kiezen) return kiezen;

@@ -1892,7 +1892,37 @@
       s.onerror = fout;
       document.head.append(s);
     });
-    meldenLaden.then(() => (k.dataset.meldnietgoed ? global.melden.vervolg(k.dataset.meldnietgoed) : global.melden.open({ apparaat: k.dataset.apparaat ?? null, naam: k.dataset.naam ?? null, wat: k.dataset.meldWat ?? '' })), () => (meldenLaden = null));
+    meldenLaden.then(() => (k.dataset.meldnietgoed ? global.melden.vervolg(k.dataset.meldnietgoed) : global.melden.open({ apparaat: k.dataset.apparaat ?? null, naam: k.dataset.naam ?? null, wat: k.dataset.meldWat ?? '', soort: k.dataset.meldSoort ?? null, hulp: k.dataset.hulpId ?? null })), () => (meldenLaden = null));
+  }, true);
+
+  /*
+   * Hulp op de plek (besluit 325): op Klimaat, Je huis, Apparaten en Energie
+   * staat hulp.js in de pagina; elders laadt het pas bij de eerste tik op een
+   * vraagteken of de handleiding, zonder stempel zoals melden.js. Melden en de
+   * assistent halen het ook zo, voor de woordzoeker.
+   */
+  let hulpLaden = null;
+  function laadHulp() {
+    if (global.hulp) return Promise.resolve(global.hulp);
+    hulpLaden ??= new Promise((ok, fout) => {
+      const s = document.createElement('script');
+      s.src = 'hulp.js';
+      s.onload = () => ok(global.hulp);
+      s.onerror = () => {
+        hulpLaden = null;
+        fout(new Error('hulp.js'));
+      };
+      document.head.append(s);
+    });
+    return hulpLaden;
+  }
+  document.addEventListener('click', (e) => {
+    if (global.hulp) return;
+    const k = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('[data-hulp], [data-hulplijst]'));
+    if (!k) return;
+    e.preventDefault();
+    e.stopPropagation();
+    void laadHulp().then((h) => (k.dataset.hulp ? h.open(k.dataset.hulp, k) : h.lijst(k.dataset.hulplijst || null, k.dataset.hulpplek || null)), () => {});
   }, true);
 
   function meldingenStart() {
@@ -2122,5 +2152,5 @@
     return Promise.resolve(false);
   }
 
-  global.app = { laadBronnen, kanApparaatSpreken, zegMetApparaat, huisSoort, persoonlijk, $$, metLidwoord, nl, zet, esc, bijnaOp, klokVan, wanneer, LINKS, telStand, schaal, haal, deur, tijdVanDeDag, seizoenNu, lucht, luchtVan, klok, live, start, verwachting, gebundeld, zicht, aanbellen, offline, online, inHA, volledigGekozen, zetVolledig, naarHA, zetWeergave, weergave: () => weergaveNu, zetThema, kleurVan, tekstKleur, houToegang, updateKlaar, bijwerkVenster, bijVerandering, kanInstalleren, geinstalleerd, installeer, naarHAScherm, terugknop, onthoudInrichten, vergeetInrichten, segmenten, koffieKnop, jouwMeldingen };
+  global.app = { laadBronnen, kanApparaatSpreken, zegMetApparaat, huisSoort, persoonlijk, $$, metLidwoord, nl, zet, esc, bijnaOp, klokVan, wanneer, LINKS, telStand, schaal, haal, deur, tijdVanDeDag, seizoenNu, lucht, luchtVan, klok, live, start, verwachting, gebundeld, zicht, aanbellen, offline, online, inHA, volledigGekozen, zetVolledig, naarHA, zetWeergave, weergave: () => weergaveNu, zetThema, kleurVan, tekstKleur, houToegang, updateKlaar, bijwerkVenster, bijVerandering, kanInstalleren, geinstalleerd, installeer, naarHAScherm, terugknop, onthoudInrichten, vergeetInrichten, segmenten, koffieKnop, jouwMeldingen, laadHulp };
 })(window);

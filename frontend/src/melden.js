@@ -18,7 +18,8 @@
   const OPSLAG = 'sc-meldingen';
   /** Langer dan dit wordt een adres te lang voor GitHub; dan gaan de gegevens via het klembord. */
   const MAX_URL = 7500;
-  const SOORTEN = ['fout', 'apparaat', 'idee'];
+  // Ik snap iets niet (besluit 325): met het stukje handleiding dat past, en de pagina en je huis erbij.
+  const SOORTEN = ['fout', 'snap', 'apparaat', 'idee'];
   /** Zoveel regels van het logboek gaan hooguit mee: de nieuwste. */
   const LOG_REGELS = 40;
 
@@ -53,9 +54,41 @@
   /** Of melden op pauze staat (14 november 2026); null zolang de dienst het nog niet zei. */
   let pauze = null;
 
-  async function open({ apparaat = null, naam = null, wat = '' } = {}) {
-    s = { apparaat, naam, soort: apparaat ? 'apparaat' : 'fout', wat: wat ?? '', mee: !!apparaat, gegevens: null, log: [], metLog: true, code: nieuweCode(), klaar: false, klembord: false };
+  async function open({ apparaat = null, naam = null, wat = '', soort = null, hulp = null } = {}) {
+    s = { apparaat, naam, soort: SOORTEN.includes(soort) ? soort : apparaat ? 'apparaat' : 'fout', wat: wat ?? '', mee: !!apparaat, gegevens: null, log: [], metLog: true, code: nieuweCode(), klaar: false, klembord: false, hulp, huisMee: true, huis: null, past: null };
+    // De woordzoeker staat in hulp.js; die laadt erbij, net als het huis voor wat er meegaat.
+    void global.app.laadHulp?.().then(() => zetPast(), () => {});
+    if (s.soort === 'snap') void laadHuis().then(() => s?.soort === 'snap' && s.huisMee && teken());
     await laadErbij();
+  }
+
+  /** Het huis zonder namen (besluit 325): per etage de soort kamers en de soort apparaten erin. */
+  async function laadHuis() {
+    if (!s || s.huis) return;
+    const h = await haal('api/huis').catch(() => null);
+    if (!s || !h) return;
+    s.huis = (h.etages ?? []).map((e, i) => ({ etage: i, kamers: (e.ruimtes ?? []).map((r) => ({ soort: r.soort ?? r.buiten?.soort ?? null, apparaten: (r.apparaten ?? []).map((a) => a.soort) })) }));
+  }
+
+  /** Wat er bij Ik snap iets niet meegaat: de pagina, het stukje dat er stond, en het huis. */
+  const pagina = () => `${global.location.pathname.split('/').pop() || 'thuis.html'}${global.location.hash}`;
+  function snapGegevens() {
+    return { pagina: pagina(), stukje: s.past?.id ?? s.hulp ?? null, ...(s.huis ? { huis: s.huis } : {}) };
+  }
+
+  /** Het stukje dat past bij wat je typt; zonder tekst dat van het vraagteken. */
+  function zetPast() {
+    if (!s || s.soort !== 'snap' || !global.hulp) return;
+    const wat = document.querySelector('[data-meldwat]')?.value ?? s.wat;
+    s.past = (wat.trim() ? global.hulp.zoek(wat, 1)[0] : null) ?? (s.hulp ? global.hulp.stukje(s.hulp) : null);
+    const vak = document.querySelector('[data-meldpast]');
+    if (vak) vak.innerHTML = pastHtml();
+  }
+  function pastHtml() {
+    const p = s?.past;
+    if (!p || s.weg?.has(p.id)) return '';
+    return `<div class="meldpast" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 16px; background: rgba(111, 211, 255, 0.07); border: 1px solid rgba(111, 211, 255, 0.22)"><span class="mini" style="color: var(--ijs-t); font-weight: 700">${esc(t('melden.pastKop'))}</span><b>${esc(p.kop)}</b><p class="klein" style="margin: 0">${esc(p.tekst)}</p>
+      <div style="display: flex; gap: 8px; margin-top: 2px"><button type="button" class="knop" style="min-height: 36px; padding: 0 14px; font-size: 13px" data-meldhielp>${esc(t('melden.hielp'))}</button><button type="button" class="knop" style="min-height: 36px; padding: 0 14px; font-size: 13px" data-meldnietdit="${esc(p.id)}">${esc(t('melden.nietDit'))}</button></div></div>`;
   }
 
   /**
@@ -100,6 +133,9 @@
     const meeVak = s.apparaat ? `<label class="klein" style="display: flex; gap: 8px; align-items: center"><input type="checkbox" data-meldmee ${s.mee ? 'checked' : ''}>${esc(t('melden.mee', { naam: s.naam ?? '' }))}</label>
           ${s.mee && s.gegevens ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto; margin: 6px 0 0">${esc(JSON.stringify(s.gegevens, null, 1))}</pre></details>` : ''}` : '';
     // Het logboek meesturen (4 november 2026): wat er meegaat, staat eronder te lezen.
+    // Ik snap iets niet: de pagina en het huis gaan mee, tenzij je het vinkje weghaalt (besluit 325).
+    const huisVak = s.soort === 'snap' ? `<label class="klein" style="display: flex; gap: 8px; align-items: center"><input type="checkbox" data-meldhuis ${s.huisMee ? 'checked' : ''}><span><b>${esc(t('melden.meeKop'))}</b> ${esc(t('melden.meeHuis', { pagina: pagina() }))}</span></label>
+          ${s.huisMee ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto; margin: 6px 0 0">${esc(JSON.stringify(snapGegevens(), null, 1))}</pre></details>` : ''}` : '';
     const logVak = s.log.length ? `<label class="klein" style="display: flex; gap: 8px; align-items: center"><input type="checkbox" data-meldlog ${s.metLog ? 'checked' : ''}>${esc(t('melden.logMee', { n: Math.min(s.log.length, LOG_REGELS) }))}</label>
           ${s.metLog ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto; margin: 6px 0 0">${esc(logTekst(s.log))}</pre></details>` : ''}` : '';
     // Melden op pauze: waarom, een dankwoord en wanneer het weer kan. Reageren op een eerdere melding (Werkt nog niet) blijft.
@@ -129,9 +165,11 @@
         <div class="knoppen"><button type="button" class="knop knop-licht" data-meldpop-dicht>${esc(t('algemeen.oke'))}</button></div>`
       : `<h2 class="kop-2" id="meldkop" style="margin: 0">${esc(t('melden.kop'))}</h2>
         <div class="keuzes" role="group" aria-label="${esc(t('melden.soort'))}">${SOORTEN.filter((k) => k !== 'apparaat' || s.apparaat).map((k) => `<button type="button" data-meldsoort="${k}" aria-pressed="${s.soort === k}">${esc(t(`melden.soort.${k}`))}</button>`).join('')}</div>
-        <label class="veldnaam">${esc(t(s.soort === 'idee' ? 'melden.watIdee' : 'melden.wat'))}<textarea class="invoer" data-meldwat rows="4" maxlength="2000" style="height: auto; padding: 10px 12px">${esc(s.wat)}</textarea></label>
+        <label class="veldnaam">${esc(t(s.soort === 'idee' ? 'melden.watIdee' : s.soort === 'snap' ? 'melden.watSnap' : 'melden.wat'))}<textarea class="invoer" data-meldwat rows="${s.soort === 'snap' ? 3 : 4}" maxlength="2000" style="height: auto; padding: 10px 12px">${esc(s.wat)}</textarea></label>
+        ${s.soort === 'snap' ? `<div data-meldpast>${pastHtml()}</div>` : ''}
         ${meeVak}
-        ${logVak}
+        ${huisVak}
+        ${s.soort === 'snap' ? '' : logVak}
         <p class="mini" style="margin: 0">${esc(t('melden.github', { code: s.code }))}</p>
         <div class="knoppen"><button type="button" class="knop" data-meldpop-dicht>${esc(t('basis.versie.later'))}</button><button type="button" class="knop knop-licht" data-meldpop-stuur>${esc(t('melden.verder'))}</button></div>`;
     document.body.insertAdjacentHTML('beforeend', `<div class="meldachter" data-meldpop-achter></div><div class="glas nieuwpop" role="dialog" aria-modal="true" aria-labelledby="meldkop" data-meldpop>${inhoud}</div>`);
@@ -146,7 +184,8 @@
     }
     if (s.vervolg) return stuurVervolg();
     const v = s.versie;
-    const gegevens = s.mee && s.gegevens ? JSON.stringify(s.gegevens, null, 1) : '';
+    if (s.soort === 'snap' && s.huisMee) await laadHuis();
+    const gegevens = s.soort === 'snap' ? (s.huisMee ? JSON.stringify(snapGegevens(), null, 1) : '') : s.mee && s.gegevens ? JSON.stringify(s.gegevens, null, 1) : '';
     const titel = `${t(`melden.soort.${s.soort}`)}${s.naam && s.soort === 'apparaat' ? ` (${s.naam.slice(0, 30)})` : ''}: ${s.wat.split('\n')[0].slice(0, 70)}`;
     const velden = {
       template: 'melding.yml',
@@ -157,7 +196,7 @@
       waar: `${global.location.pathname.split('/').pop() || 'thuis.html'} · ${global.app.telStand() ? t('melden.telefoon') : t('melden.wand')} · ${global.taal.code}`,
       meldcode: s.code,
     };
-    const log = s.metLog && s.log.length ? logTekst(s.log) : '';
+    const log = s.soort !== 'snap' && s.metLog && s.log.length ? logTekst(s.log) : '';
     const adres = (extra) => `${REPO}/issues/new?${new URLSearchParams({ ...velden, ...extra })}`;
     let url = adres({ ...(gegevens ? { gegevens } : {}), ...(log ? { logboek: log } : {}) });
     if ((gegevens || log) && url.length > MAX_URL) {
@@ -201,10 +240,24 @@
   }
 
   document.addEventListener('click', (e) => {
-    const el = e.target.closest('[data-meldsoort], [data-meldpop-dicht], [data-meldpop-achter], [data-meldpop-stuur], [data-meldmee], [data-meldlog]');
+    const el = e.target.closest('[data-meldsoort], [data-meldpop-dicht], [data-meldpop-achter], [data-meldpop-stuur], [data-meldmee], [data-meldlog], [data-meldhuis], [data-meldhielp], [data-meldnietdit]');
     if (!el || !s) return;
     if (el.dataset.meldsoort) {
       s.soort = el.dataset.meldsoort;
+      teken();
+      if (s.soort === 'snap') {
+        zetPast();
+        void laadHuis().then(() => s?.soort === 'snap' && s.huisMee && teken());
+      }
+    } else if (el.matches('[data-meldhielp]')) {
+      // Dit helpt: er gaat niets weg.
+      sluit();
+    } else if (el.dataset.meldnietdit) {
+      (s.weg ??= new Set()).add(el.dataset.meldnietdit);
+      const vak = document.querySelector('[data-meldpast]');
+      if (vak) vak.innerHTML = '';
+    } else if (el.matches('[data-meldhuis]')) {
+      s.huisMee = el.checked;
       teken();
     } else if (el.matches('[data-meldmee]')) {
       s.mee = el.checked;
@@ -217,6 +270,13 @@
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && s) sluit();
+  });
+  // De woordzoeker onder wat je typt: even wachten tot je stopt.
+  let pastWacht = null;
+  document.addEventListener('input', (e) => {
+    if (!s || s.soort !== 'snap' || !e.target.matches?.('[data-meldwat]')) return;
+    clearTimeout(pastWacht);
+    pastWacht = setTimeout(zetPast, 350);
   });
 
   global.melden = { open, vervolg, meldingen };

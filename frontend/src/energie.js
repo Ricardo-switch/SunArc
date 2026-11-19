@@ -464,7 +464,9 @@ function tekenNu() {
     el.innerHTML = vorm.replaceAll('dkid-', `dk${i}-`);
     el.querySelectorAll('.pan-rechts').forEach((x, j) => (x.scrollTop = plek[j] ?? 0));
   });
-  $$('[data-naast]').forEach((el) => (el.innerHTML = naast(nu)));
+  // Hulp op de plek (besluit 325): onder Waarvoor is dit? het stukje handleiding van dit deel.
+  const stukjes = { aansluiting: ['hoofdzekering'], meters: ['meters'], prijzen: ['prijzen'] }[nu] ?? [];
+  $$('[data-naast]').forEach((el) => (el.innerHTML = `${naast(nu)}${window.hulp?.naast(stukjes) ?? ''}`));
   if (nu === 'panelen') tekenPanelenHuis();
   // De eerste keer Daken en panelen (besluit 254): een eigen korte rondleiding, als de vlakken er staan.
   if (open === 'panelen' && aInfo?.daken && dakStaat.scherm === 'alle' && !rondjeGeprobeerd) {

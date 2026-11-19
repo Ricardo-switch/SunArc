@@ -8742,6 +8742,92 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await context.close();
   }, 30_000);
 
+  it('Hulp op de plek: vraagteken, Waarvoor is dit?, Ik snap iets niet, de handleiding en de assistent (besluit 325)', async () => {
+    const shot = (naam: string, p: Page) => (process.env.HEMS_PAGE_SHOT ? p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', `-hulp-${naam}.png`) }) : Promise.resolve(null));
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    try {
+      const zone = exampleSite.zones[0]!;
+      await p.goto(`${baseUrl}/comfort.html#${zone.id}`);
+      const wand = p.locator('#wand');
+      // Het vraagteken achter de taak van een apparaat: een kort blad met het stukje, binnen het scherm.
+      const vraag = wand.locator('[data-zorgt] .hulpvraag[data-hulp]').first();
+      await vraag.waitFor({ timeout: 15_000 });
+      const id = await vraag.getAttribute('data-hulp');
+      await vraag.click();
+      const blad = p.locator('[data-hulpblad]');
+      await blad.locator('h3').waitFor();
+      expect(await blad.locator('h3').textContent()).toBe(await p.evaluate<string>(`taal.t('hulp.${id}.kop')`));
+      const vak = (await blad.boundingBox())!;
+      expect(vak.y + vak.height).toBeLessThanOrEqual(800);
+      expect(vak.x + vak.width).toBeLessThanOrEqual(1280);
+      await shot('vraagteken', p);
+      // Klopt iets niet?: melden als Ik snap iets niet, met het stukje erbij en wat er meegaat.
+      await p.evaluate('window.geopend = []; window.open = (url) => { window.geopend.push(url); return null; }');
+      await blad.locator('[data-meld-probleem]').click();
+      const meld = p.locator('[data-meldpop]');
+      await meld.locator('[data-meldsoort="snap"][aria-pressed="true"]').waitFor({ timeout: 10_000 });
+      await expect.poll(() => meld.locator('[data-meldpast] b').textContent(), { timeout: 5_000 }).toBe(await p.evaluate<string>(`taal.t('hulp.${id}.kop')`));
+      expect(await p.locator('[data-hulpblad]').count()).toBe(0);
+      // De woordzoeker onder wat je typt: vergevingsgezind, niet elk woord hoeft te passen.
+      await meld.locator('[data-meldwat]').fill('Waarom valt de zekering eruit als alles aanstaat?');
+      await expect.poll(() => meld.locator('[data-meldpast] b').textContent(), { timeout: 5_000 }).toBe('Hoofdzekering');
+      expect(await meld.locator('[data-meldhuis]').isChecked()).toBe(true);
+      await shot('snap', p);
+      await meld.locator('[data-meldpop-stuur]').click();
+      await meld.locator('h2', { hasText: 'Dank je wel' }).waitFor();
+      const [url] = await p.evaluate<string[]>('window.geopend');
+      const velden = new URL(url!).searchParams;
+      expect(velden.get('soort')).toBe('Ik snap iets niet');
+      const mee = JSON.parse(velden.get('gegevens')!) as { pagina: string; stukje: string; huis?: { kamers: { soort: string | null }[] }[] };
+      expect(mee.pagina).toBe(`comfort.html#${zone.id}`);
+      expect(mee.stukje).toBe('hoofdzekering');
+      expect(mee.huis?.length).toBeGreaterThan(0);
+      // Geen namen van kamers of apparaten in wat meegaat.
+      expect(velden.get('gegevens')).not.toContain(zone.name);
+      await meld.locator('[data-meldpop-dicht]').click();
+      // Waarvoor is dit?: de stukjes van deze pagina, open te tikken.
+      await wand.locator('[data-waarvoor]').click();
+      const naast = wand.locator('[data-naast] .hulpnaast');
+      await naast.waitFor();
+      expect(await naast.locator('details').count()).toBeGreaterThanOrEqual(5);
+      await naast.locator('summary', { hasText: 'Helpt op zon' }).click();
+      await shot('waarvoor', p);
+      expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1')).toBe(true);
+      // Je huis: het vraagteken bij de kop opent de handleiding, met een zoekveld.
+      await p.goto(`${baseUrl}/jehuis.html`);
+      await p.locator('#wand h1 .hulpvraag').click();
+      const lijst = p.locator('.hulplijst');
+      await lijst.locator('details[open] summary', { hasText: 'Je huis' }).waitFor({ timeout: 10_000 });
+      await lijst.locator('[data-hulpzoek]').fill('waar zet ik het tuinhuis');
+      await expect.poll(() => lijst.locator('details summary').first().textContent(), { timeout: 5_000 }).toContain('Buiten');
+      await shot('handleiding', p);
+      // Vraag het je huis: de assistent antwoordt met hetzelfde stukje, en een knop erheen.
+      await p.goto(`${baseUrl}/assistent.html#hulp/helpt-op-zon`);
+      await expect.poll(() => p.locator(`${'#wand'} [data-zegt]`).textContent(), { timeout: 15_000 }).toContain('springt bij als er eigen zon over is');
+      await p.locator('#wand .verder a', { hasText: 'Naar Klimaat' }).waitFor({ timeout: 20_000 });
+      await shot('assistent', p);
+      // De telefoon: het blad onderin.
+      await p.setViewportSize({ width: 390, height: 844 });
+      await p.goto(`${baseUrl}/comfort.html#${zone.id}`);
+      const tel = p.locator('#tel');
+      const telVraag = tel.locator('.hulpvraag[data-hulp]').first();
+      await telVraag.waitFor({ timeout: 15_000 });
+      await telVraag.click();
+      await p.locator('[data-hulpblad].onder h3').waitFor();
+      const onder = (await p.locator('[data-hulpblad]').boundingBox())!;
+      expect(Math.round(onder.y + onder.height)).toBe(844);
+      await shot('tel', p);
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
+
   it('route 12: je huis tekenen, een kamer erbij', async () => {
     const { context, p, fouten } = await routeOpWand();
     const was = layoutStore.current;

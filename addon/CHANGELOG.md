@@ -1,11 +1,15 @@
 # Wat is er nieuw · What is new
 
-## 0.201.2
+## 0.202.0
 
-*19 november 2026 · 0.179.0 – 0.201.2*
+*19 november 2026 · 0.179.0 – 0.202.0*
 
 **Nieuw**
 
+- Hulp op de plek: een klein vraagteken bij wat lastig is, zoals Helpt op zon of de hoofdzekering, opent een kort stukje uit de handleiding
+- Bij Waarvoor is dit? staan de stukjes van dat deel, en de hele handleiding heeft een zoekveld
+- Meld ook als je iets niet snapt: onder wat je typt staat het stukje dat past, en de pagina en je huis gaan mee, zonder namen
+- Begrijpt de assistent een vraag niet, dan antwoordt hij uit de handleiding als daar iets past
 - Je huis › Buiten is een eigen tekening: je erf met het huis, de garage en het tuinhuis van de kaart, de oprit en de tuin
 - Het terras en de border zijn elk een eigen vak in de tuin; sleep er een lamp of een heater in, ook in de garage of het tuinhuis
 - De kaart koppelt zijn gebouwen vanzelf aan je ruimtes en vraagt één keer of het klopt
@@ -67,6 +71,7 @@
 
 **Beter**
 
+- De luchtvochtigheid staat alleen bij een apparaat dat hem zelf meet; die van de kamer staat bij Klimaat
 - De luchtvochtigheid staat naast de temperatuur, in het blad van een kamer bij Klimaat en in het blad van een apparaat met de hand; meet het apparaat hem niet zelf, dan die van de kamer
 - De zin bij een kamer zegt nu wat SunArc doet of zou doen, niet meer in de ik-vorm
 - Een huis zonder zonnepanelen krijgt bij Apparaten, Vandaag, Instellingen en de assistent geen tekst meer over zon
@@ -137,6 +142,10 @@
 
 **New**
 
+- Help in place: a small question mark next to what is tricky, such as Helps with solar or the main fuse, opens a short piece of the manual
+- What is this for? shows the pieces for that part, and the whole manual has a search field
+- Report when you do not get something too: below what you type is the piece that fits, and the page and your home go along, without names
+- When the assistant does not understand a question, it answers from the manual if something fits
 - Your house › Outside is its own drawing: your plot with the house, the garage and garden house from the map, the driveway and the garden
 - The terrace and the border are each their own box in the garden; drag a light or a heater into it, also in the garage or garden house
 - The map links its buildings to your spaces by itself and asks once whether it is right
@@ -198,6 +207,7 @@
 
 **Improved**
 
+- Humidity is only shown at a device that measures it itself; the room humidity is under Climate
 - Humidity is shown next to the temperature, in the sheet of a room under Climate and in the sheet of a device by hand; if the device does not measure it, the room does
 - The sentence for a room now says what SunArc does or would do, no longer in the first person
 - A house without solar panels no longer gets text about sun in Devices, Today, Settings and the assistant

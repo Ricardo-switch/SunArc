@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.201.2';
+export const VERSIE = '0.202.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,30 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.202.0',
+    datum: '2026-11-19',
+    nieuw: [
+      'Hulp op de plek: een klein vraagteken bij wat lastig is, zoals Helpt op zon of de hoofdzekering, opent een kort stukje uit de handleiding',
+      'Bij Waarvoor is dit? staan de stukjes van dat deel, en de hele handleiding heeft een zoekveld',
+      'Meld ook als je iets niet snapt: onder wat je typt staat het stukje dat past, en de pagina en je huis gaan mee, zonder namen',
+      'Begrijpt de assistent een vraag niet, dan antwoordt hij uit de handleiding als daar iets past',
+    ],
+    beter: [
+      'De luchtvochtigheid staat alleen bij een apparaat dat hem zelf meet; die van de kamer staat bij Klimaat',
+    ],
+    en: {
+      nieuw: [
+        'Help in place: a small question mark next to what is tricky, such as Helps with solar or the main fuse, opens a short piece of the manual',
+        'What is this for? shows the pieces for that part, and the whole manual has a search field',
+        'Report when you do not get something too: below what you type is the piece that fits, and the page and your home go along, without names',
+        'When the assistant does not understand a question, it answers from the manual if something fits',
+      ],
+      beter: [
+        'Humidity is only shown at a device that measures it itself; the room humidity is under Climate',
+      ],
+    },
+  },
   {
     versie: '0.201.2',
     datum: '2026-11-19',

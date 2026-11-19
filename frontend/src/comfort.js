@@ -286,12 +286,12 @@ function band(k, m) {
 /** Zon en net, per kamer (besluit 133): hoeveel verder op zon, en of koelen van het net mag. */
 function zonEnNet(k) {
   const zon = k.opZon?.verwarmen || k.opZon?.koelen
-    ? `<div class="blok"><span class="label"><span class="stip" style="background: var(--zon)"></span>${esc(t('comfort.opZonMag'))}</span>
+    ? `<div class="blok"><span class="label"><span class="stip" style="background: var(--zon)"></span>${esc(t('comfort.opZonMag'))}${window.hulp?.vraag('op-zon-mag-het') ?? ''}</span>
         <div class="keuze" role="group" aria-label="${esc(t('comfort.opZonMag'))}">${[[0, t('comfort.niet')], [0.5, '½°'], [1, '1°'], [2, '2°']].map(([v, x]) => `<button type="button" data-opzon="${v}" aria-pressed="${k.opZonC === v}">${esc(x)}</button>`).join('')}</div>
         <p class="uitleg">${esc(t(k.opZon.koelen && k.opZon.verwarmen ? 'comfort.verder.beide' : k.opZon.koelen ? 'comfort.verder.koeler' : 'comfort.verder.warmer'))}</p></div>`
     : '';
   const net = k.kanKoelen && !k.koeltVanNet
-    ? `<div class="blok"><span class="label"><span class="stip" style="background: var(--ijs)"></span>${esc(t('comfort.koelenNet'))}</span>
+    ? `<div class="blok"><span class="label"><span class="stip" style="background: var(--ijs)"></span>${esc(t('comfort.koelenNet'))}${window.hulp?.vraag('koelen-van-het-net') ?? ''}</span>
         ${k.nooitWarmerC != null
           ? `<div class="stapper"><button type="button" data-plafond="-0.5" aria-label="${esc(t('comfort.lager'))}">−</button><b>${esc(t('comfort.bovenGraden', { graden: graden(k.nooitWarmerC) }))}</b><button type="button" data-plafond="0.5" aria-label="${esc(t('comfort.hoger'))}">+</button><button type="button" class="geen" data-plafond="geen">${esc(t('comfort.nooit'))}</button></div>`
           : `<div class="keuze" role="group" aria-label="${esc(t('comfort.koelenNet'))}"><button type="button" aria-pressed="true">${esc(t('comfort.nooit'))}</button><button type="button" data-plafond="aan" aria-pressed="false">${esc(t('comfort.bovenTemp'))}</button></div>`}
@@ -382,7 +382,7 @@ function vandaagZin(a) {
 function cvRegel(sleutel) {
   const a = helpen?.aircos?.find((x) => x.id === sleutel);
   if (!a) return '';
-  return `<div class="cvregel"><div class="l"><b>${esc(t('klimaat.cv'))}</b><span>${esc(a.aan ? vandaagZin(a) : t('regeling.helpen.uit'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${a.aan}" aria-label="${esc(t('regeling.helpen.van', { naam: a.naam }))}" data-helpen-aan="${esc(a.id)}"></button></div>`;
+  return `<div class="cvregel"><div class="l"><b>${esc(t('klimaat.cv'))}${window.hulp?.vraag('helpt-de-cv') ?? ''}</b><span>${esc(a.aan ? vandaagZin(a) : t('regeling.helpen.uit'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${a.aan}" aria-label="${esc(t('regeling.helpen.van', { naam: a.naam }))}" data-helpen-aan="${esc(a.id)}"></button></div>`;
 }
 
 /** Wat warmte nu kost, van de airco en van de ketel: twee balken en wat goedkoper is. */
@@ -642,7 +642,9 @@ function tekenNu() {
   const typt = document.activeElement?.closest?.('[data-zorgt]') && document.activeElement.matches('input');
   if (typt) return;
   $$('[data-vorm]').forEach((el) => (el.innerHTML = vorm));
-  $$('[data-naast]').forEach((el) => (el.innerHTML = nu === 'helpen' ? helpenNaast() : naast(nu)));
+  // Hulp op de plek (besluit 325): onder Waarvoor is dit? de stukjes handleiding van dit deel.
+  const stukjes = nu === 'helpen' ? ['helpt-de-cv', 'kijkt-mee'] : k || nu?.startsWith(ANDER) ? ['houdt-op-temperatuur', 'helpt-op-zon', 'op-zon-mag-het', 'koelen-van-het-net', 'kijkt-mee'] : ['klimaat-kamer'];
+  $$('[data-naast]').forEach((el) => (el.innerHTML = `${nu === 'helpen' ? helpenNaast() : naast(nu)}${window.hulp?.naast(stukjes) ?? ''}`));
 }
 
 /* ------------------------------------------- wat ervoor zorgt: tikken en kiezen */

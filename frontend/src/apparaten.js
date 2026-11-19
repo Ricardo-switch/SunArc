@@ -703,7 +703,7 @@ function opZonBlad(id) {
   const a = (aansluiting?.gevonden?.apparaten ?? []).find((x) => x.id === id) ?? (aansluiting?.configuratie?.apparaten ?? []).find((x) => x.id === id);
   if (!a) return null;
   const kiezen = instellen.kiezen(id, a.naam);
-  return { naam: a.naam, zin: t('apparaten.nietOpZon'), html: kiezen ?? `${instellen.regels('witgoed', id, { naam: a.naam })}<p class="hand-hoe">${esc(t('apparaten.opZonHoe'))}</p>` };
+  return { naam: a.naam, zin: t('apparaten.nietOpZon'), html: kiezen ?? `${instellen.regels('witgoed', id, { naam: a.naam })}<p class="hand-hoe">${esc(t('apparaten.opZonHoe'))}${window.hulp?.vraag('apparaat-op-zon') ?? ''}</p>` };
 }
 
 function accuBlad() {

@@ -2309,7 +2309,7 @@
     }
     // Verborgen: om terug te halen.
     const lijst = t.huis.verborgenLijst ?? [];
-    return `<header><h3>${esc(T('ht.verborgen.kop'))}</h3><span>${esc(T('ht.apparaten', { n: lijst.length }))}</span></header>
+    return `<header><h3>${esc(T('ht.verborgen.kop'))}${window.hulp?.vraag('verbergen') ?? ''}</h3><span>${esc(T('ht.apparaten', { n: lijst.length }))}</span></header>
       <p class="ht-zin">${esc(T(lijst.length ? 'ht.verborgen.zin' : 'ht.verborgen.leeg'))}</p>
       ${lijst.map((a) => rij({ ik: APP_ICOON[a.soort] ?? a.soort ?? 'apparaat', titel: a.naam, rechts: T('ht.verborgen.terug'), data: `data-ht="ix" data-actie="terug" data-waarde="${esc(a.id)}"` })).join('')}
       <div class="ht-onder">${rij({ ik: 'terug', titel: T('ht.verborgen.naarApparaten'), zin: '', data: 'data-ht="blad" data-blad=""' })}</div>`;

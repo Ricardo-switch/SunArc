@@ -133,7 +133,10 @@
       const rol = rolVan(k, sleutel);
       const a = klimaatToestellen().find((x) => x.sleutel === sleutel)?.a;
       const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon' || rol === 'zon' || !a || huismodel.kanOpZon(a, ctx.huis, ctx.verwarming));
-      return `<select class="veld rolkeuze kort" data-rol="${esc(sleutel)}" aria-label="${esc(`${t('indeling.deRegeling')}: ${naam}`)}">${keuzes.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+      // Met een vraagteken erachter (Hulp op de plek, besluit 325): wat die taak betekent.
+      const hulp = window.hulp?.vraag({ houdt: 'houdt-op-temperatuur', zon: 'helpt-op-zon', kijken: 'doet-niet-mee' }[rol]) ?? '';
+      const keuze = `<select class="veld rolkeuze kort" data-rol="${esc(sleutel)}" aria-label="${esc(`${t('indeling.deRegeling')}: ${naam}`)}">${keuzes.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+      return hulp ? `<span class="metvraag">${keuze}${hulp}</span>` : keuze;
     }
     /** De temperatuur in een zone: van de eigen regeling, of het gemiddelde van wat er in die zone meet. */
     function zoneTemp(kamerId, zoneId) {

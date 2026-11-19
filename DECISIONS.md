@@ -315,6 +315,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [321. Instellingen in vier tegels](#321-instellingen-in-vier-tegels)
 - [322. Eén standpagina: Wat je huis kan](#322-eén-standpagina-wat-je-huis-kan)
 - [324. Buiten als eigen tekening in Je huis](#324-buiten-als-eigen-tekening-in-je-huis)
+- [325. Hulp op de plek](#325-hulp-op-de-plek)
 
 **Veiligheid**
 
@@ -15031,6 +15032,54 @@ Klopt dit?
 *Nog niet:* het erf zelf groter of kleiner maken (nu volgt het de
 gebouwen; een vak buiten het erf kan wel), de perceelgrens van de kaart, en
 het erf op Thuis (stap 4: één tekenaar voor het huis).
+
+## 325. Hulp op de plek
+
+*Onderwerp: weergave · Status: geldig*
+
+19 november 2026. Ricardo: "We kunnen ook tooltips plaatsen met stukken uit
+de handleiding op verschillende plaatsen in de app." Testers liepen vast op
+woorden als Helpt op zon, Op zon mag het en de hoofdzekering, en meldden dan
+een fout terwijl ze iets niet snapten. Schets `Wand-Hulp-Plek`; keuzes
+Ricardo: één besluit; de stukjes zijn één bron voor de uitleg op de plek, de
+woordzoeker bij melden en de assistent; de pagina en de tekening van je huis
+gaan mee met een vinkje dat aanstaat; eerst waar testers vastliepen.
+
+*Besluit (0.202.0):*
+
+- **De stukjes handleiding** staan als teksten in `teksten.nl.js` en
+  `teksten.en.js` (`hulp.<id>.kop`, `.tekst`, `.zoek`): een kop, hooguit drie
+  korte zinnen, en woorden om op te zoeken. `hulp.js` zegt waar elk stukje
+  hoort en waar je het instelt. Eerst achttien: Klimaat per kamer (de drie
+  taken, Op zon mag het, Koelen van het net, Helpt ook de cv, SunArc kijkt
+  mee), Je huis (tekenen, zones, buiten, verbergen), Apparaten (witgoed en
+  stekker op zon, met de hand) en Energie (hoofdzekering, meters, prijzen).
+- **Een klein vraagteken** naast wat lastig is opent een kort blad: op de
+  wand bij het vraagteken, op de telefoon onderin. Erin het stukje, *Vraag
+  het je huis*, *Klopt iets niet?*, en *Meer in de handleiding*; staat het
+  stukje over een andere pagina, dan ook een knop erheen.
+- **Waarvoor is dit?** bij Klimaat en Energie krijgt onder de uitleg de
+  stukjes van dat deel, open te tikken. Je huis en Apparaten hebben een
+  vraagteken bij de kop dat de handleiding opent.
+- **De handleiding** is een blad met alle stukjes per plek en een zoekveld.
+- **Ik snap iets niet** is een soort melding. Onder wat je typt staat het
+  stukje dat past (*Dit helpt, dank je* sluit zonder melden; *Dit is het
+  niet* haalt het weg). Mee gaan de pagina, het stukje en het huis zonder
+  namen: per etage de soort kamers en de soort apparaten. Het vinkje staat
+  aan; er gaat pas iets weg bij Verder op GitHub. Het logboek gaat bij deze
+  soort niet mee.
+- **De woordzoeker** is vergevingsgezind: woorden zonder betekenis tellen
+  niet, een woord past ook als stuk van een samengesteld woord, en niet elk
+  woord hoeft te passen (een woord in de kop telt 3, in de zoekwoorden 2, in
+  de tekst 1; bij een of twee woorden is 2 genoeg, anders 3).
+- **De assistent** antwoordt met hetzelfde stukje: na Vraag het je huis
+  (`assistent.html#hulp/<id>`), en als hij een vraag niet begrijpt en er een
+  stukje past. Met *Uit de handleiding* eronder en een knop naar waar je het
+  instelt. Wat hij al kende (vragen over de app, besluit 166) gaat voor.
+
+*Nog niet:* de stukjes voor de andere pagina's, de handleiding hardop via de
+assistent in Home Assistant (die vraagt de dienst, en de stukjes staan in de
+app), en Werkt nu terugkoppelen na Ik snap iets niet.
 
 ## Wat nog een besluit wacht
 

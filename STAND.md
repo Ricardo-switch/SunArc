@@ -45,6 +45,8 @@ verwijzing bestaat.
   de standpagina biedt Inrichten aan, niet meer Instellingen ([323]).
   Sinds 0.201.0 is buiten een eigen tekening in Je huis: het erf met het huis
   als vast vak, de gebouwen van de kaart en de delen van de tuin ([324]).
+  Sinds 0.202.0 is er hulp op de plek: vraagtekens met stukjes handleiding,
+  Ik snap iets niet bij melden, en de assistent antwoordt eruit ([325]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1053,4 +1055,5 @@ verwijzing bestaat.
 [322]: DECISIONS.md#322-eén-standpagina-wat-je-huis-kan
 [323]: DECISIONS.md#323-inrichten-in-zeven-stappen
 [324]: DECISIONS.md#324-buiten-als-eigen-tekening-in-je-huis
+[325]: DECISIONS.md#325-hulp-op-de-plek
 <!-- links:einde -->

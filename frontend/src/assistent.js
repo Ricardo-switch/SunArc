@@ -228,6 +228,8 @@ async function vraag(v) {
     nu.ruimte = body.ruimte ?? null;
     nu.vervolg = body.keuze ?? body.vervolg ?? [];
     openKeuze = res.ok && body.keuze?.length ? body.keuze : null;
+    // Niet begrepen: dan het stukje handleiding dat past (Hulp op de plek, besluit 325).
+    if (res.ok && body.vraag === 'onbekend' && v.soort === 'vrij') await uitHandleiding(null, v.tekst);
     // Een opdracht (besluit 148): meteen naar dezelfde deur als de knoppen.
     if (res.ok && body.opdracht) await voerUit(body);
     // Alleen geluid: niets gezegd, niets te antwoorden (21 oktober 2026).
@@ -252,6 +254,32 @@ async function vraag(v) {
     nu.antwoord = taal.t('assistent.nietBereikbaar');
   }
   void zeg(nu.antwoord, nu.gesproken ?? nu.antwoord);
+}
+
+/**
+ * Een antwoord uit de handleiding (besluit 325): het stukje met dat id (van
+ * Vraag het je huis bij een vraagteken), of dat past bij een vraag die het
+ * huis niet begreep. Met een knop naar waar je het instelt.
+ */
+async function uitHandleiding(id, tekst = '') {
+  const h = await app.laadHulp?.().catch(() => null);
+  const s = h ? (id ? h.stukje(id) : h.zoek(tekst, 1)[0]) : null;
+  if (!s || !nu) return false;
+  Object.assign(nu, { antwoord: s.tekst, gesproken: null, feiten: [], voorbeelden: [], vervolg: [], bron: s.kop, link: { href: s.href, label: taal.t('hulp.naar', { waar: s.waar }) } });
+  return true;
+}
+
+/** Vraag het je huis bij een vraagteken: `#hulp/helpt-op-zon`. */
+async function hulpUitAdres(id) {
+  if (nu) {
+    eerder.unshift(nu);
+    eerder.splice(4);
+  }
+  const s = (await app.laadHulp?.().catch(() => null))?.stukje(id);
+  if (!s) return;
+  nu = { soort: 'hulp', label: taal.t('hulp.uitleg', { kop: s.kop }), antwoord: null, kamerId: null, feiten: [] };
+  await uitHandleiding(id);
+  void zeg(nu.antwoord, nu.antwoord);
 }
 
 /** Stuurt een opdracht naar zijn deur; lukt het niet, dan zegt het huis waarom. */
@@ -625,6 +653,7 @@ function spraakHtml() {
   return `${wie(taal.t(stand === 'praat' ? 'assistent.praat' : 'assistent.jeHuis'))}${jij}
     <p class="zegt${lang ? ' lang' : ''}${verder ? '' : ' loopt'}" data-zegt>${woordHtml(nu.antwoord ?? '')}</p>
     ${verder ? (nu.gedaan?.length ? `<div class="gedaan">${gedaanHtml(nu)}</div>` : `<div class="feiten">${feiten(nu)}</div>`) : ''}
+    ${verder && nu.bron ? `<p class="klein-zegt">${esc(taal.t('assistent.uitHandleiding', { kop: nu.bron }))}</p>` : ''}
     ${verder && nu.link ? `<div class="verder"><a class="knop knop-licht" href="${esc(nu.link.href)}">${esc(nu.link.label)}</a></div>` : ''}
     ${verder ? `<p class="klein-zegt nogiets">${esc(taal.t('assistent.nogIets'))}</p>` : ''}`;
 }
@@ -818,6 +847,7 @@ function vraagUitAdres() {
   if (labels.has(soort) || (soort === 'waarom' && kamer)) vanAdres = true;
   if (labels.has(soort)) void vraag({ soort, label: taal.t(`assistent.vraag.${soort}`) });
   else if (soort === 'waarom' && kamer) void vraag({ soort, kamer, label: taal.t('assistent.waarom', { kamer: zoneNaam(kamer) }) });
+  else if (soort === 'hulp' && kamer) void hulpUitAdres(kamer);
 }
 addEventListener('hashchange', vraagUitAdres);
 void laadAlles().then(vraagUitAdres);
