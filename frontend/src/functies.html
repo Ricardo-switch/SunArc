@@ -74,8 +74,15 @@
   .breinzinnen span { padding: 6px 11px; border-radius: 999px; background: rgb(var(--wit) / 0.05); border: 1px solid rgb(var(--wit) / 0.08); font-size: 13px; color: var(--zacht); }
   #tel .breingebruik { grid-template-columns: 1fr; }
   /* Licht en screens per kamer (besluit 167): knopjes per lamp en screen, op de wand in twee kolommen. */
-  .lichtkamers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
-  #tel .lichtkamers { grid-template-columns: 1fr; }
+  /* Licht en screens naast elkaar op de wand: zo past het blad (19 november 2026). */
+  .lichtbedienen { display: grid; gap: 4px 24px; }
+  #wand .lichtbedienen { grid-template-columns: repeat(2, max-content); }
+  /* Op de wand in drie kolommen die op elkaar aansluiten, zonder gaten tussen de kamers. */
+  .lichtkamers { columns: 3; column-gap: 18px; }
+  .lichtkamers .lichtkamer { break-inside: avoid; margin-bottom: 10px; }
+  #tel .lichtkamers { columns: 1; }
+  .lichtkamer .scenetal { font-size: 12px; font-weight: 600; color: var(--gedempt); }
+  #wand .lichtkamer .scenelijst, #tel .lichtkamer .scenetal { display: none; }
   .lichtkamer { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
   .lichtkamer b { font-size: 14px; }
   .lichtkamer .keuzes button { height: 32px; padding: 0 11px; font-size: 13px; }

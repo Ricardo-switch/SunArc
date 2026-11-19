@@ -228,8 +228,13 @@ async function vraag(v) {
     nu.ruimte = body.ruimte ?? null;
     nu.vervolg = body.keuze ?? body.vervolg ?? [];
     openKeuze = res.ok && body.keuze?.length ? body.keuze : null;
-    // Niet begrepen: dan het stukje handleiding dat past (Hulp op de plek, besluit 325).
-    if (res.ok && body.vraag === 'onbekend' && v.soort === 'vrij') await uitHandleiding(null, v.tekst);
+    // Niet begrepen: dan het stukje handleiding dat past (Hulp op de plek, besluit 325), en anders waar het staat bij Instellingen.
+    // "Wat betekent helpt op zon" gaat altijd eerst naar de handleiding (19 november 2026): dat kreeg het antwoord over de zon.
+    const betekenis = v.soort === 'vrij' && BETEKENT.test(String(v.tekst ?? '').trim());
+    if (res.ok && v.soort === 'vrij' && (body.vraag === 'onbekend' || betekenis)) {
+      const gevonden = (await uitHandleiding(null, v.tekst)) || (body.vraag === 'onbekend' && uitInstellingen(v.tekst));
+      if (gevonden && betekenis) nu.soort = 'hulp';
+    }
     // Een opdracht (besluit 148): meteen naar dezelfde deur als de knoppen.
     if (res.ok && body.opdracht) await voerUit(body);
     // Alleen geluid: niets gezegd, niets te antwoorden (21 oktober 2026).
@@ -266,6 +271,23 @@ async function uitHandleiding(id, tekst = '') {
   const s = h ? (id ? h.stukje(id) : h.zoek(tekst, 1)[0]) : null;
   if (!s || !nu) return false;
   Object.assign(nu, { antwoord: s.tekst, gesproken: null, feiten: [], voorbeelden: [], vervolg: [], bron: s.kop, link: { href: s.href, label: taal.t('hulp.naar', { waar: s.waar }) } });
+  return true;
+}
+
+/** Een vraag naar wat iets betekent: die beantwoordt de handleiding. */
+const BETEKENT = /^(wat (betekent|bedoel|houdt)|wat is ['"‘]?(op|helpt|houdt|doet|kijkt|met)|what (does|do) .+ mean|what is ['"‘]?(on|helps|keeps|does|watches|by))/i;
+
+/** Woorden van een vraag die niets zeggen over waar iets staat. */
+const VRAAGWOORDEN = new Set(['waar', 'wat', 'hoe', 'kan', 'ik', 'je', 'jij', 'de', 'het', 'een', 'in', 'op', 'stel', 'zet', 'vind', 'vul', 'is', 'zijn', 'mijn', 'moet', 'aan', 'where', 'what', 'how', 'can', 'do', 'i', 'you', 'the', 'a', 'an', 'my', 'set', 'find', 'is', 'are', 'up', 'must', 'should']);
+/**
+ * Waar iets staat bij Instellingen (19 november 2026): dezelfde lijst als het
+ * zoekveld daar (stand.zoek), als de handleiding er niets over heeft.
+ */
+function uitInstellingen(tekst) {
+  const kern = String(tekst ?? '').toLowerCase().replace(/[?!.,]/g, ' ').split(/\s+/).filter((w) => w && !VRAAGWOORDEN.has(w)).join(' ');
+  const z = kern && window.stand?.zoek ? window.stand.zoek(kern, null)[0] : null;
+  if (!z || !nu) return false;
+  Object.assign(nu, { antwoord: taal.t('assistent.staatBij', { titel: z.titel, waar: z.waar }), gesproken: null, feiten: [], voorbeelden: [], vervolg: [], bron: null, link: { href: z.href, label: taal.t('hulp.naar', { waar: z.titel }) } });
   return true;
 }
 

@@ -196,12 +196,17 @@ function licht() {
     return `<button type="button" data-in-app="${esc(d.id)}" aria-pressed="${!d.verborgen}" aria-label="${esc(t('functies.inApp', { naam: d.naam }))}">${esc(d.naam)}${terug ? `<small> · ${esc(terug)}</small>` : ''}</button>`;
   };
   const lijst = kamers
-    .map((k) => `<div class="lichtkamer"><b>${esc(k.naam)}</b>${k.dingen.length ? `<div class="keuzes">${k.dingen.map(knopje).join('')}</div>` : ''}${k.scenes.length ? `<span class="mini">${esc(t('functies.scenes', { namen: k.scenes.map((x) => x.naam).join(', ') }))}</span>` : ''}</div>`)
+    .map((k) => {
+      // Op de wand alleen hoeveel scènes, anders schoof het blad (19 november 2026); op de telefoon de namen, elke naam één keer.
+      const namen = [...new Set(k.scenes.map((x) => x.naam))];
+      const tel = namen.length ? `<span class="scenetal" title="${esc(namen.join(', '))}"> · ${esc(t('functies.scenesTal', { n: namen.length }))}</span>` : '';
+      return `<div class="lichtkamer"><b>${esc(k.naam)}${tel}</b>${k.dingen.length ? `<div class="keuzes">${k.dingen.map(knopje).join('')}</div>` : ''}${namen.length ? `<span class="mini scenelijst">${esc(t('functies.scenes', { namen: namen.join(', ') }))}</span>` : ''}</div>`;
+    })
     .join('');
   // Alleen wat deze installatie toestaat (besluit 130): een knop die niets kan, staat er niet.
   return `<h2 class="kop-2">${esc(t('functies.licht'))}</h2>
-    ${mag ? `<span class="veldnaam">${esc(t('functies.lichtScenes'))}</span>${keuzes(t('functies.lichtBedienen'), 'lichtAan', bedienen(), concept.licht.bedienen)}` : ''}
-    ${schermMag ? `<span class="veldnaam">${esc(t('functies.screens'))}</span>${keuzes(t('functies.schermenBedienen'), 'schermenAan', bedienen(), concept.schermen.bedienen)}` : ''}
+    <div class="lichtbedienen">${mag ? `<div><span class="veldnaam">${esc(t('functies.lichtScenes'))}</span>${keuzes(t('functies.lichtBedienen'), 'lichtAan', bedienen(), concept.licht.bedienen)}</div>` : ''}
+    ${schermMag ? `<div><span class="veldnaam">${esc(t('functies.screens'))}</span>${keuzes(t('functies.schermenBedienen'), 'schermenAan', bedienen(), concept.schermen.bedienen)}</div>` : ''}</div>
     <p class="mini">${esc(t(mag || schermMag ? 'functies.bedienenHuis' : 'functies.nietToegestaan'))}</p>
     ${lijst ? `<h3 class="kop-3" style="margin: 8px 0 0">${esc(t('functies.inDeApp'))}</h3><p class="mini">${esc(t('functies.tikUit'))}${kamers.some((k) => k.dingen.some((d) => d.soort === 'screen')) ? ` ${esc(t('functies.somfy'))}` : ''}</p><div class="lichtkamers">${lijst}</div>` : ''}`;
 }

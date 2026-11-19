@@ -192,7 +192,7 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
     // Klimaat buiten de regeling (besluit 319) gaat niet via de knoppen van je regeling: daarvoor hoeft de brug niet aan.
     const isLos = (h.los?.() ?? []).some((k) => k.id === id);
     if (!h.aan() && !isLos) {
-      sendJson(res, 409, { fout: 'klimaat met de hand staat uit bij Functies › Praten' });
+      sendJson(res, 409, { fout: 'klimaat met de hand staat uit bij Assistent › Praten' });
       return true;
     }
     const totMs = Number(body['totMs']);

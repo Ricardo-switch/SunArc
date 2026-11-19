@@ -316,6 +316,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [322. Eén standpagina: Wat je huis kan](#322-eén-standpagina-wat-je-huis-kan)
 - [324. Buiten als eigen tekening in Je huis](#324-buiten-als-eigen-tekening-in-je-huis)
 - [325. Hulp op de plek](#325-hulp-op-de-plek)
+- [326. Stap 3 af: één telling, bladen die passen, één woord, en de assistent](#326-stap-3-af-één-telling-bladen-die-passen-één-woord-en-de-assistent)
 
 **Veiligheid**
 
@@ -15088,6 +15089,50 @@ gaan mee met een vinkje dat aanstaat; eerst waar testers vastliepen.
 *Nog niet:* de stukjes voor de andere pagina's, de handleiding hardop via de
 assistent in Home Assistant (die vraagt de dienst, en de stukjes staan in de
 app), en Werkt nu terugkoppelen na Ik snap iets niet.
+
+## 326. Stap 3 af: één telling, bladen die passen, één woord, en de assistent
+
+*Onderwerp: weergave · Status: geldig*
+
+19 november 2026. De terugblik op stap 3 vond vier dingen die je niet in één
+blik ziet. Ricardo: "Pak alle 4 punten op en rond stap 3 af." Tussendoor zag
+hij op de telefoon bij App en bewoners "1 mist", zonder te zien wat.
+
+*Besluit (0.203.0):*
+
+- **Eén telling voor hoe ver je huis is.** `stand.eerstDit` (wat SunArc mist,
+  plus Klaarzetten in Home Assistant) en `stand.erbij` (wat een apparaat of
+  contract nodig heeft, plus wat je kunt klaarzetten) rekenen voor
+  Instellingen en voor Wat je huis kan. De regel op Instellingen zegt nu
+  hetzelfde als de pagina.
+- **Wat mist, staat in de tegel.** Op de telefoon staat bovenaan een tegel
+  met "1 mist" een oranje regel met wat er mist en een tik ernaartoe. Op de
+  wand is daar geen plek; daar noemt de regel bovenaan het al.
+- **De wand schuift ook met een groot huis niet.** Contract en prijzen: de
+  vaste kosten als één regel per post, *Aanpassen of erbij* zet ze over de
+  hele breedte. Meters: drie kolommen. Licht en screens: de scènes als aantal,
+  de kamers in drie aansluitende kolommen, en licht en screens bedienen naast
+  elkaar. Klimaat met zones: iets minder ruimte tussen de vakken, en Wat
+  ervoor zorgt iets breder. Een paginatest geeft het testhuis veel lampen,
+  scènes, vaste kosten en meters, en kijkt of het past.
+- **Eén woord per ding (besluit 316).** De dienst zegt nergens meer
+  Regeling: de stekker en witgoed op zon staan bij Apparaten, bijspringen
+  noemt geen plek meer. De pagina Functies heet zoals de knop erheen:
+  *Licht, camera's en weer*. Wat bij de assistent hoort (praten, te doen, de
+  spraakassistent), heet Assistent.
+- **De assistent** kent de laadpaal en de boiler ("waarom laadt de auto niet
+  sneller", "waarom zie ik de boiler niet"), zegt bij "hoe warm is het in de
+  slaapkamer" hoe warm het overal is, en zoekt bij "wat betekent …" eerst in
+  de handleiding. Begrijpt hij iets niet en heeft de handleiding er niets
+  over, dan zegt hij waar het staat bij Instellingen, uit dezelfde lijst als
+  het zoekveld daar. De handleiding heeft er twee stukjes bij: de boiler en de
+  laadpaal.
+- **Kleine punten:** Inrichten vraagt de stem in huis op een eigen server
+  zonder fout op; een kaart met een knop erin is een groep, geen knop.
+
+*Nog niet:* de temperatuur van een kamer die SunArc niet regelt, en wat de
+boiler nu doet als antwoord. Stap 4 begint met de laatste dubbele plekken
+(de kaart, een laadpaal toevoegen) en Weergave naar Jij.
 
 ## Wat nog een besluit wacht
 

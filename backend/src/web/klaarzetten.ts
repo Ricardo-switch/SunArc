@@ -127,7 +127,7 @@ const WOORDEN = {
     },
     taalmodel: { titel: 'Een taalmodel', klaar: (n: number) => `${telling(n, 'AI-taak', 'AI-taken')}; kies er een bij Instellingen › Assistent › Praten.`, mist: 'Een AI-taak, zoals van OpenAI, Anthropic of Ollama, als de assistent het in eigen woorden mag zeggen.' },
     beweging: { titel: 'Een bewegingsmelder', klaar: (n: number) => `${telling(n, 'melder', 'melders')}; de wand wordt wakker als er iemand langsloopt.`, mist: 'Een bewegingsmelder bij de wand, om hem te wekken.' },
-    tailscale: ['SunArc op je telefoon', 'De eigen poort staat open; installeer de app bij Functies › Op je startscherm.', 'Met de Tailscale-add-on en de eigen poort zet je SunArc als app op je telefoon.'],
+    tailscale: ['SunArc op je telefoon', 'De eigen poort staat open; installeer de app bij Licht, camera’s en weer › Op je startscherm.', 'Met de Tailscale-add-on en de eigen poort zet je SunArc als app op je telefoon.'],
   },
   en: {
     waar: {
@@ -185,7 +185,7 @@ const WOORDEN = {
     },
     taalmodel: { titel: 'A language model', klaar: (n: number) => `${telling(n, 'AI task', 'AI tasks')}; choose one in Settings › Assistant › Talk to your house.`, mist: 'An AI task, for example from OpenAI, Anthropic or Ollama, if the assistant may put things in its own words.' },
     beweging: { titel: 'A motion sensor', klaar: (n: number) => `${telling(n, 'sensor', 'sensors')}; the wall screen wakes up when someone walks past.`, mist: 'A motion sensor by the wall screen, to wake it.' },
-    tailscale: ['SunArc on your phone', 'Your own port is open; install the app in Features › On your home screen.', 'With the Tailscale add-on and your own port you put SunArc on your phone as an app.'],
+    tailscale: ['SunArc on your phone', 'Your own port is open; install the app in Lights, cameras and weather › On your home screen.', 'With the Tailscale add-on and your own port you put SunArc on your phone as an app.'],
   },
 } as const satisfies Record<Lang, unknown>;
 

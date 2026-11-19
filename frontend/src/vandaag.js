@@ -396,7 +396,8 @@ function tekenTijdlijn(r, verwacht, lijst) {
 
   // Een huis zonder panelen (19 november 2026): geen zon in de tijdlijn, en ook geen getallen erover.
   const metZon = app.huisSoort()?.zon !== false;
-  box.innerHTML = `<svg viewBox="0 0 ${W} ${hoog}" role="img" aria-label="${esc(t('vandaag.tijdlijn'))}">
+  // Een groep: de momenten erin zijn aan te tikken (een plaatje met knoppen erin kan niet).
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${hoog}" role="group" aria-label="${esc(t('vandaag.tijdlijn'))}">
     <defs>
       <linearGradient id="zv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7B548" stop-opacity="0.5"/><stop offset="1" stop-color="#F7B548" stop-opacity="0.02"/></linearGradient>
       <linearGradient id="plan" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8F86FF" stop-opacity="0.13"/><stop offset="1" stop-color="#8F86FF" stop-opacity="0.03"/></linearGradient>

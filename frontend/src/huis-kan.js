@@ -34,16 +34,9 @@ function tellers(v, erbij) {
   return ['werkt', 'kijkt', 'leert'].map((s) => rij(KLEUR[s], t(`kan.stand.${s}`), v.tel(s))).join('') + rij('var(--zon)', t('stand1.kanErbij'), erbij.length);
 }
 
-/**
- * Eerst dit: wat echt ontbreekt (stand.nogTeDoen), en wat in Home Assistant
- * mist voor de regeling (besluit 179). Het eerste groot, met de knop erbij.
- */
-function eerstLijst() {
-  const lijst = stand.nogTeDoen(d).map((x) => ({ wat: x.wat, zin: x.waarom, knop: x.knop, href: x.href }));
-  const mist = (d.klaar?.punten ?? []).filter((p) => p.stand === 'mist').length;
-  if (mist) lijst.push({ wat: t('kan.klaar.kop'), zin: t('instellingen.mist', { n: mist }), knop: t('stand1.bekijk'), href: '#klaarzetten' });
-  return lijst;
-}
+/** Eerst dit en Kan er nog bij: de som staat in stand.js, dezelfde als op Instellingen. */
+const eerstLijst = () => stand.eerstDit(d);
+const erbijLijst = () => stand.erbij(d);
 
 function eerst(lijst) {
   if (!lijst.length) return '';
@@ -51,17 +44,6 @@ function eerst(lijst) {
   const rest = lijst.length - 3;
   const regel = (x, i) => `<div class="regel"><div class="tekst"><b>${i ? '' : '<i class="stip"></i>'}${esc(i ? x.wat : t('stand1.eerst', { wat: x.wat }))}</b><span class="zin">${esc(x.zin)}${i === 2 && rest > 0 ? ` <span class="daarna">${esc(t('stand1.daarna', { n: rest }))}</span>` : ''}</span></div><a class="knopje" href="${x.href}">${esc(x.knop)} ›</a></div>`;
   return `<div class="eerst">${lijst.slice(0, 3).map(regel).join('')}</div>`;
-}
-
-/**
- * Kan er nog bij: wat er een apparaat of een contract voor nodig heeft (stand
- * "nodig"), en wat je nog kunt klaarzetten voor iedereen (besluit 246). De knop
- * staat op de regel; bij iets dat je koopt opent hij de uitleg.
- */
-function erbijLijst() {
-  const nodig = stand.kan(d).filter((x) => x.stand === 'nodig').map((x) => ({ id: x.id, titel: x.titel, zin: x.nu, knop: x.label, open: x.id }));
-  const klaar = (d.klaar?.functies ?? []).filter((f) => f.niveau === 'iedereen' && f.stappen.some((s) => s.stand === 'open')).map((f) => ({ id: `klaar-${f.id}`, titel: f.titel, zin: f.zin, knop: t('stand1.klaarzetten'), href: `klaarzetten.html#${encodeURIComponent(f.id)}` }));
-  return [...nodig, ...klaar];
 }
 
 function erbij(lijst) {

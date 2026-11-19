@@ -348,7 +348,9 @@ function klimaatKaart({ a, r }) {
     el.dataset.blad = 'klimaat';
     el.dataset.klimaat = bijHand.id;
     el.tabIndex = 0;
-    el.setAttribute('role', 'button');
+    // Een groep, geen knop: er staat een eigen knop in (Klopt iets niet?), en een knop in een knop kan niet (19 november 2026).
+    el.setAttribute('role', 'group');
+    el.setAttribute('aria-label', t('apparaten.openIn', { naam: a.naam }));
   }
   el.innerHTML = `
     <div class="kopje"><span class="ik${a.klimaat?.kanKoelen ? '' : ' warm'}">${a.klimaat?.kanKoelen ? IK.airco : IK.warm}</span><div><b>${esc(a.naam)}</b><span class="mini">${esc(r.naam)}</span></div><div class="kw">${kw}</div></div>

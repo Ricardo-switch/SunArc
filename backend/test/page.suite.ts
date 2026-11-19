@@ -1146,6 +1146,74 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
   }, 60_000);
 
   /*
+   * Ook met een groot huis (19 november 2026): met de gegevens van een echt huis
+   * schoven Contract en prijzen, Meters en Licht en screens toch, omdat het
+   * testhuis klein is. Hier krijgt hetzelfde huis veel lampen en scènes per
+   * kamer, zes vaste kosten en vier apparaten met een eigen meter.
+   */
+  it('laat ook met een groot huis Contract en prijzen, Meters en Licht en screens op de wand passen', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    type Ding = { id: string; naam: string; soort: string };
+    type Huis = { etages: { ruimtes: { naam: string; apparaten: Ding[]; scenes?: { id: string; naam: string }[] }[] }[] };
+    await context.route(`${baseUrl}/api/huis`, async (route) => {
+      const res = await route.fetch();
+      const huis = (await res.json()) as Huis;
+      let n = 0;
+      for (const e of huis.etages) {
+        for (const r of e.ruimtes) {
+          for (let i = 0; i < 3; i++) r.apparaten.push({ id: `light.groot_${++n}`, naam: `Plafonnière ${r.naam.toLowerCase()} ${i + 1}`, soort: 'licht' });
+          r.scenes = Array.from({ length: 14 }, (_, i) => ({ id: `scene.groot_${n}_${i}`, naam: `Scène ${i + 1} met een lange naam` }));
+        }
+      }
+      await route.fulfill({ response: res, json: huis });
+    });
+    type Instellingen = { net: { afname: string[]; teruglevering: string[] }; apparaten: { id: string; naam: string }[]; prijzen: { vast: unknown[] } };
+    type Energie = { meters?: { id: string }[]; instellingen?: Instellingen | null; voorstel?: Instellingen | null };
+    await context.route(`${baseUrl}/api/energie`, async (route) => {
+      const res = await route.fetch();
+      const energie = (await res.json()) as Energie;
+      // Nog niets bewaard in het testhuis: dan het voorstel als instelling.
+      const ins = (energie.instellingen ??= energie.voorstel ?? null);
+      if (ins) {
+        const ids = (energie.meters ?? []).map((m) => m.id);
+        ins.net.afname = ids.slice(0, 2);
+        ins.net.teruglevering = ids.slice(2, 4);
+        ins.apparaten = ['Airconditioning woonkamer', 'Airconditioning zolder', 'Elektrische haard', 'Terrasverwarmer'].map((naam, i) => ({ id: ids[i] ?? `sensor.groot_${i}`, naam }));
+        ins.prijzen.vast = ['Vaste leveringskosten stroom', 'Netbeheer stroom', 'Vermindering energiebelasting', 'Terugleverkosten', 'Vaste leveringskosten gas', 'Netbeheer gas'].map((naam, i) => ({ naam, bedrag: 0.3 + i / 10, per: 'dag', soort: i < 4 ? 'stroom' : 'gas' }));
+      }
+      await route.fulfill({ response: res, json: energie });
+    });
+    const p = await context.newPage();
+    const teVol: string[] = [];
+    for (const adres of ['energie.html#prijzen', 'energie.html#meters', 'functies.html#licht']) {
+      await p.goto(`${baseUrl}/${adres}`);
+      await p.locator('#wand [data-vorm] h2').first().waitFor();
+      await p.waitForTimeout(400);
+      const over = await p.locator('#wand [data-vorm]').evaluate((v) => v.scrollHeight - v.clientHeight);
+      if (over > 2) teVol.push(`${adres}: ${over}px`);
+      // Het grote huis staat er echt: veel lampen, scènes als aantal, de apparaten met een meter.
+      if (adres.startsWith('functies')) {
+        expect(await p.locator('#wand .lichtkamer').count()).toBeGreaterThan(3);
+        expect(await p.locator('#wand .lichtkamer .scenetal').first().textContent()).toContain('14 scènes');
+      }
+      if (adres.endsWith('meters')) expect(await p.locator('#wand [data-apparaatnaam]').count()).toBe(4);
+    }
+    // Vaste kosten aanpassen gaat over de hele breedte, en past ook.
+    await p.goto(`${baseUrl}/energie.html#prijzen`);
+    await p.locator('#wand [data-vast-bewerk="1"]').click();
+    await p.locator('#wand [data-vast="bedrag"]').first().waitFor();
+    expect(await p.locator('#wand [data-vast="bedrag"]').count()).toBe(6);
+    const overBewerk = await p.locator('#wand [data-vorm]').evaluate((v) => v.scrollHeight - v.clientHeight);
+    if (overBewerk > 2) teVol.push(`vaste kosten aanpassen: ${overBewerk}px`);
+    await p.locator('#wand [data-vast-bewerk=""]').click();
+    await p.locator('#wand .vastkort').waitFor();
+    expect(teVol).toEqual([]);
+    await context.close();
+  }, 60_000);
+
+  /*
    * De thuisaccu (besluit 271, issue 145): een accu via Homey zelf kiezen, zien
    * welke sensor wat is, het teken omdraaien, en dat het bewaard wordt. Sinds
    * besluit 318 in een blad bij Apparaten; een oude link naar Energie komt daar uit.
@@ -1234,6 +1302,9 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await wand.locator('[data-vast="bedrag"]').last().press('Tab');
     await wand.locator('[data-vast="per"]').last().selectOption('jaar');
     await expect.poll(() => energyStore.current?.prijzen, { timeout: 5_000 }).toMatchObject({ stroom: 0.27142, stroomDal: 0.269, vast: [{ naam: 'Vermindering energiebelasting', bedrag: -628.96, per: 'jaar', soort: 'stroom' }] });
+    // Op de wand gaat een nieuwe post over de hele breedte (19 november 2026); Klaar zet het blad terug, met de post op één regel.
+    await wand.locator('[data-vast-bewerk=""]').click();
+    await wand.locator('.vastkort .regel', { hasText: 'Vermindering energiebelasting' }).waitFor();
     // Regels per land (besluit 178): eigen daltijden en geen salderen.
     await wand.locator('[data-kies="dalUren"]', { hasText: 'Eigen tijden' }).click();
     await wand.locator('[data-daleigen="van"]').selectOption('22');
@@ -1932,7 +2003,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         ['jij.html', /How the app looks[\s\S]*Theme and colour/],
         ['comfort.html', /Climate[\s\S]*What is this for\?/],
         ['energie.html', /Energy setup[\s\S]*Roofs and panels[\s\S]*Connection[\s\S]*Meters/],
-        ['functies.html', /Features[\s\S]*Cameras[\s\S]*Doorbell[\s\S]*Lights and screens/],
+        ['functies.html', /Lights, cameras and weather[\s\S]*Cameras[\s\S]*Doorbell[\s\S]*Lights and screens/],
         ['toegang.html', /Residents and access[\s\S]*Version/],
         ['bewoners.html', /Who lives here, in order/],
         // Deel 4: Wat je huis kan, Indeling, Inrichten en het begin.
@@ -2633,7 +2704,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // Inrichten staat niet meer bij Instellingen (besluit 323); zoeken vindt het nog.
     await p.goto(`${baseUrl}/instellingen.html`);
     await p.locator('#wand [data-groepen] .tegel').first().waitFor();
-    expect(await p.locator('#wand [data-groepen] a[href="inrichten.html"]').count()).toBe(0);
+    expect(await p.locator('#wand [data-groepen] a:not(.mist)[href="inrichten.html"]').count()).toBe(0);
     await p.locator('#wand [data-zoek]').fill('inrichten');
     await p.locator('#wand [data-gevonden] a[href="inrichten.html"]').click();
     const kaart = p.locator('#wand [data-kaart]');
@@ -5451,10 +5522,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await p.locator('#wand [data-groepen] .tegel').first().waitFor();
     // Vier tegels (besluit 321, schets Wand-Instellingen-Vier #tegels), elk met zijn onderdelen als knoppen.
     expect(await p.locator('#wand [data-groepen] .tegel h3').allTextContents()).toEqual(['Je huis', 'Klimaat', 'Energie', 'App en bewoners']);
-    expect(await p.locator('#wand [data-tegel="jehuis"] .deelknop b').allTextContents()).toEqual(['Vorm van het huis', 'Etages en kamers', 'Waar elk apparaat staat', 'Daken en panelen']);
+    // Wat mist staat op de telefoon bovenaan de tegel (19 november 2026); de vaste knoppen zijn dezelfde.
+    expect(await p.locator('#wand [data-tegel="jehuis"] .deelknop:not(.mist) b').allTextContents()).toEqual(['Vorm van het huis', 'Etages en kamers', 'Waar elk apparaat staat', 'Daken en panelen']);
     expect(await p.locator('#wand [data-tegel="energie"] .deelknop[href="energie.html#aansluiting"]').count()).toBe(1);
     // Inrichten staat hier niet meer (besluit 323): de standpagina biedt het aan.
-    expect(await p.locator('#wand [data-tegel="app"] .deelknop[href="inrichten.html"], #wand [data-tegel="app"] .deelknop[href="klaarzetten.html"]').count()).toBe(0);
+    expect(await p.locator('#wand [data-tegel="app"] .deelknop:not(.mist)[href="inrichten.html"], #wand [data-tegel="app"] .deelknop:not(.mist)[href="klaarzetten.html"]').count()).toBe(0);
     // Elke tegel past zonder te scrollen.
     expect(await p.locator('#wand .tegel').evaluateAll((els) => els.every((e) => e.scrollHeight <= e.clientHeight + 2))).toBe(true);
     expect(await p.locator('#balk [aria-current="page"]').getAttribute('aria-label')).toBe('Instellingen');

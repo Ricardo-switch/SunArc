@@ -63,9 +63,9 @@ export const TE_TRAAG = 0.6;
 
 /** Een fout van Home Assistant in gewone woorden. */
 export function foutInWoorden(code: string, bericht = ''): string {
-  if (code === 'wake-engine-missing' || /wake.?word/i.test(bericht)) return 'De gekozen spraakassistent heeft geen wekwoord. Geef hem er een in Home Assistant, of kies een andere bij Functies.';
+  if (code === 'wake-engine-missing' || /wake.?word/i.test(bericht)) return 'De gekozen spraakassistent heeft geen wekwoord. Geef hem er een in Home Assistant, of kies een andere bij Assistent.';
   if (code === 'stt-provider-missing' || code === 'stt-provider-unsupported-metadata') return 'De spraakassistent heeft geen spraak naar tekst die Nederlands kan.';
-  if (code === 'pipeline-not-found' || /pipeline not found/i.test(bericht)) return 'Die spraakassistent bestaat niet meer in Home Assistant. Kies een andere bij Functies.';
+  if (code === 'pipeline-not-found' || /pipeline not found/i.test(bericht)) return 'Die spraakassistent bestaat niet meer in Home Assistant. Kies een andere bij Assistent.';
   if (code === 'verbinding') return 'De verbinding met Home Assistant viel weg.';
   if (code === 'timeout') return 'Het duurde te lang.';
   if (/staat uit/.test(bericht)) return 'Luisteren mag niet op deze installatie.';

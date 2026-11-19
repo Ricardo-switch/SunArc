@@ -121,7 +121,11 @@ function bedragVeld(label, pad, waarde, hint = '', min = '0', leegIsFout = false
 const kop = (titel, rechts = '') => `<div class="kopregel"><h2 class="kop-2">${esc(titel)}</h2>${rechts}</div>`;
 const blok = (titel, inhoud) => `<div class="deelvraag">${titel ? `<h3 class="kop-3">${esc(titel)}</h3>` : ''}${inhoud}</div>`;
 /** Op de wand twee kolommen naast elkaar, zodat een deel zonder scrollen past (besluit 163); op de telefoon onder elkaar. */
+/** Of de vaste kosten op de wand over de hele breedte openstaan om aan te passen. */
+let vastBewerk = false;
 const kolommen = (links, rechts) => `<div class="kolommen"><div>${links}</div><div>${rechts}</div></div>`;
+/** Drie kolommen op de wand voor Meters: met een echt huis schoof het blad in twee (19 november 2026). */
+const drieKolommen = (a1, a2, a3) => `<div class="kolommen drie"><div>${a1}</div><div>${a2}</div><div>${a3}</div></div>`;
 const naamVan = (id) => eInfo?.meters?.find((m) => m.id === id)?.naam ?? id;
 
 /* ------------------------------------------------------------ de delen */
@@ -296,7 +300,11 @@ function metersVorm() {
   const apparatenBlok = blok(t('energie.eigenMeter'), `${rijen || `<p class="uitleg">${esc(t('energie.nogGeenApparaat'))}</p>`}${meterKeuze(t('energie.apparaatErbij'), 'apparaat', 'apparaat', 'energy', t('energie.apparaatErbijLeeg'))}`);
   return `${kop(t('energie.meters'))}
     ${e.net.afname.length ? '' : `<div class="melding"><span class="stip" style="background: var(--gloed)"></span>${esc(t('stand.metersZin'))}</div>`}
-    ${kolommen(`${uitHa}${aInfo && a ? blok(t('energie.vermogenKop'), vermogens.netBlok(aInfo, a)) : ''}${apparatenBlok}`, blok(t('energie.welkeMeter'), `${rol('afname', e.net.afname, 'afname', 'energy')}${rol('teruglevering', e.net.teruglevering, 'teruglevering', 'energy')}${rol('zon', e.zon, 'zon', 'energy')}${rol('gas', e.gas ? [e.gas] : [], 'gas', 'volume', true)}${dubbel ? `<p class="mini">${esc(t('energie.tikDal'))}</p>` : ''}`))}`;
+    ${drieKolommen(
+      `${uitHa}${aInfo && a ? blok(t('energie.vermogenKop'), vermogens.netBlok(aInfo, a)) : ''}`,
+      blok(t('energie.welkeMeter'), `${rol('afname', e.net.afname, 'afname', 'energy')}${rol('teruglevering', e.net.teruglevering, 'teruglevering', 'energy')}${dubbel ? `<p class="mini">${esc(t('energie.tikDal'))}</p>` : ''}${rol('zon', e.zon, 'zon', 'energy')}`),
+      `${blok('', rol('gas', e.gas ? [e.gas] : [], 'gas', 'volume', true))}${apparatenBlok}`,
+    )}`;
 }
 
 /* Contract en prijzen */
@@ -329,7 +337,7 @@ function prijzenVorm() {
     ? `<p class="mini">${esc(t('energie.meterApart'))}</p>`
     : `<span class="veldnaam">${esc(t('energie.wanneerDal'))}</span>${keuzes(t('energie.daltarief'), 'dalUren', ['nl', 'zuid', 'eigen'].map((x) => [x, t(`energie.dal.${x}`)]), p.dalUren)}${p.dalUren === 'eigen' ? eigenDal(p.dalEigen) : ''}`;
   const opt = (lijst, huidig) => lijst.map(([w, x]) => `<option value="${w}" ${w === huidig ? 'selected' : ''}>${esc(x)}</option>`).join('');
-  const posten = p.vast.map((v, i) => `<div class="vastrij">
+  const vastRijen = p.vast.map((v, i) => `<div class="vastrij">
       <input class="invoer" data-vast="naam" data-i="${i}" value="${esc(v.naam)}" maxlength="40" aria-label="${esc(t('energie.naamPost'))}">
       <div class="vastregel">
         <input class="invoer${v.bedrag == null ? ' leeg' : ''}" type="number" inputmode="decimal" step="any" data-vast="bedrag" data-i="${i}" value="${v.bedrag ?? ''}" aria-label="${esc(t('energie.bedragVan', { naam: v.naam }))}">
@@ -337,8 +345,24 @@ function prijzenVorm() {
         <select class="invoer" data-vast="soort" data-i="${i}" aria-label="${esc(t('energie.stroomOfGas'))}">${opt([['stroom', t('energie.stroom')], ['gas', t('energie.gas')]], v.soort)}</select>
         <button type="button" class="knop" data-vast-weg="${i}" aria-label="${esc(t('energie.weghalen', { naam: v.naam }))}">×</button>
       </div>
-    </div>`).join('');
+    </div>`);
+  const posten = vastRijen.join('');
   const erbij = VOORSTELLEN.filter((x) => !p.vast.some((v) => v.naam.toLowerCase() === x.naam.toLowerCase()));
+  const erbijKnoppen = `<div class="meterchips">${erbij.map((x) => `<button type="button" data-vast-erbij="${esc(x.naam)}">+ ${esc(x.naam)}</button>`).join('')}<button type="button" data-vast-erbij="">${esc(t('energie.anderePost'))}</button></div>`;
+  /*
+   * Vaste kosten op de wand (19 november 2026): met zes posten schoof het blad
+   * 553 punten. Daarom een regel per post, en Aanpassen zet ze over de hele
+   * breedte, in twee kolommen. Op de telefoon blijft alles onder elkaar.
+   */
+  if (vastBewerk) {
+    const helft = Math.ceil(p.vast.length / 2);
+    const rijen = vastRijen;
+    return `${kop(t('energie.vasteKosten'), `<button type="button" class="knop knop-licht" data-vast-bewerk="">${esc(t('algemeen.klaar'))}</button>`)}
+      ${kolommen(rijen.slice(0, helft).join(''), `${rijen.slice(helft).join('')}${erbijKnoppen}<p class="mini">${esc(t('energie.postUitleg'))}</p>`)}`;
+  }
+  const kort = p.vast.length
+    ? `<div class="vastkort">${p.vast.map((v) => `<div class="regel${v.bedrag == null ? ' leeg' : ''}"><span>${esc(v.naam)}</span><b>${v.bedrag == null ? esc(t('energie.vastLeeg')) : `${esc(taal.valuta())} ${nl(v.bedrag, 2)} ${esc(t(`energie.per.${v.per}`))}`}</b></div>`).join('')}</div><button type="button" class="knop" data-vast-bewerk="1">${esc(t('energie.vastAanpassen'))}</button>`
+    : '';
   // Wat Home Assistant nu per uur telt (issue 128), uit het voorstel: met een prijs per uur daarin telt hij de stroom.
   // Antwoordde Home Assistant niet, dan weet de pagina het niet en zegt hij niets.
   const nuInHA = eInfo && !eInfo.fout ? eInfo.voorstel?.prijzen?.dynamisch ?? null : undefined;
@@ -390,9 +414,9 @@ function prijzenVorm() {
       <label class="veldnaam">${esc(t('energie.contractStart'))}<input class="invoer" type="date" data-contract value="${esc(p.contractStart ?? '')}" min="2000-01-01" max="2100-12-31"></label>
       <p class="mini">${esc(t('energie.contractUitleg'))}</p>`)}${blok(t('energie.stroomKop'), stroomBlok)}${e.gas ? blok(t('energie.gasKop'), gasPerUur
       ? `<div class="melding" data-gas-per-uur><span class="stip" style="background: var(--mint)"></span><span>${esc(t('energie.gasPerUur'))}</span></div>`
-      : `${bedragVeld(t('energie.perM3'), 'gas', p.gas, nl(1.36, 2), '0', true)}<p class="mini">${esc(t('energie.gasTotaal'))}</p>`) : ''}`, `${blok(t('energie.teruglevering'), terugBlok)}${blok(t('energie.vasteKosten'), `${posten || `<p class="uitleg">${esc(t('energie.geenPosten'))}</p>`}
-      <div class="meterchips">${erbij.map((x) => `<button type="button" data-vast-erbij="${esc(x.naam)}">+ ${esc(x.naam)}</button>`).join('')}<button type="button" data-vast-erbij="">${esc(t('energie.anderePost'))}</button></div>
-      <p class="mini">${esc(t('energie.postUitleg'))}</p>`)}`)}`;
+      : `${bedragVeld(t('energie.perM3'), 'gas', p.gas, nl(1.36, 2), '0', true)}<p class="mini">${esc(t('energie.gasTotaal'))}</p>`) : ''}`, `${blok(t('energie.teruglevering'), terugBlok)}${blok(t('energie.vasteKosten'), p.vast.length
+      ? `<div class="vast-tel">${posten}${erbijKnoppen}<p class="mini">${esc(t('energie.postUitleg'))}</p></div><div class="vast-wand">${kort}</div>`
+      : `<p class="uitleg">${esc(t('energie.geenPosten'))}</p>${erbijKnoppen}<p class="mini">${esc(t('energie.postUitleg'))}</p>`)}`)}`;
 }
 
 /* Verwarming */
@@ -848,7 +872,12 @@ document.addEventListener('click', async (ev) => {
     e.apparaten.splice(Number(knop.dataset.apparaatWeg), 1);
   } else if (knop.dataset.vastWeg != null) {
     p.vast.splice(Number(knop.dataset.vastWeg), 1);
+  } else if (knop.dataset.vastBewerk != null) {
+    vastBewerk = knop.dataset.vastBewerk === '1';
+    return teken();
   } else if (knop.dataset.vastErbij != null) {
+    // Op de wand gaat een nieuwe post meteen naar de hele breedte, om het bedrag in te vullen.
+    if (app.zicht() === '#wand') vastBewerk = true;
     const v = VOORSTELLEN.find((x) => x.naam === knop.dataset.vastErbij);
     p.vast.push({ naam: v?.naam ?? t('energie.post.vast'), bedrag: null, per: v?.per ?? 'dag', soort: v?.soort ?? 'stroom' });
     teken();

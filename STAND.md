@@ -47,6 +47,9 @@ verwijzing bestaat.
   als vast vak, de gebouwen van de kaart en de delen van de tuin ([324]).
   Sinds 0.202.0 is er hulp op de plek: vraagtekens met stukjes handleiding,
   Ik snap iets niet bij melden, en de assistent antwoordt eruit ([325]).
+  Sinds 0.203.0 is stap 3 af: één telling voor hoe ver je huis is, de wand
+  past ook met een groot huis, de pagina Functies heet Licht, camera's en
+  weer, en de assistent kent de laadpaal en de boiler ([326]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1056,4 +1059,5 @@ verwijzing bestaat.
 [323]: DECISIONS.md#323-inrichten-in-zeven-stappen
 [324]: DECISIONS.md#324-buiten-als-eigen-tekening-in-je-huis
 [325]: DECISIONS.md#325-hulp-op-de-plek
+[326]: DECISIONS.md#326-stap-3-af-één-telling-bladen-die-passen-één-woord-en-de-assistent
 <!-- links:einde -->

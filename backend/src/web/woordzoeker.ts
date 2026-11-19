@@ -110,12 +110,12 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     zwak: ['panelen', 'zonnepanelen', 'dak', 'dakvlak*', 'netaansluiting', 'panels', 'solar panels', 'roof'],
     nl: {
       antwoord:
-        'Je aansluiting stel je in bij Instellingen, onder Energie: waar je panelen liggen, je hoofdzekering en je verwarming. Welke apparaten op zon mogen starten, staat bij Regeling.',
+        'Je aansluiting stel je in bij Instellingen, onder Energie: waar je panelen liggen, je hoofdzekering en je verwarming. Welke apparaten op zon mogen starten, staat bij Apparaten, op de kaart van elk apparaat.',
       label: 'Naar Energie',
     },
     en: {
       antwoord:
-        'You set up your connection under Settings, Energy setup: where your panels are, your main fuse and your heating. Which devices may start on solar is under Control.',
+        'You set up your connection under Settings, Energy setup: where your panels are, your main fuse and your heating. Which devices may start on solar is under Devices, on the card of each device.',
       label: 'Go to Energy setup',
     },
   },
@@ -157,13 +157,13 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     zwak: ['beeld', 'videodeurbel', 'lampen bedienen', 'licht bedienen', 'weer', 'weather', 'video', 'light control'],
     nl: {
       antwoord:
-        'Camera’s, de deurbel, licht bedienen en het weer stel je in bij Instellingen, onder Functies. Daar kies je welke camera’s de app toont, wat er gebeurt als er wordt aangebeld, en waar het weer vandaan komt.',
-      label: 'Naar Functies',
+        'Camera’s, de deurbel, licht bedienen en het weer stel je in bij Instellingen, onder Licht, camera’s en weer. Daar kies je welke camera’s de app toont, wat er gebeurt als er wordt aangebeld, en waar het weer vandaan komt.',
+      label: 'Naar Licht, camera’s en weer',
     },
     en: {
       antwoord:
-        'Cameras, the doorbell, light control and the weather are under Settings, Features. Choose which cameras the app shows, what happens when someone rings, and where the weather comes from.',
-      label: 'Go to Features',
+        'Cameras, the doorbell, light control and the weather are under Settings, Lights, cameras and weather. Choose which cameras the app shows, what happens when someone rings, and where the weather comes from.',
+      label: 'Go to Lights, cameras and weather',
     },
   },
   {
@@ -237,6 +237,43 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     },
     en: {
       antwoord: 'All devices are under Devices, per room, with what they are doing now.',
+      label: 'Go to Devices',
+    },
+  },
+  /*
+   * De laadpaal en de boiler (19 november 2026): "waarom laadt de auto niet
+   * sneller", "waar stel ik de laadpaal in" en "waarom zie ik de boiler niet"
+   * gingen naar wat het huis nu doet.
+   */
+  {
+    id: 'laadpaal',
+    href: 'apparaten.html#laden-lijst',
+    sterk: ['laadpaal*', 'laadpunt*', 'laadt', 'laden', 'opladen', 'auto', 'elektrische auto', 'wallbox', 'charger', 'charging', 'charge', 'car', 'ev'],
+    zwak: ['sneller', 'langzaam', 'trager', 'snel', 'harder', 'stroom', 'ampere', 'faster', 'slow', 'slower', 'amps'],
+    nl: {
+      antwoord:
+        'Je laadpaal staat bij Apparaten, met per auto hoe hij laadt: op zon, als stroom goedkoop is, of met de hand. Op zon laadt hij alleen met wat er over is, dus bij weinig zon langzamer. En hij blijft altijd onder je hoofdzekering, zodat die er niet uit gaat.',
+      label: 'Naar je laadpaal',
+    },
+    en: {
+      antwoord:
+        'Your charger is under Devices, with how each car charges: on solar, when electricity is cheap, or by hand. On solar it only uses what is left over, so with little sun it charges slower. And it always stays under your main fuse, so that does not trip.',
+      label: 'Go to your charger',
+    },
+  },
+  {
+    id: 'boiler',
+    href: 'apparaten.html',
+    sterk: ['boiler*', 'warm water', 'warmwater', 'warmwaterboiler', 'water heater', 'hot water', 'jacuzzi', 'hottub', 'hot tub'],
+    zwak: ['tank', 'douche', 'water', 'shower'],
+    nl: {
+      antwoord:
+        'De boiler staat bij Apparaten en in de tekening van je huis, met zijn temperatuur en het doel. Met zon over maakt hij het water alvast heet, zodat het daarna minder stroom van het net kost. Zie je hem niet, voeg hem dan toe bij Apparaten › Toevoegen en zet hem bij Je huis op zijn plek.',
+      label: 'Naar Apparaten',
+    },
+    en: {
+      antwoord:
+        'The boiler is under Devices and in the drawing of your home, with its temperature and target. With solar left over it heats the water ahead of time, so it takes less power from the grid later. If you do not see it, add it under Devices › Add and give it its place under Your home.',
       label: 'Go to Devices',
     },
   },
@@ -640,6 +677,8 @@ export function begrijp(ruw: string, config: SiteConfig, lang: Lang): Begrepen {
   if (vandaag) huis.push({ vraag: { kind: 'vandaag' }, score: 3 * vandaag });
   const overal = telt(['overal', 'alle kamers', 'elke kamer', 'in huis', 'everywhere', 'every room', 'all rooms', 'in the house', 'whole house'], tekst, los);
   if (overal && kamer == null && telt(['warm', 'koud', 'temperatuur', 'graden', 'temperature', 'hot', 'cold', 'degrees'], tekst, los)) huis.push({ vraag: { kind: 'warm' }, score: 5 });
+  // "Hoe warm is het in de slaapkamer" voor een kamer zonder regeling (19 november 2026): dan hoe warm het overal is, die kamer erbij.
+  else if (kamer == null && telt(['hoe warm', 'hoe koud', 'hoeveel graden', 'welke temperatuur', 'how warm', 'how cold', 'what temperature', 'how many degrees'], tekst, los)) huis.push({ vraag: { kind: 'warm' }, score: 4 });
   // Het weer van morgen, en wat iets kost (besluit 142).
   const morgen = telt(MORGEN, tekst, los);
   // Het weer zonder morgen erbij gaat over vandaag (besluit 166): "wat voor weer wordt het vandaag?".

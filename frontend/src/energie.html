@@ -26,6 +26,10 @@
   .zijaanzicht svg { width: 100%; max-width: 260px; height: auto; display: block; margin: 0 auto; }
   .twee { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .kolommen { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 28px; align-items: start; }
+  .kolommen.drie { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 22px; }
+  #wand .kolommen.drie .regelrij { padding: 5px 0; gap: 8px; }
+  #wand .kolommen.drie .regelrij .l span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #wand .kolommen.drie .regelrij .knop { padding: 0 12px; }
   .kolommen > div { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
   .kolommen > div > .deelvraag:first-child { border-top: 0; padding-top: 0; }
   #wand .kolommen > div { gap: 12px; }

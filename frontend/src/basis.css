@@ -132,6 +132,14 @@ select.invoer option, select.invoer optgroup { background: #13203a; color: var(-
 body.offline #wand main, body.offline #tel .inhoud { filter: grayscale(0.85); opacity: 0.7; pointer-events: none; }
 .geenverbinding { position: fixed; z-index: 900; left: 50%; top: 14px; transform: translateX(-50%); max-width: min(560px, calc(100vw - 32px)); padding: 10px 16px; border-radius: 14px; background: rgba(20, 28, 44, 0.95); border: 1px solid rgba(247, 181, 72, 0.5); color: var(--tekst); font-size: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
 /* Meters en prijzen (besluit 110): vaste posten en het tarief per meter. */
+/* Vaste kosten: op de wand een regel per post, aanpassen over de hele breedte (19 november 2026). */
+#wand .vast-tel, #tel .vast-wand { display: none; }
+.vastkort { display: flex; flex-direction: column; margin-bottom: 8px; }
+.vastkort .regel { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-top: 1px solid rgb(var(--wit) / 0.06); font-size: 14px; }
+.vastkort .regel:first-child { border-top: 0; }
+.vastkort .regel span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--gedempt); }
+.vastkort .regel b { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.vastkort .regel.leeg b { color: var(--gloed-t); }
 .vastrij { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
 .vastrij:first-of-type { border-top: 0; }
 .vastregel { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 6px; }

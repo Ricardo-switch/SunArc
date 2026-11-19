@@ -475,5 +475,29 @@
     const winter = dataset?.seizoenen?.find((s) => s.seizoen === 'winter') ?? null;
     return { groepen, onderwerpen, totaal, klaar, gereedheid, dataset, winter, tel: (s) => onderwerpen.filter((x) => x.stand === s).length };
   }
-  global.stand = { GROEPEN, nogTeDoen, zoek, kan, batterijSom, ideeen, voortgang };
+  /*
+   * Eén som voor hoe ver je huis is (19 november 2026). Instellingen telde
+   * Klaarzetten niet mee en telde "kan erbij" anders dan Wat je huis kan; nu
+   * rekenen beide hier, en zeggen ze hetzelfde.
+   */
+  /** Eerst dit: wat SunArc echt mist, en wat in Home Assistant mist voor de regeling (besluit 179). */
+  function eerstDit(d) {
+    const t = global.taal.t;
+    const lijst = nogTeDoen(d).map((x) => ({ id: x.id, groep: x.groep, wat: x.wat, zin: x.waarom, knop: x.knop, href: x.href }));
+    const mist = (d.klaar?.punten ?? []).filter((p) => p.stand === 'mist').length;
+    if (mist) lijst.push({ id: 'klaarzetten', groep: 'klaarzetten', wat: t('kan.klaar.kop'), zin: t('instellingen.mist', { n: mist }), knop: t('stand1.bekijk'), href: 'huis-kan.html#klaarzetten' });
+    return lijst;
+  }
+  /** Kan er nog bij: wat een apparaat of contract nodig heeft, en wat je nog kunt klaarzetten voor iedereen (besluit 246). */
+  function erbij(d) {
+    const t = global.taal.t;
+    const nodig = kan(d)
+      .filter((x) => x.stand === 'nodig')
+      .map((x) => ({ id: x.id, titel: x.titel, zin: x.nu, knop: x.label, open: x.id }));
+    const klaar = (d.klaar?.functies ?? [])
+      .filter((f) => f.niveau === 'iedereen' && f.stappen.some((s) => s.stand === 'open'))
+      .map((f) => ({ id: `klaar-${f.id}`, titel: f.titel, zin: f.zin, knop: t('stand1.klaarzetten'), href: `klaarzetten.html#${encodeURIComponent(f.id)}` }));
+    return [...nodig, ...klaar];
+  }
+  global.stand = { GROEPEN, nogTeDoen, eerstDit, erbij, zoek, kan, batterijSom, ideeen, voortgang };
 })(window);

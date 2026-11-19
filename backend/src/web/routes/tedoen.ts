@@ -426,7 +426,7 @@ export async function teDoenZin(d: Diensten, t: TeDoenDienst, tekst: string, wie
   if (l) {
     const keus = t.keus();
     if ((l.lijst === 'boodschappen' ? keus.boodschappen : keus.todo) == null) {
-      return { antwoord: nl(lang) ? `Er is geen ${l.lijst === 'boodschappen' ? 'boodschappenlijst' : 'to-do-lijst'} in Home Assistant. Kies er een bij Functies, onder Te doen.` : 'There is no such list in Home Assistant. Choose one under Features, To do.', feiten: [] };
+      return { antwoord: nl(lang) ? `Er is geen ${l.lijst === 'boodschappen' ? 'boodschappenlijst' : 'to-do-lijst'} in Home Assistant. Kies er een bij Assistent, onder Te doen.` : 'There is no such list in Home Assistant. Choose one under Assistant, To do.', feiten: [] };
     }
     return {
       antwoord: nl(lang) ? `${l.item} staat op ${lijstNaam(l.lijst, lang)}.` : `${l.item} is on ${lijstNaam(l.lijst, lang)}.`,

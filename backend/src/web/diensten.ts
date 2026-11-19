@@ -219,7 +219,7 @@ export class Diensten {
     const nuSoort = forecast.find((f) => f.offset === 0)?.soort ?? null;
     const w = this.weather;
     if (w != null && now >= w.atMs && now - w.atMs < 10 * 60_000 && w.geometry === config.geometry && w.report.vandaag.soort === nuSoort) return w.report;
-    if (forecast.length === 0) return { wachten: 'er is nog geen weerverwachting; kies een weerbron bij Functies' };
+    if (forecast.length === 0) return { wachten: 'er is nog geen weerverwachting; kies een weerbron bij Licht, camera’s en weer' };
     this.solar ??= new SolarHistory({ logDir });
     this.today ??= new TodayCache(logDir, config);
     try {

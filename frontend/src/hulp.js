@@ -39,6 +39,8 @@
     verbergen: { plek: 'jehuis', href: 'jehuis.html' },
     apparaten: { plek: 'apparaten', href: 'apparaten.html' },
     'apparaat-op-zon': { plek: 'apparaten', href: 'apparaten.html' },
+    boiler: { plek: 'apparaten', href: 'apparaten.html' },
+    laadpaal: { plek: 'apparaten', href: 'apparaten.html#laden-lijst' },
     'stekker-op-zon': { plek: 'apparaten', href: 'apparaten.html' },
     'met-de-hand': { plek: 'apparaten', href: 'apparaten.html' },
     hoofdzekering: { plek: 'energie', href: 'energie.html#aansluiting' },

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.202.3';
+export const VERSIE = '0.203.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,28 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.203.0',
+    datum: '2026-11-19',
+    beter: [
+      'Instellingen en Wat je huis kan tellen hetzelfde: wat er mist en wat er nog bij kan',
+      'Staat er bij een tegel van Instellingen dat er iets mist, dan zie je op de telefoon bovenaan de tegel wat, met een tik ernaartoe',
+      'Contract en prijzen, Meters en Licht en screens passen op de wand, ook met veel vaste kosten, meters of lampen',
+      'De pagina Functies heet nu zoals de knop erheen: Licht, camera’s en weer',
+      'De assistent weet van de laadpaal en de boiler, en zoekt bij "wat betekent …" eerst in de handleiding',
+    ],
+    opgelost: ['Inrichten gaf op een eigen server een fout in de browser bij de stem in huis'],
+    en: {
+      beter: [
+        'Settings and What your home can do count the same: what is missing and what can be added',
+        'When a tile in Settings says something is missing, on a phone the top of the tile shows what, with a tap to it',
+        'Contract and prices, Meters and Lights and screens fit on the wall screen, also with many fixed costs, meters or lights',
+        'The Features page is now named like the button to it: Lights, cameras and weather',
+        'The assistant knows about the charger and the boiler, and looks in the manual first for "what does … mean"',
+      ],
+      opgelost: ['Setup showed an error in the browser for the voice in the house on your own server'],
+    },
+  },
   {
     versie: '0.202.3',
     datum: '2026-11-19',

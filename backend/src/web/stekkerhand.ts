@@ -2,7 +2,7 @@
  * Een slimme stekker met de hand (besluit 265, na besluit 264): aan of uit,
  * altijd met een eind, zoals klimaat (235) en laden met de hand (262).
  *
- * - **Wie:** alleen een stekker die de bewoner bij Regeling › Op zon toeliet
+ * - **Wie:** alleen een stekker die de bewoner bij Apparaten toeliet (op zon of met de hand)
  *   ("SunArc mag hem aan- en uitzetten"); weg is nee. Alleen in de add-on (en
  *   het voorbeeldhuis); de NAS kijkt mee en laat het blad zonder knoppen zien.
  * - **Wat:** `switch.turn_on` of `turn_off` op die ene schakelaar, door de deur
@@ -54,7 +54,7 @@ export interface StekkerStand {
   readonly vermogenW: number | null;
   /** Mag SunArc hem schakelen (toegelaten en in de add-on). */
   readonly mag: boolean;
-  /** Toegelaten bij Regeling, ook als de deur er hier niet is. */
+  /** Toegelaten bij Apparaten, ook als de deur er hier niet is. */
   readonly toegelaten: boolean;
   readonly actief: { readonly aan: boolean; readonly totMs: number } | null;
   /** Op zon, echt geschakeld (besluit 267): of SunArc hem schakelt, hem aanzette, of met rust laat. */
@@ -143,7 +143,7 @@ export class Stekkerhand {
     await this.#laad();
     const s = this.#d.stekkers().find((x) => x.id === id);
     if (!s) return { ok: false, reden: 'die stekker kent SunArc niet' };
-    if (!s.mag) return { ok: false, reden: 'zet bij Regeling › Op zon aan dat SunArc deze stekker mag bedienen' };
+    if (!s.mag) return { ok: false, reden: 'zet de stekker bij Apparaten op zon, of sta op zijn kaart met de hand toe' };
     const nu = this.#nu();
     if (!(Number.isFinite(totMs) && totMs > nu && totMs <= nu + STEKKER_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt in de komende 24 uur' };
     const eerder = this.#terug.find((x) => x.id === id);
@@ -163,7 +163,7 @@ export class Stekkerhand {
     await this.#laad();
     const s = this.#d.stekkers().find((x) => x.id === id);
     if (!s) return { ok: false, reden: 'die stekker kent SunArc niet' };
-    if (!s.mag) return { ok: false, reden: 'zet bij Regeling › Op zon aan dat SunArc deze stekker mag bedienen' };
+    if (!s.mag) return { ok: false, reden: 'zet de stekker bij Apparaten op zon, of sta op zijn kaart met de hand toe' };
     await this.#d.schakel(s.actuator, false);
     this.#terug = this.#terug.filter((x) => x.id !== id);
     await this.#bewaar();

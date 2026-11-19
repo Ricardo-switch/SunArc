@@ -685,7 +685,7 @@ export function herkenOpdracht(ruw: string, b: Bedienbaar, lang: Lang, laatsteSc
   // Een scherm: genoemd, of een woord voor scherm.
   const scherm = beste(tekst, b.schermen);
   if (!scherm && SCHERM_WOORD.test(tekst) && !b.schermen.length) {
-    return { ok: false, antwoord: nl ? 'Schermen bedienen staat niet aan. Dat zet je aan bij Instellingen, onder Functies.' : 'Operating screens is off. Turn it on under Settings, Features.' };
+    return { ok: false, antwoord: nl ? 'Schermen bedienen staat niet aan. Dat zet je aan bij Instellingen, onder Licht, camera’s en weer.' : 'Operating screens is off. Turn it on under Settings, Lights, cameras and weather.' };
   }
   if (scherm || (SCHERM_WOORD.test(tekst) && b.schermen.length)) {
     const zonnescherm = /\b(zonnescherm|zonneschermen|zonwering|markies|luifel|awning|awnings)\b/.test(tekst);
@@ -753,7 +753,7 @@ export function herkenOpdracht(ruw: string, b: Bedienbaar, lang: Lang, laatsteSc
   else if (etage) doel = { soort: 'etage', id: etage.id, naam: etage.naam, lampen: b.kamers.filter((k) => k.etageId === etage.id).flatMap((k) => k.lampen) };
   else if (overal) doel = { soort: 'huis', lampen: b.lampen };
   if (doel == null) {
-    if (!b.lampen.length) return { ok: false, antwoord: nl ? 'Licht bedienen staat niet aan. Dat zet je aan bij Instellingen, onder Functies.' : 'Operating lights is off. Turn it on under Settings, Features.' };
+    if (!b.lampen.length) return { ok: false, antwoord: nl ? 'Licht bedienen staat niet aan. Dat zet je aan bij Instellingen, onder Licht, camera’s en weer.' : 'Operating lights is off. Turn it on under Settings, Lights, cameras and weather.' };
     // Een plek die de woordzoeker niet kent ("op de trap"): het taalmodel mag het proberen.
     if (gevoel && /\b(in|op|bij|aan|boven|onder|naast) (de|het|mijn|onze)?\s?\w{3,}/.test(tekst.replace(/\b(in|op) (huis|hier)\b/g, ' '))) return null;
     // Doorvragen (besluit 209): bij een paar kamers met licht, die als keuze.

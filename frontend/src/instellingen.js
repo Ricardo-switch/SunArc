@@ -30,12 +30,11 @@ async function laadAlles() {
  * naar dezelfde pagina).
  */
 function standregel() {
-  const mis = isGast() ? [] : stand.nogTeDoen(d);
+  // Dezelfde som als Wat je huis kan (19 november 2026): stand.eerstDit en stand.erbij.
+  const mis = isGast() ? [] : stand.eerstDit(d);
   const v = window.waaier ? stand.voortgang(d) : null;
-  const k = window.stand.kan ? stand.kan(d) : null;
-  const tel = (s) => (k ? k.filter((x) => x.stand === s).length : 0);
   const titel = mis.length ? t('inst4.mist', { n: mis.length }) : t('instellingen.allesGoed');
-  const zin = mis.length ? mis[0].wat : k ? t('inst4.kanZin', { werkt: tel('werkt'), bij: tel('nodig') + tel('uit') }) : '';
+  const zin = mis.length ? mis[0].wat : v ? t('inst4.kanZin', { werkt: v.tel('werkt'), bij: stand.erbij(d).length }) : '';
   const waaierDeel = v?.onderwerpen.length ? `<svg viewBox="0 0 190 110" aria-hidden="true" data-mini></svg>` : '';
   const doe = mis.length ? `<a class="doe" href="${mis[0].href}">${esc(mis[0].knop)}</a>` : '';
   return `<a class="hoever" href="huis-kan.html">${waaierDeel}<span class="tekst"><b>${mis.length ? '' : '<i class="punt" aria-hidden="true"></i>'}${esc(titel)}</b><span class="zin">${esc(zin)}</span></span><span class="pijl" aria-hidden="true">›</span></a>${doe}`;
@@ -134,15 +133,18 @@ const TEGELS = [
   ['jehuis', 'jehuis.html', ['huis']],
   ['klimaat', 'comfort.html', ['comfort']],
   ['energie', 'energie.html', ['energie']],
-  ['app', 'toegang.html', ['functies', 'assistent', 'toegang', 'inrichten']],
+  ['app', 'toegang.html', ['functies', 'assistent', 'toegang', 'inrichten', 'klaarzetten']],
 ];
 
 function groepen() {
-  const mis = isGast() ? [] : stand.nogTeDoen(d);
+  const mis = isGast() ? [] : stand.eerstDit(d);
   // Een gast (besluit 151) ziet alleen App en bewoners.
   return TEGELS.filter(([id]) => !isGast() || id === 'app').map(([id, href, oud]) => {
-    const n = mis.filter((x) => oud.includes(x.groep)).length;
-    const knoppen = knoppenVan(id)
+    const hier = mis.filter((x) => oud.includes(x.groep));
+    const n = hier.length;
+    // Wat mist, staat bovenaan de tegel met een tik ernaartoe (Ricardo, 19 november 2026: "1 mist", maar wat?).
+    const mistKnoppen = hier.map((x) => `<a class="deelknop mist" href="${x.href}"><span><b><i class="stip" aria-hidden="true"></i>${esc(x.wat)}</b><span>${esc(x.zin)}</span></span><span class="pijl" aria-hidden="true">›</span></a>`).join('');
+    const knoppen = mistKnoppen + knoppenVan(id)
       .map(([naam, waarde, adres]) => `<a class="deelknop" href="${adres}"><span><b>${esc(naam)}</b><span>${esc(waarde ?? '')}</span></span><span class="pijl" aria-hidden="true">›</span></a>`)
       .join('');
     return `<section class="glas tegel${n ? ' aandacht' : ''}" data-tegel="${id}">

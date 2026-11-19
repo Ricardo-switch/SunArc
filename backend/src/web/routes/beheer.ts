@@ -144,7 +144,9 @@ export async function beheerRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
   if (path === '/api/stem-in-huis') {
     const inHuis = d.options.stemInHuis;
     if (inHuis == null) {
-      sendJson(res, 404, { fout: 'dat kan alleen in de add-on' });
+      // Op een eigen server vraagt Inrichten het toch op: dan gewoon "niets", geen fout in de browser (19 november 2026).
+      if (method !== 'POST') sendJson(res, 200, null);
+      else sendJson(res, 404, { fout: 'dat kan alleen in de add-on' });
       return true;
     }
     const wie = await d.wie(req);

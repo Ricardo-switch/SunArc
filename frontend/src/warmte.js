@@ -270,7 +270,7 @@
         const vanRegeling = !!b.apparaat && !!r?.zoneId && (r?.apparaten ?? []).some((a) => a.soort === 'klimaat' && a.actuatorId === b.apparaat);
         if (huismodel.isElektrischSlim(b) && b.vermogenW && vanRegeling) regels += `<div class="opzon">${esc(t('indeling.magZon'))}<button type="button" class="schakel" role="switch" aria-checked="${!!b.opZon}" aria-label="${esc(t('indeling.magZon'))}" data-bron-zon="${esc(b.id)}"></button></div>`;
         if (b.aan === 'hand' && elektrisch) regels += `<div class="idee"><b>${esc(t('indeling.maakSlim'))}</b>${esc(t('indeling.maakSlimZin'))}</div>`;
-        kaarten.push({ zone: b.zone ?? null, html: bronKaart(huismodel.bronNaam(b), wat, ikoon, b.soorten.includes('airco'), rechts, regels, ` data-bron-open="${esc(b.id)}" role="button" tabindex="0"${ctx.kort ? ' data-kort' : ''}`) });
+        kaarten.push({ zone: b.zone ?? null, html: bronKaart(huismodel.bronNaam(b), wat, ikoon, b.soorten.includes('airco'), rechts, regels, ` data-bron-open="${esc(b.id)}" role="group" aria-label="${esc(huismodel.bronNaam(b))}" tabindex="0"${ctx.kort ? ' data-kort' : ''}`) });
       }
       const leeg = !kaarten.length ? `<p class="klein" style="margin: 0">${esc(t('indeling.nogNietsWarm'))}</p>` : '';
       const doetMee = Object.values(rollenNu(k)).some((x) => x !== 'kijken');

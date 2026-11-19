@@ -119,7 +119,7 @@ const W = {
     bijKnop: (meer: boolean, zou: boolean) => (zou ? (meer ? "de airco's zouden bijspringen" : 'de airco zou bijspringen') : meer ? "de airco's springen bij" : 'de airco springt bij'),
     bijWat: (n: string, kamer: string, zou: boolean) => `${n} ${zou ? 'zou bijspringen' : 'springt bij'} in ${kamer}`,
     bijHoe: (te: string | null) => (te ? `De verwarming houdt het niet bij: het is ${te} te koud.` : 'De verwarming houdt het niet bij.'),
-    bijNoot: (min: number, te: string) => `Hij springt bij na ${min} minuten stoken en vanaf ${te} te koud, bij Regeling › Klimaat. In de nacht, bij voorverwarmen, afwezig en vakantie niet.`,
+    bijNoot: (min: number, te: string) => `Hij springt bij na ${min} minuten stoken en vanaf ${te} te koud. In de nacht, bij voorverwarmen, afwezig en vakantie niet.`,
     nietBij: 'De airco springt niet bij zolang deze stand geldt.',
     // Vakantie en afwezig
     vakWat: 'Zo zuinig mogelijk',
@@ -172,7 +172,7 @@ const W = {
     bijKnop: (meer: boolean, zou: boolean) => (zou ? (meer ? 'the air conditioners would help out' : 'the air conditioner would help out') : meer ? 'the air conditioners help out' : 'the air conditioner helps out'),
     bijWat: (n: string, kamer: string, zou: boolean) => `${n} ${zou ? 'would help out' : 'helps out'} in ${kamer}`,
     bijHoe: (te: string | null) => (te ? `The heating cannot keep up: it is ${te} too cold.` : 'The heating cannot keep up.'),
-    bijNoot: (min: number, te: string) => `It helps out after ${min} minutes of heating and from ${te} too cold, under Control › Climate. Not at night, while preheating, away or on holiday.`,
+    bijNoot: (min: number, te: string) => `It helps out after ${min} minutes of heating and from ${te} too cold. Not at night, while preheating, away or on holiday.`,
     nietBij: 'The air conditioner does not help out in this mode.',
     vakWat: 'As economical as possible',
     vakHoe: (ha: boolean) => (ha ? 'Until you set it back in Home Assistant.' : 'Until you set it back.'),

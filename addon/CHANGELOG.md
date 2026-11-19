@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.202.3
+## 0.203.0
 
-*19 november 2026 · 0.179.0 – 0.202.3*
+*19 november 2026 · 0.179.0 – 0.203.0*
 
 **Nieuw**
 
@@ -71,6 +71,11 @@
 
 **Beter**
 
+- Instellingen en Wat je huis kan tellen hetzelfde: wat er mist en wat er nog bij kan
+- Staat er bij een tegel van Instellingen dat er iets mist, dan zie je op de telefoon bovenaan de tegel wat, met een tik ernaartoe
+- Contract en prijzen, Meters en Licht en screens passen op de wand, ook met veel vaste kosten, meters of lampen
+- De pagina Functies heet nu zoals de knop erheen: Licht, camera’s en weer
+- De assistent weet van de laadpaal en de boiler, en zoekt bij "wat betekent …" eerst in de handleiding
 - Wie alleen een andere taal spreekt dan Nederlands of Engels, zoals Frans of Duits, krijgt de app vanzelf in het Engels
 - Het vraagteken bij de kop van Je huis en Apparaten opent een kort stukje over die pagina, in plaats van de hele handleiding
 - Onder elk stukje staat wat er nog meer op die pagina uitgelegd wordt; een tik zet het in hetzelfde blad
@@ -117,6 +122,7 @@
 
 **Opgelost**
 
+- Inrichten gaf op een eigen server een fout in de browser bij de stem in huis
 - Op de telefoon loopt de tekst van de assistent weer mee met de stem, in plaats van grijs te blijven tot hij klaar is
 - Op Thuis opende een tik op de zolder de panelen: het dak lag erboven
 - Een apparaat zonder kamer kon je niet verbergen; nu staat Verbergen ook bij Waar staat het?
@@ -212,6 +218,11 @@
 
 **Improved**
 
+- Settings and What your home can do count the same: what is missing and what can be added
+- When a tile in Settings says something is missing, on a phone the top of the tile shows what, with a tap to it
+- Contract and prices, Meters and Lights and screens fit on the wall screen, also with many fixed costs, meters or lights
+- The Features page is now named like the button to it: Lights, cameras and weather
+- The assistant knows about the charger and the boiler, and looks in the manual first for "what does … mean"
 - Someone who speaks only a language other than Dutch or English, such as French or German, gets the app in English automatically
 - The question mark next to the title of Your home and Devices opens a short piece about that page, instead of the whole manual
 - Below each piece is what else that page explains; a tap puts it in the same sheet
@@ -258,6 +269,7 @@
 
 **Fixed**
 
+- Setup showed an error in the browser for the voice in the house on your own server
 - On a phone the text of the assistant follows the voice again, instead of staying grey until it is done
 - On Home, tapping the attic opened the panels: the roof lay on top of it
 - A device without a room could not be hidden; Hide is now also under Where is it?
