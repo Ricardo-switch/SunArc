@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Auto en laden: één ingang (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Auto en laden: één ingang (schets stap 4 punt 1, 19 november 2026).
+   *
+   * Eerst kon een laadpaal er op drie manieren bij: het paneel Auto en laadpaal
+   * bij Apparaten (keuzelijst), Toevoegen › Auto en laden en Toevoegen › Losse
+   * sensoren. Keuze Ricardo: het paneel gaat weg, Toevoegen › Auto en laden is
+   * de enige ingang. Daar staat wat Home Assistant vond, en onderaan twee wegen
+   * als hij er niet bij staat: zelf een apparaat kiezen, of uit losse sensoren
+   * (Modbus). Losse sensoren is geen eigen soort meer. Uitzetten is Verbergen
+   * op de kaart; evcc-toestemming staat op de kaart van de laadpaal. De
+   * thuisaccu gaat net zo. De pagina Auto blijft zoals hij is.
+   *
+   * Standen: #auto (een gevonden laadpaal klaarzetten), #zelf (zelf een
+   * apparaat kiezen), #losse (uit losse sensoren), #kaart (de kaart van de
+   * laadpaal bij Apparaten, zonder Doet mee, met evcc en Verbergen).
+   */
+  main { position: relative; padding: 18px 26px 20px 22px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .terug { font-size: 13px; font-weight: 700; color: var(--zacht); }
+  .veld { flex: 1; min-height: 0; display: grid; grid-template-columns: 252px 300px minmax(0, 1fr); gap: 14px; }
+  .veld.kaart { grid-template-columns: minmax(0, 1fr) 470px; }
+
+  .soorten { padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; min-height: 0; }
+  .soorten h4 { margin: 2px 10px 6px; }
+  .srt { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 10px; border-radius: 13px; }
+  .srt.aan { background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28); }
+  .srt .ik { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.06); color: var(--zacht); }
+  .srt .ik svg { width: 19px; height: 19px; }
+  .srt b { font-size: 14.5px; font-weight: 600; }
+  .srt small { font-size: 12px; font-weight: 700; color: var(--gedempt); white-space: nowrap; }
+  .srt small.nieuw { color: var(--gloed-t); }
+  .srt.eerst { margin-bottom: 6px; }
+  h4 { font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); margin: 6px 0 2px; }
+  .weg-noot { margin: auto 10px 2px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.07); font-size: 12px; color: var(--gedempt); line-height: 1.45; }
+
+  .lijst { padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+  .lijst h3 { margin: 0 8px; font-family: var(--kop); font-size: 20px; font-weight: 600; }
+  .lijst > p { margin: 2px 8px 8px; font-size: 12.5px; color: var(--gedempt); }
+  .vond { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 9px 8px; border-radius: 13px; }
+  .vond.aan { background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3); }
+  .vond .ik { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); color: var(--zacht); }
+  .vond .ik svg { width: 21px; height: 21px; }
+  .vond b { display: block; font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vond small { display: block; font-size: 12px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vond small.nieuw { color: var(--gloed-t); }
+  .vond .r { font-size: 16px; color: var(--gedempt); }
+  .vond .r.klaar { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; background: rgba(110, 231, 183, 0.18); color: var(--mint); }
+  .lijst .tussen { margin: 8px 8px 2px; }
+  .wegen { margin-top: auto; padding: 10px 0 0; border-top: 1px solid rgba(255, 255, 255, 0.07); display: flex; flex-direction: column; gap: 4px; }
+  .wegen > b { margin: 0 8px 2px; font-size: 12.5px; font-weight: 700; color: var(--zacht); }
+  .weg { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 8px; border-radius: 13px; }
+  .weg.aan { background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3); }
+  .weg .ik { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: transparent; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16); color: var(--zacht); font-size: 19px; font-weight: 700; }
+  .weg .ik svg { width: 20px; height: 20px; }
+  .weg b { display: block; font-size: 14px; font-weight: 600; }
+  .weg small { display: block; font-size: 12px; color: var(--gedempt); }
+  .weg .r { color: var(--gedempt); }
+  .verb { margin: 6px 8px 0; display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; color: var(--zacht); }
+  .verb em { font-style: normal; color: var(--gedempt); }
+
+  .blad { padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .blad h2 { margin: 0; font-family: var(--kop); font-size: 25px; font-weight: 600; }
+  .blad .nu { margin: 3px 0 0; font-size: 14px; color: var(--zacht); }
+  .vraag > b { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 700; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { height: 34px; padding: 0 13px; border-radius: 999px; display: inline-flex; align-items: center; background: rgba(255, 255, 255, 0.07); font-size: 13.5px; font-weight: 600; color: var(--zacht); }
+  .chips span.aan { background: var(--tekst); color: var(--inkt); }
+  .chips span.meer { background: transparent; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+  .groep { font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); margin: 6px 0 -4px; }
+  .rij { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .rij .l { flex: 1; min-width: 0; }
+  .rij .l b { display: block; font-size: 14.5px; font-weight: 600; }
+  .rij .l span { font-size: 12.5px; color: var(--gedempt); }
+  .rij .w { font-size: 14px; font-weight: 600; color: var(--zacht); white-space: nowrap; }
+  .schakel { position: relative; flex: none; width: 44px; height: 26px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); }
+  .schakel::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #c9d3dc; }
+  .schakel.aan { background: var(--mint); }
+  .schakel.aan::after { left: 21px; background: #fff; }
+  .hoe { padding: 11px 13px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); font-size: 13px; line-height: 1.5; color: var(--zacht); }
+  .onder { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+  .verberg { border: 0; background: transparent; color: var(--zacht); font: inherit; font-size: 13.5px; font-weight: 700; padding: 0; display: inline-flex; align-items: center; gap: 8px; }
+  .verberg svg { width: 18px; height: 18px; }
+  .verberg > span { text-align: left; }
+  .verberg small { display: block; font-weight: 500; font-size: 12px; color: var(--gedempt); text-align: left; }
+  .zet { height: 46px; padding: 0 22px; border-radius: 15px; border: 0; background: var(--tekst); color: var(--inkt); font: inherit; font-weight: 700; font-size: 15px; white-space: nowrap; }
+  .zet.stil { background: rgba(255, 255, 255, 0.1); color: var(--tekst); }
+  .invoer { height: 42px; border-radius: 13px; background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14); display: flex; align-items: center; padding: 0 14px; font-size: 14px; color: var(--gedempt); }
+  .invoer.vol { color: var(--tekst); }
+  .paar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sens { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .sens i { width: 20px; height: 20px; border-radius: 6px; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.3); display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 800; }
+  .sens i.aan { background: var(--mint); box-shadow: none; color: var(--inkt); }
+  .sens b { display: block; font-size: 13.5px; font-weight: 600; }
+  .sens small { font-size: 11.5px; color: var(--gedempt); }
+  .sens em { font-style: normal; font-size: 13px; font-weight: 600; color: var(--zacht); }
+
+  /* #kaart: de pagina Apparaten met het blad van de laadpaal. */
+  .kaarten { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+  .stabs { display: flex; gap: 22px; font-size: 15px; font-weight: 600; color: var(--zacht); border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 10px; }
+  .stabs span.aan { color: var(--tekst); box-shadow: 0 12px 0 -10px var(--tekst); }
+  .stabs small { color: var(--gedempt); font-weight: 500; }
+  .rijk { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .kaartje { padding: 16px; border-radius: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .kaartje.aan { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.45); }
+  .kaartje .kop { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 11px; align-items: center; }
+  .kaartje .ik { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); color: var(--zacht); }
+  .kaartje .ik svg { width: 22px; height: 22px; }
+  .kaartje b { font-size: 16px; font-weight: 600; }
+  .kaartje small { display: block; font-size: 12.5px; color: var(--gedempt); }
+  .kaartje .kw { text-align: right; font-family: var(--kop); font-size: 22px; font-weight: 600; }
+  .kaartje .kw small { font-family: var(--romp); font-size: 11.5px; }
+  .kaartje .st { font-size: 14px; font-weight: 600; display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+  .kaartje .st i { width: 8px; height: 8px; border-radius: 50%; background: var(--gedempt); }
+  .kaartje .st i.mint { background: var(--mint); }
+  .kaartje .z { font-size: 13px; color: var(--zacht); }
+  .toevoeg { align-self: flex-end; height: 46px; padding: 0 20px; border-radius: 15px; background: var(--tekst); color: var(--inkt); display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-dag">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main id="main"></main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script>localStorage.setItem('sc-taal', 'nl');</script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script>
+  const stand = location.hash.slice(1) || 'auto';
+  nav.balk(document.getElementById('balk'), 'apparaten');
+  const ik = (naam) => iconen.svg(naam);
+
+  /* Acht soorten: Losse sensoren is geen eigen soort meer, maar een weg bij Auto en laden. */
+  const SOORTEN = [
+    ['klimaat', 'airco', 'Klimaat', 0, 6],
+    ['licht', 'lamp', 'Licht', 0, 18],
+    ['water', 'boiler', 'Warm water en bad', 0, 1],
+    ['witgoed', 'droger', 'Witgoed', 0, 1],
+    ['auto', 'auto', 'Auto en laden', 1, 1],
+    ['accu', 'batterij', 'Thuisaccu', 0, 0],
+    ['stekkers', 'stekker', 'Stekkers', 0, 1],
+    ['schakelaars', 'apparaat', 'Schakelaars', 0, 1],
+  ];
+  function soorten() {
+    const nieuw = `<div class="srt eerst"><span class="ik"><span style="font-size: 20px; font-weight: 700">+</span></span><b>Nieuw gevonden</b><small class="nieuw">1</small></div>`;
+    return `${nieuw}<h4>Per soort</h4>${SOORTEN.map(([id, icoon, naam, n, klaar]) => `<div class="srt ${id === 'auto' ? 'aan' : ''}"><span class="ik">${ik(icoon)}</span><b>${naam}</b><small class="${n ? 'nieuw' : ''}">${n ? `${n} nieuw` : klaar ? `${klaar} klaar` : ''}</small></div>`).join('')}
+      <p class="weg-noot">Een laadpaal via Modbus voeg je toe bij Auto en laden, onder Uit losse sensoren.</p>`;
+  }
+
+  function lijst() {
+    const rij = ([icoon, naam, zin], klaar, aan) => `<div class="vond ${aan ? 'aan' : ''}"><span class="ik">${ik(icoon)}</span><div><b>${naam}</b><small class="${klaar ? '' : 'nieuw'}">${zin}</small></div>${klaar ? '<span class="r klaar">✓</span>' : '<span class="r">›</span>'}</div>`;
+    const weg = (soort, icoon, naam, zin) => `<div class="weg ${stand === soort ? 'aan' : ''}"><span class="ik">${icoon}</span><div><b>${naam}</b><small>${zin}</small></div><span class="r">›</span></div>`;
+    return `<h3>Auto en laden</h3><p>Je auto en je laadpaal, uit Home Assistant.</p>
+      <h4 class="tussen" style="color: var(--gloed-t)">Nieuw · nog niet klaar</h4>
+      ${rij(['laadpaal', 'Easee Home', 'Laadpaal · nog niet klaar'], false, stand === 'auto')}
+      <h4 class="tussen">Al klaar · staat bij Apparaten</h4>
+      ${rij(['auto', 'ID.3', 'Auto · laadt aan Easee Home'], true, false)}
+      <div class="wegen"><b>Staat hij er niet bij?</b>
+        ${weg('zelf', '+', 'Zelf een apparaat kiezen', 'Uit alles wat Home Assistant kent')}
+        ${weg('losse', ik('laadpaal'), 'Uit losse sensoren', 'Een laadpaal via Modbus')}
+        <div class="verb">Verborgen <em>0 ›</em></div>
+      </div>`;
+  }
+
+  const vraag = (titel, keuzes) => `<div class="vraag"><b>${titel}</b><div class="chips">${keuzes.map((x) => `<span class="${x.endsWith('*') ? 'aan' : x.endsWith('…') ? 'meer' : ''}">${x.replace('*', '')}</span>`).join('')}</div></div>`;
+  const schakelRij = (b, s, aan) => `<div class="rij"><div class="l"><b>${b}</b><span>${s}</span></div><span class="schakel ${aan ? 'aan' : ''}"></span></div>`;
+  const onder = (knop, wat) => `<div class="onder"><button class="verberg" type="button">${ik('verborgen')}<span>Verbergen<small>Geen ${wat} van dit huis? Dan staat hij nergens meer.</small></span></button><button class="zet" type="button">${knop}</button></div>`;
+
+  const BLAD = {
+    auto: () => `<div><h2>Easee Home</h2><p class="nu">Laadpaal uit Home Assistant · 6 tot 16 A, 3 fasen · geen auto aan de kabel</p></div>
+      ${vraag('Waar staat hij?', ['Oprit*', 'Carport', 'Garage'])}
+      ${vraag('Welke auto laadt hier?', ['ID.3*', 'Geen auto in Home Assistant'])}
+      ${schakelRij('Met de hand', 'SunArc mag de laadstroom zetten en pauzeren als jij dat vraagt', true)}
+      <div class="hoe">Na Zet klaar staat hij bij Apparaten › Auto en laden en in Je huis op de oprit. Hoe hij laadt (op zon, goedkoop of nu), kies je op de pagina Auto.</div>
+      ${onder('Zet klaar', 'laadpaal')}`,
+    zelf: () => `<div><h2>Zelf een apparaat kiezen</h2><p class="nu">Voor een auto of laadpaal die Home Assistant wel kent, maar niet als auto of laadpaal.</p></div>
+      <div class="invoer">Zoek op naam, bijvoorbeeld wallbox</div>
+      <div class="groep">Apparaten met een laadstroom of accu</div>
+      <div class="vond aan"><span class="ik">${ik('apparaat')}</span><div><b>Wallbox Pulsar Plus</b><small>stroom, vermogen, sessie</small></div><span class="r">›</span></div>
+      <div class="vond"><span class="ik">${ik('apparaat')}</span><div><b>Zappi</b><small>vermogen, stand</small></div><span class="r">›</span></div>
+      ${vraag('Wat is het?', ['Laadpaal*', 'Auto'])}
+      <div class="hoe">Daarna dezelfde vragen als bij een gevonden laadpaal: waar hij staat en welke auto hier laadt.</div>
+      <div class="onder"><span></span><button class="zet" type="button">Verder</button></div>`,
+    losse: () => `<div><h2>Uit losse sensoren</h2><p class="nu">Voor een laadpaal die in Home Assistant geen apparaat is, zoals via Modbus. SunArc kijkt alleen mee.</p></div>
+      <div class="paar"><div class="vraag"><b>Naam</b><div class="invoer vol">Laadpaal oprit</div></div><div class="vraag"><b>Zoeken</b><div class="invoer">modbus</div></div></div>
+      <div class="groep">Vermogen nu</div>
+      <div class="sens"><i class="aan">✓</i><div><b>Laadpaal vermogen</b><small>sensor.modbus_laadpaal_vermogen</small></div><em>0 W</em></div>
+      <div class="groep">Stroom</div>
+      <div class="sens"><i class="aan">✓</i><div><b>Laadpaal stroom L1</b><small>sensor.modbus_laadpaal_stroom_l1</small></div><em>0,0 A</em></div>
+      <div class="groep">Teller</div>
+      <div class="sens"><i></i><div><b>Laadpaal energie totaal</b><small>sensor.modbus_laadpaal_kwh</small></div><em>1.284 kWh</em></div>
+      <div class="onder"><span style="font-size: 12.5px; color: var(--gedempt)">2 gekozen</span><button class="zet" type="button">Zet klaar</button></div>`,
+  };
+
+  const main = document.getElementById('main');
+  if (stand === 'kaart') {
+    main.innerHTML = `<div style="display: flex; align-items: flex-end; gap: 12px"><div><h1 class="kop-1">Apparaten</h1><p style="margin: 4px 0 0; color: var(--zacht); font-size: 15px">Wat elk apparaat nu doet. Tik er een aan om het in te stellen.</p></div><span class="toevoeg" style="margin-left: auto">+ Toevoegen</span></div>
+      <div class="veld kaart">
+        <div class="kaarten">
+          <div class="stabs"><span>Alles <small>27</small></span><span>Klimaat <small>6</small></span><span>Licht <small>18</small></span><span class="aan">Auto en laden <small>2</small></span><span>Stekkers <small>1</small></span></div>
+          <div class="rijk">
+            <div class="glas kaartje aan"><div class="kop"><span class="ik">${ik('laadpaal')}</span><div><b>Easee Home</b><small>Oprit</small></div><div class="kw">0,0<small>kW nu</small></div></div><div class="st"><i></i>Aangesloten, laadt niet</div><div class="z">Laadt op zon, of goedkoop vannacht.</div></div>
+            <div class="glas kaartje"><div class="kop"><span class="ik">${ik('auto')}</span><div><b>ID.3</b><small>Oprit</small></div><div class="kw">0,0<small>kW nu</small></div></div><div class="st"><i class="mint"></i>Thuis, 58%</div><div class="z">Nog 215 km rijden.</div></div>
+          </div>
+        </div>
+        <section class="glas blad">
+          <div><h2>Easee Home</h2><p class="nu">Aangesloten · laadt niet · 0 kW</p></div>
+          <div class="groep">Waar</div>
+          <div class="rij"><div class="l"><b>Waar staat hij?</b></div><span class="w">Oprit ›</span></div>
+          <div class="rij"><div class="l"><b>Uit Home Assistant</b></div><span class="w">Easee · 6 tot 16 A, 3 fasen</span></div>
+          <div class="groep">Laden</div>
+          <div class="rij"><div class="l"><b>Laadt deze auto</b></div><span class="w">ID.3 ›</span></div>
+          ${schakelRij('Met de hand', 'SunArc mag de laadstroom zetten en pauzeren als jij dat vraagt', true)}
+          ${schakelRij('evcc mag de laadstand kiezen', 'SunArc zet evcc op zon, goedkoop of nu', false)}
+          <div class="hoe">Doet hij niet mee? Verbergen: dan staat hij nergens meer, ook niet op de pagina Auto. Terughalen kan bij Toevoegen › Verborgen.</div>
+          <div class="onder"><button class="verberg" type="button">${ik('verborgen')}<span>Verbergen<small>Geen laadpaal van dit huis</small></span></button><span></span></div>
+        </section>
+      </div>`;
+  } else {
+    main.innerHTML = `<div><span class="terug">‹ Apparaten</span><h1 class="kop-1" style="margin-top: 2px">Apparaat toevoegen</h1></div>
+      <div class="veld">
+        <aside class="glas soorten">${soorten()}</aside>
+        <section class="glas lijst">${lijst()}</section>
+        <section class="glas blad">${BLAD[stand]()}</section>
+      </div>`;
+  }
+</script>
+</body>
+</html>

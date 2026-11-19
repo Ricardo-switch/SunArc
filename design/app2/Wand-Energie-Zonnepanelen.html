@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Zonnepanelen op het dak uit Je huis (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Zonnepanelen op het dak uit Je huis (schets stap 4 punt 1, 19 november 2026).
+   *
+   * Eerst stond de kaart twee keer: bij Energie › Daken en panelen én bij Je
+   * huis › Vorm, allebei met grijze buurgebouwen om aan te tikken en allebei met
+   * "kijk wat de kaarten vinden". Keuze Ricardo: de panelen blijven bij Energie
+   * en liggen op het dak dat in Je huis getekend is (zelf of van de kaart).
+   * Kaart, bron en buurgebouwen staan alleen nog bij Je huis › Vorm. Hier geen
+   * grijze gebouwen, geen kaartregel, wel een knop naar Vorm. Het huis ligt
+   * zoals in Je huis: de straat onder (eerst lag de straat hier rechts).
+   *
+   * Gegevens: Ricardo's huis op de NAS (19-11): 5,6 × 9,9 m, 3D-kaart, garage,
+   * vlak A oost 103° 60° en B west 268° 60°, elk 6 × 390 Wp.
+   *
+   * Standen: (zonder) de vlakken, #vlak (vlak A open), #zelf (een huis dat
+   * zelf getekend is: dezelfde knop, andere regel).
+   */
+  main { padding: 20px 26px 20px 22px; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+  .kop { display: flex; align-items: center; gap: 16px; height: 50px; }
+  .terug { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 16px 0 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.07); border: 1px solid var(--glas-rand); font-size: 14.5px; font-weight: 600; color: var(--zacht); }
+  .kop .kop-1 { font-size: 38px; margin: 0; }
+  .kop .bewaard { margin-left: auto; font-size: 13px; color: var(--gedempt); }
+  .veld { flex: 1; min-height: 0; display: grid; grid-template-columns: 296px minmax(0, 1fr); gap: 16px; }
+  .delen { padding: 8px; display: flex; flex-direction: column; gap: 4px; align-self: start; }
+  .deel { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px; border-radius: 16px; }
+  .deel.aan { background: rgba(255, 255, 255, 0.08); box-shadow: inset 3px 0 0 var(--tekst); }
+  .deel .ik { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.06); color: var(--zon); }
+  .deel .ik svg { width: 21px; height: 21px; }
+  .deel b { display: block; font-size: 16px; font-weight: 600; }
+  .deel small { font-size: 12.5px; color: var(--gedempt); }
+  .paneel { padding: 18px 20px; display: grid; grid-template-columns: minmax(0, 1fr) 330px; grid-template-rows: auto minmax(0, 1fr); gap: 14px 18px; min-height: 0; }
+  .paneel h2 { grid-column: 1 / -1; margin: 0; font-family: var(--kop); font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+  .paneel h2 .goed { font-family: var(--romp); font-size: 12.5px; font-weight: 700; color: var(--mint); background: rgba(110, 231, 183, 0.12); border-radius: 999px; padding: 4px 10px; }
+  .tekening { position: relative; border-radius: 20px; background: rgba(5, 12, 24, 0.45); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .tekening svg { flex: 1; min-height: 0; width: 100%; }
+  .bron { display: flex; align-items: center; gap: 12px; margin: 0 12px 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); }
+  .bron .ik { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); color: var(--zacht); flex: none; }
+  .bron .ik svg { width: 19px; height: 19px; }
+  .bron div { flex: 1; min-width: 0; }
+  .bron b { display: block; font-size: 13.5px; font-weight: 700; }
+  .bron span { font-size: 12px; color: var(--gedempt); }
+  .naar { flex: none; height: 38px; padding: 0 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.1); display: inline-flex; align-items: center; font-size: 13.5px; font-weight: 700; color: var(--tekst); white-space: nowrap; }
+  .rechts { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .rechts h3 { margin: 0; display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--zacht); }
+  .rechts h3 span { color: #6fd3ff; }
+  .vlak { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 11px 12px; border-radius: 15px; background: rgba(255, 255, 255, 0.05); }
+  .vlak.aan { background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3); }
+  .letter { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: #7ce3b6; color: #0b1424; font-weight: 800; font-size: 15px; }
+  .vlak b { display: block; font-size: 15px; font-weight: 600; }
+  .vlak small { font-size: 12px; color: var(--gedempt); }
+  .vlak small em { font-style: normal; color: var(--mint); }
+  .vlak .kw { text-align: right; font-size: 15px; font-weight: 700; }
+  .vlak .kw small { display: block; font-weight: 500; }
+  .tel3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
+  .tel3 div { padding: 9px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); }
+  .tel3 small { display: block; font-size: 11px; color: var(--gedempt); }
+  .tel3 b { font-size: 15px; }
+  .open { padding: 12px; border-radius: 15px; background: rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; gap: 8px; }
+  .open .r { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; }
+  .open .r span { color: var(--gedempt); }
+  .open .r b { font-weight: 600; }
+  .noot { margin-top: auto; font-size: 12px; color: var(--gedempt); line-height: 1.45; }
+  .knop2 { align-self: flex-start; height: 40px; padding: 0 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); display: inline-flex; align-items: center; font-size: 13.5px; font-weight: 700; color: var(--zacht); }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-dag">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="kop"><span class="terug">‹ Instellingen</span><h1 class="kop-1">Energie</h1><span class="bewaard">Alles wordt meteen bewaard</span></div>
+    <div class="veld">
+      <aside class="glas delen" id="delen"></aside>
+      <section class="glas paneel">
+        <h2>Zonnepanelen <span class="goed">✓ Gemeten</span></h2>
+        <div class="tekening">
+          <svg id="dak" viewBox="0 0 520 470" preserveAspectRatio="xMidYMid meet" aria-label="Het dak van boven"></svg>
+          <div class="bron" id="bron"></div>
+        </div>
+        <div class="rechts" id="rechts"></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script>localStorage.setItem('sc-taal', 'nl');</script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script>
+  const stand = location.hash.slice(1);
+  nav.balk(document.getElementById('balk'), 'instellingen');
+  const ik = (n) => iconen.svg(n);
+
+  /* Links: Energie zonder kaart; Zonnepanelen bovenaan. */
+  const DELEN = [['zon', 'Zonnepanelen', '2 vlakken, 4,7 kWp'], ['meter', 'Aansluiting', '1 fase, 35 A'], ['meter', 'Meters', 'stroom, gas, 4 apparaten'], ['euro', 'Contract en prijzen', 'één tarief, € 0,27 per kWh'], ['verwarming', 'Verwarming', 'cv-ketel, aanvoer 60°']];
+  document.getElementById('delen').innerHTML = DELEN.map(([i, b, s], n) => `<div class="deel ${n === 0 ? 'aan' : ''}"><span class="ik">${i === 'euro' ? '<b style="font-size: 19px">€</b>' : ik(i) || ''}</span><div><b>${b}</b><small>${s}</small></div></div>`).join('');
+
+  /* Het dak van boven, op het ruitjespapier van Je huis: 1 m = 30 px, straat onder. */
+  const m = 30, x0 = 260 - 2.8 * m, y0 = 60;
+  const W = 5.6 * m, D = 9.9 * m, nok = x0 + W / 2;
+  const ruit = Array.from({ length: 18 }, (_, i) => `<line x1="${i * 30}" y1="0" x2="${i * 30}" y2="470" />`).join('') + Array.from({ length: 16 }, (_, i) => `<line x1="0" y1="${i * 30}" x2="520" y2="${i * 30}" />`).join('');
+  const panelen = (x, kol) => Array.from({ length: 6 }, (_, i) => `<rect x="${x + (i % kol) * 32}" y="${y0 + 70 + Math.floor(i / kol) * 52}" width="29" height="49" rx="2" fill="#3c6fb4" stroke="#8fb8ec" stroke-width="1" />`).join('');
+  const garage = { x: x0 - 3.4 * m, y: y0 + 3.6 * m, w: 3.2 * m, h: 6.0 * m };
+  document.getElementById('dak').innerHTML = `
+    <g stroke="rgba(255,255,255,0.05)" stroke-width="1">${ruit}</g>
+    <rect x="${garage.x}" y="${garage.y}" width="${garage.w}" height="${garage.h}" rx="3" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" />
+    <text x="${garage.x + garage.w / 2}" y="${garage.y + garage.h / 2 + 4}" text-anchor="middle" font-size="12" font-weight="700" fill="rgba(255,255,255,0.55)">Garage</text>
+    <rect x="${x0}" y="${y0}" width="${W}" height="${D}" fill="${stand === 'vlak' ? 'rgba(124,227,182,0.10)' : 'rgba(255,255,255,0.10)'}" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" />
+    <rect x="${nok}" y="${y0}" width="${W / 2}" height="${D}" fill="${stand === 'vlak' ? 'rgba(124,227,182,0.22)' : 'transparent'}" />
+    <line x1="${nok}" y1="${y0}" x2="${nok}" y2="${y0 + D}" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-dasharray="7 5" />
+    ${panelen(x0 + 10, 2)}${panelen(nok + 12, 2)}
+    <g font-weight="800" font-size="15"><rect x="${nok + W / 2 - 34}" y="${y0 + D - 52}" width="28" height="28" rx="8" fill="#7ce3b6" /><text x="${nok + W / 2 - 20}" y="${y0 + D - 33}" text-anchor="middle" fill="#0b1424">A</text>
+    <rect x="${x0 + 6}" y="${y0 + D - 52}" width="28" height="28" rx="8" fill="#7ce3b6" /><text x="${x0 + 20}" y="${y0 + D - 33}" text-anchor="middle" fill="#0b1424">B</text></g>
+    <g font-size="11.5" font-weight="700" fill="rgba(255,255,255,0.75)"><text x="${nok}" y="${y0 - 10}" text-anchor="middle">5,6 m</text><text x="${x0 + W + 12}" y="${y0 + D / 2}" >9,9 m</text></g>
+    <g transform="translate(470 40)"><circle r="17" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.2)" /><path d="M0 -10 L5 2 L0 -1 L-5 2Z" fill="#ff8a65" /><text y="13" text-anchor="middle" font-size="10" font-weight="800" fill="#f7b548">N</text></g>
+    <text x="260" y="455" text-anchor="middle" font-size="11" font-weight="700" letter-spacing="2" fill="rgba(255,255,255,0.3)">STRAAT</text>`;
+
+  const zelf = stand === 'zelf';
+  document.getElementById('bron').innerHTML = `<span class="ik">${ik('thuis') || ''}</span><div><b>Het dak uit Je huis</b><span>${zelf ? 'Zelf getekend, 5,6 × 9,9 m' : '3D-kaart van Nederland, 5,6 × 9,9 m · nok 8,6 m'}</span></div><span class="naar">Vorm aanpassen in Je huis ›</span>`;
+
+  const vlak = (l, naam, zin, kw, aan) => `<div class="vlak ${aan ? 'aan' : ''}"><span class="letter">${l}</span><div><b>${naam}</b><small>${zin} · <em>✓ gemeten</em></small></div><div class="kw">${kw}<small>6 × 390 Wp</small></div></div>`;
+  document.getElementById('rechts').innerHTML = `
+    <h3>Waar de panelen liggen <span>+ Vlak erbij</span></h3>
+    ${vlak('A', 'Hoofddak oost', 'oost · 103° · 60°', '2,3 kWp', stand === 'vlak')}
+    ${stand === 'vlak' ? `<div class="open"><div class="r"><span>Richting</span><b>oost · 103°</b></div><div class="r"><span>Helling</span><b>60°</b></div><div class="r"><span>Panelen</span><b>6 × 390 Wp</b></div><div class="r"><span>Gemeten aan</span><b>wat de omvormer levert</b></div></div>` : ''}
+    ${vlak('B', 'Hoofddak west', 'west · 268° · 60°', '2,3 kWp', false)}
+    <div class="tel3"><div><small>Panelen</small><b>12</b></div><div><small>Samen</small><b>4,7 kWp</b></div><div><small>Bij helder weer nu</small><b>0,0 kW</b></div></div>
+    <span class="knop2">Omvormers en meters</span>
+    <p class="noot">De vlakken liggen op het dak zoals Je huis het tekent. Klopt de omtrek of de nok niet, of hoort de garage er niet bij? Dat zet je goed bij Je huis › Vorm; hier komen dan de panelen op het nieuwe dak.</p>`;
+</script>
+</body>
+</html>

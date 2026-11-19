@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Zonnepanelen op het dak uit Je huis (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Zonnepanelen op het dak uit Je huis, op de telefoon (schets bij
+   * Wand-Energie-Zonnepanelen, 19 november 2026): het dak, de regel met de
+   * knop naar Je huis › Vorm, dan de vlakken. Geen kaart, geen buurgebouwen.
+   */
+  .tel { position: relative; }
+  .inhoud { padding: 16px 16px 110px; display: flex; flex-direction: column; gap: 12px; }
+  .terug { font-size: 13px; font-weight: 700; color: var(--zacht); }
+  .tekening { border-radius: 20px; background: rgba(5, 12, 24, 0.45); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); overflow: hidden; }
+  .tekening svg { display: block; width: 100%; height: 300px; }
+  .bron { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+  .bron .ik { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.07); color: var(--zacht); flex: none; }
+  .bron .ik svg { width: 20px; height: 20px; }
+  .bron div { flex: 1; min-width: 0; }
+  .bron b { display: block; font-size: 14.5px; }
+  .bron span { font-size: 12.5px; color: var(--gedempt); }
+  .naar { display: flex; justify-content: space-between; align-items: center; min-height: 48px; padding: 0 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.08); font-weight: 700; font-size: 15px; }
+  h4 { margin: 6px 4px 0; display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); }
+  h4 span { color: #6fd3ff; letter-spacing: 0; text-transform: none; font-size: 13px; }
+  .vlak { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 12px 14px; border-radius: 16px; }
+  .letter { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: #7ce3b6; color: #0b1424; font-weight: 800; }
+  .vlak b { display: block; font-size: 15.5px; font-weight: 600; }
+  .vlak small { font-size: 12.5px; color: var(--gedempt); }
+  .vlak .kw { text-align: right; font-weight: 700; }
+  .noot { margin: 0 4px; font-size: 12.5px; color: var(--gedempt); line-height: 1.45; }
+  .tabs { position: fixed; left: 12px; right: 12px; bottom: 14px; }
+</style>
+</head>
+<body>
+<div class="tel lucht lucht-dag">
+  <div class="inhoud">
+    <span class="terug">‹ Energie</span>
+    <h1 class="kop-1">Zonnepanelen</h1>
+    <section class="glas tekening"><svg id="dak" viewBox="40 30 440 360" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="bron" id="bron"></div></section>
+    <div class="glas naar">Vorm aanpassen in Je huis <span>›</span></div>
+    <h4>Waar de panelen liggen <span>+ Vlak erbij</span></h4>
+    <div class="glas vlak"><span class="letter">A</span><div><b>Hoofddak oost</b><small>oost · 103° · 60° · 6 × 390 Wp</small></div><span class="kw">2,3 kWp</span></div>
+    <div class="glas vlak"><span class="letter">B</span><div><b>Hoofddak west</b><small>west · 268° · 60° · 6 × 390 Wp</small></div><span class="kw">2,3 kWp</span></div>
+    <p class="noot">De vlakken liggen op het dak zoals Je huis het tekent. Klopt de omtrek niet, dan zet je dat goed bij Je huis › Vorm.</p>
+  </div>
+  <nav class="tabs" id="tabs" aria-label="Hoofdmenu"></nav>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script>localStorage.setItem('sc-taal', 'nl');</script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script>
+  if (nav.tabs) nav.tabs(document.getElementById('tabs'), 'thuis');
+  const m = 30, x0 = 260 - 2.8 * m, y0 = 50;
+  const W = 5.6 * m, D = 9.9 * m, nok = x0 + W / 2;
+  const ruit = Array.from({ length: 18 }, (_, i) => `<line x1="${i * 30}" y1="0" x2="${i * 30}" y2="470" />`).join('') + Array.from({ length: 16 }, (_, i) => `<line x1="0" y1="${i * 30}" x2="520" y2="${i * 30}" />`).join('');
+  const panelen = (x) => Array.from({ length: 6 }, (_, i) => `<rect x="${x + (i % 2) * 32}" y="${y0 + 70 + Math.floor(i / 2) * 52}" width="29" height="49" rx="2" fill="#3c6fb4" stroke="#8fb8ec" />`).join('');
+  const g = { x: x0 - 3.4 * m, y: y0 + 3.6 * m, w: 3.2 * m, h: 6 * m };
+  document.getElementById('dak').innerHTML = `<g stroke="rgba(255,255,255,0.05)">${ruit}</g>
+    <rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" rx="3" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" />
+    <text x="${g.x + g.w / 2}" y="${g.y + g.h / 2 + 4}" text-anchor="middle" font-size="12" font-weight="700" fill="rgba(255,255,255,0.55)">Garage</text>
+    <rect x="${x0}" y="${y0}" width="${W}" height="${D}" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" />
+    <line x1="${nok}" y1="${y0}" x2="${nok}" y2="${y0 + D}" stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-dasharray="7 5" />
+    ${panelen(x0 + 10)}${panelen(nok + 12)}
+    <g font-weight="800" font-size="15"><rect x="${nok + W / 2 - 34}" y="${y0 + D - 52}" width="28" height="28" rx="8" fill="#7ce3b6" /><text x="${nok + W / 2 - 20}" y="${y0 + D - 33}" text-anchor="middle" fill="#0b1424">A</text>
+    <rect x="${x0 + 6}" y="${y0 + D - 52}" width="28" height="28" rx="8" fill="#7ce3b6" /><text x="${x0 + 20}" y="${y0 + D - 33}" text-anchor="middle" fill="#0b1424">B</text></g>
+    <text x="260" y="${y0 + D + 30}" text-anchor="middle" font-size="11" font-weight="700" letter-spacing="2" fill="rgba(255,255,255,0.3)">STRAAT</text>`;
+  document.getElementById('bron').innerHTML = `<span class="ik">${iconen.svg('thuis') || ''}</span><div><b>Het dak uit Je huis</b><span>3D-kaart van Nederland · 5,6 × 9,9 m</span></div>`;
+</script>
+</body>
+</html>

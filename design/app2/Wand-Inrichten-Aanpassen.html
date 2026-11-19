@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Inrichten › Aanpassen: hetzelfde deel (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Inrichten › Aanpassen opent hetzelfde deel (schets stap 4 punt 1, 19 november 2026).
+   *
+   * Eerst had Inrichten achter Aanpassen eigen schermen: de zekering werd er
+   * anders gevraagd dan bij Energie, de prijzen ook, en er zat een tweede
+   * kamerbewerker in. Keuze Ricardo: Aanpassen toont rechts precies het deel
+   * van Energie of Bewoners (dezelfde code, dezelfde knoppen); het huis links
+   * blijft. Kamers en vorm openen Je huis zelf, met een balk terug naar
+   * Inrichten, omdat tekenen het hele scherm nodig heeft.
+   *
+   * Waar de twee verschilden, wint "eerst de soort, dan de rest" (keuze
+   * Ricardo): de zekering eerst fasen, dan de ampère; de prijzen eerst het
+   * contract. Zo gaat het dan ook bij Energie.
+   *
+   * Standen: #zekering (stap 2, Aanpassen: Aansluiting en Meters), #prijzen
+   * (stap 4, Aanpassen: Contract en prijzen), #huis (stap 1, Aanpassen opent
+   * Je huis met de balk).
+   */
+  body { margin: 0; }
+  .scherm { width: 1280px; height: 800px; position: relative; display: grid; grid-template-rows: 64px 1fr; }
+  .bovenbalk { display: flex; align-items: center; gap: 10px; padding: 18px 26px 0; }
+  .logo { width: 40px; height: 40px; border-radius: 12px; background: rgb(var(--nacht) / 0.6) url('../../frontend/kit/zon.svg') center / 26px no-repeat; flex: none; }
+  .stappen { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-left: 6px; }
+  .chip-s { height: 40px; border-radius: 13px; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 13px; font-weight: 600; color: var(--gedempt); background: rgb(var(--wit) / 0.04); border: 1px solid transparent; white-space: nowrap; overflow: hidden; }
+  .chip-s i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: rgb(var(--wit) / 0.08); flex: none; }
+  .chip-s.klaar { color: var(--zacht); }
+  .chip-s.klaar i { background: var(--mint); color: #0b1424; }
+  .chip-s.nu { color: var(--tekst); background: rgb(var(--wit) / 0.1); border-color: var(--glas-rand); }
+  .chip-s.nu i { background: var(--tekst); color: var(--inkt); }
+  .sluit { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); font-size: 18px; flex: none; }
+  .midden { display: grid; grid-template-columns: 1fr 470px; padding: 0 26px 24px 10px; min-height: 0; }
+  .podium { position: relative; }
+  .paneel { margin-top: 10px; padding: 22px 24px 18px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .waar { font-size: 13px; color: var(--gedempt); font-weight: 600; }
+  .paneel h2 { margin: 0; font-family: var(--kop); font-size: 28px; font-weight: 600; }
+  .zelfde { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--gedempt); }
+  .zelfde i { font-style: normal; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: rgba(111, 211, 255, 0.16); color: #6fd3ff; font-size: 11px; font-weight: 800; }
+  .delen { display: flex; padding: 4px; border-radius: 14px; background: rgb(var(--nacht) / 0.5); }
+  .delen span { flex: 1; text-align: center; padding: 9px; border-radius: 11px; font-size: 14px; font-weight: 700; color: var(--zacht); }
+  .delen span.aan { background: rgb(var(--wit) / 0.12); color: var(--tekst); }
+  .vraag > b { display: block; margin: 0 0 4px; font-size: 14.5px; font-weight: 700; }
+  .vraag > p { margin: 0 0 8px; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { height: 38px; padding: 0 14px; border-radius: 12px; display: inline-flex; align-items: center; background: rgb(var(--wit) / 0.07); font-size: 14px; font-weight: 700; color: var(--zacht); }
+  .chips span.aan { background: #6fd3ff; color: #0b1424; }
+  .chips span.meer { background: transparent; box-shadow: inset 0 0 0 1px rgb(var(--wit) / 0.2); }
+  .velden { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .veldje { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--gedempt); font-weight: 600; }
+  .veldje div { height: 46px; border-radius: 13px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.04); display: flex; align-items: center; justify-content: space-between; padding: 0 14px; font-size: 16px; color: var(--tekst); font-weight: 600; }
+  .veldje div span { font-size: 12.5px; color: var(--gedempt); font-weight: 500; }
+  .klein { font-size: 12.5px; font-weight: 700; color: var(--zacht); margin-top: 2px; }
+  .noot { font-size: 12.5px; color: var(--gedempt); line-height: 1.45; margin: 0; }
+  .onder { margin-top: auto; display: flex; align-items: center; gap: 14px; padding-top: 12px; border-top: 1px solid var(--glas-rand); font-size: 14px; font-weight: 700; color: var(--zacht); }
+  .onder .rechts { margin-left: auto; }
+  .k { height: 46px; padding: 0 20px; border-radius: 14px; display: inline-flex; align-items: center; font-size: 15px; font-weight: 700; background: #6fd3ff; color: #0b1424; }
+
+  /* #huis: Je huis zelf, met de balk terug naar Inrichten. */
+  .jehuis { position: absolute; inset: 0; display: none; }
+  body.is-huis .jehuis { display: block; }
+  body.is-huis .scherm { display: none; }
+  .jehuis iframe { position: absolute; inset: 0; width: 1280px; height: 800px; border: 0; }
+  .balk-terug { position: absolute; left: 96px; top: 16px; width: 268px; height: 58px; padding: 0 16px; display: flex; flex-direction: column; justify-content: center; gap: 1px; border-radius: 16px; background: #13203a; box-shadow: inset 0 0 0 1px rgba(111, 211, 255, 0.45), 0 0 0 8px #142139; font-size: 16px; font-weight: 700; color: var(--tekst); z-index: 2; }
+  .balk-terug small { font-weight: 600; color: var(--gedempt); font-size: 12.5px; padding-left: 14px; }
+  .balk-klaar { position: absolute; right: 24px; top: 22px; height: 48px; padding: 0 20px; display: flex; align-items: center; border-radius: 15px; background: #6fd3ff; color: #0b1424; font-size: 15px; font-weight: 700; z-index: 2; box-shadow: 0 0 0 10px #18263c; }
+</style>
+</head>
+<body>
+<div class="scherm lucht lucht-avond">
+  <div class="bovenbalk"><span class="logo"></span><div class="stappen" data-stappen></div><span class="sluit">×</span></div>
+  <div class="midden">
+    <div class="podium" id="podium"></div>
+    <aside class="glas paneel" data-paneel></aside>
+  </div>
+</div>
+<section class="jehuis lucht lucht-avond" data-jehuis></section>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/huis.js"></script>
+<script>
+  const STAPPEN = ['Je huis', 'Meter en zekering', 'Panelen', 'Prijzen', 'Verwarming', 'Wie woont hier', 'Klaar'];
+  const stand = location.hash.slice(1) || 'zekering';
+  const nr = { huis: 0, zekering: 1, prijzen: 3 }[stand] ?? 1;
+  document.querySelector('[data-stappen]').innerHTML = STAPPEN.map((naam, i) => {
+    const soort = i < nr ? 'klaar' : i === nr ? 'nu' : '';
+    return `<span class="chip-s ${soort}"><i>${soort === 'klaar' ? '✓' : i + 1}</i>${naam}</span>`;
+  }).join('');
+  huis.teken(document.getElementById('podium'), {
+    beschrijving: 'Het voorbeeldhuis tijdens het inrichten.',
+    tijd: 'avond',
+    zon: { aandeel: 0, panelen: nr < 2 ? 0 : 12 },
+    etages: [
+      { kamers: [{ naam: 'Woonkamer', gewicht: 1.4, apparaten: [{ soort: 'airco' }, { soort: 'lamp', aan: true, x: 0.4 }] }, { naam: 'Keuken', apparaten: [{ soort: 'lamp', aan: true }] }, { naam: 'Hal', gewicht: 0.6, apparaten: [] }] },
+      { kamers: [{ naam: 'Badkamer', apparaten: [] }, { naam: 'Slaapkamer', apparaten: [] }, { naam: 'Kinderkamer', apparaten: [] }] },
+      { dak: true, kamers: [{ naam: 'Zolder', apparaten: [{ soort: 'airco' }, { soort: 'droger' }] }] },
+    ],
+    net: true,
+  }, { breedte: 760, hoogte: 680, marge: 0.06 });
+
+  const chips = (lijst) => `<div class="chips">${lijst.map((x) => `<span class="${x.endsWith('*') ? 'aan' : x.endsWith('…') ? 'meer' : ''}">${x.replace('*', '')}</span>`).join('')}</div>`;
+  const onder = `<div class="onder"><span>‹ Terug naar het voorstel</span><span class="rechts k">Klaar</span></div>`;
+  const PANEEL = {
+    zekering: `<span class="waar">2 van 7 · Meter en zekering · Aanpassen</span>
+      <div class="delen"><span class="aan">Aansluiting</span><span>Meters</span></div>
+      <h2>Aansluiting</h2>
+      <span class="zelfde"><i>=</i>Hetzelfde als Instellingen › Energie › Aansluiting</span>
+      <div class="vraag"><b>Hoofdzekering</b><p>Staat op de hoofdschakelaar in de meterkast, of in de app van je netbeheerder. SunArc zet nooit zoveel tegelijk aan dat hij eruit gaat.</p>
+        ${chips(['1 fase*', '3 fasen', 'Weet ik niet'])}</div>
+      <div class="vraag"><b>Ampère</b>${chips(['16 A', '20 A', '25 A', '32 A', '35 A*', '40 A', '50 A', '63 A', 'Anders…'])}</div>
+      <p class="noot">Een andere waarde, zoals 80 A, vul je in bij Anders.</p>
+      ${onder}`,
+    prijzen: `<span class="waar">4 van 7 · Prijzen · Aanpassen</span>
+      <h2>Contract en prijzen</h2>
+      <span class="zelfde"><i>=</i>Hetzelfde als Instellingen › Energie › Contract en prijzen</span>
+      <div class="vraag"><b>Soort contract</b>${chips(['Eén tarief*', 'Dag en nacht', 'Per uur', 'Weet ik niet'])}</div>
+      <div class="velden"><label class="veldje">Stroom<div>€ 0,27 <span>per kWh</span></div></label><label class="veldje">Gas<div>€ 1,37 <span>per m³</span></div></label></div>
+      <span class="klein">Terugleveren vanaf 2027</span>
+      <div class="velden"><label class="veldje">Je krijgt<div>€ 0,07 <span>per kWh</span></div></label><label class="veldje">Je betaalt<div>€ 0,06 <span>per kWh</span></div></label></div>
+      <p class="noot">Alleen de velden die bij je contract horen. De startdatum van je contract staat eronder als je verder schuift; bij Energie is het hetzelfde blad.</p>
+      ${onder}`,
+  };
+  if (stand === 'huis') {
+    document.body.classList.add('is-huis');
+    document.querySelector('[data-jehuis]').innerHTML = `<iframe src="Wand-Huis-Buiten.html#apparaten" title="Je huis"></iframe>
+      <span class="balk-terug"><span>‹ Terug naar Inrichten</span><small>1 van 7 · Je huis</small></span>
+      <span class="balk-klaar">Klaar, terug naar Inrichten</span>`;
+  } else {
+    document.querySelector('[data-paneel]').innerHTML = PANEEL[stand];
+  }
+</script>
+</body>
+</html>

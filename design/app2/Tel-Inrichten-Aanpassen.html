@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Inrichten › Aanpassen: hetzelfde deel (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Inrichten › Aanpassen op de telefoon (schets bij Wand-Inrichten-Aanpassen,
+   * 19 november 2026): de stap blijft bovenaan, Aanpassen toont hetzelfde deel
+   * als Energie › Aansluiting, met eerst de fasen en dan de ampère.
+   */
+  .tel { position: relative; }
+  .inhoud { padding: 16px 16px 30px; display: flex; flex-direction: column; gap: 12px; }
+  .boven { display: flex; align-items: center; gap: 10px; }
+  .boven .stip { flex: 1; height: 6px; border-radius: 3px; background: rgb(var(--wit) / 0.1); }
+  .boven .stip.vol { background: var(--mint); }
+  .boven .stip.nu { background: var(--tekst); }
+  .waar { font-size: 12.5px; color: var(--gedempt); font-weight: 600; }
+  h1 { margin: 0; font-family: var(--kop); font-size: 30px; }
+  .zelfde { font-size: 12.5px; color: var(--gedempt); }
+  .delen { display: flex; padding: 4px; border-radius: 14px; background: rgb(var(--nacht) / 0.5); }
+  .delen span { flex: 1; text-align: center; padding: 10px; border-radius: 11px; font-size: 14.5px; font-weight: 700; color: var(--zacht); }
+  .delen span.aan { background: rgb(var(--wit) / 0.12); color: var(--tekst); }
+  .vraag { padding: 14px; border-radius: 18px; }
+  .vraag > b { display: block; margin: 0 0 4px; font-size: 15px; }
+  .vraag > p { margin: 0 0 10px; font-size: 13px; color: var(--gedempt); line-height: 1.45; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { height: 42px; padding: 0 15px; border-radius: 13px; display: inline-flex; align-items: center; background: rgb(var(--wit) / 0.07); font-size: 15px; font-weight: 700; color: var(--zacht); }
+  .chips span.aan { background: #6fd3ff; color: #0b1424; }
+  .chips span.meer { background: transparent; box-shadow: inset 0 0 0 1px rgb(var(--wit) / 0.2); }
+  .onder { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; font-weight: 700; color: var(--zacht); }
+  .k { height: 50px; padding: 0 26px; border-radius: 16px; display: inline-flex; align-items: center; background: #6fd3ff; color: #0b1424; font-size: 16px; }
+</style>
+</head>
+<body>
+<div class="tel lucht lucht-avond">
+  <div class="inhoud">
+    <div class="boven"><span class="stip vol"></span><span class="stip nu"></span><span class="stip"></span><span class="stip"></span><span class="stip"></span><span class="stip"></span><span class="stip"></span></div>
+    <span class="waar">2 van 7 · Meter en zekering · Aanpassen</span>
+    <div class="delen"><span class="aan">Aansluiting</span><span>Meters</span></div>
+    <h1>Aansluiting</h1>
+    <span class="zelfde">Hetzelfde als Instellingen › Energie › Aansluiting</span>
+    <section class="glas vraag"><b>Hoofdzekering</b><p>Staat op de hoofdschakelaar in de meterkast, of in de app van je netbeheerder.</p>
+      <div class="chips"><span class="aan">1 fase</span><span>3 fasen</span><span>Weet ik niet</span></div></section>
+    <section class="glas vraag"><b>Ampère</b>
+      <div class="chips"><span>16 A</span><span>20 A</span><span>25 A</span><span>32 A</span><span class="aan">35 A</span><span>40 A</span><span>50 A</span><span>63 A</span><span class="meer">Anders…</span></div></section>
+    <div class="onder"><span>‹ Terug naar het voorstel</span><span class="k">Klaar</span></div>
+  </div>
+</div>
+</body>
+</html>
