@@ -332,10 +332,14 @@ function splitsWoorden(tekst) {
 
 function zetGezegd(i) {
   gezegd = i;
-  $$('[data-zegt] .w').forEach((el, k) => {
-    el.classList.toggle('al', k < i);
-    el.classList.toggle('nu', k === i - 1);
-  });
+  // Per tekst tellen: de wand en de telefoon hebben elk hun eigen woorden. Samen geteld
+  // liep alleen de eerste mee, en bleef de telefoon grijs tot het eind (19 november 2026).
+  $$('[data-zegt]').forEach((zin) =>
+    zin.querySelectorAll('.w').forEach((el, k) => {
+      el.classList.toggle('al', k < i);
+      el.classList.toggle('nu', k === i - 1);
+    }),
+  );
 }
 
 function stopPraten() {
@@ -508,11 +512,25 @@ async function zegMetPiper(tekst, totLetter, apparaat, geweigerd) {
       ontgrendeld = true;
       analyser = golfVan;
       const t0 = performance.now();
+      let tijd = -1;
+      let sinds = t0;
       leefMee(() => {
-        // Weet de browser de duur nog niet, dan het tempo van gewoon praten.
-        if (!el.duration || !isFinite(el.duration)) return zetGezegd(geschatWoord(t0, tekst.length, tekst, totLetter));
-        const i = totLetter((el.currentTime / el.duration) * tekst.length);
-        zetGezegd(i < 0 ? woorden.length : i);
+        // De tijd van het geluid alleen als die echt loopt en de duur kan kloppen. Chrome op
+        // een Android-telefoon meldde die niet, en de tekst bleef grijs tot het eind
+        // (19 november 2026); dan het tempo van gewoon praten, en nooit terug.
+        const nu = performance.now();
+        if (el.currentTime !== tijd) {
+          tijd = el.currentTime;
+          sinds = nu;
+        }
+        const d = el.duration;
+        const loopt = tijd > 0 && nu - sinds < 700 && d > 0 && isFinite(d) && d < (tekst.length * PRAAT_MS_PER_LETTER * 4) / 1000;
+        let i = geschatWoord(t0, tekst.length, tekst, totLetter);
+        if (loopt) {
+          const j = totLetter((tijd / d) * tekst.length);
+          i = j < 0 ? woorden.length : j;
+        }
+        zetGezegd(Math.max(gezegd, i));
       });
     },
     (e) => (e?.name === 'NotAllowedError' ? geweigerd() : apparaat()),
@@ -534,6 +552,8 @@ function zegMetApparaat(tekst, gesproken, totLetter, lezen, geweigerd) {
   // Wat klinkt is langer dan wat er staat; de plek gaat naar rato.
   let grenzen = false;
   u.onboundary = (e) => {
+    // Alleen echte woordgrenzen: Android meldt soms één grens aan het begin, en dan bleef de rest grijs.
+    if ((e.name && e.name !== 'word') || !e.charIndex) return;
     grenzen = true;
     const i = totLetter((e.charIndex / Math.max(1, gesproken.length)) * tekst.length);
     zetGezegd(i < 0 ? woorden.length : i);
@@ -546,6 +566,8 @@ function zegMetApparaat(tekst, gesproken, totLetter, lezen, geweigerd) {
   u.onerror = (e) => (e?.error === 'not-allowed' ? geweigerd() : e?.error === 'interrupted' || e?.error === 'canceled' ? klaar?.() : lezen());
   analyser = null;
   leefMee(() => {
+    // Geen begin gemeld: vanaf het moment dat het apparaat praat.
+    if (t0 == null && speechSynthesis.speaking) t0 = performance.now();
     if (!grenzen && t0 != null) zetGezegd(Math.max(gezegd, geschatWoord(t0, gesproken.length, tekst, totLetter)));
   });
   speechSynthesis.speak(u);

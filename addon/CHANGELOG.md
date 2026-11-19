@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.202.2
+## 0.202.3
 
-*19 november 2026 · 0.179.0 – 0.202.2*
+*19 november 2026 · 0.179.0 – 0.202.3*
 
 **Nieuw**
 
@@ -117,6 +117,7 @@
 
 **Opgelost**
 
+- Op de telefoon loopt de tekst van de assistent weer mee met de stem, in plaats van grijs te blijven tot hij klaar is
 - Op Thuis opende een tik op de zolder de panelen: het dak lag erboven
 - Een apparaat zonder kamer kon je niet verbergen; nu staat Verbergen ook bij Waar staat het?
 - Een verborgen apparaat dat je terughaalde, stond daarna zonder kamer; nu komt het terug waar het stond
@@ -257,6 +258,7 @@
 
 **Fixed**
 
+- On a phone the text of the assistant follows the voice again, instead of staying grey until it is done
 - On Home, tapping the attic opened the panels: the roof lay on top of it
 - A device without a room could not be hidden; Hide is now also under Where is it?
 - A hidden device you brought back had no room afterwards; now it returns where it was

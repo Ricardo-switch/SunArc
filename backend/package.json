@@ -1,6 +1,6 @@
 {
   "name": "@hems/backend",
-  "version": "0.202.2",
+  "version": "0.202.3",
   "private": true,
   "description": "SunArc OS - pure decision core plus adapters",
   "type": "module",

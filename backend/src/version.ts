@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.202.2';
+export const VERSIE = '0.202.3';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.202.3',
+    datum: '2026-11-19',
+    opgelost: [
+      'Op de telefoon loopt de tekst van de assistent weer mee met de stem, in plaats van grijs te blijven tot hij klaar is',
+    ],
+    en: {
+      opgelost: [
+        'On a phone the text of the assistant follows the voice again, instead of staying grey until it is done',
+      ],
+    },
+  },
   {
     versie: '0.202.2',
     datum: '2026-11-19',

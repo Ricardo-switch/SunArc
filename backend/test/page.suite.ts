@@ -5246,6 +5246,42 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
   }, 20_000);
 
   /*
+   * Meelopen met de stem van het huis (19 november 2026): Chrome op een
+   * Android-telefoon meldde de tijd van het geluid niet, en de tekst bleef grijs
+   * tot de stem klaar was. Ook dan loopt hij mee.
+   */
+  it('laat de tekst meelopen met de stem, ook als de browser de tijd van het geluid niet meldt', async () => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL', isMobile: true, hasTouch: true });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    await context.route(`${baseUrl}/api/stem?**`, (route) => route.fulfill({ status: 200, contentType: 'audio/mpeg', body: Buffer.alloc(2000) }));
+    await context.route(`${baseUrl}/api/stem`, (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ stem: 'tts.proef', taal: 'nl-NL', bron: 'huis', spreek: 'huis', verstaan: true }) }),
+    );
+    // Het geluid speelt vijf seconden, maar de tijd blijft op 0 staan, zoals Chrome op Android.
+    await context.addInitScript(`
+      Object.defineProperty(HTMLMediaElement.prototype, 'currentTime', { get: () => 0, set: () => {}, configurable: true });
+      Object.defineProperty(HTMLMediaElement.prototype, 'duration', { get: () => 3.5, configurable: true });
+      HTMLMediaElement.prototype.play = function () {
+        setTimeout(() => this.onended?.(new Event('ended')), 5000);
+        return Promise.resolve();
+      };
+    `);
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/assistent.html#nu`);
+    const woorden = p.locator('#tel [data-zegt] .w');
+    await expect.poll(() => woorden.count()).toBeGreaterThan(5);
+    const totaal = await woorden.count();
+    // Halverwege: een deel wit, niet alles en niet niets.
+    await expect.poll(() => p.locator('#tel [data-zegt] .w.al').count(), { timeout: 4000 }).toBeGreaterThan(1);
+    expect(await p.locator('#tel [data-zegt] .w.al').count()).toBeLessThan(totaal);
+    if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT });
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 20_000);
+
+  /*
    * Instellingen en Wat je huis kan (schetsen Instellingen, Wand-Leren en
    * Wand-Huis-groeit): wie stuurt, wat het huis weet, en de stappen.
    */
