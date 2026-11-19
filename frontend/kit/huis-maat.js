@@ -26,7 +26,8 @@
  *   stil      geen namen in de tekening (de telefoon: daar staan de kamers eronder)
  *   buiten    wat om het huis ligt, in meters in de assen van de tekening:
  *             vlakken [{ p: [[x, y]...], soort: terras | oprit | pad | border }],
- *             gebouwen [{ x, y, b, d, h, dak?, naam?, buur? }] (een tuinhuis; buur: het huis ernaast, als schim),
+ *             gebouwen [{ x, y, b, d, h, dak?, h0?, naam?, buur?, kleur?, overstek? }] (een tuinhuis; buur: het huis ernaast, als schim;
+ *             dak lessenaar loopt van h0 naar h; overstek { d, licht } bij een plat dak, aan de kant met de kleinste y),
  *             auto { x, y, b, d, kleur, laadt? }, apparaten [{ id, soort, x, y, z, naam? }]
  */
 (function (global) {
@@ -318,6 +319,16 @@
         const dk = dakVan({ u: x, v: y, b, d, dak: 'zadeldak', nok: h + Math.min(b, d) * 0.45, goot0: h, goot1: h }, { goot: h, nok: h + 1 });
         for (const v of dk.vlakken.sort((p1, p2) => dp(p2.p) - dp(p1.p))) x2 += `<path d="${vlak(v.p)}" fill="${v.gevel ? kleur[0] : naarKijker(...v.n) ? kleur[2] : kleur[3]}" stroke="rgb(13 26 48 / 0.5)" stroke-width="0.7" stroke-linejoin="round"/>`;
       } else x2 += `<path d="${vlak(hoeken.map(([a, c]) => [a, c, hoogOp([a, c])]))}" fill="${kleur[2]}" ${q.buur ? 'stroke="rgb(255 255 255 / 0.2)" stroke-dasharray="4 4"' : 'stroke="rgb(13 26 48 / 0.5)"'}/>`;
+      // Een overstek (het tuinhuis zoals op Thuis nu): het platte dak loopt aan de kant met de kleinste y door, iets aflopend, met licht eronder.
+      if (q.overstek && !/zadel/.test(q.dak ?? '')) {
+        const od = q.overstek.d ?? 1.5;
+        const plaat = [[x - 0.1, y, h + 0.05], [x + b + 0.1, y, h + 0.05], [x + b + 0.1, y - od, h - 0.05], [x - 0.1, y - od, h - 0.05]];
+        if (q.overstek.licht) {
+          const c = P(x + b / 2, y - od / 2, 0.02);
+          x2 += `<ellipse cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" rx="${(b * 0.45 * k).toFixed(1)}" ry="${(od * 0.35 * k).toFixed(1)}" fill="#FFD39A" opacity="0.22"/>`;
+        }
+        x2 += `<path d="${vlak(plaat)}" fill="#55626f" stroke="rgb(13 26 48 / 0.5)" stroke-width="0.7" stroke-linejoin="round"/>`;
+      }
       if (q.naam && !o.stil) {
         const p = P(x + b / 2, y + d / 2, (/zadel/.test(q.dak ?? '') ? h + Math.min(b, d) * 0.45 : h) + 0.4);
         labels.push({ x: p[0] - q.naam.length * 3.6, y: p[1] - 10, b: q.naam.length * 7.2, h: 16, prio: 1, s: `<text x="${p[0].toFixed(1)}" y="${(p[1] + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="#dfe6ec" paint-order="stroke" stroke="#0d1a30" stroke-width="3.5" stroke-linejoin="round">${esc(q.naam)}</text>` });
@@ -358,7 +369,7 @@
       }
       return x2;
     };
-    const tekenBuiten = (lijst) => lijst.sort((a, b) => diep(b.q.x + b.q.b / 2, b.q.y + b.q.d / 2) - diep(a.q.x + a.q.b / 2, a.q.y + a.q.d / 2)).map((x) => (x.soort === 'auto' ? auto(x.q) : x.q.buur ? doos(x.q, ['rgb(255 255 255 / 0.05)', 'rgb(255 255 255 / 0.07)', 'rgb(255 255 255 / 0.06)', 'rgb(255 255 255 / 0.06)']) : doos(x.q, ['#2d3d57', '#26354d', '#3b4a66', '#34425c']))).join('');
+    const tekenBuiten = (lijst) => lijst.sort((a, b) => diep(b.q.x + b.q.b / 2, b.q.y + b.q.d / 2) - diep(a.q.x + a.q.b / 2, a.q.y + a.q.d / 2)).map((x) => (x.soort === 'auto' ? auto(x.q) : x.q.buur ? doos(x.q, ['rgb(255 255 255 / 0.05)', 'rgb(255 255 255 / 0.07)', 'rgb(255 255 255 / 0.06)', 'rgb(255 255 255 / 0.06)']) : doos(x.q, x.q.kleur ?? ['#2d3d57', '#26354d', '#3b4a66', '#34425c']))).join('');
     s += tekenBuiten(achterHuis);
 
     // Het dak aan de achterkant: eerst, zodat alles ervoor er overheen valt.
@@ -513,7 +524,8 @@
             // Naar de straat: een lage borstwering en glas tot het plafond.
             stukken.push({ d: d - 50, s: muur(z0, z0 + 0.35, '#d7e0e9', 'fill-opacity="0.85"') + muur(z0 + 0.35, top, 'url(#hm-glas)') + `<path d="M${pt(x0, y0, top)}L${pt(x1, y1, top)}" stroke="#cfe6ff" stroke-opacity="0.35" stroke-width="1"/>` });
           } else {
-            const vul = voor ? (run.as === 'x' ? '#5a6a83' : '#66778f') : run.as === 'x' ? '#26354d' : '#2d3d57';
+            // Een garage of berging in dezelfde donkergrijze kleur als het tuinhuis op Thuis (huis.js), niet licht (Ricardo, 19-11).
+            const vul = dicht ? (run.as === 'x' ? '#3a4656' : '#2f3a48') : voor ? (run.as === 'x' ? '#5a6a83' : '#66778f') : run.as === 'x' ? '#26354d' : '#2d3d57';
             let raam = '';
             // Een raam in elk stuk muur van een kamer (niet in een garage), zoals in het poppenhuis.
             if (!eigenRamen && !dicht && (b - a) * CEL >= 1.4 && top - z0 >= 2) {
@@ -640,7 +652,7 @@
         if (erboven && (erboven.e.blokken ?? []).some((x) => x.id === b.id)) continue;
         const r = [[b.u, b.v, top], [b.u + b.b, b.v, top], [b.u + b.b, b.v + b.d, top], [b.u, b.v + b.d, top]];
         if (DICHT.test(b.soort ?? '')) {
-          s += `<path d="${vlak(r)}" fill="#3a4862" stroke="rgb(13 26 48 / 0.5)"/>`;
+          s += `<path d="${vlak(r)}" fill="#46525f" stroke="rgb(13 26 48 / 0.5)"/>`;
           if (o.stil) continue;
           const p = P(b.u + b.b / 2, b.v + b.d / 2, top);
           labels.push({ x: p[0], y: p[1] + 4, prio: 1, s: `<text x="${p[0].toFixed(1)}" y="${(p[1] + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="#b8c4cf">${esc(b.naam ?? '')}</text>`, b: 60, h: 16 });
