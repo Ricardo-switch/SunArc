@@ -53,7 +53,8 @@ verwijzing bestaat.
   Sinds 0.204.0 staat de kaart alleen bij Je huis › Vorm, met de dakvorm en
   de nok; Zonnepanelen (eerst Daken en panelen) bij Energie legt de panelen
   op dat dak, met de straat onder; zonder kaart is de getekende buitenkant
-  het dak ([327]).
+  het dak ([327]). Sinds 0.205.0 voeg je een auto, laadpaal of thuisaccu
+  alleen bij Toevoegen toe; op de kaart staat Verbergen ([328]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1065,4 +1066,5 @@ verwijzing bestaat.
 [325]: DECISIONS.md#325-hulp-op-de-plek
 [326]: DECISIONS.md#326-stap-3-af-één-telling-bladen-die-passen-één-woord-en-de-assistent
 [327]: DECISIONS.md#327-eén-plek-voor-de-kaart-het-dak-in-je-huis-de-panelen-bij-energie
+[328]: DECISIONS.md#328-eén-plek-om-een-auto-laadpaal-of-thuisaccu-toe-te-voegen
 <!-- links:einde -->

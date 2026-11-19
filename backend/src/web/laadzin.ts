@@ -149,8 +149,8 @@ export function herkenLaden(ruw: string, autos: readonly LaadAuto[], lang: Lang,
     return {
       ok: false,
       antwoord: nl
-        ? `Zet bij Energie › Auto en laadpaal aan dat SunArc ${a.evcc ? 'de stand van evcc mag zetten' : 'de laadpaal mag bedienen'}. Dan kan het ook met een zin.`
-        : `In Energy › Car and charger, allow SunArc to ${a.evcc ? 'set the evcc mode' : 'control the charger'}. Then it works with a sentence too.`,
+        ? `Zet op de kaart van de laadpaal bij Apparaten aan dat SunArc ${a.evcc ? 'de stand van evcc mag zetten' : 'de laadpaal mag bedienen'}. Dan kan het ook met een zin.`
+        : `On the charger's card under Devices, allow SunArc to ${a.evcc ? 'set the evcc mode' : 'control the charger'}. Then it works with a sentence too.`,
     };
   }
   const stap = (body: Record<string, unknown>, antwoord: string, waarde: string, uitleg: string): LaadHerkend => ({

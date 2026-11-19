@@ -35,8 +35,6 @@ const thuisaccu = (() => {
     return samen != null ? t('accu.nAccusMaat', { n, kwh: nl(samen, samen % 1 ? 1 : 0) }) : t('accu.nAccus', { n });
   }
 
-  const ik = () => `<span class="ld-ik" style="color: var(--mint)">${iconen.svg('accu')}</span>`;
-
   /** Wat een sensor nu zegt, met zijn eenheid; een vermogen vanaf 1000 W in kW. */
   function waarde(s) {
     if (!s || s.staat == null) return '';
@@ -55,6 +53,7 @@ const thuisaccu = (() => {
     return [x.zelf ? t('accu.zelfGekozen') : x.merk, wat.join(', ') || t('accu.watNiets')].filter(Boolean).join(' · ');
   }
 
+  const VERBERG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7a13 13 0 0 1-3 4.1M6.1 6.1C3.9 7.5 2.5 9.7 2 12c1 2.5 5 7 10 7a9.6 9.6 0 0 0 5.9-2.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
   /** Een ander apparaat kiezen. */
   function kiezen(info, label) {
     const k = info.accu.kandidaten;
@@ -101,32 +100,12 @@ const thuisaccu = (() => {
       <div class="ld-evcc ac-kijkt"><span class="stip" style="background: var(--ijs)"></span><span>${esc(t('accu.kijkt'))}</span></div>${weg}`;
   }
 
-  function vorm(info, a, staat) {
-    const kop = `<div class="kopregel"><h2 class="kop-2">${esc(t('accu.titel'))}</h2><a class="ac-waar" href="jehuis.html#buiten/rond">${esc(t('accu.waarStaat'))}</a></div>`;
-    if (!info?.accu) return `${kop}<p class="uitleg">${esc(t('accu.geenHA'))}</p>`;
-    const x = lijst(info);
-    if (!x.length) {
-      return `${kop}<div class="ld-leeg"><b>${esc(t('accu.nietsKop'))}</b><p class="uitleg">${esc(t('accu.nietsZin'))}</p>${kiezen(info, t('accu.eenKiezen'))}</div>`;
-    }
-    const gekozen = x.find((y) => y.id === staat.wie && y.aan) ?? x.find((y) => y.aan) ?? null;
-    staat.wie = gekozen?.id ?? null;
-    const rijen = x.map((y) => `<div class="ld-rij${y.aan ? '' : ' uit'}${y === gekozen ? ' nu' : ''}">${ik()}<button type="button" class="ld-tekst" data-accu="wie" data-id="${esc(y.id)}" ${y.aan ? '' : 'disabled'}><b>${esc(y.naam)}</b><span>${esc(watZin(y))}</span></button><button type="button" class="schakelaar" role="switch" aria-checked="${y.aan}" aria-label="${esc(t('accu.vanDitHuis', { naam: y.naam }))}" data-accu="aan" data-id="${esc(y.id)}"></button></div>`).join('');
-    const links = `<div class="deelvraag"><h3 class="kop-3">${esc(t('accu.gevonden'))}</h3>${rijen}${kiezen(info, t('accu.anderKiezen'))}<p class="mini">${esc(t('accu.anderUitleg'))}</p></div>`;
-    const wie = aan(info).length > 1 ? `<div class="keuzes ld-wie" role="tablist">${aan(info).map((y) => `<button type="button" role="tab" data-accu="wie" data-id="${esc(y.id)}" aria-pressed="${y === gekozen}">${esc(y.naam)}</button>`).join('')}</div>` : '';
-    const rechts = gekozen ? `<div class="deelvraag">${wie}${instellen(info, gekozen)}</div>` : `<div class="deelvraag"><p class="uitleg">${esc(t('accu.allesUit'))}</p></div>`;
-    return `${kop}<div class="kolommen ac-kolommen"><div>${links}</div><div>${rechts}</div></div>`;
-  }
-
   /** Een tik; true als er iets te bewaren is, 'teken' als alleen het beeld verandert. */
   function klik(el, info, a, staat) {
     const knop = el.closest('[data-accu]');
     if (!knop) return false;
     const { accu: wat, id } = knop.dataset;
     const k = keuzeVan(a);
-    if (wat === 'wie') {
-      staat.wie = id;
-      return 'teken';
-    }
     if (wat === 'aan') {
       const nu = knop.getAttribute('aria-checked') === 'true';
       const zelf = lijst(info).find((y) => y.id === id)?.zelf;
@@ -178,11 +157,20 @@ const thuisaccu = (() => {
   function blad(info, id) {
     const x = lijst(info).find((y) => y.id === id) ?? aan(info)[0] ?? null;
     if (!x) return null;
-    const mee = `<div class="ld-schakel"><div><b>${esc(t('laden.doetMee'))}</b><span class="mini">${esc(watZin(x))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${x.aan}" aria-label="${esc(t('accu.vanDitHuis', { naam: x.naam }))}" data-accu="aan" data-id="${esc(x.id)}"></button></div>`;
-    return { naam: x.naam, html: `${mee}${x.aan ? instellen(info, x) : ''}<a class="ac-waar" href="jehuis.html#buiten/rond" style="margin: 0">${esc(t('accu.waarStaat'))}</a>` };
+    // Verborgen (stap 4): terughalen; anders de keuzes en onderaan Verbergen.
+    if (!x.aan) return { naam: x.naam, html: `<p class="uitleg">${esc(t('accu.verborgenZin'))}</p><button type="button" class="knop" data-accu="aan" data-id="${esc(x.id)}" aria-checked="false" style="align-self: start">${esc(t('toev.terughalen'))}</button>` };
+    const verberg = `<button type="button" class="ld-verberg" data-accu="aan" data-id="${esc(x.id)}" aria-checked="true">${VERBERG}<span>${esc(t('toev.verbergen'))}<small>${esc(t('accu.verbergZin'))}</small></span></button>`;
+    return { naam: x.naam, html: `${instellen(info, x)}<a class="ac-waar" href="jehuis.html#buiten/rond" style="margin: 0">${esc(t('accu.waarStaat'))}</a>${verberg}` };
   }
 
-  return { vorm, klik, verander, kortZin, blad, lijst };
+  /** Zelf een apparaat kiezen (Toevoegen › Thuisaccu, stap 4). */
+  function zelfKiezen(info) {
+    if (!info?.accu) return `<p class="uitleg">${esc(t('accu.geenHA'))}</p>`;
+    const keuze = kiezen(info, t('accu.eenKiezen'));
+    return keuze ? `<label class="veldnaam">${esc(t('accu.zelfVraag'))}${keuze}</label><p class="mini">${esc(t('accu.anderUitleg'))}</p>` : `<p class="uitleg">${esc(t('laden.zelfGeen'))}</p>`;
+  }
+
+  return { klik, verander, kortZin, blad, lijst, zelfKiezen, watZin };
 })();
 // Ook als window.thuisaccu, voor het blad bij Apparaten (instellen.js, besluit 318).
 window.thuisaccu = thuisaccu;

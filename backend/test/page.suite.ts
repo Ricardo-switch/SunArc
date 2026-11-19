@@ -1170,9 +1170,10 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
   /*
    * De thuisaccu (besluit 271, issue 145): een accu via Homey zelf kiezen, zien
    * welke sensor wat is, het teken omdraaien, en dat het bewaard wordt. Sinds
-   * besluit 318 in een blad bij Apparaten; een oude link naar Energie komt daar uit.
+   * besluit 318 in een blad bij Apparaten, en sinds stap 4 toevoegen alleen bij
+   * Toevoegen › Thuisaccu; een oude link naar Energie komt daar uit.
    */
-  it('kiest bij Apparaten een thuisaccu van Homey, met zijn sensoren en het teken (besluit 318)', async () => {
+  it('kiest bij Toevoegen een thuisaccu van Homey, met zijn sensoren en het teken (besluit 318, stap 4)', async () => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
@@ -1181,15 +1182,14 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     p.on('pageerror', (e) => fouten.push(e.message));
     const wand = p.locator('[data-hand]');
     await p.goto(`${baseUrl}/energie.html#accu`);
-    await p.waitForURL(/apparaten\.html#accu-lijst/, { timeout: 10_000 });
-    await wand.locator('h2', { hasText: 'Thuisaccu' }).waitFor({ timeout: 10_000 });
-    await expect.poll(() => wand.locator('.ld-leeg').textContent(), { timeout: 10_000 }).toContain('Nog geen thuisaccu gevonden');
-    // Zelf kiezen: het apparaat van Homey.
+    await p.waitForURL(/toevoegen\.html#energie/, { timeout: 10_000 });
+    // Staat hij er niet bij? Zelf een apparaat kiezen: het apparaat van Homey; daarna staat hij in de lijst en is zijn blad open.
+    await p.locator('#wand a.weg[href="#energie/zelf"]').click();
+    await wand.locator('h2', { hasText: 'Zelf een apparaat kiezen' }).waitFor({ timeout: 10_000 });
     await wand.locator('[data-accu-kies]').selectOption('homey');
-    const rij = wand.locator('.ld-rij', { hasText: 'Laadplan Controller' });
-    await rij.waitFor();
-    expect(await rij.textContent()).toContain('Zelf gekozen · lading, vermogen, geladen en geleverd');
     await expect.poll(() => connStore.current?.accu?.zelf).toEqual(['homey']);
+    await p.waitForURL(/toevoegen\.html#energie\/homey/, { timeout: 10_000 });
+    await p.locator('#wand [data-item="homey"]', { hasText: 'Laadplan Controller' }).waitFor();
     // De sensoren die hij vond, met wat ze nu zeggen.
     expect(await wand.locator('[data-accu-sensor="lading"]').inputValue()).toBe('sensor.laadplan_controller_battery');
     expect(await wand.locator('.ac-sensor', { hasText: 'Hoe vol' }).textContent()).toContain('64%');
@@ -1210,9 +1210,9 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // De pagina zelf scrolt niet; het blad mag schuiven.
     expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-energie-accu.png') });
-    // Weghalen: dan is hij weer te kiezen.
+    // Verbergen staat onderaan (stap 4, in plaats van Doet mee); weghalen: dan is hij weer te kiezen.
+    expect(await wand.locator('.ld-verberg[data-accu="aan"]').count()).toBe(1);
     await wand.locator('[data-accu="weg"]').click();
-    await wand.locator('[data-accu-kies]').waitFor();
     await expect.poll(() => connStore.current?.accu ?? null).toBeNull();
     expect(fouten).toEqual([]);
     await context.close();
@@ -4689,7 +4689,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       // Links de auto met het advies eronder, ook zonder te scrollen.
       await expect.poll(() => w.locator('#wand .advies > div').count()).toBe(2);
       expect(await w.evaluate('(() => { const h = document.querySelector("[data-held]"); return h.scrollHeight <= h.clientHeight + 1; })()')).toBe(true);
-      expect(await w.locator('#wand .instellen').getAttribute('href')).toBe('apparaten.html#laden-lijst');
+      expect(await w.locator('#wand .instellen').getAttribute('href')).toBe('toevoegen.html#auto');
       await wand.close();
       // Met evcc in huis (besluit 278): het blad zet de stand van evcc, met een eind, en daarna weer Zon.
       ladenEvcc = 'pv';
@@ -8586,7 +8586,9 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await p.waitForURL(/apparaten\.html/);
       await p.locator('#wand a[href="toevoegen.html"]').first().click();
       await p.waitForURL(/toevoegen\.html/);
-      await p.locator('#wand [data-soort="losse"]').click();
+      // Stap 4: een laadpaal uit losse sensoren staat bij Auto en laden, onder Staat hij er niet bij?
+      await p.locator('#wand [data-soort="auto"]').click();
+      await p.locator('#wand a.weg[href="#auto/losse"]').click();
       const rechts = p.locator('#wand [data-rechts]');
       // Een naam, zoeken (het zoekveld van issue 167 typt in de goede volgorde), een sensor aanvinken, toevoegen.
       await rechts.locator('[data-lnaam]').fill('Laadpaal oprit');
@@ -8725,8 +8727,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const fouten: string[] = [];
     p.on('pageerror', (e) => fouten.push(e.message));
     try {
-      await p.goto(`${baseUrl}/toevoegen.html`);
-      await p.locator('#tel [data-soort="losse"]').click();
+      // Losse sensoren horen sinds stap 4 bij Auto en laden; het oude adres werkt nog.
+      await p.goto(`${baseUrl}/toevoegen.html#losse`);
       await p.locator('#tel [data-lsensor="sensor.nexblue_edge_max_laadpaal_oprit_actuele_laadstatus_register_40100"]').waitFor();
       if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT, fullPage: true });
       expect(await p.evaluate<boolean>('document.documentElement.scrollWidth <= innerWidth + 1')).toBe(true);

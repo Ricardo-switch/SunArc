@@ -65,7 +65,7 @@ describe('laden met de hand (besluit 262)', () => {
     expect(await l.zet('tesla', { stroomA: 18, tot: 'uur' })).toEqual({ ok: false, reden: 'de laadpaal kan 6 tot 16 A' });
     expect(await l.zet('tesla', { stroomA: 10, tot: 'uur' })).toEqual({ ok: false, reden: 'meer dan 9 A past nu niet op je zekering' });
     const niet = new Laadhand(deur({ bediening: () => bedieningVan({ mag: false }) }).d);
-    expect(await niet.zet('tesla', { stroomA: 8, tot: 'uur' })).toMatchObject({ ok: false, reden: expect.stringContaining('Energie › Auto en laadpaal') });
+    expect(await niet.zet('tesla', { stroomA: 8, tot: 'uur' })).toMatchObject({ ok: false, reden: expect.stringContaining('de kaart van de laadpaal bij Apparaten') });
     const evcc = new Laadhand(deur({ bediening: () => bedieningVan({ mag: false, evcc: true }) }).d);
     expect(await evcc.zet('tesla', { stroomA: 8, tot: 'uur' })).toEqual({ ok: false, reden: 'evcc regelt het laden; zet het in evcc' });
     const weg = new Laadhand(deur({ auto: () => autoVan({ aangesloten: false, laadt: false }) }).d);

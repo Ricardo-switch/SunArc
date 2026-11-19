@@ -40,7 +40,7 @@
     apparaten: { plek: 'apparaten', href: 'apparaten.html' },
     'apparaat-op-zon': { plek: 'apparaten', href: 'apparaten.html' },
     boiler: { plek: 'apparaten', href: 'apparaten.html' },
-    laadpaal: { plek: 'apparaten', href: 'apparaten.html#laden-lijst' },
+    laadpaal: { plek: 'apparaten', href: 'toevoegen.html#auto' },
     'stekker-op-zon': { plek: 'apparaten', href: 'apparaten.html' },
     'met-de-hand': { plek: 'apparaten', href: 'apparaten.html' },
     hoofdzekering: { plek: 'energie', href: 'energie.html#aansluiting' },

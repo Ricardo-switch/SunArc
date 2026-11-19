@@ -1,6 +1,7 @@
 /*
- * Energie › Auto en laadpaal (besluit 259, schets Wand-Energie-Auto): hier
- * stel je in; kijken en bedienen gebeurt op de pagina Auto. Of SunArc een
+ * Auto en laadpaal (besluit 259, sinds besluit 318 op hun kaart bij
+ * Apparaten, sinds stap 4 toevoegen alleen bij Toevoegen › Auto en laden):
+ * hier stel je in; kijken en bedienen gebeurt op de pagina Auto. Of SunArc een
  * laadpaal met de hand mag bedienen, zet je hier aan (`bedienen`, besluit
  * 262), bij het apparaat dat het kan; weg is nee. Links
  * wat de app in Home Assistant vond, elk met een schakelaar, en een ander
@@ -17,6 +18,7 @@ const laden = (() => {
   const { esc } = app;
   const t = (k, p) => window.taal.t(k, p);
   const PLEKKEN = ['oprit', 'carport', 'garage'];
+  const VERBERG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7a13 13 0 0 1-3 4.1M6.1 6.1C3.9 7.5 2.5 9.7 2 12c1 2.5 5 7 10 7a9.6 9.6 0 0 0 5.9-2.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
   /** Kabel vergeten (besluit 263): weg is 21:00 en 50%. */
   const KABEL = { om: '21:00', pct: 50 };
   const KABEL_PCT = [null, 30, 50, 70];
@@ -46,8 +48,6 @@ const laden = (() => {
     if (!autos && !palen) return t('laden.nietsKort');
     return [autos ? t('laden.nAutos', { n: autos }) : null, palen ? t('laden.nPalen', { n: palen }) : null].filter(Boolean).join(', ');
   }
-
-  const ik = (rol) => `<span class="ld-ik" style="color: ${rol === 'auto' ? 'var(--mint)' : 'var(--ijs)'}">${iconen.svg(rol === 'auto' ? 'auto' : 'laadpaal')}</span>`;
 
   /** Een ander apparaat kiezen, uit wat iets meet wat bij laden hoort. */
   function kiezen(info, label) {
@@ -99,40 +99,12 @@ const laden = (() => {
     return `${rol}<div class="ld-vraag"><b>${esc(t('laden.watHijKan'))}</b><p class="uitleg" style="margin: 0">${esc(kan)}</p></div>${bedienBlok(info, x)}${plek}`;
   }
 
-  function vorm(info, a, staat) {
-    const kop = `<div class="kopregel"><h2 class="kop-2">${esc(t('laden.titel'))}</h2></div>`;
-    if (!info?.laden) return `${kop}<p class="uitleg">${esc(t('laden.geenHA'))}</p>`;
-    const x = lijst(info);
-    const evccMag = info.laden.evcc
-      .filter((p) => p.kanBedienen)
-      .map((p) => `<div class="ld-schakel"><div><b>${esc(t('laden.evccMag', { naam: p.naam }))}</b><span class="mini">${esc(t('laden.evccMagZin'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${p.bedienen === true}" aria-label="${esc(t('laden.evccMag', { naam: p.naam }))}" data-laad="bedienen" data-id="${esc(p.id)}"></button></div>`)
-      .join('');
-    const evcc = info.laden.evcc.length ? `<div class="ld-evcc"><span class="stip" style="background: var(--ijs)"></span><span><b>${esc(t('laden.evccKop'))}</b> ${esc(t('laden.evccZin'))}</span></div>${evccMag}` : '';
-    // Een laadpaal via Modbus is geen apparaat: die voeg je toe als losse sensoren (besluit 301, melding 164).
-    const losseRegel = `<p class="uitleg">${esc(t('laden.losseZin'))} <a href="toevoegen.html#losse">${esc(t('laden.losseLink'))}</a></p>`;
-    if (!x.length) {
-      return `${kop}${evcc}<div class="ld-leeg"><b>${esc(t('laden.nietsKop'))}</b><p class="uitleg">${esc(t('laden.nietsZin'))}</p>${kiezen(info, t('laden.eenKiezen'))}${losseRegel}</div>`;
-    }
-    const gekozen = x.find((y) => y.id === staat.wie && y.aan) ?? x.find((y) => y.aan) ?? null;
-    staat.wie = gekozen?.id ?? null;
-    const rijen = x.map((y) => `<div class="ld-rij${y.aan ? '' : ' uit'}${y === gekozen ? ' nu' : ''}">${ik(y.rol)}<button type="button" class="ld-tekst" data-laad="wie" data-id="${esc(y.id)}" ${y.aan ? '' : 'disabled'}><b>${esc(y.naam)}</b><span>${esc(watZin(y))}</span></button><button type="button" class="schakelaar" role="switch" aria-checked="${y.aan}" aria-label="${esc(t('laden.vanDitHuis', { naam: y.naam }))}" data-laad="aan" data-id="${esc(y.id)}"></button></div>`).join('');
-    const klimaat = x.some((y) => y.rol === 'auto') ? `<p class="mini">${esc(t('laden.klimaatNoot'))}</p>` : '';
-    const links = `<div class="deelvraag"><h3 class="kop-3">${esc(t('laden.gevonden'))}</h3>${rijen}${kiezen(info, t('laden.anderKiezen'))}${klimaat}${losseRegel}</div>`;
-    const wie = aan(info).length > 1 ? `<div class="keuzes ld-wie" role="tablist">${aan(info).map((y) => `<button type="button" role="tab" data-laad="wie" data-id="${esc(y.id)}" aria-pressed="${y === gekozen}">${esc(y.naam)}</button>`).join('')}</div>` : '';
-    const rechts = gekozen ? `<div class="deelvraag">${wie}${instellen(info, a, gekozen)}${evcc}</div>` : `<div class="deelvraag"><p class="uitleg">${esc(t('laden.allesUit'))}</p>${evcc}</div>`;
-    return `${kop}<div class="kolommen"><div>${links}</div><div>${rechts}</div></div>`;
-  }
-
   /** Een tik; true als er iets te bewaren is, 'teken' als alleen het beeld verandert. */
   function klik(el, info, a, staat) {
     const knop = el.closest('[data-laad]');
     if (!knop) return false;
     const { laad, id } = knop.dataset;
     const k = keuzeVan(a);
-    if (laad === 'wie') {
-      staat.wie = id;
-      return 'teken';
-    }
     if (laad === 'aan') {
       const nu = knop.getAttribute('aria-checked') === 'true';
       const zelf = lijst(info).find((y) => y.id === id)?.zelf;
@@ -211,11 +183,34 @@ const laden = (() => {
   function blad(info, a, id) {
     const x = lijst(info).find((y) => y.id === id);
     if (!x) return null;
-    const mee = `<div class="ld-schakel"><div><b>${esc(t('laden.doetMee'))}</b><span class="mini">${esc(watZin(x))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${x.aan}" aria-label="${esc(t('laden.vanDitHuis', { naam: x.naam }))}" data-laad="aan" data-id="${esc(x.id)}"></button></div>`;
-    return { naam: x.naam, rol: x.rol, html: `${mee}${x.aan ? instellen(info, a, x) : ''}` };
+    // Verborgen (stap 4): terughalen; anders de keuzes, evcc bij de laadpaal, en onderaan Verbergen.
+    if (!x.aan) return { naam: x.naam, rol: x.rol, html: `<p class="uitleg">${esc(t('laden.verborgenZin'))}</p><button type="button" class="knop" data-laad="aan" data-id="${esc(x.id)}" aria-checked="false" style="align-self: start">${esc(t('toev.terughalen'))}</button>` };
+    const palen = aan(info).filter((y) => y.rol === 'laadpaal');
+    const evcc = x.rol === 'laadpaal' || (!palen.length && x === aan(info)[0]) ? evccBlok(info) : '';
+    const verberg = `<button type="button" class="ld-verberg" data-laad="aan" data-id="${esc(x.id)}" aria-checked="true">${VERBERG}<span>${esc(t('toev.verbergen'))}<small>${esc(t(x.rol === 'auto' ? 'laden.verbergAuto' : 'laden.verbergPaal'))}</small></span></button>`;
+    // De klimaatregeling van een auto telt niet als klimaat in huis: dat staat bij de auto.
+    const klimaat = x.rol === 'auto' ? `<p class="mini">${esc(t('laden.klimaatNoot'))}</p>` : '';
+    return { naam: x.naam, rol: x.rol, html: `${instellen(info, a, x)}${klimaat}${evcc}${verberg}` };
   }
 
-  return { vorm, klik, verander, kortZin, blad, lijst };
+  /** Of SunArc de stand van evcc mag zetten (besluit 278), per laadpunt; op de kaart van de laadpaal (stap 4). */
+  function evccBlok(info) {
+    if (!info.laden.evcc.length) return '';
+    const mag = info.laden.evcc
+      .filter((p) => p.kanBedienen)
+      .map((p) => `<div class="ld-schakel"><div><b>${esc(t('laden.evccMag', { naam: p.naam }))}</b><span class="mini">${esc(t('laden.evccMagZin'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${p.bedienen === true}" aria-label="${esc(t('laden.evccMag', { naam: p.naam }))}" data-laad="bedienen" data-id="${esc(p.id)}"></button></div>`)
+      .join('');
+    return `<div class="ld-evcc"><span class="stip" style="background: var(--ijs)"></span><span><b>${esc(t('laden.evccKop'))}</b> ${esc(t('laden.evccZin'))}</span></div>${mag}`;
+  }
+
+  /** Zelf een apparaat kiezen (Toevoegen › Auto en laden, stap 4): wat iets meet dat bij laden hoort. */
+  function zelfKiezen(info) {
+    if (!info?.laden) return `<p class="uitleg">${esc(t('laden.geenHA'))}</p>`;
+    const keuze = kiezen(info, t('laden.eenKiezen'));
+    return keuze ? `<label class="veldnaam">${esc(t('laden.zelfVraag'))}${keuze}</label><p class="mini">${esc(t('laden.zelfUitleg'))}</p>` : `<p class="uitleg">${esc(t('laden.zelfGeen'))}</p>`;
+  }
+
+  return { klik, verander, kortZin, blad, lijst, zelfKiezen, watZin };
 })();
 // Ook als window.laden, voor het blad bij Apparaten (instellen.js, besluit 318).
 window.laden = laden;

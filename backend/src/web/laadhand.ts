@@ -168,7 +168,7 @@ export class Laadhand {
     if (!b || !a) return { ok: false, reden: 'die auto is er niet' };
     if (v.stand != null) return this.#zetStand(id, b, a, v);
     if (b.evcc) return { ok: false, reden: 'evcc regelt het laden; zet het in evcc' };
-    if (!b.mag) return { ok: false, reden: 'zet bij Energie › Auto en laadpaal eerst aan dat SunArc de laadpaal mag bedienen' };
+    if (!b.mag) return { ok: false, reden: 'zet op de kaart van de laadpaal bij Apparaten eerst aan dat SunArc hem mag bedienen' };
     if (a.thuis === false || a.aangesloten === false) return { ok: false, reden: 'de auto hangt niet aan de laadpaal' };
     const nu = this.#nu();
     const eind = this.#eind(v, a, nu);
@@ -224,7 +224,7 @@ export class Laadhand {
   async #zetStand(id: string, b: LaadBediening, a: Auto, v: LaadVraag): Promise<LaadUitkomst> {
     const x = b.evccStand;
     if (!b.evcc || !x) return { ok: false, reden: 'evcc zegt bij deze auto geen stand' };
-    if (!b.evccMag) return { ok: false, reden: 'zet bij Energie › Auto en laadpaal eerst aan dat SunArc de stand van evcc mag zetten' };
+    if (!b.evccMag) return { ok: false, reden: 'zet op de kaart van de laadpaal bij Apparaten eerst aan dat SunArc de stand van evcc mag zetten' };
     if (!this.#d.kies) return { ok: false, reden: 'de stand van evcc zetten kan hier niet' };
     if (typeof v.stand !== 'string' || !x.opties.includes(v.stand)) return { ok: false, reden: `evcc kent ${x.opties.join(', ')}` };
     if (a.thuis === false || a.aangesloten === false) return { ok: false, reden: 'de auto hangt niet aan de laadpaal' };

@@ -154,8 +154,10 @@ function openUitAdres() {
     const [wat, ...rest] = bladUitAdres.split('-');
     const id = rest.join('-');
     const alle = aansluiting.laden?.apparaten ?? [];
-    const doel = id === 'lijst' ? (wat === 'accu' ? 'acculijst' : 'ladenlijst') : wat === 'accu' ? (huisData?.opslag?.batterij ? 'accu' : 'acculijst') : alle.some((x) => x.id === id) ? `laden:${id}` : 'ladenlijst';
+    // Het lijstpaneel is weg (stap 4): zonder apparaat naar Toevoegen › Auto en laden of Thuisaccu.
+    const doel = wat === 'accu' ? (huisData?.opslag?.batterij && id !== 'lijst' ? 'accu' : null) : alle.some((x) => x.id === id) ? `laden:${id}` : null;
     bladUitAdres = null;
+    if (!doel) return void location.replace(`toevoegen.html#${wat === 'accu' ? 'energie' : 'auto'}`);
     openVrijBlad(doel);
   }
   if (!wgUitAdres || !witgoedNu.has(wgUitAdres)) return;
@@ -752,8 +754,6 @@ function vrijBlad(sleutel) {
   if (soort === 'opzon') return opZonBlad(id);
   if (soort === 'laden') return ladenBlad(id);
   // De lijst van laden en van de thuisaccu (besluit 318): zoals eerst bij Energie, nu vanuit Toevoegen.
-  if (soort === 'ladenlijst') return { naam: t('laden.titel'), zin: t('in.lijstZin'), html: instellen.regels('laden-lijst', '') };
-  if (soort === 'acculijst') return { naam: t('accu.titel'), zin: t('in.lijstZin'), html: instellen.regels('accu-lijst', '') };
   return null;
 }
 

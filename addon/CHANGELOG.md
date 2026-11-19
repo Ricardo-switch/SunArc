@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.204.1
+## 0.205.0
 
-*19 november 2026 · 0.179.0 – 0.204.1*
+*19 november 2026 · 0.179.0 – 0.205.0*
 
 **Nieuw**
 
@@ -71,6 +71,9 @@
 
 **Beter**
 
+- Een auto, laadpaal of thuisaccu voeg je toe op één plek: Apparaat toevoegen › Auto en laden of Thuisaccu. Staat hij er niet bij, dan kies je hem zelf, of maak je een laadpaal uit losse sensoren
+- Op de kaart van een auto, laadpaal of thuisaccu staat onderaan Verbergen in plaats van Doet mee; terughalen kan bij Toevoegen › Verborgen
+- Of SunArc de stand van evcc mag zetten, staat op de kaart van de laadpaal
 - Teken je je huis zelf, zonder kaart, dan legt Zonnepanelen de panelen op die buitenkant: trek je een buitenmuur recht, dan verandert het dak mee
 - De kaart staat nog op één plek: bij Je huis › Vorm. Daar kies je ook de dakvorm en draai je de nok
 - Daken en panelen heet Zonnepanelen en staat bij Energie: de panelen liggen op het dak uit Je huis, met de straat onder zoals in Je huis
@@ -126,6 +129,7 @@
 
 **Opgelost**
 
+- Toevoegen zei bij een soort zonder apparaten twee keer dat er niets gevonden was
 - Inrichten gaf op een eigen server een fout in de browser bij de stem in huis
 - Op de telefoon loopt de tekst van de assistent weer mee met de stem, in plaats van grijs te blijven tot hij klaar is
 - Op Thuis opende een tik op de zolder de panelen: het dak lag erboven
@@ -222,6 +226,9 @@
 
 **Improved**
 
+- You add a car, charger or home battery in one place: Add device › Car and charging or Home battery. If it is not listed, choose it yourself, or make a charger from separate sensors
+- The card of a car, charger or home battery has Hide at the bottom instead of Takes part; bring it back under Add › Hidden
+- Whether SunArc may set the evcc mode is on the charger’s card
 - If you draw your home yourself, without a map, Solar panels puts the panels on that outline: pull an outside wall straight and the roof changes with it
 - The map is in one place now: Your home › Shape. That is also where you choose the roof shape and turn the ridge
 - Roofs and panels is now called Solar panels and sits under Energy: the panels lie on the roof from Your home, with the street at the bottom like in Your home
@@ -277,6 +284,7 @@
 
 **Fixed**
 
+- Add said twice that nothing was found for a kind without devices
 - Setup showed an error in the browser for the voice in the house on your own server
 - On a phone the text of the assistant follows the voice again, instead of staying grey until it is done
 - On Home, tapping the attic opened the panels: the roof lay on top of it

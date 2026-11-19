@@ -221,10 +221,10 @@ function feiten(a) {
   const waar = [a.paalNaam, plekWoord(a)].filter(Boolean).join(', ');
   // Een laadpaal zonder auto heeft geen accu; dan zegt het derde vak wat er nog kan.
   const accu = a.pct == null && a.paalNaam != null && a.accuKWh == null
-    ? `<small>${esc(t('auto.feit.auto'))}</small><b>${esc(t('auto.nietInHA'))}</b><span><a href="apparaten.html#laden-lijst">${esc(t('auto.kiesBijEnergie'))}</a></span>`
+    ? `<small>${esc(t('auto.feit.auto'))}</small><b>${esc(t('auto.nietInHA'))}</b><span><a href="toevoegen.html#auto">${esc(t('auto.kiesBijEnergie'))}</a></span>`
     : a.accuKWh != null
     ? `<small>${esc(t('auto.feit.accu'))}</small><b>${esc(t('auto.accuKwh', { kwh: nl(a.accuKWh, a.accuKWh % 1 ? 1 : 0) }))}</b><span>${esc(t('auto.accuZin'))}</span>`
-    : `<small>${esc(t('auto.feit.accu'))}</small><b>${esc(t('auto.accuLeeg'))}</b><span><a href="apparaten.html#laden-lijst">${esc(t('auto.accuWaarom'))}</a></span>`;
+    : `<small>${esc(t('auto.feit.accu'))}</small><b>${esc(t('auto.accuLeeg'))}</b><span><a href="toevoegen.html#auto">${esc(t('auto.accuWaarom'))}</a></span>`;
   // Tijdens het laden: deze laadbeurt in plaats van de accu (schets Wand-Auto).
   const nu = dezeBeurt(a);
   const z = nu ? zonPct(nu) : null;
@@ -498,7 +498,7 @@ function nietZin(s, a) {
 /** Met evcc (besluit 278): de stand kiezen, hoe lang, en daarna weer de stand van daarvoor. */
 function standBladHtml(a, s, kop, niet) {
   const b = blad;
-  const kanRegel = `<p class="kan">${esc(t('auto.laden.evccKan', { standen: s.evccStand.opties.map(standNaam).join(', ') }))} <a href="apparaten.html#laden-lijst">${esc(t('auto.laden.instellen'))}</a></p>`;
+  const kanRegel = `<p class="kan">${esc(t('auto.laden.evccKan', { standen: s.evccStand.opties.map(standNaam).join(', ') }))} <a href="toevoegen.html#auto">${esc(t('auto.laden.instellen'))}</a></p>`;
   if (niet) return `${kop}<div class="hand-hoe">${esc(niet)}</div>${kanRegel}`;
   const knop = (x) => `<button type="button" data-laden-stand="${esc(x)}" aria-pressed="${b.stand === x}">${esc(standNaam(x))}</button>`;
   const stand = `<div class="vraag"><span>${esc(t('auto.laden.stand'))}</span><div class="seg">${s.evccStand.opties.map(knop).join('')}</div></div>`;
@@ -524,7 +524,7 @@ function bladHtml(a, s) {
   const kop = `<div class="hand-boven"><div><h2>${esc(t('auto.laden.kop'))}</h2><p class="nu">${esc(ladenNuZin(a, s))}</p></div><button type="button" class="sluit" data-laden-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>`;
   if (metStand(s)) return standBladHtml(a, s, kop, niet);
   const kan = [s.stroom ? t('laden.paalKan', { min: s.stroom.min, max: s.stroom.max }) : '', s.pauze ? t('auto.laden.kanPauze') : ''].filter(Boolean).join(' ');
-  const kanRegel = `<p class="kan">${esc(`${a.paalNaam ?? a.naam}: ${kan}`)} <a href="apparaten.html#laden-lijst">${esc(t('auto.laden.instellen'))}</a></p>`;
+  const kanRegel = `<p class="kan">${esc(`${a.paalNaam ?? a.naam}: ${kan}`)} <a href="toevoegen.html#auto">${esc(t('auto.laden.instellen'))}</a></p>`;
   if (niet) return `${kop}<div class="hand-hoe">${esc(niet)}</div>${kanRegel}`;
   let stroom = '';
   if (s.stroom && b.stroomA != null) {
@@ -642,7 +642,7 @@ function snelKnop(a, z) {
 }
 
 function instellenKaart() {
-  return `<a class="glas kaart naar" href="apparaten.html#laden-lijst"><div><h2>${esc(t('auto.instellen'))}</h2><p class="onder">${esc(t('auto.instellenZin'))}</p></div><span class="pijl" aria-hidden="true">›</span></a>`;
+  return `<a class="glas kaart naar" href="toevoegen.html#auto"><div><h2>${esc(t('auto.instellen'))}</h2><p class="onder">${esc(t('auto.instellenZin'))}</p></div><span class="pijl" aria-hidden="true">›</span></a>`;
 }
 
 function kiezer() {
@@ -664,7 +664,7 @@ function tekenNu() {
   const tel = document.querySelector('[data-telinhoud]');
   const a = deAuto();
   if (!a) {
-    const leeg = `<section class="glas leeg"><h2>${esc(fout ? t('auto.nogNiet') : huisData ? t('laden.nietsKop') : t('algemeen.laden'))}</h2>${huisData || fout ? `<p>${esc(fout ?? t('auto.nietsZin'))}</p><a class="knop knop-licht" href="apparaten.html#laden-lijst">${esc(t('auto.naarEnergie'))}</a>` : ''}</section>`;
+    const leeg = `<section class="glas leeg"><h2>${esc(fout ? t('auto.nogNiet') : huisData ? t('laden.nietsKop') : t('algemeen.laden'))}</h2>${huisData || fout ? `<p>${esc(fout ?? t('auto.nietsZin'))}</p><a class="knop knop-licht" href="toevoegen.html#auto">${esc(t('auto.naarEnergie'))}</a>` : ''}</section>`;
     wandHeld.innerHTML = leeg;
     wandRechts.innerHTML = '';
     tel.innerHTML = leeg;

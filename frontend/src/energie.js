@@ -12,7 +12,7 @@
  */
 'use strict';
 
-if (location.hash === '#auto' || location.hash === '#accu') location.replace(location.hash === '#auto' ? 'apparaten.html#laden-lijst' : 'apparaten.html#accu-lijst');
+if (location.hash === '#auto' || location.hash === '#accu') location.replace(location.hash === '#auto' ? 'toevoegen.html#auto' : 'toevoegen.html#energie');
 
 const { $$, esc, haal, nl } = app;
 
@@ -46,10 +46,6 @@ const dakStaat = { scherm: 'alle', concept: null, origineel: null, genomen: fals
 })() };
 /** Het deel dat het laatst getekend werd: wie Daken en panelen opent, begint bij de vlakken. */
 let vorigDeel = null;
-/** Auto en laadpaal (besluit 259, laden.js): welk apparaat rechts openstaat. */
-const ladenStaat = { wie: null };
-/** Thuisaccu (besluit 271, thuisaccu.js): welke accu rechts openstaat. */
-const accuStaat = { wie: null };
 
 const leeg = () => ({ versie: 1, bron: 'zelf', net: { afname: [], teruglevering: [] }, zon: [], gas: null, apparaten: [], prijzen: { stroom: null, teruglevering: null, gas: null, vastPerMaand: null } });
 /** Tarief 1 van een slimme meter is het daltarief (zelfde regel als de dienst, tarief.ts). */
@@ -446,7 +442,7 @@ function verwarmingVorm() {
 /* Ernaast */
 
 /** Per deel hoeveel punten er bij "Waarvoor dit nodig is" staan (energie.naast.<deel>.<n>). */
-const NAAST = { panelen: 2, aansluiting: 2, meters: 2, prijzen: 3, verwarming: 2, auto: 2, accu: 2 };
+const NAAST = { panelen: 2, aansluiting: 2, meters: 2, prijzen: 3, verwarming: 2 };
 
 function naast(id) {
   const deel = NAAST[id] ? id : 'panelen';
@@ -478,8 +474,6 @@ function tekenNu() {
     meters: () => (e ? metersVorm() : wacht),
     prijzen: () => (e ? prijzenVorm() : wacht),
     verwarming: () => (a ? verwarmingVorm() : wacht),
-    auto: () => (a ? laden.vorm(aInfo, a, ladenStaat) : wacht),
-    accu: () => (a ? thuisaccu.vorm(aInfo, a, accuStaat) : wacht),
   }[nu]?.() ?? wacht;
   // Een eigen voorvoegsel per scherm voor de namen in de tekening van boven (besluit 254): wand en telefoon staan allebei in de pagina.
   // Wat schuift (de rechterkolom van Daken en panelen) houdt zijn plek bij opnieuw tekenen (6 november 2026).
@@ -600,15 +594,6 @@ document.addEventListener('click', async (ev) => {
   // De dakvlakken in de tekening van boven zijn geen knoppen, maar wel aan te tikken (besluit 254).
   const knop = ev.target.closest('button, [data-dak-dakvlak]');
   if (!knop || knop.disabled) return;
-  // Auto en laadpaal (besluit 259).
-  if (a) {
-    const wat = laden.klik(knop, aInfo, a, ladenStaat) || thuisaccu.klik(knop, aInfo, a, accuStaat);
-    if (wat === 'teken') return teken();
-    if (wat) {
-      teken();
-      return bewaarAansluiting();
-    }
-  }
   // Het vraagteken bij Daken en panelen (Ricardo, 5 november 2026): de rondleiding opnieuw, zoals op Thuis.
   if (knop.hasAttribute('data-dak-uitleg')) {
     if (dakStaat.scherm !== 'alle') {
@@ -767,11 +752,6 @@ document.addEventListener('change', (ev) => {
   const dak = dakvlakken.verander(t, dakStaat, aInfo?.daken);
   if (dak === 'teken') return teken();
   if (dak) return bewaarDaken(dak);
-  // Auto en laadpaal (besluit 259).
-  if (a && (laden.verander(t, aInfo, a, ladenStaat) || thuisaccu.verander(t, aInfo, a, accuStaat))) {
-    teken();
-    return bewaarAansluiting();
-  }
   // De netmeter en de omvormers (testerronde, november 2026).
   if (a && vermogens.verander(t, aInfo, a)) {
     teken();

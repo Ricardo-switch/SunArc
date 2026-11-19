@@ -52,7 +52,7 @@ function lossePaneel() {
     .join('');
   const bestaand = Object.entries(losse.laadpalen ?? {});
   const lijst = bestaand.length
-    ? `<div class="stap"><b>${esc(t('toev.losse.al'))}</b><div class="lijst">${bestaand.map(([id, l]) => `<div class="rij"><span class="ik">${iconen.svg('laadpaal')}</span><b>${esc(l.naam)}</b><small>${esc(t('toev.losse.n', { n: l.sensoren.length }))} · <a href="apparaten.html#laden-lijst">${esc(t('toev.losse.energie'))}</a></small><button type="button" class="stil" data-lweg="${esc(id)}">${esc(t('toev.weg'))}</button></div>`).join('')}</div></div>`
+    ? `<div class="stap"><b>${esc(t('toev.losse.al'))}</b><div class="lijst">${bestaand.map(([id, l]) => `<div class="rij"><span class="ik">${iconen.svg('laadpaal')}</span><b>${esc(l.naam)}</b><small>${esc(t('toev.losse.n', { n: l.sensoren.length }))} · <a href="apparaten.html#laden-${encodeURIComponent(id)}">${esc(t('toev.losse.energie'))}</a></small><button type="button" class="stil" data-lweg="${esc(id)}">${esc(t('toev.weg'))}</button></div>`).join('')}</div></div>`
     : '';
   return `
     <div class="wie"><span class="ik">${iconen.svg('laadpaal')}</span><div><h2>${esc(t('toev.losse.titel'))}</h2><small>${esc(t('toev.losse.lead'))}</small></div></div>
@@ -225,7 +225,6 @@ const ORDE = [
   ['energie', 'batterij'],
   ['stekkers', 'stekker'],
   ['schakelaars', 'apparaat'],
-  ['losse', 'laadpaal'],
 ];
 const WITGOED = new Set(['wasmachine', 'droger', 'vaatwasser', 'wasdroger']);
 const WATER = new Set(['boiler', 'jacuzzi']);
@@ -278,9 +277,10 @@ function itemsVan(soort) {
       uit.push({ id: g.id, naam: g.naam, icoon: 'witgoed', zin: [plekZin(g.id), zon ? t('toev.opZonKort') : null].filter(Boolean).join(' · '), nieuw: !zon && !vast.has(g.id) && !ruimteVan(g.id), wat: 'witgoed' });
     }
   } else if (soort === 'auto') {
-    for (const d of aansluiting?.laden?.apparaten ?? []) uit.push({ id: d.id, naam: d.naam, icoon: d.rol === 'laadpaal' ? 'laadpaal' : 'auto', zin: d.aan ? t(`laden.rol.${d.rol}`) : t('toev.doetNietMee'), nieuw: !d.aan, wat: 'laden' });
+    // Wat SunArc vond, doet mee; wat je verborg, staat bij Verborgen (stap 4).
+    for (const d of aansluiting?.laden?.apparaten ?? []) if (d.aan) uit.push({ id: d.id, naam: d.naam, icoon: d.rol === 'laadpaal' ? 'laadpaal' : 'auto', zin: t(`laden.rol.${d.rol}`), nieuw: false, wat: 'laden' });
   } else if (soort === 'energie') {
-    for (const d of aansluiting?.accu?.apparaten ?? []) uit.push({ id: d.id, naam: d.naam, icoon: 'batterij', zin: d.aan ? t('apparaten.soort.energie') : t('toev.doetNietMee'), nieuw: !d.aan, wat: 'accu' });
+    for (const d of aansluiting?.accu?.apparaten ?? []) if (d.aan) uit.push({ id: d.id, naam: d.naam, icoon: 'batterij', zin: t('apparaten.soort.energie'), nieuw: false, wat: 'accu' });
   } else if (soort === 'stekkers') {
     const bij = bijSchakelaar();
     const ids = new Set();
@@ -313,10 +313,11 @@ function nieuwAlles() {
   return [...ORDE.map(([s]) => s), 'anders'].flatMap((s) => itemsVan(s).filter((x) => x.nieuw).map((x) => ({ ...x, soort: s })));
 }
 
-/** Het adres: [soort, id]. Oude adressen (#s-id, #schakelaars, #losse) kloppen nog. */
+/** Het adres: [soort, id]. Oude adressen (#s-id, #schakelaars, #losse) kloppen nog; losse sensoren horen sinds stap 4 bij Auto en laden. */
 function adres() {
   const h = decodeURIComponent(location.hash.slice(1));
   if (h.startsWith('s-')) return ['schakelaars', h.slice(2)];
+  if (h === 'losse') return ['auto', 'losse'];
   const [soort, ...rest] = h.split('/');
   return [soort || null, rest.join('/') || null];
 }
@@ -342,33 +343,56 @@ function itemRij(x, soort, gekozen) {
   return `<a class="vond${x.id === gekozen ? ' aan' : ''}" href="${href(soort, x.id)}" data-item="${esc(x.id)}"><span class="ik">${iconen.svg(x.icoon)}</span><span class="tekst"><b>${esc(x.naam)}</b><small class="${x.nieuw ? 'nieuw' : ''}">${esc(x.zin)}</small></span>${x.nieuw ? '<span class="r" aria-hidden="true">›</span>' : `<span class="r af" aria-label="${esc(t('toev.staatKlaar'))}">✓</span>`}</a>`;
 }
 
-/** Wat verborgen is: uit Je huis (een apparaat) en bij Schakelaars. */
+/** Wat verborgen is: uit Je huis (een apparaat), bij Schakelaars, en een auto, laadpaal of accu die je verborg (stap 4). */
 function verborgenLijst() {
-  return [...(huisData?.verborgen ?? []).map((x) => ({ id: x.id, naam: x.naam, waar: 'huis' })), ...schakelaarsVerborgen.map((x) => ({ id: x.id, naam: x.naam, waar: 'schakelaar' }))];
+  return [
+    ...(huisData?.verborgen ?? []).map((x) => ({ id: x.id, naam: x.naam, waar: 'huis' })),
+    ...schakelaarsVerborgen.map((x) => ({ id: x.id, naam: x.naam, waar: 'schakelaar' })),
+    ...(aansluiting?.laden?.apparaten ?? []).filter((d) => !d.aan).map((d) => ({ id: d.id, naam: d.naam, waar: 'laden' })),
+    ...(aansluiting?.accu?.apparaten ?? []).filter((d) => !d.aan).map((d) => ({ id: d.id, naam: d.naam, waar: 'accu' })),
+  ];
+}
+
+/** Terughalen: een auto, laadpaal of accu met de knop van zijn blad (instellen.js bewaart), de rest in de indeling. */
+const terugKnop = (x) =>
+  x.waar === 'laden' || x.waar === 'accu'
+    ? `<span data-hand><button type="button" class="terughalen" data-${x.waar === 'laden' ? 'laad' : 'accu'}="aan" data-id="${esc(x.id)}" aria-checked="false">${esc(t('toev.terughalen'))}</button></span>`
+    : `<button type="button" class="terughalen" data-terughalen="${esc(x.id)}" data-waar="${x.waar}">${esc(t('toev.terughalen'))}</button>`;
+
+/** Staat hij er niet bij? Bij Auto en laden en de thuisaccu: zelf een apparaat kiezen, of een laadpaal uit losse sensoren (stap 4). */
+function wegenHtml(soort, gekozen, groep) {
+  if (soort !== 'auto' && soort !== 'energie') return '';
+  const weg = (id, icoon, titel, zin) => `<a class="vond weg${id === gekozen ? ' aan' : ''}" href="${href(soort, id)}"><span class="ik">${icoon}</span><span class="tekst"><b>${esc(titel)}</b><small>${esc(zin)}</small></span><span class="r" aria-hidden="true">›</span></a>`;
+  const n = Object.keys(losse.laadpalen ?? {}).length;
+  const rijen = [
+    weg('zelf', '<span class="plus" aria-hidden="true">+</span>', t('toev.zelfKiezen'), t('toev.zelfKiezenZin')),
+    ...(soort === 'auto' ? [weg('losse', iconen.svg('laadpaal'), t('toev.losse.titel'), n ? t('toev.losse.n2', { n }) : t('toev.losseZin'))] : []),
+  ];
+  return `<h4 class="tussen">${esc(t('toev.nietErbijKop'))}</h4>${groep(rijen.join(''))}`;
 }
 
 /** Het midden: wat SunArc van die soort vond; of Nieuw gevonden, of Verborgen. */
 function middenHtml(soort, gekozen, tel) {
   if (soort === 'verborgen') {
     const lijst = verborgenLijst();
-    return `<h3>${esc(t('toev.verborgen'))}</h3><p class="lead">${esc(t('toev.verborgenLead'))}</p>${lijst.length ? `<div class="groep">${lijst.map((x) => `<div class="vond"><span class="ik">${iconen.svg('verborgen')}</span><span class="tekst"><b>${esc(x.naam)}</b></span><button type="button" class="terughalen" data-terughalen="${esc(x.id)}" data-waar="${x.waar}">${esc(t('toev.terughalen'))}</button></div>`).join('')}</div>` : `<p class="leeg">${esc(t('toev.geenVerborgen'))}</p>`}`;
+    return `<h3>${esc(t('toev.verborgen'))}</h3><p class="lead">${esc(t('toev.verborgenLead'))}</p>${lijst.length ? `<div class="groep">${lijst.map((x) => `<div class="vond"><span class="ik">${iconen.svg('verborgen')}</span><span class="tekst"><b>${esc(x.naam)}</b></span>${terugKnop(x)}</div>`).join('')}</div>` : `<p class="leeg">${esc(t('toev.geenVerborgen'))}</p>`}`;
   }
-  if (soort === 'losse' && tel) return `<div class="glas paneel" data-rechts data-hand>${lossePaneel()}</div>`;
+  if (soort === 'auto' && gekozen === 'losse' && tel) return `<div class="glas paneel" data-rechts data-hand>${lossePaneel()}</div>`;
   const items = soort === 'nieuw' ? nieuwAlles() : itemsVan(soort);
   const nieuw = items.filter((x) => x.nieuw);
   const klaar = items.filter((x) => !x.nieuw);
   const titel = soort === 'nieuw' ? t('toev.nieuw') : t(`apparaten.soort.${soort}`);
-  const lead = soort === 'nieuw' ? t('toev.nieuwLead') : soort === 'losse' ? t('toev.losse.lead') : t('toev.vond', { n: items.length });
+  const lead = soort === 'nieuw' ? t('toev.nieuwLead') : soort === 'auto' ? t('toev.autoLead') : items.length ? t('toev.vond', { n: items.length }) : '';
   const rijSoort = (x) => (soort === 'nieuw' ? x.soort : soort);
   const naamSoort = (x) => (soort === 'nieuw' && x.soort !== 'anders' ? { ...x, zin: `${t(`apparaten.soort.${x.soort}`)} · ${x.zin}` } : x);
   const groep = (lijst) => (tel ? `<section class="glas groep">${lijst}</section>` : `<div class="groep">${lijst}</div>`);
   const max = tel ? 99 : Math.max(2, 7 - nieuw.length);
   const nieuwDeel = nieuw.length ? `<h4 class="tussen nieuw">${esc(t('toev.nieuwTussen'))}</h4>${groep(nieuw.map((x) => itemRij(naamSoort(x), rijSoort(x), gekozen)).join(''))}` : '';
   const klaarDeel = klaar.length ? `<h4 class="tussen">${esc(t('toev.klaarTussen'))}</h4>${groep(klaar.slice(0, max).map((x) => itemRij(x, rijSoort(x), gekozen)).join(''))}${klaar.length > max ? `<p class="meer">${esc(t('toev.enNog', { n: klaar.length - max }))}</p>` : ''}` : '';
-  const leeg = !items.length ? `<p class="leeg">${esc(t(soort === 'nieuw' ? 'toev.geenNieuw' : soort === 'losse' ? 'toev.losse.geenLaadpaal' : 'toev.geenSoort'))}</p>` : '';
+  const leeg = !items.length ? `<p class="leeg">${esc(t(soort === 'nieuw' ? 'toev.geenNieuw' : 'toev.geenSoort'))}</p>` : '';
   const aantalVerborgen = verborgenLijst().length;
-  const voet = `<div class="tvoet">${aantalVerborgen ? `<a class="verborgenregel" href="${href('verborgen')}"><span>${esc(t('toev.verborgen'))}</span><em>${aantalVerborgen} ›</em></a>` : ''}<span>${esc(t(soort === 'nieuw' ? 'toev.kiesSoort' : 'toev.nietErbij'))}</span></div>`;
-  return `<h3>${esc(titel)}</h3><p class="lead">${esc(lead)}</p>${nieuwDeel}${klaarDeel}${leeg}${voet}`;
+  const voet = `<div class="tvoet">${aantalVerborgen ? `<a class="verborgenregel" href="${href('verborgen')}"><span>${esc(t('toev.verborgen'))}</span><em>${aantalVerborgen} ›</em></a>` : ''}${soort === 'auto' || soort === 'energie' ? '' : `<span>${esc(t(soort === 'nieuw' ? 'toev.kiesSoort' : 'toev.nietErbij'))}</span>`}</div>`;
+  return `<h3>${esc(titel)}</h3>${lead ? `<p class="lead">${esc(lead)}</p>` : ''}${nieuwDeel}${klaarDeel}${leeg}${wegenHtml(soort, gekozen, groep)}${voet}`;
 }
 
 /** Wat SunArc nu van het apparaat weet, onder zijn naam. */
@@ -377,9 +401,31 @@ function nuZin(x) {
   return [ding, x.zin].filter(Boolean).join(' · ');
 }
 
+/** Zelf een apparaat kiezen (stap 4): de keuzelijst van laden.js of thuisaccu.js; daarna staat het apparaat in de lijst. */
+function zelfPaneel(soort) {
+  const auto = soort === 'auto';
+  const html = auto ? laden.zelfKiezen(aansluiting) : thuisaccu.zelfKiezen(aansluiting);
+  return `<div class="wie"><span class="ik plus" aria-hidden="true">+</span><div><h2>${esc(t('toev.zelfKiezen'))}</h2><small>${esc(t(auto ? 'toev.zelfAutoZin' : 'toev.zelfAccuZin'))}</small></div></div>
+    <div class="regels">${html}</div>
+    <p class="fout" data-fout aria-live="polite"></p>`;
+}
+/** Na een eigen keuze: naar het blad van dat apparaat zodra het er is. */
+let naKiezen = null;
+document.addEventListener('change', (e) => {
+  const el = /** @type {HTMLSelectElement | null} */ (/** @type {HTMLElement} */ (e.target).closest?.('[data-laad-kies], [data-accu-kies]'));
+  if (el?.value) naKiezen = [el.matches('[data-laad-kies]') ? 'auto' : 'energie', el.value];
+});
+addEventListener('handveranderd', () => {
+  if (!naKiezen) return;
+  const [soort, id] = naKiezen;
+  naKiezen = null;
+  setTimeout(() => (location.hash = href(soort, id)), 400);
+});
+
 /** Rechts: het blad om hem klaar te zetten, met dezelfde regels als zijn kaart. */
 function bladHtml(soort, id) {
-  if (soort === 'losse') return lossePaneel();
+  if (soort === 'losse' || (soort === 'auto' && id === 'losse')) return lossePaneel();
+  if ((soort === 'auto' || soort === 'energie') && id === 'zelf') return zelfPaneel(soort);
   if (soort === 'verborgen') return `<div class="kies"><p>${esc(t('toev.verborgenUitleg'))}</p></div>`;
   const items = soort === 'nieuw' ? nieuwAlles() : itemsVan(soort);
   const x = items.find((y) => y.id === id) ?? (soort === 'nieuw' || !id ? null : null);
@@ -490,7 +536,7 @@ function teken() {
   if (stap) stap.innerHTML = !soort ? `<p class="lead">${esc(t('toev.telLead'))}</p>${soortenHtml(null, true)}` : middenHtml(soort, id, true);
   const laag = $$('#tel [data-laag]')[0];
   if (laag) {
-    const blad = tel && soort && id && soort !== 'losse' ? bladHtml(bladSoort === 'anders' ? 'nieuw' : bladSoort, id) : '';
+    const blad = tel && soort && id && soort !== 'losse' && id !== 'losse' ? bladHtml(bladSoort === 'anders' ? 'nieuw' : bladSoort, id) : '';
     laag.hidden = !blad;
     laag.innerHTML = blad ? `<a class="achter" href="${href(soort)}" aria-label="${esc(t('algemeen.sluiten'))}"></a><div class="blad" data-rechts data-hand role="dialog" aria-modal="true"><span class="greep" aria-hidden="true"></span>${blad}</div>` : '';
   }

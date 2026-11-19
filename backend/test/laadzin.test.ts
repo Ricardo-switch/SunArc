@@ -52,7 +52,7 @@ describe('laden met een zin (besluit 280)', () => {
   it('zegt eerlijk wat niet kan, en vraagt welke auto', () => {
     expect(zin(herkenLaden('laad met 20 ampère', [tesla], 'nl', nu, TZ))).toBe('De laadpaal kan 6 tot 16 ampère.');
     expect(zin(herkenLaden('laad met 16 ampère', [{ ...tesla, zekeringA: 12 }], 'nl', nu, TZ))).toBe('Meer dan 12 ampère past nu niet op je zekering.');
-    expect(zin(herkenLaden('laad met 8 ampère', [{ ...tesla, mag: false }], 'nl', nu, TZ))).toContain('Energie › Auto en laadpaal');
+    expect(zin(herkenLaden('laad met 8 ampère', [{ ...tesla, mag: false }], 'nl', nu, TZ))).toContain('de kaart van de laadpaal bij Apparaten');
     expect(zin(herkenLaden('laad op zon', [tesla], 'nl', nu, TZ))).toContain('kiest de laadpaal zelf');
     const twee = [tesla, { ...tesla, id: 'kia', naam: 'EV6' }];
     const vraag = herkenLaden('laad met 8 ampère', twee, 'nl', nu, TZ);

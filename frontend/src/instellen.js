@@ -141,10 +141,6 @@
     // Een auto of laadpaal, en de thuisaccu (besluit 318): dezelfde keuzes als eerst bij Energie.
     if (soort === 'laden') return `${global.laden?.blad(aans, werk(), id)?.html ?? ''}${foutRegel()}`;
     // De hele lijst, zoals eerst bij Energie: wat gevonden is met een schakelaar, en een ander apparaat kiezen.
-    if (soort === 'laden-lijst' || soort === 'accu-lijst') {
-      const vorm = soort === 'laden-lijst' ? global.laden?.vorm(aans, werk(), staat) : global.thuisaccu?.vorm(aans, werk(), staat);
-      return `<div class="in-lijst">${(vorm ?? '').replace(/^<div class="kopregel">[\s\S]*?<\/div>/, '')}</div>${foutRegel()}`;
-    }
     if (soort === 'accu') return `${global.thuisaccu?.blad(aans, id)?.html ?? ''}${foutRegel()}`;
     if (soort === 'stekker') return stekkerRegels(id, opties);
     if (soort === 'witgoed') return witgoedRegels(id, opties);

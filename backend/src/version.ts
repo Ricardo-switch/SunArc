@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.204.1';
+export const VERSIE = '0.205.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,24 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.205.0',
+    datum: '2026-11-19',
+    beter: [
+      'Een auto, laadpaal of thuisaccu voeg je toe op één plek: Apparaat toevoegen › Auto en laden of Thuisaccu. Staat hij er niet bij, dan kies je hem zelf, of maak je een laadpaal uit losse sensoren',
+      'Op de kaart van een auto, laadpaal of thuisaccu staat onderaan Verbergen in plaats van Doet mee; terughalen kan bij Toevoegen › Verborgen',
+      'Of SunArc de stand van evcc mag zetten, staat op de kaart van de laadpaal',
+    ],
+    opgelost: ['Toevoegen zei bij een soort zonder apparaten twee keer dat er niets gevonden was'],
+    en: {
+      beter: [
+        'You add a car, charger or home battery in one place: Add device › Car and charging or Home battery. If it is not listed, choose it yourself, or make a charger from separate sensors',
+        'The card of a car, charger or home battery has Hide at the bottom instead of Takes part; bring it back under Add › Hidden',
+        'Whether SunArc may set the evcc mode is on the charger’s card',
+      ],
+      opgelost: ['Add said twice that nothing was found for a kind without devices'],
+    },
+  },
   {
     versie: '0.204.1',
     datum: '2026-11-19',

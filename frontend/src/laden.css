@@ -36,3 +36,7 @@
 .ac-waar { margin-left: auto; font-size: 14px; font-weight: 700; color: var(--ijs-t); }
 #tel .ac-sensoren { grid-template-columns: minmax(0, 1fr); }
 .ac-maat { max-width: 220px; }
+/* Verbergen onderaan de kaart (stap 4): in plaats van Doet mee; ook bij Toevoegen. */
+.ld-verberg { display: flex; align-items: center; gap: 10px; margin-top: 4px; padding: 12px 0 0; border: 0; border-top: 1px solid rgb(255 255 255 / 0.07); background: transparent; color: var(--zacht); font: 700 14px var(--romp); text-align: left; cursor: pointer; width: 100%; }
+.ld-verberg svg { width: 18px; height: 18px; flex: none; }
+.ld-verberg small { display: block; margin-top: 2px; font-weight: 500; font-size: 12px; color: var(--gedempt); }

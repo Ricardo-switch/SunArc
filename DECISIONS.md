@@ -318,6 +318,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [325. Hulp op de plek](#325-hulp-op-de-plek)
 - [326. Stap 3 af: één telling, bladen die passen, één woord, en de assistent](#326-stap-3-af-één-telling-bladen-die-passen-één-woord-en-de-assistent)
 - [327. Eén plek voor de kaart: het dak in Je huis, de panelen bij Energie](#327-eén-plek-voor-de-kaart-het-dak-in-je-huis-de-panelen-bij-energie)
+- [328. Eén plek om een auto, laadpaal of thuisaccu toe te voegen](#328-eén-plek-om-een-auto-laadpaal-of-thuisaccu-toe-te-voegen)
 
 **Veiligheid**
 
@@ -15174,6 +15175,39 @@ huis.
 komt onder hetzelfde dak; een garage of uitbouw als eigen gebouw neerzetten
 zonder kaart kan nog niet. Daarna: een laadpaal toevoegen op één plek, en
 Inrichten › Aanpassen met dezelfde bladen.
+
+## 328. Eén plek om een auto, laadpaal of thuisaccu toe te voegen
+
+*Onderwerp: weergave · Status: geldig*
+
+19 november 2026, stap 4 punt 1. Een laadpaal kon er op drie manieren bij:
+het paneel Auto en laadpaal bij Apparaten (een keuzelijst), Toevoegen › Auto
+en laden, en Toevoegen › Losse sensoren. De thuisaccu had net zo een eigen
+paneel. Keuze van Ricardo (schets `Wand-/Tel-Laden-Toevoegen`): het paneel
+gaat weg, Toevoegen is de enige ingang. De pagina Auto, met de auto die zich
+vult tijdens het laden, blijft.
+
+*Besluit (0.205.0):*
+
+- **Toevoegen › Auto en laden** toont wat Home Assistant vond, en onder
+  *Staat hij er niet bij?* twee wegen: *Zelf een apparaat kiezen* (wat iets
+  meet dat bij laden hoort) en *Laadpaal uit losse sensoren* (Modbus).
+  Losse sensoren is geen eigen soort meer; het oude adres `#losse` komt daar
+  uit. De thuisaccu heeft *Zelf een apparaat kiezen* bij Toevoegen ›
+  Thuisaccu. Na een eigen keuze opent het blad van dat apparaat.
+- **Op de kaart** staat onderaan *Verbergen* in plaats van de schakelaar *Doet
+  mee*; een verborgen auto, laadpaal of accu staat bij Toevoegen › Verborgen
+  met Terughalen. Of SunArc de stand van evcc mag zetten, staat op de kaart
+  van de laadpaal (eerst in het paneel).
+- **Weg:** het paneel (`laden.vorm`, `thuisaccu.vorm`, `#laden-lijst`,
+  `#accu-lijst`) en de resten ervan bij Energie. Oude links (de pagina Auto,
+  de hulp, de woordzoeker, `energie.html#auto`) gaan naar Toevoegen. De dienst
+  zegt bij laden met de hand: zet het aan op de kaart van de laadpaal.
+- Toevoegen zegt bij een soort zonder apparaten niet meer twee keer dat er
+  niets gevonden is.
+
+*Nog niet:* Inrichten › Aanpassen met dezelfde bladen als Energie (het laatste
+deel van punt 1), en het dak per gebouw zonder kaart (eerst een schets).
 
 ## Wat nog een besluit wacht
 

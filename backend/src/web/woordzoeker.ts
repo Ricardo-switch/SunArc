@@ -247,7 +247,7 @@ const ONDERWERPEN: readonly Onderwerp[] = [
    */
   {
     id: 'laadpaal',
-    href: 'apparaten.html#laden-lijst',
+    href: 'toevoegen.html#auto',
     sterk: ['laadpaal*', 'laadpunt*', 'laadt', 'laden', 'opladen', 'auto', 'elektrische auto', 'wallbox', 'charger', 'charging', 'charge', 'car', 'ev'],
     zwak: ['sneller', 'langzaam', 'trager', 'snel', 'harder', 'stroom', 'ampere', 'faster', 'slow', 'slower', 'amps'],
     nl: {
