@@ -144,6 +144,8 @@ export interface HandStand {
   /** Wat het apparaat nu doet (`heat`, `cool`, `off`), en zijn eigen temperatuur. */
   readonly hvac: string | null;
   readonly nuC: number | null;
+  /** De luchtvochtigheid in procenten: van het apparaat, of van zijn kamer (19 november 2026). */
+  readonly vochtPct: number | null;
   readonly actief: { readonly modus: HandModus | HandStandModus | 'aan'; readonly doelC: number | null; readonly totMs: number; readonly totDoel?: boolean } | null;
 }
 
@@ -219,6 +221,8 @@ export class Handbediening {
         ...(standen.length ? { standen } : {}),
         hvac: k?.state ?? null,
         nuC: typeof k?.attributes['current_temperature'] === 'number' ? (k.attributes['current_temperature'] as number) : null,
+        // De luchtvochtigheid als het apparaat die zelf meet (19 november 2026); anders vult de deur die van de kamer in.
+        vochtPct: typeof k?.attributes['current_humidity'] === 'number' ? (k.attributes['current_humidity'] as number) : null,
         actief: t ? { modus: t.modus, doelC: t.gezet ?? null, totMs: t.totMs, ...(t.totDoel ? { totDoel: true } : {}) } : null,
       });
     }
@@ -235,6 +239,8 @@ export class Handbediening {
         modi: [{ modus: 'verwarmen', doelC: doel, standaardC: t?.terug ?? doel, min: Number(k.attributes['min_temp'] ?? 5), max: Number(k.attributes['max_temp'] ?? 30), stap: Number(k.attributes['target_temp_step'] ?? 0.5) || 0.5, via: 'direct', niet: null }],
         hvac: k.state,
         nuC: typeof k.attributes['current_temperature'] === 'number' ? (k.attributes['current_temperature'] as number) : null,
+        // De luchtvochtigheid als het apparaat die zelf meet (19 november 2026); anders vult de deur die van de kamer in.
+        vochtPct: typeof k?.attributes['current_humidity'] === 'number' ? (k.attributes['current_humidity'] as number) : null,
         actief: t ? { modus: t.modus, doelC: t.gezet ?? null, totMs: t.totMs, ...(t.totDoel ? { totDoel: true } : {}) } : null,
       });
     }
@@ -254,6 +260,8 @@ export class Handbediening {
         voorinstelling: typeof k.attributes['preset_mode'] === 'string' ? (k.attributes['preset_mode'] as string) : null,
         hvac: k.state,
         nuC: typeof k.attributes['current_temperature'] === 'number' ? (k.attributes['current_temperature'] as number) : null,
+        // De luchtvochtigheid als het apparaat die zelf meet (19 november 2026); anders vult de deur die van de kamer in.
+        vochtPct: typeof k?.attributes['current_humidity'] === 'number' ? (k.attributes['current_humidity'] as number) : null,
         actief: t ? { modus: t.modus, doelC: t.gezet ?? null, totMs: t.totMs, ...(t.totDoel ? { totDoel: true } : {}) } : null,
       });
     }

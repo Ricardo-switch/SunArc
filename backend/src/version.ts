@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.201.1';
+export const VERSIE = '0.201.2';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.201.2',
+    datum: '2026-11-19',
+    beter: [
+      'De luchtvochtigheid staat naast de temperatuur, in het blad van een kamer bij Klimaat en in het blad van een apparaat met de hand; meet het apparaat hem niet zelf, dan die van de kamer',
+    ],
+    en: {
+      beter: [
+        'Humidity is shown next to the temperature, in the sheet of a room under Climate and in the sheet of a device by hand; if the device does not measure it, the room does',
+      ],
+    },
+  },
   {
     versie: '0.201.1',
     datum: '2026-11-19',

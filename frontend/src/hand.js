@@ -238,7 +238,8 @@
       ['dagdeel', t('hand.totKlok', { klok: klokVan(data.dagdeelTotMs) }), open.tot === 'dagdeel', 'data-hand-tot'],
       ...(stand ? [] : [['doel', t('hand.totDoel', { doel: graden(open.doel) }), open.tot === 'doel', 'data-hand-tot']]),
     ]);
-    const kop = metKop ? kopVan(a.naam, [a.kamer, a.nuC != null ? t('hand.nuGraden', { graden: graden(a.nuC) }) : null, nuZin(a)].filter(Boolean).join(' · ')) : '';
+    // Met de luchtvochtigheid erbij (19 november 2026), van het apparaat of van de kamer.
+    const kop = metKop ? kopVan(a.naam, [a.kamer, a.nuC != null ? t('hand.nuGraden', { graden: graden(a.nuC) }) : null, a.vochtPct != null ? t('kamer.vocht', { pct: Math.round(a.vochtPct) }) : null, nuZin(a)].filter(Boolean).join(' · ')) : '';
     // Een knop die zegt wat hij doet (15 november): een airco die de app zelf aanzette, gaat ook uit.
     const zetUit = a.actief && (isStand(a.actief.modus) || m.via === 'direct') && a.soort !== 'radiatorknop';
     const terugKnop = los

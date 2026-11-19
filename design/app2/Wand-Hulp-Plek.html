@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Hulp op de plek (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<style>
+  /*
+   * Hulp op de plek (schets, 19 november 2026), op het blad van Klimaat per
+   * kamer (Wand-Klimaat-Kamer). Een klein vraagteken bij wat lastig is opent
+   * een kort blad met het stukje uit de handleiding; onderaan het blad staat
+   * Waarvoor is dit?. Bij Ik snap iets niet staat onder wat je typt het stukje
+   * dat past (de woordzoeker), en gaan de pagina en de tekening van je huis
+   * mee. De assistent antwoordt met hetzelfde stukje. De stukjes staan in
+   * hulp-plek.js.
+   *   (geen hash)  het vraagteken bij Helpt op zon, open
+   *   #waarvoor    Waarvoor is dit?: het stukje van deze pagina, met de onderwerpen
+   *   #snap        Ik snap iets niet, met het stukje dat past en wat er meegaat
+   *   #assistent   Vraag het je huis: het antwoord uit hetzelfde stukje
+   *   #rust        alleen de vraagtekens en de regel, niets open
+   */
+  main { padding: 22px 26px 22px 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .boven { display: flex; align-items: center; gap: 16px; }
+  .boven .bewaard { margin-left: auto; font-size: 13px; color: var(--gedempt); }
+  .terug { height: 44px; padding: 0 16px; display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; }
+  .pagina { flex: 1; min-height: 0; display: grid; grid-template-columns: 290px 1fr; gap: 14px; }
+
+  /* Links: de kamers en het hele huis. */
+  .lijst { padding: 10px; display: flex; flex-direction: column; gap: 2px; }
+  .lijst h4 { margin: 8px 12px 4px; font-size: 12.5px; color: var(--gedempt); }
+  .lijst a { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 14px; position: relative; }
+  .icoon { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); flex: none; }
+  .icoon svg { width: 20px; height: 20px; }
+  .lijst a b { display: block; font-size: 15px; }
+  .lijst a span { font-size: 12.5px; color: var(--gedempt); }
+  .lijst a em { margin-left: auto; font-style: normal; font-family: var(--kop); font-weight: 600; }
+  .lijst a.aan { background: rgb(var(--wit) / 0.08); }
+  .lijst a.aan::before { content: ''; position: absolute; left: -2px; top: 12px; bottom: 12px; width: 3px; border-radius: 3px; background: var(--tekst); }
+  .lijst .nietmee { margin: 2px 12px 4px; font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+
+  /* Het blad van de kamer. */
+  .blad { padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .kamerkop { display: flex; align-items: center; gap: 12px; }
+  .kamerkop .icoon { width: 42px; height: 42px; color: var(--gloed); }
+  .kamerkop h2 { margin: 0; }
+  .kamerkop .rechts { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .kamerkop .getal { font-size: 30px; }
+  .pilkeus { height: 34px; padding: 0 12px; border-radius: 11px; background: rgb(var(--wit) / 0.07); display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--zacht); white-space: nowrap; }
+  .pilkeus b { color: var(--tekst); font-weight: 600; }
+  .nuzin { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 16px; background: rgba(111, 211, 255, 0.08); border: 1px solid rgba(111, 211, 255, 0.18); font-size: 15px; }
+  .nuzin .wie { flex: none; font-size: 12px; font-weight: 700; color: var(--ijs-t); padding: 4px 10px; border-radius: 999px; background: rgba(111, 211, 255, 0.12); }
+  .nuzin span.zou { color: var(--ijs-zacht); }
+  .kolommen { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .kolom { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .kolom h4 { margin: 2px 0 0; font-size: 12.5px; font-weight: 700; color: var(--gedempt); }
+
+  /* Hoe warm: de schuif per dagdeel, zoals in Comfort. */
+  .dagdeel { padding: 10px 14px 10px; border-radius: 16px; background: rgb(var(--wit) / 0.045); display: flex; flex-direction: column; gap: 4px; }
+  .dagdeel .kop { display: flex; align-items: baseline; gap: 10px; }
+  .dagdeel .kop b { font-size: 15px; }
+  .dagdeel .kop span { font-size: 12.5px; color: var(--gedempt); }
+  .schuif { position: relative; height: 50px; margin: 0 6px; }
+  .schuif .baan { position: absolute; left: 0; right: 0; top: 24px; height: 8px; border-radius: 8px; background: linear-gradient(90deg, rgba(255, 122, 77, 0.45), rgba(255, 255, 255, 0.08) 50%, rgba(111, 211, 255, 0.45)); }
+  .schuif .baan.uit { background: rgb(var(--wit) / 0.1); }
+  .schuif .goed { position: absolute; top: 24px; height: 8px; background: repeating-linear-gradient(135deg, rgba(110, 231, 183, 0.75) 0 6px, rgba(247, 181, 72, 0.6) 6px 12px); }
+  .schuif .knop-s { position: absolute; top: 17px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); display: grid; place-items: center; }
+  .schuif .knop-s::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--k); }
+  .schuif .waarde { position: absolute; top: 40px; transform: translateX(-50%); font-size: 11.5px; color: var(--zacht); font-weight: 600; }
+  .schuif .nu { position: absolute; top: -2px; white-space: nowrap; transform: translateX(-50%); font-size: 10.5px; font-weight: 700; color: var(--tekst); display: flex; flex-direction: column; align-items: center; }
+  .schuif .nu::after { content: ''; width: 2px; height: 6px; background: var(--tekst); margin-top: 1px; border-radius: 2px; }
+  .schuif .leeg { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); font-size: 11.5px; padding: 2px 10px; border-radius: 999px; background: rgb(var(--nacht) / 0.9); color: var(--zacht); }
+  .schakels { display: flex; gap: 8px; margin-top: 6px; }
+  .schakelregel { flex: 1; display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 10px; border-radius: 11px; background: rgb(var(--wit) / 0.05); font-size: 12.5px; color: var(--zacht); white-space: nowrap; }
+  .schakelregel b { color: var(--tekst); }
+  .schakelregel .stip { width: 7px; height: 7px; }
+  .schakel { margin-left: auto; width: 36px; height: 21px; border-radius: 999px; background: rgb(var(--wit) / 0.15); position: relative; flex: none; }
+  .schakel::after { content: ''; position: absolute; top: 2px; left: 2px; width: 17px; height: 17px; border-radius: 50%; background: #fff; }
+  .schakel.aan { background: var(--k, var(--mint)); }
+  .schakel.aan::after { left: 17px; }
+
+  /* Op zon, van het net, afwezig. */
+  .rij { display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.045); font-size: 14px; min-height: 46px; }
+  .rij .naam { flex: 1; min-width: 0; }
+  .rij .naam b { display: block; font-size: 14px; }
+  .rij .naam span { font-size: 12px; color: var(--gedempt); }
+  .segment { display: flex; padding: 3px; border-radius: 11px; background: rgb(var(--nacht) / 0.5); }
+  .segment span { padding: 5px 11px; border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--zacht); }
+  .segment span.aan { background: var(--zon); color: #0b1424; }
+  .stapper { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; }
+  .stapper i { font-style: normal; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); }
+  .rij .pijl { color: var(--gedempt); }
+
+  /* Wat ervoor zorgt. */
+  .toestel { padding: 12px 14px; border-radius: 16px; background: rgb(var(--wit) / 0.045); display: flex; flex-direction: column; gap: 8px; }
+  .toestel .bovenrij { display: flex; align-items: center; gap: 12px; }
+  .toestel .icoon { color: var(--gloed); }
+  .toestel .naam { flex: 1; min-width: 0; }
+  .toestel .naam b { display: block; font-size: 14.5px; }
+  .toestel .naam span { font-size: 12.5px; color: var(--gedempt); line-height: 1.35; display: block; }
+  .taak { height: 34px; padding: 0 12px; border-radius: 11px; background: rgb(var(--wit) / 0.08); display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; white-space: nowrap; flex: none; }
+  .volgt { margin-left: 48px; padding: 8px 12px; border-radius: 12px; border: 1px dashed var(--glas-rand); font-size: 13px; color: var(--zacht); }
+  .volgt b { color: var(--tekst); font-weight: 600; }
+  .cv { margin-left: 48px; display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 12px; border-radius: 12px; background: rgba(255, 122, 77, 0.07); border: 1px solid rgba(255, 122, 77, 0.16); font-size: 13px; }
+  .cv .naam b { font-size: 13.5px; }
+  .cv .naam span { font-size: 12px; color: var(--gedempt); }
+  .voet { margin-top: auto; font-size: 12.5px; color: var(--gedempt); }
+  .voet a { color: var(--ijs-t); font-weight: 600; }
+
+  /* Hulp op de plek. */
+  .vraag { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-left: 6px; border-radius: 50%; border: 1.5px solid rgb(var(--wit) / 0.35); color: var(--zacht); font-size: 11.5px; font-weight: 800; vertical-align: 2px; flex: none; }
+  .vraag.aan { border-color: var(--ijs); background: var(--ijs); color: #0b1424; }
+  .waarvoor { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.04); font-size: 13.5px; color: var(--zacht); }
+  .waarvoor b { color: var(--tekst); }
+  .waarvoor .pijl { margin-left: auto; color: var(--gedempt); }
+  .achter { position: fixed; inset: 0; background: rgb(5 10 20 / 0.45); z-index: 20; }
+  .hulpblad { position: absolute; z-index: 30; width: 380px; padding: 18px 20px; border-radius: 22px; background: rgb(var(--nacht) / 0.98); border: 1px solid var(--glas-rand); box-shadow: 0 18px 50px rgb(0 0 0 / 0.5); display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
+  .uitleg-van { font-size: 12px; font-weight: 700; color: var(--ijs-t); display: flex; align-items: center; gap: 8px; }
+  .uitleg-van svg { width: 15px; height: 15px; }
+  .hulpblad h3 { margin: 0; font: 600 22px var(--kop); }
+  .hulpblad p { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--zacht); }
+  .knoppen2 { display: flex; gap: 8px; margin-top: 4px; }
+  .knoppen2 span { flex: 1; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; font-weight: 700; background: rgb(var(--wit) / 0.08); border: 1px solid var(--glas-rand); white-space: nowrap; }
+  .knoppen2 span svg { width: 17px; height: 17px; flex: none; }
+  .meer { font-size: 13px; font-weight: 600; color: var(--ijs-t); }
+  .sluit { position: absolute; right: 14px; top: 14px; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); }
+  .pijltje { position: absolute; width: 16px; height: 16px; background: rgb(var(--nacht)); border-left: 1px solid var(--glas-rand); border-top: 1px solid var(--glas-rand); transform: rotate(45deg); }
+  .zijblad { position: fixed; right: 26px; top: 22px; bottom: 22px; width: 440px; z-index: 30; padding: 22px 24px; border-radius: 26px; background: rgb(var(--nacht) / 0.98); border: 1px solid var(--glas-rand); display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
+  .zijblad h3 { margin: 0; font: 600 26px var(--kop); }
+  .zijblad p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--zacht); }
+  .zijblad h4 { margin: 4px 0 0; font-size: 12.5px; color: var(--gedempt); }
+  .onderwerp { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.05); font-size: 14px; font-weight: 600; }
+  .onderwerp .pijl { margin-left: auto; color: var(--gedempt); }
+  .onderwerp.open { flex-direction: column; align-items: stretch; gap: 6px; background: rgb(var(--wit) / 0.08); }
+  .onderwerp.open p { font-size: 13px; font-weight: 400; }
+  .voet2 { margin-top: auto; display: flex; gap: 8px; }
+  .voet2 span { flex: 1; height: 44px; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 700; background: rgb(var(--wit) / 0.08); border: 1px solid var(--glas-rand); }
+  .voet2 span svg { width: 17px; height: 17px; }
+  .meldpop { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 620px; z-index: 30; padding: 22px 24px; border-radius: 26px; background: rgb(var(--nacht) / 0.98); border: 1px solid var(--glas-rand); display: flex; flex-direction: column; gap: 12px; box-shadow: 0 18px 60px rgb(0 0 0 / 0.5); box-sizing: border-box; }
+  .meldpop h3 { margin: 0; font: 600 24px var(--kop); }
+  .soorten { display: flex; gap: 6px; padding: 4px; border-radius: 14px; background: rgb(var(--wit) / 0.05); }
+  .soorten span { flex: 1; text-align: center; padding: 9px; border-radius: 11px; font-size: 14px; font-weight: 700; color: var(--zacht); }
+  .soorten span.aan { background: var(--tekst); color: #0b1424; }
+  .getypt { min-height: 56px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.04); font-size: 15px; line-height: 1.45; }
+  .getypt i { display: inline-block; width: 2px; height: 18px; background: var(--ijs); vertical-align: -3px; margin-left: 2px; }
+  .past { padding: 14px 16px; border-radius: 16px; background: rgba(111, 211, 255, 0.07); border: 1px solid rgba(111, 211, 255, 0.22); display: flex; flex-direction: column; gap: 6px; }
+  .past b { font-size: 15.5px; }
+  .past p { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--zacht); }
+  .past .hielp { display: flex; gap: 8px; margin-top: 4px; }
+  .past .hielp span { height: 36px; padding: 0 14px; border-radius: 11px; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700; background: rgb(var(--wit) / 0.08); }
+  .mee { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgb(var(--wit) / 0.04); }
+  .mee .vinkje { width: 22px; height: 22px; border-radius: 7px; background: var(--mint); color: #062a1c; display: grid; place-items: center; font-weight: 800; font-size: 13px; flex: none; }
+  .mee .tekst { flex: 1; font-size: 13.5px; color: var(--zacht); line-height: 1.4; }
+  .mee .tekst b { color: var(--tekst); }
+  .mee .plaatje { width: 92px; height: 60px; border-radius: 10px; background: rgb(var(--wit) / 0.06); border: 1px solid var(--glas-rand); flex: none; display: grid; place-items: center; color: var(--gedempt); }
+  .mee .plaatje svg { width: 74px; height: 48px; }
+  .meldonder { display: flex; align-items: center; gap: 10px; }
+  .meldonder .rechts { margin-left: auto; display: flex; gap: 10px; }
+  .meldonder span.k { height: 44px; padding: 0 18px; border-radius: 13px; display: inline-flex; align-items: center; font-weight: 700; background: rgb(var(--wit) / 0.08); border: 1px solid var(--glas-rand); }
+  .meldonder span.k.hoofd { background: #6fd3ff; color: #0b1424; border-color: transparent; }
+  .meldonder .prive { font-size: 12px; color: var(--gedempt); }
+  .gesprek { display: flex; flex-direction: column; gap: 10px; }
+  .gesprek .jij { align-self: flex-end; max-width: 80%; padding: 10px 14px; border-radius: 16px 16px 4px 16px; background: rgb(var(--wit) / 0.1); font-size: 14.5px; }
+  .gesprek .huis { align-self: flex-start; max-width: 92%; padding: 12px 14px; border-radius: 16px 16px 16px 4px; background: rgba(143, 134, 255, 0.12); border: 1px solid rgba(143, 134, 255, 0.25); font-size: 14.5px; line-height: 1.5; }
+  .gesprek .naar { align-self: flex-start; height: 40px; padding: 0 14px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; background: rgb(var(--wit) / 0.08); border: 1px solid var(--glas-rand); }
+  .gesprek .naar svg { width: 17px; height: 17px; }
+  .gesprek .bron { font-size: 12px; color: var(--gedempt); }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-avond">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="boven"><a class="glas-klein terug">‹ Instellingen</a><h1 class="kop-1">Klimaat</h1><span class="bewaard">Alles wordt meteen bewaard</span></div>
+    <section class="pagina">
+      <nav class="glas lijst" data-lijst></nav>
+      <article class="glas blad" data-blad></article>
+    </section>
+  </main>
+</div>
+<script>try { localStorage.setItem('sc-taal', 'nl'); } catch (e) {}</script>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="klimaat-kamer.js"></script>
+<script src="hulp-plek.js"></script>
+<script>
+  const { KAMERS, LIJST } = klimaatKamer;
+  const stand = location.hash.slice(1);
+  const id = 'woonkamer';
+  const k = KAMERS[id];
+  nav.balk(document.getElementById('balk'), 'instellingen');
+  const ik = (naam, kleur = 'gloed') => `<span class="icoon" style="color: var(--${kleur})">${iconen.svg(naam)}</span>`;
+  const komma = (x) => `${String(x).replace('.', ',')}°`;
+  const plek = (t) => `${((t - 10) / 20) * 100}%`;
+
+  document.querySelector('[data-lijst]').innerHTML = `
+    <h4>Kamers</h4>
+    ${LIJST.kamers.map(([sl, naam, doel, nu]) => `<a class="${sl === id ? 'aan' : ''}">${ik(sl === 'zolder' ? 'dak' : sl)}<div><b>${naam}</b><span>${doel}</span></div><em>${nu}</em></a>`).join('')}
+    <p class="nietmee">Doen nog niet mee: ${LIJST.nietMee}</p>
+    <h4>Het hele huis</h4>
+    ${LIJST.huis.map(([icoon, naam, w]) => `<a>${ik(icoon, 'net')}<div><b>${naam}</b><span>${w}</span></div></a>`).join('')}`;
+
+  // De schuif van Comfort: verwarmen onder de linker knop, koelen boven de rechter, de kamer nu erboven.
+  const schuif = (d, nu) => {
+    if (!d.warmAan && !d.koelAan) return `<div class="schuif"><div class="baan uit"></div><span class="leeg">doet niets</span></div>`;
+    return `<div class="schuif">
+      <div class="baan"></div>
+      <div class="goed" style="left: ${plek(d.warm)}; right: calc(100% - ${plek(d.koel)})"></div>
+      ${nu != null ? `<span class="nu" style="left: ${plek(nu)}">nu ${komma(nu)}</span>` : ''}
+      <span class="knop-s" style="left: ${plek(d.warm)}; --k: var(--gloed)"></span><span class="waarde" style="left: ${plek(d.warm)}">${komma(d.warm)}</span>
+      <span class="knop-s" style="left: ${plek(d.koel)}; --k: var(--ijs)"></span><span class="waarde" style="left: ${plek(d.koel)}">${komma(d.koel)}</span>
+    </div>`;
+  };
+  const nuGetal = parseFloat(k.nu.replace(',', '.'));
+
+  document.querySelector('[data-blad]').innerHTML = `
+    <div class="kamerkop">${ik(k.icoon)}<h2 class="kop-2">${k.naam}</h2>
+      <div class="rechts"><span class="pilkeus">Gemeten met <b>${k.meten}</b> ▾</span><span class="getal">${k.nu}</span></div></div>
+    <div class="nuzin"><span class="wie">Kijkt mee</span><span>${k.zin} <span class="zou">${k.zou}</span></span></div>
+    <div class="kolommen">
+      <div class="kolom">
+        <h4>Hoe warm</h4>
+        ${k.dagdelen.map((d, i) => `<div class="dagdeel">
+          <div class="kop"><b>${d.naam}</b><span>${d.tijd}</span></div>
+          ${schuif(d, i === 0 ? nuGetal : null)}
+          <div class="schakels">
+            <span class="schakelregel"><span class="stip" style="background: var(--gloed)"></span>Verwarmen<span class="schakel ${d.warmAan ? 'aan' : ''}" style="--k: var(--gloed)"></span></span>
+            <span class="schakelregel"><span class="stip" style="background: var(--ijs)"></span>Koelen<span class="schakel ${d.koelAan ? 'aan' : ''}" style="--k: var(--ijs)"></span></span>
+          </div></div>`).join('')}
+        <h4>Op zon, van het net en weg</h4>
+        <div class="rij"><div class="naam"><b>Op zon mag het<span class="vraag">?</span></b><span>verder dan je doel, om zon te bewaren</span></div><div class="segment">${['Niet', '½°', '1°', '2°'].map((x, i) => `<span class="${[0, 0.5, 1, 2][i] === k.opZon ? 'aan' : ''}">${x}</span>`).join('')}</div></div>
+        <div class="rij"><div class="naam"><b>Koelen van het net</b><span>zonder zon alleen als het warmer wordt dan</span></div><div class="stapper"><i>−</i>${k.koelNet === 'nooit' ? 'nooit' : `boven ${k.koelNet}`}<i>+</i></div></div>
+        <div class="rij"><div class="naam"><b>${k.afwezig[0]}</b><span>${k.afwezig[1]}</span></div><span class="pijl">›</span></div>
+      </div>
+      <div class="kolom">
+        <h4>Wat ervoor zorgt</h4>
+        ${k.zorgt.map((a) => `<div class="toestel">
+          <div class="bovenrij">${ik(a.icoon)}<div class="naam"><b>${a.naam}</b><span>${a.zin}</span></div>
+            ${a.volgt ? '' : `<span class="taak">${a.taak} ▾</span>${a.taak === 'Helpt op zon' ? `<span class="vraag ${stand === '' ? 'aan' : ''}" data-anker>?</span>` : ''}`}</div>
+          ${a.volgt ? `<div class="volgt"><b>${a.volgt}</b>: ze kunnen niet apart verwarmen.</div>` : ''}
+          ${a.cv ? `<div class="cv"><div class="naam"><b>Helpt ook de cv<span class="vraag">?</span></b><span>${a.cv.vandaag}</span></div><span class="schakel ${a.cv.aan ? 'aan' : ''}" style="--k: var(--gloed)"></span></div>` : ''}
+        </div>`).join('')}
+        <div class="waarvoor"><span class="vraag ${stand === 'waarvoor' ? 'aan' : ''}" style="margin: 0">?</span><span><b>Waarvoor is dit?</b> Hoe warm elke kamer moet zijn, en wat ervoor zorgt</span><span class="pijl">›</span></div>
+      </div>
+    </div>`;
+
+  // Hulp op de plek (19 november 2026): wat er opengaat, per stand.
+  const { STUKJES } = hulpPlek;
+  const sluit = '<span class="sluit">×</span>';
+  const ikk = (n) => iconen.svg(n);
+  const laag = document.createElement('div');
+  document.body.append(laag);
+  const huisje = '<svg viewBox="0 0 74 48" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 44V20L37 4l29 16v24z"/><path d="M8 32h58M37 20v24M22 32v12M52 20v12"/></svg>';
+  if (stand === '') {
+    // Het vraagteken bij Helpt op zon: een kort blad eronder, met een pijltje naar het vraagteken.
+    const s = STUKJES['helpt-op-zon'];
+    requestAnimationFrame(() => {
+      const a = document.querySelector('[data-anker]').getBoundingClientRect();
+      laag.innerHTML = `<div class="hulpblad" style="left: ${Math.round(a.right - 380 + 16)}px; top: ${Math.round(a.bottom + 14)}px"><span class="pijltje" style="right: 18px; top: -9px"></span>${sluit}
+        <span class="uitleg-van">${ikk('lijst')} Uit de handleiding</span><h3>${s.kop}</h3>${s.tekst.map((x) => `<p>${x}</p>`).join('')}
+        <div class="knoppen2"><span>${ikk('praten')} Vraag het je huis</span><span>${ikk('melden')} Klopt iets niet?</span></div>
+        <span class="meer">Meer in de handleiding ›</span></div>`;
+    });
+  } else if (stand === 'waarvoor') {
+    const s = STUKJES['klimaat-kamer'];
+    const open = STUKJES['helpt-op-zon'];
+    laag.innerHTML = `<div class="achter"></div><aside class="zijblad">${sluit}
+      <span class="uitleg-van">${ikk('lijst')} Waarvoor is dit?</span><h3>${s.kop}</h3>${s.tekst.map((x) => `<p>${x}</p>`).join('')}
+      <h4>Op deze pagina</h4>
+      ${s.onderwerpen.map((o) => (o === open.kop ? `<div class="onderwerp open"><span style="display: flex">${o}<span class="pijl" style="margin-left: auto">⌃</span></span>${open.tekst.map((x) => `<p>${x}</p>`).join('')}</div>` : `<div class="onderwerp">${o}<span class="pijl">›</span></div>`)).join('')}
+      <div class="voet2"><span>${ikk('praten')} Vraag het je huis</span><span>${ikk('melden')} Ik snap iets niet</span></div></aside>`;
+  } else if (stand === 'snap') {
+    const s = STUKJES['helpt-op-zon'];
+    laag.innerHTML = `<div class="achter"></div><div class="meldpop">
+      <h3>Meld het</h3>
+      <div class="soorten"><span>Er gaat iets mis</span><span class="aan">Ik snap iets niet</span><span>Idee</span></div>
+      <div class="getypt">Mijn airco staat op Helpt op zon, maar hij draait niet terwijl de zon schijnt<i></i></div>
+      <div class="past"><span class="uitleg-van">${ikk('lijst')} Misschien helpt dit · uit de handleiding</span><b>${s.kop}</b><p>${s.tekst.slice(0, 2).join(' ')}</p><div class="hielp"><span>Dit helpt, dank je</span><span>Lees verder ›</span></div></div>
+      <div class="mee"><span class="vinkje">✓</span><span class="tekst"><b>Stuur mee:</b> deze pagina (Klimaat › Woonkamer) en de tekening van je huis, zonder namen van mensen</span><span class="plaatje">${huisje}</span></div>
+      <div class="meldonder"><span class="prive">Pas bij Melden gaat het weg, naar GitHub.</span><div class="rechts"><span class="k">Later</span><span class="k hoofd">Melden</span></div></div></div>`;
+  } else if (stand === 'assistent') {
+    const s = STUKJES['helpt-op-zon'];
+    laag.innerHTML = `<div class="achter"></div><aside class="zijblad">${sluit}
+      <span class="uitleg-van" style="color: var(--violet-t)">${ikk('praten')} Vraag het je huis</span><h3>Helpt op zon</h3>
+      <div class="gesprek">
+        <span class="jij">Waarom draait mijn airco niet terwijl de zon schijnt?</span>
+        <span class="huis">De airco woonkamer staat op Helpt op zon: hij springt alleen bij als er zon over is. Nu gaat de zon naar het huis zelf: er is 0,2 kW over en hij vraagt 0,8 kW. De warmtepomp houdt de kamer op temperatuur.</span>
+        <span class="bron">Uit de handleiding: ${s.kop} · ${s.waar}</span>
+        <span class="naar">${ikk('klimaat')} Naar Klimaat › Woonkamer ›</span>
+      </div>
+      <div class="voet2"><span>${ikk('praten')} Nog een vraag</span><span>${ikk('melden')} Klopt iets niet? Meld het</span></div></aside>`;
+  }
+</script>
+</body>
+</html>

@@ -156,10 +156,14 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
     if (method === 'GET') {
       const nu = Date.now();
       const zoneVan = (id: string) => config.zones.find((z) => z.actuatorIds.some((a) => config.actuators.find((x) => x.id === a)?.ref.id === id));
+      // De luchtvochtigheid van de kamer waar een apparaat staat, als het die zelf niet meet (19 november 2026): het tuinhuis met een losse sensor.
+      const ruimtes = (d.options.house?.('nl')?.etages ?? []).flatMap((e) => e.ruimtes);
+      const vochtVan = (id: string, eigen: number | null) => eigen ?? ruimtes.find((r) => r.apparaten.some((a) => a.id === id))?.vochtPct ?? null;
       const knoppen = h.knoppen();
       // Klimaat buiten de regeling, zoals het tuinhuis (besluit 319).
       const los = h.los?.() ?? [];
-      const apparaten = (await h.hand.standen(knoppen.map((k) => k.id), los.map((k) => k.id))).map((s) => {
+      const apparaten = (await h.hand.standen(knoppen.map((k) => k.id), los.map((k) => k.id))).map((s0) => {
+        const s = { ...s0, vochtPct: vochtVan(s0.id, s0.vochtPct) };
         const knop = knoppen.find((k) => k.id === s.id);
         if (knop) return { ...s, naam: knop.naam, kamer: knop.kamer, zoneId: null, actuatorId: null, ...(knop.zone ? { zone: knop.zone } : {}) };
         const l = los.find((k) => k.id === s.id);

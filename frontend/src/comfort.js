@@ -300,6 +300,9 @@ function zonEnNet(k) {
   return zon || net ? `<div class="zonnet">${zon}${net}</div>` : '';
 }
 
+/** De luchtvochtigheid van een kamer achter de temperatuur (19 november 2026), als er iets meet. */
+const vochtBij = (r) => (r?.vochtPct != null ? ` · ${esc(t('kamer.vocht', { pct: Math.round(r.vochtPct) }))}` : '');
+
 function kamerVorm(k) {
   const pz = state?.explanation?.perZone?.find((z) => z.zoneId === k.id);
   const nu = pz?.temperatureC;
@@ -309,7 +312,7 @@ function kamerVorm(k) {
   const kort = state?.bewoner?.kamers?.find((x) => x.zoneId === k.id)?.kort;
   // Terug naar standaard (besluit 204), in de kopregel: alleen als de kamer er niet al op staat.
   const terug = (k.kanVerwarmen || k.kanKoelen) && !opStandaard(k) ? `<button type="button" class="knop stdknop" data-standaard-kamer>${esc(t('comfort.std.kamer'))}</button>` : '';
-  const kop = `<div class="bovenrij"><h2 class="kop-2">${esc(k.naam)}</h2>${kort ? `<span class="nukort">${esc(kort)}</span>` : ''}${terug}${nu != null ? `<span class="nu-temp">${esc(t('thuis.nuKlein'))} <b>${graden(Math.round(nu * 10) / 10)}</b></span>` : ''}</div>`;
+  const kop = `<div class="bovenrij"><h2 class="kop-2">${esc(k.naam)}</h2>${kort ? `<span class="nukort">${esc(kort)}</span>` : ''}${terug}${nu != null ? `<span class="nu-temp">${esc(t('thuis.nuKlein'))} <b>${graden(Math.round(nu * 10) / 10)}</b>${vochtBij(ruimteVan(indelingVan(k.id)?.id))}</span>` : ''}</div>`;
   // Wat ervoor zorgt (besluit 317): alleen bij het comfort van het huis; het eigen comfort van een bewoner gaat over hoe warm.
   const ind = vanHetHuis() ? indelingVan(k.id) : null;
   const zorgt = ind ? zorgVoor(ind.id) : vanHetHuis() ? zoneZorgt(k) : '';
@@ -345,7 +348,7 @@ function anderVorm(id) {
   if (!k) return '';
   const r = ruimteVan(k.id);
   const nu = r?.temperatuurC;
-  return `<div class="bovenrij"><h2 class="kop-2">${esc(k.naam)}</h2>${nu != null ? `<span class="nu-temp">${esc(t('thuis.nuKlein'))} <b>${graden(Math.round(nu * 10) / 10)}</b></span>` : ''}</div>
+  return `<div class="bovenrij"><h2 class="kop-2">${esc(k.naam)}</h2>${nu != null ? `<span class="nu-temp">${esc(t('thuis.nuKlein'))} <b>${graden(Math.round(nu * 10) / 10)}</b>${vochtBij(r)}</span>` : ''}</div>
     <p class="klein" style="margin: 0">${esc(t(k.meedoenMet ? 'klimaat.doetMeeUitleg' : 'klimaat.nietMeeUitleg'))}</p>
     <div class="zorgt" data-zorgt>${zorgVoor(k.id)}</div>`;
 }

@@ -108,9 +108,9 @@ describe('klimaat met de hand (besluit 235)', () => {
 
   it('zet een radiatorknop buiten de regeling op zijn eigen doel, en daarna terug naar wat het was', async () => {
     const knop = 'climate.sonoff_thermostaat';
-    const { h, gedaan, nu } = await huis({ [knop]: { state: 'heat', attributes: { temperature: 17, current_temperature: 18.4, min_temp: 5, max_temp: 35, target_temp_step: 0.5 } } });
+    const { h, gedaan, nu } = await huis({ [knop]: { state: 'heat', attributes: { temperature: 17, current_temperature: 18.4, current_humidity: 56, min_temp: 5, max_temp: 35, target_temp_step: 0.5 } } });
     const standen = await h.standen([knop]);
-    expect(standen.find((s) => s.id === knop)).toMatchObject({ soort: 'radiatorknop', modi: [{ doelC: 17, standaardC: 17, via: 'direct' }], nuC: 18.4 });
+    expect(standen.find((s) => s.id === knop)).toMatchObject({ soort: 'radiatorknop', modi: [{ doelC: 17, standaardC: 17, via: 'direct' }], nuC: 18.4, vochtPct: 56 });
     expect(await h.zetKnop(knop, 20.2, nu.ms + 3_600_000)).toEqual({ ok: true, doelC: 20, totMs: nu.ms + 3_600_000 });
     expect(gedaan).toEqual([`${knop}=warm 20`]);
     nu.ms += 3_600_000;
@@ -269,7 +269,7 @@ describe('drogen, ventileren en het tuinhuis met de hand (besluit 319)', () => {
   it('zet het tuinhuis op verwarmen met een kachel tot een tijd, en daarna uit', async () => {
     const { h, gedaan, nu } = await huis319();
     const tuin = (await h.standen([], ['climate.tuinhuis'])).find((s) => s.id === 'climate.tuinhuis');
-    expect(tuin).toMatchObject({ soort: 'los', voorinstellingen: ['Haard', 'Heater', 'Beide'], voorinstelling: 'Heater', modi: [{ modus: 'verwarmen', min: 10, max: 25 }] });
+    expect(tuin).toMatchObject({ soort: 'los', voorinstellingen: ['Haard', 'Heater', 'Beide'], voorinstelling: 'Heater', modi: [{ modus: 'verwarmen', min: 10, max: 25 }], vochtPct: null });
     expect(await h.zetLos('climate.tuinhuis', 21, 'Beide', nu.ms + 2 * 3_600_000)).toMatchObject({ ok: true, doelC: 21 });
     expect(gedaan).toEqual(['climate.tuinhuis=Beide', 'climate.tuinhuis=warm 21']);
     nu.ms += 2 * 3_600_000;

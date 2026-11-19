@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.201.1
+## 0.201.2
 
-*19 november 2026 · 0.179.0 – 0.201.1*
+*19 november 2026 · 0.179.0 – 0.201.2*
 
 **Nieuw**
 
@@ -67,6 +67,7 @@
 
 **Beter**
 
+- De luchtvochtigheid staat naast de temperatuur, in het blad van een kamer bij Klimaat en in het blad van een apparaat met de hand; meet het apparaat hem niet zelf, dan die van de kamer
 - De zin bij een kamer zegt nu wat SunArc doet of zou doen, niet meer in de ik-vorm
 - Een huis zonder zonnepanelen krijgt bij Apparaten, Vandaag, Instellingen en de assistent geen tekst meer over zon
 - Op de wand past het blad van een airco op verwarmen weer: Helpen bij de cv staat daar op één regel
@@ -197,6 +198,7 @@
 
 **Improved**
 
+- Humidity is shown next to the temperature, in the sheet of a room under Climate and in the sheet of a device by hand; if the device does not measure it, the room does
 - The sentence for a room now says what SunArc does or would do, no longer in the first person
 - A house without solar panels no longer gets text about sun in Devices, Today, Settings and the assistant
 - On the wall screen the sheet of an air conditioner on heating fits again: Helping the boiler is one line there
