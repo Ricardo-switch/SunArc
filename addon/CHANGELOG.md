@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.204.0
+## 0.204.1
 
-*19 november 2026 · 0.179.0 – 0.204.0*
+*19 november 2026 · 0.179.0 – 0.204.1*
 
 **Nieuw**
 
@@ -71,6 +71,7 @@
 
 **Beter**
 
+- Teken je je huis zelf, zonder kaart, dan legt Zonnepanelen de panelen op die buitenkant: trek je een buitenmuur recht, dan verandert het dak mee
 - De kaart staat nog op één plek: bij Je huis › Vorm. Daar kies je ook de dakvorm en draai je de nok
 - Daken en panelen heet Zonnepanelen en staat bij Energie: de panelen liggen op het dak uit Je huis, met de straat onder zoals in Je huis
 - Bij de kaart staat de naamsvermelding van 3D BAG en OpenStreetMap
@@ -221,6 +222,7 @@
 
 **Improved**
 
+- If you draw your home yourself, without a map, Solar panels puts the panels on that outline: pull an outside wall straight and the roof changes with it
 - The map is in one place now: Your home › Shape. That is also where you choose the roof shape and turn the ridge
 - Roofs and panels is now called Solar panels and sits under Energy: the panels lie on the roof from Your home, with the street at the bottom like in Your home
 - The map shows the credits for 3D BAG and OpenStreetMap

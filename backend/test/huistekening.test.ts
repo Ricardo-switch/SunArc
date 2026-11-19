@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Daken, DakVlak, Gebouw, Xy } from '../src/web/daken.js';
-import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -417,6 +417,26 @@ describe('je huis tekenen: een gebouw erbij bij Vorm (0.185.0)', () => {
     const les = daken({ gebouwen: [{ ...huis, dakvorm: 'lessenaar', nokDeg: 300 }] });
     expect(gebouwDak(les, 'huis', { nok: true })!.gebouwen![0]!.nokDeg).toBe(30);
     expect(gebouwDak(daken(), 'niets', { nok: true })).toBeNull();
+  });
+
+  it('maakt van een zelf getekend huis het dak: de begane grond is de omtrek, en een andere hoek schuift mee (stap 4)', () => {
+    const { kaart: _kaart, ...zonderKaart } = huis;
+    const geschat: Gebouw = { ...zonderKaart, bron: 'schatting' };
+    const zelf = daken({ gebouwen: [geschat] });
+    // De straat in het zuiden: u loopt naar het oosten, v naar het noorden, vanaf de hoek linksvoor.
+    const uit = huisUitTekening(zelf, { e1: [{ vakken: [[0, 0, 6, 8]] }], bg: [{ vakken: [[0, 0, 4, 8]] }, { vakken: [[4, 0, 6, 8]] }] }, ['bg', 'e1'])!;
+    expect(uit).toMatchObject({ u0: 0, v0: 0 });
+    expect(uit.daken.gebouwen![0]).toMatchObject({ id: 'huis', bron: 'bewoner', dakvorm: 'zadel', omtrek: [[-5, -4], [5, -4], [5, 4], [-5, 4]] });
+    expect(uit.daken.gebouwen![0]).not.toHaveProperty('kaart');
+    // Al zo: niets te doen.
+    expect(huisUitTekening(uit.daken, { bg: [{ vakken: [[0, 0, 10, 8]] }] }, ['bg', 'e1'])).toBeNull();
+    // De linkermuur een meter naar buiten getrokken: de hoek schuift een meter.
+    const breder = huisUitTekening(uit.daken, { bg: [{ vakken: [[-1, 0, 11, 8]] }] }, ['bg', 'e1'])!;
+    expect(breder).toMatchObject({ u0: -1, v0: 0 });
+    expect(breder.daken.gebouwen![0]!.omtrek[0]).toEqual([-6, -4]);
+    // Een huis uit de kaart, of nog niets getekend: niets.
+    expect(huisUitTekening(daken(), { bg: [{ vakken: [[0, 0, 10, 8]] }] }, ['bg'])).toBeNull();
+    expect(huisUitTekening(zelf, {}, ['bg', 'e1'])).toBeNull();
   });
 });
 

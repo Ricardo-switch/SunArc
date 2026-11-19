@@ -9,7 +9,7 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
 import { DAKVORMEN, leesDaken, type Daken, type Dakvorm, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
@@ -423,6 +423,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     }
     // Een andere bron voor de buitenkant: eerst bij Daken en panelen, dan pas de tekening.
     const bron = VORM_BRONNEN.includes(b['bron'] as VormBron) ? (b['bron'] as VormBron) : vorm.bron;
+    let dakenNu = vorm.daken;
     if (bron !== vorm.bron) {
       const alle = bron === 'zelf' ? null : await kaartBronnen(d, false);
       const kaart = alle?.[bron as 'osm' | 'bag3d'] ?? null;
@@ -436,18 +437,32 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
         sendJson(res, 400, { fout });
         return;
       }
+      dakenNu = nieuw;
     }
     // De pagina stuurt de hoek van het hoofdhuis terug zoals hij hem kreeg; anders die van nu.
     const n = b['nul'] as { u?: unknown; v?: unknown } | null | undefined;
     const goed = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && Math.abs(x) <= 200;
-    const { u: nu, v: nv } = n && goed(n.u) && goed(n.v) ? { u: n.u, v: n.v } : vorm.nul;
+    let { u: nu, v: nv } = n && goed(n.u) && goed(n.v) ? { u: n.u, v: n.v } : vorm.nul;
     // Terug naar de hoek van het hoofdhuis; wat niet klopt, zegt de toets van de indeling.
     const terug = (x: unknown) => (Array.isArray(x) && x.length === 4 && x.every((n) => typeof n === 'number') ? [(x[0] as number) - nu, (x[1] as number) - nv, x[2], x[3]] : x);
     const ruimteTerug = (r: unknown) => {
       const o = typeof r === 'object' && r != null ? (r as Record<string, unknown>) : null;
       return o && Array.isArray(o['vakken']) ? { ...o, vakken: o['vakken'].map(terug) } : r;
     };
-    const tekening = Object.fromEntries(Object.entries(b['tekening'] as Record<string, unknown>).map(([e, lijst]) => [e, Array.isArray(lijst) ? lijst.map(ruimteTerug) : lijst]));
+    const naarHoek = () => Object.fromEntries(Object.entries(b['tekening'] as Record<string, unknown>).map(([e, lijst]) => [e, Array.isArray(lijst) ? lijst.map(ruimteTerug) : lijst]));
+    let tekening = naarHoek();
+    // Zonder kaart is de getekende buitenkant het dak voor Zonnepanelen (stap 4); schuift de hoek van het huis, dan schuift alles mee.
+    const zelf = bron === 'zelf' && dakenNu && d.options.connection ? huisUitTekening(dakenNu, tekening, ['bg', ...binnen.map((e) => e.id).filter((id) => id !== 'bg')]) : null;
+    if (zelf && d.options.connection) {
+      const fout = await bewaarDaken(d.options.connection, zelf.daken);
+      if (fout) {
+        sendJson(res, 400, { fout });
+        return;
+      }
+      nu += zelf.u0;
+      nv += zelf.v0;
+      tekening = naarHoek();
+    }
     const zones = (typeof b['zones'] === 'object' && b['zones'] != null ? b['zones'] : {}) as Record<string, { as?: unknown; op?: unknown }>;
     const kamers = basis.kamers.map((k) => {
       const { zoneLijn: _weg, ...rest } = k;

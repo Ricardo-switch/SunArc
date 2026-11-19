@@ -52,7 +52,8 @@ verwijzing bestaat.
   weer, en de assistent kent de laadpaal en de boiler ([326]).
   Sinds 0.204.0 staat de kaart alleen bij Je huis › Vorm, met de dakvorm en
   de nok; Zonnepanelen (eerst Daken en panelen) bij Energie legt de panelen
-  op dat dak, met de straat onder ([327]).
+  op dat dak, met de straat onder; zonder kaart is de getekende buitenkant
+  het dak ([327]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.

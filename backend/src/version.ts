@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.204.0';
+export const VERSIE = '0.204.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,12 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.204.1',
+    datum: '2026-11-19',
+    beter: ['Teken je je huis zelf, zonder kaart, dan legt Zonnepanelen de panelen op die buitenkant: trek je een buitenmuur recht, dan verandert het dak mee'],
+    en: { beter: ['If you draw your home yourself, without a map, Solar panels puts the panels on that outline: pull an outside wall straight and the roof changes with it'] },
+  },
   {
     versie: '0.204.0',
     datum: '2026-11-19',

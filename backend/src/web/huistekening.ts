@@ -736,6 +736,42 @@ export function gebouwDak(d: Daken, id: string, wat: { readonly dakvorm?: Dakvor
   return { ...d, vlakken: losVan(d.vlakken, [g.id]), gebouwen: gebouwen.map((x) => (x === g ? nieuw : x)) };
 }
 
+/**
+ * Het dak bij een zelf getekend huis (stap 4, keuze Ricardo 19 november 2026:
+ * Zonnepanelen legt de panelen op het dak uit Je huis). Zonder kaart is de
+ * buitenkant zoals Vorm hem toont, die van de begane grond, de omtrek van het
+ * hoofdhuis, van de bewoner. `tekening` is per etage in meters vanaf de hoek
+ * van het hoofdhuis van nu; `etages` in de volgorde om te zoeken (de begane
+ * grond eerst, dan wat er wel getekend is). Ligt de nieuwe hoek
+ * ergens anders, dan zegt `u0`/`v0` hoeveel: de tekening schuift dan mee.
+ * Null als er niets te doen is (een huis uit de kaart, nog niets getekend, of
+ * het klopt al).
+ */
+export function huisUitTekening(d: Daken, tekening: unknown, etages: readonly string[]): { daken: Daken; u0: number; v0: number } | null {
+  const dt = dakTekening(d);
+  const gebouwen = d.gebouwen ?? dt.gebouwen.map(kaalGebouw);
+  const hoofd = gebouwen.find((g) => g.soort === 'hoofdhuis');
+  if (!hoofd || hoofd.bron === 'kaart' || tekening == null || typeof tekening !== 'object') return null;
+  const vakVan = (x: unknown): number[] | null => (Array.isArray(x) && x.length === 4 && x.every((n) => typeof n === 'number' && Number.isFinite(n)) ? (x as number[]) : null);
+  const vakkenVan = (lijst: unknown): number[][] => (Array.isArray(lijst) ? lijst.flatMap((r) => (r && typeof r === 'object' && Array.isArray((r as { vakken?: unknown }).vakken) ? ((r as { vakken: unknown[] }).vakken.map(vakVan).filter((v) => v != null) as number[][]) : [])) : []);
+  const vakken = etages.map((e) => vakkenVan((tekening as Record<string, unknown>)[e])).find((l) => l.length);
+  if (!vakken) return null;
+  const u0 = ruitje(Math.min(...vakken.map((v) => v[0]!)));
+  const v0 = ruitje(Math.min(...vakken.map((v) => v[1]!)));
+  const u1 = ruitje(Math.max(...vakken.map((v) => v[0]! + v[2]!)));
+  const v1 = ruitje(Math.max(...vakken.map((v) => v[1]! + v[3]!)));
+  if (u1 - u0 < 2 || v1 - v0 < 2) return null;
+  const k = kaderVan(hoofd, d.voorgevelDeg);
+  const r2 = (n: number): number => Math.round(n * 100) / 100 + 0;
+  const P = (u: number, v: number): Xy => [r2(k.oorsprong[0] + u * k.uAs[0] + v * k.vAs[0]), r2(k.oorsprong[1] + u * k.uAs[1] + v * k.vAs[1])];
+  const omtrek = [P(u0, v0), P(u1, v0), P(u1, v1), P(u0, v1)];
+  const zelfde = hoofd.bron === 'bewoner' && hoofd.omtrek.length === 4 && omtrek.every((p, i) => Math.hypot(p[0] - hoofd.omtrek[i]![0], p[1] - hoofd.omtrek[i]![1]) < 0.05);
+  if (zelfde) return null;
+  const { kaart: _kaart, ...rest } = hoofd;
+  const nieuw: Gebouw = { ...rest, bron: 'bewoner', omtrek };
+  return { daken: { ...d, vlakken: losVan(d.vlakken, [hoofd.id]), gebouwen: gebouwen.map((g) => (g === hoofd ? nieuw : g)) }, u0, v0 };
+}
+
 /** Een gebouw weer weg (niet het hoofdhuis). Wat van de kaart kwam, staat daarna weer grijs om het huis. Null als het er niet is. */
 export function gebouwWeg(d: Daken, id: string): Daken | null {
   const dt = dakTekening(d);

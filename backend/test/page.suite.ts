@@ -8094,6 +8094,10 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         expect(await v.log(), naam).toBe('pointerdown pointerup');
         expect(await breedte(), naam).toBe(eerst + 1);
         await expect.poll(() => p.locator(`${kant} [data-bewaard]`).textContent(), { timeout: 10_000 }).toBe('Bewaard');
+        // Zonder kaart is de getekende buitenkant ook het dak voor Zonnepanelen (stap 4): van de bewoner, een meter breder.
+        const zijden = () => { const o = hoofdhuis()?.omtrek ?? []; return o.length === 4 ? [Math.hypot(o[1]![0] - o[0]![0], o[1]![1] - o[0]![1]), Math.hypot(o[2]![0] - o[1]![0], o[2]![1] - o[1]![1])].map((x) => Math.round(x * 10) / 10) : []; };
+        await expect.poll(() => hoofdhuis()?.bron, { timeout: 10_000, message: naam }).toBe('bewoner');
+        expect(zijden()[0], naam).toBe(eerst + 1);
         // Opnieuw laden: de buitenmuur blijft waar je hem neerzette, ook bij Kamers.
         await p.reload();
         await p.waitForFunction(`window.tekenaar && document.querySelector('${kant} #tekening [data-l="vlak"] g')`);

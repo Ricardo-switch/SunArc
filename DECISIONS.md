@@ -15162,12 +15162,18 @@ kaart; kaart, bron en buurgebouwen staan alleen bij Je huis › Vorm.
 - **De naamsvermelding** van 3D BAG ("vorm aangepast") en OpenStreetMap staat
   waar de kaart te zien is: bij Vorm, en onder het dak bij Zonnepanelen.
 
-*Nog niet:* een huis dat je zelf tekent (zonder kaart) geeft nog geen dak aan
-Zonnepanelen: daar staat een rechthoek uit het woningtype, en trek je de
-buitenmuur recht, dan blijft dat in Je huis. Een blok op maat maken of
-verschuiven kan nu nergens meer. Dat komt in een volgende versie: de
-buitenmuur van Je huis wordt het dak voor de panelen. Daarna: een laadpaal
-toevoegen op één plek, en Inrichten › Aanpassen met dezelfde bladen.
+*Aanvulling (0.204.1):* een huis dat je zelf tekent (zonder kaart) geeft nu
+ook het dak. Bij elke keer bewaren wordt de buitenkant van de begane grond,
+zoals Vorm hem toont, het hoofdhuis van de bewoner (`huisUitTekening`); ligt
+de hoek van het huis daarna ergens anders, dan schuift de tekening mee, met
+de plekken, de zonelijnen en de deuren en ramen. Eerst stond daar een
+rechthoek uit het woningtype, en bleef een rechtgetrokken buitenmuur in Je
+huis.
+
+*Nog niet:* een uitbouw die je bij de begane grond buiten het huis trekt,
+komt onder hetzelfde dak; een garage of uitbouw als eigen gebouw neerzetten
+zonder kaart kan nog niet. Daarna: een laadpaal toevoegen op één plek, en
+Inrichten › Aanpassen met dezelfde bladen.
 
 ## Wat nog een besluit wacht
 
