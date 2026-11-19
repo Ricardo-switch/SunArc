@@ -50,10 +50,10 @@ const laden = (() => {
   }
 
   /** Een ander apparaat kiezen, uit wat iets meet wat bij laden hoort. */
-  function kiezen(info, label) {
+  function kiezen(info, label, rol = 'auto') {
     const k = info.laden.kandidaten;
     if (!k.length) return '';
-    return `<select class="invoer" data-laad-kies aria-label="${esc(label)}"><option value="">${esc(label)}</option>${k.map((x) => `<option value="${esc(x.id)}">${esc(x.naam)}</option>`).join('')}</select>`;
+    return `<select class="invoer" data-laad-kies data-rol="${rol}" aria-label="${esc(label)}"><option value="">${esc(label)}</option>${k.map((x) => `<option value="${esc(x.id)}">${esc(x.naam)}</option>`).join('')}</select>`;
   }
 
   /** Kabel vergeten (besluit 263): om hoe laat, en onder welk %; alleen bij een auto die zegt hoe vol hij is. */
@@ -150,8 +150,8 @@ const laden = (() => {
     const k = keuzeVan(a);
     if (el.matches('[data-laad-kies]')) {
       if (!el.value) return false;
-      // Een gekozen apparaat is eerst een auto; rechts kies je anders.
-      k.rol[el.value] = 'auto';
+      // Wat je koos: een auto of een laadpaal (Ricardo, 19 november 2026: twee keuzes onder elkaar).
+      k.rol[el.value] = el.dataset.rol === 'laadpaal' ? 'laadpaal' : 'auto';
       k.aan[el.value] = true;
       staat.wie = el.value;
       return true;
@@ -206,8 +206,10 @@ const laden = (() => {
   /** Zelf een apparaat kiezen (Toevoegen › Auto en laden, stap 4): wat iets meet dat bij laden hoort. */
   function zelfKiezen(info) {
     if (!info?.laden) return `<p class="uitleg">${esc(t('laden.geenHA'))}</p>`;
-    const keuze = kiezen(info, t('laden.eenKiezen'));
-    return keuze ? `<label class="veldnaam">${esc(t('laden.zelfVraag'))}${keuze}</label><p class="mini">${esc(t('laden.zelfUitleg'))}</p>` : `<p class="uitleg">${esc(t('laden.zelfGeen'))}</p>`;
+    // Een auto en een laadpaal apart, onder elkaar: overzichtelijker dan eerst kiezen en daarna zeggen wat het is.
+    const auto = kiezen(info, t('laden.eenAuto'), 'auto');
+    if (!auto) return `<p class="uitleg">${esc(t('laden.zelfGeen'))}</p>`;
+    return `<label class="veldnaam">${esc(t('laden.zelfAuto'))}${auto}</label><label class="veldnaam">${esc(t('laden.zelfPaal'))}${kiezen(info, t('laden.eenPaal'), 'laadpaal')}</label><p class="mini">${esc(t('laden.zelfUitleg'))}</p>`;
   }
 
   return { klik, verander, kortZin, blad, lijst, zelfKiezen, watZin };

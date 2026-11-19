@@ -21,7 +21,7 @@ const GEDEELD = [
   'paalblad', 'niemand', 'melden', 'luisteren', 'klaarstappen', 'hand', 'groep', 'gevoel', 'film', 'fasekaart', 'eigen',
   'buitenBlad', 'scThema', 'scVoorbeeldVerschil',
   // Via een const bovenaan een gedeeld script.
-  'dakvlakken', 'laden', 'thuisaccu', 'vermogens', 'ligging',
+  'dakvlakken', 'laden', 'thuisaccu', 'vermogens', 'ligging', 'zekering', 'contract',
 ];
 
 const REGELS = {

@@ -144,6 +144,16 @@ function markeer(id) {
   }
 }
 
+// Klaar in Je huis (stap 4): Je huis bewaart zelf, dus die stap is dan nagelopen.
+{
+  const u = new URL(location.href);
+  if (u.searchParams.get('nagelopen') === 'jehuis') {
+    for (const id of ['jehuis', ...delenVan('jehuis')]) markeer(id);
+    u.searchParams.delete('nagelopen');
+    history.replaceState(null, '', `${u.pathname}${u.search}${u.hash}`);
+  }
+}
+
 function stapNu() {
   const h = decodeURIComponent(location.hash.slice(1));
   return ALLE.includes(h) ? h : 'welkom';
@@ -1619,23 +1629,13 @@ function vermogenStap() {
   };
 }
 
-/* De zekering zoals de schets: eerst de fasen, dan de ampère in een vak (besluit 146). */
-// 32 A is in België gewoon; een andere waarde vul je zelf in, net als bij Energie.
-const AMPERES = [16, 20, 25, 32, 35, 40, 50, 63, 80];
-let zekeringZelf = false;
+/* De zekering (stap 4): hetzelfde deel als bij Energie › Aansluiting, eerst de fasen en dan de ampère (zekering.js). */
 function zekeringStap() {
-  const a = antwoorden();
-  const zek = a.zekering && a.zekering !== 'weetniet' ? a.zekering : null;
-  const ampere = zek?.ampere ?? null;
-  const lijst = ampere != null && !AMPERES.includes(ampere) ? [...AMPERES, ampere].sort((x, y) => x - y) : AMPERES;
-  const zelf = zek && zekeringZelf;
-  const keuze = `<select class="veld" data-ampere aria-label="${esc(t('inr.zekAmpere'))}" ${zek ? '' : 'disabled'}>${zek ? '' : `<option value="">${esc(t('inr.eerstFasen'))}</option>`}${lijst.map((x) => `<option value="${x}" ${x === ampere && !zelf ? 'selected' : ''}>${x} A</option>`).join('')}<option value="anders" ${zelf ? 'selected' : ''}>${esc(t('energie.anders'))}</option></select>${zelf ? `<input class="veld" type="number" inputmode="numeric" min="6" max="250" step="1" data-ampere-zelf value="${ampere ?? ''}" aria-label="${esc(t('inr.zekAmpere'))}">` : ''}`;
   return {
     waar: waarVan('zekering'),
     kop: t('inr.zekKop'),
     uitleg: t('inr.zekZin'),
-    inhoud: `<div class="chips">${knop('data-fasen="1"', t('energie.eenFase'), zek?.fasen === 1)}${knop('data-fasen="3"', t('energie.drieFasen'), zek?.fasen === 3)}${knop('data-zekering="weetniet"', t('energie.weetNiet'), a.zekering === 'weetniet')}</div>
-      ${a.zekering === 'weetniet' ? tip(t('inr.zekWeetNiet')) : `<label class="invul"><span>${esc(t('instellingen.zekering'))}</span>${keuze}</label>`}`,
+    inhoud: `<span class="zelfde-als">${esc(t('zk.zelfdeAls'))}</span>${zekering.vorm(antwoorden().zekering)}`,
   };
 }
 
@@ -1644,29 +1644,25 @@ function zekeringStap() {
  * daarbij horen, met gas en wat je vanaf 2027 voor teruglevering krijgt en
  * betaalt. Het salderen stopt op 1 januari 2027.
  */
-const CONTRACT = ['enkel', 'dagnacht', 'dynamisch'].map((c) => [c, t(`inr.contract.${c}`)]);
 let contractKeuze = null;
+/** Het soort contract (stap 4): dezelfde rij als bij Energie › Contract en prijzen (contract.js). */
 function contractNu() {
   if (contractKeuze) return contractKeuze;
-  const a = antwoorden();
   const p = energieNu()?.prijzen ?? {};
-  if (a.tarief === 'dynamisch') return 'dynamisch';
-  if (p.stroomDal != null) return 'dagnacht';
-  if (a.tarief === 'vast' || p.stroom != null) return 'enkel';
-  return null;
+  return contract.van(antwoorden().tarief, p.stroomDal != null) ?? (p.stroom != null ? 'enkel' : null);
 }
 function prijzenStap() {
   const e = energieNu();
   const meters = [e?.net?.afname?.length ? t('inr.meter.net') : null, e?.zon?.length ? t('inr.meter.panelen') : null, e?.gas ? t('energie.gas') : null].filter(Boolean);
   const p = e?.prijzen ?? {};
-  const contract = contractNu();
+  const soort = contractNu();
   const veld = (sleutel, label, waarde, eenheid = 'kWh') => `<label class="invul"><span>${esc(label)}</span><span class="waarde">${taal.valuta()}<input inputmode="decimal" data-prijs="${sleutel}" data-eenheid="${eenheid}" value="${waarde != null ? nl(waarde, String(waarde).split('.')[1]?.length ?? 0) : ''}" placeholder="${esc(t('inr.invullen'))}" aria-label="${esc(t('inr.perEenheid', { label, eenheid }))}"></span></label>`;
   // Twee vakken naast elkaar, zodat alles op de kaart past: stroom (en dal), dan gas.
   const gas = e?.gas ? veld('gas', t('inr.gasM3'), p.gas, 'm³') : '';
-  const stroom = contract === 'dagnacht'
+  const stroom = soort === 'dagnacht'
     ? `<div class="paar">${veld('stroom', t('inr.stroomNormaal'), p.stroom)}${veld('stroomDal', t('inr.stroomDal'), p.stroomDal)}</div>${gas}`
-    : `<div class="paar">${veld('stroom', t(contract === 'dynamisch' ? 'inr.stroomGemiddeld' : 'energie.stroomKop'), p.stroom)}${gas}</div>`;
-  const velden = contract
+    : `<div class="paar">${veld('stroom', t(soort === 'dynamisch' ? 'inr.stroomGemiddeld' : 'energie.stroomKop'), p.stroom)}${gas}</div>`;
+  const velden = soort
     ? `${stroom}
        <span class="vraagje">${esc(t('inr.terug2027'))}</span><div class="paar">${veld('vanaf2027.vergoeding', t('inr.jeKrijgt'), p.vanaf2027?.vergoeding)}${veld('vanaf2027.kosten', t('inr.jeBetaalt'), p.vanaf2027?.kosten)}</div>`
     : '';
@@ -1674,8 +1670,8 @@ function prijzenStap() {
     waar: waarVan('prijzen'),
     kop: t('inr.prijsKop'),
     uitleg: meters.length ? t('inr.prijsMeters', { meters: lijstje(meters) }) : t('inr.prijsZin'),
-    inhoud: `<div class="chips">${CONTRACT.map(([w, x]) => knop(`data-contract="${w}"`, x, contract === w)).join('')}</div>
-      ${contract === 'dynamisch' ? uurprijsTip(p) : ''}
+    inhoud: `<span class="zelfde-als">${esc(t('ct.zelfdeAls'))}</span>${contract.vorm(soort)}
+      ${soort === 'dynamisch' ? uurprijsTip(p) : ''}
       ${velden ? `<div class="rijen kolom">${velden}</div>` : ''}
       <div class="noot">${esc(t('inr.prijsNoot'))}</div>`,
   };
@@ -2077,7 +2073,7 @@ function prijzenHoofd() {
     const geld = (x) => taal.geld(x, 2);
     const c = contractNu();
     const regels = [
-      ...(c ? [{ b: t(`inr.contract.${c}`), zin: c === 'dynamisch' && p.dynamisch ? t('inr.k.uurprijs') : '' }] : []),
+      ...(c ? [{ b: t(`ct.${c}`), zin: c === 'dynamisch' && p.dynamisch ? t('inr.k.uurprijs') : '' }] : []),
       ...(p.stroom != null ? [{ b: t('inr.k.stroom', { prijs: geld(p.stroom) }), zin: p.stroomDal != null ? t('inr.k.dal', { prijs: geld(p.stroomDal) }) : '' }] : []),
       ...(p.gas != null ? [{ b: t('inr.k.gasPrijs', { prijs: geld(p.gas) }), zin: '' }] : []),
       ...(p.vanaf2027?.vergoeding != null ? [{ b: t('inr.terug2027'), zin: t('inr.k.terug', { krijgt: geld(p.vanaf2027.vergoeding), betaalt: geld(p.vanaf2027.kosten ?? 0) }) }] : []),
@@ -2436,6 +2432,11 @@ document.addEventListener('click', async (e) => {
   if (el.hasAttribute('data-aanpassen')) {
     // Aanpassen (besluit 323): de schermen van eerst, als delen van deze stap.
     const h = stapNu();
+    // Je huis (stap 4): dezelfde tekentafel als bij Instellingen, met een balk terug naar hier.
+    if (h === 'jehuis') {
+      location.href = 'jehuis.html?van=inrichten';
+      return;
+    }
     const delen = delenVan(h);
     if (delen.length === 1 && delen[0] === h) {
       aanpas = h;
@@ -2836,19 +2837,16 @@ document.addEventListener('click', async (e) => {
     await bewaarIndeling(next);
     return;
   }
-  if (el.dataset.fasen) {
+  // De hoofdzekering (stap 4, zekering.js).
+  {
     const a = antwoorden();
-    const fasen = Number(el.dataset.fasen);
-    const oud = a.zekering && a.zekering !== 'weetniet' ? a.zekering.ampere : null;
-    a.zekering = { fasen, ampere: oud ?? (fasen === 1 ? 35 : 25) };
-    await bewaarAansluiting(a);
-    return;
-  }
-  if (el.dataset.zekering) {
-    const a = antwoorden();
-    a.zekering = 'weetniet';
-    await bewaarAansluiting(a);
-    return;
+    const z = zekering.klik(el, a.zekering);
+    if (z === 'teken') return teken();
+    if (z !== undefined) {
+      a.zekering = z;
+      await bewaarAansluiting(a);
+      return;
+    }
   }
   if (el.dataset.verwarming) {
     const a = antwoorden();
@@ -2888,11 +2886,11 @@ document.addEventListener('click', async (e) => {
     await bewaarKort({ kanten: Number(el.dataset.kortKanten) });
     return;
   }
-  if (el.dataset.contract) {
-    // Het soort contract (besluit 158): één tarief laat het daltarief vallen.
-    contractKeuze = el.dataset.contract;
+  if (contract.klik(el) !== undefined) {
+    // Het soort contract (besluit 158, stap 4: dezelfde rij als bij Energie): één tarief laat het daltarief vallen.
+    contractKeuze = contract.klik(el);
     const a = antwoorden();
-    const tarief = contractKeuze === 'dynamisch' ? 'dynamisch' : 'vast';
+    const tarief = contract.tarief(contractKeuze);
     if (a.tarief !== tarief) {
       a.tarief = tarief;
       await bewaarAansluiting(a);
@@ -2903,7 +2901,7 @@ document.addEventListener('click', async (e) => {
     const dyn = d.energie?.voorstel?.prijzen?.dynamisch;
     const heeft = !!energieNu()?.prijzen?.dynamisch;
     if (tarief === 'dynamisch' && !heeft && dyn) wijzig.dynamisch = JSON.parse(JSON.stringify(dyn));
-    if (tarief !== 'dynamisch' && heeft) wijzig.dynamisch = null;
+    if (tarief === 'vast' && heeft) wijzig.dynamisch = null;
     if (Object.keys(wijzig).length) await bewaarPrijzen(wijzig);
     else teken();
     return;
@@ -3063,21 +3061,11 @@ document.addEventListener('change', async (e) => {
     if (el.value === '-') next.verborgen = [...new Set([...(next.verborgen ?? []), el.dataset.plek])];
     else next.apparaten[el.dataset.plek] = { ...(next.apparaten[el.dataset.plek] ?? {}), kamer: el.value, zone: null };
     await bewaarIndeling(next);
-  } else if (el.hasAttribute('data-ampere') && el.value === 'anders') {
-    zekeringZelf = true;
-    teken();
-  } else if (el.hasAttribute('data-ampere') && el.value) {
+  } else if (el.matches('[data-zk-zelf]')) {
     const a = antwoorden();
-    if (!a.zekering || a.zekering === 'weetniet') return;
-    zekeringZelf = false;
-    a.zekering = { ...a.zekering, ampere: Number(el.value) };
-    await bewaarAansluiting(a);
-  } else if (el.hasAttribute('data-ampere-zelf')) {
-    const a = antwoorden();
-    const ampere = Number(el.value);
-    if (!a.zekering || a.zekering === 'weetniet' || !Number.isInteger(ampere) || ampere < 6 || ampere > 250) return;
-    zekeringZelf = false;
-    a.zekering = { ...a.zekering, ampere };
+    const z = zekering.verander(el, a.zekering);
+    if (z === undefined) return;
+    a.zekering = z;
     await bewaarAansluiting(a);
   } else if (el.hasAttribute('data-inr-thermostaat')) {
     const a = antwoorden();

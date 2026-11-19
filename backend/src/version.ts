@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.205.1';
+export const VERSIE = '0.206.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,26 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.206.0',
+    datum: '2026-11-19',
+    beter: [
+      'De hoofdzekering vraag je bij Energie en bij Inrichten op dezelfde manier: eerst 1 of 3 fasen, dan de ampère als knoppen, met Anders voor een eigen waarde',
+      'Het soort contract is één rij bij Energie en bij Inrichten: Eén tarief, Dag en nacht, Per uur of Weet ik niet; daarna alleen de prijzen die erbij horen',
+      'Aanpassen bij Je huis in Inrichten opent Je huis, met een balk terug naar Inrichten en Klaar naar de volgende stap',
+      'Zelf een auto of laadpaal kiezen: elk in een eigen keuzelijst',
+    ],
+    opgelost: ['Opbrengst: een klein blok in de stroomtekening, zoals de elektrische haard, had zijn naam naast Rest van het huis staan'],
+    en: {
+      beter: [
+        'You enter the main fuse the same way under Energy and in Set up: first 1 or 3 phases, then the amperes as buttons, with Other for your own value',
+        'The kind of contract is one row under Energy and in Set up: One rate, Day and night, Per hour or Don’t know; then only the prices that go with it',
+        'Adjust for Your home in Set up opens Your home, with a bar back to Set up and Done to the next step',
+        'Choosing a car or charger yourself: each in its own list',
+      ],
+      opgelost: ['Results: a small block in the flow chart, such as the electric fire, had its name next to Rest of the house'],
+    },
+  },
   {
     versie: '0.205.1',
     datum: '2026-11-19',

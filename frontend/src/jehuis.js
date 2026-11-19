@@ -626,8 +626,28 @@ function bij() {
   if (location.hash !== adres) history.replaceState(null, '', adres);
 }
 
+/**
+ * Vanuit Inrichten › Aanpassen (stap 4, zoals de schets Wand-Inrichten-Aanpassen):
+ * de terugknop wordt Terug naar Inrichten, met de stap eronder, en rechtsboven
+ * Klaar, terug naar Inrichten. Je huis bewaart zelf; Klaar gaat naar de volgende stap.
+ */
+function vanInrichten() {
+  if (new URLSearchParams(location.search).get('van') !== 'inrichten') return;
+  document.body.classList.add('van-inrichten');
+  // Je huis is stap 1 van de zeven van Inrichten.
+  const waar = `${t('inr.k.van', { i: 1, n: 7 })} · ${t('inr.k.jehuis')}`;
+  document.querySelectorAll('.terugje').forEach((a) => {
+    a.removeAttribute('data-t');
+    a.setAttribute('href', 'inrichten.html#jehuis');
+    a.classList.add('jh-terug');
+    a.innerHTML = `<span>${esc(t('jehuis.terugInrichten'))}</span><small>${esc(waar)}</small>`;
+  });
+  document.querySelectorAll('.hm-rechts').forEach((el) => el.insertAdjacentHTML('beforeend', `<a class="knop knop-licht jh-klaar" href="inrichten.html?nagelopen=jehuis#meter">${esc(t('jehuis.klaarInrichten'))}</a>`));
+}
+
 async function start() {
   plaats();
+  vanInrichten();
   let d;
   try {
     [d] = await Promise.all([haal('api/huistekening'), laadIndeling()]);

@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.205.1
+## 0.206.0
 
-*19 november 2026 · 0.179.0 – 0.205.1*
+*19 november 2026 · 0.179.0 – 0.206.0*
 
 **Nieuw**
 
@@ -71,6 +71,10 @@
 
 **Beter**
 
+- De hoofdzekering vraag je bij Energie en bij Inrichten op dezelfde manier: eerst 1 of 3 fasen, dan de ampère als knoppen, met Anders voor een eigen waarde
+- Het soort contract is één rij bij Energie en bij Inrichten: Eén tarief, Dag en nacht, Per uur of Weet ik niet; daarna alleen de prijzen die erbij horen
+- Aanpassen bij Je huis in Inrichten opent Je huis, met een balk terug naar Inrichten en Klaar naar de volgende stap
+- Zelf een auto of laadpaal kiezen: elk in een eigen keuzelijst
 - Een auto, laadpaal of thuisaccu voeg je toe op één plek: Apparaat toevoegen › Auto en laden of Thuisaccu. Staat hij er niet bij, dan kies je hem zelf, of maak je een laadpaal uit losse sensoren
 - Op de kaart van een auto, laadpaal of thuisaccu staat onderaan Verbergen in plaats van Doet mee; terughalen kan bij Toevoegen › Verborgen
 - Of SunArc de stand van evcc mag zetten, staat op de kaart van de laadpaal
@@ -129,6 +133,7 @@
 
 **Opgelost**
 
+- Opbrengst: een klein blok in de stroomtekening, zoals de elektrische haard, had zijn naam naast Rest van het huis staan
 - Je huis › Buiten: de erfgrens schuift tot tegen het huis of de garage, zoals bij een twee-onder-een-kap; een strook tuin langs de rand mag helemaal weg
 - Je huis › Buiten: bij Wat is dit? staan ook plekken die er nog niet zijn, zoals de voortuin; kiezen zet hem erbij, met dit vak
 - Toevoegen zei bij een soort zonder apparaten twee keer dat er niets gevonden was
@@ -228,6 +233,10 @@
 
 **Improved**
 
+- You enter the main fuse the same way under Energy and in Set up: first 1 or 3 phases, then the amperes as buttons, with Other for your own value
+- The kind of contract is one row under Energy and in Set up: One rate, Day and night, Per hour or Don’t know; then only the prices that go with it
+- Adjust for Your home in Set up opens Your home, with a bar back to Set up and Done to the next step
+- Choosing a car or charger yourself: each in its own list
 - You add a car, charger or home battery in one place: Add device › Car and charging or Home battery. If it is not listed, choose it yourself, or make a charger from separate sensors
 - The card of a car, charger or home battery has Hide at the bottom instead of Takes part; bring it back under Add › Hidden
 - Whether SunArc may set the evcc mode is on the charger’s card
@@ -286,6 +295,7 @@
 
 **Fixed**
 
+- Results: a small block in the flow chart, such as the electric fire, had its name next to Rest of the house
 - Your home › Outside: the plot boundary moves right up to the house or garage, as with a semi-detached house; a strip of garden along the edge may go entirely
 - Your home › Outside: What is this? also lists places that do not exist yet, such as the front garden; choosing one adds it, with this area
 - Add said twice that nothing was found for a kind without devices

@@ -30,6 +30,16 @@
   .hm-kop { display: flex; align-items: center; gap: 14px; height: 54px; }
   #wand .hm-kop .terugje { display: inline-flex; align-items: center; height: 44px; padding: 0 16px 0 12px; border-radius: 14px; background: rgb(var(--wit) / 0.07); border: 1px solid var(--glas-rand); font-size: 14.5px; font-weight: 600; color: var(--zacht); text-decoration: none; white-space: nowrap; }
   .hm-kop .kop-1 { font-size: 38px; margin: 0 14px 0 4px; white-space: nowrap; }
+  /* Vanuit Inrichten (stap 4): de balk terug met de stap eronder, en Klaar rechtsboven; de kop zegt de balk al. */
+  .van-inrichten #wand .hm-kop .kop-1 { display: none; }
+  .van-inrichten .terugje.jh-terug { flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; line-height: 1.2; color: var(--tekst); }
+  .van-inrichten #wand .hm-kop .terugje.jh-terug { height: 54px; padding: 0 22px 0 16px; border-color: rgb(var(--wit) / 0.18); }
+  .van-inrichten .jh-terug span { font-size: 15.5px; font-weight: 700; }
+  .van-inrichten .jh-terug small { font-size: 12.5px; font-weight: 500; color: var(--zacht); }
+  .van-inrichten #tel .terugje.jh-terug { margin: 0 0 6px; min-height: 48px; padding: 6px 0; flex-direction: column; align-items: flex-start; align-self: flex-start; text-align: left; width: fit-content; }
+  .jh-klaar { white-space: nowrap; text-decoration: none; }
+  .van-inrichten #wand .hm-bewaard { display: none; }
+  #tel .jh-klaar { display: none; }
   .hm-rechts { margin-left: auto; display: flex; align-items: center; gap: 8px; }
   .hm-seg button[disabled] { opacity: 0.38; cursor: default; }
   .hm-bewaard.fout { color: var(--gloed-zacht); }

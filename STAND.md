@@ -54,7 +54,10 @@ verwijzing bestaat.
   de nok; Zonnepanelen (eerst Daken en panelen) bij Energie legt de panelen
   op dat dak, met de straat onder; zonder kaart is de getekende buitenkant
   het dak ([327]). Sinds 0.205.0 voeg je een auto, laadpaal of thuisaccu
-  alleen bij Toevoegen toe; op de kaart staat Verbergen ([328]).
+  alleen bij Toevoegen toe; op de kaart staat Verbergen ([328]). Sinds
+  0.206.0 vragen Energie en Inrichten de zekering en het contract met
+  hetzelfde deel (eerst de soort), en opent Aanpassen bij Inrichten Je huis
+  met een balk terug ([329]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1067,4 +1070,5 @@ verwijzing bestaat.
 [326]: DECISIONS.md#326-stap-3-af-één-telling-bladen-die-passen-één-woord-en-de-assistent
 [327]: DECISIONS.md#327-eén-plek-voor-de-kaart-het-dak-in-je-huis-de-panelen-bij-energie
 [328]: DECISIONS.md#328-eén-plek-om-een-auto-laadpaal-of-thuisaccu-toe-te-voegen
+[329]: DECISIONS.md#329-dezelfde-vraag-bij-energie-en-bij-inrichten
 <!-- links:einde -->

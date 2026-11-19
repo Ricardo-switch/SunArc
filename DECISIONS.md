@@ -319,6 +319,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [326. Stap 3 af: één telling, bladen die passen, één woord, en de assistent](#326-stap-3-af-één-telling-bladen-die-passen-één-woord-en-de-assistent)
 - [327. Eén plek voor de kaart: het dak in Je huis, de panelen bij Energie](#327-eén-plek-voor-de-kaart-het-dak-in-je-huis-de-panelen-bij-energie)
 - [328. Eén plek om een auto, laadpaal of thuisaccu toe te voegen](#328-eén-plek-om-een-auto-laadpaal-of-thuisaccu-toe-te-voegen)
+- [329. Dezelfde vraag bij Energie en bij Inrichten](#329-dezelfde-vraag-bij-energie-en-bij-inrichten)
 
 **Veiligheid**
 
@@ -15208,6 +15209,44 @@ vult tijdens het laden, blijft.
 
 *Nog niet:* Inrichten › Aanpassen met dezelfde bladen als Energie (het laatste
 deel van punt 1), en het dak per gebouw zonder kaart (eerst een schets).
+
+## 329. Dezelfde vraag bij Energie en bij Inrichten
+
+*Onderwerp: weergave · Status: geldig*
+
+19 november 2026, stap 4 punt 1, versie 3. Inrichten › Aanpassen had eigen
+vragen naast die van Energie: de zekering als lijst bij Inrichten en als
+paren (1 × 35 A) bij Energie, het contract als drie knoppen bij Inrichten en
+als twee rijen bij Energie (vaste prijs of per uur, en verderop één tarief of
+normaal en dal), en een eigen kamerbewerker naast Je huis. Keuze van Ricardo
+(schets `Wand-/Tel-Inrichten-Aanpassen`): hetzelfde deel op beide plekken, en
+eerst de soort, dan de rest.
+
+*Besluit (0.206.0):*
+
+- **De hoofdzekering** (`src/zekering.js`): eerst 1 fase, 3 fasen of Weet ik
+  niet; daarna de ampère als knoppen (16 tot 63 A) met Anders voor een eigen
+  waarde. Bij Energie › Aansluiting en bij Inrichten › Meter en zekering, waar
+  erbij staat dat het hetzelfde is als bij Energie.
+- **Het soort contract** (`src/contract.js`): één rij met Eén tarief, Dag en
+  nacht, Per uur en Weet ik niet; daarna alleen de prijzen die erbij horen.
+  Bij Energie › Contract en prijzen en bij Inrichten › Prijzen. De rij
+  Tarief (één tarief of normaal en dal) bij Energie is weg.
+- **Je huis:** Aanpassen bij stap 1 van Inrichten opent Je huis
+  (`jehuis.html?van=inrichten`), met links *Terug naar Inrichten · 1 van 7 ·
+  Je huis* en rechtsboven *Klaar, terug naar Inrichten*. Klaar gaat naar de
+  volgende stap en telt stap 1 als nagelopen; Je huis bewaart zelf.
+- **Toevoegen › Auto en laden › Zelf een apparaat kiezen:** de auto en de
+  laadpaal elk in een eigen keuzelijst, onder elkaar (Ricardo: gescheiden is
+  overzichtelijker).
+- **Opbrengst:** in de stroomtekening krijgt elk blok minstens de ruimte van
+  zijn naam. Een klein blok (de elektrische haard, 1 kWh) had zijn naam
+  naast het begin van Rest van het huis staan, alsof hij daarbij hoorde.
+
+*Nog niet:* de vragen van eerst bij Inrichten (soort woning, kelder, dak,
+kamers per etage) blijven met een link bestaan, tot Je huis het soort woning
+kent (punt 3). Verwarming en Wie woont hier openen bij Aanpassen nog hun
+eigen schermen.
 
 ## Wat nog een besluit wacht
 

@@ -935,7 +935,9 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // De zekering uit de configuratie staat voorgekozen, en is te wijzigen (besluit 117).
     await wand.locator('[data-delen] .deel', { hasText: 'Aansluiting' }).click();
     await wand.locator('[data-vorm] h2', { hasText: 'Aansluiting' }).waitFor();
-    const zekering = wand.locator('button[aria-pressed="true"]', { hasText: '1 × 35 A' });
+    // Eerst de fasen, dan de ampère (stap 4): 1 fase en 35 A staan aan.
+    await wand.locator('[data-zk-fasen="1"][aria-pressed="true"]').waitFor();
+    const zekering = wand.locator('[data-zk-ampere="35"][aria-pressed="true"]');
     expect(await wand.textContent()).toContain('uit de configuratie van het huis');
     await zekering.click();
     // De verwarming (besluit 122): wat het is en de aanvoertemperatuur.
@@ -1245,7 +1247,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // De prijzen zoals op een contract (besluit 110): normaal en dal, en een vaste post per jaar.
     await wand.locator('[data-delen] .deel', { hasText: 'Contract en prijzen' }).click();
     await wand.locator('[data-vorm] h2', { hasText: 'Contract en prijzen' }).waitFor();
-    await wand.locator('[data-kies="stroomtarief"]', { hasText: 'Normaal en dal' }).click();
+    await wand.locator('[data-ct="dagnacht"]').click();
     await wand.locator('[data-prijs="stroomDal"]').waitFor();
     await wand.locator('[data-prijs="stroom"]').fill('0.27142');
     await wand.locator('[data-prijs="stroom"]').press('Tab');
@@ -2691,7 +2693,15 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     expect(await kaart.locator('.klopt [data-ja]').count()).toBe(1);
     expect(await p.locator('#wand [data-stappen] .stap.nu .naam').textContent()).toBe('Je huis');
     await shot('jehuis');
+    // Aanpassen opent Je huis (stap 4), met de balk terug naar Inrichten en Klaar naar de volgende stap.
     await kaart.locator('[data-aanpassen]').click();
+    await p.waitForURL(/jehuis\.html\?van=inrichten/);
+    await p.locator('#wand .jh-terug', { hasText: 'Terug naar Inrichten' }).waitFor();
+    expect(await p.locator('#wand .jh-terug').innerText()).toContain('1 van 7 · Je huis');
+    expect(await p.locator('#wand .jh-terug').getAttribute('href')).toBe('inrichten.html#jehuis');
+    expect(await p.locator('#wand .jh-klaar').getAttribute('href')).toBe('inrichten.html?nagelopen=jehuis#meter');
+    // De vragen van eerst (soort woning, kamers) staan er nog, tot Je huis het soort woning kent.
+    await p.goto(`${baseUrl}/inrichten.html#woning`);
     await p.waitForURL(/#woning$/);
     // Wat voor huis (besluit 190): vijf soorten, elk met een klein huis erin.
     await kaart.locator('h1', { hasText: 'Wat voor huis is het?' }).waitFor();
@@ -2756,13 +2766,15 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await kaart.locator('h1', { hasText: 'Hoe zwaar is je aansluiting?' }).waitFor();
     await kaart.locator('h1', { hasText: 'Hoe zwaar is je aansluiting?' }).waitFor();
     // "Weet ik niet" (een tester, november 2026): geen uitgeschakelde lijst, wel een zin; daarna kan een fase gewoon.
-    await kaart.locator('[data-zekering="weetniet"]').click();
-    await kaart.locator('.tip', { hasText: 'hoofdschakelaar' }).waitFor({ timeout: 5000 });
-    expect(await kaart.locator('[data-ampere]').count()).toBe(0);
-    // Eerst de fasen, dan de ampère in een vak.
-    await kaart.locator('[data-fasen="3"]').click();
-    await kaart.locator('[data-fasen="3"][aria-pressed="true"]').waitFor({ timeout: 5000 });
-    await kaart.locator('[data-ampere]').selectOption('40');
+    await kaart.locator('[data-zk-weetniet]').click();
+    await kaart.locator('.mini', { hasText: 'hoofdschakelaar' }).waitFor({ timeout: 5000 });
+    expect(await kaart.locator('[data-zk-ampere]').count()).toBe(0);
+    // Eerst de fasen, dan de ampère als knoppen: hetzelfde deel als bij Energie (stap 4).
+    expect(await kaart.textContent()).toContain('Hetzelfde als bij Energie');
+    await kaart.locator('[data-zk-fasen="3"]').click();
+    await kaart.locator('[data-zk-fasen="3"][aria-pressed="true"]').waitFor({ timeout: 5000 });
+    await kaart.locator('[data-zk-ampere="40"]').click();
+    await kaart.locator('[data-zk-ampere="40"][aria-pressed="true"]').waitFor({ timeout: 5000 });
     await expect.poll(async () => ((await (await fetch(`${baseUrl}/api/aansluiting`, { headers: { cookie: `hems_sessie=${sessionId}` } })).json()) as { antwoorden?: { zekering?: unknown } }).antwoorden?.zekering, { timeout: 5000 }).toEqual({ fasen: 3, ampere: 40 });
     await shot('zekering');
     await kaart.locator('[data-volgende]').click();
@@ -2809,7 +2821,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     if ((await kaart.locator('[data-ja]').count()) > 0) await kaart.locator('[data-aanpassen]').click();
     await kaart.locator('h1', { hasText: 'Wat betaal je?' }).waitFor();
     // Eerst het contract, dan de velden die erbij horen (besluit 158).
-    await kaart.locator('[data-contract="dagnacht"]').click();
+    await kaart.locator('[data-ct="dagnacht"]').click();
     await kaart.locator('[data-prijs="stroomDal"]').waitFor({ timeout: 5000 });
     await shot('prijzen');
     await kaart.locator('[data-volgende]').click();
@@ -5893,10 +5905,10 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const p = await context.newPage();
     const fouten: string[] = [];
     p.on('pageerror', (e) => fouten.push(e.message));
-    const contract = (w: string) => p.locator(`#wand [data-kies="contract"][data-waarde='"${w}"']`);
+    const contract = (w: string) => p.locator(`#wand [data-ct="${w}"]`);
     try {
       await p.goto(`${baseUrl}/energie.html#prijzen`);
-      await contract('vast').click();
+      await contract('enkel').click();
       await contract('dynamisch').click();
       const mist = p.locator('#wand [data-uurprijs-mist]');
       await mist.waitFor({ timeout: 5000 });
@@ -5908,12 +5920,12 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       kent = true;
       await p.locator('#wand [data-uurprijs-opnieuw]').click();
       await p.locator('#wand [data-uurprijs]').waitFor({ timeout: 5000 });
-      await contract('vast').click();
+      await contract('enkel').click();
       await contract('dynamisch').click();
       await expect.poll(() => energyStore.current?.prijzen.dynamisch ?? null, { timeout: 5000 }).toEqual(dynamisch);
       await p.locator('#wand', { hasText: 'Prijs per uur uit Home Assistant, nu € 0,23 per kWh' }).first().waitFor({ timeout: 5000 });
       // Een vaste prijs zet hem weer uit.
-      await contract('vast').click();
+      await contract('enkel').click();
       await expect.poll(() => energyStore.current?.prijzen.dynamisch ?? null, { timeout: 5000 }).toBeNull();
       expect(fouten).toEqual([]);
     } finally {
@@ -5953,17 +5965,17 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const wand = (sel: string) => p.locator(`#wand ${sel}`);
     try {
       await p.goto(`${baseUrl}/energie.html#prijzen`);
-      await wand(`[data-kies="contract"][data-waarde='"vast"']`).click();
-      // Normaal en dal gekozen, de dalprijs nog leeg: dat hield het bewaren van Per uur tegen.
-      await wand(`[data-kies="stroomtarief"][data-waarde='"dubbel"']`).click();
-      await wand(`[data-kies="contract"][data-waarde='"dynamisch"']`).click();
+      await wand('[data-ct="enkel"]').click();
+      // Dag en nacht gekozen, de dalprijs nog leeg: dat hield het bewaren van Per uur tegen.
+      await wand('[data-ct="dagnacht"]').click();
+      await wand('[data-ct="dynamisch"]').click();
       await expect.poll(() => energyStore.current?.prijzen.dynamisch ?? null, { timeout: 5000 }).toEqual(dynamisch);
       await expect.poll(() => connStore.current?.tarief ?? null, { timeout: 5000 }).toBe('dynamisch');
       await wand(':text("Prijs per uur uit Home Assistant")').first().waitFor({ timeout: 5000 });
       // Geen vraag om een vaste prijs: geen melding, geen rood veld, geen normaal en dal.
       expect(await wand(':text("Zonder stroomprijs")').count()).toBe(0);
       expect(await wand('[data-prijs="stroom"].leeg').count()).toBe(0);
-      expect(await wand('[data-kies="stroomtarief"]').count()).toBe(0);
+      expect(await wand('[data-ct="dynamisch"][aria-pressed="true"]').count()).toBe(1);
       expect(await wand('[data-prijs="stroomDal"]').count()).toBe(0);
       expect(energyStore.current?.prijzen.stroomDal ?? null).toBeNull();
       // Teruglevering telt per uur, zoals Home Assistant: geen vaste bedragen.

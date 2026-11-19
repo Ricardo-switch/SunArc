@@ -28,16 +28,36 @@
     const bronnen = o.bronnen.filter((b) => som(b.id, 'van') > 0);
     const doelen = o.doelen.filter((d) => som(d.id, 'naar') > 0);
     const totaal = Math.max(bronnen.reduce((t, b) => t + som(b.id, 'van'), 0), doelen.reduce((t, d) => t + som(d.id, 'naar'), 0)) || 1;
-    // Onderaan ruimte voor de naam van het laatste blok.
-    const schaal = (H - 52 - gat * (Math.max(bronnen.length, doelen.length) - 1)) / totaal;
+    // Elk blok krijgt minstens de ruimte van zijn naam, zodat een klein blok (1 kWh
+    // van de haard) zijn naam niet naast het volgende blok krijgt (Ricardo, 19 november 2026).
+    const minVak = (x) => 14 * ((x.regels ?? []).length + 1) + 4 - gat;
+    // Onderaan ruimte voor de naam van het laatste blok; de schaal zo dat de grote blokken de rest delen.
+    const schaalVan = (lijst, kant) => {
+      const ruimte = H - 52 - gat * (lijst.length - 1);
+      let s = ruimte / totaal;
+      for (let k = 0; k < 6; k++) {
+        let vast = 0;
+        let rest = 0;
+        for (const x of lijst) {
+          const v = som(x.id, kant);
+          if (v * s < minVak(x)) vast += minVak(x);
+          else rest += v;
+        }
+        s = rest > 0 ? Math.max(0, ruimte - vast) / rest : s;
+      }
+      return s;
+    };
+    const schaal = Math.max(1e-9, Math.min(schaalVan(bronnen, 'van'), schaalVan(doelen, 'naar')));
     const plek = {};
     const leg = (lijst, kant) => {
       let y = 12;
       for (const x of lijst) {
         const echt = som(x.id, kant) * schaal;
         const h = Math.max(4, echt);
-        plek[x.id] = { y, h, vrij: y, rek: h / Math.max(1e-9, echt) };
-        y += h + gat;
+        const vak = Math.max(h, minVak(x));
+        const top = y + (vak - h) / 2;
+        plek[x.id] = { y: top, h, vrij: top, rek: h / Math.max(1e-9, echt) };
+        y += vak + gat;
       }
     };
     leg(bronnen, 'van');

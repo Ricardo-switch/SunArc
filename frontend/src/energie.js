@@ -27,8 +27,6 @@ let eInfo = null;
 let e = null;
 /** Normaal en dal gekozen; los van de prijs, want die kan nog leeg zijn. */
 let dubbel = false;
-/** Een eigen hoofdzekering invullen; zolang die niet compleet is, staat hij hier. */
-let zelf = null;
 /**
  * Aanpassen van hoe de panelen liggen (besluit 157, panelen.js). `zelf`: Zelf
  * aanpassen is open, met de kant en het aantal (besluit 187).
@@ -216,20 +214,9 @@ function panelenVorm() {
 
 /* Aansluiting */
 
-const GANGBAAR = [
-  { fasen: 1, ampere: 25 },
-  { fasen: 1, ampere: 35 },
-  { fasen: 1, ampere: 40 },
-  { fasen: 3, ampere: 25 },
-  { fasen: 3, ampere: 35 },
-  { fasen: 3, ampere: 40 },
-  { fasen: 3, ampere: 50 },
-];
-
 function aansluitingVorm() {
   const uitConfig = aInfo.configuratie.zekering;
   const huidig = a.zekering ?? uitConfig;
-  const anders = huidig && huidig !== 'weetniet' && !GANGBAAR.some((z) => gelijk(z, huidig));
   const fasen = aInfo.gevonden.fasen.length;
   const noot = a.zekering == null && uitConfig
     ? t('energie.uitConfig', { fasen: uitConfig.fasen, ampere: uitConfig.ampere })
@@ -238,11 +225,11 @@ function aansluitingVorm() {
       : a.zekering?.fasen === 3 && fasen < 3
         ? t('energie.meetFasen', { fasen: t('energie.fase', { n: fasen }) })
         : t('energie.waarZekering');
+  // Eerst de fasen, dan de ampère (stap 4): dezelfde vraag als bij Inrichten (zekering.js).
   return `${kop(t('energie.aansluiting'))}
     ${zekeringNu() ? '' : `<div class="melding"><span class="stip" style="background: var(--gloed)"></span>${esc(t('energie.zonderZekering'))}</div>`}
     ${blok(t('instellingen.zekering'), `<p class="uitleg">${esc(t('energie.zekeringUitleg'))}</p>
-      ${keuzes(t('instellingen.zekering'), 'zekering', [...GANGBAAR.map((z) => [z, `${z.fasen} × ${z.ampere} A`]), ...(anders ? [[huidig, `${huidig.fasen} × ${huidig.ampere} A`]] : []), ['anders', t('energie.anders')], ['weetniet', t('energie.weetNiet')]], zelf != null ? 'anders' : huidig)}
-      ${zelf != null ? `<div class="twee"><label class="veldnaam">${esc(t('energie.fasen'))}<select class="invoer" data-zekering="fasen"><option value="1" ${zelf.fasen === 1 ? 'selected' : ''}>${esc(t('energie.eenFase'))}</option><option value="3" ${zelf.fasen === 3 ? 'selected' : ''}>${esc(t('energie.drieFasen'))}</option></select></label><label class="veldnaam">${esc(t('energie.ampere'))}<input class="invoer" type="number" inputmode="numeric" min="6" max="250" step="1" data-zekering="ampere" value="${zelf.ampere ?? ''}"></label></div>` : ''}
+      ${zekering.vorm(huidig)}
       <p class="mini">${esc(noot)}</p>`)}`;
 }
 
@@ -386,8 +373,7 @@ function prijzenVorm() {
   const stroomBlok = p.dynamisch
     ? `<p class="uitleg">${esc(t('energie.stroomPerUur'))}</p>
       ${bedragVeld(t('energie.stroomGemiddeld'), 'stroom', p.stroom, nl(0.25, 2))}`
-    : `${keuzes(t('energie.tarief'), 'stroomtarief', [['enkel', t('energie.enkel')], ['dubbel', t('energie.dubbel')]], dubbel ? 'dubbel' : 'enkel')}
-      <div class="${dubbel ? 'twee' : ''}">${bedragVeld(t(dubbel ? 'energie.normaalKwh' : 'energie.perKwh'), 'stroom', p.stroom, nl(0.27, 2), '0', true)}${dubbel ? bedragVeld(t('energie.dalKwh'), 'stroomDal', p.stroomDal, nl(0.25, 2), '0', true) : ''}</div>
+    : `<div class="${dubbel ? 'twee' : ''}">${bedragVeld(t(dubbel ? 'energie.normaalKwh' : 'energie.perKwh'), 'stroom', p.stroom, nl(0.27, 2), '0', true)}${dubbel ? bedragVeld(t('energie.dalKwh'), 'stroomDal', p.stroomDal, nl(0.25, 2), '0', true) : ''}</div>
       <p class="mini">${esc(t('energie.totaalprijs'))}</p>${dalTijden}`;
   // Teruglevering per uur, als Home Assistant die telt; anders zegt het wat er mist, en blijven de bedragen.
   const terugKan = p.dynamisch && !p.dynamisch.terug.length && eInfo?.voorstel?.prijzen?.dynamisch?.terug?.length;
@@ -404,7 +390,7 @@ function prijzenVorm() {
       ${terugVast}`;
   return `${kop(t('energie.prijzen'))}
     ${mist ? `<div class="melding"><span class="stip" style="background: var(--gloed)"></span>${esc(mist)}</div>` : ''}
-    ${kolommen(`${blok(t('energie.soortContract'), `${keuzes(t('energie.soortContract'), 'contract', [['vast', t('energie.contract.vast')], ['dynamisch', t('energie.contract.dynamisch')], ['weetniet', t('energie.weetNiet')]], a?.tarief ?? null, !a)}
+    ${kolommen(`${blok(t('energie.soortContract'), `${contract.vorm(a ? contract.van(a.tarief, dubbel) ?? (p.stroom != null ? 'enkel' : null) : null, !a)}
       <p class="mini">${esc(t('energie.dynamischUitleg'))}</p>
       ${uurprijs}
       <label class="veldnaam">${esc(t('energie.contractStart'))}<input class="invoer" type="date" data-contract value="${esc(p.contractStart ?? '')}" min="2000-01-01" max="2100-12-31"></label>
@@ -643,50 +629,57 @@ document.addEventListener('click', async (ev) => {
     if (wat === 'bewaar') bewaarAansluiting();
     return;
   }
+  // De hoofdzekering (stap 4, zekering.js): eerst de fasen, dan de ampère.
+  if (a) {
+    const z = zekering.klik(knop, a.zekering ?? aInfo?.configuratie?.zekering ?? null);
+    if (z === 'teken') return teken();
+    if (z !== undefined) {
+      a.zekering = z;
+      teken();
+      return bewaarAansluiting();
+    }
+  }
+  // Het soort contract (stap 4, contract.js): één rij, daarna alleen de prijzen die erbij horen.
+  const ct = a ? contract.klik(knop) : undefined;
+  if (ct !== undefined) {
+    a.tarief = contract.tarief(ct);
+    dubbel = ct === 'dagnacht';
+    let ookEnergie = false;
+    if (e && eInfo?.instellingen) {
+      if (!dubbel && e.prijzen.stroomDal != null) {
+        e.prijzen.stroomDal = null;
+        ookEnergie = true;
+      }
+      // Per uur neemt de uurprijs van Home Assistant over, een vaste prijs zet hem uit (issue 119).
+      const dyn = eInfo?.voorstel?.prijzen?.dynamisch;
+      if (ct === 'dynamisch' && !e.prijzen.dynamisch && dyn) {
+        e.prijzen.dynamisch = JSON.parse(JSON.stringify(dyn));
+        ookEnergie = true;
+      }
+      if ((ct === 'enkel' || ct === 'dagnacht') && e.prijzen.dynamisch) {
+        delete e.prijzen.dynamisch;
+        ookEnergie = true;
+      }
+    }
+    teken();
+    return bewaarAansluiting(ookEnergie);
+  }
   if (knop.dataset.kies) {
     const w = JSON.parse(knop.dataset.waarde);
     const s = knop.dataset.kies;
     // De aansluiting.
-    if (a && ['ligging', 'zekering', 'contract', 'verwarming'].includes(s)) {
+    if (a && ['ligging', 'verwarming'].includes(s)) {
       // Wie hier de kant kiest, blijft in dit formulier tot Klaar (besluit 187): eerst het aantal.
       if (s === 'ligging') {
         a.panelen.ligging = w;
         ligStaat.zelf = true;
-      }
-      else if (s === 'zekering') {
-        if (w === 'anders') {
-          zelf = { fasen: a.zekering?.fasen ?? 1, ampere: a.zekering?.ampere ?? null };
-          return teken();
-        }
-        zelf = null;
-        a.zekering = w;
-      } else if (s === 'contract') {
-        a.tarief = w;
-        // Per uur neemt de uurprijs van Home Assistant over, een vaste prijs zet hem uit (issue 119).
-        const dyn = eInfo?.voorstel?.prijzen?.dynamisch;
-        if (e && w === 'dynamisch' && !e.prijzen.dynamisch && dyn && eInfo?.instellingen) {
-          e.prijzen.dynamisch = JSON.parse(JSON.stringify(dyn));
-          // Een prijs per uur kent geen normaal en dal (issue 126).
-          dubbel = false;
-          e.prijzen.stroomDal = null;
-          teken();
-          return bewaarAansluiting(true);
-        }
-        if (e && w === 'vast' && e.prijzen.dynamisch && eInfo?.instellingen) {
-          delete e.prijzen.dynamisch;
-          teken();
-          return bewaarAansluiting(true);
-        }
       }
       else if (s === 'verwarming') a.verwarming.soort = w;
       teken();
       return bewaarAansluiting();
     }
     // De prijzen.
-    if (e && s === 'stroomtarief') {
-      dubbel = w === 'dubbel';
-      if (!dubbel) e.prijzen.stroomDal = null;
-    } else if (e && s === 'dalUren') e.prijzen.dalUren = w;
+    if (e && s === 'dalUren') e.prijzen.dalUren = w;
     else if (e && s === 'salderen') e.prijzen.salderen = w;
     else if (e && s === 'dalWeekend') e.prijzen.dalEigen = { ...e.prijzen.dalEigen, weekend: w };
     else return;
@@ -758,14 +751,11 @@ document.addEventListener('change', (ev) => {
     return bewaarAansluiting();
   }
   // De aansluiting.
-  const z = t.closest('[data-zekering]');
-  if (z && zelf && a) {
-    zelf[z.dataset.zekering] = z.value === '' ? null : Math.round(Number(z.value));
-    if (zelf.fasen && zelf.ampere >= 6 && zelf.ampere <= 250) {
-      a.zekering = { fasen: zelf.fasen, ampere: zelf.ampere };
-      bewaarAansluiting();
-    }
-    return;
+  const z = a ? zekering.verander(t, a.zekering ?? aInfo?.configuratie?.zekering ?? null) : undefined;
+  if (z !== undefined) {
+    a.zekering = z;
+    teken();
+    return bewaarAansluiting();
   }
   if (t.matches('[data-thermostaat]') && a) {
     a.verwarming.thermostaat = t.value || null;
