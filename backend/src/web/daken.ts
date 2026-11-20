@@ -105,6 +105,20 @@ export interface Gebouw {
   readonly dakkapellen?: readonly EigenKapel[];
   /** Wat de bewoner zei van de dakkapel die 3D BAG vond: ja (hij klopt) of nee (weg). */
   readonly kaartKapel?: 'ja' | 'nee';
+  /**
+   * De omtrek zoals de kaart hem gaf, als de bewoner het gebouw op maat trok
+   * (ronde 2, 20 november 2026): voor Maat van de kaart. Wat de bewoner trekt,
+   * blijft, ook als de kaart iets anders ziet.
+   */
+  readonly kaartOmtrek?: readonly Xy[];
+  /** Het afdak dat 3D BAG voor of achter het hoofdhuis ziet (ronde 2): `nee` als de bewoner zei dat het er niet is. */
+  readonly afdak?: 'nee';
+}
+
+/** Een gebouw van de kaart dat er niet meer staat (ronde 2, 20 november 2026): het blijft weg, ook als de kaart het nog ziet. */
+export interface WegGebouw {
+  readonly omtrek: readonly Xy[];
+  readonly soort?: GebouwSoort;
 }
 
 export interface Daken {
@@ -117,6 +131,8 @@ export interface Daken {
   readonly gebouwen?: readonly Gebouw[];
   /** De gebouwen eromheen uit de kaart, om aan te tikken wat erbij hoort. */
   readonly omgeving?: readonly (readonly Xy[])[];
+  /** Wat de bewoner weghaalde omdat het er niet meer staat (ronde 2): tot 20, met Terug. */
+  readonly weg?: readonly WegGebouw[];
   /** Wat elke omvormer hooguit levert, als de bewoner het invulde (stap 4), in W per sensor. */
   readonly grenzen?: Readonly<Record<string, number>>;
   /** Wat de kaarten over het huis zeiden, de laatste keer dat de bewoner keek (6 november 2026). */
@@ -255,7 +271,11 @@ function leesGebouwen(x: unknown): Gebouw[] | { fout: string } {
     const kapellen = r['dakkapellen'] == null ? null : leesKapellen(r['dakkapellen']);
     if (r['dakkapellen'] != null && !kapellen) return { fout: `gebouw ${id}: hooguit vier dakkapellen, elk met een kant, van, tot en diep` };
     const kaartKapel = r['kaartKapel'] === 'ja' || r['kaartKapel'] === 'nee' ? r['kaartKapel'] : null;
-    uit.push({ id, soort: r['soort'] as GebouwSoort, bron: r['bron'] as Gebouw['bron'], omtrek, dakvorm: r['dakvorm'] as Dakvorm, nokDeg: r['nokDeg'] as number, ...(kaart && r['bron'] === 'kaart' ? { kaart } : {}), ...(dakBron ? { dakBron } : {}), ...(goot != null ? { hoogteGoot: goot } : {}), ...(nok != null ? { hoogteNok: nok } : {}), ...(lagen != null ? { lagen } : {}), ...(kapellen ? { dakkapellen: kapellen } : {}), ...(kaartKapel ? { kaartKapel } : {}) });
+    // Op maat getrokken (ronde 2): de omtrek van de kaart ernaast; en of het afdak van de kaart er niet is.
+    const kaartOmtrek = r['kaartOmtrek'] == null ? null : leesOmtrek(r['kaartOmtrek']);
+    if (r['kaartOmtrek'] != null && !kaartOmtrek) return { fout: `gebouw ${id}: de omtrek van de kaart in meters` };
+    const afdak = r['afdak'] === 'nee' ? 'nee' : null;
+    uit.push({ id, soort: r['soort'] as GebouwSoort, bron: r['bron'] as Gebouw['bron'], omtrek, dakvorm: r['dakvorm'] as Dakvorm, nokDeg: r['nokDeg'] as number, ...(kaart && r['bron'] === 'kaart' ? { kaart } : {}), ...(dakBron ? { dakBron } : {}), ...(goot != null ? { hoogteGoot: goot } : {}), ...(nok != null ? { hoogteNok: nok } : {}), ...(lagen != null ? { lagen } : {}), ...(kapellen ? { dakkapellen: kapellen } : {}), ...(kaartKapel ? { kaartKapel } : {}), ...(kaartOmtrek ? { kaartOmtrek } : {}), ...(afdak ? { afdak } : {}) });
   }
   return uit;
 }
@@ -299,6 +319,16 @@ export function leesDaken(raw: unknown): { daken: Daken | null } | { fout: strin
   const omgevingRaw = r['omgeving'] ?? [];
   const omgeving = Array.isArray(omgevingRaw) && omgevingRaw.length <= 20 ? omgevingRaw.map(leesOmtrek) : null;
   if (!omgeving || omgeving.some((o) => o == null)) return { fout: 'de omgeving is tot 20 gebouwen met een omtrek in meters' };
+  // Wat er niet meer staat (ronde 2): tot 20 omtrekken, met de soort als die bekend was.
+  const wegRaw = r['weg'] ?? [];
+  const weg = Array.isArray(wegRaw) && wegRaw.length <= 20
+    ? wegRaw.map((w) => {
+        const o = (typeof w === 'object' && w != null && !Array.isArray(w) ? w : {}) as Record<string, unknown>;
+        const omtrek = leesOmtrek(o['omtrek']);
+        return omtrek ? { omtrek, ...(GEBOUW_SOORTEN.includes(o['soort'] as GebouwSoort) ? { soort: o['soort'] as GebouwSoort } : {}) } : null;
+      })
+    : null;
+  if (!weg || weg.some((w) => w == null)) return { fout: 'wat weg is: tot 20 gebouwen met een omtrek in meters' };
   if (lijst.length === 0 && gebouwen.length === 0) return { daken: null };
   const grenzenRaw = r['grenzen'] ?? {};
   if (typeof grenzenRaw !== 'object' || Array.isArray(grenzenRaw) || Object.entries(grenzenRaw as object).some(([k, w]) => !/^sensor\.[a-z0-9_]{1,160}$/.test(k) || !getal(w, 100, 100_000))) {
@@ -363,6 +393,7 @@ export function leesDaken(raw: unknown): { daken: Daken | null } | { fout: strin
       omvormerW: omvormerW as number | null,
       ...(gebouwen.length ? { gebouwen } : {}),
       ...(omgeving.length ? { omgeving: omgeving as Xy[][] } : {}),
+      ...(weg.length ? { weg: weg as WegGebouw[] } : {}),
       ...(Object.keys(grenzen).length ? { grenzen: { ...grenzen } } : {}),
       ...(kaartStand ? { kaartStand } : {}),
       ...(kaartDak?.length ? { kaartDak } : {}),

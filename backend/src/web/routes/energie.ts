@@ -418,15 +418,21 @@ export interface KaartBronnen {
  * een tik en de melding); zonder alleen wat er nog van vandaag bewaard is,
  * zonder iets naar buiten te sturen. Null zonder plek uit Home Assistant.
  */
-export async function kaartBronnen(d: Diensten, ophalen: boolean): Promise<KaartBronnen | null> {
+export async function kaartBronnen(d: Diensten, ophalen: boolean, alleen: 'bag3d' | 'osm' | null = null): Promise<KaartBronnen | null> {
   const loc = await (d.options.exacteLocatie?.() ?? Promise.resolve(null)).catch(() => null);
   if (loc == null) return null;
   const nl = inNederland(loc.latDeg, loc.lonDeg);
   const p = { lat: loc.latDeg, lon: loc.lonDeg };
   // In Nederland ook 3D BAG (5 november 2026): de omtrek en het dak per gebouw; OpenStreetMap vult aan wat er niet in staat, zoals een tuinhuis.
-  const [osm, bag] = ophalen
+  // Eén kaart tegelijk (ronde 2, 20 november 2026): Je huis vinkt ze dan een voor een af; de andere zoals hij vandaag al bewaard is.
+  const [osm, bag] = ophalen && alleen == null
     ? await Promise.allSettled([osmVak(d, loc.latDeg, loc.lonDeg), nl ? bagVak(d, loc.latDeg, loc.lonDeg) : Promise.resolve(null)])
-    : ([bewaardOsm(loc.latDeg, loc.lonDeg), nl ? bewaardBag(loc.latDeg, loc.lonDeg) : { status: 'fulfilled' as const, value: null }] as const);
+    : ophalen
+      ? ([
+          alleen === 'osm' ? (await Promise.allSettled([osmVak(d, loc.latDeg, loc.lonDeg)]))[0] : bewaardOsm(loc.latDeg, loc.lonDeg),
+          !nl ? { status: 'fulfilled' as const, value: null } : alleen === 'bag3d' ? (await Promise.allSettled([bagVak(d, loc.latDeg, loc.lonDeg)]))[0] : bewaardBag(loc.latDeg, loc.lonDeg),
+        ] as const)
+      : ([bewaardOsm(loc.latDeg, loc.lonDeg), nl ? bewaardBag(loc.latDeg, loc.lonDeg) : { status: 'fulfilled' as const, value: null }] as const);
   const uitOsm = osm?.status === 'fulfilled' ? huisEnOmgeving(osm.value, p) : null;
   const uitBag = bag?.status === 'fulfilled' ? bag.value?.uit ?? null : null;
   const kaartOsm: UitKaart | null =

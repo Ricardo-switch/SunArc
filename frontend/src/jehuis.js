@@ -33,7 +33,7 @@ let tekenaar = null;
 /** De standen: Huis is het huis in 3D uit de tekening (stap 5). */
 const STANDEN = ['vorm', 'dak', 'kamers', 'apparaten', 'huis'];
 /** Wat de dienst als bron en als hoek van het hoofdhuis gaf; een andere bron gaat alleen mee als je hem koos. */
-const dienst = { bron: null, nul: null };
+const dienst = { bron: null, nul: null, kaarten: null };
 /** De kaarten vragen: bezig, of wat er misging. */
 const kijk = { bezig: false, fout: null };
 
@@ -71,6 +71,9 @@ function bronVoorMotor(id, b, woning) {
     blokken: b.blokken,
     // 0.185.0: de gebouwen van de kaart eromheen, om bij Vorm aan te wijzen.
     omgeving: b.omgeving ?? [],
+    // Ronde 2: wat er niet meer staat, en het afdak dat er volgens de bewoner niet is, met Terug.
+    ...(b.weg ? { weg: b.weg } : {}),
+    ...(b.afdakWeg ? { afdakWeg: b.afdakWeg } : {}),
   };
 }
 
@@ -626,25 +629,68 @@ function vraagKaarten() {
   scherm.querySelector('[data-kk-kaart]')?.focus();
 }
 
+/**
+ * Tijdens het zoeken (ronde 2, wens Ricardo 20 november 2026): de keuzes erboven
+ * grijs, een pil met een draaiend icoon boven de tekening, en de etages even
+ * niet. Eerst de 3D-kaart (in Nederland), dan de plattegrond: elk krijgt zijn vinkje.
+ */
+function zoekBeeld(aan) {
+  document.querySelectorAll('#stapel, [data-etages], [data-stand]').forEach((el) => el.classList.toggle('kv-stil', aan));
+  $('#kv-pil')?.remove();
+  if (aan) $('#tafel').insertAdjacentHTML('afterbegin', `<div class="kv-pil" id="kv-pil" role="status"><svg class="kv-draai" viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="rgb(111 211 255 / 0.2)"/><path d="M12 3a9 9 0 0 1 9 9" stroke="#6fd3ff"/></svg><span>${esc(t('ht.vorm.kijkt'))}</span></div>`);
+}
+
 async function haalKaarten() {
   kijk.bezig = true;
   kijk.fout = null;
+  const metBag = tekenaar.huis.bronnen?.bag3d || dienst.kaarten?.bag3d !== 'buiten';
+  const stap = (id, stand, zin) => ({ id, naam: t(`ht.bron.${id}`), stand, zin });
+  kijk.stappen = [...(metBag ? [stap('bag3d', 'bezig', t('ht.zoek.bezig'))] : []), stap('osm', metBag ? 'nog' : 'bezig', t(metBag ? 'ht.zoek.nog' : 'ht.zoek.bezig'))];
+  zoekBeeld(true);
+  tekenaar.teken();
   tekenaar.ververs();
   // Eerst wat je net tekende bewaren, dan pas de kaart (20 november 2026): andersom kon de tekening op een ander papier vallen.
   for (let i = 0; i < 40 && !tekenaar.st.bewaard && !tekenaar.st.fout; i++) await wacht(100);
-  let res;
-  try {
-    res = await deur('api/huistekening', { kijk: true });
-  } catch {
-    res = null;
+  const vraag = async (extra) => {
+    try {
+      return await deur('api/huistekening', { kijk: true, ...extra });
+    } catch {
+      return null;
+    }
+  };
+  const vink = async (id, res) => {
+    const s = kijk.stappen.find((x) => x.id === id);
+    const stand = res?.ok ? ((await res.clone().json().catch(() => null))?.kaarten?.[id] ?? 'fout') : 'fout';
+    if (s) Object.assign(s, { stand: 'klaar', zin: stand === 'huis' ? t('ht.zoek.huis') : t(`ht.bron.niet.${stand}`) });
+  };
+  let res = null;
+  if (metBag) {
+    res = await vraag({ kaart: 'bag3d' });
+    if (res?.ok) {
+      await vink('bag3d', res);
+      const osm = kijk.stappen.find((x) => x.id === 'osm');
+      if (osm) Object.assign(osm, { stand: 'bezig', zin: t('ht.zoek.bezig') });
+      tekenaar.ververs();
+    }
+  }
+  if (!metBag || res?.ok) {
+    res = await vraag({});
+    if (res?.ok) {
+      await vink('osm', res);
+      tekenaar.ververs();
+    }
   }
   if (!res?.ok) {
     // De dienst zegt het in het Nederlands; de pagina zegt het in de taal van de app.
     kijk.bezig = false;
     kijk.fout = t(res?.status === 503 ? 'ht.vorm.geenPlek' : 'ht.vorm.geenAntwoord');
+    zoekBeeld(false);
+    tekenaar.teken();
     tekenaar.ververs();
     return;
   }
+  // Even laten zien dat alles een vinkje heeft.
+  await wacht(500);
   // Eerst wat nog bewaard moest worden, dan opnieuw: dezelfde etage en stand.
   for (let i = 0; i < 40 && !tekenaar.st.bewaard && !tekenaar.st.fout; i++) await wacht(100);
   location.reload();
@@ -745,6 +791,7 @@ async function start() {
   }
   dienst.bron = d.bron ?? null;
   dienst.nul = d.nul ?? null;
+  dienst.kaarten = d.kaarten ?? null;
   const huis = huisVoorMotor(d);
   if (!huis.etages.length) {
     $('#blad').innerHTML = `<p class="jh-leeg">${esc(t('jehuis.geenEtages'))}</p>`;

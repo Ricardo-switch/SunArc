@@ -9,7 +9,7 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, woningUitKaart, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, bijfuncties, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, gebouwMaat, gebouwBestaatNiet, gebouwTerug, gebouwAfdak, huisUitTekening, kaartVernieuwd, gebouwKapel, woningUitKaart, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, bijfuncties, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
 import { DAKVORMEN, leesDaken, leesKapellen, type Daken, type Dakvorm, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
@@ -371,7 +371,9 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     const b = (typeof body === 'object' && body != null && !Array.isArray(body) ? body : {}) as Record<string, unknown>;
     // Kijk wat de kaarten vinden: dezelfde zoekactie als bij Daken en panelen, alleen na de melding.
     if (b['kijk'] === true) {
-      const kaarten = await kaartBronnen(d, true);
+      // `kaart`: alleen die kaart vragen (ronde 2), zodat Je huis ze een voor een afvinkt.
+      const alleen = b['kaart'] === 'bag3d' || b['kaart'] === 'osm' ? b['kaart'] : null;
+      const kaarten = await kaartBronnen(d, true, alleen);
       if (kaarten == null) {
         sendJson(res, 503, { wachten: 'de plek van het huis komt van Home Assistant zodra die verbonden is' });
         return;
@@ -398,7 +400,22 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
         return;
       }
       const soort = g['soort'];
-      const nieuw =
+      // Ronde 2 (20 november 2026): op maat, bestaat niet meer, terug, en het afdak van de kaart.
+      const vak = g['vak'];
+      const vakOk = typeof vak === 'object' && vak != null && !Array.isArray(vak) && ['u', 'v', 'b', 'd'].every((x) => typeof (vak as Record<string, unknown>)[x] === 'number');
+      const ronde2 =
+        typeof g['maat'] === 'string' && (vakOk || g['kaart'] === true)
+          ? gebouwMaat(vorm.daken, g['maat'], vakOk ? (vak as { u: number; v: number; b: number; d: number }) : null)
+          : typeof g['bestaatNiet'] === 'string'
+            ? gebouwBestaatNiet(vorm.daken, { id: g['bestaatNiet'] })
+            : typeof g['bestaatNiet'] === 'number'
+              ? gebouwBestaatNiet(vorm.daken, { i: g['bestaatNiet'] })
+              : typeof g['terug'] === 'number'
+                ? gebouwTerug(vorm.daken, g['terug'])
+                : g['afdak'] === 'ja' || g['afdak'] === 'nee'
+                  ? gebouwAfdak(vorm.daken, g['afdak'])
+                  : undefined;
+      const nieuw = ronde2 !== undefined ? ronde2 :
         typeof g['erbij'] === 'number' && (ERBIJ_SOORTEN as readonly unknown[]).includes(soort)
           ? (gebouwErbij(vorm.daken, g['erbij'], soort as ErbijSoort)?.daken ?? null)
           : typeof g['weg'] === 'string'
@@ -409,7 +426,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
                 ? kapelActie(vorm.daken, g)
                 : undefined;
       if (nieuw === undefined) {
-        sendJson(res, 400, { fout: 'verwacht { gebouw: { erbij, soort } }, { gebouw: { weg } } of { gebouw: { dak, dakvorm | nok } }' });
+        sendJson(res, 400, { fout: 'verwacht { gebouw: { erbij, soort } }, { weg }, { dak, dakvorm | nok }, { maat, vak | kaart }, { bestaatNiet }, { terug } of { afdak }' });
         return;
       }
       if (nieuw == null) {

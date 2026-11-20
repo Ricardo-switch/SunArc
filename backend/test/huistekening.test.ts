@@ -6,7 +6,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { leesDaken, leesKapellen, type Daken, type DakVlak, type Gebouw, type Xy } from '../src/web/daken.js';
-import { bijfuncties, bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, kapelVanBewoner, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, woningUitKaart, zoneVanPlek } from '../src/web/huistekening.js';
+import { bijfuncties, bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, gebouwMaat, gebouwBestaatNiet, gebouwTerug, gebouwAfdak, huisUitTekening, kaartVernieuwd, gebouwKapel, kapelVanBewoner, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, woningUitKaart, zoneVanPlek } from '../src/web/huistekening.js';
+import { tekening as dakTekening } from '../src/web/daken-tekening.js';
 import { hoortBijVan } from '../src/web/house.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
@@ -619,5 +620,92 @@ describe('deuren en ramen met richting (20 november 2026)', () => {
         ],
       },
     });
+  });
+});
+
+describe('je huis tekenen: wat de kaarten vinden (ronde 2)', () => {
+  // Het huis van Ricardo, vereenvoudigd: 9,9 m diep van oost naar west, 5,6 m breed, de voorgevel op het oosten.
+  const huis: Gebouw = { id: 'huis', soort: 'hoofdhuis', bron: 'kaart', kaart: 'bag3d', omtrek: [[0, 0], [9.9, 0], [9.9, 5.6], [0, 5.6]], dakvorm: 'zadel', nokDeg: 0, hoogteGoot: 4.9, hoogteNok: 9.1 };
+  // Het afdak: 0,9 m diep tegen de voorgevel, over de hele breedte, schuin van 2,9 tot 3,6 m.
+  const afdakVlak = { azimuthDeg: 92, tiltDeg: 46, m2: 5, vorm: [[9, 0.05], [9.9, 0.05], [9.9, 5.55], [9, 5.55]] as Xy[], hoog: [2.9, 3.6] as const };
+  const metAfdak = (extra: Partial<Gebouw> = {}): Daken => ({ vlakken: [], voorgevelDeg: 90, omvormerW: null, gebouwen: [{ ...huis, ...extra }], kaartDak: [afdakVlak] });
+
+  it('ziet het afdak voor het huis als een eigen deel uit de dakdelen', () => {
+    const h = bronVorm(metAfdak(), 90, null, 2).blokken.find((b) => b.soort === 'hoofdhuis')!;
+    expect(h.afdak).toEqual({ kant: 'voor', diep: 0.9, laag: 2.9, hoog: 3.6, plat: false });
+  });
+
+  it('een hoog dakvlak of een smal stukje is geen afdak', () => {
+    const hoog = { ...afdakVlak, hoog: [4.5, 5] as const };
+    const smal = { ...afdakVlak, vorm: [[9, 0.05], [9.9, 0.05], [9.9, 2], [9, 2]] as Xy[] };
+    for (const x of [hoog, smal]) expect(bronVorm({ ...metAfdak(), kaartDak: [x] }, 90, null, 2).blokken[0]!.afdak).toBeUndefined();
+  });
+
+  it('zegt de bewoner dat er geen afdak is, dan staat het bij wat weg is, en komt het terug', () => {
+    const nee = gebouwAfdak(metAfdak(), 'nee')!;
+    expect(nee.gebouwen![0]!.afdak).toBe('nee');
+    const v = bronVorm(nee, 90, null, 2);
+    expect(v.blokken[0]!.afdak).toBeUndefined();
+    expect(v.afdakWeg).toMatchObject({ kant: 'voor', diep: 0.9 });
+    expect(gebouwAfdak(nee, 'ja')!.gebouwen![0]).not.toHaveProperty('afdak');
+    // Het blijft bewaard zoals de bewoner het zei.
+    const gelezen = leesDaken(nee);
+    expect('daken' in gelezen && gelezen.daken?.gebouwen?.[0]?.afdak).toBe('nee');
+  });
+
+  const blok = (x0: number, y0: number, x1: number, y1: number): Xy[] => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  const hoofd: Gebouw = { id: 'huis', soort: 'hoofdhuis', bron: 'kaart', kaart: 'bag3d', omtrek: blok(-5, -4, 5, 4), dakvorm: 'zadel', nokDeg: 90 };
+  // Op afstand gesorteerd zoals Daken ze tekent: het tuinhuis het dichtst bij.
+  const tuinhuisVorm = blok(-2, 5, 1, 8);
+  const schuur = blok(3, 7, 5, 10);
+  const daken = (): Daken => ({ vlakken: [], voorgevelDeg: 180, omvormerW: null, gebouwen: [hoofd], omgeving: [tuinhuisVorm, schuur] });
+  // De plek van een gebouw in de omgeving zoals Daken die tekent.
+  const plek = (d: Daken, vorm: Xy[]) => dakTekening(d).omgeving.findIndex((o) => JSON.stringify(o) === JSON.stringify(vorm));
+
+  it('trekt een gebouw van de kaart op maat; de maat van de kaart kan terug', () => {
+    const erbij = gebouwErbij(daken(), plek(daken(), tuinhuisVorm), 'tuinhuis')!.daken;
+    const th = bronVorm(erbij, 180, null, 2).blokken.find((b) => b.soort === 'tuinhuis')!;
+    const groot = gebouwMaat(erbij, 'tuinhuis', { u: th.u - 2, v: th.v, b: 7, d: 3 })!;
+    const g = groot.gebouwen!.find((x) => x.id === 'tuinhuis')!;
+    expect(g).toMatchObject({ bron: 'bewoner', kaartOmtrek: tuinhuisVorm });
+    const nu = bronVorm(groot, 180, null, 2).blokken.find((b) => b.soort === 'tuinhuis')!;
+    expect([nu.u, nu.v, nu.b, nu.d]).toEqual([th.u - 2, th.v, 7, 3]);
+    expect(nu.kaartMaat).toEqual({ b: 3, d: 3 });
+    // Hoort er niet bij: grijs terug met de maat van de kaart.
+    expect(gebouwWeg(groot, 'tuinhuis')!.omgeving).toContainEqual(tuinhuisVorm);
+    // Wat de bewoner trok, blijft ook als de kaart opnieuw kijkt.
+    const vers = dakenMetBron(groot, 'bag3d', { stand: 'huis', hoofdhuis: hoofd.omtrek, omgeving: [tuinhuisVorm, schuur] })!;
+    expect(vers.gebouwen!.find((x) => x.id === 'tuinhuis')!.bron).toBe('bewoner');
+    // Bewaard en weer gelezen, en terug naar de kaart.
+    const gelezen = leesDaken(groot);
+    expect('daken' in gelezen && gelezen.daken?.gebouwen?.find((x) => x.id === 'tuinhuis')?.kaartOmtrek).toEqual(tuinhuisVorm);
+    const terug = gebouwMaat(groot, 'tuinhuis', null)!.gebouwen!.find((x) => x.id === 'tuinhuis')!;
+    expect(terug).toMatchObject({ bron: 'kaart', omtrek: tuinhuisVorm });
+    expect(terug).not.toHaveProperty('kaartOmtrek');
+    expect(gebouwMaat(erbij, 'huis', { u: 0, v: 0, b: 7, d: 3 })).toBeNull();
+    expect(gebouwMaat(erbij, 'tuinhuis', { u: 0, v: 0, b: 0.2, d: 3 })).toBeNull();
+  });
+
+  it('wat niet meer bestaat, blijft weg, ook als de kaart het nog ziet, en kan terug', () => {
+    const weg = gebouwBestaatNiet(daken(), { i: plek(daken(), schuur) })!;
+    expect(weg.omgeving).toEqual([tuinhuisVorm]);
+    expect(weg.weg).toEqual([{ omtrek: schuur }]);
+    const vers = dakenMetBron(weg, 'bag3d', { stand: 'huis', hoofdhuis: hoofd.omtrek, omgeving: [tuinhuisVorm, schuur] })!;
+    expect(vers.omgeving).toEqual([tuinhuisVorm]);
+    expect(bronVorm(weg, 180, null, 2).weg).toEqual([{ n: 0, soort: null, b: 2, d: 3 }]);
+    // Een gebouw dat erbij hoorde, met zijn soort.
+    const erbij = gebouwErbij(daken(), plek(daken(), tuinhuisVorm), 'tuinhuis')!.daken;
+    const ookWeg = gebouwBestaatNiet(erbij, { id: 'tuinhuis' })!;
+    expect(ookWeg.gebouwen!.map((g) => g.id)).toEqual(['huis']);
+    expect(ookWeg.weg).toEqual([{ omtrek: tuinhuisVorm, soort: 'tuinhuis' }]);
+    const gelezen = leesDaken(ookWeg);
+    expect('daken' in gelezen && gelezen.daken?.weg).toEqual([{ omtrek: tuinhuisVorm, soort: 'tuinhuis' }]);
+    // Terug: weer grijs om aan te wijzen.
+    const terug = gebouwTerug(weg, 0)!;
+    expect(terug.weg).toBeUndefined();
+    expect(terug.omgeving).toHaveLength(2);
+    expect(terug.omgeving).toContainEqual(schuur);
+    expect(gebouwTerug(weg, 3)).toBeNull();
+    expect(gebouwBestaatNiet(daken(), { id: 'huis' })).toBeNull();
   });
 });

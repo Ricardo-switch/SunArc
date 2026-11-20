@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.213.0
+## 0.214.0
 
-*20 november 2026 · 0.179.0 – 0.213.0*
+*20 november 2026 · 0.179.0 – 0.214.0*
 
 **Nieuw**
 
+- Je huis › Vorm: het afdak voor of achter je huis komt uit de dakdelen van de 3D-kaart en is een eigen stuk, met zijn eigen dak en het label Nieuw tot je het aantikt
+- Je huis › Vorm: trek een gebouw van de kaart op maat aan zijn stippen, of met min en plus. Wat je trekt, blijft, ook als de kaart het anders ziet; Maat van de kaart zet het terug
+- Je huis › Vorm: Bestaat niet meer haalt een gebouw weg dat de kaart nog ziet. Het blijft weg en staat onder Weggehaald, met Terug
 - Je huis › Vorm en Inrichten: bij een appartement kies je op welke verdieping je woont en hoeveel verdiepingen erboven liggen
 - Je huis: links staat je woning in het gebouw, met de verdiepingen erboven en eronder in grijs, en het balkon als plek buiten
 - Je huis › Kamers: ook een achterdeur, openslaande deuren en een schuifpui. Tik op een muur en kies wat erin komt, met een plaatje per soort
@@ -82,6 +85,8 @@
 
 **Beter**
 
+- Je huis: tijdens Kijk wat de kaarten vinden zijn de keuzes grijs, draait er een icoon en krijgt elke kaart een vinkje zodra hij klaar is
+- Je huis in 3D: het afdak heeft een eigen schuin dak; op de etage erboven staat de strook als Afdak eronder
 - Je huis: ligt er een verdieping boven je, dan staat de tab Dak er niet; woon je bovenin, dan teken je het dak zelf
 - Thuis en Inrichten: het gebouw om een appartement heeft het aantal verdiepingen dat je koos
 - Je huis in 3D: de achterdeur in hout, openslaande deuren en een schuifpui in glas
@@ -206,6 +211,9 @@
 
 **New**
 
+- Your home › Shape: the canopy at the front or back comes from the roof parts of the 3D map and is a part of its own, with its own roof and the label New until you tap it
+- Your home › Shape: pull a building from the map to its real size by its dots, or with minus and plus. What you pull stays, even if the map sees it differently; Size from the map puts it back
+- Your home › Shape: No longer exists removes a building the map still shows. It stays gone and is listed under Removed, with Restore
 - Your home › Shape and Set up: for an apartment you choose which floor you live on and how many floors are above
 - Your home: on the left your home sits in the building, with the floors above and below in grey, and the balcony as the place outside
 - Your home › Rooms: also a back door, French doors and a sliding door. Tap a wall and choose what goes in it, with a picture for each kind
@@ -282,6 +290,8 @@
 
 **Improved**
 
+- Your home: while the maps are searching the choices are greyed out, an icon spins and each map gets a tick when it is done
+- Your home in 3D: the canopy has its own sloped roof; on the floor above, the strip shows as Canopy below
 - Your home: with a floor above you the Roof tab is not shown; on the top floor you draw the roof yourself
 - Home and Set up: the building around an apartment has the number of floors you chose
 - Your home in 3D: the back door in wood, French doors and a sliding door in glass

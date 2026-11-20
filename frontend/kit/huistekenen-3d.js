@@ -230,17 +230,41 @@
       return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><rect x="${-bw / 2}" y="-11" width="${bw}" height="22" rx="7" fill="#0d1a30" stroke="${kleur}" stroke-opacity="0.55"/><text y="4.5" text-anchor="middle" ${FONT} font-size="12" font-weight="700" fill="${kleur}">${esc(tekst)}</text></g>`;
     };
     const kleur = bron.gemeten ? '#6ee7b7' : '#ffd38a';
+    // Het afdak voor of achter het huis (ronde 2, 20 november 2026): een eigen schuin dakje over de begane grond.
+    for (const b of (bron.blokken ?? []).filter((x) => x.afdak)) {
+      const ad = b.afdak;
+      const [v0, v1] = ad.kant === 'voor' ? [b.v, b.v + ad.diep] : [b.v + b.d, b.v + b.d - ad.diep];
+      const [u0, u1] = [b.u, b.u + b.b];
+      const onder = Math.min(lagen[Math.max(0, bg)]?.top ?? 2.5, ad.laag);
+      const dak = [[u0, v0, ad.laag], [u1, v0, ad.laag], [u1, v1, ad.hoog], [u0, v1, ad.hoog]];
+      if (st.dicht) {
+        const dpA = (punten) => punten.reduce((n, q) => n + diep(q[0], q[1]), 0) / punten.length;
+        const delen = [
+          { p: dak, vul: '#52627f' },
+          { p: [[u0, v0, onder], [u0, v0, ad.laag], [u0, v1, ad.hoog], [u0, v1, onder]], vul: '#aab6c4' },
+          { p: [[u1, v0, onder], [u1, v0, ad.laag], [u1, v1, ad.hoog], [u1, v1, onder]], vul: '#aab6c4' },
+          { p: [[u0, v0, onder], [u1, v0, onder], [u1, v0, ad.laag], [u0, v0, ad.laag]], vul: '#cbd4dd' },
+        ];
+        delen.sort((x, y) => dpA(y.p) - dpA(x.p));
+        s += delen.map((x) => `<path d="${vlak(x.p)}" fill="${x.vul}" stroke="rgb(13 26 48 / 0.45)" stroke-width="0.8" stroke-linejoin="round"/>`).join('');
+      } else {
+        s += `<path d="${vlak(dak)}" fill="rgb(110 231 183 / 0.08)" stroke="#6ee7b7" stroke-opacity="0.6" stroke-width="1.4" stroke-dasharray="5 5" stroke-linejoin="round"/>`;
+      }
+    }
     // Een zadeldak, een schilddak (de nok korter, met schuine kanten) of een lessenaar (de nok aan één kant).
     for (const b of (bron.blokken ?? []).filter((x) => /zadel|schild|lessenaar/.test(x.dak ?? ''))) {
       const haaks = b.nokLangs === 'y';
       // a loopt langs de nok, c er dwars op.
       const Q = (a, c, zz) => (haaks ? [c, a, zz] : [a, c, zz]);
-      const [a0, a1] = haaks ? [b.v, b.v + b.d] : [b.u, b.u + b.b];
-      const [c0, c1] = haaks ? [b.u, b.u + b.b] : [b.v, b.v + b.d];
+      // Met een afdak (ronde 2) begint het dak van het huis pas achter het afdak.
+      const ad = b.afdak;
+      const [dv0, dv1] = ad ? (ad.kant === 'voor' ? [ad.diep, 0] : [0, ad.diep]) : [0, 0];
+      const [a0, a1] = haaks ? [b.v + dv0, b.v + b.d - dv1] : [b.u, b.u + b.b];
+      const [c0, c1] = haaks ? [b.u, b.u + b.b] : [b.v + dv0, b.v + b.d - dv1];
       const lessenaar = /lessenaar/.test(b.dak);
       // De oude schets gaf voor een haakse nok de afstand vanaf rechts en de goot links en rechts.
       const van0 = b.nokVan0 ?? (b.nokVanRechts != null ? c1 - c0 - b.nokVanRechts : lessenaar ? 0 : (c1 - c0) / 2);
-      const cr = c0 + van0;
+      const cr = c0 - (haaks ? 0 : dv0) + van0;
       const bnok = b.nok ?? nok;
       const g0 = b.goot0 ?? b.gootLinks ?? (lessenaar && van0 <= 0 ? bnok : goot);
       const g1 = b.goot1 ?? b.gootRechts ?? goot;

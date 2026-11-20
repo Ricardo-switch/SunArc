@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.213.0';
+export const VERSIE = '0.214.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,30 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.214.0',
+    datum: '2026-11-20',
+    nieuw: [
+      'Je huis › Vorm: het afdak voor of achter je huis komt uit de dakdelen van de 3D-kaart en is een eigen stuk, met zijn eigen dak en het label Nieuw tot je het aantikt',
+      'Je huis › Vorm: trek een gebouw van de kaart op maat aan zijn stippen, of met min en plus. Wat je trekt, blijft, ook als de kaart het anders ziet; Maat van de kaart zet het terug',
+      'Je huis › Vorm: Bestaat niet meer haalt een gebouw weg dat de kaart nog ziet. Het blijft weg en staat onder Weggehaald, met Terug',
+    ],
+    beter: [
+      'Je huis: tijdens Kijk wat de kaarten vinden zijn de keuzes grijs, draait er een icoon en krijgt elke kaart een vinkje zodra hij klaar is',
+      'Je huis in 3D: het afdak heeft een eigen schuin dak; op de etage erboven staat de strook als Afdak eronder',
+    ],
+    en: {
+      nieuw: [
+        'Your home › Shape: the canopy at the front or back comes from the roof parts of the 3D map and is a part of its own, with its own roof and the label New until you tap it',
+        'Your home › Shape: pull a building from the map to its real size by its dots, or with minus and plus. What you pull stays, even if the map sees it differently; Size from the map puts it back',
+        'Your home › Shape: No longer exists removes a building the map still shows. It stays gone and is listed under Removed, with Restore',
+      ],
+      beter: [
+        'Your home: while the maps are searching the choices are greyed out, an icon spins and each map gets a tick when it is done',
+        'Your home in 3D: the canopy has its own sloped roof; on the floor above, the strip shows as Canopy below',
+      ],
+    },
+  },
   {
     versie: '0.213.0',
     datum: '2026-11-20',
