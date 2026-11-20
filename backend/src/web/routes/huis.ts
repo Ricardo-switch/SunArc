@@ -9,7 +9,7 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
 import { DAKVORMEN, leesDaken, type Daken, type Dakvorm, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
@@ -378,7 +378,9 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       }
       const stand = { osm: kaarten.osm?.stand ?? 'fout', bag3d: kaarten.bag3d?.stand ?? 'fout', datum: new Date().toLocaleDateString('sv-SE') };
       if (vorm.daken && d.options.connection) {
-        const fout = await bewaarDaken(d.options.connection, { ...vorm.daken, kaartStand: stand });
+        // Bij dezelfde kaart ook de dakvlakken en ontbrekende hoogtes van nu (stap 4 punt 3); wat de bewoner koos, blijft.
+        const vers = kaartVernieuwd(vorm.daken, vorm.bron, kaarten) ?? vorm.daken;
+        const fout = await bewaarDaken(d.options.connection, { ...vers, kaartStand: stand });
         if (fout) {
           sendJson(res, 400, { fout });
           return;

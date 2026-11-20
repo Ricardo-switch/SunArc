@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.207.0
+## 0.207.1
 
-*20 november 2026 · 0.179.0 – 0.207.0*
+*20 november 2026 · 0.179.0 – 0.207.1*
 
 **Nieuw**
 
@@ -135,6 +135,7 @@
 
 **Opgelost**
 
+- Je huis › Vorm: opnieuw kijken bij dezelfde kaart haalt nu ook de dakvlakken en de hoogtes van 3D BAG op; een huis dat zijn kaart al eerder koos, kreeg daardoor geen scheef dak en geen dakkapel. Een dakvorm die je zelf koos, blijft
 - Opbrengst: een klein blok in de stroomtekening, zoals de elektrische haard, had zijn naam naast Rest van het huis staan
 - Je huis › Buiten: de erfgrens schuift tot tegen het huis of de garage, zoals bij een twee-onder-een-kap; een strook tuin langs de rand mag helemaal weg
 - Je huis › Buiten: bij Wat is dit? staan ook plekken die er nog niet zijn, zoals de voortuin; kiezen zet hem erbij, met dit vak
@@ -299,6 +300,7 @@
 
 **Fixed**
 
+- Your home › Shape: looking again with the same map now also fetches the roof planes and heights from 3D BAG; a house that chose its map earlier got no sloping roof and no dormer. A roof shape you chose yourself stays
 - Results: a small block in the flow chart, such as the electric fire, had its name next to Rest of the house
 - Your home › Outside: the plot boundary moves right up to the house or garage, as with a semi-detached house; a strip of garden along the edge may go entirely
 - Your home › Outside: What is this? also lists places that do not exist yet, such as the front garden; choosing one adds it, with this area

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.207.0';
+export const VERSIE = '0.207.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,14 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.207.1',
+    datum: '2026-11-20',
+    opgelost: ['Je huis › Vorm: opnieuw kijken bij dezelfde kaart haalt nu ook de dakvlakken en de hoogtes van 3D BAG op; een huis dat zijn kaart al eerder koos, kreeg daardoor geen scheef dak en geen dakkapel. Een dakvorm die je zelf koos, blijft'],
+    en: {
+      opgelost: ['Your home › Shape: looking again with the same map now also fetches the roof planes and heights from 3D BAG; a house that chose its map earlier got no sloping roof and no dormer. A roof shape you chose yourself stays'],
+    },
+  },
   {
     versie: '0.207.0',
     datum: '2026-11-20',

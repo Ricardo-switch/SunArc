@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Daken, DakVlak, Gebouw, Xy } from '../src/web/daken.js';
-import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -455,5 +455,32 @@ describe('je huis tekenen: het dak voor het huis in 3D (stap 5)', () => {
   });
   it('een lessenaar is hoog aan de kant waar hij niet naartoe kijkt', () => {
     expect(scheefDak({ ...huis, dak: 'lessenaar' }, [{ azimuthDeg: 270, tiltDeg: 15, m2: 50 }], 0, 6, 4)).toEqual({ nokVan0: 0, goot0: 6, goot1: 4 });
+  });
+});
+
+describe('opnieuw kijken bij dezelfde kaart (stap 4 punt 3)', () => {
+  const huis: Gebouw = { id: 'huis', soort: 'hoofdhuis', bron: 'kaart', kaart: 'bag3d', dakBron: 'kaart', omtrek: [[0, 0], [10, 0], [10, 8], [0, 8]], dakvorm: 'zadel', nokDeg: 0 };
+  // Gekozen vóór 0.186: de dakvlakken zonder vorm en hoogte, geen hoogte van de goot.
+  const oud: Daken = { vlakken: [], gebouwen: [huis], kaartDak: [{ azimuthDeg: 92, tiltDeg: 44, m2: 30 }] } as unknown as Daken;
+  const vlak = { azimuthDeg: 92, tiltDeg: 44, m2: 30, vorm: [[0, 0], [5, 0], [5, 8], [0, 8]] as Xy[], hoog: [3.9, 9.2] as [number, number] };
+  const bag = { stand: 'huis', hoofdhuis: [[0, 0], [10, 0], [10, 8], [0, 8]] as Xy[], dak: { dakvorm: 'zadel' as const, nokDeg: 2, vlakken: [vlak] }, hoogte: { goot: 2.1, nok: 9.1, lagen: 3 } };
+
+  it('vult de dakvlakken en de ontbrekende hoogtes aan', () => {
+    const nu = kaartVernieuwd(oud, 'bag3d', { osm: null, bag3d: bag })!;
+    expect(nu.kaartDak).toEqual([vlak]);
+    expect(nu.gebouwen![0]).toMatchObject({ hoogteGoot: 2.1, hoogteNok: 9.1, lagen: 3, nokDeg: 2, omtrek: huis.omtrek });
+  });
+
+  it('laat staan wat de bewoner koos, en een hoogte die er al is', () => {
+    const eigen: Daken = { ...oud, gebouwen: [{ ...huis, dakBron: 'bewoner', dakvorm: 'schild', nokDeg: 90, hoogteGoot: 3 }] } as Daken;
+    const nu = kaartVernieuwd(eigen, 'bag3d', { osm: null, bag3d: bag })!;
+    expect(nu.gebouwen![0]).toMatchObject({ dakvorm: 'schild', nokDeg: 90, hoogteGoot: 3, hoogteNok: 9.1 });
+  });
+
+  it('doet niets zonder kaart, zonder 3D BAG of als alles er al is', () => {
+    expect(kaartVernieuwd(oud, 'zelf', { osm: null, bag3d: bag })).toBeNull();
+    expect(kaartVernieuwd(oud, 'bag3d', { osm: null, bag3d: { stand: 'geen' } })).toBeNull();
+    const al = kaartVernieuwd(oud, 'bag3d', { osm: null, bag3d: bag })!;
+    expect(kaartVernieuwd(al, 'bag3d', { osm: null, bag3d: bag })).toBeNull();
   });
 });

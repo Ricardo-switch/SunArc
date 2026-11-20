@@ -492,8 +492,41 @@ export function dakenMetBron(d: Daken, bron: VormBron, kaart: KaartHuis | null, 
   };
   const zonderWeg = oud.filter((g) => !weg.includes(g.id));
   const gebouwen = zonderWeg.some((g) => g.soort === 'hoofdhuis') ? zonderWeg.map((g) => (g.soort === 'hoofdhuis' ? nieuwHuis(g) : g)) : [nieuwHuis(null), ...zonderWeg];
-  const kaartDak = metDak?.dak?.vlakken.length ? { kaartDak: metDak.dak.vlakken.slice(0, 24).map(({ azimuthDeg, tiltDeg, m2, vorm, hoog }) => ({ azimuthDeg, tiltDeg, m2, ...(vorm ? { vorm: vorm.slice(0, 16).map((p) => [p[0], p[1]] as Xy) } : {}), ...(hoog ? { hoog } : {}) })) } : {};
+  const kaartDak = kaartDakVan(metDak);
   return { ...rest, vlakken: losVan(d.vlakken, [...weg, ...(metDak?.dak ? [huisId] : [])]), gebouwen, omgeving: (kaart.omgeving ?? []).map((o) => o.map((p) => [p[0], p[1]] as Xy)), ...kaartDak };
+}
+
+/** De dakvlakken van 3D BAG zoals ze bewaard worden: hooguit 24, elk met zijn vorm en hoogtes. */
+function kaartDakVan(metDak: KaartHuis | null): { kaartDak?: KaartDakvlak[] } {
+  return metDak?.dak?.vlakken.length ? { kaartDak: metDak.dak.vlakken.slice(0, 24).map(({ azimuthDeg, tiltDeg, m2, vorm, hoog }) => ({ azimuthDeg, tiltDeg, m2, ...(vorm ? { vorm: vorm.slice(0, 16).map((p) => [p[0], p[1]] as Xy) } : {}), ...(hoog ? { hoog } : {}) })) } : {};
+}
+
+/**
+ * Opnieuw kijken bij dezelfde kaart (stap 4 punt 3, 20 november 2026): een
+ * huis dat zijn kaart koos vóór 0.186 had dakvlakken zonder vorm en hoogte, en
+ * geen hoogte van de goot; daardoor geen scheef dak en geen dakkapel. Opnieuw
+ * kijken vult dat aan uit 3D BAG: de dakvlakken, en de hoogtes van het
+ * hoofdhuis die nog ontbreken. Wat de bewoner koos (de omtrek, een dakvorm of
+ * nok die hij zelf zette) blijft. Null als er niets te vernieuwen is.
+ */
+export function kaartVernieuwd(d: Daken, bron: VormBron, kaarten: { readonly osm: KaartHuis | null; readonly bag3d: KaartHuis | null }): Daken | null {
+  if (bron === 'zelf') return null;
+  const bag = kaarten.bag3d?.stand === 'huis' ? kaarten.bag3d : null;
+  if (!bag) return null;
+  const huis = (d.gebouwen ?? []).find((g) => g.soort === 'hoofdhuis' && g.bron === 'kaart');
+  if (!huis) return null;
+  const { kaartDak } = kaartDakVan(bag);
+  const h = bag.hoogte;
+  const dak = huis.dakBron === 'bewoner' || !bag.dak ? {} : { dakvorm: bag.dak.dakvorm, nokDeg: bag.dak.nokDeg, dakBron: 'kaart' as const };
+  const nieuwHuis: Gebouw = {
+    ...huis,
+    ...dak,
+    ...(huis.hoogteGoot == null && h?.goot != null ? { hoogteGoot: h.goot } : {}),
+    ...(huis.hoogteNok == null && h?.nok != null ? { hoogteNok: h.nok } : {}),
+    ...(huis.lagen == null && h?.lagen != null ? { lagen: h.lagen } : {}),
+  };
+  const nieuw: Daken = { ...d, gebouwen: (d.gebouwen ?? []).map((g) => (g === huis ? nieuwHuis : g)), ...(kaartDak ? { kaartDak } : {}) };
+  return JSON.stringify(nieuw) === JSON.stringify(d) ? null : nieuw;
 }
 
 /** Wat een bron van het huis maakt: de gebouwen in de assen van het hoofdhuis, en de hoogte. */
