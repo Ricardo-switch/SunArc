@@ -137,6 +137,9 @@ describe('buiten als eigen tekening', () => {
     expect(erfOm([{ soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }], buur)).toEqual({ u: -3, v: -6, b: 13, d: 26 });
     // Een garage links en de buur rechts: links tot de garage plus de strook, rechts tegen het huis.
     expect(erfOm([{ soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }, { soort: 'garage', u: -2.5, v: 2, b: 2.5, d: 8 }], buur)).toMatchObject({ u: -5.5, b: 15.5 });
+    // Een woning tegen de garage (Ricardo, 20 november 2026): ook daar strak tegen de garage.
+    const links = [{ punten: [[-9, 0], [-2.5, 0], [-2.5, 10], [-9, 10]] as [number, number][] }];
+    expect(erfOm([{ soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }, { soort: 'garage', u: -2.5, v: 2, b: 2.5, d: 8 }], [...buur, ...links])).toMatchObject({ u: -2.5, b: 12.5 });
     // Een kleine schuur tegen de gevel is geen buurhuis.
     expect(erfOm([{ soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }], [{ punten: [[10, 0], [12.5, 0], [12.5, 8], [10, 8]] }])).toEqual({ u: -3, v: -6, b: 16, d: 26 });
     // Een gebouw verder weg raakt niets.

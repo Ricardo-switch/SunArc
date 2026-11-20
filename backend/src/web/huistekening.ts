@@ -71,18 +71,19 @@ export function erfOm(
   /*
    * Een buurhuis vast aan het huis (20 november 2026, Ricardo: een
    * twee-onder-een-kap staat tegen de erfgrens): staat een gebouw van de kaart
-   * tegen een zijgevel, dan ligt de erfgrens aan die kant tegen het huis (of
-   * tegen wat er aan die kant nog bij hoort), zonder strook ertussen. Alleen
-   * een woning (vanaf 40 m²) telt: een grijze garage of schuur is geen buur.
+   * tegen het buitenste gebouw aan een kant (het huis, of de garage ernaast:
+   * Ricardo, ook links tegen de garage), dan ligt de erfgrens daar strak
+   * tegenaan, zonder strook ertussen. Alleen een woning (vanaf 40 m²) telt:
+   * een grijze garage of schuur is geen buur.
    */
-  const [hu0, hu1] = [Math.min(...kern.map((x) => x.u)), Math.max(...kern.map((x) => x.u + x.b))];
-  const [hv0, hv1] = [Math.min(...kern.map((x) => x.v)), Math.max(...kern.map((x) => x.v + x.d))];
-  // Een woning, geen schuur of garage die nog grijs staat: vanaf 40 m².
   const opp = (pp: readonly (readonly [number, number])[]) => Math.abs(pp.reduce((t, p, i) => { const q = pp[(i + 1) % pp.length]!; return t + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
-  const tegen = (rand: number, kant: 1 | -1) =>
-    omgeving.some((o) => opp(o.punten) >= 40 && o.punten.some(([u, v]) => Math.abs(u - rand) <= 0.8 && v >= hv0 - 0.5 && v <= hv1 + 0.5) && o.punten.some(([u]) => (u - rand) * kant > 1));
-  if (tegen(hu1, 1)) u1 = Math.max(hu1, ...blokken.filter((x) => x.u >= hu1 - 0.1).map((x) => x.u + x.b));
-  if (tegen(hu0, -1)) u0 = Math.min(hu0, ...blokken.filter((x) => x.u + x.b <= hu0 + 0.1).map((x) => x.u));
+  const [links, rechts] = [Math.min(...blokken.map((x) => x.u)), Math.max(...blokken.map((x) => x.u + x.b))];
+  const tegen = (b: (typeof blokken)[number], kant: 1 | -1) => {
+    const rand = kant === 1 ? b.u + b.b : b.u;
+    return omgeving.some((o) => opp(o.punten) >= 40 && o.punten.some(([u, v]) => Math.abs(u - rand) <= 0.8 && v >= b.v - 0.5 && v <= b.v + b.d + 0.5) && o.punten.some(([u]) => (u - rand) * kant > 1));
+  };
+  if (blokken.some((b) => b.u + b.b >= rechts - 0.1 && tegen(b, 1))) u1 = rechts;
+  if (blokken.some((b) => b.u <= links + 0.1 && tegen(b, -1))) u0 = links;
   const v1 = Math.max(Math.max(...kern.map((x) => x.v + x.d)) + 12, Math.max(...blokken.map((x) => x.v + x.d)) + 3);
   return { u: m1(u0), v: m1(v0), b: m1(u1 - u0), d: m1(v1 - v0) };
 }

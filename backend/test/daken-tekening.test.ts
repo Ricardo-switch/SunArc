@@ -172,6 +172,17 @@ describe('een omtrek in blokken en de panelen zelf (5 november 2026)', () => {
     expect(oppervlak(b.rest[0]!)).toBeCloseTo(24, 0);
   });
 
+  it('neemt een smal schuurtje achter de garage niet mee in de garage (20 november 2026)', () => {
+    // Zoals bij Ricardo: een huis van 10 bij 6, een garage van 7 bij 2,9 die achter het huis doorloopt, en daarachter een
+    // smaller schuurtje van 1,9 bij 2,5. Een strook van 8,9 bij 2,5 is groter dan de garage, maar dat is niet de garage.
+    const huisGarage: Xy[] = [[0, 6], [10, 6], [10, 0], [2.5, 0], [2.5, -2.9], [-4.5, -2.9], [-4.5, -2.5], [-6.4, -2.5], [-6.4, 0], [0, 0]];
+    const b = inBlokken(huisGarage)!;
+    expect(oppervlak(b.hoofd)).toBeCloseTo(60, 0);
+    const maat = rechthoekOm(b.rest[0]!);
+    expect(maat.lengte).toBeCloseTo(7, 1);
+    expect(maat.breedte).toBeCloseTo(2.9, 1);
+  });
+
   it('tekent het huis als blok en zet de garage grijs ernaast, om aan te tikken', () => {
     const t = tekening({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [gebouw({ omtrek: metGarage })] });
     expect(oppervlak(t.gebouwen[0]!.omtrek)).toBeCloseTo(80, 0);

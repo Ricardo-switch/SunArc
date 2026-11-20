@@ -326,18 +326,29 @@ export function inBlokken(omtrek: readonly Xy[]): { hoofd: Xy[]; rest: Xy[][] } 
     const som = Array.from({ length: nI + 1 }, () => new Array<number>(nJ + 1).fill(0));
     for (let i = 0; i < nI; i++) for (let j = 0; j < nJ; j++) som[i + 1]![j + 1] = (vrij[i]![j] ? 1 : 0) + som[i]![j + 1]! + som[i + 1]![j]! - som[i]![j]!;
     const telling = (i0: number, j0: number, i1: number, j1: number) => som[i1 + 1]![j1 + 1]! - som[i0]![j1 + 1]! - som[i1 + 1]![j0]! + som[i0]![j0]!;
-    let beste: { i0: number; j0: number; i1: number; j1: number; opp: number } | null = null;
+    type Kandidaat = { i0: number; j0: number; i1: number; j1: number; opp: number; smal: number };
+    let beste: Kandidaat | null = null;
+    let breedste: Kandidaat | null = null;
     for (let i0 = 0; i0 < nI; i0++) {
       for (let j0 = 0; j0 < nJ; j0++) {
         for (let i1 = i0; i1 < nI; i1++) {
           for (let j1 = j0; j1 < nJ; j1++) {
             if (telling(i0, j0, i1, j1) !== (i1 - i0 + 1) * (j1 - j0 + 1)) break;
-            const opp = (us[i1 + 1]! - us[i0]!) * (vs[j1 + 1]! - vs[j0]!);
-            if (beste == null || opp > beste.opp) beste = { i0, j0, i1, j1, opp };
+            const [l, b] = [us[i1 + 1]! - us[i0]!, vs[j1 + 1]! - vs[j0]!];
+            const k: Kandidaat = { i0, j0, i1, j1, opp: l * b, smal: Math.min(l, b) };
+            if (beste == null || k.opp > beste.opp) beste = k;
+            if (breedste == null || k.smal > breedste.smal + 0.05 || (Math.abs(k.smal - breedste.smal) <= 0.05 && k.opp > breedste.opp)) breedste = k;
           }
         }
       }
     }
+    /*
+     * Naast het huis de breedste rechthoek, als die bijna even groot is (20
+     * november 2026, Ricardo: de garage liep te ver door): anders wint een lange
+     * smalle strook met een aanhangsel (een schuurtje achter de garage) van de
+     * garage zelf, en valt een strook van zijn echte breedte weg.
+     */
+    if (n > 0 && beste && breedste && breedste.opp >= 0.85 * beste.opp) beste = breedste;
     // Kleiner dan 6 m² is een stoep of een erker: geen eigen blok.
     if (beste == null || beste.opp < 6) break;
     for (let i = beste.i0; i <= beste.i1; i++) for (let j = beste.j0; j <= beste.j1; j++) vrij[i]![j] = false;

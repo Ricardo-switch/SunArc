@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.208.3
+## 0.208.4
 
-*20 november 2026 · 0.179.0 – 0.208.3*
+*20 november 2026 · 0.179.0 – 0.208.4*
 
 **Nieuw**
 
@@ -139,6 +139,8 @@
 
 **Opgelost**
 
+- Je huis: een smal aanhangsel achter de garage (een schuurtje dat op de kaart vastzit aan het huis) telt niet meer mee in de garage; de garage krijgt zijn echte lengte en breedte
+- Je huis › Buiten: staat een woning tegen de garage, dan ligt de erfgrens ook daar strak tegen de garage, niet alleen tegen het huis
 - Je huis › Vorm: bij Kijk wat de kaarten vinden wordt eerst bewaard wat je net tekende, en pas daarna gemeten
 - Je huis › Buiten: het huis op het erf heeft altijd precies de vorm van je huis. Een tekening waarin het huis het halve erf besloeg, herstelt zich: Buiten begint dan opnieuw zoals de eerste keer
 - Je huis › Buiten: staat er volgens de kaart een buurhuis tegen je huis (twee-onder-een-kap), dan ligt de erfgrens aan die kant tegen je huis
@@ -314,6 +316,8 @@
 
 **Fixed**
 
+- Your home: a narrow annex behind the garage (a shed joined to the house on the map) no longer counts as part of the garage; the garage gets its real length and width
+- Your home › Outside: if a house stands against the garage, the plot boundary there also lies right against the garage, not only against the house
 - Your home › Shape: Look at what the maps find first saves what you just drew, and only then measures
 - Your home › Outside: the house on the plot always has exactly the shape of your home. A drawing in which the house covered half the plot repairs itself: Outside then starts again as the first time
 - Your home › Outside: if the map shows a neighbouring house against yours (semi-detached), the plot boundary on that side lies against your house

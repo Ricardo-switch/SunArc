@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.208.3';
+export const VERSIE = '0.208.4';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.208.4',
+    datum: '2026-11-20',
+    opgelost: [
+      'Je huis: een smal aanhangsel achter de garage (een schuurtje dat op de kaart vastzit aan het huis) telt niet meer mee in de garage; de garage krijgt zijn echte lengte en breedte',
+      'Je huis › Buiten: staat een woning tegen de garage, dan ligt de erfgrens ook daar strak tegen de garage, niet alleen tegen het huis',
+    ],
+    en: {
+      opgelost: [
+        'Your home: a narrow annex behind the garage (a shed joined to the house on the map) no longer counts as part of the garage; the garage gets its real length and width',
+        'Your home › Outside: if a house stands against the garage, the plot boundary there also lies right against the garage, not only against the house',
+      ],
+    },
+  },
   {
     versie: '0.208.3',
     datum: '2026-11-20',
