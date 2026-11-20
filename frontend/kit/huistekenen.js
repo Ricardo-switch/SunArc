@@ -873,6 +873,32 @@
       return veranderd;
     };
     const erfHersteld = herstelErf();
+    /*
+     * De deurbel bij de voordeur (20 november 2026, stap 4 punt 3): heeft de
+     * camera van de deurbel nog geen plek en is er een voordeur, dan staat hij
+     * buiten naast de voordeur, 30 cm van de muur. Daarna sleep je hem waarheen
+     * je wilt. Op het erf als dat er is (dezelfde maat), anders op de etage van de deur.
+     */
+    function deurbelBijVoordeur() {
+      const bel = st.apparaten.find((a) => !a.plek && a.soort === 'camera' && (a.deurbel || /deurbel|doorbell/i.test(`${a.id} ${a.naam ?? ''}`)));
+      if (!bel) return false;
+      for (const e of huis.etages) {
+        const vl = st.vloeren[e.id];
+        const o = e.buiten ? null : (vl?.openingen ?? []).find((x) => x.soort === 'voordeur');
+        if (!o) continue;
+        const cel = (x, y) => (x < 0 || y < 0 || x >= vl.W || y >= vl.H ? BUITEN : vl.cel[y * vl.W + x]);
+        const mid = Math.floor((o.van + o.tot) / 2);
+        // Een muur langs x ligt tussen rij op-1 en op; buiten is de kant zonder ruimte.
+        const naarBuiten = o.as === 'x' ? (cel(mid, o.op) === BUITEN ? 1 : -1) : cel(o.op, mid) === BUITEN ? 1 : -1;
+        const opMuur = o.op + (naarBuiten > 0 ? 3 : -3);
+        const langs = o.tot + 2;
+        const erf = huis.etages.find((x) => x.buiten);
+        bel.plek = o.as === 'x' ? { etage: erf?.id ?? e.id, x: langs, y: opMuur } : { etage: erf?.id ?? e.id, x: opMuur, y: langs };
+        return true;
+      }
+      return false;
+    }
+    const belGezet = deurbelBijVoordeur();
     let bewaarTimer = null;
     /** In de app: elke keer de laatste stand naar de dienst, één tegelijk; onder de vinger gebeurt er niets. */
     let bezigMet = null;
@@ -922,7 +948,7 @@
 
     const vloer = () => st.vloeren[st.etage];
     const etageVan = (id) => huis.etages.find((e) => e.id === id);
-    if (erfHersteld && opties.opslaan) setTimeout(() => bewaar(), 0);
+    if ((erfHersteld || belGezet) && opties.opslaan) setTimeout(() => bewaar(), 0);
     // De etage eronder; buiten (het erf) ligt onder geen enkele etage.
     const onder = () => {
       const lijst = huis.etages.filter((e) => !e.buiten);
@@ -2433,6 +2459,8 @@
         const id = `o${Math.max(0, ...lijst.map((o) => Number(o.id.slice(1)) || 0)) + 1}`;
         v.openingen = [...lijst, { id, soort, as: run.as, op: run.op, van, tot: van + w }];
         st.kies = { soort: 'opening', id };
+        // Een voordeur erbij: de deurbel komt ernaast, als hij nog geen plek had.
+        if (soort === 'voordeur') deurbelBijVoordeur();
         klaar();
       },
       /** De gekozen opening breder (+1) of smaller (-1), tien centimeter per stap, om zijn midden. */

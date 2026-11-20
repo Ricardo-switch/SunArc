@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.209.2
+## 0.209.3
 
-*20 november 2026 · 0.179.0 – 0.209.2*
+*20 november 2026 · 0.179.0 – 0.209.3*
 
 **Nieuw**
 
@@ -74,6 +74,7 @@
 
 **Beter**
 
+- Je huis: de deurbel staat vanzelf buiten naast de voordeur, zodra er een voordeur getekend is en de deurbel nog geen plek had; daarna sleep je hem waarheen je wilt
 - Je huis › Buiten: Opnieuw vanaf de kaart zet het erf, het huis en de gebouwen terug zoals de eerste keer; Stap terug haalt je tekening terug
 - Always-on display en Scherm uit zijn van elke bewoner zelf, bij Jij onder Jouw wand: de wand doet het zoals wie er geldt het koos, en als niemand thuis is zoals de hoofdgebruiker
 - Bij Jouw agenda’s kies je of je agenda’s ook op de wand staan als je thuis bent
@@ -256,6 +257,7 @@
 
 **Improved**
 
+- Your home: the doorbell stands outside next to the front door by itself, as soon as a front door is drawn and the doorbell had no place yet; then drag it wherever you like
 - Your home › Outside: Start again from the map puts the plot, the house and the buildings back as the first time; Step back brings your drawing back
 - Always-on display and Screen off belong to each resident, under You › Your wall: the wall does it the way whoever applies chose, and when nobody is home the way the main user did
 - Under Your calendars you choose whether your calendars also show on the wall when you are home
