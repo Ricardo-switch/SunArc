@@ -1,5 +1,7 @@
 /*
- * Je huis › Vorm: de dakkapel (schets, 20 november 2026, stap 4 punt 3).
+ * Je huis › Dak: de dakkapel (schets, 20 november 2026, stap 4 punt 3). Dak
+ * is een eigen tab naast Vorm (Ricardo: dan blijft Vorm rustiger): de dakvorm
+ * en de nok, de dakkapel, en wat lager is dan 1,5 m.
  * Keuzes van Ricardo (19 november): een dakkapel is een keuze met de etage
  * erbij, verplaatsbaar en van formaat te veranderen zoals een kamer; vindt de
  * 3D-kaart er een, dan staat hij er meteen op maat.
@@ -164,15 +166,14 @@
         ${rij({ ik: 'kruis', titel: 'Weghalen', zin: uitKaart ? 'Komt niet terug van de kaart' : '' })}
         ${uitKaart ? '<p class="ht-voet">Uit 3D BAG: een klein, bijna plat dakvlak aan de tuinkant.</p>' : ''}`;
     }
-    return `<header><h3>Zolder</h3><span>${nl(B)} × ${nl(D)} m</span></header>
-      <p class="ht-zin">Onder het schuine dak. Wat lager is dan 1,5 m staat gestreept; daar kun je niet staan.</p>
-      ${dak}
-      ${rij({ ik: 'dak', titel: 'Dakkapel erbij', zin: 'Een kast op het dak, met een raam', rechts: '+', mist: true })}
-      ${rij({ ik: 'etages', titel: 'Naam, dak en volgorde', zin: 'van deze etage', rechts: '›' })}`;
+    return `<header><h3>Het dak</h3><span>zadeldak · nok 9,1 m</span></header>
+      <p class="ht-zin">Op de zolder: wat lager is dan 1,5 m staat gestreept; daar kun je niet staan.</p>
+      ${dak.replace('<h4 class="ht-dakkop">Het dak', '<h4 class="ht-dakkop">Vorm van het dak')}
+      ${rij({ ik: 'dak', titel: 'Dakkapel erbij', zin: 'Een kast op het dak, met een raam', rechts: '+', mist: true })}`;
   }
 
   const UITLEG = {
-    zonder: 'Pak een buitenmuur om het huis op maat te trekken. Een dakkapel zet je erbij in het blad.',
+    zonder: 'Het dak van boven op de zolder. Een dakkapel zet je erbij in het blad.',
     kies: 'Kies in het blad aan welke kant de dakkapel komt.',
     gekozen: 'Sleep de dakkapel langs het dak. Pak een zijkant om hem breder of smaller te maken.',
     kaart: 'De 3D-kaart vond een dakkapel. Klopt hij niet, schuif hem of trek een zijkant.',
@@ -190,7 +191,7 @@
       v.hidden = false;
       v.innerHTML = `<span class="hb-ik">${ik('dak')}</span><span class="hb-tekst"><b>Een dakkapel op de 3D-kaart</b><span>Aan de achterkant, op de zolder, 2,4 m breed. Klopt dit?</span></span><span class="hb-knoppen"><button type="button">Nee, weghalen</button><button type="button" class="hb-hoofd">Ja</button></span>`;
     }
-    document.querySelectorAll('[data-stand]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.stand === 'vorm')));
+    document.querySelectorAll('[data-stand]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.stand === 'dak')));
   }
 
   global.dakkapelSchets = { start };

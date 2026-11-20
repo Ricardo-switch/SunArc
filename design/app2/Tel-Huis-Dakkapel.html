@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="../../frontend/kit/huistekenen.css">
 <style>
   /*
-   * Je huis › Vorm op de telefoon: de dakkapel (schets, 20 november 2026):
+   * Je huis › Dak op de telefoon: de dakkapel (schets, 20 november 2026):
    * dezelfde als op de wand (Wand-Huis-Dakkapel), onder elkaar. Standen:
    * (zonder), #kies, #gekozen, #kaart.
    */
@@ -58,6 +58,8 @@
   .dk-knoppen { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
   .dk-knoppen .knop { height: 40px; }
   .tk-tekening { height: 400px; }
+  .hm-seg { display: grid; grid-template-columns: repeat(5, 1fr); }
+  .hm-seg button { padding: 0 4px; justify-content: center; font-size: 14px; }
   .hb-vraag { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px; border-radius: 16px; background: rgb(11 20 36 / 0.92); border: 1px solid rgb(247 181 72 / 0.45); }
   #tekening { width: 100%; height: 100%; }
 </style>
@@ -74,6 +76,7 @@
   </div>
   <div class="hm-seg" id="standen" role="group" aria-label="Wat je tekent">
     <button type="button" data-stand="vorm">Vorm</button>
+    <button type="button" data-stand="dak">Dak</button>
     <button type="button" data-stand="kamers">Kamers</button>
     <button type="button" data-stand="apparaten">Apparaten</button>
 <button type="button" data-stand="huis">Huis</button>
