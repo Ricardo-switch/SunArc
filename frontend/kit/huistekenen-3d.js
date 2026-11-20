@@ -20,6 +20,13 @@
  */
 (function (global) {
   'use strict';
+  /*
+   * Deuren in 3D (20 november 2026, schets Wand-Huis-Deuren): de voordeur en
+   * de achterdeur in hout, een binnendeur grijs, openslaande deuren en een
+   * schuifpui als glas tot 2,1 m.
+   */
+  const DEUREN_3D = new Set(['deur', 'voordeur', 'achterdeur', 'dubbel', 'schuifpui']);
+  const deurVul3d = (soort) => (soort === 'voordeur' || soort === 'achterdeur' ? 'fill="#8a5a3c"' : soort === 'dubbel' || soort === 'schuifpui' ? 'fill="rgb(143 208 255 / 0.42)" stroke="#dcefff" stroke-opacity="0.8" stroke-width="1"' : 'fill="#5c6b80"');
   const FONT = 'font-family="Figtree, system-ui, sans-serif"';
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const nl = (n) => n.toLocaleString(global.taal?.locale ?? 'nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -158,11 +165,11 @@
           for (const st4 of muurStukken(run, v)) {
             const [x0, y0, x1, y1] = st4;
             // Een deur in een binnenmuur of aan de kant van de kijker: een gat; in een hoge buitenmuur de deur zelf.
-            if ((st4.soort === 'deur' || st4.soort === 'voordeur') && (run.soort === 1 || voor)) continue;
+            if (DEUREN_3D.has(st4.soort) && (run.soort === 1 || voor)) continue;
             let x2 = `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, z0 + h], [x0, y0, z0 + h]])}" fill="${vul}" stroke="rgb(13 26 48 / 0.35)" stroke-width="0.7" stroke-linejoin="round"/>`;
             if (st4.soort === 'raam' && run.soort === 2 && !voor) x2 += raamOp(x0, y0, x1, y1, z0, z0 + h);
             if (st4.soort === 'raam' && voor) x2 += `<path d="M${pt(x0, y0, z0 + h)}L${pt(x1, y1, z0 + h)}" stroke="#8fd0ff" stroke-width="3" stroke-linecap="round"/>`;
-            if ((st4.soort === 'deur' || st4.soort === 'voordeur') && run.soort === 2) x2 += `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, z0 + Math.min(h, 2.1)], [x0, y0, z0 + Math.min(h, 2.1)]])}" fill="${st4.soort === 'voordeur' ? '#8a5a3c' : '#5c6b80'}"/>`;
+            if (DEUREN_3D.has(st4.soort) && run.soort === 2) x2 += `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, z0 + Math.min(h, 2.1)], [x0, y0, z0 + Math.min(h, 2.1)]])}" ${deurVul3d(st4.soort)}/>`;
             stukken.push({ d: diep((x0 + x1) / 2, (y0 + y1) / 2), s: x2 });
           }
         }
@@ -203,7 +210,7 @@
           const [x0, y0, x1, y1] = st4;
           let x2 = `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, top], [x0, y0, top]])}" fill="${vul}" stroke="${vul}" stroke-width="0.6" stroke-linejoin="round"/>`;
           if (st4.soort === 'raam') x2 += raamOp(x0, y0, x1, y1, z0, top);
-          if (st4.soort === 'deur' || st4.soort === 'voordeur') x2 += `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, z0 + Math.min(top - z0, 2.1)], [x0, y0, z0 + Math.min(top - z0, 2.1)]])}" fill="${st4.soort === 'voordeur' ? '#8a5a3c' : '#5c6b80'}"/>`;
+          if (DEUREN_3D.has(st4.soort)) x2 += `<path d="${vlak([[x0, y0, z0], [x1, y1, z0], [x1, y1, z0 + Math.min(top - z0, 2.1)], [x0, y0, z0 + Math.min(top - z0, 2.1)]])}" ${deurVul3d(st4.soort)}/>`;
           stukken.push({ d: diep((x0 + x1) / 2, (y0 + y1) / 2), s: x2 });
         }
       }

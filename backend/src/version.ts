@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.211.0';
+export const VERSIE = '0.212.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.212.0',
+    datum: '2026-11-20',
+    nieuw: [
+      'Je huis › Kamers: ook een achterdeur, openslaande deuren en een schuifpui. Tik op een muur en kies wat erin komt, met een plaatje per soort',
+      'Je huis: bij een deur kies je aan welke kant het scharnier zit en of hij naar binnen of naar buiten draait; een tik op de stip wisselt het scharnier. Een schuifpui schuift naar links of rechts',
+    ],
+    beter: ['Je huis in 3D: de achterdeur in hout, openslaande deuren en een schuifpui in glas', 'Je huis: in het blad van een etage staat hoeveel deuren en ramen er zijn, en waar je tikt'],
+    en: {
+      nieuw: [
+        'Your home › Rooms: also a back door, French doors and a sliding door. Tap a wall and choose what goes in it, with a picture for each kind',
+        'Your home: for a door you choose which side the hinge is on and whether it swings in or out; a tap on the dot swaps the hinge. A sliding door slides left or right',
+      ],
+      beter: ['Your home in 3D: the back door in wood, French doors and a sliding door in glass', 'Your home: the sheet of a floor says how many doors and windows there are, and where to tap'],
+    },
+  },
   {
     versie: '0.211.0',
     datum: '2026-11-20',

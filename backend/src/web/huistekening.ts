@@ -156,8 +156,18 @@ export interface Opening {
   readonly op: number;
   readonly van: number;
   readonly tot: number;
+  /**
+   * Deuren en ramen (schets Wand-Huis-Deuren, 20 november 2026): bij een deur
+   * aan welk eind het scharnier zit (weg: van), naar welke kant hij draait (1
+   * naar een hogere u of v, -1 naar een lagere; weg: de kamer in), en bij een
+   * schuifpui naar welk eind hij schuift (weg: van).
+   */
+  readonly scharnier?: 'van' | 'tot';
+  readonly kant?: 1 | -1;
+  readonly schuift?: 'van' | 'tot';
 }
-export const OPENING_SOORTEN = ['deur', 'raam', 'voordeur'] as const;
+/** Sinds 20 november 2026 ook de achterdeur, openslaande deuren (dubbel) en de schuifpui. */
+export const OPENING_SOORTEN = ['deur', 'raam', 'voordeur', 'achterdeur', 'dubbel', 'schuifpui'] as const;
 export type OpeningSoort = (typeof OPENING_SOORTEN)[number];
 const MAX_OPENINGEN = 60;
 
@@ -172,10 +182,14 @@ export function leesOpeningen(x: unknown, etageOk: (id: string) => boolean): { o
     const e: Opening[] = [];
     for (const o of lijst) {
       if (!obj(o) || typeof o['id'] !== 'string' || !/^o\d{1,4}$/.test(o['id']) || gehad.has(o['id'])) return { fout: `openingen ${etage}: elk een eigen id (o1, o2, …)` };
-      if (!OPENING_SOORTEN.includes(o['soort'] as OpeningSoort) || (o['as'] !== 'u' && o['as'] !== 'v')) return { fout: `openingen ${etage}: een deur, raam of voordeur op as u of v` };
+      if (!OPENING_SOORTEN.includes(o['soort'] as OpeningSoort) || (o['as'] !== 'u' && o['as'] !== 'v')) return { fout: `openingen ${etage}: een ${OPENING_SOORTEN.join(', ')} op as u of v` };
       if (!getal(o['op'], -MAX_M, MAX_M) || !getal(o['van'], -MAX_M, MAX_M) || !getal(o['tot'], -MAX_M, MAX_M) || (o['tot'] as number) - (o['van'] as number) < 0.3 || (o['tot'] as number) - (o['van'] as number) > 6) return { fout: `openingen ${etage}: op, van en tot in meters, tussen 30 cm en 6 m breed` };
       gehad.add(o['id']);
-      e.push({ id: o['id'], soort: o['soort'] as OpeningSoort, as: o['as'], op: ruitje(o['op']), van: ruitje(o['van']), tot: ruitje(o['tot']) });
+      const eind = (w: unknown) => (w === 'van' || w === 'tot' ? w : undefined);
+      const scharnier = eind(o['scharnier']);
+      const schuift = eind(o['schuift']);
+      const kant = o['kant'] === 1 || o['kant'] === -1 ? o['kant'] : undefined;
+      e.push({ id: o['id'], soort: o['soort'] as OpeningSoort, as: o['as'], op: ruitje(o['op']), van: ruitje(o['van']), tot: ruitje(o['tot']), ...(scharnier ? { scharnier } : {}), ...(kant ? { kant } : {}), ...(schuift ? { schuift } : {}) });
     }
     if (e.length) uit[etage] = e;
   }

@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.211.0
+## 0.212.0
 
-*20 november 2026 · 0.179.0 – 0.211.0*
+*20 november 2026 · 0.179.0 – 0.212.0*
 
 **Nieuw**
 
+- Je huis › Kamers: ook een achterdeur, openslaande deuren en een schuifpui. Tik op een muur en kies wat erin komt, met een plaatje per soort
+- Je huis: bij een deur kies je aan welke kant het scharnier zit en of hij naar binnen of naar buiten draait; een tik op de stip wisselt het scharnier. Een schuifpui schuift naar links of rechts
 - Je huis › Vorm: Wat voor huis, met de vijf soorten. SunArc stelt uit de kaart voor wat het is en welke muur tegen het huis ernaast staat, met Klopt dit?
 - Je huis: een muur tegen de buren staat gestreept in oranje. Op zo’n muur zet je geen raam of voordeur
 - Apparaten: een eigen soort Camera’s, na Licht. Elke camera is één kaart met het beeld, wat hij nu ziet, de schijnwerper om aan en uit te zetten, de bewegingsmelder, en hoe vaak hij vandaag iets zag. Bij de deurbel ook hoe vaak er is aangebeld
@@ -78,6 +80,8 @@
 
 **Beter**
 
+- Je huis in 3D: de achterdeur in hout, openslaande deuren en een schuifpui in glas
+- Je huis: in het blad van een etage staat hoeveel deuren en ramen er zijn, en waar je tikt
 - Inrichten: Wat voor huis is hetzelfde deel als in Je huis, met de muren tegen de buren
 - Thuis: kijkt je voorgevel naar het oosten of westen, dan gaat de zon weer van links naar rechts over de boog, en niet terug
 - Je huis: één apparaat is één icoon. De schijnwerper en de bewegingsmelder van een camera staan niet meer los in de tekening, maar onder Zit er ook in in het blad van de camera, en verhuizen mee
@@ -198,6 +202,8 @@
 
 **New**
 
+- Your home › Rooms: also a back door, French doors and a sliding door. Tap a wall and choose what goes in it, with a picture for each kind
+- Your home: for a door you choose which side the hinge is on and whether it swings in or out; a tap on the dot swaps the hinge. A sliding door slides left or right
 - Your home › Shape: What kind of home, with the five kinds. SunArc suggests from the map what it is and which wall is against the house next door, with Is that right?
 - Your home: a wall against the neighbours is striped in orange. No window or front door goes on such a wall
 - Devices: a group of its own for Cameras, after Lights. Each camera is one card with the picture, what it sees now, the floodlight to switch on and off, the motion sensor, and how often it saw something today. For the doorbell also how often it rang
@@ -270,6 +276,8 @@
 
 **Improved**
 
+- Your home in 3D: the back door in wood, French doors and a sliding door in glass
+- Your home: the sheet of a floor says how many doors and windows there are, and where to tap
 - Setup: What kind of home is the same part as in Your home, with the walls against the neighbours
 - Home: if your front faces east or west, the sun now crosses the arc from left to right again, not backwards
 - Your home: one device is one icon. The floodlight and the motion sensor of a camera no longer stand apart in the drawing, but under Also built in on the camera’s sheet, and move along with it

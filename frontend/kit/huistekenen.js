@@ -203,7 +203,31 @@
    * muur, van..tot langs de muur, in ruitjes. Hij hoort bij de vloer
    * (`v.openingen`); ligt er geen muur meer, dan telt hij niet.
    */
-  const OPENING_BREED = { deur: 9, voordeur: 10, raam: 12 };
+  const OPENING_BREED = { deur: 9, voordeur: 10, raam: 12, achterdeur: 10, dubbel: 14, schuifpui: 30 };
+  /*
+   * Deuren en ramen (schets Wand-Huis-Deuren, 20 november 2026): zes soorten.
+   * Een deur draait om zijn scharnier (`scharnier` van of tot) naar een kant
+   * (`kant` 1 of -1, weg: de kamer in); openslaande deuren (dubbel) hebben aan
+   * elk eind een scharnier; een schuifpui schuift naar een eind (`schuift`).
+   */
+  const OPENING_SOORTEN = ['deur', 'voordeur', 'achterdeur', 'dubbel', 'schuifpui', 'raam'];
+  /** Wat er in een binnenmuur kan: geen voordeur, achterdeur of raam. */
+  const BINNEN_SOORTEN = ['deur', 'dubbel', 'schuifpui'];
+  /** Een deur met één blad: daar hoort een scharnier bij. */
+  const MET_SCHARNIER = new Set(['deur', 'voordeur', 'achterdeur']);
+  /** Het scharnier, de kant en het schuiven, alleen wat er is. */
+  const richtingVan = (o) => ({ ...(o.scharnier === 'tot' || o.scharnier === 'van' ? { scharnier: o.scharnier } : {}), ...(o.kant === 1 || o.kant === -1 ? { kant: o.kant } : {}), ...(o.schuift === 'tot' || o.schuift === 'van' ? { schuift: o.schuift } : {}) });
+  /** Een klein plaatje per soort, van boven, zoals in de tekening. */
+  function openingPlaatje(soort) {
+    const c = { raam: '#a9e6ff', voordeur: '#f7b548', achterdeur: '#f7b548', schuifpui: '#a9e6ff' }[soort] ?? '#dfe6ec';
+    const muur = '<line x1="4" y1="30" x2="12" y2="30" stroke="#eef3f7" stroke-width="3"/><line x1="44" y1="30" x2="52" y2="30" stroke="#eef3f7" stroke-width="3"/>';
+    let s;
+    if (soort === 'raam') s = `<line x1="12" y1="28.5" x2="44" y2="28.5" stroke="${c}" stroke-width="1.8"/><line x1="12" y1="31.5" x2="44" y2="31.5" stroke="${c}" stroke-width="1.8"/>`;
+    else if (soort === 'schuifpui') s = `<line x1="12" y1="28" x2="30" y2="28" stroke="${c}" stroke-width="2.4"/><line x1="26" y1="32" x2="44" y2="32" stroke="${c}" stroke-width="2.4"/><path d="M34 22h-12m3-3-3 3 3 3" stroke="${c}" stroke-width="1.5" fill="none"/>`;
+    else if (soort === 'dubbel') s = `<line x1="12" y1="30" x2="12" y2="14" stroke="${c}" stroke-width="2"/><path d="M28 30A16 16 0 0 0 12 14" stroke="${c}" stroke-dasharray="2 2" fill="none"/><line x1="44" y1="30" x2="44" y2="14" stroke="${c}" stroke-width="2"/><path d="M28 30A16 16 0 0 1 44 14" stroke="${c}" stroke-dasharray="2 2" fill="none"/>`;
+    else s = `<line x1="12" y1="30" x2="12" y2="0" stroke="${c}" stroke-width="2"/><path d="M44 30A32 32 0 0 0 12 -2" stroke="${c}" stroke-dasharray="2 2" fill="none"/>`;
+    return `<svg viewBox="0 0 56 36" width="56" height="36" aria-hidden="true"><g transform="translate(0 2)">${muur}${s}</g></svg>`;
+  }
   /** 0: geen muur (meer), 1: een binnenmuur, 2: (deels) de buitenmuur. */
   function openingMuur(v, o) {
     let buiten = false;
@@ -802,7 +826,7 @@
     if (bewaarde?.openingen) {
       for (const [etage, lijst] of Object.entries(bewaarde.openingen)) {
         if (!st.vloeren[etage]) continue;
-        st.vloeren[etage].openingen = lijst.map((o) => ({ id: o.id, soort: o.soort, as: o.as === 'u' ? 'x' : 'y', op: celVan(o.op), van: celVan(o.van), tot: celVan(o.tot) }));
+        st.vloeren[etage].openingen = lijst.map((o) => ({ id: o.id, soort: o.soort, as: o.as === 'u' ? 'x' : 'y', op: celVan(o.op), van: celVan(o.van), tot: celVan(o.tot), ...richtingVan(o) }));
       }
     }
     if (bewaarde?.ramen) for (const a of st.apparaten) if (bewaarde.ramen[a.id] && a.plek) a.raam = bewaarde.ramen[a.id];
@@ -826,7 +850,7 @@
       const openingen = {};
       for (const [etage, v] of Object.entries(st.vloeren)) {
         const lijst = (v.openingen ?? []).filter((o) => openingMuur(v, o));
-        if (lijst.length) openingen[etage] = lijst.map((o) => ({ id: o.id, soort: o.soort, as: o.as === 'x' ? 'u' : 'v', op: m1(o.op - MARGE), van: m1(o.van - MARGE), tot: m1(o.tot - MARGE) }));
+        if (lijst.length) openingen[etage] = lijst.map((o) => ({ id: o.id, soort: o.soort, as: o.as === 'x' ? 'u' : 'v', op: m1(o.op - MARGE), van: m1(o.van - MARGE), tot: m1(o.tot - MARGE), ...richtingVan(o) }));
       }
       const ramen = {};
       for (const a of st.apparaten) if (a.raam && a.plek) ramen[a.id] = a.raam;
@@ -1345,6 +1369,9 @@
         const pijl = muur.as === 'x' ? 'M-5 0h10M-5 0l3-3M-5 0l3 3M5 0l-3-3M5 0l-3 3' : 'M0-5v10M0-5l-3 3M0-5l3 3M0 5l-3-3M0 5l3-3';
         s += `<g transform="translate(${gx.toFixed(1)} ${gy.toFixed(1)})" pointer-events="none"><circle r="15" fill="#6fd3ff"/><path d="${pijl}" stroke="#0b1424" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>`;
       }
+      // Het scharnier van de gekozen deur: een stip om te tikken.
+      const sp = metOpeningen ? scharnierStip(v) : null;
+      if (sp) s += `<g transform="translate(${X(sp.x).toFixed(1)} ${Y(sp.y).toFixed(1)})" pointer-events="none"><circle r="10" fill="#6fd3ff" stroke="#0b1424" stroke-width="2.5"/><path d="M-3.5 -1.5a3.6 3.6 0 1 1 0 3" stroke="#0b1424" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`;
       // De greep om een gekozen ruimte in zijn geheel te verplaatsen.
       const greep = !actie || actie.type === 'verplaats' ? greepPlek(v) : null;
       if (greep) s += `<g transform="translate(${greep.px.toFixed(1)} ${greep.py.toFixed(1)})" pointer-events="none"><circle r="17" fill="#6fd3ff" stroke="#0b1424" stroke-width="2"/><path d="M-9 0h18M0-9v18M-9 0l3-3M-9 0l3 3M9 0l-3-3M9 0l-3 3M0-9l-3 3M0-9l3 3M0 9l-3-3M0 9l3-3" stroke="#0b1424" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>`;
@@ -1476,22 +1503,59 @@
         const lijn = (e, a = o.van, b = o.tot) => (o.as === 'x' ? `M${o.op + e} ${a}V${b}` : `M${a} ${o.op + e}H${b}`);
         // Het gat in de muur.
         s2 += `<path d="${lijn(0)}" stroke="#1a2740" stroke-width="${mu === 2 ? 7 : 5}" vector-effect="non-scaling-stroke" fill="none"/>`;
-        const kleur = gekozen ? '#6fd3ff' : o.soort === 'raam' ? '#a9e6ff' : o.soort === 'voordeur' ? '#f7b548' : '#dfe6ec';
-        if (o.soort === 'raam') {
+        const kleur = gekozen ? '#6fd3ff' : o.soort === 'raam' || o.soort === 'schuifpui' ? '#a9e6ff' : o.soort === 'voordeur' || o.soort === 'achterdeur' ? '#f7b548' : '#dfe6ec';
+        if (o.soort === 'schuifpui') {
+          // Twee glazen delen, een beetje verschoven, en binnen een pijl naar waar hij schuift.
+          const mid = (o.van + o.tot) / 2;
+          const binnenKant = openingBinnen(v, o);
+          s2 += `<path d="${lijn(-0.6, o.van, mid + 1.5)}${lijn(0.6, mid - 1.5, o.tot)}" stroke="${kleur}" stroke-width="${gekozen ? 3.2 : 2.4}" vector-effect="non-scaling-stroke" fill="none"/>`;
+          const r = o.schuift === 'tot' ? 1 : -1;
+          const e = binnenKant * 4;
+          const [a0, a1] = [mid - r * 4, mid + r * 4];
+          const pt = (langs, uit) => (o.as === 'x' ? `${o.op + uit} ${langs}` : `${langs} ${o.op + uit}`);
+          s2 += `<path d="M${pt(a0, e)}L${pt(a1, e)}M${pt(a1 - r * 1.6, e - 1.2)}L${pt(a1, e)}L${pt(a1 - r * 1.6, e + 1.2)}" stroke="${kleur}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" fill="none"/>`;
+        } else if (o.soort === 'raam') {
           s2 += `<path d="${lijn(-0.45)}${lijn(0.45)}" stroke="${kleur}" stroke-width="${gekozen ? 2.6 : 1.8}" vector-effect="non-scaling-stroke" fill="none"/>`;
           // Een screen voor dit raam: een oranje streep aan de buitenkant.
           if (st.apparaten.some((a) => a.raam === o.id && a.plek?.etage === st.etage)) s2 += `<path d="${lijn(-openingBinnen(v, o) * 1.6, o.van + 0.5, o.tot - 0.5)}" stroke="#ff9a6b" stroke-width="2.4" stroke-dasharray="4 3" vector-effect="non-scaling-stroke" fill="none"/>`;
         } else {
-          // Een deur: het blad en de boog waar hij draait, de kamer in (de voordeur naar binnen).
-          const w = o.tot - o.van;
-          const kant = openingBinnen(v, o);
-          const [hx, hy, lx, ly, sx, sy] = o.as === 'x' ? [o.op, o.van, o.op + kant * w, o.van, o.op, o.tot] : [o.van, o.op, o.van, o.op + kant * w, o.tot, o.op];
-          const veeg = (o.as === 'x') === (kant > 0) ? 0 : 1;
-          s2 += `<path d="M${hx} ${hy}L${lx} ${ly}" stroke="${kleur}" stroke-width="${gekozen ? 3 : 2}" stroke-linecap="round" vector-effect="non-scaling-stroke" fill="none"/>`;
-          s2 += `<path d="M${sx} ${sy}A${w} ${w} 0 0 ${veeg} ${lx} ${ly}" stroke="${kleur}" stroke-width="1.2" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" fill="none" opacity="0.8"/>`;
+          // Een deur: per blad het blad open en de boog waar hij draait; openslaande deuren aan elk eind een blad.
+          for (const b of deurBladen(v, o)) {
+            const veeg = (b.sx - b.hx) * (b.ly - b.hy) - (b.sy - b.hy) * (b.lx - b.hx) > 0 ? 1 : 0;
+            s2 += `<path d="M${b.hx} ${b.hy}L${b.lx} ${b.ly}" stroke="${kleur}" stroke-width="${gekozen ? 3 : 2}" stroke-linecap="round" vector-effect="non-scaling-stroke" fill="none"/>`;
+            s2 += `<path d="M${b.sx} ${b.sy}A${b.w} ${b.w} 0 0 ${veeg} ${b.lx} ${b.ly}" stroke="${kleur}" stroke-width="1.2" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" fill="none" opacity="0.8"/>`;
+          }
         }
       }
       return s2;
+    }
+    /**
+     * De bladen van een deur, in ruitjes: het scharnier (h), het open blad (l)
+     * en waar het blad dicht tegen de muur ligt (s), met de breedte w.
+     */
+    function deurBladen(v, o) {
+      const kant = o.kant ?? openingBinnen(v, o);
+      const at = (langs, uit) => (o.as === 'x' ? [o.op + uit, langs] : [langs, o.op + uit]);
+      const blad = (h, vrij) => {
+        const w = Math.abs(vrij - h);
+        const [hx, hy] = at(h, 0);
+        const [lx, ly] = at(h, kant * w);
+        const [sx, sy] = at(vrij, 0);
+        return { hx, hy, lx, ly, sx, sy, w };
+      };
+      if (o.soort === 'dubbel') {
+        const mid = (o.van + o.tot) / 2;
+        return [blad(o.van, mid), blad(o.tot, mid)];
+      }
+      return o.scharnier === 'tot' ? [blad(o.tot, o.van)] : [blad(o.van, o.tot)];
+    }
+    /** De stip op het scharnier van de gekozen deur: een tik zet het naar het andere eind. */
+    function scharnierStip(v) {
+      if (st.stand !== 'kamers' || st.kies?.soort !== 'opening') return null;
+      const o = (v.openingen ?? []).find((x) => x.id === st.kies.id);
+      if (!o || !MET_SCHARNIER.has(o.soort) || !openingMuur(v, o)) return null;
+      const b = deurBladen(v, o)[0];
+      return { x: b.hx, y: b.hy, o };
     }
     /** De trap: treden dwars op de richting, en een pijl naar boven. */
     function trapPad(v, mm) {
@@ -1768,6 +1832,12 @@
       const hk = heelKnop();
       if (hk && p.px >= hk.x - 6 && p.px <= hk.x + hk.b + 6 && p.py >= hk.y - 6 && p.py <= hk.y + hk.h + 6) {
         actie.kandidaat = { soort: 'heel' };
+        return;
+      }
+      // De stip op het scharnier: een tik zet het scharnier aan het andere eind (20 november 2026).
+      const sp = metOpeningen ? scharnierStip(vloer()) : null;
+      if (sp && Math.hypot(X(sp.x) - p.px, Y(sp.y) - p.py) <= (vinger ? 24 : 14)) {
+        actie.kandidaat = { soort: 'scharnier', o: sp.o };
         return;
       }
       // Een deur of raam: aantikken of langs de muur schuiven.
@@ -2191,6 +2261,11 @@
         return meld();
       }
       if (a.kandidaat.soort === 'verplaats' && a.kandidaat.greep) return teken();
+      if (a.kandidaat.soort === 'scharnier') {
+        stap();
+        a.kandidaat.o.scharnier = a.kandidaat.o.scharnier === 'tot' ? 'van' : 'tot';
+        return klaar();
+      }
       if (a.kandidaat.soort === 'opening') st.kies = { soort: 'opening', id: a.kandidaat.o.id };
       else if (a.kandidaat.soort === 'muur') st.kies = { soort: 'muur', run: a.kandidaat.m, bij: a.kandidaat.m.as === 'x' ? p.y : p.x };
       else if (a.kandidaat.soort === 'zone') st.kies = { soort: 'ruimte', id: a.kandidaat.id };
@@ -2499,6 +2574,32 @@
         if (soort === 'voordeur') deurbelBijVoordeur();
         klaar();
       },
+      /** De gekozen opening een andere soort, scharnier, kant of schuifrichting (20 november 2026). */
+      openingZet(wat, w) {
+        const v = vloer();
+        const o = (v.openingen ?? []).find((x) => x.id === st.kies?.id);
+        if (!o) return;
+        stap();
+        if (wat === 'soort' && OPENING_SOORTEN.includes(w)) {
+          const was = o.soort;
+          o.soort = w;
+          // Breder of smaller als de soort een andere maat heeft, om het midden, binnen de muur.
+          const run = muurVan(v, o);
+          if (run && (OPENING_BREED[w] ?? 9) !== (OPENING_BREED[was] ?? 9)) {
+            const bw = Math.min(OPENING_BREED[w] ?? 9, run.tot - run.van - 2);
+            const van = Math.round(klem((o.van + o.tot) / 2 - bw / 2, run.van + 1, run.tot - 1 - bw));
+            o.van = van;
+            o.tot = van + bw;
+          }
+          if (w !== 'raam') for (const a of st.apparaten) if (a.raam === o.id) delete a.raam;
+          if (w === 'voordeur') deurbelBijVoordeur();
+        } else if (wat === 'scharnier' && (w === 'van' || w === 'tot')) o.scharnier = w;
+        else if (wat === 'kant' && (w === '1' || w === '-1')) o.kant = Number(w);
+        else if (wat === 'schuift' && (w === 'van' || w === 'tot')) o.schuift = w;
+        klaar();
+      },
+      openingKant: (o) => o.kant ?? openingBinnen(vloer(), o),
+      openingBinnen: (o) => openingBinnen(vloer(), o),
       /** De gekozen opening breder (+1) of smaller (-1), tien centimeter per stap, om zijn midden. */
       openingBreed(d) {
         const v = vloer();
@@ -2956,7 +3057,23 @@
         // Een deur, raam of de voordeur: de breedte, en weghalen.
         const o = v.openingen.find((x) => x.id === st.kies.id);
         const screen = o.soort === 'raam' ? st.apparaten.find((a) => a.raam === o.id && a.plek?.etage === st.etage) : null;
+        const buitenmuur = t.openingMuur(o) === 2;
+        const soorten = (buitenmuur ? OPENING_SOORTEN : BINNEN_SOORTEN).map((x) => `<button type="button" class="dr-soort${x === o.soort ? ' aan' : ''}" data-ht="opening-zet" data-wat="soort" data-w="${x}" aria-pressed="${x === o.soort}">${openingPlaatje(x)}<b>${esc(T(`ht.opening.${x}`))}</b></button>`).join('');
+        const keus = (wat, opties, nu) => `<div class="ht-twee twee">${opties.map(([w, naam]) => `<button type="button" class="ht-klein${String(nu) === String(w) ? ' aan' : ''}" data-ht="opening-zet" data-wat="${wat}" data-w="${w}" aria-pressed="${String(nu) === String(w)}">${esc(naam)}</button>`).join('')}</div>`;
+        // Het scharnier en de schuifrichting heten links en rechts zoals je ze in de tekening ziet: langs de muur van links naar rechts, of van onder naar boven.
+        const eindNaam = (w) => T(o.as === 'y' ? (w === 'van' ? 'ht.opening.links' : 'ht.opening.rechts') : w === 'van' ? 'ht.opening.voorkant' : 'ht.opening.achterkant');
+        const binnenKant = t.openingBinnen(o);
+        const [ka, kb] = t.muurKanten({ as: o.as, op: o.op, van: o.van, tot: o.tot });
+        const kamerNaam = (k) => (buitenmuur ? T(k === binnenKant ? 'ht.opening.naarBinnen' : 'ht.opening.naarBuiten') : (t.naamVan(v.ruimtes[k === -1 ? ka : kb]) ?? T('ht.vakZonderNaam')));
+        const richting = o.soort === 'raam'
+          ? ''
+          : o.soort === 'schuifpui'
+            ? `<h4 class="ht-dakkop">${esc(T('ht.opening.schuiftNaar'))}</h4>${keus('schuift', [['van', eindNaam('van')], ['tot', eindNaam('tot')]], o.schuift ?? 'van')}`
+            : `${MET_SCHARNIER.has(o.soort) ? `<h4 class="ht-dakkop">${esc(T('ht.opening.scharnier'))}</h4>${keus('scharnier', [['van', eindNaam('van')], ['tot', eindNaam('tot')]], o.scharnier ?? 'van')}` : ''}
+              <h4 class="ht-dakkop">${esc(T('ht.opening.draait'))}</h4>${keus('kant', buitenmuur ? [[binnenKant, kamerNaam(binnenKant)], [-binnenKant, kamerNaam(-binnenKant)]] : [[-1, kamerNaam(-1)], [1, kamerNaam(1)]], t.openingKant(o))}`;
         s = `<header><h3>${esc(T(`ht.opening.${o.soort}`))}</h3><span>${esc(meter(o.tot - o.van))}</span></header>
+          <div class="dr-soorten">${soorten}</div>
+          ${richting}
           <p class="ht-zin">${esc(T(`ht.opening.${o.soort}Zin`))}</p>
           <div class="ht-veld"><label>${esc(T('ht.opening.breed'))}</label>
             <div class="ht-stap"><button type="button" data-ht="opening-breed" data-d="-1" aria-label="${esc(T('ht.opening.smaller'))}">−</button><input readonly value="${nl((o.tot - o.van) * CEL)}" aria-label="${esc(T('ht.opening.breed'))}"><span>m</span><button type="button" data-ht="opening-breed" data-d="1" aria-label="${esc(T('ht.opening.breder'))}">+</button></div></div>
@@ -2970,8 +3087,7 @@
           <p class="ht-zin">${esc(T('ht.opening.buurmuurZin'))}</p>`
           : `<header><h3>${esc(T('ht.opening.buitenmuur'))}</h3><span>${esc(T('ht.muur.lang', { maat: meter(run.tot - run.van) }))}</span></header>
           <p class="ht-zin">${esc(T('ht.opening.buitenmuurZin'))}</p>
-          ${rij({ ik: 'raam', titel: T('ht.opening.raamHier'), zin: T('ht.opening.raamHierZin'), rechts: '+', data: 'data-ht="opening-plaats" data-soort="raam"' })}
-          ${rij({ ik: 'deur', titel: T('ht.opening.voordeurHier'), zin: T('ht.opening.voordeurHierZin'), rechts: '+', data: 'data-ht="opening-plaats" data-soort="voordeur"' })}`;
+          <div class="dr-soorten">${OPENING_SOORTEN.map((x) => `<button type="button" class="dr-soort" data-ht="opening-plaats" data-soort="${x}">${openingPlaatje(x)}<b>${esc(T(`ht.opening.${x}`))}</b></button>`).join('')}</div>`;
       } else if (st.stand === 'kamers') {
         if (st.kies?.soort === 'muur' && st.kies.run) {
           const run = st.kies.run;
@@ -2984,7 +3100,7 @@
             <p class="ht-zin">${esc(T('ht.muur.zin', { a: na, b: nb }))}</p>
             <div class="ht-veld"><label for="ht-maat">${esc(run.as === 'x' ? T('ht.muur.vanLinks') : T('ht.muur.vanVoor'))}</label>
               <div class="ht-stap"><button type="button" data-ht="muur-stap" data-d="-1" aria-label="${esc(T('ht.muur.terug'))}">−</button><input id="ht-maat" inputmode="decimal" value="${nl(vanaf * CEL)}" data-ht-maat data-nul="${run.as === 'x' ? o.x0 : o.y0}" aria-label="${esc(T('ht.muur.meter'))}"><span>m</span><button type="button" data-ht="muur-stap" data-d="1" aria-label="${esc(T('ht.muur.verder'))}">+</button></div></div>
-            ${metOpeningenVan(t) ? rij({ ik: 'deur', titel: T('ht.opening.deurHier'), zin: T('ht.opening.deurHierZin'), rechts: '+', data: 'data-ht="opening-plaats" data-soort="deur"' }) : ''}
+            ${metOpeningenVan(t) ? `<h4 class="ht-dakkop">${esc(T('ht.opening.watHier'))}</h4><div class="dr-soorten">${BINNEN_SOORTEN.map((x) => `<button type="button" class="dr-soort" data-ht="opening-plaats" data-soort="${x}">${openingPlaatje(x)}<b>${esc(T(`ht.opening.${x}`))}</b></button>`).join('')}</div>` : ''}
             ${rij({ ik: 'kruis', titel: T('ht.muur.weg'), zin: T('ht.muur.wegZin'), data: 'data-ht="muur-weg"' })}`;
         } else if (st.kies?.soort === 'ruimte' && v.ruimtes[st.kies.id]) {
           const id = st.kies.id;
@@ -3041,7 +3157,7 @@
           // Buiten: wat er rond het huis is (voor Thuis) in plaats van de etage, en geen andere indeling.
           s += etage.buiten
             ? `<div class="ht-onder">${ix ? rij({ ik: 'buiten', titel: T('ht.buiten.rond'), zin: T('ht.buiten.rondZin'), rechts: '›', data: 'data-ht="blad" data-blad="buiten"' }) : ''}${rij({ ik: 'dak', titel: T('ht.buiten.vanKaart'), zin: T('ht.buiten.vanKaartZin'), data: 'data-ht="van-kaart"' })}</div>`
-            : `<div class="ht-onder">${ix ? rij({ ik: 'etages', titel: T('ht.etage.instellen'), zin: T('ht.etage.instellenZin'), rechts: '›', data: 'data-ht="blad" data-blad="etage"' }) : ''}${rij({ ik: 'kamers', titel: T('ht.andereIndeling'), zin: T('ht.andereIndelingZin'), data: 'data-ht="leeg"' })}</div>`;
+            : `${metOpeningenVan(t) ? rij({ ik: 'deur', titel: T('ht.opening.uitleg'), zin: T('ht.opening.uitlegZin', { n: (v.openingen ?? []).filter((o) => t.openingMuur(o)).length }), data: 'disabled' }) : ''}<div class="ht-onder">${ix ? rij({ ik: 'etages', titel: T('ht.etage.instellen'), zin: T('ht.etage.instellenZin'), rechts: '›', data: 'data-ht="blad" data-blad="etage"' }) : ''}${rij({ ik: 'kamers', titel: T('ht.andereIndeling'), zin: T('ht.andereIndelingZin'), data: 'data-ht="leeg"' })}</div>`;
         }
       } else if (st.stand === 'huis') {
         const b = t.huis.bronnen?.[st.bron];
@@ -3123,6 +3239,7 @@
       else if (d.ht === 'gebouw-terug') t.kies(null);
       else if (d.ht === 'opening-plaats') t.plaatsOpening(d.soort);
       else if (d.ht === 'opening-breed') t.openingBreed(Number(d.d));
+      else if (d.ht === 'opening-zet') t.openingZet(d.wat, d.w);
       else if (d.ht === 'opening-weg') t.openingWeg();
       else if (d.ht === 'trap') t.zetTrap(st.kies.id, d.r);
       else if ((d.ht === 'gebouw-dak' || d.ht === 'gebouw-nok') && t.gebouw && !st.gebouwBezig) {

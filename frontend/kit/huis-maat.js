@@ -506,12 +506,13 @@
               if (screen) x2 += muur(aan.has(screen.id) ? r0 + 0.25 : r1 - 0.12, r1 + 0.05, '#b9a98f', 'fill-opacity="0.9" stroke="#8d7e66" stroke-width="0.6"');
               stukken.push({ d: voor ? d - 50 : d, s: x2 });
             } else if (run.soort === 2 && !voor) {
-              // Een deur in een dichte buitenmuur: de deur zelf, de voordeur in hout.
-              const kl = deel.soort === 'voordeur' ? '#8a5a3c' : '#5c6b80';
-              stukken.push({ d, s: muur(z0, z0 + 2.1, kl, 'stroke="rgb(13 26 48 / 0.5)" stroke-width="0.6"') + muur(z0 + 2.1, top, vul, `stroke="${vul}" stroke-width="0.6"`) });
+              // Een deur in een dichte buitenmuur: de deur zelf, de voordeur en achterdeur in hout, openslaande deuren en een schuifpui in glas.
+              const glas = deel.soort === 'dubbel' || deel.soort === 'schuifpui';
+              const kl = deel.soort === 'voordeur' || deel.soort === 'achterdeur' ? '#8a5a3c' : glas ? (o.avond && lichtIn.has(binnen) ? '#f3c77a' : '#8fb4d6') : '#5c6b80';
+              stukken.push({ d, s: muur(z0, z0 + 2.1, kl, glas ? `fill-opacity="${o.avond && lichtIn.has(binnen) ? 0.6 : 0.4}" stroke="#dcefff" stroke-opacity="0.7" stroke-width="1"` : 'stroke="rgb(13 26 48 / 0.5)" stroke-width="0.6"') + muur(z0 + 2.1, top, vul, `stroke="${vul}" stroke-width="0.6"`) });
             } else if (run.soort === 2) {
               // Aan de kant van de kijker: het glas erboven, en de voordeur zelf in hout (een andere deur blijft open).
-              const deur = deel.soort === 'voordeur' ? muur(z0, z0 + 2.1, '#8a5a3c', 'stroke="#f0d9c4" stroke-opacity="0.7" stroke-width="1.2"') : '';
+              const deur = deel.soort === 'voordeur' || deel.soort === 'achterdeur' ? muur(z0, z0 + 2.1, '#8a5a3c', 'stroke="#f0d9c4" stroke-opacity="0.7" stroke-width="1.2"') : deel.soort === 'dubbel' || deel.soort === 'schuifpui' ? muur(z0, z0 + 2.1, 'rgb(207 230 255 / 0.22)', 'stroke="#eef5fb" stroke-opacity="0.9" stroke-width="1.6"') : '';
               stukken.push({ d: d - 50, s: deur + muur(z0 + 2.1, top, 'url(#hm-glas)') });
             } else if (hoog > z0 + 2.1) stukken.push({ d, s: muur(z0 + 2.1, hoog, '#33445f') });
             continue;

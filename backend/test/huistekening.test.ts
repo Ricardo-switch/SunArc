@@ -586,3 +586,28 @@ describe('wat voor huis volgens de kaart (20 november 2026)', () => {
     expect(validateLayout(indeling({ buren: ['voor'] }), known).ok).toBe(false);
   });
 });
+
+describe('deuren en ramen met richting (20 november 2026)', () => {
+  it('bewaart de nieuwe soorten met scharnier, kant en schuifrichting, en laat wat niet klopt weg', () => {
+    const uit = leesOpeningen(
+      {
+        bg: [
+          { id: 'o1', soort: 'achterdeur', as: 'v', op: 9.9, van: 1, tot: 2, scharnier: 'tot', kant: -1 },
+          { id: 'o2', soort: 'schuifpui', as: 'v', op: 9.9, van: 2.2, tot: 5.4, schuift: 'van' },
+          { id: 'o3', soort: 'dubbel', as: 'u', op: 3.6, van: 4, tot: 5.6, kant: 2, scharnier: 'midden' },
+        ],
+      },
+      () => true,
+    );
+    expect(uit).toEqual({
+      openingen: {
+        bg: [
+          { id: 'o1', soort: 'achterdeur', as: 'v', op: 9.9, van: 1, tot: 2, scharnier: 'tot', kant: -1 },
+          { id: 'o2', soort: 'schuifpui', as: 'v', op: 9.9, van: 2.2, tot: 5.4, schuift: 'van' },
+          // Een kant van 2 of een scharnier in het midden bestaat niet: dan geldt wat de tekening kiest.
+          { id: 'o3', soort: 'dubbel', as: 'u', op: 3.6, van: 4, tot: 5.6 },
+        ],
+      },
+    });
+  });
+});

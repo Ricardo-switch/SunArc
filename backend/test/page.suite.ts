@@ -8158,7 +8158,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         // De voorgevel kiezen, zoals na het aantikken: de buitenmuur onderaan, in het midden.
         await p.evaluate(`(() => { const t = window.tekenaar; const v = t.vloer(); const o = t.omtrek(); const run = huistekenen.randen(v, huistekenen.isMuur).find((r) => r.as === 'y' && r.op === o.y0 && r.soort === 2); t.kies({ soort: 'muur', run, bij: (run.van + run.tot) / 2 }); })()`);
         const blad = p.locator(`${kant} #blad`);
-        await expect.poll(() => blad.textContent(), { message: naam }).toContain('Raam hier');
+        await expect.poll(() => blad.textContent(), { message: naam }).toContain('Schuifpui');
         await blad.locator('[data-ht="opening-plaats"][data-soort="raam"]').click();
         await expect.poll(() => blad.textContent(), { message: naam }).toContain('Breedte');
         await expect.poll(() => p.locator(`${kant} [data-bewaard]`).textContent(), { timeout: 10_000, message: naam }).toBe('Bewaard');
