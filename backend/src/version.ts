@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.208.0';
+export const VERSIE = '0.208.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,14 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.208.1',
+    datum: '2026-11-20',
+    opgelost: ['Je huis › Vorm: een garage of tuinhuis van de kaart die je aan je huis toewees, verdween van de begane grond (het staat op het erf). Nu blijft het te zien met "bij Buiten", en het blad heeft Naar Buiten, het dak en Weghalen'],
+    en: {
+      opgelost: ['Your home › Shape: a garage or shed from the map that you assigned to your home disappeared from the ground floor (it is on the plot). It now stays visible with "under Outside", and its sheet has To Outside, the roof and Remove'],
+    },
+  },
   {
     versie: '0.208.0',
     datum: '2026-11-20',

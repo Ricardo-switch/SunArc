@@ -8252,10 +8252,17 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         // Een eigen ruimte, op het erf (19 november 2026: wat los staat, staat buiten).
         const ruimte = await p.evaluate<boolean>(`(() => { const t = window.tekenaar; const b = t.huis.bronnen[t.st.bron].blokken.find((x) => x.soort === 'tuinhuis'); const v = t.st.vloeren.buiten ?? t.st.vloeren.bg; const x = 30 + Math.round((b.u + b.b / 2) * 10); const y = 30 + Math.round((b.v + b.d / 2) * 10); return v.cel[y * v.W + x] !== -1; })()`);
         expect(ruimte, naam).toBe(true);
+        // Bij Vorm op de begane grond blijft het te zien, met "bij Buiten" (20 november 2026: eerst verdween het).
+        const metErf = await p.evaluate<boolean>('!!window.tekenaar.erfEtage()');
+        if (metErf) {
+          expect(await p.locator(`${kant} #tekening .ht-op-erf`).count(), naam).toBe(1);
+          expect(await p.locator(`${kant} #tekening`).textContent(), naam).toContain('bij Buiten');
+        }
         if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
         // Weer weg: het gebouw aantikken, Weghalen; daarna staat het weer grijs.
         await p.evaluate(`window.tekenaar.kies({ soort: 'blok', id: window.tekenaar.huis.bronnen[window.tekenaar.st.bron].blokken.find((x) => x.soort === 'tuinhuis').id })`);
         await expect.poll(() => blad.textContent(), { message: naam }).toContain('Weghalen');
+        if (metErf) expect(await blad.locator('[data-ht="naar-buiten"]').count(), naam).toBe(1);
         await Promise.all([p.waitForEvent('load'), blad.locator('[data-ht="gebouw-weg"]').click()]);
         await klaar();
         expect(extra(), naam).toBe(0);

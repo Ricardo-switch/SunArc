@@ -618,6 +618,12 @@
      * erf en niet meer op de begane grond. Het huis ligt op het erf als één vast vak.
      */
     const losBuiten = (x) => ['tuinhuis', 'carport', 'anders'].includes(x.soort) || (x.soort === 'garage' && !huis.garageBinnen);
+    /*
+     * Bij Vorm op de begane grond (Ricardo, 20 november 2026: "zodra ik de
+     * garage of schuur toewijs verdwijnen ze"): wat op het erf staat, blijft
+     * te zien met zijn naam en "bij Buiten"; een tik brengt je daarheen.
+     */
+    const opErfBlokken = () => (etageVan(st.etage)?.buiten || !huis.etages.some((e) => e.buiten) ? [] : bijBlokken().filter((x) => losBuiten(x)));
     const zetBlokken = () => {
       const b = huis.bronnen?.[st.bron];
       if (!b) return;
@@ -811,13 +817,12 @@
       const o = { x0: Math.min(...os.map((x) => x.x0)), y0: Math.min(...os.map((x) => x.y0)), x1: Math.max(...os.map((x) => x.x1)), y1: Math.max(...os.map((x) => x.y1)) };
       const rand = st.stand === 'vorm' ? 16 : 7;
       if (st.stand === 'vorm') {
-        for (const q of omgeving()) {
-          for (const [x, y] of q.punten) {
-            o.x0 = Math.min(o.x0, MARGE + x / CEL);
-            o.x1 = Math.max(o.x1, MARGE + x / CEL);
-            o.y0 = Math.min(o.y0, MARGE + y / CEL);
-            o.y1 = Math.max(o.y1, MARGE + y / CEL);
-          }
+        const randpunten = [...omgeving().flatMap((q) => q.punten), ...opErfBlokken().flatMap((q) => [[q.u, q.v], [q.u + q.b, q.v + q.d]])];
+        for (const [x, y] of randpunten) {
+          o.x0 = Math.min(o.x0, MARGE + x / CEL);
+          o.x1 = Math.max(o.x1, MARGE + x / CEL);
+          o.y0 = Math.min(o.y0, MARGE + y / CEL);
+          o.y1 = Math.max(o.y1, MARGE + y / CEL);
         }
       }
       return { x0: o.x0 - rand, y0: o.y0 - rand - 3, x1: o.x1 + rand, y1: o.y1 + rand };
@@ -988,6 +993,8 @@
           const aan = st.kies?.soort === 'omgeving' && st.kies.i === q.i;
           s += `<polygon class="ht-omgeving" points="${q.punten.map(([x, y]) => `${(MARGE + x / CEL).toFixed(1)},${(MARGE + y / CEL).toFixed(1)}`).join(' ')}" fill="${aan ? 'rgb(111 211 255 / 0.22)' : 'rgb(255 255 255 / 0.07)'}" stroke="${aan ? '#6fd3ff' : 'rgb(255 255 255 / 0.35)'}" stroke-width="${aan ? 3 : 1.5}" stroke-dasharray="${aan ? '' : '6 5'}" vector-effect="non-scaling-stroke"/>`;
         }
+        // Wat bij je huis hoort maar op het erf staat: een lichte, doorgetrokken rand.
+        for (const q of opErfBlokken()) s += `<rect class="ht-op-erf" x="${(MARGE + q.u / CEL).toFixed(1)}" y="${(MARGE + q.v / CEL).toFixed(1)}" width="${(q.b / CEL).toFixed(1)}" height="${(q.d / CEL).toFixed(1)}" fill="rgb(169 230 255 / 0.08)" stroke="#a9e6ff" stroke-opacity="0.7" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`;
       }
       for (const [id, d] of Object.entries(paden)) {
         const r = v.ruimtes[id];
@@ -1111,7 +1118,14 @@
           const [x0, y0, x1, y1] = [X(MARGE + b.u / CEL), Y(MARGE + b.v / CEL), X(MARGE + (b.u + b.b) / CEL), Y(MARGE + (b.v + b.d) / CEL)];
           if (aan) s += `<rect x="${Math.min(x0, x1).toFixed(1)}" y="${Math.min(y0, y1).toFixed(1)}" width="${Math.abs(x1 - x0).toFixed(1)}" height="${Math.abs(y1 - y0).toFixed(1)}" fill="rgb(111 211 255 / 0.14)" stroke="#6fd3ff" stroke-width="3" pointer-events="none"/>`;
           const naam = T(`ht.bron.blok.${b.soort}`);
-          if (Math.abs(x1 - x0) > naam.length * 6.5) s += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${((y0 + y1) / 2 + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="rgb(255 255 255 / 0.7)" pointer-events="none">${esc(naam.charAt(0).toUpperCase() + naam.slice(1))}</text>`;
+          const Naam = esc(naam.charAt(0).toUpperCase() + naam.slice(1));
+          const past = Math.abs(x1 - x0) > naam.length * 6.5;
+          // Op het erf (20 november 2026): de naam met "bij Buiten", erboven als het gebouw te smal is.
+          if (opErfBlokken().some((q) => q.id === b.id)) {
+            const ty = past ? (y0 + y1) / 2 - 2 : Math.min(y0, y1) - 22;
+            s += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="#a9e6ff" pointer-events="none">${Naam}</text>`;
+            s += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${(ty + 14).toFixed(1)}" text-anchor="middle" ${FONT} font-size="11" font-weight="600" fill="rgb(169 230 255 / 0.75)" pointer-events="none">${esc(T('ht.gebouw.bijBuiten'))}</text>`;
+          } else if (past) s += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${((y0 + y1) / 2 + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="rgb(255 255 255 / 0.7)" pointer-events="none">${Naam}</text>`;
         }
       }
       laag('namen').innerHTML = s;
@@ -2216,6 +2230,9 @@
       vak: nieuwVak,
       haalWeg,
       kiesBron,
+      /** Of een gebouw bij Vorm op het erf staat (20 november 2026), en de etage Buiten. */
+      opErf: (id) => opErfBlokken().some((q) => q.id === id),
+      erfEtage: () => huis.etages.find((e) => e.buiten)?.id ?? null,
       buurVoor: (id) => buurVoor(vloer(), id),
       verplaatsbaar: (id) => verplaatsbaar(vloer(), id),
       zones: () => zonesOp(vloer()),
@@ -2376,7 +2393,8 @@
         const b = (t.huis.bronnen?.[st.bron]?.blokken ?? []).find((q) => q.id === st.kies.id);
         const naam = b ? T(`ht.bron.blok.${b.soort}`) : '';
         s = `<header><h3>${esc(naam.charAt(0).toUpperCase() + naam.slice(1))}</h3>${b ? `<span>${nl(b.b)} × ${nl(b.d)} m</span>` : ''}</header>
-          <p class="ht-zin">${esc(T('ht.gebouw.blokZin'))}</p>
+          <p class="ht-zin">${esc(T(b && t.opErf(b.id) ? 'ht.gebouw.blokZinErf' : 'ht.gebouw.blokZin'))}</p>
+          ${b && t.opErf(b.id) && t.erfEtage() ? rij({ ik: 'tuin', titel: T('ht.gebouw.naarBuiten'), zin: T('ht.gebouw.naarBuitenZin'), rechts: '›', data: 'data-ht="naar-buiten"' }) : ''}
           ${st.gebouwFout ? `<p class="ht-niet">${esc(st.gebouwFout)}</p>` : ''}
           ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : `${dakDeel(t, b)}${rij({ ik: 'kruis', titel: T('ht.gebouw.weg'), zin: T('ht.gebouw.wegZin'), data: 'data-ht="gebouw-weg"' })}`}
           ${rij({ ik: 'thuis', titel: T('ht.gebouw.terug'), zin: '', data: 'data-ht="gebouw-terug"' })}`;
@@ -2567,6 +2585,7 @@
           teken();
         });
       }
+      else if (d.ht === 'naar-buiten' && t.erfEtage()) t.zetEtage(t.erfEtage());
       else if ((d.ht === 'gebouw-erbij' || d.ht === 'gebouw-weg') && t.gebouw && !st.gebouwBezig) {
         st.gebouwBezig = true;
         teken();

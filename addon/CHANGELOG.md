@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.208.0
+## 0.208.1
 
-*20 november 2026 · 0.179.0 – 0.208.0*
+*20 november 2026 · 0.179.0 – 0.208.1*
 
 **Nieuw**
 
@@ -138,6 +138,7 @@
 
 **Opgelost**
 
+- Je huis › Vorm: een garage of tuinhuis van de kaart die je aan je huis toewees, verdween van de begane grond (het staat op het erf). Nu blijft het te zien met "bij Buiten", en het blad heeft Naar Buiten, het dak en Weghalen
 - Je huis › Vorm: opnieuw kijken bij dezelfde kaart haalt nu ook de dakvlakken en de hoogtes van 3D BAG op; een huis dat zijn kaart al eerder koos, kreeg daardoor geen scheef dak en geen dakkapel. Een dakvorm die je zelf koos, blijft
 - Opbrengst: een klein blok in de stroomtekening, zoals de elektrische haard, had zijn naam naast Rest van het huis staan
 - Je huis › Buiten: de erfgrens schuift tot tegen het huis of de garage, zoals bij een twee-onder-een-kap; een strook tuin langs de rand mag helemaal weg
@@ -306,6 +307,7 @@
 
 **Fixed**
 
+- Your home › Shape: a garage or shed from the map that you assigned to your home disappeared from the ground floor (it is on the plot). It now stays visible with "under Outside", and its sheet has To Outside, the roof and Remove
 - Your home › Shape: looking again with the same map now also fetches the roof planes and heights from 3D BAG; a house that chose its map earlier got no sloping roof and no dormer. A roof shape you chose yourself stays
 - Results: a small block in the flow chart, such as the electric fire, had its name next to Rest of the house
 - Your home › Outside: the plot boundary moves right up to the house or garage, as with a semi-detached house; a strip of garden along the edge may go entirely
