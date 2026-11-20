@@ -534,6 +534,38 @@
     }
     // Een strookje zonder naam van hooguit 20 cm (een verschil in afronding tussen de tekening en de kaart) gaat op in het vak ernaast (20 november 2026).
     const m = maten(v);
+    /*
+     * Een strook zonder naam langs een buitengevel, hooguit 1 m breed en
+     * minstens 3 m lang (20 november 2026, Ricardo: na een dieper huis op de
+     * kaart bleef op elke etage 5,6 bij 0,9 m over): de kamers ernaast lopen
+     * door tot de gevel, elk stukje naar de kamer er recht naast.
+     */
+    for (const [rid, r] of Object.entries(v.ruimtes)) {
+      const mm = m[rid];
+      if (r.kamer || r.naam || r.blok || !mm) continue;
+      const [bx, by] = [mm.x1 - mm.x0, mm.y1 - mm.y0];
+      const smal = Math.min(bx, by);
+      if (smal <= 2 || smal > 10 || Math.max(bx, by) < 30 || mm.n < 0.9 * bx * by) continue;
+      const id = Number(rid);
+      const opY = by <= bx;
+      const tegenGevel = opY ? [mm.y0 - 1, mm.y1].some((y) => y < 0 || y >= v.H || v.cel[y * v.W + Math.floor((mm.x0 + mm.x1) / 2)] === BUITEN) : [mm.x0 - 1, mm.x1].some((x) => x < 0 || x >= v.W || v.cel[Math.floor((mm.y0 + mm.y1) / 2) * v.W + x] === BUITEN);
+      if (!tegenGevel) continue;
+      const naar = (x, y) => {
+        // Langs de smalle kant zoeken naar de eerste kamer die er niet bij hoort.
+        for (let d = 1; d <= smal + 1; d++) {
+          for (const t of opY ? [[x, y - d], [x, y + d]] : [[x - d, y], [x + d, y]]) {
+            const [tx, ty] = t;
+            if (tx < 0 || ty < 0 || tx >= v.W || ty >= v.H) continue;
+            const n = v.cel[ty * v.W + tx];
+            if (n !== id && n !== BUITEN) return n;
+          }
+        }
+        return null;
+      };
+      const nieuw = [];
+      for (let y = mm.y0; y < mm.y1; y++) for (let x = mm.x0; x < mm.x1; x++) if (v.cel[y * v.W + x] === id) nieuw.push([y * v.W + x, naar(x, y)]);
+      if (nieuw.every(([, n]) => n != null)) for (const [i, n] of nieuw) v.cel[i] = n;
+    }
     for (const [rid, r] of Object.entries(v.ruimtes)) {
       const mm = m[rid];
       if (r.kamer || r.naam || r.blok || !mm || Math.min(mm.x1 - mm.x0, mm.y1 - mm.y0) > 2) continue;

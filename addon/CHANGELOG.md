@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.209.1
+## 0.209.2
 
-*20 november 2026 · 0.179.0 – 0.209.1*
+*20 november 2026 · 0.179.0 – 0.209.2*
 
 **Nieuw**
 
@@ -142,6 +142,7 @@
 
 **Opgelost**
 
+- Je huis: wordt je huis op de kaart dieper of breder, dan blijft er geen strook "Wat is dit?" langs de gevel over; de kamers ernaast lopen door tot de gevel
 - Je huis: een garage van de kaart die je eerder aanwees, krijgt vanzelf de goede maat (zonder het schuurtje erachter); weghalen en opnieuw aanwijzen hoeft niet meer
 - Je huis: een smal aanhangsel achter de garage (een schuurtje dat op de kaart vastzit aan het huis) telt niet meer mee in de garage; de garage krijgt zijn echte lengte en breedte
 - Je huis › Buiten: staat een woning tegen de garage, dan ligt de erfgrens ook daar strak tegen de garage, niet alleen tegen het huis
@@ -323,6 +324,7 @@
 
 **Fixed**
 
+- Your home: if your house becomes deeper or wider on the map, no "What is this?" strip is left along the wall; the rooms next to it run up to the wall
 - Your home: a garage from the map that you assigned earlier gets the right size by itself (without the shed behind it); removing and assigning it again is no longer needed
 - Your home: a narrow annex behind the garage (a shed joined to the house on the map) no longer counts as part of the garage; the garage gets its real length and width
 - Your home › Outside: if a house stands against the garage, the plot boundary there also lies right against the garage, not only against the house
