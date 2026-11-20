@@ -577,7 +577,7 @@
      * `zon.opRechts` zegt het, anders het kompas van het model, anders links.
      * Eerst kwam hij altijd links op, ook als daar het westen lag.
      */
-    const opRechts = model.zon?.opRechts ?? (voorDegVan(model) != null ? Math.cos(((180 - voorDegVan(model)) * Math.PI) / 180) > 0 : false);
+    const opRechts = model.zon?.opRechts ?? (voorDegVan(model) != null ? Math.cos(((180 - voorDegVan(model)) * Math.PI) / 180) > 0.5 : false);
     const opkomst = opRechts ? 1 : -1;
     /*
      * De echte zon (28 oktober 2026, schets Wand-Huis-Ligging): met `zon.nu`

@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.209.4
+## 0.209.5
 
-*20 november 2026 · 0.179.0 – 0.209.4*
+*20 november 2026 · 0.179.0 – 0.209.5*
 
 **Nieuw**
 
@@ -74,6 +74,7 @@
 
 **Beter**
 
+- Thuis: kijkt je voorgevel naar het oosten of westen, dan gaat de zon weer van links naar rechts over de boog, en niet terug
 - Je huis: één apparaat is één icoon. De schijnwerper en de bewegingsmelder van een camera staan niet meer los in de tekening, maar onder Zit er ook in in het blad van de camera, en verhuizen mee
 - Je huis: een bewegingsmelder heeft een eigen icoon in plaats van een thermometer; de temperatuur die hij ook meet, staat in zijn blad
 - Je huis: de deurbel uit Licht, camera’s en weer gaat vanzelf naast de voordeur, ook als hij geen "deurbel" heet
@@ -260,6 +261,7 @@
 
 **Improved**
 
+- Home: if your front faces east or west, the sun now crosses the arc from left to right again, not backwards
 - Your home: one device is one icon. The floodlight and the motion sensor of a camera no longer stand apart in the drawing, but under Also built in on the camera’s sheet, and move along with it
 - Your home: a motion sensor has its own icon instead of a thermometer; the temperature it also measures is on its sheet
 - Your home: the doorbell from Lights, cameras and weather goes next to the front door by itself, even if it is not called "doorbell"

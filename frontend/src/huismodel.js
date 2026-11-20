@@ -576,11 +576,15 @@
    * Komt de zon in de tekening rechts op (25 oktober 2026)? Rechts ligt de
    * richting van het kompas min 90°; het oosten aan die kant. Zonder ligging
    * null: dan links, zoals het was.
+   * Alleen als de voorgevel duidelijk naar het zuiden kijkt (20 november 2026):
+   * kijkt hij naar het oosten of westen, dan staat de zon het grootste deel van
+   * de dag opzij en gaat hij gewoon van links naar rechts. Bij 97° kwam hij
+   * eerst rechts op en liep hij naar links.
    */
   function zonOpRechts(lig, p) {
     const k = kompasVan(lig, p);
     if (!k) return null;
-    return Math.cos(((180 - k.voorgevelDeg) * Math.PI) / 180) > 0;
+    return Math.cos(((180 - k.voorgevelDeg) * Math.PI) / 180) > 0.5;
   }
 
   /**

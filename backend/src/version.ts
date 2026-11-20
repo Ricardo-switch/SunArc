@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.209.4';
+export const VERSIE = '0.209.5';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.209.5',
+    datum: '2026-11-20',
+    beter: [
+      'Thuis: kijkt je voorgevel naar het oosten of westen, dan gaat de zon weer van links naar rechts over de boog, en niet terug',
+    ],
+    en: {
+      beter: [
+        'Home: if your front faces east or west, the sun now crosses the arc from left to right again, not backwards',
+      ],
+    },
+  },
   {
     versie: '0.209.4',
     datum: '2026-11-20',
