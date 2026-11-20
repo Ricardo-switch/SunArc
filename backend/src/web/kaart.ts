@@ -109,18 +109,32 @@ export function kaartVak(lat: number, lon: number): { zuid: number; west: number
   return { zuid: r(z - RAND.lat), west: r(w - RAND.lon), noord: r(z + CEL.lat + RAND.lat), oost: r(w + CEL.lon + RAND.lon), sleutel: `${r(z)},${r(w)}` };
 }
 
-/** De vraag aan Overpass: alle gebouwen in het vak, met hun omtrek. */
+/**
+ * De vraag aan Overpass: alle gebouwen in het vak, met hun omtrek; sinds ronde
+ * 2 (20 november 2026) ook de straten en de adressen in hetzelfde vak, om de
+ * straat van je adres onder te zetten. Nog steeds het vak, niet de plek.
+ */
 export const overpassVraag = (lat: number, lon: number) => {
   const v = kaartVak(lat, lon);
-  return `[out:json][timeout:50];way(${v.zuid},${v.west},${v.noord},${v.oost})["building"];out geom;`;
+  const vak = `(${v.zuid},${v.west},${v.noord},${v.oost})`;
+  return `[out:json][timeout:50];(way${vak}["building"];way${vak}["highway"~"^(residential|living_street|unclassified|tertiary|secondary|primary|trunk|pedestrian)$"];node${vak}["addr:street"];);out geom;`;
 };
+
+interface OsmElement {
+  readonly type?: string;
+  readonly lat?: number;
+  readonly lon?: number;
+  readonly geometry?: readonly Punt[];
+  readonly tags?: Readonly<Record<string, string>>;
+}
+const elementenVan = (antwoord: unknown): readonly OsmElement[] => (antwoord as { elements?: OsmElement[] })?.elements ?? [];
 
 /** Staan er in het antwoord gebouwen? Zo niet, dan kent de kaart de wijk niet (6 november 2026). */
 export const heeftGebouwen = (antwoord: unknown) => omtrekkenVan(antwoord).length > 0;
 
-/** De omtrekken uit een antwoord van Overpass. */
+/** De omtrekken van de gebouwen uit een antwoord van Overpass (geen straten, geen adressen). */
 const omtrekkenVan = (antwoord: unknown): Punt[][] =>
-  ((antwoord as { elements?: { geometry?: { lat: number; lon: number }[] }[] })?.elements ?? []).map((e) => e.geometry ?? []).filter((g) => g.length >= 4);
+  elementenVan(antwoord).filter((e) => !e.tags?.['highway'] && e.type !== 'node').map((e) => (e.geometry ?? []) as Punt[]).filter((g) => g.length >= 4);
 
 const afstandM = (g: readonly Punt[], p: Punt) => {
   const m = g.reduce((s, q) => ({ lat: s.lat + q.lat / g.length, lon: s.lon + q.lon / g.length }), { lat: 0, lon: 0 });
@@ -173,4 +187,92 @@ export async function haalKaart(lat: number, lon: number, doe: typeof fetch = fe
 /** Vraagt Overpass om de omtrek van het huis; null als hij er niet is. */
 export async function haalOmtrek(lat: number, lon: number, doe: typeof fetch = fetch): Promise<readonly Punt[] | null> {
   return kiesGebouw(await haalKaart(lat, lon, doe), { lat, lon });
+}
+
+/* ------------------------------------------------------------------ ronde 2: labels en straten (20 november 2026) */
+
+/** Wat de plattegrond van het huis zelf weet (buiten Nederland is er geen 3D-kaart): de lagen, de hoogte en het dak. */
+export interface OsmLabels {
+  readonly lagen: number | null;
+  /** De hoogte tot de nok (`height`), en tot de goot als `roof:height` erbij staat. */
+  readonly nok: number | null;
+  readonly goot: number | null;
+  readonly dak: 'zadel' | 'schild' | 'lessenaar' | 'plat' | null;
+}
+
+const DAKEN: Readonly<Record<string, OsmLabels['dak']>> = { flat: 'plat', gabled: 'zadel', hipped: 'schild', 'half-hipped': 'schild', pyramidal: 'schild', skillion: 'lessenaar', lean_to: 'lessenaar' };
+const meter = (x: string | undefined, min: number, max: number): number | null => {
+  if (x == null || /'|ft/.test(x)) return null;
+  const n = Number.parseFloat(x.replace(',', '.'));
+  return Number.isFinite(n) && n >= min && n <= max ? Math.round(n * 10) / 10 : null;
+};
+
+/** De labels van het gebouw waar het huis in ligt: `building:levels`, `height`, `roof:height`, `roof:shape`. Null zonder huis. */
+export function labelsVan(antwoord: unknown, p: Punt): OsmLabels | null {
+  const huis = kiesGebouw(antwoord, p);
+  const e = huis ? elementenVan(antwoord).find((x) => x.geometry === huis) : null;
+  if (!e) return null;
+  const t = e.tags ?? {};
+  const lagen = meter(t['building:levels'], 1, 20);
+  const nok = meter(t['height'], 2, 80);
+  const dakHoog = meter(t['roof:height'], 0, 30);
+  const dak = DAKEN[t['roof:shape'] ?? ''] ?? null;
+  const goot = nok != null && dakHoog != null ? Math.round((nok - dakHoog) * 10) / 10 : nok != null && dak === 'plat' ? nok : null;
+  return { lagen: lagen != null ? Math.round(lagen) : null, nok, goot: goot != null && goot >= 1 ? goot : null, dak };
+}
+
+/**
+ * Een straat bij het huis: waar hij ligt (de richting vanaf het midden van het
+ * huis, 0 is het noorden), hoe ver, en of het de straat van het adres is. De
+ * naam gaat niet mee: bewaard worden alleen richtingen en afstanden, zoals bij
+ * de vormen (besluit 254).
+ */
+export interface StraatBij {
+  readonly richtingDeg: number;
+  readonly afstand: number;
+  readonly adres: boolean;
+}
+
+/** Het dichtstbijzijnde punt van een lijn bij nul, in meters. */
+function dichtstBij(lijn: readonly (readonly [number, number])[]): [number, number] | null {
+  let best: [number, number] | null = null;
+  for (let i = 0; i + 1 < lijn.length; i++) {
+    const [a, b] = [lijn[i]!, lijn[i + 1]!];
+    const [dx, dy] = [b[0] - a[0], b[1] - a[1]];
+    const l2 = dx * dx + dy * dy;
+    const t = l2 ? Math.max(0, Math.min(1, -(a[0] * dx + a[1] * dy) / l2)) : 0;
+    const q: [number, number] = [a[0] + t * dx, a[1] + t * dy];
+    if (!best || Math.hypot(...q) < Math.hypot(...best)) best = q;
+  }
+  return best;
+}
+
+/**
+ * De straten bij het huis (ronde 2): elke straat met een naam binnen 45 meter
+ * van het midden van het huis, de dichtstbijzijnde eerst, hooguit vier; de
+ * straat van het adres (een adrespunt in het huis, of het adres op het
+ * gebouw) krijgt `adres`.
+ */
+export function stratenBij(antwoord: unknown, p: Punt): StraatBij[] {
+  const huis = kiesGebouw(antwoord, p);
+  if (!huis) return [];
+  const els = elementenVan(antwoord);
+  // Het midden van het huis; een omtrek die rond is (het eerste punt nog eens aan het eind) telt dat punt één keer.
+  const rond = huis.length > 1 && huis[0]!.lat === huis.at(-1)!.lat && huis[0]!.lon === huis.at(-1)!.lon ? huis.slice(0, -1) : huis;
+  const midden = rond.reduce((s, q) => ({ lat: s.lat + q.lat / rond.length, lon: s.lon + q.lon / rond.length }), { lat: 0, lon: 0 });
+  const eigen = els.find((x) => x.geometry === huis);
+  const adres = eigen?.tags?.['addr:street'] ?? els.find((x) => x.type === 'node' && x.tags?.['addr:street'] && x.lat != null && x.lon != null && binnen({ lat: x.lat, lon: x.lon }, huis))?.tags?.['addr:street'] ?? null;
+  const per = new Map<string, [number, number]>();
+  for (const e of els) {
+    const naam = e.tags?.['name'];
+    if (!e.tags?.['highway'] || !naam || !e.geometry || e.geometry.length < 2) continue;
+    const q = dichtstBij(e.geometry.map((g) => [(g.lon - midden.lon) * 111_320 * Math.cos(midden.lat * RAD), (g.lat - midden.lat) * 110_540] as [number, number]));
+    if (!q || Math.hypot(...q) > 45) continue;
+    const al = per.get(naam);
+    if (!al || Math.hypot(...q) < Math.hypot(...al)) per.set(naam, q);
+  }
+  return [...per.entries()]
+    .sort((a, b) => Math.hypot(...a[1]) - Math.hypot(...b[1]))
+    .slice(0, 4)
+    .map(([naam, q]) => ({ richtingDeg: norm((Math.atan2(q[0], q[1]) * 180) / Math.PI), afstand: Math.round(Math.hypot(...q)), adres: naam === adres }));
 }

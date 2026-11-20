@@ -133,6 +133,13 @@ export interface Daken {
   readonly omgeving?: readonly (readonly Xy[])[];
   /** Wat de bewoner weghaalde omdat het er niet meer staat (ronde 2): tot 20, met Terug. */
   readonly weg?: readonly WegGebouw[];
+  /**
+   * De straten bij het huis uit de plattegrond (ronde 2 versie 2): alleen de
+   * richting vanaf het huis, de afstand en of het de straat van het adres is,
+   * geen namen. `straatBevestigd`: de bewoner zei Klopt of koos zelf een kant.
+   */
+  readonly straten?: readonly { readonly richtingDeg: number; readonly afstand: number; readonly adres: boolean }[];
+  readonly straatBevestigd?: boolean;
   /** Wat elke omvormer hooguit levert, als de bewoner het invulde (stap 4), in W per sensor. */
   readonly grenzen?: Readonly<Record<string, number>>;
   /** Wat de kaarten over het huis zeiden, de laatste keer dat de bewoner keek (6 november 2026). */
@@ -329,6 +336,15 @@ export function leesDaken(raw: unknown): { daken: Daken | null } | { fout: strin
       })
     : null;
   if (!weg || weg.some((w) => w == null)) return { fout: 'wat weg is: tot 20 gebouwen met een omtrek in meters' };
+  // De straten bij het huis (ronde 2): tot vier, met een richting, een afstand en of het die van het adres is.
+  const stratenRaw = r['straten'] ?? [];
+  const straten = Array.isArray(stratenRaw) && stratenRaw.length <= 4
+    ? stratenRaw.map((x) => {
+        const o = (typeof x === 'object' && x != null && !Array.isArray(x) ? x : {}) as Record<string, unknown>;
+        return getal(o['richtingDeg'], 0, 360) && getal(o['afstand'], 0, 200) && typeof o['adres'] === 'boolean' ? { richtingDeg: o['richtingDeg'] as number, afstand: o['afstand'] as number, adres: o['adres'] as boolean } : null;
+      })
+    : null;
+  if (!straten || straten.some((x) => x == null)) return { fout: 'de straten: tot vier, met een richting, een afstand en adres ja of nee' };
   if (lijst.length === 0 && gebouwen.length === 0) return { daken: null };
   const grenzenRaw = r['grenzen'] ?? {};
   if (typeof grenzenRaw !== 'object' || Array.isArray(grenzenRaw) || Object.entries(grenzenRaw as object).some(([k, w]) => !/^sensor\.[a-z0-9_]{1,160}$/.test(k) || !getal(w, 100, 100_000))) {
@@ -394,6 +410,8 @@ export function leesDaken(raw: unknown): { daken: Daken | null } | { fout: strin
       ...(gebouwen.length ? { gebouwen } : {}),
       ...(omgeving.length ? { omgeving: omgeving as Xy[][] } : {}),
       ...(weg.length ? { weg: weg as WegGebouw[] } : {}),
+      ...(straten.length ? { straten: straten as { richtingDeg: number; afstand: number; adres: boolean }[] } : {}),
+      ...(r['straatBevestigd'] === true ? { straatBevestigd: true } : {}),
       ...(Object.keys(grenzen).length ? { grenzen: { ...grenzen } } : {}),
       ...(kaartStand ? { kaartStand } : {}),
       ...(kaartDak?.length ? { kaartDak } : {}),

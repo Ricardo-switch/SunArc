@@ -9,7 +9,7 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, gebouwMaat, gebouwBestaatNiet, gebouwTerug, gebouwAfdak, huisUitTekening, kaartVernieuwd, gebouwKapel, woningUitKaart, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, bijfuncties, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, gebouwMaat, gebouwBestaatNiet, gebouwTerug, gebouwAfdak, stratenMetKant, straatKies, type StraatKant, huisUitTekening, kaartVernieuwd, gebouwKapel, woningUitKaart, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, bijfuncties, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
 import { DAKVORMEN, leesDaken, leesKapellen, type Daken, type Dakvorm, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
@@ -347,6 +347,11 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
  * `{ kijk: true }` vraagt de kaarten, na de melding, en onthoudt bij Daken wat
  * ze zeiden.
  */
+/** Is er al iets getekend (kamers, deuren of ramen)? Dan draait een andere voorkant de tekening niet mee. */
+function getekend(l: { readonly plattegrond?: Readonly<Record<string, readonly { readonly vakken: readonly unknown[] }[]>>; readonly openingen?: Readonly<Record<string, readonly unknown[]>> }): boolean {
+  return Object.values(l.plattegrond ?? {}).some((x) => x.some((r) => r.vakken.length > 0)) || Object.values(l.openingen ?? {}).some((x) => x.length > 0);
+}
+
 async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
   const { req, res, url, method } = v;
   const door = d.options.layout;
@@ -382,13 +387,45 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       if (vorm.daken && d.options.connection) {
         // Bij dezelfde kaart ook de dakvlakken en ontbrekende hoogtes van nu (stap 4 punt 3); wat de bewoner koos, blijft.
         const vers = kaartVernieuwd(vorm.daken, vorm.bron, kaarten) ?? vorm.daken;
-        const fout = await bewaarDaken(d.options.connection, { ...vers, kaartStand: stand });
+        // Ronde 2 versie 2: de straten bij het huis uit de plattegrond (alleen richting, afstand en of het die van het adres is).
+        const straten = kaarten.osm?.straten;
+        const fout = await bewaarDaken(d.options.connection, { ...vers, kaartStand: stand, ...(straten?.length ? { straten: straten.map((x) => ({ richtingDeg: x.richtingDeg, afstand: x.afstand, adres: x.adres })) } : {}) });
         if (fout) {
           sendJson(res, 400, { fout });
           return;
         }
       }
       sendJson(res, 200, { kaarten: stand });
+      return;
+    }
+    // De straat aan een kant van het huis (ronde 2 versie 2): `voor` bevestigt; een andere kant draait de voorkant, alleen zolang er nog niets getekend is.
+    const sb = b['straat'];
+    if (typeof sb === 'object' && sb != null && !Array.isArray(sb)) {
+      const kant = (sb as Record<string, unknown>)['kant'];
+      if (!['voor', 'links', 'rechts', 'achter'].includes(kant as string) || !vorm.daken || !d.options.connection) {
+        sendJson(res, 400, { fout: 'verwacht { straat: { kant: voor, links, rechts of achter } } bij een huis met daken' });
+        return;
+      }
+      if (kant !== 'voor' && getekend(basis)) {
+        sendJson(res, 409, { fout: 'er is al getekend; de tekening draait niet mee' });
+        return;
+      }
+      const nieuw = straatKies(vorm.daken, kant as StraatKant);
+      if (!nieuw) {
+        sendJson(res, 409, { fout: 'er is geen hoofdhuis' });
+        return;
+      }
+      const fout = await bewaarDaken(d.options.connection, nieuw);
+      if (fout) {
+        sendJson(res, 400, { fout });
+        return;
+      }
+      // De muren tegen de buren gelden van de straat af gezien: na een andere voorkant stelt de kaart ze opnieuw voor.
+      if (kant !== 'voor' && basis.buren && door.store.current) {
+        const { buren: _b, ...zonder } = basis;
+        await door.store.save(zonder);
+      }
+      sendJson(res, 200, { bewaard: true });
       return;
     }
     // Een gebouw van de kaart erbij, of weer weg (0.185.0), of zijn dak (stap 4: het dak teken je hier, Zonnepanelen legt de panelen erop).
@@ -600,6 +637,10 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     verdieping: basis.verdieping ?? null,
     erboven: basis.erboven ?? null,
     woningKaart: woningUitKaart(nu0.blokken, nu0.omgeving),
+    // Ronde 2 versie 2: de straten bij het huis met de kant waar ze liggen, of de bewoner het bevestigde, en of er al getekend is.
+    straten: vorm.daken ? stratenMetKant(vorm.daken) : [],
+    straatBevestigd: vorm.daken?.straatBevestigd === true,
+    getekend: getekend(basis),
     // Van boven naar beneden, zoals het huis opzij.
     // Stap 3 (Je huis aangevuld): welke etage onder het schuine dak ligt, voor het blad van de etage.
     etages: binnen.map((e, i) => ({ id: e.id, naam: e.naam, hoogte: hoogtes[i], dak: huis.dakEtage === e.id })),

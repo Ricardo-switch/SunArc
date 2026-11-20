@@ -598,6 +598,9 @@ export interface KaartHuis {
   readonly omgeving?: readonly (readonly (readonly [number, number])[])[];
   readonly dak?: { readonly dakvorm: Dakvorm; readonly nokDeg: number; readonly vlakken: readonly KaartDakvlak[] };
   readonly hoogte?: { readonly goot: number | null; readonly nok: number | null; readonly lagen: number | null };
+  /** Uit OpenStreetMap (ronde 2 versie 2): wat het gebouw zelf zegt, voor een huis zonder 3D-kaart; en de straten erbij. */
+  readonly labels?: { readonly lagen: number | null; readonly nok: number | null; readonly goot: number | null; readonly dak: Dakvorm | null };
+  readonly straten?: readonly { readonly richtingDeg: number; readonly afstand: number; readonly adres: boolean }[];
 }
 
 /** Welke bron het huis bij Daken en panelen nu tekent. */
@@ -640,8 +643,10 @@ export function dakenMetBron(d: Daken, bron: VormBron, kaart: KaartHuis | null, 
   // De plattegrond met de 3D-kaart erbij (Ricardo, 13 november 2026: combineren in plaats van gokken): de omtrek
   // van OpenStreetMap, het dak, de hoogte en de dakvlakken van 3D BAG als die het huis ook kent.
   const metDak = bron === 'bag3d' ? kaart : bron === 'osm' && bag?.stand === 'huis' ? bag : null;
-  const dak = metDak?.dak ? { dakvorm: metDak.dak.dakvorm, nokDeg: metDak.dak.nokDeg, dakBron: 'kaart' as const } : {};
-  const h = metDak?.hoogte;
+  // Buiten Nederland (ronde 2 versie 2): zonder 3D-kaart wat de plattegrond zelf van het huis zegt.
+  const lab = !metDak && bron === 'osm' ? kaart.labels : undefined;
+  const dak = metDak?.dak ? { dakvorm: metDak.dak.dakvorm, nokDeg: metDak.dak.nokDeg, dakBron: 'kaart' as const } : lab?.dak ? { dakvorm: lab.dak, dakBron: 'kaart' as const } : {};
+  const h = metDak?.hoogte ?? (lab ? { goot: lab.goot ?? (lab.nok != null && lab.lagen != null ? Math.min(lab.nok - 0.5, Math.round(lab.lagen * 28) / 10) : null), nok: lab.nok, lagen: lab.lagen } : undefined);
   const hoogte = { ...(h?.goot != null ? { hoogteGoot: h.goot } : {}), ...(h?.nok != null ? { hoogteNok: h.nok } : {}), ...(h?.lagen != null ? { lagen: h.lagen } : {}) };
   const huisId = oud.find((g) => g.soort === 'hoofdhuis')?.id ?? 'huis';
   const nieuwHuis = (g: Gebouw | null): Gebouw => {
@@ -673,7 +678,7 @@ function kaartDakVan(metDak: KaartHuis | null): { kaartDak?: KaartDakvlak[] } {
 export function kaartVernieuwd(d: Daken, bron: VormBron, kaarten: { readonly osm: KaartHuis | null; readonly bag3d: KaartHuis | null }): Daken | null {
   if (bron === 'zelf') return null;
   const bag = kaarten.bag3d?.stand === 'huis' ? kaarten.bag3d : null;
-  if (!bag) return null;
+  if (!bag) return bron === 'osm' ? labelsVernieuwd(d, kaarten.osm) : null;
   const huis = (d.gebouwen ?? []).find((g) => g.soort === 'hoofdhuis' && g.bron === 'kaart');
   if (!huis) return null;
   const { kaartDak } = kaartDakVan(bag);
@@ -709,6 +714,8 @@ export interface BronVorm {
   readonly weg?: readonly { readonly n: number; readonly soort: GebouwSoort | null; readonly b: number; readonly d: number }[];
   /** Het afdak dat 3D BAG ziet, maar dat er volgens de bewoner niet is (ronde 2): voor Terug. */
   readonly afdakWeg?: Afdak;
+  /** Een huis uit de plattegrond zonder 3D-kaart (ronde 2 versie 2): wat de plattegrond weet; null is geschat. */
+  readonly kaartWeet?: { readonly lagen: number | null; readonly goot: number | null; readonly nok: number | null; readonly dak: Dakvorm | null };
 }
 
 const m1 = (n: number) => Math.round(n * 10) / 10 + 0;
@@ -759,6 +766,7 @@ export function bronVorm(d: Daken, voorgevelDeg: number | null, woning: string |
     omgeving: v.omgeving.map((o) => ({ i: o.i, punten: o.punten.map(([u, w]) => [m1(u - v.nul.u), m1(w - v.nul.v)] as const) })),
     ...(d.weg?.length ? { weg: d.weg.map((w, n) => ({ n, soort: w.soort ?? null, ...wegMaat(w, v.kader ?? null) })) } : {}),
     ...(afdakWeg ? { afdakWeg } : {}),
+    ...(hoofd?.bron === 'kaart' && hoofd.kaart === 'osm' && !d.kaartDak?.length ? { kaartWeet: { lagen: hoofd.lagen ?? null, goot: hoofd.hoogteGoot ?? null, nok: hoofd.hoogteNok ?? null, dak: hoofd.dakBron === 'kaart' ? hoofd.dakvorm : null } } : {}),
   };
 }
 
@@ -1103,4 +1111,61 @@ export function gebouwWeg(d: Daken, id: string): Daken | null {
   // Ook een gebouw dat de bewoner op maat trok, komt met de maat van de kaart terug in het grijs (ronde 2).
   const terug = g.kaartOmtrek ? [g.kaartOmtrek.map((p) => [p[0], p[1]] as Xy)] : g.bron === 'kaart' ? [g.omtrek.map((p) => [p[0], p[1]] as Xy)] : [];
   return { ...d, vlakken: losVan(d.vlakken, [id]), gebouwen: gebouwen.filter((x) => x.id !== id), omgeving: [...dt.omgeving.map((o) => o.map((p) => [p[0], p[1]] as Xy)), ...terug].slice(0, 20) };
+}
+
+/* ------------------------------------------------------------------ ronde 2 versie 2: de plattegrond buiten Nederland, en de straat */
+
+/** Opnieuw kijken bij de plattegrond zonder 3D-kaart: wat het gebouw zegt, alleen waar nog niets stond; een dak van de bewoner blijft. */
+function labelsVernieuwd(d: Daken, osm: KaartHuis | null): Daken | null {
+  const lab = osm?.stand === 'huis' ? osm.labels : undefined;
+  const huis = (d.gebouwen ?? []).find((g) => g.soort === 'hoofdhuis' && g.bron === 'kaart');
+  if (!lab || !huis) return null;
+  const nieuwHuis: Gebouw = {
+    ...huis,
+    ...(lab.dak && huis.dakBron !== 'bewoner' ? { dakvorm: lab.dak, dakBron: 'kaart' as const } : {}),
+    ...(huis.hoogteNok == null && lab.nok != null ? { hoogteNok: lab.nok } : {}),
+    ...(huis.hoogteGoot == null && lab.goot != null ? { hoogteGoot: lab.goot } : {}),
+    ...(huis.lagen == null && lab.lagen != null ? { lagen: lab.lagen } : {}),
+  };
+  const nieuw: Daken = { ...d, gebouwen: (d.gebouwen ?? []).map((g) => (g === huis ? nieuwHuis : g)) };
+  return JSON.stringify(nieuw) === JSON.stringify(d) ? null : nieuw;
+}
+
+export type StraatKant = 'voor' | 'links' | 'rechts' | 'achter';
+
+/** De assen van het hoofdhuis zoals Je huis ze tekent; null zonder hoofdhuis met een omtrek. */
+function assenVan(d: Daken): Kader | null {
+  const hoofd = (d.gebouwen ?? dakTekening(d).gebouwen).find((g) => g.soort === 'hoofdhuis');
+  return hoofd && hoofd.omtrek.length >= 3 ? kaderVan(hoofd, d.voorgevelDeg) : null;
+}
+
+/** Aan welke kant van het huis een richting ligt, zoals de tekening hem nu toont: de straat staat onder (voor). */
+export function kantVan(k: Kader, richtingDeg: number): StraatKant {
+  const r = richting(richtingDeg);
+  const u = r[0] * k.uAs[0] + r[1] * k.uAs[1];
+  const v = r[0] * k.vAs[0] + r[1] * k.vAs[1];
+  return Math.abs(u) > Math.abs(v) ? (u > 0 ? 'rechts' : 'links') : v > 0 ? 'achter' : 'voor';
+}
+
+/** De straten bij het huis met de kant waar ze nu liggen. Leeg zonder straten of hoofdhuis. */
+export function stratenMetKant(d: Daken): { kant: StraatKant; afstand: number; adres: boolean }[] {
+  const k = assenVan(d);
+  return k ? (d.straten ?? []).map((s) => ({ kant: kantVan(k, s.richtingDeg), afstand: s.afstand, adres: s.adres })) : [];
+}
+
+/**
+ * De straat aan een kant van het huis zetten (ronde 2 versie 2, keuze Ricardo
+ * 20 november 2026: de straat van het adres onder, met Klopt dit?). `voor`
+ * bevestigt wat er staat; een andere kant draait de voorkant daarheen: de
+ * voorgevel kijkt dan die kant op, en de tekening draait mee. Null zonder
+ * hoofdhuis.
+ */
+export function straatKies(d: Daken, kant: StraatKant): Daken | null {
+  const k = assenVan(d);
+  if (!k) return null;
+  if (kant === 'voor') return { ...d, straatBevestigd: true };
+  // De voorgevel kijkt van het huis af: voor is -v, achter +v, links -u, rechts +u.
+  const as: Xy = kant === 'achter' ? k.vAs : kant === 'rechts' ? k.uAs : kant === 'links' ? [-k.uAs[0], -k.uAs[1]] : [-k.vAs[0], -k.vAs[1]];
+  const deg = Math.round(((Math.atan2(as[0], as[1]) / RAD) % 360 + 360) % 360);
+  return { ...d, voorgevelDeg: deg, straatBevestigd: true };
 }

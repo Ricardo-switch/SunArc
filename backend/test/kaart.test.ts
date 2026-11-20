@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { binnen, gevelsUitOmtrek, huisEnOmgeving, kaartVak, kiesGebouw, overpassVraag, voorkantUitKaart, type Punt } from '../src/web/kaart.js';
+import { binnen, gevelsUitOmtrek, huisEnOmgeving, kaartVak, kiesGebouw, labelsVan, overpassVraag, stratenBij, voorkantUitKaart, type Punt } from '../src/web/kaart.js';
 
 const LAT = 51.5;
 const LON = 5.0;
@@ -77,5 +77,45 @@ describe('de gevels op de kaart (21 oktober 2026)', () => {
     const xs = uit.huis.map((p) => p[0]);
     expect(Math.min(...xs)).toBeLessThan(0);
     expect(Math.max(...xs)).toBeGreaterThan(0);
+  });
+});
+
+describe('de plattegrond: labels en straten (ronde 2 versie 2)', () => {
+  // Meters oost en noord van de plek naar graden.
+  const pt = (x: number, y: number): Punt => ({ lat: LAT + y / 110_540, lon: LON + x / (111_320 * Math.cos((LAT * Math.PI) / 180)) });
+  const eigen = huis(90);
+  const straat = (naam: string, a: [number, number], b: [number, number], soort = 'residential') => ({ type: 'way', tags: { highway: soort, name: naam }, geometry: [pt(...a), pt(...b)] });
+
+  it('vraagt ook de straten en de adressen, nog steeds alleen het vak', () => {
+    const vraag = overpassVraag(LAT, LON);
+    expect(vraag).toContain('"highway"');
+    expect(vraag).toContain('"addr:street"');
+    expect(vraag).not.toContain('around');
+  });
+
+  it('leest de lagen, de hoogte en het dak van het huis zelf', () => {
+    const antwoord = { elements: [{ type: 'way', geometry: eigen, tags: { building: 'house', 'building:levels': '2', height: '7,5', 'roof:shape': 'gabled', 'roof:height': '3' } }] };
+    expect(labelsVan(antwoord, { lat: LAT, lon: LON })).toEqual({ lagen: 2, nok: 7.5, goot: 4.5, dak: 'zadel' });
+    // Zonder labels: niets bekend; voet telt niet.
+    const kaal = { elements: [{ type: 'way', geometry: eigen, tags: { building: 'house', height: "25'" } }] };
+    expect(labelsVan(kaal, { lat: LAT, lon: LON })).toEqual({ lagen: null, nok: null, goot: null, dak: null });
+  });
+
+  it('vindt de straten erbij, de straat van het adres, en telt een straat niet als gebouw', () => {
+    const adres = { type: 'node', lat: LAT, lon: LON, tags: { 'addr:street': 'Lindelaan', 'addr:housenumber': '3' } };
+    const antwoord = {
+      elements: [
+        { type: 'way', geometry: eigen, tags: { building: 'house' } },
+        adres,
+        // De Lindelaan 20 m oost van het huis, noord-zuid; de Beukenweg 34 m noord, oost-west; een verre weg telt niet.
+        straat('Lindelaan', [20, -60], [20, 60]),
+        straat('Lindelaan', [20, 60], [21, 120]),
+        straat('Beukenweg', [-60, 34], [60, 34]),
+        straat('Snelweg', [-60, -90], [60, -90], 'primary'),
+      ],
+    };
+    const s = stratenBij(antwoord, { lat: LAT, lon: LON });
+    expect(s).toEqual([{ richtingDeg: 90, afstand: 20, adres: true }, { richtingDeg: 0, afstand: 34, adres: false }]);
+    expect(huisEnOmgeving(antwoord, { lat: LAT, lon: LON })!.omgeving).toHaveLength(0);
   });
 });

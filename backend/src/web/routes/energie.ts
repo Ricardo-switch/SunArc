@@ -10,7 +10,7 @@ import { validateConnection } from '../aansluiting.js';
 import { importFromPrefs, pricesInPrefs, type DashboardPrice, type MeterOption } from '../energy.js';
 import { alBinnen, bagHuisEnOmgeving, haalBagVak, inNederland, naarRd, type BagDak, type BagDakvlak, type BagHoogte } from '../bag3d.js';
 import type { Dakvorm, KaartStandWoord } from '../daken.js';
-import { gevelsUitOmtrek, haalKaart, haalOmtrek, heeftGebouwen, huisEnOmgeving, kaartVak, voorkantUitKaart } from '../kaart.js';
+import { gevelsUitOmtrek, haalKaart, haalOmtrek, heeftGebouwen, huisEnOmgeving, kaartVak, labelsVan, stratenBij, voorkantUitKaart, type OsmLabels, type StraatBij } from '../kaart.js';
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 
@@ -404,6 +404,17 @@ export interface UitKaart {
   readonly dak?: { readonly dakvorm: Dakvorm; readonly nokDeg: number; readonly hellingDeg: number | null; readonly vlakken: readonly BagDakvlak[] };
   /** Uit 3D BAG ook de hoogte (besluit 308, Je huis): goot, nok en bouwlagen. */
   readonly hoogte?: BagHoogte;
+  /** Uit OpenStreetMap (ronde 2): wat het gebouw zelf zegt (lagen, hoogte, dak), en de straten erbij. */
+  readonly labels?: OsmLabels;
+  readonly straten?: readonly StraatBij[];
+}
+
+/** De labels van het huis en de straten erbij uit OpenStreetMap (ronde 2), als ze er zijn. */
+function osmErbij(antwoord: unknown, p: { lat: number; lon: number }): { labels?: OsmLabels; straten?: StraatBij[] } {
+  const labels = labelsVan(antwoord, p);
+  const straten = stratenBij(antwoord, p);
+  const iets = labels && (labels.lagen != null || labels.nok != null || labels.dak != null);
+  return { ...(iets ? { labels } : {}), ...(straten.length ? { straten } : {}) };
 }
 
 /** Wat beide kaarten zeiden; null: die kaart is (nog) niet gevraagd. */
@@ -436,7 +447,7 @@ export async function kaartBronnen(d: Diensten, ophalen: boolean, alleen: 'bag3d
   const uitOsm = osm?.status === 'fulfilled' ? huisEnOmgeving(osm.value, p) : null;
   const uitBag = bag?.status === 'fulfilled' ? bag.value?.uit ?? null : null;
   const kaartOsm: UitKaart | null =
-    osm == null ? null : osm.status === 'rejected' ? { stand: 'fout' } : uitOsm ? { stand: 'huis', hoofdhuis: uitOsm.huis, omgeving: uitOsm.omgeving } : { stand: heeftGebouwen(osm.value) ? 'wijk' : 'niets' };
+    osm == null ? null : osm.status === 'rejected' ? { stand: 'fout' } : uitOsm ? { stand: 'huis', hoofdhuis: uitOsm.huis, omgeving: uitOsm.omgeving, ...osmErbij(osm.value, p) } : { stand: heeftGebouwen(osm.value) ? 'wijk' : 'niets' };
   let kaartBag: UitKaart | null;
   if (!nl) kaartBag = { stand: 'buiten' };
   else if (bag == null) kaartBag = null;

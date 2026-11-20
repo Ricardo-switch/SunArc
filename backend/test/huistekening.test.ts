@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { leesDaken, leesKapellen, type Daken, type DakVlak, type Gebouw, type Xy } from '../src/web/daken.js';
-import { bijfuncties, bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, gebouwMaat, gebouwBestaatNiet, gebouwTerug, gebouwAfdak, huisUitTekening, kaartVernieuwd, gebouwKapel, kapelVanBewoner, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, woningUitKaart, zoneVanPlek } from '../src/web/huistekening.js';
+import { bijfuncties, bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, gebouwMaat, gebouwBestaatNiet, gebouwTerug, gebouwAfdak, stratenMetKant, straatKies, huisUitTekening, kaartVernieuwd, gebouwKapel, kapelVanBewoner, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, woningUitKaart, zoneVanPlek } from '../src/web/huistekening.js';
 import { tekening as dakTekening } from '../src/web/daken-tekening.js';
 import { hoortBijVan } from '../src/web/house.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
@@ -707,5 +707,44 @@ describe('je huis tekenen: wat de kaarten vinden (ronde 2)', () => {
     expect(terug.omgeving).toContainEqual(schuur);
     expect(gebouwTerug(weg, 3)).toBeNull();
     expect(gebouwBestaatNiet(daken(), { id: 'huis' })).toBeNull();
+  });
+});
+
+describe('je huis tekenen: de plattegrond buiten Nederland en de straat (ronde 2 versie 2)', () => {
+  const blok = (x0: number, y0: number, x1: number, y1: number): Xy[] => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  const omtrek = blok(-5, -4, 5, 4);
+  const hoofd: Gebouw = { id: 'huis', soort: 'hoofdhuis', bron: 'kaart', kaart: 'osm', omtrek, dakvorm: 'zadel', nokDeg: 90 };
+  const daken = (extra: Partial<Daken> = {}): Daken => ({ vlakken: [], voorgevelDeg: 180, omvormerW: null, gebouwen: [hoofd], ...extra });
+
+  it('neemt zonder 3D-kaart de lagen, de hoogte en het dak van de plattegrond over, en zegt wat geschat is', () => {
+    const osm = { stand: 'huis', hoofdhuis: omtrek, labels: { lagen: 2, nok: 7.5, goot: null, dak: 'schild' as const } };
+    const uit = dakenMetBron(daken({ gebouwen: [] }), 'osm', osm)!;
+    expect(uit.gebouwen![0]).toMatchObject({ dakvorm: 'schild', dakBron: 'kaart', hoogteNok: 7.5, lagen: 2, hoogteGoot: 5.6 });
+    const v = bronVorm(uit, 180, null, 2);
+    expect(v.kaartWeet).toEqual({ lagen: 2, goot: 5.6, nok: 7.5, dak: 'schild' });
+    expect(v.gemeten).toBe(true);
+    // Met de 3D-kaart erbij telt die, en niet de plattegrond.
+    const bag = { stand: 'huis', hoofdhuis: omtrek, dak: { dakvorm: 'zadel' as const, nokDeg: 90, vlakken: [{ azimuthDeg: 180, tiltDeg: 44, m2: 50 }] }, hoogte: { goot: 5, nok: 9, lagen: 2 } };
+    const samen = dakenMetBron(daken({ gebouwen: [] }), 'osm', osm, bag)!;
+    expect(samen.gebouwen![0]).toMatchObject({ dakvorm: 'zadel', hoogteNok: 9 });
+    expect(bronVorm(samen, 180, null, 2).kaartWeet).toBeUndefined();
+    // Opnieuw kijken vult alleen aan wat nog niet bekend is.
+    const vers = kaartVernieuwd(daken(), 'osm', { osm, bag3d: null })!;
+    expect(vers.gebouwen![0]).toMatchObject({ dakvorm: 'schild', hoogteNok: 7.5, lagen: 2 });
+  });
+
+  it('zegt aan welke kant elke straat ligt, en draait de voorkant naar de straat die je kiest', () => {
+    // De voorkant kijkt naar het zuiden: een straat in het oosten ligt rechts, een in het noorden achter.
+    const d = daken({ straten: [{ richtingDeg: 90, afstand: 12, adres: true }, { richtingDeg: 0, afstand: 30, adres: false }] });
+    expect(stratenMetKant(d)).toEqual([{ kant: 'rechts', afstand: 12, adres: true }, { kant: 'achter', afstand: 30, adres: false }]);
+    const gekozen = straatKies(d, 'rechts')!;
+    expect(gekozen).toMatchObject({ voorgevelDeg: 90, straatBevestigd: true });
+    // Nu kijkt de voorkant naar het oosten: wie op straat staat, heeft het noorden rechts.
+    expect(stratenMetKant(gekozen).map((s) => s.kant)).toEqual(['voor', 'rechts']);
+    expect(straatKies(d, 'voor')).toMatchObject({ voorgevelDeg: 180, straatBevestigd: true });
+    // Bewaard en weer gelezen.
+    const gelezen = leesDaken(gekozen);
+    expect('daken' in gelezen && gelezen.daken).toMatchObject({ straten: d.straten, straatBevestigd: true });
+    expect('fout' in leesDaken({ ...d, straten: [{ richtingDeg: 400, afstand: 1, adres: true }] })).toBe(true);
   });
 });

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.214.0';
+export const VERSIE = '0.215.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,26 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.215.0',
+    datum: '2026-11-20',
+    nieuw: [
+      'Je huis › Vorm: de straat van je adres staat onder, met Klopt dit?. Liggen er twee straten bij je huis, dan kies je in Waar is de straat welke aan de voorkant ligt, of zelf een kant',
+      'Je huis: een huis buiten Nederland krijgt de lagen, de hoogte en het dak uit OpenStreetMap als die erin staan; Wat de plattegrond weet zegt per getal of het van de kaart komt of geschat is',
+    ],
+    beter: [
+      'Je huis: de straten worden bewaard als richting en afstand, zonder namen. Een andere voorkant kan alleen zolang er nog niets getekend is, omdat de tekening niet meedraait',
+    ],
+    en: {
+      nieuw: [
+        'Your home › Shape: the street of your address is at the bottom, with Is that right?. With two streets by your home, choose in Where is the street which one is at the front, or pick a side yourself',
+        'Your home: a home outside the Netherlands gets its floors, height and roof from OpenStreetMap where they are known; What the floor map knows says for each number whether it is from the map or estimated',
+      ],
+      beter: [
+        'Your home: streets are kept as a direction and distance, without names. Another front side is only possible while nothing has been drawn, because the drawing does not turn with it',
+      ],
+    },
+  },
   {
     versie: '0.214.0',
     datum: '2026-11-20',

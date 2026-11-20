@@ -62,7 +62,7 @@ function bronVoorMotor(id, b, woning) {
   const maat = { b: getal(hoofd.b), d: getal(hoofd.d) };
   const wat = opsomming([...new Set(b.blokken.map((x) => x.soort))].map((x) => t(`ht.bron.blok.${x}`)));
   const vond = soort === 'basis' ? t('ht.bron.basisVond', { woning: t(`ht.bron.woning.${woning && ['vrijstaand', 'tweekap', 'hoek', 'rij', 'appartement'].includes(woning) ? woning : 'vrijstaand'}`), ...maat }) : soort === 'zelf' ? t('ht.bron.zelfVond', maat) : t('ht.bron.gevonden', { wat });
-  const weet = t(`ht.bron.weet.${soort === 'bag3d' && !b.gemeten ? 'bag3dZonder' : soort === 'osm' && b.gemeten ? 'osmMetBag' : soort}`);
+  const weet = t(`ht.bron.weet.${soort === 'bag3d' && !b.gemeten ? 'bag3dZonder' : soort === 'osm' && b.kaartWeet ? 'osmLabels' : soort === 'osm' && b.gemeten ? 'osmMetBag' : soort}`);
   return { naam: t(`ht.bron.${soort}`), vond, weet, gemeten: b.gemeten, hoogte: t(b.gootLaag != null ? 'ht.bron.hoogteScheef' : 'ht.bron.hoogte', { goot: komma(b.goot), nok: komma(b.nok), laag: komma(b.gootLaag ?? b.goot) }),
     // Voor het huis in 3D (stap 5): de goot, de lage goot bij een scheef dak, de nok, en per gebouw het dak.
     goot: b.goot,
@@ -74,6 +74,9 @@ function bronVoorMotor(id, b, woning) {
     // Ronde 2: wat er niet meer staat, en het afdak dat er volgens de bewoner niet is, met Terug.
     ...(b.weg ? { weg: b.weg } : {}),
     ...(b.afdakWeg ? { afdakWeg: b.afdakWeg } : {}),
+    // Ronde 2 versie 2: wat de plattegrond van een huis zonder 3D-kaart weet, en het dak.
+    ...(b.kaartWeet ? { kaartWeet: b.kaartWeet } : {}),
+    dakvorm: b.dakvorm,
   };
 }
 
@@ -174,6 +177,8 @@ function huisVoorMotor(d) {
     nietGevonden,
     ...(kanKijken ? { kijk } : {}),
     woning: woningVoorMotor(d),
+    // Ronde 2 versie 2: de straten bij het huis (de kant, de afstand, en of het die van het adres is), en of er al getekend is.
+    straat: { lijst: d.straten ?? [], bevestigd: !!d.straatBevestigd, getekend: !!d.getekend },
     // Kort voor de balk op de telefoon en het huis opzij: "Eerste verdieping" wordt "Eerste", "First floor" wordt "First".
     etages: [
       ...d.etages.map((e) => ({ id: e.id, naam: e.naam, kort: kortNaam(e.naam), hoogte: e.hoogte, dak: !!e.dak, blokken: e.id === beneden ? d.vorm.blokken : hoofd })),
@@ -500,13 +505,60 @@ function vraag(tk, d) {
     const k = tk.huis.woning.kaart;
     const kanten = opsomming(k.buren.map((x) => t(`wn.kantKlein.${x}`)));
     html = `<span class="jh-vraag-ik">${iconen.svg('thuis')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.wn.kop', { soort: t(`wn.soort.${k.soort}`).toLowerCase() }))}</b><span>${esc(t(k.buren.length === 0 ? 'jehuis.wn.zinGeen' : k.buren.length === 1 ? 'jehuis.wn.zinEen' : 'jehuis.wn.zinMeer', { kanten }))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="woning-nee">${esc(t('jehuis.wn.nee'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="woning-ja">${esc(t('jehuis.wn.ja'))}</button></div>`;
+  } else if (tk.st.stand === 'vorm' && !opErf && !tk.st.straatOpen && straatVraag(tk) && !weg.has('straat')) {
+    // De straat van het adres onder (ronde 2 versie 2, keuze Ricardo 20 november 2026: met Klopt dit?).
+    const v = straatVraag(tk);
+    const knop = (doe, tekst, hoofd) => `<button type="button" class="${hoofd ? 'jh-hoofd' : 'jh-zacht'}" data-vraag-doe="${doe}">${esc(t(tekst))}</button>`;
+    const knoppen = v.ja ? `${knop('straat-zelf', 'jehuis.straat.zelf')}${knop(v.ja, 'jehuis.straat.ja', true)}` : `${knop('straat-voor', 'jehuis.straat.laat')}${knop('straat-zelf', 'jehuis.straat.zelf', true)}`;
+    html = `<span class="jh-vraag-ik">${iconen.svg('oprit')}</span><div class="jh-vraag-tekst"><b>${esc(v.kop)}</b><span>${esc(v.zin)}</span></div><div class="jh-vraag-knoppen">${knoppen}</div>`;
   } else if (opErf && info && twee && !weg.has(`dubbel:${twee.kamer.id}`)) {
     html = `<span class="jh-vraag-ik">${iconen.svg('tuinhuis')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.dubbel.kop', { naam: twee.kamer.naam }))}</b><span>${esc(t('jehuis.dubbel.zin', { ruimte: twee.van.naam }))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="dubbel-nee">${esc(t('jehuis.dubbel.nee'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="dubbel-ja">${esc(t('jehuis.dubbel.ja'))}</button></div>`;
   }
   el.hidden = !html;
   if (el.innerHTML !== html) el.innerHTML = html;
 }
+/**
+ * De vraag over de straat (ronde 2 versie 2): alleen als de bewoner hem nog
+ * niet bevestigde. Ligt de straat van het adres al onder, dan Klopt dit?; ligt
+ * hij aan een andere kant, dan Zet hem onder (zolang er nog niets getekend is).
+ */
+function straatVraag(tk) {
+  const s = tk.huis.straat;
+  if (!s || s.bevestigd || !s.lijst.length) return null;
+  const adres = s.lijst.find((x) => x.adres);
+  const twee = s.lijst.length > 1;
+  const kant = (x) => t(`jehuis.straat.kant.${x.kant}`);
+  if (adres && adres.kant === 'voor') return { kop: t(twee ? 'jehuis.straat.twee' : 'jehuis.straat.adresKop'), zin: t('jehuis.straat.adresVoor'), ja: 'straat-voor' };
+  if (adres) return { kop: t('jehuis.straat.adresKant', { kant: kant(adres) }), zin: t(s.getekend ? 'jehuis.straat.getekend' : 'jehuis.straat.onder'), ja: s.getekend ? null : `straat-${adres.kant}` };
+  if (!twee) return null;
+  return { kop: t('jehuis.straat.twee'), zin: t('jehuis.straat.welke'), ja: s.lijst.some((x) => x.kant === 'voor') ? 'straat-voor' : null };
+}
+
+/** De straat aan een kant zetten: de dienst bewaart, dan opnieuw laden (de tekening draait mee). */
+async function straat(kant) {
+  for (let i = 0; i < 40 && !tekenaar.st.bewaard && !tekenaar.st.fout; i++) await wacht(100);
+  let res;
+  try {
+    res = await deur('api/huistekening', { straat: { kant } });
+  } catch {
+    res = null;
+  }
+  if (res?.ok) {
+    location.reload();
+    return;
+  }
+  tekenaar.st.gebouwFout = t('ht.gebouw.fout');
+  tekenaar.ververs();
+}
+
 async function vraagDoe(tk, d, wat) {
+  if (wat === 'straat-zelf') {
+    // Zelf kiezen: het blad Waar is de straat open.
+    tk.st.straatOpen = true;
+    tk.ververs();
+    return vraag(tk, d);
+  }
+  if (wat.startsWith('straat-')) return straat(wat.slice(7));
   if (wat === 'kapel-ja' || wat === 'kapel-nee') {
     // De dakkapel van de 3D-kaart: ja houdt hem (de vraag gaat weg), nee haalt hem weg; de pagina laadt opnieuw.
     return gebouw({ dak: 'hoofd', kaartKapel: wat === 'kapel-ja' ? 'ja' : 'nee' });
@@ -801,7 +853,7 @@ async function start() {
   const [gevraagd, gevraagdeStand] = decodeURIComponent(location.hash.slice(1)).split('/');
   const etage = huis.etages.some((e) => e.id === gevraagd) ? gevraagd : (huis.etages.find((e) => e.id === 'bg') ?? huis.etages.at(-1)).id;
   const stand = STANDEN.includes(gevraagdeStand) ? gevraagdeStand : 'kamers';
-  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: zonderLosBuiten(d, huis), opslaan, wacht: 900, naar, kijk: vraagKaarten, gebouw, kapel, openingen: true, vast: [HUIS_OP_ERF], ...(info ? { indeling } : {}) });
+  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: zonderLosBuiten(d, huis), opslaan, wacht: 900, naar, kijk: vraagKaarten, gebouw, kapel, straat, openingen: true, vast: [HUIS_OP_ERF], ...(info ? { indeling } : {}) });
   tekenaar = tk;
   window.tekenaar = tk;
   huistekenen.paneel($('#blad'), tk);

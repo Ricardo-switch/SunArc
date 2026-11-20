@@ -2807,6 +2807,8 @@
       },
       /** 0.185.0: een gebouw van de kaart erbij ({ erbij, soort }) of weg ({ weg }); de pagina bewaart en laadt opnieuw. */
       gebouw: opties.gebouw ?? null,
+      /** Ronde 2 versie 2: de straat aan een kant zetten; de pagina bewaart en laadt opnieuw. */
+      straat: opties.straat ?? null,
       /** Ronde 2: een gebouw een stap breder of dieper (min en plus); bewaard als je even niets doet. */
       blokStap(wat, dd) {
         const b = maatVan(bijBlokken().find((q) => q.id === st.kies?.id));
@@ -3031,6 +3033,51 @@
 
   /* ================================================================ het blad ernaast */
 
+  /* ---------- de straat en wat de plattegrond weet (ronde 2 versie 2, schets Wand-Huis-Kaarten #straat en #buitenland) */
+  const STRAAT_KANTEN = ['voor', 'links', 'rechts', 'achter'];
+  /** Een huisje met de straat aan een kant. */
+  const straatPlaatje = (kant, aan) => {
+    const band = { voor: '<rect x="2" y="38" width="60" height="7" rx="2"', achter: '<rect x="2" y="3" width="60" height="7" rx="2"', links: '<rect x="2" y="2" width="8" height="44" rx="2"', rechts: '<rect x="54" y="2" width="8" height="44" rx="2"' }[kant];
+    return `<svg viewBox="0 0 64 48" width="64" height="48" aria-hidden="true"><rect x="22" y="13" width="20" height="22" rx="2" fill="rgb(111 211 255 / 0.25)" stroke="#6fd3ff" stroke-width="1.8"/>${band} fill="${aan ? 'rgb(110 231 183 / 0.45)' : 'rgb(255 255 255 / 0.2)'}"/></svg>`;
+  };
+  /** De regel Straat in het blad van Vorm, met de straat aan de voorkant. */
+  function straatRij(t) {
+    const s = t.huis.straat;
+    if (!s?.lijst.length) return '';
+    const voor = s.lijst.find((x) => x.kant === 'voor');
+    const zin = voor ? T(voor.adres ? 'ht.straat.voorAdres' : 'ht.straat.voor', { maat: voor.afstand }) : T('ht.straat.geenVoor');
+    return rij({ ik: 'oprit', titel: T(s.lijst.length > 1 ? 'ht.straat.twee' : 'ht.straat.een'), zin, rechts: T('ht.vorm.woningWijzig'), data: 'data-ht="straat-open"', mist: !s.bevestigd && !voor?.adres });
+  }
+  /** Het blad Waar is de straat: de straten van de kaart, of zelf een kant. */
+  function straatBlad(t) {
+    const s = t.huis.straat;
+    const st = t.st;
+    const kan = (kant) => kant === 'voor' || !s.getekend;
+    const tegels = s.lijst
+      .map((x) => `<button type="button" class="kv-straat${x.kant === 'voor' ? ' aan' : ''}" data-ht="straat-kies" data-kant="${x.kant}" aria-pressed="${x.kant === 'voor'}"${kan(x.kant) ? '' : ' disabled'}>${straatPlaatje(x.kant, x.kant === 'voor')}<span><b>${esc(T(x.adres ? 'ht.straat.adres' : 'ht.straat.andere'))}</b><small>${esc(T('ht.straat.waar', { maat: x.afstand, kant: T(`ht.straat.kant.${x.kant}`) }))}</small></span>${x.adres ? `<i>${esc(T('ht.straat.jeAdres'))}</i>` : ''}</button>`)
+      .join('');
+    const kanten = `<div class="ht-twee kv-vier">${STRAAT_KANTEN.map((k) => `<button type="button" class="ht-klein${k === 'voor' ? ' aan' : ''}" data-ht="straat-kies" data-kant="${k}" aria-pressed="${k === 'voor'}"${kan(k) ? '' : ' disabled'}>${esc(T(`ht.straat.knop.${k}`))}</button>`).join('')}</div>`;
+    return `<header><h3>${esc(T('ht.straat.kop'))}</h3><span>${esc(T('ht.straat.gevonden', { n: s.lijst.length }))}</span></header>
+      <p class="ht-zin">${esc(T('ht.straat.zin'))}</p>
+      ${tegels}
+      <h4 class="ht-dakkop">${esc(T('ht.straat.zelf'))}</h4>
+      ${kanten}
+      ${st.gebouwFout ? `<p class="ht-niet">${esc(st.gebouwFout)}</p>` : ''}
+      ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : ''}
+      <p class="ht-voet">${esc(T(s.getekend ? 'ht.straat.getekend' : 'ht.straat.voet'))}</p>
+      <div class="ht-onder">${rij({ ik: 'terug', titel: T('ht.vorm.woningKlaar'), zin: '', data: 'data-ht="straat-dicht"' })}</div>`;
+  }
+  /** Wat de plattegrond weet van een huis zonder 3D-kaart: elk getal van de kaart of geschat. */
+  function weetDeel(t, nu) {
+    const w = nu.kaartWeet;
+    const lagen = t.huis.etages.filter((e) => !e.buiten && e.id !== 'kelder').length;
+    const r = (titel, waarde, vanKaart) => `<div class="kv-weet${vanKaart ? '' : ' mist'}"><span>${esc(titel)}</span><b>${esc(waarde)}</b><i>${esc(T(vanKaart ? 'ht.weet.kaart' : 'ht.weet.geschat'))}</i></div>`;
+    return `<h4 class="ht-dakkop">${esc(T('ht.weet.kop'))}</h4><div class="kv-weten">
+      ${r(T('ht.weet.lagen'), String(w.lagen ?? lagen), w.lagen != null)}
+      ${r(T('ht.weet.goot'), `${nl(w.goot ?? nu.goot)} m`, w.goot != null)}
+      ${r(T('ht.weet.nok'), `${nl(w.nok ?? nu.nok)} m`, w.nok != null)}
+      ${r(T('ht.weet.dak'), T(`daken.dakvorm.${w.dak ?? nu.dakvorm ?? 'zadel'}`), w.dak != null)}</div>`;
+  }
   const rij = (o) => `<button type="button" class="ht-rij${o.mist ? ' mist' : ''}${o.aan ? ' aan' : ''}" ${o.data}>${o.ik ? `<span class="ik"${o.kleur ? ` style="color: ${o.kleur}"` : ''}>${ik(o.ik)}</span>` : ''}<span class="t"><b>${esc(o.titel)}</b>${o.zin ? `<small>${esc(o.zin)}</small>` : ''}</span>${o.rechts ? `<em>${esc(o.rechts)}</em>` : ''}</button>`;
   /*
    * Het dak van een gebouw (stap 4, keuze Ricardo 19 november 2026): het dak
@@ -3235,6 +3282,8 @@
           ${st.gebouwFout ? `<p class="ht-niet">${esc(st.gebouwFout)}</p>` : ''}
           ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : `${b && t.gebouw ? `${stapper('b')}${stapper('d')}<p class="ht-zin">${esc(T('ht.gebouw.opMaatZin'))}</p>` : ''}${b?.kaartMaat ? rij({ ik: 'terug', titel: T('ht.gebouw.kaartTerug'), zin: `${nl(b.kaartMaat.b)} × ${nl(b.kaartMaat.d)} m`, data: 'data-ht="blok-kaart"' }) : ''}${dakDeel(t, b)}${rij({ ik: 'weg', titel: T('ht.gebouw.bestaatNiet'), zin: T('ht.gebouw.bestaatNietZin'), data: 'data-ht="bestaat-niet"' })}${rij({ ik: 'kruis', titel: T('ht.gebouw.weg'), zin: T('ht.gebouw.wegZin'), data: 'data-ht="gebouw-weg"' })}`}
           ${rij({ ik: 'thuis', titel: T('ht.gebouw.terug'), zin: '', data: 'data-ht="gebouw-terug"' })}`;
+      } else if (st.stand === 'vorm' && st.straatOpen && t.huis.straat) {
+        s = straatBlad(t);
       } else if (st.stand === 'vorm' && st.wnOpen && t.huis.woning && global.woningDeel) {
         // Wat voor huis (20 november 2026): de vijf soorten en de muren tegen de buren.
         s = `<header><h3>${esc(T('ht.vorm.woning'))}</h3><span>${esc(T(`wn.soort.${t.huis.woning.soort}`).toLowerCase())}</span></header>
@@ -3256,13 +3305,15 @@
         ];
         s = `<header><h3>${esc(T('ht.vorm.kop'))}</h3><span>${nl((o.x1 - o.x0) * CEL)} × ${nl((o.y1 - o.y0) * CEL)} m</span></header>
           ${zoekt ? '<div class="kv-wacht" aria-hidden="true">' : ''}${t.huis.woning && global.woningDeel ? rij({ ik: 'thuis', titel: T(`wn.soort.${t.huis.woning.soort}`), zin: t.huis.woning.soort === 'vrijstaand' ? T('wn.zin.vrijstaand') : (t.huis.woning.soort === 'appartement' ? `${global.woningDeel.vloer(global.woningDeel.flatVan(t.huis.woning).verdieping, true)} · ` : '') + T('ht.vorm.woningTegen', { kanten: (t.huis.woning.buren ?? []).map((k) => T(`wn.kantKlein.${k}`)).join(', ') || '—' }), rechts: T('ht.vorm.woningWijzig'), data: 'data-ht="wn-open"' }) : ''}
+          ${straatRij(t)}
           <p class="ht-zin">${esc(T('ht.vorm.zin'))}</p>
           ${Object.entries(t.huis.bronnen ?? {})
             .map(([id, b]) => `<button type="button" class="ht-bron${st.bron === id ? ' aan' : ''}" data-ht="bron" data-bron="${esc(id)}" aria-pressed="${st.bron === id}"><span class="pl">${t.bronPlaatje(id, 92, 70)}</span><span class="t"><b>${esc(b.naam)}</b><small>${esc(b.vond)}</small><small>${esc(b.weet)}</small><em>${esc(st.bron === id ? T('ht.vorm.inGebruik') : T('ht.vorm.gebruik'))}</em></span></button>`)
             .join('')}
           ${(t.huis.nietGevonden ?? []).map((x) => `<p class="ht-niet"><b>${esc(x.naam)}</b> ${esc(x.zin)}</p>`).join('')}${zoekt ? '</div>' : ''}
+          ${nu?.kaartWeet ? wacht(weetDeel(t, nu)) : ''}
           ${zoekt ? zoekBlok() : t.kijk && t.huis.kijk ? rij({ ik: 'dak', titel: T('ht.vorm.kijk'), zin: t.huis.kijk.fout ?? T('ht.vorm.kijkZin'), rechts: '›', data: 'data-ht="kijk"' }) : ''}
-          ${wacht(rij({ ik: 'etages', titel: T('ht.hoogte'), zin: nu?.hoogte ?? '', rechts: nu?.gemeten ? T('ht.gemeten') : T('ht.geschat'), data: 'disabled' }))}
+          ${nu?.kaartWeet ? '' : wacht(rij({ ik: 'etages', titel: T('ht.hoogte'), zin: nu?.hoogte ?? '', rechts: nu?.gemeten ? T('ht.gemeten') : T('ht.geschat'), data: 'disabled' }))}
           ${weg.length ? wacht(`<h4 class="ht-dakkop">${esc(T('ht.gebouw.weggehaald'))}</h4>${weg.join('')}`) : ''}
           ${st.gebouwFout ? `<p class="ht-niet">${esc(st.gebouwFout)}</p>` : ''}
           ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : ''}
@@ -3453,6 +3504,17 @@
       else if (d.ht === 'kijk') t.kijk?.();
       else if (d.ht === 'gebouw-terug') t.kies(null);
       else if (d.ht === 'blok-stap') t.blokStap(d.wat, Number(d.d));
+      else if (d.ht === 'straat-open' || d.ht === 'straat-dicht') {
+        st.straatOpen = d.ht === 'straat-open';
+        t.ververs();
+      } else if (d.ht === 'straat-kies' && t.straat && !st.gebouwBezig) {
+        st.gebouwBezig = true;
+        teken();
+        Promise.resolve(t.straat(d.kant)).finally(() => {
+          st.gebouwBezig = false;
+          teken();
+        });
+      }
       else if (d.ht === 'afdak-klopt') {
         t.afdakZie();
         t.kies(null);

@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.214.0
+## 0.215.0
 
-*20 november 2026 · 0.179.0 – 0.214.0*
+*20 november 2026 · 0.179.0 – 0.215.0*
 
 **Nieuw**
 
+- Je huis › Vorm: de straat van je adres staat onder, met Klopt dit?. Liggen er twee straten bij je huis, dan kies je in Waar is de straat welke aan de voorkant ligt, of zelf een kant
+- Je huis: een huis buiten Nederland krijgt de lagen, de hoogte en het dak uit OpenStreetMap als die erin staan; Wat de plattegrond weet zegt per getal of het van de kaart komt of geschat is
 - Je huis › Vorm: het afdak voor of achter je huis komt uit de dakdelen van de 3D-kaart en is een eigen stuk, met zijn eigen dak en het label Nieuw tot je het aantikt
 - Je huis › Vorm: trek een gebouw van de kaart op maat aan zijn stippen, of met min en plus. Wat je trekt, blijft, ook als de kaart het anders ziet; Maat van de kaart zet het terug
 - Je huis › Vorm: Bestaat niet meer haalt een gebouw weg dat de kaart nog ziet. Het blijft weg en staat onder Weggehaald, met Terug
@@ -85,6 +87,7 @@
 
 **Beter**
 
+- Je huis: de straten worden bewaard als richting en afstand, zonder namen. Een andere voorkant kan alleen zolang er nog niets getekend is, omdat de tekening niet meedraait
 - Je huis: tijdens Kijk wat de kaarten vinden zijn de keuzes grijs, draait er een icoon en krijgt elke kaart een vinkje zodra hij klaar is
 - Je huis in 3D: het afdak heeft een eigen schuin dak; op de etage erboven staat de strook als Afdak eronder
 - Je huis: ligt er een verdieping boven je, dan staat de tab Dak er niet; woon je bovenin, dan teken je het dak zelf
@@ -211,6 +214,8 @@
 
 **New**
 
+- Your home › Shape: the street of your address is at the bottom, with Is that right?. With two streets by your home, choose in Where is the street which one is at the front, or pick a side yourself
+- Your home: a home outside the Netherlands gets its floors, height and roof from OpenStreetMap where they are known; What the floor map knows says for each number whether it is from the map or estimated
 - Your home › Shape: the canopy at the front or back comes from the roof parts of the 3D map and is a part of its own, with its own roof and the label New until you tap it
 - Your home › Shape: pull a building from the map to its real size by its dots, or with minus and plus. What you pull stays, even if the map sees it differently; Size from the map puts it back
 - Your home › Shape: No longer exists removes a building the map still shows. It stays gone and is listed under Removed, with Restore
@@ -290,6 +295,7 @@
 
 **Improved**
 
+- Your home: streets are kept as a direction and distance, without names. Another front side is only possible while nothing has been drawn, because the drawing does not turn with it
 - Your home: while the maps are searching the choices are greyed out, an icon spins and each map gets a tick when it is done
 - Your home in 3D: the canopy has its own sloped roof; on the floor above, the strip shows as Canopy below
 - Your home: with a floor above you the Roof tab is not shown; on the top floor you draw the roof yourself
