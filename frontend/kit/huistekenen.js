@@ -532,6 +532,23 @@
         vulRecht(v, x0, y0, x1, y1, id, 'alleen');
       }
     }
+    // Een strookje zonder naam van hooguit 20 cm (een verschil in afronding tussen de tekening en de kaart) gaat op in het vak ernaast (20 november 2026).
+    const m = maten(v);
+    for (const [rid, r] of Object.entries(v.ruimtes)) {
+      const mm = m[rid];
+      if (r.kamer || r.naam || r.blok || !mm || Math.min(mm.x1 - mm.x0, mm.y1 - mm.y0) > 2) continue;
+      const id = Number(rid);
+      const buren = {};
+      for (let i = 0; i < v.cel.length; i++) {
+        if (v.cel[i] !== id) continue;
+        for (const j of [i - 1, i + 1, i - v.W, i + v.W]) {
+          const n = v.cel[j];
+          if (j >= 0 && j < v.cel.length && n !== id && n !== BUITEN) buren[n] = (buren[n] ?? 0) + 1;
+        }
+      }
+      const naar = Number(Object.entries(buren).sort((x, y) => y[1] - x[1])[0]?.[0]);
+      if (naar) for (let i = 0; i < v.cel.length; i++) if (v.cel[i] === id) v.cel[i] = naar;
+    }
     ordenen(v);
     for (const r of Object.values(v.ruimtes)) {
       const z = r.kamer ? zones?.[r.kamer] : null;
@@ -670,6 +687,7 @@
     if (bewaarde?.ramen) for (const a of st.apparaten) if (bewaarde.ramen[a.id] && a.plek) a.raam = bewaarde.ramen[a.id];
     /** De hele tekening in meters, zoals de dienst hem bewaart. */
     const uitvoer = () => {
+      herstelErf();
       const tekening = {};
       const zones = {};
       for (const [etage, v] of Object.entries(st.vloeren)) {
@@ -709,6 +727,63 @@
         // Zonder opslag begint de schets gewoon opnieuw.
       }
     }
+    /*
+     * Het huis op het erf is altijd precies het huis (20 november 2026,
+     * Ricardo: het huis was 313 m² op zijn erf, met losse vakken eromheen).
+     * Wat binnen het huis valt, is het vaste vak; wat daarbuiten nog "huis"
+     * heette, wordt weer de tuin. Zo herstelt een kapotte tekening zichzelf.
+     */
+    const herstelErf = () => {
+      const kamer = opties.vast?.[0];
+      if (!kamer) return false;
+      let veranderd = false;
+      for (const e of huis.etages) {
+        const vl = e.buiten ? st.vloeren[e.id] : null;
+        if (!vl) continue;
+        const delen = (e.blokken ?? []).filter((b) => b.soort === 'hoofdhuis' || b.soort === 'uitbouw' || (b.soort === 'garage' && huis.garageBinnen));
+        if (!delen.length) continue;
+        const celVan = (m) => MARGE + Math.round(m / CEL);
+        const inHuis = new Uint8Array(vl.cel.length);
+        for (const b of delen) for (let y = celVan(b.v); y < celVan(b.v + b.d); y++) for (let x = celVan(b.u); x < celVan(b.u + b.b); x++) if (x >= 0 && y >= 0 && x < vl.W && y < vl.H) inHuis[y * vl.W + x] = 1;
+        let hid = Number(Object.entries(vl.ruimtes).find(([, r]) => r.kamer === kamer)?.[0]) || 0;
+        // Echt kapot (meer dan 15% van het huis verkeerd): Buiten begint opnieuw zoals de eerste keer, op de kaart.
+        let fout = 0;
+        let huisCellen = 0;
+        for (let i = 0; i < vl.cel.length; i++) {
+          if (inHuis[i]) huisCellen++;
+          if (inHuis[i] !== (hid && vl.cel[i] === hid ? 1 : 0)) fout++;
+        }
+        if (huis.begin?.[e.id] && (!hid || fout > huisCellen * 0.15)) {
+          st.vloeren[e.id] = vloerUitIndeling(huis.maat, e.blokken, huis.begin[e.id]);
+          veranderd = true;
+          continue;
+        }
+        const tuinKamer = huis.begin?.[e.id]?.erf?.kamer ?? null;
+        let tid = tuinKamer ? Number(Object.entries(vl.ruimtes).find(([, r]) => r.kamer === tuinKamer)?.[0]) || 0 : 0;
+        for (let i = 0; i < vl.cel.length; i++) {
+          if (inHuis[i]) {
+            if (!hid) {
+              hid = vl.volg++;
+              vl.ruimtes[hid] = { kamer };
+            }
+            if (vl.cel[i] !== hid) {
+              vl.cel[i] = hid;
+              veranderd = true;
+            }
+          } else if (hid && vl.cel[i] === hid) {
+            if (!tid) {
+              tid = vl.volg++;
+              vl.ruimtes[tid] = tuinKamer ? { kamer: tuinKamer } : {};
+            }
+            vl.cel[i] = tid;
+            veranderd = true;
+          }
+        }
+        if (veranderd) ordenen(vl);
+      }
+      return veranderd;
+    };
+    const erfHersteld = herstelErf();
     let bewaarTimer = null;
     /** In de app: elke keer de laatste stand naar de dienst, één tegelijk; onder de vinger gebeurt er niets. */
     let bezigMet = null;
@@ -758,6 +833,7 @@
 
     const vloer = () => st.vloeren[st.etage];
     const etageVan = (id) => huis.etages.find((e) => e.id === id);
+    if (erfHersteld && opties.opslaan) setTimeout(() => bewaar(), 0);
     // De etage eronder; buiten (het erf) ligt onder geen enkele etage.
     const onder = () => {
       const lijst = huis.etages.filter((e) => !e.buiten);
@@ -1814,10 +1890,12 @@
       const p = a.start;
       const v = vloer();
       const id = ruimteOp(v, p.x, p.y);
-      // Het huis op het erf: een tik gaat naar binnen, naar de begane grond (19 november 2026).
+      // Het huis op het erf: een tik geeft zijn blad, met de weg naar binnen (20 november 2026: eerst sprong hij meteen naar de begane grond, ook als je aan het tekenen was).
       if (vastId(v, id) && a.kandidaat.soort !== 'apparaat') {
         st.blad = null;
-        return t.zetEtage(huis.beneden ?? huis.etages.filter((e) => !e.buiten).at(-1)?.id);
+        st.kies = { soort: 'erfhuis', id };
+        teken();
+        return meld();
       }
       if (st.stand === 'apparaten') {
         if (a.kandidaat.soort === 'apparaat') {
@@ -2382,7 +2460,14 @@
       const ix = t.indeling?.gegevens?.() ?? null;
       const blad = ix && st.blad && !st.kies && st.blad.etage === st.etage && st.blad.stand === st.stand ? st.blad.naam : null;
       if (blad) s = indelingBlad(t, blad, ix, etage, hier);
-      else if (st.stand === 'vorm' && st.kies?.soort === 'omgeving') {
+      else if (st.kies?.soort === 'erfhuis') {
+        // Het huis op het erf (20 november 2026): het volgt de vorm van je huis; die pas je aan bij Vorm.
+        const opp = m[st.kies.id] ? Math.round(m[st.kies.id].n * CEL * CEL) : null;
+        s = `<header><h3>${esc(T('ht.erfhuis.kop'))}</h3>${opp ? `<span>${opp} m²</span>` : ''}</header>
+          <p class="ht-zin">${esc(T('ht.erfhuis.zin'))}</p>
+          ${rij({ ik: 'etages', titel: T('ht.erfhuis.binnen'), zin: T('ht.erfhuis.binnenZin'), rechts: '›', data: 'data-ht="naar-binnen"' })}
+          ${rij({ ik: 'thuis', titel: T('ht.erfhuis.vorm'), zin: T('ht.erfhuis.vormZin'), rechts: '›', data: 'data-ht="naar-vorm"' })}`;
+      } else if (st.stand === 'vorm' && st.kies?.soort === 'omgeving') {
         // Een grijs gebouw van de kaart aangetikt: wat is het? Zoals bij Daken en panelen, en het geldt op allebei.
         s = `<header><h3>${esc(T('ht.gebouw.kop'))}</h3></header>
           <p class="ht-zin">${esc(T('ht.gebouw.zin'))}</p>
@@ -2586,6 +2671,12 @@
         });
       }
       else if (d.ht === 'naar-buiten' && t.erfEtage()) t.zetEtage(t.erfEtage());
+      else if (d.ht === 'naar-binnen' || d.ht === 'naar-vorm') {
+        const binnen = t.huis.beneden ?? t.huis.etages.filter((e) => !e.buiten).at(-1)?.id;
+        t.st.kies = null;
+        t.zetEtage(binnen);
+        if (d.ht === 'naar-vorm') t.zetStand('vorm');
+      }
       else if ((d.ht === 'gebouw-erbij' || d.ht === 'gebouw-weg') && t.gebouw && !st.gebouwBezig) {
         st.gebouwBezig = true;
         teken();

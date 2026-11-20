@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.208.1
+## 0.208.2
 
-*20 november 2026 · 0.179.0 – 0.208.1*
+*20 november 2026 · 0.179.0 – 0.208.2*
 
 **Nieuw**
 
@@ -138,6 +138,10 @@
 
 **Opgelost**
 
+- Je huis › Buiten: het huis op het erf heeft altijd precies de vorm van je huis. Een tekening waarin het huis het halve erf besloeg, herstelt zich: Buiten begint dan opnieuw zoals de eerste keer
+- Je huis › Buiten: staat er volgens de kaart een buurhuis tegen je huis (twee-onder-een-kap), dan ligt de erfgrens aan die kant tegen je huis
+- Je huis › Buiten: een tik op het huis opent zijn blad, met Naar binnen en Vorm aanpassen, in plaats van meteen naar de begane grond te gaan
+- Je huis: een strookje van een paar centimeter zonder naam (een verschil in afronding met de kaart) gaat op in het vak ernaast
 - Je huis › Vorm: een garage of tuinhuis van de kaart die je aan je huis toewees, verdween van de begane grond (het staat op het erf). Nu blijft het te zien met "bij Buiten", en het blad heeft Naar Buiten, het dak en Weghalen
 - Je huis › Vorm: opnieuw kijken bij dezelfde kaart haalt nu ook de dakvlakken en de hoogtes van 3D BAG op; een huis dat zijn kaart al eerder koos, kreeg daardoor geen scheef dak en geen dakkapel. Een dakvorm die je zelf koos, blijft
 - Opbrengst: een klein blok in de stroomtekening, zoals de elektrische haard, had zijn naam naast Rest van het huis staan
@@ -307,6 +311,10 @@
 
 **Fixed**
 
+- Your home › Outside: the house on the plot always has exactly the shape of your home. A drawing in which the house covered half the plot repairs itself: Outside then starts again as the first time
+- Your home › Outside: if the map shows a neighbouring house against yours (semi-detached), the plot boundary on that side lies against your house
+- Your home › Outside: tapping the house opens its sheet, with Go inside and Adjust the shape, instead of jumping straight to the ground floor
+- Your home: a strip of a few centimetres without a name (a rounding difference with the map) merges into the area next to it
 - Your home › Shape: a garage or shed from the map that you assigned to your home disappeared from the ground floor (it is on the plot). It now stays visible with "under Outside", and its sheet has To Outside, the roof and Remove
 - Your home › Shape: looking again with the same map now also fetches the roof planes and heights from 3D BAG; a house that chose its map earlier got no sloping roof and no dormer. A roof shape you chose yourself stays
 - Results: a small block in the flow chart, such as the electric fire, had its name next to Rest of the house

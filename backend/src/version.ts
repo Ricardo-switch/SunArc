@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.208.1';
+export const VERSIE = '0.208.2';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,24 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.208.2',
+    datum: '2026-11-20',
+    opgelost: [
+      'Je huis › Buiten: het huis op het erf heeft altijd precies de vorm van je huis. Een tekening waarin het huis het halve erf besloeg, herstelt zich: Buiten begint dan opnieuw zoals de eerste keer',
+      'Je huis › Buiten: staat er volgens de kaart een buurhuis tegen je huis (twee-onder-een-kap), dan ligt de erfgrens aan die kant tegen je huis',
+      'Je huis › Buiten: een tik op het huis opent zijn blad, met Naar binnen en Vorm aanpassen, in plaats van meteen naar de begane grond te gaan',
+      'Je huis: een strookje van een paar centimeter zonder naam (een verschil in afronding met de kaart) gaat op in het vak ernaast',
+    ],
+    en: {
+      opgelost: [
+        'Your home › Outside: the house on the plot always has exactly the shape of your home. A drawing in which the house covered half the plot repairs itself: Outside then starts again as the first time',
+        'Your home › Outside: if the map shows a neighbouring house against yours (semi-detached), the plot boundary on that side lies against your house',
+        'Your home › Outside: tapping the house opens its sheet, with Go inside and Adjust the shape, instead of jumping straight to the ground floor',
+        'Your home: a strip of a few centimetres without a name (a rounding difference with the map) merges into the area next to it',
+      ],
+    },
+  },
   {
     versie: '0.208.1',
     datum: '2026-11-20',

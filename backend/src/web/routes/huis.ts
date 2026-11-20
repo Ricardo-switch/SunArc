@@ -623,7 +623,7 @@ async function vormVanHuis(
   }
   if (bron !== 'zelf') vormen.zelf = bronVorm(daken ? dakenMetBron(daken, 'zelf', null)! : leeg, voorgevel, woning, lagen);
   // Het erf om de gebouwen van de bron van nu (19 november 2026): ook op het ruitjespapier, zodat buiten past.
-  const erfRuw = erfOm(vormen[bron]?.blokken ?? []);
+  const erfRuw = erfOm(vormen[bron]?.blokken ?? [], vormen[bron]?.omgeving ?? []);
   const papier = eenPapier({ ...Object.fromEntries(Object.entries(vormen).map(([id, v]) => [id, v.blokken])), ...(erfRuw ? { _erf: [{ id: 'erf', soort: 'anders' as const, ...erfRuw }] } : {}) }, plattegrond);
   const erfOpPapier = papier.blokken['_erf']?.[0];
   // In vaste volgorde: de 3D-kaart, de plattegrond, zonder kaart.

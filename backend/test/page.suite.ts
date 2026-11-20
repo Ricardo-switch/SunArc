@@ -6748,7 +6748,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
    * staan; bij Wat is dit? staan de ruimtes buiten, zonder het huis; een tik op
    * het huis gaat naar binnen. Met een nagebootste vinger.
    */
-  it('tekent buiten het erf met het huis als vast vak, en een tik op het huis gaat naar binnen', async () => {
+  it('tekent buiten het erf met het huis als vast vak, en een tik op het huis geeft zijn blad met Naar binnen', async () => {
     const was = layoutStore.current ? structuredClone(layoutStore.current) : null;
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
@@ -6777,8 +6777,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await blad.locator('h4', { hasText: 'Wat is dit?' }).waitFor();
       expect(await blad.locator('[data-ht="noem"][data-kamer="@huis"]').count()).toBe(0);
       expect(await blad.textContent()).not.toContain('Hal');
-      // Een tik op het huis: naar binnen, de begane grond.
+      // Een tik op het huis (20 november 2026): zijn blad, niet meteen naar binnen; daar gaat Naar binnen naar de begane grond.
       await v.tik((m.x0 + m.x1) / 20, (m.y0 + m.y1) / 20);
+      await p.locator('#wand #blad [data-ht="naar-binnen"]').waitFor({ timeout: 5_000 });
+      expect(await p.evaluate<string>('window.tekenaar.st.etage')).toBe('buiten');
+      await p.locator('#wand #blad [data-ht="naar-binnen"]').click();
       await expect.poll(() => p.evaluate<string>('window.tekenaar.st.etage'), { timeout: 5_000 }).not.toBe('buiten');
       expect(fouten).toEqual([]);
     } finally {

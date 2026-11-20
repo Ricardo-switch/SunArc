@@ -132,6 +132,15 @@ describe('buiten als eigen tekening', () => {
     // Een tuinhuis achterin, 20 m van de straat: het erf loopt tot 3 m erachter, niet 12 m.
     expect(erfOm([{ soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }, { soort: 'tuinhuis', u: 2, v: 20, b: 3, d: 2 }])).toEqual({ u: -3, v: -6, b: 16, d: 31 });
     expect(erfOm([])).toBeNull();
+    // Een buurhuis tegen de rechtergevel (twee-onder-een-kap): de erfgrens ligt daar tegen het huis; links blijft de strook.
+    const buur = [{ punten: [[10, 0], [16, 0], [16, 8], [10, 8]] as [number, number][] }];
+    expect(erfOm([{ soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }], buur)).toEqual({ u: -3, v: -6, b: 13, d: 26 });
+    // Een garage links en de buur rechts: links tot de garage plus de strook, rechts tegen het huis.
+    expect(erfOm([{ soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }, { soort: 'garage', u: -2.5, v: 2, b: 2.5, d: 8 }], buur)).toMatchObject({ u: -5.5, b: 15.5 });
+    // Een kleine schuur tegen de gevel is geen buurhuis.
+    expect(erfOm([{ soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }], [{ punten: [[10, 0], [12.5, 0], [12.5, 8], [10, 8]] }])).toEqual({ u: -3, v: -6, b: 16, d: 26 });
+    // Een gebouw verder weg raakt niets.
+    expect(erfOm([{ soort: 'hoofdhuis', u: 0, v: 0, b: 10, d: 8 }], [{ punten: [[14, 0], [18, 0], [18, 8], [14, 8]] }])).toEqual({ u: -3, v: -6, b: 16, d: 26 });
   });
 
   it('kent op het erf het huis, een ruimte buiten en een deel ervan', () => {
