@@ -4233,15 +4233,18 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await expect.poll(stand, { timeout: 10_000 }).toBe(aanStand);
       await laag.click();
 
-      // Instellen bij Functies, onder Weergave (besluit 167): het potlood heeft het niet meer.
+      // Instellen bij Jij, onder Scherm (stap 4 punt 2; eerst Functies › Weergave, besluit 167): het potlood heeft het niet meer.
       await p.locator('#wand [data-aanpassen]').click();
       expect(await p.locator('#wand [data-bewerkkop] [data-niemand-kies]').count()).toBe(0);
       await p.locator('#wand [data-bewerkkop] [data-klaar]').click();
       await p.clock.setFixedTime(new Date('2026-10-20T14:12:00Z'));
+      // Het oude adres bij Functies komt bij Jij uit, met het blad open.
       await p.goto(`${baseUrl}/functies.html#aod`);
-      const blad = p.locator('#wand [data-vorm]');
+      await p.waitForURL(/jij\.html#aod$/);
+      const blad = p.locator('[data-blad]');
       await blad.locator('h2', { hasText: 'Always-on display' }).waitFor();
-      expect(await p.locator('#wand [data-delen] h4').allTextContents()).toContain('Weergave');
+      expect(await p.locator('#wand #kop-scherm').textContent()).toBe('Scherm');
+      expect(await p.locator('#wand [data-scherm-open]').count()).toBeGreaterThanOrEqual(3);
       // De schakelaar: uit, en de minuten worden grijs.
       expect(await blad.locator('[data-nk-aod]').getAttribute('aria-checked')).toBe('true');
       await blad.locator('[data-nk-rust="15"]').click();
@@ -4262,7 +4265,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await blad.locator('[data-nk-avond]').click();
       await expect.poll(async () => (await niemand()).avond).toBe(true);
       // Scherm uit: wanneer, en na hoeveel minuten zonder beweging.
-      await p.goto(`${baseUrl}/functies.html#uit`);
+      await p.locator('[data-blad] [data-blad-dicht]').click();
+      await p.locator('#wand [data-scherm-open="uit"]').click();
       await blad.locator('h2', { hasText: 'Scherm uit' }).waitFor();
       await blad.locator('[data-nk-aan="5"]').click();
       await expect.poll(async () => (await niemand()).aanMin).toBe(5);
@@ -4352,10 +4356,10 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await stand()).toBe('uit');
       await fully('screenOn');
       await expect.poll(stand).toBe('avond');
-      // Bij Functies › Scherm uit: de camera als keuze, en wat Fully op dit scherm doet.
+      // Bij Jij › Scherm uit: de camera als keuze, en wat Fully op dit scherm doet.
       await p.clock.setFixedTime(new Date('2026-10-20T14:00:00Z'));
-      await p.goto(`${baseUrl}/functies.html#uit`);
-      const blad = p.locator('#wand [data-vorm]');
+      await p.goto(`${baseUrl}/jij.html#uit`);
+      const blad = p.locator('[data-blad]');
       await blad.locator('h2', { hasText: 'Scherm uit' }).waitFor();
       await blad.locator('[data-nk-melder]').selectOption('fully');
       await expect.poll(async () => ((await (await fetch(`${baseUrl}/api/voorkeuren`)).json()) as { wand: { niemand: { melder: string | null } } }).wand.niemand.melder).toBe('fully');
@@ -7606,10 +7610,10 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await expect.poll(berichten).toContainEqual({ type: 'home-assistant/subscribe-properties', kioskMode: true });
     await app.locator('#balk [data-naar-ha]').waitFor();
 
-    // Bij Functies › Weergave › Dit scherm aanzetten (besluit 167): meteen de kioskstand, het hele scherm en de knop.
+    // Bij Jij › Scherm › Dit scherm aanzetten (besluit 167, stap 4 punt 2): meteen de kioskstand, het hele scherm en de knop.
     const frame = p.frames().find((f) => f.url().includes('/api/hassio_ingress/'))!;
-    await frame.goto(`${HA}/api/hassio_ingress/abc/functies.html#scherm`);
-    const vorm = app.locator('#wand [data-vorm]');
+    await frame.goto(`${HA}/api/hassio_ingress/abc/jij.html#scherm`);
+    const vorm = app.locator('[data-blad]');
     await vorm.locator('h2', { hasText: 'Dit scherm' }).waitFor();
     expect(await vorm.locator('[data-volledig]').getAttribute('aria-checked')).toBe('true');
     // Uitzetten: de balken van Home Assistant terug, en geen knop.

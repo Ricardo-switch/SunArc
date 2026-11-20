@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.206.0
+## 0.207.0
 
-*19 november 2026 · 0.179.0 – 0.206.0*
+*20 november 2026 · 0.179.0 – 0.207.0*
 
 **Nieuw**
 
@@ -71,6 +71,8 @@
 
 **Beter**
 
+- Dit scherm, het always-on display, Scherm uit en Op je startscherm staan bij Jij, onder Scherm; elk opent zijn eigen blad
+- Licht, camera’s en weer gaat alleen nog over camera’s, de deurbel, licht en screens, het weer en meldingen
 - De hoofdzekering vraag je bij Energie en bij Inrichten op dezelfde manier: eerst 1 of 3 fasen, dan de ampère als knoppen, met Anders voor een eigen waarde
 - Het soort contract is één rij bij Energie en bij Inrichten: Eén tarief, Dag en nacht, Per uur of Weet ik niet; daarna alleen de prijzen die erbij horen
 - Aanpassen bij Je huis in Inrichten opent Je huis, met een balk terug naar Inrichten en Klaar naar de volgende stap
@@ -233,6 +235,8 @@
 
 **Improved**
 
+- This screen, the always-on display, Screen off and On your home screen are under You, in Screen; each opens its own sheet
+- Lights, cameras and weather is now only about cameras, the doorbell, lights and screens, the weather and notifications
 - You enter the main fuse the same way under Energy and in Set up: first 1 or 3 phases, then the amperes as buttons, with Other for your own value
 - The kind of contract is one row under Energy and in Set up: One rate, Day and night, Per hour or Don’t know; then only the prices that go with it
 - Adjust for Your home in Set up opens Your home, with a bar back to Set up and Done to the next step

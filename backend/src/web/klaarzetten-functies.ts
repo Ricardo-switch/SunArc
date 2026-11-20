@@ -129,7 +129,7 @@ const WOORDEN = {
       fully: { titel: 'Fully Kiosk Browser', nogNiet: 'Nog niet gemeld. Draait de wand in Fully, dan meldt hij zich zodra SunArc daar een pagina opent.', klaar: (tijd: string) => `De wand draait in Fully (gezien om ${tijd}).`, open: 'Installeer Fully Kiosk Browser op de tablet en open SunArc daarin. De wand meldt zich dan zelf.', anders: (tijd: string) => `De wand draait in een gewone browser (gezien om ${tijd}). Met Fully kan het scherm uit en aan.` },
       js: ['De koppeling met de pagina', 'JavaScript Interface staat aan: SunArc kan het scherm uit en aan zetten.', 'In Fully: Instellingen › Advanced Web Settings › Enable JavaScript Interface.'],
       camera: { titel: 'Wakker op beweging', fully: 'De camera van de tablet kijkt mee.', melder: 'Een bewegingsmelder in huis wekt de wand.', open: 'In Fully: Instellingen › Motion Detection › Enable Visual Motion Detection (vraagt Fully Plus). Of kies een bewegingsmelder bij Functies › Scherm.' },
-      uit: ['Scherm uit als niemand kijkt', 'Staat aan bij Licht, camera’s en weer › Scherm uit.', 'Zet het aan bij Licht, camera’s en weer › Scherm uit: \'s nachts, of als niemand thuis is.'],
+      uit: ['Scherm uit als niemand kijkt', 'Staat aan bij Jij › Scherm uit.', 'Zet het aan bij Jij › Scherm uit: \'s nachts, of als niemand thuis is.'],
       wolk: { titel: 'Een dienst in Home Assistant', klaar: (namen: string) => `${namen} staat erin.`, open: 'Voeg een van de drie routes hierboven toe in Home Assistant.' },
       naarWolk: ['De spraakassistent naar de cloud', 'Een spraakassistent verstaat via de cloud; het wekwoord blijft in huis.', 'Kies bij een spraakassistent in Home Assistant de dienst voor spraak naar tekst.'],
       ts: { titel: 'De Tailscale-add-on', klaar: 'De add-on draait.', open: 'Installeer de add-on Tailscale en log één keer in.', onbekend: 'Installeer de add-on Tailscale en log één keer in; SunArc kan niet zien of hij draait.' },
@@ -173,7 +173,7 @@ const WOORDEN = {
       fully: { titel: 'Fully Kiosk Browser', nogNiet: 'Not reported yet. If the wall screen runs in Fully, it reports itself as soon as SunArc opens a page there.', klaar: (tijd: string) => `The wall screen runs in Fully (seen at ${tijd}).`, open: 'Install Fully Kiosk Browser on the tablet and open SunArc in it. The wall screen then reports itself.', anders: (tijd: string) => `The wall screen runs in an ordinary browser (seen at ${tijd}). With Fully the screen can go off and on.` },
       js: ['The link with the page', 'JavaScript Interface is on: SunArc can switch the screen off and on.', 'In Fully: Settings › Advanced Web Settings › Enable JavaScript Interface.'],
       camera: { titel: 'Wake on motion', fully: 'The tablet\'s camera watches for motion.', melder: 'A motion sensor in the house wakes the wall screen.', open: 'In Fully: Settings › Motion Detection › Enable Visual Motion Detection (needs Fully Plus). Or choose a motion sensor in Features › Screen.' },
-      uit: ['Screen off when nobody is looking', 'On in Lights, cameras and weather › Screen off.', 'Switch it on in Lights, cameras and weather › Screen off: at night, or when nobody is home.'],
+      uit: ['Screen off when nobody is looking', 'On in You › Screen off.', 'Switch it on in You › Screen off: at night, or when nobody is home.'],
       wolk: { titel: 'A service in Home Assistant', klaar: (namen: string) => `${namen} is set up.`, open: 'Add one of the three routes above in Home Assistant.' },
       naarWolk: ['The voice assistant to the cloud', 'A voice assistant understands through the cloud; the wake word stays at home.', 'Choose the speech-to-text service on a voice assistant in Home Assistant.'],
       ts: { titel: 'The Tailscale add-on', klaar: 'The add-on is running.', open: 'Install the Tailscale add-on and log in once.', onbekend: 'Install the Tailscale add-on and log in once; SunArc cannot see whether it is running.' },
@@ -243,12 +243,12 @@ export function klaarFuncties(punten: readonly KlaarPunt[], x: KlaarExtra, lang:
       ? [
           stap('fully', s.fully.titel, s.fully.klaar(tijd), 'klaar'),
           stap('js', s.js[0], m?.js ? s.js[1] : s.js[2], m?.js ? 'klaar' : 'open'),
-          stap('beweging', s.camera.titel, beweging === 'klaar' ? s.camera[x.wekker === 'fully' ? 'fully' : 'melder'] : s.camera.open, beweging, null, beweging === 'klaar' ? null : 'functies.html#uit'),
-          stap('uit', s.uit[0], x.schermUit ? s.uit[1] : s.uit[2], x.schermUit ? 'klaar' : 'kan', null, x.schermUit ? null : 'functies.html#uit'),
+          stap('beweging', s.camera.titel, beweging === 'klaar' ? s.camera[x.wekker === 'fully' ? 'fully' : 'melder'] : s.camera.open, beweging, null, beweging === 'klaar' ? null : 'jij.html#uit'),
+          stap('uit', s.uit[0], x.schermUit ? s.uit[1] : s.uit[2], x.schermUit ? 'klaar' : 'kan', null, x.schermUit ? null : 'jij.html#uit'),
         ]
       : [
           stap('fully', s.fully.titel, m ? s.fully.anders(tijd) : s.fully.nogNiet, 'kan'),
-          stap('uit', s.uit[0], x.schermUit ? s.uit[1] : s.uit[2], x.schermUit ? 'klaar' : 'kan', null, x.schermUit ? null : 'functies.html#uit'),
+          stap('uit', s.uit[0], x.schermUit ? s.uit[1] : s.uit[2], x.schermUit ? 'klaar' : 'kan', null, x.schermUit ? null : 'jij.html#uit'),
         ];
 
   // De cloud: welke dienst er al staat, en of een spraakassistent hem gebruikt.
@@ -265,7 +265,7 @@ export function klaarFuncties(punten: readonly KlaarPunt[], x: KlaarExtra, lang:
     stap('tailscale', s.ts.titel, tsStand === 'klaar' ? s.ts.klaar : tsStand === 'open' ? s.ts.open : s.ts.onbekend, tsStand, tsStand === 'klaar' ? null : `/hassio/addon/${TAILSCALE}/info`),
     stap('poort', s.poort[0], x.eigenPoort ? s.poort[1] : s.poort[2], x.eigenPoort ? 'klaar' : 'open', x.eigenPoort || !x.eigenSlug ? null : `/hassio/addon/${x.eigenSlug}/config`),
     // Of het op een telefoon staat, kan SunArc niet zien.
-    stap('optel', s.opTel[0], s.opTel[1], 'onbekend', null, 'functies.html#startscherm'),
+    stap('optel', s.opTel[0], s.opTel[1], 'onbekend', null, 'jij.html#startscherm'),
   ];
 
   return [

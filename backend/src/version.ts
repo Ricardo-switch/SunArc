@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.206.0';
+export const VERSIE = '0.207.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.207.0',
+    datum: '2026-11-20',
+    beter: [
+      'Dit scherm, het always-on display, Scherm uit en Op je startscherm staan bij Jij, onder Scherm; elk opent zijn eigen blad',
+      'Licht, camera’s en weer gaat alleen nog over camera’s, de deurbel, licht en screens, het weer en meldingen',
+    ],
+    en: {
+      beter: [
+        'This screen, the always-on display, Screen off and On your home screen are under You, in Screen; each opens its own sheet',
+        'Lights, cameras and weather is now only about cameras, the doorbell, lights and screens, the weather and notifications',
+      ],
+    },
+  },
   {
     versie: '0.206.0',
     datum: '2026-11-19',

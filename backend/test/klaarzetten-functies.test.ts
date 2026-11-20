@@ -97,7 +97,7 @@ describe('klaarzetten per niveau (besluit 246)', () => {
     const gemeld = functie({ wand: { fully: true, js: true, camera: false, ms: 0 }, wekker: 'fully' })('wand');
     expect(stap(gemeld, 'fully')).toMatchObject({ stand: 'klaar', zin: expect.stringContaining('10:14') });
     expect(stap(gemeld, 'js').stand).toBe('klaar');
-    expect(stap(gemeld, 'beweging')).toMatchObject({ stand: 'open', app: 'functies.html#uit' });
+    expect(stap(gemeld, 'beweging')).toMatchObject({ stand: 'open', app: 'jij.html#uit' });
     expect(gemeld.zin).toBe('Nog 1 stap');
     // Geen wekker gekozen: de camera hoeft niet. Scherm uit niet gekozen: ook geen tekort.
     const keuze = functie({ wand: { fully: true, js: true, camera: false, ms: 0 }, schermUit: false })('wand');

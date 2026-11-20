@@ -4,6 +4,10 @@
  * het al stond: de weergave op Thuis, je comfort bij Comfort, je naam en hoe
  * het huis weet dat je thuis bent bij Bewoners, je gegevens bij Bewoners en
  * toegang. Een scherm of een gast heeft geen profiel.
+ *
+ * Scherm (stap 4 punt 2): dit scherm, het always-on display, scherm uit en op
+ * je startscherm staan hier, elk in een blad (ditscherm.js); eerst stonden ze
+ * bij Licht, camera's en weer onder Weergave.
  */
 'use strict';
 
@@ -29,6 +33,10 @@ const IK = {
   terug: iconen.binnen('terug'),
   agenda: iconen.binnen('agenda'),
   tel: iconen.binnen('telefoon'),
+  scherm: iconen.binnen('wand'),
+  aod: iconen.binnen('aod'),
+  uit: iconen.binnen('uit'),
+  startscherm: iconen.binnen('telefoon'),
 };
 /** De taal (besluit 185): vanzelf die van je account in Home Assistant, of zelf gekozen. De teksten in kit/teksten.*.js. */
 const TALEN = ['auto', 'nl', 'en'];
@@ -46,7 +54,16 @@ async function laad() {
     app.zetThema(v);
   }
   if (bw.status === 'fulfilled') b = bw.value;
+  await ditScherm.laad();
+  ditScherm.zet(v, () => {
+    teken();
+    tekenBladAls();
+  }, (nieuw) => {
+    v = nieuw;
+  });
   teken();
+  // jij.html#aod, #uit, #scherm of #startscherm (oude adressen van Functies): dat blad meteen open.
+  openSchermUitAdres();
   // Vanuit Te doen of Functies (30 oktober 2026): jij.html#agenda opent meteen je agenda's.
   if (location.hash === '#agenda' && agendas && b?.ik?.soort === 'bewoner') openBlad('agenda');
 }
@@ -63,6 +80,20 @@ async function bewaar(wat) {
     // De volgende keer.
   }
   teken();
+}
+
+/** Scherm (stap 4 punt 2): de vier delen van dit scherm en de wand, elk een rij die zijn blad opent. */
+function schermBlok() {
+  if (!v) return '';
+  ditScherm.zet(v);
+  return `<section class="glas lijst" aria-labelledby="kop-scherm">
+      <h2 id="kop-scherm">${esc(t('jij.scherm.kop'))}</h2>
+      ${ditScherm.delen().map((d) => knop(`data-scherm-open="${d.id}"`, d.id, d.titel, d.zin)).join('')}
+    </section>`;
+}
+function openSchermUitAdres() {
+  const h = location.hash.slice(1);
+  if (ditScherm.DELEN.includes(h) && v && b?.ik?.soort !== 'gast') openBlad(`scherm:${h}`);
 }
 
 const link = (href, icoon, titel, onder, rechts = '') => `<a class="rij" href="${href}">${ik(icoon)}<b>${esc(titel)}</b><small>${esc(onder)}</small><span class="pijl">${rechts}›</span></a>`;
@@ -111,7 +142,7 @@ function teken() {
     </section>`;
   if (!wie) {
     const zin = t(mij?.soort === 'scherm' ? 'jij.scherm' : 'jij.geenProfiel');
-    $$('[data-jij]').forEach((el) => (el.innerHTML = `<div class="wie"><div><h1 class="kop-1">${esc(t(mij?.soort === 'scherm' ? 'jij.ditScherm' : 'jij.kop'))}</h1><small>${esc(zin)}</small></div></div>${uiterlijk}`));
+    $$('[data-jij]').forEach((el) => (el.innerHTML = `<div class="wie"><div><h1 class="kop-1">${esc(t(mij?.soort === 'scherm' ? 'jij.ditScherm' : 'jij.kop'))}</h1><small>${esc(zin)}</small></div></div>${uiterlijk}${schermBlok()}`));
     return;
   }
   const hoofd = (b.bewoners ?? []).find((x) => x.hoofd);
@@ -121,6 +152,7 @@ function teken() {
   const html = `
     <div class="wie"><span class="rondje" aria-hidden="true">${esc(wie.naam.charAt(0).toUpperCase())}</span><div><h1 class="kop-1">${esc(wie.naam)}</h1><small>${esc(wie.hoofd ? t('jij.hoofdgebruiker') : t('jij.plek', { plek: wie.plek }))}${thuis}</small></div></div>
     ${uiterlijk.replace('</section>', `${knop('data-taal-open', 'taal', t('jij.taal.kop'), t(`jij.taal.${v.tel.taal}`))}</section>`)}
+    ${schermBlok()}
     <section class="glas lijst" aria-labelledby="kop-thuis">
       <h2 id="kop-thuis">${esc(t('jij.thuis'))}</h2>
       ${link('thuis.html#aanpassen', 'kaarten', t('jij.kaarten'), t('jij.kaartenZin', { n: v.tel.kaarten.length }))}
@@ -246,6 +278,7 @@ async function proefmelding(knop) {
 document.addEventListener('change', (e) => {
   const el = e.target;
   if (!v) return;
+  if (/** @type {HTMLElement} */ (el).closest?.('[data-scherm-deel]') && ditScherm.verander(el)) return;
   if (el.matches('[data-melding-telefoon]')) void bewaar({ meldingen: { telefoon: el.value || null } });
   else if (el.matches('[data-melding-tijd]') && /^\d{2}:\d{2}$/.test(el.value)) void bewaar({ meldingen: { [el.dataset.meldingTijd]: el.value } });
 });
@@ -253,12 +286,22 @@ addEventListener('hashchange', () => {
   proef = '';
   teken();
   scrollTo(0, 0);
+  openSchermUitAdres();
 });
 
 /* ------------------------------------------------------------ het blad */
 
 function tekenBlad() {
-  const blad = document.querySelector('[data-blad]');
+  const blad = /** @type {HTMLElement} */ (document.querySelector('[data-blad]'));
+  // Een deel van Scherm (stap 4 punt 2): de kop met Klaar, en het deel eronder.
+  if (blad.dataset.soort?.startsWith('scherm:')) {
+    const id = blad.dataset.soort.slice(7);
+    ditScherm.zet(v);
+    blad.innerHTML = `
+    <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(ditScherm.titel(id))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
+    <div class="ds-blad" data-scherm-deel="${esc(id)}">${ditScherm.vorm(id)}</div>`;
+    return;
+  }
   if (blad.dataset.soort === 'agenda') {
     blad.innerHTML = agendaBlad();
     return;
@@ -280,10 +323,13 @@ function tekenBlad() {
     <p class="betekenis">${esc(t('jij.kleurUitleg')).replace(/\{(blauw|oranje|amber|groen)\}/g, (m, k) => `<i style="background: var(--${{ blauw: 'ijs', oranje: 'gloed', amber: 'zon', groen: 'mint' }[k]})"></i>`)}</p>`;
 }
 
-/** Staat het agendablad open, dan opnieuw tekenen na het bewaren. */
+/** Staat het agendablad of een deel van Scherm open, dan opnieuw tekenen na het bewaren. */
 function tekenBladAls() {
-  const blad = document.querySelector('[data-blad]');
-  if (!blad.hidden && blad.dataset.soort === 'agenda') tekenBlad();
+  const blad = /** @type {HTMLElement} */ (document.querySelector('[data-blad]'));
+  if (blad.hidden) return;
+  if (blad.dataset.soort === 'agenda' || blad.dataset.soort?.startsWith('scherm:')) {
+    tekenBlad();
+  }
 }
 
 let terugFocus = null;
@@ -301,6 +347,16 @@ function sluitBlad() {
   document.querySelector('[data-blad]').hidden = true;
   terugFocus?.focus?.();
 }
+
+// Scherm (stap 4 punt 2): een rij opent zijn blad; wat er in het blad getikt wordt, doet ditscherm.js.
+document.addEventListener('click', (e) => {
+  const doel = /** @type {HTMLElement} */ (e.target);
+  const open = /** @type {HTMLElement | null} */ (doel.closest('[data-scherm-open]'));
+  if (open && v) return openBlad(`scherm:${open.dataset.schermOpen}`);
+  const knop = doel.closest('[data-scherm-deel] button');
+  if (knop && v) ditScherm.klik(knop);
+});
+document.addEventListener('input', (e) => ditScherm.invoer(e.target));
 
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-thema-open], [data-taal-open], [data-agenda-open], [data-agenda-aan], [data-agenda-id], [data-blad-dicht], [data-achter], [data-thema], [data-kies-kleur], [data-kies-taal], [data-weergave], [data-melding], [data-proef], [data-std-uiterlijk], [data-std-kaarten]');
@@ -332,6 +388,12 @@ document.addEventListener('keydown', (e) => {
 });
 // Wisselt het thema met de telefoon mee, dan tekent het blad de tinten opnieuw.
 matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => teken());
+
+// Chrome biedt het installeren aan, of het is gebeurd: Op je startscherm opnieuw tekenen.
+addEventListener('sc-installeer', () => {
+  teken();
+  tekenBladAls();
+});
 
 app.start('instellingen');
 void laad();

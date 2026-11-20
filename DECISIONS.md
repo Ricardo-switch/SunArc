@@ -320,6 +320,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [327. Eén plek voor de kaart: het dak in Je huis, de panelen bij Energie](#327-eén-plek-voor-de-kaart-het-dak-in-je-huis-de-panelen-bij-energie)
 - [328. Eén plek om een auto, laadpaal of thuisaccu toe te voegen](#328-eén-plek-om-een-auto-laadpaal-of-thuisaccu-toe-te-voegen)
 - [329. Dezelfde vraag bij Energie en bij Inrichten](#329-dezelfde-vraag-bij-energie-en-bij-inrichten)
+- [330. Alles van dit scherm bij Jij](#330-alles-van-dit-scherm-bij-jij)
 
 **Veiligheid**
 
@@ -15247,6 +15248,31 @@ eerst de soort, dan de rest.
 kamers per etage) blijven met een link bestaan, tot Je huis het soort woning
 kent (punt 3). Verwarming en Wie woont hier openen bij Aanpassen nog hun
 eigen schermen.
+
+## 330. Alles van dit scherm bij Jij
+
+*Onderwerp: weergave · Status: geldig*
+
+20 november 2026, stap 4 punt 2. Dit scherm, het always-on display, Scherm
+uit en Op je startscherm stonden bij Licht, camera's en weer onder Weergave
+en Gevorderd (besluit 167). Ze gaan over het scherm waarop je kijkt en over
+de wand, niet over licht of camera's. Het plan van de kwaliteitsronde: Jij
+heeft het thema, de kleur, de taal en alles van dit scherm.
+
+*Besluit (0.207.0):*
+
+- **Jij** krijgt de groep **Scherm**, onder Hoe de app eruitziet: Dit scherm
+  (alleen in Home Assistant), Always-on display, Scherm uit en Op je
+  startscherm. Elke rij opent zijn blad, zoals Thema en kleur; onderaan staat
+  wat eerst rechts stond onder Zo werkt het. Ook een scherm zonder profiel
+  (het account van de wand) ziet de groep. Het gedeelde deel staat in
+  `src/ditscherm.js` en bewaart zelf bij de voorkeuren van de wand.
+- **Licht, camera's en weer** houdt camera's, deurbel, licht en screens, weer
+  en meldingen. De oude adressen (`functies.html#aod`, `#uit`, `#scherm`,
+  `#startscherm`) gaan naar Jij met het blad open; zo ook Zoeken, Klaarzetten
+  en de teksten die de weg wijzen.
+- Wat Klaarzetten nog open heeft voor de wand, stond op de telefoon boven
+  Scherm uit; dat staat nu alleen bij Klaarzetten zelf.
 
 ## Wat nog een besluit wacht
 
