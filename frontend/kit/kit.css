@@ -784,6 +784,14 @@ a.knop:not(.knop-licht) {
 .wn-kant { height: 36px; border-radius: 11px; border: 1px solid var(--glas-rand); background: rgb(255 255 255 / 0.06); color: var(--zacht); font: 700 13px var(--romp, Figtree, sans-serif); cursor: pointer; }
 .wn-kant.aan { background: rgb(255 176 122 / 0.16); border-color: #ffb07a; color: var(--tekst); }
 .wn-zin { margin: 0; font-size: 12.5px; color: var(--zacht); line-height: 1.4; }
+/* Een appartement: de verdieping en erboven als min en plus, naast elkaar. */
+.wn-staps { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 2px; }
+.wn-stap { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; grid-template-rows: auto 34px; align-items: center; gap: 3px 4px; padding: 7px 8px 8px; border-radius: 12px; border: 1px solid var(--glas-rand); background: rgb(255 255 255 / 0.04); }
+.wn-stap span { grid-column: 1 / 4; font-size: 11.5px; font-weight: 700; color: var(--gedempt); }
+.wn-stap b { text-align: center; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wn-stap button { height: 34px; border-radius: 10px; border: 1px solid var(--glas-rand); background: rgb(255 255 255 / 0.07); color: var(--tekst); font: 700 18px var(--romp, Figtree, sans-serif); cursor: pointer; }
+.wn-stap button:disabled { opacity: 0.35; cursor: default; }
+.wn-voet { margin: 2px 0 0; font-size: 11.5px; color: var(--gedempt); line-height: 1.4; }
 /* Breder (Inrichten, telefoon): twee regels per soort, met de zin. */
 .wn-breed .wn-soorten { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .wn-breed .wn-soort { padding: 10px 4px; }

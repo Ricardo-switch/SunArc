@@ -451,7 +451,7 @@
     }
     autosOpHunPlek(delen, huis?.opslag?.autos ?? []);
     const piekW = (zon?.panelen ?? []).reduce((t, p) => t + (p.wattpiek ?? 0), 0);
-    // Wat voor huis het is (besluit 190); een appartement in een gebouw van drie lagen.
+    // Wat voor huis het is (besluit 190); een appartement met de verdiepingen eronder en erboven (20 november 2026), hooguit drie en twee in beeld.
     const woning = huis?.woning ?? 'vrijstaand';
     return {
       etages,
@@ -459,7 +459,7 @@
       // In welke kamer de boiler staat, ook als de tekening hem zelf een plek gaf (besluit 315).
       boilerKamer,
       woning,
-      ...(woning === 'appartement' ? { gebouw: { onder: 2, boven: 1 } } : {}),
+      ...(woning === 'appartement' ? { gebouw: { onder: Math.min(3, huis?.gebouw?.onder ?? 1), boven: Math.min(2, huis?.gebouw?.boven ?? 1) } } : {}),
       buitenRuimtes,
       ...delen,
       // De voordeur met zijn plek uit de indeling (besluit 269), om op te tikken.

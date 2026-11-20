@@ -288,7 +288,8 @@ function model(stap) {
     ...huismodel.huisDelen(tek, elders),
     ...(buiten ? {} : { oprit: null, tuin: null, terras: null, balkon: null, voortuin: null, garage: null }),
     woning,
-    ...(woning === 'appartement' ? { gebouw: { onder: 2, boven: 1 } } : {}),
+    // Een appartement: de verdiepingen eronder en erboven zoals gekozen (20 november 2026), hooguit drie en twee in beeld.
+    ...(woning === 'appartement' ? { gebouw: ((f) => ({ onder: Math.min(3, f.verdieping), boven: Math.min(2, f.erboven) }))(woningDeel.flatVan(concept() ?? tek.gebouw ?? {})) } : {}),
     buitenunit: na('apparaten') && tek.buitenunit ? { ...tek.buitenunit, aan: false } : null,
     net: true,
     stromen: [],
@@ -660,14 +661,15 @@ function woningStap() {
   const gekozen = Array.isArray(c?.buren);
   const kaart = wnKaart ?? null;
   const soort = gekozen || !kaart || c?.woning ? nu : kaart.soort;
-  const tegels = `<div class="wn-breed">${woningDeel.html({ soort, buren: gekozen ? c.buren : soort === kaart?.soort ? kaart.buren : woningDeel.burenBij(soort, kaart, []), kaart, gekozen: gekozen || !!c?.woning })}</div>`;
+  const tegels = `<div class="wn-breed">${woningDeel.html({ soort, buren: gekozen ? c.buren : soort === kaart?.soort ? kaart.buren : woningDeel.burenBij(soort, kaart, []), kaart, gekozen: gekozen || !!c?.woning, verdieping: c?.verdieping, erboven: c?.erboven })}</div>`;
   const kelder = (c?.kamers ?? []).some((k) => k.etage === 'kelder');
   const dak = dakNu();
-  // Een appartement heeft geen eigen kelder of dak om te tekenen.
+  // Een appartement heeft geen eigen kelder, en een dak alleen als er niets boven ligt (20 november 2026).
+  const dakRij = rij(t('inr.dakVraag'), `${knop('data-dak="schuin"', t('inr.dak.schuin'), dak === 'schuin')}${knop('data-dak="plat"', t('inr.dak.plat'), dak === 'plat')}`);
   const rijen = nu === 'appartement'
-    ? ''
+    ? (woningDeel.eigenDak({ soort: nu, erboven: c?.erboven }) ? dakRij : '')
     : `${rij(t('inr.kelderVraag'), `${knop('data-kelder="ja"', t('inr.kelderJa'), kelder)}${knop('data-kelder="nee"', t('functies.nee'), !kelder)}`)}
-       ${rij(t('inr.dakVraag'), `${knop('data-dak="schuin"', t('inr.dak.schuin'), dak === 'schuin')}${knop('data-dak="plat"', t('inr.dak.plat'), dak === 'plat')}`)}`;
+       ${dakRij}`;
   return {
     waar: waarVan('woning'),
     kop: t('inr.woningKop'),
@@ -2520,6 +2522,14 @@ document.addEventListener('click', async (e) => {
     }
     // Het tuinhuis, het schuurtje of allebei (6 november 2026).
     if (el.dataset.schuur) next.rond = { ...rondVanConcept(next), schuur: el.dataset.schuur === 'schuur', allebei: el.dataset.schuur === 'beide' };
+    await bewaarIndeling(next);
+    return;
+  }
+  if (el.dataset.flat) {
+    // Een appartement (20 november 2026): de verdieping of erboven een hoger of lager, zoals in Je huis.
+    const next = concept();
+    if (!next) return;
+    Object.assign(next, woningDeel.stap(next, el.dataset.flat, Number(el.dataset.stap)));
     await bewaarIndeling(next);
     return;
   }

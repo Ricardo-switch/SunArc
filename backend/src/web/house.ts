@@ -348,6 +348,8 @@ export interface HouseReport {
   readonly accu: LayoutAccu | null;
   /** Wat voor huis het is (besluit 190): vrijstaand als de bewoner niets koos. */
   readonly woning: Woning;
+  /** Bij een appartement (20 november 2026): hoeveel verdiepingen van het gebouw eronder en erboven liggen; anders null. */
+  readonly gebouw: { readonly onder: number; readonly boven: number } | null;
   /**
    * Hoe het huis ligt, voor de tekening (28 oktober 2026, besluit 205): waar
    * de voorgevel naartoe kijkt, hoe de nok loopt en hoe steil het dak is. Null
@@ -2257,6 +2259,7 @@ export function buildHouse(
     rond: layout.rond ?? null,
     accu: layout.accu ?? null,
     woning: layout.woning ?? 'vrijstaand',
+    gebouw: layout.woning === 'appartement' ? { onder: layout.verdieping ?? 1, boven: layout.erboven ?? 1 } : null,
     ligging: huisLigging(config.geometry),
     etages: floors,
     lampenAan: floors.reduce((n, f) => n + f.lampenAan, 0),

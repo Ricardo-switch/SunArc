@@ -1439,6 +1439,7 @@ describe('het huis als navigatie (ONTWERP §4)', () => {
       rond: null,
       accu: null,
       woning: 'vrijstaand',
+      gebouw: null,
       ligging: null,
       etages: [{ id: 'bg', naam: 'Begane grond', lampenAan: 0, samenvatting: summarize([]), ruimtes: [] }],
       lampenAan: 0,
@@ -1507,6 +1508,7 @@ describe('licht bedienen (besluit 97)', () => {
     rond: null,
     accu: null,
     woning: 'vrijstaand',
+    gebouw: null,
     ligging: null,
     etages: [
       { id: 'e2', naam: 'Zolder', lampenAan: 1, samenvatting: summarize([]), ruimtes: [room('zolder', [lamp('light.zolder', true)])] },

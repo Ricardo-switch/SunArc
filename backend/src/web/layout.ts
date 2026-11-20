@@ -253,6 +253,13 @@ export interface Layout {
    * gekozen, dan stelt Je huis voor wat de kaart ziet.
    */
   readonly buren?: readonly ('links' | 'rechts' | 'achter')[];
+  /**
+   * Een appartement (20 november 2026): op welke verdieping de woning begint
+   * (0 is de begane grond) en hoeveel verdiepingen van het gebouw erboven
+   * liggen. Met niets erboven is het dak ook van de bewoner. Weg: 1 en 1.
+   */
+  readonly verdieping?: number;
+  readonly erboven?: number;
   /** Waar de thuisaccu staat (besluit 270). Weg: aan de gevel. */
   readonly accu?: LayoutAccu;
   /**
@@ -614,6 +621,12 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
   const KANTEN = ['links', 'rechts', 'achter'] as const;
   if (burenIn !== undefined && (!Array.isArray(burenIn) || burenIn.some((x) => !KANTEN.includes(x)))) return { ok: false, reden: 'buren is een lijst met links, rechts en achter' };
   const buren = burenIn === undefined ? undefined : KANTEN.filter((k) => (burenIn as unknown[]).includes(k));
+  // Een appartement: de verdieping en de verdiepingen erboven, hele getallen van 0 tot 99.
+  const telIn = (x: unknown) => x === undefined || (Number.isInteger(x) && (x as number) >= 0 && (x as number) <= 99);
+  if (!telIn(b['verdieping'])) return { ok: false, reden: 'verdieping is een heel getal van 0 tot 99' };
+  if (!telIn(b['erboven'])) return { ok: false, reden: 'erboven is een heel getal van 0 tot 99' };
+  const verdieping = b['verdieping'] as number | undefined;
+  const erboven = b['erboven'] as number | undefined;
   // Waar de thuisaccu staat (besluit 270): binnen in een kamer die bestaat.
   const accuIn = b['accu'];
   let accu: LayoutAccu | undefined;
@@ -661,6 +674,8 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
       ...(rond ? { rond } : {}),
       ...(woning !== undefined ? { woning: woning as Woning } : {}),
       ...(buren !== undefined ? { buren } : {}),
+      ...(verdieping !== undefined ? { verdieping } : {}),
+      ...(erboven !== undefined ? { erboven } : {}),
       ...(accu ? { accu } : {}),
       ...(plattegrond ? { plattegrond } : {}),
       ...(plattegrondBron ? { plattegrondBron } : {}),

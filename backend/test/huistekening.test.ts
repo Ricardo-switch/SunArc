@@ -585,6 +585,16 @@ describe('wat voor huis volgens de kaart (20 november 2026)', () => {
     expect(goed.ok && goed.layout.buren).toEqual(['links', 'rechts']);
     expect(validateLayout(indeling({ buren: ['voor'] }), known).ok).toBe(false);
   });
+
+  it('bewaart bij een appartement de verdieping en wat erboven ligt, als hele getallen', () => {
+    const goed = validateLayout(indeling({ woning: 'appartement', buren: ['links', 'rechts'], verdieping: 3, erboven: 0 }), known);
+    expect(goed.ok && [goed.layout.verdieping, goed.layout.erboven]).toEqual([3, 0]);
+    const zonder = validateLayout(indeling({ woning: 'appartement' }), known);
+    expect(zonder.ok && 'verdieping' in zonder.layout).toBe(false);
+    expect(validateLayout(indeling({ verdieping: -1 }), known).ok).toBe(false);
+    expect(validateLayout(indeling({ erboven: 1.5 }), known).ok).toBe(false);
+    expect(validateLayout(indeling({ erboven: '2' }), known).ok).toBe(false);
+  });
 });
 
 describe('deuren en ramen met richting (20 november 2026)', () => {

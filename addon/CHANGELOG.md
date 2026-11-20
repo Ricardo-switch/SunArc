@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.212.0
+## 0.213.0
 
-*20 november 2026 · 0.179.0 – 0.212.0*
+*20 november 2026 · 0.179.0 – 0.213.0*
 
 **Nieuw**
 
+- Je huis › Vorm en Inrichten: bij een appartement kies je op welke verdieping je woont en hoeveel verdiepingen erboven liggen
+- Je huis: links staat je woning in het gebouw, met de verdiepingen erboven en eronder in grijs, en het balkon als plek buiten
 - Je huis › Kamers: ook een achterdeur, openslaande deuren en een schuifpui. Tik op een muur en kies wat erin komt, met een plaatje per soort
 - Je huis: bij een deur kies je aan welke kant het scharnier zit en of hij naar binnen of naar buiten draait; een tik op de stip wisselt het scharnier. Een schuifpui schuift naar links of rechts
 - Je huis › Vorm: Wat voor huis, met de vijf soorten. SunArc stelt uit de kaart voor wat het is en welke muur tegen het huis ernaast staat, met Klopt dit?
@@ -80,6 +82,8 @@
 
 **Beter**
 
+- Je huis: ligt er een verdieping boven je, dan staat de tab Dak er niet; woon je bovenin, dan teken je het dak zelf
+- Thuis en Inrichten: het gebouw om een appartement heeft het aantal verdiepingen dat je koos
 - Je huis in 3D: de achterdeur in hout, openslaande deuren en een schuifpui in glas
 - Je huis: in het blad van een etage staat hoeveel deuren en ramen er zijn, en waar je tikt
 - Inrichten: Wat voor huis is hetzelfde deel als in Je huis, met de muren tegen de buren
@@ -202,6 +206,8 @@
 
 **New**
 
+- Your home › Shape and Set up: for an apartment you choose which floor you live on and how many floors are above
+- Your home: on the left your home sits in the building, with the floors above and below in grey, and the balcony as the place outside
 - Your home › Rooms: also a back door, French doors and a sliding door. Tap a wall and choose what goes in it, with a picture for each kind
 - Your home: for a door you choose which side the hinge is on and whether it swings in or out; a tap on the dot swaps the hinge. A sliding door slides left or right
 - Your home › Shape: What kind of home, with the five kinds. SunArc suggests from the map what it is and which wall is against the house next door, with Is that right?
@@ -276,6 +282,8 @@
 
 **Improved**
 
+- Your home: with a floor above you the Roof tab is not shown; on the top floor you draw the roof yourself
+- Home and Set up: the building around an apartment has the number of floors you chose
 - Your home in 3D: the back door in wood, French doors and a sliding door in glass
 - Your home: the sheet of a floor says how many doors and windows there are, and where to tap
 - Setup: What kind of home is the same part as in Your home, with the walls against the neighbours

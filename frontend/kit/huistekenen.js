@@ -2650,6 +2650,8 @@
         klaar();
       },
       zetStand(s) {
+        // Een appartement met verdiepingen erboven heeft geen eigen dak (20 november 2026): dan naar Vorm.
+        if (s === 'dak' && global.woningDeel && !global.woningDeel.eigenDak(huis.woning)) s = 'vorm';
         // Vorm en het huis in 3D gaan over het huis zelf: vanaf buiten naar de begane grond.
         if ((s === 'vorm' || s === 'huis') && etageVan(st.etage)?.buiten) st.etage = huis.beneden ?? huis.etages.filter((e) => !e.buiten).at(-1)?.id;
         // Dak (stap 4 punt 3): de etage onder het dak, als je niet al op een etage onder het schuine dak stond.
@@ -3042,7 +3044,7 @@
         const o = t.omtrek();
         const nu = t.huis.bronnen?.[st.bron];
         s = `<header><h3>${esc(T('ht.vorm.kop'))}</h3><span>${nl((o.x1 - o.x0) * CEL)} × ${nl((o.y1 - o.y0) * CEL)} m</span></header>
-          ${t.huis.woning && global.woningDeel ? rij({ ik: 'thuis', titel: T(`wn.soort.${t.huis.woning.soort}`), zin: t.huis.woning.soort === 'vrijstaand' ? T('wn.zin.vrijstaand') : T('ht.vorm.woningTegen', { kanten: (t.huis.woning.buren ?? []).map((k) => T(`wn.kantKlein.${k}`)).join(', ') || '—' }), rechts: T('ht.vorm.woningWijzig'), data: 'data-ht="wn-open"' }) : ''}
+          ${t.huis.woning && global.woningDeel ? rij({ ik: 'thuis', titel: T(`wn.soort.${t.huis.woning.soort}`), zin: t.huis.woning.soort === 'vrijstaand' ? T('wn.zin.vrijstaand') : (t.huis.woning.soort === 'appartement' ? `${global.woningDeel.vloer(global.woningDeel.flatVan(t.huis.woning).verdieping, true)} · ` : '') + T('ht.vorm.woningTegen', { kanten: (t.huis.woning.buren ?? []).map((k) => T(`wn.kantKlein.${k}`)).join(', ') || '—' }), rechts: T('ht.vorm.woningWijzig'), data: 'data-ht="wn-open"' }) : ''}
           <p class="ht-zin">${esc(T('ht.vorm.zin'))}</p>
           ${Object.entries(t.huis.bronnen ?? {})
             .map(([id, b]) => `<button type="button" class="ht-bron${st.bron === id ? ' aan' : ''}" data-ht="bron" data-bron="${esc(id)}" aria-pressed="${st.bron === id}"><span class="pl">${t.bronPlaatje(id, 92, 70)}</span><span class="t"><b>${esc(b.naam)}</b><small>${esc(b.vond)}</small><small>${esc(b.weet)}</small><em>${esc(st.bron === id ? T('ht.vorm.inGebruik') : T('ht.vorm.gebruik'))}</em></span></button>`)
@@ -3235,6 +3237,7 @@
         t.ververs();
       } else if (d.ht === 'woning') void t.indeling?.doe?.('woning', d.woning);
       else if (d.ht === 'buur') void t.indeling?.doe?.('buur', d.buur);
+      else if (d.ht === 'flat') void t.indeling?.doe?.('flat', { wat: d.flat, d: Number(d.stap) });
       else if (d.ht === 'kijk') t.kijk?.();
       else if (d.ht === 'gebouw-terug') t.kies(null);
       else if (d.ht === 'opening-plaats') t.plaatsOpening(d.soort);
@@ -3343,16 +3346,27 @@
       const waar = t.kamerPlek();
       const erf = t.huis.etages.find((e) => e.buiten);
       const zonderBuiten = erf ? t.huis.kamers.filter((k) => k.etage === erf.id && !t.vast?.includes(k.id) && !waar[k.id]).length : 0;
-      el.innerHTML = `<div class="ht-dak" aria-hidden="true"></div>${t.huis.etages
-        .filter((e) => !e.buiten)
-        .map((e) => {
+      const binnen = t.huis.etages.filter((e) => !e.buiten);
+      // Een appartement (20 november 2026): de woning in het gebouw, met de verdiepingen erboven en eronder grijs.
+      const wd = global.woningDeel;
+      const flat = wd && t.huis.woning?.soort === 'appartement' ? wd.flatVan(t.huis.woning) : null;
+      const vloeren = (van, tot) => {
+        const n = [];
+        for (let i = van; i >= tot; i--) n.push(i);
+        const rij = (x) => `<span class="ht-vloer">${esc(typeof x === 'number' ? wd.vloer(x) : x)}</span>`;
+        return n.length <= 3 ? n.map(rij).join('') : rij(n[0]) + rij(T('wn.gebouwNog', { n: n.length - 2 })) + rij(n.at(-1));
+      };
+      const boven = flat ? flat.verdieping + binnen.length : 0;
+      el.innerHTML = `<div class="ht-dak${flat ? ' plat' : ''}" aria-hidden="true"></div>${flat ? vloeren(boven + flat.erboven - 1, boven) : ''}${binnen
+        .map((e, i) => {
           const zonder = t.huis.kamers.filter((k) => k.etage === e.id && !waar[k.id]).length;
-          return `<button type="button" class="ht-laag${e.id === t.st.etage ? ' aan' : ''}" data-etage="${esc(e.id)}" aria-pressed="${e.id === t.st.etage}"><b>${esc(e.kort ?? e.naam)}</b><small>${esc(t.st.stand === 'vorm' ? T('ht.stapel.hoog', { maat: nl(e.hoogte ?? 2.8) }) : zonder && t.st.stand === 'kamers' ? T('ht.zonderPlek', { n: zonder }) : T('ht.kamers', { n: t.huis.kamers.filter((k) => k.etage === e.id).length }))}</small>${zonder && t.st.stand === 'kamers' ? '<i></i>' : ''}</button>`;
+          const zin = t.st.stand === 'vorm' ? T('ht.stapel.hoog', { maat: nl(e.hoogte ?? 2.8) }) : zonder && t.st.stand === 'kamers' ? T('ht.zonderPlek', { n: zonder }) : T('ht.kamers', { n: t.huis.kamers.filter((k) => k.etage === e.id).length });
+          return `<button type="button" class="ht-laag${e.id === t.st.etage ? ' aan' : ''}" data-etage="${esc(e.id)}" aria-pressed="${e.id === t.st.etage}"><b>${esc(e.kort ?? e.naam)}</b><small>${esc(flat ? `${wd.vloer(boven - 1 - i)} · ${zin}` : zin)}</small>${zonder && t.st.stand === 'kamers' ? '<i></i>' : ''}</button>`;
         })
-        .join('')}<div class="ht-grond" aria-hidden="true"></div>${erf
+        .join('')}${flat ? vloeren(flat.verdieping - 1, 0) : ''}<div class="ht-grond" aria-hidden="true"></div>${erf
         // Buiten als eigen tekening (19 november 2026): een etage zoals de andere.
-        ? `<button type="button" class="ht-laag buiten${t.st.etage === erf.id ? ' aan' : ''}" data-etage="${esc(erf.id)}" aria-pressed="${t.st.etage === erf.id}"><b>${esc(erf.kort ?? erf.naam)}</b><small>${esc(zonderBuiten && t.st.stand === 'kamers' ? T('ht.zonderPlek', { n: zonderBuiten }) : T('ht.stapel.buitenZin'))}</small>${zonderBuiten && t.st.stand === 'kamers' ? '<i></i>' : ''}</button>`
-        : `<button type="button" class="ht-laag buiten${t.st.blad?.naam === 'buiten' ? ' aan' : ''}" ${t.indeling ? 'data-buiten-blad' : 'disabled'}><b>${esc(T('ht.stapel.buiten'))}</b><small>${esc(T('ht.stapel.buitenZin'))}</small></button>`}`;
+        ? `<button type="button" class="ht-laag buiten${t.st.etage === erf.id ? ' aan' : ''}" data-etage="${esc(erf.id)}" aria-pressed="${t.st.etage === erf.id}"><b>${esc(flat ? T('wn.balkon') : (erf.kort ?? erf.naam))}</b><small>${esc(zonderBuiten && t.st.stand === 'kamers' ? T('ht.zonderPlek', { n: zonderBuiten }) : T(flat ? 'wn.balkonZin' : 'ht.stapel.buitenZin'))}</small>${zonderBuiten && t.st.stand === 'kamers' ? '<i></i>' : ''}</button>`
+        : `<button type="button" class="ht-laag buiten${t.st.blad?.naam === 'buiten' ? ' aan' : ''}" ${t.indeling ? 'data-buiten-blad' : 'disabled'}><b>${esc(T(flat ? 'wn.balkon' : 'ht.stapel.buiten'))}</b><small>${esc(T(flat ? 'wn.balkonZin' : 'ht.stapel.buitenZin'))}</small></button>`}`;
     };
     el.addEventListener('click', (e) => {
       const b = e.target.closest('[data-etage]');

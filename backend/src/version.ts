@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.212.0';
+export const VERSIE = '0.213.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,28 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.213.0',
+    datum: '2026-11-20',
+    nieuw: [
+      'Je huis › Vorm en Inrichten: bij een appartement kies je op welke verdieping je woont en hoeveel verdiepingen erboven liggen',
+      'Je huis: links staat je woning in het gebouw, met de verdiepingen erboven en eronder in grijs, en het balkon als plek buiten',
+    ],
+    beter: [
+      'Je huis: ligt er een verdieping boven je, dan staat de tab Dak er niet; woon je bovenin, dan teken je het dak zelf',
+      'Thuis en Inrichten: het gebouw om een appartement heeft het aantal verdiepingen dat je koos',
+    ],
+    en: {
+      nieuw: [
+        'Your home › Shape and Set up: for an apartment you choose which floor you live on and how many floors are above',
+        'Your home: on the left your home sits in the building, with the floors above and below in grey, and the balcony as the place outside',
+      ],
+      beter: [
+        'Your home: with a floor above you the Roof tab is not shown; on the top floor you draw the roof yourself',
+        'Home and Set up: the building around an apartment has the number of floors you chose',
+      ],
+    },
+  },
   {
     versie: '0.212.0',
     datum: '2026-11-20',

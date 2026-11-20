@@ -579,6 +579,9 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     woning: huis.woning,
     // Wat voor huis (20 november 2026): welke muren tegen de buren staan, gekozen of nog niet, en wat de kaart ziet.
     buren: basis.buren ?? null,
+    // Een appartement: op welke verdieping, en hoeveel erboven (dan staat Dak er niet).
+    verdieping: basis.verdieping ?? null,
+    erboven: basis.erboven ?? null,
     woningKaart: woningUitKaart(nu0.blokken, nu0.omgeving),
     // Van boven naar beneden, zoals het huis opzij.
     // Stap 3 (Je huis aangevuld): welke etage onder het schuine dak ligt, voor het blad van de etage.

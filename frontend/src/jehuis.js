@@ -147,7 +147,8 @@ function woningVoorMotor(d) {
   const gekozen = Array.isArray(d.buren);
   const kaart = d.woningKaart ?? null;
   const soort = gekozen || !kaart ? d.woning : kaart.soort;
-  return { soort, buren: gekozen ? d.buren : (kaart?.buren ?? []), kaart, gekozen };
+  // Een appartement: op welke verdieping en hoeveel erboven (20 november 2026).
+  return { soort, buren: gekozen ? d.buren : (kaart?.buren ?? []), kaart, gekozen, verdieping: d.verdieping ?? null, erboven: d.erboven ?? null };
 }
 
 function huisVoorMotor(d) {
@@ -357,10 +358,15 @@ const indeling = {
         k.naam = w.w;
       } else if (w.w) k.soort = w.w;
       else delete k.soort;
-    } else if (actie === 'woning' || actie === 'buur' || actie === 'woning-ja') {
+    } else if (actie === 'woning' || actie === 'buur' || actie === 'woning-ja' || actie === 'flat') {
       // Wat voor huis (20 november 2026): de soort en de muren tegen de buren, samen bewaard.
       const w0 = tekenaar.huis.woning ?? {};
-      if (actie === 'woning-ja' && w0.kaart) {
+      if (actie === 'flat') {
+        // Een appartement: de verdieping of erboven een hoger of lager.
+        const f = woningDeel.stap({ verdieping: next.verdieping ?? w0.verdieping, erboven: next.erboven ?? w0.erboven }, w.wat, w.d);
+        next.verdieping = f.verdieping;
+        next.erboven = f.erboven;
+      } else if (actie === 'woning-ja' && w0.kaart) {
         next.woning = w0.kaart.soort;
         next.buren = w0.kaart.buren;
       } else if (actie === 'woning') {
@@ -688,6 +694,10 @@ function plaats() {
 
 function bij() {
   const st = tekenaar.st;
+  // Een appartement met verdiepingen erboven heeft geen eigen dak: de tab Dak staat er dan niet (20 november 2026).
+  const eigenDak = woningDeel.eigenDak(tekenaar.huis.woning);
+  if (!eigenDak && st.stand === 'dak') return tekenaar.zetStand('vorm');
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[data-stand="dak"]')).forEach((b) => (b.hidden = !eigenDak));
   document.querySelectorAll('[data-stand]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.stand === st.stand)));
   document.querySelectorAll('[data-etage-kies]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.etageKies === st.etage)));
   document.querySelectorAll('[data-stap-terug]').forEach((b) => (b.disabled = !st.terug.length));
