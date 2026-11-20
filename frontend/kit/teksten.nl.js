@@ -3763,6 +3763,8 @@
   'ht.buiten.span': 'rond het huis',
   'ht.buiten.zin': 'Wat er rond je huis is. Op Thuis staat het naast het huis, met wat er hangt.',
   'ht.buiten.komtErbij': 'Komt erbij, met dit vak',
+  'ht.buiten.vanKaart': 'Opnieuw vanaf de kaart',
+  'ht.buiten.vanKaartZin': 'Het erf, het huis en de gebouwen zoals de eerste keer; Stap terug haalt het terug',
   'ht.buiten.rond': 'Rond het huis',
   // Buiten als eigen tekening (19 november 2026).
   'ht.buiten.rondZin': 'Wat Thuis naast het huis tekent',

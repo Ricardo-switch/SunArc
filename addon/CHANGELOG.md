@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.208.2
+## 0.208.3
 
-*20 november 2026 · 0.179.0 – 0.208.2*
+*20 november 2026 · 0.179.0 – 0.208.3*
 
 **Nieuw**
 
@@ -71,6 +71,7 @@
 
 **Beter**
 
+- Je huis › Buiten: Opnieuw vanaf de kaart zet het erf, het huis en de gebouwen terug zoals de eerste keer; Stap terug haalt je tekening terug
 - Always-on display en Scherm uit zijn van elke bewoner zelf, bij Jij onder Jouw wand: de wand doet het zoals wie er geldt het koos, en als niemand thuis is zoals de hoofdgebruiker
 - Bij Jouw agenda’s kies je of je agenda’s ook op de wand staan als je thuis bent
 - Dit scherm en Op je startscherm staan apart onder Dit apparaat
@@ -138,6 +139,7 @@
 
 **Opgelost**
 
+- Je huis › Vorm: bij Kijk wat de kaarten vinden wordt eerst bewaard wat je net tekende, en pas daarna gemeten
 - Je huis › Buiten: het huis op het erf heeft altijd precies de vorm van je huis. Een tekening waarin het huis het halve erf besloeg, herstelt zich: Buiten begint dan opnieuw zoals de eerste keer
 - Je huis › Buiten: staat er volgens de kaart een buurhuis tegen je huis (twee-onder-een-kap), dan ligt de erfgrens aan die kant tegen je huis
 - Je huis › Buiten: een tik op het huis opent zijn blad, met Naar binnen en Vorm aanpassen, in plaats van meteen naar de begane grond te gaan
@@ -244,6 +246,7 @@
 
 **Improved**
 
+- Your home › Outside: Start again from the map puts the plot, the house and the buildings back as the first time; Step back brings your drawing back
 - Always-on display and Screen off belong to each resident, under You › Your wall: the wall does it the way whoever applies chose, and when nobody is home the way the main user did
 - Under Your calendars you choose whether your calendars also show on the wall when you are home
 - This screen and On your home screen are listed separately under This device
@@ -311,6 +314,7 @@
 
 **Fixed**
 
+- Your home › Shape: Look at what the maps find first saves what you just drew, and only then measures
 - Your home › Outside: the house on the plot always has exactly the shape of your home. A drawing in which the house covered half the plot repairs itself: Outside then starts again as the first time
 - Your home › Outside: if the map shows a neighbouring house against yours (semi-detached), the plot boundary on that side lies against your house
 - Your home › Outside: tapping the house opens its sheet, with Go inside and Adjust the shape, instead of jumping straight to the ground floor

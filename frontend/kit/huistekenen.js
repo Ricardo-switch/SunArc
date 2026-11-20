@@ -2151,6 +2151,16 @@
       st.kies = null;
       klaar();
     }
+    /** Buiten opnieuw vanaf de kaart (20 november 2026, Ricardo): het erf, het huis en de gebouwen zoals de eerste keer; Stap terug haalt het terug. */
+    function vanKaart() {
+      const e = etageVan(st.etage);
+      if (!e?.buiten) return;
+      stap();
+      st.vloeren[e.id] = huis.begin?.[e.id] ? vloerUitIndeling(huis.maat, e.blokken, huis.begin[e.id]) : nieuweVloer(huis.maat, e.blokken);
+      st.kies = null;
+      st.zoom = null;
+      klaar();
+    }
 
     const t = {
       CEL,
@@ -2329,6 +2339,7 @@
       kiesIndeling,
       zoalsBeneden,
       leeg,
+      vanKaart,
       indelingen: () => indelingen(huis.kamers.filter((x) => x.etage === st.etage), etageVan(st.etage).blokken),
       plaatje: (i, b, h) => {
         const e = etageVan(st.etage);
@@ -2583,7 +2594,7 @@
           for (const [id, r] of Object.entries(v.ruimtes)) if (r.naam) s += rij({ ik: r.soort ?? 'kamer', titel: r.naam, zin: T('ht.nietInHA'), rechts: `${nl(m[id].n * CEL * CEL, 0)} m²`, data: `data-ht="ruimte" data-id="${id}"`, kleur: 'var(--gedempt)' });
           // Buiten: wat er rond het huis is (voor Thuis) in plaats van de etage, en geen andere indeling.
           s += etage.buiten
-            ? `<div class="ht-onder">${ix ? rij({ ik: 'buiten', titel: T('ht.buiten.rond'), zin: T('ht.buiten.rondZin'), rechts: '›', data: 'data-ht="blad" data-blad="buiten"' }) : ''}</div>`
+            ? `<div class="ht-onder">${ix ? rij({ ik: 'buiten', titel: T('ht.buiten.rond'), zin: T('ht.buiten.rondZin'), rechts: '›', data: 'data-ht="blad" data-blad="buiten"' }) : ''}${rij({ ik: 'dak', titel: T('ht.buiten.vanKaart'), zin: T('ht.buiten.vanKaartZin'), data: 'data-ht="van-kaart"' })}</div>`
             : `<div class="ht-onder">${ix ? rij({ ik: 'etages', titel: T('ht.etage.instellen'), zin: T('ht.etage.instellenZin'), rechts: '›', data: 'data-ht="blad" data-blad="etage"' }) : ''}${rij({ ik: 'kamers', titel: T('ht.andereIndeling'), zin: T('ht.andereIndelingZin'), data: 'data-ht="leeg"' })}</div>`;
         }
       } else if (st.stand === 'huis') {
@@ -2698,6 +2709,7 @@
       else if (d.ht === 'indeling') t.kiesIndeling(Number(d.i));
       else if (d.ht === 'beneden') t.zoalsBeneden();
       else if (d.ht === 'leeg') t.leeg();
+      else if (d.ht === 'van-kaart') t.vanKaart();
       else if (d.ht === 'kamer') {
         const w = t.kamerPlek()[d.kamer];
         if (w) t.kies({ soort: 'ruimte', id: w.id });

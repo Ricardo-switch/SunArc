@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.208.2';
+export const VERSIE = '0.208.3';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,16 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.208.3',
+    datum: '2026-11-20',
+    beter: ['Je huis › Buiten: Opnieuw vanaf de kaart zet het erf, het huis en de gebouwen terug zoals de eerste keer; Stap terug haalt je tekening terug'],
+    opgelost: ['Je huis › Vorm: bij Kijk wat de kaarten vinden wordt eerst bewaard wat je net tekende, en pas daarna gemeten'],
+    en: {
+      beter: ['Your home › Outside: Start again from the map puts the plot, the house and the buildings back as the first time; Step back brings your drawing back'],
+      opgelost: ['Your home › Shape: Look at what the maps find first saves what you just drew, and only then measures'],
+    },
+  },
   {
     versie: '0.208.2',
     datum: '2026-11-20',

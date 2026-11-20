@@ -554,6 +554,8 @@ async function haalKaarten() {
   kijk.bezig = true;
   kijk.fout = null;
   tekenaar.ververs();
+  // Eerst wat je net tekende bewaren, dan pas de kaart (20 november 2026): andersom kon de tekening op een ander papier vallen.
+  for (let i = 0; i < 40 && !tekenaar.st.bewaard && !tekenaar.st.fout; i++) await wacht(100);
   let res;
   try {
     res = await deur('api/huistekening', { kijk: true });
