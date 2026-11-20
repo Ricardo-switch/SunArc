@@ -6,7 +6,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { leesDaken, leesKapellen, type Daken, type DakVlak, type Gebouw, type Xy } from '../src/web/daken.js';
-import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, kapelVanBewoner, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { bijfuncties, bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, kapelVanBewoner, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { hoortBijVan } from '../src/web/house.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -241,6 +242,37 @@ describe('de apparaten in de tekening (stap 3)', () => {
     expect(tekenSoort({ soort: 'apparaat', warmte: { soort: 'boiler' } })).toBe('boiler');
     expect(tekenSoort({ soort: 'apparaat', warmte: { soort: 'stekker' } })).toBe('stekker');
     expect(tekenSoort({ soort: 'apparaat' })).toBe('stekker');
+  });
+
+  it('een meter die beweging ziet is een bewegingsmelder; alleen temperatuur blijft een meter', () => {
+    expect(tekenSoort({ soort: 'meter', meting: { beweging: { nu: false } } })).toBe('beweging');
+    expect(tekenSoort({ soort: 'meter', meting: {} })).toBe('meter');
+    expect(tekenSoort({ soort: 'meter' })).toBe('meter');
+  });
+
+  it('één apparaat, één bolletje: de camera is het hoofd, twee lampen aan één relais blijven los', () => {
+    const entities = [
+      { entity_id: 'camera.oprit', device_id: 'reolink' },
+      { entity_id: 'light.oprit_schijnwerper', device_id: 'reolink' },
+      { entity_id: 'binary_sensor.oprit_beweging', device_id: 'reolink' },
+      { entity_id: 'light.relais_1', device_id: 'shelly' },
+      { entity_id: 'light.relais_2', device_id: 'shelly' },
+      { entity_id: 'light.los', device_id: null },
+    ];
+    const found = [
+      { device: { id: 'light.oprit_schijnwerper', soort: 'licht' as const } },
+      { device: { id: 'camera.oprit', soort: 'camera' as const } },
+      { device: { id: 'binary_sensor.oprit_beweging', soort: 'meter' as const } },
+      { device: { id: 'light.relais_1', soort: 'licht' as const } },
+      { device: { id: 'light.relais_2', soort: 'licht' as const } },
+      { device: { id: 'light.los', soort: 'licht' as const } },
+    ];
+    expect(Object.fromEntries(hoortBijVan(found, entities))).toEqual({ 'light.oprit_schijnwerper': 'camera.oprit', 'binary_sensor.oprit_beweging': 'camera.oprit' });
+  });
+
+  it('een bijfunctie staat alleen onder zijn hoofd als dat hoofd er is; een verborgen camera laat zijn lamp los', () => {
+    expect(Object.fromEntries(bijfuncties([{ id: 'camera.oprit' }, { id: 'light.schijnwerper', hoortBij: 'camera.oprit' }]))).toEqual({ 'light.schijnwerper': 'camera.oprit' });
+    expect(bijfuncties([{ id: 'light.schijnwerper', hoortBij: 'camera.oprit' }]).size).toBe(0);
   });
 
   it('een plek ligt in de zone aan zijn kant van de lijn; zonder lijn, met drie zones of op een andere etage: geen', () => {

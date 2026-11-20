@@ -9,7 +9,7 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, bijfuncties, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
 import { DAKVORMEN, leesDaken, leesKapellen, type Daken, type Dakvorm, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
@@ -505,6 +505,14 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
         const raam = ramen ? (typeof ramen[id] === 'string' ? (ramen[id] as string) : undefined) : oudRaam;
         apparaten[id] = { ...zonderRaam, kamer, zone, ...(plek ? { plek } : {}), ...(raam ? { raam } : {}) };
       }
+      // Eén apparaat, één bolletje (20 november 2026): een bijfunctie gaat mee naar de kamer en de zone van zijn hoofd, zonder eigen plek.
+      const alle = [...huis.etages.flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten)), ...huis.zonderRuimte];
+      for (const [bij, hoofd] of bijfuncties(alle)) {
+        const h = apparaten[hoofd] as { kamer: string; zone: string | null } | undefined;
+        if (!h) continue;
+        const { plek: _p, ...oud } = (apparaten[bij] ?? basis.apparaten[bij] ?? {}) as Record<string, unknown>;
+        apparaten[bij] = { ...oud, kamer: h.kamer, zone: h.zone };
+      }
     }
     const { plattegrondBron: _oud, ...zonderBron } = basis;
     // De deuren en ramen (0.187.0), terug naar de hoek van het hoofdhuis; zonder openingen in het verzoek blijven ze zoals ze waren.
@@ -532,14 +540,31 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     return z ? `${kamer}${DEEL}${z}` : kamer;
   };
   const kamerMetNaam = (naam: string | null) => (naam ? (binnen.flatMap((e) => e.ruimtes).find((r) => r.naam.toLowerCase() === naam.toLowerCase())?.id ?? null) : null);
-  const apparaten = [
-    ...binnen.flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten.map((a) => ({ id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: r.id })))),
-    ...(erf?.ruimtes ?? []).flatMap((r) => r.apparaten.map((a) => ({ id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: deelVan(a.id, r.id) }))),
+  // De deurbel uit Functies (0.209.3 herkende hem alleen aan de naam): die zet de tekening vanzelf naast de voordeur.
+  const deurbel = d.options.deurbel?.()?.camera ?? null;
+  const metBel = (id: string) => (id === deurbel ? { deurbel: true } : {});
+  // Een bewegingsmelder die ook de temperatuur meet: die temperatuur is een bijfunctie in zijn blad.
+  const ookTemp = (a: { readonly soort: string; readonly meting: { readonly temperatuurC: number | null; readonly beweging?: unknown } | null }) =>
+    a.soort === 'meter' && a.meting?.beweging && a.meting.temperatuurC != null ? { temp: true } : {};
+  const alle = [
+    ...binnen.flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten.map((a) => ({ id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: r.id as string | null, hoortBij: a.hoortBij, ...metBel(a.id), ...ookTemp(a) })))),
+    ...(erf?.ruimtes ?? []).flatMap((r) => r.apparaten.map((a) => ({ id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: deelVan(a.id, r.id) as string | null, hoortBij: a.hoortBij, ...metBel(a.id), ...ookTemp(a) }))),
     ...huis.zonderRuimte.map((a) => {
       const tip = a.voorstelKamer && kamerIds.has(a.voorstelKamer) ? a.voorstelKamer : kamerMetNaam(a.voorstel);
-      return { id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: null, ...(tip ? { ha: tip } : {}) };
+      return { id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: null as string | null, hoortBij: a.hoortBij, ...metBel(a.id), ...(tip ? { ha: tip } : {}) };
     }),
   ];
+  // Eén apparaat, één bolletje (20 november 2026): een bijfunctie staat niet los in de tekening, maar in het blad van zijn hoofd.
+  const bijVan = bijfuncties(alle);
+  const apparaten = alle
+    .filter((a) => !bijVan.has(a.id))
+    .map(({ hoortBij: _h, temp, ...a }: (typeof alle)[number] & { temp?: boolean }) => {
+      const bij = [
+        ...(temp ? [{ id: a.id, naam: '', soort: 'meter' }] : []),
+        ...alle.filter((x) => bijVan.get(x.id) === a.id).map((x) => ({ id: x.id, naam: x.naam, soort: x.soort })),
+      ];
+      return bij.length ? { ...a, bij } : a;
+    });
   const nu0 = vorm.bronnen[vorm.bron]!;
   const hoogtes = etageHoogtes(binnen, nu0.goot, nu0.nok);
   sendJson(res, 200, {

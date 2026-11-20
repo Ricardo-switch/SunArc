@@ -54,8 +54,23 @@
   const EIGEN_BUITEN = [['berging', 'schuur'], ['berging', 'fietsenhok'], ['berging', 'kas'], ['berging', 'pad']];
   /** [soort, naam] in de taal van de app; buiten andere namen. */
   const eigenNamen = (buiten = false) => (buiten ? EIGEN_BUITEN : EIGEN_SLEUTELS).map(([soort, k]) => [soort, T(`ht.eigen.${k}`)]);
-  const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', koffie: '#f7b548', camera: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff', rookmelder: '#ff9a6b', boiler: '#ff9a6b', jacuzzi: '#6fd3ff' };
+  const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', koffie: '#f7b548', camera: '#a99cff', beweging: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff', rookmelder: '#ff9a6b', boiler: '#ff9a6b', jacuzzi: '#6fd3ff' };
   const APP_ICOON = { meter: 'klimaat' };
+  /**
+   * Eén apparaat, één bolletje (20 november 2026): wat er ook in een apparaat
+   * zit, zoals de schijnwerper en de bewegingsmelder van een camera. De naam
+   * zonder die van het apparaat zelf; is er niets over, dan wat het doet.
+   */
+  function bijBlad(a) {
+    if (!a.bij?.length) return '';
+    const kort = (x) => {
+      const n = (x.naam ?? '').trim();
+      const rest = n.toLowerCase().startsWith((a.naam ?? '').toLowerCase()) ? n.slice((a.naam ?? '').length).trim() : n;
+      return rest ? rest.charAt(0).toUpperCase() + rest.slice(1) : null;
+    };
+    const wat = (x) => T(`ht.bij.${['licht', 'beweging', 'meter', 'camera'].includes(x.soort) ? x.soort : 'anders'}`);
+    return `<h4>${esc(T('ht.app.zitErin'))}</h4>${a.bij.map((x) => rij({ ik: APP_ICOON[x.soort] ?? x.soort, kleur: APP_KLEUR[x.soort], titel: kort(x) ?? wat(x), zin: kort(x) ? wat(x) : '', data: 'disabled' })).join('')}`;
+  }
 
   /* ================================================================ de vloer: ruitjes */
 
@@ -1172,7 +1187,7 @@
         const dd = r.y1 - r.y0;
         const per = {};
         for (const { a, zelf } of lijst) {
-          const groep = a.soort === 'licht' || a.soort === 'rookmelder' ? 'midden' : a.soort === 'airco' ? 'achter' : a.soort === 'screen' ? 'voor' : a.soort === 'meter' || a.soort === 'thermostaat' ? 'rechts' : 'links';
+          const groep = a.soort === 'licht' || a.soort === 'rookmelder' ? 'midden' : a.soort === 'airco' ? 'achter' : a.soort === 'screen' ? 'voor' : a.soort === 'meter' || a.soort === 'beweging' || a.soort === 'thermostaat' ? 'rechts' : 'links';
           (per[groep] ??= []).push(zelf ? null : a);
         }
         const zet = (a, x, y) => a && uit.push({ a, x: klem(x, r.x0 + 2, r.x1 - 2), y: klem(y, r.y0 + 2, r.y1 - 2), ruimte: Number(id), zelf: false });
@@ -3039,6 +3054,7 @@
             ${rij({ ik: t.kamers[kies.kamer]?.soort ?? 'kamer', titel: T('ht.app.kamer'), zin: t.kamers[kies.kamer]?.naam ?? T('ht.app.nietGekozen'), rechts: '›', data: `data-ht="app-waar" data-app="${esc(kies.id)}"` })}
             ${rij({ ik: 'standaard', titel: T('ht.app.plek'), zin: p ? [t.zoneVan(p), t.plekNaam(p)].filter(Boolean).join(' · ') : T('ht.app.andereEtage'), rechts: p?.zelf ? T('ht.app.laatKiezen') : '', data: p?.zelf ? `data-ht="app-vrij" data-app="${esc(kies.id)}"` : 'disabled' })}
             ${rij({ ik: 'apparaat', titel: T('ht.app.openen'), zin: T('ht.app.openenZin'), rechts: '›', data: t.naar && kies.kamer ? `data-ht="openen" data-app="${esc(kies.id)}"` : 'disabled' })}
+            ${bijBlad(kies)}
             <p class="ht-voet">${esc(T('ht.app.voet'))}</p>
             ${ix ? `<div class="ht-onder">${rij({ ik: 'verborgen', titel: T('ht.app.verbergen'), zin: T('ht.app.verbergenZin'), data: `data-ht="ix" data-actie="verberg" data-waarde="${esc(kies.id)}"` })}</div>` : ''}`;
         } else if (st.zoom != null && v.ruimtes[st.zoom]) {

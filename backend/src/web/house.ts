@@ -138,6 +138,12 @@ export interface HouseDevice {
   readonly haNaam: string;
   /** Een lamp achter een schakelaar (besluit 297): waarlangs, zoals "Shelly 1 mini". */
   readonly via?: string;
+  /**
+   * Eén apparaat, één bolletje (20 november 2026): dit is een bijfunctie van
+   * een ander apparaat in Home Assistant, zoals de schijnwerper of de
+   * bewegingsmelder van een camera. Het id van dat hoofdapparaat.
+   */
+  readonly hoortBij?: string;
   readonly soort: DeviceKind;
   /** De stand in woorden, in de taal van de app: "aan · 70%", "60% dicht", "koelen naar 22°". */
   readonly stand: string;
@@ -364,6 +370,8 @@ export interface HouseReport {
     readonly groepen: readonly string[];
     /** De kamer die bij een van die groepen lijkt te horen, of null. */
     readonly voorstelKamer: string | null;
+    /** Een bijfunctie van een ander apparaat (20 november 2026), zie `HouseDevice.hoortBij`. */
+    readonly hoortBij?: string;
     /** Bij een lamp: of hij aan staat, voor Apparaten › Licht (besluit 293). */
     readonly aan?: boolean;
     /** Een boiler of jacuzzi zonder kamer (besluit 315): de tekening geeft hem dan zelf een plek. */
@@ -1160,6 +1168,33 @@ interface Found {
   readonly haNaam: string;
   readonly haArea: string | null;
   readonly groepen: readonly string[];
+}
+
+/** Welke soort het hoofd is van een apparaat met meer functies: eerst de camera, als laatste een meter. */
+const HOOFD_VOLGORDE: readonly DeviceKind[] = ['camera', 'klimaat', 'screen', 'apparaat', 'rookmelder', 'licht', 'meter'];
+
+/**
+ * Eén apparaat, één bolletje (20 november 2026): per apparaat in Home
+ * Assistant (device_id) het hoofd, en wat er een bijfunctie van is. Een camera
+ * met een schijnwerper en een bewegingsmelder is één apparaat met de camera als
+ * hoofd. Twee van dezelfde soort (twee lampen aan één relais) blijven elk
+ * apart. Geeft per bijfunctie het id van zijn hoofd.
+ */
+export function hoortBijVan(found: readonly { readonly device: { readonly id: string; readonly soort: DeviceKind } }[], entities: readonly HaRegistryEntity[]): Map<string, string> {
+  const apparaatVan = new Map(entities.filter((e) => e.device_id).map((e) => [e.entity_id, e.device_id as string]));
+  const perApparaat = new Map<string, { id: string; soort: DeviceKind }[]>();
+  for (const f of found) {
+    const dev = apparaatVan.get(f.device.id);
+    if (dev) perApparaat.set(dev, [...(perApparaat.get(dev) ?? []), f.device]);
+  }
+  const uit = new Map<string, string>();
+  for (const lijst of perApparaat.values()) {
+    if (lijst.length < 2) continue;
+    const rang = (s: DeviceKind) => HOOFD_VOLGORDE.indexOf(s);
+    const hoofd = lijst.reduce((a, b) => (rang(b.soort) < rang(a.soort) ? b : a));
+    for (const x of lijst) if (x.soort !== hoofd.soort) uit.set(x.id, hoofd.id);
+  }
+  return uit;
 }
 
 interface LightGroup {
@@ -1998,6 +2033,8 @@ export function buildHouse(
     if (found.some((f) => f.device.id === s.id)) continue;
     found.push({ device: stekkerOf(s, states.get(s.actuator), lang), haNaam: s.naam, haArea: s.gebied, groepen: [] });
   }
+  // Eén apparaat, één bolletje (20 november 2026): de bijfuncties van een apparaat met hun hoofd.
+  const bijVan = hoortBijVan(found, registers.entities);
   const gekozen = saved ?? proposeLayout(config, registers, states);
   // De kamer die de bewoner bij Apparaat toevoegen koos, tenzij Indeling hem al ergens zette.
   const base: Layout = {
@@ -2021,6 +2058,7 @@ export function buildHouse(
     voorstel: string | null;
     groepen: readonly string[];
     voorstelKamer: string | null;
+    hoortBij?: string;
     aan?: boolean;
     warmte?: NonNullable<HouseDevice['warmte']>;
   }[] = [];
@@ -2043,6 +2081,7 @@ export function buildHouse(
         voorstel: f.haArea ? (areaName.get(f.haArea) ?? null) : null,
         groepen: f.groepen,
         voorstelKamer: roomForGroups(f.groepen, layout.kamers) ?? roomForName(naam, layout.kamers),
+        ...(bijVan.has(f.device.id) ? { hoortBij: bijVan.get(f.device.id)! } : {}),
         // Een lamp zonder kamer staat ook bij Apparaten › Licht, met zijn schakelaar (besluit 293).
         ...(f.device.soort === 'licht' ? { aan: f.device.aan } : {}),
         // Een boiler of jacuzzi zonder kamer staat toch in de tekening (besluit 315): met wat hij doet.
@@ -2055,7 +2094,7 @@ export function buildHouse(
     // Een scherm en zijn gevel (besluit 145): de keuze, of een voorstel uit de naam.
     const gevel = f.device.scherm ? gevelVan(own?.gevel ?? null, naam, f.device.scherm.zonnescherm === true, config.geometry?.facades ?? []) : null;
     const scherm = f.device.scherm && gevel ? { ...f.device.scherm, gevel } : undefined;
-    list.push({ ...f.device, naam, haNaam: f.haNaam, zone, groepen: f.groepen, ...(scherm ? { scherm } : {}) });
+    list.push({ ...f.device, naam, haNaam: f.haNaam, zone, groepen: f.groepen, ...(scherm ? { scherm } : {}), ...(bijVan.has(f.device.id) ? { hoortBij: bijVan.get(f.device.id)! } : {}) });
     perRoom.set(room.id, list);
   }
 

@@ -378,6 +378,12 @@ const indeling = {
       const [ruimte, zone = null] = plek.split('~');
       const kamer = ruimte.startsWith('plek:') ? plekErbij(next, ruimte.slice(5)) : ruimte;
       next.apparaten[app] = { ...(next.apparaten[app] ?? {}), kamer, zone };
+      // Eén apparaat, één bolletje (20 november 2026): wat erin zit, zoals de schijnwerper van een camera, gaat mee.
+      for (const b of tekenaar.st.apparaten.find((x) => x.id === app)?.bij ?? []) {
+        if (b.id === app) continue;
+        const { plek: _plek, ...oud } = next.apparaten[b.id] ?? {};
+        next.apparaten[b.id] = { ...oud, kamer, zone };
+      }
       next.verborgen = (next.verborgen ?? []).filter((x) => x !== app);
       tekenaar.st.wapen = null;
       tekenaar.st.kies = null;

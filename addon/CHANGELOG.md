@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.209.3
+## 0.209.4
 
-*20 november 2026 · 0.179.0 – 0.209.3*
+*20 november 2026 · 0.179.0 – 0.209.4*
 
 **Nieuw**
 
@@ -74,6 +74,9 @@
 
 **Beter**
 
+- Je huis: één apparaat is één icoon. De schijnwerper en de bewegingsmelder van een camera staan niet meer los in de tekening, maar onder Zit er ook in in het blad van de camera, en verhuizen mee
+- Je huis: een bewegingsmelder heeft een eigen icoon in plaats van een thermometer; de temperatuur die hij ook meet, staat in zijn blad
+- Je huis: de deurbel uit Licht, camera’s en weer gaat vanzelf naast de voordeur, ook als hij geen "deurbel" heet
 - Je huis: de deurbel staat vanzelf buiten naast de voordeur, zodra er een voordeur getekend is en de deurbel nog geen plek had; daarna sleep je hem waarheen je wilt
 - Je huis › Buiten: Opnieuw vanaf de kaart zet het erf, het huis en de gebouwen terug zoals de eerste keer; Stap terug haalt je tekening terug
 - Always-on display en Scherm uit zijn van elke bewoner zelf, bij Jij onder Jouw wand: de wand doet het zoals wie er geldt het koos, en als niemand thuis is zoals de hoofdgebruiker
@@ -257,6 +260,9 @@
 
 **Improved**
 
+- Your home: one device is one icon. The floodlight and the motion sensor of a camera no longer stand apart in the drawing, but under Also built in on the camera’s sheet, and move along with it
+- Your home: a motion sensor has its own icon instead of a thermometer; the temperature it also measures is on its sheet
+- Your home: the doorbell from Lights, cameras and weather goes next to the front door by itself, even if it is not called "doorbell"
 - Your home: the doorbell stands outside next to the front door by itself, as soon as a front door is drawn and the doorbell had no place yet; then drag it wherever you like
 - Your home › Outside: Start again from the map puts the plot, the house and the buildings back as the first time; Step back brings your drawing back
 - Always-on display and Screen off belong to each resident, under You › Your wall: the wall does it the way whoever applies chose, and when nobody is home the way the main user did

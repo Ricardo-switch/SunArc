@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.209.3';
+export const VERSIE = '0.209.4';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.209.4',
+    datum: '2026-11-20',
+    beter: [
+      'Je huis: één apparaat is één icoon. De schijnwerper en de bewegingsmelder van een camera staan niet meer los in de tekening, maar onder Zit er ook in in het blad van de camera, en verhuizen mee',
+      'Je huis: een bewegingsmelder heeft een eigen icoon in plaats van een thermometer; de temperatuur die hij ook meet, staat in zijn blad',
+      'Je huis: de deurbel uit Licht, camera’s en weer gaat vanzelf naast de voordeur, ook als hij geen "deurbel" heet',
+    ],
+    en: {
+      beter: [
+        'Your home: one device is one icon. The floodlight and the motion sensor of a camera no longer stand apart in the drawing, but under Also built in on the camera’s sheet, and move along with it',
+        'Your home: a motion sensor has its own icon instead of a thermometer; the temperature it also measures is on its sheet',
+        'Your home: the doorbell from Lights, cameras and weather goes next to the front door by itself, even if it is not called "doorbell"',
+      ],
+    },
+  },
   {
     versie: '0.209.3',
     datum: '2026-11-20',
