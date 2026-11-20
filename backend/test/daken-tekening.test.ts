@@ -183,6 +183,16 @@ describe('een omtrek in blokken en de panelen zelf (5 november 2026)', () => {
     expect(maat.breedte).toBeCloseTo(2.9, 1);
   });
 
+  it('geeft een eerder aangewezen garage de maat van het stuk zoals het nu opgeknipt wordt (20 november 2026)', () => {
+    const huisGarage: Xy[] = [[0, 6], [10, 6], [10, 0], [2.5, 0], [2.5, -2.9], [-4.5, -2.9], [-4.5, -2.5], [-6.4, -2.5], [-6.4, 0], [0, 0]];
+    // Zoals hij eerder bewaard werd: de lange strook met het schuurtje.
+    const oud: Xy[] = [[-6.4, 0], [2.5, 0], [2.5, -2.5], [-6.4, -2.5]];
+    const t = tekening({ vlakken: [], voorgevelDeg: 180, omvormerW: null, gebouwen: [gebouw({ omtrek: huisGarage }), gebouw({ id: 'garage', soort: 'garage', omtrek: oud })] });
+    const g = rechthoekOm(t.gebouwen.find((x) => x.soort === 'garage')!.omtrek);
+    expect(g.lengte).toBeCloseTo(7, 1);
+    expect(g.breedte).toBeCloseTo(2.9, 1);
+  });
+
   it('tekent het huis als blok en zet de garage grijs ernaast, om aan te tikken', () => {
     const t = tekening({ vlakken: [vlak()], voorgevelDeg: 180, omvormerW: null, gebouwen: [gebouw({ omtrek: metGarage })] });
     expect(oppervlak(t.gebouwen[0]!.omtrek)).toBeCloseTo(80, 0);

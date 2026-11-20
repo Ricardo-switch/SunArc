@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.209.0
+## 0.209.1
 
-*20 november 2026 · 0.179.0 – 0.209.0*
+*20 november 2026 · 0.179.0 – 0.209.1*
 
 **Nieuw**
 
@@ -142,6 +142,7 @@
 
 **Opgelost**
 
+- Je huis: een garage van de kaart die je eerder aanwees, krijgt vanzelf de goede maat (zonder het schuurtje erachter); weghalen en opnieuw aanwijzen hoeft niet meer
 - Je huis: een smal aanhangsel achter de garage (een schuurtje dat op de kaart vastzit aan het huis) telt niet meer mee in de garage; de garage krijgt zijn echte lengte en breedte
 - Je huis › Buiten: staat een woning tegen de garage, dan ligt de erfgrens ook daar strak tegen de garage, niet alleen tegen het huis
 - Je huis › Vorm: bij Kijk wat de kaarten vinden wordt eerst bewaard wat je net tekende, en pas daarna gemeten
@@ -322,6 +323,7 @@
 
 **Fixed**
 
+- Your home: a garage from the map that you assigned earlier gets the right size by itself (without the shed behind it); removing and assigning it again is no longer needed
 - Your home: a narrow annex behind the garage (a shed joined to the house on the map) no longer counts as part of the garage; the garage gets its real length and width
 - Your home › Outside: if a house stands against the garage, the plot boundary there also lies right against the garage, not only against the house
 - Your home › Shape: Look at what the maps find first saves what you just drew, and only then measures

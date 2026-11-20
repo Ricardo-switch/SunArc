@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.209.0';
+export const VERSIE = '0.209.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,14 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.209.1',
+    datum: '2026-11-20',
+    opgelost: ['Je huis: een garage van de kaart die je eerder aanwees, krijgt vanzelf de goede maat (zonder het schuurtje erachter); weghalen en opnieuw aanwijzen hoeft niet meer'],
+    en: {
+      opgelost: ['Your home: a garage from the map that you assigned earlier gets the right size by itself (without the shed behind it); removing and assigning it again is no longer needed'],
+    },
+  },
   {
     versie: '0.209.0',
     datum: '2026-11-20',

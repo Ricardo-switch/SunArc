@@ -436,12 +436,23 @@ const afstandTussen = (a: readonly Xy[], b: readonly Xy[]) => Math.min(...a.flat
  */
 export function tekening(d: Daken, o: { huisPlat?: boolean } = {}): Tekening {
   const delen: Xy[][] = [];
-  const gebouwen = gebouwenNu(d, o).map((g) => {
+  const opgeknipt = gebouwenNu(d, o).map((g) => {
     if (g.bron !== 'kaart') return g;
     const b = inBlokken(g.omtrek);
     if (!b) return g;
     delen.push(...b.rest);
     return { ...g, omtrek: b.hoofd };
+  });
+  /*
+   * Een gebouw van de kaart dat uit hetzelfde gebouw komt als het huis (de
+   * garage, aangewezen bij Vorm) krijgt de maat van het stuk zoals het nu
+   * opgeknipt wordt (20 november 2026, Ricardo: de garage hield na opnieuw
+   * meten de lengte met het schuurtje). Wat de bewoner zelf op maat maakte, blijft.
+   */
+  const gebouwen = opgeknipt.map((g) => {
+    if (g.bron !== 'kaart' || g.soort === 'hoofdhuis') return g;
+    const stuk = delen.find((x) => binnenOmtrek(middenVan(g.omtrek), x) || binnenOmtrek(middenVan(x), g.omtrek));
+    return stuk ? { ...g, omtrek: stuk } : g;
   });
   const huis = gebouwen.find((g) => g.soort === 'hoofdhuis')!;
   const vrij = (o: readonly Xy[]) => !gebouwen.some((g) => binnenOmtrek(middenVan(o), g.omtrek));
