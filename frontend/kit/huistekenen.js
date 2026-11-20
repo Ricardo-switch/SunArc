@@ -724,6 +724,62 @@
       const beneden = huis.beneden ?? huis.etages.filter((e) => !e.buiten).at(-1)?.id;
       const metErf = huis.etages.some((e) => e.buiten);
       huis.etages.forEach((e) => (e.blokken = e.buiten ? [...(huis.erf ? [huis.erf] : []), ...b.blokken] : b.blokken.filter((x) => x.soort === 'hoofdhuis' || (e.id === beneden && !(metErf && losBuiten(x))))));
+      // Het afdak hoort alleen bij de begane grond (Ricardo, 20 november 2026): de etages erboven lopen zoveel minder ver.
+      for (const e of boven(beneden)) e.blokken = e.blokken.map((x) => (x.soort === 'hoofdhuis' && x.afdak ? zonderAfdak(x) : x));
+    };
+    const rond = (n) => Math.round(n * 10) / 10;
+    /** De etages boven de begane grond (niet buiten, niet een kelder eronder). */
+    const boven = (beneden) => {
+      const binnen = huis.etages.filter((e) => !e.buiten);
+      const ib = binnen.findIndex((e) => e.id === beneden);
+      return ib > 0 ? binnen.slice(0, ib) : [];
+    };
+    /** Het hoofdhuis zonder de strook van het afdak, voor de etages erboven. */
+    const zonderAfdak = (x) => {
+      const a = x.afdak;
+      const { afdak: _a, ...rest } = x;
+      return a.kant === 'voor' ? { ...rest, v: rond(x.v + a.diep), d: rond(x.d - a.diep) } : { ...rest, d: rond(x.d - a.diep) };
+    };
+    /**
+     * Wat op een etage boven het afdak getekend stond in de strook van het afdak, gaat de strook uit
+     * (20 november 2026): de vakken worden korter (of vallen weg), een deur of raam in de gevel gaat
+     * mee naar de nieuwe gevel, een apparaat schuift net naar binnen. In meters, zoals bewaard.
+     */
+    const afdakUitBoven = (bewaarde) => {
+      const h = (huis.bronnen?.[st.bron]?.blokken ?? []).find((x) => x.soort === 'hoofdhuis' && x.afdak);
+      if (!h || !bewaarde) return;
+      const beneden = huis.beneden ?? huis.etages.filter((e) => !e.buiten).at(-1)?.id;
+      const voor = h.afdak.kant === 'voor';
+      const [s0, s1] = voor ? [h.v, rond(h.v + h.afdak.diep)] : [rond(h.v + h.d - h.afdak.diep), h.v + h.d];
+      const rand = voor ? s1 : s0;
+      for (const e of boven(beneden)) {
+        const lijst = bewaarde.tekening?.[e.id];
+        if (lijst) {
+          bewaarde.tekening[e.id] = lijst.map((r) => ({
+            ...r,
+            vakken: (r.vakken ?? []).flatMap(([x, y, b, d]) => {
+              const [y0, y1] = voor ? [Math.max(y, s1), y + d] : [y, Math.min(y + d, s0)];
+              return y1 - y0 < 0.05 ? [] : [[x, rond(y0), b, rond(y1 - y0)]];
+            }),
+          }));
+        }
+        const op = bewaarde.openingen?.[e.id];
+        if (op) {
+          bewaarde.openingen[e.id] = op.flatMap((o) => {
+            // Een deur of raam in de gevel van het afdak: naar de nieuwe gevel.
+            if (o.as === 'u' && o.op >= s0 - 0.05 && o.op <= s1 + 0.05) return [{ ...o, op: rand }];
+            if (o.as === 'v') {
+              const [van, tot] = voor ? [Math.max(o.van, s1), o.tot] : [o.van, Math.min(o.tot, s0)];
+              return tot - van < 0.3 ? [] : [{ ...o, van: rond(van), tot: rond(tot) }];
+            }
+            return [o];
+          });
+        }
+        for (const [id, pl] of Object.entries(bewaarde.plekken ?? {})) {
+          if (pl?.etage !== e.id || pl.v < s0 || pl.v > s1) continue;
+          bewaarde.plekken[id] = { ...pl, v: voor ? rond(s1 + 0.2) : rond(s0 - 0.2) };
+        }
+      }
     };
     zetBlokken();
     /* ---------- het dak en de dakkapellen (stap 4 punt 3, Je huis › Dak, schets Wand-Huis-Dakkapel) */
@@ -784,7 +840,7 @@
         if (!m || !h || !opties.gebouw) return;
         st.gebouwBezig = true;
         meld();
-        Promise.resolve(opties.gebouw({ maat: m.id, vak: { u: r1(m.u - h.u), v: r1(m.v - h.v), b: m.b, d: m.d } })).finally(() => {
+        Promise.resolve(opties.gebouw({ maat: m.id, vak: { u: rond(m.u - h.u), v: rond(m.v - h.v), b: m.b, d: m.d } })).finally(() => {
           st.gebouwBezig = false;
           meld();
         });
@@ -796,7 +852,8 @@
      * van de straat af gezien. Buiten en zonder hoofdhuis: geen.
      */
     const buurMuren = () => {
-      const h = hoofdBlok();
+      // Het hoofdhuis zoals deze etage het heeft: boven het afdak korter (20 november 2026).
+      const h = etageVan(st.etage)?.blokken?.find((x) => x.soort === 'hoofdhuis') ?? hoofdBlok();
       const kanten = huis.woning?.soort === 'vrijstaand' ? [] : (huis.woning?.buren ?? []);
       if (!h || !kanten.length || etageVan(st.etage)?.buiten) return [];
       const x0 = MARGE + h.u / CEL;
@@ -877,6 +934,7 @@
     begin();
     // Wat er in de dienst bewaard was (besluit 308): per etage de ruimtes in meters, de zonelijnen en de plekken.
     const bewaarde = opties.tekening;
+    afdakUitBoven(bewaarde);
     if (bewaarde?.tekening) {
       // Getekend op de bron van nu: de buitenmuur van de tekening telt. Een andere bron: de ruimtes vallen op de nieuwe vorm.
       const eigen = !bewaarde.tekeningBron || bewaarde.tekeningBron === st.bron;
@@ -1158,8 +1216,13 @@
         return `<rect x="${Math.min(x0, x1).toFixed(1)}" y="${Math.min(y0, y1).toFixed(1)}" width="${Math.abs(x1 - x0).toFixed(1)}" height="${Math.abs(y1 - y0).toFixed(1)}" ${extra}/>`;
       };
       const beneden = benedenId();
-      const lagen = huis.etages.filter((e) => !e.buiten).map((e) => e.id);
-      const erboven = lagen.indexOf(st.etage) >= 0 && lagen.indexOf(st.etage) < lagen.indexOf(beneden);
+      // Alleen de etage waar het afdak tot in reikt (Ricardo 20 november 2026: bij hem de 1e, niet de zolder):
+      // de vloer van die etage ligt lager dan de bovenkant van het afdak.
+      const lagen = huis.etages.filter((e) => !e.buiten);
+      const ib = lagen.findIndex((e) => e.id === beneden);
+      const ie = lagen.findIndex((e) => e.id === st.etage);
+      const vloer = ie >= 0 && ib >= 0 && ie < ib ? lagen.slice(ie + 1, ib + 1).reduce((n, e) => n + (e.hoogte ?? 2.8), 0) : null;
+      const erboven = vloer != null && af != null && vloer < af.a.hoog;
       if (af && vorm && st.etage === beneden) {
         const aan = st.kies?.soort === 'afdak';
         s += `<defs><pattern id="ht-afdak" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="rgb(110 231 183 / 0.16)"/><line x1="0" y1="0" x2="7" y2="0" stroke="#6ee7b7" stroke-width="1.6" opacity="0.7"/></pattern></defs>`;
@@ -3053,7 +3116,9 @@
     const s = t.huis.straat;
     const st = t.st;
     const kan = (kant) => kant === 'voor' || !s.getekend;
-    const tegels = s.lijst
+    // De straat aan de voorkant eerst, dan de dichtstbijzijnde.
+    const tegels = [...s.lijst]
+      .sort((a, b) => Number(b.kant === 'voor') - Number(a.kant === 'voor') || a.afstand - b.afstand)
       .map((x) => `<button type="button" class="kv-straat${x.kant === 'voor' ? ' aan' : ''}" data-ht="straat-kies" data-kant="${x.kant}" aria-pressed="${x.kant === 'voor'}"${kan(x.kant) ? '' : ' disabled'}>${straatPlaatje(x.kant, x.kant === 'voor')}<span><b>${esc(T(x.adres ? 'ht.straat.adres' : 'ht.straat.andere'))}</b><small>${esc(T('ht.straat.waar', { maat: x.afstand, kant: T(`ht.straat.kant.${x.kant}`) }))}</small></span>${x.adres ? `<i>${esc(T('ht.straat.jeAdres'))}</i>` : ''}</button>`)
       .join('');
     const kanten = `<div class="ht-twee kv-vier">${STRAAT_KANTEN.map((k) => `<button type="button" class="ht-klein${k === 'voor' ? ' aan' : ''}" data-ht="straat-kies" data-kant="${k}" aria-pressed="${k === 'voor'}"${kan(k) ? '' : ' disabled'}>${esc(T(`ht.straat.knop.${k}`))}</button>`).join('')}</div>`;

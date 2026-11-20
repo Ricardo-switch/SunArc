@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.215.0
+## 0.215.1
 
-*20 november 2026 · 0.179.0 – 0.215.0*
+*20 november 2026 · 0.179.0 – 0.215.1*
 
 **Nieuw**
 
@@ -87,6 +87,9 @@
 
 **Beter**
 
+- Je huis: het afdak hoort alleen bij de begane grond. De etages erboven lopen zoveel minder ver naar voren; kamers, ramen en apparaten in die strook gaan mee naar de gevel
+- Je huis: Afdak eronder staat alleen op de etage waar het afdak tot in reikt
+- Je huis › Waar is de straat: de straat aan de voorkant staat bovenaan
 - Je huis: de straten worden bewaard als richting en afstand, zonder namen. Een andere voorkant kan alleen zolang er nog niets getekend is, omdat de tekening niet meedraait
 - Je huis: tijdens Kijk wat de kaarten vinden zijn de keuzes grijs, draait er een icoon en krijgt elke kaart een vinkje zodra hij klaar is
 - Je huis in 3D: het afdak heeft een eigen schuin dak; op de etage erboven staat de strook als Afdak eronder
@@ -168,6 +171,7 @@
 
 **Opgelost**
 
+- Je huis › Vorm: een gebouw op maat trekken schoof het opzij als het huis op de kaart samen met de garage één gebouw is
 - Je huis: wordt je huis op de kaart dieper of breder, dan blijft er geen strook "Wat is dit?" langs de gevel over; de kamers ernaast lopen door tot de gevel
 - Je huis: een garage van de kaart die je eerder aanwees, krijgt vanzelf de goede maat (zonder het schuurtje erachter); weghalen en opnieuw aanwijzen hoeft niet meer
 - Je huis: een smal aanhangsel achter de garage (een schuurtje dat op de kaart vastzit aan het huis) telt niet meer mee in de garage; de garage krijgt zijn echte lengte en breedte
@@ -295,6 +299,9 @@
 
 **Improved**
 
+- Your home: the canopy belongs to the ground floor only. The floors above reach that much less to the front; rooms, windows and devices in that strip move to the facade
+- Your home: Canopy below only shows on the floor the canopy reaches into
+- Your home › Where is the street: the street at the front comes first
 - Your home: streets are kept as a direction and distance, without names. Another front side is only possible while nothing has been drawn, because the drawing does not turn with it
 - Your home: while the maps are searching the choices are greyed out, an icon spins and each map gets a tick when it is done
 - Your home in 3D: the canopy has its own sloped roof; on the floor above, the strip shows as Canopy below
@@ -376,6 +383,7 @@
 
 **Fixed**
 
+- Your home › Shape: pulling a building to its size moved it sideways when the house and the garage are one building on the map
 - Your home: if your house becomes deeper or wider on the map, no "What is this?" strip is left along the wall; the rooms next to it run up to the wall
 - Your home: a garage from the map that you assigned earlier gets the right size by itself (without the shed behind it); removing and assigning it again is no longer needed
 - Your home: a narrow annex behind the garage (a shed joined to the house on the map) no longer counts as part of the garage; the garage gets its real length and width

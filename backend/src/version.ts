@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.215.0';
+export const VERSIE = '0.215.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,24 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.215.1',
+    datum: '2026-11-20',
+    beter: [
+      'Je huis: het afdak hoort alleen bij de begane grond. De etages erboven lopen zoveel minder ver naar voren; kamers, ramen en apparaten in die strook gaan mee naar de gevel',
+      'Je huis: Afdak eronder staat alleen op de etage waar het afdak tot in reikt',
+      'Je huis › Waar is de straat: de straat aan de voorkant staat bovenaan',
+    ],
+    opgelost: ['Je huis › Vorm: een gebouw op maat trekken schoof het opzij als het huis op de kaart samen met de garage één gebouw is'],
+    en: {
+      beter: [
+        'Your home: the canopy belongs to the ground floor only. The floors above reach that much less to the front; rooms, windows and devices in that strip move to the facade',
+        'Your home: Canopy below only shows on the floor the canopy reaches into',
+        'Your home › Where is the street: the street at the front comes first',
+      ],
+      opgelost: ['Your home › Shape: pulling a building to its size moved it sideways when the house and the garage are one building on the map'],
+    },
+  },
   {
     versie: '0.215.0',
     datum: '2026-11-20',

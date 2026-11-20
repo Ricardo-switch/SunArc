@@ -799,14 +799,16 @@ export function isWeg(d: Daken, o: readonly Xy[]): boolean {
 export function gebouwMaat(d: Daken, id: string, vak: { readonly u: number; readonly v: number; readonly b: number; readonly d: number } | null): Daken | null {
   const dt = dakTekening(d);
   const gebouwen = d.gebouwen ?? dt.gebouwen.map(kaalGebouw);
-  const hoofd = gebouwen.find((g) => g.soort === 'hoofdhuis');
+  // De assen van het hoofdhuis zoals Je huis het tekent: opgeknipt uit het gebouw van de kaart (zonder de garage ernaast).
+  const hoofd = dt.gebouwen.find((g) => g.soort === 'hoofdhuis');
   const g = gebouwen.find((x) => x.id === id);
-  if (!hoofd || !g || g === hoofd || hoofd.omtrek.length < 3) return null;
+  if (!hoofd || !g || g.soort === 'hoofdhuis' || hoofd.omtrek.length < 3) return null;
   let nieuw: Gebouw;
   if (vak == null) {
     if (!g.kaartOmtrek) return null;
     const { kaartOmtrek, ...rest } = g;
-    nieuw = { ...rest, omtrek: kaartOmtrek, bron: 'kaart', ...(hoofd.kaart ? { kaart: hoofd.kaart } : {}) };
+    const kaart = gebouwen.find((x) => x.soort === 'hoofdhuis')?.kaart;
+    nieuw = { ...rest, omtrek: kaartOmtrek, bron: 'kaart', ...(kaart ? { kaart } : {}) };
   } else {
     if (![vak.u, vak.v, vak.b, vak.d].every((n) => Number.isFinite(n)) || vak.b < 1 || vak.d < 1 || vak.b > 40 || vak.d > 40 || Math.abs(vak.u) > 60 || Math.abs(vak.v) > 60) return null;
     const k = kaderVan(hoofd, d.voorgevelDeg);
@@ -1135,7 +1137,8 @@ export type StraatKant = 'voor' | 'links' | 'rechts' | 'achter';
 
 /** De assen van het hoofdhuis zoals Je huis ze tekent; null zonder hoofdhuis met een omtrek. */
 function assenVan(d: Daken): Kader | null {
-  const hoofd = (d.gebouwen ?? dakTekening(d).gebouwen).find((g) => g.soort === 'hoofdhuis');
+  // Zoals Je huis tekent: het hoofdhuis opgeknipt uit het gebouw van de kaart.
+  const hoofd = dakTekening(d).gebouwen.find((g) => g.soort === 'hoofdhuis');
   return hoofd && hoofd.omtrek.length >= 3 ? kaderVan(hoofd, d.voorgevelDeg) : null;
 }
 

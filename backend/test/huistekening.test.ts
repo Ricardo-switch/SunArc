@@ -686,6 +686,19 @@ describe('je huis tekenen: wat de kaarten vinden (ronde 2)', () => {
     expect(gebouwMaat(erbij, 'tuinhuis', { u: 0, v: 0, b: 0.2, d: 3 })).toBeNull();
   });
 
+  it('trekt op maat in de assen van het huis zoals Je huis het tekent, ook als het gebouw van de kaart de garage meeneemt', () => {
+    // Het huis van Ricardo: één gebouw op de kaart, het huis met de garage links ernaast (een L), en een tuinhuis achterin.
+    const pand: Gebouw = { id: 'huis', soort: 'hoofdhuis', bron: 'kaart', kaart: 'bag3d', omtrek: [[0, 0], [5.6, 0], [5.6, 9.9], [0, 9.9], [0, 8.4], [-3, 8.4], [-3, 1.4], [0, 1.4]], dakvorm: 'zadel', nokDeg: 90 };
+    const tuin = blok(-1, 18, 0.8, 21.3);
+    const d: Daken = { vlakken: [], voorgevelDeg: 180, omvormerW: null, gebouwen: [pand], omgeving: [tuin] };
+    const erbij = gebouwErbij(d, plek(d, tuin), 'tuinhuis')!.daken;
+    const voor = bronVorm(erbij, 180, null, 2).blokken.find((x) => x.soort === 'tuinhuis')!;
+    const groot = gebouwMaat(erbij, 'tuinhuis', { u: voor.u, v: voor.v, b: 7, d: voor.d })!;
+    const na = bronVorm(groot, 180, null, 2).blokken.find((x) => x.soort === 'tuinhuis')!;
+    // De linker kant blijft waar hij was; alleen de breedte verandert.
+    expect([na.u, na.v, na.b]).toEqual([voor.u, voor.v, 7]);
+  });
+
   it('wat niet meer bestaat, blijft weg, ook als de kaart het nog ziet, en kan terug', () => {
     const weg = gebouwBestaatNiet(daken(), { i: plek(daken(), schuur) })!;
     expect(weg.omgeving).toEqual([tuinhuisVorm]);
