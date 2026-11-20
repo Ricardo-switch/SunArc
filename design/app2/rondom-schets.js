@@ -18,6 +18,10 @@
  * Ricardo's huis zoals in de schetsen van ronde 1 en 2: het hoofdhuis 5,6 m
  * breed en 9,9 m diep, de garage links, het tuinhuis 7 x 3 m achterin, de
  * straat onder. De maten van de tuin zijn een voorbeeld.
+ *
+ * Besluit Ricardo, 20 november 2026: niet bouwen zoals hier. Het kadaster
+ * valt af, de veranda en de dakramen gaan naar later, en de tuin in 3D komt
+ * in de ene tekenaar voor Thuis en Je huis samen. Deze schets blijft als idee.
  */
 (function (global) {
   'use strict';
