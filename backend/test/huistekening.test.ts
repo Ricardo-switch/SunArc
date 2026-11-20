@@ -5,8 +5,8 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import type { Daken, DakVlak, Gebouw, Xy } from '../src/web/daken.js';
-import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { leesDaken, leesKapellen, type Daken, type DakVlak, type Gebouw, type Xy } from '../src/web/daken.js';
+import { bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, kapelVanBewoner, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
 const known: LayoutKnown = {
@@ -494,5 +494,37 @@ describe('opnieuw kijken bij dezelfde kaart (stap 4 punt 3)', () => {
     expect(kaartVernieuwd(oud, 'bag3d', { osm: null, bag3d: { stand: 'geen' } })).toBeNull();
     const al = kaartVernieuwd(oud, 'bag3d', { osm: null, bag3d: bag })!;
     expect(kaartVernieuwd(al, 'bag3d', { osm: null, bag3d: bag })).toBeNull();
+  });
+});
+
+describe('de dakkapellen van de bewoner (stap 4 punt 3, Je huis › Dak)', () => {
+  const huis: Gebouw = { id: 'huis', soort: 'hoofdhuis', bron: 'bewoner', omtrek: [[0, 0], [10, 0], [10, 8], [0, 8]], dakvorm: 'zadel', nokDeg: 0 };
+  const d: Daken = { vlakken: [], voorgevelDeg: 180, omvormerW: null, gebouwen: [huis] };
+
+  it('leest hooguit vier dakkapellen met een kant, van, tot en diep', () => {
+    expect(leesKapellen([{ kant: 1, van: 1.04, tot: 4, diep: 2, etage: 'e2' }])).toEqual([{ kant: 1, van: 1, tot: 4, diep: 2, etage: 'e2' }]);
+    expect(leesKapellen([{ kant: 2, van: 1, tot: 4, diep: 2 }])).toBeNull();
+    expect(leesKapellen([{ kant: 0, van: 1, tot: 1.3, diep: 2 }])).toBeNull();
+    expect(leesKapellen(Array.from({ length: 5 }, () => ({ kant: 0, van: 0, tot: 1, diep: 1 })))).toBeNull();
+    expect(leesKapellen([])).toEqual([]);
+  });
+
+  it('bewaart ze bij het hoofdhuis, en ze komen terug na het lezen', () => {
+    const nu = gebouwKapel(d, { dakkapellen: [{ kant: 1, van: 2, tot: 5, diep: 2 }] })!;
+    expect(nu.gebouwen![0]!.dakkapellen).toEqual([{ kant: 1, van: 2, tot: 5, diep: 2 }]);
+    const terug = leesDaken(JSON.parse(JSON.stringify(nu)));
+    expect('daken' in terug && terug.daken?.gebouwen?.[0]?.dakkapellen).toEqual([{ kant: 1, van: 2, tot: 5, diep: 2 }]);
+    expect(gebouwKapel(d, { kaartKapel: 'nee' })!.gebouwen![0]!.kaartKapel).toBe('nee');
+  });
+
+  it('tekent die van de bewoner op het dak, met de voorkant net achter de goot', () => {
+    expect(kapelVanBewoner({ kant: 0, van: 1, tot: 3.5, diep: 2, etage: 'e2' })).toEqual({ kant: 0, van: 1, tot: 3.5, voor: 0.3, achter: 2.3, etage: 'e2' });
+    const v = bronVorm(gebouwKapel(d, { dakkapellen: [{ kant: 1, van: 2, tot: 5, diep: 2 }] })!, 180, 'vrijstaand', 2);
+    const hoofd = v.blokken.find((b) => b.soort === 'hoofdhuis')!;
+    expect(hoofd.dakkapellen).toEqual([{ kant: 1, van: 2, tot: 5, voor: 0.3, achter: 2.3 }]);
+    expect(hoofd.kapelBron).toBe('bewoner');
+    // Leeg is ook een keus van de bewoner: geen dakkapel.
+    const leeg = bronVorm(gebouwKapel(d, { dakkapellen: [] })!, 180, 'vrijstaand', 2).blokken.find((b) => b.soort === 'hoofdhuis')!;
+    expect(leeg.dakkapellen).toBeUndefined();
   });
 });

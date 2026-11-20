@@ -322,6 +322,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [329. Dezelfde vraag bij Energie en bij Inrichten](#329-dezelfde-vraag-bij-energie-en-bij-inrichten)
 - [330. Alles van dit scherm bij Jij](#330-alles-van-dit-scherm-bij-jij)
 - [331. Alles bij Jij is persoonlijk](#331-alles-bij-jij-is-persoonlijk)
+- [332. Je huis › Dak: het dak en de dakkapel](#332-je-huis--dak-het-dak-en-de-dakkapel)
 
 **Veiligheid**
 
@@ -15302,6 +15303,40 @@ van Ricardo: die ook per bewoner. En bij de agenda: "waarom niet als keuze?"
   thuis bent* (standaard aan, zoals besluit 219).
 - De dienst wekt de wand met de bewegingsmelder van elke bewoner, en
   Klaarzetten telt scherm uit als het bij iemand aanstaat.
+
+## 332. Je huis › Dak: het dak en de dakkapel
+
+*Onderwerp: weergave · Status: geldig*
+
+20 november 2026, stap 4 punt 3. Keuzes van Ricardo (19 november): een
+dakkapel is een keuze met de etage erbij, verplaatsbaar en van formaat te
+veranderen zoals een kamer; vindt de 3D-kaart er een, dan staat hij er meteen
+op maat. Bij de schets (`Wand-/Tel-Huis-Dakkapel`): de strepen onder 1,5 m
+zijn perfect, en een eigen tab Dak naast Vorm, zodat Vorm rustiger blijft.
+
+*Besluit (0.209.0):*
+
+- **De tab Dak** staat tussen Vorm en Kamers. Hij opent op de etage onder het
+  dak. In het blad: de vorm van het dak en de nok (eerst bij Vorm), en
+  *Dakkapel erbij*. In de tekening: de kamers bescheiden, de nok als
+  stippellijn, en gestreept wat lager is dan 1,5 m boven de vloer, uit de
+  goot, de nok en de hoogte van de etages. Onder een dakkapel kun je staan,
+  daar geen strepen.
+- **Een dakkapel erbij:** de kant (voor of achter, of links en rechts als de
+  nok dwars op de straat loopt), elk met een doorsnede van het huis, en de
+  etage (de etages onder het schuine dak); dan *Neerzetten*.
+- **Een dakkapel aanpassen:** met een vinger schuiven langs het dak, of een
+  zijkant pakken om hem breder of smaller te maken. In het blad de doorsnede,
+  *Andere kant*, de etage, *Breed* en *Diep* met min en plus, en *Weghalen*.
+  Elke verandering wordt meteen bewaard, zonder de pagina opnieuw te laden;
+  Huis in 3D toont hem.
+- **Van de kaart:** vindt 3D BAG een dakkapel, dan staat hij er met een
+  stippelrand en vraagt Je huis bovenaan of hij klopt. *Ja* houdt hem, *Nee,
+  weghalen* haalt hem weg en hij komt niet terug. Wie hem verschuift, maakt
+  hem tot zijn eigen.
+- **In de dienst:** het hoofdhuis bewaart `dakkapellen` (kant, van, tot, diep,
+  etage) en `kaartKapel` (ja of nee). Die van de bewoner gelden, ook een lege
+  lijst; anders wat 3D BAG vindt.
 
 ## Wat nog een besluit wacht
 

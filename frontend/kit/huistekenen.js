@@ -650,6 +650,63 @@
       huis.etages.forEach((e) => (e.blokken = e.buiten ? [...(huis.erf ? [huis.erf] : []), ...b.blokken] : b.blokken.filter((x) => x.soort === 'hoofdhuis' || (e.id === beneden && !(metErf && losBuiten(x))))));
     };
     zetBlokken();
+    /* ---------- het dak en de dakkapellen (stap 4 punt 3, Je huis › Dak, schets Wand-Huis-Dakkapel) */
+    const hoofdBlok = () => (huis.bronnen?.[st.bron]?.blokken ?? []).find((b) => b.soort === 'hoofdhuis') ?? null;
+    /** De etage onder het dak (de zolder), anders de bovenste. */
+    const dakEtage = () => huis.etages.find((e) => e.dak && !e.buiten)?.id ?? huis.etages.find((e) => !e.buiten)?.id ?? null;
+    /** De dakkapellen van het blok als die van de bewoner: kant, van..tot langs de nok, diep vanaf de goot, en de etage. */
+    const kapelsVan = (b) => (b?.dakkapellen ?? []).map((k) => ({ kant: k.kant, van: k.van, tot: k.tot, diep: Math.max(0.5, Math.round((k.achter - k.voor) * 10) / 10), etage: k.etage ?? null }));
+    st.kapellen = kapelsVan(hoofdBlok());
+    /**
+     * Het dak van het hoofdhuis in meters: `a` loopt langs de nok, `c` er
+     * dwars op (kant 0 is de kant met de kleinste c: voor of links). Met de
+     * goot van elke kant, de nok en hoe ver de nok van elke goot ligt. Null bij
+     * een plat dak.
+     */
+    const dakMaat = () => {
+      const b = hoofdBlok();
+      if (!b || !b.dak || b.dak === 'plat') return null;
+      const langs = b.nokLangs === 'y';
+      const [a0, la, c0, lc] = langs ? [b.v, b.d, b.u, b.b] : [b.u, b.b, b.v, b.d];
+      const naar0 = b.nokVan0 ?? lc / 2;
+      return { b, langs, a0, la, c0, lc, naar: [naar0, lc - naar0], goot: [b.goot0 ?? b.goot1 ?? 3, b.goot1 ?? b.goot0 ?? 3], nok: b.nok ?? 8 };
+    };
+    /** Hoe hoog de vloer van een etage ligt: de etages eronder bij elkaar. */
+    const vloerHoogte = (id) => {
+      const lijst = huis.etages.filter((e) => !e.buiten);
+      const i = lijst.findIndex((e) => e.id === id);
+      return i < 0 ? 0 : lijst.slice(i + 1).reduce((t, e) => t + (e.hoogte ?? 2.6), 0);
+    };
+    /** Per kant hoe ver vanaf de goot het dak lager is dan 1,5 m boven de vloer van deze etage. */
+    const laagStrook = (id) => {
+      const m = dakMaat();
+      if (!m) return [0, 0];
+      const z = vloerHoogte(id) + 1.5;
+      return [0, 1].map((k) => {
+        const helling = (m.nok - m.goot[k]) / Math.max(0.1, m.naar[k]);
+        return helling <= 0 ? 0 : Math.max(0, Math.min(m.naar[k], (z - m.goot[k]) / helling));
+      });
+    };
+    /** De etages waar een dakkapel op kan: onder het schuine dak (een strook van minstens 20 cm). */
+    const kapelEtages = () => (dakMaat() ? huis.etages.filter((e) => !e.buiten && (e.id === dakEtage() || Math.max(...laagStrook(e.id)) >= 0.2)).map((e) => e.id) : []);
+    /** Waar een dakkapel ligt, in meters op het papier. */
+    const kapelRecht = (k, m) => {
+      const a = [m.a0 + k.van, m.a0 + k.tot];
+      const c = k.kant === 0 ? [m.c0 + 0.3, m.c0 + 0.3 + k.diep] : [m.c0 + m.lc - 0.3 - k.diep, m.c0 + m.lc - 0.3];
+      return m.langs ? { u0: c[0], u1: c[1], v0: a[0], v1: a[1] } : { u0: a[0], u1: a[1], v0: c[0], v1: c[1] };
+    };
+    const opDezeEtage = () => st.kapellen.map((k, i) => ({ k, i })).filter(({ k }) => (k.etage ?? dakEtage()) === st.etage);
+    /** Na elke verandering: het blok (voor Huis in 3D) en de dienst. */
+    const kapelBewaar = () => {
+      const b = hoofdBlok();
+      if (b) {
+        b.dakkapellen = st.kapellen.map((k) => ({ kant: k.kant, van: k.van, tot: k.tot, voor: 0.3, achter: Math.round((0.3 + k.diep) * 10) / 10, ...(k.etage ? { etage: k.etage } : {}) }));
+        b.kapelBron = 'bewoner';
+        delete b.kapelVraag;
+      }
+      opties.kapel?.(st.kapellen.map((k) => ({ kant: k.kant, van: k.van, tot: k.tot, diep: k.diep, ...(k.etage ? { etage: k.etage } : {}) })));
+    };
+    const r1 = (n) => Math.round(n * 10) / 10;
     let luisteraars = [];
     const meld = () => luisteraars.forEach((f) => f());
 
@@ -903,6 +960,86 @@
       }
       return { x0: o.x0 - rand, y0: o.y0 - rand - 3, x1: o.x1 + rand, y1: o.y1 + rand };
     };
+    /** Het dak bij Dak: wat lager is dan 1,5 m gestreept (niet onder een dakkapel), de nok, en de dakkapellen met hun grepen. */
+    const dakLaag = () => {
+      const m = dakMaat();
+      if (!m) return '';
+      const P = (u, w) => [X(MARGE + u / CEL), Y(MARGE + w / CEL)];
+      const vak = (u0, v0, u1, v1, extra) => {
+        const [x0, y0] = P(u0, v1);
+        const [x1, y1] = P(u1, v0);
+        return `<rect x="${Math.min(x0, x1).toFixed(1)}" y="${Math.min(y0, y1).toFixed(1)}" width="${Math.abs(x1 - x0).toFixed(1)}" height="${Math.abs(y1 - y0).toFixed(1)}" ${extra}/>`;
+      };
+      const opAC = (a0, a1, c0, c1, extra) => (m.langs ? vak(c0, a0, c1, a1, extra) : vak(a0, c0, a1, c1, extra));
+      let s = `<defs><pattern id="ht-laag" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="9" height="9" fill="rgb(255 255 255 / 0.03)"/><line x1="0" y1="0" x2="0" y2="9" stroke="rgb(255 255 255 / 0.18)" stroke-width="3"/></pattern></defs>`;
+      const hier = opDezeEtage();
+      const strook = laagStrook(st.etage);
+      let label = null;
+      for (const kant of [0, 1]) {
+        const w = strook[kant];
+        if (w < 0.2) continue;
+        const [c0, c1] = kant === 0 ? [m.c0, m.c0 + w] : [m.c0 + m.lc - w, m.c0 + m.lc];
+        const gaten = hier.filter(({ k }) => k.kant === kant).map(({ k }) => [m.a0 + k.van, m.a0 + k.tot]).sort((x, y) => x[0] - y[0]);
+        let a = m.a0;
+        const stukken = [];
+        for (const [g0, g1] of gaten) {
+          if (g0 > a) stukken.push([a, g0]);
+          a = Math.max(a, g1);
+        }
+        if (a < m.a0 + m.la) stukken.push([a, m.a0 + m.la]);
+        for (const [a0, a1] of stukken) s += opAC(a0, a1, c0, c1, 'fill="url(#ht-laag)" pointer-events="none"');
+        // Het label op het langste stuk, dicht bij de gevel: niet in een dakkapel.
+        const lang = stukken.sort((x, y) => y[1] - y[0] - (x[1] - x[0]))[0];
+        if (lang && lang[1] - lang[0] > 1.6 && (!label || w > label.w)) label = { w, a: (lang[0] + lang[1]) / 2, c: kant === 0 ? m.c0 + Math.min(w / 2, 0.45) : m.c0 + m.lc - Math.min(w / 2, 0.45) };
+      }
+      if (label) {
+        const [x, y] = m.langs ? P(label.c, label.a) : P(label.a, label.c);
+        s += `<text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="11.5" font-weight="600" fill="rgb(255 255 255 / 0.6)" pointer-events="none">${esc(T('ht.dakkapel.laag'))}</text>`;
+      }
+      // De nok: een stippellijn over het huis.
+      const nc = m.c0 + m.naar[0];
+      const [[nx0, ny0], [nx1, ny1]] = m.langs ? [P(nc, m.a0), P(nc, m.a0 + m.la)] : [P(m.a0, nc), P(m.a0 + m.la, nc)];
+      s += `<line x1="${nx0.toFixed(1)}" y1="${ny0.toFixed(1)}" x2="${nx1.toFixed(1)}" y2="${ny1.toFixed(1)}" stroke="rgb(255 255 255 / 0.4)" stroke-width="1.5" stroke-dasharray="3 5" pointer-events="none"/>`;
+      s += `<text x="${(Math.max(nx0, nx1) + 8).toFixed(1)}" y="${(Math.min(ny0, ny1) + (m.langs ? -8 : 4)).toFixed(1)}" ${FONT} font-size="11.5" font-weight="700" fill="rgb(255 255 255 / 0.5)" pointer-events="none">${esc(T('ht.dakkapel.nok'))}</text>`;
+      // De dakkapellen op deze etage.
+      const uitKaart = hoofdBlok()?.kapelBron === 'kaart';
+      for (const { k, i } of hier) {
+        const r = kapelRecht(k, m);
+        const [x0, y0] = P(r.u0, r.v1);
+        const [x1, y1] = P(r.u1, r.v0);
+        const [l, t2, b, h] = [Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0)];
+        const gekozen = st.kies?.soort === 'kapel' && st.kies.i === i;
+        s += `<rect x="${l.toFixed(1)}" y="${t2.toFixed(1)}" width="${b.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="rgb(111 211 255 / ${gekozen ? 0.26 : 0.18})" stroke="#6fd3ff" stroke-width="${gekozen ? 3.5 : 2.5}" ${uitKaart ? 'stroke-dasharray="7 5"' : ''}/>`;
+        const [cx, cy] = [l + b / 2, t2 + h / 2];
+        s += `<text x="${cx.toFixed(1)}" y="${(cy + 2).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="#eef3f7" pointer-events="none">${esc(T('ht.dakkapel.naam'))}</text>`;
+        if (b > 90 && h > 40) s += `<text x="${cx.toFixed(1)}" y="${(cy + 16).toFixed(1)}" text-anchor="middle" ${FONT} font-size="11" font-weight="600" fill="rgb(169 230 255 / 0.85)" pointer-events="none">${esc(T(uitKaart ? 'ht.dakkapel.vanKaart' : 'ht.dakkapel.staan'))}</text>`;
+        if (gekozen) {
+          // De maat langs de nok, en grepen op de twee zijkanten die je rekt.
+          const breed = `${nl(k.tot - k.van)} m`;
+          const [px, py] = m.langs ? [l - 34, cy] : [cx, t2 - 20];
+          s += `<g transform="translate(${px.toFixed(1)} ${py.toFixed(1)})" pointer-events="none"><rect x="-27" y="-13" width="54" height="26" rx="9" fill="#0b1424" stroke="#6ee7b7" stroke-width="1.5"/><text y="5" text-anchor="middle" ${FONT} font-size="13" font-weight="700" fill="#6ee7b7">${esc(breed)}</text></g>`;
+          const grepen = m.langs ? [[cx, t2], [cx, t2 + h]] : [[l, cy], [l + b, cy]];
+          for (const [gx, gy] of grepen) s += m.langs ? `<rect x="${(gx - 22).toFixed(1)}" y="${(gy - 5).toFixed(1)}" width="44" height="10" rx="5" fill="#6fd3ff" stroke="#0b1424" stroke-width="2" pointer-events="none"/>` : `<rect x="${(gx - 5).toFixed(1)}" y="${(gy - 22).toFixed(1)}" width="10" height="44" rx="5" fill="#6fd3ff" stroke="#0b1424" stroke-width="2" pointer-events="none"/>`;
+        }
+      }
+      return s;
+    };
+    /** Welke dakkapel onder de vinger ligt, en of het een zijkant (rekken) is of het midden (schuiven). */
+    const kapelOp = (p, tolPx) => {
+      const m = dakMaat();
+      if (!m) return null;
+      const tol = (tolPx * CEL) / k;
+      const [u, w] = [(p.x - MARGE) * CEL, (p.y - MARGE) * CEL];
+      const [a, c] = m.langs ? [w, u] : [u, w];
+      for (const { k: kk, i } of opDezeEtage()) {
+        const r = kapelRecht(kk, m);
+        const [ra0, ra1, rc0, rc1] = m.langs ? [r.v0, r.v1, r.u0, r.u1] : [r.u0, r.u1, r.v0, r.v1];
+        if (a < ra0 - tol || a > ra1 + tol || c < rc0 - tol || c > rc1 + tol) continue;
+        const wat = Math.abs(a - ra0) <= tol ? 'van' : Math.abs(a - ra1) <= tol ? 'tot' : 'schuif';
+        return { i, wat, m };
+      }
+      return null;
+    };
     const zetKijk = (kk) => {
       kijk = kk;
       k = Math.min(B / (kk.x1 - kk.x0), Hpx / (kk.y1 - kk.y0));
@@ -1081,7 +1218,8 @@
         const tint = TINT[SOORT_TINT[soortVan(r)] ?? (r?.kamer ? 'woon' : naam ? 'hal' : 'leeg')];
         const sterk = vorm ? 0.1 : doel ? 0.42 : gekozen ? 0.34 : naam ? (dim ? 0.07 : 0.19) : 0.05;
         s += `<path d="${d}" fill="rgb(${tint} / ${sterk})"/>`;
-        if (!naam && !vorm) s += `<path d="${d}" fill="url(#ht-leeg)" opacity="${dim ? 0.3 : 1}"/>`;
+        // Bij Dak geen arcering voor een vak zonder naam: daar zijn de strepen voor wat lager is dan 1,5 m (20 november 2026).
+        if (!naam && !vorm && st.stand !== 'dak') s += `<path d="${d}" fill="url(#ht-leeg)" opacity="${dim ? 0.3 : 1}"/>`;
       }
       const muren = randen(v, isMuur);
       const binnen = muren.filter((r) => r.soort === 1).map(lijnPad).join('');
@@ -1145,6 +1283,11 @@
         if (zones.some((zz) => zz.id === Number(id)) && !actie?.type) continue;
         const cx = X((mm.r.x0 + mm.r.x1) / 2);
         const cy = Y((mm.r.y0 + mm.r.y1) / 2);
+        // Bij Dak alleen de namen, klein en bescheiden: het dak en de dakkapel staan voorop.
+        if (st.stand === 'dak') {
+          if (naam && pb > naam.length * 7 && pd > 18) s += `<text x="${cx.toFixed(1)}" y="${(cy + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12" font-weight="700" fill="rgb(255 255 255 / 0.4)" pointer-events="none">${esc(naam)}</text>`;
+          continue;
+        }
         const tekst = naam ?? T('ht.watIsDit');
         const fs = pb < 74 || pd < 44 ? 11.5 : pb > 200 && pd > 120 ? 17 : 14.5;
         if (pb < tekst.length * fs * 0.5 || pd < 18) continue;
@@ -1204,6 +1347,7 @@
           } else if (past) s += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${((y0 + y1) / 2 + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="rgb(255 255 255 / 0.7)" pointer-events="none">${Naam}</text>`;
         }
       }
+      if (st.stand === 'dak') s += dakLaag();
       laag('namen').innerHTML = s;
 
       // De apparaten: een rond icoon; dichtbij ook de naam.
@@ -1512,6 +1656,21 @@
         actie.hoek0 = st.hoek;
         return;
       }
+      // Dak (stap 4 punt 3): een dakkapel pakken om te schuiven of aan een zijkant te rekken; ernaast tikken laat hem los.
+      if (st.stand === 'dak') {
+        const raak = kapelOp(p, vinger ? 16 : 8);
+        if (raak) {
+          Object.assign(actie, { type: 'kapel', kapel: { ...raak, was: { ...st.kapellen[raak.i] } } });
+          st.kies = { soort: 'kapel', i: raak.i };
+          st.kapelErbij = null;
+        } else {
+          actie.type = 'niets';
+          st.kies = null;
+        }
+        teken();
+        meld();
+        return;
+      }
       const hk = heelKnop();
       if (hk && p.px >= hk.x - 6 && p.px <= hk.x + hk.b + 6 && p.py >= hk.y - 6 && p.py <= hk.y + hk.h + 6) {
         actie.kandidaat = { soort: 'heel' };
@@ -1558,6 +1717,20 @@
       const p = punt(e);
       const dx = p.px - actie.start.px;
       const dy = p.py - actie.start.py;
+      if (actie.type === 'kapel') {
+        const { i, wat, m, was } = actie.kapel;
+        const da = (m.langs ? p.y - actie.start.y : p.x - actie.start.x) * CEL;
+        const breed = was.tot - was.van;
+        const kk = st.kapellen[i];
+        if (wat === 'schuif') {
+          kk.van = r1(klem(was.van + da, 0, m.la - breed));
+          kk.tot = r1(kk.van + breed);
+        } else if (wat === 'van') kk.van = r1(klem(was.van + da, 0, was.tot - 0.6));
+        else kk.tot = r1(klem(was.tot + da, was.van + 0.6, m.la));
+        if (Math.abs(da) > 0.05) actie.kapel.verschoven = true;
+        teken();
+        return;
+      }
       if (actie.type === 'draai') {
         st.hoek = klem(actie.hoek0 + dx * 0.35, -65, 65);
         teken();
@@ -1800,6 +1973,11 @@
       over = '';
       if (a.type === 'draai') return meld();
       if (a.type === 'niets') return;
+      if (a.type === 'kapel') {
+        if (a.kapel.verschoven) kapelBewaar();
+        teken();
+        return meld();
+      }
       if (!a.type) return a.kandidaat.soort === 'heel' ? heelHuis() : tik(a);
       if (a.type === 'verplaats') {
         if (a.voorbeeld && (a.d[0] || a.d[1])) {
@@ -2277,6 +2455,9 @@
       zetStand(s) {
         // Vorm en het huis in 3D gaan over het huis zelf: vanaf buiten naar de begane grond.
         if ((s === 'vorm' || s === 'huis') && etageVan(st.etage)?.buiten) st.etage = huis.beneden ?? huis.etages.filter((e) => !e.buiten).at(-1)?.id;
+        // Dak (stap 4 punt 3): de etage onder het dak, als je niet al op een etage onder het schuine dak stond.
+        if (s === 'dak' && !kapelEtages().includes(st.etage)) st.etage = dakEtage() ?? st.etage;
+        st.kapelErbij = null;
         st.stand = s;
         st.kies = null;
         st.wapen = null;
@@ -2287,7 +2468,7 @@
       },
       zetEtage(id) {
         st.etage = id;
-        if (etageVan(id)?.buiten && (st.stand === 'vorm' || st.stand === 'huis')) st.stand = 'kamers';
+        if (etageVan(id)?.buiten && (st.stand === 'vorm' || st.stand === 'huis' || st.stand === 'dak')) st.stand = 'kamers';
         // Bij Huis zet een etage aantikken die etage open, ook als het huis dicht was.
         if (st.stand === 'huis') st.dicht = false;
         st.kies = null;
@@ -2340,6 +2521,73 @@
       zoalsBeneden,
       leeg,
       vanKaart,
+      /* Het dak en de dakkapellen (stap 4 punt 3). */
+      dakMaat,
+      dakEtage,
+      kapelEtages,
+      laagStrook,
+      vloerHoogte,
+      hoofdBlok,
+      kapelErbij() {
+        const m = dakMaat();
+        if (!m) return;
+        const strook = laagStrook(st.etage);
+        st.kapelErbij = { kant: strook[1] >= strook[0] ? 1 : 0, etage: kapelEtages().includes(st.etage) ? st.etage : dakEtage() };
+        st.kies = null;
+        teken();
+        meld();
+      },
+      kapelKeus(wat, w) {
+        if (!st.kapelErbij) return;
+        st.kapelErbij = { ...st.kapelErbij, [wat]: wat === 'kant' ? Number(w) : w };
+        meld();
+      },
+      kapelZet() {
+        const m = dakMaat();
+        const keus = st.kapelErbij;
+        if (!m || !keus) return;
+        const breed = r1(Math.min(3, Math.max(0.6, m.la - 1)));
+        const van = r1((m.la - breed) / 2);
+        const diep = r1(Math.max(0.5, Math.min(2, m.naar[keus.kant] - 0.6)));
+        st.kapellen.push({ kant: keus.kant, van, tot: r1(van + breed), diep, etage: keus.etage === dakEtage() ? null : keus.etage });
+        st.kapelErbij = null;
+        if (st.etage !== (keus.etage ?? dakEtage())) st.etage = keus.etage ?? dakEtage();
+        st.kies = { soort: 'kapel', i: st.kapellen.length - 1 };
+        kapelBewaar();
+        teken();
+        meld();
+      },
+      kapelNiet() {
+        st.kapelErbij = null;
+        meld();
+      },
+      kapelAnders(i, wat, d) {
+        const m = dakMaat();
+        const kk = st.kapellen[i];
+        if (!m || !kk) return;
+        if (wat === 'kant') kk.kant = kk.kant === 0 ? 1 : 0;
+        else if (wat === 'etage') {
+          const lijst = kapelEtages();
+          const nu = kk.etage ?? dakEtage();
+          const volgende = lijst[(lijst.indexOf(nu) + 1) % Math.max(1, lijst.length)] ?? nu;
+          kk.etage = volgende === dakEtage() ? null : volgende;
+          st.etage = volgende;
+        } else if (wat === 'breed') {
+          const breed = klem(r1(kk.tot - kk.van + d), 0.6, m.la);
+          kk.tot = r1(Math.min(m.la, kk.van + breed));
+          kk.van = r1(kk.tot - breed);
+        } else if (wat === 'diep') kk.diep = r1(klem(kk.diep + d, 0.5, Math.max(0.5, m.naar[kk.kant] - 0.3)));
+        kapelBewaar();
+        teken();
+        meld();
+      },
+      kapelWeg(i) {
+        st.kapellen.splice(i, 1);
+        st.kies = null;
+        kapelBewaar();
+        teken();
+        meld();
+      },
       indelingen: () => indelingen(huis.kamers.filter((x) => x.etage === st.etage), etageVan(st.etage).blokken),
       plaatje: (i, b, h) => {
         const e = etageVan(st.etage);
@@ -2415,6 +2663,97 @@
     return `<h4 class="ht-dakkop">${esc(T('ht.dak.kop'))}${nok}</h4><div class="ht-twee vier">${vormen.map((v) => `<button type="button" class="ht-klein${b.dak === v ? ' aan' : ''}" data-ht="gebouw-dak" data-id="${esc(b.id)}" data-dakvorm="${v}" aria-pressed="${b.dak === v}">${esc(T(`daken.dakvorm.${v}`))}</button>`).join('')}</div>`;
   };
 
+  /** Een doorsnede van het huis (de straat of links aan het begin): de etages, het dak, en de dakkapel op zijn kant en etage. */
+  function doorsnede(t, kant, etage, [w, h]) {
+    const m = t.dakMaat();
+    if (!m) return '';
+    const pad = 7;
+    const hoog = Math.max(m.nok, ...m.goot) + 0.3;
+    const sx = (w - 2 * pad) / m.lc;
+    const sy = (h - 2 * pad - 10) / hoog;
+    const P = (pp) => pp.map(([c, z]) => `${(pad + c * sx).toFixed(1)},${(h - pad - 10 - z * sy).toFixed(1)}`).join(' ');
+    const dakOp = (c) => (c <= m.naar[0] ? m.goot[0] + ((m.nok - m.goot[0]) * c) / Math.max(0.1, m.naar[0]) : m.goot[1] + ((m.nok - m.goot[1]) * (m.lc - c)) / Math.max(0.1, m.naar[1]));
+    let s = `<polygon points="${P([[0, 0], [0, m.goot[0]], [m.naar[0], m.nok], [m.lc, m.goot[1]], [m.lc, 0]])}" fill="rgb(255 255 255 / 0.07)" stroke="rgb(255 255 255 / 0.55)" stroke-width="1.5" stroke-linejoin="round"/>`;
+    for (const e of t.huis.etages.filter((x) => !x.buiten)) {
+      const z = t.vloerHoogte(e.id);
+      if (z <= 0) continue;
+      const tot = (c) => dakOp(c) > z;
+      let c0 = 0;
+      while (c0 < m.lc && !tot(c0)) c0 += 0.05;
+      let c1 = m.lc;
+      while (c1 > 0 && !tot(c1)) c1 -= 0.05;
+      s += `<polyline points="${P([[c0, z], [c1, z]])}" fill="none" stroke="${kant != null && e.id === etage ? 'rgb(111 211 255 / 0.75)' : 'rgb(255 255 255 / 0.3)'}" stroke-width="${kant != null && e.id === etage ? 2 : 1}"/>`;
+    }
+    if (kant != null) {
+      const z = t.vloerHoogte(etage) + 2.4;
+      const gevel = kant === 0 ? 0.3 : m.lc - 0.3;
+      const tot = kant === 0 ? ((z - m.goot[0]) * m.naar[0]) / Math.max(0.1, m.nok - m.goot[0]) : m.lc - ((z - m.goot[1]) * m.naar[1]) / Math.max(0.1, m.nok - m.goot[1]);
+      if (Math.abs(tot - gevel) > 0.2) {
+        s += `<polygon points="${P([[gevel, dakOp(gevel)], [gevel, z], [tot, z]])}" fill="rgb(111 211 255 / 0.32)" stroke="#6fd3ff" stroke-width="2" stroke-linejoin="round"/>`;
+        s += `<polyline points="${P([[gevel, dakOp(gevel) + 0.3], [gevel, z - 0.4]])}" fill="none" stroke="#a9e6ff" stroke-width="3" stroke-linecap="round"/>`;
+      }
+    }
+    const [l, r] = m.langs ? [T('ht.dakkapel.links'), T('ht.dakkapel.rechts')] : [T('ht.dakkapel.straat'), T('ht.dakkapel.tuin')];
+    s += `<text x="${pad}" y="${h - 2}" ${FONT} font-size="9.5" font-weight="700" fill="rgb(255 255 255 / 0.4)">${esc(l.toUpperCase())}</text><text x="${w - pad}" y="${h - 2}" text-anchor="end" ${FONT} font-size="9.5" font-weight="700" fill="rgb(255 255 255 / 0.4)">${esc(r.toUpperCase())}</text>`;
+    return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">${s}</svg>`;
+  }
+  /** De naam van een kant: voor en achter als de nok langs de straat loopt, anders links en rechts. */
+  const kantNaam = (t, kant) => {
+    const m = t.dakMaat();
+    return m?.langs ? [T(kant === 0 ? 'ht.dakkapel.links' : 'ht.dakkapel.rechts'), T('ht.dakkapel.zijZin')] : [T(kant === 0 ? 'ht.dakkapel.voor' : 'ht.dakkapel.achter'), T(kant === 0 ? 'ht.dakkapel.voorZin' : 'ht.dakkapel.achterZin')];
+  };
+  const etageNaam = (t, id) => {
+    const e = t.huis.etages.find((x) => x.id === id);
+    return e?.kort ?? e?.naam ?? id;
+  };
+  /*
+   * Je huis › Dak (stap 4 punt 3, schets Wand-Huis-Dakkapel): het dak (de vorm
+   * en de nok, eerst bij Vorm), een dakkapel erbij met de kant en de etage, of
+   * een gekozen dakkapel met zijn maten.
+   */
+  function dakBlad(t) {
+    const st = t.st;
+    const m = t.dakMaat();
+    const b = t.hoofdBlok();
+    const stap = (wat, titel, waarde, i) => `<div class="ht-stapper"><span>${esc(titel)}</span><button type="button" data-ht="kapel-anders" data-i="${i}" data-wat="${wat}" data-d="-0.1" aria-label="${esc(T('ht.dakkapel.kleiner'))}">−</button><b>${esc(waarde)}</b><button type="button" data-ht="kapel-anders" data-i="${i}" data-wat="${wat}" data-d="0.1" aria-label="${esc(T('ht.dakkapel.groter'))}">+</button></div>`;
+    if (st.kapelErbij && m) {
+      const keus = st.kapelErbij;
+      const kantKnop = (kant) => {
+        const [naam, zin] = kantNaam(t, kant);
+        return `<button type="button" class="ht-kant${keus.kant === kant ? ' aan' : ''}" data-ht="kapel-keus" data-wat="kant" data-waarde="${kant}" aria-pressed="${keus.kant === kant}">${doorsnede(t, kant, keus.etage, [118, 64])}<b>${esc(naam)}</b><small>${esc(zin)}</small></button>`;
+      };
+      const etages = t.kapelEtages();
+      return `<header><h3>${esc(T('ht.dakkapel.erbijKop'))}</h3><span>${esc(etageNaam(t, keus.etage))}</span></header>
+        <p class="ht-zin">${esc(T('ht.dakkapel.erbijUitleg'))}</p>
+        <h4>${esc(T('ht.dakkapel.welkeKant'))}</h4>
+        <div class="ht-kanten">${kantKnop(0)}${kantKnop(1)}</div>
+        ${etages.length > 1 ? `<h4>${esc(T('ht.dakkapel.welkeEtage'))}</h4><div class="ht-twee twee">${etages.map((id) => `<button type="button" class="ht-klein${keus.etage === id ? ' aan' : ''}" data-ht="kapel-keus" data-wat="etage" data-waarde="${esc(id)}" aria-pressed="${keus.etage === id}">${esc(etageNaam(t, id))}</button>`).join('')}</div><p class="ht-zin">${esc(T('ht.dakkapel.etageUitleg'))}</p>` : ''}
+        <div class="ht-knoppen"><button type="button" class="knop" data-ht="kapel-niet">${esc(T('ht.dakkapel.annuleer'))}</button><button type="button" class="knop knop-licht" data-ht="kapel-zet">${esc(T('ht.dakkapel.zet'))}</button></div>`;
+    }
+    const kk = st.kies?.soort === 'kapel' ? st.kapellen[st.kies.i] : null;
+    if (kk && m) {
+      const i = st.kies.i;
+      const uitKaart = b?.kapelBron === 'kaart';
+      const [kant, kantZin] = kantNaam(t, kk.kant);
+      const etage = kk.etage ?? t.dakEtage();
+      return `<header><h3>${esc(T('ht.dakkapel.naam'))}</h3><span>${nl(kk.tot - kk.van)} × ${nl(kk.diep)} m</span></header>
+        <div class="ht-door">${doorsnede(t, kk.kant, etage, [268, 118])}</div>
+        <p class="ht-zin">${esc(T(uitKaart ? 'ht.dakkapel.kaartZin' : 'ht.dakkapel.eigenZin'))}</p>
+        ${rij({ ik: 'dak', titel: kant, zin: kantZin, rechts: T('ht.dakkapel.andere'), data: `data-ht="kapel-anders" data-i="${i}" data-wat="kant"` })}
+        ${t.kapelEtages().length > 1 ? rij({ ik: 'etages', titel: etageNaam(t, etage), zin: T('ht.dakkapel.etageZin'), rechts: T('ht.dakkapel.wijzig'), data: `data-ht="kapel-anders" data-i="${i}" data-wat="etage"` }) : ''}
+        ${stap('breed', T('ht.dakkapel.breed'), `${nl(kk.tot - kk.van)} m`, i)}
+        ${stap('diep', T('ht.dakkapel.diep'), `${nl(kk.diep)} m`, i)}
+        ${rij({ ik: 'kruis', titel: T('ht.dakkapel.weg'), zin: uitKaart ? T('ht.dakkapel.wegKaart') : '', data: `data-ht="kapel-weg" data-i="${i}"` })}`;
+    }
+    const naam = b ? T(`daken.dakvorm.${b.dak ?? 'zadel'}`) : '';
+    const etage = t.huis.etages.find((e) => e.id === st.etage);
+    const onder = t.kapelEtages().includes(st.etage);
+    return `<header><h3>${esc(T('ht.dakkapel.kop'))}</h3><span>${esc(b?.nok ? `${naam.toLowerCase()} · ${T('ht.dakkapel.nok')} ${nl(b.nok)} m` : naam)}</span></header>
+      <p class="ht-zin">${esc(!m ? T('ht.dakkapel.plat') : onder ? T('ht.dakkapel.zin', { etage: (etage?.kort ?? etage?.naam ?? '').toLowerCase() }) : T('ht.dakkapel.geenEtage'))}</p>
+      ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : dakDeel(t, b)}
+      ${m ? rij({ ik: 'dak', titel: T('ht.dakkapel.erbij'), zin: T('ht.dakkapel.erbijZin'), rechts: '+', data: 'data-ht="kapel-erbij"' }) : ''}`;
+  }
+
   /** Het blad rechts (wand) of onder (telefoon): wat je hier kunt, in regels. */
   const metOpeningenVan = (t) => !!t.metOpeningen;
   /*
@@ -2471,6 +2810,7 @@
       const ix = t.indeling?.gegevens?.() ?? null;
       const blad = ix && st.blad && !st.kies && st.blad.etage === st.etage && st.blad.stand === st.stand ? st.blad.naam : null;
       if (blad) s = indelingBlad(t, blad, ix, etage, hier);
+      else if (st.stand === 'dak') s = dakBlad(t);
       else if (st.kies?.soort === 'erfhuis') {
         // Het huis op het erf (20 november 2026): het volgt de vorm van je huis; die pas je aan bij Vorm.
         const opp = m[st.kies.id] ? Math.round(m[st.kies.id].n * CEL * CEL) : null;
@@ -2507,7 +2847,7 @@
           ${t.kijk && t.huis.kijk ? rij({ ik: 'dak', titel: t.huis.kijk.bezig ? T('ht.vorm.kijkt') : T('ht.vorm.kijk'), zin: t.huis.kijk.fout ?? T('ht.vorm.kijkZin'), rechts: '›', data: t.huis.kijk.bezig ? 'disabled' : 'data-ht="kijk"' }) : ''}
           ${rij({ ik: 'etages', titel: T('ht.hoogte'), zin: nu?.hoogte ?? '', rechts: nu?.gemeten ? T('ht.gemeten') : T('ht.geschat'), data: 'disabled' })}
           ${st.gebouwFout ? `<p class="ht-niet">${esc(st.gebouwFout)}</p>` : ''}
-          ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : dakDeel(t, (nu?.blokken ?? []).find((q) => q.soort === 'hoofdhuis'))}
+          ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : ''}
           <p class="ht-voet">${esc(T(t.kijk ? 'ht.vorm.voetApp' : 'ht.vorm.voet'))}</p>${vermelding(st.bron, (t.huis.bronnen?.[st.bron]?.omgeving ?? []).length > 0)}`;
       } else if (st.stand === 'kamers' && st.kies?.soort === 'opening' && (v.openingen ?? []).some((x) => x.id === st.kies.id)) {
         // Een deur, raam of de voordeur: de breedte, en weghalen.
@@ -2710,6 +3050,12 @@
       else if (d.ht === 'beneden') t.zoalsBeneden();
       else if (d.ht === 'leeg') t.leeg();
       else if (d.ht === 'van-kaart') t.vanKaart();
+      else if (d.ht === 'kapel-erbij') t.kapelErbij();
+      else if (d.ht === 'kapel-keus') t.kapelKeus(d.wat, d.waarde);
+      else if (d.ht === 'kapel-zet') t.kapelZet();
+      else if (d.ht === 'kapel-niet') t.kapelNiet();
+      else if (d.ht === 'kapel-anders') t.kapelAnders(Number(d.i), d.wat, Number(d.d ?? 0));
+      else if (d.ht === 'kapel-weg') t.kapelWeg(Number(d.i));
       else if (d.ht === 'kamer') {
         const w = t.kamerPlek()[d.kamer];
         if (w) t.kies({ soort: 'ruimte', id: w.id });
@@ -2867,6 +3213,7 @@
     if (a?.type === 'opening') return T('ht.uitleg.openingLos');
     if (st.stand === 'huis') return T('ht.uitleg.huis');
     if (st.stand === 'vorm') return T('ht.uitleg.vorm');
+    if (st.stand === 'dak') return T(a?.type === 'kapel' || st.kies?.soort === 'kapel' ? 'ht.uitleg.dakKapel' : 'ht.uitleg.dak');
     if (st.stand === 'kamers') {
       if (st.wapen?.kamer) return T('ht.uitleg.wapen', { naam: t.kamers[st.wapen.kamer].naam.toLowerCase() });
       if (st.kies?.soort === 'ruimte' && t.verplaatsbaar(st.kies.id)) return T('ht.uitleg.greep');

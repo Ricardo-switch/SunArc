@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.208.4';
+export const VERSIE = '0.209.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.209.0',
+    datum: '2026-11-20',
+    nieuw: [
+      'Je huis heeft een tab Dak: de vorm van het dak en de nok, en gestreept wat lager is dan 1,5 m',
+      'Een dakkapel zet je erbij met de kant en de etage, en je schuift hem langs het dak of trekt hem breder of smaller, zoals een kamer',
+      'Vindt de 3D-kaart een dakkapel, dan staat hij er meteen op maat en vraagt Je huis of hij klopt',
+    ],
+    en: {
+      nieuw: [
+        'Your home has a Roof tab: the shape of the roof and the ridge, and hatched what is lower than 1.5 m',
+        'You add a dormer with its side and floor, and slide it along the roof or make it wider or narrower, like a room',
+        'If the 3D map finds a dormer, it is there at its size straight away and Your home asks whether it is right',
+      ],
+    },
+  },
   {
     versie: '0.208.4',
     datum: '2026-11-20',

@@ -98,6 +98,21 @@ svg.ht .ht-ap.sleept { cursor: grabbing; filter: drop-shadow(0 10px 14px rgb(0 0
 .ht-twee.vier { grid-template-columns: repeat(4, 1fr); }
 .ht-twee.vier .ht-klein { font-size: 12.5px; padding: 0 3px; }
 .ht-dakkop { display: flex; align-items: center; justify-content: space-between; }
+/* Je huis › Dak (stap 4 punt 3): de kanten met een doorsnede, de maten met min en plus. */
+.ht-rij.ht-erbij, .ht-rij[data-ht='kapel-erbij'] { border: 1px dashed rgb(111 211 255 / 0.6); background: rgb(111 211 255 / 0.08); }
+.ht-kanten { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ht-kant { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px 9px; border-radius: 14px; border: 2px solid rgb(255 255 255 / 0.08); background: rgb(255 255 255 / 0.04); color: var(--tekst); font-family: var(--romp); cursor: pointer; }
+.ht-kant svg { max-width: 100%; height: auto; }
+.ht-kant b { font-size: 14px; margin-top: 4px; }
+.ht-kant small { font-size: 11.5px; color: var(--gedempt); }
+.ht-kant.aan { border-color: #6fd3ff; background: rgb(111 211 255 / 0.12); }
+.ht-door { display: flex; justify-content: center; padding: 6px 0 2px; border-radius: 14px; background: rgb(255 255 255 / 0.035); }
+.ht-door svg { max-width: 100%; height: auto; }
+.ht-stapper { display: grid; grid-template-columns: 1fr 40px 64px 40px; align-items: center; gap: 6px; min-height: 46px; padding: 3px 6px 3px 12px; border-radius: 14px; background: rgb(255 255 255 / 0.055); font-size: 14.5px; font-weight: 600; }
+.ht-stapper button { height: 36px; border-radius: 10px; border: 0; background: rgb(255 255 255 / 0.09); color: var(--tekst); font: 700 18px var(--romp); cursor: pointer; }
+.ht-stapper b { text-align: center; font-variant-numeric: tabular-nums; }
+.ht-knoppen { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+.ht-knoppen .knop { height: 40px; }
 .ht-dakknop { min-height: 30px; padding: 0 10px; border-radius: 9px; border: 0; background: rgb(255 255 255 / 0.07); color: var(--tekst); font: 600 12px var(--romp); cursor: pointer; }
 .ht-naam { width: 100%; height: 42px; margin-top: 5px; padding: 0 12px; border-radius: 12px; border: 1px solid rgb(255 255 255 / 0.16); background: rgb(255 255 255 / 0.04); color: var(--tekst); font: 600 13.5px var(--romp); outline: none; }
 .ht-naam::placeholder { color: var(--gedempt); font-weight: 500; }

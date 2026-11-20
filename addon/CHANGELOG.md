@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.208.4
+## 0.209.0
 
-*20 november 2026 · 0.179.0 – 0.208.4*
+*20 november 2026 · 0.179.0 – 0.209.0*
 
 **Nieuw**
 
+- Je huis heeft een tab Dak: de vorm van het dak en de nok, en gestreept wat lager is dan 1,5 m
+- Een dakkapel zet je erbij met de kant en de etage, en je schuift hem langs het dak of trekt hem breder of smaller, zoals een kamer
+- Vindt de 3D-kaart een dakkapel, dan staat hij er meteen op maat en vraagt Je huis of hij klopt
 - Hulp op de plek: een klein vraagteken bij wat lastig is, zoals Helpt op zon of de hoofdzekering, opent een kort stukje uit de handleiding
 - Bij Waarvoor is dit? staan de stukjes van dat deel, en de hele handleiding heeft een zoekveld
 - Meld ook als je iets niet snapt: onder wat je typt staat het stukje dat past, en de pagina en je huis gaan mee, zonder namen
@@ -183,6 +186,9 @@
 
 **New**
 
+- Your home has a Roof tab: the shape of the roof and the ridge, and hatched what is lower than 1.5 m
+- You add a dormer with its side and floor, and slide it along the roof or make it wider or narrower, like a room
+- If the 3D map finds a dormer, it is there at its size straight away and Your home asks whether it is right
 - Help in place: a small question mark next to what is tricky, such as Helps with solar or the main fuse, opens a short piece of the manual
 - What is this for? shows the pieces for that part, and the whole manual has a search field
 - Report when you do not get something too: below what you type is the piece that fits, and the page and your home go along, without names

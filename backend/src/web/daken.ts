@@ -98,6 +98,13 @@ export interface Gebouw {
   readonly hoogteGoot?: number;
   readonly hoogteNok?: number;
   readonly lagen?: number;
+  /**
+   * De dakkapellen die de bewoner neerzette of aanpaste (stap 4 punt 3, Je
+   * huis › Dak). Staat dit er, dan geldt het, ook leeg; anders wat 3D BAG vindt.
+   */
+  readonly dakkapellen?: readonly EigenKapel[];
+  /** Wat de bewoner zei van de dakkapel die 3D BAG vond: ja (hij klopt) of nee (weg). */
+  readonly kaartKapel?: 'ja' | 'nee';
 }
 
 export interface Daken {
@@ -245,7 +252,38 @@ function leesGebouwen(x: unknown): Gebouw[] | { fout: string } {
     const nok = r['hoogteNok'] == null ? null : getal(r['hoogteNok'], 1, 60) && (goot == null || (r['hoogteNok'] as number) >= goot) ? Math.round((r['hoogteNok'] as number) * 10) / 10 : undefined;
     const lagen = r['lagen'] == null ? null : Number.isInteger(r['lagen']) && getal(r['lagen'], 1, 20) ? (r['lagen'] as number) : undefined;
     if (goot === undefined || nok === undefined || lagen === undefined) return { fout: `gebouw ${id}: de goot is 1 tot 40 meter, de nok niet lager, en 1 tot 20 lagen` };
-    uit.push({ id, soort: r['soort'] as GebouwSoort, bron: r['bron'] as Gebouw['bron'], omtrek, dakvorm: r['dakvorm'] as Dakvorm, nokDeg: r['nokDeg'] as number, ...(kaart && r['bron'] === 'kaart' ? { kaart } : {}), ...(dakBron ? { dakBron } : {}), ...(goot != null ? { hoogteGoot: goot } : {}), ...(nok != null ? { hoogteNok: nok } : {}), ...(lagen != null ? { lagen } : {}) });
+    const kapellen = r['dakkapellen'] == null ? null : leesKapellen(r['dakkapellen']);
+    if (r['dakkapellen'] != null && !kapellen) return { fout: `gebouw ${id}: hooguit vier dakkapellen, elk met een kant, van, tot en diep` };
+    const kaartKapel = r['kaartKapel'] === 'ja' || r['kaartKapel'] === 'nee' ? r['kaartKapel'] : null;
+    uit.push({ id, soort: r['soort'] as GebouwSoort, bron: r['bron'] as Gebouw['bron'], omtrek, dakvorm: r['dakvorm'] as Dakvorm, nokDeg: r['nokDeg'] as number, ...(kaart && r['bron'] === 'kaart' ? { kaart } : {}), ...(dakBron ? { dakBron } : {}), ...(goot != null ? { hoogteGoot: goot } : {}), ...(nok != null ? { hoogteNok: nok } : {}), ...(lagen != null ? { lagen } : {}), ...(kapellen ? { dakkapellen: kapellen } : {}), ...(kaartKapel ? { kaartKapel } : {}) });
+  }
+  return uit;
+}
+
+/**
+ * Een dakkapel van de bewoner (stap 4 punt 3): `kant` 0 is voor of links, 1
+ * achter of rechts (de kanten van het schuine dak); `van`..`tot` langs de nok
+ * vanaf het begin van het dak, `diep` vanaf de goot naar de nok, alles in
+ * meters; en de etage waar hij op staat.
+ */
+export interface EigenKapel {
+  readonly kant: 0 | 1;
+  readonly van: number;
+  readonly tot: number;
+  readonly diep: number;
+  readonly etage?: string;
+}
+/** Hooguit vier dakkapellen, elk minstens 0,6 m breed en 0,5 tot 8 m diep. */
+export function leesKapellen(x: unknown): EigenKapel[] | null {
+  if (!Array.isArray(x) || x.length > 4) return null;
+  const uit: EigenKapel[] = [];
+  for (const k of x) {
+    const r = (typeof k === 'object' && k != null && !Array.isArray(k) ? k : {}) as Record<string, unknown>;
+    const { kant, van, tot, diep, etage } = r;
+    if ((kant !== 0 && kant !== 1) || !getal(van, 0, 60) || !getal(tot, 0, 60) || !getal(diep, 0.5, 8) || (tot as number) - (van as number) < 0.6) return null;
+    if (etage != null && (typeof etage !== 'string' || !/^[A-Za-z0-9_-]{1,24}$/.test(etage))) return null;
+    const m = (n: unknown) => Math.round((n as number) * 10) / 10;
+    uit.push({ kant, van: m(van), tot: m(tot), diep: m(diep), ...(typeof etage === 'string' ? { etage } : {}) });
   }
   return uit;
 }

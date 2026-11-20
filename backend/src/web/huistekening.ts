@@ -18,7 +18,7 @@
  * Een kamer die verdwijnt of naar een andere etage verhuist, maakt het
  * bewaren nooit onmogelijk: zijn vak blijft, zonder kamer.
  */
-import type { Daken, Dakvorm, DakVlak, Gebouw, KaartDakvlak, Xy } from './daken.js';
+import type { Daken, Dakvorm, DakVlak, EigenKapel, Gebouw, KaartDakvlak, Xy } from './daken.js';
 import { maatAs, rechthoekOm, tekening as dakTekening } from './daken-tekening.js';
 
 export type As = 'u' | 'v';
@@ -311,6 +311,9 @@ export interface Blok {
    * kant op kijkt als een schuine kant van het dak.
    */
   readonly dakkapellen?: readonly Dakkapel[];
+  /** Van wie de dakkapellen zijn (stap 4 punt 3): de bewoner, of 3D BAG; met `kapelVraag` vraagt Je huis of die van de kaart klopt. */
+  readonly kapelBron?: 'bewoner' | 'kaart';
+  readonly kapelVraag?: boolean;
 }
 
 export interface TekenVorm {
@@ -468,8 +471,8 @@ export function bronVanDaken(gebouwen: readonly Gebouw[]): VormBron {
 
 /** Alleen wat een gebouw is, zonder wat de tekening erbij rekende (maat, dakvlakken). */
 export const kaalGebouw = (g: Gebouw): Gebouw => {
-  const { id, soort, bron, omtrek, dakvorm, nokDeg, kaart, dakBron, hoogteGoot, hoogteNok, lagen } = g;
-  return { id, soort, bron, omtrek, dakvorm, nokDeg, ...(kaart ? { kaart } : {}), ...(dakBron ? { dakBron } : {}), ...(hoogteGoot != null ? { hoogteGoot } : {}), ...(hoogteNok != null ? { hoogteNok } : {}), ...(lagen != null ? { lagen } : {}) };
+  const { id, soort, bron, omtrek, dakvorm, nokDeg, kaart, dakBron, hoogteGoot, hoogteNok, lagen, dakkapellen, kaartKapel } = g;
+  return { id, soort, bron, omtrek, dakvorm, nokDeg, ...(kaart ? { kaart } : {}), ...(dakBron ? { dakBron } : {}), ...(hoogteGoot != null ? { hoogteGoot } : {}), ...(hoogteNok != null ? { hoogteNok } : {}), ...(lagen != null ? { lagen } : {}), ...(dakkapellen ? { dakkapellen } : {}), ...(kaartKapel ? { kaartKapel } : {}) };
 };
 
 /** Weg met de verwijzing naar een gebouw dat er niet meer is of anders ligt, zoals bij Daken. */
@@ -586,8 +589,12 @@ export function bronVorm(d: Daken, voorgevelDeg: number | null, woning: string |
   const dak = (b: Blok): Blok => {
     if (b.soort !== 'hoofdhuis') return { ...b, ...bijDak(b, 2.8) };
     const scheef = uitBag ? scheefDak(b, d.kaartDak ?? [], v.uDeg, nok, hoofd.hoogteGoot!) : null;
-    const kapellen = uitBag && v.kader ? dakkapellen({ ...b, ...(scheef ?? {}) }, d.kaartDak ?? [], v.kader) : [];
-    return { ...b, nok, ...(scheef ?? { goot0: uitBag ? hoofd.hoogteGoot! : geschat, goot1: uitBag ? hoofd.hoogteGoot! : geschat }), ...(kapellen.length ? { dakkapellen: kapellen } : {}) };
+    // De dakkapellen (stap 4 punt 3): die van de bewoner gelden; anders wat 3D BAG vindt, tenzij de bewoner zei dat die niet klopt.
+    const uitKaart = uitBag && v.kader ? dakkapellen({ ...b, ...(scheef ?? {}) }, d.kaartDak ?? [], v.kader) : [];
+    const eigen = hoofd?.dakkapellen;
+    const kapellen = eigen ? eigen.map(kapelVanBewoner) : hoofd?.kaartKapel === 'nee' ? [] : uitKaart;
+    const wie = eigen ? { kapelBron: 'bewoner' as const } : kapellen.length ? { kapelBron: 'kaart' as const, ...(hoofd?.kaartKapel !== 'ja' ? { kapelVraag: true } : {}) } : {};
+    return { ...b, nok, ...(scheef ?? { goot0: uitBag ? hoofd.hoogteGoot! : geschat, goot1: uitBag ? hoofd.hoogteGoot! : geschat }), ...(kapellen.length ? { dakkapellen: kapellen } : {}), ...wie };
   };
   const blokken = v.blokken.map((b) => dak({ ...b, u: m1(b.u - v.nul.u), v: m1(b.v - v.nul.v) }));
   const h = blokken.find((b) => b.soort === 'hoofdhuis');
@@ -689,6 +696,24 @@ export interface Dakkapel {
   readonly voor: number;
   readonly achter: number;
   readonly boven?: number;
+  /** De etage waar hij op staat, als de bewoner hem neerzette. */
+  readonly etage?: string;
+}
+
+/** Een dakkapel van de bewoner als dakkapel van het blok: de voorkant 0,3 m achter de goot. */
+export const kapelVanBewoner = (k: EigenKapel): Dakkapel => ({ kant: k.kant, van: k.van, tot: k.tot, voor: 0.3, achter: m1(0.3 + k.diep), ...(k.etage ? { etage: k.etage } : {}) });
+
+/**
+ * De dakkapellen van het hoofdhuis zetten (stap 4 punt 3, Je huis › Dak):
+ * `dakkapellen` is de hele lijst van de bewoner (ook leeg: geen); `kaartKapel`
+ * is ja of nee op de dakkapel die 3D BAG vond. Null als er geen hoofdhuis is.
+ */
+export function gebouwKapel(d: Daken, wat: { readonly dakkapellen?: readonly EigenKapel[]; readonly kaartKapel?: 'ja' | 'nee' }): Daken | null {
+  const gebouwen = d.gebouwen ?? dakTekening(d).gebouwen.map(kaalGebouw);
+  const g = gebouwen.find((x) => x.soort === 'hoofdhuis');
+  if (!g) return null;
+  const nieuw: Gebouw = { ...g, ...(wat.dakkapellen ? { dakkapellen: wat.dakkapellen } : {}), ...(wat.kaartKapel ? { kaartKapel: wat.kaartKapel } : {}) };
+  return { ...d, gebouwen: gebouwen.map((x) => (x === g ? nieuw : x)) };
 }
 
 /**

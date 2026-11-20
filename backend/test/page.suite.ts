@@ -922,8 +922,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await wand.locator('.dk-kaartdak', { hasText: 'Klopt met de 3D-kaart' }).waitFor();
     await wand.locator('[data-dak-bewaar]').click();
     await expect.poll(() => connStore.current?.daken?.vlakken.find((v) => v.letter === 'A'), { timeout: 5_000 }).toMatchObject({ azimuthDeg: 90, tiltDeg: 45, bron: 'bewoner' });
-    // Het dak zelf (stap 4): de dakvorm kies je bij Je huis › Vorm, en Zonnepanelen tekent het nieuwe dak.
-    await p.goto(`${baseUrl}/jehuis.html#bg/vorm`);
+    // Het dak zelf (stap 4): de dakvorm kies je bij Je huis › Dak (eerst Vorm, tot 0.209.0), en Zonnepanelen tekent het nieuwe dak.
+    await p.goto(`${baseUrl}/jehuis.html#bg/dak`);
     await p.waitForFunction(`window.tekenaar && document.querySelector('#wand #tekening [data-l="vlak"] g')`);
     await Promise.all([p.waitForEvent('load'), wand.locator('[data-ht="gebouw-dak"][data-dakvorm="schild"]').click()]);
     await expect.poll(() => hoofdhuis(), { timeout: 5_000 }).toMatchObject({ dakvorm: 'schild', dakBron: 'bewoner' });
@@ -8197,6 +8197,54 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
    * nagebootste vinger, zeggen wat het is, en het hoort bij het huis (ook bij
    * Daken), met een eigen ruimte op de begane grond. Weghalen zet hem terug.
    */
+  it('zet bij Je huis › Dak een dakkapel neer, schuift hem met een vinger en bewaart hem bij het huis (stap 4 punt 3)', async () => {
+    const conn0 = connStore.current;
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, hasTouch: true, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const kapellen = () => (connStore.current?.daken?.gebouwen ?? []).find((g) => g.soort === 'hoofdhuis')?.dakkapellen ?? null;
+    try {
+      await p.goto(`${baseUrl}/jehuis.html#bg/vorm`);
+      await p.waitForFunction(`window.tekenaar && document.querySelector('#wand #tekening [data-l="vlak"] g')`);
+      // De tab Dak: naar de etage onder het dak, met het dak in het blad (eerst bij Vorm).
+      await p.locator('#wand [data-stand="dak"]').click();
+      await expect.poll(() => p.evaluate<string>('window.tekenaar.st.stand')).toBe('dak');
+      expect(await p.evaluate<string>('window.tekenaar.st.etage')).toBe(await p.evaluate<string>('window.tekenaar.dakEtage()'));
+      expect(await p.evaluate<boolean>('!!window.tekenaar.dakMaat()')).toBe(true);
+      const blad = p.locator('#wand #blad');
+      await blad.locator('h3', { hasText: 'Het dak' }).waitFor();
+      expect(await p.locator('#wand #blad [data-ht="gebouw-dak"]').count()).toBeGreaterThan(0);
+      // Erbij: de kant met een doorsnede, dan Neerzetten; hij staat in de tekening en bij het huis.
+      await blad.locator('[data-ht="kapel-erbij"]').click();
+      await blad.locator('h3', { hasText: 'Dakkapel erbij' }).waitFor();
+      expect(await blad.locator('.ht-kant svg').count()).toBe(2);
+      await blad.locator('[data-ht="kapel-zet"]').click();
+      await blad.locator('h3', { hasText: 'Dakkapel' }).waitFor();
+      await expect.poll(kapellen, { timeout: 5_000 }).toHaveLength(1);
+      const was = kapellen()![0]!;
+      // Breder met de plus.
+      await blad.locator('[data-ht="kapel-anders"][data-wat="breed"][data-d="0.1"]').click();
+      await expect.poll(() => { const k = kapellen()?.[0]; return k ? Math.round((k.tot - k.van) * 10) : 0; }, { timeout: 5_000 }).toBe(Math.round((was.tot - was.van) * 10) + 1);
+      // Met een vinger een meter opzij schuiven langs het dak.
+      const naar = await p.evaluate<number[]>(`(() => { const t = window.tekenaar; const m = t.dakMaat(); const k = t.st.kapellen[0]; const a = m.a0 + (k.van + k.tot) / 2; const c = k.kant === 1 ? m.c0 + m.lc - 0.3 - k.diep / 2 : m.c0 + 0.3 + k.diep / 2; const [u, v] = m.langs ? [c, a] : [a, c]; const el = document.querySelector('#wand #tekening'); const r = el.getBoundingClientRect(); const g = el.querySelector('[data-l="vlak"] g').getAttribute('transform'); const [, ox, oy, s] = /translate\\(([-\\d.]+) ([-\\d.]+)\\) scale\\(([-\\d.]+)/.exec(g).map(Number); const M = window.huistekenen.MARGE; const C = window.huistekenen.CEL; const px = (uu, vv) => [r.left + ox + (M + uu / C) * s, r.top + oy - (M + vv / C) * s]; const [x0, y0] = px(u, v); const [x1, y1] = m.langs ? px(u, v - 1) : px(u - 1, v); return [x0, y0, x1, y1]; })()`);
+      const vanVoor = (await p.evaluate<number>('window.tekenaar.st.kapellen[0].van'));
+      const cdp = await context.newCDPSession(p);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: naar[0]!, y: naar[1]! }] });
+      for (let j = 1; j <= 10; j++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: naar[0]! + ((naar[2]! - naar[0]!) * j) / 10, y: naar[1]! + ((naar[3]! - naar[1]!) * j) / 10 }] });
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await expect.poll(() => kapellen()?.[0]?.van ?? -1, { timeout: 5_000 }).toBeCloseTo(Math.max(0, vanVoor - 1), 0);
+      // Weghalen: weer geen dakkapel (leeg is ook een keus).
+      await blad.locator('[data-ht="kapel-weg"]').click();
+      await expect.poll(kapellen, { timeout: 5_000 }).toEqual([]);
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+      if (conn0) await connStore.save(conn0);
+    }
+  }, 60_000);
+
   it('wijst bij Je huis › Vorm een gebouw van de kaart aan en haalt het weer weg (0.185.0)', async () => {
     const voor = layoutStore.current;
     const conn0 = connStore.current;

@@ -58,7 +58,7 @@
   .tk-kop { display: flex; align-items: center; gap: 8px; }
   .tk-kop h1 { margin: 0; font: 600 30px var(--kop); letter-spacing: -0.02em; }
   .tk-kop .hm-rechts { gap: 6px; }
-  #tel .hm-seg { display: grid; grid-template-columns: repeat(4, 1fr); }
+  #tel .hm-seg { display: grid; grid-template-columns: repeat(5, 1fr); }
   #tel .hm-seg button { justify-content: center; padding: 0 2px; font-size: 13.5px; }
   #tel .hm-seg button svg { display: none; }
   .tk-etages { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgb(var(--wit) / 0.05); }
@@ -104,6 +104,7 @@
         <h1 class="kop-1"><span data-t="jehuis.kop"></span><button type="button" class="hulpvraag" data-hulp="je-huis" data-t-aria-label="groep.waarvoor">?</button></h1>
         <div class="hm-seg" role="group" data-t-aria-label="jehuis.standen">
           <button type="button" data-stand="vorm" data-ik="thuis"><span data-t="jehuis.vorm"></span></button>
+          <button type="button" data-stand="dak" data-ik="dak"><span data-t="jehuis.dak"></span></button>
           <button type="button" data-stand="kamers" data-ik="kamers" aria-pressed="true"><span data-t="jehuis.kamers"></span></button>
           <button type="button" data-stand="apparaten" data-ik="apparaat"><span data-t="jehuis.apparaten"></span></button>
           <button type="button" data-stand="huis" data-ik="thuis"><span data-t="jehuis.huis"></span></button>
@@ -135,6 +136,7 @@
       </div>
       <div class="hm-seg" role="group" data-t-aria-label="jehuis.standen">
         <button type="button" data-stand="vorm"><span data-t="jehuis.vorm"></span></button>
+        <button type="button" data-stand="dak"><span data-t="jehuis.dak"></span></button>
         <button type="button" data-stand="kamers" aria-pressed="true"><span data-t="jehuis.kamers"></span></button>
         <button type="button" data-stand="apparaten"><span data-t="jehuis.apparaten"></span></button>
         <button type="button" data-stand="huis"><span data-t="jehuis.huis"></span></button>

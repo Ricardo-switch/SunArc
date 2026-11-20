@@ -31,7 +31,7 @@ const WIJS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 
 let tekenaar = null;
 /** De standen: Huis is het huis in 3D uit de tekening (stap 5). */
-const STANDEN = ['vorm', 'kamers', 'apparaten', 'huis'];
+const STANDEN = ['vorm', 'dak', 'kamers', 'apparaten', 'huis'];
 /** Wat de dienst als bron en als hoek van het hoofdhuis gaf; een andere bron gaat alleen mee als je hem koos. */
 const dienst = { bron: null, nul: null };
 /** De kaarten vragen: bezig, of wat er misging. */
@@ -443,6 +443,13 @@ function vraag(tk, d) {
   if (opErf && !koppelGezien && gekoppeld.length && !(d.tekening?.[BUITEN_ETAGE] ?? []).length) {
     const namen = opsomming(gekoppeld.map((g) => g.naam.toLowerCase()));
     html = `<span class="jh-vraag-ik">${iconen.svg('garage')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.koppel.kop', { namen }))}</b><span>${esc(t('jehuis.koppel.zin'))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="koppel-anders">${esc(t('jehuis.koppel.anders'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="koppel-ja">${esc(t('jehuis.koppel.ja'))}</button></div>`;
+  } else if (tk.st.stand === 'dak' && tk.hoofdBlok()?.kapelVraag && tk.st.kapellen.length) {
+    // Een dakkapel op de 3D-kaart (stap 4 punt 3): klopt hij? Ja houdt hem, nee haalt hem weg.
+    const k = tk.st.kapellen[0];
+    const m = tk.dakMaat();
+    const kant = m?.langs ? t(k.kant === 0 ? 'ht.dakkapel.links' : 'ht.dakkapel.rechts') : t(k.kant === 0 ? 'ht.dakkapel.voor' : 'ht.dakkapel.achter');
+    const etage = tk.huis.etages.find((e) => e.id === (k.etage ?? tk.dakEtage()));
+    html = `<span class="jh-vraag-ik">${iconen.svg('dak')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.kapel.kop'))}</b><span>${esc(t('jehuis.kapel.zin', { kant: kant.toLowerCase(), etage: (etage?.kort ?? etage?.naam ?? '').toLowerCase(), breed: (Math.round((k.tot - k.van) * 10) / 10).toLocaleString(taal.locale ?? 'nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) }))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="kapel-nee">${esc(t('jehuis.kapel.nee'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="kapel-ja">${esc(t('jehuis.kapel.ja'))}</button></div>`;
   } else if (opErf && info && twee && !weg.has(`dubbel:${twee.kamer.id}`)) {
     html = `<span class="jh-vraag-ik">${iconen.svg('tuinhuis')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.dubbel.kop', { naam: twee.kamer.naam }))}</b><span>${esc(t('jehuis.dubbel.zin', { ruimte: twee.van.naam }))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="dubbel-nee">${esc(t('jehuis.dubbel.nee'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="dubbel-ja">${esc(t('jehuis.dubbel.ja'))}</button></div>`;
   }
@@ -450,6 +457,10 @@ function vraag(tk, d) {
   if (el.innerHTML !== html) el.innerHTML = html;
 }
 async function vraagDoe(tk, d, wat) {
+  if (wat === 'kapel-ja' || wat === 'kapel-nee') {
+    // De dakkapel van de 3D-kaart: ja houdt hem (de vraag gaat weg), nee haalt hem weg; de pagina laadt opnieuw.
+    return gebouw({ dak: 'hoofd', kaartKapel: wat === 'kapel-ja' ? 'ja' : 'nee' });
+  }
   if (wat === 'koppel-ja') {
     koppelGezien = true;
     tk.bewaarNu();
@@ -579,6 +590,12 @@ async function haalKaarten() {
  * eerst wat nog bewaard moest worden, dan de dienst, dan opnieuw laden (de vorm
  * en het ruitjespapier komen van de dienst).
  */
+/** De dakkapellen van het huis (stap 4 punt 3, Je huis › Dak): bewaren zonder de pagina opnieuw te laden; de tekening heeft ze al. */
+let kapelBezig = Promise.resolve();
+function kapel(lijst) {
+  kapelBezig = kapelBezig.then(() => deur('api/huistekening', { gebouw: { dak: 'hoofd', dakkapellen: lijst } }).catch(() => null));
+}
+
 async function gebouw(wat) {
   for (let i = 0; i < 60 && !tekenaar.st.bewaard && !tekenaar.st.fout; i++) await wacht(100);
   let res;
@@ -668,7 +685,7 @@ async function start() {
   const [gevraagd, gevraagdeStand] = decodeURIComponent(location.hash.slice(1)).split('/');
   const etage = huis.etages.some((e) => e.id === gevraagd) ? gevraagd : (huis.etages.find((e) => e.id === 'bg') ?? huis.etages.at(-1)).id;
   const stand = STANDEN.includes(gevraagdeStand) ? gevraagdeStand : 'kamers';
-  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: zonderLosBuiten(d, huis), opslaan, wacht: 900, naar, kijk: vraagKaarten, gebouw, openingen: true, vast: [HUIS_OP_ERF], ...(info ? { indeling } : {}) });
+  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: zonderLosBuiten(d, huis), opslaan, wacht: 900, naar, kijk: vraagKaarten, gebouw, kapel, openingen: true, vast: [HUIS_OP_ERF], ...(info ? { indeling } : {}) });
   tekenaar = tk;
   window.tekenaar = tk;
   huistekenen.paneel($('#blad'), tk);

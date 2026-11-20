@@ -9,8 +9,8 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
-import { DAKVORMEN, leesDaken, type Daken, type Dakvorm, type Xy } from '../daken.js';
+import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { DAKVORMEN, leesDaken, leesKapellen, type Daken, type Dakvorm, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
 
@@ -405,7 +405,9 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
             ? gebouwWeg(vorm.daken, g['weg'])
             : typeof g['dak'] === 'string' && ((DAKVORMEN as readonly unknown[]).includes(g['dakvorm']) || g['nok'] === true)
               ? gebouwDak(vorm.daken, g['dak'], g['nok'] === true ? { nok: true } : { dakvorm: g['dakvorm'] as Dakvorm })
-              : undefined;
+              : g['dakkapellen'] !== undefined || g['kaartKapel'] === 'ja' || g['kaartKapel'] === 'nee'
+                ? kapelActie(vorm.daken, g)
+                : undefined;
       if (nieuw === undefined) {
         sendJson(res, 400, { fout: 'verwacht { gebouw: { erbij, soort } }, { gebouw: { weg } } of { gebouw: { dak, dakvorm | nok } }' });
         return;
@@ -640,6 +642,14 @@ async function vormVanHuis(
     maat: papier.maat,
     erf: erfOpPapier ? { u: erfOpPapier.u, v: erfOpPapier.v, b: erfOpPapier.b, d: erfOpPapier.d } : null,
   };
+}
+
+/** De dakkapellen van het huis (stap 4 punt 3): een lijst van de bewoner, of ja of nee op die van de kaart. Undefined bij iets dat niet klopt. */
+function kapelActie(d: Daken, g: Record<string, unknown>): Daken | null | undefined {
+  const lijst = g['dakkapellen'] === undefined ? null : leesKapellen(g['dakkapellen']);
+  if (g['dakkapellen'] !== undefined && !lijst) return undefined;
+  const kaartKapel = g['kaartKapel'] === 'ja' || g['kaartKapel'] === 'nee' ? g['kaartKapel'] : undefined;
+  return gebouwKapel(d, { ...(lijst ? { dakkapellen: lijst } : {}), ...(kaartKapel ? { kaartKapel } : {}) });
 }
 
 /**
