@@ -22,8 +22,10 @@
  * indeling per bewoner: de wand toont de kaarten, de favorieten en de kleur
  * van wiens comfort geldt, zoals die op zijn telefoon staan, zonder de kamers
  * en Straks; is er niemand thuis, die van de hoofdgebruiker. Wie nog geen
- * kleur koos, krijgt er een op volgorde. Wat de wand doet als niemand kijkt,
- * blijft van de wand.
+ * kleur koos, krijgt er een op volgorde. Wat de wand doet als niemand kijkt
+ * (always-on display en scherm uit) is sinds stap 4 punt 2 ook per bewoner
+ * (Ricardo, 20 november 2026: alles bij Jij is persoonlijk): de wand volgt
+ * wie geldt. Zonder bewoners blijft het van de wand.
  *
  * Alles staat in één eigen bestand naast de dataset en gaat mee in de
  * back-up; er gaat niets naar Home Assistant. Favorieten schakelen via de
@@ -166,21 +168,26 @@ interface Eigen {
   readonly meldingen?: Partial<MeldingKeus>;
   /** Je eigen agenda's voor Te doen (besluit 216); weg is aan, zonder agenda's. */
   readonly agenda?: AgendaKeus;
+  /** Je always-on display en scherm uit (stap 4 punt 2); weg is wat de wand had. */
+  readonly niemand?: Niemand;
 }
 
 /** Welke agenda's uit Home Assistant van jou zijn (besluit 216), en of de assistent ze mag lezen. */
 export interface AgendaKeus {
   readonly aan: boolean;
   readonly ids: readonly string[];
+  /** Ook op de wand als je thuis bent (besluit 219; een keuze sinds stap 4 punt 2). Weg is ja. */
+  readonly wand?: boolean;
 }
 export const STANDAARD_AGENDA: AgendaKeus = { aan: true, ids: [] };
 
 /** Meer agenda's tegelijk, elk een `calendar.` uit Home Assistant. */
 export function leesAgenda(x: unknown): { ok: true; agenda: AgendaKeus } | { ok: false; reden: string } {
-  if (!isObject(x) || typeof x['aan'] !== 'boolean' || !Array.isArray(x['ids'])) return { ok: false, reden: 'agenda is { aan, ids }' };
+  if (!isObject(x) || typeof x['aan'] !== 'boolean' || !Array.isArray(x['ids'])) return { ok: false, reden: 'agenda is { aan, ids, wand? }' };
+  if (x['wand'] !== undefined && typeof x['wand'] !== 'boolean') return { ok: false, reden: 'agenda.wand is ja of nee' };
   const ids = x['ids'];
   if (ids.length > 12 || ids.some((i) => typeof i !== 'string' || !/^calendar\.[a-z0-9_]+$/.test(i))) return { ok: false, reden: 'agenda.ids zijn agenda\u2019s uit Home Assistant (calendar.…), hooguit 12' };
-  return { ok: true, agenda: { aan: x['aan'], ids: [...new Set(ids as string[])] } };
+  return { ok: true, agenda: { aan: x['aan'], ids: [...new Set(ids as string[])], ...(x['wand'] === false ? { wand: false } : {}) } };
 }
 
 interface Bestand {
@@ -194,7 +201,7 @@ interface Bestand {
 const LEEG: Bestand = { versie: 1, accounts: {} };
 
 export interface VoorkeurenView {
-  readonly tel: { readonly kaarten: readonly KaartId[]; readonly favorieten: readonly Favoriet[]; readonly cameras: readonly string[] | null; readonly weergave: Weergave; readonly thema: Thema; readonly kleur: Kleur; readonly taal: TaalKeus; readonly meldingen: MeldingKeus; readonly agenda: AgendaKeus };
+  readonly tel: { readonly kaarten: readonly KaartId[]; readonly favorieten: readonly Favoriet[]; readonly cameras: readonly string[] | null; readonly weergave: Weergave; readonly thema: Thema; readonly kleur: Kleur; readonly taal: TaalKeus; readonly meldingen: MeldingKeus; readonly agenda: AgendaKeus; readonly niemand: Niemand };
   /**
    * De wand: de kaarten, favorieten en kleur van wiens profiel geldt (`van`,
    * een account), zoals op zijn telefoon; zonder bewoners die van het huis.
@@ -372,7 +379,7 @@ export function voorkeurenView(b: Bestand, wie: VoorkeurWie): VoorkeurenView {
   const thema = themaVan(eigen);
   const taal = taalVan(eigen);
   return {
-    tel: { kaarten: eigen.tel ?? STANDAARD_TEL, favorieten: eigen.favorieten ?? [], cameras: eigen.cameras ?? null, weergave: { ...STANDAARD_WEERGAVE, ...eigen.weergave }, thema, kleur: kleurVan(b, wie.userId, wie.profielen), taal, meldingen: { ...STANDAARD_MELDINGEN, ...eigen.meldingen }, agenda: eigen.agenda ?? STANDAARD_AGENDA },
+    tel: { kaarten: eigen.tel ?? STANDAARD_TEL, favorieten: eigen.favorieten ?? [], cameras: eigen.cameras ?? null, weergave: { ...STANDAARD_WEERGAVE, ...eigen.weergave }, thema, kleur: kleurVan(b, wie.userId, wie.profielen), taal, meldingen: { ...STANDAARD_MELDINGEN, ...eigen.meldingen }, agenda: eigen.agenda ?? STANDAARD_AGENDA, niemand: { ...STANDAARD_NIEMAND, ...b.wand?.niemand, ...eigen.niemand } },
     wand: {
       kaarten: profiel ? (profiel.tel ?? STANDAARD_TEL).filter((k) => WAND_KAARTEN.includes(k)) : (b.wand?.kaarten ?? STANDAARD_WAND),
       breed: (profiel ? profiel.breed : b.wand?.breed) ?? STANDAARD_BREED,
@@ -380,7 +387,8 @@ export function voorkeurenView(b: Bestand, wie: VoorkeurWie): VoorkeurenView {
       cameras: profiel ? (profiel.cameras ?? null) : (b.wand?.cameras ?? null),
       // Zonder bewoners past de hoofdgebruiker of een beheerder de wand aan; met bewoners je eigen indeling, of op een scherm die van wie er geldt.
       magAanpassen: van == null ? wie.magWand : true,
-      niemand: { ...STANDAARD_NIEMAND, ...b.wand?.niemand },
+      // Per bewoner (stap 4 punt 2): van wie de wand volgt; wie nog niets koos, houdt wat de wand had.
+      niemand: { ...STANDAARD_NIEMAND, ...b.wand?.niemand, ...profiel?.niemand },
       kleur: van == null ? 'lucht' : kleurVan(b, van, wie.profielen),
       van,
       naam: wie.profielen?.volgorde.find((x) => x.account === van)?.naam ?? null,
@@ -449,8 +457,10 @@ export function leesKleur(x: unknown): { ok: true; kleur: Kleur } | { ok: false;
  * 181): je eigen, of op een scherm die van wiens comfort geldt; dat is
  * dezelfde als op de telefoon. Zonder bewoners alleen als je de wand mag
  * aanpassen. Bij de telefoon ook
- * `weergave`, `thema`, `kleur` en `taal` (die gelden voor jou, op elk scherm), bij de
- * wand `niemand`, dat alleen de hoofdgebruiker of een beheerder verandert.
+ * `weergave`, `thema`, `kleur` en `taal` (die gelden voor jou, op elk scherm).
+ * `niemand` (always-on display en scherm uit) is sinds stap 4 punt 2 ook van
+ * jou: bij de telefoon je eigen, bij de wand die van wie hij volgt; zonder
+ * bewoners die van de wand, en dat verandert alleen de hoofdgebruiker.
  */
 export function pasToe(b: Bestand, body: unknown, wie: VoorkeurWie): { ok: true; bestand: Bestand } | { ok: false; status: number; reden: string } {
   const r = isObject(body) ? body : null;
@@ -458,9 +468,9 @@ export function pasToe(b: Bestand, body: unknown, wie: VoorkeurWie): { ok: true;
   if (plek !== 'tel' && plek !== 'wand') return { ok: false, status: 400, reden: 'plek is tel of wand' };
   if (!['kaarten', 'breed', 'favorieten', 'cameras', 'weergave', 'niemand', 'thema', 'kleur', 'taal', 'meldingen', 'agenda'].some((k) => r![k] !== undefined)) return { ok: false, status: 400, reden: 'geef kaarten, breed, favorieten, cameras, weergave, thema, kleur, taal, meldingen, agenda of niemand' };
   if (plek === 'wand' && ['weergave', 'thema', 'kleur', 'taal', 'meldingen', 'agenda'].some((k) => r![k] !== undefined)) return { ok: false, status: 400, reden: 'de weergave, het thema, de kleur, de taal, de meldingen en de agenda zijn per account: plek tel' };
-  if (plek === 'tel' && r!['niemand'] !== undefined) return { ok: false, status: 400, reden: 'als niemand kijkt hoort bij de wand: plek wand' };
   const { van } = wandVan(wie);
-  if (plek === 'wand' && (van == null || r!['niemand'] !== undefined) && !wie.magWand) return { ok: false, status: 403, reden: 'de wand past alleen de hoofdgebruiker aan' };
+  if (plek === 'tel' && r!['niemand'] !== undefined && van == null) return { ok: false, status: 400, reden: 'zonder bewoners hoort als niemand kijkt bij de wand: plek wand' };
+  if (plek === 'wand' && van == null && !wie.magWand) return { ok: false, status: 403, reden: 'de wand past alleen de hoofdgebruiker aan' };
   const kaarten = r!['kaarten'] === undefined ? null : leesKaarten(r!['kaarten'], plek);
   if (kaarten && !kaarten.ok) return { ok: false, status: 400, reden: kaarten.reden };
   const favorieten = r!['favorieten'] === undefined ? null : leesFavorieten(r!['favorieten']);
@@ -473,15 +483,17 @@ export function pasToe(b: Bestand, body: unknown, wie: VoorkeurWie): { ok: true;
   if (plek === 'wand') {
     const niemand = r!['niemand'] === undefined ? null : leesNiemand(r!['niemand'], nu.wand.niemand);
     if (niemand && !niemand.ok) return { ok: false, status: 400, reden: niemand.reden };
+    // Met bewoners hoort het bij wie de wand volgt (stap 4 punt 2), zoals de kaarten.
+    const persoonNiemand = van != null && niemand ? niemand.niemand : null;
     const indeling = {
       ...(kaarten ? { kaarten: kaarten.kaarten } : {}),
       ...(breed ? { breed: breed.breed } : {}),
       ...(favorieten ? { favorieten: favorieten.favorieten } : {}),
       ...(cameras ? { cameras: cameras.cameras } : {}),
     };
-    const wand = { ...b.wand, ...(van == null ? indeling : {}), ...(niemand ? { niemand: niemand.niemand } : {}) };
+    const wand = { ...b.wand, ...(van == null ? indeling : {}), ...(niemand && van == null ? { niemand: niemand.niemand } : {}) };
     const profiel = van == null ? null : (b.accounts[van] ?? {});
-    const accounts = profiel == null || (!kaarten && !favorieten && !breed && !cameras)
+    const accounts = profiel == null || (!kaarten && !favorieten && !breed && !cameras && !persoonNiemand)
       ? b.accounts
       : {
           ...b.accounts,
@@ -491,6 +503,7 @@ export function pasToe(b: Bestand, body: unknown, wie: VoorkeurWie): { ok: true;
             ...(breed ? { breed: breed.breed } : {}),
             ...(favorieten ? { favorieten: favorieten.favorieten } : {}),
             ...(cameras ? { cameras: cameras.cameras } : {}),
+            ...(persoonNiemand ? { niemand: persoonNiemand } : {}),
           },
         };
     return { ok: true, bestand: { ...b, accounts, wand } };
@@ -507,6 +520,8 @@ export function pasToe(b: Bestand, body: unknown, wie: VoorkeurWie): { ok: true;
   if (meldingen && !meldingen.ok) return { ok: false, status: 400, reden: meldingen.reden };
   const agenda = r!['agenda'] === undefined ? null : leesAgenda(r!['agenda']);
   if (agenda && !agenda.ok) return { ok: false, status: 400, reden: agenda.reden };
+  const niemand = r!['niemand'] === undefined ? null : leesNiemand(r!['niemand'], nu.tel.niemand);
+  if (niemand && !niemand.ok) return { ok: false, status: 400, reden: niemand.reden };
   const sleutel = wie.userId ?? '';
   const eigen = {
     ...b.accounts[sleutel],
@@ -520,6 +535,7 @@ export function pasToe(b: Bestand, body: unknown, wie: VoorkeurWie): { ok: true;
     ...(taal ? { taal: taal.taal } : {}),
     ...(meldingen ? { meldingen: meldingen.meldingen } : {}),
     ...(agenda ? { agenda: agenda.agenda } : {}),
+    ...(niemand ? { niemand: niemand.niemand } : {}),
   };
   return { ok: true, bestand: { ...b, accounts: { ...b.accounts, [sleutel]: eigen } } };
 }
@@ -577,13 +593,15 @@ export class VoorkeurenStore {
   }
 
   /** Wat de wand doet als niemand kijkt (besluit 165), voor Klaarzetten (besluit 246). */
-  niemand(): Niemand {
-    return { ...STANDAARD_NIEMAND, ...this.#current.wand?.niemand };
+  /** Wat de wand doet als niemand kijkt, van de wand en van elke bewoner (stap 4 punt 2). */
+  alleNiemand(): Niemand[] {
+    const basis = { ...STANDAARD_NIEMAND, ...this.#current.wand?.niemand };
+    return [basis, ...Object.values(this.#current.accounts).filter((a) => a.niemand).map((a) => ({ ...basis, ...a.niemand }))];
   }
 
-  /** De bewegingsmelder die de wand wekt (besluit 164), of null. */
-  melder(): string | null {
-    return this.#current.wand?.niemand?.melder ?? null;
+  /** De bewegingsmelders die de wand wekken (besluit 164): die van de wand en van elke bewoner. */
+  melders(): string[] {
+    return [...new Set(this.alleNiemand().map((n) => n.melder).filter((m): m is string => m != null))];
   }
 
   async save(body: unknown, wie: VoorkeurWie): Promise<VoorkeurenResult> {

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.207.1';
+export const VERSIE = '0.208.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.208.0',
+    datum: '2026-11-20',
+    beter: [
+      'Always-on display en Scherm uit zijn van elke bewoner zelf, bij Jij onder Jouw wand: de wand doet het zoals wie er geldt het koos, en als niemand thuis is zoals de hoofdgebruiker',
+      'Bij Jouw agenda’s kies je of je agenda’s ook op de wand staan als je thuis bent',
+      'Dit scherm en Op je startscherm staan apart onder Dit apparaat',
+    ],
+    en: {
+      beter: [
+        'Always-on display and Screen off belong to each resident, under You › Your wall: the wall does it the way whoever applies chose, and when nobody is home the way the main user did',
+        'Under Your calendars you choose whether your calendars also show on the wall when you are home',
+        'This screen and On your home screen are listed separately under This device',
+      ],
+    },
+  },
   {
     versie: '0.207.1',
     datum: '2026-11-20',

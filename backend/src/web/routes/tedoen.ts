@@ -115,7 +115,8 @@ export async function overzicht(d: Diensten, t: TeDoenDienst, wie: Visitor | nul
   if (!bewoner) {
     for (const p of t.thuis?.() ?? []) {
       const k = t.agendaVan(p.account);
-      if (k.aan) for (const id of k.ids) if (id !== keus.afval && id !== keus.gezin && !vanWie.has(id)) vanWie.set(id, p.naam);
+      // Niet op de wand als de bewoner dat bij Jij uitzette (stap 4 punt 2).
+      if (k.aan && k.wand !== false) for (const id of k.ids) if (id !== keus.afval && id !== keus.gezin && !vanWie.has(id)) vanWie.set(id, p.naam);
     }
   }
   const ids = [...new Set([keus.afval, keus.gezin, ...(eigen?.aan ? eigen.ids : []), ...vanWie.keys()].filter((x): x is string => x != null))];

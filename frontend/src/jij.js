@@ -82,13 +82,24 @@ async function bewaar(wat) {
   teken();
 }
 
-/** Scherm (stap 4 punt 2): de vier delen van dit scherm en de wand, elk een rij die zijn blad opent. */
-function schermBlok() {
+/**
+ * Scherm (stap 4 punt 2): je wand (always-on en scherm uit, van jou als je
+ * bewoner bent) en dit apparaat (dit scherm, op je startscherm), elk een rij
+ * die zijn blad opent.
+ */
+function schermBlok(vanBewoner) {
   if (!v) return '';
-  ditScherm.zet(v);
+  ditScherm.zet(v, undefined, undefined, vanBewoner);
+  const rijen = (groep) => ditScherm.delen(groep).map((d) => knop(`data-scherm-open="${d.id}"`, d.id, d.titel, d.zin)).join('');
   return `<section class="glas lijst" aria-labelledby="kop-scherm">
-      <h2 id="kop-scherm">${esc(t('jij.scherm.kop'))}</h2>
-      ${ditScherm.delen().map((d) => knop(`data-scherm-open="${d.id}"`, d.id, d.titel, d.zin)).join('')}
+      <h2 id="kop-scherm">${esc(t(vanBewoner ? 'jij.scherm.jouwWand' : 'jij.scherm.kop'))}</h2>
+      ${rijen('wand')}
+      <p class="uitleg">${esc(t(vanBewoner ? 'jij.scherm.wandUitleg' : 'jij.scherm.wandUitlegScherm'))}</p>
+    </section>
+    <section class="glas lijst" aria-labelledby="kop-apparaat">
+      <h2 id="kop-apparaat">${esc(t('jij.scherm.apparaat'))}</h2>
+      ${rijen('apparaat')}
+      <p class="uitleg">${esc(t('jij.scherm.apparaatUitleg'))}</p>
     </section>`;
 }
 function openSchermUitAdres() {
@@ -142,7 +153,7 @@ function teken() {
     </section>`;
   if (!wie) {
     const zin = t(mij?.soort === 'scherm' ? 'jij.scherm' : 'jij.geenProfiel');
-    $$('[data-jij]').forEach((el) => (el.innerHTML = `<div class="wie"><div><h1 class="kop-1">${esc(t(mij?.soort === 'scherm' ? 'jij.ditScherm' : 'jij.kop'))}</h1><small>${esc(zin)}</small></div></div>${uiterlijk}${schermBlok()}`));
+    $$('[data-jij]').forEach((el) => (el.innerHTML = `<div class="wie"><div><h1 class="kop-1">${esc(t(mij?.soort === 'scherm' ? 'jij.ditScherm' : 'jij.kop'))}</h1><small>${esc(zin)}</small></div></div>${uiterlijk}${schermBlok(false)}`));
     return;
   }
   const hoofd = (b.bewoners ?? []).find((x) => x.hoofd);
@@ -152,7 +163,7 @@ function teken() {
   const html = `
     <div class="wie"><span class="rondje" aria-hidden="true">${esc(wie.naam.charAt(0).toUpperCase())}</span><div><h1 class="kop-1">${esc(wie.naam)}</h1><small>${esc(wie.hoofd ? t('jij.hoofdgebruiker') : t('jij.plek', { plek: wie.plek }))}${thuis}</small></div></div>
     ${uiterlijk.replace('</section>', `${knop('data-taal-open', 'taal', t('jij.taal.kop'), t(`jij.taal.${v.tel.taal}`))}</section>`)}
-    ${schermBlok()}
+    ${schermBlok(true)}
     <section class="glas lijst" aria-labelledby="kop-thuis">
       <h2 id="kop-thuis">${esc(t('jij.thuis'))}</h2>
       ${link('thuis.html#aanpassen', 'kaarten', t('jij.kaarten'), t('jij.kaartenZin', { n: v.tel.kaarten.length }))}
@@ -188,7 +199,8 @@ function teken() {
  * Agenda (besluit 216, schets Tel-Te-doen#jij; 0.90.1 zonder de rij "Herinneringen
  * naar", die naar dezelfde telefoon wees als Meldingen): je eigen
  * agenda's uit Home Assistant, meer tegelijk, ook de gezinsagenda, of uit; en
- * waar je herinneringen heen gaan. Je eigen agenda's staan nooit op de wand.
+ * waar je herinneringen heen gaan. Ben je thuis, dan staan je agenda's ook op
+ * de wand (besluit 219); sinds stap 4 punt 2 kun je dat uitzetten.
  */
 function agendaKeus() {
   return v?.tel?.agenda ?? { aan: true, ids: [] };
@@ -210,6 +222,7 @@ function agendaBlad() {
     <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('jij.agenda.jouw'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
     <div class="rij rij-zonder"><b>${esc(t('jij.agenda.gebruiken'))}</b><small>${esc(t('jij.agenda.gebruikenZin'))}</small><span class="pijl"><button type="button" class="schakel" role="switch" aria-checked="${k.aan}" aria-label="${esc(t('jij.agenda.gebruiken'))}" data-agenda-aan></button></span></div>
     <p class="betekenis">${esc(t('jij.agenda.kies'))}</p>
+    <div class="rij rij-zonder${k.aan ? '' : ' uitgezet'}"><b>${esc(t('jij.agenda.opWand'))}</b><small>${esc(t('jij.agenda.opWandZin'))}</small><span class="pijl"><button type="button" class="schakel" role="switch" aria-checked="${k.wand !== false}" aria-label="${esc(t('jij.agenda.opWand'))}" data-agenda-wand ${k.aan ? '' : 'disabled'}></button></span></div>
     <div class="agendas${k.aan ? '' : ' uitgezet'}" role="group" aria-labelledby="bladkop">${agendas
       .map((a) => `<button type="button" role="checkbox" aria-checked="${k.ids.includes(a.id)}" data-agenda-id="${esc(a.id)}" ${k.aan ? '' : 'disabled'}><i aria-hidden="true"></i><b>${esc(a.naam)}</b>${a.huis === 'gezin' ? `<span>${esc(t('jij.agenda.ookWand'))}</span>` : a.huis === 'afval' ? `<span class="afval">${esc(t('jij.agenda.afval'))}</span>` : ''}</button>`)
       .join('')}</div>`;
@@ -359,15 +372,17 @@ document.addEventListener('click', (e) => {
 document.addEventListener('input', (e) => ditScherm.invoer(e.target));
 
 document.addEventListener('click', (e) => {
-  const el = e.target.closest('[data-thema-open], [data-taal-open], [data-agenda-open], [data-agenda-aan], [data-agenda-id], [data-blad-dicht], [data-achter], [data-thema], [data-kies-kleur], [data-kies-taal], [data-weergave], [data-melding], [data-proef], [data-std-uiterlijk], [data-std-kaarten]');
+  const el = e.target.closest('[data-thema-open], [data-taal-open], [data-agenda-open], [data-agenda-aan], [data-agenda-wand], [data-agenda-id], [data-blad-dicht], [data-achter], [data-thema], [data-kies-kleur], [data-kies-taal], [data-weergave], [data-melding], [data-proef], [data-std-uiterlijk], [data-std-kaarten]');
   if (!el || !v) return;
   // Je agenda's (besluit 216): aan of uit, en welke, meer tegelijk.
   if (el.matches('[data-agenda-open]')) return openBlad('agenda');
   if (el.matches('[data-agenda-aan]')) return void bewaar({ agenda: { ...agendaKeus(), aan: !agendaKeus().aan } }).then(tekenBladAls);
+  // Ook op de wand als je thuis bent (besluit 219; een keuze sinds stap 4 punt 2).
+  if (el.matches('[data-agenda-wand]')) return void bewaar({ agenda: { ...agendaKeus(), wand: agendaKeus().wand === false } }).then(tekenBladAls);
   if (el.matches('[data-agenda-id]')) {
     const k = agendaKeus();
     const id = el.dataset.agendaId;
-    return void bewaar({ agenda: { aan: k.aan, ids: k.ids.includes(id) ? k.ids.filter((x) => x !== id) : [...k.ids, id] } }).then(tekenBladAls);
+    return void bewaar({ agenda: { ...k, ids: k.ids.includes(id) ? k.ids.filter((x) => x !== id) : [...k.ids, id] } }).then(tekenBladAls);
   }
   // Terug naar standaard (besluit 204): het uiterlijk, of de kaarten op Thuis.
   if (el.matches('[data-std-uiterlijk]')) return void bewaar({ thema: v.standaard.thema, kleur: v.standaard.kleur, weergave: { ...v.standaard.weergave } });

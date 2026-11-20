@@ -96,7 +96,7 @@ describe('VoorkeurenStore', () => {
     const store = new VoorkeurenStore(dir);
     await store.load();
     const v = store.view(noor);
-    expect(v.tel).toEqual({ kaarten: STANDAARD_TEL, favorieten: [], cameras: null, weergave: STANDAARD_WEERGAVE, thema: 'donker', kleur: 'lucht', taal: 'auto', meldingen: STANDAARD_MELDINGEN, agenda: { aan: true, ids: [] } });
+    expect(v.tel).toEqual({ kaarten: STANDAARD_TEL, favorieten: [], cameras: null, weergave: STANDAARD_WEERGAVE, thema: 'donker', kleur: 'lucht', taal: 'auto', meldingen: STANDAARD_MELDINGEN, agenda: { aan: true, ids: [] }, niemand: STANDAARD_NIEMAND });
     expect(v.wand).toEqual({ kaarten: STANDAARD_WAND, breed: STANDAARD_BREED, favorieten: [], cameras: null, magAanpassen: false, niemand: STANDAARD_NIEMAND, kleur: 'lucht', van: null, naam: null, eigen: false, persoon: null });
   });
 
@@ -118,10 +118,10 @@ describe('VoorkeurenStore', () => {
     expect(uit.ok).toBe(true);
     expect(store.view(ricardo).tel.kaarten).toEqual(['gevoel', 'kamers']);
     // Noor houdt haar eigen Thuis.
-    expect(store.view(noor).tel).toEqual({ kaarten: STANDAARD_TEL, favorieten: [], cameras: null, weergave: STANDAARD_WEERGAVE, thema: 'donker', kleur: 'lucht', taal: 'auto', meldingen: STANDAARD_MELDINGEN, agenda: { aan: true, ids: [] } });
+    expect(store.view(noor).tel).toEqual({ kaarten: STANDAARD_TEL, favorieten: [], cameras: null, weergave: STANDAARD_WEERGAVE, thema: 'donker', kleur: 'lucht', taal: 'auto', meldingen: STANDAARD_MELDINGEN, agenda: { aan: true, ids: [] }, niemand: STANDAARD_NIEMAND });
     // Alleen de favorieten veranderen laat de kaarten staan.
     await store.save({ plek: 'tel', favorieten: [] }, ricardo);
-    expect(store.view(ricardo).tel).toEqual({ kaarten: ['gevoel', 'kamers'], favorieten: [], cameras: null, weergave: STANDAARD_WEERGAVE, thema: 'donker', kleur: 'lucht', taal: 'auto', meldingen: STANDAARD_MELDINGEN, agenda: { aan: true, ids: [] } });
+    expect(store.view(ricardo).tel).toEqual({ kaarten: ['gevoel', 'kamers'], favorieten: [], cameras: null, weergave: STANDAARD_WEERGAVE, thema: 'donker', kleur: 'lucht', taal: 'auto', meldingen: STANDAARD_MELDINGEN, agenda: { aan: true, ids: [] }, niemand: STANDAARD_NIEMAND });
 
     const opnieuw = new VoorkeurenStore(dir);
     await opnieuw.load();
@@ -149,14 +149,14 @@ describe('VoorkeurenStore', () => {
     expect((await store.save({ plek: 'wand', niemand: { rustMin: 2 } }, noor)).ok).toBe(false);
     expect((await store.save({ plek: 'wand', niemand: { rustMin: 2, melder: 'binary_sensor.hal_beweging' } }, ricardo)).ok).toBe(true);
     expect(store.view(noor).wand.niemand).toEqual({ ...STANDAARD_NIEMAND, rustMin: 2, melder: 'binary_sensor.hal_beweging' });
-    expect(store.melder()).toBe('binary_sensor.hal_beweging');
-    // De weergave hoort bij een account, de nachtstand bij de wand.
+    expect(store.melders()).toEqual(['binary_sensor.hal_beweging']);
+    // De weergave hoort bij een account; zonder bewoners de nachtstand bij de wand.
     expect((await store.save({ plek: 'wand', weergave: { eenvoudig: true } }, ricardo)).ok).toBe(false);
     expect((await store.save({ plek: 'tel', niemand: { nacht: false } }, ricardo)).ok).toBe(false);
     const opnieuw = new VoorkeurenStore(dir);
     await opnieuw.load();
     expect(opnieuw.view(noor).tel.weergave.eenvoudig).toBe(true);
-    expect(opnieuw.melder()).toBe('binary_sensor.hal_beweging');
+    expect(opnieuw.melders()).toEqual(['binary_sensor.hal_beweging']);
   });
 
   it('weigert wat niet klopt, en verandert dan niets', async () => {
@@ -250,8 +250,30 @@ describe('VoorkeurenStore', () => {
       expect(store.view(metProfiel(noor, 'u-noor')).tel.kaarten).toEqual(['kamers', 'vandaag', 'straks', 'morgen']);
       // Op je eigen tablet is Thuis jouw wand.
       expect(store.view(metProfiel(ricardo, 'u-noor')).wand).toMatchObject({ van: 'u-ricardo', eigen: true });
-      // Wat de wand doet als niemand kijkt, blijft van de hoofdgebruiker of een beheerder.
-      expect((await store.save({ plek: 'wand', niemand: { rustMin: 2 } }, metProfiel(wand, 'u-noor', true))).ok).toBe(false);
+      // Wat de wand doet als niemand kijkt is per bewoner (stap 4 punt 2): op de wand van wie hij volgt.
+      expect((await store.save({ plek: 'wand', niemand: { rustMin: 2 } }, metProfiel(wand, 'u-noor', true))).ok).toBe(true);
+      expect(store.view(metProfiel(noor, 'u-noor')).tel.niemand.rustMin).toBe(2);
+      expect(store.view(metProfiel(wand, null, true)).wand.niemand.rustMin).toBe(STANDAARD_NIEMAND.rustMin);
+    });
+
+    it('bewaart always-on en scherm uit per bewoner, en de wand volgt wie geldt (stap 4 punt 2)', async () => {
+      const store = new VoorkeurenStore(dir);
+      await store.load();
+      expect((await store.save({ plek: 'tel', niemand: { rustMin: 15, nacht: false, melder: 'binary_sensor.hal' } }, metProfiel(noor, null))).ok).toBe(true);
+      expect(store.view(metProfiel(noor, null)).tel.niemand).toEqual({ ...STANDAARD_NIEMAND, rustMin: 15, nacht: false, melder: 'binary_sensor.hal' });
+      // Noor thuis: de wand doet wat zij koos; niemand thuis: de hoofdgebruiker, die niets koos.
+      expect(store.view(metProfiel(wand, 'u-noor', true)).wand.niemand).toMatchObject({ rustMin: 15, nacht: false });
+      expect(store.view(metProfiel(wand, null, true)).wand.niemand).toEqual(STANDAARD_NIEMAND);
+      expect(store.melders()).toEqual(['binary_sensor.hal']);
+      expect(store.alleNiemand().some((n) => n.rustMin === 15)).toBe(true);
+    });
+
+    it('laat je agenda van de wand als je dat kiest (stap 4 punt 2)', async () => {
+      const store = new VoorkeurenStore(dir);
+      await store.load();
+      expect((await store.save({ plek: 'tel', agenda: { aan: true, ids: ['calendar.noor'], wand: false } }, metProfiel(noor, null))).ok).toBe(true);
+      expect(store.agenda('u-noor')).toEqual({ aan: true, ids: ['calendar.noor'], wand: false });
+      expect((await store.save({ plek: 'tel', agenda: { aan: true, ids: [], wand: 'ja' } }, metProfiel(noor, null))).ok).toBe(false);
     });
   });
 

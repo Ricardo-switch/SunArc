@@ -1125,7 +1125,7 @@ client.on('stateChanged', (state: HaEntityState) => {
   // Een nieuwe versie van de add-on (besluit 171): meteen bij Meldingen, niet pas na een minuut.
   if (state.entity_id.startsWith('update.') && state.state !== allStates.get(state.entity_id)?.state) setTimeout(() => meldingenRonde(), 0);
   // De wand wekken (besluit 164): de gekozen bewegingsmelder ziet iemand.
-  if (state.entity_id === voorkeuren?.melder() && state.state === 'on' && allStates.get(state.entity_id)?.state !== 'on') web?.wek('beweging');
+  if (voorkeuren?.melders().includes(state.entity_id) && state.state === 'on' && allStates.get(state.entity_id)?.state !== 'on') web?.wek('beweging');
   if (inHouse(state)) {
     houseStates.set(state.entity_id, state);
     huisVersie++;
@@ -2973,7 +2973,9 @@ if (webPort != null) {
     // Klaarzetten per niveau (besluit 246): per functie de stappen, met wat de wand zelf meldt.
     klaarFuncties: async (punten: readonly KlaarPunt[], lang?: Lang) => {
       const [inHuis, addons] = await Promise.all([stemInHuis ? stemInHuis.stand().catch(() => null) : null, addOnStand()]);
-      const niemand = voorkeuren?.niemand() ?? null;
+      // Per bewoner (stap 4 punt 2): staat het bij iemand aan, dan is het er.
+      const alleNiemand = voorkeuren?.alleNiemand() ?? [];
+      const niemand = alleNiemand.find((n) => n.nacht || n.weg) ?? alleNiemand[0] ?? null;
       const taal = lang ?? 'nl';
       return klaarFuncties(punten, {
         addOn: version.installatie === 'add-on',
@@ -2985,7 +2987,7 @@ if (webPort != null) {
         wand: wandMelding,
         heeftWand: wandMelding != null || Object.keys(bewonersStore?.current.schermen ?? {}).length > 0,
         schermUit: niemand != null && (niemand.nacht || niemand.weg),
-        wekker: niemand?.melder ?? null,
+        wekker: alleNiemand.find((n) => n.melder != null)?.melder ?? null,
         wolken: wolkenVan(houseRegisters?.entities ?? []),
         spraak: spraakLijst,
         tijd: (ms) => new Intl.DateTimeFormat(taal === 'en' ? 'en-GB' : 'nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: weerZone }).format(new Date(ms)),

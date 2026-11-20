@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.207.1
+## 0.208.0
 
-*20 november 2026 · 0.179.0 – 0.207.1*
+*20 november 2026 · 0.179.0 – 0.208.0*
 
 **Nieuw**
 
@@ -71,6 +71,9 @@
 
 **Beter**
 
+- Always-on display en Scherm uit zijn van elke bewoner zelf, bij Jij onder Jouw wand: de wand doet het zoals wie er geldt het koos, en als niemand thuis is zoals de hoofdgebruiker
+- Bij Jouw agenda’s kies je of je agenda’s ook op de wand staan als je thuis bent
+- Dit scherm en Op je startscherm staan apart onder Dit apparaat
 - Dit scherm, het always-on display, Scherm uit en Op je startscherm staan bij Jij, onder Scherm; elk opent zijn eigen blad
 - Licht, camera’s en weer gaat alleen nog over camera’s, de deurbel, licht en screens, het weer en meldingen
 - De hoofdzekering vraag je bij Energie en bij Inrichten op dezelfde manier: eerst 1 of 3 fasen, dan de ampère als knoppen, met Anders voor een eigen waarde
@@ -236,6 +239,9 @@
 
 **Improved**
 
+- Always-on display and Screen off belong to each resident, under You › Your wall: the wall does it the way whoever applies chose, and when nobody is home the way the main user did
+- Under Your calendars you choose whether your calendars also show on the wall when you are home
+- This screen and On your home screen are listed separately under This device
 - This screen, the always-on display, Screen off and On your home screen are under You, in Screen; each opens its own sheet
 - Lights, cameras and weather is now only about cameras, the doorbell, lights and screens, the weather and notifications
 - You enter the main fuse the same way under Energy and in Set up: first 1 or 3 phases, then the amperes as buttons, with Other for your own value

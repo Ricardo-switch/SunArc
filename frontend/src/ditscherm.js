@@ -6,6 +6,10 @@
  * 206), Scherm uit (met de camera van Fully als bewegingsmelder) en Op je
  * startscherm (21 oktober 2026).
  *
+ * Always-on en scherm uit zijn per bewoner (Ricardo, 20 november 2026): op je
+ * eigen Jij die van jou, op de wand die van wie hij volgt. Dit scherm en op je
+ * startscherm gelden alleen voor het apparaat.
+ *
  * Jij toont elk deel in zijn blad: `delen()` geeft de rijen, `titel(id)` en
  * `vorm(id)` het blad, `klik`, `verander` en `invoer` doen wat er getikt of
  * geschoven wordt. Wat de wand doet als niemand kijkt, bewaart dit deel zelf
@@ -25,6 +29,8 @@ const ditScherm = (() => {
   let startscherm = null;
   let teken = () => {};
   let nieuw = (_v) => {};
+  /** Een bewoner op zijn eigen Jij (stap 4 punt 2): always-on en scherm uit zijn van hem (plek tel). */
+  let eigen = false;
 
   /** De zon (zonsopgang en -ondergang), het huis (de bewegingsmelders) en of de eigen poort openstaat. */
   async function laad() {
@@ -34,8 +40,9 @@ const ditScherm = (() => {
     if (st.status === 'fulfilled') startscherm = st.value;
   }
   /** De voorkeuren van de pagina; `tekenOpnieuw` na een wijziging, `bewaard` met het antwoord van de dienst. */
-  function zet(v, tekenOpnieuw, bewaard) {
+  function zet(v, tekenOpnieuw, bewaard, vanBewoner) {
     voorkeur = v;
+    if (vanBewoner !== undefined) eigen = vanBewoner;
     if (tekenOpnieuw) teken = tekenOpnieuw;
     if (bewaard) nieuw = bewaard;
   }
@@ -43,8 +50,8 @@ const ditScherm = (() => {
   /* ------------------------------------------------------------ hulpjes */
 
   const NIEMAND = { nacht: true, van: '23:00', tot: '07:00', rustMin: 5, aanMin: 5, weg: true, dag: true, avond: true, helderDag: 75, helderAvond: 25, melder: null };
-  const niemandNu = () => ({ ...NIEMAND, ...voorkeur?.wand?.niemand });
-  const magWand = () => !!voorkeur?.wand?.magAanpassen;
+  const niemandNu = () => ({ ...NIEMAND, ...(eigen ? voorkeur?.tel?.niemand : voorkeur?.wand?.niemand) });
+  const magWand = () => eigen || !!voorkeur?.wand?.magAanpassen;
   const schakel = (aan, data, label, uit = false) => `<button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(label)}" ${data} ${uit ? 'disabled' : ''}></button>`;
   const nkKeuzes = (label, attr, opties, huidig, uit = false) => `<div class="keuzes" role="group" aria-label="${esc(label)}">${opties.map(([w, x]) => `<button type="button" data-${attr}="${w}" aria-pressed="${w === huidig}" ${uit ? 'disabled' : ''}>${esc(x)}</button>`).join('')}</div>`;
   const minuten = (lijst) => lijst.map((n) => [n, t('algemeen.minuten', { n })]);
@@ -63,15 +70,30 @@ const ditScherm = (() => {
     if (app.kanInstalleren()) return t('functies.st.kanNu');
     return t(app.inHA() ? (startscherm?.eigenPoort ? 'functies.st.viaChrome' : 'functies.st.eerstInstellen') : 'functies.st.viaBrowser');
   }
-  /** De rijen voor Jij: dit scherm alleen in Home Assistant. */
-  function delen() {
+  /**
+   * De rijen voor Jij, in twee groepen (Ricardo, 20 november 2026: alles bij
+   * Jij is persoonlijk): `wand` (always-on en scherm uit, van jou; de wand doet
+   * het zo als jouw comfort geldt) en `apparaat` (dit scherm alleen in Home
+   * Assistant, en op je startscherm), die alleen voor dit apparaat gelden.
+   */
+  function delen(groep) {
     const n = niemandNu();
+    if (groep === 'wand') {
+      return [
+        { id: 'aod', titel: t('functies.aod.kop'), zin: n.rustMin > 0 ? t('functies.deel.aodAan', { n: n.rustMin }) : t('functies.deel.uit') },
+        { id: 'uit', titel: t('functies.uit.kop'), zin: n.nacht ? `${n.van}–${n.tot}` : t(n.weg ? 'functies.deel.niemand' : 'functies.deel.nooit') },
+      ];
+    }
     return [
       ...(app.inHA() ? [{ id: 'scherm', titel: t('functies.ditScherm'), zin: t(app.volledigGekozen() ? 'functies.deel.volledig' : 'functies.deel.zijbalk') }] : []),
-      { id: 'aod', titel: t('functies.aod.kop'), zin: n.rustMin > 0 ? t('functies.deel.aodAan', { n: n.rustMin }) : t('functies.deel.uit') },
-      { id: 'uit', titel: t('functies.uit.kop'), zin: n.nacht ? `${n.van}–${n.tot}` : t(n.weg ? 'functies.deel.niemand' : 'functies.deel.nooit') },
       { id: 'startscherm', titel: t('functies.st.kop'), zin: startschermZin() },
     ];
+  }
+  /** Van wie de wand-instellingen zijn: van jou, of van wie de wand nu volgt. */
+  function vanWie() {
+    if (eigen) return t('jij.scherm.vanJou');
+    const naam = voorkeur?.wand?.naam;
+    return naam ? t('jij.scherm.vanWie', { naam }) : t('jij.scherm.vanWand');
   }
   const titel = (id) => ({ scherm: t('functies.ditScherm'), aod: t('functies.aod.kop'), uit: t('functies.uit.kop'), startscherm: t('functies.st.kop') })[id] ?? '';
 
@@ -163,6 +185,7 @@ const ditScherm = (() => {
       <div class="${n.avond ? '' : 'uitgezet'}"><span class="veldnaam">${esc(t('functies.aod.helderAvond'))}</span>${nkSchuif(t('functies.aod.helderAvond'), 'nk-helder-avond', n.helderAvond, !mag || !aan || !n.avond)}</div>
     </div>
     ${n.nacht ? `<p class="mini">${esc(t('functies.aod.daarna', { van: n.van, tot: n.tot }))}</p>` : ''}
+    <p class="uitleg">${esc(vanWie())}</p>
     ${alleenHoofd()}${voorDeWand()}
     <p class="mini">${esc(t('functies.aod.terug'))}</p>`;
   }
@@ -219,6 +242,7 @@ const ditScherm = (() => {
     <div class="regelrij"><div class="l"><b>${esc(t('functies.uit.wekken'))}</b><span>${esc(t('functies.uit.wekkenZin'))}</span></div>${schakel(!!n.melder, 'data-nk-beweging', t('functies.uit.wekken'), !mag)}</div>
     ${n.melder ? `<label class="veldnaam">${esc(t('functies.uit.welke'))}<select class="invoer" data-nk-melder ${mag ? '' : 'disabled'}>${opties}</select></label>` : ''}
     ${fullyHier(n)}
+    <p class="uitleg">${esc(vanWie())}</p>
     ${alleenHoofd()}${voorDeWand()}
     <p class="mini">${esc(t('functies.uit.fully'))}</p>`;
   }
@@ -239,14 +263,15 @@ const ditScherm = (() => {
   let wacht = null;
   function bewaarNiemand(wat) {
     const n = { ...niemandNu(), ...wat };
-    voorkeur = { ...voorkeur, wand: { ...voorkeur?.wand, niemand: n } };
+    voorkeur = eigen ? { ...voorkeur, tel: { ...voorkeur?.tel, niemand: n } } : { ...voorkeur, wand: { ...voorkeur?.wand, niemand: n } };
     // De pagina krijgt het meteen, zodat opnieuw tekenen niet de oude stand terugzet.
     nieuw(voorkeur);
     teken();
     clearTimeout(wacht);
     wacht = setTimeout(async () => {
       try {
-        const res = await app.deur('api/voorkeuren', { plek: 'wand', niemand: n });
+        // Van jou bij je eigen Jij (plek tel); op de wand of zonder bewoners die van de wand (stap 4 punt 2).
+        const res = await app.deur('api/voorkeuren', { plek: eigen ? 'tel' : 'wand', niemand: n });
         if (res?.ok) {
           voorkeur = await res.json();
           nieuw(voorkeur);

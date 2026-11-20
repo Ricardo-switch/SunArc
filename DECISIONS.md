@@ -321,6 +321,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [328. Eén plek om een auto, laadpaal of thuisaccu toe te voegen](#328-eén-plek-om-een-auto-laadpaal-of-thuisaccu-toe-te-voegen)
 - [329. Dezelfde vraag bij Energie en bij Inrichten](#329-dezelfde-vraag-bij-energie-en-bij-inrichten)
 - [330. Alles van dit scherm bij Jij](#330-alles-van-dit-scherm-bij-jij)
+- [331. Alles bij Jij is persoonlijk](#331-alles-bij-jij-is-persoonlijk)
 
 **Veiligheid**
 
@@ -15273,6 +15274,34 @@ heeft het thema, de kleur, de taal en alles van dit scherm.
   en de teksten die de weg wijzen.
 - Wat Klaarzetten nog open heeft voor de wand, stond op de telefoon boven
   Scherm uit; dat staat nu alleen bij Klaarzetten zelf.
+
+## 331. Alles bij Jij is persoonlijk
+
+*Onderwerp: weergave · Status: geldig*
+
+20 november 2026, na 0.207.0. Ricardo: "Alles wat ingesteld wordt is
+opgeslagen in het instellingenbestand van de bewoner toch? Dus alles wat je
+daar instelt heeft invloed op de wand en is persoonlijk." Voor bijna alles bij
+Jij klopte dat, maar het always-on display en scherm uit waren één instelling
+voor de hele wand (besluit 164), die alleen de hoofdgebruiker veranderde. Keuze
+van Ricardo: die ook per bewoner. En bij de agenda: "waarom niet als keuze?"
+
+*Besluit (0.208.0):*
+
+- **Always-on display en Scherm uit per bewoner.** Ze staan bij Jij onder
+  *Jouw wand*; elke bewoner verandert zijn eigen. De wand doet het zoals de
+  bewoner wiens comfort geldt het koos, net als de kaarten, de kleur en het
+  thema (besluit 181); is er niemand thuis, dan zoals de hoofdgebruiker het
+  koos. Wie nog niets koos, houdt wat de wand had. Zonder bewoners blijft het
+  één instelling van de wand, voor de hoofdgebruiker.
+- Op de wand zelf (een scherm-account) verandert Jij de instelling van wie de
+  wand nu volgt, en zegt dat erbij.
+- **Dit apparaat:** Dit scherm en Op je startscherm staan apart; die gelden
+  alleen voor het scherm waarop je kijkt en staan niet in het bestand.
+- **De agenda:** bij Jouw agenda's een schakelaar *Ook op de wand als je
+  thuis bent* (standaard aan, zoals besluit 219).
+- De dienst wekt de wand met de bewegingsmelder van elke bewoner, en
+  Klaarzetten telt scherm uit als het bij iemand aanstaat.
 
 ## Wat nog een besluit wacht
 
