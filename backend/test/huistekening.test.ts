@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { leesDaken, leesKapellen, type Daken, type DakVlak, type Gebouw, type Xy } from '../src/web/daken.js';
-import { bijfuncties, bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, kapelVanBewoner, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, zoneVanPlek } from '../src/web/huistekening.js';
+import { bijfuncties, bronVanDaken, bronVorm, dakenMetBron, dakkapellen, DEEL, erfOm, erfRuimteOk, HUIS_OP_ERF, leesOpeningen, verschuifOpeningen, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, kapelVanBewoner, scheefDak, eenPapier, etageHoogtes, lagenOnderDak, leesEtage, leesPlek, leesTekening, leesZoneLijn, tekenSoort, tekenVorm, verschuif, WONING_MAAT, woningUitKaart, zoneVanPlek } from '../src/web/huistekening.js';
 import { hoortBijVan } from '../src/web/house.js';
 import { validateLayout, type LayoutKnown } from '../src/web/layout.js';
 
@@ -558,5 +558,31 @@ describe('de dakkapellen van de bewoner (stap 4 punt 3, Je huis › Dak)', () =>
     // Leeg is ook een keus van de bewoner: geen dakkapel.
     const leeg = bronVorm(gebouwKapel(d, { dakkapellen: [] })!, 180, 'vrijstaand', 2).blokken.find((b) => b.soort === 'hoofdhuis')!;
     expect(leeg.dakkapellen).toBeUndefined();
+  });
+});
+
+describe('wat voor huis volgens de kaart (20 november 2026)', () => {
+  const huis = [{ soort: 'hoofdhuis', u: 0, v: 0, b: 5.6, d: 9.9 }];
+  const vak = (u: number, v: number, b: number, d: number) => ({ punten: [[u, v], [u + b, v], [u + b, v + d], [u, v + d]] as [number, number][] });
+
+  it('ziet een twee-onder-een-kap, een hoekhuis, een tussenwoning en een vrijstaand huis', () => {
+    expect(woningUitKaart(huis, [vak(5.6, 0, 5.6, 9.9)])).toEqual({ soort: 'tweekap', buren: ['rechts'] });
+    expect(woningUitKaart(huis, [vak(5.6, 0, 5.6, 9.9), vak(11.2, 0, 5.6, 9.9)])).toEqual({ soort: 'hoek', buren: ['rechts'] });
+    expect(woningUitKaart(huis, [vak(-5.6, 0, 5.6, 9.9), vak(5.6, 0, 5.6, 9.9)])).toEqual({ soort: 'rij', buren: ['links', 'rechts'] });
+    expect(woningUitKaart(huis, [vak(9, 0, 6, 9)])).toEqual({ soort: 'vrijstaand', buren: [] });
+  });
+
+  it('telt een buurhuis dat alleen de achterhoek raakt niet als buur achter, en een schuurtje of geen kaart nergens', () => {
+    // Het buurhuis rechts is dieper: zijn hoek ligt bij de achtermuur, maar zijn muur loopt er niet langs.
+    expect(woningUitKaart(huis, [vak(5.6, -1, 6, 13)])).toEqual({ soort: 'tweekap', buren: ['rechts'] });
+    // Een schuurtje van 6 m² is geen woning.
+    expect(woningUitKaart(huis, [vak(5.6, 2, 2, 3)])).toEqual({ soort: 'vrijstaand', buren: [] });
+    expect(woningUitKaart(huis, [])).toBeNull();
+  });
+
+  it('bewaart de muren tegen de buren in de indeling, en weigert een onbekende kant', () => {
+    const goed = validateLayout(indeling({ woning: 'tweekap', buren: ['rechts', 'links', 'rechts'] }), known);
+    expect(goed.ok && goed.layout.buren).toEqual(['links', 'rechts']);
+    expect(validateLayout(indeling({ buren: ['voor'] }), known).ok).toBe(false);
   });
 });

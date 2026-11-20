@@ -699,6 +699,23 @@
     zetBlokken();
     /* ---------- het dak en de dakkapellen (stap 4 punt 3, Je huis › Dak, schets Wand-Huis-Dakkapel) */
     const hoofdBlok = () => (huis.bronnen?.[st.bron]?.blokken ?? []).find((b) => b.soort === 'hoofdhuis') ?? null;
+    /**
+     * De muren van het hoofdhuis tegen de buren (schets Wand-Huis-Woning, 20
+     * november 2026), als muurlijnen in rastercellen: links, rechts en achter,
+     * van de straat af gezien. Buiten en zonder hoofdhuis: geen.
+     */
+    const buurMuren = () => {
+      const h = hoofdBlok();
+      const kanten = huis.woning?.soort === 'vrijstaand' ? [] : (huis.woning?.buren ?? []);
+      if (!h || !kanten.length || etageVan(st.etage)?.buiten) return [];
+      const x0 = MARGE + h.u / CEL;
+      const x1 = MARGE + (h.u + h.b) / CEL;
+      const y0 = MARGE + h.v / CEL;
+      const y1 = MARGE + (h.v + h.d) / CEL;
+      return kanten.map((k) => (k === 'links' ? { as: 'x', op: x0, van: y0, tot: y1 } : k === 'rechts' ? { as: 'x', op: x1, van: y0, tot: y1 } : { as: 'y', op: y1, van: x0, tot: x1 }));
+    };
+    /** Ligt een muur op een muur tegen de buren? Dan komt er geen raam of voordeur. */
+    const opBuurMuur = (run) => buurMuren().some((b) => b.as === run.as && Math.abs(b.op - run.op) <= 2 && Math.min(b.tot, run.tot) - Math.max(b.van, run.van) > 3);
     /** De etage onder het dak (de zolder), anders de bovenste. */
     const dakEtage = () => huis.etages.find((e) => e.dak && !e.buiten)?.id ?? huis.etages.find((e) => !e.buiten)?.id ?? null;
     /** De dakkapellen van het blok als die van de bewoner: kant, van..tot langs de nok, diep vanaf de goot, en de etage. */
@@ -1299,6 +1316,10 @@
       const buiten = muren.filter((r) => r.soort === 2).map(lijnPad).join('');
       if (!vorm) s += `<path d="${binnen}" fill="none" stroke="#c9d3dc" stroke-width="3" stroke-linecap="square" vector-effect="non-scaling-stroke"/>`;
       s += `<path d="${buiten}" fill="none" stroke="#eef3f7" stroke-width="${vorm ? 6 : 5}" stroke-linecap="square" vector-effect="non-scaling-stroke"/>`;
+      if (vorm || st.stand === 'kamers') {
+        const bm = buurMuren().map(lijnPad).join('');
+        if (bm) s += `<path d="${bm}" fill="none" stroke="#ffb07a" stroke-width="${vorm ? 7 : 6}" vector-effect="non-scaling-stroke"/><path d="${bm}" fill="none" stroke="#0b1424" stroke-width="${vorm ? 7 : 6}" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>`;
+      }
       if (metOpeningen && !vorm) s += openingenPad(v);
       if (metOpeningen && !vorm) s += trapPad(v, m);
       // Wat gekozen is: de rand van de ruimte, of de muur zelf.
@@ -2603,6 +2624,7 @@
       laagStrook,
       vloerHoogte,
       hoofdBlok,
+      opBuurMuur,
       kapelErbij() {
         const m = dakMaat();
         if (!m) return;
@@ -2909,11 +2931,17 @@
           ${st.gebouwFout ? `<p class="ht-niet">${esc(st.gebouwFout)}</p>` : ''}
           ${st.gebouwBezig ? `<p class="ht-zin">${esc(T('ht.gebouw.bezig'))}</p>` : `${dakDeel(t, b)}${rij({ ik: 'kruis', titel: T('ht.gebouw.weg'), zin: T('ht.gebouw.wegZin'), data: 'data-ht="gebouw-weg"' })}`}
           ${rij({ ik: 'thuis', titel: T('ht.gebouw.terug'), zin: '', data: 'data-ht="gebouw-terug"' })}`;
+      } else if (st.stand === 'vorm' && st.wnOpen && t.huis.woning && global.woningDeel) {
+        // Wat voor huis (20 november 2026): de vijf soorten en de muren tegen de buren.
+        s = `<header><h3>${esc(T('ht.vorm.woning'))}</h3><span>${esc(T(`wn.soort.${t.huis.woning.soort}`).toLowerCase())}</span></header>
+          <div class="wn-breed wn-twee">${global.woningDeel.html({ ...t.huis.woning, ht: true })}</div>
+          <div class="ht-onder">${rij({ ik: 'terug', titel: T('ht.vorm.woningKlaar'), zin: '', data: 'data-ht="wn-dicht"' })}</div>`;
       } else if (st.stand === 'vorm') {
         // Vorm is ook de plek waar je ziet wat elke bron van je huis vindt, en waar je kiest.
         const o = t.omtrek();
         const nu = t.huis.bronnen?.[st.bron];
         s = `<header><h3>${esc(T('ht.vorm.kop'))}</h3><span>${nl((o.x1 - o.x0) * CEL)} × ${nl((o.y1 - o.y0) * CEL)} m</span></header>
+          ${t.huis.woning && global.woningDeel ? rij({ ik: 'thuis', titel: T(`wn.soort.${t.huis.woning.soort}`), zin: t.huis.woning.soort === 'vrijstaand' ? T('wn.zin.vrijstaand') : T('ht.vorm.woningTegen', { kanten: (t.huis.woning.buren ?? []).map((k) => T(`wn.kantKlein.${k}`)).join(', ') || '—' }), rechts: T('ht.vorm.woningWijzig'), data: 'data-ht="wn-open"' }) : ''}
           <p class="ht-zin">${esc(T('ht.vorm.zin'))}</p>
           ${Object.entries(t.huis.bronnen ?? {})
             .map(([id, b]) => `<button type="button" class="ht-bron${st.bron === id ? ' aan' : ''}" data-ht="bron" data-bron="${esc(id)}" aria-pressed="${st.bron === id}"><span class="pl">${t.bronPlaatje(id, 92, 70)}</span><span class="t"><b>${esc(b.naam)}</b><small>${esc(b.vond)}</small><small>${esc(b.weet)}</small><em>${esc(st.bron === id ? T('ht.vorm.inGebruik') : T('ht.vorm.gebruik'))}</em></span></button>`)
@@ -2937,7 +2965,10 @@
       } else if (st.stand === 'kamers' && metOpeningenVan(t) && st.kies?.soort === 'muur' && st.kies.run?.soort === 2) {
         // Een buitenmuur bij Kamers: schuiven doe je bij Vorm; hier een raam of de voordeur.
         const run = st.kies.run;
-        s = `<header><h3>${esc(T('ht.opening.buitenmuur'))}</h3><span>${esc(T('ht.muur.lang', { maat: meter(run.tot - run.van) }))}</span></header>
+        s = t.opBuurMuur(run)
+          ? `<header><h3>${esc(T('ht.opening.buurmuur'))}</h3><span>${esc(T('ht.muur.lang', { maat: meter(run.tot - run.van) }))}</span></header>
+          <p class="ht-zin">${esc(T('ht.opening.buurmuurZin'))}</p>`
+          : `<header><h3>${esc(T('ht.opening.buitenmuur'))}</h3><span>${esc(T('ht.muur.lang', { maat: meter(run.tot - run.van) }))}</span></header>
           <p class="ht-zin">${esc(T('ht.opening.buitenmuurZin'))}</p>
           ${rij({ ik: 'raam', titel: T('ht.opening.raamHier'), zin: T('ht.opening.raamHierZin'), rechts: '+', data: 'data-ht="opening-plaats" data-soort="raam"' })}
           ${rij({ ik: 'deur', titel: T('ht.opening.voordeurHier'), zin: T('ht.opening.voordeurHierZin'), rechts: '+', data: 'data-ht="opening-plaats" data-soort="voordeur"' })}`;
@@ -3083,6 +3114,11 @@
       if (d.ht === 'noem') t.noem(st.kies.id, d.kamer ? { kamer: d.kamer } : { naam: d.naam, soort: d.soort });
       else if (d.ht === 'zone') t.zetZone(t.vloer().ruimtes[st.kies.id].kamer, d.wat);
       else if (d.ht === 'bron') t.kiesBron(d.bron);
+      else if (d.ht === 'wn-open' || d.ht === 'wn-dicht') {
+        st.wnOpen = d.ht === 'wn-open';
+        t.ververs();
+      } else if (d.ht === 'woning') void t.indeling?.doe?.('woning', d.woning);
+      else if (d.ht === 'buur') void t.indeling?.doe?.('buur', d.buur);
       else if (d.ht === 'kijk') t.kijk?.();
       else if (d.ht === 'gebouw-terug') t.kies(null);
       else if (d.ht === 'opening-plaats') t.plaatsOpening(d.soort);

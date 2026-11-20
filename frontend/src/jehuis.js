@@ -138,6 +138,18 @@ function zonderLosBuiten(d, huis) {
   return { ...d, tekening };
 }
 
+/**
+ * Wat voor huis (schets Wand-Huis-Woning, 20 november 2026): koos de bewoner
+ * de muren tegen de buren nog niet, dan geldt wat de kaart ziet, met de vraag
+ * Klopt dit? boven de tekening.
+ */
+function woningVoorMotor(d) {
+  const gekozen = Array.isArray(d.buren);
+  const kaart = d.woningKaart ?? null;
+  const soort = gekozen || !kaart ? d.woning : kaart.soort;
+  return { soort, buren: gekozen ? d.buren : (kaart?.buren ?? []), kaart, gekozen };
+}
+
 function huisVoorMotor(d) {
   const beneden = d.etages.some((e) => e.id === 'bg') ? 'bg' : d.etages.at(-1)?.id;
   const hoofd = d.vorm.blokken.filter((b) => b.soort === 'hoofdhuis');
@@ -157,6 +169,7 @@ function huisVoorMotor(d) {
     ...(Object.keys(bronnen).length ? { bron: d.bron, bronnen } : {}),
     nietGevonden,
     ...(kanKijken ? { kijk } : {}),
+    woning: woningVoorMotor(d),
     // Kort voor de balk op de telefoon en het huis opzij: "Eerste verdieping" wordt "Eerste", "First floor" wordt "First".
     etages: [
       ...d.etages.map((e) => ({ id: e.id, naam: e.naam, kort: kortNaam(e.naam), hoogte: e.hoogte, dak: !!e.dak, blokken: e.id === beneden ? d.vorm.blokken : hoofd })),
@@ -344,6 +357,23 @@ const indeling = {
         k.naam = w.w;
       } else if (w.w) k.soort = w.w;
       else delete k.soort;
+    } else if (actie === 'woning' || actie === 'buur' || actie === 'woning-ja') {
+      // Wat voor huis (20 november 2026): de soort en de muren tegen de buren, samen bewaard.
+      const w0 = tekenaar.huis.woning ?? {};
+      if (actie === 'woning-ja' && w0.kaart) {
+        next.woning = w0.kaart.soort;
+        next.buren = w0.kaart.buren;
+      } else if (actie === 'woning') {
+        next.woning = w;
+        next.buren = woningDeel.burenBij(w, w0.kaart, next.buren ?? w0.buren);
+      } else if (actie === 'buur') {
+        next.buren = woningDeel.wissel(next.buren ?? w0.buren, w);
+        const soort = next.woning ?? w0.soort;
+        // Een muur erbij bij een vrijstaand huis maakt het een twee-onder-een-kap; geen enkele meer: vrijstaand.
+        if (next.buren.length && (!soort || soort === 'vrijstaand')) next.woning = next.buren.filter((k) => k !== 'achter').length > 1 ? 'rij' : 'tweekap';
+        else if (!next.buren.length && soort !== 'appartement') next.woning = 'vrijstaand';
+        else next.woning = soort;
+      }
     } else if (actie === 'rond') next.rond = String(w).startsWith('huisje:') ? huismodel.huisjeWissel(rondVan(next), w.slice(7)) : huismodel.rondWissel(rondVan(next), w);
     else if (actie === 'huisje') next.rond = { ...rondVan(next), schuur: w === 'schuur', allebei: w === 'beide' };
     else if (actie === 'accu') {
@@ -456,6 +486,11 @@ function vraag(tk, d) {
     const kant = m?.langs ? t(k.kant === 0 ? 'ht.dakkapel.links' : 'ht.dakkapel.rechts') : t(k.kant === 0 ? 'ht.dakkapel.voor' : 'ht.dakkapel.achter');
     const etage = tk.huis.etages.find((e) => e.id === (k.etage ?? tk.dakEtage()));
     html = `<span class="jh-vraag-ik">${iconen.svg('dak')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.kapel.kop'))}</b><span>${esc(t('jehuis.kapel.zin', { kant: kant.toLowerCase(), etage: (etage?.kort ?? etage?.naam ?? '').toLowerCase(), breed: (Math.round((k.tot - k.van) * 10) / 10).toLocaleString(taal.locale ?? 'nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) }))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="kapel-nee">${esc(t('jehuis.kapel.nee'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="kapel-ja">${esc(t('jehuis.kapel.ja'))}</button></div>`;
+  } else if (tk.st.stand === 'vorm' && !opErf && tk.huis.woning?.kaart && !tk.huis.woning.gekozen && !weg.has('woning')) {
+    // Wat voor huis volgens de kaart (20 november 2026): ja houdt het, nee laat de bewoner zelf kiezen in het blad.
+    const k = tk.huis.woning.kaart;
+    const kanten = opsomming(k.buren.map((x) => t(`wn.kantKlein.${x}`)));
+    html = `<span class="jh-vraag-ik">${iconen.svg('thuis')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.wn.kop', { soort: t(`wn.soort.${k.soort}`).toLowerCase() }))}</b><span>${esc(t(k.buren.length === 0 ? 'jehuis.wn.zinGeen' : k.buren.length === 1 ? 'jehuis.wn.zinEen' : 'jehuis.wn.zinMeer', { kanten }))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="woning-nee">${esc(t('jehuis.wn.nee'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="woning-ja">${esc(t('jehuis.wn.ja'))}</button></div>`;
   } else if (opErf && info && twee && !weg.has(`dubbel:${twee.kamer.id}`)) {
     html = `<span class="jh-vraag-ik">${iconen.svg('tuinhuis')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.dubbel.kop', { naam: twee.kamer.naam }))}</b><span>${esc(t('jehuis.dubbel.zin', { ruimte: twee.van.naam }))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="dubbel-nee">${esc(t('jehuis.dubbel.nee'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="dubbel-ja">${esc(t('jehuis.dubbel.ja'))}</button></div>`;
   }
@@ -466,6 +501,23 @@ async function vraagDoe(tk, d, wat) {
   if (wat === 'kapel-ja' || wat === 'kapel-nee') {
     // De dakkapel van de 3D-kaart: ja houdt hem (de vraag gaat weg), nee haalt hem weg; de pagina laadt opnieuw.
     return gebouw({ dak: 'hoofd', kaartKapel: wat === 'kapel-ja' ? 'ja' : 'nee' });
+  }
+  if (wat === 'woning-ja') {
+    await indeling.doe('woning-ja');
+    return vraag(tk, d);
+  }
+  if (wat === 'woning-nee') {
+    const weg = vraagWeg();
+    weg.add('woning');
+    // Zelf kiezen: het blad Wat voor huis open.
+    tk.st.wnOpen = true;
+    tk.ververs();
+    try {
+      localStorage.setItem(VRAAG_WEG, JSON.stringify([...weg]));
+    } catch {
+      // Dan komt de vraag de volgende keer terug.
+    }
+    return vraag(tk, d);
   }
   if (wat === 'koppel-ja') {
     koppelGezien = true;
@@ -505,6 +557,7 @@ async function vernieuw() {
   for (const k of nieuw.kamers) tk.kamers[k.id] = Object.assign(tk.kamers[k.id] ?? {}, k);
   tk.huis.verborgen = nieuw.verborgen;
   tk.huis.verborgenLijst = nieuw.verborgenLijst;
+  tk.huis.woning = nieuw.woning;
   // Wat verborgen is, gaat uit de tekening; wat terug is, komt erbij (in de strook als het geen kamer heeft).
   const ids = new Set(nieuw.apparaten.map((a) => a.id));
   tk.st.apparaten = [...tk.st.apparaten.filter((a) => ids.has(a.id)), ...nieuw.apparaten.filter((a) => !tk.st.apparaten.some((b) => b.id === a.id))];

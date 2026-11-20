@@ -87,6 +87,60 @@ export function erfOm(
   const v1 = Math.max(Math.max(...kern.map((x) => x.v + x.d)) + 12, Math.max(...blokken.map((x) => x.v + x.d)) + 3);
   return { u: m1(u0), v: m1(v0), b: m1(u1 - u0), d: m1(v1 - v0) };
 }
+
+/** Een kant van het huis, van de straat af gezien. */
+export const BUUR_KANTEN = ['links', 'rechts', 'achter'] as const;
+export type BuurKant = (typeof BUUR_KANTEN)[number];
+
+/**
+ * Wat voor huis het volgens de kaart is (schets Wand-Huis-Woning, 20 november
+ * 2026): welke muren van het hoofdhuis tegen een buurhuis staan, met dezelfde
+ * regel als de erfgrens (een woning vanaf 40 m², binnen 0,8 m van de muur).
+ * Een muur links of rechts maakt een twee-onder-een-kap, of een hoekhuis als
+ * het buurhuis aan zijn andere kant zelf weer tegen een huis staat; twee een
+ * tussenwoning. Een garage tegen een buurhuis telt niet: hij is geen woning.
+ * Null zonder gebouwen eromheen (geen kaart): dan valt er niets voor te stellen.
+ */
+export function woningUitKaart(
+  blokken: readonly { readonly soort: string; readonly u: number; readonly v: number; readonly b: number; readonly d: number }[],
+  omgeving: readonly { readonly punten: readonly (readonly [number, number])[] }[] = [],
+): { soort: 'vrijstaand' | 'tweekap' | 'hoek' | 'rij'; buren: BuurKant[] } | null {
+  const huis = blokken.filter((x) => x.soort === 'hoofdhuis');
+  if (!huis.length || !omgeving.length) return null;
+  const u0 = Math.min(...huis.map((x) => x.u));
+  const u1 = Math.max(...huis.map((x) => x.u + x.b));
+  const v0 = Math.min(...huis.map((x) => x.v));
+  const v1 = Math.max(...huis.map((x) => x.v + x.d));
+  const opp = (pp: readonly (readonly [number, number])[]) => Math.abs(pp.reduce((t, p, i) => { const q = pp[(i + 1) % pp.length]!; return t + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
+  const woningen = omgeving.filter((o) => opp(o.punten) >= 40);
+  /*
+   * Een muur van het buurhuis langs de muur van het huis, over minstens een
+   * meter: een hoek die net de achterkant raakt (een buurhuis dat dieper is)
+   * telt niet. `as` 0 is een muur op u = rand (links of rechts), 1 op v = rand.
+   */
+  const langs = (o: (typeof woningen)[number], as: 0 | 1, rand: number, a: number, b: number) =>
+    o.punten.some((p, i) => {
+      const q = o.punten[(i + 1) % o.punten.length]!;
+      if (Math.abs(p[as] - rand) > 0.8 || Math.abs(q[as] - rand) > 0.8) return false;
+      const lo = Math.max(Math.min(p[1 - as]!, q[1 - as]!), a);
+      const hi = Math.min(Math.max(p[1 - as]!, q[1 - as]!), b);
+      return hi - lo >= 1;
+    });
+  /** Het buurhuis dat tegen een muur staat, en verder dan een meter erbuiten ligt. */
+  const tegenU = (lijst: typeof woningen, rand: number, kant: 1 | -1, va: number, vb: number) => lijst.find((o) => langs(o, 0, rand, va, vb) && o.punten.some(([u]) => (u - rand) * kant > 1));
+  const links = tegenU(woningen, u0, -1, v0, v1);
+  const rechts = tegenU(woningen, u1, 1, v0, v1);
+  const achter = woningen.some((o) => langs(o, 1, v1, u0, u1) && o.punten.some(([, v]) => v - v1 > 1));
+  const buren: BuurKant[] = [...(links ? ['links' as const] : []), ...(rechts ? ['rechts' as const] : []), ...(achter ? ['achter' as const] : [])];
+  if (links && rechts) return { soort: 'rij', buren };
+  const buur = links ?? rechts;
+  if (!buur) return { soort: 'vrijstaand', buren };
+  // Staat het buurhuis aan zijn andere kant zelf weer tegen een huis, dan is dit het eind van een rij.
+  const bu = buur.punten.map(([u]) => u);
+  const bv = buur.punten.map(([, v]) => v);
+  const verder = links ? tegenU(woningen.filter((o) => o !== buur), Math.min(...bu), -1, Math.min(...bv), Math.max(...bv)) : tegenU(woningen.filter((o) => o !== buur), Math.max(...bu), 1, Math.min(...bv), Math.max(...bv));
+  return { soort: verder ? 'hoek' : 'tweekap', buren };
+}
 export type TrapRichting = (typeof TRAP_RICHTINGEN)[number];
 
 /**

@@ -630,7 +630,6 @@ function bewerkKamer(k, etages, naamVan, c) {
  * Wat voor huis het is (besluit 190): vijf soorten, elk met een klein huisje
  * erin, dan of er een kelder is en wat voor dak. De tekening links doet mee.
  */
-const WONINGEN = ['vrijstaand', 'rij', 'hoek', 'tweekap', 'appartement'];
 const woningNu = () => concept()?.woning ?? d.huis?.woning ?? 'vrijstaand';
 function dakNu() {
   const c = concept();
@@ -638,10 +637,30 @@ function dakNu() {
   if (c?.dak) return 'schuin';
   return d.huis?.dakEtage ? 'schuin' : 'plat';
 }
+/**
+ * Wat de kaart van het soort huis ziet (20 november 2026): uit Je huis, één
+ * keer opgehaald zodra deze stap er staat. Inrichten toont hetzelfde deel als
+ * Je huis › Vorm (keuze Ricardo).
+ */
+let wnKaart;
+function laadWnKaart() {
+  if (wnKaart !== undefined) return;
+  wnKaart = null;
+  haal('api/huistekening')
+    .then((x) => {
+      wnKaart = x?.woningKaart ?? null;
+      teken();
+    })
+    .catch(() => {});
+}
 function woningStap() {
   const c = concept();
   const nu = woningNu();
-  const tegels = WONINGEN.map((w) => `<button type="button" class="tegel${w === nu ? ' aan' : ''}" data-woning="${w}" aria-pressed="${w === nu}"><span class="mini" data-mini="${w}" aria-hidden="true"></span><b>${esc(t(`inr.woning.${w}`))}</b></button>`).join('');
+  laadWnKaart();
+  const gekozen = Array.isArray(c?.buren);
+  const kaart = wnKaart ?? null;
+  const soort = gekozen || !kaart || c?.woning ? nu : kaart.soort;
+  const tegels = `<div class="wn-breed">${woningDeel.html({ soort, buren: gekozen ? c.buren : soort === kaart?.soort ? kaart.buren : woningDeel.burenBij(soort, kaart, []), kaart, gekozen: gekozen || !!c?.woning })}</div>`;
   const kelder = (c?.kamers ?? []).some((k) => k.etage === 'kelder');
   const dak = dakNu();
   // Een appartement heeft geen eigen kelder of dak om te tekenen.
@@ -653,7 +672,7 @@ function woningStap() {
     waar: waarVan('woning'),
     kop: t('inr.woningKop'),
     uitleg: t('inr.woningZin'),
-    inhoud: `<div class="tegels">${tegels}</div><div class="rijen">${rijen}</div>`,
+    inhoud: `${tegels}<div class="rijen">${rijen}</div>`,
   };
 }
 /** De kleine huisjes bij Wat voor huis, zoals de schets: alleen de vorm. */
@@ -2490,7 +2509,10 @@ document.addEventListener('click', async (e) => {
     // Wat voor huis, en welk dak (besluit 190); in de tuin het tuinhuis of het schuurtje.
     const next = concept();
     if (!next) return;
-    if (el.dataset.woning) next.woning = el.dataset.woning;
+    if (el.dataset.woning) {
+      next.woning = el.dataset.woning;
+      next.buren = woningDeel.burenBij(next.woning, wnKaart, next.buren);
+    }
     if (el.dataset.dak) {
       const boven = (d.huis?.etages ?? []).find((e) => e.id !== 'buiten' && e.id !== 'kelder' && (e.ruimtes ?? []).length);
       if (el.dataset.dak === 'plat') next.dak = 'geen';
@@ -2498,6 +2520,16 @@ document.addEventListener('click', async (e) => {
     }
     // Het tuinhuis, het schuurtje of allebei (6 november 2026).
     if (el.dataset.schuur) next.rond = { ...rondVanConcept(next), schuur: el.dataset.schuur === 'schuur', allebei: el.dataset.schuur === 'beide' };
+    await bewaarIndeling(next);
+    return;
+  }
+  if (el.dataset.buur) {
+    // Welke muur tegen de buren staat (20 november 2026): hetzelfde als in Je huis.
+    const next = concept();
+    if (!next) return;
+    next.buren = woningDeel.wissel(next.buren ?? (wnKaart?.soort === woningNu() ? wnKaart.buren : []), el.dataset.buur);
+    if (next.buren.length && woningNu() === 'vrijstaand') next.woning = next.buren.filter((k) => k !== 'achter').length > 1 ? 'rij' : 'tweekap';
+    else if (!next.buren.length && woningNu() !== 'appartement') next.woning = 'vrijstaand';
     await bewaarIndeling(next);
     return;
   }

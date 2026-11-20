@@ -247,6 +247,12 @@ export interface Layout {
   readonly rond?: LayoutAround;
   /** Wat voor huis het is (besluit 190). Weg: vrijstaand. */
   readonly woning?: Woning;
+  /**
+   * Welke muren tegen de buren staan (schets Wand-Huis-Woning, 20 november
+   * 2026), van de straat af gezien. Daar komt geen raam of deur. Weg: nog niet
+   * gekozen, dan stelt Je huis voor wat de kaart ziet.
+   */
+  readonly buren?: readonly ('links' | 'rechts' | 'achter')[];
   /** Waar de thuisaccu staat (besluit 270). Weg: aan de gevel. */
   readonly accu?: LayoutAccu;
   /**
@@ -603,6 +609,11 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
   // Wat voor huis het is (besluit 190).
   const woning = b['woning'];
   if (woning !== undefined && !WONINGEN.includes(woning as Woning)) return { ok: false, reden: `woning is ${WONINGEN.join(', ')}` };
+  // Welke muren tegen de buren staan: een lijst met links, rechts en achter.
+  const burenIn = b['buren'];
+  const KANTEN = ['links', 'rechts', 'achter'] as const;
+  if (burenIn !== undefined && (!Array.isArray(burenIn) || burenIn.some((x) => !KANTEN.includes(x)))) return { ok: false, reden: 'buren is een lijst met links, rechts en achter' };
+  const buren = burenIn === undefined ? undefined : KANTEN.filter((k) => (burenIn as unknown[]).includes(k));
   // Waar de thuisaccu staat (besluit 270): binnen in een kamer die bestaat.
   const accuIn = b['accu'];
   let accu: LayoutAccu | undefined;
@@ -649,6 +660,7 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
       ...(dak !== undefined ? { dak: dak as FloorId | 'geen' } : {}),
       ...(rond ? { rond } : {}),
       ...(woning !== undefined ? { woning: woning as Woning } : {}),
+      ...(buren !== undefined ? { buren } : {}),
       ...(accu ? { accu } : {}),
       ...(plattegrond ? { plattegrond } : {}),
       ...(plattegrondBron ? { plattegrondBron } : {}),

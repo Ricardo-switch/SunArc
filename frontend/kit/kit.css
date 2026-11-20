@@ -769,3 +769,38 @@ a.knop:not(.knop-licht) {
  */
 .balk .ik-vlak, .tabs .ik-vlak { fill-opacity: 0; transition: fill-opacity 0.2s; }
 .balk a[aria-current='page'] .ik-vlak, .tabs a[aria-current='page'] .ik-vlak { fill-opacity: 0.85; }
+
+/* Wat voor huis (20 november 2026, schets Wand-Huis-Woning): vijf soorten met een huisje, en de kanten tegen de buren. Je huis en Inrichten. */
+.wn-deel { display: flex; flex-direction: column; gap: 8px; }
+.wn-soorten { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+.wn-soort { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px 7px; border-radius: 12px; border: 2px solid rgb(255 255 255 / 0.08); background: rgb(255 255 255 / 0.04); color: var(--tekst); font-family: var(--romp, Figtree, sans-serif); cursor: pointer; min-width: 0; }
+.wn-soort svg { width: 44px; height: 26px; }
+.wn-soort b { font-size: 11px; line-height: 1.15; text-align: center; margin-top: 2px; overflow-wrap: anywhere; }
+.wn-soort small { display: none; }
+.wn-soort i { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 0 6px; border-radius: 999px; background: #0b1424; border: 1px dashed #6fd3ff; font: 700 9.5px var(--romp, Figtree, sans-serif); font-style: normal; color: #a9e6ff; }
+.wn-soort.aan { border-color: #6fd3ff; background: rgb(111 211 255 / 0.12); }
+.wn-kop { margin: 4px 0 0; font-size: 12.5px; font-weight: 700; color: var(--gedempt); }
+.wn-kanten { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.wn-kant { height: 36px; border-radius: 11px; border: 1px solid var(--glas-rand); background: rgb(255 255 255 / 0.06); color: var(--zacht); font: 700 13px var(--romp, Figtree, sans-serif); cursor: pointer; }
+.wn-kant.aan { background: rgb(255 176 122 / 0.16); border-color: #ffb07a; color: var(--tekst); }
+.wn-zin { margin: 0; font-size: 12.5px; color: var(--zacht); line-height: 1.4; }
+/* Breder (Inrichten, telefoon): twee regels per soort, met de zin. */
+.wn-breed .wn-soorten { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.wn-breed .wn-soort { padding: 10px 4px; }
+.wn-breed .wn-soort svg { width: 64px; height: 38px; }
+.wn-breed .wn-soort b { font-size: 13px; }
+.wn-breed .wn-soort small { display: block; font-size: 11px; color: var(--gedempt); text-align: center; }
+/* In het smalle blad van Je huis: twee kolommen, het huisje naast de naam. */
+.wn-twee .wn-soorten { grid-template-columns: 1fr 1fr; gap: 6px; }
+.wn-twee .wn-soort { display: grid; grid-template-columns: 46px minmax(0, 1fr); grid-template-rows: auto auto; align-items: center; column-gap: 8px; padding: 8px 8px; text-align: left; }
+.wn-twee .wn-soort svg { grid-row: 1 / 3; width: 46px; height: 28px; }
+.wn-twee .wn-soort b { font-size: 12.5px; text-align: left; margin: 0; overflow-wrap: normal; }
+.wn-twee .wn-soort small { display: block; font-size: 11px; color: var(--gedempt); text-align: left; }
+.wn-twee .wn-soort i { left: auto; right: 6px; transform: none; }
+/* Op de wand is het blad smaller dan op de telefoon: één soort per regel. */
+@media (min-width: 700px) {
+  .wn-twee .wn-soorten { grid-template-columns: 1fr; gap: 5px; }
+  .wn-twee .wn-soort { grid-template-rows: auto; grid-template-columns: 46px auto minmax(0, 1fr); padding: 5px 10px; }
+  .wn-twee .wn-soort svg { grid-row: auto; height: 26px; }
+  .wn-twee .wn-soort small { margin-left: 6px; }
+}

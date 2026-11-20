@@ -9,7 +9,7 @@ import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
-import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, bijfuncties, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
+import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuifOpeningen, type Opening, ERBIJ_SOORTEN, gebouwDak, gebouwErbij, gebouwWeg, huisUitTekening, kaartVernieuwd, gebouwKapel, woningUitKaart, type ErbijSoort, etageHoogtes, kaalGebouw, lagenOnderDak, tekenSoort, bijfuncties, verschuif, VORM_BRONNEN, zoneVanPlek, type BronVorm, type TekenRuimte, type VormBron } from '../huistekening.js';
 import { DAKVORMEN, leesDaken, leesKapellen, type Daken, type Dakvorm, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
@@ -577,6 +577,9 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     kaarten: vorm.kaarten,
     tekeningBron: basis.plattegrondBron ?? vorm.bron,
     woning: huis.woning,
+    // Wat voor huis (20 november 2026): welke muren tegen de buren staan, gekozen of nog niet, en wat de kaart ziet.
+    buren: basis.buren ?? null,
+    woningKaart: woningUitKaart(nu0.blokken, nu0.omgeving),
     // Van boven naar beneden, zoals het huis opzij.
     // Stap 3 (Je huis aangevuld): welke etage onder het schuine dak ligt, voor het blad van de etage.
     etages: binnen.map((e, i) => ({ id: e.id, naam: e.naam, hoogte: hoogtes[i], dak: huis.dakEtage === e.id })),

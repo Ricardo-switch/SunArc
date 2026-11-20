@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.210.0';
+export const VERSIE = '0.211.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.211.0',
+    datum: '2026-11-20',
+    nieuw: [
+      'Je huis › Vorm: Wat voor huis, met de vijf soorten. SunArc stelt uit de kaart voor wat het is en welke muur tegen het huis ernaast staat, met Klopt dit?',
+      'Je huis: een muur tegen de buren staat gestreept in oranje. Op zo’n muur zet je geen raam of voordeur',
+    ],
+    beter: ['Inrichten: Wat voor huis is hetzelfde deel als in Je huis, met de muren tegen de buren'],
+    en: {
+      nieuw: [
+        'Your home › Shape: What kind of home, with the five kinds. SunArc suggests from the map what it is and which wall is against the house next door, with Is that right?',
+        'Your home: a wall against the neighbours is striped in orange. No window or front door goes on such a wall',
+      ],
+      beter: ['Setup: What kind of home is the same part as in Your home, with the walls against the neighbours'],
+    },
+  },
   {
     versie: '0.210.0',
     datum: '2026-11-20',

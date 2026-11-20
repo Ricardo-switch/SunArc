@@ -2703,12 +2703,16 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // De vragen van eerst (soort woning, kamers) staan er nog, tot Je huis het soort woning kent.
     await p.goto(`${baseUrl}/inrichten.html#woning`);
     await p.waitForURL(/#woning$/);
-    // Wat voor huis (besluit 190): vijf soorten, elk met een klein huis erin.
+    // Wat voor huis (besluit 190): vijf soorten, elk met een klein huis erin; sinds 20 november 2026 hetzelfde deel als Je huis, met de muren tegen de buren.
     await kaart.locator('h1', { hasText: 'Wat voor huis is het?' }).waitFor();
-    expect(await kaart.locator('.tegel').count()).toBe(5);
-    await kaart.locator('.tegel [data-mini] svg').first().waitFor();
+    expect(await kaart.locator('.wn-soort').count()).toBe(5);
+    await kaart.locator('.wn-soort svg').first().waitFor();
     await kaart.locator('[data-woning="hoek"]').click();
     await kaart.locator('[data-woning="hoek"][aria-pressed="true"]').waitFor({ timeout: 5000 });
+    // Een hoekhuis staat met één muur tegen de buren; een tik op Links zet die erbij.
+    await kaart.locator('[data-buur="rechts"][aria-pressed="true"]').waitFor({ timeout: 5000 });
+    await kaart.locator('[data-buur="links"]').click();
+    await kaart.locator('[data-buur="links"][aria-pressed="true"]').waitFor({ timeout: 5000 });
     await shot('woning');
     await kaart.locator('[data-volgende]').click();
     await kaart.locator('h1', { hasText: 'Klopt de indeling?' }).waitFor();
