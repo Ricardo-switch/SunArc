@@ -1,0 +1,27 @@
+/* Camera's bij Apparaten (schets, 20 november 2026): de kaart en het blad van een camera. */
+.cam .beeld, .camblad .beeld { position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #1b2533; }
+.beeld svg.scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+.beeld .naam { position: absolute; left: 8px; top: 8px; display: flex; align-items: center; gap: 5px; padding: 4px 9px 4px 7px; border-radius: 999px; background: rgba(9, 15, 28, 0.62); font-size: 11.5px; font-weight: 700; color: #eef3f7; }
+.beeld .naam svg { width: 13px; height: 13px; }
+.beeld .wanneer { position: absolute; left: 8px; bottom: 8px; display: flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 999px; background: rgba(9, 15, 28, 0.72); font-size: 11.5px; font-weight: 700; color: #eef3f7; }
+.beeld .wanneer i { width: 7px; height: 7px; border-radius: 50%; background: var(--gedempt); }
+.beeld.ziet-nu { box-shadow: inset 0 0 0 2px var(--gloed); }
+.beeld.ziet-nu .wanneer { background: rgba(255, 122, 77, 0.92); }
+.beeld.bel .wanneer i { background: var(--zon); }
+.beeld .live { position: absolute; right: 8px; top: 8px; padding: 3px 8px; border-radius: 999px; background: rgba(9, 15, 28, 0.62); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #eef3f7; }
+.beeld .live::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--gloed); vertical-align: 1px; }
+.cam.ziet { border-color: rgba(255, 122, 77, 0.32); }
+/* Wat er ook in zit: regels zoals bij Licht. */
+.erin { display: flex; flex-direction: column; }
+.deel { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 46px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.deel .lik { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: rgba(169, 156, 255, 0.12); color: #c9c0ff; }
+.deel .lik.aan { background: rgba(247, 181, 72, 0.18); color: var(--zon); }
+.deel .lik svg { width: 18px; height: 18px; }
+.deel .lnaam { font-size: 14px; font-weight: 600; min-width: 0; }
+.deel .lnaam small { display: block; font-size: 12px; font-weight: 500; color: var(--gedempt); }
+.deel .schakel { transform: scale(0.85); transform-origin: right center; }
+.camblad .bh { margin: 0 0 4px; font-size: 13px; font-weight: 700; color: var(--gedempt); }
+.camblad .instelling .ik { background: rgba(169, 156, 255, 0.14); color: #c9c0ff; }
+.camblad .vandaag { display: flex; justify-content: space-between; font-size: 13px; color: var(--gedempt); }
+.camblad .vandaag b { color: var(--tekst); font-weight: 600; }
+.zet.zacht { background: rgba(255, 255, 255, 0.1); color: var(--tekst); }

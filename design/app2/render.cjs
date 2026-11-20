@@ -14,7 +14,7 @@ const jobs = process.argv.slice(2);
   for (const job of jobs) {
     const [bestand, w, h, full] = job.split(':');
     const [file, hash] = bestand.split('#');
-    const page = await browser.newPage({ viewport: { width: +w, height: +h }, deviceScaleFactor: 2 });
+    const page = await browser.newPage({ viewport: { width: +w, height: +h }, deviceScaleFactor: 2, locale: 'nl-NL' });
     const fouten = [];
     page.on('pageerror', (e) => fouten.push(e.message));
     await page.goto(pathToFileURL(path.join(root, file)).href + (hash ? `#${hash}` : ''));
