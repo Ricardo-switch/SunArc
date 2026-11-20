@@ -75,7 +75,7 @@ import { Herinneringen, type Herinnering } from './web/tedoen.js';
 import { volgendeMoment } from './web/gepland.js';
 import type { TeDoenDienst } from './web/routes/tedoen.js';
 import { spraakKeuzes, type SpraakKeuze } from './web/functies.js';
-import { cameraMelders, camerasNu, laatsteAanUitHistorie } from './web/cameras.js';
+import { aanKerenHistorie, alleCameraMelders, alleCamerasNu, camerasNu, laatsteAanUitHistorie } from './web/cameras.js';
 import { FunctiesStore, aangebeld, functiesGevonden, functiesVoorstel, getoondeCameras, volledig, type Functies, type FunctiesGevonden } from './web/functies.js';
 import { accusNu, accuView, KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, metLosseLaadpalen, vindOpslag } from './web/opslag.js';
 import { Laadhand, laadMag } from './web/laadhand.js';
@@ -1070,6 +1070,12 @@ const deurbelNu = () => {
  * opnieuw als de melders veranderen), daarna wat de dienst zelf ziet.
  */
 const bewegingAan = new Map<string, number>();
+/** Per melder de momenten dat hij aanging, van gisteren en vandaag: om bij Apparaten te tellen hoe vaak (20 november 2026). */
+const bewegingKeren = new Map<string, number[]>();
+const nogEenKeer = (id: string, ms: number) => {
+  const sinds = ms - 2 * 86_400_000;
+  bewegingKeren.set(id, [...(bewegingKeren.get(id) ?? []).filter((x) => x >= sinds), ms]);
+};
 let bewegingGeladen = '';
 let bewegingMelders: { van: FunctiesGevonden | null; f: Functies | null; ids: ReadonlySet<string> } = { van: null, f: null, ids: new Set() };
 const camMelders = (): ReadonlySet<string> => {
@@ -1077,7 +1083,8 @@ const camMelders = (): ReadonlySet<string> => {
   // Opnieuw als wat er gevonden of gekozen is verandert; niet bij elke toestand.
   if (bewegingMelders.van !== gevondenNu || bewegingMelders.f !== f) {
     const g = functiesKeuzes();
-    bewegingMelders = { van: gevondenNu, f, ids: new Set(f ? cameraMelders(f, g) : []) };
+    // Alle camera's en de deurbel (20 november 2026): Apparaten telt ook die niet op Thuis staan.
+    bewegingMelders = { van: gevondenNu, f, ids: new Set(f ? alleCameraMelders(f, g) : []) };
   }
   return bewegingMelders.ids;
 };
@@ -1089,6 +1096,7 @@ async function bewegingHistorie(): Promise<void> {
   try {
     const antwoord = await client.query('history/history_during_period', { start_time: new Date(Date.now() - 2 * 86_400_000).toISOString(), entity_ids: ids, minimal_response: true, no_attributes: true, significant_changes_only: false });
     for (const [id, ms] of laatsteAanUitHistorie(antwoord)) if (ms > (bewegingAan.get(id) ?? 0)) bewegingAan.set(id, ms);
+    for (const [id, keren] of aanKerenHistorie(antwoord)) bewegingKeren.set(id, [...new Set([...keren, ...(bewegingKeren.get(id) ?? [])])].sort((a, b) => a - b));
   } catch {
     // Zonder historie (een oudere Home Assistant): dan vanaf nu.
     bewegingGeladen = '';
@@ -1102,13 +1110,28 @@ const camerasLijst = () => {
   void bewegingHistorie();
   return camerasNu(f, functiesKeuzes(), allStates, bewegingAan, deurbelNu()?.laatsteMs ?? null);
 };
+/** Alle camera's voor Apparaten, met hoe vaak ze vandaag iets zagen en er werd aangebeld. */
+const camerasAlle = () => {
+  const f = functiesNu();
+  if (!f) return [];
+  void bewegingHistorie();
+  const vanaf = new Date();
+  vanaf.setHours(0, 0, 0, 0);
+  const bel = f.deurbel.aan && f.deurbel.melder ? (bewegingKeren.get(f.deurbel.melder) ?? []) : [];
+  return alleCamerasNu(f, functiesKeuzes(), allStates, bewegingAan, deurbelNu()?.laatsteMs ?? null, bewegingKeren, bel, vanaf.getTime());
+};
 client.on('stateChanged', (state: HaEntityState) => {
   // Een camera ziet beweging (besluit 201): onthouden wanneer, voor de kaart Camera's.
-  if (state.entity_id.startsWith('binary_sensor.') && state.state === 'on' && allStates.get(state.entity_id)?.state !== 'on' && camMelders().has(state.entity_id)) bewegingAan.set(state.entity_id, Date.now());
+  if (state.entity_id.startsWith('binary_sensor.') && state.state === 'on' && allStates.get(state.entity_id)?.state !== 'on' && camMelders().has(state.entity_id)) {
+    bewegingAan.set(state.entity_id, Date.now());
+    nogEenKeer(state.entity_id, Date.now());
+  }
   // Aanbellen: de melder van de deurbel gaat af. Dan toont elke open pagina het beeld.
   const f = functiesNu();
   if (f && aangebeld(f, state, allStates.get(state.entity_id))) {
     aangebeldMs = Date.now();
+    // Een gebeurtenis telt hier; een melder telde hierboven al (20 november 2026).
+    if (!state.entity_id.startsWith('binary_sensor.')) nogEenKeer(state.entity_id, Date.now());
     const camera = f.deurbel.camera!;
     const naam = functiesKeuzes()?.cameras.find((c) => c.beelden.some((b) => b.id === camera))?.naam ?? 'Deurbel';
     web?.ring(camera, naam, { seconden: f.deurbel.seconden, schermAan: f.deurbel.schermAan, reserve: reserveBeelden(camera) });
@@ -2845,6 +2868,7 @@ if (webPort != null) {
     ...(voorkeuren ? { voorkeuren } : {}),
     deurbel: deurbelNu,
     cameras: camerasLijst,
+    camerasAlle,
     // Meldingen op de telefoon (besluit 183): welke telefoons er zijn, en een proefmelding.
     telefoons: (userId: string | null) => telefoons().map((t) => ({ id: t.id, naam: t.naam, eigen: userId != null && t.account === userId })),
     proefmelding,
@@ -3054,7 +3078,9 @@ if (webPort != null) {
       // De camera's die de app toont, en die van de deurbel (besluit 109).
       ids: () => {
         const f = functiesNu();
-        return new Set(f ? [...getoondeCameras(f), ...(f.deurbel.aan && f.deurbel.camera ? [f.deurbel.camera, ...reserveBeelden(f.deurbel.camera)] : [])] : []);
+        // Sinds 20 november 2026 ook de andere camera's uit Home Assistant: Apparaten toont ze allemaal.
+        const alle = (functiesKeuzes()?.cameras ?? []).flatMap((c) => c.beelden.map((b) => b.id));
+        return new Set(f ? [...getoondeCameras(f), ...alle, ...(f.deurbel.aan && f.deurbel.camera ? [f.deurbel.camera, ...reserveBeelden(f.deurbel.camera)] : [])] : []);
       },
     },
     ...(functiesStore ? { functies: { store: functiesStore, gevonden: functiesKeuzes } } : {}),

@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.209.5
+## 0.210.0
 
-*20 november 2026 · 0.179.0 – 0.209.5*
+*20 november 2026 · 0.179.0 – 0.210.0*
 
 **Nieuw**
 
+- Apparaten: een eigen soort Camera’s, na Licht. Elke camera is één kaart met het beeld, wat hij nu ziet, de schijnwerper om aan en uit te zetten, de bewegingsmelder, en hoe vaak hij vandaag iets zag. Bij de deurbel ook hoe vaak er is aangebeld
+- Apparaten: alle camera’s uit Home Assistant staan er, ook die niet op Thuis staan. In het blad van een camera zet je hem op Thuis of haal je hem eraf; een tik op het beeld toont hem groot en live
 - Je huis heeft een tab Dak: de vorm van het dak en de nok, en gestreept wat lager is dan 1,5 m
 - Een dakkapel zet je erbij met de kant en de etage, en je schuift hem langs het dak of trekt hem breder of smaller, zoals een kamer
 - Vindt de 3D-kaart een dakkapel, dan staat hij er meteen op maat en vraagt Je huis of hij klopt
@@ -193,6 +195,8 @@
 
 **New**
 
+- Devices: a group of its own for Cameras, after Lights. Each camera is one card with the picture, what it sees now, the floodlight to switch on and off, the motion sensor, and how often it saw something today. For the doorbell also how often it rang
+- Devices: all cameras from Home Assistant are there, also the ones not on Home. On a camera’s sheet you put it on Home or take it off; a tap on the picture shows it big and live
 - Your home has a Roof tab: the shape of the roof and the ridge, and hatched what is lower than 1.5 m
 - You add a dormer with its side and floor, and slide it along the roof or make it wider or narrower, like a room
 - If the 3D map finds a dormer, it is there at its size straight away and Your home asks whether it is right

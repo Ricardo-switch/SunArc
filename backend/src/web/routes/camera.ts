@@ -26,7 +26,8 @@ export async function cameraRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
 
   // De kaart Camera's (besluit 201): de camera's met wat ze nu zien of wanneer het laatst.
   if (path === '/api/cameras') {
-    const lijst = d.options.cameras?.() ?? [];
+    // Bij Apparaten (20 november 2026): alle camera's, met hoe vaak ze vandaag iets zagen.
+    const lijst = url.searchParams.get('alle') === '1' ? (d.options.camerasAlle?.() ?? []) : (d.options.cameras?.() ?? []);
     sendJson(res, 200, { aan: lijst.length > 0, cameras: lijst });
     return true;
   }

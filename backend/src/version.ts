@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.209.5';
+export const VERSIE = '0.210.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.210.0',
+    datum: '2026-11-20',
+    nieuw: [
+      'Apparaten: een eigen soort Camera’s, na Licht. Elke camera is één kaart met het beeld, wat hij nu ziet, de schijnwerper om aan en uit te zetten, de bewegingsmelder, en hoe vaak hij vandaag iets zag. Bij de deurbel ook hoe vaak er is aangebeld',
+      'Apparaten: alle camera’s uit Home Assistant staan er, ook die niet op Thuis staan. In het blad van een camera zet je hem op Thuis of haal je hem eraf; een tik op het beeld toont hem groot en live',
+    ],
+    en: {
+      nieuw: [
+        'Devices: a group of its own for Cameras, after Lights. Each camera is one card with the picture, what it sees now, the floodlight to switch on and off, the motion sensor, and how often it saw something today. For the doorbell also how often it rang',
+        'Devices: all cameras from Home Assistant are there, also the ones not on Home. On a camera’s sheet you put it on Home or take it off; a tap on the picture shows it big and live',
+      ],
+    },
+  },
   {
     versie: '0.209.5',
     datum: '2026-11-20',

@@ -48,7 +48,19 @@ export function camerasNu(
   const ids = [...(f.cameras.aan ? f.cameras.lijst : [])];
   const bel = f.deurbel.aan ? f.deurbel.camera : null;
   if (bel && !ids.includes(bel)) ids.unshift(bel);
-  return ids.map((id) => {
+  return ids.map((id) => cameraStand(id, g, bel, states, laatsteAan, aangebeldMs));
+}
+
+/** Wat één camera nu ziet, of wanneer het laatst. */
+function cameraStand(
+  id: string,
+  g: FunctiesGevonden | null,
+  bel: string | null,
+  states: ReadonlyMap<string, HaEntityState>,
+  laatsteAan: ReadonlyMap<string, number>,
+  aangebeldMs: number | null,
+): CameraNu {
+  {
     const groep = g?.cameras.find((c) => c.beelden.some((b) => b.id === id));
     const melders = groep?.melders ?? [];
     const aan = melders.filter((m) => states.get(m.id)?.state === 'on');
@@ -69,7 +81,99 @@ export function camerasNu(
       laatsteMs: laatste,
       laatsteSoort: soort,
     };
+  }
+}
+
+/**
+ * Een camera bij Apparaten (schets Wand-Apparaten-Cameras, 20 november 2026):
+ * alle camera's uit Home Assistant, niet alleen die op Thuis. Met alle beelden
+ * (om de schijnwerper en de melders erbij te vinden), of hij op Thuis staat,
+ * en hoe vaak hij vandaag iets zag en er is aangebeld.
+ */
+export interface CameraApparaat extends CameraNu {
+  readonly beelden: readonly string[];
+  readonly opThuis: boolean;
+  readonly vandaag: { readonly beweging: number | null; readonly aangebeld: number | null };
+}
+
+/**
+ * Alle camera's, elk met het beeld dat Thuis toont of anders zijn beste beeld.
+ * `keren`: per melder de momenten dat hij aanging (uit de historie en wat de
+ * dienst sindsdien zag); `belKeren` de momenten van aanbellen; `vanafMs` het
+ * begin van vandaag.
+ */
+export function alleCamerasNu(
+  f: Functies,
+  g: FunctiesGevonden | null,
+  states: ReadonlyMap<string, HaEntityState>,
+  laatsteAan: ReadonlyMap<string, number>,
+  aangebeldMs: number | null,
+  keren: ReadonlyMap<string, readonly number[]>,
+  belKeren: readonly number[],
+  vanafMs: number,
+): CameraApparaat[] {
+  const getoond = new Set(f.cameras.aan ? f.cameras.lijst : []);
+  const bel = f.deurbel.aan ? f.deurbel.camera : null;
+  return (g?.cameras ?? []).map((c) => {
+    const beelden = c.beelden.map((b) => b.id);
+    const id = beelden.find((b) => getoond.has(b) || b === bel) ?? [...c.beelden].sort((a, b) => Number(b.voorkeur) - Number(a.voorkeur))[0]?.id ?? beelden[0] ?? '';
+    const stand = cameraStand(id, g, bel, states, laatsteAan, aangebeldMs);
+    const momenten = (c.melders ?? []).flatMap((m) => keren.get(m.id) ?? []);
+    return {
+      ...stand,
+      beelden,
+      opThuis: beelden.some((b) => getoond.has(b) || b === bel),
+      vandaag: {
+        beweging: c.melders?.length ? telKeren(momenten, vanafMs) : null,
+        aangebeld: id === bel ? belKeren.filter((ms) => ms >= vanafMs).length : null,
+      },
+    };
   });
+}
+
+/**
+ * Hoe vaak iets gebeurde sinds `vanafMs`: momenten binnen een minuut van
+ * elkaar tellen als één keer, want een camera meldt een persoon en beweging
+ * vaak tegelijk.
+ */
+export function telKeren(momenten: readonly number[], vanafMs: number): number {
+  const op = momenten.filter((ms) => ms >= vanafMs).sort((a, b) => a - b);
+  let n = 0;
+  let vorige = -Infinity;
+  for (const ms of op) {
+    if (ms - vorige >= ZELFDE_MS) n += 1;
+    vorige = ms;
+  }
+  return n;
+}
+
+/** De melders van alle camera's, en die van de deurbel: om vandaag te tellen bij Apparaten. */
+export function alleCameraMelders(f: Functies, g: FunctiesGevonden | null): string[] {
+  return [...new Set([...(g?.cameras ?? []).flatMap((c) => (c.melders ?? []).map((m) => m.id)), ...(f.deurbel.aan && f.deurbel.melder ? [f.deurbel.melder] : [])])];
+}
+
+/**
+ * Wanneer elke melder aanging, uit `history/history_during_period` met
+ * `minimal_response`. Een gebeurtenis (`event.…`, zoals aanbellen bij Ring en
+ * Nest) heeft het moment als stand; de eerste regel is de stand van vóór het
+ * begin en telt dan niet.
+ */
+export function aanKerenHistorie(antwoord: unknown): Map<string, number[]> {
+  const uit = new Map<string, number[]>();
+  if (typeof antwoord !== 'object' || antwoord == null) return uit;
+  for (const [id, rij] of Object.entries(antwoord as Record<string, unknown>)) {
+    if (!Array.isArray(rij)) continue;
+    const keren: number[] = [];
+    (rij as Record<string, unknown>[]).forEach((x, i) => {
+      const t = typeof x?.['lc'] === 'number' ? x['lc'] : typeof x?.['lu'] === 'number' ? x['lu'] : null;
+      if (id.startsWith('event.')) {
+        const ms = typeof x?.['s'] === 'string' ? Date.parse(x['s']) : NaN;
+        if (i > 0 && Number.isFinite(ms)) keren.push(ms);
+      } else if (x?.['s'] === 'on' && t != null) keren.push(t * 1000);
+    });
+    uit.set(id, keren);
+  }
+  return uit;
 }
 
 /** Alle melders van de camera's die het huis toont, om hun historie op te halen en bij te houden. */

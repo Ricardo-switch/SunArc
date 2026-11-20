@@ -14,7 +14,7 @@ import type { LaadStand, LaadUitkomst, LaadVraag } from './laadhand.js';
 import type { StekkerStand, StekkerTot, StekkerUitkomst } from './stekkerhand.js';
 import type { LosseSensor, SchakelaarView } from './schakelaars.js';
 import type { LosseLaadpaal } from './opslag.js';
-import type { CameraNu } from './cameras.js';
+import type { CameraApparaat, CameraNu } from './cameras.js';
 import type { AanzetStand } from './assistent-aan.js';
 import type { InHuisStand } from './stem-in-huis.js';
 import type { SiteConfig } from '../core/model.js';
@@ -320,6 +320,8 @@ export interface WebOptions {
    * nu ziet of wanneer het laatst; de deurbel met wanneer er werd aangebeld.
    */
   readonly cameras?: () => readonly CameraNu[];
+  /** Alle camera's uit Home Assistant, voor Apparaten (20 november 2026): ook die niet op Thuis staan, met vandaag. */
+  readonly camerasAlle?: () => readonly CameraApparaat[];
   /**
    * Het profiel (besluit 181): de bewoners op volgorde en wiens comfort geldt,
    * en of een account een scherm is. Zonder dit is de wand van het huis.

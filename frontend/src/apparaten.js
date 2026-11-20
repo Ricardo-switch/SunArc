@@ -29,11 +29,13 @@ let huisData = null;
 /** De schakelaars met de keuzes van de bewoner (besluit 297), en of SunArc ze hier kan bedienen. */
 let schakelaarData = null;
 let opbrengst = null;
+/** Alle camera's uit Home Assistant (20 november 2026), met hoe vaak ze vandaag iets zagen. */
+let camData = null;
 /** Het antwoord op de laatste keuze per apparaat, tot het volgende besluit het overneemt. */
 const gezegd = new Map();
 
 async function laadAlles() {
-  const [s, v, z, a, h, o, sch] = await Promise.allSettled([haal('api/state'), haal('api/vandaag'), haal('api/zon'), haal('api/aansluiting'), haal('api/huis'), haal('api/opbrengst?soort=dag'), haal('api/schakelaars')]);
+  const [s, v, z, a, h, o, sch] = await Promise.allSettled([haal('api/state'), haal('api/vandaag'), haal('api/zon'), haal('api/aansluiting'), haal('api/huis'), haal('api/opbrengst?soort=dag'), haal('api/schakelaars'), haal('api/cameras?alle=1').then((x) => (camData = x)).catch(() => null)]);
   if (h.status === 'fulfilled') huisData = h.value;
   if (sch.status === 'fulfilled') schakelaarData = sch.value;
   if (o.status === 'fulfilled') opbrengst = o.value;
@@ -42,6 +44,7 @@ async function laadAlles() {
   if (z.status === 'fulfilled') zon = z.value;
   if (a.status === 'fulfilled') aansluiting = a.value;
   teken();
+  void camPlaatjes();
 }
 
 /* ------------------------------------------------------------ de ring */
@@ -508,10 +511,10 @@ function tekenZonchip() {
 /* ------------------------------------------------- de soorten (293) */
 
 /** De soorten, in deze volgorde op de pagina; een lege soort staat er niet. */
-const SOORTEN = ['klimaat', 'licht', 'water', 'witgoed', 'auto', 'energie', 'stekkers', 'schakelaars'];
-const SOORT_IK = { klimaat: 'airco', licht: 'lamp', water: 'boiler', witgoed: 'witgoed', auto: 'auto', energie: 'batterij', stekkers: 'stekker', schakelaars: 'apparaat' };
+const SOORTEN = ['klimaat', 'licht', 'cameras', 'water', 'witgoed', 'auto', 'energie', 'stekkers', 'schakelaars'];
+const SOORT_IK = { klimaat: 'airco', licht: 'lamp', cameras: 'camera', water: 'boiler', witgoed: 'witgoed', auto: 'auto', energie: 'batterij', stekkers: 'stekker', schakelaars: 'apparaat' };
 /** Het vlak achter het icoon van de soort, als r, g, b. */
-const SOORT_VLAK = { klimaat: '111, 211, 255', licht: '247, 181, 72', water: '255, 122, 77', witgoed: '110, 231, 183', auto: '143, 134, 255', energie: '110, 231, 183', stekkers: '201, 211, 220', schakelaars: '201, 211, 220' };
+const SOORT_VLAK = { klimaat: '111, 211, 255', licht: '247, 181, 72', cameras: '169, 156, 255', water: '255, 122, 77', witgoed: '110, 231, 183', auto: '143, 134, 255', energie: '110, 231, 183', stekkers: '201, 211, 220', schakelaars: '201, 211, 220' };
 /** Wat de dienst vond maar nog niet op zon staat: een stekker, een boiler of jacuzzi, of witgoed. */
 const soortVanGevonden = (s) => (s === 'stekker' ? 'stekkers' : s === 'boiler' || s === 'jacuzzi' ? 'water' : 'witgoed');
 
@@ -606,6 +609,173 @@ function stekkerRegel(s) {
 }
 
 /** Het icoon bij wat er aan een schakelaar hangt. */
+/* ------------------------------------------- de camera's (20 november 2026) */
+
+/*
+ * Camera's bij Apparaten (schets Wand-Apparaten-Cameras): een eigen soort na
+ * Licht. Eén camera is één kaart, zoals in Je huis één icoon: het beeld, wat
+ * er ook in zit (de schijnwerper met een schakelaar, de bewegingsmelder) en
+ * hoe vaak hij vandaag iets zag. Alle camera's uit Home Assistant; of hij op
+ * Thuis staat, kies je in zijn blad of bij Licht, camera's en weer.
+ */
+const camBeeld = new Map();
+const camOp = new Map();
+
+/** Verse plaatjes: hooguit elke minuut, en elke tien tellen bij een camera die nu iets ziet, zoals op Thuis. */
+async function camPlaatjes() {
+  if (document.hidden) return;
+  const nu = Date.now();
+  let nieuw = false;
+  await Promise.all(
+    (camData?.cameras ?? []).map(async (c) => {
+      if (nu - (camOp.get(c.id) ?? 0) < (c.nu ? 10_000 : 60_000)) return;
+      camOp.set(c.id, nu);
+      let res = null;
+      for (const id of [c.id, ...(c.reserve ?? [])]) {
+        res = await fetch(`api/camera?id=${encodeURIComponent(id)}`, { cache: 'no-store' }).catch(() => null);
+        if (res?.ok) break;
+      }
+      if (!res?.ok) return;
+      const oud = camBeeld.get(c.id);
+      camBeeld.set(c.id, URL.createObjectURL(await res.blob()));
+      if (oud) URL.revokeObjectURL(oud);
+      nieuw = true;
+    }),
+  );
+  if (nieuw) teken();
+}
+// Wat een camera ziet verandert snel: elke tien tellen kijken, en dan alleen de plaatjes die aan de beurt zijn.
+setInterval(async () => {
+  if (document.hidden || !camData?.cameras?.length) return;
+  camData = await haal('api/cameras?alle=1').catch(() => camData);
+  teken();
+  void camPlaatjes();
+}, 10_000);
+
+const camDag = (ms) => taal.datum(new Date(ms), { weekday: 'long', day: 'numeric', month: 'long' });
+const isVandaag = (ms) => new Date().toDateString() === new Date(ms).toDateString();
+
+/** Wat er onder het beeld staat, zoals op Thuis: wat hij nu ziet, bij de deurbel wanneer er werd aangebeld, anders wanneer het laatst. */
+function camZin(c) {
+  if (c.nu) return t('thuis.cam.nu', { wat: t(`thuis.cam.soort.${c.nu}`) });
+  if (c.deurbel) return c.aangebeldMs ? (isVandaag(c.aangebeldMs) ? t('thuis.deurbel.om', { klok: klokVan(c.aangebeldMs) }) : t('thuis.deurbel.laatst', { dag: camDag(c.aangebeldMs) })) : t('thuis.deurbel.nooit');
+  if (!c.melders) return '';
+  if (!c.laatsteMs) return t('thuis.cam.geen');
+  const wat = t(`thuis.cam.soort.${c.laatsteSoort ?? 'beweging'}`);
+  return isVandaag(c.laatsteMs) ? t('thuis.cam.om', { wat, klok: klokVan(c.laatsteMs) }) : t('thuis.cam.laatst', { wat, dag: camDag(c.laatsteMs) });
+}
+
+/** Alles in het huis, in een kamer of zonder, met de kamer erbij. */
+const huisAlles = () => [...(huisData?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).flatMap((r) => (r.apparaten ?? []).map((a) => ({ a, r })))), ...(huisData?.zonderRuimte ?? []).map((a) => ({ a, r: null }))];
+/** Waar de camera hangt: de kamer of plek van een van zijn beelden in het huis. */
+const camPlek = (c) => huisAlles().find((x) => c.beelden?.includes(x.a.id))?.r?.naam ?? '';
+/** De lampen die bij de camera horen (de schijnwerper), uit Je huis: hetzelfde apparaat in Home Assistant. */
+const camLampen = (c) => huisAlles().map((x) => x.a).filter((a) => a.soort === 'licht' && a.hoortBij && c.beelden?.includes(a.hoortBij));
+/** "Camera oprit schijnwerper" heet hier gewoon "Schijnwerper". */
+function zonderCamNaam(naam, cam) {
+  if (!naam.toLowerCase().startsWith(cam.toLowerCase())) return naam;
+  const rest = naam.slice(cam.length).trim();
+  return rest ? rest.charAt(0).toUpperCase() + rest.slice(1) : naam;
+}
+
+/** Wat er ook in zit: de lampen met een schakelaar, en de bewegingsmelder met wat hij zag. */
+function camErin(c) {
+  const mag = huisData?.lichtBedienen === true;
+  const lampen = camLampen(c).map((d) => {
+    const op = lampAan(d);
+    return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><span class="lnaam">${esc(zonderCamNaam(d.naam, c.naam))}<small>${esc(t(op ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit'))}</small></span><button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
+  });
+  const zag = c.nu ? t('apparaten.cam.zietNu') : c.laatsteMs ? (isVandaag(c.laatsteMs) ? t('apparaten.cam.laatst', { klok: klokVan(c.laatsteMs) }) : t('apparaten.cam.laatstDag', { dag: camDag(c.laatsteMs) })) : t('thuis.cam.geen');
+  const melder = c.melders ? `<div class="lamp melder${c.nu ? ' aan' : ''}"><span class="lik">${iconen.svg('beweging')}</span><span class="lnaam">${esc(t('apparaten.cam.melder'))}<small>${esc(zag)}</small></span></div>` : '';
+  return [...lampen, melder].join('');
+}
+
+/** Hoe vaak vandaag: de beweging, en bij de deurbel hoe vaak er werd aangebeld. */
+function camVandaag(c) {
+  const v = c.vandaag ?? {};
+  const delen = [];
+  if (v.aangebeld != null) delen.push(t(v.aangebeld === 0 ? 'apparaten.cam.belGeen' : v.aangebeld === 1 ? 'apparaten.cam.belEen' : 'apparaten.cam.belKeer', { n: v.aangebeld }));
+  if (v.beweging != null) delen.push(t(v.beweging === 0 ? 'apparaten.cam.bewegingGeen' : v.beweging === 1 ? 'apparaten.cam.bewegingEen' : 'apparaten.cam.bewegingKeer', { n: v.beweging }));
+  return delen.join(', ');
+}
+
+/** Het beeld met wat hij ziet erop; een tik toont hem groot en live. */
+function camBeeldHtml(c) {
+  const src = camBeeld.get(c.id);
+  const zin = camZin(c);
+  return `<button type="button" class="cambeeld${c.nu ? ' nu' : ''}${c.deurbel ? ' bel' : ''}" data-camgroot="${esc(c.id)}" aria-label="${esc(t('thuis.cam.groot', { naam: c.naam }))}">${src ? `<img alt="" src="${src}">` : ''}${c.deurbel && !c.naam.toLowerCase().includes(t('apparaten.cam.deurbel').toLowerCase()) ? `<span class="camnaam">${iconen.svg('deurbel')}${esc(t('apparaten.cam.deurbel'))}</span>` : ''}${zin ? `<span class="camzin"><i></i>${esc(zin)}</span>` : ''}</button>`;
+}
+
+function cameraKaart(c) {
+  const el = document.createElement('section');
+  el.className = `glas app cam${c.nu ? ' ziet' : ''}`;
+  el.dataset.actief = String(!!c.nu);
+  const vandaag = camVandaag(c);
+  const plek = camPlek(c);
+  el.innerHTML = `
+    <div class="kopje"><span class="ik" style="background: rgba(169, 156, 255, 0.14)">${iconen.svg(c.deurbel ? 'deurbel' : 'camera')}</span><div><b>${esc(c.naam)}</b>${plek ? `<span class="mini">${esc(plek)}</span>` : ''}</div><div class="kw"></div></div>
+    ${camBeeldHtml(c)}
+    <div class="camerin">${camErin(c)}</div>
+    ${vandaag ? `<div class="vandaag"><span>${esc(t('apparaten.cam.vandaag'))}</span><b>${esc(vandaag)}</b></div>` : ''}`;
+  return metBlad(el, `camera:${c.id}`, c.naam);
+}
+
+/** Hoeveel er nu iets zien, voor de kop van de soort. */
+function camSamen(kaarten) {
+  const n = kaarten.filter((k) => k.dataset.actief === 'true').length;
+  return n ? t('apparaten.cam.zietIets', { n }) : t('apparaten.rustig');
+}
+
+/** Het blad van een camera: het beeld, wat er ook in zit, of hij op Thuis staat, en hoe vaak vandaag. */
+function cameraBlad(id) {
+  const c = (camData?.cameras ?? []).find((x) => x.id === id);
+  if (!c) return null;
+  const vandaag = camVandaag(c);
+  const thuis = c.deurbel
+    ? regel(t('apparaten.cam.opThuis'), `<span class="mini">${esc(t('apparaten.cam.altijdThuis'))}</span>`)
+    : regel(t('apparaten.cam.opThuis'), `<button type="button" class="schakel${c.opThuis ? '' : ' uit'}" role="switch" aria-checked="${c.opThuis}" aria-label="${esc(t('apparaten.cam.opThuis'))}" data-opthuis="${esc(c.id)}"></button>`);
+  const erin = camErin(c);
+  return {
+    naam: c.naam,
+    zin: [camPlek(c), camZin(c)].filter(Boolean).join(' · '),
+    html: `<div class="camblad">${camBeeldHtml(c)}<p class="mini camlive">${esc(t('apparaten.cam.live'))}</p></div>${erin ? `<div class="in-groep"><h4>${esc(t('ht.app.zitErin'))}</h4><div class="camerin">${erin}</div></div>` : ''}${thuis}${vandaag ? regel(t('apparaten.cam.vandaag'), `<b>${esc(vandaag)}</b>`) : ''}<p class="hand-hoe">${esc(t('apparaten.cam.opnames'))}</p>`,
+  };
+}
+
+/** Op Thuis aan of uit: dezelfde keuze als bij Licht, camera's en weer, voor het hele huis. */
+async function zetOpThuis(id, aan) {
+  const c = (camData?.cameras ?? []).find((x) => x.id === id);
+  if (!c) return;
+  try {
+    const f = await haal('api/functies');
+    const keuze = structuredClone(f.instellingen ?? f.voorstel);
+    const lijst = (keuze.cameras.lijst ?? []).filter((x) => !c.beelden.includes(x));
+    if (aan) lijst.push(id);
+    keuze.cameras = { aan: lijst.length > 0, lijst };
+    await deur('api/functies', keuze);
+  } catch {
+    // Niet gelukt: de oude stand komt terug met het volgende antwoord.
+  }
+  camData = await haal('api/cameras?alle=1').catch(() => camData);
+  teken();
+  hand.verfris();
+}
+
+document.addEventListener('click', (e) => {
+  const doel = /** @type {Element} */ (e.target);
+  const groot = /** @type {HTMLElement | null} */ (doel.closest('[data-camgroot]'));
+  if (groot) {
+    const lijst = camData?.cameras ?? [];
+    const c = lijst.find((x) => x.id === groot.dataset.camgroot);
+    if (!c) return;
+    const andere = lijst.map((x) => ({ camera: x.id, reserve: x.reserve, naam: x.naam, zin: camZin(x), plaatje: camBeeld.get(x.id) ?? null, voorrang: x.deurbel }));
+    app.aanbellen({ camera: c.id, reserve: c.reserve, naam: c.naam, zin: camZin(c), titel: t('apparaten.soort.cameras'), schermAan: false, seconden: 120, voorrang: c.deurbel, andere });
+    return;
+  }
+  const thuis = /** @type {HTMLElement | null} */ (doel.closest('[data-opthuis]'));
+  if (thuis) void zetOpThuis(thuis.dataset.opthuis, thuis.getAttribute('aria-checked') !== 'true');
+});
+
 const WAT_IK = { lamp: 'lamp', kachel: 'warm', ventilator: 'ventilatie', pomp: 'vocht', boiler: 'boiler', fietslader: 'stekker', anders: 'apparaat' };
 /** Wat je net tikte bij een schakelaar, tot Home Assistant het doorgeeft. */
 const knopWens = new Map();
@@ -753,6 +923,7 @@ function vrijBlad(sleutel) {
   if (soort === 'schakelaar') return schakelaarBlad(id);
   if (soort === 'opzon') return opZonBlad(id);
   if (soort === 'laden') return ladenBlad(id);
+  if (soort === 'camera') return cameraBlad(id);
   // De lijst van laden en van de thuisaccu (besluit 318): zoals eerst bij Energie, nu vanuit Toevoegen.
   return null;
 }
@@ -914,6 +1085,8 @@ function kaartenPerSoort() {
     auto: [...(opslag.autos ?? (opslag.auto ? [opslag.auto] : [])).map((x) => ladingKaart('auto', x)), ...(aansluiting?.laden?.apparaten ?? []).filter((x) => x.rol === 'laadpaal' && x.aan).map(paalKaart)],
     energie: opslag.batterij ? [ladingKaart('batterij', opslag.batterij)] : [],
     // Een schakelaar met iets anders dan een lamp (besluit 297); een lamp staat bij Licht.
+    // Alle camera's (20 november 2026): één camera is één kaart, met wat er ook in zit.
+    cameras: (camData?.cameras ?? []).map(cameraKaart),
     schakelaars: (schakelaarData?.schakelaars ?? []).filter((x) => x.keuze && x.keuze.wat !== 'lamp' && !KLIMAAT_WAT.has(x.keuze.wat)).map(schakelaarKaart),
   };
   // Een kachel of ventilator achter een schakelaar bij Klimaat (besluit 300).
@@ -950,7 +1123,7 @@ function tekenNu() {
       } else {
         const kaarten = per[s] ?? [];
         if (!kaarten.length) continue;
-        blokken.push(soortBlok(s, kaarten, samenvatting(kaarten)));
+        blokken.push(soortBlok(s, kaarten, s === 'cameras' ? camSamen(kaarten) : samenvatting(kaarten)));
         aantal[s] = kaarten.length;
       }
       soortenNu.push(s);
