@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.217.0';
+export const VERSIE = '0.217.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,16 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.217.1',
+    datum: '2026-11-21',
+    beter: ['Het huis zoals getekend volgt het soort woning: een appartement zonder tuin, en met verdiepingen erboven zonder dak; een huis met een erf waar nog niets op staat, zie je dichtbij'],
+    opgelost: ['Het huis zoals getekend: een zolder die als berging begon, had in de tekening geen naam en geen temperatuur'],
+    en: {
+      beter: ['The house as drawn follows the kind of home: a flat without a garden, and without a roof when there are floors above; a house on a plot with nothing on it yet is shown close up'],
+      opgelost: ['The house as drawn: an attic that started as a storage room had no name and no temperature in the drawing'],
+    },
+  },
   {
     versie: '0.217.0',
     datum: '2026-11-21',

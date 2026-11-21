@@ -318,6 +318,14 @@
     const zon = model.zon ?? {};
     const panelen = [zon.panelen ? { aantal: zon.panelen, kant: 0 } : null, zon.panelenLinks ? { aantal: zon.panelenLinks, kant: 1 } : null].filter(Boolean);
     const tijd = model.tijd ?? 'dag';
+    /*
+     * Stap f (21 november 2026, het voorbeeldhuis en een appartement): een appartement is alleen de woning, zonder
+     * tuin en, met verdiepingen erboven, zonder dak; een erf waar nog niets op getekend is, staat niet als lege wei
+     * om het huis (alleen gras, geen gebouw of auto): dan het huis dichtbij.
+     */
+    const appartement = tk.huis.woning?.soort === 'appartement';
+    const leegErf = vlakken.every((v) => v.soort === 'gras') && !gebouwen.length && !auto;
+    const extra = appartement ? { buiten: {}, bomen: [], geenEiland: true, passend: 'huis', zonderDak: (tk.huis.woning?.erboven ?? 1) > 0, stroom: [] } : leegErf ? { passend: 'dichtbij', bomen: [] } : {};
     return {
       hoek: -58,
       hoogte: 27,
@@ -336,6 +344,7 @@
       rand: 36,
       // Tikken op de panelen opent Daken (zoals in het poppenhuis).
       ...(model.zon?.tik ? { panelenTik: model.zon.tik, panelenTikLabel: model.zon.tikLabel } : {}),
+      ...extra,
     };
   }
 
@@ -374,7 +383,7 @@
       const o = /** @type {any} */ (opties(staat.tk, model, huisData));
       if (soort === 'kamer') alsEtage(o, staat.tk, huisData, kamerId);
       else if (soort === 'rust') alsRust(o, avond, model);
-      else if (soort === 'tel') Object.assign(o, { passend: 'dichtbij', boven: 0, rand: 6, stroom: [] });
+      else if (soort === 'tel') Object.assign(o, { passend: o.passend === 'huis' ? 'huis' : 'dichtbij', boven: 0, rand: 6, stroom: [] });
       else o.boven = 90;
       // De telefoon (stap d): klein, dus zonder namen in de tekening; de kamers staan eronder.
       if (soort === 'tel' || tel) Object.assign(o, { stil: true, rand: 6 });

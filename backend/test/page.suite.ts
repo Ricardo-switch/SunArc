@@ -8385,6 +8385,100 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 90_000);
 
   /*
+   * Het huis zoals getekend (de nieuwe tekenaar, 21 november 2026, stap f): met
+   * een tekening in Je huis tekent Thuis het huis uit kit/huis-maat.js als het
+   * bij Weergave aan staat. Een tik met een vinger op een kamer opent die kamer,
+   * de kamer tekent zijn etage met de kamer opgelicht, de telefoon tekent het
+   * huis dichtbij, en in het Engels staat er geen kale tekstsleutel. Zonder
+   * tekening blijft het poppenhuis.
+   */
+  it('tekent het huis zoals getekend op Thuis, een kamer en de telefoon, en opent een kamer met een tik (stap f)', async () => {
+    const voor = layoutStore.current;
+    const zet = (aan: boolean) => fetch(`${baseUrl}/api/voorkeuren`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ plek: 'tel', weergave: { getekend: aan } }) });
+    try {
+      if (voor?.plattegrond) {
+        const { plattegrond: _weg, ...zonder } = voor;
+        await layoutStore.save(zonder);
+      }
+      expect((await zet(true)).status).toBe(200);
+      // Zonder tekening: het poppenhuis.
+      {
+        const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+        await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+        const p = await context.newPage();
+        await p.goto(`${baseUrl}/thuis.html`);
+        await p.waitForFunction(`document.querySelector('#podium-wand svg')`);
+        await p.waitForTimeout(1500);
+        expect(await p.locator('#podium-wand [id^="hm-"]').count()).toBe(0);
+        await context.close();
+      }
+      // Een begin-indeling op elke etage binnen, zoals een bewoner die in Je huis kiest.
+      {
+        const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+        await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+        const p = await context.newPage();
+        await p.goto(`${baseUrl}/jehuis.html#bg/kamers`);
+        await p.waitForFunction(`window.tekenaar && document.querySelector('#wand #tekening [data-l="vlak"] g')`);
+        const etages = await p.evaluate<string[]>(`window.tekenaar.huis.etages.filter((e) => !e.buiten).map((e) => e.id)`);
+        for (const e of etages) {
+          await p.evaluate(`window.tekenaar.zetEtage(${JSON.stringify(e)})`);
+          if (await p.evaluate<boolean>('window.tekenaar.isLeeg()')) await p.locator('#wand [data-ht="indeling"]').first().click();
+          await expect.poll(() => p.evaluate<boolean>('window.tekenaar.isLeeg()')).toBe(false);
+        }
+        await expect.poll(() => p.locator('#wand [data-bewaard]').textContent(), { timeout: 10_000 }).toBe('Bewaard');
+        await context.close();
+      }
+      for (const [naam, breed, hoog, taal] of [['wand', 1280, 800, 'nl'], ['telefoon', 390, 844, 'nl'], ['wand in het Engels', 1280, 800, 'en']] as const) {
+        const tel = breed < 600;
+        const podium = tel ? '#podium-tel' : '#podium-wand';
+        const context = await browser.newContext({ viewport: { width: breed, height: hoog }, hasTouch: true, isMobile: tel, timezoneId: 'UTC', locale: taal === 'en' ? 'en-GB' : 'nl-NL' });
+        await context.addInitScript((t) => localStorage.setItem('sc-taal', t), taal);
+        await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+        const p = await context.newPage();
+        const fouten: string[] = [];
+        p.on('pageerror', (e) => fouten.push(e.message));
+        await p.goto(`${baseUrl}/thuis.html`);
+        await p.waitForFunction(`!!document.querySelector('${podium} [id^="hm-"]') && !!document.querySelector('${podium} .sc-tik[data-kamer]')`, undefined, { timeout: 20_000 });
+        // Geen kale tekstsleutels in de tekening, en de wand schuift niet.
+        expect(await p.locator(podium).textContent(), naam).not.toMatch(/\b(ht|thuis|eigen)\.[a-z]/);
+        if (!tel) expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return !m || (m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1); })()`), naam).toBe(true);
+        // Een plek waar de tik bij een kamer binnen hoort, en daar met een vinger tikken.
+        const plek = await p.evaluate<{ x: number; y: number; kamer: string } | null>(`(() => {
+          for (const el of document.querySelectorAll('${podium} .sc-tik[data-kamer]')) {
+            if (el.dataset.zone) continue;
+            el.scrollIntoView({ block: 'center' });
+            const r = el.getBoundingClientRect();
+            for (let i = 0; i < 81; i++) {
+              const x = r.left + r.width * (0.1 + 0.1 * (i % 9)), y = r.top + r.height * (0.1 + 0.1 * Math.floor(i / 9));
+              const top = document.elementFromPoint(x, y);
+              if (top === el) return { x, y, kamer: el.dataset.kamer };
+            }
+          }
+          return null;
+        })()`);
+        expect(plek, naam).not.toBeNull();
+        const buiten = await p.evaluate<boolean>(`window.buitenBlad.isBuiten(${JSON.stringify(await (await fetch(`${baseUrl}/api/huis`)).json())}, ${JSON.stringify(plek!.kamer)})`);
+        const cdp = await context.newCDPSession(p);
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: plek!.x, y: plek!.y }] });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        if (buiten) {
+          await expect.poll(() => p.evaluate(`[...document.querySelectorAll('[data-weer]')].some((b) => !b.hidden)`), { timeout: 5_000 }).toBe(true);
+        } else {
+          await p.waitForURL(`**/kamer.html#${encodeURIComponent(plek!.kamer)}`, { timeout: 10_000 });
+          // De kamer: zijn etage, de kamer opgelicht (een rand om zijn vloer).
+          await p.waitForFunction(`!!document.querySelector('${podium} [id^="hm-"]')`, undefined, { timeout: 20_000 });
+          if (!tel) expect(await p.locator(`${podium} path[stroke="#bfe6ff"]`).count(), naam).toBeGreaterThan(0);
+        }
+        expect(fouten, naam).toEqual([]);
+        await context.close();
+      }
+    } finally {
+      await zet(false);
+      if (voor) await layoutStore.save(voor);
+    }
+  }, 150_000);
+
+  /*
    * Je huis, stap 6 (de telefoon en Engels af): alle vier de standen op de
    * telefoon in het Engels. Geen afgekapte tekst (de etagebalk heeft korte
    * namen), geen kale tekstsleutels, de maten van het huis in 3D binnen de

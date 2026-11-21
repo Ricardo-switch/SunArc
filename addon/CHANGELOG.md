@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.217.0
+## 0.217.1
 
-*21 november 2026 · 0.179.0 – 0.217.0*
+*21 november 2026 · 0.179.0 – 0.217.1*
 
 **Nieuw**
 
@@ -89,6 +89,7 @@
 
 **Beter**
 
+- Het huis zoals getekend volgt het soort woning: een appartement zonder tuin, en met verdiepingen erboven zonder dak; een huis met een erf waar nog niets op staat, zie je dichtbij
 - Het huis zoals getekend ook op de telefoon: op Thuis het huis dichtbij, op een kamer de etage met meubels; zonder namen in de tekening (die staan eronder), en tikken werkt
 - Het huis zoals getekend: tik op een kamer om hem te openen, op de tuin, het terras, de oprit, de garage of het tuinhuis voor hun blad, en op de panelen voor de zon op je daken; op een kamer tik je een andere kamer van de etage aan
 - Het huis zoals getekend: de deurbel, camera’s, het zonnescherm en de buitenunits hangen aan de muur die het dichtst ligt bij waar ze in Je huis staan; de stroom van het net loopt naar de voordeur uit de tekening; de auto staat in de lengte van de oprit; een boom alleen als er in de voortuin ruimte voor is
@@ -178,6 +179,7 @@
 
 **Opgelost**
 
+- Het huis zoals getekend: een zolder die als berging begon, had in de tekening geen naam en geen temperatuur
 - Je huis › Huis: een gebouw dat los op het erf staat (een tuinhuis van de kaart) hing als los dak in de verte, en maakte het huis kleiner in beeld
 - Je huis › Vorm: een gebouw op maat trekken schoof het opzij als het huis op de kaart samen met de garage één gebouw is
 - Je huis: wordt je huis op de kaart dieper of breder, dan blijft er geen strook "Wat is dit?" langs de gevel over; de kamers ernaast lopen door tot de gevel
@@ -309,6 +311,7 @@
 
 **Improved**
 
+- The house as drawn follows the kind of home: a flat without a garden, and without a roof when there are floors above; a house on a plot with nothing on it yet is shown close up
 - The house as drawn on the phone too: on Home the house close up, in a room the floor with furniture; without names in the drawing (they are below it), and tapping works
 - The house as drawn: tap a room to open it, the garden, terrace, driveway, garage or garden shed for their sheet, and the panels for the sun on your roofs; in a room, tap another room on the floor
 - The house as drawn: the doorbell, cameras, the awning and the outdoor units hang on the wall closest to where they are in Your home; the grid line runs to the front door from the drawing; the car follows the length of the driveway; a tree only if the front garden has room
@@ -398,6 +401,7 @@
 
 **Fixed**
 
+- The house as drawn: an attic that started as a storage room had no name and no temperature in the drawing
 - Your home › House: a building standing apart on the plot (a garden shed from the map) floated as a loose roof in the distance, and made the house smaller in view
 - Your home › Shape: pulling a building to its size moved it sideways when the house and the garage are one building on the map
 - Your home: if your house becomes deeper or wider on the map, no "What is this?" strip is left along the wall; the rooms next to it run up to the wall

@@ -208,7 +208,8 @@
     const zWeg = 0;
     // Wazig erboven alleen bij een etage met ook een etage eronder; de begane grond staat alleen (Ricardo, 21 november 2026).
     if (eenEtage >= 0) lagen.forEach((l, i) => (l.vaag = i === eenEtage ? null : i === eenEtage - 1 ? 'onder' : i === eenEtage + 1 && eenEtage > 0 && !lagen[eenEtage].bovenste ? 'boven' : 'weg'));
-    const metDak = eenEtage < 0;
+    // Een appartement met verdiepingen erboven (`o.zonderDak`, 21 november 2026): het dak hoort bij het gebouw, niet bij de woning.
+    const metDak = eenEtage < 0 && !o.zonderDak;
 
     // Kijken: vanaf de straat, gedraaid om het midden, iets lager dan in Je huis zodat je de etages in kijkt.
     const om = omtrek(lagen[0].v);
@@ -259,7 +260,7 @@
      * een plek is (Infinity buiten het hoofdhuis of bij een plat dak), zodat
      * muren daar ophouden en een vloer niet onder het dak uitsteekt.
      */
-    const hd = daken.find((d) => d.b.soort === 'hoofdhuis');
+    const hd = o.zonderDak ? null : daken.find((d) => d.b.soort === 'hoofdhuis');
     const dakZ = (x, y) => {
       if (!hd || !/zadel|schild/.test(hd.b.dak ?? '')) return Infinity;
       const haaks = hd.b.nokLangs === 'y';
@@ -1505,7 +1506,9 @@
       for (const [id, r] of Object.entries(v.ruimtes)) {
         const naam = t.naamVan(r);
         const rr = mm[id]?.r;
-        if (band || o.stil || !naam || !rr || DICHT.test(ruimteSoort(id))) continue;
+        // Een berging zonder iets te melden blijft zonder naam; een zolder die als berging begint maar een temperatuur heeft
+        // (stap f, 21 november 2026: de begin-indeling van het voorbeeldhuis) krijgt hem wel.
+        if (band || o.stil || !naam || !rr || (DICHT.test(ruimteSoort(id)) && !kamerInfo[kamerVan(r)])) continue;
         // Een trap of overloop zonder iets te melden krijgt geen naam: de treden zeggen het al (en het label viel op de auto).
         if (!kamerInfo[kamerVan(r)] && /trap|overloop/.test(ruimteSoort(id))) continue;
         const hoeken = [[rr.x0, rr.y0], [rr.x1, rr.y0], [rr.x1, rr.y1], [rr.x0, rr.y1]].map(([x, y]) => [m(x), m(y)]);
