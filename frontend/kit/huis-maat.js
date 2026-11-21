@@ -342,6 +342,38 @@
     };
     const pt = (x, y, zz) => P(x, y, zz).map((n) => n.toFixed(1)).join(' ');
     const vlak = (pp) => `M${pp.map((p) => pt(...p)).join('L')}Z`;
+    /*
+     * Tikken (21 november 2026, stap c van de nieuwe tekenaar; `o.tik`): onzichtbare vlakken met data-kamer (en
+     * data-zone voor een deel buiten, `kamer~zone`), zoals in het poppenhuis, zodat Thuis en een kamer er hetzelfde op
+     * reageren. In de volgorde van tekenen: wat erover ligt, vangt de tik. De panelen (`o.panelenTik`) liggen onderop,
+     * zodat een kamer op zolder onder het dak altijd te tikken is.
+     */
+    const tikLaag = [];
+    const kamerData = (kamer) => {
+      if (!kamer || String(kamer).startsWith('@')) return '';
+      const [kk, zz] = String(kamer).split('~');
+      return ` data-kamer="${esc(kk)}"${zz ? ` data-zone="${esc(zz)}"` : ''}`;
+    };
+    const tikAttr = (kamer, naam) => (o.tik && kamerData(kamer) ? `class="sc-tik"${kamerData(kamer)} fill="transparent" role="link" tabindex="0" aria-label="${esc(naam ?? String(kamer).split('~').pop())}" style="cursor: pointer"` : null);
+    /** Een onzichtbaar vlak om de hele doos (het omhulsel van de hoeken op het scherm). */
+    const omhulsel = (x0, x1, y0, y1, z0, z1) => {
+      const pp = [];
+      for (const x of [x0, x1]) for (const y of [y0, y1]) for (const zz of [z0, z1]) pp.push(P(x, y, zz));
+      pp.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+      const kruis = (o2, a, b) => (a[0] - o2[0]) * (b[1] - o2[1]) - (a[1] - o2[1]) * (b[0] - o2[0]);
+      const onder = [];
+      for (const q of pp) {
+        while (onder.length >= 2 && kruis(onder[onder.length - 2], onder[onder.length - 1], q) <= 0) onder.pop();
+        onder.push(q);
+      }
+      const boven = [];
+      for (const q of [...pp].reverse()) {
+        while (boven.length >= 2 && kruis(boven[boven.length - 2], boven[boven.length - 1], q) <= 0) boven.pop();
+        boven.push(q);
+      }
+      const rand = [...onder.slice(0, -1), ...boven.slice(0, -1)];
+      return `M${rand.map((q) => `${q[0].toFixed(1)} ${q[1].toFixed(1)}`).join('L')}Z`;
+    };
     /** Een muur van het huis: niet hoger dan het dak op die plek. */
     const onder = ([x, y, zz]) => [x, y, Math.min(zz, dakZ(x, y))];
     // Komt het dak lager dan de vloer, dan valt de muur weg (hij hing anders onder de vloer, 20 november 2026).
@@ -612,6 +644,8 @@
     // Buiten: eerst de grond (terras, oprit, border), dan wat achter het huis staat; wat ervoor staat komt na het huis.
     const GROND = { terras: ['#6a5f50', '#97866d'], oprit: ['#3c4655', '#5c6878'], pad: ['#4a5260', '#6b7686'], border: ['#2e5a3c', '#4f8a5f'], gras: ['#2f5a40', '#3f7352'] };
     for (const v of buiten.vlakken ?? []) {
+      const ta = tikAttr(v.kamer, v.naam);
+      if (ta) tikLaag.push(`<path d="${vlak(v.p.map(([x, y]) => [x, y, 0.02]))}" ${ta}/>`);
       const [vul, rand] = GROND[v.soort] ?? GROND.pad;
       s += `<path d="${vlak(v.p.map(([x, y]) => [x, y, 0.02]))}" fill="${vul}" stroke="${rand}" stroke-width="0.8"/>`;
       // Tegels op een terras en een oprit: een raster van lijnen, langs de assen.
@@ -826,6 +860,8 @@
         x2 += `<rect x="${(l[0] - 4).toFixed(1)}" y="${(l[1] - 1.5).toFixed(1)}" width="8" height="3" rx="1.5" fill="${spotsAan ? '#FFD39A' : '#55626f'}"/>`;
       }
       x2 += gebouwNaam(q, h + 0.6);
+      const ta = tikAttr(q.kamer, q.naam);
+      if (ta) tikLaag.push(`<path d="${omhulsel(q.x, q.x + q.b, q.y, q.y + q.d, 0, h + 0.2)}" ${ta}/>`);
       return x2;
     };
     /** De naam boven een gebouw. */
@@ -838,6 +874,8 @@
     /** Een gebouw uit de vaste lijst (garage, schuurtje, carport), met de voorkant naar de kant met de kleinste y. */
     const gebouw = (q) => {
       const h = q.h ?? MOD.MODELLEN[q.soort].h;
+      const ta = tikAttr(q.kamer, q.naam);
+      if (ta) tikLaag.push(`<path d="${omhulsel(q.x, q.x + q.b, q.y, q.y + q.d, 0, h + (q.soort === 'schuur' ? Math.min(q.b, 3) * 0.38 : 0.2))}" ${ta}/>`);
       const x2 = zetModel(q.soort, { x: q.x + q.b / 2, y: q.y + q.d, z: 0, wand: 'y', kant: -1 }, { b: q.b, d: q.d, h })?.s ?? '';
       return x2 + gebouwNaam(q, h + (q.soort === 'schuur' ? Math.min(q.b, 3) * 0.38 : 0) + 0.4);
     };
@@ -1154,6 +1192,8 @@
         s += `<path d="${paden.join('')}" fill="#152238"/><path d="${paden.join('')}" fill="rgb(${tint} / ${gekozen ? 0.42 : naam ? 0.2 : 0.06})"/>`;
         if (gekozen) s += `<path d="${paden.join('')}" fill="none" stroke="#bfe6ff" stroke-opacity="0.75" stroke-width="1.6" stroke-linejoin="round"/>`;
         if (gloed) s += `<path d="${paden.join('')}" fill="${gloed}" fill-opacity="0.16"/>`;
+        const ta = tikAttr(kamerVan(r), naam);
+        if (ta) tikLaag.push(`<path d="${paden.join('')}" ${ta}/>`);
       }
       // De zones: een stippellijn over de vloer, met de naam van elke kant klein op de vloer.
       const was0 = st.etage;
@@ -1495,7 +1535,7 @@
         // Past het label nergens, dan op één regel: de naam en de temperatuur (zoals in het poppenhuis).
         const wk = (naam.length + (info?.temp ?? '').length + 1) * 7;
         const kort = info?.temp ? { x: p[0] - wk / 2, y: p[1] - 12, b: wk, h: 15, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}><text y="0" ${midden} font-size="12.5" font-weight="700" fill="#dfe6ec">${esc(naam)} <tspan font-weight="800" fill="${TOON[info.toon] && info.toon !== 'goed' ? TOON[info.toon] : '#ffffff'}">${esc(info.temp)}</tspan></text></g>` } : null;
-        labels.push({ x: p[0] - w / 2, y: p[1] - 12, b: w, h, prio: info?.temp ? 3 : info ? 2 : 0, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}>${regels}</g>`, kader: true, kort });
+        labels.push({ x: p[0] - w / 2, y: p[1] - 12, b: w, h, prio: info?.temp ? 3 : info ? 2 : 0, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}>${regels}</g>`, kader: true, kort, kamer: kamerVan(r) });
       }
       // De vloerrand van de etage erboven: een dunne plaat langs de glazen kant.
       if (erboven && !band) {
@@ -1552,7 +1592,10 @@
           continue;
         }
         s += `<path d="${vlak(v.p)}" fill="rgb(191 230 255 / 0.05)" stroke="#9fd8ff" stroke-opacity="0.4" stroke-width="1.1" stroke-dasharray="5 4" stroke-linejoin="round"/>`;
-        if (d === hoofdDak && v.dak && paneelVan(v)) s += `<g opacity="0.55">${paneelVeld(d, v)}</g>`;
+        if (d === hoofdDak && v.dak && paneelVan(v)) {
+          s += `<g opacity="0.55">${paneelVeld(d, v)}</g>`;
+          if (o.tik && o.panelenTik) tikLaag.unshift(`<path d="${vlak(v.p)}" class="sc-tik" data-tik="${esc(o.panelenTik)}" fill="transparent" role="button" tabindex="0"${o.panelenTikLabel ? ` aria-label="${esc(o.panelenTikLabel)}"` : ''} style="cursor: pointer"/>`);
+        }
       }
       for (const kp of d.kapellen) if (naarKijker(...kp.voor.n)) s += kapel(kp);
       // De nok als dunne lijn.
@@ -1673,6 +1716,7 @@
     s = s.replace(ACHTER, () => achterStuk);
     s += (buiten.apparaten ?? []).filter((a) => !achterKant(a)).map(buitenApparaat).join('');
     s += zonneboog(false);
+    s += tikLaag.join('');
         // De namen bovenop. Wat botst schuift een stukje op of neer; past het nergens, dan valt het weg. De kamers met een temperatuur gaan voor.
     labels.sort((a, b) => b.prio - a.prio);
     const gezet = [];
@@ -1683,7 +1727,9 @@
         const r = { x0: l.x - 4 + dx, y0: l.y - 6 + dy, x1: l.x + l.b + 4 + dx, y1: l.y + l.h + dy };
         if (r.y0 < 2 || r.y1 > Hpx - 2 || r.x0 < 2 || r.x1 > B - 2 || gezet.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0)) continue;
         gezet.push(r);
-        s += dx || dy ? `<g transform="translate(${dx} ${dy.toFixed(1)})">${l.s}</g>` : l.s;
+        // Een naam van een kamer is ook te tikken.
+        const inh = o.tik && l.kamer && kamerData(l.kamer) ? `<g class="sc-kamer"${kamerData(l.kamer)} style="cursor: pointer">${l.s}</g>` : l.s;
+        s += dx || dy ? `<g transform="translate(${dx} ${dy.toFixed(1)})">${inh}</g>` : inh;
         return true;
       }
       return false;

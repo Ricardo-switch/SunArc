@@ -159,7 +159,8 @@
     const vlakken = [];
     for (const r of rects) {
       const grond = { oprit: 'oprit', voortuin: 'gras', tuin: 'gras', achtertuin: 'gras', terras: 'terras', border: 'border' }[kamerSoort(vloer.ruimtes[r.id]?.kamer)];
-      if (grond) vlakken.push({ soort: grond, p: [[r.x0, r.y0], [r.x1, r.y0], [r.x1, r.y1], [r.x0, r.y1]], ...(grond === 'terras' ? { meubels: true } : {}) });
+      const kamer = vloer.ruimtes[r.id]?.kamer;
+      if (grond) vlakken.push({ soort: grond, p: [[r.x0, r.y0], [r.x1, r.y0], [r.x1, r.y1], [r.x0, r.y1]], kamer, naam: kamerVan(kamer)?.naam, ...(grond === 'terras' ? { meubels: true } : {}) });
     }
     // Op het terras één tafel: alleen op het grootste stuk.
     const vopp = (v) => (v.p[2][0] - v.p[0][0]) * (v.p[2][1] - v.p[0][1]);
@@ -168,7 +169,7 @@
     const blok = (soort) => erfE?.blokken?.find((b) => b.soort === soort || b.id === soort);
     const getekend = (soort) => {
       const r = plek(soort)[0];
-      if (r) return { x: r.x0, y: r.y0, b: r.x1 - r.x0, d: r.y1 - r.y0, naam: kamerVan(vloer.ruimtes[r.id]?.kamer)?.naam };
+      if (r) return { x: r.x0, y: r.y0, b: r.x1 - r.x0, d: r.y1 - r.y0, naam: kamerVan(vloer.ruimtes[r.id]?.kamer)?.naam, kamer: vloer.ruimtes[r.id]?.kamer };
       const b = blok(soort);
       return b ? { x: b.u, y: b.v, b: b.b, d: b.d } : null;
     };
@@ -327,6 +328,8 @@
       stroom,
       buiten: { erf, vlakken, gebouwen, apparaten, units, ...(auto ? { auto } : {}) },
       rand: 36,
+      // Tikken op de panelen opent Daken (zoals in het poppenhuis).
+      ...(model.zon?.tik ? { panelenTik: model.zon.tik, panelenTikLabel: model.zon.tikLabel } : {}),
     };
   }
 
@@ -365,6 +368,8 @@
       if (soort === 'kamer') alsEtage(o, staat.tk, huisData, kamerId);
       else if (soort === 'rust') alsRust(o, avond, model);
       else o.boven = 90;
+      // Tikken op een kamer, een deel buiten of de panelen, zoals in het poppenhuis (niet als niemand kijkt).
+      if (soort !== 'rust') o.tik = true;
       const uit = global.huisMaat.teken(staat.tk, B, H, o);
       el.innerHTML = `<svg viewBox="0 0 ${B} ${H}" width="${B}" height="${H}" role="img" aria-label="${global.app.esc(t('thuis.hetHuis'))}">${uit.svg}</svg>`;
       return true;
