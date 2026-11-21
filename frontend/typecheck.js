@@ -38,7 +38,7 @@ const OP_WINDOW = [
   'app', 't', 'taal', 'iconen', 'nav', 'huis', 'huisMaat', 'huismodel', 'huistekenen', 'huistekenen3d', 'woningDeel', 'autoTekening', 'warmte', 'instellen', 'laden', 'thuisaccu',
   'waaier', 'zon', 'sankey', 'stromen', 'tekenaar', 'tedoen', 'stroomblad', 'stroomNu', 'stand', 'rondleiding', 'plannen',
   'paalblad', 'niemand', 'melden', 'luisteren', 'klaarstappen', 'hand', 'groep', 'gevoel', 'film', 'fasekaart', 'eigen',
-  'buitenBlad', 'scThema', 'scVoorbeeldVerschil', 'qrcode',
+  'buitenBlad', 'scThema', 'scVoorbeeldVerschil', 'qrcode', 'huisModellen', 'huisVoor', 'huisThuis',
 ];
 
 const OPTIES = {

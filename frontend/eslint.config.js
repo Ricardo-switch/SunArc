@@ -19,7 +19,7 @@ const GEDEELD = [
   'app', 't', 'taal', 'iconen', 'nav', 'huis', 'huisMaat', 'huismodel', 'huistekenen', 'huistekenen3d', 'woningDeel', 'autoTekening', 'warmte', 'instellen', 'laden', 'thuisaccu',
   'waaier', 'zon', 'sankey', 'stromen', 'tekenaar', 'tedoen', 'stroomblad', 'stroomNu', 'stand', 'rondleiding', 'plannen',
   'paalblad', 'niemand', 'melden', 'luisteren', 'klaarstappen', 'hand', 'groep', 'gevoel', 'film', 'fasekaart', 'eigen',
-  'buitenBlad', 'scThema', 'scVoorbeeldVerschil',
+  'buitenBlad', 'scThema', 'scVoorbeeldVerschil', 'huisModellen', 'huisVoor', 'huisThuis',
   // Via een const bovenaan een gedeeld script.
   'dakvlakken', 'laden', 'thuisaccu', 'vermogens', 'ligging', 'zekering', 'contract', 'ditScherm',
 ];

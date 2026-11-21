@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.215.1
+## 0.216.0
 
-*20 november 2026 · 0.179.0 – 0.215.1*
+*21 november 2026 · 0.179.0 – 0.216.0*
 
 **Nieuw**
 
+- Thuis, een kamer en het scherm als niemand kijkt kunnen het huis tekenen zoals het in Je huis staat: met de echte vorm, het erf, de gebouwen, meubels per kamer en je apparaten op hun plek. Voorlopig om te proberen, met ?tekenaar=maat achter het adres (?tekenaar=poppenhuis zet het terug); het poppenhuis blijft gewoon
 - Je huis › Vorm: de straat van je adres staat onder, met Klopt dit?. Liggen er twee straten bij je huis, dan kies je in Waar is de straat welke aan de voorkant ligt, of zelf een kant
 - Je huis: een huis buiten Nederland krijgt de lagen, de hoogte en het dak uit OpenStreetMap als die erin staan; Wat de plattegrond weet zegt per getal of het van de kaart komt of geschat is
 - Je huis › Vorm: het afdak voor of achter je huis komt uit de dakdelen van de 3D-kaart en is een eigen stuk, met zijn eigen dak en het label Nieuw tot je het aantikt
@@ -218,6 +219,7 @@
 
 **New**
 
+- Home, a room and the screen when nobody is looking can draw the house as it is in Your home: the real shape, the plot, the buildings, furniture per room and your devices in place. For now to try out, with ?tekenaar=maat after the address (?tekenaar=poppenhuis switches back); the dollhouse stays
 - Your home › Shape: the street of your address is at the bottom, with Is that right?. With two streets by your home, choose in Where is the street which one is at the front, or pick a side yourself
 - Your home: a home outside the Netherlands gets its floors, height and roof from OpenStreetMap where they are known; What the floor map knows says for each number whether it is from the map or estimated
 - Your home › Shape: the canopy at the front or back comes from the roof parts of the 3D map and is a part of its own, with its own roof and the label New until you tap it

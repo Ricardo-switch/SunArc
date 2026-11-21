@@ -275,6 +275,8 @@
     };
     const breed = nacht ? 600 : 720;
     const hoog = nacht ? 480 : 700;
+    // Het huis zoals getekend (src/huisthuis.js) als die aan staat, met overdag de zonneboog; anders het poppenhuis.
+    if (global.huisThuis?.teken(vak, stil, { soort: 'rust', breedte: breed, hoogte: hoog, huisData: bron?.huis?.() ?? null, avond: nacht, opnieuw: () => toont && tekenHuis(laag().querySelector('[data-nk-huis]')) })) return;
     global.huis.teken(vak, stil, { breedte: breed, hoogte: hoog, marge: 0.04 });
   }
 

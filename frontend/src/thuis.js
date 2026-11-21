@@ -347,7 +347,10 @@ function tekenNu() {
   if (blad === 'batterij' && $$('[data-weer]').some((x) => !x.hidden)) tekenBatterijen();
   if (blad === 'buiten' && buitenKeuze && $$('[data-weer]').some((x) => !x.hidden)) tekenBuiten();
   const wandPodium = document.getElementById('podium-wand');
-  if (!app.telStand()) huis.teken(wandPodium, model, { breedte: wandPodium.clientWidth || 860, hoogte: 612, marge: 0.04, schuifX: 10, schuifY: 10, tik: true });
+  // Het huis zoals getekend in Je huis (stap a van de nieuwe tekenaar, src/huisthuis.js), als die aan staat; anders het poppenhuis.
+  if (!app.telStand()) {
+    if (!window.huisThuis?.teken(wandPodium, model, { breedte: wandPodium.clientWidth || 860, hoogte: 612, huisData, opnieuw: tekenNu })) huis.teken(wandPodium, model, { breedte: wandPodium.clientWidth || 860, hoogte: 612, marge: 0.04, schuifX: 10, schuifY: 10, tik: true });
+  }
   // Eenvoudig (besluit 164): geen getallen op het huis.
   else huis.teken(document.getElementById('podium-tel'), { ...model, etages: model.etages.map((et) => ({ ...et, kamers: et.kamers.map((k) => ({ ...k, stil: true })) })), labels: app.weergave().eenvoudig ? [] : model.labels.filter((l) => l.bij === 'panelen' || l.bij === 'boiler' || l.bij === 'jacuzzi').map((l) => (l.bij === 'panelen' ? { ...l, dx: -40, dy: -84 } : { ...l, groot: false, dx: 30, dy: -52 })) }, { breedte: 390, hoogte: 330, marge: 0.03, schuifY: -6, tik: true });
   tekenStromenTel();
