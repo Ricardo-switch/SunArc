@@ -668,6 +668,8 @@
   'eigen.wg.feestZin': 'A pumpkin at Halloween, lights at Christmas, fireworks at New Year, eggs at Easter.',
   'eigen.wg.zon': 'The path of the sun',
   'eigen.wg.zonZin': 'On Home the dotted arc, in Solar panels on the wall a ring with the hours, sunrise and sunset. Off: just the sun itself.',
+  'eigen.wg.getekend': 'The house as drawn',
+  'eigen.wg.getekendZin': 'On Home, a room and the wall when nobody is looking your house as in Your home: the real shape, your rooms with furniture and your devices. Off: the dollhouse.',
 
   // A room (kamer.js)
   'kamer.huis': 'House',

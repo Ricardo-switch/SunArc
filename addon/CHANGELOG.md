@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.216.4
+## 0.217.0
 
-*21 november 2026 · 0.179.0 – 0.216.4*
+*21 november 2026 · 0.179.0 – 0.217.0*
 
 **Nieuw**
 
+- Weergave › Huis: Het huis zoals getekend. Aan: op Thuis, een kamer en de wand als niemand kijkt je huis zoals in Je huis, met de echte vorm, je kamers met meubels en je apparaten. Uit (zoals het was): het poppenhuis. Het geldt voor jou op elk scherm, en op de wand voor wie hij volgt
 - Thuis, een kamer en het scherm als niemand kijkt kunnen het huis tekenen zoals het in Je huis staat: met de echte vorm, het erf, de gebouwen, meubels per kamer en je apparaten op hun plek. Voorlopig om te proberen, met ?tekenaar=maat achter het adres (?tekenaar=poppenhuis zet het terug); het poppenhuis blijft gewoon
 - Je huis › Vorm: de straat van je adres staat onder, met Klopt dit?. Liggen er twee straten bij je huis, dan kies je in Waar is de straat welke aan de voorkant ligt, of zelf een kant
 - Je huis: een huis buiten Nederland krijgt de lagen, de hoogte en het dak uit OpenStreetMap als die erin staan; Wat de plattegrond weet zegt per getal of het van de kaart komt of geschat is
@@ -225,6 +226,7 @@
 
 **New**
 
+- Display › House: The house as drawn. On: on Home, a room and the wall when nobody is looking your house as in Your home, with the real shape, your rooms with furniture and your devices. Off (as before): the dollhouse. It applies to you on every screen, and on the wall to whoever it follows
 - Home, a room and the screen when nobody is looking can draw the house as it is in Your home: the real shape, the plot, the buildings, furniture per room and your devices in place. For now to try out, with ?tekenaar=maat after the address (?tekenaar=poppenhuis switches back); the dollhouse stays
 - Your home › Shape: the street of your address is at the bottom, with Is that right?. With two streets by your home, choose in Where is the street which one is at the front, or pick a side yourself
 - Your home: a home outside the Netherlands gets its floors, height and roof from OpenStreetMap where they are known; What the floor map knows says for each number whether it is from the map or estimated

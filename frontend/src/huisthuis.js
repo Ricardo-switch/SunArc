@@ -25,7 +25,11 @@
   const SLEUTEL = 'sc-tekenaar';
   const t = (k, p) => global.t(k, p);
 
-  /** Staat de nieuwe tekenaar aan op dit scherm? Het adres zet het (en onthoudt het). */
+  /**
+   * Staat de nieuwe tekenaar aan? Bij Weergave (Het huis zoals getekend, voor jou op elk scherm). Het adres kan het op
+   * één scherm nog anders zetten (`?tekenaar=maat` of `?tekenaar=poppenhuis`, dat scherm onthoudt het tot je bij
+   * Weergave kiest).
+   */
   function aan() {
     let keuze = null;
     try {
@@ -35,7 +39,8 @@
     } catch {
       // Zonder opslag: alleen wat het adres zegt.
     }
-    return keuze === 'maat';
+    if (keuze === 'maat' || keuze === 'poppenhuis') return keuze === 'maat';
+    return global.app?.weergave?.()?.getekend === true;
   }
 
   const staat = { tk: null, bezig: null, fout: false };
@@ -317,7 +322,8 @@
       hoek: -58,
       hoogte: 27,
       lucht: 0,
-      seizoen: model.seizoen ?? 'herfst',
+      // Het seizoen kan uit bij Weergave: dan een groene zomer.
+      seizoen: global.app?.weergave?.()?.seizoen === false ? 'zomer' : model.seizoen ?? 'herfst',
       avond: tijd === 'avond' || tijd === 'nacht',
       hemel: { tijd, wolken: model.wolken ?? 0 },
       kamers,
@@ -349,7 +355,8 @@
     if (avond) o.avond = true;
     const zon = model?.zon;
     const voorDeg = model?.voorgevelDeg ?? model?.kompas?.voorgevelDeg;
-    if (!avond && zon?.nu && zon?.baan?.length && voorDeg != null) o.zonBoog = { nu: zon.nu, baan: zon.baan, voorDeg };
+    // De baan van de zon kan uit bij Weergave (besluit 205).
+    if (!avond && global.app?.weergave?.()?.zonnebaan !== false && zon?.nu && zon?.baan?.length && voorDeg != null) o.zonBoog = { nu: zon.nu, baan: zon.baan, voorDeg };
     return o;
   }
 

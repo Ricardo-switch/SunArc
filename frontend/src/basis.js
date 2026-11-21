@@ -1281,7 +1281,7 @@
    * meteen goed staat; de dienst heeft het laatste woord.
    */
   const WEERGAVE = 'sc-weergave';
-  const GEEN_WEERGAVE = { eenvoudig: false, groteLetters: false, minderBeweging: false, seizoen: true, weer: true, feestdagen: true, zonnebaan: true };
+  const GEEN_WEERGAVE = { eenvoudig: false, groteLetters: false, minderBeweging: false, seizoen: true, weer: true, feestdagen: true, zonnebaan: true, getekend: false };
   let weergaveNu = GEEN_WEERGAVE;
   function zetWeergave(w, onthoud = true) {
     weergaveNu = { ...GEEN_WEERGAVE, ...w };

@@ -48,6 +48,10 @@ describe('weergave en de wand als niemand kijkt (besluit 164)', () => {
   it('neemt een deel van de weergave, bovenop wat er stond', () => {
     expect(leesWeergave({ groteLetters: true }, STANDAARD_WEERGAVE)).toEqual({ ok: true, weergave: { ...STANDAARD_WEERGAVE, groteLetters: true } });
     expect(leesWeergave({ groteLetters: 'ja' }, STANDAARD_WEERGAVE).ok).toBe(false);
+    // Het huis zoals getekend (21 november 2026): standaard het poppenhuis, aan te zetten.
+    expect(STANDAARD_WEERGAVE.getekend).toBe(false);
+    expect(leesWeergave({ getekend: true }, STANDAARD_WEERGAVE)).toEqual({ ok: true, weergave: { ...STANDAARD_WEERGAVE, getekend: true } });
+    expect(leesWeergave({ getekend: 'ja' }, STANDAARD_WEERGAVE).ok).toBe(false);
     expect(leesWeergave({ kleuren: true }, STANDAARD_WEERGAVE).ok).toBe(false);
     expect(leesWeergave([], STANDAARD_WEERGAVE).ok).toBe(false);
   });
@@ -143,7 +147,7 @@ describe('VoorkeurenStore', () => {
     await store.load();
     expect((await store.save({ plek: 'tel', weergave: { eenvoudig: true, groteLetters: true } }, noor)).ok).toBe(true);
     expect((await store.save({ plek: 'tel', weergave: { groteLetters: false } }, noor)).ok).toBe(true);
-    expect(store.view(noor).tel.weergave).toEqual({ eenvoudig: true, groteLetters: false, minderBeweging: false, seizoen: true, weer: true, feestdagen: true, zonnebaan: true });
+    expect(store.view(noor).tel.weergave).toEqual({ eenvoudig: true, groteLetters: false, minderBeweging: false, seizoen: true, weer: true, feestdagen: true, zonnebaan: true, getekend: false });
     expect(store.view(ricardo).tel.weergave).toEqual(STANDAARD_WEERGAVE);
     // De wand: alleen wie hem mag aanpassen, en voor iedereen.
     expect((await store.save({ plek: 'wand', niemand: { rustMin: 2 } }, noor)).ok).toBe(false);

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.216.4';
+export const VERSIE = '0.217.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,14 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.217.0',
+    datum: '2026-11-21',
+    nieuw: ['Weergave › Huis: Het huis zoals getekend. Aan: op Thuis, een kamer en de wand als niemand kijkt je huis zoals in Je huis, met de echte vorm, je kamers met meubels en je apparaten. Uit (zoals het was): het poppenhuis. Het geldt voor jou op elk scherm, en op de wand voor wie hij volgt'],
+    en: {
+      nieuw: ['Display › House: The house as drawn. On: on Home, a room and the wall when nobody is looking your house as in Your home, with the real shape, your rooms with furniture and your devices. Off (as before): the dollhouse. It applies to you on every screen, and on the wall to whoever it follows'],
+    },
+  },
   {
     versie: '0.216.4',
     datum: '2026-11-21',

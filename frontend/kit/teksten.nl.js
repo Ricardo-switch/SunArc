@@ -673,6 +673,8 @@
   'eigen.wg.feestZin': 'Een pompoen met Halloween, lichtjes met Kerst, vuurwerk met Oud en Nieuw, eieren met Pasen.',
   'eigen.wg.zon': 'De baan van de zon',
   'eigen.wg.zonZin': 'Op Thuis de stippelboog, bij Zonnepanelen op de wand een ring met de uren, opkomst en ondergang. Uit: alleen de zon zelf.',
+  'eigen.wg.getekend': 'Het huis zoals getekend',
+  'eigen.wg.getekendZin': 'Op Thuis, een kamer en de wand als niemand kijkt je huis zoals in Je huis: de echte vorm, je kamers met meubels en je apparaten. Uit: het poppenhuis.',
 
   // Een kamer (kamer.js)
   'kamer.huis': 'Huis',

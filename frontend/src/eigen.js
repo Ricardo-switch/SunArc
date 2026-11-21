@@ -22,7 +22,7 @@
 
   /** Zolang de dienst niets zegt: zoals Thuis altijd was. */
   const STANDAARD = {
-    tel: { kaarten: ['kamers', 'favorieten', 'straks', 'tedoen', 'apparaat', 'gevoel', 'vandaag'], favorieten: [], weergave: { eenvoudig: false, groteLetters: false, minderBeweging: false, seizoen: true, weer: true, feestdagen: true, zonnebaan: true } },
+    tel: { kaarten: ['kamers', 'favorieten', 'straks', 'tedoen', 'apparaat', 'gevoel', 'vandaag'], favorieten: [], weergave: { eenvoudig: false, groteLetters: false, minderBeweging: false, seizoen: true, weer: true, feestdagen: true, zonnebaan: true, getekend: false } },
     wand: { kaarten: ['tedoen', 'vandaag', 'gevoel', 'apparaat'], breed: ['tedoen', 'favorieten', 'vandaag', 'gevoel'], favorieten: [], magAanpassen: false },
     maxFavorieten: 12,
   };
@@ -697,7 +697,7 @@
       </div>
       <div style="margin-top: 10px">${schakel('groteLetters', esc(t('eigen.wg.letters')), esc(t('eigen.wg.lettersZin')))}${schakel('minderBeweging', esc(t('eigen.wg.beweging')), esc(t('eigen.wg.bewegingZin')))}</div>
       <p class="mini" style="margin: 14px 0 2px">${esc(t('eigen.wg.huis'))}</p>
-      <div>${schakel('seizoen', esc(t('eigen.wg.seizoen')), esc(t('eigen.wg.seizoenZin')))}${schakel('weer', esc(t('eigen.wg.weer')), esc(t('eigen.wg.weerZin')))}${schakel('feestdagen', esc(t('eigen.wg.feest')), esc(t('eigen.wg.feestZin')))}${schakel('zonnebaan', esc(t('eigen.wg.zon')), esc(t('eigen.wg.zonZin')))}</div>`;
+      <div>${schakel('seizoen', esc(t('eigen.wg.seizoen')), esc(t('eigen.wg.seizoenZin')))}${schakel('weer', esc(t('eigen.wg.weer')), esc(t('eigen.wg.weerZin')))}${schakel('feestdagen', esc(t('eigen.wg.feest')), esc(t('eigen.wg.feestZin')))}${schakel('zonnebaan', esc(t('eigen.wg.zon')), esc(t('eigen.wg.zonZin')))}${schakel('getekend', esc(t('eigen.wg.getekend')), esc(t('eigen.wg.getekendZin')))}</div>`;
   }
 
   /* --------------------------------------------------------------- tikken */
@@ -724,6 +724,14 @@
       const nu = v.tel.weergave ?? STANDAARD.tel.weergave;
       const wat = wg.dataset.wgSchakel ? { [wg.dataset.wgSchakel]: !nu[wg.dataset.wgSchakel] } : { eenvoudig: wg.dataset.wgEenvoudig === 'true' };
       const nieuw = { ...nu, ...wat };
+      // Het huis zoals getekend kiezen geldt voor jou op elk scherm: een keuze die alleen dit scherm onthield (?tekenaar=) vervalt.
+      if (wg.dataset.wgSchakel === 'getekend') {
+        try {
+          localStorage.removeItem('sc-tekenaar');
+        } catch {
+          // Niets onthouden.
+        }
+      }
       // Meteen zo laten zien; de dienst bewaart het bij je account.
       global.app.zetWeergave(nieuw);
       void bewaar('tel', { weergave: nieuw });
