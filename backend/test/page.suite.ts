@@ -4411,7 +4411,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await blad.locator('[data-wg-eenvoudig="true"]').click();
       await blad.locator('[data-wg-schakel="groteLetters"]').click();
       await blad.locator('[data-wg-schakel="minderBeweging"]').click();
-      await expect.poll(weergave).toEqual({ eenvoudig: true, groteLetters: true, minderBeweging: true, seizoen: true, weer: true, feestdagen: true, zonnebaan: true, getekend: false });
+      await expect.poll(weergave).toEqual({ eenvoudig: true, groteLetters: true, minderBeweging: true, seizoen: true, weer: true, feestdagen: true, zonnebaan: true, getekend: true });
       expect(await blad.locator('[data-wg-schakel="groteLetters"]').getAttribute('aria-checked')).toBe('true');
       await blad.locator('[data-blad-dicht]').click();
       await blad.waitFor({ state: 'hidden' });
@@ -8473,7 +8473,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         await context.close();
       }
     } finally {
-      await zet(false);
+      // Terug naar de standaard (aan sinds 0.218.0).
+      await zet(true);
       if (voor) await layoutStore.save(voor);
     }
   }, 150_000);

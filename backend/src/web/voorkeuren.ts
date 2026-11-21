@@ -78,10 +78,10 @@ export interface Weergave {
   readonly feestdagen: boolean;
   /** De baan van de zon rond het huis, met de uren, opkomst en ondergang (besluit 205); de zon zelf staat er altijd. */
   readonly zonnebaan: boolean;
-  /** Het huis zoals getekend in Je huis (21 november 2026, de nieuwe tekenaar); uit: het poppenhuis. */
+  /** Het huis zoals getekend in Je huis (21 november 2026, de nieuwe tekenaar), standaard aan sinds 0.218.0 (Ricardo); uit: het poppenhuis. */
   readonly getekend: boolean;
 }
-export const STANDAARD_WEERGAVE: Weergave = { eenvoudig: false, groteLetters: false, minderBeweging: false, seizoen: true, weer: true, feestdagen: true, zonnebaan: true, getekend: false };
+export const STANDAARD_WEERGAVE: Weergave = { eenvoudig: false, groteLetters: false, minderBeweging: false, seizoen: true, weer: true, feestdagen: true, zonnebaan: true, getekend: true };
 
 /** Na hoeveel minuten zonder iemand aan het scherm de wand overdag rust; 0 is nooit. */
 export const RUST_MINUTEN = [0, 2, 5, 15] as const;

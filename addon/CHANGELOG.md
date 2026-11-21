@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.217.1
+## 0.218.0
 
-*21 november 2026 · 0.179.0 – 0.217.1*
+*21 november 2026 · 0.179.0 – 0.218.0*
 
 **Nieuw**
 
@@ -89,6 +89,7 @@
 
 **Beter**
 
+- Het huis zoals getekend staat nu vanzelf aan: op Thuis, een kamer en de wand als niemand kijkt zie je je huis zoals in Je huis. Liever het poppenhuis? Zet het uit bij Jij › Weergave. Is er in Je huis nog niets getekend, dan blijft het poppenhuis
 - Het huis zoals getekend volgt het soort woning: een appartement zonder tuin, en met verdiepingen erboven zonder dak; een huis met een erf waar nog niets op staat, zie je dichtbij
 - Het huis zoals getekend ook op de telefoon: op Thuis het huis dichtbij, op een kamer de etage met meubels; zonder namen in de tekening (die staan eronder), en tikken werkt
 - Het huis zoals getekend: tik op een kamer om hem te openen, op de tuin, het terras, de oprit, de garage of het tuinhuis voor hun blad, en op de panelen voor de zon op je daken; op een kamer tik je een andere kamer van de etage aan
@@ -311,6 +312,7 @@
 
 **Improved**
 
+- The house as drawn is now on by default: on Home, a room and the wall when nobody is looking you see your house as in Your home. Prefer the dollhouse? Turn it off under You › Display. If nothing has been drawn in Your home yet, the dollhouse stays
 - The house as drawn follows the kind of home: a flat without a garden, and without a roof when there are floors above; a house on a plot with nothing on it yet is shown close up
 - The house as drawn on the phone too: on Home the house close up, in a room the floor with furniture; without names in the drawing (they are below it), and tapping works
 - The house as drawn: tap a room to open it, the garden, terrace, driveway, garage or garden shed for their sheet, and the panels for the sun on your roofs; in a room, tap another room on the floor
