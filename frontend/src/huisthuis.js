@@ -62,7 +62,14 @@
     svg.style.cssText = 'position:fixed;left:-4000px;top:0;width:800px;height:600px;visibility:hidden;pointer-events:none';
     document.body.append(svg);
     const beneden = huis.etages.find((e) => e.id === 'bg')?.id ?? huis.etages.at(-1).id;
-    staat.tk = global.huistekenen.maak(svg, huis, { stand: 'kamers', etage: beneden, tekening: hv.zonderLosBuiten(d, huis), openingen: true, vast: [hv.HUIS_OP_ERF] });
+    const tk = global.huistekenen.maak(svg, huis, { stand: 'kamers', etage: beneden, tekening: hv.zonderLosBuiten(d, huis), openingen: true, vast: [hv.HUIS_OP_ERF] });
+    // Nog niets getekend in Je huis (het voorbeeldhuis, een nieuw huis): geen lege dozen, dan blijft het poppenhuis.
+    const binnen = huis.etages.filter((e) => !e.buiten).map((e) => tk.st.vloeren[e.id]);
+    if (!binnen.some((v) => Object.values(v?.ruimtes ?? {}).some((r) => r.kamer))) {
+      svg.remove();
+      throw new Error('nog niets getekend in Je huis');
+    }
+    staat.tk = tk;
   }
 
   /** Is de tekenaar er? Zo niet, dan begint het laden, en `opnieuw` tekent als hij klaar is. */
@@ -181,13 +188,47 @@
       const naam = naamVan(tuinhuis, 'tuinhuis');
       gebouwen.push({ ...tuinhuis, soort: 'tuinhuis', h: 2.5, naam: global.huismodel?.metHoofdletter?.(naam) ?? naam, overstek: { d: 1.2, licht: !!overstek && aanSet.has(overstek.id) }, licht: !!binnen && aanSet.has(binnen.id) });
     }
-    // De auto op de oprit, met de neus naar de straat.
+    /*
+     * De muren van het huis (stap b, 21 november 2026: geen plekken meer die alleen bij Ricardo's huis klopten). Het
+     * dichtstbijzijnde punt op een gevel met de richting naar buiten; een muur tegen de buren (links, rechts, achter vanaf
+     * de straat; -x is links) telt niet mee.
+     */
+    const tegenBuren = new Set(tk.huis.woning?.buren ?? []);
+    const huisDoos = hoofd ? { x: hoofd.u, y: hoofd.v, b: hoofd.b, d: hoofd.d } : null;
+    const gevels = (g, metBuren = false) => [
+      { kant: 'voor', n: [0, -1], vast: g.y, as: 'x', van: g.x, tot: g.x + g.b },
+      { kant: 'achter', n: [0, 1], vast: g.y + g.d, as: 'x', van: g.x, tot: g.x + g.b },
+      { kant: 'links', n: [-1, 0], vast: g.x, as: 'y', van: g.y, tot: g.y + g.d },
+      { kant: 'rechts', n: [1, 0], vast: g.x + g.b, as: 'y', van: g.y, tot: g.y + g.d },
+    ].filter((w) => metBuren || g !== huisDoos || !tegenBuren.has(w.kant));
+    /** Het dichtstbijzijnde punt op een muur van een van de dozen, een stukje van de hoeken af, met zijn richting naar buiten. */
+    const opMuur = (x, y, dozen, marge = 0.3) => {
+      let best = null;
+      for (const g of dozen) {
+        for (const w of gevels(g)) {
+          const l = Math.max(w.van + marge, Math.min(w.tot - marge, w.as === 'x' ? x : y));
+          const [px, py] = w.as === 'x' ? [l, w.vast] : [w.vast, l];
+          const afst = Math.hypot(px - x, py - y);
+          if (!best || afst < best.afst) best = { x: px, y: py, n: w.n, kant: w.kant, afst };
+        }
+      }
+      return best;
+    };
+    // De auto op de oprit: in de lengte van de oprit, met de neus naar de straat (of naar de kant zonder gebouw).
     const oprit = plek('oprit')[0];
     const garage = gebouwen.find((g) => g.soort === 'garage');
-    const auto = model.oprit?.auto && oprit ? { x: (oprit.x0 + oprit.x1) / 2 - 0.92, y: Math.max(oprit.y0 + 0.6, (garage?.y ?? oprit.y1) - 5.4), b: 1.84, d: 4.5, kleur: '#c9d4df', laadt: !!model.oprit?.laadt } : null;
+    let auto = null;
+    if (model.oprit?.auto && oprit) {
+      const diep = oprit.y1 - oprit.y0 >= oprit.x1 - oprit.x0;
+      const [b, d] = diep ? [1.84, 4.5] : [4.5, 1.84];
+      if (oprit.x1 - oprit.x0 >= b && oprit.y1 - oprit.y0 >= d) {
+        const x = diep ? (oprit.x0 + oprit.x1) / 2 - b / 2 : Math.max(oprit.x0 + 0.4, Math.min(oprit.x1 - b - 0.4, (garage ? garage.x - 0.9 : oprit.x1) - b));
+        const y = diep ? Math.max(oprit.y0 + 0.6, Math.min(oprit.y1 - d - 0.3, (garage && garage.y >= oprit.y0 ? garage.y : oprit.y1) - d - 0.9)) : (oprit.y0 + oprit.y1) / 2 - d / 2;
+        auto = { x, y, b, d, kleur: '#c9d4df', laadt: !!model.oprit?.laadt };
+      }
+    }
     // Apparaten buiten: lampen, de deurbel, camera's, het zonnescherm, de lampjes in de border.
     const apparaten = [];
-    const huisDoos = hoofd ? { x: hoofd.u, y: hoofd.v, b: hoofd.b, d: hoofd.d } : null;
     for (const a of tk.st.apparaten) {
       if (!erfE || a.plek?.etage !== erfE.id) continue;
       const [x, y] = [m(a.plek.x), m(a.plek.y)];
@@ -197,50 +238,77 @@
         const lang = b.x1 - b.x0 >= b.y1 - b.y0;
         apparaten.push({ id: a.id, soort: 'snoer', punten: lang ? [[b.x0 + 0.2, (b.y0 + b.y1) / 2], [b.x1 - 0.2, (b.y0 + b.y1) / 2]] : [[(b.x0 + b.x1) / 2, b.y0 + 0.2], [(b.x0 + b.x1) / 2, b.y1 - 0.2]] });
       } else if (a.soort === 'camera' && /deurbel|doorbell/i.test(`${a.id} ${a.naam}`)) {
-        apparaten.push({ id: a.id, soort: 'deurbel', x, y, z: 1.4, n: [-1, 0] });
+        // Een deurbel hangt aan de gevel van het huis, het dichtst bij waar hij in Je huis staat.
+        const w = huisDoos ? opMuur(x, y, [huisDoos]) : null;
+        apparaten.push({ id: a.id, soort: 'deurbel', x: w?.x ?? x, y: w?.y ?? y, z: 1.4, n: w?.n ?? [0, -1] });
       } else if (a.soort === 'camera') {
-        // Een camera hangt aan een muur: aan een gebouw op het erf binnen een paar meter, anders aan het huis.
-        let best = null;
-        for (const g of [...gebouwen.filter((q) => q.soort !== 'tuinhuis'), ...(huisDoos ? [huisDoos] : [])]) {
-          if (best && g === huisDoos) break;
-          const kx = Math.max(g.x, Math.min(g.x + g.b, x));
-          const ky = Math.max(g.y, Math.min(g.y + g.d, y));
-          const afst = Math.hypot(kx - x, ky - y);
-          if (afst > 4.5 || (best && afst >= best.afst)) continue;
-          const binnen = kx > g.x && kx < g.x + g.b && ky > g.y && ky < g.y + g.d;
-          if (binnen) continue;
-          const kant = ky <= g.y ? [0, -1] : ky >= g.y + g.d ? [0, 1] : kx <= g.x ? [-1, 0] : [1, 0];
-          const [px, py] = kant[1] ? [Math.max(g.x + 0.3, Math.min(g.x + g.b - 0.3, kx)), ky] : [kx, Math.max(g.y + 0.3, Math.min(g.y + g.d - 0.3, ky))];
-          best = { afst, x: px, y: py, n: kant };
-        }
-        apparaten.push({ id: a.id, soort: 'camera', x: best?.x ?? x, y: best?.y ?? y, n: best?.n ?? [0, -1], z: 2.4, licht: lichtBij[a.id] });
+        // Een camera hangt aan de muur die het dichtst ligt bij waar hij in Je huis staat: het huis, de garage, een schuur.
+        const w = opMuur(x, y, [...gebouwen.filter((q) => q.soort !== 'tuinhuis' && q.soort !== 'carport'), ...(huisDoos ? [huisDoos] : [])]);
+        apparaten.push({ id: a.id, soort: 'camera', x: w?.x ?? x, y: w?.y ?? y, n: w?.n ?? [0, -1], z: 2.4, licht: lichtBij[a.id] });
       } else if (a.soort === 'screen') {
-        apparaten.push({ id: a.id, soort: 'screen', x, y: Math.min(y, (hoofd?.v ?? 0) + (hoofd?.d ?? 0) + 0.02), z: 2.5, b: 3.4, uit: [0, 1] });
+        // Een zonnescherm hangt aan de gevel het dichtst bij zijn plek, en rolt naar buiten uit.
+        const w = huisDoos ? opMuur(x, y, [huisDoos], 1.8) : null;
+        if (w) apparaten.push({ id: a.id, soort: 'screen', x: w.x + w.n[0] * 0.02, y: w.y + w.n[1] * 0.02, z: 2.5, b: Math.min(3.4, (w.n[0] ? hoofd.d : hoofd.b) - 0.4), uit: w.n });
       }
     }
-    // De stroom van het net: vanaf de straat langs de rand van de voortuin naar de voordeur (de deurbel, anders de hal).
+    /*
+     * De stroom van het net: van de straat naar de voordeur. Ligt de voordeur in de voorgevel, dan recht erheen; in een
+     * zijgevel langs die gevel (bij Ricardo de lijn tussen voortuin en oprit). De voordeur uit de tekening, anders de
+     * deurbel, anders het midden van de hal.
+     */
     const stroom = [];
     const bgV = tk.st.vloeren[tk.huis.beneden ?? 'bg'];
     const net = (model.stromen ?? []).find((x) => x.van === 'net');
     const label = (model.labels ?? []).find((l) => l.bij === 'net')?.titel;
+    const voordeur = (bgV?.openingen ?? []).find((g) => g.soort === 'voordeur');
     const deurbel = apparaten.find((a) => a.soort === 'deurbel');
     const halId = bgV ? Object.entries(bgV.ruimtes).find(([, r]) => kamerSoort(r.kamer) === 'hal' || r.kamer === 'hal')?.[0] : null;
     const halR = halId ? K.maten(bgV)[halId]?.r : null;
-    const deurY = deurbel?.y ?? (halR ? m((halR.y0 + halR.y1) / 2) : null);
-    const voortuin = plek('voortuin')[0];
-    if (net && erf && hoofd && deurY != null) {
-      const rand = (voortuin?.x0 ?? hoofd.u) - 0.08;
-      stroom.push({ toon: 'violet', label, dx: -(String(label ?? '').length * 7.6 + 40), dy: 16, pad: [[rand, erf.y - 1.0, 0.05], [rand, deurY, 0.05], [hoofd.u + 0.15, deurY, 0.05]] });
+    const deur = voordeur ? (voordeur.as === 'x' ? { x: m(voordeur.op), y: m((voordeur.van + voordeur.tot) / 2) } : { x: m((voordeur.van + voordeur.tot) / 2), y: m(voordeur.op) }) : deurbel ? { x: deurbel.x, y: deurbel.y } : halR ? { x: m((halR.x0 + halR.x1) / 2), y: hoofd ? hoofd.v : m(halR.y0) } : null;
+    if (net && erf && hoofd && deur) {
+      const w = opMuur(deur.x, deur.y, [huisDoos], 0);
+      const pad = !w || w.kant === 'voor' ? [[deur.x, erf.y - 1.0, 0.05], [deur.x, hoofd.v, 0.05]] : w.kant === 'achter' ? [[hoofd.u - 0.08, erf.y - 1.0, 0.05], [hoofd.u - 0.08, w.y + 0.08, 0.05], [w.x, w.y + 0.08, 0.05]] : [[w.x + w.n[0] * 0.08, erf.y - 1.0, 0.05], [w.x + w.n[0] * 0.08, w.y, 0.05], [w.x - w.n[0] * 0.15, w.y, 0.05]];
+      stroom.push({ toon: 'violet', label, dx: -(String(label ?? '').length * 7.6 + 40), dy: 16, pad });
     }
-    // De buitenunits van de airco's (geschat): de eerste tegen de zijgevel, een tweede tegen de achtergevel; aan als zijn airco draait.
+    const voortuin = plek('voortuin')[0];
+    /*
+     * De buitenunits: buiten, op de grond tegen de gevel het dichtst bij zijn airco (de plek uit Je huis), niet tegen de
+     * buren, en aan de straat alleen als het niet anders kan; aan als zijn airco draait. Zoveel als er buitenunits zijn.
+     */
     const units = [];
     const aircos = tk.st.apparaten.filter((a) => a.soort === 'airco');
-    if (hoofd && model.buitenunit?.aantal) {
-      units.push({ x: hoofd.u - 0.05, y: hoofd.v + 2.4, n: [-1, 0], aan: !!aircos[0] && aanSet.has(aircos[0].id) });
-      if (model.buitenunit.aantal > 1) units.push({ x: hoofd.u + hoofd.b - 1.0, y: hoofd.v + hoofd.d + 0.02, n: [0, 1], aan: !!aircos[1] && aanSet.has(aircos[1].id) });
+    const aantalUnits = Math.min(model.buitenunit?.aantal ?? 0, Math.max(1, aircos.length));
+    if (huisDoos && aantalUnits) {
+      const gebruikt = [];
+      for (let i = 0; i < aantalUnits; i++) {
+        const a = aircos[i];
+        const [ax, ay] = a?.plek ? [m(a.plek.x), m(a.plek.y)] : [huisDoos.x + huisDoos.b / 2, huisDoos.y + huisDoos.d];
+        let best = null;
+        for (const w of gevels(huisDoos)) {
+          let l = Math.max(w.van + 0.6, Math.min(w.tot - 0.6, w.as === 'x' ? ax : ay));
+          // Niet op een unit die er al staat.
+          for (const u of gebruikt) if (u.kant === w.kant && Math.abs(u.l - l) < 1.0) l = Math.min(w.tot - 0.6, u.l + 1.0);
+          const [px, py] = w.as === 'x' ? [l, w.vast] : [w.vast, l];
+          const afst = Math.hypot(px - ax, py - ay) + (w.kant === 'voor' ? 3 : 0);
+          if (!best || afst < best.afst) best = { x: px + w.n[0] * 0.02, y: py + w.n[1] * 0.02, n: w.n, kant: w.kant, l, afst };
+        }
+        if (!best) continue;
+        gebruikt.push(best);
+        units.push({ x: best.x, y: best.y, n: best.n, aan: !!a && aanSet.has(a.id) });
+      }
     }
-    // Eén boom in het seizoen, in de voortuin.
-    const bomen = voortuin && voortuin.x1 - voortuin.x0 > 2.6 && voortuin.y1 - voortuin.y0 > 3.2 ? [{ x: voortuin.x1 - 1.3, y: voortuin.y0 + 1.6, h: 4.2, r: 1.1 }] : [];
+    /*
+     * Eén boom in het seizoen, in de voortuin als die groot genoeg is: in de hoek die het verst ligt van het huis, de
+     * oprit en de gebouwen, en minstens 1,2 meter van alles af (anders geen boom).
+     */
+    const bomen = [];
+    if (voortuin && voortuin.x1 - voortuin.x0 > 2.6 && voortuin.y1 - voortuin.y0 > 3.2) {
+      const bezet = [...(huisDoos ? [huisDoos] : []), ...gebouwen, ...(oprit ? [{ x: oprit.x0, y: oprit.y0, b: oprit.x1 - oprit.x0, d: oprit.y1 - oprit.y0 }] : []), ...(auto ? [auto] : [])];
+      const afstTot = (x, y) => Math.min(...bezet.map((g) => Math.hypot(Math.max(g.x - x, 0, x - g.x - g.b), Math.max(g.y - y, 0, y - g.y - g.d))), 99);
+      const hoeken = [[voortuin.x0 + 1.3, voortuin.y0 + 1.6], [voortuin.x1 - 1.3, voortuin.y0 + 1.6], [voortuin.x0 + 1.3, voortuin.y1 - 1.6], [voortuin.x1 - 1.3, voortuin.y1 - 1.6]];
+      const [bx, by] = hoeken.sort((a, b) => afstTot(...b) - afstTot(...a))[0];
+      if (afstTot(bx, by) >= 1.2) bomen.push({ x: bx, y: by, h: 4.2, r: 1.1 });
+    }
     const zon = model.zon ?? {};
     const panelen = [zon.panelen ? { aantal: zon.panelen, kant: 0 } : null, zon.panelenLinks ? { aantal: zon.panelenLinks, kant: 1 } : null].filter(Boolean);
     const tijd = model.tijd ?? 'dag';

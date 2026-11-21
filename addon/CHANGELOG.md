@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.216.0
+## 0.216.1
 
-*21 november 2026 · 0.179.0 – 0.216.0*
+*21 november 2026 · 0.179.0 – 0.216.1*
 
 **Nieuw**
 
@@ -88,6 +88,9 @@
 
 **Beter**
 
+- Het huis zoals getekend: de deurbel, camera’s, het zonnescherm en de buitenunits hangen aan de muur die het dichtst ligt bij waar ze in Je huis staan; de stroom van het net loopt naar de voordeur uit de tekening; de auto staat in de lengte van de oprit; een boom alleen als er in de voortuin ruimte voor is
+- Het huis zoals getekend: is er in Je huis nog niets getekend, dan blijft het poppenhuis
+- Scherm als niemand kijkt: de boog van de zon blijft in de zomer in beeld
 - Je huis: het afdak hoort alleen bij de begane grond. De etages erboven lopen zoveel minder ver naar voren; kamers, ramen en apparaten in die strook gaan mee naar de gevel
 - Je huis: Afdak eronder staat alleen op de etage waar het afdak tot in reikt
 - Je huis › Waar is de straat: de straat aan de voorkant staat bovenaan
@@ -301,6 +304,9 @@
 
 **Improved**
 
+- The house as drawn: the doorbell, cameras, the awning and the outdoor units hang on the wall closest to where they are in Your home; the grid line runs to the front door from the drawing; the car follows the length of the driveway; a tree only if the front garden has room
+- The house as drawn: if nothing is drawn in Your home yet, the dollhouse stays
+- Screen when nobody is looking: the sun arc stays in view in summer
 - Your home: the canopy belongs to the ground floor only. The floors above reach that much less to the front; rooms, windows and devices in that strip move to the facade
 - Your home: Canopy below only shows on the floor the canopy reaches into
 - Your home › Where is the street: the street at the front comes first

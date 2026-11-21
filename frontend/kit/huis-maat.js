@@ -304,6 +304,8 @@
     // Breed om het huis, en de hoogte wat opgerekt (de zon staat in november laag; echt op schaal kan niet, hij staat oneindig ver).
     const ringR = Math.max(X1 - X0, Y1 - Y0) * 1.0 + 4.5;
     const ringZ = (hd ? hd.nok : Math.max(...lagen.map((l) => l.top))) + 1.4;
+    // De hoogte opgerekt als de zon laag staat (de winter), nooit hoger dan 0,9 keer de straal (de zomer liep anders uit beeld).
+    const rek = zb ? Math.min(1.4, 0.9 / Math.max(0.05, Math.sin((Math.max(...zb.baan.map((q) => q.el)) * Math.PI) / 180))) : 1;
     const ringPunt = ({ az, el }) => {
       const r = Math.PI / 180;
       const c = Math.cos(el * r);
@@ -312,7 +314,7 @@
        * De voorgevel kijkt naar de straat (de kant met de kleinste y), en vanaf de straat ligt -x links: een zon een kwartslag
        * linksom van de voorgevel (az = voorgevel + 90°) staat links. Zo volgt de boog het kompas zoals in het poppenhuis.
        */
-      return [cx - ringR * c * Math.sin(rel), cy - ringR * c * Math.cos(rel), ringZ + ringR * 1.4 * Math.sin(Math.max(0, el) * r)];
+      return [cx - ringR * c * Math.sin(rel), cy - ringR * c * Math.cos(rel), ringZ + ringR * rek * Math.sin(Math.max(0, el) * r)];
     };
     if (zb) for (const q of zb.baan) if (q.el > -1.5) punten.push(ringPunt(q));
     // Eén etage: alleen die etage met de wazige stukjes erboven en eronder in beeld (en een smalle rand grond, op de begane grond).
