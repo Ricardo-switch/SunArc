@@ -357,9 +357,9 @@
    * Tekent het huis zoals getekend in `el`; false: teken het poppenhuis.
    * @param {Element} el
    * @param {any} model
-   * @param {{ soort?: string, breedte?: number, hoogte?: number, huisData?: any, kamerId?: string | null, avond?: boolean, opnieuw?: (() => void) | null }} [opts]
+   * @param {{ soort?: string, tel?: boolean, breedte?: number, hoogte?: number, huisData?: any, kamerId?: string | null, avond?: boolean, opnieuw?: (() => void) | null }} [opts]
    */
-  function teken(el, model, { soort = 'thuis', breedte, hoogte, huisData = null, kamerId = null, avond = false, opnieuw = null } = {}) {
+  function teken(el, model, { soort = 'thuis', tel = false, breedte, hoogte, huisData = null, kamerId = null, avond = false, opnieuw = null } = {}) {
     if (!el || !aan() || staat.fout || !klaar(opnieuw)) return false;
     try {
       const B = Math.round(breedte ?? el.clientWidth ?? 860);
@@ -367,7 +367,10 @@
       const o = /** @type {any} */ (opties(staat.tk, model, huisData));
       if (soort === 'kamer') alsEtage(o, staat.tk, huisData, kamerId);
       else if (soort === 'rust') alsRust(o, avond, model);
+      else if (soort === 'tel') Object.assign(o, { passend: 'dichtbij', boven: 0, rand: 6, stroom: [] });
       else o.boven = 90;
+      // De telefoon (stap d): klein, dus zonder namen in de tekening; de kamers staan eronder.
+      if (soort === 'tel' || tel) Object.assign(o, { stil: true, rand: 6 });
       // Tikken op een kamer, een deel buiten of de panelen, zoals in het poppenhuis (niet als niemand kijkt).
       if (soort !== 'rust') o.tik = true;
       const uit = global.huisMaat.teken(staat.tk, B, H, o);

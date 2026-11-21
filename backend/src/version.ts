@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.216.3';
+export const VERSIE = '0.216.4';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,14 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.216.4',
+    datum: '2026-11-21',
+    beter: ['Het huis zoals getekend ook op de telefoon: op Thuis het huis dichtbij, op een kamer de etage met meubels; zonder namen in de tekening (die staan eronder), en tikken werkt'],
+    en: {
+      beter: ['The house as drawn on the phone too: on Home the house close up, in a room the floor with furniture; without names in the drawing (they are below it), and tapping works'],
+    },
+  },
   {
     versie: '0.216.3',
     datum: '2026-11-21',

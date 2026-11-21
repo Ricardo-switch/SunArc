@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.216.3
+## 0.216.4
 
-*21 november 2026 · 0.179.0 – 0.216.3*
+*21 november 2026 · 0.179.0 – 0.216.4*
 
 **Nieuw**
 
@@ -88,6 +88,7 @@
 
 **Beter**
 
+- Het huis zoals getekend ook op de telefoon: op Thuis het huis dichtbij, op een kamer de etage met meubels; zonder namen in de tekening (die staan eronder), en tikken werkt
 - Het huis zoals getekend: tik op een kamer om hem te openen, op de tuin, het terras, de oprit, de garage of het tuinhuis voor hun blad, en op de panelen voor de zon op je daken; op een kamer tik je een andere kamer van de etage aan
 - Het huis zoals getekend: de deurbel, camera’s, het zonnescherm en de buitenunits hangen aan de muur die het dichtst ligt bij waar ze in Je huis staan; de stroom van het net loopt naar de voordeur uit de tekening; de auto staat in de lengte van de oprit; een boom alleen als er in de voortuin ruimte voor is
 - Het huis zoals getekend: is er in Je huis nog niets getekend, dan blijft het poppenhuis
@@ -306,6 +307,7 @@
 
 **Improved**
 
+- The house as drawn on the phone too: on Home the house close up, in a room the floor with furniture; without names in the drawing (they are below it), and tapping works
 - The house as drawn: tap a room to open it, the garden, terrace, driveway, garage or garden shed for their sheet, and the panels for the sun on your roofs; in a room, tap another room on the floor
 - The house as drawn: the doorbell, cameras, the awning and the outdoor units hang on the wall closest to where they are in Your home; the grid line runs to the front door from the drawing; the car follows the length of the driveway; a tree only if the front garden has room
 - The house as drawn: if nothing is drawn in Your home yet, the dollhouse stays
