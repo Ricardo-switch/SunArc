@@ -86,6 +86,12 @@
       return { e, z0, top, v: st.vloeren[e.id] };
     });
     const openIndex = st.dicht ? -1 : lagen.findIndex((l) => l.e.id === st.etage);
+    /*
+     * Alleen de gebouwen van het huis zelf krijgen een dak (21 november 2026: een oud tuinhuis van de kaart hing als los
+     * dak in de verte). Wat los op het erf staat, hoort bij Buiten; zonder etages met gebouwen: alles, zoals eerst.
+     */
+    const vanHuis = new Set(lagen.flatMap((l) => (l.e.blokken ?? []).map((b) => b.id)));
+    const huisBlokken = (bron.blokken ?? []).filter((b) => !vanHuis.size || vanHuis.has(b.id));
 
     // Kijken: schuin van voren en van boven, gedraaid om het midden van het huis.
     const o = omtrek(lagen[0].v);
@@ -231,7 +237,7 @@
     };
     const kleur = bron.gemeten ? '#6ee7b7' : '#ffd38a';
     // Het afdak voor of achter het huis (ronde 2, 20 november 2026): een eigen schuin dakje over de begane grond.
-    for (const b of (bron.blokken ?? []).filter((x) => x.afdak)) {
+    for (const b of huisBlokken.filter((x) => x.afdak)) {
       const ad = b.afdak;
       const [v0, v1] = ad.kant === 'voor' ? [b.v, b.v + ad.diep] : [b.v + b.d, b.v + b.d - ad.diep];
       const [u0, u1] = [b.u, b.u + b.b];
@@ -252,7 +258,7 @@
       }
     }
     // Een zadeldak, een schilddak (de nok korter, met schuine kanten) of een lessenaar (de nok aan één kant).
-    for (const b of (bron.blokken ?? []).filter((x) => /zadel|schild|lessenaar/.test(x.dak ?? ''))) {
+    for (const b of huisBlokken.filter((x) => /zadel|schild|lessenaar/.test(x.dak ?? ''))) {
       const haaks = b.nokLangs === 'y';
       // a loopt langs de nok, c er dwars op.
       const Q = (a, c, zz) => (haaks ? [c, a, zz] : [a, c, zz]);

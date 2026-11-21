@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.216.1';
+export const VERSIE = '0.216.2';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,14 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.216.2',
+    datum: '2026-11-21',
+    opgelost: ['Je huis › Huis: een gebouw dat los op het erf staat (een tuinhuis van de kaart) hing als los dak in de verte, en maakte het huis kleiner in beeld'],
+    en: {
+      opgelost: ['Your home › House: a building standing apart on the plot (a garden shed from the map) floated as a loose roof in the distance, and made the house smaller in view'],
+    },
+  },
   {
     versie: '0.216.1',
     datum: '2026-11-21',

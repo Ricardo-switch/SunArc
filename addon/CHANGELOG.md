@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.216.1
+## 0.216.2
 
-*21 november 2026 · 0.179.0 – 0.216.1*
+*21 november 2026 · 0.179.0 – 0.216.2*
 
 **Nieuw**
 
@@ -175,6 +175,7 @@
 
 **Opgelost**
 
+- Je huis › Huis: een gebouw dat los op het erf staat (een tuinhuis van de kaart) hing als los dak in de verte, en maakte het huis kleiner in beeld
 - Je huis › Vorm: een gebouw op maat trekken schoof het opzij als het huis op de kaart samen met de garage één gebouw is
 - Je huis: wordt je huis op de kaart dieper of breder, dan blijft er geen strook "Wat is dit?" langs de gevel over; de kamers ernaast lopen door tot de gevel
 - Je huis: een garage van de kaart die je eerder aanwees, krijgt vanzelf de goede maat (zonder het schuurtje erachter); weghalen en opnieuw aanwijzen hoeft niet meer
@@ -391,6 +392,7 @@
 
 **Fixed**
 
+- Your home › House: a building standing apart on the plot (a garden shed from the map) floated as a loose roof in the distance, and made the house smaller in view
 - Your home › Shape: pulling a building to its size moved it sideways when the house and the garage are one building on the map
 - Your home: if your house becomes deeper or wider on the map, no "What is this?" strip is left along the wall; the rooms next to it run up to the wall
 - Your home: a garage from the map that you assigned earlier gets the right size by itself (without the shed behind it); removing and assigning it again is no longer needed
