@@ -53,5 +53,10 @@ dist-addon/
 HA export/
 config/sites/*.json
 
+# Het werk van Claude op deze pc: de overdracht tussen accounts (met het adres,
+# de NAS en kopieën van de gegevens van dit huis), werkmappen en launch.json.
+# Alleen lokaal (Ricardo, 21 november 2026).
+.claude/
+
 # Python van de integratie (besluit 184)
 __pycache__/
