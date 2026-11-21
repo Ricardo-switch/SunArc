@@ -364,7 +364,7 @@
     try {
       const B = Math.round(breedte ?? el.clientWidth ?? 860);
       const H = Math.round(hoogte ?? 612);
-      const o = opties(staat.tk, model, huisData);
+      const o = /** @type {any} */ (opties(staat.tk, model, huisData));
       if (soort === 'kamer') alsEtage(o, staat.tk, huisData, kamerId);
       else if (soort === 'rust') alsRust(o, avond, model);
       else o.boven = 90;
