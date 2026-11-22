@@ -619,7 +619,16 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
   const eigenVerborgen: { id: string; naam: string; soort: string }[] = [];
   const eigen = (x: (typeof alle)[number]) => (verborgenIds.has(x.id) ? eigenVerborgen.push({ id: x.id, naam: x.naam, soort: x.soort }) : alle.push(x));
   for (const r of binnen.flatMap((e) => e.ruimtes)) {
-    const cv = r.apparaten.some((a) => a.soort === 'klimaat' && !a.klimaat?.kanKoelen && !a.radiatorknop);
+    // Zoals het poppenhuis (besluit 132): een thermostaat met vloerverwarming of een paneel als bron is geen radiator (de badkamer van Ricardo).
+    const bronnen = r.bronnen ?? [];
+    const bronVan = (a: { readonly id: string; readonly actuatorId: string | null }) => bronnen.find((b) => b.apparaat && (b.apparaat === a.actuatorId || b.apparaat === a.id));
+    const cv =
+      bronnen.some((b) => b.soorten.includes('radiator')) ||
+      r.apparaten.some((a) => {
+        if (a.soort !== 'klimaat' || a.klimaat?.kanKoelen || a.radiatorknop) return false;
+        const b = bronVan(a);
+        return !b || b.soorten.includes('radiator');
+      });
     const knop = r.apparaten.some((a) => a.radiatorknop);
     if (cv && !knop) eigen({ id: `radiator:${r.id}`, naam: radiatorNaam, soort: 'radiator', kamer: r.id, hoortBij: undefined });
   }
