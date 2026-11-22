@@ -1652,6 +1652,7 @@
           const wil = M.hangt === 'vloer' ? 0 : M.plafond != null ? 1.5 : Math.min((M.z ?? 1.2) - 0.25, 1.4);
           let reserve = null;
           let kandidaten = wandenBij(q.x, q.y, q.ruimte);
+          let raamVoorkeur = false;
           // Een radiator zonder eigen plek hangt onder het dichtstbijzijnde raam van zijn kamer (besluit 333).
           if (naam === 'radiator' && !q.zelf) {
             const onderRaam = [];
@@ -1669,7 +1670,13 @@
               }
             }
             kandidaten = [...onderRaam.sort((a, b) => a.afst - b.afst), ...kandidaten];
+            raamVoorkeur = onderRaam.length > 0;
           }
+          /*
+           * Witgoed met de voorkant naar de kijker (22 november 2026, Ricardo: de droger stond met zijn rug naar je toe tegen
+           * de knieschot). Een muur waar de voorkant van je af kijkt telt 2,5 meter verder weg. Ook een radiator zonder raam.
+           */
+          if (M.hangt === 'vloer' || (naam === 'radiator' && !raamVoorkeur && !q.zelf)) kandidaten = [...kandidaten].sort((a, b) => a.afst + (naarKijker(...(a.run.as === 'x' ? [a.kant, 0] : [0, a.kant])) ? 0 : 25) - (b.afst + (naarKijker(...(b.run.as === 'x' ? [b.kant, 0] : [0, b.kant])) ? 0 : 25)));
           muren: for (const w of kandidaten) {
             const { run, kant } = w;
             const vlakMuur = m(run.op) + kant * 0.03;
@@ -1681,7 +1688,7 @@
              * midden hoger dan aan de kant, en de airco op zolder in het voorbeeldhuis paste op zijn plek nergens.
              */
             const langs = [begin];
-            if (M.hangt !== 'vloer') for (let st2 = 0.25; st2 <= hi - lo + 0.001; st2 += 0.25) for (const c of [begin - st2, begin + st2]) if (c >= lo - 1e-6 && c <= hi + 1e-6) langs.push(c);
+            for (let st2 = 0.25; st2 <= hi - lo + 0.001; st2 += 0.25) for (const c of [begin - st2, begin + st2]) if (c >= lo - 1e-6 && c <= hi + 1e-6) langs.push(c);
             for (const midden2 of langs) {
               const [px, py] = run.as === 'x' ? [vlakMuur, midden2] : [midden2, vlakMuur];
               if (M.hangt === 'vloer') {
