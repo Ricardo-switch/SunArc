@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.219.0
+## 0.219.1
 
-*22 november 2026 · 0.179.0 – 0.219.0*
+*22 november 2026 · 0.179.0 – 0.219.1*
 
 **Nieuw**
 
@@ -89,6 +89,7 @@
 
 **Beter**
 
+- Jij heet nu Profiel, in Instellingen, de zoeker en overal waar de app ernaar verwijst
 - Het huis zoals getekend laadt zonder eerst even het poppenhuis te laten zien
 - Weergave opent bij Jij meteen, zonder eerst naar Thuis te gaan
 - Witgoed zoals de droger staat in een kamer apart, niet meer onder Klimaat
@@ -318,6 +319,7 @@
 
 **Improved**
 
+- You is now called Profile, in Settings, the search and everywhere the app points to it
 - The house as drawn loads without briefly showing the dollhouse first
 - Display opens right away under You, without going to Home first
 - Appliances such as the dryer have their own group in a room, no longer under Climate

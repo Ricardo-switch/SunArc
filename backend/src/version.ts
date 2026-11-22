@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.219.0';
+export const VERSIE = '0.219.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.219.1',
+    datum: '2026-11-22',
+    beter: [
+      'Jij heet nu Profiel, in Instellingen, de zoeker en overal waar de app ernaar verwijst',
+    ],
+    en: {
+      beter: [
+        'You is now called Profile, in Settings, the search and everywhere the app points to it',
+      ],
+    },
+  },
   {
     versie: '0.219.0',
     datum: '2026-11-22',
