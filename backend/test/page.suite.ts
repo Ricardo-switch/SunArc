@@ -7787,7 +7787,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       <link rel="stylesheet" href="kit/kit.css"><link rel="stylesheet" href="kit/huistekenen.css">
       <style>body { margin: 0; } #vak { position: relative; width: calc(100vw - 32px); height: 60vh; margin: 16px; } #vak svg { position: absolute; inset: 0; }</style></head>
       <body><div id="vak"><svg id="tekening"></svg></div>
-      <script src="kit/iconen.js"></script><script src="kit/teksten.nl.js"></script><script src="kit/teksten.en.js"></script><script src="kit/taal.js"></script><script src="kit/huistekenen-vloer.js"></script><script src="kit/huistekenen-blad.js"></script><script src="kit/huistekenen-teken.js"></script><script src="kit/huistekenen-gebaar.js"></script><script src="kit/huistekenen.js"></script>
+      <script src="kit/iconen.js"></script><script src="kit/teksten.nl.js"></script><script src="kit/teksten.en.js"></script><script src="kit/taal.js"></script><script src="kit/huistekenen-vloer.js"></script><script src="kit/huistekenen-blad.js"></script><script src="kit/huistekenen-kaart.js"></script><script src="kit/huistekenen-teken.js"></script><script src="kit/huistekenen-gebaar.js"></script><script src="kit/huistekenen.js"></script>
       <script>window.bewaard = []; window.tekenaar = huistekenen.maak(document.getElementById('tekening'), ${JSON.stringify(huis)}, { stand: 'kamers', etage: 'bg', wacht: 50, opslaan: async (x) => { window.bewaard.push(x); } });</script></body></html>`;
     for (const [naam, breed, hoog] of [['wand', 1280, 800], ['telefoon', 390, 844]] as const) {
       const context = await browser.newContext({ viewport: { width: breed, height: hoog }, hasTouch: true, isMobile: breed < 600, timezoneId: 'UTC', locale: 'nl-NL' });
@@ -7874,7 +7874,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       },
     };
     const blad = `<!doctype html><html lang="nl"><head><meta charset="utf-8"></head><body><svg id="tekening" style="width:800px;height:600px"></svg>
-      <script src="kit/iconen.js"></script><script src="kit/teksten.nl.js"></script><script src="kit/teksten.en.js"></script><script src="kit/taal.js"></script><script src="kit/huistekenen-vloer.js"></script><script src="kit/huistekenen-blad.js"></script><script src="kit/huistekenen-teken.js"></script><script src="kit/huistekenen-gebaar.js"></script><script src="kit/huistekenen.js"></script>
+      <script src="kit/iconen.js"></script><script src="kit/teksten.nl.js"></script><script src="kit/teksten.en.js"></script><script src="kit/taal.js"></script><script src="kit/huistekenen-vloer.js"></script><script src="kit/huistekenen-blad.js"></script><script src="kit/huistekenen-kaart.js"></script><script src="kit/huistekenen-teken.js"></script><script src="kit/huistekenen-gebaar.js"></script><script src="kit/huistekenen.js"></script>
       <script>window.tekenaar = huistekenen.maak(document.getElementById('tekening'), ${JSON.stringify(huis)}, { stand: 'kamers', etage: 'e1', openingen: true, tekening: ${JSON.stringify(tekening)} });</script></body></html>`;
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.route(`${baseUrl}/proef-afdak.html`, (route) => route.fulfill({ contentType: 'text/html; charset=utf-8', body: blad }));

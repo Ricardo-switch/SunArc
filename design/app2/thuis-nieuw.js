@@ -296,7 +296,8 @@
   }
 
   async function start() {
-    if (!global.huistekenen) await laad('kit/huistekenen.js');
+    // De motor in delen (22 november 2026): eerst de delen, dan huistekenen.js.
+    if (!global.huistekenen) for (const d of ['huistekenen-vloer', 'huistekenen-blad', 'huistekenen-kaart', 'huistekenen-teken', 'huistekenen-gebaar', 'huistekenen']) await laad(`kit/${d}.js`);
     await laad(`kit/huis-modellen.js?${Date.now()}`);
     await laad(`kit/huis-maat.js?${Date.now()}`);
     const t = await tekenaarVanJeHuis();

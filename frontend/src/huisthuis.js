@@ -76,7 +76,7 @@
 
   /** De motor en de modellen laden, de tekening ophalen en de tekenaar opbouwen, op een svg die niemand ziet. */
   async function laad() {
-    for (const src of ['kit/huistekenen-vloer.js', 'kit/huistekenen-blad.js', 'kit/huistekenen-teken.js', 'kit/huistekenen-gebaar.js', 'kit/huistekenen.js', 'kit/huis-modellen.js', 'kit/huis-maat.js', 'huisvoor.js']) await laadScript(src);
+    for (const src of ['kit/huistekenen-vloer.js', 'kit/huistekenen-blad.js', 'kit/huistekenen-kaart.js', 'kit/huistekenen-teken.js', 'kit/huistekenen-gebaar.js', 'kit/huistekenen.js', 'kit/huis-modellen.js', 'kit/huis-maat.js', 'huisvoor.js']) await laadScript(src);
     const d = await global.app.haal('api/huistekening');
     const hv = global.huisVoor;
     const huis = hv.huisVoorMotor(d);
