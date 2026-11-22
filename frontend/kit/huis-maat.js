@@ -1613,25 +1613,36 @@
         const p = P(vx + (mx - vx) * 0.45, vy + (my - vy) * 0.45, z0 + 0.7);
         const info = kamerInfo[kamerVan(r)];
         const breedte = (rr.x1 - rr.x0) * CEL * k;
-        if (!info && breedte < 40) continue;
+        // Zonder iets te melden (een kamer die Home Assistant niet kent) geen naam; met `kamers` leeg (een schets) wel, als het past.
+        if (!info && (Object.keys(o.kamers ?? {}).length || breedte < 24)) continue;
         // Netter (20 november 2026, Ricardo): gecentreerd, kleiner en overal even groot; naam, temperatuur, en eronder wat er gebeurt.
         const midden = `text-anchor="middle" ${FONT}`;
-        let regels = `<text y="0" ${midden} font-size="12" font-weight="700" fill="${info ? '#dfe6ec' : '#aebac6'}">${esc(naam)}</text>`;
-        let h = 15;
+        /*
+         * Een lange naam in een smalle kamer over twee regels, zoals in het poppenhuis (22 november 2026: Slaapkamer Matts en
+         * Mylan vielen op Thuis weg).
+         */
+        const spatie = naam.lastIndexOf(' ');
+        const tweeRegels = spatie > 0 && breedte < naam.length * 6.8;
+        const naamRegels = tweeRegels ? [naam.slice(0, spatie), naam.slice(spatie + 1)] : [naam];
+        let regels = naamRegels.map((n2, i) => `<text y="${i * 13}" ${midden} font-size="12" font-weight="700" fill="${info ? '#dfe6ec' : '#aebac6'}">${esc(n2)}</text>`).join('');
+        let h = 15 + (naamRegels.length - 1) * 13;
         if (info?.temp) {
-          regels += `<text y="19" ${midden} font-size="18" font-weight="800" fill="#ffffff">${esc(info.temp)}</text>`;
-          h = 35;
+          regels += `<text y="${h + 4}" ${midden} font-size="18" font-weight="800" fill="#ffffff">${esc(info.temp)}</text>`;
+          h += 20;
         }
         if (info?.zin) {
           regels += `<text y="${h - 2}" ${midden} font-size="11" font-weight="700" fill="${TOON[info.toon] ?? '#b8c4cf'}">${esc(info.zin)}</text>`;
           h += 13;
         }
-        const w = Math.max(naam.length * 6.8, (info?.zin ?? '').length * 6, (info?.temp ?? '').length * 10.5, 44);
+        const w = Math.max(...naamRegels.map((n2) => n2.length * 6.8), (info?.zin ?? '').length * 6, (info?.temp ?? '').length * 10.5, 44);
         const halo = 'paint-order="stroke" stroke="#0d1a30" stroke-width="3" stroke-linejoin="round"';
         // Past het label nergens, dan op één regel: de naam en de temperatuur (zoals in het poppenhuis).
         const wk = (naam.length + (info?.temp ?? '').length + 1) * 7;
         const kort = info?.temp ? { x: p[0] - wk / 2, y: p[1] - 12, b: wk, h: 15, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}><text y="0" ${midden} font-size="12.5" font-weight="700" fill="#dfe6ec">${esc(naam)} <tspan font-weight="800" fill="${TOON[info.toon] && info.toon !== 'goed' ? TOON[info.toon] : '#ffffff'}">${esc(info.temp)}</tspan></text></g>` } : null;
-        labels.push({ x: p[0] - w / 2, y: p[1] - 12, b: w, h, prio: info?.temp ? 3 : info ? 2 : 0, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}>${regels}</g>`, kader: true, kort, kamer: kamerVan(r) });
+        // Een tweede plek, als de eerste bezet is: het midden van de kamer, iets hoger (22 november 2026: Slaapkamer Mylan viel weg).
+        const p2 = P(mx, my, z0 + 1.3);
+        const ook = { x: p2[0] - w / 2, y: p2[1] - 12, s: `<g transform="translate(${p2[0].toFixed(1)} ${(p2[1] + 2).toFixed(1)})" ${halo}>${regels}</g>` };
+        labels.push({ x: p[0] - w / 2, y: p[1] - 12, b: w, h, prio: info?.temp ? 3 : info ? 2 : 1, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}>${regels}</g>`, kader: true, kort, ook, kamer: kamerVan(r) });
       }
       // De vloerrand van de etage erboven: een dunne plaat langs de glazen kant.
       if (erboven && !band) {
@@ -1826,7 +1837,7 @@
     // Eerst op en neer, dan ook opzij (20 november 2026: op een huis met drie etages vielen kamers met een temperatuur weg).
     const plekken = [[0, 0], [0, -14], [0, 14], [0, -26], [0, 26], [-36, 0], [36, 0], [0, -40], [0, 40], [-36, -20], [36, -20], [-36, 20], [36, 20]];
     const zet = (l) => {
-      for (const [dx, dy] of l.prio >= 3 ? plekken : plekken.slice(0, 5)) {
+      for (const [dx, dy] of l.prio >= 2 ? plekken : plekken.slice(0, 5)) {
         const r = { x0: l.x - 4 + dx, y0: l.y - 6 + dy, x1: l.x + l.b + 4 + dx, y1: l.y + l.h + dy };
         if (r.y0 < 2 || r.y1 > Hpx - 2 || r.x0 < 2 || r.x1 > B - 2 || gezet.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0)) continue;
         gezet.push(r);
@@ -1837,7 +1848,7 @@
       }
       return false;
     };
-    for (const l of labels) if (!zet(l) && l.kort) zet({ ...l, ...l.kort });
+    for (const l of labels) if (!zet(l) && !(l.ook && zet({ ...l, ...l.ook })) && l.kort) zet({ ...l, ...l.kort });
     // Dichtbij: de randen van het beeld zacht laten weglopen.
     if (alleenHuis) s = `<defs><linearGradient id="hm-rand-v" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.1" stop-color="#fff"/><stop offset="0.9" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="hm-rand"><rect width="${B}" height="${Hpx}" fill="url(#hm-rand-v)"/></mask></defs><g mask="url(#hm-rand)">${s}</g>`;
     return { svg: s, P, k, overgeslagen };

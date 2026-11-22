@@ -194,6 +194,9 @@
         kamers[k.id] = { temp: k.temp ?? undefined, ...(k.stand ? { zin: k.zin, toon: TOON[k.stand] ?? 'goed' } : {}) };
       }
     }
+    // Ook een kamer zonder temperatuur die Home Assistant kent (Slaapkamer Matts) krijgt zijn naam; een kamer die alleen
+    // getekend is (het toilet, de meterkast) niet, zoals in het poppenhuis (22 november 2026).
+    for (const e of huisApi?.etages ?? []) for (const r of e.ruimtes ?? []) kamers[r.id] ??= {};
     // Buiten: het erf, de plekken als vlakken, de gebouwen erop.
     const erfE = tk.huis.etages.find((e) => e.buiten);
     const vloer = erfE ? tk.st.vloeren[erfE.id] : null;
@@ -383,6 +386,7 @@
       stroom,
       buiten: { erf, vlakken, gebouwen, apparaten, units, ...(auto ? { auto } : {}) },
       rand: 36,
+      huisDoos,
       // Tikken op de panelen opent Daken (zoals in het poppenhuis).
       ...(model.zon?.tik ? { panelenTik: model.zon.tik, panelenTikLabel: model.zon.tikLabel } : {}),
       ...extra,
@@ -392,6 +396,68 @@
   /** De plek van het huis terwijl het laadt: een zachte gloed, zonder tekst. */
   function gloed(B, H) {
     return `<svg viewBox="0 0 ${B} ${H}" width="${B}" height="${H}" aria-hidden="true" data-huis-laadt><defs><radialGradient id="ht-laadt"><stop offset="0" stop-color="#6fd3ff" stop-opacity="0.10"/><stop offset="1" stop-color="#6fd3ff" stop-opacity="0"/></radialGradient></defs><ellipse cx="${B / 2}" cy="${H * 0.58}" rx="${B * 0.36}" ry="${H * 0.3}" fill="url(#ht-laadt)"/></svg>`;
+  }
+
+  /*
+   * De tuin ingekort (22 november 2026, Ricardo): op Thuis en het always-on display staat het huis groot, zoals in het
+   * poppenhuis. Een lege strook tuin langer dan 2 meter tussen het huis en een gebouw (het tuinhuis 20 meter achterin)
+   * wordt korter; het huis, de gebouwen, de auto en de bomen houden hun maat. Niet op schaal, wel alles in beeld; bij een
+   * kamer buiten staat alles op ware afstand.
+   */
+  function kaartAs(bezet, huis, G = 2, c = 0.12) {
+    const iv = bezet
+      .filter(([a, b]) => b > a)
+      .sort((p, q) => p[0] - q[0])
+      .reduce((uit, [a, b]) => {
+        const l = uit.at(-1);
+        if (l && a <= l[1]) l[1] = Math.max(l[1], b);
+        else uit.push([a, b]);
+        return uit;
+      }, []);
+    const ih = iv.findIndex(([a, b]) => a <= huis[0] + 1e-6 && b >= huis[1] - 1e-6);
+    if (ih < 0) return (t) => t;
+    const pt = iv.map(([a, b]) => ({ a, b, s: 0 }));
+    // Vanaf het huis naar buiten: elke lange tussenruimte schuift alles verderop dichterbij.
+    for (let i = ih + 1; i < pt.length; i++) pt[i].s = pt[i - 1].s - Math.max(0, pt[i].a - pt[i - 1].b - G) * (1 - c);
+    for (let i = ih - 1; i >= 0; i--) pt[i].s = pt[i + 1].s + Math.max(0, pt[i + 1].a - pt[i].b - G) * (1 - c);
+    const kort = (gap) => (gap <= G ? gap : G + (gap - G) * c);
+    return (t) => {
+      if (t <= pt[0].a) return pt[0].a + pt[0].s - kort(pt[0].a - t);
+      for (let i = 0; i < pt.length; i++) {
+        const q = pt[i];
+        if (t <= q.b) return t + q.s;
+        const n = pt[i + 1];
+        if (n && t < n.a) return q.b + q.s + ((t - q.b) / (n.a - q.b)) * (n.a + n.s - q.b - q.s);
+      }
+      const l = pt.at(-1);
+      return l.b + l.s + kort(t - l.b);
+    };
+  }
+
+  /** Buiten korter maken (zie kaartAs): het erf, de vlakken, de gebouwen, de auto, de apparaten, de bomen en de stroomlijn. */
+  function tuinKorter(o, huisDoos) {
+    const b = o.buiten;
+    if (!b?.erf || !huisDoos) return o;
+    const dozen = [...(b.gebouwen ?? []).filter((q) => !q.buur), ...(b.auto ? [b.auto] : [])];
+    const fx = kaartAs([[huisDoos.x, huisDoos.x + huisDoos.b], ...dozen.map((q) => [q.x, q.x + q.b]), ...(o.bomen ?? []).map((t) => [t.x - (t.r ?? 1), t.x + (t.r ?? 1)])], [huisDoos.x, huisDoos.x + huisDoos.b]);
+    const fy = kaartAs([[huisDoos.y, huisDoos.y + huisDoos.d], ...dozen.map((q) => [q.y, q.y + q.d]), ...(o.bomen ?? []).map((t) => [t.y - (t.r ?? 1), t.y + (t.r ?? 1)])], [huisDoos.y, huisDoos.y + huisDoos.d]);
+    const doos = (q) => ({ ...q, x: fx(q.x), y: fy(q.y) });
+    const punt = ([x, y, ...rest]) => [fx(x), fy(y), ...rest];
+    const erf = { x: fx(b.erf.x), y: fy(b.erf.y) };
+    erf.b = fx(b.erf.x + b.erf.b) - erf.x;
+    erf.d = fy(b.erf.y + b.erf.d) - erf.y;
+    o.buiten = {
+      ...b,
+      erf,
+      vlakken: (b.vlakken ?? []).map((v) => ({ ...v, p: v.p.map(punt) })),
+      gebouwen: (b.gebouwen ?? []).map((q) => (q.buur ? q : doos(q))),
+      apparaten: (b.apparaten ?? []).map((a) => ({ ...a, ...(a.x != null ? { x: fx(a.x), y: fy(a.y) } : {}), ...(a.punten ? { punten: a.punten.map(punt) } : {}) })),
+      units: (b.units ?? []).map((u) => ({ ...u, x: fx(u.x), y: fy(u.y) })),
+      ...(b.auto ? { auto: doos(b.auto) } : {}),
+    };
+    o.bomen = (o.bomen ?? []).map((t) => ({ ...t, x: fx(t.x), y: fy(t.y) }));
+    o.stroom = (o.stroom ?? []).map((st) => ({ ...st, pad: (st.pad ?? []).map(punt) }));
+    return o;
   }
 
   /** Een kamer: één etage los, met meubels. Een plek buiten toont de begane grond met het hele erf. */
@@ -433,6 +499,8 @@
     }
     try {
       const o = /** @type {any} */ (opties(staat.tk, model, huisData));
+      // Op Thuis en het always-on display de tuin ingekort, zodat het huis groot staat; bij een kamer op ware afstand.
+      if (soort !== 'kamer') tuinKorter(o, o.huisDoos);
       if (soort === 'kamer') alsEtage(o, staat.tk, huisData, kamerId);
       else if (soort === 'rust') alsRust(o, avond, model);
       else if (soort === 'tel') Object.assign(o, { passend: o.passend === 'huis' ? 'huis' : 'dichtbij', boven: 0, rand: 6, stroom: [] });
