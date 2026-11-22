@@ -497,6 +497,81 @@
     };
   }
 
+  /*
+   * Draaien met een vinger of de muis (22 november 2026, Ricardo): horizontaal vegen draait het huis om zijn as; een tik
+   * blijft een tik (pas vanaf 8 pixels opzij draait het). Na 20 seconden zonder aanraken draait het in een halve seconde
+   * terug naar de vaste kant, zodat Thuis altijd hetzelfde begint.
+   */
+  const draai = new WeakMap();
+  const draaiTeken = new WeakMap();
+  const TERUG_MS = 20_000;
+  function draaiBij(el, tekenNu) {
+    draaiTeken.set(el, tekenNu);
+    if (el.dataset.draai) return;
+    el.dataset.draai = '1';
+    let begin = null;
+    let gesleept = false;
+    let terugTimer = null;
+    let raf = 0;
+    const opnieuw = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => draaiTeken.get(el)?.());
+    };
+    const terug = () => {
+      clearTimeout(terugTimer);
+      terugTimer = setTimeout(() => {
+        const van = draai.get(el) ?? 0;
+        if (!van) return;
+        const t0 = performance.now();
+        const stap = (nu) => {
+          const f = Math.min(1, (nu - t0) / 500);
+          draai.set(el, van * (1 - (1 - (1 - f) ** 3)));
+          draaiTeken.get(el)?.();
+          if (f < 1) requestAnimationFrame(stap);
+          else draai.set(el, 0);
+        };
+        requestAnimationFrame(stap);
+      }, TERUG_MS);
+    };
+    el.addEventListener('pointerdown', (e) => {
+      begin = { x: e.clientX, y: e.clientY, hoek: draai.get(el) ?? 0, id: e.pointerId };
+      gesleept = false;
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!begin || e.pointerId !== begin.id) return;
+      const dx = e.clientX - begin.x;
+      if (!gesleept && (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(e.clientY - begin.y))) return;
+      if (!gesleept) {
+        gesleept = true;
+        try {
+          el.setPointerCapture(e.pointerId);
+        } catch {
+          // Zonder vangen draait het alleen zolang de vinger op het huis blijft.
+        }
+      }
+      draai.set(el, begin.hoek + dx * 0.45);
+      opnieuw();
+    });
+    const los = (e) => {
+      if (!begin || e.pointerId !== begin.id) return;
+      begin = null;
+      if (gesleept) terug();
+    };
+    el.addEventListener('pointerup', los);
+    el.addEventListener('pointercancel', los);
+    // Na slepen geen tik op een kamer.
+    el.addEventListener(
+      'click',
+      (e) => {
+        if (!gesleept) return;
+        gesleept = false;
+        e.stopPropagation();
+        e.preventDefault();
+      },
+      true,
+    );
+  }
+
   /** De plek van het huis terwijl het laadt: een zachte gloed, zonder tekst. */
   function gloed(B, H) {
     return `<svg viewBox="0 0 ${B} ${H}" width="${B}" height="${H}" aria-hidden="true" data-huis-laadt><defs><radialGradient id="ht-laadt"><stop offset="0" stop-color="#6fd3ff" stop-opacity="0.10"/><stop offset="1" stop-color="#6fd3ff" stop-opacity="0"/></radialGradient></defs><ellipse cx="${B / 2}" cy="${H * 0.58}" rx="${B * 0.36}" ry="${H * 0.3}" fill="url(#ht-laadt)"/></svg>`;
@@ -632,10 +707,18 @@
       if (soort === 'tel' || tel) Object.assign(o, { stil: true, rand: 6 });
       // Tikken op een kamer, een deel buiten of de panelen, zoals in het poppenhuis (niet als niemand kijkt).
       if (soort !== 'rust') o.tik = true;
-      const uit = global.huisMaat.teken(staat.tk, B, H, o);
-      // Wat nergens paste, voor de proef en om na te lopen.
-      staat.overgeslagen = uit.overgeslagen ?? [];
-      el.innerHTML = `<svg viewBox="0 0 ${B} ${H}" width="${B}" height="${H}" role="img" aria-label="${global.app.esc(t('thuis.hetHuis'))}">${uit.svg}</svg>`;
+      // Draaien op Thuis en de telefoon (22 november 2026, Ricardo: vrij, en na 20 seconden terug).
+      const draaibaar = soort === 'thuis' || soort === 'tel';
+      const tekenNu = () => {
+        const o2 = draaibaar ? { ...o, hoek: (o.hoek ?? -58) + (draai.get(el) ?? 0) } : o;
+        const uit = global.huisMaat.teken(staat.tk, B, H, o2);
+        // Wat nergens paste, voor de proef en om na te lopen.
+        staat.overgeslagen = uit.overgeslagen ?? [];
+        el.innerHTML = `<svg viewBox="0 0 ${B} ${H}" width="${B}" height="${H}" role="img" aria-label="${global.app.esc(t('thuis.hetHuis'))}"${draaibaar ? ' style="touch-action: pan-y"' : ''}>${uit.svg}</svg>`;
+      };
+      tekenNu();
+      if (draaibaar) draaiBij(el, tekenNu);
+      else draai.delete(el);
       return true;
     } catch (e) {
       staat.fout = true;
