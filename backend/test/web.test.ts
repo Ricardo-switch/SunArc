@@ -1858,6 +1858,8 @@ describe('de indeling (besluit 96)', () => {
       apparaten: [
         { id: 'nest', naam: 'Thermostaat', soort: 'thermostaat', kamer: 'woonkamer' },
         { id: 'lamp', naam: 'Lamp', soort: 'licht', kamer: null, ha: 'woonkamer' },
+        // Een kamer met een thermostaat zonder radiatorknop krijgt vanzelf een radiator (besluit 333).
+        { id: 'radiator:woonkamer', naam: 'Radiator', soort: 'radiator', kamer: 'woonkamer' },
       ],
       verborgen: 1,
     });
