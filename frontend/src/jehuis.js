@@ -703,7 +703,8 @@ async function start() {
   huistekenen.strook($('#strook'), tk);
   // Op de telefoon de etages als balk; buiten als laatste knop, een etage zoals de andere (19 november 2026).
   const erfEtage = huis.etages.find((e) => e.buiten);
-  $('[data-etages]').innerHTML = `${huis.etages.filter((e) => !e.buiten).map((e) => `<button type="button" data-etage-kies="${esc(e.id)}">${esc(e.kort ?? e.naam)}</button>`).join('')}${erfEtage ? `<button type="button" class="tk-buiten" data-etage-kies="${esc(erfEtage.id)}" aria-label="${esc(erfEtage.naam)}" title="${esc(erfEtage.naam)}">${iconen.svg('buiten')}</button>` : info ? `<button type="button" class="tk-buiten" data-buiten-kies aria-label="${esc(t('ht.buiten.kop'))}" title="${esc(t('ht.buiten.kop'))}">${iconen.svg('buiten')}</button>` : ''}`;
+  // Naast elkaar van beneden naar boven, zoals op de kamerpagina: Begane grond links, Zolder rechts (22 november 2026, Ricardo).
+  $('[data-etages]').innerHTML = `${huis.etages.filter((e) => !e.buiten).reverse().map((e) => `<button type="button" data-etage-kies="${esc(e.id)}">${esc(e.kort ?? e.naam)}</button>`).join('')}${erfEtage ? `<button type="button" class="tk-buiten" data-etage-kies="${esc(erfEtage.id)}" aria-label="${esc(erfEtage.naam)}" title="${esc(erfEtage.naam)}">${iconen.svg('buiten')}</button>` : info ? `<button type="button" class="tk-buiten" data-buiten-kies aria-label="${esc(t('ht.buiten.kop'))}" title="${esc(t('ht.buiten.kop'))}">${iconen.svg('buiten')}</button>` : ''}`;
   document.querySelectorAll('[data-ik]').forEach((el) => el.insertAdjacentHTML('afterbegin', iconen.svg(el.dataset.ik)));
   tk.op(bij);
   // Op de telefoon staat het blad onder de tekening: een blad dat opengaat (Buiten, een etage), in beeld schuiven (18-11).
