@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.220.1';
+export const VERSIE = '0.221.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,32 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.221.0',
+    datum: '2026-11-22',
+    beter: [
+      'Het huis zoals getekend laat het weer zien: wolken, regen en sneeuw, ook op de daken, en de feestdagen',
+      'Op Thuis loopt de baan van de zon om het huis; het scherm als niemand kijkt toont \'s avonds de maan en de sterren',
+      'De stroom van nu: van het net via de aansluitkast aan de straat, van je panelen, terug naar het net, naar de auto en de thuisaccu; tik op een lijn of label voor de energiekaart',
+      'Het label van je panelen staat bij het dak en is te tikken; een radiator geeft warmte als de kamer stookt',
+    ],
+    opgelost: [
+      'Een raam onder een dakkapel werd als dakraam over de dakkapel getekend',
+      'Een kamer met vloerverwarming kreeg vanzelf een radiator',
+    ],
+    en: {
+      beter: [
+        'The house as drawn shows the weather: clouds, rain and snow, on the roofs too, and the holidays',
+        'On Home the path of the sun runs around the house; the screen when nobody is looking shows the moon and stars in the evening',
+        'The power right now: from the grid through the meter box at the street, from your panels, back to the grid, to the car and the home battery; tap a line or label for the energy card',
+        'The label of your panels sits by the roof and can be tapped; a radiator gives off heat when the room is heating',
+      ],
+      opgelost: [
+        'A window under a dormer was drawn as a roof window over the dormer',
+        'A room with underfloor heating got a radiator by itself',
+      ],
+    },
+  },
   {
     versie: '0.220.1',
     datum: '2026-11-22',

@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.220.1
+## 0.221.0
 
-*22 november 2026 · 0.179.0 – 0.220.1*
+*22 november 2026 · 0.179.0 – 0.221.0*
 
 **Nieuw**
 
@@ -92,6 +92,10 @@
 
 **Beter**
 
+- Het huis zoals getekend laat het weer zien: wolken, regen en sneeuw, ook op de daken, en de feestdagen
+- Op Thuis loopt de baan van de zon om het huis; het scherm als niemand kijkt toont 's avonds de maan en de sterren
+- De stroom van nu: van het net via de aansluitkast aan de straat, van je panelen, terug naar het net, naar de auto en de thuisaccu; tik op een lijn of label voor de energiekaart
+- Het label van je panelen staat bij het dak en is te tikken; een radiator geeft warmte als de kamer stookt
 - Het huis zoals getekend staat groter op Thuis: de tuin is ingekort, zoals in het poppenhuis
 - Apparaten onder het schuine dak vallen niet meer weg, en meubels staan er niet meer doorheen
 - Lampen geven licht in hun eigen kleur; de border heeft struiken en lampjes, en een lamp in de tuin staat op een paaltje
@@ -192,6 +196,8 @@
 
 **Opgelost**
 
+- Een raam onder een dakkapel werd als dakraam over de dakkapel getekend
+- Een kamer met vloerverwarming kreeg vanzelf een radiator
 - Het tuinhuis: de pui zit onder het overstek, en de palen lopen door tot het dak
 - Een raam in de verdieping boven het afdak bleef bewaard maar verdween bij het laden
 - Een deur die naar buiten draait viel bij Je huis › Kamers buiten beeld
@@ -331,6 +337,10 @@
 
 **Improved**
 
+- The house as drawn shows the weather: clouds, rain and snow, on the roofs too, and the holidays
+- On Home the path of the sun runs around the house; the screen when nobody is looking shows the moon and stars in the evening
+- The power right now: from the grid through the meter box at the street, from your panels, back to the grid, to the car and the home battery; tap a line or label for the energy card
+- The label of your panels sits by the roof and can be tapped; a radiator gives off heat when the room is heating
 - The house as drawn is bigger on Home: the garden is shortened, as in the dollhouse
 - Devices under the sloping roof no longer disappear, and furniture no longer runs through them
 - Lamps shine in their own colour; the border has shrubs and lights, and a garden lamp stands on a post
@@ -431,6 +441,8 @@
 
 **Fixed**
 
+- A window under a dormer was drawn as a roof window over the dormer
+- A room with underfloor heating got a radiator by itself
 - The garden house: the glass front sits under the canopy, and the posts run up to the roof
 - A window on the floor above the canopy was saved but disappeared when loading
 - A door that opens outwards fell out of view under Your home › Rooms
