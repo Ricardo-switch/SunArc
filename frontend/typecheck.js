@@ -124,6 +124,27 @@ const meer = Object.entries(perBestand).filter(([b, n]) => n > (basis[b] ?? 0));
 const minder = Object.entries(basis).filter(([b, n]) => (perBestand[b] ?? 0) < n);
 const totaal = meldingen.length;
 
+/*
+ * Een bestand opgesplitst (22 november 2026): `--verdeel src/inrichten.js` verdeelt de basis van dat bestand over het
+ * bestand en zijn nieuwe delen (src/inrichten-*.js), zolang ze samen niet meer meldingen hebben dan de oude basis.
+ */
+const verdeel = process.argv.includes('--verdeel') ? process.argv[process.argv.indexOf('--verdeel') + 1] : null;
+if (verdeel) {
+  const stam = verdeel.replace(/\.js$/, '-');
+  const groep = Object.keys(perBestand).filter((b) => b === verdeel || (b.startsWith(stam) && basis[b] == null));
+  const samen = groep.reduce((s, b) => s + perBestand[b], 0);
+  if (samen > (basis[verdeel] ?? 0)) {
+    console.error(`${verdeel} en zijn delen hebben samen ${samen} meldingen, meer dan de basis ${basis[verdeel] ?? 0}.`);
+    process.exit(1);
+  }
+  const nieuw = { ...basis };
+  delete nieuw[verdeel];
+  for (const b of groep) nieuw[b] = perBestand[b];
+  await writeFile(BASIS, `${JSON.stringify(Object.fromEntries(Object.entries(nieuw).sort()), null, 2)}\n`);
+  console.log(`Basis van ${verdeel} verdeeld over ${groep.join(', ')}: ${samen} (was ${basis[verdeel] ?? 0}).`);
+  process.exit(0);
+}
+
 if (opnieuw) {
   if (meer.length && existsSync(BASIS)) {
     console.error(`De basis gaat alleen omlaag. Meer dan de basis in: ${meer.map(([b, n]) => `${b} (${n}, basis ${basis[b] ?? 0})`).join(', ')}`);
