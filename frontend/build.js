@@ -114,6 +114,30 @@ async function stempel() {
    * `href="…"`, een bestand hiernaast). Eerst stond dit als lijst met de hand
    * hier; die vergat de microfoon op Assistent en het huismodel bij Energie.
    */
+  /*
+   * Ook de scripts die een script zelf laden (22 november 2026): `huisthuis.js` laadt de tekenmotor, `basis.js` het
+   * scherm als niemand kijkt. Zonder stempel kon de wand na een update de oude code houden. Eerst de bestanden die
+   * zelf niets laden, dan wie alleen die laadt, enzovoort, zodat elke stempel van de laatste inhoud komt. Niet de
+   * service worker: die blijft op zijn eigen adres.
+   */
+  const scripts = [...(await readdir(out)).filter((n) => n.endsWith('.js')), ...(existsSync(join(out, 'kit')) ? (await readdir(join(out, 'kit'))).filter((n) => n.endsWith('.js')).map((n) => `kit/${n}`) : [])];
+  const verwijst = new Map();
+  for (const naam of scripts) {
+    const tekst = await readFile(join(out, naam), 'utf-8');
+    const ref = [...new Set([...tekst.matchAll(/'((?:kit\/)?[a-z0-9-]+\.js)'/g)].map((m) => m[1]))].filter((r) => r !== 'sw.js' && r !== naam && scripts.includes(r));
+    verwijst.set(naam, ref);
+  }
+  const klaar = new Set(scripts.filter((n) => !verwijst.get(n).length));
+  const jsHash = async (naam) => createHash('sha256').update(await readFile(join(out, naam))).digest('hex').slice(0, 8);
+  for (let ronde = 0; klaar.size < scripts.length && ronde < 10; ronde++) {
+    for (const naam of scripts) {
+      if (klaar.has(naam) || !verwijst.get(naam).every((r) => klaar.has(r))) continue;
+      let tekst = await readFile(join(out, naam), 'utf-8');
+      for (const r of verwijst.get(naam)) tekst = tekst.replaceAll(`'${r}'`, `'${r}?v=${await jsHash(r)}'`);
+      await writeFile(join(out, naam), tekst, 'utf-8');
+      klaar.add(naam);
+    }
+  }
   const paginas = (await readdir(out)).filter((n) => n.endsWith('.html'));
   const hashes = new Map();
   const hashVan = async (naam) => {

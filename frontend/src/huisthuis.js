@@ -43,7 +43,26 @@
     return global.app?.weergave?.()?.getekend === true;
   }
 
-  const staat = { tk: null, bezig: null, fout: false };
+  const staat = { tk: null, bezig: null, fout: false, opnieuw: new Set() };
+  /*
+   * Of dit scherm de vorige keer een tekening vond (22 november 2026): '1' of '0'. Met '1' (of nog onbekend) staat er
+   * tijdens het laden een rustige gloed in plaats van even het poppenhuis; met '0' meteen het poppenhuis.
+   */
+  const ER = 'sc-tekening-er';
+  const erWas = () => {
+    try {
+      return localStorage.getItem(ER);
+    } catch {
+      return null;
+    }
+  };
+  const onthoud = (ja) => {
+    try {
+      localStorage.setItem(ER, ja ? '1' : '0');
+    } catch {
+      // Zonder opslag: de volgende keer weer de gloed.
+    }
+  };
   const laadScript = (src) =>
     new Promise((ok, fout) => {
       if (document.querySelector(`script[data-huisthuis="${src}"]`)) return ok();
@@ -80,12 +99,34 @@
   /** Is de tekenaar er? Zo niet, dan begint het laden, en `opnieuw` tekent als hij klaar is. */
   function klaar(opnieuw) {
     if (staat.tk) return true;
+    // Wie wil tekenen, krijgt het seintje (ook als het laden al eerder begon): Thuis, de telefoon, het always-on display.
+    if (opnieuw) staat.opnieuw.add(opnieuw);
     if (!staat.bezig && !staat.fout) {
       staat.bezig = laad()
-        .then(() => opnieuw?.())
+        .then(() => {
+          onthoud(true);
+          [...staat.opnieuw].forEach((f) => {
+            try {
+              f();
+            } catch (e2) {
+              console.warn(e2);
+            }
+          });
+          staat.opnieuw.clear();
+        })
         .catch((e) => {
           staat.fout = true;
+          onthoud(false);
           console.warn('Het huis zoals getekend laadde niet; het poppenhuis blijft.', e);
+          // Er stond een gloed: nu het poppenhuis.
+          [...staat.opnieuw].forEach((f) => {
+            try {
+              f();
+            } catch (e2) {
+              console.warn(e2);
+            }
+          });
+          staat.opnieuw.clear();
         });
     }
     return false;
@@ -348,6 +389,11 @@
     };
   }
 
+  /** De plek van het huis terwijl het laadt: een zachte gloed, zonder tekst. */
+  function gloed(B, H) {
+    return `<svg viewBox="0 0 ${B} ${H}" width="${B}" height="${H}" aria-hidden="true" data-huis-laadt><defs><radialGradient id="ht-laadt"><stop offset="0" stop-color="#6fd3ff" stop-opacity="0.10"/><stop offset="1" stop-color="#6fd3ff" stop-opacity="0"/></radialGradient></defs><ellipse cx="${B / 2}" cy="${H * 0.58}" rx="${B * 0.36}" ry="${H * 0.3}" fill="url(#ht-laadt)"/></svg>`;
+  }
+
   /** Een kamer: één etage los, met meubels. Een plek buiten toont de begane grond met het hele erf. */
   function alsEtage(o, tk, huisApi, kamerId) {
     const e = (huisApi?.etages ?? []).find((x) => (x.ruimtes ?? []).some((r) => r.id === kamerId));
@@ -376,10 +422,16 @@
    * @param {{ soort?: string, tel?: boolean, breedte?: number, hoogte?: number, huisData?: any, kamerId?: string | null, avond?: boolean, opnieuw?: (() => void) | null }} [opts]
    */
   function teken(el, model, { soort = 'thuis', tel = false, breedte, hoogte, huisData = null, kamerId = null, avond = false, opnieuw = null } = {}) {
-    if (!el || !aan() || staat.fout || !klaar(opnieuw)) return false;
+    if (!el || !aan() || staat.fout) return false;
+    const B = Math.round(breedte ?? el.clientWidth ?? 860);
+    const H = Math.round(hoogte ?? 612);
+    if (!klaar(opnieuw)) {
+      // Nog aan het laden: een rustige gloed waar het huis komt, niet even het poppenhuis (22 november 2026, Ricardo).
+      if (erWas() === '0') return false;
+      if (!el.querySelector('[data-huis-laadt]')) el.innerHTML = gloed(B, H);
+      return true;
+    }
     try {
-      const B = Math.round(breedte ?? el.clientWidth ?? 860);
-      const H = Math.round(hoogte ?? 612);
       const o = /** @type {any} */ (opties(staat.tk, model, huisData));
       if (soort === 'kamer') alsEtage(o, staat.tk, huisData, kamerId);
       else if (soort === 'rust') alsRust(o, avond, model);
@@ -400,4 +452,6 @@
   }
 
   global.huisThuis = { aan, teken, laad };
+  // Meteen beginnen met laden als dit scherm de vorige keer een tekening had: dan is het huis er sneller.
+  if (erWas() === '1' && aan()) setTimeout(() => klaar(null), 0);
 })(window);

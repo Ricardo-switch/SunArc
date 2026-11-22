@@ -1379,7 +1379,7 @@
    */
   function teDoenStart() {
     // Ook op de telefoon: voor het getal bij de tab Te doen (besluit 217).
-    if (global.tedoen || document.querySelector('script[src="tedoen.js"]')) return;
+    if (global.tedoen || document.querySelector('script[src^="tedoen.js"]')) return;
     const s = document.createElement('script');
     s.src = 'tedoen.js';
     document.head.appendChild(s);
