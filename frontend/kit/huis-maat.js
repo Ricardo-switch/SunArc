@@ -303,7 +303,8 @@
      */
     const zb = o.zonBoog?.baan?.length && o.zonBoog.voorDeg != null && eenEtage < 0 ? o.zonBoog : null;
     // Breed om het huis, en de hoogte wat opgerekt (de zon staat in november laag; echt op schaal kan niet, hij staat oneindig ver).
-    const ringR = Math.max(X1 - X0, Y1 - Y0) * 1.0 + 4.5;
+    // Op Thuis (`o.boogVrij`) een kleinere boog dicht om het huis, zodat hij niet in de tekst ernaast loopt (22 november 2026).
+    const ringR = o.boogVrij ? Math.max(X1 - X0, Y1 - Y0) * 0.62 + 1.5 : Math.max(X1 - X0, Y1 - Y0) * 1.0 + 4.5;
     const ringZ = (hd ? hd.nok : Math.max(...lagen.map((l) => l.top))) + 1.4;
     // De hoogte opgerekt als de zon laag staat (de winter), nooit hoger dan 0,9 keer de straal (de zomer liep anders uit beeld).
     const rek = zb ? Math.min(1.4, 0.9 / Math.max(0.05, Math.sin((Math.max(...zb.baan.map((q) => q.el)) * Math.PI) / 180))) : 1;
@@ -317,7 +318,8 @@
        */
       return [cx - ringR * c * Math.sin(rel), cy - ringR * c * Math.cos(rel), ringZ + ringR * rek * Math.sin(Math.max(0, el) * r)];
     };
-    if (zb) for (const q of zb.baan) if (q.el > -1.5) punten.push(ringPunt(q));
+    // Op Thuis (`o.boogVrij`) telt de boog niet mee voor de schaal: het huis blijft groot, de boog loopt erom (22 november 2026).
+    if (zb && !o.boogVrij) for (const q of zb.baan) if (q.el > -1.5) punten.push(ringPunt(q));
     // Eén etage: alleen die etage met de wazige stukjes erboven en eronder in beeld (en een smalle rand grond, op de begane grond).
     if (eenEtage >= 0) {
       const L = lagen[eenEtage];
@@ -417,9 +419,21 @@
       if (nacht) {
         const [mx, my, r] = [B * 0.62, Hpx * 0.14, 15];
         x2 += `<circle cx="${mx}" cy="${my}" r="${r * 2.6}" fill="#e8eef8" opacity="0.06"/><circle cx="${mx}" cy="${my}" r="${r}" fill="#e9eef6"/><circle cx="${mx + r * 0.42}" cy="${my - r * 0.25}" r="${r * 0.88}" fill="#16203a"/>`;
-      } else {
+      } else if (!hm.geenZon) {
         const [zx, zy, r] = laag ? [hm.tijd === 'avond' ? B * 0.86 : B * 0.14, Hpx * 0.34, 16] : [B * 0.8, Hpx * 0.12, 18];
         x2 += `<circle cx="${zx}" cy="${zy}" r="${r * 3.4}" fill="url(#hm-zongloed)" opacity="${(0.55 - 0.3 * (hm.wolken ?? 0)).toFixed(2)}"/><circle cx="${zx}" cy="${zy}" r="${r}" fill="${laag ? '#ffb86b' : '#ffd27a'}" opacity="${(1 - 0.5 * (hm.wolken ?? 0)).toFixed(2)}"/>`;
+      }
+      /*
+       * Wolken (22 november 2026, zoals in het poppenhuis): zoveel als de lucht bewolkt is, op vaste plekken, zacht en grijs;
+       * bij regen of sneeuw altijd een paar. Overdag lichter dan 's nachts.
+       */
+      const nW = Math.min(6, Math.round(Math.max(hm.wolken ?? 0, o.weer ? 0.7 : 0) * 6));
+      const WOLK = [[0.2, 0.1, 1], [0.6, 0.06, 0.8], [0.86, 0.2, 1.1], [0.38, 0.2, 0.7], [0.07, 0.3, 0.9], [0.72, 0.3, 0.75]];
+      for (let i = 0; i < nW; i++) {
+        const [fx, fy, sc] = WOLK[i];
+        const [wx, wy, r] = [B * fx, Hpx * fy, 30 * sc];
+        const kl = o.weer ? '#7d8d9e' : '#c9d4df';
+        x2 += `<g opacity="${nacht ? 0.14 : 0.3}" filter="url(#hm-zacht)"><ellipse cx="${wx.toFixed(0)}" cy="${wy.toFixed(0)}" rx="${(r * 1.7).toFixed(0)}" ry="${(r * 0.55).toFixed(0)}" fill="${kl}"/><ellipse cx="${(wx - r * 0.5).toFixed(0)}" cy="${(wy - r * 0.35).toFixed(0)}" rx="${(r * 0.8).toFixed(0)}" ry="${(r * 0.6).toFixed(0)}" fill="${kl}"/><ellipse cx="${(wx + r * 0.45).toFixed(0)}" cy="${(wy - r * 0.45).toFixed(0)}" rx="${r.toFixed(0)}" ry="${(r * 0.72).toFixed(0)}" fill="${kl}"/></g>`;
       }
       return `<defs><radialGradient id="hm-zongloed"><stop offset="0" stop-color="#ffd27a" stop-opacity="0.7"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient></defs>${x2}`;
     };
@@ -568,6 +582,72 @@
       const y0 = Math.min(...dozen.map((q) => q.y));
       const y1 = Math.max(...dozen.map((q) => q.y + q.d));
       return { s: s2, d: diep((x0 + x1) / 2, (y0 + y1) / 2), rect: { x: x0, b: x1 - x0, y: y0, d: y1 - y0 }, W };
+    };
+    /*
+     * Het weer over het huis (22 november 2026, zoals in het poppenhuis): regen als schuine streepjes, sneeuw als vlokjes;
+     * vaste plekken, en ze bewegen alleen als er geen rust is gevraagd.
+     */
+    const weerLaag = () => {
+      if (o.weer !== 'regen' && o.weer !== 'sneeuw') return '';
+      let zaad = 5;
+      const rnd = () => ((zaad = (zaad * 16807) % 2147483647) / 2147483647);
+      let x2 = '';
+      const regen = o.weer === 'regen';
+      for (let i = 0; i < (regen ? 70 : 60); i++) {
+        const [x, y] = [rnd() * B, rnd() * Hpx * 0.85];
+        x2 += regen ? `<path d="M${x.toFixed(0)} ${y.toFixed(0)}l-3 10" stroke="#9fb3c8" stroke-opacity="0.45" stroke-width="1.2" stroke-linecap="round"/>` : `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${(1 + rnd() * 1.4).toFixed(1)}" fill="#f4f7fa" opacity="0.8"/>`;
+      }
+      const beweeg = o.stil ? '' : `<animateTransform attributeName="transform" type="translate" values="0 0;${regen ? '-6 18' : '-4 12'}" dur="${regen ? '0.7s' : '3s'}" repeatCount="indefinite"/>`;
+      return `<g pointer-events="none">${x2}${beweeg}</g>`;
+    };
+    /**
+     * De feestdag (22 november 2026, zoals in het poppenhuis; `o.feest`): met Kerst lichtjes langs de goot, met Halloween een
+     * pompoen bij de voordeur, met Oud en Nieuw vuurwerk in de lucht, met Pasen eieren in het gras.
+     */
+    const feestLaag = () => {
+      const f = o.feest;
+      if (!f || eenEtage >= 0) return '';
+      let x2 = '';
+      const deur = o.voordeur;
+      if (f === 'kerst' && metDak) {
+        const KL = ['#ff5a5a', '#6ee7b7', '#ffd36b', '#6fd3ff'];
+        let vorige = null;
+        for (let x = X0 + 0.15, i = 0; x <= X1 - 0.1; x += 0.32, i++) {
+          const z = Math.min(dakZ(x, Y0 + 0.02), lagen.at(-1)?.top ?? 5) - 0.06;
+          const q = P(x, Y0 - 0.03, z - (i % 2 ? 0.06 : 0.02));
+          if (vorige) x2 += `<path d="M${vorige[0].toFixed(1)} ${vorige[1].toFixed(1)}L${q[0].toFixed(1)} ${q[1].toFixed(1)}" stroke="#2c3646" stroke-width="0.8"/>`;
+          if (o.avond) x2 += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="5" fill="url(#hm-gloed)" opacity="0.45"/>`;
+          x2 += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="2.2" fill="${KL[i % KL.length]}"/>`;
+          vorige = q;
+        }
+      }
+      if (f === 'halloween' && deur) {
+        const [nx, ny] = deur.n ?? [0, -1];
+        // Tegen de gevel naast de deur; staat daar de auto (een voordeur aan de oprit), dan op de hoek van de voorgevel.
+        const au = buiten.auto;
+        const bijAuto = au && deur.x > au.x - 1.5 && deur.x < au.x + au.b + 1.5 && deur.y > au.y - 1.5 && deur.y < au.y + au.d + 1.5;
+        const c = bijAuto ? P(X1 - 0.5, Y0 - 0.35, 0.18) : P(deur.x + nx * 0.25 + (ny ? 0.75 : 0), deur.y + ny * 0.25 + (nx ? 0.75 : 0), 0.18);
+        const r = Math.max(5, 0.22 * k);
+        x2 += `<ellipse cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" rx="${(r * 1.2).toFixed(1)}" ry="${r.toFixed(1)}" fill="#f08a2e" stroke="#b8601c" stroke-width="0.8"/><path d="M${c[0].toFixed(1)} ${(c[1] - r).toFixed(1)}l1 -${(r * 0.4).toFixed(1)}" stroke="#4f6d34" stroke-width="2"/>`;
+        if (o.avond) x2 += `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${(r * 2).toFixed(1)}" fill="url(#hm-gloed)" opacity="0.4"/>`;
+      }
+      if (f === 'oudnieuw') {
+        for (const [fx, fy, kl] of [[0.22, 0.16, '#ff8fb1'], [0.76, 0.1, '#ffd36b'], [0.5, 0.24, '#6fd3ff']]) {
+          const [cx2, cy2] = [B * fx, Hpx * fy];
+          for (let i = 0; i < 12; i++) {
+            const h = (i / 12) * Math.PI * 2;
+            x2 += `<path d="M${(cx2 + Math.cos(h) * 6).toFixed(1)} ${(cy2 + Math.sin(h) * 6).toFixed(1)}L${(cx2 + Math.cos(h) * 22).toFixed(1)} ${(cy2 + Math.sin(h) * 22).toFixed(1)}" stroke="${kl}" stroke-width="1.6" stroke-linecap="round" opacity="0.85"/>`;
+          }
+        }
+      }
+      if (f === 'pasen' && deur) {
+        const [nx, ny] = deur.n ?? [0, -1];
+        [['#ff8fb1', -0.8], ['#ffd36b', -0.3], ['#6fd3ff', 0.4], ['#b59cff', 0.9]].forEach(([kl, a]) => {
+          const c = P(deur.x + nx * 1.6 + (ny ? a : 0), deur.y + ny * 1.6 + (nx ? a : 0), 0.08);
+          x2 += `<ellipse cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" rx="${Math.max(2.5, 0.08 * k).toFixed(1)}" ry="${Math.max(3.4, 0.11 * k).toFixed(1)}" fill="${kl}"/>`;
+        });
+      }
+      return `<g pointer-events="none">${x2}</g>`;
     };
     // De hemel achter het huis: de maan en de sterren, of de zon (eerst, zodat alles erover valt).
     if (o.hemel) s += hemel(o.hemel);
@@ -901,6 +981,7 @@
       if (binnen) x2 += `<path d="${vlak([[x0 + 0.3, y0, 0.01], [x1 - 0.3, y0, 0.01], [x1 + 0.5, ov - 1.6, 0.01], [x0 - 0.5, ov - 1.6, 0.01]])}" fill="#FFB765" opacity="0.35" filter="url(#hm-zacht)"/>`;
       const spots = [0.27, 0.73].map((f) => x0 + (x1 - x0) * f);
       x2 += zetModel('tuinhuis', { x: (x0 + x1) / 2, y: q.y + q.d, z: 0, wand: 'y', kant: -1 }, { b: q.b, d: q.d, h, od, glas })?.s ?? '';
+      if (o.weer === 'sneeuw') x2 += `<path d="${vlak([[x0 - 0.12, ov - 0.05, h + 0.2], [x1 + 0.12, ov - 0.05, h + 0.2], [x1 + 0.12, q.y + q.d + 0.12, h + 0.2], [x0 - 0.12, q.y + q.d + 0.12, h + 0.2]])}" fill="#eef3f8" fill-opacity="0.9"/>`;
       for (const x of spots) {
         const l = P(x, ov + 0.25, h - 0.01);
         if (spotsAan) {
@@ -927,7 +1008,8 @@
       const h = q.h ?? MOD.MODELLEN[q.soort].h;
       const ta = tikAttr(q.kamer, q.naam);
       if (ta) tikLaag.push(`<path d="${omhulsel(q.x, q.x + q.b, q.y, q.y + q.d, 0, h + (q.soort === 'schuur' ? Math.min(q.b, 3) * 0.38 : 0.2))}" ${ta}/>`);
-      const x2 = zetModel(q.soort, { x: q.x + q.b / 2, y: q.y + q.d, z: 0, wand: 'y', kant: -1 }, { b: q.b, d: q.d, h })?.s ?? '';
+      let x2 = zetModel(q.soort, { x: q.x + q.b / 2, y: q.y + q.d, z: 0, wand: 'y', kant: -1 }, { b: q.b, d: q.d, h })?.s ?? '';
+      if (o.weer === 'sneeuw' && q.soort !== 'schuur') x2 += `<path d="${vlak([[q.x, q.y, h + 0.03], [q.x + q.b, q.y, h + 0.03], [q.x + q.b, q.y + q.d, h + 0.03], [q.x, q.y + q.d, h + 0.03]])}" fill="#eef3f8" fill-opacity="0.9"/>`;
       return x2 + gebouwNaam(q, h + (q.soort === 'schuur' ? Math.min(q.b, 3) * 0.38 : 0) + 0.4);
     };
     /** Een tafel met vier stoelen op het terras. */
@@ -1476,6 +1558,17 @@
           x2 += `<path d="M${s0[0].toFixed(1)} ${s0[1].toFixed(1)}L${s1[0].toFixed(1)} ${s1[1].toFixed(1)}" stroke="#8090a0" stroke-width="1"/>`;
         }
         x2 += md.s;
+        // Een radiator die warm is: zachte warmte die langs de muur omhoog golft, zoals in het poppenhuis (22 november 2026).
+        if (naam === 'radiator' && draait) {
+          for (const a of [-0.3, 0, 0.3]) {
+            const p0 = P(...md.W(a, 0.12, 0.66));
+            const p1 = P(...md.W(a + 0.06, 0.14, 0.95));
+            const p2 = P(...md.W(a, 0.16, 1.25));
+            x2 += `<path d="M${p0[0].toFixed(1)} ${p0[1].toFixed(1)}Q${p1[0].toFixed(1)} ${p1[1].toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}" stroke="#ff9a6b" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.8"/>`;
+          }
+          const g = P(...md.W(0, 0.05, 0.9));
+          x2 += `<circle cx="${g[0].toFixed(1)}" cy="${g[1].toFixed(1)}" r="${(0.6 * k).toFixed(1)}" fill="#ff7a4d" opacity="0.18" filter="url(#hm-zacht)"/>`;
+        }
         // Een bewegingsmelder die nu beweging ziet: een ring die uitdijt op de vloer eronder, zoals in het poppenhuis (22 november 2026).
         if (naam === 'beweging' && draait) {
           const c = P(mx, my, z0 + 0.02);
@@ -1800,6 +1893,7 @@
       for (let f = 0.12; f < 0.95; f += 0.12) s += `<path d="M${pt(u0 + (u1 - u0) * f, v0, laag)}L${pt(u0 + (u1 - u0) * f, v1, hoog)}" stroke="#7e8da6" stroke-opacity="0.5" stroke-width="0.7"/>`;
     }
     // Het dak aan de kant van de kijker: glas met de lijnen erop.
+    let panelenMidden = null;
     for (const d of metDak ? daken : []) {
       for (const v of d.vlakken) {
         if (!naarKijker(...v.n)) continue;
@@ -1809,6 +1903,10 @@
           continue;
         }
         s += `<path d="${vlak(v.p)}" fill="rgb(191 230 255 / 0.05)" stroke="#9fd8ff" stroke-opacity="0.4" stroke-width="1.1" stroke-dasharray="5 4" stroke-linejoin="round"/>`;
+        // Sneeuw op het dak (22 november 2026, zoals in het poppenhuis).
+        if (o.weer === 'sneeuw' && v.dak) s += `<path d="${vlak(v.p.map(([x, y, zz]) => [x, y, zz + 0.04]))}" fill="#eef3f8" fill-opacity="0.85"/>`;
+        // Het midden van de panelen: daar begint de stroom van de zon, en daar hangt het label.
+        if (d === hoofdDak && v.dak && paneelVan(v) && !panelenMidden) panelenMidden = [0, 1, 2].map((j) => v.p.reduce((n, q) => n + q[j], 0) / v.p.length);
         if (d === hoofdDak && v.dak && paneelVan(v)) {
           s += `<g opacity="0.55">${paneelVeld(d, v)}</g>`;
           if (o.tik && o.panelenTik) tikLaag.unshift(`<path d="${vlak(v.p)}" class="sc-tik" data-tik="${esc(o.panelenTik)}" fill="transparent" role="button" tabindex="0"${o.panelenTikLabel ? ` aria-label="${esc(o.panelenTikLabel)}"` : ''} style="cursor: pointer"/>`);
@@ -1821,19 +1919,46 @@
 
     // De stroom: een lijn over de grond, onder wat ervoor staat (de auto), met zijn label (zoals "0,4 kW van het net" op Thuis).
     const STROOM = { violet: '#a78bfa', zon: '#f7b548', mint: '#6ee7b7' };
+    /*
+     * 22 november 2026 (zoals in het poppenhuis): `'panelen'` in een pad begint bij het midden van de panelen en loopt langs
+     * de voorgevel naar beneden; een lijn en zijn label zijn te tikken (`tik`, de energiekaart); een label kan bij het einde
+     * van de lijn staan (`bij: 'eind'`, terugleveren bij de aansluitkast) en een eigen kleur hebben (`labelToon`).
+     */
+    const padVan = (pad) => pad.flatMap((q) => {
+      if (q !== 'panelen') return [q];
+      if (!panelenMidden) return [];
+      const [mx] = panelenMidden;
+      const gevel = Math.max(0.3, Math.min(dakZ(mx, Y0 + 0.02), lagen.at(-1)?.top ?? 5) - 0.05);
+      return [panelenMidden, [mx, Y0 - 0.05, gevel], [mx, Y0 - 0.05, 0.05]];
+    });
+    const tikData = (tik, label) => (o.tik && tik ? ` class="sc-tik" data-tik="${esc(tik)}" role="button" tabindex="0"${label ? ` aria-label="${esc(label)}"` : ''} style="cursor: pointer"` : '');
     for (const st2 of o.stroom ?? []) {
-      const pp = (st2.pad ?? []).map((q) => P(...q));
+      const pp = padVan(st2.pad ?? []).map((q) => P(...q));
       if (pp.length < 2) continue;
       const kl = STROOM[st2.toon] ?? STROOM.violet;
       const d = `M${pp.map((q) => `${q[0].toFixed(1)} ${q[1].toFixed(1)}`).join('L')}`;
       s += `<path d="${d}" stroke="${kl}" stroke-opacity="0.25" stroke-width="5" fill="none" stroke-linejoin="round"/>`;
       s += `<path d="${d}" stroke="${kl}" stroke-width="2.2" fill="none" stroke-dasharray="2 7" stroke-linecap="round" stroke-linejoin="round" class="sc-stroom"/>`;
+      if (o.tik && st2.tik) tikLaag.push(`<path d="${d}"${tikData(st2.tik, st2.tikLabel)} fill="none" stroke="transparent" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>`);
       if (st2.label && !o.stil) {
-        const [lx, ly] = pp[0];
+        const [lx, ly] = st2.bij === 'eind' ? pp.at(-1) : pp[0];
+        const lk = STROOM[st2.labelToon] ?? kl;
         const w = st2.label.length * 7.6 + 28;
         const [px, py] = [lx + (st2.dx ?? 10), ly + (st2.dy ?? 26)];
-        labels.push({ x: px, y: py - 14, b: w, h: 30, prio: 4, s: `<g transform="translate(${px.toFixed(1)} ${py.toFixed(1)})"><rect x="0" y="-15" width="${w.toFixed(0)}" height="30" rx="12" fill="#0d1a30" stroke="${kl}" stroke-opacity="0.55"/><text x="${(w / 2).toFixed(1)}" y="5.5" text-anchor="middle" ${FONT} font-size="14.5" font-weight="700" fill="#eef3f7">${esc(st2.label)}</text></g>` });
+        labels.push({ x: px, y: py - 14, b: w, h: 30, prio: 4, s: `<g transform="translate(${px.toFixed(1)} ${py.toFixed(1)})"${tikData(st2.tik, st2.tikLabel)}><rect x="0" y="-15" width="${w.toFixed(0)}" height="30" rx="12" fill="#0d1a30" stroke="${lk}" stroke-opacity="0.55"/><text x="${(w / 2).toFixed(1)}" y="5.5" text-anchor="middle" ${FONT} font-size="14.5" font-weight="700" fill="${lk === STROOM.violet ? '#eef3f7' : lk}">${esc(st2.label)}</text></g>` });
       }
+    }
+    // Het label van de panelen (zoals in het poppenhuis): hoeveel ze nu geven, met een lijntje naar het dak; te tikken.
+    if (o.dakLabel && panelenMidden && !o.stil) {
+      const dl = o.dakLabel;
+      const [ax, ay] = P(...panelenMidden);
+      const regels = dl.regels ?? [];
+      const w = Math.max(dl.titel.length * 15 + 24, ...regels.map((r) => r.length * 7 + 24));
+      const h = 40 + regels.length * 18;
+      // Met de zonneboog op Thuis rechts naast het dak, onder de boog (22 november 2026); anders erboven.
+      const [px, py] = o.boogVrij && zb ? [Math.max(ax + 40, P(X1, Y0, 0)[0] + 8), ay + 10] : [ax + (dl.dx ?? 60), ay + (dl.dy ?? -80)];
+      const kl = STROOM[dl.toon] ?? STROOM.zon;
+      labels.push({ x: px, y: py, b: w, h, prio: 5, s: `<path d="M${ax.toFixed(1)} ${ay.toFixed(1)}L${(px + 12).toFixed(1)} ${(py + h).toFixed(1)}" stroke="${kl}" stroke-opacity="0.7" stroke-width="1.2"/><circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="3.5" fill="${kl}"/><g transform="translate(${px.toFixed(1)} ${py.toFixed(1)})"${tikData(dl.tik, dl.tikLabel)}><rect width="${w.toFixed(0)}" height="${h}" rx="12" fill="#0d1a30" fill-opacity="0.92" stroke="${kl}" stroke-opacity="0.5"/><text x="12" y="30" ${FONT} font-size="24" font-weight="800" fill="${kl}">${esc(dl.titel)}</text>${regels.map((r, i) => `<text x="12" y="${50 + i * 18}" ${FONT} font-size="13" font-weight="${i === 0 ? 700 : 500}" fill="${i === 0 ? kl : '#cfd8e1'}">${esc(r)}</text>`).join('')}</g>` });
     }
     s += tekenBuiten(voorHuis);
     /** Een apparaat buiten (een lamp, de lampjes in de border, een lantaarn, de deurbel, een zonnescherm). */
@@ -1872,6 +1997,13 @@
             x2 += `<circle cx="${kop[0].toFixed(1)}" cy="${kop[1].toFixed(1)}" r="2.2" fill="${draait ? lk : '#5c6876'}"/>`;
           }
         }
+      } else if (a.soort === 'accu') {
+        // De thuisaccu aan de gevel naast de voordeur (22 november 2026, zoals in het poppenhuis).
+        const [nx, ny] = a.n ?? [0, -1];
+        x2 += zetModel('accu', Math.abs(nx) > Math.abs(ny) ? { x: a.x, y: a.y, z: 0.05, wand: 'x', kant: Math.sign(nx) } : { x: a.x, y: a.y, z: 0.05, wand: 'y', kant: Math.sign(ny) })?.s ?? '';
+      } else if (a.soort === 'kast') {
+        // De aansluitkast aan de straat, met de voorkant naar de straat (22 november 2026).
+        x2 += zetModel('aansluitkast', { x: a.x, y: a.y + 0.15, z: 0, wand: 'y', kant: -1 })?.s ?? '';
       } else if (a.soort === 'paal') {
         // Een lantaarn: een paal met een kap; aan een kegel licht naar de grond.
         const z = a.z ?? 2.6;
@@ -1939,6 +2071,7 @@
     s = s.replace(ACHTER, () => achterStuk);
     s += (buiten.apparaten ?? []).filter((a) => !achterKant(a)).map(buitenApparaat).join('');
     s += zonneboog(false);
+    s += feestLaag() + weerLaag();
     s += tikLaag.join('');
         // De namen bovenop. Wat botst schuift een stukje op of neer; past het nergens, dan valt het weg. De kamers met een temperatuur gaan voor.
     labels.sort((a, b) => b.prio - a.prio);

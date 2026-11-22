@@ -189,6 +189,13 @@
         }
       }
     }
+    // Een radiator is warm als zijn kamer stookt: een radiatorknop die verwarmt, of een thermostaat (niet een airco) die aan staat (22 november 2026).
+    for (const e of huisApi?.etages ?? []) {
+      for (const r of e.ruimtes ?? []) {
+        if (!(r.apparaten ?? []).some((a) => a.soort === 'klimaat' && !a.klimaat?.kanKoelen && a.aan)) continue;
+        for (const a of tk.st.apparaten) if (a.soort === 'radiator' && a.kamer === r.id) aanSet.add(a.id);
+      }
+    }
     // De airco's uit het model (die zeggen of ze echt draaien).
     for (const e of model.etages ?? []) for (const k of e.kamers ?? []) for (const a of k.apparaten ?? []) if (a.soort === 'airco' && a.aan && a.naam) aanSet.add(a.naam);
     // De temperatuur en de stand per kamer, zoals de pagina ze toont.
@@ -273,14 +280,23 @@
     const oprit = plek('oprit')[0];
     const garage = gebouwen.find((g) => g.soort === 'garage');
     let auto = null;
-    if (model.oprit?.auto && oprit) {
+    // Een laadpaal buiten (`model.auto`, issue 164): de auto staat ernaast als hij er is, en laadt daar.
+    const paal = model.auto ?? null;
+    if ((model.oprit?.auto || (paal && paal.stand !== 'weg')) && oprit) {
       const diep = oprit.y1 - oprit.y0 >= oprit.x1 - oprit.x0;
       const [b, d] = diep ? [1.84, 4.5] : [4.5, 1.84];
       if (oprit.x1 - oprit.x0 >= b && oprit.y1 - oprit.y0 >= d) {
         const x = diep ? (oprit.x0 + oprit.x1) / 2 - b / 2 : Math.max(oprit.x0 + 0.4, Math.min(oprit.x1 - b - 0.4, (garage ? garage.x - 0.9 : oprit.x1) - b));
         const y = diep ? Math.max(oprit.y0 + 0.6, Math.min(oprit.y1 - d - 0.3, (garage && garage.y >= oprit.y0 ? garage.y : oprit.y1) - d - 0.9)) : (oprit.y0 + oprit.y1) / 2 - d / 2;
-        auto = { x, y, b, d, kleur: '#c9d4df', laadt: !!model.oprit?.laadt };
+        auto = { x, y, b, d, kleur: '#c9d4df', laadt: !!model.oprit?.auto?.laadt || paal?.stand === 'laadt' };
       }
+    }
+    // De laadpaal tegen de muur het dichtst bij de oprit (het huis of de garage), met de kabel naar de auto als hij laadt.
+    let laadpaal = null;
+    if (paal && oprit) {
+      const [ox, oy] = auto ? [auto.x + auto.b / 2, auto.y + auto.d / 2] : [(oprit.x0 + oprit.x1) / 2, (oprit.y0 + oprit.y1) / 2];
+      const w = opMuur(ox, oy, [...(garage ? [garage] : []), ...(huisDoos ? [huisDoos] : [])], 0.5);
+      if (w) laadpaal = { x: w.x + w.n[0] * 0.05, y: w.y + w.n[1] * 0.05, n: w.n, laadt: paal.stand === 'laadt' };
     }
     // Apparaten buiten: lampen, de deurbel, camera's, het zonnescherm, de lampjes in de border.
     const apparaten = [];
@@ -316,18 +332,52 @@
      */
     const stroom = [];
     const bgV = tk.st.vloeren[tk.huis.beneden ?? 'bg'];
-    const net = (model.stromen ?? []).find((x) => x.van === 'net');
-    const label = (model.labels ?? []).find((l) => l.bij === 'net')?.titel;
     const voordeur = (bgV?.openingen ?? []).find((g) => g.soort === 'voordeur');
     const deurbel = apparaten.find((a) => a.soort === 'deurbel');
     const halId = bgV ? Object.entries(bgV.ruimtes).find(([, r]) => kamerSoort(r.kamer) === 'hal' || r.kamer === 'hal')?.[0] : null;
     const halR = halId ? K.maten(bgV)[halId]?.r : null;
     const deur = voordeur ? (voordeur.as === 'x' ? { x: m(voordeur.op), y: m((voordeur.van + voordeur.tot) / 2) } : { x: m((voordeur.van + voordeur.tot) / 2), y: m(voordeur.op) }) : deurbel ? { x: deurbel.x, y: deurbel.y } : halR ? { x: m((halR.x0 + halR.x1) / 2), y: hoofd ? hoofd.v : m(halR.y0) } : null;
-    if (net && erf && hoofd && deur) {
-      const w = opMuur(deur.x, deur.y, [huisDoos], 0);
-      const pad = !w || w.kant === 'voor' ? [[deur.x, erf.y - 1.0, 0.05], [deur.x, hoofd.v, 0.05]] : w.kant === 'achter' ? [[hoofd.u - 0.08, erf.y - 1.0, 0.05], [hoofd.u - 0.08, w.y + 0.08, 0.05], [w.x, w.y + 0.08, 0.05]] : [[w.x + w.n[0] * 0.08, erf.y - 1.0, 0.05], [w.x + w.n[0] * 0.08, w.y, 0.05], [w.x - w.n[0] * 0.15, w.y, 0.05]];
-      stroom.push({ toon: 'violet', label, dx: -(String(label ?? '').length * 7.6 + 40), dy: 16, pad });
+    /*
+     * De stroom (22 november 2026, zoals in het poppenhuis), uit de stromen van nu: van het net via de aansluitkast aan de
+     * straat naar de voordeur; van de panelen langs de voorgevel naar binnen; teruglevering van de panelen naar de kast; naar
+     * de auto bij de laadpaal; van en naar de thuisaccu. Elke lijn en zijn label opent de energiekaart (`tik`).
+     */
+    const muurDeur = deur && huisDoos ? opMuur(deur.x, deur.y, [huisDoos], 0) : null;
+    const kastX = !deur ? null : !muurDeur || muurDeur.kant === 'voor' ? deur.x : muurDeur.kant === 'achter' ? (hoofd ? hoofd.u - 0.08 : null) : muurDeur.x + muurDeur.n[0] * 0.08;
+    const kast = model.net && erf && kastX != null ? { x: kastX, y: erf.y + 0.35 } : null;
+    if (kast) apparaten.push({ id: 'aansluitkast', soort: 'kast', x: kast.x, y: kast.y });
+    const w = muurDeur;
+    const naarDeur = kast && hoofd && deur ? (!w || w.kant === 'voor' ? [[deur.x, kast.y, 0.05], [deur.x, hoofd.v, 0.05]] : w.kant === 'achter' ? [[kastX, kast.y, 0.05], [kastX, w.y + 0.08, 0.05], [w.x, w.y + 0.08, 0.05]] : [[kastX, kast.y, 0.05], [kastX, w.y, 0.05], [w.x - w.n[0] * 0.15, w.y, 0.05]]) : null;
+    const deurPunt = naarDeur ? naarDeur.at(-1) : deur ? [deur.x, deur.y, 0.05] : null;
+    // De thuisaccu (`model.batterij`): aan de gevel naast de voordeur, met de stroom erheen.
+    let accuPunt = null;
+    if (model.batterij && deur && huisDoos) {
+      const wa = opMuur(deur.x + 1.4, deur.y, [huisDoos], 0.6);
+      if (wa) {
+        apparaten.push({ id: 'thuisaccu', soort: 'accu', x: wa.x + wa.n[0] * 0.02, y: wa.y + wa.n[1] * 0.02, n: wa.n, procent: model.batterij.procent });
+        accuPunt = [wa.x + wa.n[0] * 0.25, wa.y + wa.n[1] * 0.25, 0.05];
+      }
     }
+    const netLabel = (model.labels ?? []).find((l) => l.bij === 'net');
+    const labelNet = netLabel ? { label: netLabel.titel, labelToon: netLabel.toon === 'mint' ? 'mint' : 'violet', dx: -(String(netLabel.titel).length * 7.6 + 40), dy: 16 } : {};
+    let netGelabeld = false;
+    for (const st of model.stromen ?? []) {
+      const tik = st.tik ? { tik: st.tik, tikLabel: st.tikLabel } : {};
+      const autoPunt = auto ? [auto.x + auto.b / 2, auto.y + auto.d / 2, 0.05] : null;
+      if (st.van === 'net' && st.naar !== 'auto' && st.naar !== 'accu' && naarDeur) {
+        stroom.push({ toon: 'violet', pad: naarDeur, ...tik, ...(netGelabeld ? {} : labelNet) });
+        netGelabeld = true;
+      } else if (st.van === 'zon' && st.naar === 'huis' && deurPunt) stroom.push({ toon: 'zon', pad: ['panelen', deurPunt], ...tik });
+      else if (st.van === 'zon' && st.naar === 'net' && naarDeur) {
+        stroom.push({ toon: 'zon', pad: ['panelen', ...[...naarDeur].reverse()], bij: 'eind', ...tik, ...(netGelabeld ? {} : labelNet) });
+        netGelabeld = true;
+      } else if (st.naar === 'auto' && deurPunt && autoPunt) stroom.push({ toon: st.van === 'zon' ? 'zon' : 'violet', pad: [st.van === 'net' && kast ? [kast.x, kast.y, 0.05] : deurPunt, autoPunt], ...tik });
+      else if ((st.naar === 'accu' || st.van === 'accu') && deurPunt && accuPunt) stroom.push({ toon: 'mint', pad: st.van === 'accu' ? [accuPunt, deurPunt] : [deurPunt, accuPunt], ...tik });
+    }
+    // Alleen een label voor het net, ook als er nu geen lijn van of naar het net loopt (dan bij de kast).
+    if (!netGelabeld && netLabel && kast && naarDeur) stroom.push({ toon: netLabel.toon === 'mint' ? 'mint' : 'violet', pad: naarDeur, ...labelNet, ...(netLabel.tik ? { tik: netLabel.tik, tikLabel: netLabel.tikLabel } : {}) });
+    // Het label van de panelen (zoals in het poppenhuis).
+    const panelenLabel = (model.labels ?? []).find((l) => l.bij === 'panelen');
     const voortuin = plek('voortuin')[0];
     /*
      * De buitenunits (22 november 2026, besluit 333): elke airco heeft een eigen bolletje buiten (`buitenunit:<airco>`).
@@ -407,6 +457,10 @@
     const zon = model.zon ?? {};
     const panelen = [zon.panelen ? { aantal: zon.panelen, kant: 0 } : null, zon.panelenLinks ? { aantal: zon.panelenLinks, kant: 1 } : null].filter(Boolean);
     const tijd = model.tijd ?? 'dag';
+    // Het weer en de feestdag (22 november 2026), zoals bij Weergave gekozen.
+    const wg = global.app?.weergave?.() ?? {};
+    const weer = wg.weer === false ? null : model.weer ?? null;
+    const feest = wg.feestdagen === false ? null : model.feest !== undefined ? model.feest : global.huis?.feestdagVan?.(Date.now()) ?? null;
     /*
      * Stap f (21 november 2026, het voorbeeldhuis en een appartement): een appartement is alleen de woning, zonder
      * tuin en, met verdiepingen erboven, zonder dak; een erf waar nog niets op getekend is, staat niet als lege wei
@@ -422,7 +476,11 @@
       // Het seizoen kan uit bij Weergave: dan een groene zomer.
       seizoen: global.app?.weergave?.()?.seizoen === false ? 'zomer' : model.seizoen ?? 'herfst',
       avond: tijd === 'avond' || tijd === 'nacht',
-      hemel: { tijd, wolken: model.wolken ?? 0 },
+      hemel: { tijd, wolken: wg.weer === false ? 0 : model.wolken ?? 0 },
+      weer,
+      feest,
+      ...(deur ? { voordeur: { x: deur.x, y: deur.y, n: muurDeur?.n ?? [0, -1] } } : {}),
+      ...(panelenLabel ? { dakLabel: { titel: panelenLabel.titel, regels: panelenLabel.regels ?? [], toon: 'zon', dx: panelenLabel.dx ?? 60, dy: panelenLabel.dy ?? -80, tik: panelenLabel.tik, tikLabel: panelenLabel.tikLabel } } : {}),
       kamers,
       aan: [...aanSet],
       lampKleur,
@@ -430,7 +488,7 @@
       schermen,
       bomen,
       stroom,
-      buiten: { erf, vlakken, gebouwen, apparaten, units, ...(auto ? { auto } : {}) },
+      buiten: { erf, vlakken, gebouwen, apparaten, units, ...(auto ? { auto } : {}), ...(laadpaal ? { laadpaal } : {}) },
       rand: 36,
       huisDoos,
       // Tikken op de panelen opent Daken (zoals in het poppenhuis).
@@ -499,10 +557,12 @@
       gebouwen: (b.gebouwen ?? []).map((q) => (q.buur ? q : doos(q))),
       apparaten: (b.apparaten ?? []).map((a) => ({ ...a, ...(a.x != null ? { x: fx(a.x), y: fy(a.y) } : {}), ...(a.punten ? { punten: a.punten.map(punt) } : {}) })),
       units: (b.units ?? []).map((u) => ({ ...u, x: fx(u.x), y: fy(u.y) })),
+      ...(b.laadpaal ? { laadpaal: { ...b.laadpaal, x: fx(b.laadpaal.x), y: fy(b.laadpaal.y) } } : {}),
       ...(b.auto ? { auto: doos(b.auto) } : {}),
     };
     o.bomen = (o.bomen ?? []).map((t) => ({ ...t, x: fx(t.x), y: fy(t.y) }));
-    o.stroom = (o.stroom ?? []).map((st) => ({ ...st, pad: (st.pad ?? []).map(punt) }));
+    o.stroom = (o.stroom ?? []).map((st) => ({ ...st, pad: (st.pad ?? []).map((q) => (Array.isArray(q) ? [fx(q[0]), fy(q[1]), ...q.slice(2)] : q)) }));
+    if (o.voordeur) o.voordeur = { ...o.voordeur, x: fx(o.voordeur.x), y: fy(o.voordeur.y) };
     return o;
   }
 
@@ -518,7 +578,8 @@
 
   /** Het always-on display: het hele huis zonder getallen; overdag de zonneboog, 's avonds donker. */
   function alsRust(o, avond, model) {
-    Object.assign(o, { stil: true, boven: 0, rand: 10, stroom: [], hemel: null });
+    // 's Avonds de maan en de sterren, overdag de wolken (de zon staat op de boog) (22 november 2026, zoals in het poppenhuis).
+    Object.assign(o, { stil: true, boven: 0, rand: 10, stroom: [], dakLabel: null, hemel: avond ? { tijd: 'nacht', wolken: o.hemel?.wolken ?? 0 } : { tijd: 'dag', wolken: o.hemel?.wolken ?? 0, geenZon: true } });
     if (avond) o.avond = true;
     const zon = model?.zon;
     const voorDeg = model?.voorgevelDeg ?? model?.kompas?.voorgevelDeg;
@@ -531,9 +592,9 @@
    * Tekent het huis zoals getekend in `el`; false: teken het poppenhuis.
    * @param {Element} el
    * @param {any} model
-   * @param {{ soort?: string, tel?: boolean, breedte?: number, hoogte?: number, huisData?: any, kamerId?: string | null, avond?: boolean, opnieuw?: (() => void) | null }} [opts]
+   * @param {{ soort?: string, tel?: boolean, breedte?: number, hoogte?: number, huisData?: any, zonData?: any, kamerId?: string | null, avond?: boolean, opnieuw?: (() => void) | null }} [opts]
    */
-  function teken(el, model, { soort = 'thuis', tel = false, breedte, hoogte, huisData = null, kamerId = null, avond = false, opnieuw = null } = {}) {
+  function teken(el, model, { soort = 'thuis', tel = false, breedte, hoogte, huisData = null, zonData = null, kamerId = null, avond = false, opnieuw = null } = {}) {
     if (!el || !aan() || staat.fout) return false;
     const B = Math.round(breedte ?? el.clientWidth ?? 860);
     const H = Math.round(hoogte ?? 612);
@@ -550,7 +611,18 @@
       if (soort === 'kamer') alsEtage(o, staat.tk, huisData, kamerId);
       else if (soort === 'rust') alsRust(o, avond, model);
       else if (soort === 'tel') Object.assign(o, { passend: o.passend === 'huis' ? 'huis' : 'dichtbij', boven: 0, rand: 6, stroom: [] });
-      else o.boven = 90;
+      else {
+        o.boven = 90;
+        // De baan van de zon om het huis, zoals in het poppenhuis (besluit 205); het huis blijft even groot (22 november 2026).
+        // De baan en de zon van nu uit api/zon (zoals het always-on display ze krijgt); het model van Thuis heeft alleen de stand.
+        const zon = { ...(model?.zon ?? {}), ...(global.huismodel?.zonNu?.(zonData) ?? {}) };
+        const voorDeg = model?.voorgevelDeg ?? model?.kompas?.voorgevelDeg;
+        if (!o.avond && global.app?.weergave?.()?.zonnebaan !== false && zon?.nu && zon?.baan?.length && voorDeg != null) {
+          o.zonBoog = { nu: zon.nu, baan: zon.baan, voorDeg };
+          o.boogVrij = true;
+          o.hemel = { ...(o.hemel ?? {}), geenZon: true };
+        }
+      }
       // De telefoon (stap d): klein, dus zonder namen in de tekening; de kamers staan eronder.
       if (soort === 'tel' || tel) Object.assign(o, { stil: true, rand: 6 });
       // Tikken op een kamer, een deel buiten of de panelen, zoals in het poppenhuis (niet als niemand kijkt).

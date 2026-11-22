@@ -136,6 +136,12 @@
       delen: (b) => [heel(b, 0, 0.07, 0, 0.1, 'wit')],
       aanVoor: () => [{ cirkel: [0, 0.07, 0.008], vul: '#6ee7b7' }],
     },
+    /** De aansluitkast aan de straat (22 november 2026, zoals in het poppenhuis): waar de stroom van het net binnenkomt. */
+    aansluitkast: {
+      naam: 'Aansluitkast', b: 0.5, d: 0.3, h: 1.1, hangt: 'vrij',
+      delen: (b) => [heel(b, 0, 0.3, 0, 1.1, 'grijs')],
+      voor: () => [{ vlak: [-0.17, 0.35, 0.17, 0.95], vul: '#3a4656', rand: '#5c6876', dik: 0.8 }, { lijn: [0.03, 0.85, -0.05, 0.64], rand: '#f7b548', dik: 1.8 }, { lijn: [-0.05, 0.64, 0.05, 0.64], rand: '#f7b548', dik: 1.8 }, { lijn: [0.05, 0.64, -0.03, 0.44], rand: '#f7b548', dik: 1.8 }],
+    },
     /* -------------------------------------------------------------------- lampen */
     hanglamp: {
       naam: 'Hanglamp', b: 0.26, d: 0.26, h: 0.12, hangt: 'plafond', plafond: 0.4, licht: true, snoer: true,

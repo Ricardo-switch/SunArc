@@ -3337,5 +3337,5 @@
     </svg>`;
   }
 
-  global.huis = { teken, svg, KLEUR, KAMER_ICOON, soortVan };
+  global.huis = { teken, svg, KLEUR, KAMER_ICOON, soortVan, feestdagVan };
 })(window);
