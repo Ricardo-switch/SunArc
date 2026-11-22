@@ -7838,6 +7838,54 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     }
   }, 60_000);
   /*
+   * Ramen boven het afdak (22 november 2026): een raam in de voorgevel van de 1e
+   * aan de linkerkant (de badkamer van Ricardo) bleef wel bewaard, maar viel bij
+   * het laden weg, omdat het bijknippen voor het afdak de assen verwisselde.
+   * Nu blijft een raam in de nieuwe voorgevel staan, gaat een raam in de oude
+   * voorgevel mee naar de nieuwe, en wordt alleen een raam in een zijgevel
+   * korter waar het in de strook van het afdak lag.
+   */
+  it('laat de ramen van de etage boven het afdak staan bij het laden (22-11)', async () => {
+    const huis = {
+      maat: { breed: 6, diep: 10 },
+      bronnen: { kaart: { blokken: [{ id: 'hoofd', soort: 'hoofdhuis', u: 0, v: 0, b: 6, d: 10, afdak: { kant: 'voor', diep: 0.7 } }] } },
+      etages: [
+        { id: 'e1', naam: '1e verdieping', kort: '1e', blokken: [] },
+        { id: 'bg', naam: 'Begane grond', kort: 'Begane grond', blokken: [] },
+      ],
+      kamers: [{ id: 'badkamer', naam: 'Badkamer', soort: 'badkamer', etage: 'e1' }],
+      apparaten: [],
+    };
+    const tekening = {
+      openingen: {
+        e1: [
+          { id: 'o1', soort: 'raam', as: 'v', op: 0.7, van: 0.5, tot: 1.7 },
+          { id: 'o2', soort: 'raam', as: 'v', op: 10, van: 0.4, tot: 1.6 },
+          { id: 'o3', soort: 'raam', as: 'u', op: 0, van: 0.2, tot: 2 },
+          { id: 'o4', soort: 'raam', as: 'v', op: 0, van: 3, tot: 4 },
+        ],
+      },
+    };
+    const blad = `<!doctype html><html lang="nl"><head><meta charset="utf-8"></head><body><svg id="tekening" style="width:800px;height:600px"></svg>
+      <script src="kit/iconen.js"></script><script src="kit/teksten.nl.js"></script><script src="kit/teksten.en.js"></script><script src="kit/taal.js"></script><script src="kit/huistekenen.js"></script>
+      <script>window.tekenaar = huistekenen.maak(document.getElementById('tekening'), ${JSON.stringify(huis)}, { stand: 'kamers', etage: 'e1', openingen: true, tekening: ${JSON.stringify(tekening)} });</script></body></html>`;
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.route(`${baseUrl}/proef-afdak.html`, (route) => route.fulfill({ contentType: 'text/html; charset=utf-8', body: blad }));
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/proef-afdak.html`);
+    await p.waitForFunction('!!window.tekenaar');
+    // In meters terug, zoals bewaard: u is x, v is y.
+    const ramen = await p.evaluate<Record<string, { as: string; op: number; van: number; tot: number }>>(`Object.fromEntries(window.tekenaar.st.vloeren.e1.openingen.map((o) => [o.id, { as: o.as === 'x' ? 'u' : 'v', op: Math.round((o.op - 30)) / 10, van: Math.round((o.van - 30)) / 10, tot: Math.round((o.tot - 30)) / 10 }]))`);
+    expect(ramen['o1']).toEqual({ as: 'v', op: 0.7, van: 0.5, tot: 1.7 });
+    expect(ramen['o2']).toEqual({ as: 'v', op: 10, van: 0.4, tot: 1.6 });
+    expect(ramen['o3']).toEqual({ as: 'u', op: 0, van: 0.7, tot: 2 });
+    expect(ramen['o4']).toEqual({ as: 'v', op: 0.7, van: 3, tot: 4 });
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+  /*
    * Je huis (besluit 308, stap 2): de tekentafel in de stand Kamers op de
    * echte pagina, met de kamers uit de indeling. Met een nagebootste vinger op
    * de wand en de telefoon: een vak trekken, de muur ervan schuiven en het vak

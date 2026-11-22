@@ -765,11 +765,18 @@
         }
         const op = bewaarde.openingen?.[e.id];
         if (op) {
+          /*
+           * `as: 'v'` ligt op een vaste v (de voor- of achtergevel), met van/tot langs u; `as: 'u'` op een vaste u (een
+           * zijgevel), met van/tot langs v. Tot 22 november 2026 stond dat andersom: dan knipte het laden elk raam in de
+           * voorgevel bij met de diepte van het afdak, en viel een raam aan de linkerkant (de badkamer van Ricardo) weg.
+           */
           bewaarde.openingen[e.id] = op.flatMap((o) => {
             // Een deur of raam in de gevel van het afdak: naar de nieuwe gevel.
-            if (o.as === 'u' && o.op >= s0 - 0.05 && o.op <= s1 + 0.05) return [{ ...o, op: rand }];
-            if (o.as === 'v') {
+            if (o.as === 'v' && o.op >= s0 - 0.05 && o.op <= s1 + 0.05) return [{ ...o, op: rand }];
+            // In een zijgevel: alleen het stuk buiten de strook van het afdak blijft.
+            if (o.as === 'u') {
               const [van, tot] = voor ? [Math.max(o.van, s1), o.tot] : [o.van, Math.min(o.tot, s0)];
+              if (van === o.van && tot === o.tot) return [o];
               return tot - van < 0.3 ? [] : [{ ...o, van: rond(van), tot: rond(tot) }];
             }
             return [o];
