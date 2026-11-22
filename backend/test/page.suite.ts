@@ -1694,7 +1694,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     p.on('pageerror', (e) => fouten.push(e.message));
     const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
     const kamer = huis.etages.flatMap((e) => e.ruimtes).find((r) => r.apparaten.some((d) => d.meting?.beweging?.nu))!;
-    // Het teken voor beweging staat (nog) alleen in het poppenhuis; het huis zoals getekend krijgt het in de verbeterronde (22-11).
+    // Het teken voor beweging in het poppenhuis; het huis zoals getekend heeft het sinds 22 november 2026 ook (zonder tekening blijft het poppenhuis).
     await p.goto(`${baseUrl}/kamer.html?tekenaar=poppenhuis#${encodeURIComponent(kamer.id)}`);
     const rij = p.locator('#wand .meterrij', { hasText: 'Beweging, nu' });
     await rij.waitFor({ timeout: 10_000 });
@@ -8495,6 +8495,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         // Geen kale tekstsleutels in de tekening, en de wand schuift niet.
         expect(await p.locator(podium).textContent(), naam).not.toMatch(/\b(ht|thuis|eigen)\.[a-z]/);
         if (!tel) expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return !m || (m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1); })()`), naam).toBe(true);
+        // Elk apparaat heeft een plek in de tekening, ook onder een schuin dak (22 november 2026).
+        expect(await p.evaluate('window.huisThuis.overgeslagen'), naam).toEqual([]);
         // Een plek waar de tik bij een kamer binnen hoort, en daar met een vinger tikken.
         const plek = await p.evaluate<{ x: number; y: number; kamer: string } | null>(`(() => {
           for (const el of document.querySelectorAll('${podium} .sc-tik[data-kamer]')) {

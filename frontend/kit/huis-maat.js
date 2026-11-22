@@ -1555,36 +1555,46 @@
             }
             kandidaten = [...onderRaam.sort((a, b) => a.afst - b.afst), ...kandidaten];
           }
-          for (const w of kandidaten) {
+          muren: for (const w of kandidaten) {
             const { run, kant } = w;
-            const midden2 = Math.min(m(run.tot) - half - 0.05, Math.max(m(run.van) + half + 0.05, m(w.langs)));
             const vlakMuur = m(run.op) + kant * 0.03;
-            const [px, py] = run.as === 'x' ? [vlakMuur, midden2] : [midden2, vlakMuur];
-            if (M.hangt === 'vloer') {
-              // Witgoed staat op de vloer; onder een schuin dak schuift het van de muur af tot het past (hooguit 2,5 m).
-              let weg = null;
-              for (let d2 = 0; d2 <= 2.5001; d2 += 0.1) if (plafOp(px, py, run, kant, d2) - z0 >= M.h + 0.05) { weg = d2; break; }
-              if (weg == null) continue;
-              const [qx, qy] = run.as === 'x' ? [px + kant * weg, py] : [px, py + kant * weg];
-              pl = { x: qx, y: qy, z: z0, wand: run.as, kant };
-              break;
-            }
-            const plaf = plafOp(px, py, run, kant);
-            let zb = M.plafond != null ? plaf - M.plafond - M.h : z0 + (M.z ?? 1.2);
-            if (zb + M.h > plaf - 0.02) zb = plaf - 0.05 - M.h;
-            if (zb < z0 + 0.05) continue;
-            if (zb - z0 < wil) {
-              // Te laag tegen deze muur: bewaren voor als het nergens op zijn hoogte past.
-              reserve ??= { x: px, y: py, z: zb, wand: run.as, kant, paneel: null };
-              continue;
-            }
+            const lo = m(run.van) + half + 0.05;
+            const hi = m(run.tot) - half - 0.05;
+            const begin = Math.min(hi, Math.max(lo, m(w.langs)));
             /*
-             * Aan een binnenmuur (die is halfhoog getekend): op zijn eigen hoogte, met een stuk muur erachter zodat het niet
-             * zweeft (22 november 2026; eerst zakte het tot onder de 1,1 m, de spiegel van de badkamer hing op 28 cm).
+             * Eerst waar hij hoort, dan verder langs de muur (22 november 2026): onder een schuin dak is een muur in het
+             * midden hoger dan aan de kant, en de airco op zolder in het voorbeeldhuis paste op zijn plek nergens.
              */
-            const paneel = run.soort === 1 && zb + M.h > z0 + 1.1 ? { as: run.as, op: m(run.op), van: (run.as === 'x' ? py : px) - half - 0.12, tot: (run.as === 'x' ? py : px) + half + 0.12, z0: z0 + 1.1, z1: zb + M.h + 0.1 } : null;
-            pl = { x: px, y: py, z: zb, wand: run.as, kant, paneel };
-            break;
+            const langs = [begin];
+            if (M.hangt !== 'vloer') for (let st2 = 0.25; st2 <= hi - lo + 0.001; st2 += 0.25) for (const c of [begin - st2, begin + st2]) if (c >= lo - 1e-6 && c <= hi + 1e-6) langs.push(c);
+            for (const midden2 of langs) {
+              const [px, py] = run.as === 'x' ? [vlakMuur, midden2] : [midden2, vlakMuur];
+              if (M.hangt === 'vloer') {
+                // Witgoed staat op de vloer; onder een schuin dak schuift het van de muur af tot het past (hooguit 2,5 m).
+                let weg = null;
+                for (let d2 = 0; d2 <= 2.5001; d2 += 0.1) if (plafOp(px, py, run, kant, d2) - z0 >= M.h + 0.05) { weg = d2; break; }
+                if (weg == null) continue;
+                const [qx, qy] = run.as === 'x' ? [px + kant * weg, py] : [px, py + kant * weg];
+                pl = { x: qx, y: qy, z: z0, wand: run.as, kant };
+                break muren;
+              }
+              const plaf = plafOp(px, py, run, kant);
+              let zb = M.plafond != null ? plaf - M.plafond - M.h : z0 + (M.z ?? 1.2);
+              if (zb + M.h > plaf - 0.02) zb = plaf - 0.05 - M.h;
+              if (zb < z0 + 0.05) continue;
+              if (zb - z0 < wil) {
+                // Te laag hier: de hoogste plek bewaren voor als het nergens op zijn hoogte past.
+                if (!reserve || zb > reserve.z) reserve = { x: px, y: py, z: zb, wand: run.as, kant, paneel: null };
+                continue;
+              }
+              /*
+               * Aan een binnenmuur (die is halfhoog getekend): op zijn eigen hoogte, met een stuk muur erachter zodat het niet
+               * zweeft (22 november 2026; eerst zakte het tot onder de 1,1 m, de spiegel van de badkamer hing op 28 cm).
+               */
+              const paneel = run.soort === 1 && zb + M.h > z0 + 1.1 ? { as: run.as, op: m(run.op), van: (run.as === 'x' ? py : px) - half - 0.12, tot: (run.as === 'x' ? py : px) + half + 0.12, z0: z0 + 1.1, z1: zb + M.h + 0.1 } : null;
+              pl = { x: px, y: py, z: zb, wand: run.as, kant, paneel };
+              break muren;
+            }
           }
           pl ??= reserve;
           if (!pl) {
