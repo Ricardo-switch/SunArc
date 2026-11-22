@@ -32,7 +32,7 @@
 (function (global) {
   'use strict';
   // De vaste waarden en losse rekenfuncties staan in kit/huistekenen-vloer.js (opgesplitst op 22 november 2026).
-  const { CEL, BUITEN, MARGE, MIN, FONT, esc, T, nl, meter, klem, ik, TINT, SOORT_TINT, APP_KLEUR, APP_ICOON, nieuweVloer, vulRecht, kopie, zoneStukken, ordenen, randen, isMuur, lijnPad, OPENING_BREED, OPENING_SOORTEN, MET_SCHARNIER, richtingVan, openingMuur, openingBinnen, TRAP_RICHTING, muurDelen, vlakPaden, maten, omtrek, muurRuimte, muurNaar, indelingen, vloerUitIndeling, inpakken, uitpakken, m1, vloerNaarMeters, vloerUitMeters, klein } = global.htVloer;
+  const { CEL, BUITEN, MARGE, FONT, esc, T, nl, meter, klem, ik, TINT, SOORT_TINT, APP_KLEUR, APP_ICOON, nieuweVloer, vulRecht, kopie, zoneStukken, ordenen, randen, isMuur, lijnPad, OPENING_BREED, OPENING_SOORTEN, MET_SCHARNIER, richtingVan, openingMuur, openingBinnen, TRAP_RICHTING, muurDelen, vlakPaden, maten, omtrek, muurRuimte, muurNaar, indelingen, vloerUitIndeling, inpakken, uitpakken, m1, vloerNaarMeters, vloerUitMeters, klein } = global.htVloer;
   // Uit kit/huistekenen-blad.js (opgesplitst op 22 november 2026).
   const { paneel, stapel, strook, uitleg } = global.htBlad;
 
@@ -1174,766 +1174,85 @@
       return { x: B - b - 10, y: 10, b, h: 32 };
     }
 
-    /* ---------- wat ligt er onder de vinger */
-    const punt = (e) => {
-      const r = svg.getBoundingClientRect();
-      const px = ((e.clientX - r.left) * B) / r.width;
-      const py = ((e.clientY - r.top) * Hpx) / r.height;
-      return { px, py, x: (px - ox) / k, y: (oy - py) / k };
-    };
-    const ruimteOp = (v, x, y) => {
-      const cx = Math.floor(x);
-      const cy = Math.floor(y);
-      if (cx < 0 || cy < 0 || cx >= v.W || cy >= v.H) return BUITEN;
-      return v.cel[cy * v.W + cx];
-    };
-    /** De deur of het raam vlak bij de vinger, op deze vloer. */
-    function openingBij(p, tolPx) {
-      const tol = tolPx / k;
-      let best = null;
-      const v = vloer();
-      for (const o of v.openingen ?? []) {
-        if (!openingMuur(v, o)) continue;
-        const dw = Math.abs((o.as === 'x' ? p.x : p.y) - o.op);
-        const l = o.as === 'x' ? p.y : p.x;
-        if (dw > tol || l < o.van - 1 || l > o.tot + 1) continue;
-        if (!best || dw < best.d) best = { d: dw, o };
-      }
-      return best?.o ?? null;
-    }
-    /** De muurlijn waar een opening op ligt (langer of korter dan de opening). */
-    const muurVan = (v, o) => randen(v, isMuur).find((r) => r.as === o.as && r.op === o.op && r.van <= o.van && r.tot >= o.tot) ?? null;
-    /** Het raam vlak bij een plek (een screen dat je erheen sleept), binnen 80 cm. */
-    function raamBij(v, x, y) {
-      let best = null;
-      for (const o of v.openingen ?? []) {
-        if (o.soort !== 'raam' || !openingMuur(v, o)) continue;
-        const dw = Math.abs((o.as === 'x' ? x : y) - o.op);
-        const l = o.as === 'x' ? y : x;
-        const buiten = Math.max(0, o.van - l, l - o.tot);
-        const d = Math.hypot(dw, buiten);
-        if (d <= 8 && (!best || d < best.d)) best = { d, o };
-      }
-      return best?.o ?? null;
-    }
-    function muurBij(p, tolPx) {
-      const tol = tolPx / k;
-      let best = null;
-      for (const r of randen(vloer(), isMuur)) {
-        if (r.soort !== (st.stand === 'vorm' ? 2 : 1) && !(metOpeningen && st.stand === 'kamers' && r.soort === 2)) continue;
-        const dwars = Math.abs((r.as === 'x' ? p.x : p.y) - r.op);
-        const langs = r.as === 'x' ? p.y : p.x;
-        // Vlak bij een hoek liever niets pakken dan de verkeerde muur.
-        if (dwars > tol || langs < r.van + Math.min(1.5, (r.tot - r.van) / 4) || langs > r.tot - Math.min(1.5, (r.tot - r.van) / 4)) continue;
-        // In een smalle ruimte pak je de muur alleen vlak erbij: het midden blijft om de ruimte zelf aan te tikken.
-        const vl = vloer();
-        const kant = (r.as === 'x' ? p.x : p.y) < r.op ? -1 : 1;
-        const lees = (i) => (r.as === 'x' ? ruimteOp(vl, i, langs) : ruimteOp(vl, langs, i));
-        if (vastId(vl, lees(r.op - 1)) || vastId(vl, lees(r.op))) continue;
-        const eigen = lees(kant < 0 ? r.op - 1 : r.op);
-        let breed = 0;
-        while (breed < 60 && lees(kant < 0 ? r.op - 1 - breed : r.op + breed) === eigen) breed++;
-        if (dwars > Math.max(1, breed * 0.3)) continue;
-        if (!best || dwars < best.d) best = { d: dwars, r };
-      }
-      return best?.r ?? null;
-    }
-    /** De ruimte waar een ruimte het meest aan grenst: die komt terug waar hij weggaat. Zonder buur: null. */
-    function buurVoor(v, id) {
-      const tel = {};
-      const groot = {};
-      const { W, H, cel } = v;
-      for (let y = 0; y < H; y++) {
-        for (let x = 0; x < W; x++) {
-          groot[cel[y * W + x]] = (groot[cel[y * W + x]] ?? 0) + 1;
-          if (cel[y * W + x] !== id) continue;
-          for (const b of [x > 0 ? cel[y * W + x - 1] : BUITEN, x < W - 1 ? cel[y * W + x + 1] : BUITEN, y > 0 ? cel[(y - 1) * W + x] : BUITEN, y < H - 1 ? cel[(y + 1) * W + x] : BUITEN]) if (b !== BUITEN && b !== id) tel[b] = (tel[b] ?? 0) + 1;
-        }
-      }
-      // Bij gelijke stand de kleinste buur: een kast in de hoek van de hal hoort bij de hal, niet bij de kamer erachter.
-      const best = Object.entries(tel).sort((a, b) => b[1] - a[1] || groot[a[0]] - groot[b[0]])[0];
-      return best ? Number(best[0]) : null;
-    }
-    /** Een ruimte is te verplaatsen als hij in een grotere staat of ertegenaan ligt; de grote kamer zelf niet. */
-    function verplaatsbaar(v, id) {
-      if (vastId(v, id)) return false;
-      const b = buurVoor(v, id);
-      if (b == null) return false;
-      let eigen = 0;
-      let buur = 0;
-      for (let i = 0; i < v.cel.length; i++) {
-        if (v.cel[i] === id) eigen++;
-        else if (v.cel[i] === b) buur++;
-      }
-      return eigen < buur;
-    }
-    /** Waar de greep staat om een gekozen ruimte te verplaatsen: midden in zijn grootste rechte stuk. */
-    function greepPlek(v) {
-      if (st.stand !== 'kamers' || st.kies?.soort !== 'ruimte') return null;
-      const r = maten(v)[st.kies.id]?.r;
-      if (!r || !verplaatsbaar(v, st.kies.id)) return null;
-      return { px: X((r.x0 + r.x1) / 2), py: Y((r.y0 + r.y1) / 2) };
-    }
-    function zoneBij(p, tolPx) {
-      const tol = tolPx / k;
-      for (const zz of zonesOp(vloer())) {
-        for (const r of zz.stukken) {
-          const dwars = Math.abs((r.as === 'x' ? p.x : p.y) - r.op);
-          const langs = r.as === 'x' ? p.y : p.x;
-          if (dwars <= tol && langs >= r.van && langs <= r.tot) return { kamer: zz.kamer, id: zz.id, m: r };
-        }
-      }
-      return null;
-    }
-    function apparaatBij(p, tolPx) {
-      let best = null;
-      for (const q of apparaatPunten()) {
-        if (st.zoom != null && st.zoom !== q.ruimte) continue;
-        const d = Math.hypot(X(q.x) - p.px, Y(q.y) - p.py);
-        if (d <= tolPx && (!best || d < best.d)) best = { d, q };
-      }
-      return best?.q ?? null;
-    }
-    /** De muurlijnen op deze etage en die eronder: daar klikt een vak of een muur aan vast. */
-    function magneten(as, zonder) {
-      const uit = new Set();
-      for (const r of randen(vloer(), isMuur)) if (r.as === as && r !== zonder && !(zonder && r.op === zonder.op && r.as === zonder.as)) uit.add(r.op);
-      const e = onder();
-      if (e && st.stand === 'kamers') for (const r of randen(st.vloeren[e.id], isMuur)) if (r.as === as) uit.add(r.op);
-      return [...uit];
-    }
-    const klik = (n, lijst, bereik) => {
-      let best = Math.round(n);
-      let d = bereik;
-      for (const m of lijst) {
-        if (Math.abs(n - m) < d) {
-          d = Math.abs(n - m);
-          best = m;
-        }
-      }
-      return best;
-    };
-
-    /* ---------- zoomen: knijpen met twee vingers, of het wieltje */
-    /** Hoe groot het hele huis past: verder uitzoomen hoeft niet. */
-    const pasK = () => {
-      const h = heleKijk();
-      return Math.min(B / (h.x1 - h.x0), Hpx / (h.y1 - h.y0));
-    };
-    /** Zoom naar schaal `k1`, met ruitje `g` onder schermpunt `m`. */
-    function zoomNaar(k1, g, m) {
-      cancelAnimationFrame(anim);
-      const kp = pasK();
-      k1 = klem(k1, kp, Math.max(kp * 1.01, 16));
-      if (k1 <= kp * 1.03) {
-        st.eigen = null;
-        zetKijk(zoomDoel());
-        return teken();
-      }
-      const ox1 = m.px - g.x * k1;
-      const oy1 = m.py + g.y * k1;
-      const r = { x0: -ox1 / k1, x1: (B - ox1) / k1, y0: (oy1 - Hpx) / k1, y1: oy1 / k1 };
-      // Het midden van wat je ziet blijft boven het huis.
-      const h = heleKijk();
-      const cx = (r.x0 + r.x1) / 2;
-      const cy = (r.y0 + r.y1) / 2;
-      const sx = klem(cx, h.x0, h.x1) - cx;
-      const sy = klem(cy, h.y0, h.y1) - cy;
-      st.eigen = { x0: r.x0 + sx, x1: r.x1 + sx, y0: r.y0 + sy, y1: r.y1 + sy };
-      zetKijk(st.eigen);
-      teken();
-    }
-    const opScherm = (c) => {
-      const r = svg.getBoundingClientRect();
-      return { px: ((c.x - r.left) * B) / r.width, py: ((c.y - r.top) * Hpx) / r.height };
-    };
-    /** De vingers die nu op de tekening staan. */
-    const wijzers = new Map();
-    let knijp = null;
-    function beginKnijp() {
-      const [a, b] = [...wijzers.values()].map(opScherm);
-      const m = { px: (a.px + b.px) / 2, py: (a.py + b.py) / 2 };
-      knijp = { ids: [...wijzers.keys()], d0: Math.max(20, Math.hypot(a.px - b.px, a.py - b.py)), k0: k, g: { x: (m.px - ox) / k, y: (oy - m.py) / k } };
-    }
-    function knijpVerder() {
-      const [a, b] = knijp.ids.map((id) => opScherm(wijzers.get(id)));
-      const m = { px: (a.px + b.px) / 2, py: (a.py + b.py) / 2 };
-      zoomNaar((knijp.k0 * Math.hypot(a.px - b.px, a.py - b.py)) / knijp.d0, knijp.g, m);
-    }
-    function heelHuis() {
-      st.eigen = null;
-      kijkNaar(zoomDoel());
-    }
-    svg.addEventListener(
-      'wheel',
-      (e) => {
-        if (st.stand === 'huis' || actie) return;
-        e.preventDefault();
-        const m = opScherm({ x: e.clientX, y: e.clientY });
-        zoomNaar(k * Math.exp(-e.deltaY * 0.0015), { x: (m.px - ox) / k, y: (oy - m.py) / k }, m);
-      },
-      { passive: false },
-    );
-
-    /* ---------- het gebaar */
+    /** Wat de vinger nu doet (een muur schuiven, een vak trekken, ...); het gebaar zet het, het tekenen en de uitleg lezen het. */
     let actie = null;
-    function neer(e) {
-      if (e.button > 0) return;
-      try {
-        svg.setPointerCapture(e.pointerId);
-      } catch {
-        // Een nagebootste vinger kan dat niet; de luisteraars doen het dan nog.
-      }
-      e.preventDefault();
-      wijzers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (wijzers.size > 1) {
-        // Een tweede vinger: knijpen en schuiven. Wat de eerste vinger begon, gaat niet door.
-        if (wijzers.size === 2 && !knijp && st.stand !== 'huis') {
-          if (actie) afgebroken();
-          beginKnijp();
-        }
-        return;
-      }
-      if (actie || knijp) return;
-      const p = punt(e);
-      const vinger = e.pointerType !== 'mouse';
-      actie = { wijzer: e.pointerId, start: p, vinger, type: null, kandidaat: { soort: 'niets' } };
-      if (st.stand === 'huis') {
-        // Opzij slepen draait het huis.
-        actie.type = 'draai';
-        actie.hoek0 = st.hoek;
-        return;
-      }
-      // Dak (stap 4 punt 3): een dakkapel pakken om te schuiven of aan een zijkant te rekken; ernaast tikken laat hem los.
-      if (st.stand === 'dak') {
-        const raak = kapelOp(p, vinger ? 16 : 8);
-        if (raak) {
-          Object.assign(actie, { type: 'kapel', kapel: { ...raak, was: { ...st.kapellen[raak.i] } } });
-          st.kies = { soort: 'kapel', i: raak.i };
-          st.kapelErbij = null;
-        } else {
-          actie.type = 'niets';
-          st.kies = null;
-        }
-        teken();
-        meld();
-        return;
-      }
-      // Ronde 2: tijdens het zoeken van de kaarten kies je bij Vorm niets; een gebouw op maat trek je aan zijn stippen.
-      if (st.stand === 'vorm' && huis.kijk?.bezig) {
-        actie.type = 'niets';
-        return;
-      }
-      // Het afdak (ronde 2) is smal: wie erin of op zijn label tikt, bedoelt het afdak en niet de muur ervoor.
-      if (st.stand === 'vorm' && st.etage === benedenId()) {
-        const af = afdakVak();
-        const [mx, my] = [(p.x - MARGE) * CEL, (p.y - MARGE) * CEL];
-        const opPil = afdakPil && p.px >= afdakPil.x - 6 && p.px <= afdakPil.x + afdakPil.b + 6 && p.py >= afdakPil.y - 6 && p.py <= afdakPil.y + afdakPil.h + 6;
-        if (af && (opPil || (mx > af.u0 + 0.3 && mx < af.u1 - 0.3 && my >= af.v0 && my <= af.v1))) {
-          actie.kandidaat = { soort: 'afdak' };
-          return;
-        }
-      }
-      const greep = st.stand === 'vorm' ? blokGrepen().find((q) => Math.hypot(q.px - p.px, q.py - p.py) <= (vinger ? 24 : 12)) : null;
-      if (greep) {
-        const b = maatVan(bijBlokken().find((q) => q.id === st.kies.id));
-        Object.assign(actie, { type: 'blokmaat', greep, id: b.id, was: { u: b.u, v: b.v, b: b.b, d: b.d } });
-        return;
-      }
-      const hk = heelKnop();
-      if (hk && p.px >= hk.x - 6 && p.px <= hk.x + hk.b + 6 && p.py >= hk.y - 6 && p.py <= hk.y + hk.h + 6) {
-        actie.kandidaat = { soort: 'heel' };
-        return;
-      }
-      // De stip op het scharnier: een tik zet het scharnier aan het andere eind (20 november 2026).
-      const sp = metOpeningen ? scharnierStip(vloer()) : null;
-      if (sp && Math.hypot(X(sp.x) - p.px, Y(sp.y) - p.py) <= (vinger ? 24 : 14)) {
-        actie.kandidaat = { soort: 'scharnier', o: sp.o };
-        return;
-      }
-      // Een deur of raam: aantikken of langs de muur schuiven.
-      const op = metOpeningen && st.stand === 'kamers' ? openingBij(p, vinger ? 22 : 10) : null;
-      if (op) {
-        actie.kandidaat = { soort: 'opening', o: op };
-        teken();
-        return;
-      }
-      // Een gekozen ruimte sleep je in zijn geheel weg: overal binnen de ruimte, of aan de greep in het midden.
-      const g = greepPlek(vloer());
-      const dg = g ? Math.hypot(g.px - p.px, g.py - p.py) : Infinity;
-      const opGreep = dg <= (vinger ? 30 : 20);
-      if (g && ruimteOp(vloer(), p.x, p.y) === st.kies.id) actie.gekozen = st.kies.id;
-      if (opGreep || actie.gekozen != null) {
-        // Vlak bij een muur pak je de muur: wat het dichtst bij de vinger ligt, wint (in een klein vak ligt de muur ook bij de greep).
-        const mg = muurBij(p, vinger ? 20 : 9);
-        const dm = mg ? Math.abs((mg.as === 'x' ? p.x : p.y) - mg.op) * k : Infinity;
-        if (dm >= dg || (!opGreep && !mg)) {
-          actie.kandidaat = { soort: 'verplaats', id: st.kies.id, greep: opGreep };
-          return;
-        }
-      }
-      if (st.stand === 'apparaten') {
-        const q = apparaatBij(p, vinger ? 32 : 24);
-        if (q) actie.kandidaat = { soort: 'apparaat', q };
-      } else {
-        const m = muurBij(p, vinger ? 20 : 9);
-        const z = !m && st.stand === 'kamers' ? zoneBij(p, vinger ? 20 : 9) : null;
-        actie.kandidaat = m ? { soort: 'muur', m } : z ? { soort: 'zone', ...z } : { soort: 'vak' };
-        if (m) teken();
-      }
-    }
-    function beweeg(e) {
-      if (wijzers.has(e.pointerId)) wijzers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (knijp) {
-        if (knijp.ids.includes(e.pointerId)) knijpVerder();
-        return;
-      }
-      if (!actie || e.pointerId !== actie.wijzer) return;
-      const p = punt(e);
-      const dx = p.px - actie.start.px;
-      const dy = p.py - actie.start.py;
-      if (actie.type === 'kapel') {
-        const { i, wat, m, was } = actie.kapel;
-        const da = (m.langs ? p.y - actie.start.y : p.x - actie.start.x) * CEL;
-        const breed = was.tot - was.van;
-        const kk = st.kapellen[i];
-        if (wat === 'schuif') {
-          kk.van = r1(klem(was.van + da, 0, m.la - breed));
-          kk.tot = r1(kk.van + breed);
-        } else if (wat === 'van') kk.van = r1(klem(was.van + da, 0, was.tot - 0.6));
-        else kk.tot = r1(klem(was.tot + da, was.van + 0.6, m.la));
-        if (Math.abs(da) > 0.05) actie.kapel.verschoven = true;
-        teken();
-        return;
-      }
-      if (actie.type === 'blokmaat') {
-        const { ku, kv } = actie.greep;
-        const du = (p.x - actie.start.x) * CEL;
-        const dv = (p.y - actie.start.y) * CEL;
-        const w = actie.was;
-        let { u, v, b, d } = w;
-        if (ku < 0) {
-          u = Math.min(w.u + du, w.u + w.b - 1);
-          b = w.u + w.b - u;
-        } else if (ku > 0) b = Math.max(1, w.b + du);
-        if (kv < 0) {
-          v = Math.min(w.v + dv, w.v + w.d - 1);
-          d = w.v + w.d - v;
-        } else if (kv > 0) d = Math.max(1, w.d + dv);
-        st.blokMaat = { id: actie.id, u: r1(u), v: r1(v), b: r1(Math.min(40, b)), d: r1(Math.min(40, d)) };
-        if (Math.abs(du) > 0.05 || Math.abs(dv) > 0.05) actie.verschoven = true;
-        teken();
-        return;
-      }
-      if (actie.type === 'draai') {
-        st.hoek = klem(actie.hoek0 + dx * 0.35, -65, 65);
-        teken();
-        return;
-      }
-      if (!actie.type) {
-        if (Math.hypot(dx, dy) < (actie.vinger ? 10 : 5)) return;
-        let kd = actie.kandidaat;
-        // In een gekozen ruimte bij een muur: recht van de muur af schuift de muur, schuin of erlangs verplaatst de ruimte.
-        if (actie.gekozen != null && (kd.soort === 'muur' || kd.soort === 'zone') && !(Math.abs(kd.m.as === 'x' ? dx : dy) > Math.abs(kd.m.as === 'x' ? dy : dx) * 1.4)) {
-          kd = actie.kandidaat = { soort: 'verplaats', id: actie.gekozen, greep: false };
-        }
-        if (kd.soort === 'verplaats') {
-          // De ruimte optillen: waar hij stond komt de ruimte terug waar hij het meest aan grenst.
-          const v0 = vloer();
-          actie.type = 'verplaats';
-          actie.cellen = [];
-          for (let i = 0; i < v0.cel.length; i++) if (v0.cel[i] === kd.id) actie.cellen.push(i);
-          actie.basis = kopie(v0);
-          const vul = buurVoor(v0, kd.id);
-          for (const c of actie.cellen) actie.basis.cel[c] = vul;
-          actie.bb = maten(v0)[kd.id];
-          actie.d = [0, 0];
-          const lijnen = randen(actie.basis, isMuur);
-          actie.mx = [...new Set(lijnen.filter((r) => r.as === 'x').map((r) => r.op))];
-          actie.my = [...new Set(lijnen.filter((r) => r.as === 'y').map((r) => r.op))];
-        } else if (kd.soort === 'muur') {
-          // Recht van de muur af is schuiven; schuin of erlangs is een vak trekken dat bij de muur begint.
-          const dwars = Math.abs(kd.m.as === 'x' ? dx : dy);
-          const langs = Math.abs(kd.m.as === 'x' ? dy : dx);
-          // Buiten is de buitenmuur de erfgrens: die schuif je ook bij Kamers (19 november 2026).
-          const opErf = !!etageVan(st.etage)?.buiten;
-          if (dwars > langs * 1.4 && !(kd.m.soort === 2 && st.stand === 'kamers' && !opErf)) {
-            actie.type = 'muur';
-            actie.begin = kopie(vloer());
-            actie.ruimte = muurRuimte(actie.begin, kd.m, opErf);
-            actie.nu = { ...kd.m };
-            actie.magneet = magneten(kd.m.as, kd.m);
-          } else actie.type = 'vak';
-        } else if (kd.soort === 'zone') {
-          const dwars = Math.abs(kd.m.as === 'x' ? dx : dy);
-          const langs = Math.abs(kd.m.as === 'x' ? dy : dx);
-          if (dwars > langs * 1.4) {
-            actie.type = 'zone';
-            actie.kamer = kd.kamer;
-            actie.nuOp = kd.m.op;
-            actie.magneet = magneten(kd.m.as);
-          } else actie.type = 'vak';
-        } else if (kd.soort === 'opening') {
-          actie.type = 'opening';
-          actie.begin = foto();
-          actie.o0 = { ...kd.o };
-          actie.run = muurVan(vloer(), kd.o);
-          if (!actie.run) {
-            actie.type = 'niets';
-            return;
-          }
-        } else if (kd.soort === 'apparaat') {
-          actie.type = 'apparaat';
-          actie.a = kd.q.a;
-          actie.van = kd.q;
-          // De vinger dekt het icoon af: til het er een stukje boven.
-          actie.dx = X(kd.q.x) - actie.start.px;
-          actie.dy = Y(kd.q.y) - actie.start.py - (actie.vinger ? 30 : 0);
-        } else if (kd.soort === 'vak') actie.type = 'vak';
-        else if (kd.soort === 'heel') {
-          // Van de knop af geschoven: dan niets.
-          actie.type = 'niets';
-          return;
-        } else return;
-        if (actie.type === 'vak') {
-          const sx = klik(actie.start.x, magneten('x'), 3.2);
-          const sy = klik(actie.start.y, magneten('y'), 3.2);
-          actie.hoek = { x: sx, y: sy };
-          teken();
-        }
-      }
-      if (actie.type === 'opening') {
-        const o0 = actie.o0;
-        const o = vloer().openingen.find((x) => x.id === o0.id);
-        const w = o0.tot - o0.van;
-        const van = Math.round(klem(o0.van + (o0.as === 'x' ? -dy : dx) / k, actie.run.van + 1, actie.run.tot - 1 - w));
-        if (o && van !== o.van) {
-          o.van = van;
-          o.tot = van + w;
-          st.kies = { soort: 'opening', id: o.id };
-          teken();
-          meld();
-        }
-        return;
-      }
-      if (actie.type === 'muur') {
-        const m = actie.kandidaat.m;
-        const ruw = m.op + (m.as === 'x' ? dx : -dy) / k;
-        const nieuw = klem(klik(ruw, actie.magneet, 1.3), actie.ruimte.min, actie.ruimte.max);
-        if (nieuw === actie.nu.op) return;
-        actie.nu = { ...m, op: nieuw };
-        actie.gelijk = actie.magneet.includes(nieuw);
-        actie.voorbeeld = muurNaar(actie.begin, m, nieuw);
-        over = muurMaten(actie.voorbeeld, actie.nu, m.as === 'x' ? p.y : p.x, actie.gelijk);
-        teken();
-        meld();
-      } else if (actie.type === 'verplaats') {
-        const { bb, basis, cellen } = actie;
-        // Een kant van de ruimte klikt vast aan een muur in de buurt.
-        const klikKant = (d, lo, hi, lijst) => {
-          let best = Math.round(d);
-          let afstand = 1.6;
-          for (const m of lijst) {
-            for (const rand of [lo, hi]) {
-              const a = Math.abs(rand + d - m);
-              if (a < afstand) {
-                afstand = a;
-                best = m - rand;
-              }
-            }
-          }
-          return best;
-        };
-        const ddx = klikKant(dx / k, bb.x0, bb.x1, actie.mx);
-        const ddy = klikKant(-dy / k, bb.y0, bb.y1, actie.my);
-        if (ddx === actie.d[0] && ddy === actie.d[1]) return;
-        // Alleen waar hij helemaal in het huis past.
-        const W = basis.W;
-        const past = cellen.every((c) => {
-          const x = (c % W) + ddx;
-          const y = ((c / W) | 0) + ddy;
-          return x >= 0 && y >= 0 && x < W && y < basis.H && basis.cel[y * W + x] !== BUITEN;
-        });
-        if (!past) return;
-        actie.d = [ddx, ddy];
-        const v = kopie(basis);
-        for (const c of cellen) v.cel[c + ddy * W + ddx] = actie.kandidaat.id;
-        actie.voorbeeld = v;
-        const o = omtrek(basis);
-        over = pil(X((bb.x0 + bb.x1) / 2 + ddx), Y(bb.y1 + ddy) - 18, T('ht.vanLinksVoor', { links: meter(bb.x0 + ddx - o.x0), voor: meter(bb.y0 + ddy - o.y0) }));
-        teken();
-      } else if (actie.type === 'zone') {
-        // De zonelijn schuift binnen zijn kamer; de muren blijven staan.
-        const m = actie.kandidaat.m;
-        const mm = maten(vloer())[actie.kandidaat.id];
-        const ruw = m.op + (m.as === 'x' ? dx : -dy) / k;
-        const [lo, hi] = m.as === 'x' ? [mm.x0 + MIN, mm.x1 - MIN] : [mm.y0 + MIN, mm.y1 - MIN];
-        const nieuw = klem(klik(ruw, actie.magneet, 1.3), lo, hi);
-        if (nieuw === actie.nuOp) return;
-        actie.nuOp = nieuw;
-        actie.voorbeeld = kopie(vloer());
-        actie.voorbeeld.zones[actie.kamer].op = nieuw;
-        const langs = m.as === 'x' ? p.y : p.x;
-        const [a, b] = m.as === 'x' ? [nieuw - mm.x0, mm.x1 - nieuw] : [nieuw - mm.y0, mm.y1 - nieuw];
-        over = m.as === 'x' ? pil(X(nieuw - a / 2), Y(langs), meter(a), '#6ee7b7') + pil(X(nieuw + b / 2), Y(langs), meter(b), '#6ee7b7') : pil(X(langs), Y(nieuw - a / 2), meter(a), '#6ee7b7') + pil(X(langs), Y(nieuw + b / 2), meter(b), '#6ee7b7');
-        teken();
-      } else if (actie.type === 'vak') {
-        const x = klik(p.x, magneten('x'), 3.2);
-        const y = klik(p.y, magneten('y'), 3.2);
-        const r = { x0: Math.min(actie.hoek.x, x), y0: Math.min(actie.hoek.y, y), x1: Math.max(actie.hoek.x, x), y1: Math.max(actie.hoek.y, y) };
-        actie.recht = r;
-        const goed = r.x1 - r.x0 >= MIN - 1 && r.y1 - r.y0 >= MIN - 1;
-        const kleur = goed ? '#6fd3ff' : 'rgb(255 255 255 / 0.4)';
-        over = `<rect x="${X(r.x0)}" y="${Y(r.y1)}" width="${(r.x1 - r.x0) * k}" height="${(r.y1 - r.y0) * k}" rx="3" fill="rgb(111 211 255 / ${goed ? 0.16 : 0.05})" stroke="${kleur}" stroke-width="2.5" stroke-dasharray="8 6" pointer-events="none"/>`;
-        if (goed) over += pil(X((r.x0 + r.x1) / 2), Y((r.y0 + r.y1) / 2), `${nl((r.x1 - r.x0) * CEL)} × ${nl((r.y1 - r.y0) * CEL)} m`);
-        laag('over').innerHTML = over;
-      } else if (actie.type === 'apparaat') {
-        let px = p.px + actie.dx;
-        let py = p.py + actie.dy;
-        const v = vloer();
-        let x = (px - ox) / k;
-        let y = (oy - py) / k;
-        const id = ruimteOp(v, x, y);
-        let muurBijPlek = false;
-        if (id !== BUITEN) {
-          // Bij een muur klikt het vast, op 20 cm ervan.
-          const tot = (ddx, ddy) => {
-            let n = 0;
-            while (n < 6 && ruimteOp(v, x + ddx * (n + 0.5), y + ddy * (n + 0.5)) === id) n++;
-            return n;
-          };
-          for (const [ddx, ddy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-            const n = tot(ddx, ddy);
-            if (n > 4) continue;
-            muurBijPlek = true;
-            // De muur ligt op de rand van het eerste ruitje dat niet meer van de ruimte is.
-            if (ddx < 0) x = Math.floor(x - n - 0.5) + 1 + 2;
-            else if (ddx > 0) x = Math.floor(x + n + 0.5) - 2;
-            else if (ddy < 0) y = Math.floor(y - n - 0.5) + 1 + 2;
-            else y = Math.floor(y + n + 0.5) - 2;
-          }
-          px = X(x);
-          py = Y(y);
-        }
-        const kan = id !== BUITEN && !!v.ruimtes[id]?.kamer && !vastId(v, id);
-        const anders = actie.doel !== (kan ? id : null);
-        actie.doel = kan ? id : null;
-        actie.px = px;
-        actie.py = py;
-        actie.plek = kan ? { etage: st.etage, x, y } : null;
-        const naam = id === BUITEN ? T('ht.buitenHuis') : kan ? `${naamVan(v.ruimtes[id])}${muurBijPlek ? ` · ${T('ht.aanDeMuur')}` : ''}` : T('ht.nogGeenKamer');
-        over = pil(px, py - 44, naam, kan ? '#6ee7b7' : '#ffb090');
-        if (anders) teken();
-        else {
-          const g = svg.querySelector(`[data-ap="${CSS.escape(actie.a.id)}"]`);
-          if (g) g.setAttribute('transform', `translate(${px.toFixed(1)} ${py.toFixed(1)})`);
-          else teken();
-          laag('over').innerHTML = over;
-        }
-      }
-    }
-    /** De maten aan weerszijden van een muur, op de hoogte van de vinger. */
-    function muurMaten(v, run, langs, gelijk) {
-      const j = klem(Math.floor(langs), run.van, run.tot - 1);
-      const lees = (i) => (run.as === 'x' ? ruimteOp(v, i, j) : ruimteOp(v, j, i));
-      const tel = (start, d) => {
-        const id = lees(start);
-        let n = 0;
-        while (n < 600 && lees(start + d * n) === id && id !== BUITEN) n++;
-        return n;
-      };
-      const a = tel(run.op - 1, -1);
-      const b = tel(run.op, 1);
-      let s = '';
-      const zet = (midden, tekst) => (run.as === 'x' ? pil(X(midden), Y(j + 0.5), tekst) : pil(X(j + 0.5), Y(midden), tekst));
-      if (a) s += zet(run.op - a / 2, meter(a));
-      if (b) s += zet(run.op + b / 2, meter(b));
-      if (gelijk) {
-        // Op één lijn met een andere muur: een dunne lijn over het hele huis.
-        s += run.as === 'x' ? `<path d="M${X(run.op)} 0V${Hpx}" stroke="#6ee7b7" stroke-opacity="0.6" stroke-dasharray="3 5"/>` : `<path d="M0 ${Y(run.op)}H${B}" stroke="#6ee7b7" stroke-opacity="0.6" stroke-dasharray="3 5"/>`;
-      }
-      return s;
-    }
-    /** Een vinger van de tekening af: na het knijpen gebeurt er niets tot ze allebei los zijn. */
-    function vingerWeg(id) {
-      wijzers.delete(id);
-      if (knijp && !wijzers.size) knijp = null;
-    }
-    function los(e) {
-      vingerWeg(e.pointerId);
-      if (!actie || e.pointerId !== actie.wijzer) return;
-      const a = actie;
-      actie = null;
-      over = '';
-      if (a.type === 'draai') return meld();
-      if (a.type === 'niets') return;
-      if (a.type === 'blokmaat') {
-        if (a.verschoven) blokMaatBewaar(0);
-        teken();
-        return meld();
-      }
-      if (a.type === 'kapel') {
-        if (a.kapel.verschoven) kapelBewaar();
-        teken();
-        return meld();
-      }
-      if (!a.type) return a.kandidaat.soort === 'heel' ? heelHuis() : tik(a);
-      if (a.type === 'verplaats') {
-        if (a.voorbeeld && (a.d[0] || a.d[1])) {
-          stap();
-          // Wat in de ruimte een eigen plek had, verhuist mee.
-          const inRuimte = new Set(a.cellen);
-          for (const dev of st.apparaten) {
-            const pl = dev.plek;
-            if (pl && pl.etage === st.etage && inRuimte.has(Math.floor(pl.y) * a.basis.W + Math.floor(pl.x))) dev.plek = { ...pl, x: pl.x + a.d[0], y: pl.y + a.d[1] };
-          }
-          st.vloeren[st.etage] = a.voorbeeld;
-          ordenen(vloer());
-          st.kies = vloer().ruimtes[a.kandidaat.id] ? { soort: 'ruimte', id: a.kandidaat.id } : null;
-        }
-        return klaar();
-      }
-      if (a.type === 'muur') {
-        if (a.nu.op !== a.kandidaat.m.op) {
-          stap();
-          st.vloeren[st.etage] = a.voorbeeld;
-          ordenen(vloer());
-          st.kies = { soort: 'muur', run: muurOpnieuw(a.nu) };
-        }
-        return klaar();
-      }
-      if (a.type === 'opening') {
-        const o = vloer().openingen.find((x) => x.id === a.o0.id);
-        if (o && o.van !== a.o0.van) stap(a.begin);
-        st.kies = { soort: 'opening', id: a.o0.id };
-        return klaar();
-      }
-      if (a.type === 'zone') {
-        if (a.voorbeeld) {
-          stap();
-          vloer().zones[a.kamer].op = a.nuOp;
-          st.kies = { soort: 'ruimte', id: a.kandidaat.id };
-        }
-        return klaar();
-      }
-      if (a.type === 'vak') {
-        const r = a.recht;
-        if (r && r.x1 - r.x0 >= MIN - 1 && r.y1 - r.y0 >= MIN - 1) nieuwVak(r);
-        else teken();
-        return meld();
-      }
-      if (a.type === 'apparaat') {
-        if (a.plek && a.doel != null) {
-          stap();
-          const dev = st.apparaten.find((x) => x.id === a.a.id);
-          const doelKamer = vloer().ruimtes[a.doel].kamer;
-          // Binnen de tuin verschoven terwijl zijn deel nog geen vak heeft: het blijft in dat deel.
-          const deelVan = dev.kamer ? kamers[dev.kamer]?.deelVan : null;
-          dev.kamer = deelVan && deelVan === doelKamer && !kamerPlek()[dev.kamer] ? dev.kamer : doelKamer;
-          dev.plek = a.plek;
-          if (metOpeningen && dev.soort === 'screen') {
-            const r = raamBij(vloer(), a.plek.x, a.plek.y);
-            if (r) {
-              dev.raam = r.id;
-              // Vlak voor het raam, in het midden.
-              const kant = openingBinnen(vloer(), r) * (openingMuur(vloer(), r) === 2 ? 1 : 1);
-              const mid = (r.van + r.tot) / 2;
-              dev.plek = r.as === 'x' ? { etage: st.etage, x: r.op + kant * 3, y: mid } : { etage: st.etage, x: mid, y: r.op + kant * 3 };
-            } else delete dev.raam;
-          }
-          st.kies = { soort: 'apparaat', id: dev.id };
-          if (st.zoom != null && st.zoom !== a.doel) st.zoom = a.doel;
-        }
-        return klaar();
-      }
-    }
-    function afgebroken(e) {
-      if (e) vingerWeg(e.pointerId);
-      if (!actie || (e && e.pointerId !== actie.wijzer)) return;
-      actie = null;
-      over = '';
-      teken();
-      meld();
-    }
-    /** De muur na het schuiven terugvinden: hij kan langer of korter geworden zijn. */
-    function muurOpnieuw(run) {
-      const mid = (run.van + run.tot) / 2;
-      const soort = st.stand === 'vorm' ? 2 : 1;
-      const lijst = randen(vloer(), isMuur).filter((r) => r.as === run.as && r.op === run.op && r.soort === soort);
-      return lijst.find((r) => r.van <= mid && r.tot >= mid) ?? lijst[0] ?? null;
-    }
-
-    function tik(a) {
-      const p = a.start;
-      const v = vloer();
-      const id = ruimteOp(v, p.x, p.y);
-      // Het huis op het erf: een tik geeft zijn blad, met de weg naar binnen (20 november 2026: eerst sprong hij meteen naar de begane grond, ook als je aan het tekenen was).
-      if (vastId(v, id) && a.kandidaat.soort !== 'apparaat') {
-        st.blad = null;
-        st.kies = { soort: 'erfhuis', id };
-        teken();
-        return meld();
-      }
-      if (st.stand === 'apparaten') {
-        if (a.kandidaat.soort === 'apparaat') {
-          st.kies = { soort: 'apparaat', id: a.kandidaat.q.a.id };
-        } else if (id !== BUITEN && st.wapen?.apparaat && v.ruimtes[id]?.kamer) {
-          // Een apparaat uit de lijst gekozen, dan de kamer aangetikt: daar staat het.
-          zetApparaat(st.wapen.apparaat, v.ruimtes[id].kamer, { etage: st.etage, x: p.x, y: p.y });
-          return;
-        } else if (id !== BUITEN && id !== st.zoom) {
-          st.zoom = id;
-          st.eigen = null;
-          st.kies = { soort: 'ruimte', id };
-          kijkNaar(zoomDoel());
-        } else if (id === BUITEN && st.zoom != null) {
-          st.zoom = null;
-          st.eigen = null;
-          st.kies = null;
-          kijkNaar(zoomDoel());
-        } else st.kies = id !== BUITEN ? { soort: 'ruimte', id } : null;
-        teken();
-        return meld();
-      }
-      if (a.kandidaat.soort === 'verplaats' && a.kandidaat.greep) return teken();
-      if (a.kandidaat.soort === 'scharnier') {
-        stap();
-        a.kandidaat.o.scharnier = a.kandidaat.o.scharnier === 'tot' ? 'van' : 'tot';
-        return klaar();
-      }
-      if (a.kandidaat.soort === 'afdak') {
-        st.kies = { soort: 'afdak' };
-        afdakZie();
-      } else if (a.kandidaat.soort === 'opening') st.kies = { soort: 'opening', id: a.kandidaat.o.id };
-      else if (a.kandidaat.soort === 'muur') st.kies = { soort: 'muur', run: a.kandidaat.m, bij: a.kandidaat.m.as === 'x' ? p.y : p.x };
-      else if (a.kandidaat.soort === 'zone') st.kies = { soort: 'ruimte', id: a.kandidaat.id };
-      else if (st.stand === 'vorm') {
-        st.kies = gebouwOp(p.x, p.y);
-        // Het afdak aangetikt: gezien, het label Nieuw gaat weg.
-        if (st.kies?.soort === 'afdak') afdakZie();
-      }
-      else if (id === BUITEN) st.kies = null;
-      else if (st.wapen?.kamer) {
-        noem(id, { kamer: st.wapen.kamer });
-        return;
-      } else st.kies = st.kies?.soort === 'ruimte' && st.kies.id === id ? null : { soort: 'ruimte', id };
-      teken();
-      meld();
-    }
-
-    svg.addEventListener('pointerdown', neer);
-    svg.addEventListener('pointermove', beweeg);
-    svg.addEventListener('pointerup', los);
-    svg.addEventListener('pointercancel', afgebroken);
-    svg.addEventListener('lostpointercapture', (e) => {
-      // Kwijt zonder loslaten (een melding eroverheen): terug naar hoe het was.
-      setTimeout(() => {
-        vingerWeg(e.pointerId);
-        if (actie && actie.wijzer === e.pointerId) afgebroken();
-      }, 50);
+    // gebaar: in kit/huistekenen-gebaar.js (opgesplitst op 22 november 2026). Wat het deel van de tekenaar deelt:
+    const cgebaar = {};
+    Object.defineProperties(cgebaar, {
+      svg: { get: () => svg },
+      B: { get: () => B },
+      Hpx: { get: () => Hpx },
+      ox: { get: () => ox },
+      k: { get: () => k },
+      oy: { get: () => oy },
+      vloer: { get: () => vloer },
+      st: { get: () => st },
+      metOpeningen: { get: () => metOpeningen },
+      vastId: { get: () => vastId },
+      X: { get: () => X },
+      Y: { get: () => Y },
+      zonesOp: { get: () => zonesOp },
+      apparaatPunten: { get: () => apparaatPunten },
+      onder: { get: () => onder },
+      heleKijk: { get: () => heleKijk },
+      anim: { get: () => anim },
+      zetKijk: { get: () => zetKijk },
+      teken: { get: () => teken },
+      zoomDoel: { get: () => zoomDoel },
+      kijkNaar: { get: () => kijkNaar },
+      actie: { get: () => actie, set: (w) => {
+          actie = w;
+        } },
+      huis: { get: () => huis },
+      benedenId: { get: () => benedenId },
+      blokGrepen: { get: () => blokGrepen },
+      heelKnop: { get: () => heelKnop },
+      scharnierStip: { get: () => scharnierStip },
+      kapelOp: { get: () => kapelOp },
+      meld: { get: () => meld },
+      afdakVak: { get: () => afdakVak },
+      afdakPil: { get: () => afdakPil },
+      maatVan: { get: () => maatVan },
+      bijBlokken: { get: () => bijBlokken },
+      r1: { get: () => r1 },
+      etageVan: { get: () => etageVan },
+      foto: { get: () => foto },
+      over: { get: () => over, set: (w) => {
+          over = w;
+        } },
+      pil: { get: () => pil },
+      laag: { get: () => laag },
+      naamVan: { get: () => naamVan },
+      blokMaatBewaar: { get: () => blokMaatBewaar },
+      kapelBewaar: { get: () => kapelBewaar },
+      klaar: { get: () => klaar },
+      stap: { get: () => stap },
+      nieuwVak: { get: () => nieuwVak },
+      kamers: { get: () => kamers },
+      kamerPlek: { get: () => kamerPlek },
+      zetApparaat: { get: () => zetApparaat },
+      afdakZie: { get: () => afdakZie },
+      gebouwOp: { get: () => gebouwOp },
+      noem: { get: () => noem },
+      pasAan: { get: () => pasAan },
     });
-    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => pasAan()).observe(svg);
-
+    const gebaarDeel = global.htGebaar(cgebaar);
+    function buurVoor(...a) {
+      return gebaarDeel.buurVoor(...a);
+    }
+    function verplaatsbaar(...a) {
+      return gebaarDeel.verplaatsbaar(...a);
+    }
+    function greepPlek(...a) {
+      return gebaarDeel.greepPlek(...a);
+    }
+    function heelHuis(...a) {
+      return gebaarDeel.heelHuis(...a);
+    }
+    function muurOpnieuw(...a) {
+      return gebaarDeel.muurOpnieuw(...a);
+    }
+    const { punt, ruimteOp, muurVan } = gebaarDeel;
     /* ---------- wat je kunt doen */
     function nieuwVak(r) {
       const v = kopie(vloer());
