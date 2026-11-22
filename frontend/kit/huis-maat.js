@@ -667,17 +667,39 @@
         s += `<path d="${lijnen}" stroke="${rand}" stroke-opacity="0.35" stroke-width="0.6"/>`;
       }
       if (v.soort === 'border') {
-        // Struiken: een paar bolletjes langs de rand.
-        // Langs het midden van het vak, in de lengte (eerst over de diagonaal: scheef, Ricardo 19-11).
+        /*
+         * Struiken zoals in het poppenhuis (22 november 2026): een rij kleine struiken langs het midden van de border,
+         * elk twee bollen, met bloemen in de lente en de zomer en bladkleur in de herfst; niet groter dan de border, zodat
+         * er niets over de rand of door het hek steekt.
+         */
         const [p0, p1, p2, p3] = v.p;
         const lang = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) >= Math.hypot(p3[0] - p0[0], p3[1] - p0[1]);
         const mid = (q, r) => [(q[0] + r[0]) / 2, (q[1] + r[1]) / 2];
         const [a, b] = lang ? [mid(p0, p3), mid(p1, p2)] : [mid(p0, p1), mid(p3, p2)];
-        const n = Math.max(2, Math.min(8, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / 0.8)));
+        const breed = lang ? Math.hypot(p3[0] - p0[0], p3[1] - p0[1]) : Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
+        const r0 = Math.max(0.12, Math.min(0.3, breed * 0.32));
+        const lengte = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        const n = Math.max(2, Math.min(40, Math.round(lengte / (r0 * 1.9))));
+        const seizoen = o.seizoen ?? 'zomer';
+        const blad = { herfst: ['#7a9a4a', '#4f6d34'], winter: ['#4a5d55', '#2f3d38'], lente: ['#6cbf7c', '#2f6446'], zomer: ['#5fae7a', '#2f6446'] }[seizoen] ?? ['#5fae7a', '#2f6446'];
+        const bloemen = seizoen === 'lente' ? ['#f4c6d6', '#fff2a8', '#ffffff'] : seizoen === 'zomer' ? ['#ff8fb1', '#ffd36b', '#b59cff'] : seizoen === 'herfst' ? ['#f39a45', '#e07a2e'] : null;
+        let zaad = 11;
+        const rnd = () => ((zaad = (zaad * 16807) % 2147483647) / 2147483647);
+        if (!s.includes('id="hm-struik"')) s += `<defs><radialGradient id="hm-struik" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="${blad[0]}"/><stop offset="1" stop-color="${blad[1]}"/></radialGradient></defs>`;
         for (let i = 0; i < n; i++) {
           const f = (i + 0.5) / n;
-          const q = P(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, 0.35);
-          s += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(0.45 * k).toFixed(1)}" fill="#3f7a52" stroke="#5fa577" stroke-opacity="0.5"/>`;
+          const sc = 0.8 + rnd() * 0.4;
+          const [cx2, cy2] = [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+          for (const [dz, rr] of [[0.75, 1], [1.05, 0.8]]) {
+            const q = P(cx2, cy2, r0 * dz * sc);
+            s += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(r0 * rr * sc * k).toFixed(1)}" fill="url(#hm-struik)"/>`;
+          }
+          if (bloemen) {
+            for (let j = 0; j < 3; j++) {
+              const q = P(cx2 + (j - 1) * r0 * 0.5, cy2, r0 * (1.2 + (j % 2) * 0.35) * sc);
+              s += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${Math.max(1.2, 0.05 * k).toFixed(1)}" fill="${bloemen[(i + j) % bloemen.length]}"/>`;
+            }
+          }
         }
       }
     }
@@ -1429,12 +1451,13 @@
           const [vx, vy] = pl.wand ? (pl.wand === 'x' ? [mx + pl.kant * 0.7, my] : [mx, my + pl.kant * 0.7]) : [mx, my];
           const v0 = P(vx, vy, z0 + 0.01);
           const r0 = M.hangt === 'plafond' ? 1.4 : 1.0;
-          stukken.push({ d: diep(vx, vy) + 30, s: `<ellipse cx="${v0[0].toFixed(1)}" cy="${v0[1].toFixed(1)}" rx="${(r0 * k).toFixed(1)}" ry="${(r0 * k * sp).toFixed(1)}" fill="#ffd9a0" fill-opacity="${o.avond ? 0.26 : 0.1}"/>` });
+          const lk = o.lampKleur?.[q.a.id] ?? '#ffd9a0';
+          stukken.push({ d: diep(vx, vy) + 30, s: `<ellipse cx="${v0[0].toFixed(1)}" cy="${v0[1].toFixed(1)}" rx="${(r0 * k).toFixed(1)}" ry="${(r0 * k * sp).toFixed(1)}" fill="${lk}" fill-opacity="${o.avond ? 0.3 : 0.12}"/>` });
           if (M.snoer) {
             const l = P(mx - 0.6, my, z0 + 0.05);
             const r = P(mx + 0.6, my, z0 + 0.05);
             const b = P(mx, my, pl.z);
-            x2 += `<path d="M${b[0].toFixed(1)} ${b[1].toFixed(1)}L${l[0].toFixed(1)} ${l[1].toFixed(1)}L${r[0].toFixed(1)} ${r[1].toFixed(1)}Z" fill="#ffd9a0" fill-opacity="${o.avond ? 0.09 : 0.04}"/>`;
+            x2 += `<path d="M${b[0].toFixed(1)} ${b[1].toFixed(1)}L${l[0].toFixed(1)} ${l[1].toFixed(1)}L${r[0].toFixed(1)} ${r[1].toFixed(1)}Z" fill="${o.lampKleur?.[q.a.id] ?? '#ffd9a0'}" fill-opacity="${o.avond ? 0.1 : 0.05}"/>`;
           }
         }
         // Een hanglamp hangt aan een snoer.
@@ -1444,6 +1467,14 @@
           x2 += `<path d="M${s0[0].toFixed(1)} ${s0[1].toFixed(1)}L${s1[0].toFixed(1)} ${s1[1].toFixed(1)}" stroke="#8090a0" stroke-width="1"/>`;
         }
         x2 += md.s;
+        // Een bewegingsmelder die nu beweging ziet: een ring die uitdijt op de vloer eronder, zoals in het poppenhuis (22 november 2026).
+        if (naam === 'beweging' && draait) {
+          const c = P(mx, my, z0 + 0.02);
+          const rb = 1.2 * k;
+          x2 += o.stil
+            ? `<ellipse class="sc-beweging" cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" rx="${(rb * 0.6).toFixed(1)}" ry="${(rb * 0.6 * sp).toFixed(1)}" fill="none" stroke="#6ee7b7" stroke-width="2" stroke-opacity="0.7"/>`
+            : `<ellipse class="sc-beweging" cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" rx="${(rb * 0.2).toFixed(1)}" ry="${(rb * 0.2 * sp).toFixed(1)}" fill="none" stroke="#6ee7b7" stroke-width="2"><animate attributeName="rx" values="${(rb * 0.2).toFixed(1)};${rb.toFixed(1)}" dur="2.2s" repeatCount="indefinite"/><animate attributeName="ry" values="${(rb * 0.2 * sp).toFixed(1)};${(rb * sp).toFixed(1)}" dur="2.2s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values="0.9;0" dur="2.2s" repeatCount="indefinite"/></ellipse>`;
+        }
         // Een airco die draait: drie zachte stromen lucht de kamer in, warm of koel.
         if (M.lucht && draait) {
           const kleur = kamerInfo[t.st.apparaten.find((a) => a.id === q.a.id)?.kamer]?.toon === 'koelt' ? '#6fd3ff' : '#ff7a4d';
@@ -1792,7 +1823,7 @@
       const draait = aan.has(a.id);
       if (a.soort === 'licht') {
         const v0 = P(a.x, a.y, 0.02);
-        if (draait) x2 += `<ellipse cx="${v0[0].toFixed(1)}" cy="${v0[1].toFixed(1)}" rx="${(1.1 * k).toFixed(1)}" ry="${(1.1 * k * sp).toFixed(1)}" fill="#ffd9a0" fill-opacity="${o.avond ? 0.28 : 0.08}"/>`;
+        if (draait) x2 += `<ellipse cx="${v0[0].toFixed(1)}" cy="${v0[1].toFixed(1)}" rx="${(1.1 * k).toFixed(1)}" ry="${(1.1 * k * sp).toFixed(1)}" fill="${o.lampKleur?.[a.id] ?? '#ffd9a0'}" fill-opacity="${o.avond ? 0.3 : 0.1}"/>`;
         const z = a.z ?? 0.6;
         // Laag: een tuinlampje op een paaltje; hoog: een lamp aan de muur.
         if (z < 1.2) {
@@ -1805,15 +1836,21 @@
         x2 += `<circle cx="${h[0].toFixed(1)}" cy="${h[1].toFixed(1)}" r="2.6" fill="${draait ? '#ffe2b0' : '#5c6876'}"/>`;
       } else if (a.soort === 'snoer') {
         // Lampjes langs de border: een snoer met bolletjes; aan geven ze een warm puntje licht.
+        // Zoals in het poppenhuis (22 november 2026): lampjes op een paaltje tussen de struiken, in de kleur van de lamp, met een gloed op de grond.
         const pp = a.punten ?? [];
+        const lk = o.lampKleur?.[a.id] ?? '#FFD39A';
         for (let i = 0; i + 1 < pp.length; i++) {
           const [p0, p1] = [pp[i], pp[i + 1]];
-          const n = Math.max(2, Math.round(Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) / 0.7));
+          const n = Math.max(2, Math.round(Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) / 1.2));
           for (let j = 0; j <= n; j++) {
             const f = j / n;
-            const q = P(p0[0] + (p1[0] - p0[0]) * f, p0[1] + (p1[1] - p0[1]) * f, 0.55 + 0.12 * Math.sin(j * 1.7));
-            if (draait) x2 += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="6" fill="url(#hm-gloed)" opacity="0.35"/>`;
-            x2 += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="1.7" fill="${draait ? '#ffe2b0' : '#6b7684'}"/>`;
+            const [lx, ly] = [p0[0] + (p1[0] - p0[0]) * f, p0[1] + (p1[1] - p0[1]) * f];
+            const voet = P(lx, ly, 0);
+            const kop = P(lx, ly, 0.45);
+            if (draait) x2 += `<ellipse cx="${voet[0].toFixed(1)}" cy="${voet[1].toFixed(1)}" rx="${(0.6 * k).toFixed(1)}" ry="${(0.6 * k * sp).toFixed(1)}" fill="${lk}" opacity="${o.avond ? 0.35 : 0.15}"/>`;
+            x2 += `<path d="M${voet[0].toFixed(1)} ${voet[1].toFixed(1)}L${kop[0].toFixed(1)} ${kop[1].toFixed(1)}" stroke="#55606e" stroke-width="1.6"/>`;
+            if (draait) x2 += `<circle cx="${kop[0].toFixed(1)}" cy="${kop[1].toFixed(1)}" r="6" fill="url(#hm-gloed)" opacity="0.4"/>`;
+            x2 += `<circle cx="${kop[0].toFixed(1)}" cy="${kop[1].toFixed(1)}" r="2.2" fill="${draait ? lk : '#5c6876'}"/>`;
           }
         }
       } else if (a.soort === 'paal') {

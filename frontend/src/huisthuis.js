@@ -174,6 +174,7 @@
     const aanSet = new Set();
     const schermen = {};
     const lichtBij = {};
+    const lampKleur = {};
     for (const e of huisApi?.etages ?? []) {
       for (const r of e.ruimtes ?? []) {
         for (const a of r.apparaten ?? []) {
@@ -181,6 +182,10 @@
           if (a.aan) aanSet.add(a.id);
           if (a.soort === 'screen' && typeof a.positiePct === 'number') schermen[a.id] = a.positiePct;
           if (a.soort === 'licht' && a.hoortBij) lichtBij[a.hoortBij] = a.id;
+          // De kleur van een lamp die brandt, zoals in het poppenhuis (22 november 2026: de nieuwe tekenaar had altijd geel).
+          if (a.soort === 'licht' && a.aan) lampKleur[a.id] = global.huismodel?.kleurVanLicht?.(a) ?? '#FFD9A0';
+          // Een bewegingsmelder die nu beweging ziet: het teken eromheen.
+          if (a.meting?.beweging?.nu) aanSet.add(a.id);
         }
       }
     }
@@ -287,6 +292,9 @@
         if (!b) continue;
         const lang = b.x1 - b.x0 >= b.y1 - b.y0;
         apparaten.push({ id: a.id, soort: 'snoer', punten: lang ? [[b.x0 + 0.2, (b.y0 + b.y1) / 2], [b.x1 - 0.2, (b.y0 + b.y1) / 2]] : [[(b.x0 + b.x1) / 2, b.y0 + 0.2], [(b.x0 + b.x1) / 2, b.y1 - 0.2]] });
+      } else if (a.soort === 'licht' && kamerSoort(a.kamer) !== 'tuinhuis') {
+        // Een lamp in de tuin (niet in de border of het tuinhuis): een tuinlamp op een paaltje op zijn plek (22 november 2026).
+        apparaten.push({ id: a.id, soort: 'licht', x, y, z: 0.6 });
       } else if (a.soort === 'camera' && /deurbel|doorbell/i.test(`${a.id} ${a.naam}`)) {
         // Een deurbel hangt aan de gevel van het huis, het dichtst bij waar hij in Je huis staat.
         const w = huisDoos ? opMuur(x, y, [huisDoos]) : null;
@@ -377,12 +385,24 @@
      * oprit en de gebouwen, en minstens 1,2 meter van alles af (anders geen boom).
      */
     const bomen = [];
-    if (voortuin && voortuin.x1 - voortuin.x0 > 2.6 && voortuin.y1 - voortuin.y0 > 3.2) {
-      const bezet = [...(huisDoos ? [huisDoos] : []), ...gebouwen, ...(oprit ? [{ x: oprit.x0, y: oprit.y0, b: oprit.x1 - oprit.x0, d: oprit.y1 - oprit.y0 }] : []), ...(auto ? [auto] : [])];
-      const afstTot = (x, y) => Math.min(...bezet.map((g) => Math.hypot(Math.max(g.x - x, 0, x - g.x - g.b), Math.max(g.y - y, 0, y - g.y - g.d))), 99);
-      const hoeken = [[voortuin.x0 + 1.3, voortuin.y0 + 1.6], [voortuin.x1 - 1.3, voortuin.y0 + 1.6], [voortuin.x0 + 1.3, voortuin.y1 - 1.6], [voortuin.x1 - 1.3, voortuin.y1 - 1.6]];
+    /*
+     * Ook in de achtertuin één boom als die groot genoeg is (22 november 2026, zoals in het poppenhuis), in de hoek die het
+     * verst ligt van het huis, de gebouwen, het terras en de border.
+     */
+    const terras = plek('terras');
+    const border = plek('border');
+    const bezet = [
+      ...(huisDoos ? [huisDoos] : []),
+      ...gebouwen,
+      ...(auto ? [auto] : []),
+      ...[...(oprit ? [oprit] : []), ...terras, ...border].map((r) => ({ x: r.x0, y: r.y0, b: r.x1 - r.x0, d: r.y1 - r.y0 })),
+    ];
+    const afstTot = (x, y) => Math.min(...bezet.map((g) => Math.hypot(Math.max(g.x - x, 0, x - g.x - g.b), Math.max(g.y - y, 0, y - g.y - g.d))), 99);
+    for (const { tuin, minB, minD, h, r } of [{ tuin: voortuin, minB: 2.6, minD: 3.2, h: 4.2, r: 1.1 }, { tuin: plek('achtertuin')[0], minB: 4, minD: 4, h: 5, r: 1.4 }]) {
+      if (!tuin || tuin.x1 - tuin.x0 <= minB || tuin.y1 - tuin.y0 <= minD) continue;
+      const hoeken = [[tuin.x0 + 1.3, tuin.y0 + 1.6], [tuin.x1 - 1.3, tuin.y0 + 1.6], [tuin.x0 + 1.3, tuin.y1 - 1.6], [tuin.x1 - 1.3, tuin.y1 - 1.6]];
       const [bx, by] = hoeken.sort((a, b) => afstTot(...b) - afstTot(...a))[0];
-      if (afstTot(bx, by) >= 1.2) bomen.push({ x: bx, y: by, h: 4.2, r: 1.1 });
+      if (afstTot(bx, by) >= 1.2) bomen.push({ x: bx, y: by, h, r });
     }
     const zon = model.zon ?? {};
     const panelen = [zon.panelen ? { aantal: zon.panelen, kant: 0 } : null, zon.panelenLinks ? { aantal: zon.panelenLinks, kant: 1 } : null].filter(Boolean);
@@ -405,6 +425,7 @@
       hemel: { tijd, wolken: model.wolken ?? 0 },
       kamers,
       aan: [...aanSet],
+      lampKleur,
       panelen,
       schermen,
       bomen,
