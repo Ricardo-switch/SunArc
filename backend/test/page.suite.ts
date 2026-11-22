@@ -8067,8 +8067,9 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
         expect(zet, naam).not.toBeNull();
         await sleep(zet!.a, zet!.b);
         expect(await v.log(), naam).toBe('pointerdown pointerup');
+        // Wachten tot de tekenaar het apparaat verhuisd heeft (op de CI was 250 ms soms te kort, 22 november 2026).
+        await expect.poll(() => p.evaluate<string>(`window.tekenaar.st.apparaten.find((a) => a.id === ${JSON.stringify(zet!.id)})?.kamer`), { timeout: 5_000 }).toBe(zet!.naar);
         const na = await p.evaluate<{ kamer: string; plek?: object }>(`window.tekenaar.st.apparaten.find((a) => a.id === ${JSON.stringify(zet!.id)})`);
-        expect(na.kamer, naam).toBe(zet!.naar);
         expect(na.plek, naam).toBeTruthy();
         // Bewaard in de indeling: de kamer en de plek.
         await expect.poll(() => p.locator(`${kant} [data-bewaard]`).textContent(), { timeout: 10_000 }).toBe('Bewaard');
