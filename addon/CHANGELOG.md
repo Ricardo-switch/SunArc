@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.220.0
+## 0.220.1
 
-*22 november 2026 · 0.179.0 – 0.220.0*
+*22 november 2026 · 0.179.0 – 0.220.1*
 
 **Nieuw**
 
@@ -192,6 +192,7 @@
 
 **Opgelost**
 
+- Het tuinhuis: de pui zit onder het overstek, en de palen lopen door tot het dak
 - Een raam in de verdieping boven het afdak bleef bewaard maar verdween bij het laden
 - Een deur die naar buiten draait viel bij Je huis › Kamers buiten beeld
 - Het afdak liep door de ramen van de verdieping erboven
@@ -430,6 +431,7 @@
 
 **Fixed**
 
+- The garden house: the glass front sits under the canopy, and the posts run up to the roof
 - A window on the floor above the canopy was saved but disappeared when loading
 - A door that opens outwards fell out of view under Your home › Rooms
 - The canopy ran through the windows of the floor above
