@@ -105,6 +105,16 @@ describe('de tekening in de indeling', () => {
     expect(r.layout.apparaten['nest']?.plek).toEqual({ etage: 'bg', u: 0.2, v: 7.8 });
   });
 
+  it('houdt een radiator uit de tekening, ook verborgen, en laat een onbekend apparaat weg (besluit 333)', () => {
+    const r = validateLayout(indeling({ plattegrond: tekening, apparaten: { 'radiator:woonkamer': { kamer: 'woonkamer', zone: null, plek: { etage: 'bg', u: 1, v: 0.2 } }, 'radiator:woonkamer:2': { kamer: 'woonkamer', zone: null }, 'light.bestaat_niet': { kamer: 'woonkamer', zone: null } }, verborgen: ['radiator:woonkamer:2', 'light.bestaat_niet'] }), known);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.layout.apparaten['radiator:woonkamer']?.plek).toEqual({ etage: 'bg', u: 1, v: 0.2 });
+    expect(r.layout.apparaten['radiator:woonkamer:2']?.kamer).toBe('woonkamer');
+    expect(r.layout.apparaten['light.bestaat_niet']).toBeUndefined();
+    expect(r.layout.verborgen).toEqual(['radiator:woonkamer:2']);
+  });
+
   it('blijft bewaren als een kamer weg is, verhuist, of een zone kwijt is', () => {
     const kamers = indeling()
       .kamers.filter((k) => k.id !== 'hal')
@@ -237,7 +247,7 @@ describe('de apparaten in de tekening (stap 3)', () => {
   it('een klimaatapparaat dat kan koelen is een airco, anders een thermostaat; een stekker zonder soort', () => {
     expect(tekenSoort({ soort: 'klimaat', klimaat: { kanKoelen: true } })).toBe('airco');
     expect(tekenSoort({ soort: 'klimaat', klimaat: { kanKoelen: false } })).toBe('thermostaat');
-    expect(tekenSoort({ soort: 'klimaat', klimaat: { kanKoelen: true }, radiatorknop: {} })).toBe('thermostaat');
+    expect(tekenSoort({ soort: 'klimaat', klimaat: { kanKoelen: true }, radiatorknop: {} })).toBe('radiator');
     expect(tekenSoort({ soort: 'licht' })).toBe('licht');
     expect(tekenSoort({ soort: 'rookmelder' })).toBe('rookmelder');
     expect(tekenSoort({ soort: 'apparaat', warmte: { soort: 'boiler' } })).toBe('boiler');

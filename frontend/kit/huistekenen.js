@@ -56,8 +56,8 @@
   const EIGEN_BUITEN = [['berging', 'schuur'], ['berging', 'fietsenhok'], ['berging', 'kas'], ['berging', 'pad']];
   /** [soort, naam] in de taal van de app; buiten andere namen. */
   const eigenNamen = (buiten = false) => (buiten ? EIGEN_BUITEN : EIGEN_SLEUTELS).map(([soort, k]) => [soort, T(`ht.eigen.${k}`)]);
-  const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', witgoed: '#c9d4df', koffie: '#f7b548', camera: '#a99cff', beweging: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff', rookmelder: '#ff9a6b', boiler: '#ff9a6b', jacuzzi: '#6fd3ff' };
-  const APP_ICOON = { meter: 'klimaat' };
+  const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', witgoed: '#c9d4df', radiator: '#ff9a6b', koffie: '#f7b548', camera: '#a99cff', beweging: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff', rookmelder: '#ff9a6b', boiler: '#ff9a6b', jacuzzi: '#6fd3ff' };
+  const APP_ICOON = { meter: 'klimaat', radiator: 'verwarming' };
   /**
    * Eén apparaat, één bolletje (20 november 2026): wat er ook in een apparaat
    * zit, zoals de schijnwerper en de bewegingsmelder van een camera. De naam
@@ -2873,6 +2873,14 @@
         o.tot = van + w;
         klaar();
       },
+      /** Een radiator erbij in een kamer (besluit 333): hij komt onder het dichtstbijzijnde raam; weghalen gaat met Verbergen. */
+      radiatorErbij(kamer) {
+        if (!kamer) return;
+        stap();
+        const nrs = st.apparaten.filter((a) => a.id.startsWith(`radiator:${kamer}:`)).map((a) => Number(a.id.split(':')[2]) || 0);
+        st.apparaten.push({ id: `radiator:${kamer}:${Math.max(1, ...nrs) + 1}`, naam: T('ht.app.radiator'), soort: 'radiator', kamer });
+        klaar();
+      },
       openingWeg() {
         const v = vloer();
         const id = st.kies?.id;
@@ -3561,6 +3569,9 @@
           const lijst = punten.filter((p) => p.ruimte === st.zoom);
           s = `<header><h3>${esc(t.naamVan(v.ruimtes[st.zoom]) ?? T('ht.vakZonderNaamKop'))}</h3><span>${esc(T('ht.apparaten', { n: lijst.length }))}</span></header>`;
           s += lijst.map((p) => rij({ ik: APP_ICOON[p.a.soort] ?? p.a.soort, kleur: APP_KLEUR[p.a.soort], titel: p.a.naam, zin: [t.zoneVan(p), t.plekNaam(p)].filter(Boolean).join(' · '), data: `data-ht="app" data-app="${esc(p.a.id)}"` })).join('') || `<p class="ht-zin">${esc(T('ht.app.leeg'))}</p>`;
+          // Een radiator erbij (besluit 333), alleen binnen.
+          const kamerZoom = v.ruimtes[st.zoom].kamer;
+          if (kamerZoom && !etage.buiten) s += rij({ ik: 'verwarming', kleur: APP_KLEUR.radiator, titel: T('ht.app.radiatorErbij'), zin: T('ht.app.radiatorErbijZin'), data: `data-ht="radiator-erbij" data-kamer="${esc(kamerZoom)}"` });
           s += `<div class="ht-onder">${rij({ ik: 'terug', titel: T('ht.app.heleEtage'), zin: '', data: 'data-ht="uit"' })}</div>`;
         } else {
           s = `<header><h3>${esc(etage.naam)}</h3><span>${esc(T('ht.apparaten', { n: punten.length }))}</span></header>`;
@@ -3622,6 +3633,7 @@
       else if (d.ht === 'opening-breed') t.openingBreed(Number(d.d));
       else if (d.ht === 'opening-zet') t.openingZet(d.wat, d.w);
       else if (d.ht === 'opening-weg') t.openingWeg();
+      else if (d.ht === 'radiator-erbij') t.radiatorErbij(d.kamer);
       else if (d.ht === 'trap') t.zetTrap(st.kies.id, d.r);
       else if ((d.ht === 'gebouw-dak' || d.ht === 'gebouw-nok') && t.gebouw && !st.gebouwBezig) {
         st.gebouwBezig = true;

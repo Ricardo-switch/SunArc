@@ -361,6 +361,8 @@
       if (/plafon|spot/.test(naam)) return 'plafonniere';
       return 'hanglamp';
     }
+    // Een radiator (besluit 333): een radiatorknop, of een radiator die Je huis vanzelf of op verzoek tekent.
+    if (s === 'radiator') return 'radiator';
     if (s === 'thermostaat' || s === 'klimaat') return 'thermostaat';
     if (s === 'rookmelder') return 'rookmelder';
     if (s === 'beweging') return 'beweging';

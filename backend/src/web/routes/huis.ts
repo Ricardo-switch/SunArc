@@ -5,7 +5,7 @@
  * context `d` in plaats van de webserver zelf.
  */
 
-import { OUTSIDE_FLOOR, floorName, floorOrder, standardFloors } from '../layout.js';
+import { OUTSIDE_FLOOR, RADIATOR_ID, floorName, floorOrder, standardFloors } from '../layout.js';
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
@@ -608,6 +608,20 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       return { id: a.id, naam: a.naam, soort: tekenSoort(a), kamer: null as string | null, hoortBij: a.hoortBij, ...metBel(a.id), ...(tip ? { ha: tip } : {}) };
     }),
   ];
+  /*
+   * Radiatoren (22 november 2026, besluit 333): een kamer met een thermostaat (de cv) maar zonder radiatorknop krijgt
+   * vanzelf één radiator; een radiator die de bewoner erbij zette (`radiator:<kamer>:<n>`) blijft staan. Een radiatorknop
+   * is zelf een radiator in de tekening. Weghalen gaat met Verbergen.
+   */
+  const radiatorNaam = 'Radiator';
+  for (const r of binnen.flatMap((e) => e.ruimtes)) {
+    const cv = r.apparaten.some((a) => a.soort === 'klimaat' && !a.klimaat?.kanKoelen && !a.radiatorknop);
+    const knop = r.apparaten.some((a) => a.radiatorknop);
+    if (cv && !knop) alle.push({ id: `radiator:${r.id}`, naam: radiatorNaam, soort: 'radiator', kamer: r.id, hoortBij: undefined });
+  }
+  for (const [id, a] of Object.entries(basis.apparaten)) {
+    if (/^radiator:.+:\d+$/.test(id) && RADIATOR_ID.test(id) && kamerIds.has(a.kamer)) alle.push({ id, naam: a.naam ?? radiatorNaam, soort: 'radiator', kamer: a.kamer, hoortBij: undefined });
+  }
   // Eén apparaat, één bolletje (20 november 2026): een bijfunctie staat niet los in de tekening, maar in het blad van zijn hoofd.
   const bijVan = bijfuncties(alle);
   const apparaten = alle

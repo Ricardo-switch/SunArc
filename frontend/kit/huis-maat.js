@@ -1492,7 +1492,26 @@
           const plafOp = (px, py, run, kant, weg = 0) => Math.min(...[[-half, weg], [half, weg], [-half, weg + M.d], [half, weg + M.d]].map(([a, d2]) => plafond(...(run.as === 'x' ? [px + kant * d2, py + a] : [px + a, py + kant * d2]), top)));
           const wil = M.hangt === 'vloer' ? 0 : M.plafond != null ? 1.5 : Math.min((M.z ?? 1.2) - 0.25, 1.4);
           let reserve = null;
-          for (const w of wandenBij(q.x, q.y, q.ruimte)) {
+          let kandidaten = wandenBij(q.x, q.y, q.ruimte);
+          // Een radiator zonder eigen plek hangt onder het dichtstbijzijnde raam van zijn kamer (besluit 333).
+          if (naam === 'radiator' && !q.zelf) {
+            const onderRaam = [];
+            for (const w of kandidaten) {
+              if (w.run.soort !== 2) continue;
+              for (const g of v.openingen ?? []) {
+                if (g.soort !== 'raam' || g.as !== w.run.as || g.op !== w.run.op || g.van < w.run.van - 0.5 || g.tot > w.run.tot + 0.5) continue;
+                const c = (g.van + g.tot) / 2;
+                // Alleen een raam van zijn eigen kamer: een lange buitenmuur loopt langs meer kamers.
+                const l = Math.floor(c);
+                const naast = w.run.as === 'x' ? [v.cel[l * v.W + w.run.op - 1], v.cel[l * v.W + w.run.op]] : [v.cel[(w.run.op - 1) * v.W + l], v.cel[w.run.op * v.W + l]];
+                if (!naast.includes(q.ruimte)) continue;
+                const [gx, gy] = w.run.as === 'x' ? [w.run.op, c] : [c, w.run.op];
+                onderRaam.push({ ...w, langs: c, afst: Math.hypot(gx - q.x, gy - q.y) });
+              }
+            }
+            kandidaten = [...onderRaam.sort((a, b) => a.afst - b.afst), ...kandidaten];
+          }
+          for (const w of kandidaten) {
             const { run, kant } = w;
             const midden2 = Math.min(m(run.tot) - half - 0.05, Math.max(m(run.van) + half + 0.05, m(w.langs)));
             const vlakMuur = m(run.op) + kant * 0.03;
