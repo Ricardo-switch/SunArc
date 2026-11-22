@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.224.0';
+export const VERSIE = '0.225.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.225.0',
+    datum: '2026-11-22',
+    beter: [
+      'Onder de motorkap: het poppenhuis is opgesplitst in kleinere delen; je merkt er niets van',
+    ],
+    en: {
+      beter: [
+        'Under the hood: the dollhouse is split into smaller parts; you will not notice it',
+      ],
+    },
+  },
   {
     versie: '0.224.0',
     datum: '2026-11-22',
