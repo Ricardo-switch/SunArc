@@ -685,19 +685,9 @@
     // Op een scherm dat iemand volgt: diens weergave, alleen om te zien (25 oktober 2026).
     const volgt = global.app.persoonlijk(v).volgt;
     const w = (volgt != null ? global.app.persoonlijk(v).weergave : null) ?? v.tel.weergave ?? STANDAARD.tel.weergave;
-    const keuze = (eenvoudig, naam, zin, tel) => `<button type="button" role="radio" aria-checked="${w.eenvoudig === eenvoudig}" data-wg-eenvoudig="${eenvoudig}"><span class="mini-tel" aria-hidden="true">${tel}</span><b>${naam}</b><p>${zin}</p></button>`;
-    const schakel = (id, naam, zin) => `<button type="button" class="schakel" role="switch" aria-checked="${w[id] !== false && (w[id] === true || ['seizoen', 'weer', 'feestdagen', 'zonnebaan'].includes(id))}" data-wg-schakel="${id}"><div><b>${naam}</b><span>${zin}</span></div><span class="knopje" aria-hidden="true"></span></button>`;
-    const t = global.t;
-    el.setAttribute('aria-label', t('thuis.weergave'));
-    el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(t('thuis.weergave'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
-      <p class="mini" style="margin: 0">${volgt != null ? esc(t('eigen.wg.volgt', { naam: volgt })) : `${esc(t('eigen.wg.voorJou'))}${global.app.telStand() ? '' : ` ${esc(t('eigen.wg.wand'))}`}`}</p>
-      <div class="twee" role="radiogroup" aria-label="${esc(t('eigen.wg.keuze'))}">
-        ${keuze(true, esc(t('eigen.wg.eenvoudig')), esc(t('eigen.wg.eenvoudigZin')), '<i style="width: 70%; height: 10px; background: rgb(var(--wit) / 0.45)"></i><i style="width: 92%; height: 8px"></i><i style="width: 60%; height: 8px"></i>')}
-        ${keuze(false, esc(t('eigen.wg.uitgebreid')), esc(t('eigen.wg.uitgebreidZin')), '<i style="width: 60%; height: 7px; background: rgb(var(--wit) / 0.45)"></i><i style="width: 90%"></i><i style="width: 80%"></i><i style="width: 45%; background: rgba(247,181,72,0.55)"></i><i style="width: 70%"></i>')}
-      </div>
-      <div style="margin-top: 10px">${schakel('groteLetters', esc(t('eigen.wg.letters')), esc(t('eigen.wg.lettersZin')))}${schakel('minderBeweging', esc(t('eigen.wg.beweging')), esc(t('eigen.wg.bewegingZin')))}</div>
-      <p class="mini" style="margin: 14px 0 2px">${esc(t('eigen.wg.huis'))}</p>
-      <div>${schakel('seizoen', esc(t('eigen.wg.seizoen')), esc(t('eigen.wg.seizoenZin')))}${schakel('weer', esc(t('eigen.wg.weer')), esc(t('eigen.wg.weerZin')))}${schakel('feestdagen', esc(t('eigen.wg.feest')), esc(t('eigen.wg.feestZin')))}${schakel('zonnebaan', esc(t('eigen.wg.zon')), esc(t('eigen.wg.zonZin')))}${schakel('getekend', esc(t('eigen.wg.getekend')), esc(t('eigen.wg.getekendZin')))}</div>`;
+    el.setAttribute('aria-label', global.t('thuis.weergave'));
+    // Het blad zelf is een gedeeld deel (src/weergave.js, 22 november 2026): ook op Jij.
+    el.innerHTML = global.weergaveDeel.html(w, { volgt, telStand: global.app.telStand() });
   }
 
   /* --------------------------------------------------------------- tikken */
@@ -721,23 +711,12 @@
     // Op een scherm dat iemand volgt verander je het op je eigen telefoon.
     if (wg && blad?.soort === 'weergave' && global.app.persoonlijk(v).volgt != null) return;
     if (wg && blad?.soort === 'weergave') {
-      const nu = v.tel.weergave ?? STANDAARD.tel.weergave;
-      const wat = wg.dataset.wgSchakel ? { [wg.dataset.wgSchakel]: !nu[wg.dataset.wgSchakel] } : { eenvoudig: wg.dataset.wgEenvoudig === 'true' };
-      const nieuw = { ...nu, ...wat };
-      // Het huis zoals getekend kiezen geldt voor jou op elk scherm: een keuze die alleen dit scherm onthield (?tekenaar=) vervalt.
-      if (wg.dataset.wgSchakel === 'getekend') {
-        try {
-          localStorage.removeItem('sc-tekenaar');
-        } catch {
-          // Niets onthouden.
-        }
-      }
+      const nieuw = global.weergaveDeel.nieuw(v.tel.weergave ?? STANDAARD.tel.weergave, wg);
       // Meteen zo laten zien; de dienst bewaart het bij je account.
       global.app.zetWeergave(nieuw);
       void bewaar('tel', { weergave: nieuw });
       tekenBlad();
-      const sel = wg.dataset.wgSchakel ? `[data-wg-schakel="${wg.dataset.wgSchakel}"]` : `[data-wg-eenvoudig="${wg.dataset.wgEenvoudig}"]`;
-      document.querySelector(`[data-kiesblad] ${sel}`)?.focus();
+      document.querySelector(`[data-kiesblad] ${global.weergaveDeel.focusVan(wg)}`)?.focus();
       return;
     }
     if (t.closest('[data-klaar]')) return klaar();

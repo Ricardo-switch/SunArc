@@ -66,6 +66,8 @@ async function laad() {
   openSchermUitAdres();
   // Vanuit Te doen of Functies (30 oktober 2026): jij.html#agenda opent meteen je agenda's.
   if (location.hash === '#agenda' && agendas && b?.ik?.soort === 'bewoner') openBlad('agenda');
+  // jij.html#weergave (de zoeker, oude adressen): het blad Weergave meteen open.
+  if (location.hash === '#weergave' && v) openBlad('weergave');
 }
 
 async function bewaar(wat) {
@@ -146,7 +148,7 @@ function teken() {
     <section class="glas lijst" aria-labelledby="kop-uiterlijk">
       <h2 id="kop-uiterlijk">${esc(t('jij.uiterlijk'))}</h2>
       ${knop('data-thema-open', 'kleur', t('jij.themaKleur'), `${themaNaam} · ${kleurNaam.toLowerCase()}`, '<span class="staal" aria-hidden="true"></span>')}
-      ${link('thuis.html#weergave', 'weergave', t('jij.weergave'), t(w.eenvoudig ? 'jij.eenvoudig' : 'jij.uitgebreid'))}
+      ${knop('data-weergave-open', 'weergave', t('jij.weergave'), t(w.eenvoudig ? 'jij.eenvoudig' : 'jij.uitgebreid'))}
       ${schakel('groteLetters', 'letters', t('jij.letters'), t('jij.lettersZin'), w.groteLetters)}
       ${schakel('minderBeweging', 'beweging', t('jij.beweging'), t('jij.bewegingZin'), w.minderBeweging)}
       ${uiterlijkAnders ? terug('data-std-uiterlijk') : ''}
@@ -319,6 +321,13 @@ function tekenBlad() {
     blad.innerHTML = agendaBlad();
     return;
   }
+  // Weergave (22 november 2026): hier, niet eerst naar Thuis. Grotere letters en minder beweging staan al op Jij zelf.
+  if (blad.dataset.soort === 'weergave') {
+    const volgt = app.persoonlijk(v).volgt;
+    const w = (volgt != null ? app.persoonlijk(v).weergave : null) ?? v.tel.weergave;
+    blad.innerHTML = weergaveDeel.html(w, { volgt, telStand: app.telStand(), zonderLetters: true });
+    return;
+  }
   if (blad.dataset.soort === 'taal') {
     blad.innerHTML = `
     <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('jij.taal.kop'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
@@ -340,7 +349,7 @@ function tekenBlad() {
 function tekenBladAls() {
   const blad = /** @type {HTMLElement} */ (document.querySelector('[data-blad]'));
   if (blad.hidden) return;
-  if (blad.dataset.soort === 'agenda' || blad.dataset.soort?.startsWith('scherm:')) {
+  if (blad.dataset.soort === 'agenda' || blad.dataset.soort === 'weergave' || blad.dataset.soort?.startsWith('scherm:')) {
     tekenBlad();
   }
 }
@@ -371,8 +380,22 @@ document.addEventListener('click', (e) => {
 });
 document.addEventListener('input', (e) => ditScherm.invoer(e.target));
 
+// Een keuze in het blad Weergave (src/weergave.js): meteen zo laten zien, en bewaren bij je account.
 document.addEventListener('click', (e) => {
-  const el = e.target.closest('[data-thema-open], [data-taal-open], [data-agenda-open], [data-agenda-aan], [data-agenda-wand], [data-agenda-id], [data-blad-dicht], [data-achter], [data-thema], [data-kies-kleur], [data-kies-taal], [data-weergave], [data-melding], [data-proef], [data-std-uiterlijk], [data-std-kaarten]');
+  const blad = /** @type {HTMLElement} */ (document.querySelector('[data-blad]'));
+  if (!v || blad.hidden || blad.dataset.soort !== 'weergave' || app.persoonlijk(v).volgt != null) return;
+  const nieuw = weergaveDeel.nieuw(v.tel.weergave, /** @type {HTMLElement} */ (e.target));
+  if (!nieuw) return;
+  const focus = weergaveDeel.focusVan(/** @type {HTMLElement} */ (e.target));
+  app.zetWeergave(nieuw);
+  void bewaar({ weergave: nieuw }).then(() => {
+    tekenBladAls();
+    if (focus) blad.querySelector(focus)?.focus();
+  });
+});
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-thema-open], [data-weergave-open], [data-taal-open], [data-agenda-open], [data-agenda-aan], [data-agenda-wand], [data-agenda-id], [data-blad-dicht], [data-achter], [data-thema], [data-kies-kleur], [data-kies-taal], [data-weergave], [data-melding], [data-proef], [data-std-uiterlijk], [data-std-kaarten]');
   if (!el || !v) return;
   // Je agenda's (besluit 216): aan of uit, en welke, meer tegelijk.
   if (el.matches('[data-agenda-open]')) return openBlad('agenda');
@@ -390,6 +413,7 @@ document.addEventListener('click', (e) => {
   if (el.matches('[data-melding]')) return void bewaar({ meldingen: { [el.dataset.melding]: el.getAttribute('aria-checked') !== 'true' } });
   if (el.matches('[data-proef]')) return void proefmelding(el);
   if (el.matches('[data-thema-open]')) openBlad();
+  else if (el.matches('[data-weergave-open]')) openBlad('weergave');
   else if (el.matches('[data-taal-open]')) openBlad('taal');
   else if (el.matches('[data-blad-dicht], [data-achter]')) sluitBlad();
   else if (el.matches('[data-thema]')) void bewaar({ thema: el.dataset.thema });

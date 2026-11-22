@@ -106,7 +106,7 @@
     ['deurbel', 'functies', 'functies.html#deurbel'],
     ['licht', 'functies', 'functies.html#licht'],
     ['weer', 'functies', 'functies.html#weer'],
-    ['weergave', 'zoek.waar.thuis', 'thuis.html#weergave'],
+    ['weergave', 'zoek.waar.jij', 'jij.html#weergave'],
     ['aod', 'zoek.waar.weergave', 'jij.html#aod'],
     ['uit', 'zoek.waar.weergave', 'jij.html#uit'],
     ['scherm', 'zoek.waar.weergave', 'jij.html#scherm'],
