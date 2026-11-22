@@ -4794,7 +4794,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await expect.poll(() => regel.textContent()).toContain('Naar Pixel 8');
       await regel.click();
       await p.locator('#tel h1', { hasText: 'Meldingen op je telefoon' }).waitFor();
-      expect(await p.locator('#tel .terugje').textContent()).toBe('‹ Jij');
+      expect(await p.locator('#tel .terugje').textContent()).toBe('‹ Profiel');
       // Standaard: rook en de regeling aan, de rest uit.
       const schakel = (k: string) => p.locator(`#tel [data-melding="${k}"]`);
       expect(await schakel('rook').getAttribute('aria-checked')).toBe('true');

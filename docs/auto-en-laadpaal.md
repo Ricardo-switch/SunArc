@@ -354,7 +354,7 @@ lijst in `client.ts`). Laden wordt er een, naar het voorbeeld van `isHandCall`:
   een auto die zijn lading meet: Uit, Onder 30/50/70% en de tijd.
 - **De telefoon** (`push.ts`): groep `auto`, standaard aan, niet dringend
   (dus niet in de nachtrust); een bewaarde keuze zonder `auto` telt als aan.
-  Bij Jij › Meldingen op de telefoon de regel De auto.
+  Bij Profiel › Meldingen op de telefoon de regel De auto.
 - In het voorbeeldhuis komt rond half vijf "Elektrische auto is vol".
 
 ## De stappen, elk een eigen versie
