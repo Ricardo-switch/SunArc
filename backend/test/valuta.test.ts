@@ -26,7 +26,7 @@ describe('de valuta', () => {
 
   it('staat in de app nergens meer als vast euroteken', async () => {
     // De bedragen gaan via taal.valuta() of {valuta} in de teksten; alleen het merkteken in opbrengst.js en de uitleg in taal.js mogen het noemen.
-    for (const pad of ['huis-kan.js', 'inrichten.js', 'inrichten-huis.js', 'inrichten-klimaat.js', 'inrichten-energie.js', 'inrichten-voorstellen.js', 'inrichten-tekenen.js', 'instellingen.js', 'opbrengst.js', 'sluipverbruik.js', 'thuis.js']) {
+    for (const pad of ['huis-kan.js', 'inrichten.js', 'inrichten-huis.js', 'inrichten-klimaat.js', 'inrichten-energie.js', 'inrichten-voorstellen.js', 'inrichten-tekenen.js', 'instellingen.js', 'opbrengst.js', 'sluipverbruik.js', 'thuis.js', 'thuis-kaarten.js']) {
       const code = await readFile(new URL(`../../frontend/src/${pad}`, import.meta.url), 'utf-8');
       const regels = code.split('\n').filter((r) => r.includes('€') && !r.includes("kosten: '€'") && !r.includes("eenheid === '€'"));
       expect(regels, pad).toEqual([]);
