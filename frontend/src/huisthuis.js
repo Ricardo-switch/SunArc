@@ -76,7 +76,7 @@
 
   /** De motor en de modellen laden, de tekening ophalen en de tekenaar opbouwen, op een svg die niemand ziet. */
   async function laad() {
-    for (const src of ['kit/huistekenen-vloer.js', 'kit/huistekenen-blad.js', 'kit/huistekenen-kaart.js', 'kit/huistekenen-teken.js', 'kit/huistekenen-gebaar.js', 'kit/huistekenen.js', 'kit/huis-modellen.js', 'kit/huis-maat.js', 'huisvoor.js']) await laadScript(src);
+    for (const src of ['kit/huistekenen-vloer.js', 'kit/huistekenen-blad.js', 'kit/huistekenen-kaart.js', 'kit/huistekenen-teken.js', 'kit/huistekenen-gebaar.js', 'kit/huistekenen.js', 'kit/huis-modellen.js', 'kit/huis-maat-hemel.js', 'kit/huis-maat-buiten.js', 'kit/huis-maat-meubels.js', 'kit/huis-maat-apparaten.js', 'kit/huis-maat.js', 'huisvoor.js']) await laadScript(src);
     const d = await global.app.haal('api/huistekening');
     const hv = global.huisVoor;
     const huis = hv.huisVoorMotor(d);
@@ -248,7 +248,7 @@
       const overstek = lampen.find((a) => /overstek|veranda|buiten|porch|canopy/i.test(a.naam ?? ''));
       const binnen = lampen.find((a) => a !== overstek);
       const naam = naamVan(tuinhuis, 'tuinhuis');
-      gebouwen.push({ ...tuinhuis, soort: 'tuinhuis', h: 2.5, naam: global.huismodel?.metHoofdletter?.(naam) ?? naam, overstek: { d: 1.2, licht: !!overstek && aanSet.has(overstek.id) }, licht: !!binnen && aanSet.has(binnen.id) });
+      gebouwen.push({ ...tuinhuis, soort: 'tuinhuis', h: 2.5, naam: global.huismodel?.metHoofdletter?.(naam) ?? naam, overstek: { d: 1.2, licht: !!overstek && aanSet.has(overstek.id), kleur: overstek ? lampKleur[overstek.id] : undefined }, licht: !!binnen && aanSet.has(binnen.id), lichtKleur: binnen ? lampKleur[binnen.id] : undefined });
     }
     /*
      * De muren van het huis (stap b, 21 november 2026: geen plekken meer die alleen bij Ricardo's huis klopten). Het

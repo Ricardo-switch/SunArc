@@ -299,6 +299,7 @@
     // De motor in delen (22 november 2026): eerst de delen, dan huistekenen.js.
     if (!global.huistekenen) for (const d of ['huistekenen-vloer', 'huistekenen-blad', 'huistekenen-kaart', 'huistekenen-teken', 'huistekenen-gebaar', 'huistekenen']) await laad(`kit/${d}.js`);
     await laad(`kit/huis-modellen.js?${Date.now()}`);
+    for (const d of ['hemel', 'buiten', 'meubels', 'apparaten']) await laad(`kit/huis-maat-${d}.js?${Date.now()}`);
     await laad(`kit/huis-maat.js?${Date.now()}`);
     const t = await tekenaarVanJeHuis();
     const huisApi = await (await fetch('api/huis')).json();
