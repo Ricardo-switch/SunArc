@@ -467,9 +467,9 @@
       const W = (a, d, zz) => (wand === 'x' ? [p.x + kant * d, p.y + a, p.z + zz] : [p.x + a, p.y + kant * d, p.z + zz]);
       const kl = (n) => (Array.isArray(n) ? n : MOD.KLEUR[n] ?? MOD.KLEUR.kast);
       opt = { ...opt, wand };
-      const dozen = M.delen(b, opt).map(([a0, a1, d0, d1, z0, z1, kleur, smal]) => {
+      const dozen = M.delen(b, opt).map(([a0, a1, d0, d1, z0, z1, kleur, smal], i) => {
         const [q0, q1] = [W(a0, d0, z0), W(a1, d1, z1)];
-        return { x: Math.min(q0[0], q1[0]), b: Math.abs(q1[0] - q0[0]), y: Math.min(q0[1], q1[1]), d: Math.abs(q1[1] - q0[1]), z0: q0[2], z1: q1[2], kleur, smal, deel: [a0, a1, d0, d1, z0, z1] };
+        return { x: Math.min(q0[0], q1[0]), b: Math.abs(q1[0] - q0[0]), y: Math.min(q0[1], q1[1]), d: Math.abs(q1[1] - q0[1]), z0: q0[2], z1: q1[2], kleur, smal, deel: [a0, a1, d0, d1, z0, z1], i };
       });
       // Van achter naar voren, op de randen; boven elkaar: het hoogste het laatst.
       const [du, dv] = [-si, co];
@@ -487,8 +487,9 @@
         if (i < 0) i = 0;
         volg.push(...rest.splice(i, 1));
       }
-      let s2 = '';
+      const blokS = [];
       for (const q of volg) {
+        let s2 = '';
         if (q.smal) {
           // Een blok dat naar boven smaller wordt (de cabine van een auto): de bovenkant ingesprongen.
           const [a0, a1, d0, d1, z0, z1] = q.deel;
@@ -500,7 +501,9 @@
           const k3 = kl(q.kleur);
           s2 += prisma(on, bo, (v) => (Math.abs(v.n[0]) > Math.abs(v.n[1]) ? k3[1] : k3[2]), k3[0]);
         } else s2 += doos3(q.x, q.x + q.b, q.y, q.y + q.d, q.z0, q.z1, kl(q.kleur));
+        blokS.push({ i: q.i, s: s2 });
       }
+      let s2 = '';
       const tekenDetail = (v, dV, as) => {
         if (v.cirkel) {
           const [a, zz, r] = v.cirkel;
@@ -554,6 +557,12 @@
           s2 += `<path d="${vlak(pp)}" fill="none" stroke="${v.rand ?? '#5c6876'}" stroke-width="1"/>`;
         }
       }
+      /*
+       * De voorkant en de zijkant horen bij een blok (`detailBij`, 22 november 2026): de pui van het tuinhuis zit op zijn
+       * gevel, vóór de palen en het overstek; eerst lag hij over alles heen (de linkerpaal afgekapt, het glas boven het dak).
+       * Zonder `detailBij` komen ze als laatste, zoals bij de auto.
+       */
+      s2 = M.detailBij == null ? blokS.map((x) => x.s).join('') + s2 : blokS.map((x) => x.s + (x.i === M.detailBij ? s2 : '')).join('');
       const x0 = Math.min(...dozen.map((q) => q.x));
       const x1 = Math.max(...dozen.map((q) => q.x + q.b));
       const y0 = Math.min(...dozen.map((q) => q.y));

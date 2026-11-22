@@ -207,7 +207,7 @@
       ],
     },
     tuinhuis: {
-      naam: 'Tuinhuis', b: 3, d: 3, h: 2.5, hangt: 'vrij',
+      naam: 'Tuinhuis', b: 3, d: 3, h: 2.5, hangt: 'vrij', detailBij: 0,
       // Zoals het tuinhuis op Thuis nu: een donkere doos met latten, een glazen pui, een overstek op twee palen met een vlonder.
       delen: (b, o) => {
         const [d, h, od] = [o?.d ?? 3, o?.h ?? 2.5, o?.od ?? 1.1];
