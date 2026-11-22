@@ -1859,7 +1859,7 @@
         const halo = 'paint-order="stroke" stroke="#0d1a30" stroke-width="3" stroke-linejoin="round"';
         // Past het label nergens, dan op één regel: de naam en de temperatuur (zoals in het poppenhuis).
         const wk = (naam.length + (info?.temp ?? '').length + 1) * 7;
-        const kort = info?.temp ? { x: p[0] - wk / 2, y: p[1] - 12, b: wk, h: 15, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}><text y="0" ${midden} font-size="12.5" font-weight="700" fill="#dfe6ec">${esc(naam)} <tspan font-weight="800" fill="${TOON[info.toon] && info.toon !== 'goed' ? TOON[info.toon] : '#ffffff'}">${esc(info.temp)}</tspan></text></g>` } : null;
+        const kort = info?.temp ? { x: p[0] - wk / 2, y: p[1] - 12, b: wk, h: 15, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}><text y="0" ${midden} font-size="12.5" font-weight="700" fill="#dfe6ec">${esc(naam)} <tspan font-weight="800" fill="${TOON[info.toon] && info.toon !== 'goed' ? TOON[info.toon] : '#ffffff'}">${esc(info.temp)}</tspan></text></g>` }  : { x: p[0] - (naam.length * 5.6) / 2, y: p[1] - 10, b: naam.length * 5.6, h: 12, prio: 2, verder: true, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}><text y="0" ${midden} font-size="10.5" font-weight="700" fill="#aebac6">${esc(naam)}</text></g>` };
         // Een tweede plek, als de eerste bezet is: het midden van de kamer, iets hoger (22 november 2026: Slaapkamer Mylan viel weg).
         const p2 = P(mx, my, z0 + 1.3);
         const ook = { x: p2[0] - w / 2, y: p2[1] - 12, s: `<g transform="translate(${p2[0].toFixed(1)} ${(p2[1] + 2).toFixed(1)})" ${halo}>${regels}</g>` };
@@ -1983,7 +1983,7 @@
       const w = Math.max(dl.titel.length * 15 + 24, ...regels.map((r) => r.length * 7 + 24));
       const h = 40 + regels.length * 18;
       // Met de zonneboog op Thuis rechts naast het dak, onder de boog (22 november 2026); anders erboven.
-      const [px, py] = o.boogVrij && zb ? [Math.max(ax + 40, P(X1, Y0, 0)[0] + 8), ay + 10] : [ax + (dl.dx ?? 60), ay + (dl.dy ?? -80)];
+      const [px, py] = o.boogVrij && zb ? [Math.max(ax + 40, P(X1, Y0, 0)[0] + 8), ay + (o.stil ? 10 : 95)] : [ax + (dl.dx ?? 60), ay + (dl.dy ?? -80)];
       const kl = STROOM[dl.toon] ?? STROOM.zon;
       labels.push({ x: px, y: py, b: w, h, prio: 5, s: `<path d="M${ax.toFixed(1)} ${ay.toFixed(1)}L${(px + 12).toFixed(1)} ${(py + h).toFixed(1)}" stroke="${kl}" stroke-opacity="0.7" stroke-width="1.2"/><circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="3.5" fill="${kl}"/><g transform="translate(${px.toFixed(1)} ${py.toFixed(1)})"${tikData(dl.tik, dl.tikLabel)}><rect width="${w.toFixed(0)}" height="${h}" rx="12" fill="#0d1a30" fill-opacity="0.92" stroke="${kl}" stroke-opacity="0.5"/><text x="12" y="30" ${FONT} font-size="24" font-weight="800" fill="${kl}">${esc(dl.titel)}</text>${regels.map((r, i) => `<text x="12" y="${50 + i * 18}" ${FONT} font-size="13" font-weight="${i === 0 ? 700 : 500}" fill="${i === 0 ? kl : '#cfd8e1'}">${esc(r)}</text>`).join('')}</g>` });
     }
@@ -2105,8 +2105,9 @@
     const gezet = [];
     // Eerst op en neer, dan ook opzij (20 november 2026: op een huis met drie etages vielen kamers met een temperatuur weg).
     const plekken = [[0, 0], [0, -14], [0, 14], [0, -26], [0, 26], [-36, 0], [36, 0], [0, -40], [0, 40], [-36, -20], [36, -20], [-36, 20], [36, 20]];
-    const zet = (l) => {
-      for (const [dx, dy] of l.prio >= 2 ? plekken : plekken.slice(0, 5)) {
+    // `verder`: een kleine naam zonder temperatuur mag als laatste ook wat verder opzij (22 november 2026: Slaapkamer Mylan).
+    const zet = (l, verder = false) => {
+      for (const [dx, dy] of verder ? [...plekken, [64, 0], [-64, 0], [64, -16], [-64, -16], [0, -54], [0, 54]] : l.prio >= 2 ? plekken : plekken.slice(0, 5)) {
         const r = { x0: l.x - 4 + dx, y0: l.y - 6 + dy, x1: l.x + l.b + 4 + dx, y1: l.y + l.h + dy };
         if (r.y0 < 2 || r.y1 > Hpx - 2 || r.x0 < 2 || r.x1 > B - 2 || gezet.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0)) continue;
         gezet.push(r);
@@ -2117,7 +2118,7 @@
       }
       return false;
     };
-    for (const l of labels) if (!zet(l) && !(l.ook && zet({ ...l, ...l.ook })) && l.kort) zet({ ...l, ...l.kort });
+    for (const l of labels) if (!zet(l) && !(l.ook && zet({ ...l, ...l.ook })) && l.kort) zet({ ...l, ...l.kort }, l.kort.verder);
     // Dichtbij: de randen van het beeld zacht laten weglopen.
     if (alleenHuis) s = `<defs><linearGradient id="hm-rand-v" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.1" stop-color="#fff"/><stop offset="0.9" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="hm-rand"><rect width="${B}" height="${Hpx}" fill="url(#hm-rand-v)"/></mask></defs><g mask="url(#hm-rand)">${s}</g>`;
     return { svg: s, P, k, overgeslagen };
