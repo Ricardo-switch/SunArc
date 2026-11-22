@@ -60,7 +60,9 @@ verwijzing bestaat.
   met een balk terug ([329]). Sinds 0.207.0 staan dit scherm, het always-on
   display, Scherm uit en Op je startscherm bij Jij ([330]); sinds 0.208.0
   zijn always-on en scherm uit per bewoner ([331]). Sinds 0.209.0 heeft Je
-  huis een tab Dak, met de dakvorm en de dakkapel ([332]).
+  huis een tab Dak, met de dakvorm en de dakkapel ([332]). Sinds 0.220.0
+  tekent het huis zoals getekend radiatoren (met de knop eraan, of vanzelf
+  onder het raam), de buitenunit als eigen bolletje en dakramen ([333]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1077,4 +1079,5 @@ verwijzing bestaat.
 [330]: DECISIONS.md#330-alles-van-dit-scherm-bij-jij
 [331]: DECISIONS.md#331-alles-bij-jij-is-persoonlijk
 [332]: DECISIONS.md#332-je-huis--dak-het-dak-en-de-dakkapel
+[333]: DECISIONS.md#333-radiatoren-buitenunits-en-dakramen-in-het-getekende-huis
 <!-- links:einde -->

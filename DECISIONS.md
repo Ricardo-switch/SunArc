@@ -323,6 +323,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [330. Alles van dit scherm bij Jij](#330-alles-van-dit-scherm-bij-jij)
 - [331. Alles bij Jij is persoonlijk](#331-alles-bij-jij-is-persoonlijk)
 - [332. Je huis › Dak: het dak en de dakkapel](#332-je-huis--dak-het-dak-en-de-dakkapel)
+- [333. Radiatoren, buitenunits en dakramen in het getekende huis](#333-radiatoren-buitenunits-en-dakramen-in-het-getekende-huis)
 
 **Veiligheid**
 
@@ -15337,6 +15338,47 @@ zijn perfect, en een eigen tab Dak naast Vorm, zodat Vorm rustiger blijft.
 - **In de dienst:** het hoofdhuis bewaart `dakkapellen` (kant, van, tot, diep,
   etage) en `kaartKapel` (ja of nee). Die van de bewoner gelden, ook een lege
   lijst; anders wat 3D BAG vindt.
+
+## 333. Radiatoren, buitenunits en dakramen in het getekende huis
+
+*Onderwerp: weergave · Status: geldig*
+
+22 november 2026, de verbeterronde van het huis zoals getekend (blok 2). Ricardo
+vond het getekende huis nog lang niet zo goed als het poppenhuis. Onder zijn
+punten: radiatoren zijn niet te tekenen, zodat je de knop er niet aan kunt
+koppelen; de buitenunit staat altijd op de grond onder de airco; ramen die in
+het dak zitten (achter op de 1e en op zolder) worden dichte muur. Op 20 november
+stonden dakramen nog op later; dit besluit haalt ze naar voren. Keuzes van
+Ricardo (22 november, alle drie het advies): radiatoren vanzelf onder het raam en
+te verslepen met de knop eraan, de buitenunit als eigen bolletje, en een raam
+waar het dak lager is dan het raam vanzelf een dakraam.
+
+*Besluit (0.220.0):*
+
+- **Radiatoren.** Een radiatorknop is in de tekening een radiator met de knop
+  eraan (soort `radiator`); je versleept hem met zijn bolletje. Een kamer met
+  een thermostaat (de cv) maar zonder radiatorknop krijgt vanzelf één radiator
+  (`radiator:<kamer>`). Bij Je huis › Apparaten zet *Radiator erbij* er meer
+  neer (`radiator:<kamer>:<n>`). Weghalen gaat met Verbergen. Zonder eigen
+  plek hangt een radiator onder het dichtstbijzijnde raam van zijn eigen kamer.
+- **De buitenunit.** Elke airco heeft buiten een eigen bolletje
+  (`buitenunit:<airco>`), dat begint in de tuin. Waar de bewoner hem neerzet,
+  bepaalt hoe hij hangt: tegen het huis aan de muur op de hoogte van zijn
+  airco, op een garage of carport op het platte dak, anders op de grond.
+  Zolang hij niet verzet is: aan de gevel het dichtst bij zijn airco, op de
+  grond bij de begane grond, hoger op een beugel.
+- **Dakramen.** Een raam getekend in een buitenmuur waar het dak lager komt dan
+  het raam, zit in het dakvlak erboven: vanaf de muur de kamer in tot het dak
+  tussen 1,0 en 2,0 m boven de vloer is. Er is geen aparte soort; het raam blijft
+  een raam in Je huis › Kamers.
+- **In de dienst:** wat alleen in de tekening bestaat (`EIGEN_ID`: radiator en
+  buitenunit) valt bij het bewaren niet weg en kan verborgen worden; een
+  verborgen radiator of buitenunit staat in de lijst Verborgen om terug te
+  halen. Een apparaat dat Home Assistant niet meer kent, valt nog steeds weg.
+- **Nog niet:** Je huis › Huis tekent nog met zijn eigen tekenaar
+  (`huistekenen-3d.js`) en kent de dakramen en buitenunits niet; dat gaat mee
+  als Je huis › Huis naar de nieuwe tekenaar gaat (punt 8). Een radiator geeft
+  nog geen warmte in beeld (blok 3).
 
 ## Wat nog een besluit wacht
 
