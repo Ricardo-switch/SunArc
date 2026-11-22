@@ -1328,7 +1328,12 @@
         if (gekozen) s += `<path d="${paden.join('')}" fill="none" stroke="#bfe6ff" stroke-opacity="0.75" stroke-width="1.6" stroke-linejoin="round"/>`;
         if (gloed) s += `<path d="${paden.join('')}" fill="${gloed}" fill-opacity="0.16"/>`;
         const ta = tikAttr(kamerVan(r), naam);
-        if (ta) tikLaag.push(`<path d="${paden.join('')}" ${ta}/>`);
+        // De hele kamer van vloer tot plafond is te tikken, zoals in het poppenhuis (22 november 2026: alleen de vloer vroeg precisie).
+        if (ta) {
+          const z1 = laag.bovenste ? Math.min(top, z0 + 2.4) : top;
+          const blokjes = rechthoeken(v, BUITEN).filter((q) => String(q.id) === String(id));
+          tikLaag.push(blokjes.length ? blokjes.map((q) => `<path d="${omhulsel(m(q.x0), m(q.x1), m(q.y0), m(q.y1), z0, z1)}" ${ta}/>`).join('') : `<path d="${paden.join('')}" ${ta}/>`);
+        }
       }
       // De zones: een stippellijn over de vloer, met de naam van elke kant klein op de vloer.
       const was0 = st.etage;
