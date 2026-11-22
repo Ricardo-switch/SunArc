@@ -4454,7 +4454,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await jijBlad.locator('[data-blad-dicht]').click();
       await p.goto(`${baseUrl}/thuis.html`);
       await expect.poll(() => p.locator('#podium-tel .sc-label').count()).toBe(labelsVoor);
-      expect(await p.locator('#tel [data-kaart="vandaag"] [data-dag] svg').isVisible()).toBe(true);
+      // Na een nieuwe pagina even wachten tot de grafiek er is (op de CI kwam hij net te laat).
+      await expect.poll(() => p.locator('#tel [data-kaart="vandaag"] [data-dag] svg').isVisible(), { timeout: 10_000 }).toBe(true);
 
       // De wand: de letters blijven zoals ze waren, want de wand schuift nooit.
       await p.setViewportSize({ width: 1280, height: 800 });
