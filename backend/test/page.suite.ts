@@ -1977,7 +1977,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       ];
       for (const [pagina, tekst] of paginas) {
         await p.goto(`${baseUrl}/${pagina}`);
-        await expect.poll(() => wand.innerText(), { timeout: 10_000 }).toMatch(tekst);
+        // 20 seconden: op de CI bouwt Je huis › Huis zijn tekening soms langer op dan 10 (22 november 2026).
+        await expect.poll(() => wand.innerText(), { timeout: 20_000 }).toMatch(tekst);
         await p.addScriptTag({ path: createRequire(import.meta.url).resolve('axe-core/axe.min.js') });
         const opPagina = await p.evaluate(async () => {
           const axe = (globalThis as unknown as { axe: { run: (ctx: unknown, o: unknown) => Promise<{ violations: { id: string; nodes: { target: string[] }[] }[] }> } }).axe;
