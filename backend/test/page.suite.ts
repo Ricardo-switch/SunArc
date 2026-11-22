@@ -8712,7 +8712,20 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     // zolder vangt het dak de tik af (gevonden 17 november 2026, voor stap 3 en 4).
     const metLamp = [...huisNu.etages].reverse().filter((e) => e.id !== 'buiten').flatMap((e) => e.ruimtes).find((r) => r.apparaten.some((d) => d.soort === 'licht'))!;
     // Tik op de kamer in het huis, dan op de schakelaar van de lamp.
-    await p.locator(`#wand .sc-tik[data-kamer="${metLamp.id}"]`).first().click({ timeout: 5_000 });
+    // Waar de kamer bovenop ligt (22 november 2026: de hele kamer is te tikken, dus een stuk kan onder een kamer erboven liggen).
+    await p.locator(`#wand .sc-tik[data-kamer="${metLamp.id}"]`).first().waitFor({ state: 'attached', timeout: 5_000 });
+    const plek = await p.evaluate<{ x: number; y: number } | null>(`(() => {
+      for (const el of document.querySelectorAll('#wand .sc-tik[data-kamer="${metLamp.id}"]')) {
+        const r = el.getBoundingClientRect();
+        for (let i = 0; i < 81; i++) {
+          const x = r.left + r.width * (0.1 + 0.1 * (i % 9)), y = r.top + r.height * (0.1 + 0.1 * Math.floor(i / 9));
+          if (document.elementFromPoint(x, y)?.closest('[data-kamer]')?.dataset.kamer === ${JSON.stringify(metLamp.id)}) return { x, y };
+        }
+      }
+      return null;
+    })()`);
+    expect(plek).not.toBeNull();
+    await p.mouse.click(plek!.x, plek!.y);
     await p.waitForURL(/kamer\.html#/, { timeout: 5_000 });
     const voor = lightCalls.length;
     await p.locator('#wand [data-blad] [data-schakel]').first().click({ timeout: 5_000 });
