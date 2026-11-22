@@ -1158,7 +1158,7 @@
         if (!md) return null;
         bezet.push({ x0: md.rect.x, x1: md.rect.x + md.rect.b, y0: md.rect.y, y1: md.rect.y + md.rect.d });
         (meubelVloer.get(v) ?? meubelVloer.set(v, []).get(v)).push(bezet.at(-1));
-        uit.push({ d: md.d - 0.15, s: md.s });
+        uit.push({ d: md.d - 0.15, s: md.s, rect: md.rect });
         return md;
       };
       /** Een meubel op een vrije plek tegen een van de muren achterin (eerst `wanden[0]`). */
@@ -1215,7 +1215,7 @@
             const md = zetModel('eettafel', { x: cx2, y: cy2, z: z0, wand: kb.wand === 'x' ? 'x' : 'y', kant: 1 }, { b: tb });
             if (md) {
               bezet.push(A);
-              uit.push({ d: md.d - 0.15, s: md.s });
+              uit.push({ d: md.d - 0.15, s: md.s, rect: md.rect });
             }
           }
         }
@@ -1260,7 +1260,7 @@
         if (vrij(A, 1.0)) {
           // De rugleuning aan de kant van de kamer.
           const md = zetModel('bureaustoel', st2);
-          if (md) uit.push({ d: md.d - 0.15, s: md.s });
+          if (md) uit.push({ d: md.d - 0.15, s: md.s, rect: md.rect });
         }
       };
       if (/woonkeuken/.test(soort) && helften?.length) {
@@ -1274,6 +1274,31 @@
       else if (/badkamer/.test(soort)) bad(q);
       else if (/toilet/.test(soort)) toilet(q);
       else if (/werkkamer|kantoor|hobby|studeer/.test(soort)) bureau(q);
+      /*
+       * Meubels onderling op hun randen, niet op hun midden (22 november 2026: het bed lag over het nachtkastje ervoor):
+       * liggen twee meubels aan weerskanten van een rechte lijn op de vloer, dan komt het meubel aan de kant van de kijker
+       * erna. De diepten blijven dezelfde, alleen hun volgorde onder de meubels verandert.
+       */
+      const [du, dv] = [-si, co];
+      const ervoor = (A, B) => {
+        const [a, b] = [A.rect, B.rect];
+        if (a.x + a.b <= b.x + 1e-6) return du > 0;
+        if (b.x + b.b <= a.x + 1e-6) return du < 0;
+        if (a.y + a.d <= b.y + 1e-6) return dv > 0;
+        if (b.y + b.d <= a.y + 1e-6) return dv < 0;
+        return A.d < B.d;
+      };
+      const metRect = uit.filter((x) => x.rect);
+      const dieptes = metRect.map((x) => x.d).sort((a, b) => b - a);
+      const rest = [...metRect];
+      const volg = [];
+      while (rest.length) {
+        // Het verste meubel eerst: het meubel dat voor geen enkel ander staat.
+        let i = rest.findIndex((A) => rest.every((B) => B === A || !ervoor(A, B)));
+        if (i < 0) i = rest.reduce((bi, x, j) => (x.d > rest[bi].d ? j : bi), 0);
+        volg.push(...rest.splice(i, 1));
+      }
+      volg.forEach((x, i) => (x.d = dieptes[i]));
       return uit;
     };
     lagen.forEach((laag, li) => {
@@ -1371,6 +1396,8 @@
         const binnen = ia === BUITEN ? ib : ia;
         const n = run.as === 'x' ? [ia === BUITEN ? -1 : 1, 0] : [0, ia === BUITEN ? -1 : 1];
         const voor = run.soort === 2 && naarKijker(...n);
+        // Een buitenmuur die van je af kijkt, staat achter alles in de kamer: eerst tekenen (22 november 2026, de kast op zolder verloor zijn zijkant).
+        const achterMuur = run.soort === 2 && !voor ? 50 : 0;
         const dicht = run.soort === 2 && DICHT.test(ruimteSoort(binnen));
         const eigenRamen = (v.openingen ?? []).length > 0;
         // Binnenmuren in stukjes van 40 centimeter (buitenmuren houden hun ramen per stuk van 2 meter): zo komt een meubel tegen een muur goed voor of achter die muur (het bad in de badkamer, 21 november 2026).
@@ -1379,7 +1406,7 @@
           if (deel.soort) {
             // Een deur of raam uit de tekening.
             const [x0, y0, x1, y1] = run.as === 'x' ? [m(run.op), m(a), m(run.op), m(b)] : [m(a), m(run.op), m(b), m(run.op)];
-            const d = diep((x0 + x1) / 2, (y0 + y1) / 2);
+            const d = diep((x0 + x1) / 2, (y0 + y1) / 2) + achterMuur;
             const muur = (h0, h1, vul, extra = '') => {
               const [b0, b1] = band ? [Math.max(h0, band[0]), Math.min(h1, band[1])] : [h0, h1];
               return b1 <= b0 + 0.01 ? '' : `<path d="${vlakHuis([[x0, y0, b0], [x1, y1, b0], [x1, y1, b1], [x0, y0, b1]])}" fill="${vul}" ${extra}/>`;
@@ -1461,7 +1488,7 @@
             continue;
           }
           const [x0, y0, x1, y1] = run.as === 'x' ? [m(run.op), m(a), m(run.op), m(b)] : [m(a), m(run.op), m(b), m(run.op)];
-          const d = diep((x0 + x1) / 2, (y0 + y1) / 2);
+          const d = diep((x0 + x1) / 2, (y0 + y1) / 2) + achterMuur;
           const muur = (h0, h1, vul, extra = '') => {
               const [b0, b1] = band ? [Math.max(h0, band[0]), Math.min(h1, band[1])] : [h0, h1];
               return b1 <= b0 + 0.01 ? '' : `<path d="${vlakHuis([[x0, y0, b0], [x1, y1, b0], [x1, y1, b1], [x0, y0, b1]])}" fill="${vul}" ${extra}/>`;
