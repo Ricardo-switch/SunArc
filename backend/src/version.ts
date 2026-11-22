@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.218.0';
+export const VERSIE = '0.219.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,32 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.219.0',
+    datum: '2026-11-22',
+    beter: [
+      'Het huis zoals getekend laadt zonder eerst even het poppenhuis te laten zien',
+      'Weergave opent bij Jij meteen, zonder eerst naar Thuis te gaan',
+      'Witgoed zoals de droger staat in een kamer apart, niet meer onder Klimaat',
+    ],
+    opgelost: [
+      'Een raam in de verdieping boven het afdak bleef bewaard maar verdween bij het laden',
+      'Een deur die naar buiten draait viel bij Je huis › Kamers buiten beeld',
+      'Het afdak liep door de ramen van de verdieping erboven',
+    ],
+    en: {
+      beter: [
+        'The house as drawn loads without briefly showing the dollhouse first',
+        'Display opens right away under You, without going to Home first',
+        'Appliances such as the dryer have their own group in a room, no longer under Climate',
+      ],
+      opgelost: [
+        'A window on the floor above the canopy was saved but disappeared when loading',
+        'A door that opens outwards fell out of view under Your home › Rooms',
+        'The canopy ran through the windows of the floor above',
+      ],
+    },
+  },
   {
     versie: '0.218.0',
     datum: '2026-11-21',

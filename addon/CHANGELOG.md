@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.218.0
+## 0.219.0
 
-*21 november 2026 · 0.179.0 – 0.218.0*
+*22 november 2026 · 0.179.0 – 0.219.0*
 
 **Nieuw**
 
@@ -89,6 +89,9 @@
 
 **Beter**
 
+- Het huis zoals getekend laadt zonder eerst even het poppenhuis te laten zien
+- Weergave opent bij Jij meteen, zonder eerst naar Thuis te gaan
+- Witgoed zoals de droger staat in een kamer apart, niet meer onder Klimaat
 - Het huis zoals getekend staat nu vanzelf aan: op Thuis, een kamer en de wand als niemand kijkt zie je je huis zoals in Je huis. Liever het poppenhuis? Zet het uit bij Jij › Weergave. Is er in Je huis nog niets getekend, dan blijft het poppenhuis
 - Het huis zoals getekend volgt het soort woning: een appartement zonder tuin, en met verdiepingen erboven zonder dak; een huis met een erf waar nog niets op staat, zie je dichtbij
 - Het huis zoals getekend ook op de telefoon: op Thuis het huis dichtbij, op een kamer de etage met meubels; zonder namen in de tekening (die staan eronder), en tikken werkt
@@ -180,6 +183,9 @@
 
 **Opgelost**
 
+- Een raam in de verdieping boven het afdak bleef bewaard maar verdween bij het laden
+- Een deur die naar buiten draait viel bij Je huis › Kamers buiten beeld
+- Het afdak liep door de ramen van de verdieping erboven
 - Het huis zoals getekend: een zolder die als berging begon, had in de tekening geen naam en geen temperatuur
 - Je huis › Huis: een gebouw dat los op het erf staat (een tuinhuis van de kaart) hing als los dak in de verte, en maakte het huis kleiner in beeld
 - Je huis › Vorm: een gebouw op maat trekken schoof het opzij als het huis op de kaart samen met de garage één gebouw is
@@ -312,6 +318,9 @@
 
 **Improved**
 
+- The house as drawn loads without briefly showing the dollhouse first
+- Display opens right away under You, without going to Home first
+- Appliances such as the dryer have their own group in a room, no longer under Climate
 - The house as drawn is now on by default: on Home, a room and the wall when nobody is looking you see your house as in Your home. Prefer the dollhouse? Turn it off under You › Display. If nothing has been drawn in Your home yet, the dollhouse stays
 - The house as drawn follows the kind of home: a flat without a garden, and without a roof when there are floors above; a house on a plot with nothing on it yet is shown close up
 - The house as drawn on the phone too: on Home the house close up, in a room the floor with furniture; without names in the drawing (they are below it), and tapping works
@@ -403,6 +412,9 @@
 
 **Fixed**
 
+- A window on the floor above the canopy was saved but disappeared when loading
+- A door that opens outwards fell out of view under Your home › Rooms
+- The canopy ran through the windows of the floor above
 - The house as drawn: an attic that started as a storage room had no name and no temperature in the drawing
 - Your home › House: a building standing apart on the plot (a garden shed from the map) floated as a loose roof in the distance, and made the house smaller in view
 - Your home › Shape: pulling a building to its size moved it sideways when the house and the garage are one building on the map
