@@ -427,6 +427,12 @@
     let s = `<defs><linearGradient id="hm-aarde1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a4232"/><stop offset="1" stop-color="#2a1d15"/></linearGradient><linearGradient id="hm-aarde2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3528"/><stop offset="1" stop-color="#21170f"/></linearGradient><filter id="hm-zacht" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="8"/></filter><filter id="hm-wazig" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="1.6"/></filter></defs><defs><radialGradient id="hm-gloed"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="hm-glas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe6ff" stop-opacity="0.10"/><stop offset="1" stop-color="#bfe6ff" stop-opacity="0.03"/></linearGradient></defs>`;
 
     const labels = [];
+    /** Apparaten die nergens pasten (22 november 2026): voor de proef, en om na te lopen. */
+    const overgeslagen = [];
+    /** Per vloer de plekken van apparaten op de vloer, zodat meubels eromheen gaan. */
+    const apparaatVloer = new Map();
+    /** Per vloer de plekken van de meubels, zodat wat los staat ernaast komt. */
+    const meubelVloer = new Map();
     /** Een doos van x0..x1, y0..y1, z0..z1: de twee zijkanten naar de kijker en de bovenkant. Kleuren: [boven, zijkant x, zijkant y]. */
     const doos3 = (x0, x1, y0, y1, z0, z1, kl) => {
       const [a0, a1] = [Math.min(x0, x1), Math.max(x0, x1)];
@@ -982,7 +988,8 @@
         const [x0, x1, y0, y1] = [Math.min(...xs, ...xs.map((x) => x - nx * diepK)), Math.max(...xs, ...xs.map((x) => x - nx * diepK)), Math.min(...ys, ...ys.map((y) => y - ny * diepK)), Math.max(...ys, ...ys.map((y) => y - ny * diepK))];
         vrijVoor.push({ x0: x0 - 0.05, x1: x1 + 0.05, y0: y0 - 0.05, y1: y1 + 0.05 });
       }
-      const bezet = [];
+      // De apparaten die al op de vloer staan (een staande lamp, witgoed): daar komt geen meubel.
+      const bezet = [...(apparaatVloer.get(v) ?? [])];
       const raakt = (A, B) => A.x0 < B.x1 - 1e-6 && A.x1 > B.x0 + 1e-6 && A.y0 < B.y1 - 1e-6 && A.y1 > B.y0 + 1e-6;
       const past = (A, hoogte) => [[A.x0, A.y0], [A.x1, A.y0], [A.x0, A.y1], [A.x1, A.y1]].every(([a, b]) => dakZ(a, b) >= z0 + hoogte + 0.05) && z0 + hoogte <= top - 0.05;
       const vrij = (A, hoogte) => past(A, hoogte) && !vrijVoor.some((Z) => raakt(A, Z)) && !bezet.some((Z) => raakt(A, Z));
@@ -1024,6 +1031,7 @@
         const md = zetModel(naam, punt(r, wand, c, van), opt);
         if (!md) return null;
         bezet.push({ x0: md.rect.x, x1: md.rect.x + md.rect.b, y0: md.rect.y, y1: md.rect.y + md.rect.d });
+        (meubelVloer.get(v) ?? meubelVloer.set(v, []).get(v)).push(bezet.at(-1));
         uit.push({ d: md.d - 0.15, s: md.s });
         return md;
       };
@@ -1326,6 +1334,8 @@
         for (let i = 0; i < n; i++) {
           const f0 = i / n;
           const f1 = (i + 1) / n;
+          // Zoals de binnenmuren (halfhoog): de trap houdt op 1,2 meter op, anders steekt hij door de kamer erboven (22 november 2026).
+          if (hoogte * f1 > 1.2) break;
           const [xa, xb, ya, yb] = rx
             ? (rx > 0 ? [m(rr.x0) + (m(rr.x1) - m(rr.x0)) * f0, m(rr.x0) + (m(rr.x1) - m(rr.x0)) * f1] : [m(rr.x1) - (m(rr.x1) - m(rr.x0)) * f1, m(rr.x1) - (m(rr.x1) - m(rr.x0)) * f0]).concat([m(rr.y0) + 0.1, m(rr.y1) - 0.1])
             : [m(rr.x0) + 0.1, m(rr.x1) - 0.1].concat(ry > 0 ? [m(rr.y0) + (m(rr.y1) - m(rr.y0)) * f0, m(rr.y0) + (m(rr.y1) - m(rr.y0)) * f1] : [m(rr.y1) - (m(rr.y1) - m(rr.y0)) * f1, m(rr.y1) - (m(rr.y1) - m(rr.y0)) * f0]);
@@ -1343,8 +1353,8 @@
        * Met `ruimte` (21 november 2026, de spiegel van de badkamer hing in de kamer ernaast): alleen een muur van die ruimte,
        * met de voorkant naar die ruimte toe. Zo hangt een apparaat nooit aan de verkeerde kant van een muur.
        */
-      const wandBij = (cx, cy, ruimte = null) => {
-        let best = null;
+      const wandenBij = (cx, cy, ruimte = null) => {
+        const alle = [];
         for (const run of muren) {
           const [langs, dwars] = run.as === 'x' ? [cy, cx] : [cx, cy];
           if (langs < run.van || langs > run.tot) continue;
@@ -1357,53 +1367,27 @@
             else continue;
           }
           const afst = Math.abs(dwars - run.op) - (run.soort === 2 ? 3 : 0);
-          if (!best || afst < best.afst) best = { run, afst, kant, langs };
+          alle.push({ run, afst, kant, langs });
         }
-        return best;
+        return alle.sort((a, b) => a.afst - b.afst);
       };
       /*
        * De apparaten van deze etage, elk met zijn model uit de vaste lijst (21 november 2026): waar de bewoner het in Je huis
        * plaatste, tegen de dichtstbijzijnde muur met de voorkant naar de kamer, aan het plafond of los op de vloer.
        */
-      for (const q of band ? [] : punten) {
-        const naam = MOD?.voor(q.a);
-        const M = naam ? MOD.MODELLEN[naam] : null;
-        if (!M) continue;
-        const draait = aan.has(q.a.id);
-        const [x, y] = [m(q.x), m(q.y)];
-        let pl;
-        if (M.hangt === 'plafond' || M.hangt === 'vrij') {
-          const plaf = plafond(x, y, top);
-          if (M.hangt === 'plafond') {
-            const zb = plaf - (M.plafond ?? 0) - M.h;
-            if (zb - z0 < 1.0) continue;
-            pl = { x, y, z: zb };
-          } else {
-            if (plaf - z0 < M.h + 0.1) continue;
-            pl = { x, y, z: z0 };
-          }
-        } else {
-          const w = wandBij(q.x, q.y, q.ruimte);
-          if (!w) continue;
-          const { run, kant } = w;
-          const half = M.b / 2;
-          const midden = Math.min(m(run.tot) - half - 0.05, Math.max(m(run.van) + half + 0.05, m(w.langs)));
-          const vlakMuur = m(run.op) + kant * 0.03;
-          const [px, py] = run.as === 'x' ? [vlakMuur, midden] : [midden, vlakMuur];
-          const plaf = Math.min(...[[-half, 0], [half, 0], [-half, M.d], [half, M.d]].map(([a, d2]) => plafond(...(run.as === 'x' ? [px + kant * d2, py + a] : [px + a, py + kant * d2]), top)));
-          let zb = M.hangt === 'vloer' ? z0 : M.plafond != null ? plaf - M.plafond - M.h : z0 + (M.z ?? 1.2);
-          if (zb + M.h > plaf - 0.02) {
-            if (M.hangt === 'vloer') continue;
-            zb = plaf - 0.05 - M.h;
-          }
-          // Aan een binnenmuur (die is halfhoog getekend) hangt een apparaat niet hoger dan de muur, anders zweeft het erboven (21 november 2026).
-          if (run.soort === 1 && M.hangt !== 'vloer' && zb + M.h > z0 + 1.1) zb = z0 + 1.1 - M.h - 0.02;
-          if (M.hangt !== 'vloer' && zb < z0 + 0.05) continue;
-          pl = { x: px, y: py, z: zb, wand: run.as, kant };
-        }
+      /** Eén apparaat tekenen op zijn plek `pl`: het model, een plas licht als hij brandt, een snoer, de lucht van een airco. */
+      const tekenApparaat = (q, naam, M, pl, draait) => {
         const md = zetModel(naam, pl, { aan: draait });
-        if (!md) continue;
+        if (!md) return;
+        // Wat op de vloer staat of laag en groot aan de muur hangt (een radiator), houdt zijn plek vrij van meubels (22 november 2026).
+        if (M.hangt === 'vloer' || M.hangt === 'vrij' || (pl.z - z0 < 0.7 && M.h >= 0.3)) (apparaatVloer.get(v) ?? apparaatVloer.set(v, []).get(v)).push({ x0: md.rect.x - 0.1, x1: md.rect.x + md.rect.b + 0.1, y0: md.rect.y - 0.1, y1: md.rect.y + md.rect.d + 0.1 });
         let x2 = '';
+        // Het stuk binnenmuur achter een apparaat dat hoger hangt dan de halfhoge muur.
+        if (pl.paneel) {
+          const q2 = pl.paneel;
+          const hoek = (a, zz) => (q2.as === 'x' ? [q2.op, a, zz] : [a, q2.op, zz]);
+          x2 += `<path d="${vlak([hoek(q2.van, q2.z0), hoek(q2.tot, q2.z0), hoek(q2.tot, q2.z1), hoek(q2.van, q2.z1)])}" fill="${q2.as === 'x' ? '#26354d' : '#2d3d57'}" stroke="rgb(255 255 255 / 0.12)" stroke-width="0.6"/>`;
+        }
         const mx = md.rect.x + md.rect.b / 2;
         const my = md.rect.y + md.rect.d / 2;
         // Een lamp die brandt: een plas licht op de vloer (een lamp aan de muur een stukje de kamer in).
@@ -1436,6 +1420,95 @@
           }
         }
         stukken.push({ d: md.d - 0.1, s: x2 });
+      };
+      const uitgesteld = [];
+      for (const q of band ? [] : punten) {
+        let naam = MOD?.voor(q.a);
+        let M = naam ? MOD.MODELLEN[naam] : null;
+        if (!M) continue;
+        const draait = aan.has(q.a.id);
+        const [x, y] = [m(q.x), m(q.y)];
+        /*
+         * Onder een schuin dak (22 november 2026, de zolder van Ricardo): wat op zijn plek niet past, schuift de kamer in
+         * tot het past, in plaats van weg te vallen (de staande lamp in de slaapkamer, de droger in de wasruimte).
+         */
+        const rr = maten(v)[q.ruimte]?.r;
+        const midden = rr ? [m((rr.x0 + rr.x1) / 2), m((rr.y0 + rr.y1) / 2)] : [x, y];
+        const naarMidden = (past) => {
+          for (let f = 0; f <= 1.0001; f += 0.05) {
+            const [xx, yy] = [x + (midden[0] - x) * f, y + (midden[1] - y) * f];
+            if (past(xx, yy)) return [xx, yy];
+          }
+          return null;
+        };
+        let pl;
+        // Wat los op de vloer staat (een staande lamp) komt na de meubels, op een vrije plek ernaast (22 november 2026).
+        if (M.hangt === 'vrij') {
+          uitgesteld.push({ q, naam, M, draait, x, y, midden, rr });
+          continue;
+        }
+        if (M.hangt === 'plafond') {
+          // Een plafonnière onder een schuin dak hangt als hanglamp aan het dak, niet als plat doosje scheef ernaast.
+          if (naam === 'plafonniere' && plafond(x, y, top) < top - 0.05) {
+            naam = 'hanglamp';
+            M = MOD.MODELLEN.hanglamp;
+          }
+          const MM = M;
+          const plek = naarMidden((xx, yy) => plafond(xx, yy, top) - (MM.plafond ?? 0) - MM.h - z0 >= 1.9);
+          if (!plek) {
+            overgeslagen.push({ id: q.a.id, waarom: 'plafond' });
+            continue;
+          }
+          pl = { x: plek[0], y: plek[1], z: Math.min(plafond(plek[0], plek[1], top) - (M.plafond ?? 0) - M.h, z0 + 2.4) };
+          if (naam === 'plafonniere' || naam === 'rookmelder') pl.z = plafond(plek[0], plek[1], top) - (M.plafond ?? 0) - M.h;
+        } else {
+          /*
+           * Tegen de dichtstbijzijnde muur van zijn eigen kamer waar het past: een airco of iets aan de muur niet laag
+           * tegen een knieschot (22 november 2026: de airco op zolder hing bijna op de vloer), maar aan de volgende muur
+           * waar wel ruimte is; witgoed onder een schuin dak een stukje van de muur af, de kamer in.
+           */
+          const half = M.b / 2;
+          const plafOp = (px, py, run, kant, weg = 0) => Math.min(...[[-half, weg], [half, weg], [-half, weg + M.d], [half, weg + M.d]].map(([a, d2]) => plafond(...(run.as === 'x' ? [px + kant * d2, py + a] : [px + a, py + kant * d2]), top)));
+          const wil = M.hangt === 'vloer' ? 0 : M.plafond != null ? 1.5 : Math.min((M.z ?? 1.2) - 0.25, 1.4);
+          let reserve = null;
+          for (const w of wandenBij(q.x, q.y, q.ruimte)) {
+            const { run, kant } = w;
+            const midden2 = Math.min(m(run.tot) - half - 0.05, Math.max(m(run.van) + half + 0.05, m(w.langs)));
+            const vlakMuur = m(run.op) + kant * 0.03;
+            const [px, py] = run.as === 'x' ? [vlakMuur, midden2] : [midden2, vlakMuur];
+            if (M.hangt === 'vloer') {
+              // Witgoed staat op de vloer; onder een schuin dak schuift het van de muur af tot het past (hooguit 2,5 m).
+              let weg = null;
+              for (let d2 = 0; d2 <= 2.5001; d2 += 0.1) if (plafOp(px, py, run, kant, d2) - z0 >= M.h + 0.05) { weg = d2; break; }
+              if (weg == null) continue;
+              const [qx, qy] = run.as === 'x' ? [px + kant * weg, py] : [px, py + kant * weg];
+              pl = { x: qx, y: qy, z: z0, wand: run.as, kant };
+              break;
+            }
+            const plaf = plafOp(px, py, run, kant);
+            let zb = M.plafond != null ? plaf - M.plafond - M.h : z0 + (M.z ?? 1.2);
+            if (zb + M.h > plaf - 0.02) zb = plaf - 0.05 - M.h;
+            if (zb < z0 + 0.05) continue;
+            if (zb - z0 < wil) {
+              // Te laag tegen deze muur: bewaren voor als het nergens op zijn hoogte past.
+              reserve ??= { x: px, y: py, z: zb, wand: run.as, kant, paneel: null };
+              continue;
+            }
+            /*
+             * Aan een binnenmuur (die is halfhoog getekend): op zijn eigen hoogte, met een stuk muur erachter zodat het niet
+             * zweeft (22 november 2026; eerst zakte het tot onder de 1,1 m, de spiegel van de badkamer hing op 28 cm).
+             */
+            const paneel = run.soort === 1 && zb + M.h > z0 + 1.1 ? { as: run.as, op: m(run.op), van: (run.as === 'x' ? py : px) - half - 0.12, tot: (run.as === 'x' ? py : px) + half + 0.12, z0: z0 + 1.1, z1: zb + M.h + 0.1 } : null;
+            pl = { x: px, y: py, z: zb, wand: run.as, kant, paneel };
+            break;
+          }
+          pl ??= reserve;
+          if (!pl) {
+            overgeslagen.push({ id: q.a.id, waarom: 'muur' });
+            continue;
+          }
+        }
+        tekenApparaat(q, naam, M, pl, draait);
       }
       // De meubels (20 november 2026, zoals in het poppenhuis): per soort kamer, tegen de muren achterin.
       if (o.meubels && !band) {
@@ -1456,6 +1529,26 @@
           }).filter(Boolean) : null;
           stukken.push(...meubelsVoor(ruimteSoort(id), lijst[0], helften, z0, top, v));
         }
+      }
+      // Wat los staat (een staande lamp): zo dicht mogelijk bij zijn plek, waar het onder het dak past en geen meubel of apparaat staat.
+      for (const u of uitgesteld) {
+        const bezet = [...(apparaatVloer.get(v) ?? []), ...(meubelVloer.get(v) ?? [])];
+        const half = u.M.b / 2 + 0.05;
+        const binnen = (xx, yy) => !u.rr || (xx - half >= m(u.rr.x0) && xx + half <= m(u.rr.x1) && yy - half >= m(u.rr.y0) && yy + half <= m(u.rr.y1));
+        const vrijOp = (xx, yy) => binnen(xx, yy) && plafond(xx, yy, top) - z0 >= u.M.h + 0.1 && !bezet.some((Z) => xx + half > Z.x0 && xx - half < Z.x1 && yy + half > Z.y0 && yy - half < Z.y1);
+        let plek = null;
+        for (let r = 0; r <= 3.0001 && !plek; r += 0.15) {
+          for (let i = 0; i < (r === 0 ? 1 : 16) && !plek; i++) {
+            const h = (i / 16) * Math.PI * 2;
+            const [xx, yy] = [u.x + Math.cos(h) * r, u.y + Math.sin(h) * r];
+            if (vrijOp(xx, yy)) plek = [xx, yy];
+          }
+        }
+        if (!plek) {
+          overgeslagen.push({ id: u.q.a.id, waarom: 'vrij' });
+          continue;
+        }
+        tekenApparaat(u.q, u.naam, u.M, { x: plek[0], y: plek[1], z: z0 }, u.draait);
       }
       /*
        * De dakkapel (21 november 2026: hij viel weg achter de muren van de zolder). Met het dak: een kapel aan de achterkant
@@ -1747,7 +1840,7 @@
     for (const l of labels) if (!zet(l) && l.kort) zet({ ...l, ...l.kort });
     // Dichtbij: de randen van het beeld zacht laten weglopen.
     if (alleenHuis) s = `<defs><linearGradient id="hm-rand-v" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.1" stop-color="#fff"/><stop offset="0.9" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="hm-rand"><rect width="${B}" height="${Hpx}" fill="url(#hm-rand-v)"/></mask></defs><g mask="url(#hm-rand)">${s}</g>`;
-    return { svg: s, P, k };
+    return { svg: s, P, k, overgeslagen };
   }
 
   global.huisMaat = { teken, dakVan };

@@ -442,6 +442,8 @@
       // Tikken op een kamer, een deel buiten of de panelen, zoals in het poppenhuis (niet als niemand kijkt).
       if (soort !== 'rust') o.tik = true;
       const uit = global.huisMaat.teken(staat.tk, B, H, o);
+      // Wat nergens paste, voor de proef en om na te lopen.
+      staat.overgeslagen = uit.overgeslagen ?? [];
       el.innerHTML = `<svg viewBox="0 0 ${B} ${H}" width="${B}" height="${H}" role="img" aria-label="${global.app.esc(t('thuis.hetHuis'))}">${uit.svg}</svg>`;
       return true;
     } catch (e) {
@@ -451,7 +453,15 @@
     }
   }
 
-  global.huisThuis = { aan, teken, laad };
+  global.huisThuis = {
+    aan,
+    teken,
+    laad,
+    /** De apparaten die de laatste tekening niet kwijt kon, met waarom. */
+    get overgeslagen() {
+      return staat.overgeslagen ?? [];
+    },
+  };
   // Meteen beginnen met laden als dit scherm de vorige keer een tekening had: dan is het huis er sneller.
   if (erWas() === '1' && aan()) setTimeout(() => klaar(null), 0);
 })(window);
