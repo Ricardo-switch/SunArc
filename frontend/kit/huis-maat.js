@@ -1390,7 +1390,20 @@
                * Een dakraam (22 november 2026, Ricardo): een raam getekend in een muur waar het dak lager komt dan het raam,
                * zit in het dakvlak erboven. Vanaf de muur de kamer in tot het dak tussen 1,0 en 2,0 meter boven de vloer is.
                */
-              if (!past && run.soort === 2 && !band && Math.min(dakZ(x0, y0), dakZ(x1, y1)) < z0 + 2.35) {
+              /*
+               * Onder een dakkapel (22 november 2026, Ricardo: het raam van de slaapkamer op zolder kwam over de dakkapel):
+               * dan is het raam het raam van de dakkapel, die zijn eigen raam al tekent; geen dakraam.
+               */
+              const onderKapel = (hd?.kapellen ?? []).some((kp) => {
+                const xs = kp.voor.p.map((q) => q[0]);
+                const ys = kp.voor.p.map((q) => q[1]);
+                const [nx2, ny2] = kp.voor.n;
+                // De kapel kijkt dezelfde kant op als de muur (n wijst naar buiten), en het raam ligt erbinnen.
+                if (nx2 * n[0] + ny2 * n[1] < 0.5) return false;
+                const langs = run.as === 'x' ? [Math.min(y0, y1), Math.max(y0, y1), Math.min(...ys), Math.max(...ys)] : [Math.min(x0, x1), Math.max(x0, x1), Math.min(...xs), Math.max(...xs)];
+                return langs[1] > langs[2] + 0.05 && langs[0] < langs[3] - 0.05;
+              });
+              if (!past && !onderKapel && run.soort === 2 && !band && Math.min(dakZ(x0, y0), dakZ(x1, y1)) < z0 + 2.35) {
                 const [ix, iy] = [-n[0], -n[1]];
                 const opD = (d2, hoogte) => {
                   for (let t2 = 0; t2 <= 4.0001; t2 += 0.05) if (Math.min(dakZ(x0 + ix * t2, y0 + iy * t2), dakZ(x1 + ix * t2, y1 + iy * t2)) >= hoogte) return Math.max(d2, t2);
