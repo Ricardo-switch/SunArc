@@ -14,8 +14,9 @@ describe('kamerwoorden (besluit 131)', () => {
     expect(metLidwoord('Kamerplant')).toBe('Kamerplant');
   });
 
-  it('is dezelfde lijst als in de app (frontend/src/basis.js)', () => {
-    const basis = readFileSync(join(import.meta.dirname, '..', '..', 'frontend', 'src', 'basis.js'), 'utf-8');
+  it('is dezelfde lijst als in de app (frontend/src/basis-meldingen.js)', () => {
+    // Sinds 22 november 2026 in het deel van basis.js met de meldingen en de stem (metLidwoord).
+    const basis = readFileSync(join(import.meta.dirname, '..', '..', 'frontend', 'src', 'basis-meldingen.js'), 'utf-8');
     const blok = /const KAMERWOORDEN = \{([^}]*)\}/.exec(basis)?.[1] ?? '';
     const app = Object.fromEntries([...blok.matchAll(/(\w+): '(de|het)'/g)].map((m) => [m[1], m[2]]));
     expect(app).toEqual(KAMERWOORDEN);
