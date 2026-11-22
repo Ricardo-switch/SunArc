@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.222.0
+## 0.222.1
 
-*22 november 2026 · 0.179.0 – 0.222.0*
+*22 november 2026 · 0.179.0 – 0.222.1*
 
 **Nieuw**
 
@@ -201,6 +201,7 @@
 
 **Opgelost**
 
+- In een kamer werden meubels afgesneden: de zijkant van de kast door de muur erachter, het nachtkastje door het bed
 - Bij Je huis › Vorm stond het draaiende icoon door de tekst De kaarten zoeken
 - Een raam onder een dakkapel werd als dakraam over de dakkapel getekend
 - Een kamer met vloerverwarming kreeg vanzelf een radiator
@@ -452,6 +453,7 @@
 
 **Fixed**
 
+- Furniture in a room was cut off: the side of the wardrobe by the wall behind it, the bedside table by the bed
 - Under Your home › Shape the spinning icon ran through the text The maps are searching
 - A window under a dormer was drawn as a roof window over the dormer
 - A room with underfloor heating got a radiator by itself
