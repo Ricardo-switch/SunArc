@@ -265,7 +265,9 @@ function tekenPodium(etage, kamer) {
 
 function kamerBlad(k) {
   const apps = k.apparaten ?? [];
-  const klimaat = apps.filter((d) => d.soort === 'klimaat' || d.soort === 'screen' || d.soort === 'apparaat');
+  // Witgoed (de droger, de wasmachine) staat apart, niet onder Klimaat (22 november 2026, Ricardo).
+  const witgoed = apps.filter((d) => d.soort === 'apparaat' && d.witgoed);
+  const klimaat = apps.filter((d) => d.soort === 'klimaat' || d.soort === 'screen' || (d.soort === 'apparaat' && !d.witgoed));
   const lampen = apps.filter((d) => d.soort === 'licht');
   const cameras = apps.filter((d) => d.soort === 'camera');
   // Rookmelders (21 oktober 2026): wat ze zien, met de batterij.
@@ -321,6 +323,7 @@ function kamerBlad(k) {
   const delen = [
     `<div class="bladkop"><div><h2 class="kop-2">${esc(k.naam)}</h2><p class="klein" style="margin: 4px 0 0">${esc(onder)}</p></div></div>`,
     klimaat.length ? `<div><h3 class="kop-3" style="margin-bottom: 4px">${esc(t(klimaat.some((d) => d.soort === 'klimaat') ? 'kamer.klimaat' : 'nav.apparaten'))}</h3>${klimaatRijen}</div>` : '',
+    witgoed.length ? `<div><h3 class="kop-3" style="margin-bottom: 4px">${esc(t('apparaten.soort.witgoed'))}</h3>${witgoed.map(rij).join('')}</div>` : '',
     lampen.length || schakelaars.length
       ? `<div><div class="groepkop"><h3 class="kop-3">${esc(t('kamer.licht'))}</h3>${bedienen && lampen.some((d) => d.aan) ? `<button type="button" class="pil" data-alles-uit style="height: 30px; font-size: 13px; border: 0; color: inherit; cursor: pointer">${esc(t('kamer.allesUit'))}</button>` : ''}</div>${lampen.map(lamp).join('')}${schakelaars.map(battRij).join('')}${bedienen || !lampen.length ? '' : `<p class="mini" style="margin: 6px 0 0">${esc(t('kamer.lichtUit'))}</p>`}</div>`
       : '',

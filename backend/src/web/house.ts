@@ -132,6 +132,12 @@ export interface HouseClimateHa {
 export interface HouseDevice {
   /** Voor de pagina, als sleutel; de bewoner ziet hem nooit (45). */
   readonly id: string;
+  /**
+   * Witgoed (22 november 2026): een uitstelbaar apparaat zoals de droger. Het
+   * deelt de soort `apparaat` met een losse stekker en een warmtebuffer, maar
+   * staat op de kamerpagina apart en heeft in de tekening een eigen soort.
+   */
+  readonly witgoed?: true;
   /** De naam in de app: de eigen naam uit de indeling, anders die uit Home Assistant. */
   readonly naam: string;
   /** De naam zoals Home Assistant hem kent, voor wie hem hernoemt. */
@@ -1000,6 +1006,7 @@ function applianceOf(id: string, name: string, state: string | undefined, lang: 
     naam: name,
     haNaam: name,
     soort: 'apparaat',
+    witgoed: true,
     stand: WOORDEN[lang].apparaat[state ?? ''] ?? WOORDEN[lang].meldtNogNiets,
     standCode: APPARAAT_CODE[state ?? ''] ?? 'meldt-niets',
     aan: state === 'running',

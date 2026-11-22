@@ -224,19 +224,21 @@ export interface Plek {
  * het midden). Een klimaatapparaat dat kan koelen is een airco, anders een
  * thermostaat.
  */
-export type TekenSoort = 'airco' | 'thermostaat' | 'licht' | 'screen' | 'meter' | 'beweging' | 'camera' | 'rookmelder' | 'boiler' | 'jacuzzi' | 'stekker';
+export type TekenSoort = 'airco' | 'thermostaat' | 'licht' | 'screen' | 'meter' | 'beweging' | 'camera' | 'rookmelder' | 'boiler' | 'jacuzzi' | 'witgoed' | 'stekker';
 
 /**
  * Een meter die beweging ziet, is in de tekening een bewegingsmelder (20
  * november 2026): de temperatuur die hij ook meet, is een bijfunctie in zijn
  * blad. Geen thermometer meer voor de melder in de hal.
  */
-export function tekenSoort(a: { readonly soort: string; readonly klimaat?: { readonly kanKoelen: boolean } | null; readonly warmte?: { readonly soort: string }; readonly radiatorknop?: unknown; readonly meting?: { readonly beweging?: unknown } | null }): TekenSoort {
+export function tekenSoort(a: { readonly soort: string; readonly witgoed?: true; readonly klimaat?: { readonly kanKoelen: boolean } | null; readonly warmte?: { readonly soort: string }; readonly radiatorknop?: unknown; readonly meting?: { readonly beweging?: unknown } | null }): TekenSoort {
   if (a.radiatorknop) return 'thermostaat';
   if (a.soort === 'klimaat') return a.klimaat?.kanKoelen ? 'airco' : 'thermostaat';
   if (a.soort === 'meter' && a.meting?.beweging) return 'beweging';
   if (a.soort === 'licht' || a.soort === 'screen' || a.soort === 'meter' || a.soort === 'camera' || a.soort === 'rookmelder') return a.soort;
   if (a.warmte?.soort === 'boiler' || a.warmte?.soort === 'jacuzzi') return a.warmte.soort;
+  // De droger en ander witgoed (22 november 2026): geen stekker, en geen klimaat.
+  if (a.witgoed) return 'witgoed';
   return 'stekker';
 }
 

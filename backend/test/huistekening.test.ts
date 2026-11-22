@@ -243,6 +243,7 @@ describe('de apparaten in de tekening (stap 3)', () => {
     expect(tekenSoort({ soort: 'apparaat', warmte: { soort: 'boiler' } })).toBe('boiler');
     expect(tekenSoort({ soort: 'apparaat', warmte: { soort: 'stekker' } })).toBe('stekker');
     expect(tekenSoort({ soort: 'apparaat' })).toBe('stekker');
+    expect(tekenSoort({ soort: 'apparaat', witgoed: true })).toBe('witgoed');
   });
 
   it('een meter die beweging ziet is een bewegingsmelder; alleen temperatuur blijft een meter', () => {
