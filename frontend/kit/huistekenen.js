@@ -32,7 +32,7 @@
 (function (global) {
   'use strict';
   // De vaste waarden en losse rekenfuncties staan in kit/huistekenen-vloer.js (opgesplitst op 22 november 2026).
-  const { CEL, BUITEN, MARGE, FONT, esc, T, nl, meter, klem, ik, TINT, SOORT_TINT, APP_KLEUR, APP_ICOON, nieuweVloer, vulRecht, kopie, zoneStukken, ordenen, randen, isMuur, lijnPad, OPENING_BREED, OPENING_SOORTEN, MET_SCHARNIER, richtingVan, openingMuur, openingBinnen, TRAP_RICHTING, muurDelen, vlakPaden, maten, omtrek, muurRuimte, muurNaar, indelingen, vloerUitIndeling, inpakken, uitpakken, m1, vloerNaarMeters, vloerUitMeters, klein } = global.htVloer;
+  const { CEL, BUITEN, MARGE, FONT, esc, T, nl, klem, TINT, SOORT_TINT, APP_KLEUR, nieuweVloer, vulRecht, kopie, zoneStukken, ordenen, randen, isMuur, OPENING_BREED, OPENING_SOORTEN, richtingVan, openingMuur, openingBinnen, TRAP_RICHTING, muurDelen, maten, omtrek, muurRuimte, muurNaar, indelingen, vloerUitIndeling, inpakken, uitpakken, m1, vloerNaarMeters, vloerUitMeters, klein } = global.htVloer;
   // Uit kit/huistekenen-blad.js (opgesplitst op 22 november 2026).
   const { paneel, stapel, strook, uitleg } = global.htBlad;
 
@@ -853,327 +853,51 @@
       return kanten[0][1] <= 5 ? kanten[0][0] : T('ht.plek.midden');
     }
 
-    /* ---------- tekenen */
-    svg.classList.add('ht');
-    svg.style.touchAction = 'none';
-    svg.innerHTML = `<defs><pattern id="ht-leeg" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V3.2" stroke="rgb(247 181 72 / 0.13)" stroke-width="0.7"/></pattern></defs><g data-l="onder"></g><g data-l="vlak"></g><g data-l="namen"></g><g data-l="app"></g><g data-l="over"></g><g data-l="knop"></g>`;
-    const laag = (n) => svg.querySelector(`[data-l="${n}"]`);
-    const pil = (x, y, tekst, kleur = '#a9e6ff', draai = false) => {
-      const bw = tekst.length * 6.9 + 16;
-      return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})${draai ? ' rotate(-90)' : ''}" pointer-events="none"><rect x="${-bw / 2}" y="-12" width="${bw}" height="24" rx="8" fill="#0d1a30" stroke="${kleur}" stroke-opacity="0.55"/><text y="4.5" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="${kleur}">${esc(tekst)}</text></g>`;
-    };
     /** Wat er tijdens een gebaar bovenop ligt (een vak in wording, de maten bij een muur). */
     let over = '';
-
-    function teken() {
-      if (!kijk) return;
-      // Het huis in 3D: de buitenkant van de kaart, de binnenkant uit de tekening (huistekenen-3d.js).
-      if (st.stand === 'huis' && global.huistekenen3d) {
-        for (const n of ['onder', 'namen', 'app', 'over', 'knop']) laag(n).innerHTML = '';
-        laag('vlak').innerHTML = global.huistekenen3d.teken(t, B, Hpx);
-        return;
-      }
-      const v = actie?.voorbeeld ?? vloer();
-      const m = maten(v);
-      const tf = `translate(${ox.toFixed(2)} ${oy.toFixed(2)}) scale(${k.toFixed(4)} ${(-k).toFixed(4)})`;
-      const app = st.stand === 'apparaten';
-      const vorm = st.stand === 'vorm';
-
-      // De etage eronder, als stippellijn om muren boven elkaar te zetten.
-      const eronder = onder();
-      let s = '';
-      if (eronder && st.stand === 'kamers') {
-        const d = randen(st.vloeren[eronder.id], isMuur).filter((r) => r.soort === 1).map(lijnPad).join('');
-        s = `<g transform="${tf}"><path d="${d}" fill="none" stroke="rgb(255 255 255 / 0.2)" stroke-width="1.5" stroke-dasharray="5 6" vector-effect="non-scaling-stroke"/></g>`;
-      }
-      // Het trapgat: waar de trap van de etage eronder hier uitkomt.
-      if (metOpeningen && eronder && st.stand !== 'vorm') {
-        const vo = st.vloeren[eronder.id];
-        const mo = maten(vo);
-        for (const [id, r] of Object.entries(vo.ruimtes)) {
-          if (soortVan(r) !== 'trap' || !mo[id]) continue;
-          const b = mo[id];
-          s += `<g transform="${tf}"><rect x="${b.x0}" y="${b.y0}" width="${b.x1 - b.x0}" height="${b.y1 - b.y0}" fill="rgb(255 255 255 / 0.05)" stroke="#a9e6ff" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="6 5" vector-effect="non-scaling-stroke"/></g>`;
-          s += `<text x="${X((b.x0 + b.x1) / 2).toFixed(1)}" y="${(Y((b.y0 + b.y1) / 2) + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12" font-weight="700" fill="#a9e6ff" pointer-events="none">${esc(T('ht.trap.gat'))}</text>`;
-        }
-      }
-      laag('onder').innerHTML = s;
-
-      // De ruimtes in hun kleur, en de muren.
-      const paden = vlakPaden(v);
-      s = `<g transform="${tf}">`;
-      // Bij Vorm: de gebouwen van de kaart eromheen, grijs, om aan te wijzen.
-      if (vorm) {
-        for (const q of omgeving()) {
-          const aan = st.kies?.soort === 'omgeving' && st.kies.i === q.i;
-          s += `<polygon class="ht-omgeving" points="${q.punten.map(([x, y]) => `${(MARGE + x / CEL).toFixed(1)},${(MARGE + y / CEL).toFixed(1)}`).join(' ')}" fill="${aan ? 'rgb(111 211 255 / 0.22)' : 'rgb(255 255 255 / 0.07)'}" stroke="${aan ? '#6fd3ff' : 'rgb(255 255 255 / 0.35)'}" stroke-width="${aan ? 3 : 1.5}" stroke-dasharray="${aan ? '' : '6 5'}" vector-effect="non-scaling-stroke"/>`;
-        }
-        // Wat bij je huis hoort maar op het erf staat: een lichte, doorgetrokken rand.
-        for (const q of opErfBlokken()) s += `<rect class="ht-op-erf" x="${(MARGE + q.u / CEL).toFixed(1)}" y="${(MARGE + q.v / CEL).toFixed(1)}" width="${(q.b / CEL).toFixed(1)}" height="${(q.d / CEL).toFixed(1)}" fill="rgb(169 230 255 / 0.08)" stroke="#a9e6ff" stroke-opacity="0.7" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`;
-      }
-      for (const [id, d] of Object.entries(paden)) {
-        const r = v.ruimtes[id];
-        const naam = naamVan(r);
-        const gekozen = st.kies?.soort === 'ruimte' && st.kies.id === Number(id);
-        const doel = actie?.doel === Number(id);
-        const dim = app && st.zoom != null && st.zoom !== Number(id);
-        const tint = TINT[SOORT_TINT[soortVan(r)] ?? (r?.kamer ? 'woon' : naam ? 'hal' : 'leeg')];
-        const sterk = vorm ? 0.1 : doel ? 0.42 : gekozen ? 0.34 : naam ? (dim ? 0.07 : 0.19) : 0.05;
-        s += `<path d="${d}" fill="rgb(${tint} / ${sterk})"/>`;
-        // Bij Dak geen arcering voor een vak zonder naam: daar zijn de strepen voor wat lager is dan 1,5 m (20 november 2026).
-        if (!naam && !vorm && st.stand !== 'dak') s += `<path d="${d}" fill="url(#ht-leeg)" opacity="${dim ? 0.3 : 1}"/>`;
-      }
-      const muren = randen(v, isMuur);
-      const binnen = muren.filter((r) => r.soort === 1).map(lijnPad).join('');
-      const buiten = muren.filter((r) => r.soort === 2).map(lijnPad).join('');
-      if (!vorm) s += `<path d="${binnen}" fill="none" stroke="#c9d3dc" stroke-width="3" stroke-linecap="square" vector-effect="non-scaling-stroke"/>`;
-      s += `<path d="${buiten}" fill="none" stroke="#eef3f7" stroke-width="${vorm ? 6 : 5}" stroke-linecap="square" vector-effect="non-scaling-stroke"/>`;
-      if (vorm || st.stand === 'kamers') {
-        const bm = buurMuren().map(lijnPad).join('');
-        if (bm) s += `<path d="${bm}" fill="none" stroke="#ffb07a" stroke-width="${vorm ? 7 : 6}" vector-effect="non-scaling-stroke"/><path d="${bm}" fill="none" stroke="#0b1424" stroke-width="${vorm ? 7 : 6}" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>`;
-      }
-      if (metOpeningen && !vorm) s += openingenPad(v);
-      if (metOpeningen && !vorm) s += trapPad(v, m);
-      // Wat gekozen is: de rand van de ruimte, of de muur zelf.
-      if (st.kies?.soort === 'ruimte' && m[st.kies.id]) {
-        const id = st.kies.id;
-        s += `<path d="${randen(v, (a, b) => ((a === id) !== (b === id) ? 1 : 0)).map(lijnPad).join('')}" fill="none" stroke="#6fd3ff" stroke-width="4" stroke-linecap="square" vector-effect="non-scaling-stroke"/>`;
-      }
-      if (actie?.doel != null && m[actie.doel]) {
-        const id = actie.doel;
-        s += `<path d="${randen(v, (a, b) => ((a === id) !== (b === id) ? 1 : 0)).map(lijnPad).join('')}" fill="none" stroke="#6ee7b7" stroke-width="4" stroke-linecap="square" vector-effect="non-scaling-stroke"/>`;
-      }
-      // Zones: een groene stippellijn in de kamer, geen muur.
-      const zones = vorm ? [] : zonesOp(v);
-      for (const zz of zones) s += `<path d="${zz.stukken.map(lijnPad).join('')}" fill="none" stroke="#6ee7b7" stroke-width="${actie?.type === 'zone' && actie.kamer === zz.kamer ? 5 : 3}" stroke-dasharray="9 7" vector-effect="non-scaling-stroke"/>`;
-      const muur = actie?.type === 'muur' ? actie.nu : st.kies?.soort === 'muur' ? st.kies.run : actie?.kandidaat?.soort === 'muur' && !actie.type ? actie.kandidaat.m : null;
-      if (muur) s += `<path d="${lijnPad(muur)}" fill="none" stroke="#6fd3ff" stroke-width="7" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
-      s += '</g>';
-      // De greep op een gekozen muur: laat zien dat hij te pakken is.
-      if (muur) {
-        const mid = (muur.van + muur.tot) / 2;
-        const gx = muur.as === 'x' ? X(muur.op) : X(mid);
-        const gy = muur.as === 'x' ? Y(mid) : Y(muur.op);
-        const pijl = muur.as === 'x' ? 'M-5 0h10M-5 0l3-3M-5 0l3 3M5 0l-3-3M5 0l-3 3' : 'M0-5v10M0-5l-3 3M0-5l3 3M0 5l-3-3M0 5l3-3';
-        s += `<g transform="translate(${gx.toFixed(1)} ${gy.toFixed(1)})" pointer-events="none"><circle r="15" fill="#6fd3ff"/><path d="${pijl}" stroke="#0b1424" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>`;
-      }
-      // Het scharnier van de gekozen deur: een stip om te tikken.
-      const sp = metOpeningen ? scharnierStip(v) : null;
-      if (sp) s += `<g transform="translate(${X(sp.x).toFixed(1)} ${Y(sp.y).toFixed(1)})" pointer-events="none"><circle r="10" fill="#6fd3ff" stroke="#0b1424" stroke-width="2.5"/><path d="M-3.5 -1.5a3.6 3.6 0 1 1 0 3" stroke="#0b1424" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`;
-      // De greep om een gekozen ruimte in zijn geheel te verplaatsen.
-      const greep = !actie || actie.type === 'verplaats' ? greepPlek(v) : null;
-      if (greep) s += `<g transform="translate(${greep.px.toFixed(1)} ${greep.py.toFixed(1)})" pointer-events="none"><circle r="17" fill="#6fd3ff" stroke="#0b1424" stroke-width="2"/><path d="M-9 0h18M0-9v18M-9 0l3-3M-9 0l3 3M9 0l-3-3M9 0l-3 3M0-9l-3 3M0-9l3 3M0 9l-3-3M0 9l3-3" stroke="#0b1424" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>`;
-      laag('vlak').innerHTML = s;
-
-      // De namen: in het grootste rechte stuk van de ruimte.
-      s = '';
-      for (const [id, mm] of Object.entries(m)) {
-        const r = v.ruimtes[id];
-        if (!mm.r) continue;
-        const naam = naamVan(r);
-        const pb = (mm.r.x1 - mm.r.x0) * k;
-        const pd = (mm.r.y1 - mm.r.y0) * k;
-        const m2 = `${nl(mm.n * CEL * CEL, 0)} m²`;
-        const dim = app && st.zoom != null && st.zoom !== Number(id);
-        if (vorm) continue;
-        if (app) {
-          // Bij apparaten staat de naam klein in de hoek: het midden is voor de apparaten.
-          // Een kamer met zones heet ook hier naar zijn zones: elke kant van de stippellijn zijn eigen naam.
-          const zz = zones.find((x) => x.id === Number(id));
-          if (zz) {
-            const label = (x, y, tekst) => `<text x="${(X(x) + 9).toFixed(1)}" y="${(Y(y) + 19).toFixed(1)}" ${FONT} font-size="12.5" font-weight="700" fill="rgb(110 231 183 / ${dim ? 0.3 : 0.85})" pointer-events="none">${esc(tekst)}</text>`;
-            s += zz.z.as === 'x' ? label(mm.x0, mm.y1, zz.namen[0] ?? '') + label(zz.z.op, mm.y1, zz.namen[1] ?? '') : label(mm.x0, zz.z.op, zz.namen[0] ?? '') + label(mm.x0, mm.y1, zz.namen[1] ?? '');
-            continue;
-          }
-          if (pb > 50 && pd > 26) s += `<text x="${(X(mm.r.x0) + 9).toFixed(1)}" y="${(Y(mm.r.y1) + 19).toFixed(1)}" ${FONT} font-size="12.5" font-weight="700" fill="rgb(255 255 255 / ${dim ? 0.25 : 0.62})" pointer-events="none">${esc(naam ?? '')}</text>`;
-          continue;
-        }
-        // Een kamer met zones heet naar zijn zones, bij de lijn.
-        if (zones.some((zz) => zz.id === Number(id)) && !actie?.type) continue;
-        const cx = X((mm.r.x0 + mm.r.x1) / 2);
-        const cy = Y((mm.r.y0 + mm.r.y1) / 2);
-        // Bij Dak alleen de namen, klein en bescheiden: het dak en de dakkapel staan voorop.
-        if (st.stand === 'dak') {
-          if (naam && pb > naam.length * 7 && pd > 18) s += `<text x="${cx.toFixed(1)}" y="${(cy + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12" font-weight="700" fill="rgb(255 255 255 / 0.4)" pointer-events="none">${esc(naam)}</text>`;
-          continue;
-        }
-        const tekst = naam ?? T('ht.watIsDit');
-        const fs = pb < 74 || pd < 44 ? 11.5 : pb > 200 && pd > 120 ? 17 : 14.5;
-        if (pb < tekst.length * fs * 0.5 || pd < 18) continue;
-        const kleur = naam ? (r.kamer ? '#eef3f7' : 'rgb(255 255 255 / 0.72)') : '#ffd38a';
-        // Met de greep in het midden staat de naam erboven, als daar plek is.
-        if (greep && st.kies.id === Number(id)) {
-          if (pd > 78) s += `<text x="${cx.toFixed(1)}" y="${(cy - 26).toFixed(1)}" text-anchor="middle" ${FONT} font-size="${fs}" font-weight="700" fill="${kleur}" pointer-events="none">${esc(tekst)}</text>`;
-          continue;
-        }
-        const metMaat = pd > 46 && pb > 60;
-        s += `<text x="${cx.toFixed(1)}" y="${(cy + (metMaat ? -2 : 4)).toFixed(1)}" text-anchor="middle" ${FONT} font-size="${fs}" font-weight="700" fill="${kleur}" pointer-events="none">${esc(tekst)}</text>`;
-        if (metMaat) s += `<text x="${cx.toFixed(1)}" y="${(cy + 15).toFixed(1)}" text-anchor="middle" ${FONT} font-size="11.5" fill="rgb(255 255 255 / 0.5)" pointer-events="none">${m2}${naam && !r.kamer && pb > 150 ? ` · ${esc(T('ht.nietInHA'))}` : ''}</text>`;
-      }
-      // De namen van de zones aan weerszijden van hun lijn, bij het langste stuk.
-      if (!app && !actie?.type) {
-        for (const zz of zones) {
-          const st2 = zz.stukken.reduce((a, b) => (b.tot - b.van > a.tot - a.van ? b : a));
-          if ((st2.tot - st2.van) * k < 60) continue;
-          const mid = (st2.van + st2.tot) / 2;
-          const [een, twee] = [zz.namen[0] ?? '', zz.namen[1] ?? ''];
-          const half = (tekst) => (tekst.length * 6.9 + 16) / 2 + 9;
-          if (zz.z.as === 'x') s += pil(X(zz.z.op) - half(een), Y(mid), een, '#6ee7b7') + pil(X(zz.z.op) + half(twee), Y(mid), twee, '#6ee7b7');
-          else s += pil(X(mid), Y(zz.z.op) + 19, een, '#6ee7b7') + pil(X(mid), Y(zz.z.op) - 19, twee, '#6ee7b7');
-        }
-      }
-      // De maten van wat gekozen is, of van het hele huis bij Vorm.
-      if (!actie?.type) {
-        if (vorm) {
-          for (const r of muren.filter((x) => x.soort === 2 && x.tot - x.van >= 20)) {
-            const mid = (r.van + r.tot) / 2;
-            const buitenkant = (r.as === 'x' ? v.cel[Math.floor(mid) * v.W + r.op] : v.cel[r.op * v.W + Math.floor(mid)]) === BUITEN ? 1 : -1;
-            s += r.as === 'x' ? pil(X(r.op) + buitenkant * 22, Y(mid), meter(r.tot - r.van), '#6ee7b7', true) : pil(X(mid), Y(r.op) - buitenkant * 20, meter(r.tot - r.van), '#6ee7b7');
-          }
-        } else if (st.kies?.soort === 'ruimte' && m[st.kies.id]?.r && !app) {
-          const r = m[st.kies.id].r;
-          // Alleen waar ze de naam niet in de weg zitten; de maat staat ook in het blad.
-          if ((r.x1 - r.x0) * k > 150 && (r.y1 - r.y0) * k > 110) {
-            s += pil(X((r.x0 + r.x1) / 2), Y(r.y1) + 20, meter(r.x1 - r.x0));
-            s += pil(X(r.x0) + 20, Y((r.y0 + r.y1) / 2), meter(r.y1 - r.y0), '#a9e6ff', true);
-          }
-        }
-      }
-      // Bij Vorm: wat er naast het hoofdhuis staat, met zijn naam; een gekozen gebouw met een blauwe rand.
-      if (vorm && (!actie?.type || actie.type === 'blokmaat')) {
-        for (const b0 of bijBlokken()) {
-          const aan = st.kies?.soort === 'blok' && st.kies.id === b0.id;
-          const b = maatVan(b0);
-          const [x0, y0, x1, y1] = [X(MARGE + b.u / CEL), Y(MARGE + b.v / CEL), X(MARGE + (b.u + b.b) / CEL), Y(MARGE + (b.v + b.d) / CEL)];
-          if (aan) s += `<rect x="${Math.min(x0, x1).toFixed(1)}" y="${Math.min(y0, y1).toFixed(1)}" width="${Math.abs(x1 - x0).toFixed(1)}" height="${Math.abs(y1 - y0).toFixed(1)}" fill="rgb(111 211 255 / 0.14)" stroke="#6fd3ff" stroke-width="3" pointer-events="none"/>`;
-          const naam = T(`ht.bron.blok.${b.soort}`);
-          const Naam = esc(naam.charAt(0).toUpperCase() + naam.slice(1));
-          const past = Math.abs(x1 - x0) > naam.length * 6.5;
-          // Op het erf (20 november 2026): de naam met "bij Buiten", erboven als het gebouw te smal is.
-          if (opErfBlokken().some((q) => q.id === b.id)) {
-            const ty = past ? (y0 + y1) / 2 - 2 : Math.min(y0, y1) - 22;
-            s += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="#a9e6ff" pointer-events="none">${Naam}</text>`;
-            s += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${(ty + 14).toFixed(1)}" text-anchor="middle" ${FONT} font-size="11" font-weight="600" fill="rgb(169 230 255 / 0.75)" pointer-events="none">${esc(T('ht.gebouw.bijBuiten'))}</text>`;
-          } else if (past) s += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${((y0 + y1) / 2 + 4).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="rgb(255 255 255 / 0.7)" pointer-events="none">${Naam}</text>`;
-        }
-      }
-      s += kaartLaag(vorm);
-      if (st.stand === 'dak') s += dakLaag();
-      laag('namen').innerHTML = s;
-
-      // De apparaten: een rond icoon; dichtbij ook de naam.
-      s = '';
-      if (app) {
-        // Van ver klein genoeg om elkaar niet te dekken; dichtbij groot genoeg voor een vinger.
-        const R = klem(k * 3.4, 12, 25);
-        const dichtbij = st.zoom != null;
-        for (const p of apparaatPunten()) {
-          const gekozen = st.kies?.soort === 'apparaat' && st.kies.id === p.a.id;
-          const dim = st.zoom != null && st.zoom !== p.ruimte;
-          const sleept = actie?.type === 'apparaat' && actie.a.id === p.a.id;
-          const x = sleept ? actie.px : X(p.x);
-          const y = sleept ? actie.py : Y(p.y);
-          const kleur = APP_KLEUR[p.a.soort] ?? '#eef3f7';
-          s += `<g class="ht-ap${gekozen ? ' gekozen' : ''}${sleept ? ' sleept' : ''}" data-ap="${esc(p.a.id)}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" opacity="${dim ? 0.3 : 1}" style="color: ${kleur}"><circle r="${gekozen || sleept ? R + 3 : R}" fill="#0d1a30" stroke="${gekozen || sleept ? '#6fd3ff' : p.zelf ? 'rgb(255 255 255 / 0.55)' : 'rgb(255 255 255 / 0.28)'}" stroke-width="${gekozen || sleept ? 3 : 1.5}"${p.zelf ? '' : ' stroke-dasharray="3 3"'}/>${ik(APP_ICOON[p.a.soort] ?? p.a.soort).replace('<svg ', `<svg x="${-R * 0.56}" y="${-R * 0.56}" width="${R * 1.12}" height="${R * 1.12}" `)}${(dichtbij && !dim) || gekozen ? `<text y="${R + 15}" text-anchor="middle" ${FONT} font-size="12" font-weight="600" fill="#eef3f7" paint-order="stroke" stroke="#0d1a30" stroke-width="4">${esc(p.a.naam)}</text>` : ''}</g>`;
-        }
-      }
-      laag('app').innerHTML = s;
-      laag('over').innerHTML = over;
-      // Ingezoomd: een knop terug naar het hele huis.
-      const hk = heelKnop();
-      laag('knop').innerHTML = hk ? `<g transform="translate(${hk.x} ${hk.y})" pointer-events="none"><rect width="${hk.b}" height="${hk.h}" rx="10" fill="#0d1a30" stroke="#6fd3ff" stroke-opacity="0.7"/><text x="${hk.b / 2}" y="${hk.h / 2 + 4.5}" text-anchor="middle" ${FONT} font-size="13" font-weight="700" fill="#a9e6ff">${esc(T('ht.heleHuis'))}</text></g>` : '';
+    // teken: in kit/huistekenen-teken.js (opgesplitst op 22 november 2026). Wat het deel van de tekenaar deelt:
+    const cteken = {};
+    Object.defineProperties(cteken, {
+      svg: { get: () => svg },
+      kijk: { get: () => kijk },
+      st: { get: () => st },
+      actie: { get: () => actie },
+      vloer: { get: () => vloer },
+      ox: { get: () => ox },
+      oy: { get: () => oy },
+      k: { get: () => k },
+      onder: { get: () => onder },
+      metOpeningen: { get: () => metOpeningen },
+      zonesOp: { get: () => zonesOp },
+      X: { get: () => X },
+      Y: { get: () => Y },
+      greepPlek: { get: () => greepPlek },
+      kaartLaag: { get: () => kaartLaag },
+      dakLaag: { get: () => dakLaag },
+      over: { get: () => over },
+      t: { get: () => t },
+      B: { get: () => B },
+      Hpx: { get: () => Hpx },
+      soortVan: { get: () => soortVan },
+      omgeving: { get: () => omgeving },
+      opErfBlokken: { get: () => opErfBlokken },
+      naamVan: { get: () => naamVan },
+      buurMuren: { get: () => buurMuren },
+      bijBlokken: { get: () => bijBlokken },
+      maatVan: { get: () => maatVan },
+      apparaatPunten: { get: () => apparaatPunten },
+    });
+    const tekenDeel = global.htTeken(cteken);
+    function teken(...a) {
+      return tekenDeel.teken(...a);
     }
-    /** De deuren, ramen en de voordeur op de plattegrond (in ruitjes, binnen de transform). */
-    function openingenPad(v) {
-      let s2 = '';
-      for (const o of v.openingen ?? []) {
-        const mu = openingMuur(v, o);
-        if (!mu) continue;
-        const gekozen = (st.kies?.soort === 'opening' && st.kies.id === o.id) || actie?.kandidaat?.o?.id === o.id;
-        const lijn = (e, a = o.van, b = o.tot) => (o.as === 'x' ? `M${o.op + e} ${a}V${b}` : `M${a} ${o.op + e}H${b}`);
-        // Het gat in de muur.
-        s2 += `<path d="${lijn(0)}" stroke="#1a2740" stroke-width="${mu === 2 ? 7 : 5}" vector-effect="non-scaling-stroke" fill="none"/>`;
-        const kleur = gekozen ? '#6fd3ff' : o.soort === 'raam' || o.soort === 'schuifpui' ? '#a9e6ff' : o.soort === 'voordeur' || o.soort === 'achterdeur' ? '#f7b548' : '#dfe6ec';
-        if (o.soort === 'schuifpui') {
-          // Twee glazen delen, een beetje verschoven, en binnen een pijl naar waar hij schuift.
-          const mid = (o.van + o.tot) / 2;
-          const binnenKant = openingBinnen(v, o);
-          s2 += `<path d="${lijn(-0.6, o.van, mid + 1.5)}${lijn(0.6, mid - 1.5, o.tot)}" stroke="${kleur}" stroke-width="${gekozen ? 3.2 : 2.4}" vector-effect="non-scaling-stroke" fill="none"/>`;
-          const r = o.schuift === 'tot' ? 1 : -1;
-          const e = binnenKant * 4;
-          const [a0, a1] = [mid - r * 4, mid + r * 4];
-          const pt = (langs, uit) => (o.as === 'x' ? `${o.op + uit} ${langs}` : `${langs} ${o.op + uit}`);
-          s2 += `<path d="M${pt(a0, e)}L${pt(a1, e)}M${pt(a1 - r * 1.6, e - 1.2)}L${pt(a1, e)}L${pt(a1 - r * 1.6, e + 1.2)}" stroke="${kleur}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" fill="none"/>`;
-        } else if (o.soort === 'raam') {
-          s2 += `<path d="${lijn(-0.45)}${lijn(0.45)}" stroke="${kleur}" stroke-width="${gekozen ? 2.6 : 1.8}" vector-effect="non-scaling-stroke" fill="none"/>`;
-          // Een screen voor dit raam: een oranje streep aan de buitenkant.
-          if (st.apparaten.some((a) => a.raam === o.id && a.plek?.etage === st.etage)) s2 += `<path d="${lijn(-openingBinnen(v, o) * 1.6, o.van + 0.5, o.tot - 0.5)}" stroke="#ff9a6b" stroke-width="2.4" stroke-dasharray="4 3" vector-effect="non-scaling-stroke" fill="none"/>`;
-        } else {
-          // Een deur: per blad het blad open en de boog waar hij draait; openslaande deuren aan elk eind een blad.
-          for (const b of deurBladen(v, o)) {
-            const veeg = (b.sx - b.hx) * (b.ly - b.hy) - (b.sy - b.hy) * (b.lx - b.hx) > 0 ? 1 : 0;
-            s2 += `<path d="M${b.hx} ${b.hy}L${b.lx} ${b.ly}" stroke="${kleur}" stroke-width="${gekozen ? 3 : 2}" stroke-linecap="round" vector-effect="non-scaling-stroke" fill="none"/>`;
-            s2 += `<path d="M${b.sx} ${b.sy}A${b.w} ${b.w} 0 0 ${veeg} ${b.lx} ${b.ly}" stroke="${kleur}" stroke-width="1.2" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" fill="none" opacity="0.8"/>`;
-          }
-        }
-      }
-      return s2;
+    function scharnierStip(...a) {
+      return tekenDeel.scharnierStip(...a);
     }
-    /**
-     * De bladen van een deur, in ruitjes: het scharnier (h), het open blad (l)
-     * en waar het blad dicht tegen de muur ligt (s), met de breedte w.
-     */
-    function deurBladen(v, o) {
-      const kant = o.kant ?? openingBinnen(v, o);
-      const at = (langs, uit) => (o.as === 'x' ? [o.op + uit, langs] : [langs, o.op + uit]);
-      const blad = (h, vrij) => {
-        const w = Math.abs(vrij - h);
-        const [hx, hy] = at(h, 0);
-        const [lx, ly] = at(h, kant * w);
-        const [sx, sy] = at(vrij, 0);
-        return { hx, hy, lx, ly, sx, sy, w };
-      };
-      if (o.soort === 'dubbel') {
-        const mid = (o.van + o.tot) / 2;
-        return [blad(o.van, mid), blad(o.tot, mid)];
-      }
-      return o.scharnier === 'tot' ? [blad(o.tot, o.van)] : [blad(o.van, o.tot)];
+    function heelKnop(...a) {
+      return tekenDeel.heelKnop(...a);
     }
-    /** De stip op het scharnier van de gekozen deur: een tik zet het naar het andere eind. */
-    function scharnierStip(v) {
-      if (st.stand !== 'kamers' || st.kies?.soort !== 'opening') return null;
-      const o = (v.openingen ?? []).find((x) => x.id === st.kies.id);
-      if (!o || !MET_SCHARNIER.has(o.soort) || !openingMuur(v, o)) return null;
-      const b = deurBladen(v, o)[0];
-      return { x: b.hx, y: b.hy, o };
-    }
-    /** De trap: treden dwars op de richting, en een pijl naar boven. */
-    function trapPad(v, mm) {
-      let s2 = '';
-      for (const [id, r] of Object.entries(v.ruimtes)) {
-        if (soortVan(r) !== 'trap' || !mm[id]?.r) continue;
-        const b = mm[id].r;
-        const [rx, ry] = TRAP_RICHTING[r.omhoog ?? 'n'];
-        const langs = rx ? [b.x0, b.x1] : [b.y0, b.y1];
-        let d = '';
-        for (let t2 = langs[0] + 2.5; t2 < langs[1] - 0.5; t2 += 2.5) d += rx ? `M${t2} ${b.y0 + 1}V${b.y1 - 1}` : `M${b.x0 + 1} ${t2}H${b.x1 - 1}`;
-        s2 += `<path d="${d}" stroke="rgb(255 255 255 / 0.4)" stroke-width="1.2" vector-effect="non-scaling-stroke" fill="none"/>`;
-        // De pijl van onder naar boven.
-        const [cx, cy] = [(b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2];
-        const half = ((rx ? b.x1 - b.x0 : b.y1 - b.y0) / 2) * 0.75;
-        const [ax, ay, bx, by] = [cx - rx * half, cy - ry * half, cx + rx * half, cy + ry * half];
-        const pk = 2.2;
-        s2 += `<path d="M${ax} ${ay}L${bx} ${by}M${bx - rx * pk - ry * pk} ${by - ry * pk - rx * pk}L${bx} ${by}L${bx - rx * pk + ry * pk} ${by - ry * pk + rx * pk}" stroke="#a9e6ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" fill="none"/>`;
-      }
-      return s2;
-    }
-    /** Waar de knop Hele huis staat, als er ingezoomd is. */
-    function heelKnop() {
-      if (!st.eigen) return null;
-      const b = T('ht.heleHuis').length * 7.4 + 24;
-      return { x: B - b - 10, y: 10, b, h: 32 };
-    }
-
+    const { laag, pil } = tekenDeel;
     /** Wat de vinger nu doet (een muur schuiven, een vak trekken, ...); het gebaar zet het, het tekenen en de uitleg lezen het. */
     let actie = null;
     // gebaar: in kit/huistekenen-gebaar.js (opgesplitst op 22 november 2026). Wat het deel van de tekenaar deelt:
