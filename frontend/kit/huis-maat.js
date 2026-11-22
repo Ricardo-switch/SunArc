@@ -1969,10 +1969,12 @@
       }
     }
     // Het label van de panelen (zoals in het poppenhuis): hoeveel ze nu geven, met een lijntje naar het dak; te tikken.
-    if (o.dakLabel && panelenMidden && !o.stil) {
+    if (o.dakLabel && panelenMidden && (!o.stil || o.metDakLabel)) {
       const dl = o.dakLabel;
       const [ax, ay] = P(...panelenMidden);
-      const regels = dl.regels ?? [];
+      const regels = [...(dl.regels ?? [])];
+      // Op de telefoon (`o.metDakLabel`) alleen het getal, zoals het poppenhuis daar doet.
+      if (o.metDakLabel && o.stil) regels.length = 0;
       const w = Math.max(dl.titel.length * 15 + 24, ...regels.map((r) => r.length * 7 + 24));
       const h = 40 + regels.length * 18;
       // Met de zonneboog op Thuis rechts naast het dak, onder de boog (22 november 2026); anders erboven.

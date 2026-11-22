@@ -610,9 +610,14 @@
       if (soort !== 'kamer') tuinKorter(o, o.huisDoos);
       if (soort === 'kamer') alsEtage(o, staat.tk, huisData, kamerId);
       else if (soort === 'rust') alsRust(o, avond, model);
-      else if (soort === 'tel') Object.assign(o, { passend: o.passend === 'huis' ? 'huis' : 'dichtbij', boven: 0, rand: 6, stroom: [] });
+      /*
+       * Thuis en de telefoon (22 november 2026, Ricardo: op de telefoon klopte niets). De telefoon toont net als het
+       * poppenhuis het hele huis met de ingekorte tuin, de stroomlijnen, het label van de panelen en de zonneboog; alleen
+       * de namen staan eronder in plaats van in de tekening.
+       */
       else {
-        o.boven = 90;
+        if (soort === 'tel') Object.assign(o, { boven: 0, rand: 8, metDakLabel: true });
+        else o.boven = 90;
         // De baan van de zon om het huis, zoals in het poppenhuis (besluit 205); het huis blijft even groot (22 november 2026).
         // De baan en de zon van nu uit api/zon (zoals het always-on display ze krijgt); het model van Thuis heeft alleen de stand.
         const zon = { ...(model?.zon ?? {}), ...(global.huismodel?.zonNu?.(zonData) ?? {}) };
