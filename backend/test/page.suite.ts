@@ -5124,7 +5124,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const fouten: string[] = [];
     p.on('pageerror', (e) => fouten.push(e.message));
     await p.goto(`${baseUrl}/manifest.webmanifest`);
-    await p.setContent(`<!doctype html><body><script src="${baseUrl}/kit/iconen.js"></script><script src="${baseUrl}/kit/huis.js"></script></body>`);
+    await p.setContent(`<!doctype html><body><script src="${baseUrl}/kit/iconen.js"></script><script src="${baseUrl}/kit/huis-basis.js"></script><script src="${baseUrl}/kit/huis-kamers.js"></script><script src="${baseUrl}/kit/huis-buiten.js"></script><script src="${baseUrl}/kit/huis-tuin.js"></script><script src="${baseUrl}/kit/huis-route.js"></script><script src="${baseUrl}/kit/huis.js"></script></body>`);
     await p.waitForFunction('window.huis != null');
     const telling = await p.evaluate(() => {
       const w = globalThis as unknown as { huis: { svg: (m: unknown, o: unknown) => string } };
@@ -5152,7 +5152,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const fouten: string[] = [];
     p.on('pageerror', (e) => fouten.push(e.message));
     await p.goto(`${baseUrl}/manifest.webmanifest`);
-    await p.setContent(`<!doctype html><body style="margin:0;background:#0b1424"><div id="uit" style="display:grid;grid-template-columns:repeat(2,700px)"></div><script src="${baseUrl}/kit/iconen.js"></script><script src="${baseUrl}/kit/huis.js"></script></body>`);
+    await p.setContent(`<!doctype html><body style="margin:0;background:#0b1424"><div id="uit" style="display:grid;grid-template-columns:repeat(2,700px)"></div><script src="${baseUrl}/kit/iconen.js"></script><script src="${baseUrl}/kit/huis-basis.js"></script><script src="${baseUrl}/kit/huis-kamers.js"></script><script src="${baseUrl}/kit/huis-buiten.js"></script><script src="${baseUrl}/kit/huis-tuin.js"></script><script src="${baseUrl}/kit/huis-route.js"></script><script src="${baseUrl}/kit/huis.js"></script></body>`);
     await p.waitForFunction('window.huis != null');
     type Blok = { kamer?: string; wat: string; soort?: string; x0: number; x1: number; y0: number; y1: number; z0: number; z1: number; ruimte: [number, number]; plafond?: number };
     const uitkomst = await p.evaluate(() => {
@@ -5241,7 +5241,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const p = await browser.newPage();
     await p.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
     await p.goto(`${baseUrl}/manifest.webmanifest`);
-    await p.setContent(`<!doctype html><body><script src="${baseUrl}/kit/iconen.js"></script><script src="${baseUrl}/kit/huis.js"></script></body>`);
+    await p.setContent(`<!doctype html><body><script src="${baseUrl}/kit/iconen.js"></script><script src="${baseUrl}/kit/huis-basis.js"></script><script src="${baseUrl}/kit/huis-kamers.js"></script><script src="${baseUrl}/kit/huis-buiten.js"></script><script src="${baseUrl}/kit/huis-tuin.js"></script><script src="${baseUrl}/kit/huis-route.js"></script><script src="${baseUrl}/kit/huis.js"></script></body>`);
     await p.waitForFunction('window.huis != null');
     const midden = await p.evaluate(() => {
       const w = globalThis as unknown as { huis: { svg: (m: unknown, o: unknown) => string } };
