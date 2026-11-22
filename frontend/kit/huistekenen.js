@@ -56,7 +56,7 @@
   const EIGEN_BUITEN = [['berging', 'schuur'], ['berging', 'fietsenhok'], ['berging', 'kas'], ['berging', 'pad']];
   /** [soort, naam] in de taal van de app; buiten andere namen. */
   const eigenNamen = (buiten = false) => (buiten ? EIGEN_BUITEN : EIGEN_SLEUTELS).map(([soort, k]) => [soort, T(`ht.eigen.${k}`)]);
-  const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', koffie: '#f7b548', camera: '#a99cff', beweging: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff', rookmelder: '#ff9a6b', boiler: '#ff9a6b', jacuzzi: '#6fd3ff' };
+  const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', witgoed: '#c9d4df', koffie: '#f7b548', camera: '#a99cff', beweging: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff', rookmelder: '#ff9a6b', boiler: '#ff9a6b', jacuzzi: '#6fd3ff' };
   const APP_ICOON = { meter: 'klimaat' };
   /**
    * Eén apparaat, één bolletje (20 november 2026): wat er ook in een apparaat
@@ -1195,6 +1195,22 @@
       const os = huis.etages.filter((e) => !!e.buiten === opErf).map((e) => omtrek(st.vloeren[e.id]));
       const o = { x0: Math.min(...os.map((x) => x.x0)), y0: Math.min(...os.map((x) => x.y0)), x1: Math.max(...os.map((x) => x.x1)), y1: Math.max(...os.map((x) => x.y1)) };
       const rand = st.stand === 'vorm' ? 16 : 7;
+      // Een deur die naar buiten draait, valt niet buiten beeld (22 november 2026: de achterdeur van Ricardo viel bovenin weg).
+      if (!opErf && st.stand !== 'vorm') {
+        for (const e of huis.etages.filter((x) => !x.buiten)) {
+          for (const g of st.vloeren[e.id]?.openingen ?? []) {
+            if (g.soort === 'raam' || g.soort === 'schuifpui') continue;
+            const w = (g.tot - g.van) / (g.soort === 'dubbel' ? 2 : 1);
+            if (g.as === 'y') {
+              o.y0 = Math.min(o.y0, g.op - w);
+              o.y1 = Math.max(o.y1, g.op + w);
+            } else {
+              o.x0 = Math.min(o.x0, g.op - w);
+              o.x1 = Math.max(o.x1, g.op + w);
+            }
+          }
+        }
+      }
       if (st.stand === 'vorm') {
         const randpunten = [...omgeving().flatMap((q) => q.punten), ...opErfBlokken().flatMap((q) => [[q.u, q.v], [q.u + q.b, q.v + q.d]])];
         for (const [x, y] of randpunten) {
