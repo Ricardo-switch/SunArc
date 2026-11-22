@@ -1260,6 +1260,27 @@
               // Een raam alleen waar het past: onder het dak, en niet ondersteboven in een lage knieschot (20 november 2026).
               const r1 = Math.min(top - 0.3, z0 + 2.1, dakZ(x0, y0) - 0.25, dakZ(x1, y1) - 0.25);
               const past = r1 - r0 >= 0.5;
+              /*
+               * Een dakraam (22 november 2026, Ricardo): een raam getekend in een muur waar het dak lager komt dan het raam,
+               * zit in het dakvlak erboven. Vanaf de muur de kamer in tot het dak tussen 1,0 en 2,0 meter boven de vloer is.
+               */
+              if (!past && run.soort === 2 && !band && Math.min(dakZ(x0, y0), dakZ(x1, y1)) < z0 + 2.35) {
+                const [ix, iy] = [-n[0], -n[1]];
+                const opD = (d2, hoogte) => {
+                  for (let t2 = 0; t2 <= 4.0001; t2 += 0.05) if (Math.min(dakZ(x0 + ix * t2, y0 + iy * t2), dakZ(x1 + ix * t2, y1 + iy * t2)) >= hoogte) return Math.max(d2, t2);
+                  return null;
+                };
+                const d0 = opD(0, z0 + 1.0);
+                const d1 = d0 == null ? null : Math.min(opD(d0 + 0.3, z0 + 2.0) ?? d0 + 1.1, d0 + 1.2);
+                if (d0 != null && d1 != null && d1 - d0 >= 0.3) {
+                  const opDak = (x, y) => [x, y, dakZ(x, y) + 0.03];
+                  const hoekenR = [opDak(x0 + ix * d0, y0 + iy * d0), opDak(x1 + ix * d0, y1 + iy * d0), opDak(x1 + ix * d1, y1 + iy * d1), opDak(x0 + ix * d1, y0 + iy * d1)];
+                  const brandt = o.avond && lichtIn.has(binnen);
+                  const cxr = (x0 + x1) / 2 + ix * (d0 + d1) / 2;
+                  const cyr = (y0 + y1) / 2 + iy * (d0 + d1) / 2;
+                  stukken.push({ d: diep(cxr, cyr) - 0.6, s: `<path d="${vlak(hoekenR)}" fill="${brandt ? 'rgb(243 199 122 / 0.6)' : 'rgb(143 180 214 / 0.45)'}" stroke="#eef5fb" stroke-opacity="0.85" stroke-width="1.4" stroke-linejoin="round"/>` });
+                }
+              }
               const screen = st.apparaten.find((q) => q.raam === deel.id && q.plek?.etage === laag.e.id);
               // Aan de kant van de kijker: de gevel is glas, het raam krijgt een licht kozijn en wat helderder glas (19 november 2026).
               const kozijn = voor && past ? muur(r0, r1, o.avond && lichtIn.has(binnen) ? 'rgb(243 199 122 / 0.35)' : 'rgb(207 230 255 / 0.16)', 'stroke="#eef5fb" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"') : '';
