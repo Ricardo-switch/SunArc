@@ -1,11 +1,14 @@
 # Wat is er nieuw · What is new
 
-## 0.219.1
+## 0.220.0
 
-*22 november 2026 · 0.179.0 – 0.219.1*
+*22 november 2026 · 0.179.0 – 0.220.0*
 
 **Nieuw**
 
+- Radiatoren in je huis: een radiatorknop hangt als radiator aan de muur, een kamer met cv krijgt er vanzelf een onder het raam, en bij Je huis › Apparaten zet Radiator erbij er meer neer
+- De buitenunit van elke airco is een eigen bolletje buiten: zet hem tegen het huis, op een plat dak of op de grond
+- Een raam waar het dak lager is dan het raam, wordt vanzelf een dakraam
 - Weergave › Huis: Het huis zoals getekend. Aan: op Thuis, een kamer en de wand als niemand kijkt je huis zoals in Je huis, met de echte vorm, je kamers met meubels en je apparaten. Uit (zoals het was): het poppenhuis. Het geldt voor jou op elk scherm, en op de wand voor wie hij volgt
 - Thuis, een kamer en het scherm als niemand kijkt kunnen het huis tekenen zoals het in Je huis staat: met de echte vorm, het erf, de gebouwen, meubels per kamer en je apparaten op hun plek. Voorlopig om te proberen, met ?tekenaar=maat achter het adres (?tekenaar=poppenhuis zet het terug); het poppenhuis blijft gewoon
 - Je huis › Vorm: de straat van je adres staat onder, met Klopt dit?. Liggen er twee straten bij je huis, dan kies je in Waar is de straat welke aan de voorkant ligt, of zelf een kant
@@ -89,6 +92,11 @@
 
 **Beter**
 
+- Het huis zoals getekend staat groter op Thuis: de tuin is ingekort, zoals in het poppenhuis
+- Apparaten onder het schuine dak vallen niet meer weg, en meubels staan er niet meer doorheen
+- Lampen geven licht in hun eigen kleur; de border heeft struiken en lampjes, en een lamp in de tuin staat op een paaltje
+- Meer kamers hebben hun naam in de tekening
+- Je huis op de telefoon: de etages van beneden naar boven
 - Jij heet nu Profiel, in Instellingen, de zoeker en overal waar de app ernaar verwijst
 - Het huis zoals getekend laadt zonder eerst even het poppenhuis te laten zien
 - Weergave opent bij Jij meteen, zonder eerst naar Thuis te gaan
@@ -236,6 +244,9 @@
 
 **New**
 
+- Radiators in your home: a radiator valve hangs as a radiator on the wall, a room with central heating gets one under the window by itself, and under Your home › Devices Add a radiator puts more in
+- The outdoor unit of each air conditioner is its own dot outside: put it against the house, on a flat roof or on the ground
+- A window where the roof is lower than the window becomes a roof window by itself
 - Display › House: The house as drawn. On: on Home, a room and the wall when nobody is looking your house as in Your home, with the real shape, your rooms with furniture and your devices. Off (as before): the dollhouse. It applies to you on every screen, and on the wall to whoever it follows
 - Home, a room and the screen when nobody is looking can draw the house as it is in Your home: the real shape, the plot, the buildings, furniture per room and your devices in place. For now to try out, with ?tekenaar=maat after the address (?tekenaar=poppenhuis switches back); the dollhouse stays
 - Your home › Shape: the street of your address is at the bottom, with Is that right?. With two streets by your home, choose in Where is the street which one is at the front, or pick a side yourself
@@ -319,6 +330,11 @@
 
 **Improved**
 
+- The house as drawn is bigger on Home: the garden is shortened, as in the dollhouse
+- Devices under the sloping roof no longer disappear, and furniture no longer runs through them
+- Lamps shine in their own colour; the border has shrubs and lights, and a garden lamp stands on a post
+- More rooms show their name in the drawing
+- Your home on the phone: the floors from bottom to top
 - You is now called Profile, in Settings, the search and everywhere the app points to it
 - The house as drawn loads without briefly showing the dollhouse first
 - Display opens right away under You, without going to Home first

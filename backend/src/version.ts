@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.219.1';
+export const VERSIE = '0.220.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,36 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.220.0',
+    datum: '2026-11-22',
+    nieuw: [
+      'Radiatoren in je huis: een radiatorknop hangt als radiator aan de muur, een kamer met cv krijgt er vanzelf een onder het raam, en bij Je huis › Apparaten zet Radiator erbij er meer neer',
+      'De buitenunit van elke airco is een eigen bolletje buiten: zet hem tegen het huis, op een plat dak of op de grond',
+      'Een raam waar het dak lager is dan het raam, wordt vanzelf een dakraam',
+    ],
+    beter: [
+      'Het huis zoals getekend staat groter op Thuis: de tuin is ingekort, zoals in het poppenhuis',
+      'Apparaten onder het schuine dak vallen niet meer weg, en meubels staan er niet meer doorheen',
+      'Lampen geven licht in hun eigen kleur; de border heeft struiken en lampjes, en een lamp in de tuin staat op een paaltje',
+      'Meer kamers hebben hun naam in de tekening',
+      'Je huis op de telefoon: de etages van beneden naar boven',
+    ],
+    en: {
+      nieuw: [
+        'Radiators in your home: a radiator valve hangs as a radiator on the wall, a room with central heating gets one under the window by itself, and under Your home › Devices Add a radiator puts more in',
+        'The outdoor unit of each air conditioner is its own dot outside: put it against the house, on a flat roof or on the ground',
+        'A window where the roof is lower than the window becomes a roof window by itself',
+      ],
+      beter: [
+        'The house as drawn is bigger on Home: the garden is shortened, as in the dollhouse',
+        'Devices under the sloping roof no longer disappear, and furniture no longer runs through them',
+        'Lamps shine in their own colour; the border has shrubs and lights, and a garden lamp stands on a post',
+        'More rooms show their name in the drawing',
+        'Your home on the phone: the floors from bottom to top',
+      ],
+    },
+  },
   {
     versie: '0.219.1',
     datum: '2026-11-22',
