@@ -1694,7 +1694,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     p.on('pageerror', (e) => fouten.push(e.message));
     const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
     const kamer = huis.etages.flatMap((e) => e.ruimtes).find((r) => r.apparaten.some((d) => d.meting?.beweging?.nu))!;
-    await p.goto(`${baseUrl}/kamer.html#${encodeURIComponent(kamer.id)}`);
+    // Het teken voor beweging staat (nog) alleen in het poppenhuis; het huis zoals getekend krijgt het in de verbeterronde (22-11).
+    await p.goto(`${baseUrl}/kamer.html?tekenaar=poppenhuis#${encodeURIComponent(kamer.id)}`);
     const rij = p.locator('#wand .meterrij', { hasText: 'Beweging, nu' });
     await rij.waitFor({ timeout: 10_000 });
     await p.locator('#wand .beweegt').first().waitFor();
@@ -4441,13 +4442,17 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await expect.poll(() => klasse('sc-groot')).toBe(true);
       await p.locator('#tel [data-jijregel]').click();
       await p.waitForURL(/jij\.html/);
-      await p.locator('#tel a[href="thuis.html#weergave"]').click();
-      await p.waitForURL(/thuis\.html/);
-      await blad.waitFor();
-      expect(await blad.getAttribute('aria-label')).toBe('Weergave');
-      await blad.locator('[data-wg-eenvoudig="false"]').click();
+      // Het blad Weergave opent op Jij zelf, zonder eerst naar Thuis (22 november 2026).
+      await p.locator('#tel [data-weergave-open]').click();
+      const jijBlad = p.locator('[data-blad]');
+      await jijBlad.locator('[data-wg-eenvoudig="false"]').waitFor();
+      expect(p.url()).toMatch(/jij\.html/);
+      expect(await jijBlad.locator('#bladkop').textContent()).toBe('Weergave');
+      await jijBlad.locator('[data-wg-eenvoudig="false"]').click();
       await expect.poll(async () => (await weergave()).eenvoudig).toBe(false);
-      await blad.locator('[data-blad-dicht]').click();
+      await expect.poll(() => jijBlad.locator('[data-wg-eenvoudig="false"]').getAttribute('aria-checked')).toBe('true');
+      await jijBlad.locator('[data-blad-dicht]').click();
+      await p.goto(`${baseUrl}/thuis.html`);
       await expect.poll(() => p.locator('#podium-tel .sc-label').count()).toBe(labelsVoor);
       expect(await p.locator('#tel [data-kaart="vandaag"] [data-dag] svg').isVisible()).toBe(true);
 
