@@ -241,15 +241,18 @@
       const ad = b.afdak;
       const [v0, v1] = ad.kant === 'voor' ? [b.v, b.v + ad.diep] : [b.v + b.d, b.v + b.d - ad.diep];
       const [u0, u1] = [b.u, b.u + b.b];
-      const onder = Math.min(lagen[Math.max(0, bg)]?.top ?? 2.5, ad.laag);
-      const dak = [[u0, v0, ad.laag], [u1, v0, ad.laag], [u1, v1, ad.hoog], [u0, v1, ad.hoog]];
+      // Onder de ramen van de etage erboven, zoals in kit/huis-maat.js (22 november 2026).
+      const hoogA = Math.min(ad.hoog, (lagen[Math.max(0, bg) + 1]?.z0 ?? lagen[Math.max(0, bg)]?.top ?? 2.5) + 0.75);
+      const laagA = Math.min(ad.laag, hoogA - 0.35);
+      const onder = Math.min(lagen[Math.max(0, bg)]?.top ?? 2.5, laagA);
+      const dak = [[u0, v0, laagA], [u1, v0, laagA], [u1, v1, hoogA], [u0, v1, hoogA]];
       if (st.dicht) {
         const dpA = (punten) => punten.reduce((n, q) => n + diep(q[0], q[1]), 0) / punten.length;
         const delen = [
           { p: dak, vul: '#52627f' },
-          { p: [[u0, v0, onder], [u0, v0, ad.laag], [u0, v1, ad.hoog], [u0, v1, onder]], vul: '#aab6c4' },
-          { p: [[u1, v0, onder], [u1, v0, ad.laag], [u1, v1, ad.hoog], [u1, v1, onder]], vul: '#aab6c4' },
-          { p: [[u0, v0, onder], [u1, v0, onder], [u1, v0, ad.laag], [u0, v0, ad.laag]], vul: '#cbd4dd' },
+          { p: [[u0, v0, onder], [u0, v0, laagA], [u0, v1, hoogA], [u0, v1, onder]], vul: '#aab6c4' },
+          { p: [[u1, v0, onder], [u1, v0, laagA], [u1, v1, hoogA], [u1, v1, onder]], vul: '#aab6c4' },
+          { p: [[u0, v0, onder], [u1, v0, onder], [u1, v0, laagA], [u0, v0, laagA]], vul: '#cbd4dd' },
         ];
         delen.sort((x, y) => dpA(y.p) - dpA(x.p));
         s += delen.map((x) => `<path d="${vlak(x.p)}" fill="${x.vul}" stroke="rgb(13 26 48 / 0.45)" stroke-width="0.8" stroke-linejoin="round"/>`).join('');

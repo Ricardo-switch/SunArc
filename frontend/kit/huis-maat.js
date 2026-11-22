@@ -1573,17 +1573,24 @@
       const [v0, v1] = a.kant === 'voor' ? [b.v, b.v + a.diep] : [b.v + b.d, b.v + b.d - a.diep];
       const [u0, u1] = [b.u, b.u + b.b];
       const bgTop = lagen[0]?.top ?? 2.5;
-      const onder = Math.min(bgTop, a.laag);
-      const dak = [[u0, v0, a.laag], [u1, v0, a.laag], [u1, v1, a.hoog], [u0, v1, a.hoog]];
+      /*
+       * Onder de ramen van de etage erboven (22 november 2026): de 3D-kaart gaf bij Ricardo 3,6 m, terwijl de ramen van de
+       * 1e op 0,9 m boven die vloer beginnen; het dakje liep door de ramen. Hooguit 0,75 m boven die vloer, en de lage kant
+       * blijft eronder zodat het dakje schuin blijft.
+       */
+      const hoog = Math.min(a.hoog, (lagen[1]?.z0 ?? bgTop) + 0.75);
+      const laag = Math.min(a.laag, hoog - 0.35);
+      const onder = Math.min(bgTop, laag);
+      const dak = [[u0, v0, laag], [u1, v0, laag], [u1, v1, hoog], [u0, v1, hoog]];
       const delen = [
-        { p: [[u0, v0, onder], [u1, v0, onder], [u1, v0, a.laag], [u0, v0, a.laag]], vul: '#cbd4dd', n: [0, a.kant === 'voor' ? -1 : 1] },
-        { p: [[u0, v0, onder], [u0, v0, a.laag], [u0, v1, a.hoog], [u0, v1, onder]], vul: '#aab6c4', n: [-1, 0] },
-        { p: [[u1, v0, onder], [u1, v0, a.laag], [u1, v1, a.hoog], [u1, v1, onder]], vul: '#aab6c4', n: [1, 0] },
+        { p: [[u0, v0, onder], [u1, v0, onder], [u1, v0, laag], [u0, v0, laag]], vul: '#cbd4dd', n: [0, a.kant === 'voor' ? -1 : 1] },
+        { p: [[u0, v0, onder], [u0, v0, laag], [u0, v1, hoog], [u0, v1, onder]], vul: '#aab6c4', n: [-1, 0] },
+        { p: [[u1, v0, onder], [u1, v0, laag], [u1, v1, hoog], [u1, v1, onder]], vul: '#aab6c4', n: [1, 0] },
       ].filter((x) => naarKijker(...x.n));
       for (const x of delen.sort((p1, p2) => dp(p2.p) - dp(p1.p))) s += `<path d="${vlak(x.p)}" fill="${x.vul}" stroke="rgb(13 26 48 / 0.45)" stroke-width="0.8" stroke-linejoin="round"/>`;
       s += `<path d="${vlak(dak)}" fill="#55657f" stroke="rgb(13 26 48 / 0.5)" stroke-width="0.8" stroke-linejoin="round"/>`;
       // Een paar lijnen over het dakje, langs de helling.
-      for (let f = 0.12; f < 0.95; f += 0.12) s += `<path d="M${pt(u0 + (u1 - u0) * f, v0, a.laag)}L${pt(u0 + (u1 - u0) * f, v1, a.hoog)}" stroke="#7e8da6" stroke-opacity="0.5" stroke-width="0.7"/>`;
+      for (let f = 0.12; f < 0.95; f += 0.12) s += `<path d="M${pt(u0 + (u1 - u0) * f, v0, laag)}L${pt(u0 + (u1 - u0) * f, v1, hoog)}" stroke="#7e8da6" stroke-opacity="0.5" stroke-width="0.7"/>`;
     }
     // Het dak aan de kant van de kijker: glas met de lijnen erop.
     for (const d of metDak ? daken : []) {
