@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.222.1
+## 0.223.0
 
-*22 november 2026 · 0.179.0 – 0.222.1*
+*22 november 2026 · 0.179.0 – 0.223.0*
 
 **Nieuw**
 
@@ -92,6 +92,7 @@
 
 **Beter**
 
+- Onder de motorkap: de tekenaar van Je huis is opgesplitst in kleinere delen; je merkt er niets van
 - Het huis zoals getekend draait op Thuis: veeg opzij, na 20 seconden staat het weer recht
 - Op de telefoon het hele huis met de stroom, het getal van je panelen en de baan van de zon
 - Tik ergens in een kamer om hem te openen, niet alleen op de vloer
@@ -344,6 +345,7 @@
 
 **Improved**
 
+- Under the hood: the drawing tool of Your home is split into smaller parts; you will not notice it
 - The house as drawn turns on Home: swipe sideways, after 20 seconds it is straight again
 - On the phone the whole house with the power, the number for your panels and the path of the sun
 - Tap anywhere in a room to open it, not just on the floor
