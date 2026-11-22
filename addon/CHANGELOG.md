@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.221.0
+## 0.222.0
 
-*22 november 2026 · 0.179.0 – 0.221.0*
+*22 november 2026 · 0.179.0 – 0.222.0*
 
 **Nieuw**
 
@@ -92,6 +92,11 @@
 
 **Beter**
 
+- Het huis zoals getekend draait op Thuis: veeg opzij, na 20 seconden staat het weer recht
+- Op de telefoon het hele huis met de stroom, het getal van je panelen en de baan van de zon
+- Tik ergens in een kamer om hem te openen, niet alleen op de vloer
+- De droger staat met zijn voorkant naar je toe, en elke kamer heeft zijn naam
+- Het tandwiel van Instellingen is rond
 - Het huis zoals getekend laat het weer zien: wolken, regen en sneeuw, ook op de daken, en de feestdagen
 - Op Thuis loopt de baan van de zon om het huis; het scherm als niemand kijkt toont 's avonds de maan en de sterren
 - De stroom van nu: van het net via de aansluitkast aan de straat, van je panelen, terug naar het net, naar de auto en de thuisaccu; tik op een lijn of label voor de energiekaart
@@ -196,6 +201,7 @@
 
 **Opgelost**
 
+- Bij Je huis › Vorm stond het draaiende icoon door de tekst De kaarten zoeken
 - Een raam onder een dakkapel werd als dakraam over de dakkapel getekend
 - Een kamer met vloerverwarming kreeg vanzelf een radiator
 - Het tuinhuis: de pui zit onder het overstek, en de palen lopen door tot het dak
@@ -337,6 +343,11 @@
 
 **Improved**
 
+- The house as drawn turns on Home: swipe sideways, after 20 seconds it is straight again
+- On the phone the whole house with the power, the number for your panels and the path of the sun
+- Tap anywhere in a room to open it, not just on the floor
+- The dryer faces you, and every room shows its name
+- The Settings gear is round
 - The house as drawn shows the weather: clouds, rain and snow, on the roofs too, and the holidays
 - On Home the path of the sun runs around the house; the screen when nobody is looking shows the moon and stars in the evening
 - The power right now: from the grid through the meter box at the street, from your panels, back to the grid, to the car and the home battery; tap a line or label for the energy card
@@ -441,6 +452,7 @@
 
 **Fixed**
 
+- Under Your home › Shape the spinning icon ran through the text The maps are searching
 - A window under a dormer was drawn as a roof window over the dormer
 - A room with underfloor heating got a radiator by itself
 - The garden house: the glass front sits under the canopy, and the posts run up to the roof

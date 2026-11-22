@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.221.0';
+export const VERSIE = '0.222.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,32 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.222.0',
+    datum: '2026-11-22',
+    beter: [
+      'Het huis zoals getekend draait op Thuis: veeg opzij, na 20 seconden staat het weer recht',
+      'Op de telefoon het hele huis met de stroom, het getal van je panelen en de baan van de zon',
+      'Tik ergens in een kamer om hem te openen, niet alleen op de vloer',
+      'De droger staat met zijn voorkant naar je toe, en elke kamer heeft zijn naam',
+      'Het tandwiel van Instellingen is rond',
+    ],
+    opgelost: [
+      'Bij Je huis › Vorm stond het draaiende icoon door de tekst De kaarten zoeken',
+    ],
+    en: {
+      beter: [
+        'The house as drawn turns on Home: swipe sideways, after 20 seconds it is straight again',
+        'On the phone the whole house with the power, the number for your panels and the path of the sun',
+        'Tap anywhere in a room to open it, not just on the floor',
+        'The dryer faces you, and every room shows its name',
+        'The Settings gear is round',
+      ],
+      opgelost: [
+        'Under Your home › Shape the spinning icon ran through the text The maps are searching',
+      ],
+    },
+  },
   {
     versie: '0.221.0',
     datum: '2026-11-22',
