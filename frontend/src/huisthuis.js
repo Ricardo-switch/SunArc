@@ -322,29 +322,54 @@
     }
     const voortuin = plek('voortuin')[0];
     /*
-     * De buitenunits: buiten, op de grond tegen de gevel het dichtst bij zijn airco (de plek uit Je huis), niet tegen de
-     * buren, en aan de straat alleen als het niet anders kan; aan als zijn airco draait. Zoveel als er buitenunits zijn.
+     * De buitenunits (22 november 2026, besluit 333): elke airco heeft een eigen bolletje buiten (`buitenunit:<airco>`).
+     * Waar de bewoner hem neerzette, bepaalt hoe hij hangt: tegen het huis aan de muur op de hoogte van zijn airco, op een
+     * gebouw met een plat dak (garage, carport) op dat dak, anders op de grond. Zonder eigen plek: aan de gevel het dichtst
+     * bij zijn airco (niet tegen de buren, aan de straat alleen als het niet anders kan), op de grond bij de begane grond,
+     * hoger op een beugel. Verborgen: geen buitenunit.
      */
     const units = [];
+    const binnenE = tk.huis.etages.filter((e) => !e.buiten);
+    const benedenI = binnenE.findIndex((e) => e.id === (tk.huis.beneden ?? 'bg'));
+    /** Op welke hoogte de vloer van een etage ligt (de begane grond op 0). */
+    const vloerZ = (id) => {
+      const i = binnenE.findIndex((e) => e.id === id);
+      if (i < 0 || benedenI < 0) return 0;
+      let z = 0;
+      for (let j = benedenI - 1; j >= i; j--) z += binnenE[j + 1]?.hoogte ?? 2.6;
+      return i < benedenI ? z : 0;
+    };
     const aircos = tk.st.apparaten.filter((a) => a.soort === 'airco');
-    const aantalUnits = Math.min(model.buitenunit?.aantal ?? 0, Math.max(1, aircos.length));
-    if (huisDoos && aantalUnits) {
+    if (huisDoos) {
       const gebruikt = [];
-      for (let i = 0; i < aantalUnits; i++) {
-        const a = aircos[i];
-        const [ax, ay] = a?.plek ? [m(a.plek.x), m(a.plek.y)] : [huisDoos.x + huisDoos.b / 2, huisDoos.y + huisDoos.d];
+      for (const a of aircos) {
+        const bu = tk.st.apparaten.find((x) => x.id === `buitenunit:${a.id}`);
+        if (!bu) continue;
+        const za = a.plek ? vloerZ(a.plek.etage) : 0;
+        const hoog = za > 0.5 ? za + 0.5 : 0.12;
+        const aan = aanSet.has(a.id);
+        if (erfE && bu.plek?.etage === erfE.id) {
+          const [px, py] = [m(bu.plek.x), m(bu.plek.y)];
+          const opDak = gebouwen.find((g) => (g.soort === 'garage' || g.soort === 'carport') && px > g.x + 0.3 && px < g.x + g.b - 0.3 && py > g.y + 0.3 && py < g.y + g.d - 0.3);
+          const w = opMuur(px, py, [huisDoos], 0.6);
+          if (opDak) units.push({ x: px, y: py, n: [0, -1], z: Number(opDak.h) + 0.02, aan });
+          else if (w && w.afst < 0.9) units.push({ x: w.x + w.n[0] * 0.02, y: w.y + w.n[1] * 0.02, n: w.n, z: hoog, aan });
+          else units.push({ x: px, y: py, n: w?.n ?? [0, 1], z: 0.12, aan, los: true });
+          continue;
+        }
+        const [ax, ay] = a.plek ? [m(a.plek.x), m(a.plek.y)] : [huisDoos.x + huisDoos.b / 2, huisDoos.y + huisDoos.d];
         let best = null;
         for (const w of gevels(huisDoos)) {
           let l = Math.max(w.van + 0.6, Math.min(w.tot - 0.6, w.as === 'x' ? ax : ay));
-          // Niet op een unit die er al staat.
-          for (const u of gebruikt) if (u.kant === w.kant && Math.abs(u.l - l) < 1.0) l = Math.min(w.tot - 0.6, u.l + 1.0);
+          // Niet op een unit die er al staat (op dezelfde hoogte).
+          for (const u of gebruikt) if (u.kant === w.kant && Math.abs(u.l - l) < 1.0 && Math.abs(u.z - hoog) < 0.8) l = Math.min(w.tot - 0.6, u.l + 1.0);
           const [px, py] = w.as === 'x' ? [l, w.vast] : [w.vast, l];
           const afst = Math.hypot(px - ax, py - ay) + (w.kant === 'voor' ? 3 : 0);
-          if (!best || afst < best.afst) best = { x: px + w.n[0] * 0.02, y: py + w.n[1] * 0.02, n: w.n, kant: w.kant, l, afst };
+          if (!best || afst < best.afst) best = { x: px + w.n[0] * 0.02, y: py + w.n[1] * 0.02, n: w.n, kant: w.kant, l, afst, z: hoog };
         }
         if (!best) continue;
         gebruikt.push(best);
-        units.push({ x: best.x, y: best.y, n: best.n, aan: !!a && aanSet.has(a.id) });
+        units.push({ x: best.x, y: best.y, n: best.n, z: hoog, aan });
       }
     }
     /*

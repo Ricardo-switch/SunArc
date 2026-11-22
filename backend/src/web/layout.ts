@@ -317,18 +317,18 @@ function leesMeten(waarde: unknown, known: Pick<LayoutKnown, 'deviceIds' | 'opvo
 }
 
 /**
- * Een radiator in de tekening (22 november 2026, besluit 333): `radiator:<kamer>`
- * of `radiator:<kamer>:<n>`. Hij bestaat niet in Home Assistant, maar wel in Je
- * huis, met een plek; daarom valt hij bij het bewaren niet weg en kun je hem
- * verbergen.
+ * Wat alleen in de tekening bestaat (22 november 2026, besluit 333): een radiator
+ * (`radiator:<kamer>` of `radiator:<kamer>:<n>`) en de buitenunit van een airco
+ * (`buitenunit:<airco>`). Ze bestaan niet in Home Assistant, maar wel in Je huis,
+ * met een plek; daarom vallen ze bij het bewaren niet weg en kun je ze verbergen.
  */
-export const RADIATOR_ID = /^radiator:[A-Za-z0-9_-]{1,60}(?::\d{1,3})?$/;
+export const EIGEN_ID = /^(?:radiator|buitenunit):[A-Za-z0-9_.-]{1,80}(?::\d{1,3})?$/;
 
 export function carryOver(apparaten: Readonly<Record<string, unknown>>, known: Pick<LayoutKnown, 'deviceIds' | 'opvolgers'>): Record<string, unknown> {
   const kept: Record<string, unknown> = {};
   const moved: Record<string, unknown> = {};
   for (const [id, v] of Object.entries(apparaten)) {
-    if (known.deviceIds.has(id) || RADIATOR_ID.test(id)) {
+    if (known.deviceIds.has(id) || EIGEN_ID.test(id)) {
       kept[id] = v;
       continue;
     }
@@ -609,7 +609,7 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
   // Verbergen kan alleen wat het huis kent; wat het niet meer kent, valt weg, net als hierboven.
   const verborgenIn = b['verborgen'] ?? [];
   if (!Array.isArray(verborgenIn) || verborgenIn.length > MAX_DEVICES) return { ok: false, reden: `verborgen is een lijst van hooguit ${MAX_DEVICES} apparaten` };
-  const verborgen = [...new Set(verborgenIn.filter((id): id is string => typeof id === 'string' && (known.deviceIds.has(id) || RADIATOR_ID.test(id))))];
+  const verborgen = [...new Set(verborgenIn.filter((id): id is string => typeof id === 'string' && (known.deviceIds.has(id) || EIGEN_ID.test(id))))];
 
   const dak = b['dak'];
   if (dak !== undefined && dak !== 'geen' && (typeof dak !== 'string' || dak === OUTSIDE_FLOOR || !bekend(dak))) return { ok: false, reden: 'dak is een etage binnen, of geen' };

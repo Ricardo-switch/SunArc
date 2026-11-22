@@ -5,7 +5,7 @@
  * context `d` in plaats van de webserver zelf.
  */
 
-import { OUTSIDE_FLOOR, RADIATOR_ID, floorName, floorOrder, standardFloors } from '../layout.js';
+import { OUTSIDE_FLOOR, EIGEN_ID, floorName, floorOrder, standardFloors } from '../layout.js';
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { brugVerzoek, totWanneer } from '../klimaatbrug.js';
@@ -614,13 +614,33 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
    * is zelf een radiator in de tekening. Weghalen gaat met Verbergen.
    */
   const radiatorNaam = 'Radiator';
+  // Wat de bewoner verborg, staat niet in de tekening maar in de lijst om terug te halen.
+  const verborgenIds = new Set(basis.verborgen ?? []);
+  const eigenVerborgen: { id: string; naam: string; soort: string }[] = [];
+  const eigen = (x: (typeof alle)[number]) => (verborgenIds.has(x.id) ? eigenVerborgen.push({ id: x.id, naam: x.naam, soort: x.soort }) : alle.push(x));
   for (const r of binnen.flatMap((e) => e.ruimtes)) {
     const cv = r.apparaten.some((a) => a.soort === 'klimaat' && !a.klimaat?.kanKoelen && !a.radiatorknop);
     const knop = r.apparaten.some((a) => a.radiatorknop);
-    if (cv && !knop) alle.push({ id: `radiator:${r.id}`, naam: radiatorNaam, soort: 'radiator', kamer: r.id, hoortBij: undefined });
+    if (cv && !knop) eigen({ id: `radiator:${r.id}`, naam: radiatorNaam, soort: 'radiator', kamer: r.id, hoortBij: undefined });
   }
   for (const [id, a] of Object.entries(basis.apparaten)) {
-    if (/^radiator:.+:\d+$/.test(id) && RADIATOR_ID.test(id) && kamerIds.has(a.kamer)) alle.push({ id, naam: a.naam ?? radiatorNaam, soort: 'radiator', kamer: a.kamer, hoortBij: undefined });
+    if (/^radiator:.+:\d+$/.test(id) && EIGEN_ID.test(id) && kamerIds.has(a.kamer)) eigen({ id, naam: a.naam ?? radiatorNaam, soort: 'radiator', kamer: a.kamer, hoortBij: undefined });
+  }
+  /*
+   * De buitenunit van elke airco (22 november 2026, besluit 333): een eigen bolletje buiten. Waar de bewoner hem neerzet,
+   * bepaalt hoe hij hangt (tegen het huis aan de muur, op een plat dak, of op de grond); zolang hij niet verzet is, kiest de
+   * tekening zelf. Hij begint in de tuin (of het eerste deel buiten), zonder eigen plek.
+   */
+  const erfRuimtes = erf?.ruimtes ?? [];
+  const beginBuiten = erfRuimtes.find((r) => /tuin/.test(r.soort ?? '') || /tuin/.test(r.id))?.id ?? erfRuimtes[0]?.id ?? null;
+  for (const r of binnen.flatMap((e) => e.ruimtes)) {
+    for (const a of r.apparaten) {
+      if (tekenSoort(a) !== 'airco') continue;
+      const id = `buitenunit:${a.id}`;
+      if (!EIGEN_ID.test(id)) continue;
+      const kamer = basis.apparaten[id]?.kamer ?? beginBuiten;
+      if (kamer) eigen({ id, naam: `${taal === 'en' ? 'Outdoor unit' : 'Buitenunit'} ${a.naam}`, soort: 'buitenunit', kamer: deelVan(id, kamer), hoortBij: undefined });
+    }
   }
   // Eén apparaat, één bolletje (20 november 2026): een bijfunctie staat niet los in de tekening, maar in het blad van zijn hoofd.
   const bijVan = bijfuncties(alle);
@@ -672,9 +692,9 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     zones: zoneLijnen,
     plekken,
     apparaten,
-    verborgen: huis.verborgen.length,
+    verborgen: huis.verborgen.length + eigenVerborgen.length,
     // Stap 3: de verborgen apparaten met hun naam, om ze in Je huis terug te halen, en of er een thuisaccu is (waar hij staat, bij Buiten).
-    verborgenLijst: huis.verborgen.map((a) => ({ id: a.id, naam: a.naam, soort: a.soort })),
+    verborgenLijst: [...huis.verborgen.map((a) => ({ id: a.id, naam: a.naam, soort: a.soort })), ...eigenVerborgen],
     thuisaccu: huis.opslag?.batterij?.naam ?? null,
   });
 }

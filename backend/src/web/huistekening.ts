@@ -224,7 +224,7 @@ export interface Plek {
  * het midden). Een klimaatapparaat dat kan koelen is een airco, anders een
  * thermostaat.
  */
-export type TekenSoort = 'airco' | 'thermostaat' | 'licht' | 'screen' | 'meter' | 'beweging' | 'camera' | 'rookmelder' | 'boiler' | 'jacuzzi' | 'witgoed' | 'radiator' | 'stekker';
+export type TekenSoort = 'airco' | 'thermostaat' | 'licht' | 'screen' | 'meter' | 'beweging' | 'camera' | 'rookmelder' | 'boiler' | 'jacuzzi' | 'witgoed' | 'radiator' | 'buitenunit' | 'stekker';
 
 /**
  * Een meter die beweging ziet, is in de tekening een bewegingsmelder (20

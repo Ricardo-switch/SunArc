@@ -56,8 +56,8 @@
   const EIGEN_BUITEN = [['berging', 'schuur'], ['berging', 'fietsenhok'], ['berging', 'kas'], ['berging', 'pad']];
   /** [soort, naam] in de taal van de app; buiten andere namen. */
   const eigenNamen = (buiten = false) => (buiten ? EIGEN_BUITEN : EIGEN_SLEUTELS).map(([soort, k]) => [soort, T(`ht.eigen.${k}`)]);
-  const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', witgoed: '#c9d4df', radiator: '#ff9a6b', koffie: '#f7b548', camera: '#a99cff', beweging: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff', rookmelder: '#ff9a6b', boiler: '#ff9a6b', jacuzzi: '#6fd3ff' };
-  const APP_ICOON = { meter: 'klimaat', radiator: 'verwarming' };
+  const APP_KLEUR = { licht: '#f7b548', airco: '#6fd3ff', screen: '#6fd3ff', meter: '#ff9a6b', thermostaat: '#ff9a6b', stekker: '#f7b548', witgoed: '#c9d4df', radiator: '#ff9a6b', buitenunit: '#6fd3ff', koffie: '#f7b548', camera: '#a99cff', beweging: '#a99cff', auto: '#9aaabb', accu: '#6ee7b7', droger: '#6fd3ff', vaat: '#6fd3ff', rookmelder: '#ff9a6b', boiler: '#ff9a6b', jacuzzi: '#6fd3ff' };
+  const APP_ICOON = { meter: 'klimaat', radiator: 'verwarming', buitenunit: 'airco' };
   /**
    * Eén apparaat, één bolletje (20 november 2026): wat er ook in een apparaat
    * zit, zoals de schijnwerper en de bewegingsmelder van een camera. De naam

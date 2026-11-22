@@ -815,8 +815,21 @@
     /** Een buitenunit van een airco tegen de muur, uit de vaste lijst; de ventilator draait als hij aan is. */
     const unit = (u) => {
       const [nx, ny] = u.n ?? [0, 1];
-      const pl = Math.abs(nx) > Math.abs(ny) ? { x: u.x, y: u.y, z: 0.12, wand: 'x', kant: Math.sign(nx) } : { x: u.x, y: u.y, z: 0.12, wand: 'y', kant: Math.sign(ny) };
-      return zetModel('buitenunit', pl, { aan: !!u.aan })?.s ?? '';
+      const z = u.z ?? 0.12;
+      const pl = Math.abs(nx) > Math.abs(ny) ? { x: u.x, y: u.y, z, wand: 'x', kant: Math.sign(nx) } : { x: u.x, y: u.y, z, wand: 'y', kant: Math.sign(ny) };
+      const md = zetModel('buitenunit', pl, { aan: !!u.aan });
+      if (!md) return '';
+      // Hoger dan de grond en tegen de muur: op een beugel (22 november 2026, besluit 333).
+      let beugel = '';
+      if (z > 0.5 && !u.los) {
+        for (const a of [-0.3, 0.3]) {
+          const v0 = P(...md.W(a, 0, -0.03));
+          const v1 = P(...md.W(a, 0.42, -0.03));
+          const v2 = P(...md.W(a, 0, -0.32));
+          beugel += `<path d="M${v2[0].toFixed(1)} ${v2[1].toFixed(1)}L${v0[0].toFixed(1)} ${v0[1].toFixed(1)}L${v1[0].toFixed(1)} ${v1[1].toFixed(1)}Z" fill="none" stroke="#7d8b9b" stroke-width="1.2" stroke-linejoin="round"/>`;
+        }
+      }
+      return beugel + md.s;
     };
     /** Een laadpaal: een smalle kast met een groen lampje; laadt hij, dan loopt er een kabel naar de auto. */
     /** Een laadpaal tegen een muur, uit de vaste lijst; laadt hij, dan een groen lampje en een kabel naar de auto. */
