@@ -121,3 +121,30 @@ code, .mo-code { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace
 .mo-blader button { flex: 1; height: 36px; border-radius: 11px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.05); color: var(--tekst); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
 .mo-blader button:disabled { opacity: 0.4; cursor: default; }
 .mo-tijd .rij i { cursor: pointer; }
+
+/* ---------------------------------------------------------------- de telefoon: alles onder elkaar */
+[data-scherm='tel'] .mo { padding: 18px 16px 110px; gap: 12px; }
+[data-scherm='tel'] .mo-kop { flex-direction: column; align-items: stretch; gap: 12px; }
+[data-scherm='tel'] .mo-kop .kop-1 { font-size: 34px; margin: 4px 0 0; }
+[data-scherm='tel'] .mo-onder { font-size: 13.5px; }
+[data-scherm='tel'] .mo-rechts { flex-direction: column; align-items: stretch; gap: 8px; }
+[data-scherm='tel'] .mo-rechts .chips.seg { display: flex; }
+[data-scherm='tel'] .mo-rechts .chips.seg > .chip { min-width: 0; flex: 1 1 0; padding: 0 4px; font-size: 13.5px; }
+[data-scherm='tel'] .mo-kopie { height: 40px; }
+[data-scherm='tel'] .mo-deel,
+[data-scherm='tel'] .mo-deel.nu,
+[data-scherm='tel'] .mo-deel.vandaag,
+[data-scherm='tel'] .mo-deel.geleerd,
+[data-scherm='tel'] .mo-deel.vergelijken { display: flex; flex-direction: column; gap: 12px; }
+[data-scherm='tel'] .mo-kol { display: contents; }
+[data-scherm='tel'] .mo-kaart { order: var(--o, 9); padding: 14px 16px; }
+[data-scherm='tel'] .mo-vul { overflow: visible; }
+[data-scherm='tel'] .mo-breed2, [data-scherm='tel'] .mo-breed3 { grid-column: auto; }
+[data-scherm='tel'] .mo-groot { font-size: 34px; }
+[data-scherm='tel'] .mo-pct { font-size: 46px; }
+[data-scherm='tel'] .mo-staaf { grid-template-columns: 112px minmax(0, 1fr) 40px; }
+/* Vandaag: de tijdlijn schuift opzij, de namen blijven links staan. */
+[data-scherm='tel'] .mo-tijd { grid-template-columns: 92px 680px; overflow-x: auto; gap: 8px 8px; padding-bottom: 6px; scrollbar-width: none; }
+[data-scherm='tel'] .mo-tijd .naam { position: sticky; left: 0; z-index: 2; font-size: 12.5px; padding-right: 6px; background: linear-gradient(90deg, #22314a 80%, transparent); align-self: stretch; display: flex; align-items: center; justify-content: flex-end; }
+[data-scherm='tel'] .mo-tijd .rij { height: 28px; }
+[data-scherm='tel'] .mo-tijd .scheid { position: sticky; left: 0; }

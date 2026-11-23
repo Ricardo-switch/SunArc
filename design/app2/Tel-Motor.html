@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · De motor (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="motor.css">
+<style>
+  /*
+   * De motor op de telefoon (schets, 23 november 2026). Dezelfde vier delen en dezelfde inhoud als op de wand
+   * (Wand-Motor.html, motor-schets.js), de kaarten onder elkaar. In Nu eerst wat hij besluit, dan wat de kamers
+   * vragen, dan het verdelen en wat hij meet. In Vandaag schuift de tijdlijn opzij en staat hij op nu; de namen
+   * blijven staan. ?deel=vandaag (of geleerd, vergelijken) opent een ander deel.
+   */
+  body { margin: 0; width: 390px; min-height: 844px; }
+  .tel { overflow: hidden; }
+  .tel .tabs { position: fixed; }
+</style>
+</head>
+<body data-scherm="tel">
+<div class="tel lucht lucht-ochtend">
+  <main class="mo">
+    <header class="mo-kop">
+      <div>
+        <a class="mo-terug" href="#">‹ Over deze app</a>
+        <h1 class="kop-1">De motor</h1>
+        <p class="mo-onder" data-onder></p>
+      </div>
+      <div class="mo-rechts">
+        <div class="chips seg" data-delen></div>
+        <button type="button" class="mo-kopie" data-kopie>Kopieer de stand</button>
+      </div>
+    </header>
+    <section class="mo-deel" data-deel></section>
+  </main>
+  <nav class="tabs" id="tabs" aria-label="Hoofdmenu"></nav>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="motor-schets.js"></script>
+<script>
+  nav.tabs(document.getElementById('tabs'), null);
+</script>
+</body>
+</html>

@@ -125,7 +125,7 @@
   function tekenNu() {
     const r = ronde;
     const b = r.budget;
-    const meet = `<section class="glas mo-kaart"><h2>Wat hij meet <small>ronde ${esc(r.tijd)}</small></h2>
+    const meet = `<section class="glas mo-kaart" style="--o: 4"><h2>Wat hij meet <small>ronde ${esc(r.tijd)}</small></h2>
       ${rij('Stand', esc(r.stand.woord), r.stand.code, `${r.stand.bronWoord}${r.stand.thuis ? ', iemand thuis' : ', niemand thuis'}`)}
       ${rij('Buiten', `${nl(r.buitenC)}°`)}
       ${rij('Zon', W(r.zonW))}
@@ -134,23 +134,23 @@
       ${r.accu ? `<div class="mo-rij"><span>Thuisaccu</span><b>${r.accu.pct}% · levert ${nl(-r.accu.w / 1000)} kW</b><div class="mo-balk"><i style="width: ${r.accu.pct}%; background: var(--mint)"></i></div></div>` : ''}
       <div class="mo-veilig">${r.failsafe.actief ? tag('nee', 'terugvallen actief') : tag('goed', 'terugvallen niet nodig')}${r.failsafe.onbetrouwbaar.length ? tag('nee', 'meting twijfelt') : tag('goed', 'metingen betrouwbaar')}${tag('', r.hand.length ? `met de hand: ${r.hand.join(', ')}` : 'niets met de hand')}</div>
     </section>
-    <section class="glas mo-kaart"><h2>Op zon, naast de motor <small>los van het besluit</small></h2>
+    <section class="glas mo-kaart" style="--o: 5"><h2>Op zon, naast de motor <small>los van het besluit</small></h2>
       ${r.ernaast.map((x) => `<div class="mo-besluit"><span class="ik">${ik(x.ik)}</span><b>${esc(x.naam)}</b>${tag(x.tag[0], x.tag[1])}<span class="zin">${esc(x.zin)} <code>${esc(x.code)}</code></span></div>`).join('')}
     </section>
-    <section class="glas mo-kaart"><h2>De oude regeling <small>tot de overstap</small></h2><p class="mo-zin" style="margin: 0">${esc(r.oud)}</p></section>`;
+    <section class="glas mo-kaart" style="--o: 6"><h2>De oude regeling <small>tot de overstap</small></h2><p class="mo-zin" style="margin: 0">${esc(r.oud)}</p></section>`;
 
     const delen = [['Airco woonkamer', 900, 'var(--gloed)']];
-    const verdeel = `<section class="glas mo-kaart"><h2>Wat er te verdelen is <small>budget</small></h2>
+    const verdeel = `<section class="glas mo-kaart" style="--o: 3"><h2>Wat er te verdelen is <small>budget</small></h2>
       <div class="mo-groot">${Math.round(b.beschikbaar).toLocaleString('nl-NL')}<small>W</small></div>
       <div class="mo-stapel">${delen.map(([n, w, k]) => `<i style="width: ${(w / b.beschikbaar) * 100}%; background: ${k}">${w >= 300 ? esc(n) : ''}</i>`).join('')}</div>
       <div class="mo-leg">${delen.map(([n, w, k]) => `<span style="--k: ${k}">${esc(n)} ${W(w)}</span>`).join('')}<span style="--k: rgb(255 255 255 / 0.15)">vrij ${W(b.beschikbaar - b.toegewezen)}</span></div>
       <div style="margin-top: 8px">${rij('Toegewezen', W(b.toegewezen), 'allocatedW')}${rij('Overschot', W(b.overschot), 'surplusW')}${rij('Terug te halen', W(b.terug), 'reclaimableW', 'als hij iets uitzet')}</div>
     </section>
-    <section class="glas mo-kaart mo-vul"><h2>Wat elke kamer vraagt</h2>
+    <section class="glas mo-kaart mo-vul" style="--o: 2"><h2>Wat elke kamer vraagt</h2>
       ${r.zones.map((z) => `<div class="mo-kamer"><b>${esc(z.naam)}</b><span class="t">${nl(z.t)}° <small>naar ${nl(z.doel)}°</small></span><span>${z.vraag === 'warm' ? tag('warm', 'vraagt warmte') : z.vraag === 'koel' ? tag('koel', 'vraagt koelte') : tag('', 'vraagt niets')} ${esc(z.zin)} <code>${esc(z.code)}</code></span></div>`).join('')}
     </section>`;
 
-    const besluit = `<section class="glas mo-kaart mo-vul"><h2>Wat hij besluit <small>zou doen · kijkt mee</small></h2>
+    const besluit = `<section class="glas mo-kaart mo-vul" style="--o: 1"><h2>Wat hij besluit <small>zou doen · kijkt mee</small></h2>
       ${r.besluit.map((x) => `<div class="mo-besluit"><span class="ik">${ik(x.ik)}</span><b>${esc(x.naam)}</b>${tag(x.actie === 'heat' ? 'warm' : x.actie === 'cool' ? 'koel' : '', x.woord)}<span class="zin">${esc(x.regelWoord)}${x.w ? ` · ${W(x.w)}` : ''} · voorrang ${x.prio} <code>${esc(x.regel)}</code><br>Nu: ${esc(x.nuWoord)} <code>${esc(x.nu)}</code></span></div>`).join('')}
       <div class="mo-tussen">Afgewezen</div>
       ${r.afgewezen.map((x) => `<div class="mo-besluit"><span class="ik">${ik(x.ik)}</span><b>${esc(x.naam)}</b>${tag('nee', x.actie === 'off' ? 'Uit: nee' : 'Aan: nee')}<span class="zin">${esc(x.zin)} <code>${esc(x.code)}</code></span></div>`).join('')}
@@ -212,6 +212,9 @@
     const el = document.querySelector('[data-deel]');
     el.className = `mo-deel ${deel}`;
     el.innerHTML = deel === 'vandaag' ? tekenVandaag() : deel === 'geleerd' ? tekenGeleerd() : deel === 'vergelijken' ? tekenVergelijken() : tekenNu();
+    // Op de telefoon schuift de tijdlijn opzij: het gekozen kwartier in beeld.
+    const tl = el.querySelector('.mo-tijd');
+    if (tl && tl.scrollWidth > tl.clientWidth) tl.scrollLeft = Math.max(0, ((gekozen + 4) / 96) * (tl.scrollWidth - 96) - tl.clientWidth + 96);
   }
   document.addEventListener('click', (e) => {
     const naar = e.target.closest?.('[data-naar]');
