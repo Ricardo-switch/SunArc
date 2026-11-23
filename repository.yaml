@@ -1,0 +1,5 @@
+# Het kanaal beta van SunArc (besluit 336), voor de proefhuizen.
+# De CI schrijft deze tak zelf; niet met de hand bijwerken.
+name: SunArc OS beta
+url: https://github.com/Ricardo-switch/SunArc
+maintainer: Ricardo Cornelissen

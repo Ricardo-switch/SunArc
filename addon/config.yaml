@@ -1,0 +1,128 @@
+# Gemaakt door de CI uit de tak beta (besluit 336). Niet met de hand bijwerken.
+
+# Het manifest van de Home Assistant-add-on.
+#
+# Dit bestand is de hele reden dat de add-on bestaat naast de compose-uitrol op
+# de NAS: het beschrijft aan de Supervisor wat de dienst nodig heeft, en de
+# Supervisor regelt de rest. Zie besluit 34.
+#
+# Drie dingen die hij ons gratis geeft, en die we anders zelf hadden moeten
+# bouwen:
+#
+#  1. Een token. `SUPERVISOR_TOKEN` staat in de omgeving en Home Assistant is
+#     bereikbaar op `ws://supervisor/core/websocket`. Geen long-lived token meer
+#     dat je moet plakken, dat verloopt, of dat in een .env belandt.
+#  2. Authenticatie voor de weergave. Met `ingress` zit de pagina achter de
+#     inlog van Home Assistant zelf. Dat schrapt het openstaande punt uit
+#     besluit 23 — de weergave had geen enkele beveiliging.
+#  3. Meerdere architecturen, herstartbeleid en logboekbeheer.
+
+name: SunArc beta
+# Gelijk aan VERSIE in backend/src/version.ts; een test houdt ze gelijk. De
+# Supervisor ziet een update zodra dit nummer op `main` omhooggaat, en haalt dan
+# het image met dat nummer op (besluit 153).
+version: 0.229.0-beta
+slug: hems_climate
+description: >-
+  Klimaat en zon in één app: kijkt mee met je verwarming, airco's en
+  zonnepanelen, legt elk besluit vast en laat zien wat het huis zou doen.
+  Lampen, scènes en schermen bedien je vanuit de app.
+url: https://github.com/Ricardo-switch/SunArc
+# Experimenteel tot stap B (besluit 236): SunArc kijkt mee en regelt het
+# klimaat nog niet zelf. Home Assistant zet er een label bij.
+stage: experimental
+
+# Kant-en-klaar gebouwd door GitHub (`.github/workflows/addon.yml`), zodat de
+# Pi bij een update niets zelf hoeft te bouwen. Eén naam voor beide soorten
+# (besluit 242); Docker kiest zelf het image dat bij de machine past.
+image: ghcr.io/ricardo-switch/hems-climate
+
+# De Pi is aarch64; amd64 voor een gewone pc of NUC. Alleen voor deze twee
+# bouwt GitHub een image, op een eigen machine per soort.
+arch:
+  - aarch64
+  - amd64
+
+# De integratie SunArc in Home Assistant (besluit 184): de add-on meldt
+# zich aan, met zijn adres en de sleutel voor de vragen van Assist. Home
+# Assistant toont dan "Nieuw apparaat gevonden".
+discovery:
+  - sunarc
+
+# De weergave gaat via Ingress en dus door de inlog van Home Assistant.
+ingress: true
+ingress_port: 8099
+# De zon op de horizon, zoals het teken van SunArc (besluit 222); de zijbalk kent alleen mdi-iconen.
+panel_icon: mdi:weather-sunset
+panel_title: SunArc
+# Het paneel voor iedereen met een account, niet alleen voor beheerders
+# (besluit 161): bewoners, gasten en de wand. Wat iemand mag, bepaalt de app;
+# beheerder is wie dat in Home Assistant is.
+panel_admin: false
+
+# Een eigen poort, naast Ingress (besluit 160): daar installeer je de app los
+# op de telefoon, via Tailscale over https. Standaard dicht (`null`); je zet hem
+# open door in het tabblad Netwerk een poort in te vullen. Ook dan antwoordt de
+# dienst er alleen op wat via Tailscale binnenkomt, op een naam op `.ts.net`, en
+# vraagt hij een inlog via Home Assistant (besluit 147), net als op de NAS.
+# Funnel en een portforward blijven uitgesloten (besluit 108).
+ports:
+  8100/tcp: null
+ports_description:
+  8100/tcp: SunArc als losse app, alleen via Tailscale (zie de uitleg)
+
+# Toegang tot de API van Home Assistant, via de proxy van de Supervisor.
+#
+# Let op: dit is volledige toegang, geen alleen-lezen. Home Assistant kent voor
+# add-ons geen variant die alleen leest. Dat de schaduwmodus niets schrijft, is
+# een eigenschap van onze code — `HaClient` weigert elke `callService` zolang
+# schrijven uit staat, en een test bewijst dat (besluit 15) — niet van deze
+# omgeving. Een eerdere versie van dit commentaar beweerde het tegendeel. Bij
+# echt schakelen (stap B) hoort niemand te rekenen op een tweede laag die er
+# niet is.
+homeassistant_api: true
+
+# De Supervisor lezen (besluit 246): alleen met de standaardrol, die de
+# informatie van add-ons mag lezen, zoals het model van Whisper en of Tailscale
+# draait, voor Klaarzetten. Installeren of instellen mag deze rol niet; dat
+# vraagt de rol manager, en die kost een punt van het beveiligingscijfer. Via
+# Home Assistant (supervisor/api) mocht de add-on dit niet: unauthorized.
+hassio_api: true
+
+# Herstart na een crash en na de zelfbeëindiging van de bewaking (besluit 18).
+startup: application
+boot: auto
+init: false
+
+map:
+  # Het beslislogboek. In `share` en niet in `data`, zodat je er met de
+  # Samba-add-on bij kunt om het naar je werkstation te halen — precies wat
+  # tools/sync-start-divergence.ps1 doet.
+  - share:rw
+  # De configuratie van de installatie. Hoort bij de installatie en niet bij de
+  # code (besluit 21); hier kun je hem met de bestandseditor bewerken.
+  - addon_config:rw
+  # De configuratie van Home Assistant (besluit 184), alleen om de integratie
+  # SunArc neer te zetten voor wie geen HACS heeft: na een tik van de
+  # beheerder, en alleen in custom_components/sunarc (en de oude naam smart_climate
+  # weghalen als die van de add-on was).
+  - homeassistant_config:rw
+
+# De drie technische getallen zijn optioneel (0.92.0): een nieuwe gebruiker ziet
+# ze dan niet, Home Assistant zet ze onder "ongebruikte opties". Leeg is de
+# standaard van de dienst: 30 s, 15 s en 10 minuten. Namen en uitleg staan in
+# translations/.
+options:
+  # Lampen aan- en uitzetten vanuit de app (besluit 97). Alleen licht, en alleen
+  # de lampen die het huis toont; klimaat en screens blijven alleen-lezen.
+  licht_bedienen: true
+
+schema:
+  hartslag_seconden: int(5,3600)?
+  min_interval_seconden: int(0,600)?
+  bewaking_minuten: int(0,1440)?
+  licht_bedienen: bool
+  # Het adres waarop je telefoon Home Assistant bereikt, voor het inloggen op de
+  # eigen poort (besluit 160), bijvoorbeeld https://homeassistant.<tailnet>.ts.net
+  # of http://100.x.y.z:8123. Leeg laten als je de eigen poort niet gebruikt.
+  ha_adres: url?
