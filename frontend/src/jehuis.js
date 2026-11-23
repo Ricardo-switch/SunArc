@@ -1,6 +1,6 @@
 /*
  * Je huis (besluit 308, stap 2 tot 5): de tekentafel in de standen Vorm, Kamers,
- * Apparaten en Huis (het huis in 3D uit de tekening, kit/huistekenen-3d.js), met de echte etages, kamers, zones en apparaten uit de indeling. De schets is de maatstaf
+ * Apparaten en Huis (het huis zoals getekend, kit/huis-maat.js, zoals op Thuis), met de echte etages, kamers, zones en apparaten uit de indeling. De schets is de maatstaf
  * (design/app2/Wand-Huis-Tekenen en Tel-Huis-Tekenen); de motor staat in
  * kit/huistekenen.js en is dezelfde als in de schets.
  *
@@ -52,6 +52,31 @@ const huisVoorMotor = (d) => huisVoor.huisVoorMotor(d, kijk);
  */
 let info = null;
 let huisData = null;
+
+/*
+ * Huis (23 november 2026): het huis zoals getekend, met kit/huis-maat.js en dezelfde opties als op Thuis
+ * (src/huisthuis-opties.js), zonder wat nu gebeurt. Open: de gekozen etage los met meubels; dicht: het hele huis met
+ * het erf, de tuin ingekort. Slepen draait het (de hoek van de tekenaar).
+ */
+function huisTekening(tk, B, H) {
+  if (!globalThis.huisMaat || !globalThis.huisOpties) return '';
+  const ho = globalThis.huisOpties;
+  try {
+    const o = ho.opties(tk, {}, huisData);
+    Object.assign(o, { hoek: tk.st.hoek, rand: 16, boven: 0, stroom: [], dakLabel: null, aan: [], avond: false, hemel: { tijd: 'dag', wolken: 0 } });
+    // Smal (de telefoon): zonder namen in de tekening, zoals op Thuis; de kamers staan in het blad.
+    if (B < 600) o.stil = true;
+    if (tk.st.dicht) ho.tuinKorter(o, o.huisDoos);
+    else {
+      const beneden = tk.huis.beneden ?? 'bg';
+      Object.assign(o, { etage: tk.st.etage, meubels: true, passend: 'huis', buiten: {}, bomen: [], geenEiland: tk.st.etage !== beneden });
+    }
+    return globalThis.huisMaat.teken(tk, B, H, o).svg;
+  } catch (e) {
+    console.warn('Het huis zoals getekend lukte niet.', e);
+    return '';
+  }
+}
 async function laadIndeling() {
   const [i, h] = await Promise.allSettled([haal('api/indeling'), haal('api/huis')]);
   if (i.status === 'fulfilled') info = i.value;
@@ -695,7 +720,7 @@ async function start() {
   const [gevraagd, gevraagdeStand] = decodeURIComponent(location.hash.slice(1)).split('/');
   const etage = huis.etages.some((e) => e.id === gevraagd) ? gevraagd : (huis.etages.find((e) => e.id === 'bg') ?? huis.etages.at(-1)).id;
   const stand = STANDEN.includes(gevraagdeStand) ? gevraagdeStand : 'kamers';
-  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: zonderLosBuiten(d, huis), opslaan, wacht: 900, naar, kijk: vraagKaarten, gebouw, kapel, straat, openingen: true, vast: [HUIS_OP_ERF], ...(info ? { indeling } : {}) });
+  const tk = huistekenen.maak($('#tekening'), huis, { stand, etage, tekening: zonderLosBuiten(d, huis), opslaan, wacht: 900, naar, kijk: vraagKaarten, gebouw, kapel, straat, openingen: true, vast: [HUIS_OP_ERF], huisTekening, ...(info ? { indeling } : {}) });
   tekenaar = tk;
   window.tekenaar = tk;
   huistekenen.paneel($('#blad'), tk);

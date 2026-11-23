@@ -3868,8 +3868,6 @@
   'ht.huis.dicht': 'closed, with the roof',
   'ht.huis.open': '{etage} open',
   'ht.huis.zin': 'The outside comes from the source under Shape, the inside from your drawing. Drag sideways to turn the house.',
-  'ht.huis.nokMaat': 'ridge {maat} m',
-  'ht.huis.gootMaat': 'gutter {maat} m',
   'ht.huis.zelf': 'Drawn yourself',
   'ht.huis.binnen': 'Inside',
   'ht.huis.ruimtes': { one: '1 space from your drawing', other: '{n} spaces from your drawing' },

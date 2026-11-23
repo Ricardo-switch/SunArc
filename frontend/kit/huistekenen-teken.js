@@ -23,10 +23,12 @@
 
       function teken() {
         if (!kern.kijk) return;
-        // Het huis in 3D: de buitenkant van de kaart, de binnenkant uit de tekening (huistekenen-3d.js).
-        if (kern.st.stand === 'huis' && global.huistekenen3d) {
+        // Het huis zoals getekend (23 november 2026): de pagina tekent het met kit/huis-maat.js, net als op Thuis.
+        if (kern.st.stand === 'huis') {
           for (const n of ['onder', 'namen', 'app', 'over', 'knop']) laag(n).innerHTML = '';
-          laag('vlak').innerHTML = global.huistekenen3d.teken(kern.t, kern.B, kern.Hpx);
+          // Zonder tekening van de pagina (de schetsen): het huis zelf, zonder erf, de gekozen etage open of dicht.
+          const zelf = (t, B, H) => global.huisMaat?.teken(t, B, H, { hoek: kern.st.hoek, rand: 16, stil: B < 600, ...(kern.st.dicht ? {} : { etage: kern.st.etage, meubels: true, geenEiland: true }) }).svg ?? '';
+          laag('vlak').innerHTML = (kern.huisTekening ?? zelf)(kern.t, kern.B, kern.Hpx);
           return;
         }
         const v = kern.actie?.voorbeeld ?? kern.vloer();

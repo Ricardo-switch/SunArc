@@ -59,7 +59,7 @@
           if (kern.o.avond) x2 += `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${(r * 2).toFixed(1)}" fill="url(#hm-gloed)" opacity="0.4"/>`;
         }
         if (f === 'oudnieuw') {
-          for (const [fx, fy, kl] of [[0.22, 0.16, '#ff8fb1'], [0.76, 0.1, '#ffd36b'], [0.5, 0.24, '#6fd3ff']]) {
+          for (const [fx, fy, kl] of /** @type {[number, number, string][]} */ ([[0.22, 0.16, '#ff8fb1'], [0.76, 0.1, '#ffd36b'], [0.5, 0.24, '#6fd3ff']])) {
             const [cx2, cy2] = [kern.B * fx, kern.Hpx * fy];
             for (let i = 0; i < 12; i++) {
               const h = (i / 12) * Math.PI * 2;

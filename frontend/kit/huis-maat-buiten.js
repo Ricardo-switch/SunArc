@@ -16,7 +16,7 @@
         const hoeken = [[x, y], [x + b, y], [x + b, y + d], [x, y + d]];
         // Een lessenaar (een afdak): laag (`h0`) aan de kant met de kleinste y, hoog (`h`) aan de andere kant.
         const les = /lessenaar/.test(q.dak ?? '');
-        const hoogOp = ([, c]) => (les && c <= y + 1e-6 ? (q.h0 ?? h) : h);
+        const hoogOp = (/** @type {any[]} */ pt) => (les && pt[1] <= y + 1e-6 ? (q.h0 ?? h) : h);
         const wanden = [0, 1, 2, 3].map((i) => {
           const [a, c] = [hoeken[i], hoeken[(i + 1) % 4]];
           return { p: [[...a, 0], [...c, 0], [...c, hoogOp(c)], [...a, hoogOp(a)]], n: [c[1] - a[1], -(c[0] - a[0])] };

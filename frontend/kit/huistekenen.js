@@ -61,7 +61,7 @@
       vooruit: [],
       bewaard: true,
       bron: huis.bronnen ? (huis.bron ?? Object.keys(huis.bronnen)[0]) : null,
-      hoek: 28,
+      hoek: -58, // zoals Thuis (23 november 2026)
       dicht: false,
     };
     /** De gebouwen van de gekozen bron: beneden allemaal, erboven alleen het hoofdhuis. */
@@ -762,6 +762,8 @@
       B: { get: () => B },
       Hpx: { get: () => Hpx },
       soortVan: { get: () => soortVan },
+      /** Het huis zoals getekend bij Huis: (tekenaar, breed, hoog) => svg-inhoud, van de pagina (opties.huisTekening). */
+      huisTekening: { get: () => opties.huisTekening ?? null },
       omgeving: { get: () => omgeving },
       opErfBlokken: { get: () => opErfBlokken },
       naamVan: { get: () => naamVan },

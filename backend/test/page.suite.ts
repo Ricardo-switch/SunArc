@@ -8393,7 +8393,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 120_000);
 
   /*
-   * Je huis, stap 5 (Huis): het huis in 3D uit de tekening. Opzij slepen met
+   * Je huis, stap 5 (Huis): het huis zoals getekend (sinds 23 november 2026 kit/huis-maat.js, zoals op Thuis). Opzij slepen met
    * een nagebootste vinger draait het (alleen pointerdown en pointerup, en er
    * komt niets bij de tekening), Dicht zet het dak erop, en een etage
    * aantikken zet die weer open. De wand schuift niet.
@@ -8407,11 +8407,12 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       const fouten: string[] = [];
       p.on('pageerror', (e) => fouten.push(e.message));
       await p.goto(`${baseUrl}/jehuis.html#bg/huis`);
-      await p.waitForFunction(`window.tekenaar && window.huistekenen3d && document.querySelector('${kant} #tekening [data-l="vlak"] path')`);
+      await p.waitForFunction(`window.tekenaar && window.huisMaat && document.querySelector('${kant} #tekening [data-l="vlak"] path')`);
       expect(await p.locator(`${kant} [data-stand="huis"]`).getAttribute('aria-pressed'), naam).toBe('true');
       expect(await p.evaluate('window.tekenaar.st.dicht'), naam).toBe(false);
-      // Open: de begane grond met de maten van het dak erboven.
-      expect(await p.locator(`${kant} #tekening`).textContent(), naam).toMatch(/nok \d+,\d m[\s\S]*goot \d+,\d m/);
+      // Open: de begane grond getekend (het proefhuis heeft daar nog geen kamers, dus geen namen); de maten van het dak in het blad.
+      expect(await p.locator(`${kant} #tekening [data-l="vlak"] path`).count(), naam).toBeGreaterThan(20);
+      expect(await p.locator(`${kant} #blad`).textContent(), naam).toMatch(/nok \d+,\d m/);
       if (kant === '#wand') expect(await p.evaluate(`(() => { const m = document.querySelector('#wand main'); return m.scrollHeight <= m.clientHeight + 1 && m.scrollWidth <= m.clientWidth + 1; })()`), naam).toBe(true);
       // Opzij slepen draait het huis; de tekening blijft zoals hij was.
       const voor = await p.evaluate<string>('JSON.stringify(window.tekenaar.st.vloeren)');
@@ -8545,8 +8546,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   /*
    * Je huis, stap 6 (de telefoon en Engels af): alle vier de standen op de
    * telefoon in het Engels. Geen afgekapte tekst (de etagebalk heeft korte
-   * namen), geen kale tekstsleutels, de maten van het huis in 3D binnen de
-   * tekening, en de toegankelijkheidscheck haalt hij.
+   * namen), geen kale tekstsleutels, de maten van het huis in het blad, en de
+   * toegankelijkheidscheck haalt hij.
    */
   it('laat Je huis op de telefoon in het Engels in alle standen heel zien (besluit 308)', async () => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, timezoneId: 'UTC', locale: 'en-GB' });
@@ -8575,10 +8576,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       });
       expect(fout, stand).toEqual([]);
     }
-    // Het huis in 3D: de maten van nok en goot in het Engels, en binnen de tekening.
-    const maten = await p.evaluate<{ tekst: string; binnen: boolean }[]>(`(() => { const svg = document.querySelector('#tel #tekening'); const b = svg.getBoundingClientRect(); return [...svg.querySelectorAll('g[transform] > rect + text')].map((t) => { const r = t.parentNode.getBoundingClientRect(); return { tekst: t.textContent, binnen: r.left >= b.left - 1 && r.right <= b.right + 1 && r.top >= b.top - 1 && r.bottom <= b.bottom + 1 }; }); })()`);
-    expect(maten.map((m) => m.tekst).join(' '), 'maten').toMatch(/ridge \d+\.\d m[\s\S]*gutter \d+\.\d m/);
-    expect(maten.filter((m) => !m.binnen), 'maten binnen').toEqual([]);
+    // Het huis zoals getekend: de maten van nok en goot in het Engels, in het blad (sinds 23 november 2026).
+    expect(await p.locator('#tel #blad').textContent(), 'maten').toMatch(/ridge \d+\.\d m/);
     expect(fouten).toEqual([]);
     await context.close();
   }, 90_000);

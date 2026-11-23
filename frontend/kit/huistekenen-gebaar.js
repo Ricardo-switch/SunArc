@@ -362,7 +362,8 @@
           return;
         }
         if (kern.actie.type === 'draai') {
-          kern.st.hoek = klem(kern.actie.hoek0 + dx * 0.35, -65, 65);
+          // Vrij rond draaien, zoals op Thuis (23 november 2026).
+          kern.st.hoek = (((kern.actie.hoek0 + dx * 0.35 + 180) % 360) + 360) % 360 - 180;
           kern.teken();
           return;
         }

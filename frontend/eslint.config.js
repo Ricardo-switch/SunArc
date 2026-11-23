@@ -16,12 +16,12 @@ import globals from 'globals';
 
 const GEDEELD = [
   // Via window, uit de kit en basis.js.
-  'app', 't', 'taal', 'iconen', 'nav', 'huis', 'huisMaat', 'huismodel', 'huistekenen', 'huistekenen3d', 'woningDeel', 'autoTekening', 'warmte', 'instellen', 'laden', 'thuisaccu',
+  'app', 't', 'taal', 'iconen', 'nav', 'huis', 'huisMaat', 'huismodel', 'huistekenen', 'woningDeel', 'autoTekening', 'warmte', 'instellen', 'laden', 'thuisaccu',
   'waaier', 'zon', 'sankey', 'stromen', 'tekenaar', 'tedoen', 'stroomblad', 'stroomNu', 'stand', 'rondleiding', 'plannen',
   'paalblad', 'niemand', 'melden', 'luisteren', 'klaarstappen', 'hand', 'groep', 'gevoel', 'film', 'fasekaart', 'eigen',
   'buitenBlad', 'scThema', 'scVoorbeeldVerschil', 'huisModellen', 'huisVoor', 'huisThuis',
   // Via een const bovenaan een gedeeld script.
-  'dakvlakken', 'laden', 'thuisaccu', 'vermogens', 'ligging', 'zekering', 'contract', 'ditScherm', 'weergaveDeel', 'htVloer', 'htBlad', 'htTeken', 'htGebaar', 'htKaart', 'huisMaatHemel', 'huisMaatBuiten', 'huisMaatMeubels', 'huisMaatApparaten', 'huisBasis', 'huisKamers', 'huisBuiten', 'huisTuin', 'huisRoute', 'basisMeldingen',
+  'dakvlakken', 'laden', 'thuisaccu', 'vermogens', 'ligging', 'zekering', 'contract', 'ditScherm', 'weergaveDeel', 'htVloer', 'htBlad', 'htTeken', 'htGebaar', 'htKaart', 'huisMaatHemel', 'huisMaatBuiten', 'huisMaatMeubels', 'huisMaatApparaten', 'huisBasis', 'huisKamers', 'huisBuiten', 'huisTuin', 'huisRoute', 'basisMeldingen', 'huisOpties',
 ];
 
 const REGELS = {

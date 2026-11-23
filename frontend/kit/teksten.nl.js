@@ -3873,8 +3873,6 @@
   'ht.huis.dicht': 'dicht, met het dak',
   'ht.huis.open': '{etage} open',
   'ht.huis.zin': 'De buitenkant komt van de bron bij Vorm, de binnenkant uit je tekening. Sleep opzij om het huis te draaien.',
-  'ht.huis.nokMaat': 'nok {maat} m',
-  'ht.huis.gootMaat': 'goot {maat} m',
   'ht.huis.zelf': 'Zelf getekend',
   'ht.huis.binnen': 'Binnen',
   'ht.huis.ruimtes': { one: '1 ruimte uit je tekening', other: '{n} ruimtes uit je tekening' },

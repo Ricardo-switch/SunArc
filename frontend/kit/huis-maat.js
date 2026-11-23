@@ -189,7 +189,7 @@
       const z0 = z;
       const top = i === etages.length - 1 ? Math.max(laagGoot, z0 + 0.4) : z0 + (e.hoogte ?? 2.8);
       z = top;
-      return { e, z0, top, v: st.vloeren[e.id] };
+      return /** @type {any} */ ({ e, z0, top, v: st.vloeren[e.id] });
     }).filter((l) => l.v && l.z0 >= -0.01);
     // Uit elkaar: elke etage een stukje hoger, zodat je in de etage eronder kijkt.
     const lucht = o.lucht ?? 0;
@@ -440,6 +440,7 @@
 
     let s = `<defs><linearGradient id="hm-aarde1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a4232"/><stop offset="1" stop-color="#2a1d15"/></linearGradient><linearGradient id="hm-aarde2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3528"/><stop offset="1" stop-color="#21170f"/></linearGradient><filter id="hm-zacht" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="8"/></filter><filter id="hm-wazig" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="1.6"/></filter></defs><defs><radialGradient id="hm-gloed"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="hm-glas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe6ff" stop-opacity="0.10"/><stop offset="1" stop-color="#bfe6ff" stop-opacity="0.03"/></linearGradient></defs>`;
 
+    /** @type {any[]} */
     const labels = [];
     /** Apparaten die nergens pasten (22 november 2026): voor de proef, en om na te lopen. */
     const overgeslagen = [];
