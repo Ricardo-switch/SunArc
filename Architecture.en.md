@@ -114,7 +114,12 @@ would have done:
 
 **Startup (`backend/src/startup.ts`).** One pure function derives from the
 environment how the service runs: add-on or not, the display, the write door,
-the timings (decision 55). `main.ts` only carries it out.
+the timings (decision 55). `main.ts` only carries it out. Its first parts live
+in `backend/src/start/`: `begin.ts` (`.env`, the flags that run without Home
+Assistant, the token), `config-bij-start.ts` (the configuration with the
+connection and measuring) and `web-opties.ts` (what the web server is given).
+What can still change in `main.ts` reaches the web server through getters on
+`mainStand`.
 
 **Configuration as data (`config/sites/*.json`).** Validated at startup, with
 consistency checks; only what truly cannot be missing is an error, the rest

@@ -108,7 +108,11 @@ Omdat de schaduw niet schakelt, houdt hij zelf bij wat hij gedaan zou hebben:
 
 **De opstart (`backend/src/startup.ts`).** Eén zuivere functie leidt uit de
 omgeving af hoe de dienst draait: add-on of niet, de weergave, de schrijfdeur,
-de tijden (besluit 55). `main.ts` voert het alleen uit.
+de tijden (besluit 55). `main.ts` voert het alleen uit. Het begin daarvan staat
+in `backend/src/start/`: `begin.ts` (`.env`, de vlaggen zonder Home Assistant,
+het token), `config-bij-start.ts` (de configuratie met de aansluiting en meten
+met) en `web-opties.ts` (wat de webserver meekrijgt). Wat in `main.ts` nog kan
+wijzigen, krijgt de webserver via getters op `mainStand`.
 
 **Configuratie als data (`config/sites/*.json`).** Gevalideerd bij het
 opstarten, met samenhangscontroles; alleen wat echt niet kan ontbreken is een
