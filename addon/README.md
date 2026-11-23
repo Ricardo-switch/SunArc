@@ -125,7 +125,8 @@ andere weigert `HaClient` vóórdat er iets de socket op gaat (besluit 15).
 ## De app
 
 Via het zijpaneel, of **Webinterface openen** op de add-on-pagina. De app opent
-op Thuis; de cijfers en de datasetmeter staan op `index.html`.
+op Thuis; wat de motor meet en besluit staat bij Over deze app onder *De
+motor* (zeven tikken op het versienummer).
 
 ### Met één tik vanaf het startscherm
 
