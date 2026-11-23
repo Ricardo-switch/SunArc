@@ -166,7 +166,8 @@ export class Diensten {
     const stand = {
       hand: hand?.hand.terugzetten ?? [],
       ...(this.options.toestand ? { toestand: this.options.toestand } : {}),
-      naamVan: (id: string) => config.actuators.find((a) => a.ref.id === id)?.name ?? hand?.schakelaars().find((s) => s.id === id)?.naam ?? null,
+      // Ook klimaat buiten de regeling, zoals het tuinhuis (23 november 2026: daar stond climate.tuinhuis in plaats van zijn naam).
+      naamVan: (id: string) => config.actuators.find((a) => a.ref.id === id)?.name ?? hand?.schakelaars().find((s) => s.id === id)?.naam ?? hand?.los?.().find((s) => s.id === id)?.naam ?? null,
       lampenAan: () => {
         const ids = new Set(config.schedule.eveningExtensionLights.map((r) => r.id));
         const huis = this.options.house?.(taal) ?? null;
