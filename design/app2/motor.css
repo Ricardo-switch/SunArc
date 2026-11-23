@@ -1,0 +1,123 @@
+/*
+ * De motor (schets, 23 november 2026): de opmaak voor de wand. Technisch mag, rommelig niet: vaste codes in
+ * een kleine monoletter achter het gewone woord, kleuren zoals overal (oranje verwarmt, blauw koelt, goud is zon,
+ * violet het net, mint de accu).
+ */
+.mo { padding: 20px 26px 18px 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.mo-kop { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; }
+.mo-terug { color: var(--zacht); font-size: 14px; font-weight: 600; text-decoration: none; }
+.mo-kop h1 { margin: 4px 0 0; }
+.mo-onder { margin: 4px 0 0; color: var(--zacht); font-size: 14.5px; }
+.mo-onder b { color: var(--tekst); font-weight: 600; }
+.mo-rechts { display: flex; align-items: center; gap: 12px; }
+.mo-rechts .chips.seg > .chip { min-width: 96px; height: 38px; font-size: 14.5px; font-weight: 700; border: 0; cursor: pointer; }
+.mo-kopie { height: 44px; padding: 0 16px; border-radius: 13px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.06); color: var(--tekst); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.mo-kopie.klaar { color: var(--mint); border-color: color-mix(in srgb, var(--mint) 40%, transparent); }
+
+.mo-deel { flex: 1; min-height: 0; display: grid; gap: 14px; }
+.mo-deel.nu { grid-template-columns: 330px 360px minmax(0, 1fr); }
+.mo-kol { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.mo-kaart { padding: 16px 18px; border-radius: 22px; }
+.mo-kaart > h2 { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 10px; font-family: var(--kop); font-size: 18px; font-weight: 600; }
+.mo-kaart > h2 small { font-family: var(--romp); font-size: 12.5px; font-weight: 600; color: var(--gedempt); }
+.mo-vul { flex: 1; min-height: 0; overflow: hidden; }
+
+/* Een regel: wat, waarde, en eventueel de vaste code. */
+.mo-rij { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 7px 0; border-top: 1px solid rgb(var(--wit) / 0.06); font-size: 14.5px; }
+.mo-rij:first-of-type { border-top: 0; }
+.mo-rij > span:first-child { color: var(--zacht); }
+.mo-rij > b { font-weight: 700; text-align: right; }
+.mo-rij > em { grid-column: 1 / -1; font-style: normal; font-size: 12.5px; color: var(--gedempt); }
+code, .mo-code { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 11.5px; color: var(--gedempt); background: rgb(var(--wit) / 0.05); padding: 1px 6px; border-radius: 6px; }
+
+/* Een balk met een deel gevuld (de fase, de accu). */
+.mo-balk { grid-column: 1 / -1; height: 6px; border-radius: 99px; background: rgb(var(--wit) / 0.08); overflow: hidden; margin-top: 3px; }
+.mo-balk i { display: block; height: 100%; border-radius: inherit; }
+
+/* Verdelen: het getal, en de stapel van wie wat kreeg. */
+.mo-groot { font-family: var(--kop); font-size: 40px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.mo-groot small { font-size: 18px; color: var(--zacht); margin-left: 4px; }
+.mo-stapel { display: flex; height: 26px; border-radius: 9px; overflow: hidden; margin: 12px 0 6px; background: rgb(var(--wit) / 0.06); }
+.mo-stapel i { display: grid; place-items: center; font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--inkt); white-space: nowrap; overflow: hidden; }
+.mo-leg { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--zacht); }
+.mo-leg span::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; background: var(--k); }
+
+/* Een kamer: temperatuur naar doel, en wat hij vraagt. */
+.mo-kamer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 9px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
+.mo-kamer:first-of-type { border-top: 0; }
+.mo-kamer b { font-size: 15px; }
+.mo-kamer .t { font-family: var(--kop); font-size: 18px; font-weight: 600; text-align: right; }
+.mo-kamer .t small { font-family: var(--romp); font-size: 13px; color: var(--gedempt); font-weight: 600; }
+.mo-kamer > span { grid-column: 1 / -1; font-size: 13px; color: var(--zacht); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* Een etiket: verwarmt, koelt, op zon, rust. */
+.mo-tag { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 99px; font-size: 12px; font-weight: 700; background: rgb(var(--wit) / 0.08); color: var(--zacht); white-space: nowrap; }
+.mo-tag.warm { background: color-mix(in srgb, var(--gloed) 18%, transparent); color: var(--gloed-zacht); }
+.mo-tag.koel { background: color-mix(in srgb, var(--ijs) 16%, transparent); color: var(--ijs-zacht); }
+.mo-tag.zon { background: color-mix(in srgb, var(--zon) 18%, transparent); color: var(--zon); }
+.mo-tag.goed { background: color-mix(in srgb, var(--mint) 16%, transparent); color: var(--mint); }
+.mo-tag.nee { background: rgb(255 120 120 / 0.14); color: #ffaaa8; }
+
+/* Besluit: per apparaat wat hij stuurt, en wat het apparaat nu doet. */
+.mo-besluit { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 1px 12px; align-items: center; padding: 8px 0; border-top: 1px solid rgb(var(--wit) / 0.06); }
+.mo-besluit:first-of-type { border-top: 0; }
+.mo-besluit .ik { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); color: var(--zacht); }
+.mo-besluit .ik svg { width: 18px; height: 18px; }
+.mo-besluit b { font-size: 15px; }
+.mo-besluit .ik { grid-row: span 2; align-self: start; }
+.mo-besluit .zin { grid-column: 2 / -1; font-size: 13px; color: var(--zacht); line-height: 1.4; }
+.mo-tussen { margin: 10px 0 0; font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); }
+.mo-oud { margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: rgb(var(--wit) / 0.04); font-size: 13px; color: var(--zacht); line-height: 1.45; }
+.mo-oud b { color: var(--tekst); }
+
+/* Vandaag: een blokje per kwartier per apparaat. */
+.mo-deel.vandaag { grid-template-columns: minmax(0, 1fr) 330px; }
+.mo-tijd { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 10px 12px; align-items: center; }
+.mo-tijd .naam { font-size: 14px; font-weight: 600; color: var(--zacht); text-align: right; }
+.mo-tijd .rij { display: grid; grid-template-columns: repeat(96, 1fr); gap: 1px; height: 34px; position: relative; }
+.mo-tijd .rij i { border-radius: 2px; background: rgb(var(--wit) / 0.05); }
+.mo-tijd .rij i.heat { background: var(--gloed); }
+.mo-tijd .rij i.cool { background: var(--ijs); }
+.mo-tijd .rij i.stil { background: color-mix(in srgb, var(--gloed) 35%, transparent); }
+.mo-tijd .rij i.zon { background: var(--zon); }
+.mo-tijd .rij i.net { background: var(--violet); }
+.mo-tijd .rij i.accu { background: var(--mint); }
+.mo-tijd .rij i.half { opacity: 0.45; }
+.mo-tijd .rij i.oud { background: color-mix(in srgb, var(--violet) 70%, transparent); }
+.mo-tijd .rij i.leeg { background: transparent; }
+.mo-tijd .as { grid-column: 2; display: flex; justify-content: space-between; font-size: 12px; color: var(--gedempt); }
+.mo-tijd .scheid { grid-column: 1 / -1; height: 1px; background: rgb(var(--wit) / 0.07); margin: 4px 0; }
+.mo-nu { position: absolute; top: -6px; bottom: -6px; width: 2px; background: var(--tekst); border-radius: 2px; box-shadow: 0 0 0 3px rgb(var(--nacht) / 0.6); }
+.mo-gekozen { position: absolute; top: -4px; bottom: -4px; border: 2px solid var(--zon); border-radius: 4px; }
+
+/* Geleerd en Vergelijken: kaarten in een raster. */
+.mo-deel.geleerd, .mo-deel.vergelijken { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: min-content; align-content: start; }
+.mo-seizoen { display: grid; grid-template-columns: 76px minmax(0, 1fr) 54px; gap: 10px; align-items: center; padding: 6px 0; font-size: 14px; }
+.mo-seizoen .mo-balk { grid-column: auto; margin: 0; height: 8px; }
+.mo-seizoen b { text-align: right; }
+.mo-zin { font-size: 13.5px; color: var(--zacht); line-height: 1.45; margin: 8px 0 0; }
+.mo-pct { font-family: var(--kop); font-size: 54px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; }
+.mo-pct small { font-size: 20px; color: var(--zacht); }
+.mo-staaf { display: grid; grid-template-columns: 130px minmax(0, 1fr) 44px; gap: 10px; align-items: center; padding: 6px 0; font-size: 14px; }
+.mo-staaf .mo-balk { grid-column: auto; margin: 0; height: 10px; }
+.mo-staaf b { text-align: right; }
+.mo-moment { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 2px 10px; padding: 9px 0; border-top: 1px solid rgb(var(--wit) / 0.06); font-size: 13.5px; }
+.mo-moment:first-of-type { border-top: 0; }
+.mo-moment time { font-weight: 700; color: var(--tekst); }
+.mo-moment span { color: var(--zacht); line-height: 1.4; }
+.mo-breed2 { grid-column: span 2; }
+.mo-breed3 { grid-column: 1 / -1; }
+.mo-moment { grid-template-columns: 64px minmax(0, 1fr); }
+
+/* Een regel onder elkaar: het woord klein, de waarde eronder (het blad van een ronde). */
+.mo-rij.onder { grid-template-columns: minmax(0, 1fr); }
+.mo-rij.onder > span:first-child { font-size: 12.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gedempt); }
+.mo-rij.onder > b { text-align: left; font-weight: 600; line-height: 1.4; }
+
+/* Veiligheid in één regel onder wat hij meet. */
+.mo-veilig { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+/* Bladeren door de rondes van een kwartier. */
+.mo-blader { display: flex; gap: 8px; margin-bottom: 4px; }
+.mo-blader button { flex: 1; height: 36px; border-radius: 11px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.05); color: var(--tekst); font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.mo-blader button:disabled { opacity: 0.4; cursor: default; }
+.mo-tijd .rij i { cursor: pointer; }

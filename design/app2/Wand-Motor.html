@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wand · De motor (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="motor.css">
+<style>
+  /*
+   * De motor op de wand (schets, 23 november 2026; kwaliteitsronde stap 4 punt 4).
+   * De schaduwpagina in de vorm van de app, achter zeven tikken op het versienummer bij Over deze app.
+   * Vier delen: Nu, Vandaag, Geleerd, Vergelijken. Wat erin staat komt onbewerkt uit de kern: hier wordt
+   * niets uitgerekend. Uitleg en voorbeeldgegevens in motor-schets.js. ?deel=vandaag (of geleerd,
+   * vergelijken) opent een ander deel.
+   */
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-ochtend">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main class="mo">
+    <header class="mo-kop">
+      <div>
+        <a class="mo-terug" href="#">‹ Over deze app</a>
+        <h1 class="kop-2">De motor</h1>
+        <p class="mo-onder" data-onder></p>
+      </div>
+      <div class="mo-rechts">
+        <div class="chips seg" data-delen></div>
+        <button type="button" class="mo-kopie" data-kopie>Kopieer de stand</button>
+      </div>
+    </header>
+    <section class="mo-deel" data-deel></section>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="motor-schets.js"></script>
+<script>
+  nav.balk(document.getElementById('balk'), 'instellingen');
+</script>
+</body>
+</html>
