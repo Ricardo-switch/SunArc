@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.227.0';
+export const VERSIE = '0.227.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,28 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.227.1',
+    datum: '2026-11-23',
+    beter: [
+      'Op Thuis loopt de baan van de zon net boven het huis, niet meer erdoorheen',
+    ],
+    opgelost: [
+      'Met de hand verwarmen tot 22:00 lukte \'s ochtends niet: de dienst weigerde alles verder dan twaalf uur weg, en voor tienen ligt 22:00 verder weg. Nu mag het tot een dag',
+      'In het getekende huis vlogen blauwe streepjes door het beeld als een airco aan stond: de ventilator van de buitenunit draaide om de hoek van de tekening in plaats van om zijn eigen midden',
+      'In het getekende huis blaast een airco die verwarmt nu oranje lucht en een airco die koelt blauw, naar wat hij zelf doet',
+    ],
+    en: {
+      beter: [
+        'On Home the path of the sun runs just above the house, no longer through it',
+      ],
+      opgelost: [
+        'Heating by hand until 22:00 did not work in the morning: the service refused anything more than twelve hours away, and before ten 22:00 is further away. Now up to a day is allowed',
+        'In the house as drawn, blue dashes flew across the picture when an air conditioner was on: the fan of the outdoor unit spun around the corner of the drawing instead of its own centre',
+        'In the house as drawn, an air conditioner that heats now blows orange air and one that cools blue, by what it does itself',
+      ],
+    },
+  },
   {
     versie: '0.227.0',
     datum: '2026-11-23',

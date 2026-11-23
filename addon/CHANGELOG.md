@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.227.0
+## 0.227.1
 
-*23 november 2026 · 0.179.0 – 0.227.0*
+*23 november 2026 · 0.179.0 – 0.227.1*
 
 **Nieuw**
 
@@ -92,6 +92,7 @@
 
 **Beter**
 
+- Op Thuis loopt de baan van de zon net boven het huis, niet meer erdoorheen
 - Je huis › Huis toont je huis zoals op Thuis: open een etage met meubels, of dicht het hele huis met de tuin; slepen draait het rond
 - Thuis laadt sneller als het huis zoals getekend aan staat: het poppenhuis komt alleen nog als het nodig is, en de tekening laadt in één keer
 - Onder de motorkap: Inrichten, Thuis en de dienst zijn opgesplitst in kleinere delen; je merkt er niets van
@@ -207,6 +208,9 @@
 
 **Opgelost**
 
+- Met de hand verwarmen tot 22:00 lukte 's ochtends niet: de dienst weigerde alles verder dan twaalf uur weg, en voor tienen ligt 22:00 verder weg. Nu mag het tot een dag
+- In het getekende huis vlogen blauwe streepjes door het beeld als een airco aan stond: de ventilator van de buitenunit draaide om de hoek van de tekening in plaats van om zijn eigen midden
+- In het getekende huis blaast een airco die verwarmt nu oranje lucht en een airco die koelt blauw, naar wat hij zelf doet
 - In een kamer werden meubels afgesneden: de zijkant van de kast door de muur erachter, het nachtkastje door het bed
 - Bij Je huis › Vorm stond het draaiende icoon door de tekst De kaarten zoeken
 - Een raam onder een dakkapel werd als dakraam over de dakkapel getekend
@@ -350,6 +354,7 @@
 
 **Improved**
 
+- On Home the path of the sun runs just above the house, no longer through it
 - Your home › House shows your home as on Home: open a floor with furniture, or closed the whole house with the garden; drag to turn it around
 - Home loads faster with the house as drawn: the dollhouse only loads when needed, and the drawing loads in one go
 - Under the hood: Setup, Home and the service are split into smaller parts; you will not notice it
@@ -465,6 +470,9 @@
 
 **Fixed**
 
+- Heating by hand until 22:00 did not work in the morning: the service refused anything more than twelve hours away, and before ten 22:00 is further away. Now up to a day is allowed
+- In the house as drawn, blue dashes flew across the picture when an air conditioner was on: the fan of the outdoor unit spun around the corner of the drawing instead of its own centre
+- In the house as drawn, an air conditioner that heats now blows orange air and one that cools blue, by what it does itself
 - Furniture in a room was cut off: the side of the wardrobe by the wall behind it, the bedside table by the bed
 - Under Your home › Shape the spinning icon ran through the text The maps are searching
 - A window under a dormer was drawn as a roof window over the dormer
