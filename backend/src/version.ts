@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.227.1';
+export const VERSIE = '0.228.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.228.0',
+    datum: '2026-11-23',
+    beter: [
+      'Elke pagina laadt alleen nog de teksten van jouw taal, niet meer Nederlands én Engels: Thuis laadt zo een derde minder',
+    ],
+    en: {
+      beter: [
+        'Every page now loads only the texts of your language, not Dutch and English both: Home loads a third less',
+      ],
+    },
+  },
   {
     versie: '0.227.1',
     datum: '2026-11-23',

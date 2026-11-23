@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.227.1
+## 0.228.0
 
-*23 november 2026 · 0.179.0 – 0.227.1*
+*23 november 2026 · 0.179.0 – 0.228.0*
 
 **Nieuw**
 
@@ -92,6 +92,7 @@
 
 **Beter**
 
+- Elke pagina laadt alleen nog de teksten van jouw taal, niet meer Nederlands én Engels: Thuis laadt zo een derde minder
 - Op Thuis loopt de baan van de zon net boven het huis, niet meer erdoorheen
 - Je huis › Huis toont je huis zoals op Thuis: open een etage met meubels, of dicht het hele huis met de tuin; slepen draait het rond
 - Thuis laadt sneller als het huis zoals getekend aan staat: het poppenhuis komt alleen nog als het nodig is, en de tekening laadt in één keer
@@ -354,6 +355,7 @@
 
 **Improved**
 
+- Every page now loads only the texts of your language, not Dutch and English both: Home loads a third less
 - On Home the path of the sun runs just above the house, no longer through it
 - Your home › House shows your home as on Home: open a floor with furniture, or closed the whole house with the garden; drag to turn it around
 - Home loads faster with the house as drawn: the dollhouse only loads when needed, and the drawing loads in one go
