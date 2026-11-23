@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.228.1
+## 0.228.2
 
-*23 november 2026 · 0.179.0 – 0.228.1*
+*23 november 2026 · 0.179.0 – 0.228.2*
 
 **Nieuw**
 
@@ -209,6 +209,9 @@
 
 **Opgelost**
 
+- Bij het draaien van het huis op Thuis verscheen soms ineens het poppenhuis: bij sommige hoeken stond de auto achter het huis en lukte de tekening niet. Dat is opgelost, en lukt een tekening ooit niet, dan blijft de vorige staan
+- De bundel licht van de zon wees boven het dak uit; nu valt hij weer op de panelen
+- De zonneboog liep op een breder scherm (16:9) door de kop van Thuis; daar vervaagt hij nu, en de zon blijft te zien met een zachte gloed achter de tekst
 - Rechtsboven op Thuis stond bij klimaat buiten de regeling, zoals het tuinhuis, climate.tuinhuis met de hand in plaats van de naam
 - Met de hand verwarmen tot 22:00 lukte 's ochtends niet: de dienst weigerde alles verder dan twaalf uur weg, en voor tienen ligt 22:00 verder weg. Nu mag het tot een dag
 - In het getekende huis vlogen blauwe streepjes door het beeld als een airco aan stond: de ventilator van de buitenunit draaide om de hoek van de tekening in plaats van om zijn eigen midden
@@ -473,6 +476,9 @@
 
 **Fixed**
 
+- Turning the house on Home sometimes suddenly showed the dollhouse: at some angles the car stood behind the house and the drawing failed. That is fixed, and if a drawing ever fails, the previous one stays
+- The beam of sunlight pointed above the roof; it falls on the panels again
+- On a wider screen (16:9) the sun path ran through the heading on Home; it now fades there, and the sun stays visible with a soft glow behind the text
 - Top right on Home, climate outside the schedule, such as the garden house, showed climate.tuinhuis by hand instead of its name
 - Heating by hand until 22:00 did not work in the morning: the service refused anything more than twelve hours away, and before ten 22:00 is further away. Now up to a day is allowed
 - In the house as drawn, blue dashes flew across the picture when an air conditioner was on: the fan of the outdoor unit spun around the corner of the drawing instead of its own centre

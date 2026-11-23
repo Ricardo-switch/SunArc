@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.228.1';
+export const VERSIE = '0.228.2';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,22 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.228.2',
+    datum: '2026-11-23',
+    opgelost: [
+      'Bij het draaien van het huis op Thuis verscheen soms ineens het poppenhuis: bij sommige hoeken stond de auto achter het huis en lukte de tekening niet. Dat is opgelost, en lukt een tekening ooit niet, dan blijft de vorige staan',
+      'De bundel licht van de zon wees boven het dak uit; nu valt hij weer op de panelen',
+      'De zonneboog liep op een breder scherm (16:9) door de kop van Thuis; daar vervaagt hij nu, en de zon blijft te zien met een zachte gloed achter de tekst',
+    ],
+    en: {
+      opgelost: [
+        'Turning the house on Home sometimes suddenly showed the dollhouse: at some angles the car stood behind the house and the drawing failed. That is fixed, and if a drawing ever fails, the previous one stays',
+        'The beam of sunlight pointed above the roof; it falls on the panels again',
+        'On a wider screen (16:9) the sun path ran through the heading on Home; it now fades there, and the sun stays visible with a soft glow behind the text',
+      ],
+    },
+  },
   {
     versie: '0.228.1',
     datum: '2026-11-23',
