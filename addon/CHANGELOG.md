@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.228.2
+## 0.229.0
 
-*23 november 2026 · 0.179.0 – 0.228.2*
+*23 november 2026 · 0.179.0 – 0.229.0*
 
 **Nieuw**
 
+- Sluipverbruik: zeg per nacht wat er draaide, met je eerdere antwoorden als knoppen. Een nacht met ongeveer hetzelfde extra vraagt Weer de pc?, krijgt een stip in de grafiek, en daarvoor komt geen melding meer
 - Radiatoren in je huis: een radiatorknop hangt als radiator aan de muur, een kamer met cv krijgt er vanzelf een onder het raam, en bij Je huis › Apparaten zet Radiator erbij er meer neer
 - De buitenunit van elke airco is een eigen bolletje buiten: zet hem tegen het huis, op een plat dak of op de grond
 - Een raam waar het dak lager is dan het raam, wordt vanzelf een dakraam
@@ -273,6 +274,7 @@
 
 **New**
 
+- Night use: say per night what was running, with your earlier answers as buttons. A night with about the same extra asks PC again?, gets a dot in the chart, and no longer sends a notification
 - Radiators in your home: a radiator valve hangs as a radiator on the wall, a room with central heating gets one under the window by itself, and under Your home › Devices Add a radiator puts more in
 - The outdoor unit of each air conditioner is its own dot outside: put it against the house, on a flat roof or on the ground
 - A window where the roof is lower than the window becomes a roof window by itself

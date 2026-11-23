@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.228.2';
+export const VERSIE = '0.229.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.229.0',
+    datum: '2026-11-23',
+    nieuw: [
+      'Sluipverbruik: zeg per nacht wat er draaide, met je eerdere antwoorden als knoppen. Een nacht met ongeveer hetzelfde extra vraagt Weer de pc?, krijgt een stip in de grafiek, en daarvoor komt geen melding meer',
+    ],
+    en: {
+      nieuw: [
+        'Night use: say per night what was running, with your earlier answers as buttons. A night with about the same extra asks PC again?, gets a dot in the chart, and no longer sends a notification',
+      ],
+    },
+  },
   {
     versie: '0.228.2',
     datum: '2026-11-23',
