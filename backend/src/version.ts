@@ -95,7 +95,13 @@ export const NIEUW: readonly Nieuw[] = [
     nieuw: [
       'De motor: tik zeven keer op het versienummer bij Over deze app. Dan zie je wat SunArc meet, verdeelt en besluit, live en elk kwartier van vandaag, met wat het afwijst en waarom, en kun je de stand kopiëren voor bij een melding',
     ],
+    beter: [
+      'Het welkom noemt de ruimtes in Home Assistant waar nog geen apparaat in staat, zodat 0 ruimtes niet lijkt alsof SunArc ze niet ziet',
+    ],
     en: {
+      beter: [
+        'The welcome screen names the areas in Home Assistant that have no device yet, so 0 spaces no longer looks as if SunArc cannot see them',
+      ],
       nieuw: [
         'The engine: tap the version number seven times under About this app. Then you see what SunArc measures, shares and decides, live and every quarter hour today, with what it turns down and why, and you can copy the state for a report',
       ],
