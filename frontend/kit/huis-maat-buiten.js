@@ -59,16 +59,6 @@
         }
         return x2;
       };
-      /** Een blok met een andere boven- en onderkant (vier hoeken elk): de zijden naar de kijker, dan de bovenkant. */
-      const prisma = (onder, boven, zij, top) => {
-        let x2 = '';
-        const vlakken = [0, 1, 2, 3].map((i) => {
-          const [a, b] = [onder[i], onder[(i + 1) % 4]];
-          return { p: [a, b, boven[(i + 1) % 4], boven[i]], n: [b[1] - a[1], -(b[0] - a[0])] };
-        });
-        for (const v of vlakken.sort((p1, p2) => kern.dp(p2.p) - kern.dp(p1.p))) if (kern.naarKijker(...v.n)) x2 += `<path d="${kern.vlak(v.p)}" fill="${zij(v)}" stroke="rgb(13 26 48 / 0.35)" stroke-width="0.6" stroke-linejoin="round"/>`;
-        return x2 + `<path d="${kern.vlak(boven)}" fill="${top}" stroke="rgb(13 26 48 / 0.35)" stroke-width="0.6" stroke-linejoin="round"/>`;
-      };
       /** De auto: een lage carrosserie op wielen, een cabine met ramen, en een bliksem als hij laadt. */
       /** De auto, uit de vaste lijst: met de neus naar de korte kant met de kleinste y of x (de straat), een schaduw, en een bliksem als hij laadt. */
       const auto = (q) => {
@@ -271,6 +261,6 @@
       };
 
 
-    return { prisma, tekenBuiten, ACHTER, paneelVan, hoofdDak, paneelVeld, kapel };
+    return { tekenBuiten, ACHTER, paneelVan, hoofdDak, paneelVeld, kapel };
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -263,7 +263,17 @@
        */
       else {
         if (soort === 'tel') Object.assign(o, { boven: 0, rand: 8, metDakLabel: true });
-        else o.boven = 90;
+        else {
+          o.boven = 90;
+          // De kop op de wand (groet, titel en zin) ligt over de tekening: de zonneboog loopt er niet doorheen (23 november 2026).
+          const ti = el.parentElement?.querySelector(':scope > .titel');
+          const pr = el.getBoundingClientRect();
+          const tr = ti?.getBoundingClientRect();
+          if (tr && tr.width && pr.width) {
+            const sc = B / pr.width;
+            o.vrij = [{ x0: (tr.left - pr.left) * sc, y0: (tr.top - pr.top) * sc, x1: (tr.right - pr.left) * sc, y1: (tr.bottom - pr.top) * sc }].map((v) => Object.fromEntries(Object.entries(v).map(([k, w]) => [k, Math.round(w)])));
+          }
+        }
         // De baan van de zon om het huis, zoals in het poppenhuis (besluit 205); het huis blijft even groot (22 november 2026).
         // De baan en de zon van nu uit api/zon (zoals het always-on display ze krijgt); het model van Thuis heeft alleen de stand.
         const zon = { ...(model?.zon ?? {}), ...(global.huismodel?.zonNu?.(zonData) ?? {}) };
@@ -290,7 +300,20 @@
         const sleutel = `${B}x${H}|${global.taal?.code ?? ''}|${JSON.stringify(o2)}`;
         const vorige = laatste.get(el);
         if (vorige?.sleutel === sleutel && vorige.svg === el.firstElementChild) return;
-        const uit = global.huisMaat.teken(staat.tk, B, H, o2);
+        let uit;
+        try {
+          uit = global.huisMaat.teken(staat.tk, B, H, o2);
+        } catch (e) {
+          /*
+           * Een tekening die mislukt (23 november 2026: bij sommige hoeken tijdens het draaien) laat de vorige staan,
+           * in plaats van Thuis voor de rest van de dag op het poppenhuis te zetten. Zonder vorige tekening wel.
+           */
+          if (vorige?.svg && vorige.svg === el.firstElementChild) {
+            console.warn('Het huis zoals getekend lukte deze keer niet; de vorige tekening blijft.', e);
+            return;
+          }
+          throw e;
+        }
         // Wat nergens paste, voor de proef en om na te lopen.
         staat.overgeslagen = uit.overgeslagen ?? [];
         el.innerHTML = `<svg viewBox="0 0 ${B} ${H}" width="${B}" height="${H}" role="img" aria-label="${global.app.esc(t('thuis.hetHuis'))}"${draaibaar ? ' style="touch-action: pan-y"' : ''}>${uit.svg}</svg>`;

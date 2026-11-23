@@ -307,6 +307,8 @@
     // Op Thuis (`o.boogVrij`) een kleinere boog dicht om het huis, zodat hij niet in de tekst ernaast loopt (22 november 2026).
     const ringR = o.boogVrij ? Math.max(X1 - X0, Y1 - Y0) * 0.62 + 1.5 : Math.max(X1 - X0, Y1 - Y0) * 1.0 + 4.5;
     let ringZ = (hd ? hd.nok : Math.max(...lagen.map((l) => l.top))) + 1.4;
+    // De hoogte van de ring voor hij boven het huis uit getild wordt: daar mikt de bundel licht van de zon op (het dak).
+    const ringZ0 = ringZ;
     // De hoogte opgerekt als de zon laag staat (de winter), nooit hoger dan 0,9 keer de straal (de zomer liep anders uit beeld).
     let rek = zb ? Math.min(1.4, 0.9 / Math.max(0.05, Math.sin((Math.max(...zb.baan.map((q) => q.el)) * Math.PI) / 180))) : 1;
     const ringPunt = ({ az, el }) => {
@@ -319,45 +321,6 @@
        */
       return [cx - ringR * c * Math.sin(rel), cy - ringR * c * Math.cos(rel), ringZ + ringR * rek * Math.sin(Math.max(0, el) * r)];
     };
-    /*
-     * Op Thuis net boven het huis (23 november 2026, Ricardo: in de standaardhoek liep de boog door het huis). De ring
-     * ligt om het huis, dus het stuk aan de kant van de kijker valt in beeld over het huis. Waar de boog boven het huis
-     * langs gaat, komt hij zo hoog dat hij er 40 cm boven blijft: de hele ring gaat dan even veel omhoog.
-     */
-    if (zb && o.boogVrij) {
-      const nok = hd ? hd.nok : Math.max(...lagen.map((l) => l.top));
-      const goot = Math.max(...lagen.map((l) => l.top));
-      const [mx, my] = [(X0 + X1) / 2, (Y0 + Y1) / 2];
-      const dak = [[X0, Y0, goot], [X1, Y0, goot], [X1, Y1, goot], [X0, Y1, goot], [mx, Y0, nok], [mx, Y1, nok], [X0, my, nok], [X1, my, nok]].map((q) => kaal(...q));
-      const voet = [[X0, Y0, 0], [X1, Y0, 0], [X1, Y1, 0], [X0, Y1, 0]].map((q) => kaal(...q)[0]);
-      const [hx0, hx1] = [Math.min(...voet), Math.max(...voet)];
-      const top = Math.min(...dak.map((q) => q[1]));
-      const perMeter = kaal(cx, cy, 0)[1] - kaal(cx, cy, 1)[1];
-      // Hoeveel omhoog bij een rek, en hoe hoog de boog dan in beeld komt; de boog mag wat platter, zodat hij niet de
-      // tekst bovenin in loopt, maar blijft een boog: tot een kwart platter, de rek waarbij de top het laagst blijft.
-      const z0 = ringZ;
-      const rek0 = rek;
-      let beste = null;
-      for (let i = 0; i <= 4 && perMeter > 0; i++) {
-        rek = rek0 * (1 - i * 0.06);
-        ringZ = z0;
-        let nodig = 0;
-        let hoogst = Infinity;
-        for (const q of zb.baan) {
-          if (q.el <= -1.5) continue;
-          const [qx, qy] = kaal(...ringPunt(q));
-          hoogst = Math.min(hoogst, qy);
-          if (qx >= hx0 && qx <= hx1) nodig = Math.max(nodig, qy - (top - 0.4 * perMeter));
-        }
-        const dz = Math.max(0, nodig) / perMeter;
-        const piek = hoogst - dz * perMeter;
-        if (!beste || piek > beste.piek + 1e-9) beste = { rek, dz, piek };
-      }
-      if (beste) {
-        rek = beste.rek;
-        ringZ = z0 + beste.dz;
-      }
-    }
     // Op Thuis (`o.boogVrij`) telt de boog niet mee voor de schaal: het huis blijft groot, de boog loopt erom (22 november 2026).
     if (zb && !o.boogVrij) for (const q of zb.baan) if (q.el > -1.5) punten.push(ringPunt(q));
     // Eén etage: alleen die etage met de wazige stukjes erboven en eronder in beeld (en een smalle rand grond, op de begane grond).
@@ -384,6 +347,41 @@
       return [ox + a * k, oy + b * k];
     };
     const pt = (x, y, zz) => P(x, y, zz).map((n) => n.toFixed(1)).join(' ');
+    /*
+     * De zonneboog op Thuis (23 november 2026, Ricardo): net boven het huis, niet erdoorheen. De ring ligt om het huis,
+     * dus het stuk aan de kant van de kijker valt in beeld over het huis: waar hij boven het huis langs gaat, gaat de
+     * hele ring omhoog tot hij 40 cm boven het dak blijft, en hij mag tot een kwart platter als zijn top dan lager
+     * blijft (en in beeld). Waar de tekst bovenin ligt (`o.vrij`, de kop op de wand), vervaagt hij (huis-maat-hemel.js):
+     * een boog die overal om de tekst heen past, is er op 16:9 niet.
+     */
+    if (zb && o.boogVrij) {
+      const nok = hd ? hd.nok : Math.max(...lagen.map((l) => l.top));
+      const goot = Math.max(...lagen.map((l) => l.top));
+      const [mx, my] = [(X0 + X1) / 2, (Y0 + Y1) / 2];
+      const dak = [[X0, Y0, goot], [X1, Y0, goot], [X1, Y1, goot], [X0, Y1, goot], [mx, Y0, nok], [mx, Y1, nok], [X0, my, nok], [X1, my, nok]].map((q) => P(...q));
+      const voet = [[X0, Y0, 0], [X1, Y0, 0], [X1, Y1, 0], [X0, Y1, 0]].map((q) => P(...q)[0]);
+      const [hx0, hx1] = [Math.min(...voet), Math.max(...voet)];
+      const top = Math.min(...dak.map((q) => q[1]));
+      const perMeter = P(cx, cy, 0)[1] - P(cx, cy, 1)[1];
+      const [z0, rek0] = [ringZ, rek];
+      let beste = null;
+      for (let i = 0; i <= 4 && perMeter > 0; i++) {
+        rek = rek0 * (1 - i * 0.06);
+        ringZ = z0;
+        const pp = [...zb.baan.filter((q) => q.el > -1.5), ...(zb.nu && zb.nu.el > -2 ? [zb.nu] : [])].map((q) => P(...ringPunt(q)));
+        let nodig = 0;
+        for (const p of pp) if (p[0] >= hx0 && p[0] <= hx1) nodig = Math.max(nodig, p[1] - (top - 0.4 * perMeter));
+        const dy = Math.max(0, nodig);
+        // De top van de boog na het optillen; boven de rand van de tekening telt als slecht (de zon valt eruit).
+        const piek = Math.min(...pp.map((p) => p[1])) - dy;
+        const kans = { rek, dz: dy / perMeter, piek, uit: piek < 14 };
+        if (!beste || (beste.uit && !kans.uit) || (beste.uit === kans.uit && kans.piek > beste.piek + 1e-9)) beste = kans;
+      }
+      if (beste) {
+        rek = beste.rek;
+        ringZ = z0 + beste.dz;
+      } else [ringZ, rek] = [z0, rek0];
+    }
     const vlak = (pp) => `M${pp.map((p) => pt(...p)).join('L')}Z`;
     /*
      * Tikken (21 november 2026, stap c van de nieuwe tekenaar; `o.tik`): onzichtbare vlakken met data-kamer (en
@@ -653,6 +651,7 @@
       FONT: { get: () => FONT },
       esc: { get: () => esc },
       ringZ: { get: () => ringZ },
+      ringZ0: { get: () => ringZ0 },
       erf: { get: () => erf },
       vlak: { get: () => vlak },
       eiland: { get: () => eiland },
@@ -701,6 +700,21 @@
       opPlek(mx, my).push({ soort: 'tafel', q: { ...klein(mx, my), mx, my } });
     }
     // buiten: in kit/huis-maat-buiten.js (opgesplitst op 22 november 2026). Wat het deel van de tekenaar deelt:
+    /*
+     * Een blok met een andere boven- en onderkant (vier hoeken elk): de zijden naar de kijker, dan de bovenkant.
+     * Hier, vóór het deel buiten (23 november 2026): dat tekent bij het maken al wat achter het huis staat, en een
+     * auto achter het huis (bij sommige hoeken) vroeg prisma toen het nog niet bestond; dan viel Thuis terug op het
+     * poppenhuis.
+     */
+    const prisma = (onder, boven, zij, top) => {
+      let x2 = '';
+      const vlakken = [0, 1, 2, 3].map((i) => {
+        const [a, b] = [onder[i], onder[(i + 1) % 4]];
+        return { p: [a, b, boven[(i + 1) % 4], boven[i]], n: [b[1] - a[1], -(b[0] - a[0])] };
+      });
+      for (const v of vlakken.sort((p1, p2) => dp(p2.p) - dp(p1.p))) if (naarKijker(...v.n)) x2 += `<path d="${vlak(v.p)}" fill="${zij(v)}" stroke="rgb(13 26 48 / 0.35)" stroke-width="0.6" stroke-linejoin="round"/>`;
+      return x2 + `<path d="${vlak(boven)}" fill="${top}" stroke="rgb(13 26 48 / 0.35)" stroke-width="0.6" stroke-linejoin="round"/>`;
+    };
     const cbuiten = {};
     Object.defineProperties(cbuiten, {
       s: { get: () => s, set: (w) => {
@@ -732,7 +746,7 @@
     });
     const buitenDeel = global.huisMaatBuiten(cbuiten);
 
-    const { prisma, tekenBuiten, ACHTER, paneelVan, hoofdDak, paneelVeld, kapel } = buitenDeel;
+    const { tekenBuiten, ACHTER, paneelVan, hoofdDak, paneelVeld, kapel } = buitenDeel;
     const kamerVan = (r) => (r?.kamer ? r.kamer : null);
     // meubels: in kit/huis-maat-meubels.js (opgesplitst op 22 november 2026). Wat het deel van de tekenaar deelt:
     const cmeubels = {};

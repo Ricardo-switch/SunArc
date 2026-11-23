@@ -20,6 +20,12 @@
   .titel { position: absolute; left: 22px; top: 108px; width: 380px; z-index: 2; }
   .titel .lead { margin-top: 12px; }
   /*
+   * De zon van nu mag achter de kop staan (23 november 2026, Ricardo): de boog vervaagt daar, de zon blijft. Een zachte
+   * gloed in de kleur van de lucht houdt de groet, de kop en de zin leesbaar.
+   */
+  #wand .titel .groet, #wand .titel .kop-1, #wand .titel .lead { text-shadow: 0 0 3px rgb(11 20 36 / 0.7), 0 0 14px rgb(11 20 36 / 0.85), 0 0 28px rgb(11 20 36 / 0.6); }
+  .sc-licht #wand .titel .groet, .sc-licht #wand .titel .kop-1, .sc-licht #wand .titel .lead { text-shadow: 0 0 3px rgb(233 239 246 / 0.8), 0 0 14px rgb(233 239 246 / 0.9), 0 0 28px rgb(233 239 246 / 0.6); }
+  /*
    * Een bredere wand dan 1280 (een liggende telefoon, besluit 128): een derde
    * van wat erbij komt naar de rechterkolom, de rest naar het huis, dat er
    * groter en in het midden van zijn vak in staat.

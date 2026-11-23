@@ -108,25 +108,39 @@
             if (q.uur % 3 === 0) x2 += tekst(String(q.uur), -8);
           }
         });
+        // De zon van nu en zijn bundel apart: die vervagen nooit onder de tekst (23 november 2026).
+        let zonS = '';
         const nu = kern.zb.nu;
         if (nu && nu.el > -2) {
           const w = kern.ringPunt(nu);
           if (isAchter(w) === achter) {
             const p2 = kern.P(...w);
             // Een bundel licht van de zon naar het huis.
-            const doel = [kern.P(kern.X0, kern.cy, kern.ringZ - 3), kern.P(kern.X1, kern.cy, kern.ringZ - 3), kern.P(kern.cx, kern.cy, 0)];
+            // Naar het dak (de hoogte van de ring vóór hij boven het huis uit getild werd), niet naar de boog zelf.
+            const doel = [kern.P(kern.X0, kern.cy, kern.ringZ0 - 3), kern.P(kern.X1, kern.cy, kern.ringZ0 - 3), kern.P(kern.cx, kern.cy, 0)];
             const [l, r] = doel.slice(0, 2).sort((a, b) => Math.atan2(a[1] - p2[1], a[0] - p2[0]) - Math.atan2(b[1] - p2[1], b[0] - p2[0]));
-            x2 += `<defs><linearGradient id="hm-bundel" gradientUnits="userSpaceOnUse" x1="${p2[0].toFixed(1)}" y1="${p2[1].toFixed(1)}" x2="${doel[2][0].toFixed(1)}" y2="${doel[2][1].toFixed(1)}"><stop offset="0" stop-color="#ffd27a" stop-opacity="0.32"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></linearGradient></defs>`;
-            x2 += `<path d="M${p2[0].toFixed(1)} ${p2[1].toFixed(1)}L${l[0].toFixed(1)} ${l[1].toFixed(1)}L${doel[2][0].toFixed(1)} ${doel[2][1].toFixed(1)}L${r[0].toFixed(1)} ${r[1].toFixed(1)}Z" fill="url(#hm-bundel)"/>`;
-            x2 += `<circle cx="${p2[0].toFixed(1)}" cy="${p2[1].toFixed(1)}" r="24" fill="#ffd27a" opacity="0.16"/>`;
+            zonS += `<defs><linearGradient id="hm-bundel" gradientUnits="userSpaceOnUse" x1="${p2[0].toFixed(1)}" y1="${p2[1].toFixed(1)}" x2="${doel[2][0].toFixed(1)}" y2="${doel[2][1].toFixed(1)}"><stop offset="0" stop-color="#ffd27a" stop-opacity="0.32"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></linearGradient></defs>`;
+            zonS += `<path d="M${p2[0].toFixed(1)} ${p2[1].toFixed(1)}L${l[0].toFixed(1)} ${l[1].toFixed(1)}L${doel[2][0].toFixed(1)} ${doel[2][1].toFixed(1)}L${r[0].toFixed(1)} ${r[1].toFixed(1)}Z" fill="url(#hm-bundel)"/>`;
+            zonS += `<circle cx="${p2[0].toFixed(1)}" cy="${p2[1].toFixed(1)}" r="24" fill="#ffd27a" opacity="0.16"/>`;
             for (let i = 0; i < 12; i++) {
               const h = (i / 12) * 2 * Math.PI;
-              x2 += `<path d="M${(p2[0] + Math.cos(h) * 11).toFixed(1)} ${(p2[1] + Math.sin(h) * 11).toFixed(1)}L${(p2[0] + Math.cos(h) * 15).toFixed(1)} ${(p2[1] + Math.sin(h) * 15).toFixed(1)}" stroke="#ffd27a" stroke-width="1.6" stroke-linecap="round"/>`;
+              zonS += `<path d="M${(p2[0] + Math.cos(h) * 11).toFixed(1)} ${(p2[1] + Math.sin(h) * 11).toFixed(1)}L${(p2[0] + Math.cos(h) * 15).toFixed(1)} ${(p2[1] + Math.sin(h) * 15).toFixed(1)}" stroke="#ffd27a" stroke-width="1.6" stroke-linecap="round"/>`;
             }
-            x2 += `<circle cx="${p2[0].toFixed(1)}" cy="${p2[1].toFixed(1)}" r="8" fill="#ffd27a"/>`;
+            zonS += `<circle cx="${p2[0].toFixed(1)}" cy="${p2[1].toFixed(1)}" r="8" fill="#ffd27a"/>`;
           }
         }
-        return x2;
+        /*
+         * Onder de tekst bovenin (`o.vrij`, de kop op de wand) vervaagt de boog met een zachte rand (23 november 2026):
+         * hij loopt er niet doorheen. Het masker staat één keer in de tekening.
+         */
+        const vrij = (kern.o.vrij ?? []).filter((v) => v && Number.isFinite(v.x0) && Number.isFinite(v.y1));
+        if (!vrij.length || !x2) return x2 + zonS;
+        let masker = '';
+        if (!kern.zbMasker) {
+          kern.zbMasker = true;
+          masker = `<defs><filter id="hm-vrij-zacht" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter><mask id="hm-vrij" maskUnits="userSpaceOnUse" x="0" y="0" width="${kern.B}" height="${kern.Hpx}"><rect x="0" y="0" width="${kern.B}" height="${kern.Hpx}" fill="#fff"/>${vrij.map((v) => `<rect x="${(v.x0 - 14).toFixed(0)}" y="${(v.y0 - 12).toFixed(0)}" width="${(v.x1 - v.x0 + 28).toFixed(0)}" height="${(v.y1 - v.y0 + 24).toFixed(0)}" rx="16" fill="#000" filter="url(#hm-vrij-zacht)"/>`).join('')}</mask></defs>`;
+        }
+        return `${masker}<g mask="url(#hm-vrij)">${x2}</g>${zonS}`;
       };
       kern.s += zonneboog(true);
       // Het eiland: de zijkanten naar de kijker, dan het gras. Met een erf: een zachte schaduw, een randje gras en aarde in lagen.
