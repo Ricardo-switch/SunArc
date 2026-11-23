@@ -1,7 +1,8 @@
 /*
  * De taal van de app (besluit 185, stap 8 van het stappenplan; besluit 86).
  *
- * Alle teksten staan per taal op één plek: teksten.nl.js en teksten.en.js,
+ * Alle teksten staan per taal op één plek: teksten.nl.js en teksten.en.js
+ * (een pagina laadt alleen die van zijn taal, via teksten.js),
  * met een sleutel per tekst. De code vraagt ze op met `t('thuis.vandaag')`, en
  * de HTML met `data-t="thuis.vandaag"` (de tekst) of `data-t-aria-label="…"`
  * (een attribuut). `{naam}` vult zich met wat je meegeeft. Meervoud staat per
@@ -21,7 +22,12 @@
 (function (global) {
   'use strict';
   const TALEN = global.TALEN ?? {};
-  const KAN = Object.keys(TALEN);
+  /*
+   * De talen die je kunt kiezen. Sinds 23 november 2026 laadt een pagina alleen de teksten van zijn eigen taal
+   * (kit/teksten.js), dus niet uit wat er geladen is, maar vast; een taal die nog half af is en zelf geladen
+   * wordt (een schets), komt erbij.
+   */
+  const KAN = [...new Set(['nl', 'en', ...Object.keys(TALEN)])];
   /**
    * De talen die de hele app spreekt: alleen die kiest de app vanzelf, uit het
    * account of de browser. Een taal die nog half af is, kies je zelf bij Jij;
@@ -64,7 +70,8 @@
     const talen = [haTaal(), global.navigator?.language, ...(global.navigator?.languages ?? [])].filter(Boolean);
     return talen.map((x) => past(x, HEEL)).find(Boolean) ?? (talen.length ? 'en' : HEEL[0]);
   };
-  const code = gekozen() ?? vanzelf();
+  // De taal die kit/teksten.js al koos en laadde; zonder dat script (de schetsen) kiest dit bestand zelf.
+  const code = past(global.TAAL_GELADEN) ?? gekozen() ?? vanzelf();
   const locale = LOCALE[code] ?? code;
   if (global.document?.documentElement) global.document.documentElement.lang = code;
 

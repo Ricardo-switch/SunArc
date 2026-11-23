@@ -124,7 +124,8 @@ async function stempel() {
   const verwijst = new Map();
   for (const naam of scripts) {
     const tekst = await readFile(join(out, naam), 'utf-8');
-    const ref = [...new Set([...tekst.matchAll(/'((?:kit\/)?[a-z0-9-]+\.js)'/g)].map((m) => m[1]))].filter((r) => r !== 'sw.js' && r !== naam && scripts.includes(r));
+    // Ook een naam met een punt erin, zoals 'kit/teksten.nl.js' (kit/teksten.js kiest de taal, 23 november 2026).
+    const ref = [...new Set([...tekst.matchAll(/'((?:kit\/)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.js)'/g)].map((m) => m[1]))].filter((r) => r !== 'sw.js' && r !== naam && scripts.includes(r));
     verwijst.set(naam, ref);
   }
   const klaar = new Set(scripts.filter((n) => !verwijst.get(n).length));

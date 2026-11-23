@@ -8,7 +8,7 @@
  * pagina voor pagina, tot de hele app erin staat.
  */
 
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 
@@ -120,5 +120,67 @@ describe('de taal die de app vanzelf kiest', () => {
     expect(kies('de-DE', ['de-DE'])).toBe('en');
     expect(kies('en-GB', ['en-GB'])).toBe('en');
     expect(kies(undefined)).toBe('nl');
+  });
+});
+
+/*
+ * Eén taal laden (23 november 2026): kit/teksten.js kiest de taal en laadt alleen die; taal.js kiest zelf ook (voor de
+ * schetsen, zonder dat script). De twee moeten altijd hetzelfde kiezen, anders laadt de pagina de verkeerde teksten.
+ */
+describe('alleen de teksten van de gekozen taal', () => {
+  type Omgeving = { bewaard?: string | null; taal?: string; talen?: string[]; ha?: string };
+  function venster(o: Omgeving): Record<string, unknown> {
+    const window: Record<string, unknown> = {
+      localStorage: { getItem: (k: string) => (k === 'sc-taal' ? (o.bewaard ?? null) : null) },
+      navigator: o.taal == null && !o.talen?.length ? undefined : { language: o.taal, languages: o.talen ?? [] },
+    };
+    window.parent = o.ha ? { document: { querySelector: () => ({ hass: { language: o.ha } }) } } : window;
+    return window;
+  }
+  function lader(o: Omgeving): { code: string; src: string } {
+    const window = venster(o);
+    let src = '';
+    window.document = { write: (s: string) => (src = /src="([^"]+)"/.exec(s)?.[1] ?? '') };
+    runInNewContext(lees('kit/teksten.js'), { window, self: window, globalThis: window });
+    return { code: window.TAAL_GELADEN as string, src };
+  }
+  function taalJs(o: Omgeving): string {
+    const window = { ...venster(o), TALEN: { nl: {}, en: {} } };
+    runInNewContext(lees('kit/taal.js'), { window, self: window, globalThis: window });
+    return (window as unknown as { taal: { code: string } }).taal.code;
+  }
+
+  it('kiest hetzelfde als taal.js en laadt alleen dat bestand', () => {
+    const gevallen: Omgeving[] = [
+      { bewaard: 'en', taal: 'nl-NL', talen: ['nl-NL'] },
+      { bewaard: 'nl', taal: 'en-GB', talen: ['en-GB'] },
+      { bewaard: 'fr', taal: 'nl-BE', talen: ['nl-BE'] },
+      { taal: 'en-US', talen: ['en-US'] },
+      { taal: 'de-DE', talen: ['de-DE'] },
+      { taal: 'fr-BE', talen: ['fr-BE', 'nl-BE'] },
+      { ha: 'en', taal: 'nl-NL', talen: ['nl-NL'] },
+      {},
+    ];
+    for (const o of gevallen) {
+      const { code, src } = lader(o);
+      expect(code, JSON.stringify(o)).toBe(taalJs(o));
+      expect(src, JSON.stringify(o)).toBe(`kit/teksten.${code}.js`);
+    }
+  });
+
+  it('laat taal.js de keuze van de lader volgen, en houdt Nederlands en Engels te kiezen', () => {
+    const window = { ...venster({ taal: 'nl-NL', talen: ['nl-NL'] }), TALEN: { en: {} }, TAAL_GELADEN: 'en' };
+    runInNewContext(lees('kit/taal.js'), { window, self: window, globalThis: window });
+    const taal = (window as unknown as { taal: { code: string; talen: string[] } }).taal;
+    expect(taal.code).toBe('en');
+    expect(taal.talen).toEqual(['nl', 'en']);
+  });
+
+  it('laadt op elke pagina van de app de lader, en niet meer beide talen', () => {
+    for (const pagina of readdirSync(`${FRONTEND}src`).filter((n) => n.endsWith('.html'))) {
+      const html = lees(`src/${pagina}`);
+      expect(html, pagina).not.toMatch(/kit\/teksten\.(nl|en)\.js/);
+      if (/kit\/taal\.js/.test(html)) expect(html.indexOf('kit/teksten.js'), pagina).toBeGreaterThan(-1);
+    }
   });
 });
