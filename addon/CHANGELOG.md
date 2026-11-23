@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.228.0
+## 0.228.1
 
-*23 november 2026 · 0.179.0 – 0.228.0*
+*23 november 2026 · 0.179.0 – 0.228.1*
 
 **Nieuw**
 
@@ -209,6 +209,7 @@
 
 **Opgelost**
 
+- Rechtsboven op Thuis stond bij klimaat buiten de regeling, zoals het tuinhuis, climate.tuinhuis met de hand in plaats van de naam
 - Met de hand verwarmen tot 22:00 lukte 's ochtends niet: de dienst weigerde alles verder dan twaalf uur weg, en voor tienen ligt 22:00 verder weg. Nu mag het tot een dag
 - In het getekende huis vlogen blauwe streepjes door het beeld als een airco aan stond: de ventilator van de buitenunit draaide om de hoek van de tekening in plaats van om zijn eigen midden
 - In het getekende huis blaast een airco die verwarmt nu oranje lucht en een airco die koelt blauw, naar wat hij zelf doet
@@ -472,6 +473,7 @@
 
 **Fixed**
 
+- Top right on Home, climate outside the schedule, such as the garden house, showed climate.tuinhuis by hand instead of its name
 - Heating by hand until 22:00 did not work in the morning: the service refused anything more than twelve hours away, and before ten 22:00 is further away. Now up to a day is allowed
 - In the house as drawn, blue dashes flew across the picture when an air conditioner was on: the fan of the outdoor unit spun around the corner of the drawing instead of its own centre
 - In the house as drawn, an air conditioner that heats now blows orange air and one that cools blue, by what it does itself

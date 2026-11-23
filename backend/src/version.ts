@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.228.0';
+export const VERSIE = '0.228.1';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.228.1',
+    datum: '2026-11-23',
+    opgelost: [
+      'Rechtsboven op Thuis stond bij klimaat buiten de regeling, zoals het tuinhuis, climate.tuinhuis met de hand in plaats van de naam',
+    ],
+    en: {
+      opgelost: [
+        'Top right on Home, climate outside the schedule, such as the garden house, showed climate.tuinhuis by hand instead of its name',
+      ],
+    },
+  },
   {
     versie: '0.228.0',
     datum: '2026-11-23',
