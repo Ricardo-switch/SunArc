@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.225.0
+## 0.226.0
 
-*22 november 2026 · 0.179.0 – 0.225.0*
+*23 november 2026 · 0.179.0 – 0.226.0*
 
 **Nieuw**
 
@@ -92,6 +92,7 @@
 
 **Beter**
 
+- Onder de motorkap: Inrichten, Thuis en de dienst zijn opgesplitst in kleinere delen; je merkt er niets van
 - Onder de motorkap: het poppenhuis is opgesplitst in kleinere delen; je merkt er niets van
 - De lampen van het tuinhuis lichten op in hun eigen kleur: binnen door de ramen, buiten onder het overstek
 - Onder de motorkap: de tekenaar van Je huis is opgesplitst in kleinere delen; je merkt er niets van
@@ -347,6 +348,7 @@
 
 **Improved**
 
+- Under the hood: Setup, Home and the service are split into smaller parts; you will not notice it
 - Under the hood: the dollhouse is split into smaller parts; you will not notice it
 - The lights of the garden house glow in their own colour: inside through the windows, outside under the canopy
 - Under the hood: the drawing tool of Your home is split into smaller parts; you will not notice it
