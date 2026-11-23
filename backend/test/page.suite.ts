@@ -2261,7 +2261,9 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // De hele lijst blijft achter het weer.
     await p.evaluate("location.hash = '#batterijen'; location.reload()");
     const lijst = wand.locator('#weer-wand');
-    await expect.poll(() => lijst.isVisible()).toBe(true);
+    // Na het herladen bouwt Thuis zich opnieuw op; op de machines van de CI duurt dat soms
+    // langer dan de ene seconde van expect.poll (23 november 2026: drie keer mis op een dag).
+    await expect.poll(() => lijst.isVisible(), { timeout: 10_000 }).toBe(true);
     expect(await lijst.getAttribute('aria-label')).toBe('Batterijen');
     const rijen = await lijst.locator('.accu').allTextContents();
     expect(rijen).toHaveLength(2);
