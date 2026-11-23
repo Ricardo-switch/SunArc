@@ -4,14 +4,14 @@
  * waar het gemaakt is. Deze test leest de pagina's van de weergave, zonder
  * commentaar, en zoekt woorden die over één installatie gaan: de NAS, de
  * namen van omgevingsvariabelen, de manier van uitrollen, of namen uit dat
- * ene huis. De proefomgeving (index.html en app.js) telt niet mee: die is
- * voor wie aan SunArc werkt.
+ * ene huis. De oude proefomgeving (index.html en app.js) is De motor geworden
+ * (besluit 337) en telt nu gewoon mee.
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 
 const MAP = new URL('../../frontend/src/', import.meta.url);
-const NIET = ['index.html', 'app.js'];
+const NIET: string[] = [];
 const WOORDEN: readonly [RegExp, string][] = [
   [/\bNAS\b/, 'de NAS: niet elk huis draait op een NAS'],
   [/HEMS_[A-Z]/, 'een omgevingsvariabele: dat is iets voor wie installeert'],

@@ -583,7 +583,7 @@ describe('de weergave leest alleen', () => {
     await writeFile(join(root, 'geheim.txt'), 'HA_TOKEN=eyJ...', 'utf-8');
     const webDir = join(root, 'web');
     await mkdir(webDir);
-    await writeFile(join(webDir, 'index.html'), '<h1>hallo</h1>', 'utf-8');
+    await writeFile(join(webDir, 'thuis.html'), '<h1>hallo</h1>', 'utf-8');
 
     const { base } = await start({ webDir });
 
@@ -901,7 +901,7 @@ describe('de pagina veroudert niet stilletjes', () => {
   async function webDirFixture(content: string): Promise<string> {
     const dir = await mkdtemp(join(tmpdir(), 'hems-cache-'));
     cleanups.push(() => rm(dir, { recursive: true, force: true }));
-    await writeFile(join(dir, 'index.html'), '<h1>hallo</h1>', 'utf-8');
+    await writeFile(join(dir, 'thuis.html'), '<h1>hallo</h1>', 'utf-8');
     await writeFile(join(dir, 'app.js'), content, 'utf-8');
     return dir;
   }
@@ -957,7 +957,7 @@ describe('de pagina veroudert niet stilletjes', () => {
     // Het stempel verandert als het bestand verandert, dus navragen is niet nodig.
     expect((await fetch(`${base}/app.js?v=1a2b3c4d`)).headers.get('cache-control')).toBe('public, max-age=31536000, immutable');
     // Een pagina blijft navragen, ook met iets achter het adres.
-    expect((await fetch(`${base}/index.html?v=1a2b3c4d`)).headers.get('cache-control')).toBe('no-cache');
+    expect((await fetch(`${base}/thuis.html?v=1a2b3c4d`)).headers.get('cache-control')).toBe('no-cache');
   });
 
   it('pakt een groot script in, maar niet achter Ingress (21 oktober 2026)', async () => {
@@ -1165,7 +1165,7 @@ describe('de onboarding', () => {
   async function paginas(): Promise<string> {
     const dir = await mkdtemp(join(tmpdir(), 'hems-web-'));
     cleanups.push(() => rm(dir, { recursive: true, force: true }));
-    for (const naam of ['index.html', 'thuis.html', 'begin.html', 'welkom.html', 'inrichten.html']) await writeFile(join(dir, naam), `<title>${naam}</title>`, 'utf-8');
+    for (const naam of ['motor.html', 'thuis.html', 'begin.html', 'welkom.html', 'inrichten.html']) await writeFile(join(dir, naam), `<title>${naam}</title>`, 'utf-8');
     return dir;
   }
 
@@ -1179,8 +1179,10 @@ describe('de onboarding', () => {
       // Relatief: achter Ingress staat de app onder een pad van Home Assistant.
       expect(res.headers.get('location'), pagina).toBe('begin.html');
     }
-    // De cijferpagina blijft voor wie hem direct opent.
-    expect(await (await fetch(`${base}/index.html`)).text()).toContain('index.html');
+    // De oude schaduwpagina is De motor geworden (besluit 337): een oude bladwijzer komt daar.
+    const oud = await fetch(`${base}/index.html`, { redirect: 'manual' });
+    expect(oud.status).toBe(302);
+    expect(oud.headers.get('location')).toBe('motor.html');
   });
 
   it('opent in de add-on met een configuratie de app, en het welkom is dan voorbij', async () => {
@@ -1191,9 +1193,10 @@ describe('de onboarding', () => {
     expect(res.headers.get('location')).toBe('thuis.html');
   });
 
-  it('opent op de NAS gewoon de cijfers', async () => {
+  it('opent op de NAS de app, en de oude schaduwpagina gaat naar De motor (besluit 337)', async () => {
     const { base } = await start({ webDir: await paginas() });
-    expect(await (await fetch(`${base}/`)).text()).toContain('index.html');
+    expect(await (await fetch(`${base}/`)).text()).toContain('thuis.html');
+    expect((await fetch(`${base}/index.html`, { redirect: 'manual' })).headers.get('location')).toBe('motor.html');
     expect((await fetch(`${base}/begin.html`, { redirect: 'manual' })).status).toBe(200);
   });
 

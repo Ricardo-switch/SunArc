@@ -5168,6 +5168,8 @@
   'voortgang.weg.gehaald': 'gehaald',
   'voortgang.weg.zelf': 'Zelf regelen',
   'voortgang.weg.ja': 'na jouw ja',
+  'voortgang.weg.perKamer': 'per kamer, als jij dat kiest',
+  'voortgang.weg.kamerZin': 'SunArc leert elke kamer kennen en kijkt mee. Zelf regelen kies je per kamer, wanneer jij wilt.',
   'voortgang.kort.temperatuur': 'Op temperatuur',
   'voortgang.kort.optijd': 'Op tijd warm',
   'voortgang.kort.thermisch': 'Warmte',

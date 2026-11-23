@@ -169,7 +169,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 
 **Weergave**
 
-- [24. Tailwind met een bouwstap, niet via een CDN](#24-tailwind-met-een-bouwstap-niet-via-een-cdn)
+- [24. Tailwind met een bouwstap, niet via een CDN](#24-tailwind-met-een-bouwstap-niet-via-een-cdn) — *vervangen door 337*
 - [26. De terugblik hoort bij de weergave, maar is een andere waarheid](#26-de-terugblik-hoort-bij-de-weergave-maar-is-een-andere-waarheid)
 - [45. Een bewoner ziet nooit een entity-ID](#45-een-bewoner-ziet-nooit-een-entity-id)
 - [63. De terugblik gaat verder waar hij was](#63-de-terugblik-gaat-verder-waar-hij-was)
@@ -936,7 +936,11 @@ besluit.
 
 ## 24. Tailwind met een bouwstap, niet via een CDN
 
-*Onderwerp: weergave · Status: geldig*
+*Onderwerp: weergave · Status: vervangen door 337*
+
+*Sinds 0.232.0:* de enige pagina met Tailwind, de oude schaduwpagina, is De
+motor geworden (besluit 337). Tailwind en de bouwstap voor de opmaak zijn weg;
+de app heeft zijn eigen opmaak in `frontend/kit/` en `basis.css` (besluit 104).
 
 *Afgewezen — de play-CDN.* Geen bouwstap, maar dan heeft een pagina die je juist
 lokaal wilt kunnen openen internet nodig om er goed uit te zien. Een dashboard in
@@ -14455,6 +14459,15 @@ Tot januari wordt er niets aan de regeling gebouwd ([310]). Beginwaarden uit
 meer huizen dan dit ene vragen dat gebruikers gegevens delen: daar hoort een
 eigen besluit bij.
 
+*Aangevuld in 0.232.0 (23 november 2026):* de laatste twee plekken met
+winterdagen volgen nu ook. De weg naar zelf regelen bij Wat je huis kan telt
+alleen winterdagen in een huis met een oude regeling ernaast (`api/site` ›
+`migrating`, dus `migration.legacyExplanation` in de configuratie). In elk ander
+huis gaat hij van *Meekijken begint* via *Nu* naar *Zelf regelen, per kamer, als
+jij dat kiest*, zonder winterdagen en zonder *Klaar om over te nemen*. De
+melding bij 10, 20 en 30 winterdagen komt ook alleen in het huis met de oude
+regeling. Wanneer een kamer klaar is om te regelen, blijft voor januari.
+
 ## 313. Op Thuis staat vast wat SunArc doet, en de kop zegt alleen wat echt gebeurt
 
 *Onderwerp: weergave · Status: geldig*
@@ -15539,9 +15552,11 @@ telefoonschets, daarna "begin maar". De dertig winterdagen beginnen op
   schelen, de laatste twee weken per kwartier, en waar ze het langst verschilden
   met de reden van allebei. Alles past op de wand zonder schuiven; op de
   telefoon onder elkaar. Rekent de terugblik nog, dan zegt de pagina dat.
-- **Nog niet:** de oude pagina (`index.html`, `app.js` en Tailwind) gaat weg in
-  een volgende versie. Installeren en de back-up hebben al een eigen plek (Begin
-  en Toegang). De wissel van *zou doen* naar *deed* op de dag dat SunArc zelf
+- **De oude pagina weg (0.232.0):** `index.html`, `app.js` en Tailwind zijn weg
+  (besluit 24 vervalt). Het beginadres is overal Thuis, ook op een eigen server;
+  wie `index.html` nog als bladwijzer heeft, komt bij De motor. Installeren en
+  de back-up hebben al een eigen plek (Begin en Toegang).
+- **Nog niet:** de wissel van *zou doen* naar *deed* op de dag dat SunArc zelf
   regelt.
 
 ## Wat nog een besluit wacht

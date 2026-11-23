@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.231.0
+## 0.232.0
 
-*23 november 2026 · 0.179.0 – 0.231.0*
+*23 november 2026 · 0.179.0 – 0.232.0*
 
 **Nieuw**
 
@@ -95,6 +95,8 @@
 
 **Beter**
 
+- De weg naar zelf regelen bij Wat je huis kan telt geen winterdagen meer: SunArc leert elke kamer kennen, kijkt mee, en zelf regelen kies je per kamer
+- Het beginadres opent overal Thuis. De oude cijferpagina is opgegaan in De motor bij Over deze app
 - Het welkom noemt de ruimtes in Home Assistant waar nog geen apparaat in staat, zodat 0 ruimtes niet lijkt alsof SunArc ze niet ziet
 - Elke pagina laadt alleen nog de teksten van jouw taal, niet meer Nederlands én Engels: Thuis laadt zo een derde minder
 - Op Thuis loopt de baan van de zon net boven het huis, niet meer erdoorheen
@@ -366,6 +368,8 @@
 
 **Improved**
 
+- The road to taking over under What your home can do no longer counts winter days: SunArc gets to know each room, watches along, and you choose per room when it takes over
+- The start address opens Home everywhere. The old figures page is now part of The engine under About this app
 - The welcome screen names the areas in Home Assistant that have no device yet, so 0 spaces no longer looks as if SunArc cannot see them
 - Every page now loads only the texts of your language, not Dutch and English both: Home loads a third less
 - On Home the path of the sun runs just above the house, no longer through it

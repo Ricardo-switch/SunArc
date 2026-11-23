@@ -1,12 +1,11 @@
 {
   "name": "@hems/frontend",
-  "version": "0.231.0",
+  "version": "0.232.0",
   "private": true,
   "description": "Read-only webweergave op het Explanation-contract",
   "type": "module",
   "scripts": {
     "build": "node build.js",
-    "watch": "node build.js --watch",
     "lint": "eslint",
     "typecheck": "node typecheck.js"
   },
@@ -14,11 +13,9 @@
     "@eslint/js": "^10.0.1",
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/figtree": "^5.3.0",
-    "@tailwindcss/cli": "^4.1.14",
     "eslint": "^10.15.0",
     "globals": "^17.14.0",
     "qrcode-generator": "^2.0.4",
-    "tailwindcss": "^4.1.14",
     "typescript": "^5.9.3"
   }
 }

@@ -235,9 +235,18 @@ export class WebServer {
     }
 
     /*
+     * De oude schaduwpagina is De motor geworden (besluit 337, 0.232.0): wie hem nog als bladwijzer heeft, komt daar.
+     * Relatief, zodat het ook achter Ingress klopt.
+     */
+    if ((method === 'GET' || method === 'HEAD') && path === '/index.html') {
+      res.writeHead(302, { location: 'motor.html', 'cache-control': 'no-store' });
+      res.end();
+      return;
+    }
+
+    /*
      * In de add-on is de app de voordeur (besluit 154). Zonder configuratie is
-     * het huis leeg: elke pagina van de app gaat dan naar het welkom. De
-     * cijferpagina blijft bestaan voor wie hem direct opent.
+     * het huis leeg: elke pagina van de app gaat dan naar het welkom.
      *
      * Achter Ingress altijd een relatief adres: de app staat daar onder een pad
      * van Home Assistant, en `/thuis.html` zou naar Home Assistant zelf gaan.
@@ -249,10 +258,10 @@ export class WebServer {
         res.writeHead(302, { location: doel, 'cache-control': 'no-store' });
         res.end();
       };
-      if (leeg && pagina !== '' && pagina !== 'begin.html' && pagina !== 'index.html') return naar('begin.html');
+      if (leeg && pagina !== '' && pagina !== 'begin.html') return naar('begin.html');
       if (!leeg && pagina === 'begin.html') return naar('thuis.html');
       // Wie voor het eerst komt, krijgt eerst "wie ben je?" (besluit 147), ook achter Ingress.
-      if (!leeg && access.kind === 'ingress' && pagina !== 'welkom.html' && pagina !== 'index.html' && this.#d.options.bewoners) {
+      if (!leeg && access.kind === 'ingress' && pagina !== 'welkom.html' && this.#d.options.bewoners) {
         const visitor = await ingressVisitor(req);
         if (visitor.userId != null) {
           const eerst = await this.#d.options.bewoners.herken({ userId: visitor.userId, naam: visitor.naam }).catch(() => null);
@@ -425,8 +434,9 @@ export class WebServer {
     }
 
     const headOnly = method === 'HEAD';
-    // De voordeur: op de NAS de cijfers, in de add-on de app of het welkom (besluit 154).
-    const voordeur = path !== '/' ? path : this.#d.options.onboarding == null ? 'index.html' : this.#d.options.config == null ? 'begin.html' : 'thuis.html';
+    // De voordeur: de app, of in een lege add-on het welkom (besluit 154). Op de NAS was dat tot 0.232.0 de
+    // schaduwpagina; die is De motor geworden (besluit 337).
+    const voordeur = path !== '/' ? path : this.#d.options.onboarding != null && this.#d.options.config == null ? 'begin.html' : 'thuis.html';
     // Een eigen server (de NAS, die beta volgt) geeft een eigen naam en icoon, zodat hij op een startscherm niet lijkt op de add-on.
     // Het voorbeeldhuis (besluit 237) draait als eigen server, maar is geen beta.
     const target = this.#d.options.version?.installatie === 'server' && process.env['HEMS_VOORBEELD'] !== '1' ? (BETA_ICOON[voordeur] ?? voordeur) : voordeur;

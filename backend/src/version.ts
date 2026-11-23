@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.231.0';
+export const VERSIE = '0.232.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,20 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.232.0',
+    datum: '2026-11-23',
+    beter: [
+      'De weg naar zelf regelen bij Wat je huis kan telt geen winterdagen meer: SunArc leert elke kamer kennen, kijkt mee, en zelf regelen kies je per kamer',
+      'Het beginadres opent overal Thuis. De oude cijferpagina is opgegaan in De motor bij Over deze app',
+    ],
+    en: {
+      beter: [
+        'The road to taking over under What your home can do no longer counts winter days: SunArc gets to know each room, watches along, and you choose per room when it takes over',
+        'The start address opens Home everywhere. The old figures page is now part of The engine under About this app',
+      ],
+    },
+  },
   {
     versie: '0.231.0',
     datum: '2026-11-23',

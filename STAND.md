@@ -70,7 +70,9 @@ verwijzing bestaat.
   Sinds 0.230.0 staat De motor achter zeven tikken op de versie bij Over deze
   app: wat SunArc meet, verdeelt en besluit, nu en elk kwartier van vandaag; sinds
   0.231.0 ook wat hij geleerd heeft en hoe vaak hij het met de oude regeling eens
-  is ([337]).
+  is ([337]). Sinds 0.232.0 is de oude schaduwpagina weg (met Tailwind) en opent
+  elke installatie op Thuis; de winterdagen tellen alleen nog in het huis met een
+  oude regeling ernaast ([312]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.

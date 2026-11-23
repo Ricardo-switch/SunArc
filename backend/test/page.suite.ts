@@ -364,7 +364,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
   const failedResponses: string[] = [];
 
   beforeAll(async () => {
-    expect(existsSync(join(WEB_DIR, 'app.js')), 'eerst de weergave bouwen: npm run build in frontend/').toBe(true);
+    expect(existsSync(join(WEB_DIR, 'thuis.js')), 'eerst de weergave bouwen: npm run build in frontend/').toBe(true);
 
     dir = await mkdtemp(join(tmpdir(), 'hems-page-'));
     await writeLogs(dir);
@@ -768,9 +768,10 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     page.on('response', (r) => {
       if (r.status() >= 400) failedResponses.push(`${r.status()} ${new URL(r.url()).pathname}`);
     });
-    await page.goto(`http://127.0.0.1:${port}/`);
-    // Klaar als de laatste stap van het laden, de exportknop, er staat.
-    await page.locator('#dataset-export').waitFor({ state: 'visible' });
+    // De oude schaduwpagina is De motor geworden (besluit 337, 0.232.0). Eerst de terugblik laten rekenen, dan De motor.
+    for (let i = 0; i < 60 && (await fetch(`${baseUrl}/api/divergence`)).status !== 200; i++) await new Promise((r) => setTimeout(r, 500));
+    await page.goto(`http://127.0.0.1:${port}/motor.html`);
+    await page.locator('#wand [data-motor] .mo-kaart').first().waitFor({ state: 'visible' });
   }, 60_000);
 
   afterAll(async () => {
@@ -783,35 +784,30 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
 
   it('laadt zonder fouten', () => {
     expect(pageErrors).toEqual([]);
-    // De onboarding staat buiten de add-on uit en antwoordt dan met 503. Dat
-    // is de enige verwachte fout, en de browser meldt hem als laadfout.
-    expect(failedResponses).toEqual(['503 /api/onboarding']);
+    // Met de hand bedienen staat in deze testdienst uit en antwoordt dan met 503; De motor toont dan gewoon niets met
+    // de hand. Dat is de enige verwachte fout, en de browser meldt hem als laadfout.
+    expect(failedResponses).toEqual(['503 /api/hand']);
     expect(consoleErrors.filter((t) => !t.includes('503'))).toEqual([]);
   });
 
-  it('toont het live besluit', async () => {
-    // De modus van het besluit, als woord en niet als code.
-    expect((await page.locator('#modus').textContent())?.toLowerCase()).toBe(live.explanation.mode);
-    expect(await page.locator('#zones').textContent()).toContain('Woonkamer');
-    expect(await page.locator('#budget-net').textContent()).toMatch(/\d W/);
-    expect((await page.locator('#apparaten').textContent())?.trim()).not.toBe('');
+  it('toont het live besluit bij De motor', async () => {
+    const nu = (await page.locator('#wand [data-motor]').textContent()) ?? '';
+    expect(nu).toContain('Woonkamer');
+    expect(nu).toMatch(/\d W/);
   });
 
-  it('toont de terugblik, met de tijdlijn en de versies', async () => {
-    await page.locator('#tab-terugblik').click();
-    expect(await page.locator('#stat-eens').textContent()).toMatch(/%/);
-    const timeline = (await page.locator('#tijdlijn').textContent()) ?? '';
-    for (const day of DAYS) expect(timeline).toContain(day);
-    expect(timeline).toContain('▲ aaaaaaa');
-    expect(timeline).toContain('▲ bbbbbbb');
+  it('toont bij Vergelijken hoe vaak de motor het eens was, en elke dag per kwartier', async () => {
+    await page.locator('#wand [data-deel="vergelijken"]').click();
+    await page.locator('#wand .mo-pct').waitFor();
+    expect(await page.locator('#wand .mo-pct').textContent()).toMatch(/\d+%/);
+    expect(await page.locator('#wand .mo-dagen .rij').count()).toBe(Math.min(DAYS.length, 14));
   });
 
-  it('toont de dataset en de exportknop', async () => {
-    expect(await page.locator('#dataset-export').textContent()).toContain('Exporteren · 3 dagen');
-    expect(await page.locator('#dataset-pct').textContent()).toMatch(/\d+%/);
-    // Het zonplafond is een cijfer over de dataset: hier, niet in de app.
-    await page.locator('#dataset-zon').waitFor({ state: 'visible' });
-    expect(await page.locator('#dataset-zon').textContent()).toMatch(/zonplafond (geleerd uit \d+ dagen|nog geschat) · factor \d,\d\d/);
+  it('toont bij Geleerd de seizoenen en de standen', async () => {
+    await page.locator('#wand [data-deel="geleerd"]').click();
+    await page.locator('#wand .mo-seizoen').first().waitFor();
+    expect(await page.locator('#wand .mo-seizoen').count()).toBe(4);
+    expect(await page.locator('#wand .mo-deel.geleerd').textContent()).toMatch(/dagen opgenomen sinds/);
   });
 
   /*

@@ -1696,7 +1696,8 @@ function meldingenRonde(): void {
       const a = vlakMetingNu()?.achter;
       return a && a.dagen >= 3 ? { letter: a.letter, wanneer: a.wanneer, minderPct: a.minderPct, eigenMeter: a.eigenMeter } : null;
     })(),
-    winterdagen: analyse?.latest?.dataset?.seizoenen?.find((s) => s.seizoen === 'winter')?.dagen ?? null,
+    // De wintertest is van het huis met een oude regeling ernaast (besluit 312): alleen daar de mijlpalen van 10, 20 en 30.
+    winterdagen: cfg.migration?.legacyExplanation != null ? (analyse?.latest?.dataset?.seizoenen?.find((s) => s.seizoen === 'winter')?.dagen ?? null) : null,
     profiel: runner?.latest?.explanation.profile ?? null,
     hoofd: bewonersStore ? hoofdVan(bewonersStore.current) : null,
     sluip: sluipVoorBel(sluipverbruik.laatste(), Date.now(), cfg.timezone),

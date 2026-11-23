@@ -67,6 +67,9 @@ function groepen(v) {
   return `<div class="kolom">${links.map(groep).join('')}</div><div class="kolom">${rechts.map(groep).join('')}</div>`;
 }
 
+/** Of dit het huis met de wintertest is: een oude regeling ernaast (besluit 312, api/site › migrating). */
+const wintertest = () => d.site?.migrating === true;
+
 /**
  * De mijlpalen op de weg naar zelf regelen. De winter telt van december tot en
  * met februari; het moment met genoeg winterdagen is op zijn vroegst, want ook
@@ -76,6 +79,15 @@ function mijlpalen(v) {
   const ds = v.dataset;
   const g = v.gereedheid;
   const nu = Date.now();
+  const standen = g.dekking >= 100 ? t('voortgang.weg.standen') : t('voortgang.weg.standenPct', { pct: g.dekking });
+  // Zonder oude regeling ernaast geen wintertest (besluit 312): SunArc leert per kamer en regelt waar jij dat kiest.
+  if (!wintertest()) {
+    return [
+      { soort: 'klaar', titel: t('voortgang.weg.begin'), zin: datum(ds.vanMs) },
+      { soort: 'nu', titel: t('voortgang.weg.nu'), zin: `${t('voortgang.weg.dagen', { n: Math.round(ds.dagenOpgenomen) })}, ${standen}` },
+      { soort: 'doel', titel: t('voortgang.weg.zelf'), zin: t('voortgang.weg.perKamer') },
+    ];
+  }
   const doel = v.winter?.doel ?? 30;
   const rest = Math.max(0, Math.ceil(doel - (v.winter?.dagen ?? 0)));
   const jaar = new Date(nu).getFullYear();
@@ -91,7 +103,6 @@ function mijlpalen(v) {
     // Past het niet meer in deze winter, dan de rest in de volgende.
     if (genoeg > eind) genoeg = new Date(new Date(eind).getFullYear(), 11, 1).getTime() + (rest - Math.round((eind - start) / DAG)) * DAG;
   }
-  const standen = g.dekking >= 100 ? t('voortgang.weg.standen') : t('voortgang.weg.standenPct', { pct: g.dekking });
   return [
     { soort: 'klaar', titel: t('voortgang.weg.begin'), zin: datum(ds.vanMs) },
     { soort: 'nu', titel: t('voortgang.weg.nu'), zin: `${t('voortgang.weg.dagen', { n: Math.round(ds.dagenOpgenomen) })}, ${standen}` },
@@ -106,14 +117,14 @@ function weg(v, tel) {
   const g = v.gereedheid;
   const haltes = mijlpalen(v).filter((h) => tel || !h.alleenTel);
   const i = haltes.findIndex((h) => h.soort === 'nu');
-  const w = v.winter;
+  const w = wintertest() ? v.winter : null;
   const maten = [
     w ? [t('voortgang.as.winter'), `${Math.floor(w.dagen)} / ${w.doel}`, w.dagen / w.doel] : null,
     [t('voortgang.as.dekking'), pct(g.dekking), g.dekking / 100],
-    [t('voortgang.as.samen'), pct(g.totaal), g.totaal / 100],
+    w ? [t('voortgang.as.samen'), pct(g.totaal), g.totaal / 100] : null,
   ].filter(Boolean);
   const halte = (h) => `<div class="halte ${h.soort}"><i></i><b>${esc(h.titel)}</b><span>${esc(h.zin)}</span></div>`;
-  return `<div class="wegkop"><h3>${esc(t('voortgang.weg.kop'))}</h3><p>${esc(t(g.totaal >= 100 ? 'voortgang.zelf.klaarZin' : 'stand1.wegZin'))}</p></div>
+  return `<div class="wegkop"><h3>${esc(t('voortgang.weg.kop'))}</h3><p>${esc(t(!w ? 'voortgang.weg.kamerZin' : g.totaal >= 100 ? 'voortgang.zelf.klaarZin' : 'stand1.wegZin'))}</p></div>
     <div class="lijn" style="--n: ${haltes.length}; --gedaan: ${haltes.length > 1 ? Math.round((i / (haltes.length - 1)) * 100) : 0}%">${haltes.map(halte).join('')}</div>
     <div class="maten">${maten.map(([n, getal, p]) => `<div class="maat">${esc(n)}<span class="meter"><i style="width: ${Math.max(3, Math.min(100, p * 100))}%"></i></span><b>${esc(getal)}</b></div>`).join('')}</div>`;
 }

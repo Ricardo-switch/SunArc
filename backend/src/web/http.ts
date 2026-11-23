@@ -158,7 +158,7 @@ export async function sendFile(
   /*
    * `no-cache` en niet `max-age`.
    *
-   * De bestandsnamen dragen geen hash: het blijven `app.js` en `app.css`. Met
+   * De bestandsnamen dragen geen hash: het blijven `thuis.js` en `basis.css`. Met
    * een `max-age` van een uur krijgt een bezoeker na een uitrol dus de nieuwe
    * HTML met de oude JS, en dat mislukt op precies de manier die het lastigst
    * te vinden is — een pagina die half werkt zonder één foutmelding. Dat is

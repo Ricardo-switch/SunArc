@@ -9,8 +9,6 @@
 // namen staan hieronder, zodat een verschreven naam wel opvalt. Een pagina mag
 // een gedeelde naam voor iets eigens gebruiken (een eigen `zon` of `stand`):
 // dat werkt in de browser, dus daar klaagt hij niet over.
-//
-// Alleen app.js (De motor, index.html) is een module.
 import js from '@eslint/js';
 import globals from 'globals';
 
@@ -38,18 +36,12 @@ export default [
   { ignores: ['node_modules/**'] },
   {
     files: ['src/**/*.js', 'kit/**/*.js'],
-    ignores: ['src/app.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'script',
       // `open` is ook window.open; een pagina gebruikt het voor een eigen open-of-dicht.
       globals: { ...globals.browser, open: 'writable', ...Object.fromEntries(GEDEELD.map((n) => [n, 'writable'])) },
     },
-    rules: REGELS,
-  },
-  {
-    files: ['src/app.js'],
-    languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: globals.browser },
     rules: REGELS,
   },
   {

@@ -15,8 +15,9 @@
 
 # ---------- de weergave bouwen ----------
 #
-# Aparte fase, en met opzet als eerste: Tailwind en zijn afhankelijkheden komen
-# zo nooit in de buurt van de draaifase. Wat er uit komt is drie bestanden.
+# Aparte fase, en met opzet als eerste: de bouwgereedschappen komen zo nooit in
+# de buurt van de draaifase. Wat er uit komt zijn alleen de bestanden voor de
+# browser.
 FROM node:22-alpine AS web
 
 WORKDIR /web

@@ -5163,6 +5163,8 @@
   'voortgang.weg.gehaald': 'reached',
   'voortgang.weg.zelf': 'Taking over',
   'voortgang.weg.ja': 'after your yes',
+  'voortgang.weg.perKamer': 'per room, when you choose',
+  'voortgang.weg.kamerZin': 'SunArc gets to know each room and watches along. You choose per room when it takes over.',
   'voortgang.kort.temperatuur': 'At temperature',
   'voortgang.kort.optijd': 'Warm on time',
   'voortgang.kort.thermisch': 'Heat',
