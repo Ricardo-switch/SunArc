@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.232.0
+## 0.233.0
 
-*23 november 2026 · 0.179.0 – 0.232.0*
+*23 november 2026 · 0.179.0 – 0.233.0*
 
 **Nieuw**
 
+- Energie › Aansluiting: kies per fase de meter. Zonder stroommeter rekent SunArc de stroom uit het vermogen per fase, zoals bij een P1-meter van HomeWizard
 - De motor heeft nu ook Geleerd en Vergelijken. Geleerd: hoeveel dagen van elk seizoen hij meemaakte, welke standen hij zag, hoe elke kamer warmte houdt en wat elk apparaat aan zon vraagt. Vergelijken: hoe vaak hij het met de oude regeling eens is, wat het zou schelen, de laatste twee weken per kwartier en waar ze het langst verschilden
 - De motor: tik zeven keer op het versienummer bij Over deze app. Dan zie je wat SunArc meet, verdeelt en besluit, live en elk kwartier van vandaag, met wat het afwijst en waarom, en kun je de stand kopiëren voor bij een melding
 - Sluipverbruik: zeg per nacht wat er draaide, met je eerdere antwoorden als knoppen. Een nacht met ongeveer hetzelfde extra vraagt Weer de pc?, krijgt een stip in de grafiek, en daarvoor komt geen melding meer
@@ -279,6 +280,7 @@
 
 **New**
 
+- Energy › Connection: pick the meter per phase. Without a current meter, SunArc works out the current from the power per phase, as with a HomeWizard P1 meter
 - The engine now also has Learned and Compare. Learned: how many days of each season it has been through, which modes it saw, how each room holds heat and how much sun each device asks for. Compare: how often it agrees with the old schedule, what it would save, the last two weeks per quarter hour and where they differed longest
 - The engine: tap the version number seven times under About this app. Then you see what SunArc measures, shares and decides, live and every quarter hour today, with what it turns down and why, and you can copy the state for a report
 - Night use: say per night what was running, with your earlier answers as buttons. A night with about the same extra asks PC again?, gets a dot in the chart, and no longer sends a notification
