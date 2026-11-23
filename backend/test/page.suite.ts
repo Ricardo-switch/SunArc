@@ -743,7 +743,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     browser.newPage = (async (o?: BrowserContextOptions & { zonderInlog?: boolean }) => {
       const c = await browser.newContext(o);
       const p = await c.newPage();
-      p.on('close', () => void c.close());
+      // Sluit een test de context zelf (p.context().close()), dan is hij hier al weg: dat is goed (23 november 2026).
+      p.on('close', () => void c.close().catch(() => {}));
       return p;
     }) as typeof browser.newPage;
     globalThis.fetch = ((input: string | URL | Request, init?: RequestInit) => {
@@ -5318,7 +5319,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     });
     expect(midden[0]!.keuken).toBeGreaterThan(midden[0]!.zithoek);
     expect(midden[1]!.keuken).toBeLessThan(midden[1]!.zithoek);
-    await p.close();
+    await p.context().close();
   });
 
   it('beantwoordt een getypte vraag, met een knop naar de pagina', async () => {
@@ -5416,7 +5417,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       }
       return uit;
     })()`);
-    await p.close();
+    await p.context().close();
     expect(Math.max(...afwijkingen)).toBeLessThan(0.01);
   });
 
