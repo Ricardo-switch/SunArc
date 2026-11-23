@@ -39,8 +39,7 @@ export default [
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'script',
-      // `open` is ook window.open; een pagina gebruikt het voor een eigen open-of-dicht.
-      globals: { ...globals.browser, open: 'writable', ...Object.fromEntries(GEDEELD.map((n) => [n, 'writable'])) },
+      globals: { ...globals.browser, ...Object.fromEntries(GEDEELD.map((n) => [n, 'writable'])) },
     },
     rules: REGELS,
   },

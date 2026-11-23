@@ -409,7 +409,7 @@
       for (const r of e.ruimtes ?? []) {
         if (isBuiten(e, r)) buitenRuimtes.push(r);
         else {
-          const k = kamer(r, e);
+          const k = kamer(r);
           if (k && r.id === accuBinnen) kamers.push({ ...k, apparaten: [...(k.apparaten ?? []), { soort: 'thuisaccu', vol: accuVol, aan: accu.stand === 'laadt' || accu.stand === 'levert' }] });
           else if (k) kamers.push(k);
         }

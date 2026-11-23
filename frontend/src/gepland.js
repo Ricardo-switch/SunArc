@@ -21,7 +21,7 @@ const voorproef = (m) => plannen.voorproef(m, zon);
 let data = null;
 let zon = null;
 /** De opdracht die open staat, met wat je erin veranderde; null zonder. */
-let open = null;
+let openOpdracht = null;
 /** Herhalen staat open in Aanpassen. */
 let herhaalOpen = false;
 let fout = '';
@@ -64,15 +64,15 @@ function hoe(g) {
 function regel(g, gedaan = false) {
   const klein = gedaan ? t('gp.gedaan') : !aan(g) ? t('gp.gepauzeerd') : dagWoord(g.ms);
   const ms = gedaan ? g.opdracht.laatstMs : g.ms;
-  const cls = ['gp-regel', gedaan ? 'gedaan' : '', !aan(g) ? 'uit' : '', open?.id === g.id ? 'gekozen' : ''].filter(Boolean).join(' ');
+  const cls = ['gp-regel', gedaan ? 'gedaan' : '', !aan(g) ? 'uit' : '', openOpdracht?.id === g.id ? 'gekozen' : ''].filter(Boolean).join(' ');
   return `<div class="${cls}" data-gp-open="${esc(g.id)}" role="button" tabindex="0">${icoon(g)}<div class="uur">${esc(klok(ms))}<small>${esc(klein)}</small></div><div><b>${naamHtml(g)}</b><span class="hoe">${hoe(g)}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${aan(g)}" aria-label="${esc(t('gp.aanLabel', { wat: g.tekst }))}" data-gp-aan="${esc(g.id)}"></button></div>`;
 }
 
 /* ------------------------------------------------------------ Aanpassen */
 
 function blad(g) {
-  const m = open.moment;
-  const h = open.herhaal;
+  const m = openOpdracht.moment;
+  const h = openOpdracht.herhaal;
   const seg = [['tijd', t('gp.tijd')], ['op', t('gp.op')], ['onder', t('gp.onder')]]
     .map(([k, naam]) => `<button type="button" class="chip" data-gp-wanneer="${k}" aria-pressed="${(k === 'tijd' ? m.soort === 'tijd' : m.soort === 'zon' && m.zon === k)}">${esc(naam)}</button>`).join('');
   const tijd = `${String(m.uur ?? 7).padStart(2, '0')}:${String(m.minuut ?? 0).padStart(2, '0')}`;
@@ -81,7 +81,7 @@ function blad(g) {
     : `<div class="gp-stapper"><button type="button" data-gp-min="-5" aria-label="${esc(t('gp.eerder'))}">−</button><b>${esc(stapperTekst(m))}</b><button type="button" data-gp-min="5" aria-label="${esc(t('gp.later'))}">+</button></div><div class="gp-zo">${esc(voorproef(m))}</div>`;
   const keuzes = ['een', 'dag', 'werkdagen', 'weekend', 'dagen'].map((s) => `<button type="button" data-gp-herhaal="${s}" aria-pressed="${h.soort === s}"><span>${esc(t(s === 'dagen' ? 'gp.kiesDagen' : `gp.h.${s}`))}</span></button>`).join('');
   const dagen = h.soort === 'dagen' ? `<div class="gp-dagen">${[1, 2, 3, 4, 5, 6, 7].map((d) => `<button type="button" data-gp-dag="${d}" aria-pressed="${(h.dagen ?? []).includes(d)}">${esc(t(`gp.d${d}`))}</button>`).join('')}</div>` : '';
-  return `<div class="boven"><h2>${esc(g.tekst)}</h2><button class="schakelaar" type="button" role="switch" aria-checked="${open.aan}" aria-label="${esc(t('gp.aan'))}" data-gp-blad-aan></button><button class="sluit" type="button" data-gp-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
+  return `<div class="boven"><h2>${esc(g.tekst)}</h2><button class="schakelaar" type="button" role="switch" aria-checked="${openOpdracht.aan}" aria-label="${esc(t('gp.aan'))}" data-gp-blad-aan></button><button class="sluit" type="button" data-gp-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
     <div class="gp-kolom">
       <div class="gp-vraag"><span>${esc(t('gp.wat'))}</span><div class="gp-waarde"><b>${esc(g.tekst)}${sceneLampen(g).map((r) => `<small>${esc(r)}</small>`).join('')}</b></div></div>
       <div class="gp-vraag"><span>${esc(t('gp.wanneer'))}</span><div class="chips seg">${seg}</div>${wanneer}</div>
@@ -89,7 +89,7 @@ function blad(g) {
     <div class="gp-kolom">
       <div class="gp-vraag" ${herhaalOpen ? 'hidden' : ''}><span>${esc(t('gp.herhalen'))}</span><button type="button" class="gp-waarde" data-gp-herhalen><b>${esc(herhaalNaam(h))}</b><i>›</i></button></div>
       <div class="gp-vraag" ${herhaalOpen ? '' : 'hidden'}><span>${esc(t('gp.herhalen'))}</span><div class="gp-keus">${keuzes}</div>${dagen}</div>
-      <div class="gp-rij" ${herhaalOpen ? 'hidden' : ''}><span>${esc(t('gp.overslaan'))}<small>${esc(t('gp.overslaanZin'))}</small></span><button class="schakelaar" type="button" role="switch" aria-checked="${open.overslaanWeg}" aria-label="${esc(t('gp.overslaan'))}" data-gp-weg></button></div>
+      <div class="gp-rij" ${herhaalOpen ? 'hidden' : ''}><span>${esc(t('gp.overslaan'))}<small>${esc(t('gp.overslaanZin'))}</small></span><button class="schakelaar" type="button" role="switch" aria-checked="${openOpdracht.overslaanWeg}" aria-label="${esc(t('gp.overslaan'))}" data-gp-weg></button></div>
       ${fout ? `<div class="gp-fout">${esc(fout)}</div>` : ''}
       <div class="gp-onder" ${herhaalOpen ? 'hidden' : ''}><button class="weg" type="button" data-gp-weghalen>${esc(t('gp.weghalen'))}</button><button class="bewaar" type="button" data-gp-bewaar>${esc(t('gp.bewaar'))}</button></div>
     </div>`;
@@ -112,7 +112,7 @@ function teken() {
     // Wat vandaag al gebeurde: een vaste opdracht die vandaag zijn beurt had.
     const gedaan = alle.filter((g) => g.opdracht?.laatstMs && dagenVan(g.opdracht.laatstMs) === 0 && dagenVan(g.ms) > 0);
     const opBoog = [
-      ...vandaag.map((g) => ({ ms: g.ms, wat: g.tekst, aan: aan(g), gekozen: open?.id === g.id })),
+      ...vandaag.map((g) => ({ ms: g.ms, wat: g.tekst, aan: aan(g), gekozen: openOpdracht?.id === g.id })),
       ...gedaan.map((g) => ({ ms: g.opdracht.laatstMs, wat: g.tekst, aan: true, gedaan: true })),
     ].sort((a, b) => a.ms - b.ms);
     const op = zon?.dag?.opMs != null ? klok(zon.dag.opMs) : null;
@@ -123,7 +123,7 @@ function teken() {
     const nu = hand.nuHtml();
     const links = `<section class="glas gp-lijst">${nu ? `<h3>${esc(t('gp.nu'))}</h3><div class="nu-regels">${nu}</div>` : ''}<h3>${esc(t('gp.vandaagNog'))}</h3>${leeg}${vandaag.map((g) => regel(g)).join('')}${gedaan.map((g) => regel(g, true)).join('')}${!leeg && !vandaag.length && !gedaan.length ? `<p class="gp-leeg">${esc(t('gp.nietsMeer'))}</p>` : ''}</section>`;
     const rechts = `<section class="glas gp-lijst"><h3>${esc(t('gp.komend'))}</h3>${later.map((g) => regel(g)).join('') || `<p class="gp-leeg">${esc(t('gp.nietsKomend'))}</p>`}<p class="tip">${esc(t('gp.tip'))}</p></section>`;
-    const g = open ? alle.find((x) => x.id === open.id) : null;
+    const g = openOpdracht ? alle.find((x) => x.id === openOpdracht.id) : null;
     const bladHtml = g ? `${tel ? '<div class="gp-achter" data-gp-sluit></div>' : ''}<aside class="glas gp-blad" role="dialog" aria-label="${esc(g.tekst)}">${blad(g)}</aside>` : '';
     html = `${kop}${dag}<div class="gp-veld">${links}${rechts}${tel ? '' : bladHtml}</div>${tel ? bladHtml : ''}`;
   }
@@ -136,7 +136,7 @@ async function laad() {
   if (d.status === 'fulfilled') data = d.value;
   if (z.status === 'fulfilled') zon = z.value;
   // Een opdracht die niet meer bestaat, sluit vanzelf.
-  if (open && !(data?.gepland ?? []).some((g) => g.id === open.id)) open = null;
+  if (openOpdracht && !(data?.gepland ?? []).some((g) => g.id === openOpdracht.id)) openOpdracht = null;
   teken();
 }
 
@@ -158,7 +158,7 @@ function openen(id) {
   const g = (data?.gepland ?? []).find((x) => x.id === id);
   if (!g) return;
   const m = momentVan(g);
-  open = { id, aan: aan(g), overslaanWeg: g.opdracht?.overslaanWeg === true, moment: { ...m }, herhaal: { ...herhaalVan(g), dagen: [...(herhaalVan(g).dagen ?? [])] } };
+  openOpdracht = { id, aan: aan(g), overslaanWeg: g.opdracht?.overslaanWeg === true, moment: { ...m }, herhaal: { ...herhaalVan(g), dagen: [...(herhaalVan(g).dagen ?? [])] } };
   herhaalOpen = false;
   fout = '';
   teken();
@@ -176,45 +176,45 @@ document.addEventListener('click', async (e) => {
   if ((x = el('[data-gp-open]'))) return openen(x.dataset.gpOpen);
   // Nieuw: een taak als één zin (besluit 244).
   if (el('[data-gp-nieuw]')) {
-    open = null;
+    openOpdracht = null;
     teken();
     return plannen.open({ klaar: () => laad() });
   }
-  if (!open) return;
+  if (!openOpdracht) return;
   if (el('[data-gp-sluit]')) {
-    open = null;
+    openOpdracht = null;
     return teken();
   }
-  if (el('[data-gp-blad-aan]')) open.aan = !open.aan;
-  else if (el('[data-gp-weg]')) open.overslaanWeg = !open.overslaanWeg;
+  if (el('[data-gp-blad-aan]')) openOpdracht.aan = !openOpdracht.aan;
+  else if (el('[data-gp-weg]')) openOpdracht.overslaanWeg = !openOpdracht.overslaanWeg;
   else if ((x = el('[data-gp-wanneer]'))) {
     const k = x.dataset.gpWanneer;
-    if (k === 'tijd' && open.moment.soort !== 'tijd') open.moment = { soort: 'tijd', uur: 7, minuut: 0 };
-    else if (k !== 'tijd') open.moment = { soort: 'zon', zon: k, minuten: open.moment.soort === 'zon' ? open.moment.minuten : 0 };
-  } else if ((x = el('[data-gp-min]'))) open.moment.minuten = Math.max(-180, Math.min(180, open.moment.minuten + Number(x.dataset.gpMin)));
+    if (k === 'tijd' && openOpdracht.moment.soort !== 'tijd') openOpdracht.moment = { soort: 'tijd', uur: 7, minuut: 0 };
+    else if (k !== 'tijd') openOpdracht.moment = { soort: 'zon', zon: k, minuten: openOpdracht.moment.soort === 'zon' ? openOpdracht.moment.minuten : 0 };
+  } else if ((x = el('[data-gp-min]'))) openOpdracht.moment.minuten = Math.max(-180, Math.min(180, openOpdracht.moment.minuten + Number(x.dataset.gpMin)));
   else if (el('[data-gp-herhalen]')) herhaalOpen = true;
   else if ((x = el('[data-gp-herhaal]'))) {
     const s = x.dataset.gpHerhaal;
-    open.herhaal = s === 'dagen' ? { soort: 'dagen', dagen: open.herhaal.dagen?.length ? open.herhaal.dagen : [new Date().getDay() || 7] } : { soort: s };
+    openOpdracht.herhaal = s === 'dagen' ? { soort: 'dagen', dagen: openOpdracht.herhaal.dagen?.length ? openOpdracht.herhaal.dagen : [new Date().getDay() || 7] } : { soort: s };
     // Een keuze klapt de lijst dicht; bij Kies dagen blijft hij open voor de dagen.
     if (s !== 'dagen') herhaalOpen = false;
   } else if ((x = el('[data-gp-dag]'))) {
     const d = Number(x.dataset.gpDag);
-    const dagen = new Set(open.herhaal.dagen ?? []);
+    const dagen = new Set(openOpdracht.herhaal.dagen ?? []);
     if (dagen.has(d)) dagen.delete(d);
     else dagen.add(d);
-    open.herhaal = { soort: 'dagen', dagen: [...dagen].sort((a, b) => a - b) };
+    openOpdracht.herhaal = { soort: 'dagen', dagen: [...dagen].sort((a, b) => a - b) };
     if (dagen.size) herhaalOpen = false;
   } else if (el('[data-gp-weghalen]')) {
-    if (await stuur({ actie: 'annuleer', id: open.id })) {
-      open = null;
+    if (await stuur({ actie: 'annuleer', id: openOpdracht.id })) {
+      openOpdracht = null;
       await laad();
     }
     return;
   } else if (el('[data-gp-bewaar]')) {
-    const { id, aan: a, overslaanWeg, moment, herhaal } = open;
+    const { id, aan: a, overslaanWeg, moment, herhaal } = openOpdracht;
     if (await stuur({ actie: 'aanpassen', id, aan: a, overslaanWeg, moment, herhaal: herhaal.soort === 'dagen' ? herhaal : { soort: herhaal.soort } })) {
-      open = null;
+      openOpdracht = null;
       await laad();
     }
     return;
@@ -224,14 +224,14 @@ document.addEventListener('click', async (e) => {
 
 document.addEventListener('change', (e) => {
   const tijd = e.target.closest?.('[data-gp-tijd]');
-  if (!tijd || !open) return;
+  if (!tijd || !openOpdracht) return;
   const [u, m] = tijd.value.split(':').map(Number);
-  if (Number.isInteger(u) && Number.isInteger(m)) open.moment = { soort: 'tijd', uur: u, minuut: m };
+  if (Number.isInteger(u) && Number.isInteger(m)) openOpdracht.moment = { soort: 'tijd', uur: u, minuut: m };
 });
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && open && !plannen.isOpen()) {
-    open = null;
+  if (e.key === 'Escape' && openOpdracht && !plannen.isOpen()) {
+    openOpdracht = null;
     teken();
   } else if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('[data-gp-open]')) {
     e.preventDefault();

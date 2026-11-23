@@ -65,6 +65,7 @@
   let huis = null;
   /** Aan het aanpassen: 'tel' of 'wand', anders null. */
   let bewerk = null;
+  /** @type {(huisOok?: boolean) => void} */
   let opnieuw = () => {};
   /** Wat er net getikt is: tot de dienst het weet, staat er wat je koos. */
   const gewenst = new Map();
@@ -505,7 +506,7 @@
     $$('[data-kiesblad], [data-kies-achter]').forEach((el) => (el.hidden = true));
   }
 
-  function keus({ ik, naam, klein, rechts, data, aan, uit }) {
+  function keus({ ik, naam, klein, rechts, data, aan = null, uit = false }) {
     const vink = aan == null ? '' : `role="switch" aria-checked="${aan}"`;
     return `<button type="button" class="keus" ${data} ${vink} ${uit ? 'disabled' : ''}><span class="ik">${ik}</span><b>${esc(naam)}</b><span class="rechts-ik" aria-hidden="true">${rechts}</span><small>${esc(klein)}</small></button>`;
   }

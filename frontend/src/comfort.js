@@ -33,7 +33,7 @@ const deur = `api/comfort${vanBewoner ? `?bewoner=${encodeURIComponent(vanBewone
 const vanHetHuis = () => !comfort?.van || comfort.van.hoofd;
 let zon = null;
 /** Welke regels hun uitleg tonen (besluit 133): "kamer:dagdeel:soort". */
-const open = new Set();
+const openUitleg = new Set();
 /** De kamer die Afwezig en vakantie laat zien. */
 let afwezigKamer = null;
 /** Dagdelen waarin het huis niet op zon laadt, zoals in pv-surplus. */
@@ -269,10 +269,10 @@ function regels(k, m) {
     const kleur = soort === 'heat' ? 'var(--gloed)' : 'var(--ijs)';
     const wat = t(soort === 'heat' ? 'comfort.verwarmen' : 'comfort.koelen');
     const label = aan ? `${esc(wat)} <em>${esc(t(soort === 'heat' ? 'comfort.onder' : 'comfort.boven'))}</em> <b>${graden(v)}</b>` : esc(t('comfort.wordUit', { wat }));
-    return `<div class="regel${aan ? '' : ' uit'}${open.has(sleutel) ? ' open' : ''}">
-      <button type="button" class="wat" data-uitleg="${esc(sleutel)}" aria-expanded="${open.has(sleutel)}"><i style="background: ${aan ? kleur : 'var(--gedempt)'}"></i>${label}</button>
+    return `<div class="regel${aan ? '' : ' uit'}${openUitleg.has(sleutel) ? ' open' : ''}">
+      <button type="button" class="wat" data-uitleg="${esc(sleutel)}" aria-expanded="${openUitleg.has(sleutel)}"><i style="background: ${aan ? kleur : 'var(--gedempt)'}"></i>${label}</button>
       <button type="button" class="schakel ${soort}" role="switch" aria-checked="${aan}" aria-label="${esc(wat)}, ${esc(NAAM[m].toLowerCase())}" ${aan ? `data-uit="${soort}"` : `data-aan="${soort}"`}></button>
-      ${open.has(sleutel) ? `<small>${uitleg}</small>` : ''}
+      ${openUitleg.has(sleutel) ? `<small>${uitleg}</small>` : ''}
     </div>`;
   };
   return `<div class="regels">${regel('heat')}${regel('cool')}</div>`;
@@ -847,8 +847,8 @@ document.addEventListener('click', (e) => {
   const rij = knop.closest('[data-modus]');
   if (knop.dataset.uitleg) {
     // Alleen tonen of verbergen; niets te bewaren.
-    if (open.has(knop.dataset.uitleg)) open.delete(knop.dataset.uitleg);
-    else open.add(knop.dataset.uitleg);
+    if (openUitleg.has(knop.dataset.uitleg)) openUitleg.delete(knop.dataset.uitleg);
+    else openUitleg.add(knop.dataset.uitleg);
     return teken();
   }
   if (knop.dataset.afwezigKamer) {

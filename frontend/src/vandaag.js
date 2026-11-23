@@ -222,6 +222,7 @@ function groepeer(lijst) {
 
 /** Alle momenten van de dag, op tijd: de besluiten, en wanneer een uitstelbaar apparaat begon en klaar was. */
 function momenten(r) {
+  /** @type {any[]} */
   const lijst = [...(r?.besluiten ?? [])].reverse().map((b) => momentVan(b, r));
   for (const u of r?.uitstelbaar ?? []) {
     const naam = naamVan(u.id);

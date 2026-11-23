@@ -4,13 +4,13 @@
  */
 'use strict';
 /* global antwoorden, binnen, buitenRuimtes, concept, d, esc, geenKlimaat, haal, idVan, klimaatIn, knop, lijstje, nl, regel, rij, schakelaar, sleutel, stuur, teken, tip, volgendeKnoppen, waarVan, zeg */
-/* exported appAdres, apparatenStap, bewonersStap, buitenNu, buitenStap, geenKlimaatToestel, huisStap, metEtage, metenStap, open, openApparaat, openBewoner, qrVan, rolKnoppen, rolVan, rondVanConcept, samenvoegen, stuurBewoner, tekenMini, toevoeg, toevoegenIn, verplaatsKamer, warmteStap, weghalen, wnKaart, woningNu, woningStap, zonderKlimaat */
+/* exported appAdres, apparatenStap, bewonersStap, buitenNu, buitenStap, geenKlimaatToestel, huisStap, metEtage, metenStap, openKamer, openApparaat, openBewoner, qrVan, rolKnoppen, rolVan, rondVanConcept, samenvoegen, stuurBewoner, tekenMini, toevoeg, toevoegenIn, verplaatsKamer, warmteStap, weghalen, wnKaart, woningNu, woningStap, zonderKlimaat */
 /*
  * Klopt je huis? (besluit 158): per etage de kamers. Een kamer aantikken geeft
  * zijn naam, etage en soort, de zones voor een open ruimte, samenvoegen met
  * een andere kamer, en weghalen. Buiten heeft een eigen stap.
  */
-let open = null; // de kamer of etage waaraan iets verandert
+let openKamer = null; // de kamer of etage waaraan iets verandert
 let weghalen = null; // de kamer die nog één tik nodig heeft om weg te gaan
 function bewerkKamer(k, etages, naamVan, c) {
   const r = binnen().find((x) => x.id === k.id);
@@ -115,12 +115,12 @@ function huisStap() {
       // De soort alleen als die iets toevoegt: "Slaapkamer · Slaapkamer" zegt niets.
       const soort = soortNaam(k.soort ?? r?.soort);
       const zin = k.zones?.length ? t('inr.metZones', { namen: lijstje(k.zones.map((z) => z.naam)) }) : soort.toLowerCase() === k.naam.toLowerCase() ? '' : soort;
-      return regel({ tag: 'button', ik: 'huis', titel: k.naam, zin, rechts: n ? esc(t('inr.nApparaten', { n })) : '', klasse: open === k.id ? 'open' : '', attrs: `data-kamer="${esc(k.id)}" aria-expanded="${open === k.id}"` }) + (open === k.id ? bewerkKamer(k, d.ind?.etages ?? [], naamVan, c) : '');
+      return regel({ tag: 'button', ik: 'huis', titel: k.naam, zin, rechts: n ? esc(t('inr.nApparaten', { n })) : '', klasse: openKamer === k.id ? 'open' : '', attrs: `data-kamer="${esc(k.id)}" aria-expanded="${openKamer === k.id}"` }) + (openKamer === k.id ? bewerkKamer(k, d.ind?.etages ?? [], naamVan, c) : '');
     }).join('')}`;
   }).join('');
-  const nieuw = open === 'nieuw'
+  const nieuw = openKamer === 'nieuw'
     ? `<div class="bewerk"><input class="veld" data-nieuwnaam placeholder="${esc(t('inr.kantoor'))}" aria-label="${esc(t('inr.nieuweNaam'))}" maxlength="40"><select class="veld" data-nieuwetage aria-label="${esc(t('indeling.etageLabel'))}">${etages.map((e) => `<option value="${esc(e.id)}" ${e.id === 'bg' ? 'selected' : ''}>${esc(naamVan(e))}</option>`).join('')}</select><button type="button" class="chip aan" data-voegtoe>${esc(t('indeling.toevoegen'))}</button></div>`
-    : open === 'etage'
+    : openKamer === 'etage'
       ? etageErbijBlok(etages)
       : `<div class="chips" data-meer>${knop('data-nieuw', t('inr.plusKamer'), false, 'plus')}${knop('data-inr-etage-open', t('inr.plusEtage'), false, 'plus')}</div>`;
   return {
@@ -128,7 +128,7 @@ function huisStap() {
     kop: t('inr.huisKop'),
     uitleg: t('inr.huisZin'),
     // De tip alleen zolang er geen kamer open staat: dan krijgt die de ruimte.
-    inhoud: `<div class="rijen lijst">${delen}${nieuw}</div>${open ? '' : tip(t('inr.huisNoot'))}`,
+    inhoud: `<div class="rijen lijst">${delen}${nieuw}</div>${openKamer ? '' : tip(t('inr.huisNoot'))}`,
   };
 }
 /*

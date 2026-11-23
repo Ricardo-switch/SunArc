@@ -13,6 +13,7 @@ const ligging = (() => {
   const t = (k, p) => window.taal.t(k, p);
   const ZON = (z) => t(`panelen.zon.${z}`);
   const KANTEN = [['noorden', 0], ['oosten', 90], ['zuiden', 180], ['westen', 270]];
+  /** @type {[string, number][]} */
   const HELLING = [['plat', 10], ['flauw', 25], ['gewoon', 40], ['steil', 50]];
   const WP = [350, 400, 450];
   const kWp = (w) => (w / 1000).toLocaleString(window.taal.locale, { maximumFractionDigits: 2 });

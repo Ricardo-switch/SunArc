@@ -800,7 +800,10 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await page.locator('#wand [data-deel="vergelijken"]').click();
     await page.locator('#wand .mo-pct').waitFor();
     expect(await page.locator('#wand .mo-pct').textContent()).toMatch(/\d+%/);
-    expect(await page.locator('#wand .mo-dagen .rij').count()).toBe(Math.min(DAYS.length, 14));
+    // Zoveel dagen als de dienst geeft: in Nederlandse tijd is het laatste half uur al een dag later dan in UTC.
+    const { dagen } = (await (await fetch(`${baseUrl}/api/divergence`, { headers: { cookie: `hems_sessie=${sessionId}` } })).json()) as { dagen: unknown[] };
+    expect(dagen.length).toBeGreaterThanOrEqual(DAYS.length);
+    expect(await page.locator('#wand .mo-dagen .rij').count()).toBe(Math.min(dagen.length, 14));
   });
 
   it('toont bij Geleerd de seizoenen en de standen', async () => {

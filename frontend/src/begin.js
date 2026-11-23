@@ -16,7 +16,10 @@
 const { esc, haal } = app;
 
 let voorstel = null;
-/** 'welkom', een vraag (getal), of 'bezig'. */
+/**
+ * 'welkom', een vraag (getal), of 'bezig'.
+ * @type {'welkom' | 'bezig' | number}
+ */
 let stap = 'welkom';
 const antwoorden = {};
 let fout = '';
@@ -286,12 +289,12 @@ document.addEventListener('click', (e) => {
     antwoorden[v.id] = knop.dataset.optie === '' ? null : knop.dataset.optie;
     tekenLinks();
   } else if (knop.hasAttribute('data-verder')) {
-    if (stap < vragen().length - 1) {
+    if (typeof stap === 'number' && stap < vragen().length - 1) {
       stap += 1;
       tekenLinks();
     } else void bewaar();
   } else if (knop.hasAttribute('data-terug')) {
-    stap = stap === 0 ? 'welkom' : stap - 1;
+    stap = typeof stap === 'number' && stap > 0 ? stap - 1 : 'welkom';
     tekenLinks();
   }
 });

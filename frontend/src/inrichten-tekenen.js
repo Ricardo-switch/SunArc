@@ -3,7 +3,7 @@
  * inrichten-voorstellen.js laadt en zijn bovenste namen deelt met de andere delen van de pagina.
  */
 'use strict';
-/* global $$, BEVESTIG, HOOFD, STAPPEN, aanpas:writable, accountStap, afwezigBasis, afwezigKeuze:writable, afwezigStap, antwoorden, apparatenStap, assistentNogAan, bewaarAansluiting, bewaarAfwezig, bewaarDag, bewaarFuncties, bewaarIndeling, bewaarKort, bewaarPrijzen, bewaarVoorkeur, bewonersHoofd, binnen, buitenStap, cfDoel, cfNu, comfortStap, concept, contractKeuze:writable, d, dagBalk, dagMet, dagMoment, dagNu, dagStap, dagUur, delenVan, deur, energieNu, esc, functiesNu, functiesStap, haStap, haal, hoofdVan, huisDoel, huisStap, idVan, jeHuisStap, kanBereik, kanOpen:writable, kanStap, kanToestellen, klaarStap, klimaatIn, laad, ligStaat, liggingStap, lijst:writable, markeer, melding, metEtage, metenStap, meterStap, model, naar, naarRondleiding, nl, open:writable, openApparaat:writable, openBewoner:writable, opzonStap, panelenStap, prijzenHoofd, rolVan, rondVanConcept, samenvoegen, sd, sleutel, standaard, stapGedaan, stapNagelopen, stapNu, stemStap, stuurBewoner, tekenMini, tekenWelkom, toevoeg:writable, toevoegenIn:writable, verder, vermogenStap, verplaatsKamer, verwarmingStap, volgende, vorige, wandStap, warmteStap, weghalen:writable, welkom, wnKaart, woningNu, woningStap, zeg, zekeringStap, zetAssistentAan, zetCf, zonStap */
+/* global $$, BEVESTIG, HOOFD, STAPPEN, aanpas:writable, accountStap, afwezigBasis, afwezigKeuze:writable, afwezigStap, antwoorden, apparatenStap, assistentNogAan, bewaarAansluiting, bewaarAfwezig, bewaarDag, bewaarFuncties, bewaarIndeling, bewaarKort, bewaarPrijzen, bewaarVoorkeur, bewonersHoofd, binnen, buitenStap, cfDoel, cfNu, comfortStap, concept, contractKeuze:writable, d, dagBalk, dagMet, dagMoment, dagNu, dagStap, dagUur, delenVan, deur, energieNu, esc, functiesNu, functiesStap, haStap, haal, hoofdVan, huisDoel, huisStap, idVan, jeHuisStap, kanBereik, kanOpen:writable, kanStap, kanToestellen, klaarStap, klimaatIn, laad, ligStaat, liggingStap, lijst:writable, markeer, melding, metEtage, metenStap, meterStap, model, naar, naarRondleiding, nl, openKamer:writable, openApparaat:writable, openBewoner:writable, opzonStap, panelenStap, prijzenHoofd, rolVan, rondVanConcept, samenvoegen, sd, sleutel, standaard, stapGedaan, stapNagelopen, stapNu, stemStap, stuurBewoner, tekenMini, tekenWelkom, toevoeg:writable, toevoegenIn:writable, verder, vermogenStap, verplaatsKamer, verwarmingStap, volgende, vorige, wandStap, warmteStap, weghalen:writable, welkom, wnKaart, woningNu, woningStap, zeg, zekeringStap, zetAssistentAan, zetCf, zonStap */
 // eslint-disable-next-line no-unused-vars -- alleen teruggezet; gelezen in een ander deel
 /* global cfKeuze:writable, dagGreep:writable, dagKeuze:writable, zonderKlimaat:writable */
 /* exported teken, terugKnop, volgendeKnoppen */
@@ -138,7 +138,7 @@ const teken = app.gebundeld(tekenNu);
     vak.querySelectorAll('.sc-gepakt').forEach((x) => x.classList.remove('sc-gepakt'));
     markeer(null);
     if (!gesleept) {
-      open = open === id ? null : id;
+      openKamer = openKamer === id ? null : id;
       weghalen = null;
       teken();
       return;
@@ -148,7 +148,7 @@ const teken = app.gebundeld(tekenNu);
     if (!doel || !next) return;
     const naam = next.kamers.find((x) => x.id === id)?.naam;
     if (verplaatsKamer(next, id, { doelId: doel })) {
-      open = id;
+      openKamer = id;
       await bewaarIndeling(next, t('inr.nieuwePlek', { naam }));
     }
   };
@@ -440,20 +440,20 @@ document.addEventListener('click', async (e) => {
     return;
   }
   if (el.dataset.kamer) {
-    open = open === el.dataset.kamer ? null : el.dataset.kamer;
+    openKamer = openKamer === el.dataset.kamer ? null : el.dataset.kamer;
     weghalen = null;
     teken();
     return;
   }
   if (el.hasAttribute('data-nieuw')) {
-    open = 'nieuw';
+    openKamer = 'nieuw';
     teken();
     setTimeout(() => document.querySelector(`${app.zicht()} [data-nieuwnaam]`)?.focus(), 50);
     return;
   }
   // Een etage erbij (testerronde, november 2026).
   if (el.hasAttribute('data-inr-etage-open') || el.hasAttribute('data-inr-etage-dicht')) {
-    open = el.hasAttribute('data-inr-etage-open') ? 'etage' : null;
+    openKamer = el.hasAttribute('data-inr-etage-open') ? 'etage' : null;
     teken();
     return;
   }
@@ -469,7 +469,7 @@ document.addEventListener('click', async (e) => {
     }
     next.volgorde = metEtage(next, id, !el.dataset.inrEtage);
     if (naam) next.etages = { ...(next.etages ?? {}), [id]: naam };
-    open = 'nieuw';
+    openKamer = 'nieuw';
     await bewaarIndeling(next, t('indeling.toegevoegd', { naam: naam ?? el.textContent.trim() }));
     return;
   }
@@ -479,7 +479,7 @@ document.addEventListener('click', async (e) => {
     const next = concept();
     const id = idVan(naam, new Set(next.kamers.map((k) => k.id)));
     next.kamers.push({ id, naam, etage: document.querySelector(`${app.zicht()} [data-nieuwetage]`)?.value || 'bg', zones: [], regelzone: null, haGebied: null });
-    open = null;
+    openKamer = null;
     await bewaarIndeling(next, t('indeling.toegevoegd', { naam }));
     return;
   }
@@ -497,19 +497,19 @@ document.addEventListener('click', async (e) => {
     // Wat in deze kamer stond, gaat naar "nog in te delen", net als bij Indeling.
     for (const [id, a] of Object.entries(next.apparaten)) if (a.kamer === k.id) delete next.apparaten[id];
     for (const x of next.kamers) if (x.meedoenMet === k.id) delete x.meedoenMet;
-    open = null;
+    openKamer = null;
     weghalen = null;
     await bewaarIndeling(next, t('indeling.naamWeg', { naam: k.naam }));
     return;
   }
   if (el.dataset.schuifkamer) {
     const next = concept();
-    if (next && verplaatsKamer(next, open, { stap: Number(el.dataset.schuifkamer) })) await bewaarIndeling(next);
+    if (next && verplaatsKamer(next, openKamer, { stap: Number(el.dataset.schuifkamer) })) await bewaarIndeling(next);
     return;
   }
   if (el.dataset.zoneweg) {
     const next = concept();
-    const k = next.kamers.find((x) => x.id === open);
+    const k = next.kamers.find((x) => x.id === openKamer);
     const z = k?.zones.find((x) => x.id === el.dataset.zoneweg);
     if (!z) return;
     k.zones = k.zones.filter((x) => x.id !== z.id);
@@ -766,7 +766,7 @@ document.addEventListener('change', async (e) => {
   // De netmeter en de omvormers (testerronde, november 2026).
   const va = antwoorden();
   if (vermogens.verander(el, d.aans, va)) return bewaarAansluiting(va);
-  const kamerNu = (next) => next?.kamers.find((x) => x.id === open);
+  const kamerNu = (next) => next?.kamers.find((x) => x.id === openKamer);
   if (el.dataset.kanBereik) {
     // Wat elk apparaat kan: het bereik dat de regeling aanhoudt; de laagste blijft onder de hoogste.
     const key = el.dataset.kanBereik;
@@ -795,7 +795,7 @@ document.addEventListener('change', async (e) => {
     const k = next?.kamers.find((x) => x.id === el.dataset.etage);
     if (!k) return;
     k.etage = el.value;
-    if (el.value === 'buiten') open = null;
+    if (el.value === 'buiten') openKamer = null;
     await bewaarIndeling(next, t('indeling.staatOp', { naam: k.naam, etage: el.selectedOptions[0]?.textContent ?? t('inr.andereEtage') }));
   } else if (el.dataset.soort) {
     // Wat voor kamer (besluit 119); leeg is weer het voorstel uit de naam.
@@ -938,7 +938,7 @@ document.addEventListener('keydown', (e) => {
 
 addEventListener('standwissel', teken);
 addEventListener('hashchange', () => {
-  open = null;
+  openKamer = null;
   weghalen = null;
   ligStaat.aanpassen = false;
   toevoegenIn = null;

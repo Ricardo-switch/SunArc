@@ -51,7 +51,7 @@ async function laadAlles() {
 
 const RING = 2 * Math.PI * 27;
 
-function ring({ deel = 0, kleur = '#F7B548', tekst = '', label, gestippeld = false, binnen = false }) {
+function ring({ deel = 0, kleur = '#F7B548', tekst = '', label = '', gestippeld = false, binnen = false }) {
   const spoor = gestippeld
     ? `<circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2" stroke-dasharray="4 6"/>`
     : `<circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="6"/>`;
