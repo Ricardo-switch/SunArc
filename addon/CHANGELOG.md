@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.226.0
+## 0.227.0
 
-*23 november 2026 · 0.179.0 – 0.226.0*
+*23 november 2026 · 0.179.0 – 0.227.0*
 
 **Nieuw**
 
@@ -92,6 +92,8 @@
 
 **Beter**
 
+- Je huis › Huis toont je huis zoals op Thuis: open een etage met meubels, of dicht het hele huis met de tuin; slepen draait het rond
+- Thuis laadt sneller als het huis zoals getekend aan staat: het poppenhuis komt alleen nog als het nodig is, en de tekening laadt in één keer
 - Onder de motorkap: Inrichten, Thuis en de dienst zijn opgesplitst in kleinere delen; je merkt er niets van
 - Onder de motorkap: het poppenhuis is opgesplitst in kleinere delen; je merkt er niets van
 - De lampen van het tuinhuis lichten op in hun eigen kleur: binnen door de ramen, buiten onder het overstek
@@ -348,6 +350,8 @@
 
 **Improved**
 
+- Your home › House shows your home as on Home: open a floor with furniture, or closed the whole house with the garden; drag to turn it around
+- Home loads faster with the house as drawn: the dollhouse only loads when needed, and the drawing loads in one go
 - Under the hood: Setup, Home and the service are split into smaller parts; you will not notice it
 - Under the hood: the dollhouse is split into smaller parts; you will not notice it
 - The lights of the garden house glow in their own colour: inside through the windows, outside under the canopy
