@@ -63,6 +63,8 @@ verwijzing bestaat.
   huis een tab Dak, met de dakvorm en de dakkapel ([332]). Sinds 0.220.0
   tekent het huis zoals getekend radiatoren (met de knop eraan, of vanzelf
   onder het raam), de buitenunit als eigen bolletje en dakramen ([333]).
+  Vanaf de versie die in januari live gaat, praat de app niet meer over
+  salderen, behalve bij gegevens van 2026 en eerder ([334]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1080,4 +1082,5 @@ verwijzing bestaat.
 [331]: DECISIONS.md#331-alles-bij-jij-is-persoonlijk
 [332]: DECISIONS.md#332-je-huis--dak-het-dak-en-de-dakkapel
 [333]: DECISIONS.md#333-radiatoren-buitenunits-en-dakramen-in-het-getekende-huis
+[334]: DECISIONS.md#334-salderen-alleen-nog-bij-gegevens-van-2026-en-eerder
 <!-- links:einde -->

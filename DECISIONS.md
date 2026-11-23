@@ -324,6 +324,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [331. Alles bij Jij is persoonlijk](#331-alles-bij-jij-is-persoonlijk)
 - [332. Je huis › Dak: het dak en de dakkapel](#332-je-huis--dak-het-dak-en-de-dakkapel)
 - [333. Radiatoren, buitenunits en dakramen in het getekende huis](#333-radiatoren-buitenunits-en-dakramen-in-het-getekende-huis)
+- [334. Salderen alleen nog bij gegevens van 2026 en eerder](#334-salderen-alleen-nog-bij-gegevens-van-2026-en-eerder)
 
 **Veiligheid**
 
@@ -15379,6 +15380,36 @@ waar het dak lager is dan het raam vanzelf een dakraam.
   (`huistekenen-3d.js`) en kent de dakramen en buitenunits niet; dat gaat mee
   als Je huis › Huis naar de nieuwe tekenaar gaat (punt 8). Een radiator geeft
   nog geen warmte in beeld (blok 3).
+
+## 334. Salderen alleen nog bij gegevens van 2026 en eerder
+
+*Onderwerp: weergave · Status: geldig*
+
+23 november 2026 (uit te voeren voor januari). In Nederland stopt de
+salderingsregeling op 1 januari 2027.
+SunArc gaat in januari live (stap 5 van de kwaliteitsronde, de proef met
+testers). Ricardo: dan mogen de teksten over salderen eruit; alleen waar
+gegevens uit 2026 of eerder worden vergeleken, mag het nog genoemd worden, zodat
+die bedragen geen vertekend beeld geven.
+
+*Besluit:*
+
+- **Vanaf de versie die in januari live gaat, praat de app niet meer over
+  salderen** als iets van nu: geen keuze *Salderen tot 2027* of *Geen salderen*
+  bij Energie, geen uitleg over salderen, en geen zoekwoord *saldering* meer.
+  Teruglevering telt tegen de vergoeding van het contract, min de kosten.
+- **Wel bij gegevens van 2026 en eerder.** Waar de app een periode toont of
+  vergelijkt die (deels) in 2026 of eerder valt, zoals een contractjaar, een
+  maand of de terugblik op Opbrengst, staat erbij dat die bedragen met de
+  salderingsregeling zijn gerekend. Daarvoor rekent de dienst die periode ook
+  echt met salderen; dat hoeft de bewoner niet meer te kiezen.
+- **Waar het staat:** de teksten `energie.salderen*`, `energie.geenSalderen`,
+  `energie.zonderSalderen`, `energie.vanaf2027` en de zoekwoorden in
+  `kit/teksten.*.js`; in de dienst `tarief.ts`, `yield.ts`, `energy.ts` en
+  `woordzoeker.ts`. Een test moet bewaken dat het woord alleen nog voorkomt in
+  de zin voor gegevens van 2026 en eerder.
+- **Niet voor andere landen:** daar bestond salderen in de app al niet; er
+  verandert niets.
 
 ## Wat nog een besluit wacht
 
