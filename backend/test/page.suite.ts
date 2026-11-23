@@ -4598,8 +4598,11 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await advies.locator('.koplink').getAttribute('href')).toBe('auto.html#tesla');
       // Met één tik (besluit 262): de Easee mag, dus Laad met 8 A, tot de kabel eruit gaat; en Meer keuzes opent het blad.
       expect(await advies.locator('.kijk').getAttribute('href')).toBe('auto.html?laden#tesla');
-      await advies.locator('[data-laden-snel]').click();
+      // De knop zelf indrukken (23 november 2026): op de CI verschoof het advies soms net voor de klik, en dan viel de klik
+      // op de autokaart eronder en opende de pagina Auto. Daarna moet Thuis open blijven.
+      await advies.locator('[data-laden-snel]').dispatchEvent('click');
       await expect.poll(() => advies.locator('[data-laden-snel]').textContent()).toBe('Laadt met 8 A');
+      expect(new URL(p.url()).pathname).toBe('/thuis.html');
       expect(ladenGestuurd).toEqual([{ auto: 'tesla', stroomA: 8, tot: 'kabel' }]);
       expect(await advies.evaluate((el) => el.nextElementSibling?.getAttribute('data-kaart'))).toBe('auto');
       expect(await kaart('batterij').textContent()).toContain('Levert 0,9 kW aan het huis');
