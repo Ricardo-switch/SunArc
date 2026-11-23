@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.229.0
+## 0.230.0
 
-*23 november 2026 · 0.179.0 – 0.229.0*
+*23 november 2026 · 0.179.0 – 0.230.0*
 
 **Nieuw**
 
+- De motor: tik zeven keer op het versienummer bij Over deze app. Dan zie je wat SunArc meet, verdeelt en besluit, live en elk kwartier van vandaag, met wat het afwijst en waarom, en kun je de stand kopiëren voor bij een melding
 - Sluipverbruik: zeg per nacht wat er draaide, met je eerdere antwoorden als knoppen. Een nacht met ongeveer hetzelfde extra vraagt Weer de pc?, krijgt een stip in de grafiek, en daarvoor komt geen melding meer
 - Radiatoren in je huis: een radiatorknop hangt als radiator aan de muur, een kamer met cv krijgt er vanzelf een onder het raam, en bij Je huis › Apparaten zet Radiator erbij er meer neer
 - De buitenunit van elke airco is een eigen bolletje buiten: zet hem tegen het huis, op een plat dak of op de grond
@@ -93,6 +94,7 @@
 
 **Beter**
 
+- Het welkom noemt de ruimtes in Home Assistant waar nog geen apparaat in staat, zodat 0 ruimtes niet lijkt alsof SunArc ze niet ziet
 - Elke pagina laadt alleen nog de teksten van jouw taal, niet meer Nederlands én Engels: Thuis laadt zo een derde minder
 - Op Thuis loopt de baan van de zon net boven het huis, niet meer erdoorheen
 - Je huis › Huis toont je huis zoals op Thuis: open een etage met meubels, of dicht het hele huis met de tuin; slepen draait het rond
@@ -274,6 +276,7 @@
 
 **New**
 
+- The engine: tap the version number seven times under About this app. Then you see what SunArc measures, shares and decides, live and every quarter hour today, with what it turns down and why, and you can copy the state for a report
 - Night use: say per night what was running, with your earlier answers as buttons. A night with about the same extra asks PC again?, gets a dot in the chart, and no longer sends a notification
 - Radiators in your home: a radiator valve hangs as a radiator on the wall, a room with central heating gets one under the window by itself, and under Your home › Devices Add a radiator puts more in
 - The outdoor unit of each air conditioner is its own dot outside: put it against the house, on a flat roof or on the ground
@@ -361,6 +364,7 @@
 
 **Improved**
 
+- The welcome screen names the areas in Home Assistant that have no device yet, so 0 spaces no longer looks as if SunArc cannot see them
 - Every page now loads only the texts of your language, not Dutch and English both: Home loads a third less
 - On Home the path of the sun runs just above the house, no longer through it
 - Your home › House shows your home as on Home: open a floor with furniture, or closed the whole house with the garden; drag to turn it around
