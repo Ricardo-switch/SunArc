@@ -6,7 +6,9 @@
  * laagste van de laatste 30 nachten; een nacht 50 W of meer daarboven valt op.
  *
  * Zonder eigen meter per apparaat noemt de app geen oorzaak (besluit 88): wat
- * de bewoner zelf zegt, bewaart de app als zijn toelichting bij die reeks.
+ * de bewoner zelf zegt, bewaart de app per nacht (besluit 335). Een nieuwe hoge
+ * nacht met ongeveer hetzelfde extra als nachten waar hij iets zei, krijgt dat
+ * als vraag ("Weer de pc?"), en daarvoor komt geen melding.
  *
  * Alleen lezen uit Home Assistant. Het rekenen is zuiver en te toetsen; de
  * klasse haalt de statistiek en onthoudt wat ze al heeft.
@@ -56,8 +58,11 @@ export interface SluipRapport {
   readonly scheelt: { readonly kwh: number; readonly euro: number | null } | null;
   /** De prijs per kWh waarmee gerekend is, of null zonder prijs. */
   readonly prijs: number | null;
-  /** Alle nachten, de oudste eerst, met of ze opvielen. */
-  readonly nachten: readonly (Nacht & { readonly hoog: boolean })[];
+  /**
+   * Alle nachten, de oudste eerst, met of ze opvielen, wat de bewoner over die nacht zei (besluit 335), en bij een
+   * hoge nacht zonder antwoord wat het lijkt te zijn: dezelfde reden als nachten met ongeveer hetzelfde extra.
+   */
+  readonly nachten: readonly (Nacht & { readonly hoog: boolean; readonly reden?: SluipReden; readonly herkend?: SluipHerkend })[];
   /** Per maand het gemiddelde per nacht, de oudste eerst. */
   readonly maanden: readonly { readonly maand: string; readonly w: number; readonly hoog: boolean }[];
   readonly laagste: Nacht;
@@ -71,9 +76,31 @@ export interface SluipRapport {
    * liggen, en sinds wanneer; null als dat niet zo is.
    */
   readonly vaak: { readonly nachten: number; readonly meerW: number; readonly sinds: string } | null;
-  /** Wat de bewoner zelf zei over deze reeks of dit patroon, of dat hij het niet weet (besluit 88). */
-  readonly toelichting: { readonly tekst: string | null; readonly weetNiet: boolean } | null;
+  /** Wat de bewoner eerder zei, het vaakst eerst: knoppen om een nacht met één tik te benoemen (besluit 335). */
+  readonly antwoorden: readonly string[];
+  /** Van de hoge nachten in de laatste 30: per reden hoeveel, het vaakst eerst. */
+  readonly redenen: readonly { readonly tekst: string; readonly nachten: number }[];
+  /** Zoveel hoge nachten in de laatste 30 hebben nog geen reden en lijken ook nergens op. */
+  readonly zonderReden: number;
 }
+
+/** Wat de bewoner over één nacht zei (besluit 335): wat er draaide, of dat hij het niet weet. */
+export interface SluipReden {
+  readonly tekst: string | null;
+  readonly weetNiet: boolean;
+}
+/** Wat een hoge nacht lijkt te zijn: de reden van nachten met ongeveer hetzelfde extra, en dat extra. */
+export interface SluipHerkend {
+  readonly tekst: string;
+  readonly meerW: number;
+}
+/** Alles wat de bewoner zei, per nacht; `oud` is het antwoord bij het patroon van voor besluit 335, nu een voorstel. */
+export interface SluipRedenen {
+  readonly nachten: Readonly<Record<string, SluipReden>>;
+  readonly oud: string | null;
+}
+/** Zoveel watt (of een kwart van het extra, als dat meer is) mag een nacht afwijken om op een reden te lijken. */
+export const HERKEN_W = 30;
 
 type Rij = { readonly start: number | string; readonly mean?: number | null };
 
@@ -144,15 +171,43 @@ function vaakVan(nachten: readonly Nacht[], hoge: readonly Nacht[], gewoonW: num
   return { nachten: hoge.length, meerW, sinds };
 }
 
-/** Geldt wat de bewoner zei nog: bij dezelfde reeks, of bij hetzelfde patroon (een paar maanden speling in waar het begon). */
-function geldt(t: SluipToelichting | null, reeks: SluipRapport['reeks'], vaak: SluipRapport['vaak']): boolean {
-  if (!t) return false;
-  if (vaak && t.vaak) return Math.abs(Date.parse(t.sinds) - Date.parse(vaak.sinds)) <= 92 * DAG_MS;
-  return !!reeks && !t.vaak && t.sinds === reeks.sinds;
+const midden = (xs: readonly number[]): number => {
+  const r = [...xs].sort((a, b) => a - b);
+  return r.length % 2 ? r[(r.length - 1) / 2]! : (r[r.length / 2 - 1]! + r[r.length / 2]!) / 2;
+};
+
+/**
+ * Per reden het gewone extra van zijn nachten (de middelste), en zo nodig het oude antwoord bij het patroon met het
+ * extra van dat patroon. Een tekst telt zonder hoofdletters: "Pc" en "pc" zijn dezelfde.
+ */
+function handtekeningen(nachten: readonly Nacht[], redenen: SluipRedenen, gewoonW: number, vaak: SluipRapport['vaak']): SluipHerkend[] {
+  const per = new Map<string, { tekst: string; extra: number[] }>();
+  for (const n of nachten) {
+    const tekst = redenen.nachten[n.dag]?.tekst;
+    if (!tekst || n.w - gewoonW < GRENS_W) continue;
+    const sl = tekst.toLowerCase();
+    const r = per.get(sl) ?? { tekst, extra: [] };
+    r.extra.push(n.w - gewoonW);
+    per.set(sl, r);
+  }
+  const uit = [...per.values()].map((r) => ({ tekst: r.tekst, meerW: Math.round(midden(r.extra)) }));
+  if (redenen.oud && vaak && !per.has(redenen.oud.toLowerCase())) uit.push({ tekst: redenen.oud, meerW: vaak.meerW });
+  return uit;
+}
+
+/** Waar een hoge nacht op lijkt: de reden met het dichtstbijzijnde extra, binnen 30 W of een kwart; anders null. */
+function herken(extra: number, lijst: readonly SluipHerkend[]): SluipHerkend | null {
+  let beste: SluipHerkend | null = null;
+  for (const h of lijst) {
+    const af = Math.abs(extra - h.meerW);
+    if (af > Math.max(HERKEN_W, h.meerW * 0.25)) continue;
+    if (!beste || af < Math.abs(extra - beste.meerW)) beste = h;
+  }
+  return beste;
 }
 
 /** Het verslag bij de nachten, of null met minder dan een week. */
-export function sluipRapport(nachten: readonly Nacht[], prijs: number | null, toelichting: SluipToelichting | null = null): SluipRapport | null {
+export function sluipRapport(nachten: readonly Nacht[], prijs: number | null, redenen: SluipRedenen = { nachten: {}, oud: null }): SluipRapport | null {
   if (nachten.length < 7) return null;
   const laatste30 = nachten.slice(-VENSTER_NACHTEN);
   const gewoonW = Math.round(gemiddeld([...laatste30].map((n) => n.w).sort((a, b) => a - b).slice(0, LAAGSTE)));
@@ -181,6 +236,28 @@ export function sluipRapport(nachten: readonly Nacht[], prijs: number | null, to
   const kwh = (w: number) => Math.round((w * 8760) / 1000);
   const euro = (k: number) => (prijs == null ? null : Math.round(k * prijs));
   const perJaarKwh = kwh(vannacht.w);
+  // Per nacht wat de bewoner zei, en bij een hoge nacht zonder antwoord waar hij op lijkt (besluit 335).
+  const lijst = handtekeningen(nachten, redenen, gewoonW, vaak);
+  const metReden = nachten.map((x) => {
+    const reden = redenen.nachten[x.dag];
+    const hoogN = isHoog(x.w);
+    const herkend = !reden && hoogN ? herken(x.w - gewoonW, lijst) : null;
+    return { ...x, hoog: hoogN, ...(reden ? { reden } : {}), ...(herkend ? { herkend } : {}) };
+  });
+  const laatsteMet = metReden.slice(-VENSTER_NACHTEN).filter((x) => x.hoog);
+  const telling = new Map<string, { tekst: string; nachten: number }>();
+  for (const x of laatsteMet) {
+    if (!x.reden?.tekst) continue;
+    const sl = x.reden.tekst.toLowerCase();
+    telling.set(sl, { tekst: telling.get(sl)?.tekst ?? x.reden.tekst, nachten: (telling.get(sl)?.nachten ?? 0) + 1 });
+  }
+  const alle = new Map<string, { tekst: string; n: number }>();
+  for (const r of Object.values(redenen.nachten)) {
+    if (!r.tekst) continue;
+    const sl = r.tekst.toLowerCase();
+    alle.set(sl, { tekst: alle.get(sl)?.tekst ?? r.tekst, n: (alle.get(sl)?.n ?? 0) + 1 });
+  }
+  if (redenen.oud && !alle.has(redenen.oud.toLowerCase())) alle.set(redenen.oud.toLowerCase(), { tekst: redenen.oud, n: 0 });
   return {
     vannacht,
     gewoonW,
@@ -192,13 +269,15 @@ export function sluipRapport(nachten: readonly Nacht[], prijs: number | null, to
     perJaarEuro: euro(perJaarKwh),
     scheelt: hoog ? { kwh: kwh(bovenW), euro: euro(kwh(bovenW)) } : null,
     prijs,
-    nachten: nachten.map((x) => ({ ...x, hoog: isHoog(x.w) })),
+    nachten: metReden,
     maanden,
     laagste: nachten.reduce((a, b) => (b.w < a.w ? b : a)),
     reeks,
     hoogIn30: hogeIn30.length,
     vaak,
-    toelichting: toelichting && geldt(toelichting, reeks, vaak) ? { tekst: toelichting.tekst, weetNiet: toelichting.weetNiet } : null,
+    antwoorden: [...alle.values()].sort((a, b) => b.n - a.n).slice(0, 6).map((x) => x.tekst),
+    redenen: [...telling.values()].sort((a, b) => b.nachten - a.nachten),
+    zonderReden: laatsteMet.filter((x) => !x.reden && !x.herkend).length,
   };
 }
 
@@ -210,30 +289,36 @@ export function jaarPrijs(prijzen: { readonly stroom: number | null; readonly st
   return dal == null ? p : p * (1 - DAL_DEEL) + dal * DAL_DEEL;
 }
 
-/** Wat de bewoner zei over een reeks hoge nachten, of over het patroon (besluit 88). */
-export interface SluipToelichting {
-  /** De eerste nacht van de reeks, of waar het patroon begon. */
-  readonly sinds: string;
-  readonly tekst: string | null;
-  readonly weetNiet: boolean;
-  /** Over het patroon "vaak meer dan gewoon": dat geldt over de reeksen heen. */
-  readonly vaak?: true;
-}
 export const SLUIP_FILE = 'sluipverbruik.json';
 export const MAX_TOELICHTING = 80;
 
-/** Een toelichting uit een verzoek, of de reden waarom niet. */
-export function leesToelichting(x: unknown): { ok: true; toelichting: SluipToelichting } | { ok: false; reden: string } {
-  if (typeof x !== 'object' || x == null) return { ok: false, reden: 'geef sinds, en tekst of weetNiet' };
+/** Wat de bewoner over een nacht stuurt (besluit 335): `{ dag, tekst }`, `{ dag, weetNiet: true }` of `{ dag, wis: true }`. */
+export function leesReden(x: unknown): { ok: true; dag: string; reden: SluipReden | null } | { ok: false; reden: string } {
+  if (typeof x !== 'object' || x == null) return { ok: false, reden: 'geef dag, en tekst, weetNiet of wis' };
   const r = x as Record<string, unknown>;
-  if (typeof r['sinds'] !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(r['sinds'])) return { ok: false, reden: 'sinds is een dag als 2026-10-15' };
+  if (typeof r['dag'] !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(r['dag'])) return { ok: false, reden: 'dag is een dag als 2026-10-15' };
+  if (r['wis'] === true) return { ok: true, dag: r['dag'], reden: null };
   const tekst = r['tekst'] == null ? null : typeof r['tekst'] === 'string' ? r['tekst'].trim().slice(0, MAX_TOELICHTING) : undefined;
   if (tekst === undefined) return { ok: false, reden: 'tekst is een korte zin' };
   if (r['weetNiet'] !== undefined && typeof r['weetNiet'] !== 'boolean') return { ok: false, reden: 'weetNiet is ja of nee' };
   const weetNiet = r['weetNiet'] === true;
-  if (!tekst && !weetNiet) return { ok: false, reden: 'geef tekst of weetNiet' };
-  if (r['vaak'] !== undefined && typeof r['vaak'] !== 'boolean') return { ok: false, reden: 'vaak is ja of nee' };
-  return { ok: true, toelichting: { sinds: r['sinds'], tekst: tekst || null, weetNiet: weetNiet && !tekst, ...(r['vaak'] === true ? { vaak: true as const } : {}) } };
+  if (!tekst && !weetNiet) return { ok: false, reden: 'geef tekst, weetNiet of wis' };
+  return { ok: true, dag: r['dag'], reden: { tekst: tekst || null, weetNiet: weetNiet && !tekst } };
+}
+
+/** Wat er bewaard staat: versie 2 per nacht; versie 1 (één antwoord bij een reeks of het patroon) wordt het voorstel. */
+export function leesRedenen(raw: unknown): SluipRedenen {
+  const r = (typeof raw === 'object' && raw != null ? raw : {}) as Record<string, unknown>;
+  const nachten: Record<string, SluipReden> = {};
+  if (typeof r['nachten'] === 'object' && r['nachten'] != null) {
+    for (const [dag, v] of Object.entries(r['nachten'] as Record<string, unknown>)) {
+      const l = leesReden({ ...(v as object), dag });
+      if (l.ok && l.reden) nachten[dag] = l.reden;
+    }
+  }
+  const oudV1 = (r['toelichting'] as { tekst?: unknown } | undefined)?.tekst;
+  const oud = typeof r['oud'] === 'string' ? r['oud'] : typeof oudV1 === 'string' && oudV1.trim() ? oudV1.trim().slice(0, MAX_TOELICHTING) : null;
+  return { nachten, oud };
 }
 
 export interface SluipOpties {
@@ -242,7 +327,7 @@ export interface SluipOpties {
   readonly vraag: (type: string, velden: Record<string, unknown>) => Promise<Record<string, Rij[]> | null>;
   /** De prijs per kWh, of null. */
   readonly prijs: () => number | null;
-  /** Waar de toelichting staat; zonder logmap alleen in het geheugen. */
+  /** Waar wat de bewoner zei staat; zonder logmap alleen in het geheugen. */
   readonly logDir?: string;
   readonly nu?: () => number;
 }
@@ -257,7 +342,7 @@ export class Sluipverbruik {
   #nachten: Nacht[] = [];
   #gehaald = 0;
   #bezig: Promise<void> | null = null;
-  #toelichting: SluipToelichting | null = null;
+  #redenen: SluipRedenen = { nachten: {}, oud: null };
 
   constructor(o: SluipOpties) {
     this.#o = o;
@@ -266,11 +351,9 @@ export class Sluipverbruik {
   async load(): Promise<void> {
     if (!this.#o.logDir) return;
     try {
-      const raw = JSON.parse(await readFile(join(this.#o.logDir, SLUIP_FILE), 'utf-8')) as { toelichting?: unknown };
-      const t = leesToelichting(raw.toelichting);
-      this.#toelichting = t.ok ? t.toelichting : null;
+      this.#redenen = leesRedenen(JSON.parse(await readFile(join(this.#o.logDir, SLUIP_FILE), 'utf-8')));
     } catch {
-      this.#toelichting = null;
+      this.#redenen = { nachten: {}, oud: null };
     }
   }
 
@@ -308,15 +391,18 @@ export class Sluipverbruik {
 
   /** Het verslag met wat er al is, zonder te vragen; voor de bel en de assistent. */
   laatste(): SluipRapport | null {
-    return sluipRapport(this.#nachten, this.#o.prijs(), this.#toelichting);
+    return sluipRapport(this.#nachten, this.#o.prijs(), this.#redenen);
   }
 
-  /** Wat de bewoner zei; bewaard tot er een nieuwe reeks komt. */
-  async zeg(t: SluipToelichting): Promise<void> {
-    this.#toelichting = t;
+  /** Wat de bewoner over een nacht zei (besluit 335), of weg met null. */
+  async zeg(dag: string, reden: SluipReden | null): Promise<void> {
+    const nachten = { ...this.#redenen.nachten };
+    if (reden) nachten[dag] = reden;
+    else delete nachten[dag];
+    this.#redenen = { nachten, oud: this.#redenen.oud };
     if (!this.#o.logDir) return;
     const pad = join(this.#o.logDir, SLUIP_FILE);
-    await writeFile(`${pad}.nieuw`, `${JSON.stringify({ versie: 1, toelichting: t })}\n`, 'utf-8');
+    await writeFile(`${pad}.nieuw`, `${JSON.stringify({ versie: 2, nachten, oud: this.#redenen.oud })}\n`, 'utf-8');
     await rename(`${pad}.nieuw`, pad);
   }
 }
@@ -328,8 +414,9 @@ export class Sluipverbruik {
  */
 export function sluipVoorBel(r: SluipRapport | null, nuMs: number, timeZone: string): SluipBel | null {
   if (!r || !r.hoog || !r.reeks) return null;
-  // Een patroon waar de bewoner al iets over zei: niet elke ochtend opnieuw (29 oktober 2026).
-  if (r.vaak && r.toelichting) return null;
+  // Een nacht met een reden, of die lijkt op een reden die de bewoner al gaf: geen melding (besluit 335).
+  const laatste = r.nachten.at(-1);
+  if (laatste?.reden || laatste?.herkend) return null;
   const vandaag = plaatselijk(nuMs, timeZone).dag;
   const gisteren = plaatselijk(nuMs - 86_400_000, timeZone).dag;
   if (r.vannacht.dag !== vandaag && r.vannacht.dag !== gisteren) return null;

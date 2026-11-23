@@ -325,6 +325,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [332. Je huis › Dak: het dak en de dakkapel](#332-je-huis--dak-het-dak-en-de-dakkapel)
 - [333. Radiatoren, buitenunits en dakramen in het getekende huis](#333-radiatoren-buitenunits-en-dakramen-in-het-getekende-huis)
 - [334. Salderen alleen nog bij gegevens van 2026 en eerder](#334-salderen-alleen-nog-bij-gegevens-van-2026-en-eerder)
+- [335. Sluipverbruik: een reden per nacht, en herkennen](#335-sluipverbruik-een-reden-per-nacht-en-herkennen)
 
 **Veiligheid**
 
@@ -15410,6 +15411,43 @@ die bedragen geen vertekend beeld geven.
   de zin voor gegevens van 2026 en eerder.
 - **Niet voor andere landen:** daar bestond salderen in de app al niet; er
   verandert niets.
+
+## 335. Sluipverbruik: een reden per nacht, en herkennen
+
+*Onderwerp: weergave · Status: geldig*
+
+23 november 2026. Ricardo: de reden die je bij Sluipverbruik invult, is vrij
+nutteloos. Er stond er één bij het hele patroon ("Op 17 van de 30 nachten zo'n
+130 W meer, sinds augustus"), dus "Pc" gold voor alle nachten, ook als er iets
+anders draaide. Hij moet bij de nacht staan die je aantikt. Keuzes van Ricardo
+(alle vier het advies): per nacht met knoppen van eerdere antwoorden; SunArc
+mag een nacht herkennen, als vraag; een bekende reden krijgt een stip in de
+grafiek en geen melding; het oude antwoord wordt een voorstel.
+
+*Besluit (0.229.0):*
+
+- **Per nacht.** Wat de bewoner zegt, staat bij de nacht (`sluipverbruik.json`
+  versie 2: `nachten` per dag, met een tekst of *weet ik niet*). De kaart rechts
+  gaat over de nacht die je aantikt, anders over de laatste als die opviel: wat
+  je zei, of *Wat draaide er?* met je eerdere antwoorden als knoppen, *Iets
+  anders* om te typen en *Weet ik niet*. `POST api/sluipverbruik` met `{ dag,
+  tekst }`, `{ dag, weetNiet }` of `{ dag, wis }`.
+- **Herkennen, als vraag.** Per reden het gewone extra van zijn nachten (de
+  middelste). Een hoge nacht zonder antwoord die daar binnen 30 W (of een
+  kwart) van ligt, vraagt *Weer de pc?* met *Ja* en *Iets anders*; pas na Ja
+  staat het erbij. Hoofdletters tellen niet.
+- **Wat het oude antwoord wordt.** Het ene antwoord van versie 1 wordt het
+  eerste voorstel, met het extra van het patroon (bij Ricardo 130 W): die
+  nachten krijgen de vraag.
+- **In de grafiek en de kaart.** Een nacht met een reden krijgt een stip boven
+  de staaf, een herkende een open stip. De kaart telt: *Pc op 7 nachten, 14
+  nachten lijken op Pc · 3 nog zonder reden*.
+- **De melding.** Geen melding de ochtend erna voor een nacht met een reden of
+  die herkend is. Een onbekende hoge nacht meldt wel, ook binnen een patroon
+  (eerst zweeg de melding voor het hele patroon zodra je iets zei).
+- **De assistent** zegt bij de nacht wat je zei, of *Het lijkt weer de pc*.
+- **Niet:** een herkende nacht telt nog gewoon mee als opvallend (keuze
+  Ricardo); de app noemt zelf nog steeds geen apparaat (besluit 88).
 
 ## Wat nog een besluit wacht
 

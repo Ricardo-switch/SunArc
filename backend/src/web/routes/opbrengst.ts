@@ -17,7 +17,7 @@ import { sunReport } from '../sun.js';
 import { expectedAndActual, expectedTotal, weatherInLang, type ExpectedTotal } from '../weather.js';
 import { startOfLocalDay } from '../today.js';
 import { readJson, sendJson } from '../http.js';
-import { leesToelichting } from '../sluipverbruik.js';
+import { leesReden } from '../sluipverbruik.js';
 import { isDal } from '../tarief.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { accuJaar } from '../accu.js';
@@ -120,12 +120,12 @@ export async function opbrengstRoutes(d: Diensten, v: Verzoek): Promise<boolean>
         sendJson(res, 400, { fout: (error as Error).message });
         return true;
       }
-      const t = leesToelichting(body);
+      const t = leesReden(body);
       if (!t.ok) {
         sendJson(res, 400, { fout: t.reden });
         return true;
       }
-      await s.zeg(t.toelichting);
+      await s.zeg(t.dag, t.reden);
     }
     const rapport = await s.rapport().catch(() => null);
     if (rapport == null) {

@@ -73,6 +73,8 @@ function staven(rijen, { breedte, hoogte, label, lijnen = true, klein = false })
     // Een andere staaf aangetikt: deze wat zachter, zodat de gekozen opvalt.
     const zacht = gekozen && !aan ? ' opacity="0.45"' : '';
     s += `<rect x="${xs.toFixed(1)}" y="${y(x.w).toFixed(1)}" width="${(w * 0.68).toFixed(1)}" height="${Math.max(0, y(0) - y(x.w)).toFixed(1)}" rx="3" fill="${x.hoog ? '#ff7a4d' : aan ? 'rgb(111,211,255)' : 'rgba(111,211,255,0.55)'}"${aan ? ' stroke="#fff" stroke-width="1.5"' : zacht}/>`;
+    // Een reden bij deze nacht (besluit 335): een stip erboven; lijkt hij op een reden, een open stip.
+    if (x.reden?.tekst || x.herkend) s += `<circle cx="${(xs + w * 0.34).toFixed(1)}" cy="${(y(x.w) - 7).toFixed(1)}" r="3" fill="${x.reden?.tekst ? '#eef3f7' : 'none'}" stroke="#eef3f7" stroke-width="1.4"${zacht}/>`;
     // Over de hele hoogte aan te tikken, ook een lage staaf op de telefoon.
     s += `<rect class="raak" data-staaf="${esc(x.sleutel)}" x="${(l + i * w).toFixed(1)}" y="${top}" width="${w.toFixed(1)}" height="${(hoogte - top - b).toFixed(1)}" fill="transparent" role="button" tabindex="0" aria-pressed="${aan}" aria-label="${esc(x.titel)}"><title>${esc(x.titel)}</title></rect>`;
     const tekst = label(x, i);
@@ -96,7 +98,7 @@ function grafiek(breedte, hoogte, klein = false) {
     const elke = Math.max(1, Math.ceil(rijen.length / (klein ? 4 : 7)));
     return staven(rijen, { breedte, hoogte, klein, label: (m, i) => (i % elke === 0 || i === rijen.length - 1 ? `${maandKort(m.maand)}${m.maand.endsWith('-01') || i === 0 ? ` ’${m.maand.slice(2, 4)}` : ''}` : '') });
   }
-  const rijen = venster().map((n) => ({ ...n, sleutel: n.dag, titel: `${datum(n.dag)}: ${W(n.w)} W` }));
+  const rijen = venster().map((n) => ({ ...n, sleutel: n.dag, titel: `${datum(n.dag)}: ${W(n.w)} W${n.reden?.tekst ? ` · ${n.reden.tekst}` : ''}` }));
   const elke = klein ? 10 : 5;
   return staven(rijen, { breedte, hoogte, klein, label: (n, i) => (i % elke === 0 || i === rijen.length - 1 ? new Date(`${n.dag}T12:00:00Z`).toLocaleDateString(taal.locale, { day: 'numeric', month: 'short', timeZone: 'UTC' }).replace('.', '') : '') });
 }
@@ -175,6 +177,8 @@ function legenda() {
     <span><i class="blok" style="background: #ff7a4d"></i>${esc(t('sluip.leg.hoog', { grens: GRENS }))}</span>
     <span><i style="color: #6ee7b7"></i>${esc(t('sluip.leg.lijn', { w: W(r.gewoonW) }))}</span>
     <span><i style="color: #ff7a4d"></i>${esc(t('sluip.leg.melding'))}</span>
+    ${r.nachten.some((x) => x.reden?.tekst) ? `<span><i class="stip-reden"></i>${esc(t('sluip.leg.reden'))}</span>` : ''}
+    ${r.nachten.some((x) => x.herkend) ? `<span><i class="stip-reden open"></i>${esc(t('sluip.leg.lijkt'))}</span>` : ''}
     <span class="tik">${esc(tikHint())}</span>
   </div>`;
 }
@@ -202,34 +206,64 @@ function midden() {
 }
 const laagsteMaand = () => r.maanden.reduce((a, b) => (b.w < a.w ? b : a));
 
-/** Wat opviel (besluit 88): het wat en het hoeveel, en wat de bewoner zelf zegt. */
+/** Wat opviel (besluit 88): het wat en het hoeveel, en per nacht wat de bewoner zelf zegt (besluit 335). */
 function opvallend() {
   // Vaak meer dan gewoon, niet op rij (29 oktober 2026): een eigen kaart; bij een hoge nacht staat het in de zin.
   if (!r.reeks && r.vaak) {
     const kop = t('sluip.vaakTitel', { n: r.vaak.nachten, meer: r.vaak.meerW });
-    return `<section class="glas kaart opvallend opgevallen"><div class="mini">${esc(t('sluip.vaakKop'))}</div><h3>${esc(kop)}</h3><p class="klein" style="margin: 0">${esc(t('sluip.vaakZin', { maand: maandNaam(r.vaak.sinds.slice(0, 7), false) }))}</p>${zegDeel(r.toelichting)}</section>`;
+    return `<section class="glas kaart opvallend opgevallen"><div class="mini">${esc(t('sluip.vaakKop'))}</div><h3>${esc(kop)}</h3><p class="klein" style="margin: 0">${esc(t('sluip.vaakZin', { maand: maandNaam(r.vaak.sinds.slice(0, 7), false) }))}</p>${redenDeel()}</section>`;
   }
   if (!r.reeks) {
-    return `<section class="glas kaart opvallend gewoon"><div class="mini">${esc(t('sluip.gewoonKop'))}</div><h3>${esc(t('sluip.gewoonTitel'))}</h3><p class="klein" style="margin: 0">${esc(t(r.hoogIn30 ? 'sluip.gewoonZin' : 'sluip.gewoonRustig', { n: r.hoogIn30 }))}</p></section>`;
+    return `<section class="glas kaart opvallend gewoon"><div class="mini">${esc(t('sluip.gewoonKop'))}</div><h3>${esc(t('sluip.gewoonTitel'))}</h3><p class="klein" style="margin: 0">${esc(t(r.hoogIn30 ? 'sluip.gewoonZin' : 'sluip.gewoonRustig', { n: r.hoogIn30 }))}</p>${r.hoogIn30 || gekozenNacht() ? redenDeel() : ''}</section>`;
   }
   const sinds = r.reeks.nachten > 1 ? t('sluip.sindsTitel', { datum: datum(r.reeks.sinds), boven: Math.round(r.bovenW / 10) * 10 }) : t('sluip.vannachtMeer', { boven: W(r.bovenW) });
   const zin = r.vaak ? t('sluip.ookVaak', { n: r.vaak.nachten }) : r.reeks.nachten > 1 ? t('sluip.opRij', { n: r.reeks.nachten }) : t('sluip.staatIetsAan');
-  return `<section class="glas kaart opvallend opgevallen"><div class="mini">${esc(t('sluip.opgevallen'))}</div><h3>${esc(sinds)}</h3><p class="klein" style="margin: 0">${esc(zin)}</p>${zegDeel(r.toelichting)}</section>`;
+  return `<section class="glas kaart opvallend opgevallen"><div class="mini">${esc(t('sluip.opgevallen'))}</div><h3>${esc(sinds)}</h3><p class="klein" style="margin: 0">${esc(zin)}</p>${redenDeel()}</section>`;
 }
 
-/** Wat de bewoner zegt (besluit 88): typen, wat hij zei, of de twee knoppen. */
-function zegDeel(tl) {
+/** De nacht waar de kaart over gaat: de aangetikte, anders de laatste als die opviel. */
+function gekozenNacht() {
+  if (keuze.blik !== 'nachten') return null;
+  const dag = gekozen ?? (r.hoog ? r.vannacht.dag : null);
+  return dag ? (r.nachten.find((x) => x.dag === dag) ?? null) : null;
+}
+
+/** Per reden hoeveel nachten (van de laatste 30), hoeveel erop lijken, en hoeveel er nog geen reden hebben. */
+function tellingZin() {
+  const lijkt = new Map();
+  for (const n of r.nachten.slice(-VENSTER)) if (n.herkend) lijkt.set(n.herkend.tekst, (lijkt.get(n.herkend.tekst) ?? 0) + 1);
+  const delen = [
+    ...(r.redenen ?? []).map((x) => t('sluip.tel.reden', { tekst: x.tekst, n: x.nachten })),
+    ...[...lijkt].map(([tekst, n]) => t('sluip.tel.lijkt', { tekst, n })),
+  ];
+  if (!delen.length) return t('sluip.tikVoorReden');
+  return r.zonderReden ? `${delen.join(', ')} · ${t('sluip.tel.zonder', { n: r.zonderReden })}` : delen.join(', ');
+}
+
+/** Het deel over één nacht (besluit 335): wat de bewoner zei, waar hij op lijkt, of de knoppen. */
+function redenDeel() {
+  const n = gekozenNacht();
+  const telling = `<p class="klein telling">${esc(tellingZin())}</p>`;
+  if (!n) return telling;
+  const dag = new Date(`${n.dag}T12:00:00Z`).toLocaleDateString(taal.locale, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+  const meer = n.w - r.gewoonW;
+  const kop = `<div class="nachtkop"><b>${esc(t('sluip.nacht.kop', { datum: dag }))}</b><span>${esc(n.hoog ? t('sluip.nacht.meer', { w: W(n.w), n: W(meer) }) : t('sluip.nacht.gewoon', { w: W(n.w) }))}</span></div>`;
+  const knoppen = (...k) => `<div class="knoppen">${k.join('')}</div>`;
+  const antwoordKnoppen = (r.antwoorden ?? []).map((a) => `<button type="button" class="knop knop-licht" data-antwoord="${esc(a)}">${esc(a)}</button>`);
+  const anders = (licht = false) => `<button type="button" class="knop${licht ? ' knop-licht' : ''}" data-zeg>${esc(t('sluip.anders'))}</button>`;
   let onder;
   if (zeggen) {
-    onder = `<div class="zeg"><input data-zeg-tekst maxlength="80" placeholder="${esc(t('sluip.zegVoorbeeld'))}" aria-label="${esc(t('sluip.watIsHet'))}" value="${esc(tl?.tekst ?? '')}"><button type="button" class="knop knop-licht" data-zeg-bewaar>${esc(t('sluip.bewaar'))}</button></div>`;
-  } else if (tl?.tekst) {
-    onder = `<p class="klein" style="margin: 10px 0 0">${esc(t('sluip.jijZei', { tekst: tl.tekst }))}</p><div class="knoppen"><button type="button" class="knop" data-zeg>${esc(t('sluip.anders'))}</button></div>`;
-  } else if (tl?.weetNiet) {
-    onder = `<p class="klein" style="margin: 10px 0 0">${esc(t('sluip.inDeGaten'))}</p><div class="knoppen"><button type="button" class="knop" data-zeg>${esc(t('sluip.ikWeetHet'))}</button></div>`;
-  } else {
-    onder = `<div class="knoppen"><button type="button" class="knop knop-licht" data-zeg>${esc(t('sluip.ikWeetHet'))}</button><button type="button" class="knop" data-weet-niet>${esc(t('sluip.weetNiet'))}</button></div>`;
-  }
-  return onder;
+    onder = `<div class="zeg"><input data-zeg-tekst maxlength="80" placeholder="${esc(t('sluip.zegVoorbeeld'))}" aria-label="${esc(t('sluip.nacht.wat'))}" value="${esc(n.reden?.tekst ?? '')}"><button type="button" class="knop knop-licht" data-zeg-bewaar>${esc(t('sluip.bewaar'))}</button></div>`;
+  } else if (n.reden?.tekst) {
+    onder = `<p class="klein reden">${esc(t('sluip.jijZei', { tekst: n.reden.tekst }))}</p>${knoppen(anders())}`;
+  } else if (n.reden?.weetNiet) {
+    onder = `<p class="klein reden">${esc(t('sluip.nacht.weetNietZin'))}</p>${knoppen(...antwoordKnoppen, anders())}`;
+  } else if (n.herkend) {
+    onder = `<p class="klein reden"><b>${esc(t('sluip.nacht.weer', { tekst: n.herkend.tekst }))}</b> ${esc(t('sluip.nacht.weerZin', { n: W(n.herkend.meerW), tekst: n.herkend.tekst }))}</p>${knoppen(`<button type="button" class="knop knop-licht" data-ja>${esc(t('sluip.nacht.ja'))}</button>`, anders())}`;
+  } else if (n.hoog) {
+    onder = `<p class="klein reden">${esc(t('sluip.nacht.wat'))}</p>${knoppen(...antwoordKnoppen, anders(!antwoordKnoppen.length), `<button type="button" class="knop" data-weet-niet>${esc(t('sluip.weetNiet'))}</button>`)}`;
+  } else onder = '';
+  return `${telling}<div class="nachtdeel">${kop}${onder}</div>`;
 }
 
 /** De melding op je telefoon (besluit 79): per account, zoals bij Jij. */
@@ -283,9 +317,12 @@ const teken = app.gebundeld(tekenNu);
 addEventListener('standwissel', teken);
 
 async function zeg(body) {
-  // Bij een patroon geldt het antwoord over de reeksen heen; anders bij deze reeks.
-  const waar = r.vaak ? { sinds: r.vaak.sinds, vaak: true } : { sinds: r.reeks.sinds };
-  const res = await deur('api/sluipverbruik', { ...waar, ...body }).catch(() => null);
+  // Per nacht (besluit 335): de nacht waar de kaart over gaat.
+  const n = gekozenNacht();
+  if (!n) return;
+  const res = await deur('api/sluipverbruik', { dag: n.dag, ...body }).catch(() => null);
+  // Na Enter staat de cursor nog in het veld; dan tekent de pagina niet opnieuw (zie tekenNu).
+  if (document.activeElement?.matches?.('[data-zeg-tekst]')) /** @type {HTMLElement} */ (document.activeElement).blur();
   if (res?.ok) r = await res.json();
   zeggen = false;
   teken();
@@ -294,6 +331,7 @@ async function zeg(body) {
 /** Een staaf aantikken toont wat erbij hoort; nog eens tikken haalt het weg. */
 function kiesStaaf(sleutel) {
   gekozen = gekozen === sleutel ? null : sleutel;
+  zeggen = false;
   tekenNu();
   // Met het toetsenbord: de focus blijft op dezelfde staaf.
   document.querySelector(`${app.zicht()} [data-staaf="${CSS.escape(sleutel)}"]`)?.focus({ preventScroll: true });
@@ -332,6 +370,11 @@ document.addEventListener('click', async (e) => {
     }
   } else if (el.hasAttribute('data-weet-niet')) {
     await zeg({ weetNiet: true });
+  } else if (el.dataset.antwoord) {
+    await zeg({ tekst: el.dataset.antwoord });
+  } else if (el.hasAttribute('data-ja')) {
+    const n = gekozenNacht();
+    if (n?.herkend) await zeg({ tekst: n.herkend.tekst });
   } else if (el.hasAttribute('data-sluip-melding')) {
     const aan = el.getAttribute('aria-checked') !== 'true';
     el.setAttribute('aria-checked', String(aan));

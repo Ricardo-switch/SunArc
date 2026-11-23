@@ -1015,7 +1015,10 @@ export function ask(question: Question, ctx: AskContext): Answer {
       }
       if (s.scheelt?.euro != null) out.push(nl ? `Zo een jaar lang kost het zo’n ${f.euro('sluip.scheelt', s.scheelt.euro)} extra.` : `A whole year like this costs about ${f.euro('sluip.scheelt', s.scheelt.euro)} extra.`);
       else if (s.scheelt) out.push(nl ? `Zo een jaar lang is dat ${f.energy('sluip.scheelt', s.scheelt.kwh * 1000)} extra.` : `A whole year like this is ${f.energy('sluip.scheelt', s.scheelt.kwh * 1000)} extra.`);
-      if (s.toelichting?.tekst) out.push(nl ? `Jij zei: ${s.toelichting.tekst}.` : `You said: ${s.toelichting.tekst}.`);
+      // Wat de bewoner over deze nacht zei, of waar hij op lijkt (besluit 335).
+      const laatste = s.nachten.at(-1);
+      if (laatste?.reden?.tekst) out.push(nl ? `Jij zei: ${laatste.reden.tekst}.` : `You said: ${laatste.reden.tekst}.`);
+      else if (laatste?.herkend) out.push(nl ? `Het lijkt weer ${laatste.herkend.tekst}.` : `It looks like ${laatste.herkend.tekst} again.`);
       return done(out.join(' '));
     }
 

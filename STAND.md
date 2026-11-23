@@ -65,6 +65,8 @@ verwijzing bestaat.
   onder het raam), de buitenunit als eigen bolletje en dakramen ([333]).
   Vanaf de versie die in januari live gaat, praat de app niet meer over
   salderen, behalve bij gegevens van 2026 en eerder ([334]).
+  Sinds 0.229.0 zeg je bij Sluipverbruik per nacht wat er draaide, en vraagt
+  SunArc bij een nacht die erop lijkt "Weer de pc?" ([335]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1083,4 +1085,5 @@ verwijzing bestaat.
 [332]: DECISIONS.md#332-je-huis--dak-het-dak-en-de-dakkapel
 [333]: DECISIONS.md#333-radiatoren-buitenunits-en-dakramen-in-het-getekende-huis
 [334]: DECISIONS.md#334-salderen-alleen-nog-bij-gegevens-van-2026-en-eerder
+[335]: DECISIONS.md#335-sluipverbruik-een-reden-per-nacht-en-herkennen
 <!-- links:einde -->

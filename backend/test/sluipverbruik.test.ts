@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { GRENS_W, jaarPrijs, leesToelichting, nachtenUit, sluipRapport, sluipVoorBel, type Nacht } from '../src/web/sluipverbruik.js';
+import { GRENS_W, jaarPrijs, leesReden, leesRedenen, nachtenUit, sluipRapport, sluipVoorBel, type Nacht } from '../src/web/sluipverbruik.js';
 import { wat, type MeldingenBron } from '../src/web/meldingen.js';
 import { groepVan, STANDAARD_MELDINGEN } from '../src/web/push.js';
 
@@ -86,7 +86,7 @@ describe('het sluipverbruik (besluit 192)', () => {
     expect(jaarPrijs({ stroom: 0.3, stroomDal: 0.2 })).toBeCloseTo(0.3 * (80 / 168) + 0.2 * (88 / 168), 6);
   });
 
-  it('ziet vaak meer dan gewoon, ook als het niet op rij is, en onthoudt het antwoord over de reeksen heen', () => {
+  it('ziet vaak meer dan gewoon, ook als het niet op rij is', () => {
     // Zoals hier sinds augustus 2026: om de andere nacht zo'n 150 W meer.
     const w = Array.from({ length: 75 }, (_, i) => (i < 15 ? 185 : i % 2 ? 340 : 190));
     const n = nachten('2026-08-01', w);
@@ -95,29 +95,64 @@ describe('het sluipverbruik (besluit 192)', () => {
     expect(r.hoog).toBe(false);
     expect(r.reeks).toBeNull();
     expect(r.vaak).toEqual({ nachten: 15, meerW: 150, sinds: '2026-08-01' });
-    // Wat de bewoner zei, geldt bij elke volgende hoge nacht; de bel zegt het dan niet elke ochtend.
-    const t = { sinds: '2026-08-01', tekst: 'de jacuzzi', weetNiet: false, vaak: true as const };
-    expect(sluipRapport(n, null, t)!.toelichting).toEqual({ tekst: 'de jacuzzi', weetNiet: false });
-    const hoog = [...n, { dag: '2026-10-15', w: 345 }];
-    const rh = sluipRapport(hoog, null, t)!;
-    expect(rh.reeks).toEqual({ sinds: '2026-10-15', nachten: 1 });
-    expect(rh.toelichting).toEqual({ tekst: 'de jacuzzi', weetNiet: false });
-    expect(sluipVoorBel(rh, Date.parse('2026-10-15T08:00:00Z'), 'Europe/Amsterdam')).toBeNull();
-    expect(sluipVoorBel(sluipRapport(hoog, null)!, Date.parse('2026-10-15T08:00:00Z'), 'Europe/Amsterdam')).not.toBeNull();
     // Een gewone maand ertussen: daarna is het een ander patroon.
     expect(sluipRapport(nachten('2026-08-01', Array.from({ length: 30 }, () => 185)), null)!.vaak).toBeNull();
-    expect(leesToelichting({ sinds: '2026-08-01', tekst: 'x', vaak: true })).toEqual({ ok: true, toelichting: { sinds: '2026-08-01', tekst: 'x', weetNiet: false, vaak: true } });
-    expect(leesToelichting({ sinds: '2026-08-01', tekst: 'x', vaak: 'ja' }).ok).toBe(false);
   });
 
-  it('bewaart wat de bewoner zegt alleen bij de reeks waar het over ging (besluit 88)', () => {
-    const n = nachten('2026-09-25', [...Array.from({ length: 20 }, () => 180), ...Array.from({ length: 10 }, () => 300)]);
-    expect(sluipRapport(n, null, { sinds: '2026-10-15', tekst: 'de pc', weetNiet: false })!.toelichting).toEqual({ tekst: 'de pc', weetNiet: false });
-    expect(sluipRapport(n, null, { sinds: '2026-09-01', tekst: 'de pc', weetNiet: false })!.toelichting).toBeNull();
-    expect(leesToelichting({ sinds: '2026-10-15', tekst: '  de pc  ' })).toEqual({ ok: true, toelichting: { sinds: '2026-10-15', tekst: 'de pc', weetNiet: false } });
-    expect(leesToelichting({ sinds: '2026-10-15', weetNiet: true })).toEqual({ ok: true, toelichting: { sinds: '2026-10-15', tekst: null, weetNiet: true } });
-    expect(leesToelichting({ sinds: '15 oktober', tekst: 'x' }).ok).toBe(false);
-    expect(leesToelichting({ sinds: '2026-10-15' }).ok).toBe(false);
+  /*
+   * Een reden per nacht (besluit 335, 23 november 2026). Eerst gold één antwoord voor het hele patroon sinds augustus
+   * ("Jij zei: Pc"), ook voor nachten waar iets anders draaide. Nu per nacht, met de eerdere antwoorden als knoppen,
+   * en een nieuwe hoge nacht met ongeveer hetzelfde extra krijgt die reden als vraag, zonder melding.
+   */
+  it('bewaart wat de bewoner zegt per nacht, en telt per reden (besluit 335)', () => {
+    const n = nachten('2026-10-01', [...Array.from({ length: 20 }, () => 180), 310, 180, 305, 180, 600, 180, 180, 180, 180, 180]);
+    const redenen = { nachten: { '2026-10-21': { tekst: 'Pc', weetNiet: false }, '2026-10-25': { tekst: 'Droger', weetNiet: false }, '2026-10-22': { tekst: null, weetNiet: true } }, oud: null };
+    const r = sluipRapport(n, null, redenen)!;
+    expect(r.nachten.find((x) => x.dag === '2026-10-21')).toMatchObject({ w: 310, hoog: true, reden: { tekst: 'Pc', weetNiet: false } });
+    expect(r.nachten.find((x) => x.dag === '2026-10-22')).toMatchObject({ hoog: false, reden: { tekst: null, weetNiet: true } });
+    // De nacht van 23 oktober heeft zo'n 125 W meer, net als de pc (130 W): de vraag "Weer de pc?".
+    expect(r.nachten.find((x) => x.dag === '2026-10-23')).toMatchObject({ hoog: true, herkend: { tekst: 'Pc', meerW: 130 } });
+    expect(r.nachten.find((x) => x.dag === '2026-10-23')!.reden).toBeUndefined();
+    expect(r.antwoorden).toEqual(['Pc', 'Droger']);
+    expect(r.redenen).toEqual([{ tekst: 'Pc', nachten: 1 }, { tekst: 'Droger', nachten: 1 }]);
+    expect(r.zonderReden).toBe(0);
+    // Een gewone nacht wordt niet herkend.
+    expect(r.nachten.find((x) => x.dag === '2026-10-24')!.herkend).toBeUndefined();
+  });
+
+  it('herkent alleen wat er genoeg op lijkt, en zonder Pc te typen uit het oude antwoord (besluit 335)', () => {
+    const n = nachten('2026-10-01', [...Array.from({ length: 20 }, () => 180), 310, 180, 250, 180, 400]);
+    const r = sluipRapport(n, null, { nachten: { '2026-10-21': { tekst: 'pc', weetNiet: false } }, oud: null })!;
+    // 70 W meer is te ver van 130 W (meer dan 30 W en meer dan een kwart); 220 W ook.
+    expect(r.nachten.find((x) => x.dag === '2026-10-23')!.herkend).toBeUndefined();
+    expect(r.nachten.find((x) => x.dag === '2026-10-25')!.herkend).toBeUndefined();
+    expect(r.zonderReden).toBe(2);
+    // Het antwoord van voor besluit 335 bij het patroon wordt een voorstel, met het extra van het patroon.
+    const w = Array.from({ length: 75 }, (_, i) => (i < 15 ? 185 : i % 2 ? 340 : 190));
+    const p = sluipRapport([...nachten('2026-08-01', w), { dag: '2026-10-15', w: 335 }], null, leesRedenen({ versie: 1, toelichting: { sinds: '2026-08-01', tekst: 'Pc', weetNiet: false, vaak: true } }))!;
+    expect(p.antwoorden).toEqual(['Pc']);
+    expect(p.nachten.at(-1)).toMatchObject({ w: 335, herkend: { tekst: 'Pc', meerW: 150 } });
+    expect(p.redenen).toEqual([]);
+  });
+
+  it('meldt een nacht met een reden, of die op een reden lijkt, niet (besluit 335)', () => {
+    const n = nachten('2026-09-25', [...Array.from({ length: 20 }, () => 180), 310, 180, 180, 180, 180, 180, 180, 180, 180, 305]);
+    const nu = uur('2026-10-24', 9);
+    expect(sluipVoorBel(sluipRapport(n, null)!, nu, TZ)).not.toBeNull();
+    expect(sluipVoorBel(sluipRapport(n, null, { nachten: { '2026-10-15': { tekst: 'Pc', weetNiet: false } }, oud: null })!, nu, TZ)).toBeNull();
+    expect(sluipVoorBel(sluipRapport(n, null, { nachten: { '2026-10-24': { tekst: null, weetNiet: true } }, oud: null })!, nu, TZ)).toBeNull();
+  });
+
+  it('leest wat de bewoner over een nacht stuurt, en wat er bewaard stond', () => {
+    expect(leesReden({ dag: '2026-10-15', tekst: '  de pc  ' })).toEqual({ ok: true, dag: '2026-10-15', reden: { tekst: 'de pc', weetNiet: false } });
+    expect(leesReden({ dag: '2026-10-15', weetNiet: true })).toEqual({ ok: true, dag: '2026-10-15', reden: { tekst: null, weetNiet: true } });
+    expect(leesReden({ dag: '2026-10-15', wis: true })).toEqual({ ok: true, dag: '2026-10-15', reden: null });
+    expect(leesReden({ dag: '15 oktober', tekst: 'x' }).ok).toBe(false);
+    expect(leesReden({ dag: '2026-10-15' }).ok).toBe(false);
+    expect(leesReden({ dag: '2026-10-15', weetNiet: 'ja' }).ok).toBe(false);
+    expect(leesRedenen({ versie: 2, nachten: { '2026-10-15': { tekst: 'Pc' }, kapot: { tekst: 'x' } }, oud: 'Pc' })).toEqual({ nachten: { '2026-10-15': { tekst: 'Pc', weetNiet: false } }, oud: 'Pc' });
+    expect(leesRedenen({ versie: 1, toelichting: { sinds: '2026-10-15', tekst: null, weetNiet: true } })).toEqual({ nachten: {}, oud: null });
+    expect(leesRedenen(null)).toEqual({ nachten: {}, oud: null });
   });
 
   it('meldt een hoge nacht van vandaag of gisteren, en een oude niet meer', () => {

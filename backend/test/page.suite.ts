@@ -3461,9 +3461,31 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await wand.locator('[data-midden] [data-staaf]').last().click();
     await wand.locator('.onderregel .staafinfo').waitFor({ state: 'detached', timeout: 5000 });
     await wand.locator('.opgevallen', { hasText: 'Opgevallen' }).waitFor();
-    // Wat de bewoner zegt (besluit 88): het weet het niet, en de app houdt het in de gaten.
-    await wand.locator('[data-weet-niet]').click();
-    await wand.locator('.opgevallen', { hasText: 'in de gaten' }).waitFor({ timeout: 5000 });
+    /*
+     * Wat de bewoner zegt, per nacht (besluit 335, 23 november 2026). De kaart gaat over de laatste nacht: eerst weet
+     * hij het niet, dan typt hij wat het was. De nacht ervoor heeft hetzelfde extra (120 W): die vraagt "Weer de pc?",
+     * en Ja zet het erbij. Een staaf met een reden krijgt een stip.
+     */
+    const kaart = wand.locator('.opgevallen');
+    await kaart.locator('.nachtkop', { hasText: 'De nacht van' }).waitFor();
+    await kaart.locator('[data-weet-niet]').click();
+    await kaart.locator('.reden', { hasText: 'Je weet niet wat het was' }).waitFor({ timeout: 5000 });
+    await kaart.locator('[data-zeg]').click();
+    await kaart.locator('[data-zeg-tekst]').fill('de pc');
+    await kaart.locator('[data-zeg-tekst]').press('Enter');
+    await kaart.locator('.reden', { hasText: 'Jij zei: de pc.' }).waitFor({ timeout: 5000 });
+    await wand.locator('[data-midden] [data-staaf]').nth(-2).click();
+    await kaart.locator('.reden', { hasText: 'Weer de pc?' }).waitFor({ timeout: 5000 });
+    await kaart.locator('[data-ja]').click();
+    await kaart.locator('.reden', { hasText: 'Jij zei: de pc.' }).waitFor({ timeout: 5000 });
+    expect(await wand.locator('[data-midden] svg circle[fill="#eef3f7"]').count()).toBe(2);
+    await kaart.locator('.telling', { hasText: 'de pc op 2 nachten' }).waitFor();
+    const na = (await (await fetch(`${baseUrl}/api/sluipverbruik`)).json()) as { nachten: { dag: string; reden?: { tekst: string | null } }[]; antwoorden: string[] };
+    expect(na.antwoorden).toEqual(['de pc']);
+    const benoemd = na.nachten.filter((n) => n.reden);
+    expect(benoemd.map((n) => n.reden!.tekst)).toEqual(['de pc', 'de pc']);
+    // Weer weg, zodat de andere tests de nachten zonder reden zien.
+    for (const n of benoemd) await p.evaluate(async (dag) => void (await fetch('api/sluipverbruik', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dag, wis: true }) })), n.dag);
     // Per maand.
     await wand.locator('[data-blik="maanden"]').click();
     await wand.locator('h2', { hasText: 'Per maand' }).waitFor();
