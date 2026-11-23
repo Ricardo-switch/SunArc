@@ -15529,12 +15529,20 @@ telefoonschets, daarna "begin maar". De dertig winterdagen beginnen op
   Niets nagerekend: het komt uit het beslislogboek.
 - **Kopieer de stand:** het besluit van nu als tekst, met de kamers en
   apparaten als nummers in plaats van hun namen, voor bij een melding.
-- **Nog niet:** Geleerd (seizoenen, standen, thermisch model, panelen,
-  vermogens) en Vergelijken (eens met de oude regeling, waar ze verschilden)
-  komen in een volgende versie; daarna gaat de oude pagina (`index.html`,
-  `app.js` en Tailwind) weg. Installeren en de back-up hebben al een eigen plek
-  (Begin en Toegang). De wissel van *zou doen* naar *deed* op de dag dat SunArc
-  zelf regelt.
+- **Geleerd (0.231.0):** hoeveel dagen van elk seizoen hij meemaakte, welke
+  standen en regels hij zag (met *nog nooit* waar een stand ontbreekt), hoe elke
+  kamer warmte houdt uit het thermisch model (afkoelen, zon, per apparaat wat al
+  gemeten is), de ligging van de panelen en wat elk apparaat nu aan zon vraagt
+  (`api/divergence`, `api/thermisch`, `api/zon`).
+- **Vergelijken (0.231.0):** hoe vaak hij het met de oude regeling eens was, in
+  totaal en per apparaat (strenger en ruimer apart), hoeveel netstroom het zou
+  schelen, de laatste twee weken per kwartier, en waar ze het langst verschilden
+  met de reden van allebei. Alles past op de wand zonder schuiven; op de
+  telefoon onder elkaar. Rekent de terugblik nog, dan zegt de pagina dat.
+- **Nog niet:** de oude pagina (`index.html`, `app.js` en Tailwind) gaat weg in
+  een volgende versie. Installeren en de back-up hebben al een eigen plek (Begin
+  en Toegang). De wissel van *zou doen* naar *deed* op de dag dat SunArc zelf
+  regelt.
 
 ## Wat nog een besluit wacht
 

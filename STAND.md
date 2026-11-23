@@ -68,7 +68,9 @@ verwijzing bestaat.
   Sinds 0.229.0 zeg je bij Sluipverbruik per nacht wat er draaide, en vraagt
   SunArc bij een nacht die erop lijkt "Weer de pc?" ([335]).
   Sinds 0.230.0 staat De motor achter zeven tikken op de versie bij Over deze
-  app: wat SunArc meet, verdeelt en besluit, nu en elk kwartier van vandaag ([337]).
+  app: wat SunArc meet, verdeelt en besluit, nu en elk kwartier van vandaag; sinds
+  0.231.0 ook wat hij geleerd heeft en hoe vaak hij het met de oude regeling eens
+  is ([337]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.

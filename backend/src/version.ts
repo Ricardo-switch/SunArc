@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.230.0';
+export const VERSIE = '0.231.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.231.0',
+    datum: '2026-11-23',
+    nieuw: [
+      'De motor heeft nu ook Geleerd en Vergelijken. Geleerd: hoeveel dagen van elk seizoen hij meemaakte, welke standen hij zag, hoe elke kamer warmte houdt en wat elk apparaat aan zon vraagt. Vergelijken: hoe vaak hij het met de oude regeling eens is, wat het zou schelen, de laatste twee weken per kwartier en waar ze het langst verschilden',
+    ],
+    en: {
+      nieuw: [
+        'The engine now also has Learned and Compare. Learned: how many days of each season it has been through, which modes it saw, how each room holds heat and how much sun each device asks for. Compare: how often it agrees with the old schedule, what it would save, the last two weeks per quarter hour and where they differed longest',
+      ],
+    },
+  },
   {
     versie: '0.230.0',
     datum: '2026-11-23',

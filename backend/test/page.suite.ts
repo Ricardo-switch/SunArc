@@ -5845,7 +5845,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
    * dat er van vandaag niets is (de logboeken van de test zijn van september), en de adressen per dag en per ronde
    * geven wat de kern in die rondes meegaf.
    */
-  it('opent De motor na zeven tikken op de versie, met Nu, Kopieer de stand en Vandaag', async () => {
+  it('opent De motor na zeven tikken op de versie, met Nu, Kopieer de stand, Vandaag, Geleerd en Vergelijken', async () => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL', permissions: ['clipboard-read', 'clipboard-write'] });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
     await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
@@ -5879,6 +5879,14 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       await p.locator('#wand [data-deel="vandaag"]').click();
       await p.locator('#wand .mo-melding', { hasText: 'Van vandaag staat er nog niets' }).waitFor({ timeout: 8000 });
       expect(new URL(p.url()).hash).toBe('#vandaag');
+      // Geleerd en Vergelijken: de terugblik kan nog aan het rekenen zijn, de kaarten staan er altijd.
+      await p.locator('#wand [data-deel="geleerd"]').click();
+      await p.locator('#wand .mo-deel.geleerd .mo-kaart h2', { hasText: 'Hoe elke kamer warmte houdt' }).waitFor({ timeout: 8000 });
+      expect(new URL(p.url()).hash).toBe('#geleerd');
+      await p.locator('#wand [data-deel="vergelijken"]').click();
+      await p.locator('#wand .mo-deel.vergelijken .mo-kaart').first().waitFor({ timeout: 8000 });
+      expect(new URL(p.url()).hash).toBe('#vergelijken');
+      expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1')).toBe(true);
       // De adressen: per kwartier van een dag uit het logboek, en één ronde.
       const dag = (await (await fetch(`${baseUrl}/api/motor/dag?dag=${DAYS[0]}`, { headers: { cookie: `hems_sessie=${sessionId}` } })).json()) as { kwartieren: ({ rondes: number; oud: boolean; apparaten: Record<string, { zou: string | null }> } | null)[]; apparaten: string[] };
       expect(dag.kwartieren).toHaveLength(96);

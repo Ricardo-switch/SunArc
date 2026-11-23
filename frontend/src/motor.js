@@ -9,6 +9,10 @@
  *   en wat hij besluit en afwijst.
  * - Vandaag: elk kwartier van vandaag uit het logboek (api/motor/dag), en één ronde terugkijken (api/motor/ronde),
  *   met bladeren per ronde.
+ * - Geleerd: de dagen per seizoen, de standen en regels die hij zag, hoe elke kamer warmte houdt, de panelen en wat
+ *   elk apparaat vraagt (api/divergence, api/thermisch, api/zon).
+ * - Vergelijken: hoe vaak hij het met de oude regeling eens was, per apparaat, wat het zou schelen, de laatste twee
+ *   weken per kwartier, en waar ze het langst verschilden (api/divergence).
  * - Kopieer de stand: het besluit van nu als tekst, zonder namen of adressen, voor bij een melding.
  */
 'use strict';
@@ -32,8 +36,14 @@ let hand = null;
 let dag = null;
 let ronde = null;
 let gekozenKw = null;
-let deel = location.hash === '#vandaag' ? 'vandaag' : 'nu';
+const DELEN = ['nu', 'vandaag', 'geleerd', 'vergelijken'];
+let deel = DELEN.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'nu';
 let fout = '';
+/** Geleerd en Vergelijken: de terugblik op het logboek (api/divergence), het thermisch model en de zon. */
+let terugblik = null;
+let thermisch = null;
+let zonData = null;
+let terugblikFout = '';
 
 const actNaam = (id) => site?.actuators?.find((a) => a.id === id)?.name ?? id;
 const zoneNaam = (id) => site?.zones?.find((z) => z.id === id)?.name ?? id;
@@ -179,14 +189,107 @@ function tekenRonde() {
       ${oud}<p class="mo-zin">${esc(t('motor.ronde.uitLogboek'))}</p></section>`;
 }
 
+/* ---------------------------------------------------------------- Geleerd */
+
+const datum = (ms) => new Date(ms).toLocaleDateString(taal.locale, { day: 'numeric', month: 'long' });
+const richting = (graden) => t(`motor.richting.${['n', 'no', 'o', 'zo', 'z', 'zw', 'w', 'nw'][Math.round((((graden % 360) + 360) % 360) / 45) % 8]}`);
+const wachtKaart = () => `<section class="glas mo-kaart mo-melding mo-breed3" style="--o: 1">${esc(terugblikFout || t('motor.wacht'))}</section>`;
+
+function tekenGeleerd() {
+  const ds = terugblik?.dataset;
+  const KLEUR = { winter: 'var(--ijs)', lente: 'var(--mint)', zomer: 'var(--zon)', herfst: 'var(--gloed)' };
+  const seizoenen = ds
+    ? `<section class="glas mo-kaart" style="--o: 1"><h2>${esc(t('motor.seizoen.kop'))} <small>${esc(t('motor.seizoen.uitleg'))}</small></h2>
+      ${ds.seizoenen.map((x) => `<div class="mo-seizoen"><span>${esc(woord(`motor.seizoen.${x.seizoen}`, x.seizoen))}</span><div class="mo-balk"><i style="width: ${Math.min(100, (x.dagen / Math.max(1, x.doel)) * 100)}%; background: ${KLEUR[x.seizoen] ?? 'var(--zacht)'}"></i></div><b>${getal(Math.floor(x.dagen))}/${getal(x.doel)}</b></div>`).join('')}
+      <p class="mo-zin">${esc(t('motor.seizoen.zin', { dagen: getal(ds.dagenOpgenomen < 10 ? Math.round(ds.dagenOpgenomen * 10) / 10 : Math.floor(ds.dagenOpgenomen), ds.dagenOpgenomen < 10 ? 1 : 0), datum: datum(ds.vanMs) }))}</p></section>`
+    : wachtKaart();
+  const standRij = (x, sleutel) => `<div class="mo-rij"><span>${esc(woord(`${sleutel}${x.id}`, x.id))}${code(x.id)}</span><b>${x.dagen ? esc(t('motor.stand.dagen', { n: x.dagen })) : tag('nee', t('motor.stand.nooit'))}</b></div>`;
+  const nooit = (ds?.modi ?? []).some((x) => !x.dagen);
+  const standen = ds
+    ? `<section class="glas mo-kaart" style="--o: 2"><h2>${esc(t('motor.stand.kop'))} <small>${esc(t('motor.stand.uitleg'))}</small></h2>
+      ${ds.modi.map((x) => standRij(x, 'motor.stand.')).join('')}
+      <div class="mo-tussen">${esc(t('motor.stand.regels'))}</div>
+      ${(ds.strategieen ?? []).map((x) => standRij(x, 'motor.regel.')).join('')}
+      ${nooit ? `<p class="mo-zin">${esc(t('motor.stand.nooitZin'))}</p>` : ''}</section>`
+    : '';
+  const komma = (n, d = 2) => getal(Math.round(n * 10 ** d) / 10 ** d, d);
+  const stand = (a) => t(`motor.warmte.${a.stand === 'koelt' ? 'koelt' : 'verwarmt'}`);
+  const kamerWarmte = (z) => {
+    const gemeten = (z.apparaten ?? []).filter((a) => a.perUur != null);
+    // Wat nog niet gemeten is; met de stand erbij als hetzelfde apparaat in de andere stand wel gemeten is.
+    const nog = [...new Set((z.apparaten ?? []).filter((a) => a.perUur == null).map((a) => (gemeten.some((g) => g.id === a.id) ? `${a.naam} ${stand(a)}` : a.naam)))];
+    return `<div class="mo-kamer"><b>${esc(z.naam ?? zoneNaam(z.id))}</b><span class="t"><small>${esc(t('motor.warmte.zeker', { n: Math.min(z.zeker?.afkoelen ?? 0, 4) }))}</small></span><span>${esc(t('motor.warmte.afkoelen', { n: komma(z.k * 10) }))}${z.zonPerKw != null ? ` ${esc(t('motor.warmte.zon', { n: komma(z.zonPerKw) }))}` : ''}</span>${gemeten.map((a) => `<span class="mo-sub">${esc(t('motor.warmte.apparaat', { naam: a.naam, stand: stand(a), n: komma(Math.abs(a.perUur), 1) }))}</span>`).join('')}${nog.length ? `<span class="mo-sub">${esc(t('motor.warmte.nogNiet', { namen: nog.join(', ') }))}</span>` : ''}</div>`;
+  };
+  const warmte = `<section class="glas mo-kaart" style="--o: 3"><h2>${esc(t('motor.warmte.kop'))} <small>${esc(t('motor.warmte.uitleg'))}</small></h2>
+      ${thermisch?.zones?.length ? `${thermisch.zones.map(kamerWarmte).join('')}<p class="mo-zin">${esc(t('motor.warmte.zin', { dagen: getal(thermisch.dagen ?? 0) }))}</p>` : `<p class="mo-zin" style="margin: 0">${esc(t('motor.warmte.leert'))}</p>`}</section>`;
+  const panelen = zonData?.panelen?.length
+    ? `<section class="glas mo-kaart" style="--o: 4"><h2>${esc(t('motor.panelen.kop'))} <small>${esc(t('motor.panelen.uitleg'))}</small></h2>
+      ${zonData.panelen.map((v, i) => rij(`${String.fromCharCode(65 + i)}`, esc(t('motor.panelen.vlak', { richting: richting(v.richtingGraden), helling: getal(v.hellingGraden), wp: `${getal(v.wattpiek)} Wp` })))).join('')}
+      ${zonData.heldereLuchtW != null ? rij(t('motor.panelen.helder'), W(zonData.heldereLuchtW), null, zonData.heldereLucht?.dagen ? t('motor.panelen.geleerd', { dagen: zonData.heldereLucht.dagen }) : '') : ''}</section>`
+    : '';
+  // Wat elk apparaat vraagt: het vermogen in de voorstellen van nu (aanvaard of afgewezen), het hoogste per apparaat.
+  const vraagt = new Map();
+  for (const x of [...(snap?.accepted ?? []), ...(snap?.rejected ?? []).map((r) => r.intent)]) if (x.budgetW > 0) vraagt.set(x.actuatorId, Math.max(vraagt.get(x.actuatorId) ?? 0, x.budgetW));
+  const vermogens = `<section class="glas mo-kaart" style="--o: 5"><h2>${esc(t('motor.vraagt.kop'))} <small>${esc(t('motor.vraagt.uitleg'))}</small></h2>
+      ${vraagt.size ? [...vraagt].map(([id, w]) => rij(actNaam(id), W(w), 'budgetW')).join('') : `<p class="mo-zin" style="margin: 0">${esc(t('motor.vraagt.niets'))}</p>`}
+      <p class="mo-zin">${esc(t('motor.vraagt.zin'))}</p></section>`;
+  // Drie kolommen op de wand; op de telefoon onder elkaar in de volgorde van --o.
+  return `<div class="mo-kol">${seizoenen}${vermogens}</div><div class="mo-kol">${standen}${panelen}</div><div class="mo-kol">${warmte}</div>`;
+}
+
+/* ---------------------------------------------------------------- Vergelijken */
+
+function tekenVergelijken() {
+  const d = terugblik;
+  if (!d) return wachtKaart();
+  const som = (a) => a.agree + a.stricter + a.looser;
+  const alle = d.tallies.reduce((n, a) => n + som(a), 0);
+  const pct = (x, n) => (n ? Math.round((x / n) * 100) : 0);
+  const totaal = pct(d.tallies.reduce((n, a) => n + a.agree, 0), alle);
+  const eens = `<section class="glas mo-kaart"><h2>${esc(t('motor.eens.kop'))} <small>${esc(t('motor.eens.uitleg', { datum: datum(d.vanMs) }))}</small></h2>
+      <div class="mo-pct">${getal(totaal)}<small>%</small></div>
+      <p class="mo-zin">${esc(t('motor.eens.zin', { pct: getal(totaal) }))}</p></section>`;
+  const per = `<section class="glas mo-kaart"><h2>${esc(t('motor.eens.per'))}</h2>
+      ${d.tallies.map((a) => `<div class="mo-staaf"><span>${esc(actNaam(a.actuatorId))}</span><div class="mo-balk"><i style="width: ${pct(a.agree, som(a))}%; background: var(--mint)"></i></div><b>${getal(pct(a.agree, som(a)))}%</b><em>${esc(t('motor.eens.strenger', { pct: getal(pct(a.stricter, som(a))) }))} · ${esc(t('motor.eens.ruimer', { pct: getal(pct(a.looser, som(a))) }))}</em></div>`).join('')}
+      <p class="mo-zin">${esc(t('motor.eens.uitlegRichting'))}</p></section>`;
+  const kwh = (wh) => `${getal(wh / 1000, wh >= 10_000 ? 0 : 1)} kWh`;
+  const schelen = `<section class="glas mo-kaart"><h2>${esc(t('motor.schelen.kop'))} <small>${esc(t('motor.schelen.uitleg'))}</small></h2>
+      ${rij(t('motor.schelen.oud'), kwh(d.legacyGridWh), 'legacyGridWh', t('motor.schelen.oudZin'))}
+      ${rij(t('motor.schelen.minder'), kwh(d.avoidableGridWh), 'avoidableGridWh', t('motor.schelen.minderZin'))}</section>`;
+  // De laatste twee weken: per dag een strook van 96 kwartieren met de code van wat overheerste.
+  const CEL = { '=': 'eens', '!': 'strenger', '+': 'ruimer', '·': 'uit', X: 'failsafe' };
+  const dagen = (d.dagen ?? []).slice(-14);
+  const strook = dagen.length
+    ? `<section class="glas mo-kaart mo-strook"><h2>${esc(t('motor.dagen.kop'))} <small>${esc(t('motor.dagen.uitleg'))}</small></h2>
+      <div class="mo-dagen">${dagen.map((x) => `<span class="naam">${esc(new Date(`${x.day}T12:00:00Z`).toLocaleDateString(taal.locale, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }))}</span><div class="rij">${[...x.states].map((c) => `<i class="${CEL[c] ?? ''}"></i>`).join('')}</div>`).join('')}<span></span><div class="as">${['00', '06', '12', '18', '24'].map((u) => `<span>${u}</span>`).join('')}</div></div>
+      <div class="mo-leg" style="margin-top: 10px"><span style="--k: var(--mint)">${esc(t('motor.dagen.eens'))}</span><span style="--k: var(--gloed)">${esc(t('motor.dagen.strenger'))}</span><span style="--k: var(--ijs)">${esc(t('motor.dagen.ruimer'))}</span><span style="--k: rgb(255 255 255 / 0.16)">${esc(t('motor.dagen.uit'))}</span><span style="--k: #ff8f8f">${esc(t('motor.dagen.failsafe'))}</span></div></section>`
+    : '';
+  const tijd = (ms) => `${esc(new Date(ms).toLocaleDateString(taal.locale, { weekday: 'short', day: 'numeric', month: 'short' }))}<br>${esc(new Date(ms).toLocaleTimeString(taal.locale, { hour: '2-digit', minute: '2-digit', hour12: false }))}`;
+  const verschil = d.episodes?.length
+    ? `<section class="glas mo-kaart mo-verschil mo-breed2"><h2>${esc(t('motor.verschil.kop'))} <small>${esc(t('motor.verschil.uitleg', { n: getal(d.episodesTotaal ?? d.episodes.length) }))}</small></h2>
+      ${d.episodes.slice(0, 6).map((e) => `<div class="mo-moment"><time>${tijd(e.fromMs)}</time><span><b style="color: var(--tekst)">${esc(actNaam(e.actuatorId))}</b> · ${esc(t(e.direction === 'strenger' ? 'motor.verschil.strenger' : 'motor.verschil.ruimer'))} · ${esc(t('motor.verschil.duur', { n: e.minutes }))}${e.blockedBy ? ` · ${esc(woord(`motor.blok.${e.blockedBy}`, e.blockedBy))}${code(e.blockedBy)}` : ''}${e.legacy ? `<br>${esc(t('motor.verschil.oud', { tekst: oudTekst(e.legacy) }))}` : ''}</span></div>`).join('')}</section>`
+    : '';
+  return `${eens}${per}${schelen}${verschil}${strook}`;
+}
+
+/** De terugblik, het thermisch model en de zon, eenmalig bij Geleerd of Vergelijken. */
+async function laadTerugblik() {
+  const [d, th, z] = await Promise.allSettled([haal('api/divergence'), haal('api/thermisch'), haal('api/zon')]);
+  if (d.status === 'fulfilled') terugblik = d.value;
+  else terugblikFout = t('motor.wacht');
+  if (th.status === 'fulfilled') thermisch = th.value;
+  if (z.status === 'fulfilled') zonData = z.value;
+  teken();
+}
+
 /* ---------------------------------------------------------------- de pagina */
 
 function teken() {
   const kop = `<header class="mo-kop">
       <div><a class="mo-terug" href="over.html">‹ ${esc(t('motor.terug'))}</a><h1 class="kop-2">${esc(t('motor.titel'))}</h1><p class="mo-onder">${snap ? taal.html('motor.onder', { tijd: klok(snap.atMs) }) : ''}</p></div>
-      <div class="mo-rechts"><div class="chips seg" role="group" aria-label="${esc(t('motor.delen'))}">${['nu', 'vandaag'].map((d) => `<button type="button" class="chip" aria-pressed="${d === deel}" data-deel="${d}">${esc(t(`motor.deel.${d}`))}</button>`).join('')}</div><button type="button" class="mo-kopie" data-kopie>${esc(t('motor.kopie'))}</button></div>
+      <div class="mo-rechts"><div class="chips seg" role="group" aria-label="${esc(t('motor.delen'))}">${DELEN.map((d) => `<button type="button" class="chip" aria-pressed="${d === deel}" data-deel="${d}">${esc(t(`motor.deel.${d}`))}</button>`).join('')}</div><button type="button" class="mo-kopie" data-kopie>${esc(t('motor.kopie'))}</button></div>
     </header>`;
-  const inhoud = deel === 'vandaag' ? tekenVandaag() : snap ? tekenNu() : `<div class="mo-kol"><section class="glas mo-kaart mo-melding">${esc(fout || t('motor.nogNiet'))}</section></div>`;
+  const inhoud = deel === 'vandaag' ? tekenVandaag() : deel === 'geleerd' ? tekenGeleerd() : deel === 'vergelijken' ? tekenVergelijken() : snap ? tekenNu() : `<div class="mo-kol"><section class="glas mo-kaart mo-melding">${esc(fout || t('motor.nogNiet'))}</section></div>`;
   document.querySelectorAll('[data-motor]').forEach((el) => {
     // Bij het bladeren door de rondes blijft de tijdlijn waar hij was (de telefoon schuift hem opzij).
     const oud = el.querySelector('.mo-tijd')?.scrollLeft ?? null;
@@ -270,9 +373,10 @@ document.addEventListener('click', (e) => {
   const d = /** @type {HTMLElement | null} */ (doel.closest?.('[data-deel]'));
   if (d) {
     deel = d.dataset.deel;
-    history.replaceState(null, '', deel === 'vandaag' ? '#vandaag' : location.pathname);
+    history.replaceState(null, '', deel === 'nu' ? location.pathname : `#${deel}`);
     teken();
     if (deel === 'vandaag' && !dag) void laadDag();
+    if ((deel === 'geleerd' || deel === 'vergelijken') && !terugblik) void laadTerugblik();
     return;
   }
   const kw = /** @type {HTMLElement | null} */ (doel.closest?.('[data-kw]'));
@@ -300,6 +404,7 @@ async function laad() {
   if (ha.status === 'fulfilled') hand = ha.value;
   teken();
   if (deel === 'vandaag') void laadDag();
+  if (deel === 'geleerd' || deel === 'vergelijken') void laadTerugblik();
 }
 
 app.start('instellingen');
