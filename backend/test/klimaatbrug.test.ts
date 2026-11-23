@@ -197,6 +197,8 @@ describe('de assistent en de deur', () => {
     expect(brugVerzoek({ wens: 'verwarmen', zone: 'woonkamer', temperatuurC: null, totMs: om(22) }, exampleSite, om(19))).toEqual({ ok: true, wens: 'verwarmen', zone: 'woonkamer', temperatuurC: null, totMs: om(22) });
     expect(brugVerzoek({ wens: 'verwarmen', zone: 'zolder', totMs: om(22) }, exampleSite, om(19))).toMatchObject({ ok: false });
     expect(brugVerzoek({ wens: 'drogen', zone: 'woonkamer', totMs: om(22) }, exampleSite, om(19))).toMatchObject({ ok: false });
-    expect(brugVerzoek({ wens: 'verwarmen', zone: 'woonkamer', totMs: om(19) + 13 * 3_600_000 }, exampleSite, om(19))).toMatchObject({ ok: false });
+    expect(brugVerzoek({ wens: 'verwarmen', zone: 'woonkamer', totMs: om(19) + 25 * 3_600_000 }, exampleSite, om(19))).toMatchObject({ ok: false });
+    // 's Ochtends tot 22:00 (23 november 2026): meer dan twaalf uur, dat mag.
+    expect(brugVerzoek({ wens: 'verwarmen', zone: 'woonkamer', temperatuurC: null, totMs: om(8) + 14 * 3_600_000 }, exampleSite, om(8))).toMatchObject({ ok: true });
   });
 });

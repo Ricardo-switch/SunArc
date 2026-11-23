@@ -73,8 +73,11 @@ export const HAND_KNOPPEN: readonly string[] = HAND.flatMap((a) => [a.verwarmen?
 export const HAND_KLIMAAT: readonly string[] = HAND.filter((a) => a.verwarmen?.direct || a.koelen?.direct).map((a) => a.klimaat);
 
 export const HAND_BESTAND = 'handbediening.json';
-/** Hooguit zo lang met de hand. */
-export const HAND_MAX_MS = 12 * 3_600_000;
+/**
+ * Hooguit zo lang met de hand: een dag (23 november 2026). Eerst twaalf uur, maar het blad kiest standaard "tot
+ * 22:00", en voor tienen 's ochtends is dat verder weg: dan weigerde de dienst en ging de airco niet aan.
+ */
+export const HAND_MAX_MS = 24 * 3_600_000;
 
 interface Toestand {
   readonly state: string;
@@ -278,7 +281,7 @@ export class Handbediening {
     const a = HAND.find((x) => x.klimaat === id && x.verwarmen?.direct);
     if (!a || !this.#d.stand) return { ok: false, reden: 'dat apparaat kan dat niet met de hand' };
     const nu = this.#nu();
-    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt in de komende twaalf uur' };
+    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt binnen een dag' };
     const hvac = HAND_HVAC[modus];
     if (!standenVan(this.#d.state(id)).includes(modus)) return { ok: false, reden: `die airco kan niet ${modus === 'drogen' ? 'drogen' : 'alleen ventileren'}` };
     const eerder = this.#terug.find((t) => t.id === id);
@@ -297,7 +300,7 @@ export class Handbediening {
   async zetLos(id: string, doelC: number, voorinstelling: string | null, totMs: number, totDoel = false): Promise<HandUitkomst> {
     await this.#laad();
     const nu = this.#nu();
-    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt in de komende twaalf uur' };
+    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt binnen een dag' };
     const k = this.#d.state(id);
     if (!k) return { ok: false, reden: 'dat apparaat is er niet' };
     const stap = Number(k.attributes['target_temp_step'] ?? 0.5) || 0.5;
@@ -332,7 +335,7 @@ export class Handbediening {
   async zetKnop(id: string, doelC: number, totMs: number, totDoel = false): Promise<HandUitkomst> {
     await this.#laad();
     const nu = this.#nu();
-    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt in de komende twaalf uur' };
+    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt binnen een dag' };
     const k = this.#d.state(id);
     const was = Number(k?.attributes['temperature']);
     if (!k || !Number.isFinite(was)) return { ok: false, reden: 'die radiatorknop is er niet' };
@@ -388,7 +391,7 @@ export class Handbediening {
     const m = a?.[modus];
     if (!a || !m) return { ok: false, reden: 'dat apparaat kan dat niet met de hand' };
     const nu = this.#nu();
-    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt in de komende twaalf uur' };
+    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt binnen een dag' };
     const knop = this.#d.state(m.knop);
     const was = getal(knop);
     const terug = getal(this.#d.state(m.standaard));
@@ -420,7 +423,7 @@ export class Handbediening {
   async schakelAan(id: string, totMs: number): Promise<HandUitkomst> {
     await this.#laad();
     const nu = this.#nu();
-    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt in de komende twaalf uur' };
+    if (!(totMs > nu && totMs <= nu + HAND_MAX_MS)) return { ok: false, reden: 'tot wanneer ligt binnen een dag' };
     await this.#d.schakel(id, true);
     this.#terug = [...this.#terug.filter((t) => t.id !== id), { id, modus: 'aan', direct: true, totMs }];
     await this.#bewaar();

@@ -268,7 +268,7 @@ export type BrugVerzoek =
   | { readonly ok: true; readonly wens: BrugWens; readonly zone: string; readonly temperatuurC: number | null; readonly totMs: number }
   | { readonly ok: false; readonly reden: string };
 
-/** Wat de pagina naar `/api/klimaat` stuurt, getoetst: een wens, een kamer van de brug, een getal of niets, en een eindtijd binnen twaalf uur. */
+/** Wat de pagina naar `/api/klimaat` stuurt, getoetst: een wens, een kamer van de brug, een getal of niets, en een eindtijd binnen een dag (eerst twaalf uur; "tot 22:00" ligt 's ochtends verder weg, 23 november 2026). */
 export function brugVerzoek(body: unknown, config: SiteConfig, nuMs: number): BrugVerzoek {
   const b = (typeof body === 'object' && body != null && !Array.isArray(body) ? body : {}) as Record<string, unknown>;
   const wens = b['wens'];
@@ -278,7 +278,7 @@ export function brugVerzoek(body: unknown, config: SiteConfig, nuMs: number): Br
   if (wens !== 'verwarmen' && wens !== 'koelen') return { ok: false, reden: 'wens is verwarmen of koelen' };
   if (typeof zone !== 'string' || !brugZone(config, zone, wens)) return { ok: false, reden: 'die kamer gaat niet via je eigen regeling' };
   if (t !== null && (typeof t !== 'number' || !Number.isFinite(t))) return { ok: false, reden: 'temperatuurC is een getal of leeg' };
-  if (typeof tot !== 'number' || tot <= nuMs || tot > nuMs + 12 * 3_600_000) return { ok: false, reden: 'totMs ligt in de komende twaalf uur' };
+  if (typeof tot !== 'number' || tot <= nuMs || tot > nuMs + 24 * 3_600_000) return { ok: false, reden: 'totMs ligt binnen een dag' };
   return { ok: true, wens, zone, temperatuurC: t as number | null, totMs: tot };
 }
 

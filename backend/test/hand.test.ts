@@ -102,7 +102,9 @@ describe('klimaat met de hand (besluit 235)', () => {
   it('weigert wat de knop niet kan, of te lang', async () => {
     const { h, nu } = await huis();
     expect(await h.zet('climate.beneden', 'verwarmen', 28, nu.ms + 3_600_000)).toMatchObject({ ok: false });
-    expect(await h.zet('climate.beneden', 'verwarmen', 21, nu.ms + 13 * 3_600_000)).toMatchObject({ ok: false });
+    expect(await h.zet('climate.beneden', 'verwarmen', 21, nu.ms + 25 * 3_600_000)).toMatchObject({ ok: false });
+    // Tot 22:00 om acht uur 's ochtends (23 november 2026): veertien uur, dat moet kunnen.
+    expect(await h.zet('climate.air_conditioning_zolder', 'verwarmen', 21, nu.ms + 14 * 3_600_000)).toMatchObject({ ok: true, doelC: 21 });
     expect(await h.zet('climate.air_conditioning_zolder', 'koelen', 22, nu.ms + 3_600_000)).toMatchObject({ ok: false, reden: 'koelen staat in je regeling uit' });
   });
 
@@ -259,10 +261,10 @@ describe('drogen, ventileren en het tuinhuis met de hand (besluit 319)', () => {
     expect(gedaan).toEqual(['climate.air_conditioning_zolder=fan_only']);
   });
 
-  it('weigert drogen bij een airco die het niet kent, of buiten twaalf uur', async () => {
+  it('weigert drogen bij een airco die het niet kent, of later dan een dag', async () => {
     const { h, nu } = await huis319({ 'climate.air_conditioning_zolder': { state: 'off', attributes: { hvac_modes: ['off', 'heat', 'cool'] } } });
     expect(await h.zetStand('climate.air_conditioning_zolder', 'drogen', nu.ms + 3_600_000)).toMatchObject({ ok: false });
-    expect(await h.zetStand('climate.air_conditioning_zolder', 'ventilator', nu.ms + 13 * 3_600_000)).toMatchObject({ ok: false });
+    expect(await h.zetStand('climate.air_conditioning_zolder', 'ventilator', nu.ms + 25 * 3_600_000)).toMatchObject({ ok: false });
     expect(await h.zetStand('climate.thermostaat_badkamer', 'drogen', nu.ms + 3_600_000)).toMatchObject({ ok: false });
   });
 
