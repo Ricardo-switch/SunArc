@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { programMinutes, remainingMinutes } from '../src/adapters/homeassistant/mapping.js';
 import type { EntitySource } from '../src/adapters/homeassistant/source.js';
 
-import { buildHouse, gevelVan, houseBeforeSetup, knownForLayout, lampsFor, outsideFromNames, proposeLayout, roomForName, roomTypeFromNames } from '../src/web/house.js';
+import { buildHouse, emptyAreasBeforeSetup, gevelVan, houseBeforeSetup, knownForLayout, lampsFor, outsideFromNames, proposeLayout, roomForName, roomTypeFromNames } from '../src/web/house.js';
 import { floorOrder, validateLayout, type Layout } from '../src/web/layout.js';
 import { registers, snapshot, states } from './house-fixture.js';
 import { exampleSite } from './site.js';
@@ -851,6 +851,20 @@ describe('het huis vóór het inrichten (besluit 154)', () => {
     expect(apparaten).toEqual(expect.arrayContaining(['climate.air_conditioning_woonkamer', 'climate.air_conditioning_zolder']));
     // Niets in de regeling: geen kamer met een zone.
     expect(huis.etages.flatMap((e) => e.ruimtes).every((r) => r.zoneId == null)).toBe(true);
+  });
+
+  it('noemt de gebieden waar nog niets in staat, zodat 0 ruimtes niet lijkt alsof SunArc ze niet ziet (23 november 2026)', () => {
+    const leeg = { ...registers, areas: [...registers.areas, { area_id: 'serre', name: 'Serre', floor_id: null }, { area_id: 'naamloos', name: ' ', floor_id: null }] };
+    const huis = houseBeforeSetup(leeg, states, 'Europe/Amsterdam');
+    const kamers = huis.etages.flatMap((e) => e.ruimtes.map((r) => r.naam));
+    const lege = emptyAreasBeforeSetup(leeg, states, 'Europe/Amsterdam');
+    expect(lege).toContain('Serre');
+    expect(lege).not.toContain(' ');
+    // Wat een kamer werd, is niet leeg; wat leeg is, staat niet in het huis.
+    expect(lege.some((n) => kamers.includes(n))).toBe(false);
+    // Een nieuw Home Assistant met alleen lege gebieden: allemaal genoemd, in hun volgorde.
+    const nieuw = { floors: [], devices: [], entities: [], zigbeeGroepen: [], areas: [{ area_id: 'woonkamer', name: 'Woonkamer', floor_id: null }, { area_id: 'keuken', name: 'Keuken', floor_id: null }] };
+    expect(emptyAreasBeforeSetup(nieuw, new Map(), 'Europe/Amsterdam')).toEqual(['Woonkamer', 'Keuken']);
   });
 });
 

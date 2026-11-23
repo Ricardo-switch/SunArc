@@ -262,7 +262,22 @@ function floorOrderFrom(kamers: readonly LayoutRoom[], floors: readonly HaFloor[
  * huis komt uit de registers.
  */
 export function houseBeforeSetup(registers: HouseRegisters, states: ReadonlyMap<string, HaEntityState>, timezone: string): HouseReport {
-  const leeg: SiteConfig = {
+  return buildHouse(nogNietIngericht(timezone), registers, states, null);
+}
+
+/**
+ * De gebieden in Home Assistant die nog geen kamer worden, omdat er niets in
+ * staat dat het huis toont (23 november 2026). Een nieuw Home Assistant heeft
+ * zulke lege gebieden vaak al; het welkom noemt ze, zodat 0 ruimtes niet lijkt
+ * alsof SunArc ze niet ziet. Op de volgorde van Home Assistant.
+ */
+export function emptyAreasBeforeSetup(registers: HouseRegisters, states: ReadonlyMap<string, HaEntityState>, timezone: string): string[] {
+  const kamers = new Set(proposeLayout(nogNietIngericht(timezone), registers, states).kamers.map((k) => k.haGebied));
+  return registers.areas.filter((a) => !kamers.has(a.area_id) && a.name.trim() !== '').map((a) => a.name.trim());
+}
+
+function nogNietIngericht(timezone: string): SiteConfig {
+  return {
     id: 'nog-niet-ingericht',
     timezone,
     zones: [],
@@ -273,5 +288,4 @@ export function houseBeforeSetup(registers: HouseRegisters, states: ReadonlyMap<
     enabledStrategies: [],
     criticalInputs: [],
   };
-  return buildHouse(leeg, registers, states, null);
 }

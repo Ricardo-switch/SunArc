@@ -1527,6 +1527,38 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await context.close();
   }, 30_000);
 
+  /*
+   * Een nieuw Home Assistant (23 november 2026): etages en gebieden gemaakt,
+   * nog geen apparaat erin. Het welkom zei 0 ruimtes, alsof SunArc ze niet
+   * zag; nu noemt het de gebieden die nog leeg zijn.
+   */
+  it('noemt bij het welkom de ruimtes die nog geen apparaten hebben', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL', reducedMotion: 'reduce' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const leeg = { etages: [], zonderRuimte: [], lampgroepen: [], verborgen: [], onvindbaar: [], batterijen: [], filters: [], toegang: [] };
+    const legeRuimtes = ['Woonkamer', 'Keuken', 'Serre', 'Slaapkamer'];
+    await context.route(`${baseUrl}/api/onboarding*`, (route) => route.fulfill({ json: { huis: leeg, legeRuimtes, keuzes: [], bestaande: [] } }));
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    await p.goto(`${baseUrl}/begin.html`);
+    const regel = p.locator('#wand [data-leeg]');
+    await regel.waitFor({ timeout: 15_000 });
+    expect(await regel.innerText()).toBe('Nog zonder apparaten: Woonkamer, Keuken en nog 2');    // Binnen de balk met de tellers, en niet breder dan het scherm.
+    const balk = (await p.locator('#wand [data-gevonden]').boundingBox())!;
+    expect(balk.x).toBeGreaterThanOrEqual(0);
+    expect(balk.x + balk.width).toBeLessThanOrEqual(1280);
+    // Zonder lege gebieden geen regel.
+    await context.unroute(`${baseUrl}/api/onboarding*`);
+    await context.route(`${baseUrl}/api/onboarding*`, (route) => route.fulfill({ json: { huis: leeg, legeRuimtes: [], keuzes: [], bestaande: [] } }));
+    await p.reload();
+    await p.locator('#wand [data-gevonden] .tellers').waitFor({ timeout: 15_000 });
+    expect(await p.locator('[data-leeg]').count()).toBe(0);
+    expect(fouten).toEqual([]);
+    await context.close();
+  }, 30_000);
+
   it('zegt bij Meld een probleem dat melden op pauze staat, met een dankwoord (14 november 2026)', async () => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);

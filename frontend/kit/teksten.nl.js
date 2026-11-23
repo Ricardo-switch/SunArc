@@ -5057,6 +5057,8 @@
   'begin.voet': 'Inrichten duurt ongeveer tien minuten. Alles blijft in je eigen huis.',
   'begin.gevonden': 'In Home Assistant gevonden',
   'begin.ruimtes': { one: 'ruimte', other: 'ruimtes' },
+  'begin.leeg': 'Nog zonder apparaten: {namen}',
+  'begin.leegMeer': { one: '{namen} en nog één', other: '{namen} en nog {n}' },
   'begin.zoekt': 'Home Assistant wordt doorzocht',
   'begin.klaarzetten': 'Je huis wordt klaargezet.',
   'begin.weggelaten': 'Wat SunArc nog niet begrijpt, liet hij weg ({n}). Het staat in het logboek bij Versie, en met Meld een probleem kun je het sturen.',

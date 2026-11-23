@@ -214,6 +214,8 @@ export interface WebOptions {
    * (besluit 154). Gaat mee in het antwoord van `api/onboarding`.
    */
   readonly welkomHuis?: () => HouseReport | null;
+  /** De gebieden in Home Assistant waar nog niets in staat, voor het welkom (23 november 2026). */
+  readonly welkomLegeRuimtes?: () => string[];
   /**
    * Het vermogen van de panelen en het net per vijf minuten uit de statistiek
    * van Home Assistant, voor de kwartieren van Vandaag die het eigen logboek

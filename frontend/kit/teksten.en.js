@@ -5052,6 +5052,8 @@
   'begin.voet': 'Setting up takes about ten minutes. Everything stays in your own house.',
   'begin.gevonden': 'Found in Home Assistant',
   'begin.ruimtes': { one: 'space', other: 'spaces' },
+  'begin.leeg': 'No devices yet: {namen}',
+  'begin.leegMeer': { one: '{namen} and one more', other: '{namen} and {n} more' },
   'begin.zoekt': 'Searching Home Assistant',
   'begin.klaarzetten': 'Your house is being prepared.',
   'begin.weggelaten': 'SunArc left out what it does not understand yet ({n}). It is in the log under Version, and you can send it with Report a problem.',

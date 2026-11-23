@@ -131,7 +131,20 @@ function tellers(deel) {
   const apparaten = (huisNu.etages ?? []).flatMap((e) => e.ruimtes ?? []).reduce((n, r) => n + (r.apparaten?.length ?? 0), 0) + (huisNu.zonderRuimte?.length ?? 0);
   const tel = (n) => Math.round(n * deel);
   return `<span class="bezig"><i aria-hidden="true"></i><span>${esc(t('begin.gevonden'))}</span></span>
-    <span class="tellers"><span><b>${tel(etages)}</b>${esc(t(buiten ? 'inr.tel.etagesBuiten' : 'inr.tel.etages', { n: etages }))}</span><span><b>${tel(ruimtes)}</b>${esc(t('begin.ruimtes', { n: ruimtes }))}</span><span><b>${tel(apparaten)}</b>${esc(t('inr.tel.apparaten', { n: apparaten }))}</span></span>`;
+    <span class="tellers"><span><b>${tel(etages)}</b>${esc(t(buiten ? 'inr.tel.etagesBuiten' : 'inr.tel.etages', { n: etages }))}</span><span><b>${tel(ruimtes)}</b>${esc(t('begin.ruimtes', { n: ruimtes }))}</span><span><b>${tel(apparaten)}</b>${esc(t('inr.tel.apparaten', { n: apparaten }))}</span></span>${deel >= 1 ? legeRuimtes() : ''}`;
+}
+
+/**
+ * De gebieden in Home Assistant waar nog niets in staat (23 november 2026): die
+ * worden pas een ruimte met een apparaat erin. Zonder deze regel leek 0 ruimtes
+ * alsof SunArc ze niet zag. Twee namen, en hoeveel er nog meer zijn.
+ */
+function legeRuimtes() {
+  const namen = voorstel?.legeRuimtes ?? [];
+  if (!namen.length) return '';
+  const eerste = namen.slice(0, 2).join(', ');
+  const zin = namen.length > 2 ? t('begin.leegMeer', { namen: eerste, n: namen.length - 2 }) : eerste;
+  return `<span class="leeg" data-leeg>${esc(t('begin.leeg', { namen: zin }))}</span>`;
 }
 
 function tekenHuis() {

@@ -408,7 +408,7 @@ export async function onboardingRoute(
       // zoals Home Assistant het kent, voor het welkom (besluit 154).
       // De vragen in de taal van de app (besluit 185).
       const lang = taalVan(new URL(req.url ?? '/', 'http://localhost').searchParams.get('taal') ?? req.headers['x-taal']);
-      sendJson(res, 200, { ...proposal, keuzes: keuzesInTaal(proposal.keuzes, lang), bestaande: existing, namen: onboarding.namen(), huis: d.options.welkomHuis?.() ?? null });
+      sendJson(res, 200, { ...proposal, keuzes: keuzesInTaal(proposal.keuzes, lang), bestaande: existing, namen: onboarding.namen(), huis: d.options.welkomHuis?.() ?? null, legeRuimtes: d.options.welkomLegeRuimtes?.() ?? [] });
     } catch (error) {
       // Ontdekken vraagt Home Assistant iets, en dat kan misgaan zonder dat
       // er met deze dienst iets mis is. Geen 500: de pagina hoort te kunnen

@@ -61,6 +61,8 @@
   #wand .gevonden { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); }
   .gevonden .tellers { display: flex; gap: 18px; font-size: 14px; color: var(--zacht); }
   .gevonden .tellers b { font-family: var(--kop); font-size: 20px; color: var(--tekst); margin-right: 5px; }
+  .gevonden:has(.leeg) { flex-wrap: wrap; justify-content: center; row-gap: 6px; }
+  .gevonden .leeg { flex-basis: 100%; text-align: center; font-size: 12.5px; color: var(--gedempt); }
   .gevonden .bezig { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--mint-t); }
   .gevonden .bezig i { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); }
   .gevonden.zoekt .bezig i { animation: puls 1.6s infinite; }

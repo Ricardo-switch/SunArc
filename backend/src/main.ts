@@ -44,7 +44,7 @@ import {
   type HaFloor,
   type HaRegistryEntity,
 } from './adapters/homeassistant/discovery.js';
-import { buildHouse, houseBeforeSetup, knownForLayout, proposeLayout, type HouseRegisters, type HuisStekker } from './web/house.js';
+import { buildHouse, emptyAreasBeforeSetup, houseBeforeSetup, knownForLayout, proposeLayout, type HouseRegisters, type HuisStekker } from './web/house.js';
 import { LayoutStore, herstelMeedoen, regelKamers, withLayoutNames, type Layout } from './web/layout.js';
 import { noteSensors, readLayoutFile, withMeasurement } from './web/meten.js';
 import { configUitDeApp } from './web/config-uit-app.js';
@@ -2744,6 +2744,8 @@ if (webPort != null) {
           onboarding,
           // Het welkom in een leeg huis (besluit 154): het huis uit Home Assistant, en na het opslaan opnieuw starten.
           welkomHuis: () => (siteConfig == null && houseRegisters ? houseBeforeSetup(houseRegisters, houseStates, Intl.DateTimeFormat().resolvedOptions().timeZone) : null),
+          // De gebieden die nog leeg zijn (23 november 2026), zodat 0 ruimtes niet lijkt alsof SunArc ze niet ziet.
+          welkomLegeRuimtes: () => (siteConfig == null && houseRegisters ? emptyAreasBeforeSetup(houseRegisters, houseStates, Intl.DateTimeFormat().resolvedOptions().timeZone) : []),
           naOnboarding: herstart,
         }
       : {}),
