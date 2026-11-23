@@ -351,8 +351,14 @@ export interface Geometry {
  */
 export interface GridPhase {
   readonly id: string;
-  /** De stroom op deze fase in A, zoals de P1-meter hem meet. */
-  readonly current: DeviceRef;
+  /** De stroom op deze fase in A, zoals de P1-meter hem meet. Eén van `current` en `power` is er. */
+  readonly current?: DeviceRef;
+  /**
+   * Het vermogen op deze fase in W, als er geen stroommeter is (23 november
+   * 2026: een HomeWizard P1 zet zijn stroom per fase in Home Assistant standaard
+   * uit, het vermogen per fase niet). De stroom is dan |W| / V.
+   */
+  readonly power?: DeviceRef;
   /** De spanning op deze fase in V; weglaten is 230 V. */
   readonly voltage?: DeviceRef;
   /** De hoofdzekering op deze fase, in A. */

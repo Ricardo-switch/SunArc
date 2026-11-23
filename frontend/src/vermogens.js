@@ -88,7 +88,35 @@ const vermogens = (() => {
       a.omvormers = [...zonNu(info, a).filter((id) => id !== el.value), el.value];
       return true;
     }
+    if (el.dataset.faseMeter) {
+      a.faseKeuze = { ...(a.faseKeuze ?? {}), [el.dataset.faseMeter]: el.value || null };
+      return true;
+    }
     return false;
+  }
+
+  /**
+   * Per fase de meter (23 november 2026, bij de ouders van Ricardo: drie fasen,
+   * maar er was maar één meter te kiezen). Een stroommeter in A, of anders het
+   * vermogen op die fase in W; dan rekent SunArc de stroom uit. Staat een fase op
+   * W, dan zegt de hint hoe het preciezer kan.
+   */
+  function faseBlok(info, a, fasen) {
+    const meters = info?.faseMeters ?? [];
+    if (fasen !== 3 && fasen !== 1) return '';
+    const waarde = (m) => (m.waarde == null ? t('vermogens.niets') : m.eenheid === 'A' ? `${m.waarde.toLocaleString(window.taal.locale, { maximumFractionDigits: 1 })} A` : watt(m.waarde));
+    const rijen = (fasen === 3 ? [1, 2, 3] : [1]).map((n) => {
+      const id = `L${n}`;
+      const nu = a.faseKeuze?.[id] ?? info?.faseMeter?.[id]?.id ?? '';
+      const opties = meters.filter((m) => m.fase === n).map((m) => `<option value="${esc(m.id)}" ${m.id === nu ? 'selected' : ''}>${esc(`${m.naam} · ${waarde(m)}`)}</option>`).join('');
+      return `<label class="veldnaam">${esc(t('vermogens.fase', { n }))}<select class="invoer" data-fase-meter="${id}"><option value="" ${nu ? '' : 'selected'}>${esc(t('vermogens.geenFaseMeter'))}</option>${opties}</select></label>`;
+    }).join('');
+    const opWatt = (fasen === 3 ? [1, 2, 3] : [1]).some((n) => {
+      const id = a.faseKeuze?.[`L${n}`] ?? info?.faseMeter?.[`L${n}`]?.id;
+      return meters.find((m) => m.id === id)?.eenheid === 'W';
+    });
+    const hint = !meters.length ? t('vermogens.faseGeen') : opWatt ? t('vermogens.faseWatt') : '';
+    return `<p class="uitleg">${esc(t('vermogens.faseUitleg'))}</p>${rijen}${hint ? `<p class="mini" data-fase-hint>${esc(hint)}</p>` : ''}`;
   }
 
   /** Een omvormer weghalen; de laatste blijft. */
@@ -101,5 +129,5 @@ const vermogens = (() => {
     return true;
   }
 
-  return { netBlok, zonBlok, verander, klik, netNu, zonNu };
+  return { netBlok, zonBlok, faseBlok, verander, klik, netNu, zonNu };
 })();

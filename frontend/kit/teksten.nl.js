@@ -2503,6 +2503,12 @@
   'melden.uitkomst.geenreactie': 'Je melding {code} is gesloten zonder reactie op GitHub.',
   // De netmeter en de omvormers (vermogens.js, testerronde november 2026)
   'vermogens.niets': 'geeft nu niets',
+  'vermogens.faseKop': 'Meter per fase',
+  'vermogens.faseUitleg': 'Welke meter zegt hoeveel stroom er over elke fase gaat. Zo laadt de auto nooit harder dan de zekering aankan.',
+  'vermogens.fase': 'Fase {n}',
+  'vermogens.geenFaseMeter': 'Geen meter',
+  'vermogens.faseWatt': 'Bij een meter in W rekent SunArc de stroom uit het vermogen. Preciezer: zet in Home Assistant bij je P1-meter Stroom fase 1, 2 en 3 aan.',
+  'vermogens.faseGeen': 'Home Assistant heeft geen meter per fase. Kijk bij je P1-meter of Stroom fase 1, 2 en 3 uit staan, en zet ze aan.',
   'vermogens.pastHierbij': 'Past hierbij',
   'vermogens.andere': 'Andere sensoren',
   'vermogens.kies': 'Kies een sensor',

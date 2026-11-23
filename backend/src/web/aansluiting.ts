@@ -62,9 +62,24 @@ export interface Fuse {
 
 export interface FoundPhase {
   readonly id: 'L1' | 'L2' | 'L3';
-  readonly current: string;
+  /** De stroommeter (A); zonder die het vermogen op de fase (W, 23 november 2026). Eén van de twee. */
+  readonly current?: string;
+  readonly power?: string;
   readonly voltage?: string;
 }
+
+/** Een meter op één fase om uit te kiezen (23 november 2026): stroom in A of vermogen in W. */
+export interface FoundPhaseMeter {
+  readonly id: string;
+  readonly naam: string;
+  readonly fase: 1 | 2 | 3;
+  readonly eenheid: 'A' | 'W';
+  /** Wat hij nu zegt; null als hij niets geeft. */
+  readonly waarde: number | null;
+}
+
+/** De keuze van de bewoner: per fase welke meter (23 november 2026). */
+export type FaseKeuze = Partial<Record<FoundPhase['id'], string>>;
 
 export type ApplianceKind = 'droger' | 'wasmachine' | 'vaatwasser' | 'apparaat';
 
@@ -122,6 +137,8 @@ export interface ConnectionAnswers {
   readonly daken?: Daken | null;
   /** De stroommeters zoals bij het bewaren gevonden, zodat de regeling ze bij het starten kent. */
   readonly fasen: readonly FoundPhase[];
+  /** Per fase de meter die de bewoner koos (23 november 2026); weg is wat de dienst vond. */
+  readonly faseKeuze?: FaseKeuze;
   readonly apparaten: readonly (FoundAppliance & { readonly opZon: boolean })[];
   /**
    * De boiler en de jacuzzi (besluit 186) en de slimme stekkers (besluit 264):
@@ -209,14 +226,62 @@ export function findPhases(states: Iterable<HaEntityState>): FoundPhase[] {
     const pool = meters.length > 0 ? meters : all;
     return pool.length === 1 ? pool[0]!.entity_id : null;
   };
+  /*
+   * Zonder stroommeter het vermogen op die fase (23 november 2026): een
+   * HomeWizard P1 zet zijn stroom per fase in Home Assistant standaard uit, het
+   * vermogen per fase niet. Alleen van de netmeter zelf: het vermogen per fase
+   * van een laadpaal zegt niets over de aansluiting.
+   */
+  const pickPower = (phase: number): string | null => {
+    const meters = list.filter((s) => isUnit(s, 'power', 'W') && phaseOf(s) === phase && GRID_METER.test(label(s)) && !/sag|swell|max|min|gemiddeld|average|battery|batterij/i.test(s.entity_id));
+    return meters.length === 1 ? meters[0]!.entity_id : null;
+  };
   const out: FoundPhase[] = [];
   for (const n of [1, 2, 3] as const) {
     const current = pick('current', 'A', n);
-    if (!current) continue;
+    const power = current ? null : pickPower(n);
+    if (!current && !power) continue;
     const voltage = pick('voltage', 'V', n);
-    out.push({ id: `L${n}`, current, ...(voltage ? { voltage } : {}) });
+    out.push({ id: `L${n}`, ...(current ? { current } : { power: power! }), ...(voltage ? { voltage } : {}) });
   }
   return out;
+}
+
+/**
+ * Elke meter op één fase om uit te kiezen (23 november 2026): de stroom in A en
+ * het vermogen in W, eerst die van de netmeter. Voor de keuze per fase bij
+ * Energie › Aansluiting.
+ */
+export function findPhaseMeters(states: Iterable<HaEntityState>): FoundPhaseMeter[] {
+  const uit: (FoundPhaseMeter & { net: boolean })[] = [];
+  for (const s of states) {
+    const fase = phaseOf(s);
+    const eenheid = isUnit(s, 'current', 'A') ? 'A' : isUnit(s, 'power', 'W') ? 'W' : null;
+    if (!fase || !eenheid || /sag|swell|max|min|gemiddeld|average/i.test(s.entity_id)) continue;
+    const n = Number(s.state);
+    const naam = s.attributes['friendly_name'];
+    uit.push({ id: s.entity_id, naam: typeof naam === 'string' && naam.trim() ? naam.trim() : s.entity_id, fase, eenheid, waarde: Number.isFinite(n) && s.state !== '' ? n : null, net: GRID_METER.test(label(s)) });
+  }
+  return uit
+    .sort((a, b) => a.fase - b.fase || Number(b.net) - Number(a.net) || (a.eenheid === b.eenheid ? 0 : a.eenheid === 'A' ? -1 : 1) || a.naam.localeCompare(b.naam, 'nl'))
+    .map(({ net: _net, ...m }) => m);
+}
+
+/**
+ * De fasen zoals ze gaan gelden: per fase de keuze van de bewoner, als die
+ * meter er nog is; anders wat de dienst vond. De spanning komt van wat er
+ * gevonden is.
+ */
+export function fasenMetKeuze(gevonden: readonly FoundPhase[], keuze: FaseKeuze | undefined, meters: readonly FoundPhaseMeter[]): FoundPhase[] {
+  const uit: FoundPhase[] = [];
+  for (const n of [1, 2, 3] as const) {
+    const id = `L${n}` as const;
+    const vond = gevonden.find((f) => f.id === id);
+    const m = keuze?.[id] ? meters.find((x) => x.id === keuze[id]) : undefined;
+    if (m) uit.push({ id, ...(m.eenheid === 'A' ? { current: m.id } : { power: m.id }), ...(vond?.voltage ? { voltage: vond.voltage } : {}) });
+    else if (vond) uit.push(vond);
+  }
+  return uit;
 }
 
 /*
@@ -524,7 +589,7 @@ export type ConnectionCheck = { ok: true; answers: ConnectionAnswers } | { ok: f
  */
 export function validateConnection(
   body: unknown,
-  found: { fasen: readonly FoundPhase[]; apparaten: readonly FoundAppliance[]; buffers?: readonly FoundHeatStore[]; meting?: Meting | null; omvormerGevonden?: number | null; vermogens?: readonly FoundPower[] },
+  found: { fasen: readonly FoundPhase[]; apparaten: readonly FoundAppliance[]; buffers?: readonly FoundHeatStore[]; meting?: Meting | null; omvormerGevonden?: number | null; vermogens?: readonly FoundPower[]; faseMeters?: readonly FoundPhaseMeter[] },
   /** De antwoorden van nu: wat de pagina niet meestuurt, blijft zoals het was. */
   vorige: ConnectionAnswers | null = null,
 ): ConnectionCheck {
@@ -647,6 +712,20 @@ export function validateConnection(
   if (!Array.isArray(omvRaw) || omvRaw.length > 8 || omvRaw.some((x) => !bekend(x)) || new Set(omvRaw).size !== omvRaw.length) {
     return { ok: false, reden: 'de omvormers zijn tot acht verschillende sensoren met een vermogen' };
   }
+  // Per fase een meter (23 november 2026): een stroom- of vermogensmeter op die fase; leeg is wat de dienst vindt.
+  const keuzeRaw = b['faseKeuze'] === undefined ? (vorige?.faseKeuze ?? {}) : (b['faseKeuze'] ?? {});
+  if (typeof keuzeRaw !== 'object' || Array.isArray(keuzeRaw)) return { ok: false, reden: 'de keuze per fase is een object met L1, L2 en L3' };
+  const faseKeuze: FaseKeuze = {};
+  for (const [fase, id] of Object.entries(keuzeRaw as Record<string, unknown>)) {
+    if (id == null || id === '') continue;
+    const n = /^L([123])$/.exec(fase)?.[1];
+    const meter = found.faseMeters?.find((m) => m.id === id);
+    if (!n || typeof id !== 'string' || !/^sensor\.[a-z0-9_]{1,160}$/.test(id) || (found.faseMeters != null && meter?.fase !== Number(n))) {
+      return { ok: false, reden: 'per fase een meter in A of W die op die fase meet' };
+    }
+    faseKeuze[fase as FoundPhase['id']] = id;
+  }
+  const fasen = found.faseMeters != null ? fasenMetKeuze(found.fasen, faseKeuze, found.faseMeters) : [...found.fasen];
 
   // Daken en panelen (besluit 254): niet meegestuurd blijft zoals het was.
   const dakenRaw = b['daken'] === undefined ? (vorige?.daken ?? null) : b['daken'];
@@ -673,7 +752,8 @@ export function validateConnection(
       dak,
       ...(Object.keys(elders).length ? { elders } : {}),
       ...(daken.daken ? { daken: daken.daken } : {}),
-      fasen: [...found.fasen],
+      fasen,
+      ...(Object.keys(faseKeuze).length ? { faseKeuze } : {}),
       apparaten: found.apparaten.map((a) => ({ ...a, opZon: opZonRaw[a.id] === true })),
       ...((found.buffers ?? []).length
         ? {
@@ -754,7 +834,7 @@ function readDak(
 function readAnswers(raw: unknown): ConnectionAnswers | null {
   if (typeof raw !== 'object' || raw == null || (raw as { versie?: unknown }).versie !== 1) return null;
   const r = raw as Record<string, unknown>;
-  const fasen = Array.isArray(r['fasen']) ? (r['fasen'] as FoundPhase[]).filter((f) => /^L[123]$/.test(String(f?.id)) && typeof f.current === 'string') : [];
+  const fasen = Array.isArray(r['fasen']) ? (r['fasen'] as FoundPhase[]).filter((f) => /^L[123]$/.test(String(f?.id)) && (typeof f.current === 'string') !== (typeof f.power === 'string')) : [];
   const apparaten = Array.isArray(r['apparaten'])
     ? (r['apparaten'] as (FoundAppliance & { opZon: boolean })[]).filter(
         (a) => typeof a?.id === 'string' && typeof a.naam === 'string' && typeof a.remoteStart === 'string' && typeof a.estimatedW === 'number',
@@ -869,7 +949,15 @@ export interface ConnectionView {
   readonly inGebruik: { readonly netmeter: Netmeter | null; readonly omvormers: readonly string[] };
   /** Hoe de panelen liggen (besluit 157): wat geldt, het voorstel uit de meting, en de dag erbij. */
   readonly ligging: LiggingView;
-  readonly gevonden: { readonly fasen: readonly FoundPhase['id'][]; readonly apparaten: readonly { id: string; naam: string; soort: ApplianceKind | FoundHeatStore['soort']; meet?: boolean }[] };
+  /**
+   * Per fase de meters om uit te kiezen, en de meter die nu geldt (23 november
+   * 2026). Zoals `vermogens` met de sensoren erbij: daaruit kiest de bewoner.
+   */
+  readonly faseMeters: readonly FoundPhaseMeter[];
+  readonly faseMeter: Partial<Record<FoundPhase['id'], { readonly id: string; readonly eenheid: 'A' | 'W'; readonly gekozen: boolean }>>;
+  readonly gevonden: {
+    readonly fasen: readonly FoundPhase['id'][];
+    readonly apparaten: readonly { id: string; naam: string; soort: ApplianceKind | FoundHeatStore['soort']; meet?: boolean }[] };
   /** Wat de configuratie van het huis al vastlegt; dat gaat voor. */
   readonly configuratie: {
     readonly zekering: Fuse | null;
@@ -966,7 +1054,7 @@ function dakenView(i: Parameters<typeof dakenNu>[0], c: ConnectionContext): Dake
 export interface ConnectionContext {
   /** De configuratie zoals in het bestand, zonder de antwoorden. */
   readonly base: SiteConfig;
-  readonly found: { readonly fasen: readonly FoundPhase[]; readonly apparaten: readonly FoundAppliance[]; readonly buffers?: readonly FoundHeatStore[]; readonly vermogens?: readonly FoundPower[] };
+  readonly found: { readonly fasen: readonly FoundPhase[]; readonly apparaten: readonly FoundAppliance[]; readonly buffers?: readonly FoundHeatStore[]; readonly vermogens?: readonly FoundPower[]; readonly faseMeters?: readonly FoundPhaseMeter[] };
   readonly applied: Pick<Applied, 'toegevoegd' | 'overgeslagen'>;
   /** Zei de bewoner bij Inrichten dat het huis een plat dak heeft (issue 143)? */
   readonly huisPlat?: boolean;
@@ -998,6 +1086,8 @@ export interface ConnectionContext {
 
 export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): ConnectionView {
   const grid = c.base.grid;
+  // De fasen zoals ze bij bewaren gaan gelden: de keuze van de bewoner, anders wat de dienst vond.
+  const fasenNu = fasenMetKeuze(c.found.fasen, c.answers?.faseKeuze, c.found.faseMeters ?? []);
   const liggingIn = {
     configuratie: c.base.geometry,
     dak: c.answers?.dak ?? null,
@@ -1039,11 +1129,13 @@ export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): Connect
     laden: c.laden ?? null,
     accu: c.accu ?? null,
     vermogens: c.found.vermogens ?? [],
+    faseMeters: c.found.faseMeters ?? [],
+    faseMeter: c.found.faseMeters ? Object.fromEntries(fasenNu.map((f) => [f.id, { id: (f.current ?? f.power)!, eenheid: f.current ? 'A' : 'W', gekozen: c.answers?.faseKeuze?.[f.id] === (f.current ?? f.power) }])) : {},
     inGebruik: c.inGebruik ?? { netmeter: null, omvormers: [] },
     ligging: liggingView(liggingIn, lang),
     daken: dakenView(liggingIn, c),
     gevonden: {
-      fasen: c.found.fasen.map((f) => f.id),
+      fasen: fasenNu.map((f) => f.id),
       // Bij een stekker of hij zijn vermogen zelf meet (besluit 264): anders vraagt de pagina het.
       apparaten: [...c.found.apparaten.map(({ id, naam, soort }) => ({ id, naam, soort })), ...(c.found.buffers ?? []).map(({ id, naam, soort, power }) => ({ id, naam, soort, ...(soort === 'stekker' ? { meet: power != null } : {}) }))],
     },

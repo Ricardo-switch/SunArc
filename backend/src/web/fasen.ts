@@ -118,7 +118,11 @@ export function piekVan(punten: readonly FasePunt[], startMs: number, nuMs: numb
 
 export interface FasenInvoer {
   /** De aansluiting uit de configuratie, of null zonder stroommeters per fase. */
-  readonly grid: { readonly phases: readonly { readonly id: string; readonly current: string; readonly maxA: number }[]; readonly marginA: number } | null;
+  readonly grid: {
+    /** `current` is de meter van de fase; met `watt` meet die het vermogen, en is de stroom W / 230 (23 november 2026). */
+    readonly phases: readonly { readonly id: string; readonly current: string; readonly watt?: boolean; readonly maxA: number }[];
+    readonly marginA: number;
+  } | null;
   /** De fasen uit het laatste besluit. */
   readonly nu: readonly { readonly id: string; readonly currentA: number | null; readonly bron: 'gemeten' | 'geschat' | 'onbekend' }[] | null;
   /** De metingen van vandaag per entiteit (uit faseHistorie). */
@@ -137,7 +141,8 @@ export function fasenView(i: FasenInvoer): FasenView {
     const e = i.nu?.find((x) => x.id === p.id);
     const nuA = e?.currentA ?? null;
     // De stand van nu telt mee in de dag: de historie loopt een paar minuten achter.
-    const punten = [...(i.historie.get(p.current) ?? []), ...(nuA != null && e?.bron === 'gemeten' ? [{ ms: i.nuMs, a: nuA }] : [])];
+    const gemeten = (i.historie.get(p.current) ?? []).map((x) => (p.watt ? { ms: x.ms, a: x.a / 230 } : x));
+    const punten = [...gemeten, ...(nuA != null && e?.bron === 'gemeten' ? [{ ms: i.nuMs, a: nuA }] : [])];
     const piek = piekVan(punten, i.dagStartMs, i.nuMs);
     return { id: p.id, nuA, bron: e?.bron ?? 'onbekend', zekeringA: p.maxA, piekA: piek?.a ?? null, piekMs: piek?.ms ?? null, dag: kwartierMax(punten, i.dagStartMs, i.nuMs) };
   });

@@ -2498,6 +2498,12 @@
   'melden.uitkomst.geenreactie': 'Your report {code} was closed without a reply on GitHub.',
   // The grid meter and the inverters (vermogens.js, tester round November 2026)
   'vermogens.niets': 'reports nothing now',
+  'vermogens.faseKop': 'Meter per phase',
+  'vermogens.faseUitleg': 'Which meter tells how much current runs over each phase. That way the car never charges harder than the fuse can take.',
+  'vermogens.fase': 'Phase {n}',
+  'vermogens.geenFaseMeter': 'No meter',
+  'vermogens.faseWatt': 'With a meter in W, SunArc works out the current from the power. More precise: in Home Assistant, turn on Current phase 1, 2 and 3 on your P1 meter.',
+  'vermogens.faseGeen': 'Home Assistant has no meter per phase. Check whether Current phase 1, 2 and 3 are turned off on your P1 meter, and turn them on.',
   'vermogens.pastHierbij': 'Fits here',
   'vermogens.andere': 'Other sensors',
   'vermogens.kies': 'Choose a sensor',

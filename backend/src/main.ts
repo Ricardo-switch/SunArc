@@ -77,7 +77,7 @@ import { Stekkerhand, stekkerMag, type StekkerBekend } from './web/stekkerhand.j
 import { StekkerZon } from './web/stekkerzon.js';
 import { Laadbeurten } from './web/laadbeurten.js';
 import { laadAdvies, prijzenVooruit, type LaadAdvies } from './web/laadadvies.js';
-import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhases, findPowers, metOpZonVanNu, withConnection, type ConnectionAnswers } from './web/aansluiting.js';
+import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhaseMeters, findPhases, findPowers, metOpZonVanNu, withConnection, type ConnectionAnswers } from './web/aansluiting.js';
 import { clearSkyOnPlaneWm2, sunPosition } from './core/sun.js';
 import { laadDag, zonVerwachtW } from './web/laaddag.js';
 import { clearSkyW } from './web/sun.js';
@@ -1822,7 +1822,9 @@ async function fasenNuView(): Promise<FasenView> {
   const nuMs = Date.now();
   const startMs = startOfLocalDay(nuMs, siteConfig?.timezone ?? 'Europe/Amsterdam');
   const e = runner?.latest?.explanation ?? null;
-  const ids = grid?.phases.map((p) => p.current.id) ?? [];
+  // De meter van elke fase: de stroom, of anders het vermogen (23 november 2026).
+  const meterVan = (p: NonNullable<typeof grid>['phases'][number]) => (p.current ?? p.power)!.id;
+  const ids = grid?.phases.map(meterVan) ?? [];
   if (ids.length && (faseDag.startMs !== startMs || nuMs - faseDag.opMs > 5 * 60_000)) {
     try {
       // Vanaf een uur voor middernacht: de stand van toen geldt ook om middernacht.
@@ -1835,7 +1837,7 @@ async function fasenNuView(): Promise<FasenView> {
   }
   const z = connectionStore?.current?.zekering;
   return fasenView({
-    grid: grid ? { phases: grid.phases.map((p) => ({ id: p.id, current: p.current.id, maxA: p.maxA })), marginA: grid.marginA } : null,
+    grid: grid ? { phases: grid.phases.map((p) => ({ id: p.id, current: meterVan(p), ...(p.current ? {} : { watt: true }), maxA: p.maxA })), marginA: grid.marginA } : null,
     nu: e?.phases?.map((p) => ({ id: p.id, currentA: p.currentA, bron: p.bron })) ?? null,
     historie: faseDag.punten,
     dagStartMs: startMs,
@@ -2506,6 +2508,8 @@ function connectionDoor(store: ConnectionStore, base: NonNullable<typeof baseCon
     omvormerGevonden: omvormerGevonden(),
     // De netmeter en de omvormers om uit te kiezen (testerronde, november 2026).
     vermogens: findPowers(allStates.values()),
+    // Per fase een meter om uit te kiezen (23 november 2026).
+    faseMeters: findPhaseMeters(allStates.values()),
   });
   const solarId = base.solarProduction?.id ?? null;
   return {

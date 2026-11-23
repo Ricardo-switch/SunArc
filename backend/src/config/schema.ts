@@ -631,10 +631,14 @@ export function parseSiteConfig(
         const id = str(p, f, path, 'id');
         if (id && seen.has(id)) p.error(join(path, 'id'), `fase "${id}" staat er twee keer`);
         if (id) seen.add(id);
-        const current = f['current'] === undefined ? (p.error(join(path, 'current'), 'ontbreekt'), null) : ref(p, f['current'], join(path, 'current'), defaultAdapter);
+        // De stroom (A), of anders het vermogen (W) op die fase (23 november 2026); één van de twee.
+        if (f['current'] === undefined && f['power'] === undefined) p.error(join(path, 'current'), 'ontbreekt (of power, het vermogen op deze fase)');
+        if (f['current'] !== undefined && f['power'] !== undefined) p.error(join(path, 'power'), 'kies current of power, niet allebei');
+        const current = f['current'] === undefined ? null : ref(p, f['current'], join(path, 'current'), defaultAdapter);
+        const power = f['power'] === undefined ? null : ref(p, f['power'], join(path, 'power'), defaultAdapter);
         const voltage = f['voltage'] === undefined ? null : ref(p, f['voltage'], join(path, 'voltage'), defaultAdapter);
         const maxA = num(p, f, path, 'maxA', { min: 6, max: 250 });
-        if (id && current && maxA != null) phases.push({ id, current, maxA, ...(voltage ? { voltage } : {}) });
+        if (id && (current || power) && maxA != null) phases.push({ id, ...(current ? { current } : { power: power! }), maxA, ...(voltage ? { voltage } : {}) });
       });
       if (phases.length === 2 || phases.length > 3) p.error('grid.phases', 'een aansluiting heeft één of drie fasen');
       const marginA = numOr(p, gridRawBlock, 'grid', 'marginA', 2, { min: 0, max: 50 });

@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.232.0';
+export const VERSIE = '0.233.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.233.0',
+    datum: '2026-11-23',
+    nieuw: [
+      'Energie › Aansluiting: kies per fase de meter. Zonder stroommeter rekent SunArc de stroom uit het vermogen per fase, zoals bij een P1-meter van HomeWizard',
+    ],
+    en: {
+      nieuw: [
+        'Energy › Connection: pick the meter per phase. Without a current meter, SunArc works out the current from the power per phase, as with a HomeWizard P1 meter',
+      ],
+    },
+  },
   {
     versie: '0.232.0',
     datum: '2026-11-23',

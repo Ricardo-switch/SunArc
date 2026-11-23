@@ -303,8 +303,10 @@ export function buildSystemState(
         ? {
             phases: Object.fromEntries(
               config.grid.phases.map((ph) => {
-                const a = source.number(ph.current.id);
                 const v = ph.voltage ? source.number(ph.voltage.id) : null;
+                // Zonder stroommeter het vermogen op die fase (23 november 2026): |W| / V, met 230 V zonder spanningsmeter.
+                const w = !ph.current && ph.power ? source.number(ph.power.id) : null;
+                const a = ph.current ? source.number(ph.current.id) : w == null ? null : Math.abs(w) / (v != null && v > 100 ? v : 230);
                 return [
                   ph.id,
                   {
@@ -565,7 +567,8 @@ export function relevantEntities(config: SiteConfig): ReadonlySet<string> {
   if (config.solarProduction) ids.add(config.solarProduction.id);
   for (const p of config.solarExtra ?? []) ids.add(p.id);
   for (const phase of config.grid?.phases ?? []) {
-    ids.add(phase.current.id);
+    if (phase.current) ids.add(phase.current.id);
+    if (phase.power) ids.add(phase.power.id);
     if (phase.voltage) ids.add(phase.voltage.id);
   }
   for (const h of config.heatStores ?? []) {

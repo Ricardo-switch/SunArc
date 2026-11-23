@@ -140,6 +140,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [256. De kaart is experimenteel, met 3D BAG naast OpenStreetMap](#256-de-kaart-is-experimenteel-met-3d-bag-naast-openstreetmap)
 - [261. Wat kan bij jouw huis: de kaarten nagaan, de bewoner kiest](#261-wat-kan-bij-jouw-huis-de-kaarten-nagaan-de-bewoner-kiest)
 - [323. Inrichten in zeven stappen](#323-inrichten-in-zeven-stappen)
+- [338. Per fase een meter, en de stroom uit het vermogen](#338-per-fase-een-meter-en-de-stroom-uit-het-vermogen)
 
 **Meten, data en analyse**
 
@@ -15558,6 +15559,43 @@ telefoonschets, daarna "begin maar". De dertig winterdagen beginnen op
   de back-up hebben al een eigen plek (Begin en Toegang).
 - **Nog niet:** de wissel van *zou doen* naar *deed* op de dag dat SunArc zelf
   regelt.
+
+## 338. Per fase een meter, en de stroom uit het vermogen
+
+*Onderwerp: configuratie en onboarding · Status: geldig*
+
+23 november 2026. Bij Ricardo's ouders (het tweede proefhuis, [336]) is de
+aansluiting 3 × 25 A, met een HomeWizard P1-meter. Ricardo: "met 3 fasen kan je
+maar 1 meter kiezen in plaats van de 3 die de P1-meter heeft." De fasekaart
+bleef leeg en de laadpaal kreeg geen grens per fase.
+
+De oorzaak: de integratie van HomeWizard zet *Stroom fase 1, 2 en 3* (en de
+spanning) in Home Assistant standaard uit. Het vermogen per fase staat wel aan.
+SunArc zocht alleen stroommeters in A ([78]), vond er geen, en bij Energie was
+alleen de netmeter in W te kiezen.
+
+*Besluit:*
+
+- **Een fase kan zijn stroom uit het vermogen halen.** In de configuratie heeft
+  een fase `current` (A) of `power` (W), niet allebei. Met `power` is de
+  stroom |W| / V, met de spanningsmeter van die fase of anders 230 V. Dat
+  gebeurt bij het inlezen (`mapping.ts`): de kern ziet gewoon een stroom, de
+  replay blijft hetzelfde. De fasekaart zet de dag van zo'n meter ook om.
+- **Vanzelf gevonden:** zonder stroommeter op een fase neemt de dienst het
+  vermogen op die fase, maar alleen van de netmeter zelf (P1, DSMR). Het
+  vermogen of de stroom per fase van een laadpaal zegt niets over de
+  aansluiting. Een stroommeter gaat altijd voor.
+- **Zelf kiezen:** bij Energie › Aansluiting staat onder de zekering *Meter per
+  fase*, met per fase alle meters in A en W die op die fase meten, die van de
+  netmeter eerst. De keuze (`faseKeuze`) blijft bewaard; leeg is weer wat de
+  dienst vindt. Een meter van een andere fase wordt geweigerd.
+- **De hint:** staat een fase op een meter in W, dan zegt de pagina dat
+  SunArc de stroom uitrekent, en hoe het preciezer kan (de stroom per fase bij
+  de P1-meter aanzetten). Zonder enige meter per fase zegt hij waar je moet
+  kijken.
+
+*Niet:* SunArc zet zelf geen entiteit aan in Home Assistant; dat blijft de keus
+van de bewoner.
 
 ## Wat nog een besluit wacht
 

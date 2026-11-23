@@ -230,7 +230,8 @@ function aansluitingVorm() {
     ${zekeringNu() ? '' : `<div class="melding"><span class="stip" style="background: var(--gloed)"></span>${esc(t('energie.zonderZekering'))}</div>`}
     ${blok(t('instellingen.zekering'), `<p class="uitleg">${esc(t('energie.zekeringUitleg'))}</p>
       ${zekering.vorm(huidig)}
-      <p class="mini">${esc(noot)}</p>`)}`;
+      <p class="mini">${esc(noot)}</p>`)}
+    ${huidig && huidig !== 'weetniet' ? blok(t('vermogens.faseKop'), vermogens.faseBlok(aInfo, a, huidig.fasen)) : ''}`;
 }
 
 /* Meters */
@@ -487,7 +488,7 @@ function bewaarAansluiting(ookEnergie = false, zonOok = false) {
   groep.bewaarStraks(async () => {
     const opZon = Object.fromEntries(Object.entries(a.opZon).filter(([, v]) => typeof v === 'boolean'));
     // De netmeter en de omvormers alleen als ze hier gekozen zijn; anders houdt de dienst wat er stond.
-    const uit = await groep.stuur('api/aansluiting', { panelen: a.panelen, zekering: a.zekering, tarief: a.tarief, verwarming: a.verwarming, voorkantZon: a.voorkantZon, dak: a.dak, elders: a.elders, daken: a.daken, opZon, opZonUit: a.opZonUit, netmeter: a.netmeter, omvormers: a.omvormers, laden: a.laden, accu: a.accu });
+    const uit = await groep.stuur('api/aansluiting', { panelen: a.panelen, zekering: a.zekering, tarief: a.tarief, verwarming: a.verwarming, voorkantZon: a.voorkantZon, dak: a.dak, elders: a.elders, daken: a.daken, opZon, opZonUit: a.opZonUit, netmeter: a.netmeter, omvormers: a.omvormers, faseKeuze: a.faseKeuze, laden: a.laden, accu: a.accu });
     if (uit?.ok) {
       aInfo = uit.antwoord;
       // Het dak zoals de dienst het bewaarde: "klopt" en "aanpassen" worden een gewoon dak.
