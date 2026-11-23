@@ -30,6 +30,22 @@ er een nieuwe versie op `main` staat. Zet op de add-on-pagina **Automatisch
 bijwerken** aan als dat vanzelf moet. Naar `main` gaat alleen wat via `beta` is
 getest (besluit 152).
 
+### Het kanaal beta, voor proefhuizen
+
+Een proefhuis krijgt dezelfde versies als de NAS, zonder te wachten op `main`
+(besluit 336). Voeg dan bij stap 1 dit adres toe, in plaats van het gewone:
+`https://github.com/Ricardo-switch/SunArc#addon-beta`
+
+De add-on heet daar **SunArc beta** en krijgt een update zodra er op `beta` een
+groene versie met een nieuw nummer is, als image `<versie>-beta`. De tak
+`addon-beta` maakt de CI zelf; pas hem niet met de hand aan.
+
+Let op: Home Assistant bewaart de instellingen van een add-on in een map die bij
+het adres van de bron hoort. Wie later van beta naar het gewone kanaal gaat,
+neemt zijn instellingen dus niet vanzelf mee: eerst een kopie van
+`/addon_configs/…_hems_climate/` maken en die bij de nieuwe add-on terugzetten.
+Zet ook niet beide naast elkaar aan in één huis.
+
 ### Zelf bouwen, als lokale add-on
 
 Om een versie te proberen die nog niet op `main` staat. De Supervisor bouwt een

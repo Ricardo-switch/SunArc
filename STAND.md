@@ -462,6 +462,9 @@ verwijzing bestaat.
   ondertekend met Cosign, op een vaste basis, met een eigen AppArmor-profiel
   (cijfer 8; sinds [242] houdt het echt tegen), en staat als experimenteel tot
   stap B ([236]). De Supervisor haalt één image op voor beide soorten ([242]).
+  Proefhuizen met Home Assistant volgen het kanaal beta: de bron
+  `SunArc#addon-beta`, die de CI na elke groene versie op `beta` schrijft, met
+  het image `<versie>-beta` ([336]).
 - **Wat er nieuw is** staat per uitgave op main in één overzicht, ook als er versies alleen op beta tussen zaten; in de app sinds je eigen versie ([258]).
 - **Het voorbeeldhuis:** vanaf het welkom en Inrichten een verzonnen huis met
   alles erin, op een nagemaakt Home Assistant in een eigen proces, met een dag
@@ -1086,4 +1089,5 @@ verwijzing bestaat.
 [333]: DECISIONS.md#333-radiatoren-buitenunits-en-dakramen-in-het-getekende-huis
 [334]: DECISIONS.md#334-salderen-alleen-nog-bij-gegevens-van-2026-en-eerder
 [335]: DECISIONS.md#335-sluipverbruik-een-reden-per-nacht-en-herkennen
+[336]: DECISIONS.md#336-een-kanaal-beta-voor-de-proefhuizen-met-home-assistant
 <!-- links:einde -->

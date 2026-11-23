@@ -1,4 +1,4 @@
-# De images van de add-on (besluit 153, 236).
+# De images van de add-on (besluit 153, 236, 336).
 #
 # Home Assistant ziet een update zodra `version` in addon/config.yaml op `main`
 # omhooggaat, en haalt dan het image met dat nummer op. Dit bouwt die images,
@@ -19,6 +19,15 @@
 #
 # Tussen het samenvoegen en een klaar image zitten een paar minuten. Ziet Home
 # Assistant de update eerder, dan mislukt het bijwerken even; later lukt het.
+#
+# Het kanaal beta (besluit 336), voor de proefhuizen met Home Assistant. De CI
+# roept dit aan met `kanaal: beta` zodra `stable` vooruit is geschoven. Dan
+# heet het image `<versie>-beta`: dezelfde naam met een eigen nummer, zodat een
+# nummer op main nooit naar code van beta wijst, en zonder `latest`. Pas als
+# het image er is, schrijft de laatste stap de tak `addon-beta`: alleen het
+# manifest en wat de add-on-winkel toont, met dat nummer. Een proefhuis voegt
+# als bron https://github.com/Ricardo-switch/SunArc#addon-beta toe. Net als op
+# main komt er alleen een update als het versienummer omhooggaat.
 
 name: add-on
 
@@ -28,6 +37,17 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      kanaal:
+        description: main of beta (beta alleen vanaf de tak beta)
+        type: choice
+        options: [main, beta]
+        default: main
+  workflow_call:
+    inputs:
+      kanaal:
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -43,22 +63,52 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       versie: ${{ steps.versie.outputs.versie }}
+      tag: ${{ steps.versie.outputs.tag }}
+      tags: ${{ steps.versie.outputs.tags }}
+      nieuw: ${{ steps.versie.outputs.nieuw }}
       soorten: ${{ steps.versie.outputs.soorten }}
       matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
 
       # De versie en de soorten uit config.yaml, zodat er één plek is die ze noemt.
+      # Op het kanaal beta krijgt het nummer `-beta` erachter, en geen `latest`.
       - name: versie en soorten
         id: versie
+        env:
+          KANAAL: ${{ inputs.kanaal || 'main' }}
         run: |
           versie=$(sed -n 's/^version: //p' addon/config.yaml)
           test -n "$versie"
           soorten=$(awk '/^arch:/{a=1;next} a&&/^  - /{print $2;next} a{exit}' addon/config.yaml | jq -Rnc '[inputs]')
           test "$soorten" != "[]"
-          echo "versie=$versie" >> "$GITHUB_OUTPUT"
-          echo "soorten=$soorten" >> "$GITHUB_OUTPUT"
-          echo "Versie $versie voor $soorten"
+          case "$KANAAL" in
+            main) tag="$versie" ;;
+            beta)
+              if [ "$GITHUB_REF" != refs/heads/beta ]; then
+                echo "Het kanaal beta bouwt alleen vanaf de tak beta, niet vanaf $GITHUB_REF."
+                exit 1
+              fi
+              tag="$versie-beta" ;;
+            *) echo "Onbekend kanaal: $KANAAL"; exit 1 ;;
+          esac
+          # Op beta schuift stable bij elke groene push, ook zonder nieuw
+          # nummer; staat dat image er al, dan hoeft er niets gebouwd te worden.
+          nieuw=true
+          if [ "$KANAAL" = beta ] && docker manifest inspect "$REGISTRY/$NAAM:$tag" >/dev/null 2>&1; then
+            nieuw=false
+          fi
+          {
+            echo "versie=$versie"
+            echo "tag=$tag"
+            echo "nieuw=$nieuw"
+            echo "soorten=$soorten"
+            echo "tags<<EINDE"
+            echo "$tag"
+            if [ "$KANAAL" = main ]; then echo latest; fi
+            echo "EINDE"
+          } >> "$GITHUB_OUTPUT"
+          echo "Kanaal $KANAAL: $tag voor $soorten (nieuw te bouwen: $nieuw)"
 
       - name: per soort een machine
         id: matrix
@@ -85,6 +135,7 @@ jobs:
   bouwen:
     name: image ${{ matrix.arch }}
     needs: klaarzetten
+    if: needs.klaarzetten.outputs.nieuw == 'true'
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -112,13 +163,11 @@ jobs:
           arch: ${{ matrix.arch }}
           context: dist-addon
           image: ${{ matrix.image }}
-          image-tags: |
-            ${{ needs.klaarzetten.outputs.versie }}
-            latest
-          version: ${{ needs.klaarzetten.outputs.versie }}
+          image-tags: ${{ needs.klaarzetten.outputs.tags }}
+          version: ${{ needs.klaarzetten.outputs.tag }}
           push: ${{ github.event_name != 'pull_request' }}
           # Een versie die er al is, wordt niet overschreven.
-          skip-existing: ${{ needs.klaarzetten.outputs.versie }}
+          skip-existing: ${{ needs.klaarzetten.outputs.tag }}
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
           build-args: |
             HEMS_COMMIT=${{ steps.tijd.outputs.commit }}
@@ -142,8 +191,77 @@ jobs:
           architectures: ${{ needs.klaarzetten.outputs.soorten }}
           image-name: ${{ env.NAAM }}
           registry-prefix: ${{ env.REGISTRY }}
-          image-tags: |
-            ${{ needs.klaarzetten.outputs.versie }}
-            latest
-          skip-existing: ${{ needs.klaarzetten.outputs.versie }}
+          image-tags: ${{ needs.klaarzetten.outputs.tags }}
+          skip-existing: ${{ needs.klaarzetten.outputs.tag }}
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+
+  # Het kanaal beta (besluit 336): pas als het image er is, de tak addon-beta
+  # bijwerken, zodat Home Assistant nooit een nummer ziet zonder image.
+  kanaal-beta:
+    name: kanaal beta bijwerken
+    needs: [klaarzetten, een-naam]
+    if: >-
+      always() && inputs.kanaal == 'beta' && needs.klaarzetten.result == 'success' &&
+      (needs.klaarzetten.outputs.nieuw == 'false' || needs.een-naam.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: kanaal-beta
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: addon-beta naar deze versie
+        env:
+          TAG: ${{ needs.klaarzetten.outputs.tag }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          bron="$GITHUB_WORKSPACE"
+          werk="$RUNNER_TEMP/kanaal"
+          if git ls-remote --exit-code --heads origin addon-beta >/dev/null; then
+            git fetch --depth=1 origin addon-beta
+            git worktree add -B addon-beta "$werk" FETCH_HEAD
+          else
+            git worktree add --orphan -b addon-beta "$werk"
+          fi
+          cd "$werk"
+          git rm -rq --ignore-unmatch .
+          mkdir -p addon
+          cp "$bron"/addon/{config.yaml,apparmor.txt,icon.png,logo.png,DOCS.md,README.md,CHANGELOG.md} addon/
+          cp -r "$bron/addon/translations" addon/
+          {
+            echo '# Gemaakt door de CI uit de tak beta (besluit 336). Niet met de hand bijwerken.'
+            echo
+            sed -e 's/^name: SunArc$/name: SunArc beta/' -e "s/^version: .*/version: ${TAG}/" "$bron/addon/config.yaml"
+          } > addon/config.yaml
+          grep -qx 'name: SunArc beta' addon/config.yaml
+          grep -qx "version: ${TAG}" addon/config.yaml
+          {
+            echo '# Het kanaal beta van SunArc (besluit 336), voor de proefhuizen.'
+            echo '# De CI schrijft deze tak zelf; niet met de hand bijwerken.'
+            echo 'name: SunArc OS beta'
+            echo 'url: https://github.com/Ricardo-switch/SunArc'
+            echo 'maintainer: Ricardo Cornelissen'
+          } > repository.yaml
+          {
+            echo '# SunArc, kanaal beta'
+            echo
+            echo 'Deze tak maakt de CI zelf, na elke groene versie op `beta` (besluit 336).'
+            echo 'Hij bevat alleen wat de add-on-winkel van Home Assistant leest. De code'
+            echo 'staat op de tak `beta`; de gewone add-on staat op `main`.'
+            echo
+            echo 'Toevoegen in Home Assistant: Instellingen › Add-ons › Add-on-winkel ›'
+            echo 'rechtsboven › Repositories, met dit adres:'
+            echo
+            echo '    https://github.com/Ricardo-switch/SunArc#addon-beta'
+          } > README.md
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Kanaal beta staat al op ${TAG}."
+            exit 0
+          fi
+          git commit -qm "Kanaal beta: ${TAG} (${GITHUB_SHA::7})"
+          git push origin HEAD:refs/heads/addon-beta
+          echo "Kanaal beta staat nu op ${TAG}."

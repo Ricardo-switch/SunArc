@@ -373,6 +373,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [242. Uit de leerstand, één image, en Vandaag van vóór het openen](#242-uit-de-leerstand-één-image-en-vandaag-van-vóór-het-openen)
 - [249. Zoeken naar updates en opnieuw starten vanuit de app](#249-zoeken-naar-updates-en-opnieuw-starten-vanuit-de-app)
 - [258. Wat er nieuw is: één overzicht per uitgave op main](#258-wat-er-nieuw-is-één-overzicht-per-uitgave-op-main)
+- [336. Een kanaal beta voor de proefhuizen met Home Assistant](#336-een-kanaal-beta-voor-de-proefhuizen-met-home-assistant)
 
 **Kwaliteitsbewaking**
 
@@ -15448,6 +15449,50 @@ grafiek en geen melding; het oude antwoord wordt een voorstel.
 - **De assistent** zegt bij de nacht wat je zei, of *Het lijkt weer de pc*.
 - **Niet:** een herkende nacht telt nog gewoon mee als opvallend (keuze
   Ricardo); de app noemt zelf nog steeds geen apparaat (besluit 88).
+
+## 336. Een kanaal beta voor de proefhuizen met Home Assistant
+
+*Onderwerp: uitrol en beheer · Status: geldig*
+
+23 november 2026. Naast de NAS komen er twee proefhuizen: een MSI NUC (amd64)
+bij Ricardo's ouders en later een Raspberry Pi 4 op een derde adres. Allebei met
+Home Assistant en de add-on, zodat ze testen wat gebruikers krijgen. Ricardo wil
+ze op beta, net als de NAS; vanaf januari gaan de andere gebruikers op `main`.
+
+Tot nu toe bouwde GitHub de images van de add-on alleen op `main` ([153]). Een
+Home Assistant kon dus geen beta krijgen. Twee dingen stonden in de weg:
+
+- Home Assistant leest de bron van een add-on van één tak, en haalt het image
+  met het nummer in `config.yaml` op. Op `beta` en `stable` staat hetzelfde
+  bestand als op `main`, dus hetzelfde image en hetzelfde nummer.
+- Een versienummer hoort naar één stuk code te wijzen. Zou beta het image
+  `0.228.2` maken, dan kreeg main bij het samenvoegen dat image van beta, ook als
+  er daarna nog commits met hetzelfde nummer bij kwamen.
+
+*Besluit:*
+
+- **Na elke groene push naar `beta`**, als `stable` vooruit is geschoven, roept
+  de CI de add-on-workflow aan met het kanaal beta. Een push met de sleutel van
+  de CI start zelf geen nieuwe workflow, daarom is het een aanroep.
+- **Het image heet `<versie>-beta`**, onder dezelfde naam
+  `ghcr.io/ricardo-switch/hems-climate`, zonder `latest`. Main houdt zijn eigen
+  nummers. Staat het image er al, omdat het nummer niet veranderde, dan bouwt
+  hij niets.
+- **De tak `addon-beta` schrijft de CI zelf**, pas als het image er is: alleen
+  `repository.yaml` en de map `addon/` met wat de winkel toont, met als naam
+  *SunArc beta* en als versie dat nummer. Een proefhuis voegt
+  `https://github.com/Ricardo-switch/SunArc#addon-beta` toe.
+- **Een update komt alleen bij een nieuw nummer**, net als op main. De NAS
+  volgt elke commit op `stable`; een proefhuis elke versie.
+- **Wisselen van kanaal neemt de instellingen niet mee.** Home Assistant zet de
+  map van een add-on onder een teken dat bij het adres van de bron hoort (zie
+  ook de oude naam die de Pi houdt). Wie van beta naar main gaat, zet eerst een
+  kopie van `/addon_configs/` terug. Het eenvoudigst is dat proefhuizen op beta
+  blijven.
+
+*Afgevallen:* een aparte add-on in de map van `main` (dan moet main bij elke
+versie van beta mee), en een eigen imagenaam (een nieuw pakket op GitHub moet
+eerst met de hand openbaar gezet worden).
 
 ## Wat nog een besluit wacht
 
