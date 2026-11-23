@@ -4598,12 +4598,14 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await advies.locator('.koplink').getAttribute('href')).toBe('auto.html#tesla');
       // Met één tik (besluit 262): de Easee mag, dus Laad met 8 A, tot de kabel eruit gaat; en Meer keuzes opent het blad.
       expect(await advies.locator('.kijk').getAttribute('href')).toBe('auto.html?laden#tesla');
-      // De knop zelf indrukken (23 november 2026): op de CI verschoof het advies soms net voor de klik, en dan viel de klik
-      // op de autokaart eronder en opende de pagina Auto. Daarna moet Thuis open blijven.
+      // De knop zelf indrukken (23 november 2026). Na 2,5 s tekent Thuis het advies opnieuw, en omdat het dan al met de
+      // hand laadt staat er geen knop meer; op een trage computer (de CI) is de bevestiging dan al weg. Dus: de opdracht
+      // is gestuurd, en de knop zegt Laadt met 8 A of is weg.
       await advies.locator('[data-laden-snel]').dispatchEvent('click');
-      await expect.poll(() => advies.locator('[data-laden-snel]').textContent()).toBe('Laadt met 8 A');
-      expect(new URL(p.url()).pathname).toBe('/thuis.html');
+      await expect.poll(() => ladenGestuurd.length).toBe(1);
       expect(ladenGestuurd).toEqual([{ auto: 'tesla', stroomA: 8, tot: 'kabel' }]);
+      await expect.poll(() => advies.evaluate((el) => el.querySelector('[data-laden-snel]')?.textContent ?? 'weg')).toMatch(/^(Laadt met 8 A|weg)$/);
+      expect(new URL(p.url()).pathname).toBe('/thuis.html');
       expect(await advies.evaluate((el) => el.nextElementSibling?.getAttribute('data-kaart'))).toBe('auto');
       expect(await kaart('batterij').textContent()).toContain('Levert 0,9 kW aan het huis');
       // Deze maand: met meters wat er opgewekt en zelf gebruikt is (na de test van Opbrengst), zonder wat er nodig is.
