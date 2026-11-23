@@ -5837,6 +5837,68 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
   }, 30_000);
 
   /*
+   * De motor (23 november 2026, stap 4 punt 4): zeven tikken op het versienummer bij Over deze app zetten De motor
+   * onder de versie. Nu toont het besluit van nu, zonder dat de wand schuift; Kopieer de stand kopieert; Vandaag zegt
+   * dat er van vandaag niets is (de logboeken van de test zijn van september), en de adressen per dag en per ronde
+   * geven wat de kern in die rondes meegaf.
+   */
+  it('opent De motor na zeven tikken op de versie, met Nu, Kopieer de stand en Vandaag', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL', permissions: ['clipboard-read', 'clipboard-write'] });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.addInitScript(() => localStorage.setItem('sc-rondleiding-gezien', '1'));
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    p.on('console', (m) => /Geen tekst voor/.test(m.text()) && fouten.push(m.text()));
+    try {
+      await p.goto(`${baseUrl}/over.html`);
+      const versie = p.locator('#wand .versie');
+      await versie.waitFor();
+      expect(await p.locator('#wand a[href="motor.html"]').count()).toBe(0);
+      for (let i = 0; i < 5; i++) await versie.click();
+      await p.locator('#wand [data-motor-tik]', { hasText: 'Nog 2 tikken' }).waitFor();
+      await versie.click();
+      await versie.click();
+      await p.locator('#wand a[href="motor.html"]').click();
+      await p.waitForURL(/motor\.html$/);
+      await p.locator('#wand .mo-kop h1', { hasText: 'De motor' }).waitFor();
+      await p.locator('#wand .mo-kaart').first().waitFor();
+      expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1 && document.scrollingElement.scrollWidth <= innerWidth + 1')).toBe(true);
+      // Kopieer de stand: het besluit als tekst, zonder namen.
+      await p.locator('#wand [data-kopie]').click();
+      await p.locator('#wand [data-kopie]', { hasText: 'Gekopieerd' }).waitFor({ timeout: 5000 });
+      const tekst = await p.evaluate<string>('navigator.clipboard.readText()').catch(() => '');
+      if (tekst) {
+        expect(tekst).toContain('De motor');
+        expect(tekst).not.toMatch(/Woonkamer|Zolder/);
+      }
+      await p.locator('#wand [data-deel="vandaag"]').click();
+      await p.locator('#wand .mo-melding', { hasText: 'Van vandaag staat er nog niets' }).waitFor({ timeout: 8000 });
+      expect(new URL(p.url()).hash).toBe('#vandaag');
+      // De adressen: per kwartier van een dag uit het logboek, en één ronde.
+      const dag = (await (await fetch(`${baseUrl}/api/motor/dag?dag=${DAYS[0]}`, { headers: { cookie: `hems_sessie=${sessionId}` } })).json()) as { kwartieren: ({ rondes: number; oud: boolean; apparaten: Record<string, { zou: string | null }> } | null)[]; apparaten: string[] };
+      expect(dag.kwartieren).toHaveLength(96);
+      expect(dag.apparaten).toContain('ac-woonkamer');
+      // 12:00 UTC is 13:00 in Amsterdam (de tijdzone van het voorbeeldhuis): kwartier 52.
+      expect(dag.kwartieren[52]).toMatchObject({ rondes: 15, apparaten: { 'ac-woonkamer': { zou: 'cool' } } });
+      const r = (await (await fetch(`${baseUrl}/api/motor/ronde?t=${Date.parse(`${DAYS[0]}T12:03:30Z`)}`, { headers: { cookie: `hems_sessie=${sessionId}` } })).json()) as { tMs: number; besluit: { vanMs: number; accepted: { action: string }[] } };
+      expect(r.tMs).toBe(Date.parse(`${DAYS[0]}T12:03:00Z`));
+      expect(r.besluit.vanMs).toBe(Date.parse(`${DAYS[0]}T12:00:00Z`));
+      expect(r.besluit.accepted).toMatchObject([{ action: 'cool' }]);
+      expect((await fetch(`${baseUrl}/api/motor/dag?dag=morgen`, { headers: { cookie: `hems_sessie=${sessionId}` } })).status).toBe(400);
+      // De telefoon: onder elkaar, niets opzij.
+      await p.setViewportSize({ width: 390, height: 844 });
+      await p.goto(`${baseUrl}/motor.html`);
+      await p.locator('#tel .mo-kaart').first().waitFor();
+      expect(await p.evaluate<boolean>('document.scrollingElement.scrollWidth <= innerWidth + 1')).toBe(true);
+      expect(fouten).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  }, 40_000);
+
+  /*
    * Meld een probleem (testerronde, november 2026): vanuit het menu een blad,
    * een vooraf ingevuld issue op GitHub met een meldcode, en na een update de
    * uitkomst van je eigen melding.

@@ -67,6 +67,8 @@ verwijzing bestaat.
   salderen, behalve bij gegevens van 2026 en eerder ([334]).
   Sinds 0.229.0 zeg je bij Sluipverbruik per nacht wat er draaide, en vraagt
   SunArc bij een nacht die erop lijkt "Weer de pc?" ([335]).
+  Sinds 0.230.0 staat De motor achter zeven tikken op de versie bij Over deze
+  app: wat SunArc meet, verdeelt en besluit, nu en elk kwartier van vandaag ([337]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
   daarna hooguit één versie per week. Melden staat tot januari op pauze in de
   add-on.
@@ -1090,4 +1092,5 @@ verwijzing bestaat.
 [334]: DECISIONS.md#334-salderen-alleen-nog-bij-gegevens-van-2026-en-eerder
 [335]: DECISIONS.md#335-sluipverbruik-een-reden-per-nacht-en-herkennen
 [336]: DECISIONS.md#336-een-kanaal-beta-voor-de-proefhuizen-met-home-assistant
+[337]: DECISIONS.md#337-de-motor-de-schaduwpagina-in-de-vorm-van-de-app
 <!-- links:einde -->

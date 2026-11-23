@@ -7,6 +7,7 @@
 
 import { sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
+import { motorDag, motorRonde } from '../motor.js';
 
 /** De routes van dit onderwerp; waar als het verzoek hier is afgehandeld. */
 export async function standRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
@@ -25,6 +26,39 @@ export async function standRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
 
   if (path === '/api/events') {
     d.live.abonneer(res, method === 'HEAD', taalVan(url.searchParams.get('taal')));
+    return true;
+  }
+
+  /*
+   * De motor › Vandaag (23 november 2026): per kwartier van een dag wat de motor zou doen, wat er gebeurde en wat de
+   * oude regeling deed (`?dag=JJJJ-MM-DD`, anders vandaag), en één ronde om terug te kijken (`?t=` in ms, anders nu).
+   */
+  if (path === '/api/motor/dag' || path === '/api/motor/ronde') {
+    const logDir = d.options.logDir;
+    const tz = d.config()?.timezone ?? 'Europe/Amsterdam';
+    if (!logDir) {
+      sendJson(res, 503, { wachten: 'zonder logboek is er niets terug te kijken' });
+      return true;
+    }
+    if (path === '/api/motor/dag') {
+      const vraag = url.searchParams.get('dag');
+      const vandaag = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+      const dag = vraag ?? vandaag;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dag)) {
+        sendJson(res, 400, { fout: 'dag is een dag als 2026-11-23' });
+        return true;
+      }
+      const uit = await motorDag(logDir, dag, tz);
+      sendJson(res, uit ? 200 : 404, uit ?? { fout: 'van die dag is er geen logboek' });
+      return true;
+    }
+    const t = Number(url.searchParams.get('t') ?? Date.now());
+    if (!Number.isFinite(t)) {
+      sendJson(res, 400, { fout: 't is een moment in milliseconden' });
+      return true;
+    }
+    const uit = await motorRonde(logDir, t, tz);
+    sendJson(res, uit ? 200 : 404, uit ?? { fout: 'van die dag is er geen logboek' });
     return true;
   }
 

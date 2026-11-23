@@ -326,6 +326,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [333. Radiatoren, buitenunits en dakramen in het getekende huis](#333-radiatoren-buitenunits-en-dakramen-in-het-getekende-huis)
 - [334. Salderen alleen nog bij gegevens van 2026 en eerder](#334-salderen-alleen-nog-bij-gegevens-van-2026-en-eerder)
 - [335. Sluipverbruik: een reden per nacht, en herkennen](#335-sluipverbruik-een-reden-per-nacht-en-herkennen)
+- [337. De motor: de schaduwpagina in de vorm van de app](#337-de-motor-de-schaduwpagina-in-de-vorm-van-de-app)
 
 **Veiligheid**
 
@@ -15497,6 +15498,43 @@ Home Assistant kon dus geen beta krijgen. Twee dingen stonden in de weg:
 *Afgevallen:* een aparte add-on in de map van `main` (dan moet main bij elke
 versie van beta mee), en een eigen imagenaam (een nieuw pakket op GitHub moet
 eerst met de hand openbaar gezet worden).
+
+## 337. De motor: de schaduwpagina in de vorm van de app
+
+*Onderwerp: weergave · Status: geldig*
+
+23 november 2026, kwaliteitsronde stap 4 punt 4 (rapport: *De schaduwpagina
+wordt De motor*). De oude schaduwpagina (SunArc OS) hoorde niet bij de app, je
+kwam er niet, hij toonde de helft van de motor en sprak vaktaal. Schetsen
+`design/app2/Wand-Motor.html` en `Tel-Motor.html`; Ricardo: eerst de
+telefoonschets, daarna "begin maar". De dertig winterdagen beginnen op
+1 december, dus eerst Nu en Vandaag.
+
+*Besluit (0.230.0):*
+
+- **De ingang.** Zeven tikken op het versienummer bij Over deze app (vanaf vier
+  zegt de pagina hoeveel er nog komen); daarna staat op dat toestel *De motor*
+  onder de versie (`sc-motor`). Geen slot: de pagina leest alleen, achter
+  dezelfde inlog als de rest.
+- **Nu** (`motor.html`): wat hij meet (stand, buiten, zon, net, fasen, accu, en
+  veiligheid in één regel), wat er naast hem op zon draait (stekkers op zon,
+  warmtebuffers, uitstelbaar witgoed), de oude regeling, wat er te verdelen is,
+  wat elke kamer vraagt, en wat hij besluit en afwijst. Bij elke ronde live. Een
+  vaste code krijgt een gewoon woord, met de code klein erachter; een code
+  zonder woord staat als code.
+- **Vandaag:** elk kwartier van vandaag per apparaat wat de motor zou willen,
+  een witte rand waar het apparaat iets anders deed, en of de oude regeling
+  iets deed (`api/motor/dag`). Tik een blokje voor die ronde, en blader per
+  ronde (`api/motor/ronde?t=`): wat de kern toen mat en het besluit dat gold.
+  Niets nagerekend: het komt uit het beslislogboek.
+- **Kopieer de stand:** het besluit van nu als tekst, met de kamers en
+  apparaten als nummers in plaats van hun namen, voor bij een melding.
+- **Nog niet:** Geleerd (seizoenen, standen, thermisch model, panelen,
+  vermogens) en Vergelijken (eens met de oude regeling, waar ze verschilden)
+  komen in een volgende versie; daarna gaat de oude pagina (`index.html`,
+  `app.js` en Tailwind) weg. Installeren en de back-up hebben al een eigen plek
+  (Begin en Toegang). De wissel van *zou doen* naar *deed* op de dag dat SunArc
+  zelf regelt.
 
 ## Wat nog een besluit wacht
 
