@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.229.0';
+export const VERSIE = '0.230.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.230.0',
+    datum: '2026-11-23',
+    nieuw: [
+      'De motor: tik zeven keer op het versienummer bij Over deze app. Dan zie je wat SunArc meet, verdeelt en besluit, live en elk kwartier van vandaag, met wat het afwijst en waarom, en kun je de stand kopiëren voor bij een melding',
+    ],
+    en: {
+      nieuw: [
+        'The engine: tap the version number seven times under About this app. Then you see what SunArc measures, shares and decides, live and every quarter hour today, with what it turns down and why, and you can copy the state for a report',
+      ],
+    },
+  },
   {
     versie: '0.229.0',
     datum: '2026-11-23',
