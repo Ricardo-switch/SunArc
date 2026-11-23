@@ -19,6 +19,7 @@
  *   hoogte    hoe hoog je kijkt, in graden (standaard 24)
  *   kamers    { kamer-id: { temp, zin, toon } }: toon goed | koelt | verwarmt | wacht | zon
  *   aan       [apparaat-id]: wat nu draait (een gloed om de stip)
+ *   aircoToon { apparaat-id: koelt | verwarmt }: wat een airco zelf doet; de kleur van zijn lucht (anders die van de kamer)
  *   avond     de lampen die aan staan geven licht op de vloer
  *   panelen   { aantal, kant: 0 | 1 }, of een lijst daarvan: panelen op het dak van het hoofdhuis
  *   rand      ruimte om het huis, in pixels
@@ -305,9 +306,9 @@
     // Breed om het huis, en de hoogte wat opgerekt (de zon staat in november laag; echt op schaal kan niet, hij staat oneindig ver).
     // Op Thuis (`o.boogVrij`) een kleinere boog dicht om het huis, zodat hij niet in de tekst ernaast loopt (22 november 2026).
     const ringR = o.boogVrij ? Math.max(X1 - X0, Y1 - Y0) * 0.62 + 1.5 : Math.max(X1 - X0, Y1 - Y0) * 1.0 + 4.5;
-    const ringZ = (hd ? hd.nok : Math.max(...lagen.map((l) => l.top))) + 1.4;
+    let ringZ = (hd ? hd.nok : Math.max(...lagen.map((l) => l.top))) + 1.4;
     // De hoogte opgerekt als de zon laag staat (de winter), nooit hoger dan 0,9 keer de straal (de zomer liep anders uit beeld).
-    const rek = zb ? Math.min(1.4, 0.9 / Math.max(0.05, Math.sin((Math.max(...zb.baan.map((q) => q.el)) * Math.PI) / 180))) : 1;
+    let rek = zb ? Math.min(1.4, 0.9 / Math.max(0.05, Math.sin((Math.max(...zb.baan.map((q) => q.el)) * Math.PI) / 180))) : 1;
     const ringPunt = ({ az, el }) => {
       const r = Math.PI / 180;
       const c = Math.cos(el * r);
@@ -318,6 +319,45 @@
        */
       return [cx - ringR * c * Math.sin(rel), cy - ringR * c * Math.cos(rel), ringZ + ringR * rek * Math.sin(Math.max(0, el) * r)];
     };
+    /*
+     * Op Thuis net boven het huis (23 november 2026, Ricardo: in de standaardhoek liep de boog door het huis). De ring
+     * ligt om het huis, dus het stuk aan de kant van de kijker valt in beeld over het huis. Waar de boog boven het huis
+     * langs gaat, komt hij zo hoog dat hij er 40 cm boven blijft: de hele ring gaat dan even veel omhoog.
+     */
+    if (zb && o.boogVrij) {
+      const nok = hd ? hd.nok : Math.max(...lagen.map((l) => l.top));
+      const goot = Math.max(...lagen.map((l) => l.top));
+      const [mx, my] = [(X0 + X1) / 2, (Y0 + Y1) / 2];
+      const dak = [[X0, Y0, goot], [X1, Y0, goot], [X1, Y1, goot], [X0, Y1, goot], [mx, Y0, nok], [mx, Y1, nok], [X0, my, nok], [X1, my, nok]].map((q) => kaal(...q));
+      const voet = [[X0, Y0, 0], [X1, Y0, 0], [X1, Y1, 0], [X0, Y1, 0]].map((q) => kaal(...q)[0]);
+      const [hx0, hx1] = [Math.min(...voet), Math.max(...voet)];
+      const top = Math.min(...dak.map((q) => q[1]));
+      const perMeter = kaal(cx, cy, 0)[1] - kaal(cx, cy, 1)[1];
+      // Hoeveel omhoog bij een rek, en hoe hoog de boog dan in beeld komt; de boog mag wat platter, zodat hij niet de
+      // tekst bovenin in loopt, maar blijft een boog: tot een kwart platter, de rek waarbij de top het laagst blijft.
+      const z0 = ringZ;
+      const rek0 = rek;
+      let beste = null;
+      for (let i = 0; i <= 4 && perMeter > 0; i++) {
+        rek = rek0 * (1 - i * 0.06);
+        ringZ = z0;
+        let nodig = 0;
+        let hoogst = Infinity;
+        for (const q of zb.baan) {
+          if (q.el <= -1.5) continue;
+          const [qx, qy] = kaal(...ringPunt(q));
+          hoogst = Math.min(hoogst, qy);
+          if (qx >= hx0 && qx <= hx1) nodig = Math.max(nodig, qy - (top - 0.4 * perMeter));
+        }
+        const dz = Math.max(0, nodig) / perMeter;
+        const piek = hoogst - dz * perMeter;
+        if (!beste || piek > beste.piek + 1e-9) beste = { rek, dz, piek };
+      }
+      if (beste) {
+        rek = beste.rek;
+        ringZ = z0 + beste.dz;
+      }
+    }
     // Op Thuis (`o.boogVrij`) telt de boog niet mee voor de schaal: het huis blijft groot, de boog loopt erom (22 november 2026).
     if (zb && !o.boogVrij) for (const q of zb.baan) if (q.el > -1.5) punten.push(ringPunt(q));
     // Eén etage: alleen die etage met de wazige stukjes erboven en eronder in beeld (en een smalle rand grond, op de begane grond).
@@ -523,7 +563,7 @@
         if (v.cirkel) {
           const [a, zz, r] = v.cirkel;
           const c = W(a, dV, zz);
-          return cirkel(c[0], c[1], c[2], r, as, `fill="${v.vul ?? 'none'}"${v.rand ? ` stroke="${v.rand}" stroke-width="${v.dik ?? 1}"` : ''}${v.streep ? ' stroke-dasharray="3 3"' : ''}${v.klasse ? ` class="${v.klasse}"` : ''}`);
+          return cirkel(c[0], c[1], c[2], r, as, `fill="${v.vul ?? 'none'}"${v.rand ? ` stroke="${v.rand}" stroke-width="${v.dik ?? 1}"` : ''}${v.streep ? ' stroke-dasharray="3 3"' : ''}${v.klasse ? ` class="${v.klasse}" style="transform-box: fill-box; transform-origin: center"` : ''}`);
         }
         if (v.lijn) {
           const [a0, z0, a1, z1] = v.lijn;
@@ -1036,7 +1076,9 @@
         }
         // Een airco die draait: drie zachte stromen lucht de kamer in, warm of koel.
         if (M.lucht && draait) {
-          const kleur = kamerInfo[t.st.apparaten.find((a) => a.id === q.a.id)?.kamer]?.toon === 'koelt' ? '#6fd3ff' : '#ff7a4d';
+          // Blauw als hij koelt, oranje als hij verwarmt (23 november 2026: eerst gaf de kamer de kleur, en die kon koelt zeggen terwijl de airco verwarmde).
+          const toon = o.aircoToon?.[q.a.id] ?? kamerInfo[t.st.apparaten.find((a) => a.id === q.a.id)?.kamer]?.toon;
+          const kleur = toon === 'koelt' ? '#6fd3ff' : '#ff7a4d';
           for (let i = -1; i <= 1; i++) {
             const a = P(...md.W(i * 0.25, M.d, -0.02));
             const b = P(...md.W(i * 0.25, M.d + 0.7, -0.45));

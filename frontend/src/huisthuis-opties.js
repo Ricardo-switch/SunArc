@@ -54,6 +54,8 @@
     const schermen = {};
     const lichtBij = {};
     const lampKleur = {};
+    // Wat een airco zelf doet (23 november 2026): koelen of verwarmen, uit zijn eigen stand, niet die van de kamer.
+    const aircoToon = {};
     for (const e of huisApi?.etages ?? []) {
       for (const r of e.ruimtes ?? []) {
         for (const a of r.apparaten ?? []) {
@@ -63,6 +65,10 @@
           if (a.soort === 'licht' && a.hoortBij) lichtBij[a.hoortBij] = a.id;
           // De kleur van een lamp die brandt, zoals in het poppenhuis (22 november 2026: de nieuwe tekenaar had altijd geel).
           if (a.soort === 'licht' && a.aan) lampKleur[a.id] = global.huismodel?.kleurVanLicht?.(a) ?? '#FFD9A0';
+          if (a.soort === 'klimaat') {
+            const code = a.klimaat?.actieCode === 'koelt' || a.standCode === 'koelen' ? 'koelt' : a.klimaat?.actieCode === 'verwarmt' || a.standCode === 'verwarmen' ? 'verwarmt' : null;
+            if (code) aircoToon[a.id] = code;
+          }
           // Een bewegingsmelder die nu beweging ziet: het teken eromheen.
           if (a.meting?.beweging?.nu) aanSet.add(a.id);
         }
@@ -363,6 +369,7 @@
       kamers,
       aan: [...aanSet],
       lampKleur,
+      aircoToon,
       panelen,
       schermen,
       bomen,
