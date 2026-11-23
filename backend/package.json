@@ -23,6 +23,7 @@
     "teksten": "tsx tools/teksten.ts",
     "shadow": "tsx src/main.ts",
     "config:check": "tsx tools/check-config.ts",
+    "huizen": "tsx tools/huizen.ts",
     "shadow:start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shadow.ps1 start",
     "shadow:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shadow.ps1 stop",
     "shadow:restart": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shadow.ps1 restart",

@@ -15489,6 +15489,10 @@ Home Assistant kon dus geen beta krijgen. Twee dingen stonden in de weg:
   ook de oude naam die de Pi houdt). Wie van beta naar main gaat, zet eerst een
   kopie van `/addon_configs/` terug. Het eenvoudigst is dat proefhuizen op beta
   blijven.
+- **Vergelijken:** `npm run huizen` in `backend/` zet de huizen naast elkaar:
+  versie, container, wat SunArc vandaag deed, de analyse en foutregels. Alleen
+  lezen, via SSH en een `fetch` binnen de container. De lijst met huizen en hun
+  adressen staat in `.claude/huizen.json` en blijft lokaal.
 
 *Afgevallen:* een aparte add-on in de map van `main` (dan moet main bij elke
 versie van beta mee), en een eigen imagenaam (een nieuw pakket op GitHub moet
