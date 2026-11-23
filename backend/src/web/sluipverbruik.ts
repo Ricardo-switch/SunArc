@@ -140,7 +140,6 @@ export function nachtenUit(rijen: readonly Rij[], timeZone: string, nuMs: number
 }
 
 const gemiddeld = (xs: readonly number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
-const DAG_MS = 86_400_000;
 
 /**
  * Vaak meer dan gewoon. Hier wisselde het huis sinds augustus 2026 tussen
