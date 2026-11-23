@@ -117,9 +117,11 @@ environment how the service runs: add-on or not, the display, the write door,
 the timings (decision 55). `main.ts` only carries it out. Its first parts live
 in `backend/src/start/`: `begin.ts` (`.env`, the flags that run without Home
 Assistant, the token), `config-bij-start.ts` (the configuration with the
-connection and measuring) and `web-opties.ts` (what the web server is given).
-What can still change in `main.ts` reaches the web server through getters on
-`mainStand`.
+connection and measuring) and `web-opties.ts` (what the web server is given),
+and per topic `weer.ts`, `ligging.ts`, `opbrengst.ts`, `herinneringen.ts` and
+`assistent.ts`. Such a topic is a function that `main.ts` calls in the old
+place; what can still change in `main.ts` reaches it through getters
+(`mainStand`, `maakWeerNodig`, ...).
 
 **Configuration as data (`config/sites/*.json`).** Validated at startup, with
 consistency checks; only what truly cannot be missing is an error, the rest

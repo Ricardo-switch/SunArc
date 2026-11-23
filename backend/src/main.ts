@@ -10,15 +10,11 @@
  * client wordt zonder schrijfrechten aangemaakt, en een `callService` zou daar
  * op stuklopen.
  */
-import { Integratie } from './web/integratie.js';
-import { AssistentAan, oudeWegViaRest, voegToeViaFlow } from './web/assistent-aan.js';
 import { PushStore, alsMelding, ontvangersVan, paneelVan, proefTekst, teSturen, telefoonVan, vindTelefoons, type Telefoon } from './web/push.js';
-import { hostname } from 'node:os';
 import { inHouse, snelInHuis } from './web/inhuis.js';
-import { klaarzetten, type KlaarPunt } from './web/klaarzetten.js';
 import { type WandMelding } from './web/klaarzetten-functies.js';
 import { kiesTaal } from './web/stem.js';
-import { InHuis, addOnInfo, bevestigViaRest, maakViaWebsocket, type AddOnInfo, type Stroom } from './web/stem-in-huis.js';
+import { InHuis, bevestigViaRest, maakViaWebsocket, type Stroom } from './web/stem-in-huis.js';
 import { rollenUitConfig, type RegelingNiet } from './web/regeling.js';
 import { MeldingenStore } from './web/meldingen.js';
 import { meldingenBron } from './web/meldingen-bron.js';
@@ -54,46 +50,36 @@ import { VoorkeurenStore } from './web/voorkeuren.js';
 import { SceneColorStore, colorsFromLamps } from './web/scene-colors.js';
 import { ScenePictures } from './web/scene-pictures.js';
 import { EnergyStore } from './web/energy.js';
-import { partsIn, startOfLocalDay, zonedMidnight, type PowerRow } from './web/today.js';
+import { partsIn, startOfLocalDay, zonedMidnight } from './web/today.js';
 import { faseHistorie, fasenView, type FasePunt, type FasenView } from './web/fasen.js';
-import { WeatherLog, dagenUitUren, type EntityForecast } from './web/weather.js';
-import { Historie, somPerVak } from './web/historie.js';
 import { zetValuta } from './web/valuta.js';
 import { Sluipverbruik, jaarPrijs, sluipVoorBel } from './web/sluipverbruik.js';
-import { verwachtingVan, weerNaamVan } from './web/weerbron.js';
-import { OPEN_METEO, OpenMeteo } from './web/open-meteo.js';
 import { httpBase } from './web/camera.js';
 import { Pauze } from './web/taalmodel.js';
 import { Teller } from './web/brein.js';
-import { Herinneringen, type Herinnering } from './web/tedoen.js';
-import { volgendeMoment } from './web/gepland.js';
-import type { TeDoenDienst } from './web/routes/tedoen.js';
 import { spraakKeuzes, type SpraakKeuze } from './web/functies.js';
 import { aanKerenHistorie, alleCameraMelders, alleCamerasNu, camerasNu, laatsteAanUitHistorie } from './web/cameras.js';
 import { FunctiesStore, aangebeld, functiesGevonden, functiesVoorstel, getoondeCameras, volledig, type Functies, type FunctiesGevonden } from './web/functies.js';
-import { accusNu, accuView, KABEL_STANDAARD, laadBedieningen, laadMeters, ladenView, metLosseLaadpalen, vindOpslag } from './web/opslag.js';
+import { accusNu, accuView, KABEL_STANDAARD, laadBedieningen, ladenView, metLosseLaadpalen, vindOpslag } from './web/opslag.js';
 import { Laadhand, laadMag } from './web/laadhand.js';
 import { Stekkerhand, stekkerMag, type StekkerBekend } from './web/stekkerhand.js';
 import { StekkerZon } from './web/stekkerzon.js';
-import { Laadbeurten } from './web/laadbeurten.js';
 import { laadAdvies, prijzenVooruit, type LaadAdvies } from './web/laadadvies.js';
-import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhaseMeters, findPhases, findPowers, metOpZonVanNu, withConnection, type ConnectionAnswers } from './web/aansluiting.js';
+import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhaseMeters, findPhases, findPowers, metOpZonVanNu, withConnection } from './web/aansluiting.js';
 import { clearSkyOnPlaneWm2, sunPosition } from './core/sun.js';
 import { laadDag, zonVerwachtW } from './web/laaddag.js';
 import { clearSkyW } from './web/sun.js';
-import { hoofddakPlat, panelenVan, type DakVlak } from './web/daken.js';
+import { hoofddakPlat } from './web/daken.js';
 import { inNederland } from './web/bag3d.js';
-import { aanvullenUitMeter, achterblijven, meetVlakken, metMeting, opbrengstPerVlak, verdeelDag, type Achter, type MeterGroep, type VlakStand, type Verdeling } from './web/meten-vlakken.js';
 import { findHeatStores, findPlugs, type FoundHeatStore } from './web/buffers-vinden.js';
 import { GEEN_KEUZES, SchakelaarStore, kinderslotVan, lampSchakelaars, schakelaarsMag, schakelaarsOpZon, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
-import { kiesLigging, meetLigging, omvormerUitType, type Meting, type PanelenAntwoord } from './web/ligging.js';
 import { alarmSensoren, vindRookmelders } from './web/rookmelders.js';
 import { eigenUpdate, updateView, type UpdateView } from './web/bijwerken.js';
 import type { DeferrableStateCode } from './core/decision.js';
 import { CoverSwitch } from './web/covers.js';
 import type { Lang } from './web/assistant.js';
 import { LightSwitch } from './web/lights.js';
-import { SessionStore, haBeheerders, homeAssistantLogin, leesOfMaakSleutel, type Access, type HaAccount } from './web/auth.js';
+import { SessionStore, haBeheerders, homeAssistantLogin, type Access, type HaAccount } from './web/auth.js';
 import { ShadowRunner, type LiveSnapshot } from './adapters/homeassistant/shadow.js';
 import { defaultStrategies } from './index.js';
 import { WebServer, versionFromEnv, type AlarmMelder } from './web/server.js';
@@ -105,11 +91,15 @@ import { BRUG_ENTITEITEN, KlimaatBrug, MODUS_OPTIES } from './web/klimaatbrug.js
 import { HAND_KLIMAAT, HAND_KNOPPEN, Handbediening } from './web/hand.js';
 import { Voorbeeld } from './web/voorbeeld.js';
 import { Witgoed } from './web/witgoed.js';
-import { voerStapUit, type GeplandeDeuren } from './web/gepland-uit.js';
 import { Verstaan } from './web/verstaan.js';
 import { configBijStart } from './start/config-bij-start.js';
 import { webOpties } from './start/web-opties.js';
 import { loadedFrom, startup, asAddon, url, token, tickSeconds, logDir, webPort, webDir, voorbeeldProces, inHuisMetDeuren } from './start/begin.js';
+import { maakWeer } from './start/weer.js';
+import { maakHerinneringen } from './start/herinneringen.js';
+import { maakLigging } from './start/ligging.js';
+import { maakAssistent } from './start/assistent.js';
+import { maakOpbrengst } from './start/opbrengst.js';
 
 
 const strategies = defaultStrategies();
@@ -1144,166 +1134,21 @@ const scenePictures = logDir !== '' ? new ScenePictures(logDir) : null;
 await scenePictures?.refresh();
 if (scenePictures) setInterval(() => void scenePictures.refresh(), 10 * 60_000).unref();
 
-/*
- * Hoe de panelen liggen (besluit 157): de opbrengst van de afgelopen tien
- * dagen, per vijf minuten uit de statistiek van Home Assistant (zo lang bewaart
- * hij die), om de drie uur opnieuw. De meting rekent opnieuw als de antwoorden
- * over het dak veranderen. Alleen lezen, met dezelfde vraag als Opbrengst.
- */
-let liggingRijen: { at: number; rijen: PowerRow[] } | null = null;
-/** Dezelfde tien dagen per omvormer, voor de meting per dakvlak (besluit 254, stap 4). */
-let liggingPerId = new Map<string, PowerRow[]>();
-async function leesLigging(): Promise<void> {
-  // Met meer omvormers de som (testerronde, november 2026); een meetpunt met een attribuut heeft geen statistiek.
-  const punten = siteConfig?.solarProduction ? [siteConfig.solarProduction, ...(siteConfig.solarExtra ?? [])] : [];
-  if (!punten.length || punten.some((p) => p.attribute)) return;
-  const ids = punten.map((p) => p.id);
-  const nu = Date.now();
-  const raw = await client.query<Record<string, { start: number | string; mean?: number | null }[]>>('recorder/statistics_during_period', {
-    start_time: new Date(nu - 10 * 86_400_000).toISOString(),
-    end_time: new Date(nu).toISOString(),
-    statistic_ids: ids,
-    period: '5minute',
-    types: ['mean'],
-    units: { power: 'W' },
-  });
-  const reeks = (id: string) => (raw?.[id] ?? [])
-    .filter((r) => typeof r.mean === 'number' && Number.isFinite(r.mean))
-    .map((r) => ({ startMs: typeof r.start === 'number' ? r.start : Date.parse(r.start), meanW: r.mean as number }));
-  // Alleen vakken waarin elke omvormer iets gaf: anders lijkt het dak minder sterk.
-  liggingPerId = new Map(ids.map((id) => [id, reeks(id)]));
-  liggingRijen = { at: nu, rijen: somPerVak(ids.map(reeks), [], true) };
-}
-// Eerst kort na het verbinden, daarna om de drie uur; mislukt het, dan over tien minuten opnieuw.
-setInterval(() => {
-  if (liggingRijen == null || Date.now() - liggingRijen.at > 3 * 3_600_000) void leesLigging().catch(() => {});
-}, 10 * 60_000).unref();
-setTimeout(() => void leesLigging().catch(() => {}), 45_000).unref();
-
-/** De omvormer uit zijn typenummer: van het apparaat van de zonnesensor, of de enige die er is. */
-function omvormerGevonden(): number | null {
-  const regs = houseRegisters;
-  if (!regs) return null;
-  const id = siteConfig?.solarProduction?.id;
-  const device = id ? regs.entities.find((e) => e.entity_id === id)?.device_id : null;
-  const eigen = device ? omvormerUitType(regs.devices.find((d) => d.id === device)?.model) : null;
-  if (eigen != null) return eigen;
-  const alle = [...new Set(regs.devices.map((d) => omvormerUitType(d.model)).filter((w): w is number => w != null))];
-  return alle.length === 1 ? alle[0]! : null;
-}
-
-/** Wat elke omvormer hooguit levert, uit het typenummer van zijn apparaat (besluit 254, stap 4). */
-function grenzenGevonden(): Record<string, number> {
-  const regs = houseRegisters;
-  if (!regs) return {};
-  const uit: Record<string, number> = {};
-  for (const p of siteConfig?.solarProduction ? [siteConfig.solarProduction, ...(siteConfig.solarExtra ?? [])] : []) {
-    const device = regs.entities.find((e) => e.entity_id === p.id)?.device_id;
-    const w = device ? omvormerUitType(regs.devices.find((d) => d.id === device)?.model) : null;
-    if (w != null) uit[p.id] = w;
-  }
-  return uit;
-}
-
-/**
- * De meting per dakvlak (besluit 254, stap 4): per meter zijn vlakken uit zijn
- * eigen opbrengst. Vlakken zonder meter horen bij de enige omvormer, of, als
- * geen enkel vlak een meter heeft, bij alle omvormers samen. Bewaard tot er
- * iets verandert.
- */
-let vlakMetingBewaard: { sleutel: string; uit: { perLetter: Record<string, VlakStand>; verdeling: Record<string, Verdeling>; achter: Achter | null } } | null = null;
-function vlakMetingNu(): { perLetter: Record<string, VlakStand>; verdeling: Record<string, Verdeling>; achter: Achter | null } | null {
-  const d = connectionStore?.current?.daken;
-  const cfg = siteConfig;
-  if (!d?.vlakken.length || !location || !cfg || !liggingRijen) return null;
-  const ids = [...liggingPerId.keys()];
-  const grenzen = grenzenGevonden();
-  const sleutel = JSON.stringify([liggingRijen.at, location, d.vlakken, d.grenzen ?? null, grenzen]);
-  if (vlakMetingBewaard?.sleutel === sleutel) return vlakMetingBewaard.uit;
-  const zonderMeter = d.vlakken.every((v) => v.meter == null);
-  const groepen = new Map<string, DakVlak[]>();
-  for (const v of d.vlakken) {
-    const id = v.meter ?? (ids.length === 1 ? ids[0]! : zonderMeter ? '' : null);
-    if (id == null || (id !== '' && !liggingPerId.has(id))) continue;
-    groepen.set(id, [...(groepen.get(id) ?? []), v]);
-  }
-  const perLetter: Record<string, VlakStand> = {};
-  const verdeling: Record<string, Verdeling> = {};
-  const meterGroepen: MeterGroep[] = [];
-  for (const [id, vlakken] of groepen) {
-    const rijen = id === '' ? liggingRijen.rijen : liggingPerId.get(id)!;
-    const grens = id === '' ? omvormerGevonden() : (d.grenzen?.[id] ?? grenzen[id] ?? (ids.length === 1 ? (d.omvormerW ?? omvormerGevonden()) : null));
-    const m = meetVlakken(rijen, vlakken, location, grens);
-    if (m) Object.assign(perLetter, m.vlakken);
-    // Verdelen met de stand waar de berekening mee rekent.
-    const nu = metMeting({ ...d, vlakken }, perLetter).vlakken;
-    const v = verdeelDag(rijen, nu, location, cfg.timezone, Date.now());
-    if (v) verdeling[id || 'samen'] = v;
-    meterGroepen.push({ id, vlakken: nu, rows: rijen, grensW: grens });
-  }
-  // Een vlak dat achterblijft (stap 5): per meter, en per deel van de dag.
-  const achter = achterblijven(meterGroepen, location, cfg.timezone);
-  vlakMetingBewaard = { sleutel, uit: { perLetter, verdeling, achter } };
-  return vlakMetingBewaard.uit;
-}
-
-let metingBewaard: { sleutel: string; meting: Meting | null } | null = null;
-/** De ligging gemeten uit de opbrengst, of null zonder heldere dag; bewaard tot er iets verandert. */
-/**
- * Wat de meting over het dak mag aannemen. Met bewaarde daken (besluit 254)
- * zoekt hij vrij, één vlak of twee tegenover elkaar, met het aantal panelen op
- * het hoofddak: anders stuurt wat de bewoner bij een vlak invulde de meting,
- * en kan hij niet meer zeggen dat het anders ligt.
- */
-function metingPanelen(a: ConnectionAnswers | null): PanelenAntwoord {
-  const hoofd = (a?.daken?.vlakken ?? []).filter((v) => v.plek === 'hoofddak' || v.plek === 'dwarskap');
-  if (hoofd.length) return { ligging: null, aantal: Math.min(200, hoofd.reduce((s, v) => s + panelenVan(v), 0)), voorkant: null, achterkant: null };
-  return a?.panelen ?? { ligging: null, aantal: null, voorkant: null, achterkant: null };
-}
-
-function metingNu(): Meting | null {
-  const r = liggingRijen;
-  const cfg = siteConfig;
-  if (!r || !location || !cfg) return null;
-  const a = connectionStore?.current ?? null;
-  const panelen = metingPanelen(a);
-  const omvormerW = a?.dak?.omvormerW ?? omvormerGevonden();
-  const sleutel = JSON.stringify([r.at, location, panelen, omvormerW]);
-  if (metingBewaard?.sleutel !== sleutel) metingBewaard = { sleutel, meting: meetLigging(r.rijen, location, panelen, { timeZone: cfg.timezone, omvormerW }) };
-  return metingBewaard.meting;
-}
-
-/**
- * De ligging die geldt, over de configuratie: wat de bewoner bevestigde gaat
- * voor (zoals de zekering, besluit 117), dan het bestand, dan de meting, dan
- * een schatting. De regeling leest hem niet (93), dus dit kan zonder herstart.
- */
-let liggingBewaard: { sleutel: string; gekozen: ReturnType<typeof kiesLigging> } | null = null;
-function metLigging(c: SiteConfig): SiteConfig {
-  const a = connectionStore?.current ?? null;
-  const input = {
-    configuratie: c.geometry,
-    dak: a?.dak ?? null,
-    meting: metingNu(),
-    panelen: a?.panelen ?? null,
-    voorkantZon: a?.voorkantZon ?? null,
-    omvormerGevonden: omvormerGevonden(),
-    // Daken en panelen (besluit 254): elk vlak apart, en de andere daken tellen mee; gemeten volgt de meting (stap 4).
-    daken: a?.daken ? metMeting(a.daken, vlakMetingNu()?.perLetter ?? {}) : null,
-    elders: a?.elders ?? null,
-    grenzen: grenzenGevonden(),
-  };
-  // Hetzelfde object zolang er niets verandert: de weercache kijkt ernaar.
-  const sleutel = JSON.stringify(input);
-  if (liggingBewaard?.sleutel !== sleutel) liggingBewaard = { sleutel, gekozen: kiesLigging(input) };
-  const gekozen = liggingBewaard.gekozen;
-  if (gekozen == null) {
-    if (c.geometry == null) return c;
-    const { geometry: _weg, ...zonder } = c;
-    return zonder;
-  }
-  return gekozen.geometry === c.geometry ? c : { ...c, geometry: gekozen.geometry };
-}
+/** Wat ligging.ts uit main.ts gebruikt: wat vastligt gewoon, wat kan wijzigen als getter. */
+const maakLiggingNodig = {
+  client, connectionStore,
+  get houseRegisters() {
+    return houseRegisters;
+  },
+  get location() {
+    return location;
+  },
+  get siteConfig() {
+    return siteConfig;
+  },
+};
+export type MaakLiggingNodig = typeof maakLiggingNodig;
+const { grenzenGevonden, metLigging, metingNu, omvormerGevonden, vlakMetingNu } = maakLigging(maakLiggingNodig);
 
 /** De configuratie zoals de app hem laat zien: met de namen en de volgorde uit de indeling (besluit 131). */
 const webConfig = () => (siteConfig ? metLigging(withLayoutNames(siteConfig, layoutStore?.current ?? null)) : null);
@@ -1519,213 +1364,47 @@ if (meldingen) {
   setInterval(meldingenRonde, 60_000).unref();
 }
 
-/*
- * Te doen (besluit 216): de herinneringen in een eigen bestand, en op het
- * tijdstip een melding naar de telefoon van wie hem vroeg (alleen in de
- * add-on). De wand vraagt zelf wat er speelt en zegt het hardop.
- */
-const herinneringen = new Herinneringen({
-  map: logDir !== '' ? logDir : null,
-  // Vast en gepland (besluit 234): na elke keer het volgende moment, op de klok en de zon van hier.
-  volgende: (o, vanMs) => (o.moment && o.herhaal ? volgendeMoment(o.moment, o.herhaal, vanMs, siteConfig?.timezone ?? 'Europe/Amsterdam', location) : null),
-});
-const teDoenKeus = () => {
-  const f = functiesNu();
-  return volledig(f ?? functiesVoorstel(functiesKeuzes() ?? { cameras: [], melders: [] }), functiesKeuzes()).tedoen;
-};
-const bewonerNaam = (account: string): string | null => {
-  const b = bewonersStore?.current;
-  const id = b?.volgorde.find((x) => b.bewoners[x]?.haUser === account && !b.bewoners[x]?.gast);
-  return id ? (b!.bewoners[id]!.naam ?? null) : null;
-};
-const teDoen: TeDoenDienst = {
-  keus: teDoenKeus,
-  herinneringen,
-  leesAgendas: (ids, van, tot) => client.leesAgendas(ids, van, tot),
-  leesLijsten: (ids) => client.leesLijsten(ids),
-  lijst: async (id, item, actie) => {
-    if (actie === 'opruimen') await client.callService('todo', 'remove_completed_items', {}, { entity_id: id });
-    else if (actie === 'toevoegen') await client.callService('todo', 'add_item', { item }, { entity_id: id });
-    else await client.callService('todo', 'update_item', { item, status: actie === 'klaar' ? 'completed' : 'needs_action' }, { entity_id: id });
+/** Wat herinneringen.ts uit main.ts gebruikt: wat vastligt gewoon, wat kan wijzigen als getter. */
+const maakHerinneringenNodig = {
+  allStates, bewonersStore, client, functiesKeuzes, functiesNu, handKnoppen, handbediening, klimaatAan, klopt, runner,
+  stekkerhand, telefoonDeur, telefoons, voorkeuren,
+  get coverSwitch() {
+    return coverSwitch;
   },
-  agendaVan: (account) => voorkeuren?.agenda(account) ?? { aan: true, ids: [] },
-  naamVan: bewonerNaam,
-  // Wie er thuis is, zoals de regeling het ziet (besluit 219): hun eigen agenda's staan dan op de wand.
-  thuis: () => {
-    const b = bewonersStore?.current;
-    if (!b) return [];
-    return (runner?.latest?.explanation.profile?.home ?? []).flatMap((id) => {
-      const x = b.bewoners[id];
-      return x && !x.gast && x.haUser ? [{ account: x.haUser, naam: x.naam ?? '' }] : [];
-    });
+  get lightSwitch() {
+    return lightSwitch;
   },
-  namen: (ids) => Object.fromEntries(ids.map((id) => [id, String(allStates.get(id)?.attributes['friendly_name'] ?? id)])),
-  agendas: () =>
-    [...allStates.values()]
-      .filter((s) => /^calendar\.[a-z0-9_]+$/.test(s.entity_id) && s.state !== 'unavailable')
-      .map((s) => ({ id: s.entity_id, naam: String(s.attributes['friendly_name'] ?? s.entity_id) }))
-      .sort((a, b) => a.naam.localeCompare(b.naam, 'nl')),
+  get location() {
+    return location;
+  },
+  get paneelPad() {
+    return paneelPad;
+  },
+  get siteConfig() {
+    return siteConfig;
+  },
+  get witgoed() {
+    return witgoed;
+  },
 };
-/**
- * Een geplande opdracht uitvoeren (besluit 218): dezelfde deuren als de
- * pagina, binnen wat bij Functies aan staat. Wat niet mag of niet lukt, komt
- * in het logboek.
- */
-async function voerGeplandUit(h: Herinnering): Promise<void> {
-  const f = functiesNu();
-  const vol = f ? volledig(f, functiesKeuzes()) : null;
-  const mag = vol?.licht.bedienen !== false;
-  // Klimaat met de hand en witgoed (besluit 240): dezelfde deuren als besluit 235 en 238.
-  const hand = handbediening && klimaatAan() ? handbediening : null;
-  const deuren: GeplandeDeuren = {
-    licht: lightSwitch && mag ? (b) => lightSwitch.switch(b) : null,
-    scene: lightSwitch?.scenesEnabled && mag ? (b) => lightSwitch.scene(b) : null,
-    scherm: coverSwitch && vol?.schermen.bedienen !== false ? (b) => coverSwitch.move(b) : null,
-    hand: hand
-      ? {
-          zet: (id, modus, doelC, totMs, totDoel) => hand.zet(id, modus, doelC, totMs, totDoel),
-          zetKnop: (id, doelC, totMs, totDoel) => hand.zetKnop(id, doelC, totMs, totDoel),
-          schakelAan: (id, totMs) => hand.schakelAan(id, totMs),
-          isKnop: (id) => handKnoppen().some((k) => k.id === id),
-        }
-      : null,
-    witgoed: witgoed ? (id) => witgoed!.nuStarten(id) : null,
-    // Een slimme stekker op een vaste tijd (besluit 266): dezelfde deur als met de hand (265).
-    stekker: inHuisMetDeuren ? async (id, aan, tot) => {
-      const r = await stekkerhand.zet(id, aan, tot);
-      return r.ok ? { ok: true } : { ok: false, reden: r.reden };
-    } : null,
-    tz: siteConfig?.timezone ?? 'Europe/Amsterdam',
-  };
-  for (const s of h.opdracht?.stappen ?? []) {
-    const r = await voerStapUit(s, deuren);
-    if (r == null) console.warn(`[gepland] ${s.pad} staat niet aan; "${h.tekst}" niet gedaan`);
-    else if (!r.ok) console.warn(`[gepland] "${h.tekst}" lukte niet: ${r.reden ?? ''}`);
-    // Niet gedaan: dat hoort de bewoner te zien (besluit 314), een dag lang.
-    if (r == null || !r.ok) klopt.meld({ soort: 'gepland', id: h.tekst, tekst: h.tekst, sindsMs: Date.now() }, 24 * 3_600_000);
-  }
-}
+export type MaakHerinneringenNodig = typeof maakHerinneringenNodig;
+const { teDoen } = maakHerinneringen(maakHerinneringenNodig);
 
-let herinnerBezig = false;
-async function herinnerRonde(): Promise<void> {
-  if (herinnerBezig) return;
-  herinnerBezig = true;
-  try {
-    const alles = await herinneringen.ronde();
-    // Geplande opdrachten voert de dienst zelf uit; ze gaan niet als melding naar een telefoon.
-    // Overslaan als niemand thuis is (besluit 234): alleen wie dat bij de opdracht koos.
-    const niemand = runner?.latest?.explanation.occupied === false;
-    for (const g of alles.filter((x) => x.opdracht)) {
-      if (g.opdracht?.overslaanWeg && niemand) {
-        console.log(`[gepland] "${g.tekst}" overgeslagen: niemand thuis`);
-        continue;
-      }
-      await voerGeplandUit(g).catch((error: unknown) => console.warn(`[gepland] ${(error as Error).message}`));
-    }
-    const nieuw = alles.filter((x) => !x.opdracht);
-    // Een melding naar de telefoon van wie hem vroeg; een herinnering voor het huis alleen op de wand.
-    if (!telefoonDeur || !voorkeuren) return;
-    for (const h of nieuw) {
-      if (h.voor == null) continue;
-      const t = telefoonVan(h.voor, voorkeuren.meldingen(h.voor), telefoons());
-      if (!t) continue;
-      const nl = voorkeuren.taal(h.voor) !== 'en';
-      try {
-        await client.callService('notify', t.dienst, alsMelding({ dienst: t.dienst, titel: nl ? 'Te doen' : 'To do', tekst: h.tekst, tag: `smart-climate-tedoen-${h.id}`, dringend: true, stil: false }, paneelPad), {});
-      } catch (error) {
-        console.warn(`Herinnering naar ${t.dienst} lukte niet: ${(error as Error).message}`);
-      }
-    }
-  } catch (error) {
-    console.warn(`[te doen] ${(error as Error).message}`);
-  } finally {
-    herinnerBezig = false;
-  }
-}
-setInterval(() => void herinnerRonde(), 15_000).unref();
-
-// Vandaag uit de statistiek van Home Assistant (17 oktober 2026, historie.ts).
-const historie = new Historie({
-  config: () => siteConfig,
-  vraag: (type, velden) => client.query<Record<string, { start: number | string; mean?: number | null }[]>>(type, velden),
-});
-const historieVan = (vanMs: number, totMs: number) => historie.van(vanMs, totMs);
-
-// De laadbeurten van een auto (besluit 259, stap 3): de meter van zijn laadvermogen en het net, met de prijzen van Energie.
-const laadbeurten = new Laadbeurten({
-  config: () => siteConfig,
-  meter: (auto) => (houseRegisters ? (laadMeters(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null).find((m) => m.auto === auto)?.vermogen ?? null) : null),
-  prijzen: () => energyStore?.current?.prijzen ?? null,
-  eenheid: (id) => {
-    const e = allStates.get(id)?.attributes['unit_of_measurement'];
-    return typeof e === 'string' ? e : null;
+/** Wat opbrengst.ts uit main.ts gebruikt: wat vastligt gewoon, wat kan wijzigen als getter. */
+const maakOpbrengstNodig = {
+  allStates, client, connectionStore, energyStore, laadReg, vlakMetingNu,
+  get houseRegisters() {
+    return houseRegisters;
   },
-  vraag: (type, velden) => client.query<Record<string, { start: number | string; mean?: number | null }[]>>(type, velden),
-});
-
-/**
- * De opbrengst per dakvlak over een periode (besluit 254, stap 5): per uur wat
- * elke meter gemiddeld mat, uit de statistiek van Home Assistant, verdeeld naar
- * de heldere lucht per vlak. Een half uur bewaard per periode.
- */
-const dakenOpbrengstBewaard = new Map<string, { at: number; uit: { vlakken: { letter: string; plek: string; naam: string | null; azimuthDeg: number; opstelling: string; aantal: number; kWh: number }[]; achter: Achter | null } }>();
-async function dakenOpbrengst(vanMs: number, totMs: number): Promise<{ vlakken: { letter: string; plek: string; naam: string | null; azimuthDeg: number; opstelling: string; aantal: number; kWh: number }[]; achter: Achter | null } | null> {
-  const a = connectionStore?.current;
-  const ids = siteConfig?.solarProduction ? [siteConfig.solarProduction.id, ...(siteConfig.solarExtra ?? []).map((p) => p.id)] : [];
-  if (!a?.daken?.vlakken.length || !location || !ids.length) return null;
-  const d = metMeting(a.daken, vlakMetingNu()?.perLetter ?? {});
-  const tot = Math.min(totMs, Date.now());
-  const sleutel = JSON.stringify([vanMs, tot - (tot % 1_800_000), d.vlakken]);
-  const b = dakenOpbrengstBewaard.get(sleutel);
-  if (b && Date.now() - b.at < 1_800_000) return b.uit;
-  const raw = await client.query<Record<string, { start: number | string; mean?: number | null }[]>>('recorder/statistics_during_period', {
-    start_time: new Date(vanMs).toISOString(),
-    end_time: new Date(tot).toISOString(),
-    statistic_ids: ids,
-    period: 'hour',
-    types: ['mean'],
-    units: { power: 'W' },
-  });
-  const reeks = (id: string): PowerRow[] => (raw?.[id] ?? [])
-    .filter((r) => typeof r.mean === 'number' && Number.isFinite(r.mean))
-    .map((r) => ({ startMs: typeof r.start === 'number' ? r.start : Date.parse(r.start), meanW: r.mean as number }));
-  const groepen = new Map<string, DakVlak[]>();
-  for (const v of d.vlakken) {
-    const id = v.meter ?? (ids.length === 1 ? ids[0]! : '');
-    groepen.set(id, [...(groepen.get(id) ?? []), v]);
-  }
-  // Eén meter voor alle vlakken: de uren van vóór de omvormer uit de zonnemeter in kWh (5 november 2026).
-  const meters = energyStore?.current?.zon ?? [];
-  let kwhPerUur = new Map<number, number>();
-  if (groepen.size === 1 && meters.length) {
-    const kwh = await client.query<Record<string, { start: number | string; change?: number | null }[]>>('recorder/statistics_during_period', {
-      start_time: new Date(vanMs).toISOString(),
-      end_time: new Date(tot).toISOString(),
-      statistic_ids: [...meters],
-      period: 'hour',
-      types: ['change'],
-      units: { energy: 'kWh' },
-    });
-    kwhPerUur = new Map();
-    for (const id of meters) {
-      for (const r of kwh?.[id] ?? []) {
-        if (typeof r.change !== 'number' || !Number.isFinite(r.change)) continue;
-        const t = typeof r.start === 'number' ? r.start : Date.parse(r.start);
-        kwhPerUur.set(t, (kwhPerUur.get(t) ?? 0) + Math.max(0, r.change));
-      }
-    }
-  }
-  const kWh = opbrengstPerVlak(
-    [...groepen].map(([id, vlakken]) => {
-      const rows = id ? reeks(id) : somPerVak(ids.map(reeks), [], true);
-      return { vlakken, rows: kwhPerUur.size ? aanvullenUitMeter(rows, kwhPerUur) : rows };
-    }),
-    location,
-  );
-  const uit = { vlakken: d.vlakken.map((v) => ({ letter: v.letter, plek: v.plek, naam: v.naam ?? null, azimuthDeg: v.azimuthDeg, opstelling: v.opstelling, aantal: panelenVan(v), kWh: kWh[v.letter] ?? 0 })), achter: vlakMetingNu()?.achter ?? null };
-  dakenOpbrengstBewaard.set(sleutel, { at: Date.now(), uit });
-  return uit;
-}
+  get location() {
+    return location;
+  },
+  get siteConfig() {
+    return siteConfig;
+  },
+};
+export type MaakOpbrengstNodig = typeof maakOpbrengstNodig;
+const { dakenOpbrengst, historieVan, laadbeurten } = maakOpbrengst(maakOpbrengstNodig);
 
 /** Welke rookmelders nu iets zien, met hun kamer (21 oktober 2026). */
 function alarmNu(): AlarmMelder[] {
@@ -1995,90 +1674,24 @@ const eigenPoort: { port: number; access: Access } | null = startup.eigenPoort
     }
   : null;
 
-/*
- * Het weer van de komende dagen (besluit 105). Elke tien minuten de zonkans
- * van morgen bewaren, ook als niemand kijkt: na die dag legt het huis hem naast
- * wat de panelen werkelijk haalden.
- */
-const weatherLog = logDir === '' ? null : new WeatherLog(logDir);
-/*
- * Waar het weer vandaan komt (besluit 111): Buienradar, of een weerentiteit
- * van Home Assistant, zoals de bewoner koos. Van een weerentiteit volgt de
- * dienst de dagverwachting; die komt alleen via een abonnement.
- */
-// Zonder configuratie de tijdzone van de dienst; in de add-on is dat die van Home Assistant (run.sh).
-const weerZone: string = baseConfig?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
-let entityForecast: { entity: string | null; days: EntityForecast[] } = { entity: null, days: [] };
-client.on('forecast', (entity, lijst, soort) => {
-  // Geeft de entiteit uren of halve dagen, dan maakt de dienst er zelf dagen van.
-  const days = soort === 'daily' ? (lijst as EntityForecast[]) : dagenUitUren(lijst as EntityForecast[], weerZone);
-  entityForecast = { entity, days };
-});
-const weerBron = (): string | null => {
-  const f = functiesNu();
-  return f ? volledig(f, functiesKeuzes()).weer.bron : null;
+/** Wat weer.ts uit main.ts gebruikt: wat vastligt gewoon, wat kan wijzigen als getter. */
+const maakWeerNodig = {
+  allStates, baseConfig, client, functiesKeuzes, functiesNu, klopt,
+  get houseRegisters() {
+    return houseRegisters;
+  },
+  get location() {
+    return location;
+  },
+  get site() {
+    return site;
+  },
+  get web() {
+    return web;
+  },
 };
-const volgWeer = () => {
-  const bron = weerBron();
-  const vanHa = bron?.startsWith('weather.') === true;
-  client.followForecast(vanHa ? bron : null).then(
-    () => {
-      if (vanHa) klopt.weer(true, Date.now());
-    },
-    (e: unknown) => {
-      if (vanHa) klopt.weer(false, Date.now());
-      console.warn(`Verwachting van ${bron} niet te volgen: ${(e as Error).message}`);
-    },
-  );
-};
-setInterval(volgWeer, 60_000).unref();
-setTimeout(volgWeer, 15_000).unref();
-/*
- * Open-Meteo (besluit 127): het weer zonder Home Assistant. Elk uur de
- * verwachting per uur bewaren voor het thermisch model, tenzij de bewoner dat
- * bij Functies uitzette; en de dagverwachting als hij Open-Meteo als weerbron
- * koos. Alleen de ligging op één decimaal gaat de deur uit.
- */
-const openMeteo = new OpenMeteo({ location: () => location, timeZone: weerZone, logDir: logDir === '' ? null : logDir });
-const haalWeer = () => {
-  const f = functiesNu();
-  const w = f ? volledig(f, functiesKeuzes()).weer : null;
-  if (w == null || (!w.uren && w.bron !== OPEN_METEO)) return;
-  const gekozen = w.bron === OPEN_METEO;
-  openMeteo.refresh(w.uren).then(
-    () => {
-      if (gekozen) klopt.weer(true, Date.now());
-    },
-    (e: unknown) => {
-      if (gekozen) klopt.weer(false, Date.now());
-      console.warn(`Weer van Open-Meteo niet opgehaald: ${(e as Error).message}`);
-    },
-  );
-};
-setInterval(haalWeer, 5 * 60_000).unref();
-setTimeout(haalWeer, 20_000).unref();
-// De naam en de dagverwachting van de gekozen bron (weerbron.ts).
-const weerNaam = (): string => weerNaamVan(weerBron(), allStates);
-const forecastNow = () =>
-  verwachtingVan(weerBron(), { openMeteo: openMeteo.latest?.dagen ?? null, entities: houseRegisters?.entities ?? null, states: allStates, entiteit: entityForecast, nu: Date.now(), zone: weerZone });
-if (weatherLog && site) {
-  const timeZone = site.config.timezone;
-  const noteTomorrow = () => {
-    // Met de weergave rekent die ook de verwachting van morgen uit en bewaart hem.
-    if (web) {
-      web.weatherNow().catch((e: unknown) => console.warn(`Weer van morgen niet bewaard: ${(e as Error).message}`));
-      return;
-    }
-    const morgen = forecastNow().find((f) => f.offset === 1);
-    if (morgen?.zonkansPct == null) return;
-    const p = partsIn(Date.now(), timeZone);
-    const d = partsIn(zonedMidnight(p.y, p.m, p.d + 1, timeZone) + 12 * 3_600_000, timeZone);
-    const day = `${d.y}-${String(d.m).padStart(2, '0')}-${String(d.d).padStart(2, '0')}`;
-    weatherLog.note(day, morgen.zonkansPct).catch((e: unknown) => console.warn(`Zonkans van morgen niet bewaard: ${(e as Error).message}`));
-  };
-  setInterval(noteTomorrow, 10 * 60_000).unref();
-  setTimeout(noteTomorrow, 60_000).unref();
-}
+export type MaakWeerNodig = typeof maakWeerNodig;
+const { forecastNow, openMeteo, weatherLog, weerNaam, weerZone } = maakWeer(maakWeerNodig);
 
 /**
  * Wiens comfort (besluit 147): dat van de gevraagde bewoner, anders van wie er
@@ -2089,168 +1702,24 @@ function comfortVoor(wie: Wie, gevraagd: string | null): { id: string | null; vi
   return comfortVanBewoner(webConfig()!, comfortStore?.current ?? null, bewonersStore?.current ?? GEEN_BEWONERS, wie, gevraagd);
 }
 
-/*
- * De sleutel voor de assistent van Home Assistant (besluit 147): de hele app
- * vraagt een inlog, en de vraag van de assistent komt zonder mens erachter.
- * Eén keer gemaakt, in de logmap; bij Instellingen › App en toegang te zien.
- */
-const sleutel = logDir !== '' ? await leesOfMaakSleutel(join(logDir, 'sleutel-assistent.txt')) : null;
-/*
- * De integratie neerzetten voor wie geen HACS heeft (besluit 184): de map zit
- * in het image, en gaat na een tik naar custom_components in de configuratie
- * van Home Assistant (`/homeassistant` in de add-on). Bij het starten de nieuwe
- * versie, als de add-on hem eerder neerzette.
- */
-const integratie = version.installatie === 'add-on' ? new Integratie('/app/integratie/sunarc', '/homeassistant') : null;
-void integratie?.bijwerken().catch(() => false);
-/**
- * Hoe de integratie erbij staat, met de versie die Home Assistant nu geladen
- * heeft, en of hij is toegevoegd (dan pas werkt hij). Na "Nieuw apparaat
- * gevonden" en Toevoegen vraagt Home Assistant nog om Verzenden; wie dat mist,
- * heeft de integratie wel, maar Assist nog niet (22 oktober 2026).
- */
-async function integratieStand() {
-  const stand = await integratie!.stand();
-  let geladen: string | null = null;
-  try {
-    const m = await client.query<{ version?: string }>('manifest/get', { integration: 'sunarc' });
-    geladen = typeof m?.version === 'string' ? m.version : null;
-  } catch {
-    // Niet geladen: nog niet herstart, of hij staat er niet.
-  }
-  let toegevoegd: boolean | null = null;
-  try {
-    const lijst = await client.query<unknown[]>('config_entries/get', { domain: 'sunarc' });
-    toegevoegd = Array.isArray(lijst) && lijst.length > 0;
-  } catch {
-    // Onbekend: dan zegt de app er niets over.
-  }
-  // De koppeling onder de oude naam (tot 2 november 2026): de knop haalt hem weg na het toevoegen.
-  const oudeKoppeling = (await oudeKoppelingen()).length > 0;
-  return { ...stand, geladen, toegevoegd, oudeKoppeling };
-}
-
-/** De config entries van de integratie onder haar oude naam, smart_climate. */
-async function oudeKoppelingen(): Promise<string[]> {
-  try {
-    const lijst = await client.query<{ entry_id?: unknown }[]>('config_entries/get', { domain: 'smart_climate' });
-    return Array.isArray(lijst) ? lijst.map((x) => x.entry_id).filter((x): x is string => typeof x === 'string') : [];
-  } catch {
-    return [];
-  }
-}
-
-/*
- * De integratie in Home Assistant (besluit 184): de add-on meldt zich aan bij
- * de Supervisor, met zijn adres in het netwerk van Home Assistant en de
- * sleutel. Home Assistant toont dan "Nieuw apparaat gevonden: SunArc",
- * als de integratie er staat. Alleen in de add-on.
- */
-if (sleutel && version.installatie === 'add-on' && webPort != null && process.env['SUPERVISOR_TOKEN']) {
-  void fetch('http://supervisor/discovery', {
-    method: 'POST',
-    headers: { authorization: `Bearer ${process.env['SUPERVISOR_TOKEN']}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ service: 'sunarc', config: { host: hostname(), port: webPort, sleutel } }),
-  })
-    .then((r) => {
-      if (!r.ok) console.warn(`Aanmelden bij Home Assistant voor de integratie lukte niet (${r.status}).`);
-    })
-    .catch((error: unknown) => console.warn(`Aanmelden bij Home Assistant voor de integratie lukte niet: ${(error as Error).message}`));
-}
-
-/*
- * De assistent met één knop (besluit 202): neerzetten, Home Assistant
- * herstarten en de integratie toevoegen. Alleen in de add-on, met de sleutel
- * en de weg via de Supervisor; herstarten en toevoegen gaan niet via HaClient
- * (die schrijft alleen licht, scènes en schermen), maar hier, na een tik.
- */
-const supervisorToken = process.env['SUPERVISOR_TOKEN'] ?? '';
-/** Of de verbinding met Home Assistant er nu is: valt weg bij het herstarten, en komt terug met 'ready'. */
-let haVerbonden = true;
-client.on('ready', () => (haVerbonden = true));
-client.on('disconnected', () => (haVerbonden = false));
-const assistentAan = integratie && sleutel && webPort != null && supervisorToken
-  ? new AssistentAan({
-      zetNeer: () => integratie.zetNeer(),
-      geladen: async () => {
-        const s = await integratieStand();
-        return s.geladen != null && s.geladen === s.nieuw;
-      },
-      toegevoegd: async () => (await integratieStand()).toegevoegd === true,
-      herstart: async () => {
-        // Home Assistant kijkt eerst of de configuratie klopt; tijdens het herstarten valt de verbinding weg.
-        await fetch('http://supervisor/core/api/services/homeassistant/restart', { method: 'POST', headers: { authorization: `Bearer ${supervisorToken}`, 'content-type': 'application/json' }, body: '{}' }).catch(() => null);
-      },
-      wachtOpHerstart: () =>
-        new Promise<void>((klaar, mis) => {
-          const tot = Date.now() + 6 * 60_000;
-          let weg = false;
-          const kijk = async () => {
-            if (Date.now() > tot) return mis(new Error('Home Assistant kwam niet terug na het herstarten'));
-            // Eerst weg (de verbinding valt), dan terug met de integratie geladen.
-            if (!weg && haVerbonden) return setTimeout(() => void kijk(), 1_000);
-            weg = true;
-            const s = haVerbonden ? await integratieStand().catch(() => null) : null;
-            if (s?.geladen != null) return klaar();
-            setTimeout(() => void kijk(), 3_000);
-          };
-          setTimeout(() => void kijk(), 2_000);
-        }),
-      voegToe: () => voegToeViaFlow('http://supervisor/core/api', supervisorToken, `http://${hostname()}:${webPort}`, sleutel),
-      oudeKoppeling: async () => (await oudeKoppelingen()).length > 0,
-      oudeWeg: async () => oudeWegViaRest('http://supervisor/core/api', supervisorToken, await oudeKoppelingen()),
-      nu: () => Date.now(),
-    })
-  : null;
-
-/** Klaarzetten in Home Assistant (besluit 179): tellen wat er staat, nooit een entiteit noemen. */
-async function klaarPunten(lang?: Lang): Promise<KlaarPunt[]> {
-  const prefs = (await client.query<{ energy_sources?: { type?: string }[] }>('energy/get_prefs').catch(() => null)) ?? null;
-  // De instellingen zoals ze gelden, met wat de bewoner in de app koos (issue 144): niet alleen het bestand.
-  const nu = siteConfig ?? baseConfig;
-  const grid = nu?.power.gridPower;
-  const netWaarde = grid ? Number(allStates.get(grid.id)?.state) : Number.NaN;
-  const gevonden = functiesKeuzes();
-  return klaarzetten({
-    locatie: location != null,
-    registers: houseRegisters,
-    states: allStates,
-    netMeter: Number.isFinite(netWaarde),
-    zon: { heeft: nu?.solarProduction != null && Number.isFinite(Number(allStates.get(nu.solarProduction.id)?.state)), intervalS: solarPace.intervalS },
-    energieDashboard: (prefs?.energy_sources ?? []).some((b) => b.type === 'grid'),
-    apparatenOpZon: houseRegisters ? findAppliances(allStates, houseRegisters.entities, houseRegisters.devices).length + vindBuffers().length : 0,
-    cameras: new Set((gevonden?.cameras ?? []).map((c) => c.naam)).size,
-    deurbel: (gevonden?.melders ?? []).length > 0,
-    rookmelders: houseRegisters ? vindRookmelders(houseRegisters.entities, houseRegisters.devices, allStates).length : 0,
-    spraak: spraakLijst,
-    addOn: version.installatie === 'add-on',
-    eigenPoort: eigenPoort != null,
-  }, lang);
-}
-
-/*
- * Klaarzetten per niveau (besluit 246): hoe Whisper en Tailscale ervoor staan,
- * gelezen bij de Supervisor (hassio_api, alleen lezen). Hooguit eens per vijf minuten;
- * undefined is nog niet gelezen of niet toegestaan.
- */
-const addOnRedenen = new Set<string>();
-let addOnsGelezen: { ms: number; whisper: AddOnInfo | null | undefined; tailscale: AddOnInfo | null } = { ms: 0, whisper: undefined, tailscale: null };
-async function addOnStand(): Promise<typeof addOnsGelezen> {
-  if (version.installatie !== 'add-on' || !supervisorToken || Date.now() - addOnsGelezen.ms < 5 * 60_000) return addOnsGelezen;
-  const [whisper, tailscale] = await Promise.all(
-    ['core_whisper', 'a0d7b954_tailscale'].map((slug) =>
-      addOnInfo('http://supervisor', supervisorToken, slug, (reden) => {
-        // Eén keer per reden in het logboek: zo is op de Pi te zien waarom lezen niet mag (2 november 2026).
-        if (addOnRedenen.has(reden)) return;
-        addOnRedenen.add(reden);
-        console.warn(`Klaarzetten: ${slug} niet te lezen bij de Supervisor (${reden})`);
-      }),
-    ),
-  );
-  // Niet te lezen: undefined, zodat de stap zegt wat je zelf kiest. Er niet: null.
-  addOnsGelezen = { ms: Date.now(), whisper: whisper == null ? undefined : whisper.er ? whisper : null, tailscale: tailscale ?? null };
-  return addOnsGelezen;
-}
+/** Wat assistent.ts uit main.ts gebruikt: wat vastligt gewoon, wat kan wijzigen als getter. */
+const maakAssistentNodig = {
+  allStates, baseConfig, client, eigenPoort, functiesKeuzes, solarPace, version, vindBuffers,
+  get houseRegisters() {
+    return houseRegisters;
+  },
+  get location() {
+    return location;
+  },
+  get siteConfig() {
+    return siteConfig;
+  },
+  get spraakLijst() {
+    return spraakLijst;
+  },
+};
+export type MaakAssistentNodig = typeof maakAssistentNodig;
+const { addOnStand, assistentAan, integratie, integratieStand, klaarPunten, sleutel, supervisorToken } = await maakAssistent(maakAssistentNodig);
 /*
  * Wat de wand het laatst over Fully Kiosk meldde (besluit 246). Bewaard naast
  * het logboek: na een herstart of update zei Klaarzetten anders dat de wand
