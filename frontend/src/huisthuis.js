@@ -63,21 +63,40 @@
       // Zonder opslag: de volgende keer weer de gloed.
     }
   };
-  const laadScript = (src) =>
-    new Promise((ok, fout) => {
-      if (document.querySelector(`script[data-huisthuis="${src}"]`)) return ok();
-      const s = document.createElement('script');
-      s.src = src;
-      s.dataset.huisthuis = src;
-      s.onload = () => ok();
-      s.onerror = fout;
-      document.head.append(s);
-    });
+  /*
+   * Scripts laden: allemaal tegelijk ophalen, en ze draaien in de volgorde van de lijst (async = false), want elk deel
+   * leunt op het vorige (23 november 2026; eerst één voor één, dat wachtte per script op het netwerk).
+   */
+  const laadScripts = (lijst) =>
+    Promise.all(
+      lijst.map(
+        (src) =>
+          new Promise((ok, fout) => {
+            const er = /** @type {HTMLScriptElement | null} */ (document.querySelector(`script[data-huisthuis="${src}"]`));
+            if (er) {
+              if (er.dataset.klaar) return ok();
+              er.addEventListener('load', () => ok());
+              er.addEventListener('error', fout);
+              return;
+            }
+            const s = document.createElement('script');
+            s.src = src;
+            s.async = false;
+            s.dataset.huisthuis = src;
+            s.onload = () => {
+              s.dataset.klaar = '1';
+              ok();
+            };
+            s.onerror = fout;
+            document.head.append(s);
+          }),
+      ),
+    );
 
   /** De motor en de modellen laden, de tekening ophalen en de tekenaar opbouwen, op een svg die niemand ziet. */
   async function laad() {
-    for (const src of ['kit/huistekenen-vloer.js', 'kit/huistekenen-blad.js', 'kit/huistekenen-kaart.js', 'kit/huistekenen-teken.js', 'kit/huistekenen-gebaar.js', 'kit/huistekenen.js', 'kit/huis-modellen.js', 'kit/huis-maat-hemel.js', 'kit/huis-maat-buiten.js', 'kit/huis-maat-meubels.js', 'kit/huis-maat-apparaten.js', 'kit/huis-maat.js', 'huisvoor.js', 'huisthuis-opties.js']) await laadScript(src);
-    const d = await global.app.haal('api/huistekening');
+    // De tekening tegelijk met de scripts ophalen.
+    const [d] = await Promise.all([global.app.haal('api/huistekening'), laadScripts(['kit/huistekenen-vloer.js', 'kit/huistekenen-blad.js', 'kit/huistekenen-kaart.js', 'kit/huistekenen-teken.js', 'kit/huistekenen-gebaar.js', 'kit/huistekenen.js', 'kit/huis-modellen.js', 'kit/huis-maat-hemel.js', 'kit/huis-maat-buiten.js', 'kit/huis-maat-meubels.js', 'kit/huis-maat-apparaten.js', 'kit/huis-maat.js', 'huisvoor.js', 'huisthuis-opties.js'])]);
     const hv = global.huisVoor;
     const huis = hv.huisVoorMotor(d);
     if (!huis.etages.length) throw new Error('geen etages');
@@ -138,6 +157,8 @@
    * terug naar de vaste kant, zodat Thuis altijd hetzelfde begint.
    */
   const draai = new WeakMap();
+  /** De laatste tekening per plek: met welke opties, en het svg-element (zie tekenNu). */
+  const laatste = new WeakMap();
   const draaiTeken = new WeakMap();
   const TERUG_MS = 20_000;
   function draaiBij(el, tekenNu) {
@@ -261,10 +282,19 @@
       const draaibaar = soort === 'thuis' || soort === 'tel';
       const tekenNu = () => {
         const o2 = draaibaar ? { ...o, hoek: (o.hoek ?? -58) + (draai.get(el) ?? 0) } : o;
+        /*
+         * Alleen opnieuw tekenen als er iets veranderde (23 november 2026). Thuis tekent bij elke verandering in huis
+         * opnieuw, maar meestal is het huis daarna precies hetzelfde (van 17 keer in 75 seconden 12 keer). Dezelfde
+         * opties, maat en taal, en de tekening staat er nog: dan blijft hij staan.
+         */
+        const sleutel = `${B}x${H}|${global.taal?.code ?? ''}|${JSON.stringify(o2)}`;
+        const vorige = laatste.get(el);
+        if (vorige?.sleutel === sleutel && vorige.svg === el.firstElementChild) return;
         const uit = global.huisMaat.teken(staat.tk, B, H, o2);
         // Wat nergens paste, voor de proef en om na te lopen.
         staat.overgeslagen = uit.overgeslagen ?? [];
         el.innerHTML = `<svg viewBox="0 0 ${B} ${H}" width="${B}" height="${H}" role="img" aria-label="${global.app.esc(t('thuis.hetHuis'))}"${draaibaar ? ' style="touch-action: pan-y"' : ''}>${uit.svg}</svg>`;
+        laatste.set(el, { sleutel, svg: el.firstElementChild });
       };
       tekenNu();
       if (draaibaar) draaiBij(el, tekenNu);
@@ -277,15 +307,52 @@
     }
   }
 
+  /*
+   * Het poppenhuis pas laden als het nodig is (23 november 2026). Thuis, een kamer en het always-on display laden
+   * vast alleen kit/huis-basis.js (de kleuren, de iconen van de kamers, de feestdagen); de rest van het poppenhuis
+   * (ruim 230 kB) komt pas als het getekende huis niet aan staat of niet lukt. `poppenhuis(opnieuw)` zegt of het er
+   * is; zo niet, dan begint het laden en tekent `opnieuw` zodra het er is.
+   */
+  const popWacht = new Set();
+  let popLaadt = null;
+  function poppenhuis(opnieuw) {
+    if (global.huis?.teken) return true;
+    if (opnieuw) popWacht.add(opnieuw);
+    popLaadt ??= laadScripts(['kit/huis-kamers.js', 'kit/huis-buiten.js', 'kit/huis-tuin.js', 'kit/huis-route.js', 'kit/huis.js'])
+      .then(() => {
+        [...popWacht].forEach((f) => {
+          try {
+            f();
+          } catch (e) {
+            console.warn(e);
+          }
+        });
+        popWacht.clear();
+      })
+      .catch((e) => {
+        popLaadt = null;
+        console.warn('Het poppenhuis laadde niet.', e);
+      });
+    return false;
+  }
+
   global.huisThuis = {
     aan,
     teken,
     laad,
+    poppenhuis,
     /** De apparaten die de laatste tekening niet kwijt kon, met waarom. */
     get overgeslagen() {
       return staat.overgeslagen ?? [];
     },
   };
-  // Meteen beginnen met laden als dit scherm de vorige keer een tekening had: dan is het huis er sneller.
-  if (erWas() === '1' && aan()) setTimeout(() => klaar(null), 0);
+  /*
+   * Meteen beginnen met laden, zodra de scripts van de pagina er zijn (basis.js, dat Weergave kent, laadt na dit
+   * bestand): het getekende huis als dit scherm de vorige keer een tekening had, het poppenhuis als het getekende huis
+   * uit staat of de vorige keer niet lukte.
+   */
+  setTimeout(() => {
+    if (!aan() || erWas() === '0') poppenhuis(null);
+    else if (erWas() === '1') klaar(null);
+  }, 0);
 })(window);

@@ -339,7 +339,7 @@
     // Het weer en de feestdag (22 november 2026), zoals bij Weergave gekozen.
     const wg = global.app?.weergave?.() ?? {};
     const weer = wg.weer === false ? null : model.weer ?? null;
-    const feest = wg.feestdagen === false ? null : model.feest !== undefined ? model.feest : global.huis?.feestdagVan?.(Date.now()) ?? null;
+    const feest = wg.feestdagen === false ? null : model.feest !== undefined ? model.feest : (global.huisBasis ?? global.huis)?.feestdagVan?.(Date.now()) ?? null;
     /*
      * Stap f (21 november 2026, het voorbeeldhuis en een appartement): een appartement is alleen de woning, zonder
      * tuin en, met verdiepingen erboven, zonder dak; een erf waar nog niets op getekend is, staat niet als lege wei

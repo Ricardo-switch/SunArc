@@ -726,6 +726,8 @@
     }
 
     function naarBeeld(i) {
+      // De film tekent het poppenhuis; op Thuis laadt dat pas als het nodig is (23 november 2026).
+      if (!global.huis?.teken && global.huisThuis && !global.huisThuis.poppenhuis(() => naarBeeld(i))) return;
       beeldNu = i;
       stap = 0;
       const b = lijst[i];

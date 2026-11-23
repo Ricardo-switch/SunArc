@@ -257,8 +257,8 @@ function tekenPodium(etage, kamer) {
   const wandPodium = document.getElementById('podium-wand');
   if (!app.telStand()) {
     // De etage zoals getekend in Je huis (src/huisthuis.js), als die aan staat; anders het poppenhuis.
-    if (!window.huisThuis?.teken(wandPodium, model, { soort: 'kamer', breedte: wandPodium.clientWidth || 800, hoogte: 560, huisData, kamerId: kamer.id, opnieuw: () => tekenPodium(etage, kamer) })) huis.teken(wandPodium, model, { breedte: wandPodium.clientWidth || 800, hoogte: 560, zoom: buitenErbij ? 0.92 : 1.2, schuifX: buitenErbij ? -30 : 0, schuifY: -10, tik: true, meubels: true });
-  } else if (!window.huisThuis?.teken(document.getElementById('podium-tel'), model, { soort: 'kamer', tel: true, breedte: 390, hoogte: 280, huisData, kamerId: kamer.id, opnieuw: () => tekenPodium(etage, kamer) })) huis.teken(document.getElementById('podium-tel'), { ...model, etages: model.etages.map((e) => ({ ...e, kamers: e.kamers.map((k) => ({ ...k, stil: true })) })) }, { breedte: 390, hoogte: 280, marge: 0.03, tik: true });
+    if (!window.huisThuis?.teken(wandPodium, model, { soort: 'kamer', breedte: wandPodium.clientWidth || 800, hoogte: 560, huisData, kamerId: kamer.id, opnieuw: () => tekenPodium(etage, kamer) }) && (window.huisThuis?.poppenhuis(() => tekenPodium(etage, kamer)) ?? true)) huis.teken(wandPodium, model, { breedte: wandPodium.clientWidth || 800, hoogte: 560, zoom: buitenErbij ? 0.92 : 1.2, schuifX: buitenErbij ? -30 : 0, schuifY: -10, tik: true, meubels: true });
+  } else if (!window.huisThuis?.teken(document.getElementById('podium-tel'), model, { soort: 'kamer', tel: true, breedte: 390, hoogte: 280, huisData, kamerId: kamer.id, opnieuw: () => tekenPodium(etage, kamer) }) && (window.huisThuis?.poppenhuis(() => tekenPodium(etage, kamer)) ?? true)) huis.teken(document.getElementById('podium-tel'), { ...model, etages: model.etages.map((e) => ({ ...e, kamers: e.kamers.map((k) => ({ ...k, stil: true })) })) }, { breedte: 390, hoogte: 280, marge: 0.03, tik: true });
 }
 
 /* --------------------------------------------------------- het kamerblad */

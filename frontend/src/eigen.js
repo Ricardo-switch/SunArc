@@ -196,7 +196,7 @@
   }
   /** Het icoon van de kamer, klein op het icoon van de lamp of het scherm. */
   function kamerIcoon(soort) {
-    const d = soort === 'buiten' ? ZON_IK : global.huis?.KAMER_ICOON?.[soort] ?? global.huis?.KAMER_ICOON?.kamer;
+    const d = soort === 'buiten' ? ZON_IK : (global.huisBasis ?? global.huis)?.KAMER_ICOON?.[soort] ?? (global.huisBasis ?? global.huis)?.KAMER_ICOON?.kamer;
     return d ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>` : '';
   }
 

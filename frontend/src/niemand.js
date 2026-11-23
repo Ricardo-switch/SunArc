@@ -262,7 +262,7 @@
   /** Het huis zonder getallen, de kamers stil; 's avonds ook zonder stromen. */
   function tekenHuis(vak) {
     const model = bron?.model?.();
-    if (!vak || !model || !global.huis) return;
+    if (!vak || !model || (!global.huis && !global.huisThuis)) return;
     const nacht = toont === 'avond';
     const stil = {
       ...model,
@@ -276,8 +276,11 @@
     const breed = nacht ? 600 : 720;
     const hoog = nacht ? 480 : 700;
     // Het huis zoals getekend (src/huisthuis.js) als die aan staat, met overdag de zonneboog; anders het poppenhuis.
-    if (global.huisThuis?.teken(vak, stil, { soort: 'rust', breedte: breed, hoogte: hoog, huisData: bron?.huis?.() ?? null, avond: nacht, opnieuw: () => toont && tekenHuis(laag().querySelector('[data-nk-huis]')) })) return;
-    global.huis.teken(vak, stil, { breedte: breed, hoogte: hoog, marge: 0.04 });
+    const opnieuw = () => toont && tekenHuis(laag().querySelector('[data-nk-huis]'));
+    if (global.huisThuis?.teken(vak, stil, { soort: 'rust', breedte: breed, hoogte: hoog, huisData: bron?.huis?.() ?? null, avond: nacht, opnieuw })) return;
+    // Het poppenhuis laadt pas als het nodig is (23 november 2026); dan tekent opnieuw.
+    if (global.huisThuis && !global.huisThuis.poppenhuis(opnieuw)) return;
+    global.huis?.teken(vak, stil, { breedte: breed, hoogte: hoog, marge: 0.04 });
   }
 
   /* ------------------------------------------------------ tonen en wekken */
