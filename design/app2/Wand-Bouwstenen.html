@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Bouwstenen (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="bouwstenen.css">
+<style>
+  /*
+   * Bouwstenen (schets 24 november 2026, stap 4 punt 8): de gewone onderdelen van de app staan nu per pagina net
+   * anders. Per onderdeel de varianten van nu, met waar ze staan, en één voorstel; waar er twee voorstellen zijn
+   * (A en B), kiest Ricardo. De inhoud: bouwstenen-schets.js. Tel-Bouwstenen toont dezelfde op de maat van de telefoon.
+   */
+  main { padding: 18px 26px 20px 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .boven .terug { font-size: 14px; font-weight: 700; color: var(--zacht); display: block; margin-bottom: 4px; }
+  .boven { display: flex; align-items: flex-end; gap: 24px; }
+  .boven p { margin: 0 0 8px auto; max-width: 420px; font-size: 14px; color: var(--zacht); line-height: 1.4; text-align: right; }
+  .raster { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: 1fr 1fr; gap: 10px; }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-avond">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <div class="boven">
+      <div><span class="terug">‹ Schetsen</span><h1 class="kop-1" style="font-size: 36px">Bouwstenen</h1></div>
+      <p>Wat de app overal gebruikt, één keer gemaakt. Boven wat er nu is en waar; onder het voorstel.</p>
+    </div>
+    <div class="raster" data-raster></div>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="bouwstenen-schets.js"></script>
+<script>
+  nav.balk(document.getElementById('balk'), 'instellingen');
+  bouwstenen.teken(document.querySelector('[data-raster]'), 'wand');
+</script>
+</body>
+</html>

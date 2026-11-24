@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Bouwstenen (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="bouwstenen.css">
+<style>
+  /* Bouwstenen op de telefoon (schets 24 november 2026): dezelfde kaarten als Wand-Bouwstenen, onder elkaar. */
+  body { margin: 0; width: 390px; overflow: auto; height: auto; }
+  html { height: auto; }
+  .tel { padding: 54px 16px 100px; display: flex; flex-direction: column; gap: 12px; }
+  .terug { font-size: 14px; font-weight: 700; color: var(--zacht); }
+  h1 { margin: 4px 0 0; font-family: var(--kop); font-size: 30px; font-weight: 600; line-height: 1.08; }
+  .tel > p { margin: 0; font-size: 14px; color: var(--zacht); line-height: 1.45; }
+  .raster { display: flex; flex-direction: column; gap: 12px; }
+  .bs { padding: 16px; border-radius: 20px; }
+</style>
+</head>
+<body class="lucht lucht-avond">
+<div class="tel">
+  <span class="terug">‹ Schetsen</span>
+  <h1>Bouwstenen</h1>
+  <p>Wat de app overal gebruikt, één keer gemaakt. Boven wat er nu is en waar; onder het voorstel.</p>
+  <div class="raster" data-raster></div>
+</div>
+<script src="bouwstenen-schets.js"></script>
+<script>
+  bouwstenen.teken(document.querySelector('[data-raster]'), 'tel');
+</script>
+</body>
+</html>

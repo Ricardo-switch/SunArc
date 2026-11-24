@@ -1,0 +1,34 @@
+/* Schets Bouwstenen (24 november 2026): de kaarten met de varianten van nu en het voorstel. */
+.bs { padding: 10px 16px 12px; display: flex; flex-direction: column; gap: 4px; min-height: 0; overflow: hidden; }
+.bs h3 { margin-bottom: 2px; }
+.bs-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); }
+.bs-label.voor { color: var(--mint-t); margin-top: 2px; padding-top: 6px; border-top: 1px solid rgb(var(--wit) / 0.08); }
+.bs-nu, .bs-voor { display: flex; flex-direction: column; gap: 4px; }
+.bs-rij { display: flex; align-items: center; gap: 10px; min-height: 20px; }
+.bs-rij.onder { flex-wrap: wrap; row-gap: 3px; }
+.bs-rij b { flex: none; font-size: 12.5px; color: var(--tekst); font-variant-numeric: tabular-nums; min-width: 30px; }
+.bs-rij small { font-size: 12px; color: var(--zacht); line-height: 1.3; }
+.bs-noot { margin: auto 0 0; font-size: 12px; color: var(--zacht); line-height: 1.4; }
+.bs-paar { display: inline-flex; gap: 6px; align-items: center; min-width: 108px; flex: none; }
+.bs-schakel { position: relative; display: inline-block; border-radius: 999px; flex: none; }
+.bs-schakel i { position: absolute; border-radius: 50%; background: #fff; }
+.bs-veld { display: inline-flex; align-items: center; width: 130px; padding: 0 12px; box-sizing: border-box; border-radius: 12px; background: rgb(var(--wit) / 0.06); border: 1px solid rgb(var(--wit) / 0.14); font-weight: 600; color: var(--tekst); }
+.bs-seg { display: inline-flex; gap: 3px; padding: 3px; border-radius: 12px; background: rgb(var(--wit) / 0.05); }
+.bs-seg span { height: calc(var(--h) - 6px); padding: 0 10px; white-space: nowrap; border-radius: 9px; display: inline-flex; align-items: center; font-size: 12.5px; font-weight: 600; color: var(--gedempt); }
+.bs-seg span.aan { background: rgb(var(--wit) / 0.15); color: var(--tekst); }
+.bs-seg span.wit { background: var(--tekst); color: var(--tegen); }
+.bs-knop { height: 46px; display: inline-flex; align-items: center; padding: 0 18px; box-sizing: border-box; }
+.bs-knoppen { gap: 8px; flex-wrap: wrap; }
+.bs-knopje { height: 34px; padding: 0 14px; border-radius: 11px; display: inline-flex; align-items: center; font-size: 13px; font-weight: 700; background: var(--tekst); color: var(--inkt); }
+.bs-chip { min-height: 34px; padding: 0 12px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 13.5px; font-weight: 600; background: rgb(var(--wit) / 0.08); color: var(--tekst); }
+.bs-kaart { display: inline-flex; align-items: center; justify-content: center; width: 100px; height: 24px; flex: none; font-size: 12px; font-weight: 700; background: var(--glas); border: 1px solid var(--glas-rand); color: var(--zacht); }
+.bs-kaart.voor { width: 120px; color: var(--tekst); border-color: rgba(110, 231, 183, 0.45); }
+.bs-kop { flex: none; font-family: var(--kop); font-weight: 600; line-height: 1; min-width: 30px; }
+.bs-terug { font-size: 14px; font-weight: 700; color: var(--zacht); }
+.bs-fout { color: var(--gloed-t); }
+.bs-fout.voor { font-size: 13.5px; }
+.bs-groot { font-family: var(--kop); font-size: 26px !important; min-width: 56px !important; }
+.bs-maten { align-items: flex-end; gap: 14px; }
+.bs-maten span { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; color: var(--zacht); }
+.bs-maten i { display: block; width: 26px; background: rgba(110, 231, 183, 0.35); border-radius: 3px; }
+.knop-tekst { color: var(--ijs-t); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
