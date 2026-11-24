@@ -193,6 +193,7 @@ import { defaultStrategies } from '../src/index.js';
 import { NIEUW, VERSIE, eersteVan } from '../src/version.js';
 import { bijspringenView, comfortView, controleerBijspringen, controleerComfort, withComfort, type Comfort } from '../src/web/comfort.js';
 import { helpenView } from '../src/web/helpen.js';
+import { leesZonBody, sleutelVan, STANDAARD_KEUZES, volgordeVan, zonVerdelenView, type ZonKeuzes } from '../src/web/zon-verdelen.js';
 import type { SiteConfig } from '../src/core/model.js';
 
 /* Comfort (besluit 130): in het geheugen, met hetzelfde schema als de dienst. */
@@ -226,6 +227,28 @@ const bijspringenDeur = {
     comfortNu = nieuw;
     configNu = checked.config;
     return { ok: true as const, view: bijspringenView(configNu) };
+  },
+};
+/* De zon verdelen (besluit 343): de volgorde in hetzelfde comfort, zoals de dienst; marge en hand in het geheugen. */
+let zonKeuzes: ZonKeuzes = STANDAARD_KEUZES;
+const zonVolgorde = () => volgordeVan(comfortNu?.voorrang?.zon, comfortView(configNu, comfortNu).voorrang.zon, []);
+const zonDeurView = () => zonVerdelenView({ config: configNu, snapshot: null, volgorde: zonVolgorde(), autos: [], keuzes: zonKeuzes, gemeten: () => null, nowMs: Date.now(), vandaag: new Date().toISOString().slice(0, 10) });
+const zonVerdelenDeur = {
+  view: zonDeurView,
+  save: async (body: unknown) => {
+    const c = leesZonBody(body, new Set(zonVolgorde().map(sleutelVan)));
+    if (!c.ok) return { ok: false as const, status: 400, reden: c.reden };
+    if (c.body.volgorde) {
+      const huidig = comfortNu ?? { versie: 1 as const, kamers: {} };
+      const gewoon = comfortView(configNu, huidig).voorrang;
+      const nieuw: Comfort = { ...huidig, voorrang: { koelen: huidig.voorrang?.koelen ?? gewoon.koelen, verwarmen: huidig.voorrang?.verwarmen ?? gewoon.verwarmen, zon: c.body.volgorde } };
+      const checked = parseSiteConfig(withComfort(rauweConfig, nieuw).raw, { knownStrategies: defaultStrategies().ids });
+      if (!checked.ok) return { ok: false as const, status: 400, reden: checked.problems[0]?.message ?? 'past niet' };
+      comfortNu = nieuw;
+      configNu = checked.config;
+    }
+    zonKeuzes = { versie: 1, marge: c.body.marge ?? zonKeuzes.marge, hand: zonKeuzes.hand, uit: c.body.uit ?? zonKeuzes.uit };
+    return { ok: true as const, view: zonDeurView() };
   },
 };
 /* Helpen bij de cv (besluit 292): alleen bekijken; de paginatest ervan vangt het bewaren zelf af. */
@@ -490,6 +513,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
           comfort: { view: (wie, bewoner) => comfortVanBewoner(configNu, comfortNu, bewonersStore.current, wie, bewoner).view, save: comfortDeur.save },
           bijspringen: bijspringenDeur,
           helpen: helpenDeur,
+          zonVerdelen: zonVerdelenDeur,
           latest: () => live,
           divergence: () => review.latest,
           logDir: dir,
@@ -2548,17 +2572,11 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await expect.poll(() => comfortNu?.voorrang?.koelen[0], { timeout: 5_000 }).toBe(tweede);
       expect(configNu.zones.find((z) => z.id === tweede)?.priorityByAction?.cool).toBe(1);
     }
-    // Op zon (besluit 176): de droger staat achteraan; omhoog, en de regeling krijgt de volgorde.
-    const zonRijen = wand.locator('[data-vorm] .rang', { hasText: 'Op zon' }).locator('.r');
-    const zonLijst = comfortView(configNu, comfortNu).voorrang.zon;
-    expect(await zonRijen.count()).toBe(zonLijst.length);
-    expect(await zonRijen.last().textContent()).toContain('Droger');
+    // Op zon staat sinds besluit 343 bij Energie › De zon verdelen: hier alleen een knop erheen.
+    expect(await wand.locator('[data-vorm] .rang', { hasText: 'Op zon' }).count()).toBe(0);
+    expect(await wand.locator('[data-vorm] a[href="energie.html#zon"]').count()).toBe(1);
     // Nog niets gekozen: de regeling heeft geen volgorde op zon.
     expect(configNu.sunOrder).toBeUndefined();
-    await wand.locator(`[data-schuif="zon:${zonLijst.length - 1}:-1"]`).click();
-    await expect.poll(() => configNu.sunOrder?.at(-2), { timeout: 5_000 }).toEqual({ kind: 'deferrable', id: 'droger' });
-    expect(await zonRijen.nth(zonLijst.length - 2).textContent()).toContain('Droger');
-    expect(await wand.locator('[data-delen] .deel', { hasText: 'Voorrang' }).textContent()).not.toContain('droger eerst');
     // Past op de wand zonder te scrollen.
     expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1')).toBe(true);
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-voorrang.png') });
@@ -2578,6 +2596,40 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT.replace('.png', '-dagdelen.png') });
     expect(fouten).toEqual([]);
     await context.close();
+  }, 30_000);
+
+  it('verdeelt de zon bij Energie: de droger omhoog, en de regeling krijgt de volgorde (besluit 343)', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
+    await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
+    await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
+    const p = await context.newPage();
+    const fouten: string[] = [];
+    p.on('pageerror', (e) => fouten.push(e.message));
+    const was = { comfortNu, configNu };
+    try {
+      await p.goto(`${baseUrl}/energie.html#zon`);
+      const wand = p.locator('#wand');
+      const rijen = wand.locator('[data-vorm] .zv-rij');
+      await rijen.first().waitFor({ timeout: 10_000 });
+      const lijst = comfortView(configNu, comfortNu).voorrang.zon;
+      expect(await rijen.count()).toBe(lijst.length);
+      expect(await rijen.last().textContent()).toContain('Droger');
+      expect(await wand.locator('[data-delen] .deel', { hasText: 'De zon verdelen' }).count()).toBe(1);
+      // Met de pijltjes op de greep een plek hoger.
+      await wand.locator(`[data-zv-greep="${lijst.length - 1}"]`).focus();
+      await p.keyboard.press('ArrowUp');
+      await expect.poll(() => configNu.sunOrder?.at(-2), { timeout: 5_000 }).toEqual({ kind: 'deferrable', id: 'droger' });
+      await expect.poll(() => rijen.nth(lijst.length - 2).textContent()).toContain('Droger');
+      // De marge een stap hoger: bewaard, niet naar de regeling.
+      await wand.locator('[data-zv-marge="extraW:1"]').click();
+      await expect.poll(() => zonKeuzes.marge.extraW, { timeout: 5_000 }).toBe(250);
+      expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1')).toBe(true);
+      expect(fouten).toEqual([]);
+    } finally {
+      ({ comfortNu, configNu } = was);
+      zonKeuzes = STANDAARD_KEUZES;
+      await context.close();
+    }
   }, 30_000);
 
   it('houdt de maat bij een schermtoetsenbord, en laat volle kolommen schuiven', async () => {
@@ -3804,7 +3856,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await blad.locator('.dt-kamer:not(.kolomkop) .dt-zou').first().textContent()).toBe(doet.kamers[0]!.zou);
       expect(await blad.locator('.dt-fase i.nu').textContent()).toBe('Kijkt mee');
       expect((await blad.textContent()) ?? '').not.toMatch(/winterdag/i);
-      expect(await blad.locator('a.dt-naar').getAttribute('href')).toBe('vandaag.html');
+      expect(await blad.locator('a.dt-naar').first().getAttribute('href')).toBe('vandaag.html');
       // Op de telefoon staat de kamernaam op een eigen regel en breekt hij niet midden in een woord (0.188.1).
       if (scherm === 'tel') {
         const namen = await blad.locator('.dt-kamer:not(.kolomkop) .dt-naam b').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
