@@ -834,7 +834,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await page.locator('#wand [data-deel="geleerd"]').click();
     await page.locator('#wand .mo-seizoen').first().waitFor();
     expect(await page.locator('#wand .mo-seizoen').count()).toBe(4);
-    expect(await page.locator('#wand .mo-deel.geleerd').textContent()).toMatch(/dagen opgenomen sinds/);
+    expect(await page.locator('#wand .mo-deel.geleerd').textContent()).toMatch(/dagen sinds/);
   });
 
   /*
@@ -3704,7 +3704,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await p.goto(`${baseUrl}/opbrengst.html`);
     const wand = p.locator('#wand');
     await wand.locator('.accuregel').waitFor({ timeout: 10_000 });
-    expect(await wand.locator('.accuregel').textContent()).toBe('De accu laadde 31,0 kWh, waarvan 29,0 kWh uit de zon, en leverde 27,5 kWh aan het huis.');
+    expect(await wand.locator('.accuregel').textContent()).toBe('De accu laadde 31,0 kWh (29,0 kWh uit zon) en leverde 27,5 kWh.');
     await wand.locator('[data-sankey] svg text', { hasText: 'Uit de accu' }).waitFor();
     await wand.locator('[data-sankey] svg text', { hasText: 'Naar de accu' }).waitFor();
     expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
@@ -3727,7 +3727,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await expect.poll(() => p.evaluate<string>(`(() => {
       app.offline(Date.now());
       const balk = document.querySelector('.geenverbinding');
-      if (!balk || !balk.textContent.includes('De regeling loopt gewoon door') || !balk.getClientRects().length) return 'geen balk';
+      if (!balk || !balk.textContent.includes('De regeling loopt door') || !balk.getClientRects().length) return 'geen balk';
       return getComputedStyle(document.querySelector('#wand main')).pointerEvents;
     })()`), { timeout: 20_000 }).toBe('none');
     await p.evaluate('app.online()');
@@ -7170,11 +7170,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     try {
       await p.goto(`${baseUrl}/apparaten.html#batterij`);
       const kaart = p.locator('#tel [data-lading="batterij"]');
-      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('Laadt 1,5 kW met zon. Telde dat als zon over, dan zette SunArc nu ook aan: Airco woonkamer en Droger.');
+      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('Laadt 1,5 kW met zon. Was dat zon over, dan zette SunArc ook aan: Airco woonkamer en Droger.');
       // Zou het niets uitmaken, dan zegt hij dat.
       accu = { zonKw: 0.4, zou: [] };
       await p.reload();
-      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('Laadt 0,4 kW met zon. Telde dat als zon over, dan deed SunArc nu niets anders.');
+      await expect.poll(() => kaart.textContent(), { timeout: 10_000 }).toContain('Laadt 0,4 kW met zon. SunArc stuurt de batterij niet.');
       // Zonder schaduw: zoals altijd.
       accu = null;
       await p.reload();

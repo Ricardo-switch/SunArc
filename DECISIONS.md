@@ -15871,6 +15871,13 @@ Met de hand, Auto en laadpaal): 108 teksten ingekort in beide talen; de
 blokjes *Waar vind je het?*, de teksten over salderen (die gaan in januari,
 besluit 334) en wat al kort was, bleven. Samen nu 29.650 woorden per taal.
 
+Deel 3 (de overige schermen, van Thuis en Opbrengst tot Bewoners, Melden en
+De motor): 161 teksten ingekort in beide talen; zoekwoorden, tellingen met een
+getal en wat al kort was, bleven. Bij De zon verdelen blijft staan dat de
+volgorde meteen geldt en de marge en de hand pas als SunArc zelf regelt. Alle
+drie de delen samen: van 32.500 naar 28.386 woorden per taal, en van 6.125 naar
+5.569 teksten.
+
 ## Wat nog een besluit wacht
 
 - **De ventilatie wordt deze winter geïnstalleerd, en dat verandert het huis.**
