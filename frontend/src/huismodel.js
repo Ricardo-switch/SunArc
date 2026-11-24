@@ -111,7 +111,7 @@
     const bronVan = (a) => bronnen.find((b) => b.apparaat && (b.apparaat === a.actuatorId || b.apparaat === a.id));
     const vloer = (b) => b.soorten.some((x) => x === 'vloer' || x === 'vloer-elektrisch');
     for (const a of klimaat) {
-      // Zegt het apparaat wat het doet, dan dat (1 november 2026): een Nest op "verwarmen" die stilstaat, gloeit niet.
+      // Zegt het apparaat wat het doet, dan dat: een Nest op "verwarmen" die stilstaat, gloeit niet.
       const aan = a.klimaat?.actieCode ? ACTIEF.test(a.klimaat.actieCode) : a.aan;
       const warm = /verwarmt/.test(a.klimaat?.actieCode ?? '');
       const b = bronVan(a);
@@ -145,7 +145,7 @@
       // Wat voor kamer, voor de inrichting ingezoomd (besluit 119). Hebben de zones
       // een gekozen soort en de kamer niet, dan per zone (besluit 145).
       inrichting: (r.soortGekozen || !(r.zones ?? []).some((z) => z.soort) ? r.soort : null) ?? undefined,
-      // Beweging nu (15 oktober 2026): een melder in de kamer ziet iemand.
+      // Beweging nu: een melder in de kamer ziet iemand.
       beweging: apps.some((a) => a.meting?.beweging?.nu) || undefined,
       apparaten,
     };
@@ -178,7 +178,7 @@
     const n = naam ?? '';
     return /overstek|luifel|canopy/i.test(n) ? 'overstek' : /tuinhuis|schuur|huisje|berging|shed/i.test(n) ? 'tuinhuis' : /border|bloem|perk|haag|flower|bed|hedge/i.test(n) ? 'border' : /gazon|gras|lawn/i.test(n) ? 'gazon' : /terras|zithoek|lounge|patio|terrace/i.test(n) ? 'terras' : /moestuin|groente|kas|vegetable|greenhouse/i.test(n) ? 'moestuin' : /vijver|water|pond/i.test(n) ? 'vijver' : /pad|tegel|path/i.test(n) ? 'pad' : /speel|schommel|trampoline|play|swing/i.test(n) ? 'speelplek' : /carport/i.test(n) ? 'carport' : /oprit|driveway/i.test(n) ? 'oprit' : null;
   }
-  /** Een schuurtje, geen tuinhuis: aan de naam (24 oktober 2026). */
+  /** Een schuurtje, geen tuinhuis: aan de naam. */
   const SCHUUR = /schuur|berging|shed/i;
   const heeftHuisje = (r) => (r.zones ?? []).some((z) => ['tuinhuis', 'overstek'].includes(z.soort ?? buitenZoneUitNaam(z.naam)));
   function soortBuiten(r) {
@@ -264,7 +264,7 @@
           id: r.id,
           naam: r.naam,
           tuinhuis: b.tuinhuis || huisjes.length > 0,
-          // Een schuur, berging of shed is het schuurtje met puntdak; anders het tuinhuis met plat dak (24 oktober 2026).
+          // Een schuur, berging of shed is het schuurtje met puntdak; anders het tuinhuis met plat dak.
           tuinhuisSoort: SCHUUR.test([huisjes[0]?.naam, ...(r.zones ?? []).filter((z) => (z.soort ?? buitenZoneUitNaam(z.naam)) === 'tuinhuis').map((z) => z.naam)].filter(Boolean).join(' ')) ? 'schuur' : 'tuinhuis',
           // Is het tuinhuis een eigen ruimte, dan is het huisje zelf aan te tikken (besluit 166).
           tuinhuisId: huisjes[0]?.id ?? null,
@@ -272,7 +272,7 @@
           tuinhuisAan: !!binnenlamp?.aan,
           overstekAan: !!overstek?.aan,
           overstekKleur: overstek ? kleurVanLicht(overstek) : undefined,
-          // De twee spots onder het overstek (24 oktober 2026): elk in de kleur van zijn lamp; met één lamp schijnen ze samen.
+          // De twee spots onder het overstek: elk in de kleur van zijn lamp; met één lamp schijnen ze samen.
           overstekLampen: overstekken.slice(0, 2).map((a) => ({ aan: !!a.aan, kleur: kleurVanLicht(a) })),
           lampen: lampen.filter((a) => !huisje.includes(a) && !border.includes(a) && !terrasLampen.includes(a)).slice(0, 3).map((a) => ({ aan: a.aan, kleur: kleurVanLicht(a) })),
           borderLampen: border.map((a) => ({ aan: !!a.aan, kleur: kleurVanLicht(a) })),
@@ -289,7 +289,7 @@
       const leeg = (naam) => ({ id: null, naam, lampAan: false });
       oprit = rond.oprit ? (oprit ?? { id: null, naam: global.t('huis.buiten.oprit'), auto: null, camera: null }) : null;
       if (oprit) oprit = { ...oprit, auto: rond.auto ? (oprit.auto ?? {}) : null };
-      // Het terras en de border in de tuin staan er alleen als je ze aanzette (6 november 2026): eerst bleven ze altijd staan.
+      // Het terras en de border in de tuin staan er alleen als je ze aanzette: eerst bleven ze altijd staan.
       tuin = rond.tuin || rond.tuinhuis || rond.jacuzzi ? { ...(tuin ?? { id: null, naam: global.t('huis.buiten.tuin'), tuinhuisAan: false, overstekAan: false, lampen: [], zonnescherm: null }), tuinhuis: rond.tuinhuis, terras: !!rond.terras, border: !!rond.tuin && rond.border !== false } : null;
       /*
        * Een schuurtje met puntdak, het tuinhuis met plat dak, of allebei (besluit
@@ -316,7 +316,7 @@
    * het startpunt voor de vraag "Wat is er rond je huis?".
    */
   function rondNu(huis) {
-    // De border stond er altijd (6 november 2026): een lijstje van daarvoor heeft hem dus.
+    // De border stond er altijd: een lijstje van daarvoor heeft hem dus.
     if (huis?.rond) return { border: true, allebei: false, ...huis.rond };
     const ruimtes = (huis?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).filter((r) => isBuiten(e, r)));
     const b = buiten(ruimtes);
@@ -339,17 +339,17 @@
     ];
   }
   const OP_OPRIT = new Set(['auto', 'carport']);
-  /** Wat alleen kan als er een achtertuin is (6 november 2026): de border. */
+  /** Wat alleen kan als er een achtertuin is: de border. */
   const IN_TUIN = new Set(['border']);
   /** Hangt een deel aan een ander deel: aan de oprit of aan de achtertuin. */
   const hangtAan = (w) => (OP_OPRIT.has(w) ? 'oprit' : IN_TUIN.has(w) ? 'tuin' : null);
   /** Staat een deel aan: zelf aan, en wat het aan hangt ook. */
   const rondAan = (rond, w) => !!rond?.[w] && (!hangtAan(w) || !!rond[hangtAan(w)]);
-  /** Wat er in de tuin staat (6 november 2026): het tuinhuis, het schuurtje of allebei. */
+  /** Wat er in de tuin staat: het tuinhuis, het schuurtje of allebei. */
   const huisjeVan = (rond) => (rond?.allebei ? 'beide' : rond?.schuur ? 'schuur' : 'tuinhuis');
   const HUISJES = [['tuinhuis', 'inr.tuinhuis'], ['schuur', 'inr.schuurtje'], ['beide', 'inr.allebei']];
   /*
-   * Het tuinhuis en het schuurtje als twee losse knoppen (18 november 2026,
+   * Het tuinhuis en het schuurtje als twee losse knoppen (
    * Ricardo: je kunt ze allebei hebben). Bewaard zoals eerst: `tuinhuis` als er
    * iets in de tuin staat, `schuur` als het alleen een schuurtje is, `allebei`
    * als het er twee zijn.
@@ -454,7 +454,7 @@
     }
     autosOpHunPlek(delen, huis?.opslag?.autos ?? []);
     const piekW = (zon?.panelen ?? []).reduce((t, p) => t + (p.wattpiek ?? 0), 0);
-    // Wat voor huis het is (besluit 190); een appartement met de verdiepingen eronder en erboven (20 november 2026), hooguit drie en twee in beeld.
+    // Wat voor huis het is (besluit 190); een appartement met de verdiepingen eronder en erboven, hooguit drie en twee in beeld.
     const woning = huis?.woning ?? 'vrijstaand';
     return {
       etages,
@@ -521,7 +521,7 @@
   }
 
   /**
-   * De zon van nu en de baan van vandaag (28 oktober 2026, besluit 205), uit
+   * De zon van nu en de baan van vandaag (besluit 205), uit
    * api/zon, voor de ring rond het huis: elk heel uur een stip, en de tijd van
    * opkomst en ondergang bij de uiteinden. Null zonder zon.
    */
@@ -576,10 +576,10 @@
   }
 
   /**
-   * Komt de zon in de tekening rechts op (25 oktober 2026)? Rechts ligt de
+   * Komt de zon in de tekening rechts op? Rechts ligt de
    * richting van het kompas min 90°; het oosten aan die kant. Zonder ligging
    * null: dan links, zoals het was.
-   * Alleen als de voorgevel duidelijk naar het zuiden kijkt (20 november 2026):
+   * Alleen als de voorgevel duidelijk naar het zuiden kijkt:
    * kijkt hij naar het oosten of westen, dan staat de zon het grootste deel van
    * de dag opzij en gaat hij gewoon van links naar rechts. Bij 97° kwam hij
    * eerst rechts op en liep hij naar links.
@@ -599,7 +599,7 @@
     if (!iedereen.length) return [];
     if (bewoners.ik?.soort === 'bewoner' || bewoners.ik?.soort === 'gast') return bewoners.ik.naam ? [{ id: bewoners.ik.id, naam: bewoners.ik.naam }] : [];
     // Op een scherm: wie er thuis is, bewoners op volgorde en dan gasten. Thuis zoals
-    // Home Assistant het ziet, net als de rondjes (besluit 169, 21 oktober 2026).
+    // Home Assistant het ziet, net als de rondjes (besluit 169).
     return iedereen.filter((b) => b.thuis).map((b) => ({ id: b.id, naam: b.naam }));
   }
   /** Alleen de namen, voor wat ze uitspreekt. */
@@ -664,7 +664,7 @@
       ...(tek.auto ? { auto: tek.auto } : {}),
       // Hoe het huis ligt (besluit 205): de nok en de helling, en de voorgevel voor de zon.
       ...(tek.ligging ? { dak: { nok: tek.ligging.nok, ...(tek.ligging.hellingDeg ? { hellingDeg: tek.ligging.hellingDeg } : {}), ...(tek.ligging.plat ? { plat: true } : {}) }, voorgevelDeg: tek.ligging.voorgevelDeg } : {}),
-      // Een plat dak zonder bekende ligging (7 november 2026): wel plat, de rest zoals eerst.
+      // Een plat dak zonder bekende ligging: wel plat, de rest zoals eerst.
       ...(!tek.ligging && tek.dakPlat ? { dak: { plat: true } } : {}),
     };
   }

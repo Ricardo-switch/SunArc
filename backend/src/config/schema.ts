@@ -631,7 +631,7 @@ export function parseSiteConfig(
         const id = str(p, f, path, 'id');
         if (id && seen.has(id)) p.error(join(path, 'id'), `fase "${id}" staat er twee keer`);
         if (id) seen.add(id);
-        // De stroom (A), of anders het vermogen (W) op die fase (23 november 2026); één van de twee.
+        // De stroom (A), of anders het vermogen (W) op die fase; één van de twee.
         if (f['current'] === undefined && f['power'] === undefined) p.error(join(path, 'current'), 'ontbreekt (of power, het vermogen op deze fase)');
         if (f['current'] !== undefined && f['power'] !== undefined) p.error(join(path, 'power'), 'kies current of power, niet allebei');
         const current = f['current'] === undefined ? null : ref(p, f['current'], join(path, 'current'), defaultAdapter);

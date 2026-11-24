@@ -1,7 +1,7 @@
 /**
  * Inloggen, uitloggen en "wie ben ik" (besluit 99).
  *
- * Geknipt uit server.ts (besluit 180, 23 oktober 2026): letterlijk, met de
+ * Geknipt uit server.ts (besluit 180): letterlijk, met de
  * context `d` in plaats van de webserver zelf.
  */
 
@@ -76,7 +76,7 @@ export async function authRoute(d: Diensten, req: IncomingMessage, res: ServerRe
       const eerst = (await d.options.bewoners?.herken({ userId: user.userId, naam: user.naam }).catch(() => null)) ?? null;
       const naar = eerst == null ? pending.terug : `/welkom.html?terug=${encodeURIComponent(pending.terug)}#${eerst}`;
       /*
-       * Niet meteen doorsturen (16 oktober 2026): de browser komt hier vanaf
+       * Niet meteen doorsturen: de browser komt hier vanaf
        * Home Assistant, een andere site, en een cookie met SameSite=Strict gaat
        * dan bij de doorverwijzing niet mee. Sinds de hele app een inlog vraagt
        * (besluit 147), stond je zo weer bij het inloggen. Een kleine pagina die

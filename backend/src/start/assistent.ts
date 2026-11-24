@@ -37,7 +37,7 @@ export async function maakAssistent(nodig: MaakAssistentNodig) {
    * Hoe de integratie erbij staat, met de versie die Home Assistant nu geladen
    * heeft, en of hij is toegevoegd (dan pas werkt hij). Na "Nieuw apparaat
    * gevonden" en Toevoegen vraagt Home Assistant nog om Verzenden; wie dat mist,
-   * heeft de integratie wel, maar Assist nog niet (22 oktober 2026).
+   * heeft de integratie wel, maar Assist nog niet.
    */
   async function integratieStand() {
     const stand = await integratie!.stand();
@@ -170,7 +170,7 @@ export async function maakAssistent(nodig: MaakAssistentNodig) {
     const [whisper, tailscale] = await Promise.all(
       ['core_whisper', 'a0d7b954_tailscale'].map((slug) =>
         addOnInfo('http://supervisor', supervisorToken, slug, (reden) => {
-          // Eén keer per reden in het logboek: zo is op de Pi te zien waarom lezen niet mag (2 november 2026).
+          // Eén keer per reden in het logboek: zo is op de Pi te zien waarom lezen niet mag.
           if (addOnRedenen.has(reden)) return;
           addOnRedenen.add(reden);
           console.warn(`Klaarzetten: ${slug} niet te lezen bij de Supervisor (${reden})`);

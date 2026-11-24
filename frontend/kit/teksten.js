@@ -1,5 +1,5 @@
 /*
- * Alleen de teksten van één taal laden (23 november 2026, Meertalig stap 4).
+ * Alleen de teksten van één taal laden (Meertalig stap 4).
  *
  * Eerst laadde elke pagina teksten.nl.js én teksten.en.js: samen bijna 700 kB,
  * meer dan een derde van alle code van Thuis, terwijl er maar één taal te zien

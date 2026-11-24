@@ -60,7 +60,7 @@ function staven(rijen, { breedte, hoogte, label, lijnen = true, klein = false })
   const top = 10;
   const hoogste = Math.max(...rijen.map((x) => x.w), r.gewoonW + GRENS);
   const max = Math.max(100, Math.ceil((hoogste + 10) / 100) * 100);
-  // De as zo breed als zijn langste getal (28 oktober 2026): bij 1.200 viel de 1 op de telefoon weg.
+  // De as zo breed als zijn langste getal: bij 1.200 viel de 1 op de telefoon weg.
   const l = Math.max(klein ? 30 : 38, nl(max, 0).length * 6.6 + 12);
   const w = (breedte - l - rand) / rijen.length;
   const y = (v) => top + (1 - v / max) * (hoogte - top - b);
@@ -104,7 +104,7 @@ function grafiek(breedte, hoogte, klein = false) {
 }
 
 /**
- * Wat er bij de aangetikte staaf hoort (29 oktober 2026): een nacht tegen je
+ * Wat er bij de aangetikte staaf hoort: een nacht tegen je
  * gewone nacht, een maand tegen dezelfde maand een jaar eerder. Zonder keuze
  * null.
  */
@@ -208,7 +208,7 @@ const laagsteMaand = () => r.maanden.reduce((a, b) => (b.w < a.w ? b : a));
 
 /** Wat opviel (besluit 88): het wat en het hoeveel, en per nacht wat de bewoner zelf zegt (besluit 335). */
 function opvallend() {
-  // Vaak meer dan gewoon, niet op rij (29 oktober 2026): een eigen kaart; bij een hoge nacht staat het in de zin.
+  // Vaak meer dan gewoon, niet op rij: een eigen kaart; bij een hoge nacht staat het in de zin.
   if (!r.reeks && r.vaak) {
     const kop = t('sluip.vaakTitel', { n: r.vaak.nachten, meer: r.vaak.meerW });
     return `<section class="glas kaart opvallend opgevallen"><div class="mini">${esc(t('sluip.vaakKop'))}</div><h3>${esc(kop)}</h3><p class="klein geen-marge">${esc(t('sluip.vaakZin', { maand: maandNaam(r.vaak.sinds.slice(0, 7), false) }))}</p>${redenDeel()}</section>`;

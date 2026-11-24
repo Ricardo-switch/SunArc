@@ -156,7 +156,7 @@ export class Stekkerhand {
   }
 
   /**
-   * Meteen uit, zonder eind (7 november 2026): de bewoner wil hem gewoon uit.
+   * Meteen uit, zonder eind: de bewoner wil hem gewoon uit.
    * Wat er met de hand liep, vervalt; er gaat later niets terug.
    */
   async uitNu(id: string): Promise<{ readonly ok: true } | { readonly ok: false; readonly reden: string }> {

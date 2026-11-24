@@ -1,5 +1,5 @@
 /*
- * De iconen van SunArc (2 november 2026, schets Wand-Iconen): één set voor de
+ * De iconen van SunArc (schets Wand-Iconen): één set voor de
  * hele app, in plaats van een lijstje per pagina. Duotoon: een fijne lijn
  * (1,6) met een zacht vlak in de kleur van het onderwerp. Het actieve
  * menu-item krijgt het vlak voluit (kit.css, `.ik-vlak`).
@@ -26,7 +26,7 @@
     opbrengst: { k: 'zon', l: '<rect x="4" y="12" width="4" height="8" rx="1.6"/><rect x="10" y="7.5" width="4" height="12.5" rx="1.6"/><rect x="16" y="4" width="4" height="16" rx="1.6"/>', v: '<rect x="16" y="4" width="4" height="16" rx="1.6"/>' },
     assistent: { k: 'violet', l: '<path d="M20 11.5c0 4.1-3.6 7.5-8 7.5-1.2 0-2.3-.2-3.3-.6L4.2 20l1.2-3.6A7.2 7.2 0 0 1 4 11.5C4 7.4 7.6 4 12 4s8 3.4 8 7.5z"/><path d="m12 8.3.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>', v: '<path d="M20 11.5c0 4.1-3.6 7.5-8 7.5-1.2 0-2.3-.2-3.3-.6L4.2 20l1.2-3.6A7.2 7.2 0 0 1 4 11.5C4 7.4 7.6 4 12 4s8 3.4 8 7.5z"/>' },
     meldingen: { k: 'gloed', l: '<path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.4 1.5H5.1z"/><path d="M10.2 20.6h3.6"/>', v: '<path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.4 1.5H5.1z"/>' },
-    // Een rond tandwiel met acht gelijke tanden (22 november 2026; eerst was hij hoekig en scheef).
+    // Een rond tandwiel met acht gelijke tanden (eerst was hij hoekig en scheef).
     instellingen: { k: 'net', l: '<circle cx="12" cy="12" r="2.8"/><path d="M10.41 4.77L10.65 2.5L13.35 2.5L13.59 4.77A7.4 7.4 0 0 1 15.99 5.77L17.76 4.32L19.68 6.24L18.23 8.01A7.4 7.4 0 0 1 19.23 10.41L21.5 10.65L21.5 13.35L19.23 13.59A7.4 7.4 0 0 1 18.23 15.99L19.68 17.76L17.76 19.68L15.99 18.23A7.4 7.4 0 0 1 13.59 19.23L13.35 21.5L10.65 21.5L10.41 19.23A7.4 7.4 0 0 1 8.01 18.23L6.24 19.68L4.32 17.76L5.77 15.99A7.4 7.4 0 0 1 4.77 13.59L2.5 13.35L2.5 10.65L4.77 10.41A7.4 7.4 0 0 1 5.77 8.01L4.32 6.24L6.24 4.32L8.01 5.77A7.4 7.4 0 0 1 10.41 4.77Z"/>', v: '<path d="M10.41 4.77L10.65 2.5L13.35 2.5L13.59 4.77A7.4 7.4 0 0 1 15.99 5.77L17.76 4.32L19.68 6.24L18.23 8.01A7.4 7.4 0 0 1 19.23 10.41L21.5 10.65L21.5 13.35L19.23 13.59A7.4 7.4 0 0 1 18.23 15.99L19.68 17.76L17.76 19.68L15.99 18.23A7.4 7.4 0 0 1 13.59 19.23L13.35 21.5L10.65 21.5L10.41 19.23A7.4 7.4 0 0 1 8.01 18.23L6.24 19.68L4.32 17.76L5.77 15.99A7.4 7.4 0 0 1 4.77 13.59L2.5 13.35L2.5 10.65L4.77 10.41A7.4 7.4 0 0 1 5.77 8.01L4.32 6.24L6.24 4.32L8.01 5.77A7.4 7.4 0 0 1 10.41 4.77Z"/>' },
 
     /* ---- klimaat ---- */
@@ -50,7 +50,7 @@
     meter: { k: 'zon', l: '<path d="M4.2 17.5a8.5 8.5 0 1 1 15.6 0"/><path d="m12 15 3.6-4.6"/><circle cx="12" cy="15.2" r="1.3"/>', v: '<path d="M4.2 17.5a8.5 8.5 0 1 1 15.6 0z"/>' },
     // Meld een probleem (testerronde, november 2026): een tekstballon met een uitroepteken.
     melden: { k: 'gloed', l: '<path d="M20 11.5c0 4.1-3.6 7.5-8 7.5-1.2 0-2.3-.2-3.3-.6L4.2 20l1.2-3.6A7.2 7.2 0 0 1 4 11.5C4 7.4 7.6 4 12 4s8 3.4 8 7.5z"/><path d="M12 8.2v3.8M12 14.6v.1"/>', v: '<path d="M20 11.5c0 4.1-3.6 7.5-8 7.5-1.2 0-2.3-.2-3.3-.6L4.2 20l1.2-3.6A7.2 7.2 0 0 1 4 11.5C4 7.4 7.6 4 12 4s8 3.4 8 7.5z"/>' },
-    // Steunen (4 november 2026): een kop koffie, bij Over deze app en Versie.
+    // Steunen: een kop koffie, bij Over deze app en Versie.
     koffie: { k: 'zon', l: '<path d="M4.5 10h12v4.3a5.2 5.2 0 0 1-5.2 5.2h-1.6a5.2 5.2 0 0 1-5.2-5.2z"/><path d="M16.5 11.4h1.3a2.3 2.3 0 0 1 0 4.6h-1.7"/><path d="M8.6 3.6c-.9 1.1.9 1.9 0 3M12.4 3.6c-.9 1.1.9 1.9 0 3"/>', v: '<path d="M4.5 10h12v4.3a5.2 5.2 0 0 1-5.2 5.2h-1.6a5.2 5.2 0 0 1-5.2-5.2z"/>' },
     stekker: { k: 'zon', l: '<path d="M9 3.5v4M15 3.5v4"/><path d="M6.5 7.5h11V11a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5v4"/>', v: '<path d="M6.5 7.5h11V11a5.5 5.5 0 0 1-11 0z"/>' },
     aansluiting: { k: 'zon', l: '<rect x="5" y="3" width="14" height="18" rx="3"/><circle cx="12" cy="10" r="3.2"/><path d="m12.6 9-1.3 1.7h1.6l-1.3 1.6"/><path d="M8.5 16.5h7"/>', v: '<circle cx="12" cy="10" r="3.2"/>' },

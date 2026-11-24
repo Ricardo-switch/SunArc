@@ -297,7 +297,7 @@ export function oppervlak(omtrek: readonly Xy[]): number {
 }
 
 /**
- * Een omtrek in blokken (5 november 2026): OpenStreetMap heeft het huis met
+ * Een omtrek in blokken: OpenStreetMap heeft het huis met
  * een aangebouwde garage of uitbouw vaak als één gebouw. Is de omtrek geen
  * rechthoek, dan in rechthoeken langs zijn as, de grootste eerst: dat is het
  * huis, de rest zijn delen om aan te tikken. Null als het al een rechthoek is.
@@ -366,7 +366,7 @@ export function inBlokken(omtrek: readonly Xy[]): { hoofd: Xy[]; rest: Xy[][] } 
 const PANEEL = { breed: 1.0, lang: 1.7, tussen: 0.04, rand: 0.3 } as const;
 
 /**
- * Zoveel panelen als er zijn, in rijen op het dakvlak (5 november 2026): niet
+ * Zoveel panelen als er zijn, in rijen op het dakvlak: niet
  * het hele dakvlak vol. Vanaf de nok naar beneden; een rij die niet vol is,
  * in het midden. Meer vlakken op één dakvlak delen de rijen, op letter.
  */
@@ -446,7 +446,7 @@ export function tekening(d: Daken, o: { huisPlat?: boolean } = {}): Tekening {
   /*
    * Een gebouw van de kaart dat uit hetzelfde gebouw komt als het huis (de
    * garage, aangewezen bij Vorm) krijgt de maat van het stuk zoals het nu
-   * opgeknipt wordt (20 november 2026, Ricardo: de garage hield na opnieuw
+   * opgeknipt wordt (Ricardo: de garage hield na opnieuw
    * meten de lengte met het schuurtje). Wat de bewoner zelf op maat maakte, blijft.
    */
   const gebouwen = opgeknipt.map((g) => {

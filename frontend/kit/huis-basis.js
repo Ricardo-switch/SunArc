@@ -1,5 +1,5 @@
 /*
- * SunArc: het poppenhuis, de basis (22 november 2026, opgesplitst uit kit/huis.js).
+ * SunArc: het poppenhuis, de basis (opgesplitst uit kit/huis.js).
  *
  * De vaste kleuren en maten, de soorten kamers en hun meubels en iconen, en losse hulpjes zonder gedeelde stand
  * (kleuren, esc, de ring van de zon, feestdagen). huis.js en zijn delen gebruiken het via global.huisBasis.
@@ -150,7 +150,7 @@
   }
 
   /**
-   * Welke feestdag het is (25 oktober 2026): Halloween (24 oktober tot en met
+   * Welke feestdag het is: Halloween (24 oktober tot en met
    * 1 november), Kerst (6 december tot en met 6 januari), Oud en Nieuw (31
    * december vanaf 18:00 tot 1 januari 03:00) of Pasen (Goede Vrijdag tot en
    * met tweede paasdag). Null op een gewone dag.
@@ -202,7 +202,7 @@
     const breedtes = etages.map((e) => (e.dak ? 0 : e.kamers.reduce((s, k) => s + (k.gewicht ?? 1), 0)));
     const W = Math.max(3.4, ...breedtes.map((b) => b * KAMER));
     const gewoon = etages.filter((e) => !e.dak);
-    // Wordt de zolder gebruikt, dan staat het dak op een muurtje (knieschot), zodat er stahoogte is (2 november 2026).
+    // Wordt de zolder gebruikt, dan staat het dak op een muurtje (knieschot), zodat er stahoogte is.
     const knie = !model.zonderDak && etages.some((e) => e.dak && (e.kamers ?? []).length > 0) ? KNIE : 0;
     const Ht = gewoon.length * FH + knie; // hoogte tot de dakvoet
     const heeftDak = true;
@@ -214,7 +214,7 @@
 
   /**
    * Ingezoomd op één etage (zonder dak): de etages eronder en erboven als vage
-   * lagen (25 oktober 2026), zodat een verdieping niet op het gras staat. Het
+   * lagen, zodat een verdieping niet op het gras staat. Het
    * eiland zakt één etage; eronder één vage etage die naar het gras wegloopt,
    * erboven de omtrek van de volgende etage of het dak. Null: zoals het was.
    */

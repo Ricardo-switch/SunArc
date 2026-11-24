@@ -43,7 +43,7 @@ const huisVoorMotor = (d) => huisVoor.huisVoorMotor(d, kijk);
 /* ------------------------------------------------------------ de indeling */
 
 /*
- * Stap 3 van de kwaliteitsronde (17 november 2026, schets Wand-Huis-Aanvulling):
+ * Stap 3 van de kwaliteitsronde (schets Wand-Huis-Aanvulling):
  * wat eerst alleen bij Kamers en indeling kon, staat in de bladen van Je huis.
  * De etage (naam, onder het dak, volgorde, erbij of weg), de soort en de naam
  * van een kamer, wat er rond het huis is en waar de thuisaccu staat, en een
@@ -54,7 +54,7 @@ let info = null;
 let huisData = null;
 
 /*
- * Huis (23 november 2026): het huis zoals getekend, met kit/huis-maat.js en dezelfde opties als op Thuis
+ * Huis: het huis zoals getekend, met kit/huis-maat.js en dezelfde opties als op Thuis
  * (src/huisthuis-opties.js), zonder wat nu gebeurt. Open: de gekozen etage los met meubels; dicht: het hele huis met
  * het erf, de tuin ingekort. Slepen draait het (de hoek van de tekenaar).
  */
@@ -111,14 +111,14 @@ function plekkenBuiten(d) {
   // Ook wat nog niet aan staat (18-11), na wat aan staat: kiezen zet het aan (plekErbij).
   const delen = huismodel.rondom().filter(([, , s]) => s);
   const soorten = ['voordeur', ...delen.filter(([w]) => huismodel.rondAan(rond, w)).map(([, , s]) => s), ...delen.filter(([w]) => !huismodel.rondAan(rond, w)).map(([, , s]) => s)];
-  // Een deel dat al een zone is van een ruimte buiten (het terras in de tuin), staat niet nog eens los (18 november 2026).
+  // Een deel dat al een zone is van een ruimte buiten (het terras in de tuin), staat niet nog eens los.
   const alsZone = new Set(kamers.flatMap((k) => (k.zones ?? []).flatMap((z) => [z.id, z.naam.toLowerCase()])));
   const vast = soorten.filter((soort) => kamers.some((x) => buitenSoort(x) === soort) || !alsZone.has(soort)).map((soort) => {
     const k = kamers.find((x) => buitenSoort(x) === soort);
     return { waarde: k ? k.id : `plek:${soort}`, naam: k?.naam ?? plekNaam(soort, rond) };
   });
   const rest = kamers.filter((k) => !vast.some((p) => p.waarde === k.id)).map((k) => ({ waarde: k.id, naam: k.naam }));
-  // De delen van een ruimte buiten (18 november 2026), zoals het terras en de border in de tuin, elk achter zijn ruimte.
+  // De delen van een ruimte buiten, zoals het terras en de border in de tuin, elk achter zijn ruimte.
   return [...vast, ...rest].flatMap((p) => {
     const k = kamers.find((x) => x.id === p.waarde);
     // Een ruimte met delen krijgt een eigen kopje: Achtertuin met Tuinhuis, Border en Terras.
@@ -170,7 +170,7 @@ const indeling = {
       etage: { kanHoger: i > 0, kanLager: i >= 0 && i < v.length - 1, kanWeg: e !== 'bg' && !(d.kamers ?? []).some((k) => k.etage === e) },
       nieuweEtages: (info?.standaard ?? []).filter((s) => s.id !== 'buiten' && !v.includes(s.id)).map((s) => [s.id, s.naam]),
       // Wat aan iets anders hangt (de auto aan de oprit, de border aan de tuin), alleen als dat er is.
-      // Het tuinhuis en het schuurtje als twee losse knoppen (18 november 2026): je kunt ze allebei hebben.
+      // Het tuinhuis en het schuurtje als twee losse knoppen: je kunt ze allebei hebben.
       rond: huismodel.rondom()
         .filter(([w]) => !huismodel.hangtAan(w) || huismodel.rondAan(rond, huismodel.hangtAan(w)))
         .flatMap(([w, naam, , icoon]) => (w === 'tuinhuis'
@@ -234,7 +234,7 @@ const indeling = {
       } else if (w.w) k.soort = w.w;
       else delete k.soort;
     } else if (actie === 'woning' || actie === 'buur' || actie === 'woning-ja' || actie === 'flat') {
-      // Wat voor huis (20 november 2026): de soort en de muren tegen de buren, samen bewaard.
+      // Wat voor huis: de soort en de muren tegen de buren, samen bewaard.
       const w0 = tekenaar.huis.woning ?? {};
       if (actie === 'flat') {
         // Een appartement: de verdieping of erboven een hoger of lager.
@@ -261,13 +261,13 @@ const indeling = {
       if (w === 'gevel') delete next.accu;
       else next.accu = w === 'garage' ? { plek: 'garage', kamer: null } : { plek: 'binnen', kamer: w.slice(7) };
     } else if (actie === 'verberg') {
-      // De kamer blijft bewaard (18 november 2026): Terughalen zet hem weer waar hij stond.
+      // De kamer blijft bewaard: Terughalen zet hem weer waar hij stond.
       next.verborgen = [...new Set([...(next.verborgen ?? []), w])];
       tekenaar.st.wapen = null;
       tekenaar.st.kies = null;
     } else if (actie === 'terug') next.verborgen = (next.verborgen ?? []).filter((x) => x !== w);
     else if (actie === 'samenvoegen') {
-      // Een gebouw dat ook als deel van de tuin stond (19 november 2026): wat in dat deel stond, gaat naar het gebouw; het deel is weg.
+      // Een gebouw dat ook als deel van de tuin stond: wat in dat deel stond, gaat naar het gebouw; het deel is weg.
       const van = next.kamers.find((k) => k.id === w.van);
       if (!van || !next.kamers.some((k) => k.id === w.kamer)) return;
       for (const a of Object.values(next.apparaten)) {
@@ -279,17 +279,17 @@ const indeling = {
       }
       van.zones = (van.zones ?? []).filter((z) => z.id !== w.zone);
     } else if (actie === 'vak-buiten') {
-      // Een vak buiten wordt een plek die er nog niet was (19 november 2026): eerst de ruimte in de indeling, daarna noemt de tekening het vak zo.
+      // Een vak buiten wordt een plek die er nog niet was: eerst de ruimte in de indeling, daarna noemt de tekening het vak zo.
       const vak = tekenaar.st.kies?.soort === 'ruimte' ? tekenaar.st.kies.id : null;
       naNoem = { vak, kamer: plekErbij(next, String(w)) };
     } else if (actie === 'app-buiten') {
       // Een apparaat buiten (besluit 269 en 317): bij de voordeur, in de garage; een plek zonder ruimte komt er nu bij.
-      // Ook in een deel van een ruimte buiten (18 november 2026), zoals het terras of de border in de tuin: `kamer~zone`.
+      // Ook in een deel van een ruimte buiten, zoals het terras of de border in de tuin: `kamer~zone`.
       const [app, plek] = String(w).split('|');
       const [ruimte, zone = null] = plek.split('~');
       const kamer = ruimte.startsWith('plek:') ? plekErbij(next, ruimte.slice(5)) : ruimte;
       next.apparaten[app] = { ...(next.apparaten[app] ?? {}), kamer, zone };
-      // Eén apparaat, één bolletje (20 november 2026): wat erin zit, zoals de schijnwerper van een camera, gaat mee.
+      // Eén apparaat, één bolletje: wat erin zit, zoals de schijnwerper van een camera, gaat mee.
       for (const b of tekenaar.st.apparaten.find((x) => x.id === app)?.bij ?? []) {
         if (b.id === app) continue;
         const { plek: _plek, ...oud } = next.apparaten[b.id] ?? {};
@@ -323,7 +323,7 @@ const indeling = {
 let naNoem = null;
 
 /*
- * Een vraag boven de tekening van buiten (19 november 2026, schets
+ * Een vraag boven de tekening van buiten (schets
  * Wand-Huis-Buiten): de kaart vond gebouwen en koppelde ze aan je ruimtes
  * (Klopt dit?), of een gebouw staat twee keer: als deel van de tuin en als
  * eigen ruimte (samenvoegen). Zo laten onthoudt de browser.
@@ -368,7 +368,7 @@ function vraag(tk, d) {
     const etage = tk.huis.etages.find((e) => e.id === (k.etage ?? tk.dakEtage()));
     html = `<span class="jh-vraag-ik">${iconen.svg('dak')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.kapel.kop'))}</b><span>${esc(t('jehuis.kapel.zin', { kant: kant.toLowerCase(), etage: (etage?.kort ?? etage?.naam ?? '').toLowerCase(), breed: (Math.round((k.tot - k.van) * 10) / 10).toLocaleString(taal.locale ?? 'nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) }))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="kapel-nee">${esc(t('jehuis.kapel.nee'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="kapel-ja">${esc(t('jehuis.kapel.ja'))}</button></div>`;
   } else if (tk.st.stand === 'vorm' && !opErf && tk.huis.woning?.kaart && !tk.huis.woning.gekozen && !weg.has('woning')) {
-    // Wat voor huis volgens de kaart (20 november 2026): ja houdt het, nee laat de bewoner zelf kiezen in het blad.
+    // Wat voor huis volgens de kaart: ja houdt het, nee laat de bewoner zelf kiezen in het blad.
     const k = tk.huis.woning.kaart;
     const kanten = opsomming(k.buren.map((x) => t(`wn.kantKlein.${x}`)));
     html = `<span class="jh-vraag-ik">${iconen.svg('thuis')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.wn.kop', { soort: t(`wn.soort.${k.soort}`).toLowerCase() }))}</b><span>${esc(t(k.buren.length === 0 ? 'jehuis.wn.zinGeen' : k.buren.length === 1 ? 'jehuis.wn.zinEen' : 'jehuis.wn.zinMeer', { kanten }))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="woning-nee">${esc(t('jehuis.wn.nee'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="woning-ja">${esc(t('jehuis.wn.ja'))}</button></div>`;
@@ -568,7 +568,7 @@ async function haalKaarten() {
   zoekBeeld(true);
   tekenaar.teken();
   tekenaar.ververs();
-  // Eerst wat je net tekende bewaren, dan pas de kaart (20 november 2026): andersom kon de tekening op een ander papier vallen.
+  // Eerst wat je net tekende bewaren, dan pas de kaart: andersom kon de tekening op een ander papier vallen.
   for (let i = 0; i < 40 && !tekenaar.st.bewaard && !tekenaar.st.fout; i++) await wacht(100);
   const vraag = async (extra) => {
     try {
@@ -651,7 +651,7 @@ function plaats() {
   if (kant === '#wand') tafel.append($('#strook'), $('#uitleg'));
   else {
     $(`${kant} [data-plek="uitleg"]`).append($('#uitleg'), $('#strook'));
-    // Op de telefoon staat de vraag van buiten boven de tekening, niet erover (19 november 2026).
+    // Op de telefoon staat de vraag van buiten boven de tekening, niet erover.
     tafel.before($('#vraag'));
   }
   $(`${kant} [data-plek="blad"]`).append($('#blad'));
@@ -659,7 +659,7 @@ function plaats() {
 
 function bij() {
   const st = tekenaar.st;
-  // Een appartement met verdiepingen erboven heeft geen eigen dak: de tab Dak staat er dan niet (20 november 2026).
+  // Een appartement met verdiepingen erboven heeft geen eigen dak: de tab Dak staat er dan niet.
   const eigenDak = woningDeel.eigenDak(tekenaar.huis.woning);
   if (!eigenDak && st.stand === 'dak') return tekenaar.zetStand('vorm');
   /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[data-stand="dak"]')).forEach((b) => (b.hidden = !eigenDak));
@@ -726,9 +726,9 @@ async function start() {
   huistekenen.paneel($('#blad'), tk);
   huistekenen.stapel($('#stapel'), tk);
   huistekenen.strook($('#strook'), tk);
-  // Op de telefoon de etages als balk; buiten als laatste knop, een etage zoals de andere (19 november 2026).
+  // Op de telefoon de etages als balk; buiten als laatste knop, een etage zoals de andere.
   const erfEtage = huis.etages.find((e) => e.buiten);
-  // Naast elkaar van beneden naar boven, zoals op de kamerpagina: Begane grond links, Zolder rechts (22 november 2026, Ricardo).
+  // Naast elkaar van beneden naar boven, zoals op de kamerpagina: Begane grond links, Zolder rechts (Ricardo).
   $('[data-etages]').innerHTML = `${huis.etages.filter((e) => !e.buiten).reverse().map((e) => `<button type="button" data-etage-kies="${esc(e.id)}">${esc(e.kort ?? e.naam)}</button>`).join('')}${erfEtage ? `<button type="button" class="tk-buiten" data-etage-kies="${esc(erfEtage.id)}" aria-label="${esc(erfEtage.naam)}" title="${esc(erfEtage.naam)}">${iconen.svg('buiten')}</button>` : info ? `<button type="button" class="tk-buiten" data-buiten-kies aria-label="${esc(t('ht.buiten.kop'))}" title="${esc(t('ht.buiten.kop'))}">${iconen.svg('buiten')}</button>` : ''}`;
   document.querySelectorAll('[data-ik]').forEach((el) => el.insertAdjacentHTML('afterbegin', iconen.svg(el.dataset.ik)));
   tk.op(bij);
@@ -744,7 +744,7 @@ async function start() {
   if (info && (gevraagd === 'verborgen' || (gevraagd === 'buiten' && !erfEtage))) tk.toonBlad(gevraagd);
   // `#buiten/rond`: buiten, met het blad van wat er rond het huis is (de plek van de thuisaccu).
   if (info && erfEtage && gevraagd === 'buiten' && gevraagdeStand === 'rond') tk.toonBlad('buiten');
-  // Buiten: de kaart vraagt Klopt dit?, en een ruimte die twee keer staat, kan samen (19 november 2026).
+  // Buiten: de kaart vraagt Klopt dit?, en een ruimte die twee keer staat, kan samen.
   tk.op(() => vraag(tk, d));
   vraag(tk, d);
 

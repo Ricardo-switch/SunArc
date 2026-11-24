@@ -129,7 +129,7 @@ function standDeel(a) {
   let onder = '';
   if (a.thuis === false && a.pct != null) onder = `${nl(a.pct, 0)}%${a.bereikKm != null ? `<small>${esc(t('auto.bereik', { km: nl(a.bereikKm, 0) }))}</small>` : ''}`;
   else if (a.laadt && a.vermogenW != null) onder = `${nl(a.vermogenW / 1000)} kW${fasenKort(a.stroomA) ? `<small>${esc(fasenKort(a.stroomA))}</small>` : ''}`;
-  // De kleur als tekst (14 november 2026): het geel van de zon was op een lichte achtergrond niet te lezen.
+  // De kleur als tekst: het geel van de zon was op een lichte achtergrond niet te lezen.
   return `<div><div class="stand"${s.gloed ? ' data-gloed' : ''} style="color: ${app.tekstKleur(s.kleur)}"><i></i><span>${esc(s.tekst)}</span></div>${onder ? `<div class="vermogen">${onder}</div>` : ''}</div>`;
 }
 

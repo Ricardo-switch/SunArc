@@ -151,7 +151,7 @@ function meest(lijst, anders) {
 }
 
 /*
- * Je dag (6 november 2026, schets Wand-Inrichten-Comfort #dag): de drie
+ * Je dag (schets Wand-Inrichten-Comfort #dag): de drie
  * grenzen van de dag in een eigen stap, vóór hoe warm. Een balk van 24 uur
  * met een greep per grens, en per grens een regel met − en +. De lucht boven
  * het huis volgt de grens die je het laatst bewoog; bij voorverwarmen gloeien
@@ -216,7 +216,7 @@ async function bewaarDag(dg) {
 }
 
 /*
- * Hoe warm wil je het (6 november 2026, schets Wand-Inrichten-Comfort): per
+ * Hoe warm wil je het (schets Wand-Inrichten-Comfort): per
  * kamer overdag en 's nachts, elk verwarmen en koelen, en elk getal is aan te
  * tikken. Het hele huis is de bovenste regel: wat de meeste kamers hebben.
  * Een kamer volgt het huis zolang hij dat getal heeft; verander je het huis,
@@ -291,7 +291,7 @@ function comfortStap() {
     inhoud: `<div class="cf-tabel${soorten.length === 1 ? ' een' : ''}"><span></span>${kop}${huisRij}${kamerRijen}</div>${bewerk}<p class="cf-noot">${esc(t('inr.cf.noot'))}</p>`,
   };
 }
-/** Binnen wat de apparaten van een kamer kunnen (28 oktober 2026): anders weigert de dienst het hele comfort. */
+/** Binnen wat de apparaten van een kamer kunnen: anders weigert de dienst het hele comfort. */
 const haalbaarIn = (k, soort, v) => {
   const r = k.haalbaar?.[soort === 'heat' ? 'verwarmen' : 'koelen'];
   return v == null || !r ? v : Math.min(r[1], Math.max(r[0], v));
@@ -429,7 +429,7 @@ function zonStap() {
     return `<div class="kp-plaats aan">${ICOON(p)}<b>${esc(naam)}</b>${onder}</div>`;
   };
   const hoofd = kort.aan.hoofddak > 0;
-  // Hoeveel kanten weet iedereen, of zoekt het even uit (6 november 2026): geen "Weet ik niet" meer.
+  // Hoeveel kanten weet iedereen, of zoekt het even uit: geen "Weet ik niet" meer.
   const kantKeuze = String(Math.min(3, Math.max(1, kort.kanten)));
   const kanten = hoofd
     ? `<div class="kp-kanten"><b>${esc(t('inr.dak.kantenVraag'))}</b>${[['1', '1'], ['2', '2'], ['3', t('inr.dak.drieOfMeer')]].map(([w, x]) => knop(`data-kort-kanten="${w}"`, x, kantKeuze === w)).join('')}</div>

@@ -187,7 +187,7 @@ export function findPlugs(
     if (GEEN_STEKKER.test(label) || SPA.test(label) || BOILER.test(label)) continue;
     const power = mine.find((x) => x.entity_id.startsWith('sensor.') && (klasseVan(x, states) === 'power' || /^k?W$/.test(eenheid(x.entity_id, states))));
     // Een stekker heet zo, of meet zijn eigen vermogen. Alleen `outlet` is te weinig:
-    // Tuya noemt elk relais zo, ook een schakelaar in de muur (7 november 2026, Spiegel badkamer).
+    // Tuya noemt elk relais zo, ook een schakelaar in de muur (Spiegel badkamer).
     if (!PLUG.test(label) && !power) continue;
     const kwh = mine.filter((x) => x.entity_id.startsWith('sensor.') && (klasseVan(x, states) === 'energy' || /^[kMW]?Wh$/.test(eenheid(x.entity_id, states))));
     const energy = kwh.find((x) => !PERIODE.test(x.entity_id) && states.get(x.entity_id)?.attributes['state_class'] !== 'measurement') ?? null;

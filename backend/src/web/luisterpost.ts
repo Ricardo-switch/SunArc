@@ -86,7 +86,7 @@ export function vertaal(e: SpraakEvent): Record<string, unknown> | null {
     case 'stt-end': {
       const uit = e.data['stt_output'] as { text?: unknown } | undefined;
       const tekst = typeof uit?.text === 'string' ? uit.text.trim().slice(0, 200) : '';
-      // Alleen geluid ("(noise)") is niets gezegd (21 oktober 2026).
+      // Alleen geluid ("(noise)") is niets gezegd.
       return { soort: 'tekst', tekst: isRuis(tekst) ? '' : tekst };
     }
     case 'run-end':

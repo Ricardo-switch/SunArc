@@ -1,7 +1,7 @@
 /**
  * Opbrengst, vandaag, de zon en het weer (besluiten 71, 102, 105 en 125).
  *
- * Geknipt uit server.ts (besluit 180, 23 oktober 2026): letterlijk, met de
+ * Geknipt uit server.ts (besluit 180): letterlijk, met de
  * context `d` in plaats van de webserver zelf.
  */
 
@@ -161,7 +161,7 @@ export async function opbrengstRoutes(d: Diensten, v: Verzoek): Promise<boolean>
   /*
    * Hoe je huis warmte vasthoudt (besluit 231): per zone hoe snel hij afkoelt,
    * wat de zon doet en wat elk apparaat doet, uit het logboek. Elke nacht op de
-   * achtergrond uitgerekend (6 november 2026); hier meteen wat er bewaard is, of
+   * achtergrond uitgerekend; hier meteen wat er bewaard is, of
    * null zolang de eerste berekening nog loopt.
    */
   if (path === '/api/thermisch') {
@@ -193,7 +193,7 @@ export async function opbrengstRoutes(d: Diensten, v: Verzoek): Promise<boolean>
       sendJson(res, 503, { wachten: 'de ligging van het huis komt van Home Assistant zodra die verbonden is' });
       return true;
     }
-    // Zonder gevels en panelen nog wel de stand van de zon (4 november 2026): anders
+    // Zonder gevels en panelen nog wel de stand van de zon: anders
     // toonde de app nacht midden op de dag, zoals bij Inrichten vóór de stap Zon.
     if (config?.geometry == null) {
       const now = Date.now();
@@ -366,7 +366,7 @@ export async function kostenDezeMaand(d: Diensten, config: SiteConfig, lang: Lan
   // Een apparaat heet zoals in de app, niet zoals zijn meter (het klimaatapparaat bij die meter).
   const apparaten = (d.options.house?.()?.etages ?? []).flatMap((e) => e.ruimtes).flatMap((r) => r.apparaten);
   const naamVan = (meter: string, terug: string) => apparaten.find((d) => d.klimaat?.energieMeter === meter)?.naam ?? terug;
-  // Het hele huis (29 oktober 2026): stroom met de teruglevering ervan af, en gas, uit de regels van Opbrengst.
+  // Het hele huis: stroom met de teruglevering ervan af, en gas, uit de regels van Opbrengst.
   const som = (soorten: readonly string[]) => {
     const r = report.kosten.regels.filter((x) => soorten.includes(x.soort));
     return r.length === 0 || r.some((x) => x.euro == null && x.soort !== 'terug') ? null : Math.round(r.reduce((t, x) => t + (x.euro ?? 0), 0) * 100) / 100;

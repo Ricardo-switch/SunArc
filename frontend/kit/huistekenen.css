@@ -1,5 +1,5 @@
 /*
- * Je huis tekenen (schets, 11 november 2026): de opmaak van de tekening, het
+ * Je huis tekenen (schets): de opmaak van de tekening, het
  * blad ernaast, de etages en de strook, voor de wand en de telefoon.
  * De tekenmotor staat in huistekenen.js.
  */
@@ -142,7 +142,7 @@ svg.ht .ht-ap.sleept { cursor: grabbing; filter: drop-shadow(0 10px 14px rgb(0 0
 .sc-licht .ht-bron em { color: var(--ijs-t); }
 .sc-licht .ht-bron.aan em { color: var(--mint-t); }
 
-/* Deuren en ramen (20 november 2026, schets Wand-Huis-Deuren): de soorten met een plaatje van boven. */
+/* Deuren en ramen (schets Wand-Huis-Deuren): de soorten met een plaatje van boven. */
 .dr-soorten { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
 .dr-soort { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 2px 6px; border-radius: 12px; border: 2px solid rgb(255 255 255 / 0.08); background: rgb(255 255 255 / 0.04); color: var(--tekst); font-family: var(--romp, Figtree, sans-serif); cursor: pointer; min-width: 0; }
 .dr-soort svg { width: 46px; height: 30px; }

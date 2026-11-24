@@ -180,7 +180,7 @@ function klaarStap() {
  * blijft de stap staan en zegt de melding waarom.
  */
 const BEVESTIG = {
-  // Je dag en Hoe warm (6 november 2026): Volgende bewaart wat er staat, ook als je niets verzette.
+  // Je dag en Hoe warm: Volgende bewaart wat er staat, ook als je niets verzette.
   async dag() {
     if (!d.comfort?.kamers?.length || d.comfort.kamers.some((k) => k.uitApp)) return true;
     return bewaarKamers(new Map(), dagNu());

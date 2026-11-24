@@ -1,5 +1,5 @@
 /*
- * SunArc: meldingen, bijwerken en de stem van het apparaat (22 november 2026, opgesplitst uit src/basis.js).
+ * SunArc: meldingen, bijwerken en de stem van het apparaat (opgesplitst uit src/basis.js).
  *
  * De bel met meldingen, wat er nieuw is na een update, het venster om bij te werken en opnieuw te starten, de
  * koffieknop, hulp op de plek, en zeggen met de stem van dit apparaat.
@@ -26,7 +26,7 @@
       mislukt: ['rood', '<path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4h4"/><path d="M12 9v3.5M12 15.4v.1"/>'],
       bron: ['blauw', '<path d="M7 18h10a4 4 0 0 0 .5-8 6 6 0 0 0-11.6 1.6A3.5 3.5 0 0 0 7 18z"/><path d="M4 4l16 16"/>'],
       nieuw: ['blauw', iconen.binnen('nieuw')],
-      // Weg uit Home Assistant (25 oktober 2026): een min in een rondje.
+      // Weg uit Home Assistant: een min in een rondje.
       weg: ['geel', iconen.binnen('weg')],
       stil: ['rood', iconen.binnen('stil')],
       batterij: ['geel', iconen.binnen('batterij')],
@@ -37,7 +37,7 @@
       // Wiens comfort geldt (besluit 147): een persoon.
       comfort: ['geel', iconen.binnen('comfort')],
       // De panelen zijn gemeten (besluit 157): een zon.
-      // Een nieuwe versie die klaarstaat (21 oktober 2026): een pijl omlaag.
+      // Een nieuwe versie die klaarstaat: een pijl omlaag.
       update: ['blauw', iconen.binnen('update')],
       // De auto (besluit 263): vol, een fout, kabel vergeten, met de hand klaar.
       auto: ['blauw', iconen.binnen('auto')],
@@ -46,7 +46,7 @@
       panelen: ['geel', iconen.binnen('panelen')],
       // Een dakvlak dat achterblijft (besluit 254, stap 5).
       dak: ['geel', iconen.binnen('panelen')],
-      // Een rookmelder (21 oktober 2026): rook, koolmonoxide of hitte, of vervangen.
+      // Een rookmelder: rook, koolmonoxide of hitte, of vervangen.
       rook: ['rood', iconen.binnen('rook')],
       goed: ['groen', iconen.binnen('goed')],
       onderhoud: ['grijs', iconen.binnen('onderhoud')],
@@ -134,7 +134,7 @@
       }
       const balk = (pct, soort) => `<div class="meter"><i style="width: ${Math.max(2, pct)}%; background: ${kern.bijnaOp(pct, soort, huis) ? 'var(--gloed)' : pct < 40 ? 'var(--zon)' : 'var(--mint)'}"></i></div>`;
       const regel = (naam, onder, pct, soort) => `<div class="regel"><div><b>${kern.esc(naam)}</b><span>${kern.esc(onder ?? '')}</span></div>${balk(pct, soort)}<span class="pct">${pct}%</span></div>`;
-      // De rookmelders apart (21 oktober 2026): de batterij, de laatste test en wanneer vervangen.
+      // De rookmelders apart: de batterij, de laatste test en wanneer vervangen.
       const melders = (huis?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).flatMap((r) => (r.apparaten ?? []).filter((a) => a.soort === 'rookmelder').map((a) => ({ ...a, kamer: r.naam }))));
       const datum = (d, opties) => (d ? kern.global.taal.datum(new Date(`${d}T12:00:00`), opties) : null);
       const t = kern.global.t;
@@ -155,7 +155,7 @@
     }
 
     /*
-     * Gelezen (15 oktober 2026): wat je in het blad zag, telt niet meer mee in het
+     * Gelezen: wat je in het blad zag, telt niet meer mee in het
      * getal bij de bel. De melding blijft staan tot hij is opgelost of weg is.
      * Onthouden in deze browser.
      */
@@ -194,7 +194,7 @@
       meldGetal();
       const blad = document.querySelector('[data-meldblad]');
       if (blad && !blad.hidden && meldZicht === 'lijst') blad.innerHTML = meldLijst();
-      // Het display aan de wand toont een nieuwe versie ook (21 oktober 2026, niemand.js).
+      // Het display aan de wand toont een nieuwe versie ook (niemand.js).
       dispatchEvent(new Event('sc-meldingen'));
     }
     /** De melding van een nieuwe versie die klaarstaat, of null. */
@@ -228,7 +228,7 @@
     /** Na een update één keer: wat is er nieuw (besluit 136). De eerste keer ooit niet: dan is alles nieuw. */
     const VERSIE_GEZIEN = 'sc-versie-gezien';
   /*
-     * Een nieuwe versie (21 oktober 2026): wat er nieuw is, uit de releasenotes
+     * Een nieuwe versie: wat er nieuw is, uit de releasenotes
      * van Home Assistant, en een knop Bijwerken voor de beheerder. De dienst
      * vraagt Home Assistant de add-on bij te werken; de app start daarna opnieuw,
      * en deze pagina laadt vanzelf als de nieuwe versie draait.
@@ -353,7 +353,7 @@
         if (i === 45) kern.$$('[data-herstart-zin]').forEach((el) => (el.textContent = kern.global.t('basis.herstart.lang')));
       }
     }
-    /** Steunen (4 november 2026): een kop koffie via PayPal, bij Over deze app en Versie. Nooit als melding. */
+    /** Steunen: een kop koffie via PayPal, bij Over deze app en Versie. Nooit als melding. */
     function koffieKnop() {
       return `<a class="knop knop-koffie" href="https://paypal.me/sunarc" target="_blank" rel="noopener">${kern.global.iconen ? kern.global.iconen.svg('koffie') : ''}${kern.esc(kern.global.t('over.koffie'))}</a>`;
     }
@@ -389,7 +389,7 @@
       }
     }
     /**
-     * Werkt nu of Werkt nog niet (4 november 2026), na opgelost of een
+     * Werkt nu of Werkt nog niet, na opgelost of een
      * instelling. Werkt nu blijft in de app; Werkt nog niet opent het issue.
      */
     function meldTerugzeg(m) {
@@ -457,7 +457,7 @@
         }
         n = v.nieuw?.[0];
         if (gezien == null || gezien === v.nummer || !n || n.versie !== v.nummer) return;
-        // Eén overzicht van alles sinds de versie die je eerder zag (6 november 2026), niet alleen de nieuwste.
+        // Eén overzicht van alles sinds de versie die je eerder zag, niet alleen de nieuwste.
         const sinds = [];
         for (const x of v.nieuw) {
           if (x.versie === gezien) break;
@@ -475,7 +475,7 @@
     /*
      * Meld een probleem (testerronde, november 2026): elke knop met
      * `data-meld-probleem`, ook in een link of kaart. melden.js laadt pas bij de
-     * eerste tik, zonder stempel (4 november 2026): met de stempel van dit
+     * eerste tik, zonder stempel: met de stempel van dit
      * bestand bleef een oude melden.js een jaar bewaard als alleen die veranderde.
      * Zonder stempel vraagt de browser altijd na; ongewijzigd is dat een leeg 304.
      */
@@ -607,7 +607,7 @@
       }
     }
     /*
-     * Kwam deze pagina uit de opslag van de browser (4 november 2026), zoals een
+     * Kwam deze pagina uit de opslag van de browser, zoals een
      * geïnstalleerde app die Android terugzet, dan wist hij niet dat hij oud was:
      * de eerste versie die hij zag, was al de nieuwe. Nu vergelijkt hij de
      * stempel van basis.js met die in de pagina op de server; één keer per
@@ -715,7 +715,7 @@
     }
 
     /**
-     * De stem van dit apparaat zelf (besluit 212, 29 oktober 2026). De browser
+     * De stem van dit apparaat zelf (besluit 212). De browser
      * als die kan spreken; anders Fully Kiosk, want de webweergave aan de wand
      * heeft geen eigen spraak. Chrome slaat een zin over die vlak na "stop"
      * begint, dus even wachten. Geeft false als dit scherm geen stem heeft.

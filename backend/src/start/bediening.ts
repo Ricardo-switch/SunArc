@@ -1,5 +1,5 @@
 /**
- * Bedienen met de hand (uit main.ts, 24 november 2026): de klimaatbrug (besluit 210), klimaat met de hand (235), laden
+ * Bedienen met de hand (uit main.ts): de klimaatbrug (besluit 210), klimaat met de hand (235), laden
  * (262), de slimme stekkers met de hand en op zon (265, 267), de schakelaars (297) en de kinderslotten (299). Alleen
  * verhuisd, niets veranderd.
  */

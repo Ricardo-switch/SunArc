@@ -26,7 +26,7 @@ function dakVoorstelStap(dk) {
     waar: waarVan('ligging'),
     kop: t(gemeten ? 'inr.dak.voorstelKop' : 'inr.dak.wachtKop'),
     uitleg: t(gemeten ? 'inr.dak.voorstelZin' : 'inr.dak.wachtZin'),
-    // Wat kan bij jouw huis (6 november 2026): de kaarten, met een link naar Daken en panelen.
+    // Wat kan bij jouw huis: de kaarten, met een link naar Daken en panelen.
     inhoud: `<div class="kp-vlakken">${rijen.join('')}</div>${tip}${dakvlakken.watKanZin(dk)}`,
     voet: [`<button type="button" class="zachtknop" data-terug>${esc(t('panelen.terug'))}</button>`, rechts],
   };
@@ -363,7 +363,7 @@ function inHuisOnder() {
     }, 3000);
   }
   const kan = ih.addons.filter((a) => a.id !== 'openwakeword').every((a) => a.staat !== 'nee');
-  // Klaar zonder "Hé huis" (30 oktober 2026): de laatste twee tikken in Home Assistant, met een knop naar elk.
+  // Klaar zonder "Hé huis": de laatste twee tikken in Home Assistant, met een knop naar elk.
   const owv = ih.addons.find((a) => a.id === 'openwakeword');
   const wekwoordKnoppen = !ih.assistent?.wekwoord && inHA
     ? `<div class="chips">${owv?.slug ? `<button type="button" class="knop knop-klein" data-ha-pad="/hassio/addon/${esc(owv.slug)}/info">${esc(t('inr.stem.herstartOwv'))}</button>` : ''}<button type="button" class="knop knop-klein" data-ha-pad="/config/voice-assistants/assistants">${esc(t('inr.stem.kiesWekwoord'))}</button></div>`

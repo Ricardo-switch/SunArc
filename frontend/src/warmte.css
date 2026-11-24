@@ -94,7 +94,7 @@
 .zorgt .bron[data-kort] .vraagknop { height: 26px; font-size: 12px; }
 
 .zorgt .schakelaar { margin-left: auto; }
-/* Wat ervoor zorgt, per zone (zones als deel van de kamer, schets Wand-Klimaat-Subzone, 18 november 2026). */
+/* Wat ervoor zorgt, per zone (zones als deel van de kamer, schets Wand-Klimaat-Subzone). */
 .zorgt .zonegroep { display: flex; flex-direction: column; gap: 6px; padding: 8px 8px 8px; border-radius: 16px; background: rgb(var(--wit) / 0.03); border: 1px solid rgb(var(--wit) / 0.06); }
 .zorgt .zonegroep.aan { border-color: rgb(var(--wit) / 0.35); background: rgb(var(--wit) / 0.06); }
 .zorgt .zonekop { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 4px; }

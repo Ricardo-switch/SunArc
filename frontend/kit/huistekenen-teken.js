@@ -1,5 +1,5 @@
 /*
- * SunArc: je huis tekenen, het tekenen (22 november 2026, opgesplitst uit kit/huistekenen.js).
+ * SunArc: je huis tekenen, het tekenen (opgesplitst uit kit/huistekenen.js).
  *
  * De tekening zelf, laag voor laag: de vloer en de ruimtes, de muren, deuren en ramen met hun draairichting,
  * de trap, de apparaten als bolletjes, de namen, en de knop Hele huis. Alleen lezen: wat er verandert, doet de
@@ -23,7 +23,7 @@
 
       function teken() {
         if (!kern.kijk) return;
-        // Het huis zoals getekend (23 november 2026): de pagina tekent het met kit/huis-maat.js, net als op Thuis.
+        // Het huis zoals getekend: de pagina tekent het met kit/huis-maat.js, net als op Thuis.
         if (kern.st.stand === 'huis') {
           for (const n of ['onder', 'namen', 'app', 'over', 'knop']) laag(n).innerHTML = '';
           // Zonder tekening van de pagina (de schetsen): het huis zelf, zonder erf, de gekozen etage open of dicht.
@@ -78,7 +78,7 @@
           const tint = TINT[SOORT_TINT[kern.soortVan(r)] ?? (r?.kamer ? 'woon' : naam ? 'hal' : 'leeg')];
           const sterk = vorm ? 0.1 : doel ? 0.42 : gekozen ? 0.34 : naam ? (dim ? 0.07 : 0.19) : 0.05;
           s += `<path d="${d}" fill="rgb(${tint} / ${sterk})"/>`;
-          // Bij Dak geen arcering voor een vak zonder naam: daar zijn de strepen voor wat lager is dan 1,5 m (20 november 2026).
+          // Bij Dak geen arcering voor een vak zonder naam: daar zijn de strepen voor wat lager is dan 1,5 m.
           if (!naam && !vorm && kern.st.stand !== 'dak') s += `<path d="${d}" fill="url(#ht-leeg)" opacity="${dim ? 0.3 : 1}"/>`;
         }
         const muren = randen(v, isMuur);
@@ -207,7 +207,7 @@
             const naam = T(`ht.bron.blok.${b.soort}`);
             const Naam = esc(naam.charAt(0).toUpperCase() + naam.slice(1));
             const past = Math.abs(x1 - x0) > naam.length * 6.5;
-            // Op het erf (20 november 2026): de naam met "bij Buiten", erboven als het gebouw te smal is.
+            // Op het erf: de naam met "bij Buiten", erboven als het gebouw te smal is.
             if (kern.opErfBlokken().some((q) => q.id === b.id)) {
               const ty = past ? (y0 + y1) / 2 - 2 : Math.min(y0, y1) - 22;
               s += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="#a9e6ff" pointer-events="none">${Naam}</text>`;

@@ -142,7 +142,7 @@ export interface EnergySource {
   kostenTellers?(): Promise<Readonly<Record<string, string>> | null>;
   /**
    * Wat de omvormers opwekten, per uur of per dag in kWh, uit hun vermogen
-   * (Ricardo, 5 november 2026: een zonnemeter in kWh kan achterlopen). Null
+   * (een zonnemeter in kWh kan achterlopen). Null
    * zonder omvormer; dan telt de zonnemeter.
    */
   opgewekt?(startMs: number, endMs: number, period: 'hour' | 'day'): Promise<readonly { readonly startMs: number; readonly change: number }[] | null>;

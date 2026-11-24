@@ -1,5 +1,5 @@
 /**
- * Vandaag uit de statistiek van Home Assistant (17 oktober 2026): het vermogen
+ * Vandaag uit de statistiek van Home Assistant: het vermogen
  * van de panelen en het net per vijf minuten, voor de kwartieren die het eigen
  * logboek nog niet heeft, zoals op de eerste dag van een nieuwe installatie.
  * Alleen lezen, met dezelfde vraag als Opbrengst. Vijf minuten bewaard; een

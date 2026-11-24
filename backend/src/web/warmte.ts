@@ -35,7 +35,7 @@ export interface Warmtebron {
   readonly vermogenW?: number;
   /** Mag op zon opwarmen (besluit 132); alleen elektrisch, met vermogen. */
   readonly opZon?: boolean;
-  /** In welke zone van de kamer hij hangt (zones als deel van de kamer, 18 november 2026); weg is de hele kamer. */
+  /** In welke zone van de kamer hij hangt (zones als deel van de kamer); weg is de hele kamer. */
   readonly zone?: string;
 }
 

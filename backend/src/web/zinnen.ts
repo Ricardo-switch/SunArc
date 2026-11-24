@@ -18,7 +18,7 @@ import { alsWoord } from './assist.js';
 
 export const INTENTIE = 'SunArcVraag';
 /**
- * De naam van voor de integratie 2.0.1 (4 november 2026). Een oudere integratie
+ * De naam van voor de integratie 2.0.1. Een oudere integratie
  * luistert alleen naar deze; die krijgt de zinnen dus nog onder de oude naam.
  */
 export const INTENTIE_OUD = 'SmartClimateVraag';

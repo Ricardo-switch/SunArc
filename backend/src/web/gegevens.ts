@@ -186,7 +186,7 @@ export async function zetTerug(
     readonly sitesDir: string;
     /**
      * Een configuratie die de app zelf maakte (de add-on, met de onboarding),
-     * vervangen door die uit de back-up (17 oktober 2026). Anders bleef de
+     * vervangen door die uit de back-up. Anders bleef de
      * ontdekte configuratie staan, zonder bijvoorbeeld de panelen, terwijl de
      * back-up ze wel had. Een configuratie van de beheerder (de NAS) blijft.
      */

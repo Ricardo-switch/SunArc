@@ -1,5 +1,5 @@
 /**
- * Bijwerken vanuit de app (21 oktober 2026). In de add-on ziet de app zelf
+ * Bijwerken vanuit de app. In de add-on ziet de app zelf
  * dat er een nieuwe versie klaarstaat: Home Assistant heeft voor elke add-on
  * een `update.`-entiteit, met de versie die er is en de nieuwste. Dan staat er
  * een melding; een tik geeft wat er nieuw is en een knop Bijwerken.
@@ -76,7 +76,7 @@ export function samen(lijst: readonly Partial<Record<Soort, readonly string[]>>[
 }
 
 /**
- * De versies per uitgave op main (6 november 2026). Wat alleen op beta stond,
+ * De versies per uitgave op main. Wat alleen op beta stond,
  * hoort bij de uitgave die het naar main bracht: wie van main bijwerkt, ziet
  * één overzicht van alles sinds de vorige uitgave in plaats van een lange
  * lijst versies. Versies van vóór de oudste in `opMain` staan elk apart.
@@ -180,7 +180,7 @@ export function updateView(nu: string, s: HaEntityState | null, releaseNotes: st
   const nieuwste = typeof s?.attributes['latest_version'] === 'string' ? (s.attributes['latest_version'] as string).replace(/^v/, '') : null;
   const beschikbaar = s?.state === 'on' && nieuwste != null && nieuwer(nieuwste, nu);
   const los = beschikbaar && releaseNotes ? leesChangelog(releaseNotes).filter((n) => nieuwer(n.versie, nu) && !nieuwer(n.versie, nieuwste!)).map((n) => notitieInTaal(n, lang)) : [];
-  // Eén overzicht van alles sinds de versie van nu, ook als er uitgaven tussen zitten (6 november 2026).
+  // Eén overzicht van alles sinds de versie van nu, ook als er uitgaven tussen zitten.
   const notities: Notitie[] = los.length > 1 ? [{ versie: los[0]!.versie, ...samen(los) }] : los;
   return { beschikbaar, nu, nieuwste, bezig: s?.attributes['in_progress'] === true, notities, magBijwerken };
 }

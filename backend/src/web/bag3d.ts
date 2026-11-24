@@ -1,5 +1,5 @@
 /**
- * Het huis uit 3D BAG (Ricardo, 5 november 2026), naast OpenStreetMap. TU
+ * Het huis uit 3D BAG, naast OpenStreetMap. TU
  * Delft en 3DGI maken van elk gebouw in de BAG een 3D-model uit de
  * hoogtemetingen van het AHN: de omtrek, en elk dakvlak met zijn richting en
  * helling. Alleen in Nederland; daarbuiten blijft OpenStreetMap.
@@ -95,7 +95,7 @@ export interface BagDakvlak {
   readonly tiltDeg: number;
   readonly m2: number;
   /**
-   * Waar het vlak ligt (13 november 2026, Ricardo: niet gokken): de hoeken
+   * Waar het vlak ligt (Ricardo: niet gokken): de hoeken
    * van boven gezien, in meters vanaf de plek (x oost, y noord), en hoe hoog
    * het laagste en hoogste punt boven de grond liggen. Zo valt een dakkapel
    * aan de goede kant van de nok.

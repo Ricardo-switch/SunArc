@@ -20,7 +20,7 @@ export interface BronInvoer {
   readonly config: SiteConfig;
   readonly huis: HouseReport;
   readonly states: ReadonlyMap<string, HaEntityState>;
-  /** In de add-on: dan telt een nieuwe versie van de add-on (21 oktober 2026). */
+  /** In de add-on: dan telt een nieuwe versie van de add-on. */
   readonly addOn: boolean;
   /** De panelen zijn gemeten en nog niet bevestigd (besluit 157). */
   readonly panelenVoorstel: boolean;
@@ -66,18 +66,18 @@ export function meldingenBron(i: BronInvoer): MeldingenBron | null {
   return {
     nu: i.nu,
     zonderRuimte: h.zonderRuimte.map((d) => ({ id: d.id, naam: d.naam })),
-    // Wat je zelf verborg, is niet weg uit Home Assistant (25 oktober 2026).
+    // Wat je zelf verborg, is niet weg uit Home Assistant.
     verborgen: (h.verborgen ?? []).map((d) => d.id),
     volgen,
     batterijen: h.batterijen,
     filters: h.filters,
-    // Een nieuwe versie van de add-on (21 oktober 2026).
+    // Een nieuwe versie van de add-on.
     update: (() => {
       const s = i.addOn ? eigenUpdate(allStates.values()) : null;
       const n = s?.state === 'on' && typeof s.attributes['latest_version'] === 'string' ? (s.attributes['latest_version'] as string).replace(/^v/, '') : null;
       return n ? { nieuw: n, nu: VERSIE } : null;
     })(),
-    // De rookmelders (21 oktober 2026): rook, een lege batterij, vervangen.
+    // De rookmelders: rook, een lege batterij, vervangen.
     rookmelders: h.etages.flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten.filter((d) => d.soort === 'rookmelder' && d.rookmelder).map((d) => ({ id: d.id, naam: d.naam, kamer: r.naam, kamerId: r.id, gevaar: d.rookmelder!.gevaar, sindsMs: d.rookmelder!.sindsMs, batterijProbleem: d.rookmelder!.batterijProbleem, vervangenVoor: d.rookmelder!.vervangenVoor })))),
     drempels: h.drempels,
     meters: grid ? [{ id: grid.id, naam: 'De slimme meter', naamEn: 'The smart meter', laatsteMs: gst && gst.state !== 'unavailable' && gst.state !== 'unknown' ? Date.parse(gst.last_updated) : null }] : [],

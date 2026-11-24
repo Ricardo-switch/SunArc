@@ -1,5 +1,5 @@
 /**
- * Wat er was (uit main.ts, 23 november 2026): de historie uit Home Assistant, de laadbeurten van de auto en de
+ * Wat er was (uit main.ts): de historie uit Home Assistant, de laadbeurten van de auto en de
  * opbrengst per dak (besluiten 102, 263, 261). Alleen verhuisd.
  */
 import { Historie, somPerVak } from '../web/historie.js';
@@ -14,7 +14,7 @@ export function maakOpbrengst(nodig: MaakOpbrengstNodig) {
   const {
     allStates, client, connectionStore, energyStore, laadReg, vlakMetingNu,
   } = nodig;
-  // Vandaag uit de statistiek van Home Assistant (17 oktober 2026, historie.ts).
+  // Vandaag uit de statistiek van Home Assistant (historie.ts).
   const historie = new Historie({
     config: () => nodig.siteConfig,
     vraag: (type, velden) => client.query<Record<string, { start: number | string; mean?: number | null }[]>>(type, velden),
@@ -64,7 +64,7 @@ export function maakOpbrengst(nodig: MaakOpbrengstNodig) {
       const id = v.meter ?? (ids.length === 1 ? ids[0]! : '');
       groepen.set(id, [...(groepen.get(id) ?? []), v]);
     }
-    // Eén meter voor alle vlakken: de uren van vóór de omvormer uit de zonnemeter in kWh (5 november 2026).
+    // Eén meter voor alle vlakken: de uren van vóór de omvormer uit de zonnemeter in kWh.
     const meters = energyStore?.current?.zon ?? [];
     let kwhPerUur = new Map<number, number>();
     if (groepen.size === 1 && meters.length) {

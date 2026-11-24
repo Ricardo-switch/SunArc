@@ -52,7 +52,7 @@ export { UNKNOWN_VERSION, versionFromEnv, type Version, type WebOptions } from '
 const ROUTES = [cameraRoutes, inloggenRoutes, beheerRoutes, energieRoutes, bewonersRoutes, opbrengstRoutes, standRoutes, assistentRoutes, huisRoutes, teDoenRoutes] as const;
 
 /**
- * De beta op de NAS (23 oktober 2026): het manifest en de iconen met een label
+ * De beta op de NAS: het manifest en de iconen met een label
  * BETA in plaats van de gewone. De pagina's verwijzen naar de gewone namen;
  * een eigen server geeft hier de beta. Zo staan de NAS en de Pi niet als twee
  * gelijke apps op een startscherm.
@@ -306,11 +306,11 @@ export class WebServer {
       (this.#d.options.energy != null && path === '/api/energie') ||
       // De zon en je aansluiting (besluit 103): alleen antwoorden, naar een eigen bestand.
       (this.#d.options.connection != null && path === '/api/aansluiting') ||
-      // De gevels op de kaart (21 oktober 2026): niets bewaren, alleen een vraag aan OpenStreetMap.
+      // De gevels op de kaart: niets bewaren, alleen een vraag aan OpenStreetMap.
       (this.#d.options.location != null && path === '/api/gevel-kaart') ||
       // Het huis van boven uit de kaart (besluit 254): alleen het vak gaat naar OpenStreetMap.
       (this.#d.options.exacteLocatie != null && path === '/api/daken-kaart') ||
-      // De add-on bijwerken (21 oktober 2026): update.install op de eigen add-on, en niets anders.
+      // De add-on bijwerken: update.install op de eigen add-on, en niets anders.
       (this.#d.options.bijwerken != null && path === '/api/update') ||
       // Zoeken naar updates en opnieuw starten (testerronde, november 2026), voor de beheerder.
       (this.#d.options.bijwerken != null && path === '/api/update/zoek') ||

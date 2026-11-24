@@ -149,7 +149,7 @@ function suggesties() {
   const zonOp = zon?.zon?.boven;
   // Naast de verwachting van vanochtend, net als op Thuis en Vandaag (opgelost 15 oktober).
   const vooraf = z?.verwachtVoorafKwh ?? null;
-  // Een huis zonder panelen (19 november 2026): geen vraag over zon.
+  // Een huis zonder panelen: geen vraag over zon.
   const metZon = app.huisSoort()?.zon !== false;
   if (metZon && z) uit.push({ label: taal.t(zonOp ? 'assistent.zonNog' : 'assistent.zonWas'), hint: vooraf != null ? taal.t('thuis.vandaag.verwacht', { kwh: nl(z.opgewektKwh), verwacht: nl(vooraf) }) : `${nl(z.opgewektKwh)} kWh`, ik: 'grafiek', v: { soort: 'zon' } });
   else if (metZon) uit.push({ label: taal.t('assistent.vraag.zon'), hint: '', ik: 'grafiek', v: { soort: 'zon' } });
@@ -229,7 +229,7 @@ async function vraag(v) {
     nu.vervolg = body.keuze ?? body.vervolg ?? [];
     openKeuze = res.ok && body.keuze?.length ? body.keuze : null;
     // Niet begrepen: dan het stukje handleiding dat past (Hulp op de plek, besluit 325), en anders waar het staat bij Instellingen.
-    // "Wat betekent helpt op zon" gaat altijd eerst naar de handleiding (19 november 2026): dat kreeg het antwoord over de zon.
+    // "Wat betekent helpt op zon" gaat altijd eerst naar de handleiding: dat kreeg het antwoord over de zon.
     const betekenis = v.soort === 'vrij' && BETEKENT.test(String(v.tekst ?? '').trim());
     if (res.ok && v.soort === 'vrij' && (body.vraag === 'onbekend' || betekenis)) {
       const gevonden = (await uitHandleiding(null, v.tekst)) || (body.vraag === 'onbekend' && uitInstellingen(v.tekst));
@@ -237,7 +237,7 @@ async function vraag(v) {
     }
     // Een opdracht (besluit 148): meteen naar dezelfde deur als de knoppen.
     if (res.ok && body.opdracht) await voerUit(body);
-    // Alleen geluid: niets gezegd, niets te antwoorden (21 oktober 2026).
+    // Alleen geluid: niets gezegd, niets te antwoorden.
     if (res.ok && body.vraag === 'ruis') {
       nu = eerder.shift() ?? null;
       stand = nu ? 'verder' : 'begin';
@@ -280,7 +280,7 @@ const BETEKENT = /^(wat (betekent|bedoel|houdt)|wat is ['"‘]?(op|helpt|houdt|d
 /** Woorden van een vraag die niets zeggen over waar iets staat. */
 const VRAAGWOORDEN = new Set(['waar', 'wat', 'hoe', 'kan', 'ik', 'je', 'jij', 'de', 'het', 'een', 'in', 'op', 'stel', 'zet', 'vind', 'vul', 'is', 'zijn', 'mijn', 'moet', 'aan', 'where', 'what', 'how', 'can', 'do', 'i', 'you', 'the', 'a', 'an', 'my', 'set', 'find', 'is', 'are', 'up', 'must', 'should']);
 /**
- * Waar iets staat bij Instellingen (19 november 2026): dezelfde lijst als het
+ * Waar iets staat bij Instellingen: dezelfde lijst als het
  * zoekveld daar (stand.zoek), als de handleiding er niets over heeft.
  */
 function uitInstellingen(tekst) {
@@ -355,7 +355,7 @@ function splitsWoorden(tekst) {
 function zetGezegd(i) {
   gezegd = i;
   // Per tekst tellen: de wand en de telefoon hebben elk hun eigen woorden. Samen geteld
-  // liep alleen de eerste mee, en bleef de telefoon grijs tot het eind (19 november 2026).
+  // liep alleen de eerste mee, en bleef de telefoon grijs tot het eind.
   $$('[data-zegt]').forEach((zin) =>
     zin.querySelectorAll('.w').forEach((el, k) => {
       el.classList.toggle('al', k < i);
@@ -418,7 +418,7 @@ function leefMee(bijWoord) {
 }
 
 /*
- * Meelopen zonder hulp van de browser (23 oktober 2026). Chrome op een
+ * Meelopen zonder hulp van de browser. Chrome op een
  * Android-telefoon meldt bij de eigen stem geen woordgrenzen, en weet bij een
  * geluid van Home Assistant soms pas aan het eind hoe lang het duurt; dan bleef
  * de tekst grijs tot de stem klaar was. Dan loopt hij mee in het tempo van
@@ -539,7 +539,7 @@ async function zegMetPiper(tekst, totLetter, apparaat, geweigerd) {
       leefMee(() => {
         // De tijd van het geluid alleen als die echt loopt en de duur kan kloppen. Chrome op
         // een Android-telefoon meldde die niet, en de tekst bleef grijs tot het eind
-        // (19 november 2026); dan het tempo van gewoon praten, en nooit terug.
+        //; dan het tempo van gewoon praten, en nooit terug.
         const nu = performance.now();
         if (el.currentTime !== tijd) {
           tijd = el.currentTime;
@@ -563,7 +563,7 @@ async function zegMetPiper(tekst, totLetter, apparaat, geweigerd) {
 function zegMetApparaat(tekst, gesproken, totLetter, lezen, geweigerd) {
   const v = apparaatStem();
   if (!v) {
-    // Fully Kiosk aan de wand heeft geen spraak in de browser, wel een eigen stem (29 oktober 2026).
+    // Fully Kiosk aan de wand heeft geen spraak in de browser, wel een eigen stem.
     if (typeof window.fully?.textToSpeech === 'function') void app.zegMetApparaat(gesproken, taal.code);
     return lezen();
   }

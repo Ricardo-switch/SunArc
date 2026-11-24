@@ -38,7 +38,7 @@ export interface TekenRuimte {
 export const TRAP_RICHTINGEN = ['n', 'z', 'o', 'w'] as const;
 
 /*
- * Buiten als eigen tekening (stap 3, 19 november 2026): het erf is een etage
+ * Buiten als eigen tekening (stap 3): het erf is een etage
  * (`buiten`). Het huis ligt erop als één vast vak, `HUIS_OP_ERF`. Een deel van
  * een ruimte buiten (het terras in de tuin) is een eigen vak: `kamer~zone`.
  * Zo heeft de tuin zoveel delen als hij zones heeft, elk met zijn eigen vorm.
@@ -69,7 +69,7 @@ export function erfOm(
   const v0 = Math.min(Math.min(...kern.map((x) => x.v)) - 6, Math.min(...blokken.map((x) => x.v)) - 3);
   let u1 = Math.max(...blokken.map((x) => x.u + x.b)) + 3;
   /*
-   * Een buurhuis vast aan het huis (20 november 2026, Ricardo: een
+   * Een buurhuis vast aan het huis (Ricardo: een
    * twee-onder-een-kap staat tegen de erfgrens): staat een gebouw van de kaart
    * tegen het buitenste gebouw aan een kant (het huis, of de garage ernaast:
    * Ricardo, ook links tegen de garage), dan ligt de erfgrens daar strak
@@ -157,7 +157,7 @@ export interface Opening {
   readonly van: number;
   readonly tot: number;
   /**
-   * Deuren en ramen (schets Wand-Huis-Deuren, 20 november 2026): bij een deur
+   * Deuren en ramen (schets Wand-Huis-Deuren): bij een deur
    * aan welk eind het scharnier zit (weg: van), naar welke kant hij draait (1
    * naar een hogere u of v, -1 naar een lagere; weg: de kamer in), en bij een
    * schuifpui naar welk eind hij schuift (weg: van).
@@ -232,19 +232,19 @@ export type TekenSoort = 'airco' | 'thermostaat' | 'licht' | 'screen' | 'meter' 
  * blad. Geen thermometer meer voor de melder in de hal.
  */
 export function tekenSoort(a: { readonly soort: string; readonly witgoed?: true; readonly klimaat?: { readonly kanKoelen: boolean } | null; readonly warmte?: { readonly soort: string }; readonly radiatorknop?: unknown; readonly meting?: { readonly beweging?: unknown } | null }): TekenSoort {
-  // Een radiatorknop is in de tekening een radiator met de knop eraan (22 november 2026, besluit 333).
+  // Een radiatorknop is in de tekening een radiator met de knop eraan (besluit 333).
   if (a.radiatorknop) return 'radiator';
   if (a.soort === 'klimaat') return a.klimaat?.kanKoelen ? 'airco' : 'thermostaat';
   if (a.soort === 'meter' && a.meting?.beweging) return 'beweging';
   if (a.soort === 'licht' || a.soort === 'screen' || a.soort === 'meter' || a.soort === 'camera' || a.soort === 'rookmelder') return a.soort;
   if (a.warmte?.soort === 'boiler' || a.warmte?.soort === 'jacuzzi') return a.warmte.soort;
-  // De droger en ander witgoed (22 november 2026): geen stekker, en geen klimaat.
+  // De droger en ander witgoed: geen stekker, en geen klimaat.
   if (a.witgoed) return 'witgoed';
   return 'stekker';
 }
 
 /**
- * Eén apparaat, één bolletje (20 november 2026): per bijfunctie het hoofd,
+ * Eén apparaat, één bolletje: per bijfunctie het hoofd,
  * alleen als dat hoofd zelf in de tekening staat. Is de camera verborgen, dan
  * staat zijn schijnwerper weer los.
  */
@@ -393,7 +393,7 @@ export interface Blok {
   readonly goot1?: number;
   readonly nokVan0?: number;
   /**
-   * Dakkapellen (13 november 2026, Ricardo: "er is een dakkapel op de kaart"):
+   * Dakkapellen (Ricardo: "er is een dakkapel op de kaart"):
    * per stuk de kant van het dak (0: voor of links, 1: achter of rechts) en
    * hoe breed hij is. Uit 3D BAG: een klein, bijna plat dakvlak dat dezelfde
    * kant op kijkt als een schuine kant van het dak.
@@ -643,7 +643,7 @@ export function dakenMetBron(d: Daken, bron: VormBron, kaart: KaartHuis | null, 
   const omtrek = kaart?.stand === 'huis' ? kaart.hoofdhuis : undefined;
   if (!kaart || !omtrek || omtrek.length < 3) return null;
   const weg = oud.filter((g) => g.soort !== 'hoofdhuis' && g.bron === 'schatting').map((g) => g.id);
-  // De plattegrond met de 3D-kaart erbij (Ricardo, 13 november 2026: combineren in plaats van gokken): de omtrek
+  // De plattegrond met de 3D-kaart erbij (combineren in plaats van gokken): de omtrek
   // van OpenStreetMap, het dak, de hoogte en de dakvlakken van 3D BAG als die het huis ook kent.
   const metDak = bron === 'bag3d' ? kaart : bron === 'osm' && bag?.stand === 'huis' ? bag : null;
   // Buiten Nederland (ronde 2 versie 2): zonder 3D-kaart wat de plattegrond zelf van het huis zegt.
@@ -671,7 +671,7 @@ function kaartDakVan(metDak: KaartHuis | null): { kaartDak?: KaartDakvlak[] } {
 }
 
 /**
- * Opnieuw kijken bij dezelfde kaart (stap 4 punt 3, 20 november 2026): een
+ * Opnieuw kijken bij dezelfde kaart (stap 4 punt 3): een
  * huis dat zijn kaart koos vóór 0.186 had dakvlakken zonder vorm en hoogte, en
  * geen hoogte van de goot; daardoor geen scheef dak en geen dakkapel. Opnieuw
  * kijken vult dat aan uit 3D BAG: de dakvlakken, en de hoogtes van het
@@ -780,7 +780,7 @@ function wegMaat(w: WegGebouw, k: Kader | null): { b: number; d: number } {
   return { b: m1(Math.max(...us) - Math.min(...us)), d: m1(Math.max(...vs) - Math.min(...vs)) };
 }
 
-/* ------------------------------------------------------------------ op maat en weg (ronde 2, 20 november 2026) */
+/* ------------------------------------------------------------------ op maat en weg (ronde 2) */
 
 const middenVan = (o: readonly Xy[]): Xy => [o.reduce((n, p) => n + p[0], 0) / o.length, o.reduce((n, p) => n + p[1], 0) / o.length];
 /** Ligt deze omtrek op de plek van iets dat de bewoner weghaalde? Het midden binnen 1,5 m. */

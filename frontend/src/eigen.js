@@ -168,7 +168,7 @@
   /* --------------------------------------------------------- favorieten */
 
   /*
-   * Favorieten (21 oktober 2026, schets Wand-Favorieten): twaalf in plaats van
+   * Favorieten (schets Wand-Favorieten): twaalf in plaats van
    * vier, vier per pagina; met de vinger schuif je naar de volgende vier, de
    * stipjes zeggen waar je bent. Ook screens en het zonnescherm. Elke lamp en
    * elk scherm heeft het icoon van zijn kamer en de naam van de kamer eronder:
@@ -180,7 +180,7 @@
 
   /**
    * Elk apparaat van een soort, met zijn kamer: de naam, de id en het icoon. Staat
-   * het in een zone van een open ruimte, dan die zone (21 oktober 2026): anders
+   * het in een zone van een open ruimte, dan die zone: anders
    * stond bij elke plafonnière van een samengevoegde begane grond "Beneden".
    */
   function vanSoort(soort) {
@@ -531,7 +531,7 @@
       return;
     }
     /*
-     * Favorieten kiezen (besluit 168, 21 oktober 2026): bovenaan wat je koos,
+     * Favorieten kiezen (besluit 168): bovenaan wat je koos,
      * op volgorde, om te verslepen; daaronder per kamer, met het icoon van de
      * kamer, de lampen en screens eerst en de scènes ingeklapt. Een filter
      * toont alleen lampen, scènes of screens. Hooguit twaalf.
@@ -555,7 +555,7 @@
       return d ? { naam: d.naam, kamer: f.soort === 'scene' ? '' : k.naam } : null;
     };
     /*
-     * De gekozen favorieten zoals op de kaart (21 oktober 2026): dezelfde
+     * De gekozen favorieten zoals op de kaart: dezelfde
      * tegels, met hun plek en een greep om te schuiven. Een tik op een tegel
      * schakelt hier niets; het blad is om te kiezen en te ordenen.
      */
@@ -636,7 +636,7 @@
 
   /*
    * De volgorde van de gekozen favorieten: een tegel aan zijn greep slepen
-   * (21 oktober 2026; eerst een chip, overal vast te pakken, zodat het blad niet
+   * (eerst een chip, overal vast te pakken, zodat het blad niet
    * meer scrolde onder de vinger). Tijdens het slepen schuiven alleen de tegels;
    * bij loslaten neemt het blad de nieuwe volgorde over.
    */
@@ -683,11 +683,11 @@
    * uitgebreid, grotere letters en minder beweging. Voor jou, op elk scherm.
    */
   function tekenWeergave(el) {
-    // Op een scherm dat iemand volgt: diens weergave, alleen om te zien (25 oktober 2026).
+    // Op een scherm dat iemand volgt: diens weergave, alleen om te zien.
     const volgt = global.app.persoonlijk(v).volgt;
     const w = (volgt != null ? global.app.persoonlijk(v).weergave : null) ?? v.tel.weergave ?? STANDAARD.tel.weergave;
     el.setAttribute('aria-label', global.t('thuis.weergave'));
-    // Het blad zelf is een gedeeld deel (src/weergave.js, 22 november 2026): ook op Jij.
+    // Het blad zelf is een gedeeld deel (src/weergave.js): ook op Jij.
     el.innerHTML = global.weergaveDeel.html(w, { volgt, telStand: global.app.telStand() });
   }
 

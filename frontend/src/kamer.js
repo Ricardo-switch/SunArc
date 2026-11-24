@@ -213,7 +213,7 @@ function tekenNu() {
     // Een beeld dat weg is, stoppen: een losgelaten plaatje blijft anders doorladen.
     for (const oud of lopend.values()) stopBeeld(oud);
   }
-  // Vanaf een favoriet of een melding naar een apparaat (21 oktober 2026): op de telefoon
+  // Vanaf een favoriet of een melding naar een apparaat: op de telefoon
   // staat het blad onder de tekening, dus daar meteen naartoe, één keer.
   if (apparaat && naarApparaat === apparaat.id && app.telStand()) {
     naarApparaat = null;
@@ -248,7 +248,7 @@ function tekenPodium(etage, kamer) {
     zonderDak: true,
     // Een trap in de hal alleen als er een etage boven deze is (besluit 119).
     etages: [{ naam: toon.naam, erBoven: alle.slice(0, alle.indexOf(toon)).some(binnenEtage), kamers: binnen.map((r) => ({ ...huismodel.kamerModel(r, state), gekozen: r.id === kamer.id })) }],
-    // De etages eronder en erboven, vaag (25 oktober 2026): een verdieping staat dan niet op het gras. De kelder blijft zoals hij was.
+    // De etages eronder en erboven, vaag: een verdieping staat dan niet op het gras. De kelder blijft zoals hij was.
     lagen: toon.id === 'kelder' ? null : { onder: alle.slice(alle.indexOf(toon) + 1).filter((e) => e.id !== 'kelder' && binnenEtage(e)).length, boven: alle.slice(0, alle.indexOf(toon)).filter(binnenEtage).length },
     ...Object.fromEntries(Object.entries(buitenDelen).filter(([, v]) => v)),
   };
@@ -265,14 +265,14 @@ function tekenPodium(etage, kamer) {
 
 function kamerBlad(k) {
   const apps = k.apparaten ?? [];
-  // Witgoed (de droger, de wasmachine) staat apart, niet onder Klimaat (22 november 2026, Ricardo).
+  // Witgoed (de droger, de wasmachine) staat apart, niet onder Klimaat (Ricardo).
   const witgoed = apps.filter((d) => d.soort === 'apparaat' && d.witgoed);
   const klimaat = apps.filter((d) => d.soort === 'klimaat' || d.soort === 'screen' || (d.soort === 'apparaat' && !d.witgoed));
   const lampen = apps.filter((d) => d.soort === 'licht');
   const cameras = apps.filter((d) => d.soort === 'camera');
-  // Rookmelders (21 oktober 2026): wat ze zien, met de batterij.
+  // Rookmelders: wat ze zien, met de batterij.
   const melders = apps.filter((d) => d.soort === 'rookmelder');
-  // Sensoren (15 oktober 2026): wat ze meten, of ze beweging zien, en hun batterij.
+  // Sensoren: wat ze meten, of ze beweging zien, en hun batterij.
   const meters = apps.filter((d) => d.soort === 'meter');
   const bedienen = huisData.lichtBedienen === true;
   const rij = (d) => `<button type="button" class="rij${d.aan ? ' aan' : ''}" data-open="${esc(d.id)}">${icoon(d)}<span class="naam"><b>${esc(d.naam)}</b><span>${esc(standTekst(d))}</span></span><span class="chev" aria-hidden="true">›</span></button>`;
@@ -283,7 +283,7 @@ function kamerBlad(k) {
       <button type="button" class="schakelaar" role="switch" aria-checked="${d.aan}" aria-label="${esc(d.naam)}" data-schakel="${esc(d.id)}" ${bedienen ? '' : 'disabled'}></button>
     </div>`;
   /*
-   * Schakelaars en sensoren met een batterij (15 oktober 2026): in Home Assistant
+   * Schakelaars en sensoren met een batterij: in Home Assistant
    * een apparaat apart, zoals de verlichtingsschakelaar. Een schakelaar staat bij
    * Licht, een sensor onder Sensoren; bijna leeg is oranje. Een melding wijst er
    * met #kamer/batterij-<id> naartoe.
@@ -403,7 +403,7 @@ function apparaatBlad(k, d) {
   return `${terug}${inhoud}`;
 }
 
-/** Een rookmelder (21 oktober 2026): alleen lezen; afzetten op de melder of in de app van het merk. */
+/** Een rookmelder: alleen lezen; afzetten op de melder of in de app van het merk. */
 function rookmelderBlad(d) {
   const r = d.rookmelder ?? {};
   const datum = (s) => (s ? taal.datum(new Date(`${s}T12:00:00`), { day: 'numeric', month: 'long', year: 'numeric' }) : null);
@@ -941,7 +941,7 @@ void laadAlles();
 setInterval(() => void laadAlles(), 60_000);
 // In het voorbeeldhuis verschuift de klok (besluit 237): dan meteen vers.
 addEventListener('voorbeeldklok', () => void laadAlles());
-// Lampen, screens en beweging live (21 oktober 2026); een meting hooguit om de vijf tellen, zoals eerst.
+// Lampen, screens en beweging live; een meting hooguit om de vijf tellen, zoals eerst.
 app.bijVerandering('huis', laadHuis, { rustig: 5_000 });
 app.live((nieuw) => {
   state = nieuw;

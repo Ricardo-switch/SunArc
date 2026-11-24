@@ -63,7 +63,7 @@ export interface LiveSnapshot {
   readonly observed: Readonly<Record<string, string>>;
   /**
    * Wat een apparaat zegt dat het nu doet (`hvac_action`: heating, cooling,
-   * idle), als het dat zegt (25 oktober 2026). Een Nest op "verwarmen naar 20°"
+   * idle), als het dat zegt. Een Nest op "verwarmen naar 20°"
    * die stil staat, stookt niet. Los van `observed`, dat het logboek zo bewaart.
    */
   readonly observedAction?: Readonly<Record<string, string>>;
@@ -670,7 +670,7 @@ export class ShadowRunner {
     // De warmtebuffers (besluit 186): stand, reden, temperatuur en of hij stookt.
     const warmte = e.heatStores?.map((h) => [h.id, h.state, h.reason, h.temperatureC ?? null, h.heating]);
     const phaseFields = {
-      // Wat elk apparaat zegt dat het echt doet (`hvac_action`, 1 november 2026): "heat@20"
+      // Wat elk apparaat zegt dat het echt doet (`hvac_action`): "heat@20"
       // zegt alleen de stand, niet of de ketel brandt. Vandaag zegt er "ging verwarmen" mee.
       ...(Object.keys(observedAction).length > 0 ? { doet: observedAction } : {}),
       ...(fasen ? { fasen } : {}),

@@ -150,7 +150,7 @@ const laden = (() => {
     const k = keuzeVan(a);
     if (el.matches('[data-laad-kies]')) {
       if (!el.value) return false;
-      // Wat je koos: een auto of een laadpaal (Ricardo, 19 november 2026: twee keuzes onder elkaar).
+      // Wat je koos: een auto of een laadpaal (twee keuzes onder elkaar).
       k.rol[el.value] = el.dataset.rol === 'laadpaal' ? 'laadpaal' : 'auto';
       k.aan[el.value] = true;
       staat.wie = el.value;

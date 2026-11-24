@@ -1,5 +1,5 @@
 /*
- * Het huis voor de tekenmotor (21 november 2026, stap a van de nieuwe tekenaar):
+ * Het huis voor de tekenmotor (stap a van de nieuwe tekenaar):
  * uit wat `api/huistekening` geeft, het huis zoals kit/huistekenen.js het wil.
  * Eerst stond dit in jehuis.js; Thuis, een kamer en het always-on display
  * bouwen er nu ook de tekenaar mee op (alleen om te tekenen, zonder bewaren).
@@ -56,7 +56,7 @@
    * het hoofdhuis.
    */
   /*
-   * Buiten als eigen tekening (19 november 2026, schets Wand-Huis-Buiten): het
+   * Buiten als eigen tekening (schets Wand-Huis-Buiten): het
    * erf is een etage. Het huis ligt erop als één vast vak (HUIS_OP_ERF); de
    * gebouwen van de kaart die los staan, liggen op het erf. Een deel van een
    * ruimte buiten (het terras in de tuin) is een eigen vak: `kamer~zone`.
@@ -115,7 +115,7 @@
   }
 
   /**
-   * Wat voor huis (schets Wand-Huis-Woning, 20 november 2026): koos de bewoner
+   * Wat voor huis (schets Wand-Huis-Woning): koos de bewoner
    * de muren tegen de buren nog niet, dan geldt wat de kaart ziet, met de vraag
    * Klopt dit? boven de tekening.
    */
@@ -123,7 +123,7 @@
     const gekozen = Array.isArray(d.buren);
     const kaart = d.woningKaart ?? null;
     const soort = gekozen || !kaart ? d.woning : kaart.soort;
-    // Een appartement: op welke verdieping en hoeveel erboven (20 november 2026).
+    // Een appartement: op welke verdieping en hoeveel erboven.
     return { soort, buren: gekozen ? d.buren : (kaart?.buren ?? []), kaart, gekozen, verdieping: d.verdieping ?? null, erboven: d.erboven ?? null };
   }
 
@@ -141,7 +141,7 @@
     return {
       maat: d.vorm.maat,
       beneden,
-      // Buiten (19 november 2026): het erf om het huis, en of de garage binnen hoort (dan blijft hij op de begane grond).
+      // Buiten: het erf om het huis, en of de garage binnen hoort (dan blijft hij op de begane grond).
       ...(metErf ? { erf: d.buiten.erf ? { id: 'erf', soort: 'erf', ...d.buiten.erf } : null, garageBinnen: erf.garageBinnen, begin: { [BUITEN_ETAGE]: erf.boom }, erfGekoppeld: erf.gekoppeld } : {}),
       ...(Object.keys(bronnen).length ? { bron: d.bron, bronnen } : {}),
       nietGevonden,

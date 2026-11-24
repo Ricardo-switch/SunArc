@@ -14,12 +14,12 @@
  * kamer die de bewoner met de hand heeft overgenomen of die geen meting heeft,
  * telt niet mee.
  *
- * De strook is er alleen zolang SunArc meekijkt (16 november 2026). Regelt
+ * De strook is er alleen zolang SunArc meekijkt. Regelt
  * SunArc zelf, dan is wat het doet hetzelfde als wat er gebeurt, en zeggen de
  * kop en de stand bovenin het al. Zonder kamers die meedoen is er ook geen
  * strook.
  *
- * De twee vakken per kamer lezen als hele zinnetjes (16 november 2026): "Nest
+ * De twee vakken per kamer lezen als hele zinnetjes: "Nest
  * (beneden) staat op 20° en staat stil", en onder de kop "SunArc zou":
  * "Verwarmen naar 20° met Nest (beneden)", "Niets doen", "Hetzelfde doen".
  */

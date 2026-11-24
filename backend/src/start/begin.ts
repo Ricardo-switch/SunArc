@@ -1,5 +1,5 @@
 /**
- * Het begin van de dienst (uit main.ts, 23 november 2026): het logboek voor meldingen, `.env`, de vlaggen die zonder
+ * Het begin van de dienst (uit main.ts): het logboek voor meldingen, `.env`, de vlaggen die zonder
  * Home Assistant draaien (--make-winter, --benchmark, --check-config), de omgeving (besluit 55), het token, --discover,
  * en wat daaruit volgt voor de rest: de poort, de map van de weergave en of de deuren open staan. main.ts importeert
  * dit als eerste eigen stuk, na de modules; het draait dus op hetzelfde moment als toen het daar stond.
@@ -13,7 +13,7 @@ import { defaultStrategies } from '../index.js';
 import { readStartup } from '../startup.js';
 import { defaultWebDir } from '../web/server.js';
 
-// De laatste waarschuwingen en fouten, om te delen bij een melding (4 november 2026).
+// De laatste waarschuwingen en fouten, om te delen bij een melding.
 installeerLogboek();
 
 

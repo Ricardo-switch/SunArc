@@ -6,7 +6,7 @@
  *
  * - nieuw in Home Assistant: een apparaat dat in geen kamer staat;
  * - weg uit Home Assistant: een apparaat dat het huis kende en dat er al tien
- *   minuten niet meer is (25 oktober 2026); komt het terug, dan gaat het weg;
+ *   minuten niet meer is; komt het terug, dan gaat het weg;
  * - reageert niet meer: een apparaat in een kamer dat al een uur onbereikbaar
  *   is, en "weer goed" als het terug is;
  * - een batterij of een airco-filter onder de 10%, of wat de bewoner koos
@@ -78,18 +78,18 @@ export interface MeldingenBron {
   readonly nu: number;
   /** Apparaten zonder kamer: nieuw in Home Assistant. */
   readonly zonderRuimte: readonly { readonly id: string; readonly naam: string }[];
-  /** Wat je zelf verborg bij Indeling: dat is niet weg (25 oktober 2026). Weg: niets verborgen. */
+  /** Wat je zelf verborg bij Indeling: dat is niet weg. Weg: niets verborgen. */
   readonly verborgen?: readonly string[];
   /** Apparaten in een kamer om te volgen, met hun toestand in Home Assistant. */
   readonly volgen: readonly { readonly id: string; readonly naam: string; readonly kamer: string; readonly kamerId: string; readonly onbereikbaarSindsMs: number | null }[];
   readonly batterijen: readonly { readonly id: string; readonly naam: string; readonly pct: number; readonly kamerId: string | null }[];
   readonly filters: readonly { readonly id: string; readonly naam: string; readonly pct: number; readonly kamerId: string | null }[];
   /**
-   * De rookmelders (21 oktober 2026): wat ze zien en sinds wanneer, of hun
+   * De rookmelders: wat ze zien en sinds wanneer, of hun
    * batterij op is en wanneer ze vervangen moeten (`JJJJ-MM-DD`).
    */
   readonly rookmelders?: readonly { readonly id: string; readonly naam: string; readonly kamer: string; readonly kamerId: string; readonly gevaar: 'rook' | 'co' | 'hitte' | null; readonly sindsMs: number | null; readonly batterijProbleem: boolean; readonly vervangenVoor: string | null }[];
-  /** Een nieuwe versie van de add-on die klaarstaat (21 oktober 2026); weg buiten de add-on. */
+  /** Een nieuwe versie van de add-on die klaarstaat; weg buiten de add-on. */
   readonly update?: { readonly nieuw: string; readonly nu: string } | null;
   /** Meters die altijd moeten leveren, met hun laatste meting; `naamEn` als de naam van de dienst komt. */
   readonly meters: readonly { readonly id: string; readonly naam: string; readonly naamEn?: string; readonly laatsteMs: number | null }[];
@@ -200,7 +200,7 @@ interface Bestand {
   /** Wiens comfort er het laatst gold (besluit 147). */
   readonly laatsteComfort?: string | null;
   /**
-   * De apparaten die het huis kent, met hun kamer (25 oktober 2026), en sinds
+   * De apparaten die het huis kent, met hun kamer, en sinds
    * wanneer er een weg is: zo weet de bel wat er uit Home Assistant verdween.
    */
   readonly bekend?: Readonly<Record<string, { readonly naam: string; readonly kamer: string | null }>>;
@@ -572,7 +572,7 @@ export function wat(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[] {
       return { id: `filter:${f.id}`, soort: 'filter', aandacht: true, titel: w.filter.titel(f.naam), tekst: w.filter.tekst(f.pct), actie: { label: w.bekijk, href: kamerHref(f.kamerId) }, klaar: { titel: w.filter.klaar(f.naam), tekst: w.filter.klaarTekst } };
     }));
   }
-  // Rook, koolmonoxide of hitte (21 oktober 2026): waar en wanneer; ook als het weer weg is, onder Eerder.
+  // Rook, koolmonoxide of hitte: waar en wanneer; ook als het weer weg is, onder Eerder.
   for (const r of bron.rookmelders ?? []) {
     const gevaar = r.gevaar;
     if (gevaar) {
@@ -609,7 +609,7 @@ export function wat(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[] {
       }));
     }
   }
-  // Een nieuwe versie (21 oktober 2026): een tik geeft wat er nieuw is en de knop Bijwerken.
+  // Een nieuwe versie: een tik geeft wat er nieuw is en de knop Bijwerken.
   if (bron.update) {
     const u = bron.update;
     uit.push(tweetalig((lang) => {
@@ -774,7 +774,7 @@ function autoMeldingen(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[]
 }
 
 /**
- * Wat er uit Home Assistant verdween (25 oktober 2026): de apparaten die het
+ * Wat er uit Home Assistant verdween: de apparaten die het
  * huis kent, in een kamer of nog zonder, en sinds wanneer er een niet meer is.
  * Na tien minuten een melding. Wat je zelf verborg bij Indeling telt niet; is
  * er ineens meer dan de helft weg, dan is het huis even niet te lezen en telt

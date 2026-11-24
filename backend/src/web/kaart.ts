@@ -1,5 +1,5 @@
 /**
- * De gevels opmeten op de kaart (21 oktober 2026). De meting uit de
+ * De gevels opmeten op de kaart. De meting uit de
  * opbrengst (besluit 157) gaf hier 92°, een kompas binnen tegen de muur 77°:
  * staal in de muur trekt een kompas opzij. De omtrek van het huis in
  * OpenStreetMap komt in Nederland uit de BAG, en is op de meter nauwkeurig.
@@ -111,7 +111,7 @@ export function kaartVak(lat: number, lon: number): { zuid: number; west: number
 
 /**
  * De vraag aan Overpass: alle gebouwen in het vak, met hun omtrek; sinds ronde
- * 2 (20 november 2026) ook de straten en de adressen in hetzelfde vak, om de
+ * 2 ook de straten en de adressen in hetzelfde vak, om de
  * straat van je adres onder te zetten. Nog steeds het vak, niet de plek.
  */
 export const overpassVraag = (lat: number, lon: number) => {
@@ -129,7 +129,7 @@ interface OsmElement {
 }
 const elementenVan = (antwoord: unknown): readonly OsmElement[] => (antwoord as { elements?: OsmElement[] })?.elements ?? [];
 
-/** Staan er in het antwoord gebouwen? Zo niet, dan kent de kaart de wijk niet (6 november 2026). */
+/** Staan er in het antwoord gebouwen? Zo niet, dan kent de kaart de wijk niet. */
 export const heeftGebouwen = (antwoord: unknown) => omtrekkenVan(antwoord).length > 0;
 
 /** De omtrekken van de gebouwen uit een antwoord van Overpass (geen straten, geen adressen). */
@@ -189,7 +189,7 @@ export async function haalOmtrek(lat: number, lon: number, doe: typeof fetch = f
   return kiesGebouw(await haalKaart(lat, lon, doe), { lat, lon });
 }
 
-/* ------------------------------------------------------------------ ronde 2: labels en straten (20 november 2026) */
+/* ------------------------------------------------------------------ ronde 2: labels en straten */
 
 /** Wat de plattegrond van het huis zelf weet (buiten Nederland is er geen 3D-kaart): de lagen, de hoogte en het dak. */
 export interface OsmLabels {

@@ -1,5 +1,5 @@
 /*
- * De assistent met één knop (25 oktober 2026, besluit 202). Wat eerst drie
+ * De assistent met één knop (besluit 202). Wat eerst drie
  * stappen in Home Assistant waren, doet de add-on na één tik van de
  * beheerder zelf:
  *
@@ -7,7 +7,7 @@
  * 2. Home Assistant herstarten, als hij die versie nog niet geladen heeft;
  * 3. de integratie toevoegen, met het adres en de sleutel van de add-on;
  * 4. de koppeling onder de oude naam (smart_climate) weghalen, als die er nog
- *    is (2 november 2026): de integratie heet nu sunarc.
+ *    is: de integratie heet nu sunarc.
  *
  * Herstarten en toevoegen is schrijven naar Home Assistant, buiten de grens
  * van licht, scènes en schermen; daarom alleen na die tik, en alleen deze twee
@@ -122,7 +122,7 @@ export async function voegToeViaFlow(basis: string, token: string, adres: string
 }
 
 /**
- * De koppeling onder de oude naam weghalen (2 november 2026), via de
+ * De koppeling onder de oude naam weghalen, via de
  * configuratie van Home Assistant: alleen de config entries van het domein
  * `smart_climate`, en pas als die onder `sunarc` er is.
  */

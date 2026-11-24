@@ -42,7 +42,7 @@ async function laad() {
 }
 
 /*
- * De zon elke tien minuten opnieuw (4 november 2026): eerst alleen bij het
+ * De zon elke tien minuten opnieuw: eerst alleen bij het
  * openen, en ging dat net mis (na een herstart), dan bleef het hier nacht.
  */
 setInterval(() => {
@@ -269,7 +269,7 @@ function model(stap) {
       // Bij Wat elk apparaat kan: de kamer van het apparaat dat open staat.
       if (stap === 'apparaat' && kanToestellen().find(({ a }) => sleutel(a) === kanOpen)?.r.id === r.id) k.gekozen = true;
       if (stap === 'comfort' && r.zoneId) k.stand = 'goed';
-      // Je dag (6 november 2026): bij voorverwarmen gloeien de kamers die meedoen.
+      // Je dag: bij voorverwarmen gloeien de kamers die meedoen.
       if (stap === 'dag' && r.zoneId && dagMoment(dagUur()).voor) k.stand = 'verwarmt';
       return k;
     },
@@ -290,7 +290,7 @@ function model(stap) {
     ...huismodel.huisDelen(tek, elders),
     ...(buiten ? {} : { oprit: null, tuin: null, terras: null, balkon: null, voortuin: null, garage: null }),
     woning,
-    // Een appartement: de verdiepingen eronder en erboven zoals gekozen (20 november 2026), hooguit drie en twee in beeld.
+    // Een appartement: de verdiepingen eronder en erboven zoals gekozen, hooguit drie en twee in beeld.
     ...(woning === 'appartement' ? { gebouw: ((f) => ({ onder: Math.min(3, f.verdieping), boven: Math.min(2, f.erboven) }))(woningDeel.flatVan(concept() ?? tek.gebouw ?? {})) } : {}),
     buitenunit: na('apparaten') && tek.buitenunit ? { ...tek.buitenunit, aan: false } : null,
     net: true,
@@ -425,9 +425,9 @@ function welkomSkelet(tel) {
   const woorden = `<span class="wk-hallo" data-wk-hallo></span><h1 class="wk-kop">${esc(t('inr.wk.kop1'))} <em>${esc(t('inr.wk.kop2'))}</em></h1><p class="wk-zin">${esc(t('inr.wk.zin'))} <b>${esc(t('inr.wk.klopt'))}</b></p>${beloftes}`;
   const begin = `<a class="knop knop-licht wk-begin" href="#jehuis">${esc(t('inr.begin'))}${PIJL}</a>`;
   const terug = `<a class="wk-terug" href="toegang.html">${esc(t('inr.wk.backup'))}</a>`;
-  // Het logo voluit (1 november 2026): het teken, de naam en wat ARC betekent.
+  // Het logo voluit: het teken, de naam en wat ARC betekent.
   const merk = `<span class="wk-merk"><img src="kit/merk.svg" alt=""><span><span class="wk-woord">SunArc</span><span class="wk-arc">${t('over.arc')}</span></span></span>`;
-  // Ook bij het welkom een kruisje (4 november 2026): de balk met het kruisje staat hier niet.
+  // Ook bij het welkom een kruisje: de balk met het kruisje staat hier niet.
   const sluit = `<a class="wk-sluit" href="thuis.html" aria-label="${esc(t('inr.sluiten'))}"><span aria-hidden="true">×</span></a>`;
   if (tel) {
     return `${sluit}${merk}<div class="wk-podium" data-wk-podium aria-hidden="true"></div><div class="wk-getallen" data-wk-getallen></div>

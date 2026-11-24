@@ -70,7 +70,7 @@
     if (a && a.antwoorden?.zekering == null && a.configuratie?.zekering == null) {
       uit.push({ id: 'zekering', groep: 'energie', wat: t('stand.zekering'), waarom: t('stand.zekeringZin'), knop: t('stand.kiezen'), href: 'energie.html#aansluiting' });
     }
-    // Zonder zonnemeting heeft het huis geen panelen (besluit 196): dan niet vragen waar ze liggen (19 november 2026).
+    // Zonder zonnemeting heeft het huis geen panelen (besluit 196): dan niet vragen waar ze liggen.
     if (a && d.site?.zonMeter !== false && a.antwoorden?.panelen?.ligging == null && !(a.configuratie?.panelen ?? []).length && !['bevestigd', 'configuratie'].includes(a.ligging?.stand)) {
       uit.push({ id: 'panelen', groep: 'energie', wat: t('stand.panelen'), waarom: t('stand.panelenZin'), knop: t('stand.kiezen'), href: 'energie.html#panelen' });
     }
@@ -477,7 +477,7 @@
     return { groepen, onderwerpen, totaal, klaar, gereedheid, dataset, winter, tel: (s) => onderwerpen.filter((x) => x.stand === s).length };
   }
   /*
-   * Eén som voor hoe ver je huis is (19 november 2026). Instellingen telde
+   * Eén som voor hoe ver je huis is. Instellingen telde
    * Klaarzetten niet mee en telde "kan erbij" anders dan Wat je huis kan; nu
    * rekenen beide hier, en zeggen ze hetzelfde.
    */

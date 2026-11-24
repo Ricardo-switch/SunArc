@@ -63,7 +63,7 @@
   }
 
   async function laad() {
-    // Zelf ophalen, niet via haal: een fout hier is geen "geen verbinding" voor de hele pagina (CI, 30 oktober 2026).
+    // Zelf ophalen, niet via haal: een fout hier is geen "geen verbinding" voor de hele pagina (CI).
     try {
       const res = await fetch('api/te-doen', { cache: 'no-store', headers: { 'x-taal': global.taal.code } });
       data = res.ok ? await res.json() : null;
@@ -105,7 +105,7 @@
   function regels() {
     if (!data?.aan) return [];
     const uit = [];
-    // Het eerstvolgende afval van deze week (30 oktober 2026: eerst alleen vandaag of morgen, dan bleef de kaart vaak weg).
+    // Het eerstvolgende afval van deze week (eerst alleen vandaag of morgen, dan bleef de kaart vaak weg).
     const komend = data.afspraken.filter((a) => a.bron === 'afval' && dagenVan(a.startMs) >= 0 && dagenVan(a.startMs) <= 6);
     const afval = komend.filter((a) => dagStart(a.startMs) === dagStart(komend[0]?.startMs ?? 0));
     if (afval.length) {
@@ -140,7 +140,7 @@
   function tekenKaarten() {
     const r = regels();
     for (const k of document.querySelectorAll('[data-tedoen]')) {
-      // Er als te doen aan staat, ook als er niets is (30 oktober 2026). Verbergen kan bij Thuis aanpassen (besluit 217).
+      // Er als te doen aan staat, ook als er niets is. Verbergen kan bij Thuis aanpassen (besluit 217).
       k.hidden = r.length === 0;
       k.toggleAttribute('data-niet-hier', !data?.aan);
       k.classList.toggle('nu', r.some((x) => x.nu));
@@ -178,7 +178,7 @@
         const h = g.opdracht?.herhaal ?? { soort: 'een' };
         const z = g.opdracht?.moment ? (p?.zonNaam(g.opdracht.moment) ?? '') : '';
         const vaak = h.soort === 'een' ? dagKort(g.ms) : (p?.herhaalNaam(h) ?? '');
-        // Met een wisknop naast de schakelaar (7 november 2026): uit is pauzeren, × haalt hem weg.
+        // Met een wisknop naast de schakelaar: uit is pauzeren, × haalt hem weg.
         return `<div class="td-taak${aan ? '' : ' uit'}"><b class="td-taak-uur${z ? ' zon' : ''}">${esc(klok(g.ms))}</b><div class="td-wat"><b>${esc(g.tekst)}${p?.sceneKamer(g) ? `<small class="waar"> · ${esc(p.sceneKamer(g))}</small>` : ''}</b><span>${esc([z, vaak].filter(Boolean).join(' · '))}</span></div><span class="td-taak-knoppen"><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('gp.aanLabel', { wat: g.tekst }))}" data-td-gp-aan="${esc(g.id)}"></button><button type="button" class="td-taak-weg" data-td-gp-weg="${esc(g.id)}" aria-label="${esc(t('hand.stekkerVastWeg', { naam: g.tekst }))}">×</button></span></div>`;
       })
       .join('');
@@ -248,7 +248,7 @@
 
   /** Een lijst om af te vinken en aan te vullen; met tabbladen erboven zonder eigen kop (`metTabs`). */
   function lijstHtml(l, metTabs = false) {
-    // Alles wat open is, en hooguit vijf afgevinkte (30 oktober 2026: een lijst van jaren stond vol afgevinkte).
+    // Alles wat open is, en hooguit vijf afgevinkte (een lijst van jaren stond vol afgevinkte).
     const open = l.items.filter((i) => !i.klaar);
     const af = l.items.filter((i) => i.klaar);
     const items = [...open.slice(0, 30), ...af.slice(-5).reverse()];
@@ -290,7 +290,7 @@
     const nu = global.hand?.nuHtml() ?? '';
     // Drie kolommen (besluit 245): herinneringen met de lijsten eronder, Vast en gepland, en de agenda.
     const n = bronnenVan().size;
-    // Wat met de hand loopt, staat in de kolom Vast en gepland (7 november 2026), niet meer los erboven.
+    // Wat met de hand loopt, staat in de kolom Vast en gepland, niet meer los erboven.
     return `${kop}<div class="tdp-drie">
       <section class="glas tdp-vak">
         <h2>${esc(t('tedoen.herinneringen'))}<em>${data.herinneringen.length || ''}</em></h2>

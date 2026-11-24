@@ -281,13 +281,13 @@ document.addEventListener('click', async (e) => {
       if (el.dataset.dak === 'plat') next.dak = 'geen';
       else if (d.huis?.dakEtage || boven) next.dak = d.huis?.dakEtage ?? boven.id;
     }
-    // Het tuinhuis, het schuurtje of allebei (6 november 2026).
+    // Het tuinhuis, het schuurtje of allebei.
     if (el.dataset.schuur) next.rond = { ...rondVanConcept(next), schuur: el.dataset.schuur === 'schuur', allebei: el.dataset.schuur === 'beide' };
     await bewaarIndeling(next);
     return;
   }
   if (el.dataset.flat) {
-    // Een appartement (20 november 2026): de verdieping of erboven een hoger of lager, zoals in Je huis.
+    // Een appartement: de verdieping of erboven een hoger of lager, zoals in Je huis.
     const next = concept();
     if (!next) return;
     Object.assign(next, woningDeel.stap(next, el.dataset.flat, Number(el.dataset.stap)));
@@ -295,7 +295,7 @@ document.addEventListener('click', async (e) => {
     return;
   }
   if (el.dataset.buur) {
-    // Welke muur tegen de buren staat (20 november 2026): hetzelfde als in Je huis.
+    // Welke muur tegen de buren staat: hetzelfde als in Je huis.
     const next = concept();
     if (!next) return;
     next.buren = woningDeel.wissel(next.buren ?? (wnKaart?.soort === woningNu() ? wnKaart.buren : []), el.dataset.buur);
@@ -568,7 +568,7 @@ document.addEventListener('click', async (e) => {
     await bewaarIndeling(next, t('inr.toegevoegdBij', { naam: huismodel.bronNaam(b), kamer: k.naam }));
     return;
   }
-  // Je dag (6 november 2026): een grens een uur eerder of later, of een stuk van de dag aantikken.
+  // Je dag: een grens een uur eerder of later, of een stuk van de dag aantikken.
   if (el.dataset.dg) {
     const [g, stap] = el.dataset.dg.split(':');
     const dg = dagNu();
@@ -582,7 +582,7 @@ document.addEventListener('click', async (e) => {
     teken();
     return;
   }
-  // Hoe warm wil je het (6 november 2026): een getal kiezen, en het aanpassen.
+  // Hoe warm wil je het: een getal kiezen, en het aanpassen.
   if (el.dataset.cf) {
     const [kamer, deel, soort] = el.dataset.cf.split('|');
     cfKeuze = { kamer, deel, soort };
@@ -967,7 +967,7 @@ document.addEventListener('click', (e) => {
   app.onthoudInrichten('app', location.hash.slice(1));
 }, true);
 /*
- * Je dag (6 november 2026): een greep van de balk schuiven, per heel uur.
+ * Je dag: een greep van de balk schuiven, per heel uur.
  * Tijdens het schuiven tekent alleen de balk mee; bij loslaten bewaart hij,
  * en tekent het huis met de lucht van dat uur.
  */

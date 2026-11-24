@@ -1,5 +1,5 @@
 /*
- * De indeling van het huis lezen: de onderdelen (22 november 2026, opgesplitst uit config/schema.ts).
+ * De indeling van het huis lezen: de onderdelen (opgesplitst uit config/schema.ts).
  *
  * Een klimaatapparaat, wat erop gemonteerd is, een zone, en of alles samen klopt.
  */

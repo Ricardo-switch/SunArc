@@ -244,7 +244,7 @@ const TOESTELLEN: readonly Toestel[] = [
 
 
 /*
- * Het voorbeeldhuis in het Engels (2 november 2026): voor de Engelse beelden op
+ * Het voorbeeldhuis in het Engels: voor de Engelse beelden op
  * GitHub. Alleen de namen; met HEMS_VOORBEELD_TAAL=en. De ids blijven, dus de
  * regeling en de standen zijn dezelfde.
  */

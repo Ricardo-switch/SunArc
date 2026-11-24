@@ -23,7 +23,7 @@
   /** Zoveel regels van het logboek gaan hooguit mee: de nieuwste. */
   const LOG_REGELS = 40;
 
-  /** Het logboek als tekst (4 november 2026): tijd, soort en wat de dienst schreef. */
+  /** Het logboek als tekst: tijd, soort en wat de dienst schreef. */
   function logTekst(regels) {
     return (regels ?? []).slice(-LOG_REGELS).map((r) => `${new Date(r.ms).toISOString().slice(0, 19).replace('T', ' ')} ${r.niveau === 'fout' ? 'FOUT' : 'LET OP'} ${r.tekst}`).join('\n');
   }
@@ -51,7 +51,7 @@
   }
 
   let s = null;
-  /** Of melden op pauze staat (14 november 2026); null zolang de dienst het nog niet zei. */
+  /** Of melden op pauze staat; null zolang de dienst het nog niet zei. */
   let pauze = null;
 
   async function open({ apparaat = null, naam = null, wat = '', soort = null, hulp = null } = {}) {
@@ -92,7 +92,7 @@
   }
 
   /**
-   * Werkt nog niet (4 november 2026): een melding die opgelost heette. De
+   * Werkt nog niet: een melding die opgelost heette. De
    * tekst gaat naar het klembord en het issue opent, om daar te reageren;
    * GitHub kan een reactie niet vooraf invullen.
    */
@@ -132,7 +132,7 @@
     if (!s) return;
     const meeVak = s.apparaat ? `<label class="klein" style="display: flex; gap: 8px; align-items: center"><input type="checkbox" data-meldmee ${s.mee ? 'checked' : ''}>${esc(t('melden.mee', { naam: s.naam ?? '' }))}</label>
           ${s.mee && s.gegevens ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre class="geen-marge boven-8" style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto">${esc(JSON.stringify(s.gegevens, null, 1))}</pre></details>` : ''}` : '';
-    // Het logboek meesturen (4 november 2026): wat er meegaat, staat eronder te lezen.
+    // Het logboek meesturen: wat er meegaat, staat eronder te lezen.
     // Ik snap iets niet: de pagina en het huis gaan mee, tenzij je het vinkje weghaalt (besluit 325).
     const huisVak = s.soort === 'snap' ? `<label class="klein" style="display: flex; gap: 8px; align-items: center"><input type="checkbox" data-meldhuis ${s.huisMee ? 'checked' : ''}><span><b>${esc(t('melden.meeKop'))}</b> ${esc(t('melden.meeHuis', { pagina: pagina() }))}</span></label>
           ${s.huisMee ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre class="geen-marge boven-8" style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto">${esc(JSON.stringify(snapGegevens(), null, 1))}</pre></details>` : ''}` : '';

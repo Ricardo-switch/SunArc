@@ -40,7 +40,7 @@ const dakvlakken = (() => {
     return t(v.opstelling === 'rek' ? 'daken.waar.rek' : 'daken.waar.schuin', { richting: kort(v.azimuthDeg).toLowerCase(), graden: g, helling: h });
   }
   /**
-   * De naam van een vlak (Ricardo, 5 november 2026): de eigen naam, of de plek;
+   * De naam van een vlak: de eigen naam, of de plek;
    * liggen er meer vlakken op dezelfde plek, dan met de richting erbij
    * ("Hoofddak oost"), zodat je ze ook zonder tekening uit elkaar houdt.
    */
@@ -54,7 +54,7 @@ const dakvlakken = (() => {
   const letter = (v, kleur) => `<span class="dk-letter" style="background: ${kleur}">${esc(v.letter)}</span>`;
 
   /**
-   * Waar een vlak vandaan komt, zoals de bewoner het ziet (7 november 2026):
+   * Waar een vlak vandaan komt, zoals de bewoner het ziet:
    * overgenomen uit de 3D-kaart is bewaard als zelf ingesteld, maar zolang het
    * met de kaart klopt, zegt het label "uit de 3D-kaart".
    */
@@ -142,7 +142,7 @@ const dakvlakken = (() => {
   function metingBij(d, v) {
     const zin = metingZin(d, v);
     if (!zin) return '';
-    // Wijkt de helling van de meting af van de 3D-kaart, dan zegt het blad welke nauwkeuriger is (7 november 2026).
+    // Wijkt de helling van de meting af van de 3D-kaart, dan zegt het blad welke nauwkeuriger is.
     const k = kaartDakvlak(d, v);
     const m = d.vlakMeting?.[v.letter] ?? (d.meting ?? []).find((x) => hoek(x.azimuthDeg, v.azimuthDeg) <= 30);
     const tip = k && m && Math.abs(k.tiltDeg - m.tiltDeg) > 5 ? `<p class="mini geen-marge boven-4">${esc(t('daken.meting.hellingKaart'))}</p>` : '';
@@ -212,7 +212,7 @@ const dakvlakken = (() => {
     const kanten = v.opstelling === 'oostwest'
       ? `${veld(kort(v.azimuthDeg), stapper('aantal', v.aantal, kort(v.azimuthDeg)))}${veld(kort(v.azimuthDeg + 180), stapper('aantal2', v.aantal2 ?? 0, kort(v.azimuthDeg + 180)))}`
       : veld(t('daken.aantal'), stapper('aantal', v.aantal, t('daken.aantal')));
-    // De kop is de naam, zelf in te vullen (5 november 2026); leeg is de plek met de richting.
+    // De kop is de naam, zelf in te vullen; leeg is de plek met de richting.
     const anderen = [...d.vlakken.filter((x) => x.letter !== v.letter), { ...v, naam: '' }];
     const naamVeld = `<input class="dk-naamveld" type="text" maxlength="30" data-dak-naam value="${esc(v.naam ?? '')}" placeholder="${esc(naam({ ...v, naam: '' }, anderen))}" aria-label="${esc(t('daken.naamLabel'))}" title="${esc(t('daken.naamLabel'))}">`;
     return `<div class="dk-vlak open">${letter(v, STANDKLEUR[v.bron])}<span>${nieuw ? `<small class="dk-nieuw">${esc(t('daken.nieuwKort'))}</small>` : ''}${naamVeld}<small>${esc(waar(v))}</small></span><span class="dk-rechts"><b>${esc(kWp(piek(v)))}</b> kWp</span></div>
@@ -481,7 +481,7 @@ const dakvlakken = (() => {
   }
 
   /*
-   * De kaart is experimenteel (schets Wand-Daken-Kaart, 5 november 2026): de
+   * De kaart is experimenteel (schets Wand-Daken-Kaart): de
    * balk onder de tekening met de bron en Zonder kaart, de melding voor het
    * ophalen, en de vraag voor Zonder kaart.
    */
@@ -1057,7 +1057,7 @@ const dakvlakken = (() => {
     { plek: 'daken', id: 'dakBoven', doel: ['#wand .dk-boven, #wand [data-pan-podium]', '#tel .dk-boven, #tel [data-pan-podium]'] },
     { plek: 'daken', id: 'dakLijst', doel: ['#wand .pan-rechts .dk-lijst', '#tel .pan-rechts .dk-lijst'] },
     { plek: 'daken', id: 'dakZicht', doel: ['#wand .dk-wissel', '#tel .dk-wissel'] },
-    // Het huis (Ricardo, 5 november 2026): de wissel gaat vanzelf om, en bij de volgende stop terug.
+    // Het huis: de wissel gaat vanzelf om, en bij de volgende stop terug.
     { plek: 'daken', id: 'dakHuis', doe: ['#wand [data-dak-zicht="huis"]', '#tel [data-dak-zicht="huis"]'], doel: ['#wand [data-pan-podium]', '#tel [data-pan-podium]'] },
     { plek: 'daken', id: 'dakErbij', doe: ['#wand [data-dak-zicht="boven"]', '#tel [data-dak-zicht="boven"]'], doel: ['#wand [data-dak-scherm="erbij"]', '#tel [data-dak-scherm="erbij"]'] },
     { plek: 'daken', id: 'dakMeters', doel: ['#wand [data-dak-scherm="meters"]', '#tel [data-dak-scherm="meters"]'], klaar: true },

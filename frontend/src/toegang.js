@@ -136,7 +136,7 @@ const hacsStappen = () => `<ol class="klein stappen">
 const eenmalig = () => `<p class="mini geen-marge">${esc(t('toegang.eenmalig'))}</p>`;
 
 /**
- * Of de integratie ook is toegevoegd (22 oktober 2026): met alleen de bestanden
+ * Of de integratie ook is toegevoegd: met alleen de bestanden
  * kan Assist SunArc nog niet vragen.
  */
 function toegevoegdZin(i) {
@@ -160,7 +160,7 @@ function aanzetVorm(i) {
       teken();
     }, 3000);
   }
-  // De oude naam (2 november 2026): dezelfde knop zet de koppeling over naar sunarc.
+  // De oude naam: dezelfde knop zet de koppeling over naar sunarc.
   const over = i.oudeKoppeling === true;
   const zin = a.bezig ? `${t(`inr.as.s.${a.stap}`)}…` : a.fout ? t('inr.as.fout', { fout: a.fout }) : t(over ? 'inr.as.overzetten' : 'inr.as.zin');
   return `<p class="klein" style="margin: 0${a.fout && !a.bezig ? '; color: var(--gloed-t)' : ''}" aria-live="polite">${esc(zin)}</p>
@@ -332,7 +332,7 @@ addEventListener('standwissel', teken);
 addEventListener('hashchange', teken);
 
 app.start('instellingen');
-/* Het logboek bij Versie (4 november 2026): pas bij openen opgehaald. */
+/* Het logboek bij Versie: pas bij openen opgehaald. */
 document.addEventListener('toggle', async (e) => {
   const d = e.target;
   if (!(d instanceof HTMLDetailsElement) || !d.matches('[data-logboek]') || !d.open) return;

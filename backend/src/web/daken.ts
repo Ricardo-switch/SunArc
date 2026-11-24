@@ -53,7 +53,7 @@ export interface DakVlak {
    */
   readonly gebouw?: string;
   readonly kant?: number | null;
-  /** Een eigen naam (Ricardo, 5 november 2026), zoals "Voorkant" of "Garage achter"; weg: de plek, met de richting erbij. */
+  /** Een eigen naam, zoals "Voorkant" of "Garage achter"; weg: de plek, met de richting erbij. */
   readonly naam?: string;
 }
 
@@ -83,7 +83,7 @@ export interface Gebouw {
   readonly omtrek: readonly Xy[];
   readonly dakvorm: Dakvorm;
   readonly nokDeg: number;
-  /** Uit welke kaart de omtrek kwam (5 november 2026): 3D BAG of OpenStreetMap, voor de naamsvermelding. */
+  /** Uit welke kaart de omtrek kwam: 3D BAG of OpenStreetMap, voor de naamsvermelding. */
   readonly kaart?: 'bag3d' | 'osm';
   /**
    * Wie de dakvorm gaf (issue 143): de bewoner, of de kaart (3D BAG meet het
@@ -107,7 +107,7 @@ export interface Gebouw {
   readonly kaartKapel?: 'ja' | 'nee';
   /**
    * De omtrek zoals de kaart hem gaf, als de bewoner het gebouw op maat trok
-   * (ronde 2, 20 november 2026): voor Maat van de kaart. Wat de bewoner trekt,
+   * (ronde 2): voor Maat van de kaart. Wat de bewoner trekt,
    * blijft, ook als de kaart iets anders ziet.
    */
   readonly kaartOmtrek?: readonly Xy[];
@@ -115,7 +115,7 @@ export interface Gebouw {
   readonly afdak?: 'nee';
 }
 
-/** Een gebouw van de kaart dat er niet meer staat (ronde 2, 20 november 2026): het blijft weg, ook als de kaart het nog ziet. */
+/** Een gebouw van de kaart dat er niet meer staat (ronde 2): het blijft weg, ook als de kaart het nog ziet. */
 export interface WegGebouw {
   readonly omtrek: readonly Xy[];
   readonly soort?: GebouwSoort;
@@ -142,10 +142,10 @@ export interface Daken {
   readonly straatBevestigd?: boolean;
   /** Wat elke omvormer hooguit levert, als de bewoner het invulde (stap 4), in W per sensor. */
   readonly grenzen?: Readonly<Record<string, number>>;
-  /** Wat de kaarten over het huis zeiden, de laatste keer dat de bewoner keek (6 november 2026). */
+  /** Wat de kaarten over het huis zeiden, de laatste keer dat de bewoner keek. */
   readonly kaartStand?: KaartStand;
   /**
-   * De dakvlakken van het hoofdhuis uit 3D BAG (6 november 2026), als het huis
+   * De dakvlakken van het hoofdhuis uit 3D BAG, als het huis
    * daaruit getekend is: richting, helling en oppervlak, gemeten met een laser.
    * De pagina zet ze naast de meting, met Neem over.
    */
@@ -177,7 +177,7 @@ function leesKaartDak(x: unknown): KaartDakvlak[] | null {
 }
 
 /**
- * Wat kan bij jouw huis (Ricardo, 6 november 2026): per kaart of hij het huis
+ * Wat kan bij jouw huis: per kaart of hij het huis
  * kent (`huis`), alleen de wijk (`wijk`), niets (`niets`), geen antwoord gaf
  * (`fout`), of daar niet komt (`buiten`: 3D BAG buiten Nederland). Alleen
  * deze woorden en de dag; geen plek en geen vormen.
@@ -530,7 +530,7 @@ export function dakenUitOud(o: OudeDaken): Daken {
  * panelen op het hoofddak op rekken, oost-west of plat, dan gaan die voor een
  * puntdak uit 3D BAG (issue 150): zo liggen panelen alleen op een plat dak.
  * Koos de bewoner bij Inrichten of Kamers en indeling "plat dak", dan gaat
- * dat voor alles (Ricardo, 7 november 2026: het bleef een puntdak).
+ * dat voor alles (het bleef een puntdak).
  */
 export function hoofddakPlat(daken: Daken | null | undefined, ligging: string | null | undefined, inrichtenPlat = false): boolean {
   const huis = daken?.gebouwen?.find((g) => g.soort === 'hoofdhuis');

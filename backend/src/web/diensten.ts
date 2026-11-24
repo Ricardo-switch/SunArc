@@ -156,7 +156,7 @@ export class Diensten {
   withResident(snapshot: LiveSnapshot, taal: Lang = 'nl'): LiveSnapshot & { bewoner?: ResidentView } {
     const config = this.config();
     if (config == null) return snapshot;
-    // Waar de zon staat (25 oktober 2026): "wacht op zon" zegt het niet als hij onder is.
+    // Waar de zon staat: "wacht op zon" zegt het niet als hij onder is.
     const loc = this.options.location?.() ?? null;
     const zon = loc ? sunPosition(Date.now(), loc.latDeg, loc.lonDeg) : null;
     const metZon = zon ? { ...snapshot, zonNu: zonNuVan(zon.elevationDeg, zon.azimuthDeg) } : snapshot;
@@ -166,7 +166,7 @@ export class Diensten {
     const stand = {
       hand: hand?.hand.terugzetten ?? [],
       ...(this.options.toestand ? { toestand: this.options.toestand } : {}),
-      // Ook klimaat buiten de regeling, zoals het tuinhuis (23 november 2026: daar stond climate.tuinhuis in plaats van zijn naam).
+      // Ook klimaat buiten de regeling, zoals het tuinhuis (daar stond climate.tuinhuis in plaats van zijn naam).
       naamVan: (id: string) => config.actuators.find((a) => a.ref.id === id)?.name ?? hand?.schakelaars().find((s) => s.id === id)?.naam ?? hand?.los?.().find((s) => s.id === id)?.naam ?? null,
       lampenAan: () => {
         const ids = new Set(config.schedule.eveningExtensionLights.map((r) => r.id));
@@ -178,7 +178,7 @@ export class Diensten {
   }
 
   /**
-   * Hoe het huis warmte vasthoudt, op de achtergrond (6 november 2026): kort na
+   * Hoe het huis warmte vasthoudt, op de achtergrond: kort na
    * het opstarten als er nog niets bewaard is, en verder elke nacht. Zo hoeft
    * een pagina nooit te wachten op het lezen van een half jaar logboek.
    */
@@ -274,7 +274,7 @@ export class Diensten {
 
   /**
    * Vandaag uit het logboek, met de kwartieren zonder eigen meting uit de
-   * statistiek van Home Assistant (17 oktober 2026). Eerst deed alleen de pagina
+   * statistiek van Home Assistant. Eerst deed alleen de pagina
    * Vandaag dat; de assistent en het weer telden alleen het logboek, en zeiden op
    * de eerste dag "bijna niets geleverd" terwijl Vandaag 3,1 kWh liet zien (30
    * oktober 2026). Null zonder logboek.

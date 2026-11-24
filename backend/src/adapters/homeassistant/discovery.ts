@@ -209,7 +209,7 @@ const PRODUCTION_WORDS =
   /solar|zonne|zonnepane|pv[_ ]|photovolta|omvormer|inverter|huidig[_ ]vermogen/i;
 
 /*
- * Ook als één woord met de temperatuur erachter (30 oktober 2026): de sensor
+ * Ook als één woord met de temperatuur erachter: de sensor
  * "Buitentemperatuur" (`sensor.buitentemperatuur`) werd anders niet gevonden.
  */
 const OUTDOOR_WORDS = new RegExp(

@@ -204,7 +204,7 @@ const client: HaClient = new HaClient({
   allowAiTask: true,
   // Geluid laten uitschrijven, tot tekst en niet verder (besluit 150): de microfoon en "Hé huis".
   allowListen: true,
-  // De eigen add-on bijwerken (21 oktober 2026): update.install op zijn eigen update-entiteit, alleen in de add-on.
+  // De eigen add-on bijwerken: update.install op zijn eigen update-entiteit, alleen in de add-on.
   allowUpdate: () => (version.installatie === 'add-on' ? (eigenUpdate(allStates.values())?.entity_id ?? null) : null),
   // Een melding naar de telefoon van een bewoner (besluit 183): alleen notify.mobile_app_…, en alleen
   // in de add-on; de NAS kijkt mee en blijft stil, anders kwam elke melding dubbel.
@@ -282,7 +282,7 @@ let web: WebServer | null = null;
 const version = versionFromEnv(process.env);
 
 /*
- * Bijwerken vanuit de app (21 oktober 2026): alleen in de add-on. Wat er nieuw
+ * Bijwerken vanuit de app: alleen in de add-on. Wat er nieuw
  * is, vraagt de dienst één keer per nieuwe versie aan Home Assistant.
  */
 let releaseNotes: { versie: string; tekst: string | null } | null = null;
@@ -365,7 +365,7 @@ async function readHouseRegisters(): Promise<void> {
   const zigbee = entities.some((e) => e.platform === 'mqtt' && e.entity_id.startsWith('light.') && /_light_zigbee2mqtt$/.test(e.unique_id ?? ''));
   const zigbeeGroepen = zigbee ? await client.leesZigbeeGroepen().catch(() => []) : [];
   houseRegisters = { floors, areas, devices, entities, zigbeeGroepen };
-  // Ging er al een rookmelder af voor de dienst startte: dan ook (21 oktober 2026).
+  // Ging er al een rookmelder af voor de dienst startte: dan ook.
   setTimeout(() => web?.alarm(alarmNu()), 2_000).unref?.();
 }
 // Hoe vaak de zonnesensor een nieuwe waarde geeft (besluit 89), overdag gemeten.
@@ -471,7 +471,7 @@ const functiesKeuzes = (): FunctiesGevonden | null => {
 };
 
 /**
- * De andere beelden van dezelfde camera, het lichtste eerst (21 oktober 2026):
+ * De andere beelden van dezelfde camera, het lichtste eerst:
  * gaf het gekozen beeld van de deurbel niets, dan bleef het scherm zwart.
  */
 const reserveBeelden = (camera: string): string[] => {
@@ -503,7 +503,7 @@ const deurbelNu = () => {
  * opnieuw als de melders veranderen), daarna wat de dienst zelf ziet.
  */
 const bewegingAan = new Map<string, number>();
-/** Per melder de momenten dat hij aanging, van gisteren en vandaag: om bij Apparaten te tellen hoe vaak (20 november 2026). */
+/** Per melder de momenten dat hij aanging, van gisteren en vandaag: om bij Apparaten te tellen hoe vaak. */
 const bewegingKeren = new Map<string, number[]>();
 const nogEenKeer = (id: string, ms: number) => {
   const sinds = ms - 2 * 86_400_000;
@@ -516,7 +516,7 @@ const camMelders = (): ReadonlySet<string> => {
   // Opnieuw als wat er gevonden of gekozen is verandert; niet bij elke toestand.
   if (bewegingMelders.van !== gevondenNu || bewegingMelders.f !== f) {
     const g = functiesKeuzes();
-    // Alle camera's en de deurbel (20 november 2026): Apparaten telt ook die niet op Thuis staan.
+    // Alle camera's en de deurbel: Apparaten telt ook die niet op Thuis staan.
     bewegingMelders = { van: gevondenNu, f, ids: new Set(f ? alleCameraMelders(f, g) : []) };
   }
   return bewegingMelders.ids;
@@ -563,13 +563,13 @@ client.on('stateChanged', (state: HaEntityState) => {
   const f = functiesNu();
   if (f && aangebeld(f, state, allStates.get(state.entity_id))) {
     aangebeldMs = Date.now();
-    // Een gebeurtenis telt hier; een melder telde hierboven al (20 november 2026).
+    // Een gebeurtenis telt hier; een melder telde hierboven al.
     if (!state.entity_id.startsWith('binary_sensor.')) nogEenKeer(state.entity_id, Date.now());
     const camera = f.deurbel.camera!;
     const naam = functiesKeuzes()?.cameras.find((c) => c.beelden.some((b) => b.id === camera))?.naam ?? 'Deurbel';
     web?.ring(camera, naam, { seconden: f.deurbel.seconden, schermAan: f.deurbel.schermAan, reserve: reserveBeelden(camera) });
   }
-  // Een rookmelder ziet rook, koolmonoxide of hitte, of niet meer (21 oktober 2026): elk open scherm.
+  // Een rookmelder ziet rook, koolmonoxide of hitte, of niet meer: elk open scherm.
   if (houseRegisters && state.entity_id.startsWith('binary_sensor.') && state.state !== allStates.get(state.entity_id)?.state && alarmSensoren(vindRookmelders(houseRegisters.entities, houseRegisters.devices, allStates)).has(state.entity_id)) {
     // Na deze ronde: dan kent het huis de nieuwe stand al.
     setTimeout(() => {
@@ -585,7 +585,7 @@ client.on('stateChanged', (state: HaEntityState) => {
   if (inHouse(state)) {
     houseStates.set(state.entity_id, state);
     huisVersie++;
-    // Live naar de open pagina's (21 oktober 2026): wat je bedient of ziet bewegen meteen.
+    // Live naar de open pagina's: wat je bedient of ziet bewegen meteen.
     web?.huisVeranderd(snelInHuis(state));
   }
   // Wie er thuis is (besluit 169): de rondjes op Thuis.
@@ -976,7 +976,7 @@ const maakOpbrengstNodig = {
 export type MaakOpbrengstNodig = typeof maakOpbrengstNodig;
 const { dakenOpbrengst, historieVan, laadbeurten } = maakOpbrengst(maakOpbrengstNodig);
 
-/** Welke rookmelders nu iets zien, met hun kamer (21 oktober 2026). */
+/** Welke rookmelders nu iets zien, met hun kamer. */
 function alarmNu(): AlarmMelder[] {
   const h = houseReport();
   return (h?.etages ?? []).flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten.filter((d) => d.soort === 'rookmelder').map((d) => ({ id: d.id, naam: d.naam, kamer: r.naam, gevaar: d.rookmelder?.gevaar ?? null, sindsMs: d.rookmelder?.sindsMs ?? null }))));
@@ -1169,7 +1169,7 @@ const { addOnStand, assistentAan, integratie, integratieStand, klaarPunten, sleu
 /*
  * Wat de wand het laatst over Fully Kiosk meldde (besluit 246). Bewaard naast
  * het logboek: na een herstart of update zei Klaarzetten anders dat de wand
- * nog niet was ingesteld, tot hij zich weer meldde (2 november 2026).
+ * nog niet was ingesteld, tot hij zich weer meldde.
  */
 const WAND_BESTAND = logDir !== '' ? join(logDir, 'wand-melding.json') : null;
 let wandMelding: WandMelding | null = WAND_BESTAND
@@ -1324,7 +1324,7 @@ function connectionDoor(store: ConnectionStore, base: NonNullable<typeof baseCon
     omvormerGevonden: omvormerGevonden(),
     // De netmeter en de omvormers om uit te kiezen (testerronde, november 2026).
     vermogens: findPowers(allStates.values()),
-    // Per fase een meter om uit te kiezen (23 november 2026).
+    // Per fase een meter om uit te kiezen.
     faseMeters: findPhaseMeters(allStates.values()),
   });
   const solarId = base.solarProduction?.id ?? null;
@@ -1345,7 +1345,7 @@ function connectionDoor(store: ConnectionStore, base: NonNullable<typeof baseCon
         kaart: location != null,
         // Plat dak bij Inrichten (issue 143): het voorstel voor het hoofdhuis zonder vlakken.
         huisPlat: layoutNu?.()?.dak === 'geen',
-        // Wat kan bij jouw huis (6 november 2026): 3D BAG alleen in Nederland, in huis nagegaan.
+        // Wat kan bij jouw huis: 3D BAG alleen in Nederland, in huis nagegaan.
         nederland: location ? inNederland(location.latDeg, location.lonDeg) : false,
         // De meting per dakvlak en de grens per omvormer (stap 4); de zon van nu voor elk vlak nu (stap 5).
         vlakMeting: vlakMetingNu(),

@@ -1,6 +1,6 @@
 /*
  * Het blad Weergave (besluit 164, schets Thuis-Tel-Eigen #weergave), als één
- * gedeeld deel (22 november 2026): op Jij opent het als eigen blad, zonder
+ * gedeeld deel: op Jij opent het als eigen blad, zonder
  * eerst naar Thuis te gaan en te wachten tot Thuis helemaal geladen is; op
  * Thuis (eigen.js) blijft het zoals het was. Eenvoudig of uitgebreid, grotere
  * letters en minder beweging, en hoe het huis eruitziet. Voor jou, op elk

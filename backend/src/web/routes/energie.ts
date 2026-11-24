@@ -1,7 +1,7 @@
 /**
  * Energie: meters en prijzen, de aansluiting en de gevels op de kaart (besluiten 102 en 103).
  *
- * Geknipt uit server.ts (besluit 180, 23 oktober 2026): letterlijk, met de
+ * Geknipt uit server.ts (besluit 180): letterlijk, met de
  * context `d` in plaats van de webserver zelf.
  */
 
@@ -306,7 +306,7 @@ async function stekkerRoute(d: Diensten, req: IncomingMessage, res: ServerRespon
     sendJson(res, 200, { ok: await s.terug(id).catch(() => false) });
     return;
   }
-  // Uit, meteen en zonder eind (7 november 2026).
+  // Uit, meteen en zonder eind.
   if (body['aan'] === false && body['meteen'] === true && s.uit) {
     const uit = await s.uit(id).catch((e: Error) => ({ ok: false as const, reden: `Home Assistant nam het niet aan: ${e.message}` }));
     sendJson(res, uit.ok ? 200 : 409, uit.ok ? uit : { fout: uit.reden });
@@ -349,7 +349,7 @@ export async function aansluitingRoute(d: Diensten, req: IncomingMessage, res: S
 }
 
 /**
- * De gevels opmeten op de kaart (21 oktober 2026): de omtrek van het huis in
+ * De gevels opmeten op de kaart: de omtrek van het huis in
  * OpenStreetMap, en daaruit de voorkant die het dichtst bij `nuDeg` ligt.
  * Alleen na een tik van de beheerder; niets bewaard behalve een dag de omtrek.
  */
@@ -396,7 +396,7 @@ const kaartVakken = new Map<string, { at: number; antwoord: unknown }>();
 /** Wat 3D BAG over het huis zei, een dag; alleen het uitgerekende, niet het hele vak. */
 let bagBewaard: { at: number; sleutel: string; vak: boolean; uit: ReturnType<typeof bagHuisEnOmgeving> } | null = null;
 
-/** Wat een kaart over het huis zei (6 november 2026): de stand, en bij `huis` de vormen in meters. */
+/** Wat een kaart over het huis zei: de stand, en bij `huis` de vormen in meters. */
 export interface UitKaart {
   readonly stand: KaartStandWoord;
   readonly hoofdhuis?: readonly (readonly [number, number])[];
@@ -434,8 +434,8 @@ export async function kaartBronnen(d: Diensten, ophalen: boolean, alleen: 'bag3d
   if (loc == null) return null;
   const nl = inNederland(loc.latDeg, loc.lonDeg);
   const p = { lat: loc.latDeg, lon: loc.lonDeg };
-  // In Nederland ook 3D BAG (5 november 2026): de omtrek en het dak per gebouw; OpenStreetMap vult aan wat er niet in staat, zoals een tuinhuis.
-  // Eén kaart tegelijk (ronde 2, 20 november 2026): Je huis vinkt ze dan een voor een af; de andere zoals hij vandaag al bewaard is.
+  // In Nederland ook 3D BAG: de omtrek en het dak per gebouw; OpenStreetMap vult aan wat er niet in staat, zoals een tuinhuis.
+  // Eén kaart tegelijk (ronde 2): Je huis vinkt ze dan een voor een af; de andere zoals hij vandaag al bewaard is.
   const [osm, bag] = ophalen && alleen == null
     ? await Promise.allSettled([osmVak(d, loc.latDeg, loc.lonDeg), nl ? bagVak(d, loc.latDeg, loc.lonDeg) : Promise.resolve(null)])
     : ophalen
@@ -474,7 +474,7 @@ export async function kaartBronnen(d: Diensten, ophalen: boolean, alleen: 'bag3d
  * plek. Naar OpenStreetMap gaat alleen het vak van het raster; de plek zelf
  * blijft in huis en wordt niet bewaard. Alleen na een tik van de beheerder.
  *
- * Wat kan bij jouw huis (Ricardo, 6 november 2026): per kaart wat hij vond,
+ * Wat kan bij jouw huis: per kaart wat hij vond,
  * zodat de bewoner ziet wat er is en zelf kiest (`bronnen`). Bovenaan staat
  * nog de beste, zoals eerst: 3D BAG met wat OpenStreetMap erbij heeft, anders
  * OpenStreetMap.

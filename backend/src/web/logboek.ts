@@ -1,5 +1,5 @@
 /**
- * Het logboek om te delen (4 november 2026): de laatste waarschuwingen en
+ * Het logboek om te delen: de laatste waarschuwingen en
  * fouten van de dienst, zelf bijgehouden. Zo werkt het ook op de NAS en
  * zonder add-on, en hoeft een tester niet in Home Assistant te zoeken.
  *

@@ -1,7 +1,7 @@
 /**
  * De stand van nu: het besluit, de live-verbinding en de vergelijking met het oude systeem.
  *
- * Geknipt uit server.ts (besluit 180, 23 oktober 2026): letterlijk, met de
+ * Geknipt uit server.ts (besluit 180): letterlijk, met de
  * context `d` in plaats van de webserver zelf.
  */
 
@@ -30,7 +30,7 @@ export async function standRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
   }
 
   /*
-   * De motor › Vandaag (23 november 2026): per kwartier van een dag wat de motor zou doen, wat er gebeurde en wat de
+   * De motor › Vandaag: per kwartier van een dag wat de motor zou doen, wat er gebeurde en wat de
    * oude regeling deed (`?dag=JJJJ-MM-DD`, anders vandaag), en één ronde om terug te kijken (`?t=` in ms, anders nu).
    */
   if (path === '/api/motor/dag' || path === '/api/motor/ronde') {

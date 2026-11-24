@@ -1,5 +1,5 @@
 /*
- * De motor (23 november 2026, kwaliteitsronde stap 4 punt 4; schets design/app2/Wand-Motor.html en Tel-Motor.html).
+ * De motor (kwaliteitsronde stap 4 punt 4; schets design/app2/Wand-Motor.html en Tel-Motor.html).
  *
  * De schaduwpagina in de vorm van de app, achter zeven tikken op het versienummer bij Over deze app. Eén regel
  * blijft: hier wordt niets uitgerekend. Alles komt zoals de kern het meegeeft (api/state, live bij elke ronde); de

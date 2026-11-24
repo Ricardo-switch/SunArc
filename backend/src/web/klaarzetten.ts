@@ -82,7 +82,7 @@ const WOORDEN = {
       geen: 'Maak etages en ruimtes, en zet elk apparaat in zijn ruimte. De app neemt ze over als voorstel.',
       geenEtage: 'Zet de ruimtes op een etage; dan staat het huis goed in de tekening.',
       /*
-       * Geen tekort (2 november 2026): de app heeft een eigen indeling, en
+       * Geen tekort: de app heeft een eigen indeling, en
        * daar kies je de kamer van elk apparaat. Een ruimte in Home Assistant
        * is alleen het voorstel.
        */
@@ -93,7 +93,7 @@ const WOORDEN = {
       klaar: (n: number) => `${telling(n, 'persoon', 'personen')}, elk met een eigen account.`,
       geen: 'Maak een persoon per bewoner, gekoppeld aan een account. Zonder persoon is iemand een gast.',
       geenAccount: 'Nog niemand heeft een account. Koppel er een aan een persoon, dan kan die inloggen en een eigen comfort kiezen.',
-      // Geen tekort (2 november 2026): een kind of iemand die niet inlogt, heeft geen account nodig.
+      // Geen tekort: een kind of iemand die niet inlogt, heeft geen account nodig.
       klaarZonder: (n: number, zonder: number) => `${telling(n, 'persoon', 'personen')}; ${telling(zonder, 'heeft', 'hebben')} geen account en ${zonder === 1 ? 'logt' : 'loggen'} dus niet in.`,
     },
     telefoon: {

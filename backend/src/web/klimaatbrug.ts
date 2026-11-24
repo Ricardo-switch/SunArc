@@ -268,7 +268,7 @@ export type BrugVerzoek =
   | { readonly ok: true; readonly wens: BrugWens; readonly zone: string; readonly temperatuurC: number | null; readonly totMs: number }
   | { readonly ok: false; readonly reden: string };
 
-/** Wat de pagina naar `/api/klimaat` stuurt, getoetst: een wens, een kamer van de brug, een getal of niets, en een eindtijd binnen een dag (eerst twaalf uur; "tot 22:00" ligt 's ochtends verder weg, 23 november 2026). */
+/** Wat de pagina naar `/api/klimaat` stuurt, getoetst: een wens, een kamer van de brug, een getal of niets, en een eindtijd binnen een dag (eerst twaalf uur; "tot 22:00" ligt 's ochtends verder weg). */
 export function brugVerzoek(body: unknown, config: SiteConfig, nuMs: number): BrugVerzoek {
   const b = (typeof body === 'object' && body != null && !Array.isArray(body) ? body : {}) as Record<string, unknown>;
   const wens = b['wens'];

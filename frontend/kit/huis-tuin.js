@@ -1,5 +1,5 @@
 /*
- * SunArc: het poppenhuis, de tuin (22 november 2026, opgesplitst uit kit/huis.js).
+ * SunArc: het poppenhuis, de tuin (opgesplitst uit kit/huis.js).
  *
  * Het kompas, bomen, lantaarns, de tuin met border, terras en tuinhuis (huis 3.0), struiken en schaduwkleuren.
  *
@@ -104,7 +104,7 @@
         const padX = kern.W + 1.78;
         const dingen = [];
         // De border: een strook aarde langs de buitenrand, met struiken en bloemen.
-        // Alleen als hij er is (6 november 2026); anders loopt het gras door tot de rand.
+        // Alleen als hij er is; anders loopt het gras door tot de rand.
         const metBorder = t.border !== false;
         const bx0 = gx1 - 0.34;
         if (metBorder) {
@@ -113,7 +113,7 @@
         }
         const bloemen = herfst ? ['#e0a04a', '#c9543a', '#e8c25a'] : kern.winter || sneeuw ? null : ['#f2a7c3', '#f6d36b', '#b7a0f2', '#ffffff'];
         /*
-         * De tuin in zones (28 oktober 2026, schets Wand-Huis-Ligging): elke zone een
+         * De tuin in zones (schets Wand-Huis-Ligging): elke zone een
          * vaste plek, voor een label en om op te tikken. De lampen van de border
          * staan in de border, elk in de kleur van zijn lamp.
          */
@@ -123,7 +123,7 @@
         const borderLampen = metBorder ? (t.borderLampen ?? []) : [];
         /*
          * Brandt een lamp van de border, dan kleurt zijn stuk border mee: een gloed
-         * over de aarde en over de planten (28 oktober 2026). Eén lamp in Home
+         * over de aarde en over de planten. Eén lamp in Home
          * Assistant is vaak een groep wandlampen; die verlicht de hele border.
          */
         const by0 = gy0 + 0.95;
@@ -215,9 +215,9 @@
           }]);
         }
         // Het tuinhuis achterin, met de deur naar het pad.
-        // Een schuurtje met puntdak, of een tuinhuis met plat dak en overstek (24 oktober 2026).
+        // Een schuurtje met puntdak, of een tuinhuis met plat dak en overstek.
         /*
-         * Allebei (6 november 2026): het schuurtje links, het tuinhuis rechts aan het
+         * Allebei: het schuurtje links, het tuinhuis rechts aan het
          * pad. De lampen, de panelen en de tik horen bij het huisje uit Home
          * Assistant (`huisjeVanHA`); het andere staat er alleen.
          */
@@ -269,7 +269,7 @@
        * liggen.
        */
       /**
-       * Het tuinhuis (24 oktober 2026): een strakke doos met een plat dak dat aan
+       * Het tuinhuis: een strakke doos met een plat dak dat aan
        * de voorkant uitsteekt als overstek, op twee palen, met een vlonder eronder,
        * een glazen pui en een lamp onder het overstek. Panelen liggen op rekken op
        * het dak. Het houten huisje met puntdak is het schuurtje (`tuinhuisSoort: 'schuur'`).
@@ -301,7 +301,7 @@
         kern.buiten.push(kern.poly(pui, `fill="${glas}" stroke="#1c232c" stroke-width="1.4"`));
         if (aan) {
           kern.buiten.push(`<g filter="url(#${kern.id}-zacht)" opacity="0.7">${kern.poly(pui, 'fill="#FFB765"')}</g>`);
-          // Het licht van binnen valt door de pui naar buiten, over de vlonder en het gras (28 oktober 2026).
+          // Het licht van binnen valt door de pui naar buiten, over de vlonder en het gras.
           kern.grond.push(`<g filter="url(#${kern.id}-zacht)" opacity="0.9">${kern.poly([[tx + 0.05, ty + d, 0.005], [tx + b - 0.05, ty + d, 0.005], [tx + b + 0.3, ty + d + over + 0.95, 0.005], [tx - 0.3, ty + d + over + 0.95, 0.005]], 'fill="#FFB765" fill-opacity="0.8"')}</g>`);
           const pk = kern.P(tx + b / 2, ty + d + 0.15, h * 0.45);
           kern.buiten.push(`<ellipse cx="${pk[0].toFixed(1)}" cy="${pk[1].toFixed(1)}" rx="${(kern.k * 0.75).toFixed(1)}" ry="${(kern.k * 0.45).toFixed(1)}" fill="#FFB765" opacity="0.3" filter="url(#${kern.id}-zacht)"/>`);
@@ -316,7 +316,7 @@
         // Het platte dak, met het overstek naar voren; panelen of sneeuw erop.
         kern.buiten.push(kern.doos(tx - 0.05, ty - 0.05, h, b + 0.1, d + over + 0.05, dik, [sneeuw ? '#eef3f8' : kern.licht ? '#5b6672' : '#4a5562', '#1f262e', '#262e37']));
         /*
-         * Twee spots onder het overstek (24 oktober 2026): elk schijnt omlaag in een
+         * Twee spots onder het overstek: elk schijnt omlaag in een
          * bundel, in de kleur van zijn lamp, met een plas licht op de vlonder. Met
          * één lamp in Home Assistant schijnen ze samen; zonder lamp onder het
          * overstek gaan ze mee met het licht binnen.

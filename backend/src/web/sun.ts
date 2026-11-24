@@ -57,7 +57,7 @@ export interface SunReport {
   /** Per kwartier van vandaag, van middernacht tot middernacht. */
   readonly kwartieren: readonly { readonly tMs: number; readonly heldereLuchtW: number }[];
   /**
-   * De baan van de zon vandaag (28 oktober 2026, besluit 205): elke tien
+   * De baan van de zon vandaag (besluit 205): elke tien
    * minuten, van net voor de opkomst tot net na de ondergang. Voor de ring van
    * de zon rond het huis; leeg als hij vandaag niet opkomt.
    */

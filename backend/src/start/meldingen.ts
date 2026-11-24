@@ -151,7 +151,7 @@ export async function maakMeldingen(nodig: MaakMeldingenNodig) {
     meldingen.bij(bron);
     void meldingen.bewaar().catch(() => undefined);
     void pushRonde().catch(() => undefined);
-    // Live naar de open pagina's (21 oktober 2026): eerst zag je een nieuwe melding pas bij een andere tab.
+    // Live naar de open pagina's: eerst zag je een nieuwe melding pas bij een andere tab.
     const vinger = JSON.stringify(meldingen.lijst(Date.now()).actief.map((m) => [m.id, m.titel, m.tekst]));
     if (vinger !== meldingenVinger) {
       meldingenVinger = vinger;

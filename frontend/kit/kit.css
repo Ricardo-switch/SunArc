@@ -30,7 +30,7 @@
    */
   --wit: 255 255 255;
   --nacht: 9 15 28;
-  /* De vaste tinten als kanalen, voor een doorzichtige variant: rgb(var(--zon-k) / 0.2) (24 november 2026). */
+  /* De vaste tinten als kanalen, voor een doorzichtige variant: rgb(var(--zon-k) / 0.2). */
   --zon-k: 247 181 72;
   --ijs-k: 111 211 255;
   --mint-k: 110 231 183;
@@ -62,7 +62,7 @@
 }
 
 /*
- * De zes eigen kleuren, elk een andere tint (21 oktober 2026; eerst te veel
+ * De zes eigen kleuren, elk een andere tint (eerst te veel
  * paars en roze). Lucht is de standaard, zoals de app altijd was. Op de
  * pagina zelf (`<html data-kleur>`) en op een stukje ervan, zoals de naam van
  * een bewoner in de begroeting: `<b data-kleur="roze">` kleurt met var(--accent).
@@ -357,7 +357,7 @@ a.knop {
 a.knop:not(.knop-licht) {
   color: inherit;
 }
-/* Een kop koffie (4 november 2026): warm, maar geen hoofdknop. */
+/* Een kop koffie: warm, maar geen hoofdknop. */
 .knop-koffie {
   gap: 8px;
   background: rgb(var(--zon-k) / 0.14);
@@ -732,7 +732,7 @@ a.knop:not(.knop-licht) {
 }
 
 /* De zonnewaaier (kit/waaier.js, schets Wand-Voortgang): hoe ver het huis is. */
-/* Geen blauw vak bij een tik (30 oktober 2026): de markering van de browser en geselecteerde tekst rond de straal en zijn naam. */
+/* Geen blauw vak bij een tik: de markering van de browser en geselecteerde tekst rond de straal en zijn naam. */
 .waaier { display: block; overflow: visible; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
 .waaier .straal { cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; }
 .waaier .straal:focus:not(:focus-visible) { outline: none; }
@@ -778,13 +778,13 @@ a.knop:not(.knop-licht) {
 .keuze button[aria-pressed='true']:disabled { opacity: 1; }
 
 /*
- * De iconen (2 november 2026, kit/iconen.js): duotoon. In het menu alleen de
+ * De iconen (kit/iconen.js): duotoon. In het menu alleen de
  * lijn; het gekozen item krijgt het vlak voluit in de kleur van zijn onderwerp.
  */
 .balk .ik-vlak, .tabs .ik-vlak { fill-opacity: 0; transition: fill-opacity 0.2s; }
 .balk a[aria-current='page'] .ik-vlak, .tabs a[aria-current='page'] .ik-vlak { fill-opacity: 0.85; }
 
-/* Wat voor huis (20 november 2026, schets Wand-Huis-Woning): vijf soorten met een huisje, en de kanten tegen de buren. Je huis en Inrichten. */
+/* Wat voor huis (schets Wand-Huis-Woning): vijf soorten met een huisje, en de kanten tegen de buren. Je huis en Inrichten. */
 .wn-deel { display: flex; flex-direction: column; gap: 8px; }
 .wn-soorten { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
 .wn-soort { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px 7px; border-radius: 12px; border: 2px solid rgb(255 255 255 / 0.08); background: rgb(255 255 255 / 0.04); color: var(--tekst); font-family: var(--romp, Figtree, sans-serif); cursor: pointer; min-width: 0; }
@@ -828,7 +828,7 @@ a.knop:not(.knop-licht) {
 }
 
 /*
- * Bouwsteen: ruimte (schets Bouwstenen, 24 november 2026). Vijf vaste afstanden: 4, 8, 12, 16 en 24, in plaats van
+ * Bouwsteen: ruimte (schets Bouwstenen). Vijf vaste afstanden: 4, 8, 12, 16 en 24, in plaats van
  * losse marges in de scripts. Ze winnen zoals de inline stijl die ze vervangen (!important); geen-marge eerst, zodat
  * een zijde erna die ene kant zet.
  */

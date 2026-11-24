@@ -53,7 +53,7 @@
 
   /** Alle punten die in beeld moeten, om de schaal te bepalen. */
   /*
-   * De ring van de zon (28 oktober 2026, schets Wand-Huis-Ligging): ruim om het
+   * De ring van de zon (schets Wand-Huis-Ligging): ruim om het
    * huis, met het midden boven de nok. Zo loopt de zon vóór een huis op het
    * zuiden over het dak heen en niet erdoorheen. De hoogte is wat opgerekt, zodat
    * de middag duidelijk boven de ochtend en de avond staat.
@@ -121,7 +121,7 @@
   const BEWEEGT = '.sc-stroom, .sc-trommel, .sc-fan, .sc-damp, .sc-puls, .sc-vlam, .sc-lucht, .sc-regen, .sc-sneeuw, .sc-vlieg';
 
   /**
-   * Wat beweegt in een eigen laag (25 oktober 2026). Beweegt er iets in de
+   * Wat beweegt in een eigen laag. Beweegt er iets in de
    * tekening, dan schildert de browser bij elk beeldje alles eronder opnieuw:
    * het eiland, de bomen, de verlopen. Op een oudere tablet aan de wand liep de
    * pagina daar op vast (gemeten op een pc: 316 ms schilderwerk per seconde,
@@ -153,7 +153,7 @@
       doel.appendChild(stuk);
     }
     // Een vak dat nergens stond, gaat de laag dragen; zonder verschuiving, want een top of left
-    // uit een regel voor de wand telde eerst niet (25 oktober 2026: op de telefoon zakte het huis 96 px).
+    // uit een regel voor de wand telde eerst niet (op de telefoon zakte het huis 96 px).
     if (getComputedStyle(el).position === 'static') {
       el.style.position = 'relative';
       el.style.inset = 'auto';
@@ -335,14 +335,14 @@
      *   schuifX?: number, schuifY?: number, tik?: boolean, ruimte?: boolean, meubels?: boolean, controle?: boolean }}
      */
     const opts = { wereld: true, eigenLucht: false, ...kies };
-    // Bij Weergave (25 oktober 2026): het seizoen en het weer kunnen uit; dan een gewone groene dag.
+    // Bij Weergave: het seizoen en het weer kunnen uit; dan een gewone groene dag.
     const klassen = typeof document !== 'undefined' ? document.documentElement.classList : null;
-    // Zegt de pagina geen seizoen, dan dat van nu (6 november 2026): Indeling en Inrichten
+    // Zegt de pagina geen seizoen, dan dat van nu: Indeling en Inrichten
     // tekenden anders een zomer, terwijl Thuis al herfst had. Een schets zonder app blijft zoals hij is.
     if (!('seizoen' in model) && global.app?.seizoenNu) model = { ...model, seizoen: global.app.seizoenNu() };
     if (klassen?.contains('sc-geen-seizoen')) model = { ...model, seizoen: undefined };
     if (klassen?.contains('sc-geen-weer')) model = { ...model, weer: undefined };
-    // De ring van de zon met de uren (28 oktober 2026) kan uit bij Weergave; de zon zelf blijft.
+    // De ring van de zon met de uren kan uit bij Weergave; de zon zelf blijft.
     // De baan van de zon uit bij Weergave (besluit 205): geen ring, en op Thuis ook geen stippelboog (`geenBaan`).
     if (klassen?.contains('sc-geen-zonnebaan') && model.zon) model = { ...model, zon: { ...model.zon, geenRing: true, geenBaan: true } };
     // De feestdag: wat het model zegt (een schets), anders vandaag, op het eiland, als het aan staat.
@@ -356,7 +356,7 @@
     const g = opbouw(model);
     const { W, Ht } = g;
     /*
-     * De gemeten helling (28 oktober 2026, schets Wand-Huis-Ligging): de nok zo
+     * De gemeten helling (schets Wand-Huis-Ligging): de nok zo
      * hoog als de helling zegt, over de halve diepte (langs de straat) of de
      * halve breedte (haaks). Binnen grenzen, zodat de zolder een kamer blijft.
      */
@@ -440,7 +440,7 @@
     const tikken = [];
     /** Wat boven de kamers ligt om op te tikken: de panelen (besluit 254, stap 5). */
     const tikkenBoven = [];
-    /** De kamers onder het dak (de zolder): boven de panelen, anders vangt het dak de tik (19 november 2026). */
+    /** De kamers onder het dak (de zolder): boven de panelen, anders vangt het dak de tik. */
     const tikkenDak = [];
     const tik = (kamer, pts, extra = '', onderDak = false) => {
       if (!opts.tik) return;
@@ -449,7 +449,7 @@
     };
     // Waar apparaten staan, voor de labels.
     const plek = {};
-    /** Waar het tuinhuis echt getekend is, om erop te tikken (25 oktober 2026: het vak stond ernaast). */
+    /** Waar het tuinhuis echt getekend is, om erop te tikken (het vak stond ernaast). */
     let tuinhuisVak = null;
     /** Waar de zones van de tuin liggen (besluit 206): per soort een vak op de grond, om op te tikken. */
     let tuinVakken = {};
@@ -535,7 +535,7 @@
     const mid = P(W / 2, D / 2, Ht + R * 0.6);
     const boog = k * Math.max(W, 4.2) * 0.95;
     /*
-     * Waar de zon opkomt (25 oktober 2026): aan de kant van het oosten. Rechts
+     * Waar de zon opkomt: aan de kant van het oosten. Rechts
      * in de tekening ligt de richting van het kompas min 90° (zie kompas);
      * `zon.opRechts` zegt het, anders het kompas van het model, anders links.
      * Eerst kwam hij altijd links op, ook als daar het westen lag.
@@ -543,7 +543,7 @@
     const opRechts = model.zon?.opRechts ?? (voorDegVan(model) != null ? Math.cos(((180 - voorDegVan(model)) * Math.PI) / 180) > 0.5 : false);
     const opkomst = opRechts ? 1 : -1;
     /*
-     * De echte zon (28 oktober 2026, schets Wand-Huis-Ligging): met `zon.nu`
+     * De echte zon (schets Wand-Huis-Ligging): met `zon.nu`
      * ({ az, el } in graden) en het kompas staat hij waar hij echt staat. Een
      * richting op de grond ligt in de tekening zoals het kompas hem tekent; de
      * lucht laat zien hoe die richting van links naar rechts valt, en hoe hoog
@@ -553,7 +553,7 @@
     const echteZon = model.zon?.nu && voorgevelDeg != null ? model.zon.nu : null;
     const opGrond = (az) => [-Math.sin(((az - voorgevelDeg) * Math.PI) / 180), Math.cos(((az - voorgevelDeg) * Math.PI) / 180)];
     /*
-     * De baan van de dag als een ring rond het huis (28 oktober 2026): in 3D,
+     * De baan van de dag als een ring rond het huis: in 3D,
      * van opkomst tot ondergang, zo hoog als de zon staat. Wat achter het huis
      * loopt, valt achter het huis; wat ervoor loopt, ervoor (`zonVoor`). Wat al
      * voorbij is, doorgetrokken; wat nog komt, gestippeld. Laag oranje, hoog
@@ -622,8 +622,8 @@
       // ook niet halverwege de ochtend.
       const f = Math.max(0, Math.min(1, model.zon.stand));
       const voet = mid[1] + boog * 0.12;
-      // Nooit boven de tekening uit: daar staat op een pagina de tekst (15 oktober).
-      // Dan wordt de hele boog lager, niet alleen de zon: zo blijft hij op de lijn (16 oktober).
+      // Nooit boven de tekening uit: daar staat op een pagina de tekst.
+      // Dan wordt de hele boog lager, niet alleen de zon: zo blijft hij op de lijn.
       const ry = Math.min(boog * 0.74, voet - k * 0.3);
       const sx = mid[0] + opkomst * boog * Math.cos(Math.PI * f);
       const sy = voet - ry * Math.sin(Math.PI * f);
@@ -648,7 +648,7 @@
         const cx = mid[0] + (i / Math.max(1, n - 1) - 0.5) * boog * 1.7;
         const cy = mid[1] - boog * (0.35 + 0.18 * ((i * 37) % 3) / 2);
         const s = k * (0.7 + ((i * 53) % 5) * 0.12);
-        // In het lichte thema grijs (16 november 2026): witte wolken waren tegen de lichte lucht niet te zien.
+        // In het lichte thema grijs: witte wolken waren tegen de lichte lucht niet te zien.
         const wolkOnder = licht ? '#aab7c8' : opts.wereld && !nacht ? '#ffffff' : winter ? '#9fb0c2' : '#8a9bb0';
         const wolkBoven = licht ? '#bcc7d6' : opts.wereld && !nacht ? '#f4f7fb' : winter ? '#aebdcc' : '#94a5b9';
         lucht.push(`<g opacity="${((licht ? 0.6 : 0.25) + 0.35 * model.wolken).toFixed(2)}" filter="url(#${id}-zacht)"><ellipse cx="${cx}" cy="${cy}" rx="${s * 1.5}" ry="${s * 0.42}" fill="${wolkOnder}"/><ellipse cx="${cx + s * 0.4}" cy="${cy - s * 0.25}" rx="${s * 0.8}" ry="${s * 0.45}" fill="${wolkBoven}"/></g>`);
@@ -858,7 +858,7 @@
       if (zt > zv) huis.push(poly(pts, `fill="${kleur}"`));
     };
     /*
-     * De nok langs de straat (28 oktober 2026, schets Wand-Huis-Ligging): de
+     * De nok langs de straat (schets Wand-Huis-Ligging): de
      * dakvlakken liggen voor en achter, de gevels links en rechts lopen door tot
      * de nok. Het voorste dakvlak is van glas, zodat je de zolder blijft zien;
      * de achterwand van de zolder is het achterste dakvlak, van binnen gezien.
@@ -1242,7 +1242,7 @@
       camera: plek.camera ?? [-0.1, D, FH],
     };
     /*
-     * De plekken buiten (besluit 269, 12 november 2026): waar een label "Oprit · 2
+     * De plekken buiten (besluit 269): waar een label "Oprit · 2
      * apparaten" aan hangt. Alleen een plek die getekend is; anders geen label.
      */
     const tweeHoog = g.etages.filter((e) => !e.dak).length >= 2;
@@ -1279,11 +1279,11 @@
       const hoogte = (l.groot ? 34 : 22) + (regels.length - 1) * 17 + 10;
       const lx = a[0] + (l.dx ?? 40);
       const ly = a[1] + (l.dy ?? -40);
-      // Binnen de tekening (5 november 2026): een breed label viel op de telefoon links buiten beeld.
+      // Binnen de tekening: een breed label viel op de telefoon links buiten beeld.
       const bx = Math.max(6, Math.min((opts.breedte ?? 760) - breedte - 6, l.dx < 0 ? lx - breedte : lx));
       const binnenY = (y) => Math.max(6, Math.min((opts.hoogte ?? 560) - hoogte - 6, y));
       let by = binnenY(ly - hoogte / 2);
-      // Labels die uit elkaar moeten (12 november 2026, de plekken buiten): botst er een
+      // Labels die uit elkaar moeten (de plekken buiten): botst er een
       // met een eerder label, dan schuift hij op of neer naar de dichtste vrije plek.
       if (l.wijk) {
         const botst = (y) => geplaatst.some((p) => bx < p.x + p.b + 4 && p.x < bx + breedte + 4 && y < p.y + p.h + 4 && p.y < y + hoogte + 4);
@@ -1317,7 +1317,7 @@
 
     // Buiten om op te tikken: de oprit en de tuin, als ze een kamer in de indeling zijn.
     // Gekozen (in Kamer): een omlijning; zonder dak staat de naam erbij op de grond.
-    // Op het eiland zo groot als wat er getekend is (25 oktober 2026): de tuin loopt tot de rand.
+    // Op het eiland zo groot als wat er getekend is: de tuin loopt tot de rand.
     const vlakOprit = eiland ? [[-2.9, -0.4, 0.01], [-1.15, -0.4, 0.01], [-1.15, eiland.yF, 0.01], [-2.9, eiland.yF, 0.01]] : [[-2.9, -0.4, 0.01], [-1.15, -0.4, 0.01], [-1.15, D + 1.7, 0.01], [-2.9, D + 1.7, 0.01]];
     const vlakTuin = eiland
       ? [[W + 0.3, eiland.y0 + 0.3, 0.01], [eiland.x1 - 0.12, eiland.y0 + 0.3, 0.01], [eiland.x1 - 0.12, eiland.yF - 0.12, 0.01], [W + 0.3, eiland.yF - 0.12, 0.01]]
@@ -1369,7 +1369,7 @@
     }
 
     /*
-     * De feestdagen (25 oktober 2026), alleen bij het hele huis: een pompoen bij
+     * De feestdagen, alleen bij het hele huis: een pompoen bij
      * de deur met Halloween, lichtjes langs de gevel met Kerst, vuurwerk in de
      * lucht met Oud en Nieuw, eieren in het gras met Pasen. Stil, zonder
      * beweging: dat kost een oude tablet niets.

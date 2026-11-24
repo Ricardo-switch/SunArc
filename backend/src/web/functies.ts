@@ -121,7 +121,7 @@ export interface CameraKeuze {
   readonly naam: string;
   readonly beelden: readonly { readonly id: string; readonly naam: string; readonly voorkeur: boolean }[];
   /**
-   * De bewegingsmelders van hetzelfde apparaat (25 oktober 2026): gewone
+   * De bewegingsmelders van hetzelfde apparaat: gewone
    * beweging, of wat de camera herkent (een persoon, een voertuig, een dier).
    * Weg in een oudere vorm: geen.
    */
@@ -282,7 +282,7 @@ export function functiesGevonden(entities: readonly HaRegistryEntity[], devices:
   for (const [sleutel, groep] of perCamera) {
     if (eigenBeeld.has(sleutel)) groep.beelden = groep.beelden.filter((b) => !via.has(b.id));
   }
-  // De bewegingsmelders bij hun camera, op hetzelfde apparaat (25 oktober 2026).
+  // De bewegingsmelders bij hun camera, op hetzelfde apparaat.
   const meldersVan = new Map<string, CameraMelder[]>();
   for (const e of entities) {
     // De klasse uit het register, en anders uit de toestand: het register noemt hem niet altijd.

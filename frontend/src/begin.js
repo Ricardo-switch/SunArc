@@ -23,12 +23,12 @@ let voorstel = null;
 let stap = 'welkom';
 const antwoorden = {};
 let fout = '';
-/** Wat de toets van de dienst noemde (4 november 2026): eerst zag je alleen "zo niet bruikbaar". */
+/** Wat de toets van de dienst noemde: eerst zag je alleen "zo niet bruikbaar". */
 let foutLijst = [];
-// Met Meld dit (4 november 2026): het meldblad met de fout en de lijst al ingevuld, en het logboek erbij.
+// Met Meld dit: het meldblad met de fout en de lijst al ingevuld, en het logboek erbij.
 const foutHtml = () => `<span class="fout" role="alert">${esc(fout)}</span>${fout && foutLijst.length ? `<ul class="fout-lijst">${foutLijst.slice(0, 8).map((p) => `<li>${esc(p)}</li>`).join('')}</ul><button type="button" class="knop meld-dit" data-meld-probleem data-meld-wat="${esc([fout, ...foutLijst.slice(0, 20)].join('\n'))}">${esc(t('melden.meldDit'))}</button>` : ''}`;
 let bezigTekst = '';
-/** Wat SunArc bij het bewaren wegliet omdat hij het nog niet begrijpt (4 november 2026). */
+/** Wat SunArc bij het bewaren wegliet omdat hij het nog niet begrijpt. */
 let weggelaten = [];
 
 const ICOON = {
@@ -126,7 +126,7 @@ let tekening = null;
 /** Geteld zoals Inrichten het telt, zodat het volgende scherm hetzelfde zegt (besluit 154). */
 function tellers(deel) {
   const huisNu = voorstel.huis;
-  // Binnen apart van buiten, zoals Inrichten (30 oktober 2026: het welkom zei 4 etages, Inrichten "3 etages, en buiten").
+  // Binnen apart van buiten, zoals Inrichten (het welkom zei 4 etages, Inrichten "3 etages, en buiten").
   const binnen = (e) => (e.ruimtes ?? []).filter((r) => !huismodel.isBuiten(e, r));
   const etages = (huisNu.etages ?? []).filter((e) => e.id !== 'buiten' && binnen(e).length).length;
   const ruimtes = (huisNu.etages ?? []).filter((e) => e.id !== 'buiten').reduce((n, e) => n + binnen(e).length, 0);
@@ -138,7 +138,7 @@ function tellers(deel) {
 }
 
 /**
- * De gebieden in Home Assistant waar nog niets in staat (23 november 2026): die
+ * De gebieden in Home Assistant waar nog niets in staat: die
  * worden pas een ruimte met een apparaat erin. Zonder deze regel leek 0 ruimtes
  * alsof SunArc ze niet zag. Twee namen, en hoeveel er nog meer zijn.
  */
@@ -261,7 +261,7 @@ async function bewaar() {
     const uit = await stuur('api/onboarding', { antwoorden });
     weggelaten = Array.isArray(uit?.weggelaten) ? uit.weggelaten : [];
     if (weggelaten.length) tekenLinks();
-    // Meteen naar de eerste stap (30 oktober 2026): het welkom van Inrichten zei hetzelfde nog een keer.
+    // Meteen naar de eerste stap: het welkom van Inrichten zei hetzelfde nog een keer.
     void wachtOpHerstart('inrichten.html#jehuis');
   } catch (err) {
     fout = err.message;
@@ -329,7 +329,7 @@ addEventListener('resize', () => {
 });
 
 app.schaal();
-// Het logo voluit (1 november 2026): wat ARC betekent, in de taal van de app.
+// Het logo voluit: wat ARC betekent, in de taal van de app.
 document.querySelectorAll('[data-arc]').forEach((e) => (e.innerHTML = t('over.arc')));
 tekenLinks();
 tekenHuis();

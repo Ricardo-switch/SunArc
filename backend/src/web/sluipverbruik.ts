@@ -27,7 +27,7 @@ export const TOT_UUR = 5;
 /** Over zoveel nachten telt je gewone nacht, en de laagste zoveel daarvan. */
 export const VENSTER_NACHTEN = 30;
 export const LAAGSTE = 5;
-/** Zoveel van de laatste 30 nachten vallen op, niet per se op rij, voor "vaak meer dan gewoon" (29 oktober 2026). */
+/** Zoveel van de laatste 30 nachten vallen op, niet per se op rij, voor "vaak meer dan gewoon". */
 export const VAAK_NACHTEN = 8;
 /**
  * Bij een contract met dag en nacht: zoveel van de uren valt in het daltarief
@@ -71,7 +71,7 @@ export interface SluipRapport {
   /** Zoveel van de laatste 30 nachten vielen op. */
   readonly hoogIn30: number;
   /**
-   * Vaak meer dan gewoon (29 oktober 2026): een op de vier van de laatste 30
+   * Vaak meer dan gewoon: een op de vier van de laatste 30
    * nachten valt op, niet per se op rij. Met hoeveel watt die nachten erboven
    * liggen, en sinds wanneer; null als dat niet zo is.
    */

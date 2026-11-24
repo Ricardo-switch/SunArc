@@ -1,5 +1,5 @@
 /*
- * SunArc: het poppenhuis, de kamers (22 november 2026, opgesplitst uit kit/huis.js).
+ * SunArc: het poppenhuis, de kamers (opgesplitst uit kit/huis.js).
  *
  * Een kamer tekenen met zijn sfeer en naam, de apparaten erin (airco, radiator, lampen, witgoed, boiler) op
  * hun plek, en de meubels per soort kamer.
@@ -29,7 +29,7 @@
         const r = kern.k * (x1 - x0) * 0.55;
         if (kamer.stand === 'koelt') kern.huis.push(`<ellipse cx="${c[0]}" cy="${c[1]}" rx="${r}" ry="${r * 0.6}" fill="url(#${kern.id}-koel)"/>`);
         if (kamer.stand === 'verwarmt') kern.huis.push(`<ellipse cx="${c[0]}" cy="${c[1]}" rx="${r}" ry="${r * 0.6}" fill="url(#${kern.id}-warm)"/>`);
-        // Beweging (15 oktober 2026): twee zachte ringen over de vloer, die uitdijen en
+        // Beweging: twee zachte ringen over de vloer, die uitdijen en
         // vervagen. Midden op de vloer en niet groter dan de kamer (besluit 166): eerst
         // stonden ze halverwege de achtermuur, en onder het dak zo boven de nok uit.
         if (kamer.beweging) {
@@ -227,7 +227,7 @@
         return { wand: 'achter', ax, az: Math.max(z0 + 0.3, Math.min(z0 + 0.95, ruimte - AH - 0.1)) };
       }
       /**
-       * Waar de radiator onder het dak staat (21 oktober 2026): op de achtermuur,
+       * Waar de radiator onder het dak staat: op de achtermuur,
        * zo ver naar links als hij rechtop past, en niet onder een airco op de
        * achtermuur. Eerst stond hij altijd links, en bij een kamer tegen de
        * buitenmuur stak hij zo door het dak. Past hij nergens, dan een kleinere,

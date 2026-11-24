@@ -1,5 +1,5 @@
 /**
- * De opties van de webserver (uit main.ts, 23 november 2026): wat elke route en elke pagina van de dienst krijgt. Alleen
+ * De opties van de webserver (uit main.ts): wat elke route en elke pagina van de dienst krijgt. Alleen
  * verhuisd, niets veranderd. Wat in main.ts kan wijzigen (een `let`), komt via een getter (en setter) op
  * `mainStand`, zodat het altijd de stand van nu is; wat vastligt, wordt aan het begin uit `mainStand` gehaald.
  */
@@ -62,7 +62,7 @@ export function webOpties(mainStand: MainStand, port: number): WebOptions {
           onboarding,
           // Het welkom in een leeg huis (besluit 154): het huis uit Home Assistant, en na het opslaan opnieuw starten.
           welkomHuis: () => (mainStand.siteConfig == null && mainStand.houseRegisters ? houseBeforeSetup(mainStand.houseRegisters, houseStates, Intl.DateTimeFormat().resolvedOptions().timeZone) : null),
-          // De gebieden die nog leeg zijn (23 november 2026), zodat 0 ruimtes niet lijkt alsof SunArc ze niet ziet.
+          // De gebieden die nog leeg zijn, zodat 0 ruimtes niet lijkt alsof SunArc ze niet ziet.
           welkomLegeRuimtes: () => (mainStand.siteConfig == null && mainStand.houseRegisters ? emptyAreasBeforeSetup(mainStand.houseRegisters, houseStates, Intl.DateTimeFormat().resolvedOptions().timeZone) : []),
           naOnboarding: herstart,
         }
@@ -362,7 +362,7 @@ export function webOpties(mainStand: MainStand, port: number): WebOptions {
       },
       stemmenVoor: async (stem, taal) => (await client.query<{ voices?: { voice_id: string; name: string }[] | null }>('tts/engine/voices', { engine_id: stem, language: taal })).voices ?? [],
     }),
-    // Bijwerken vanuit de app (21 oktober 2026): alleen in de add-on.
+    // Bijwerken vanuit de app: alleen in de add-on.
     ...(version.installatie === 'add-on'
       ? {
           bijwerken: {
@@ -459,7 +459,7 @@ export function webOpties(mainStand: MainStand, port: number): WebOptions {
               (id) => allStates.get(id),
               (id) => mainStand.houseRegisters?.entities.find((e) => e.entity_id === id)?.platform ?? null,
               () => allStates.values(),
-              // Opgewekt uit de omvormers (5 november 2026); een meetpunt met een attribuut heeft geen statistiek.
+              // Opgewekt uit de omvormers; een meetpunt met een attribuut heeft geen statistiek.
               () => (mainStand.siteConfig?.solarProduction ? [mainStand.siteConfig.solarProduction, ...(mainStand.siteConfig.solarExtra ?? [])].filter((p) => !p.attribute).map((p) => p.id) : []),
             ),
           },

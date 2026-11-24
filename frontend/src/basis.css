@@ -55,7 +55,7 @@ html:not(.tel-stand) #tel { display: none; }
 .keuze button:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
 
 /* Er wordt aangebeld (besluit 107): het beeld van de deurbel over de hele pagina. */
-/* Rook, koolmonoxide of hitte (21 oktober 2026, schets Wand-Rook): boven alles, ook boven de deurbel. */
+/* Rook, koolmonoxide of hitte (schets Wand-Rook): boven alles, ook boven de deurbel. */
 .alarmlaag { position: fixed; inset: 0; z-index: 1100; display: grid; place-items: center; padding: 24px; color: #fff; background: radial-gradient(ellipse at 35% 40%, rgba(130, 22, 20, 0.97), rgba(30, 6, 8, 0.98) 72%); overflow: auto; }
 .alarm-in { width: min(560px, 100%); display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
 .alarm-puls { width: 74px; height: 74px; border-radius: 50%; background: #ff5a4a; display: grid; place-items: center; margin-bottom: 26px; animation: alarm-puls 1.2s ease-in-out infinite; }
@@ -99,7 +99,7 @@ html.tel-stand .aanbel-rij button { width: 124px; }
 .keuzes button:disabled { cursor: default; opacity: 0.55; }
 .keuzes button:focus-visible, .invoer:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
 /*
- * Bouwsteen: het invoerveld (schets Bouwstenen, 24 november 2026). 44 hoog en 15 punten; klein (in een regel) 34; op
+ * Bouwsteen: het invoerveld (schets Bouwstenen). 44 hoog en 15 punten; klein (in een regel) 34; op
  * de telefoon 46 en 16 punten, dan zoomt een iPhone niet in bij het typen.
  */
 .invoer { width: 100%; height: 44px; border-radius: 12px; border: 1px solid rgb(var(--wit) / 0.18); background: rgb(var(--wit) / 0.05); color: var(--tekst); padding: 0 12px; font: inherit; font-size: 15px; font-weight: 600; color-scheme: dark; }
@@ -128,7 +128,7 @@ select.invoer option, select.invoer optgroup { background: #13203a; color: var(-
 .schakelaar:disabled { opacity: 0.4; cursor: default; }
 .schakelaar:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
 /*
- * Bouwstenen kaart, titel, foutregel en het kleine knopje (schets Bouwstenen, 24 november 2026).
+ * Bouwstenen kaart, titel, foutregel en het kleine knopje (schets Bouwstenen).
  * De kaart: 18 boven en onder, 20 opzij, ronding 24 (van .glas); op de telefoon 16 rondom, ronding 20.
  * De titel van een pagina: .kop-1, op de wand 46, op de telefoon 30.
  * De foutregel: 13,5 punten, oranje, onder wat misging.
@@ -159,7 +159,7 @@ select.invoer option, select.invoer optgroup { background: #13203a; color: var(-
 body.offline #wand main, body.offline #tel .inhoud { filter: grayscale(0.85); opacity: 0.7; pointer-events: none; }
 .geenverbinding { position: fixed; z-index: 900; left: 50%; top: 14px; transform: translateX(-50%); max-width: min(560px, calc(100vw - 32px)); padding: 10px 16px; border-radius: 14px; background: rgba(20, 28, 44, 0.95); border: 1px solid rgb(var(--zon-k) / 0.5); color: var(--tekst); font-size: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
 /* Meters en prijzen (besluit 110): vaste posten en het tarief per meter. */
-/* Vaste kosten: op de wand een regel per post, aanpassen over de hele breedte (19 november 2026). */
+/* Vaste kosten: op de wand een regel per post, aanpassen over de hele breedte. */
 #wand .vast-tel, #tel .vast-wand { display: none; }
 .vastkort { display: flex; flex-direction: column; margin-bottom: 8px; }
 .vastkort .regel { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-top: 1px solid rgb(var(--wit) / 0.06); font-size: 14px; }
@@ -189,7 +189,7 @@ body.offline #wand main, body.offline #tel .inhoud { filter: grayscale(0.85); op
  */
 #wand main.groep { display: flex; flex-direction: column; gap: 16px; height: 100%; min-height: 0; }
 #tel .terugje { font-size: 14px; font-weight: 600; color: var(--zacht); text-decoration: none; }
-/* Terug is op de telefoon een knop om te raken (14 november 2026): hij was 17 punten hoog. De marges houden de pagina waar hij stond. */
+/* Terug is op de telefoon een knop om te raken: hij was 17 punten hoog. De marges houden de pagina waar hij stond. */
 #tel a.terugje { display: inline-flex; align-items: center; min-height: 44px; padding-right: 20px; margin-top: -13px; margin-bottom: -14px; }
 #tel .terug { min-height: 44px; padding-right: 20px; margin-top: -13px; margin-bottom: -8px; }
 .groep .groepkop { display: flex; align-items: center; gap: 14px; }
@@ -219,7 +219,7 @@ body.offline #wand main, body.offline #tel .inhoud { filter: grayscale(0.85); op
 .deel .pijl { display: none; color: var(--gedempt); font-size: 22px; line-height: 1; }
 .deel.mist .zin { color: var(--gloed-t); }
 .deel.mist .ik { background: rgb(var(--gloed-k) / 0.14); }
-/* Een zone onder zijn kamer (zones als deel van de kamer, 18 november 2026): ingesprongen, zonder icoon. */
+/* Een zone onder zijn kamer (zones als deel van de kamer): ingesprongen, zonder icoon. */
 .deel.sub { min-height: 44px; margin-left: 30px; padding: 4px 12px 4px 14px; border-left: 2px solid rgb(var(--wit) / 0.12); border-radius: 0 12px 12px 0; grid-template-columns: minmax(0, 1fr) auto; }
 .deel.sub .ik { display: none; }
 .deel.sub b { grid-column: 1; font-size: 14px; }
@@ -282,7 +282,7 @@ body.offline #wand main, body.offline #tel .inhoud { filter: grayscale(0.85); op
 #tel .verder { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 #tel .verder .waar { display: none; }
 #tel .verder a { min-width: 0; padding: 12px 14px; border-radius: 16px; background: var(--glas); }
-/* Een lange titel breekt af; rechts uitgelijnd viel eerst het begin eraf ("leutel voor de assistent", 21 oktober 2026). */
+/* Een lange titel breekt af; rechts uitgelijnd viel eerst het begin eraf ("leutel voor de assistent"). */
 #tel .verder a b { white-space: normal; text-wrap: balance; }
 #tel .verder span.vorige, #tel .verder span.volgende { display: block; }
 /* Eerst de lijst; een gekozen deel als eigen scherm, met terug naar de groep. */
@@ -379,13 +379,13 @@ html.tel-stand .meldblad { top: auto; left: 8px; right: 8px; bottom: 8px; width:
 .nieuwpop .soort.beter .label { color: var(--ijs-t); background: rgb(var(--ijs-k) / 0.12); }
 .nieuwpop .soort.opgelost .label { color: var(--zon-t); background: rgb(var(--zon-k) / 0.12); }
 .nieuwpop ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--zacht); }
-/* Werkt nu of Werkt nog niet, na een opgeloste melding (4 november 2026). */
+/* Werkt nu of Werkt nog niet, na een opgeloste melding. */
 .meld-terugzeg { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .jouw-meldingen { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
 details.logboek summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--zacht); }
 details.logboek pre { margin: 0; max-height: 260px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11.5px; line-height: 1.45; color: var(--zacht); padding: 10px 12px; border-radius: 12px; background: rgb(var(--wit) / 0.05); }
 .jouw-meldingen li { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 12px; background: rgb(var(--wit) / 0.05); font-size: 14px; }
-/* De knoppen in één rij, ook op een pagina met een eigen .knoppen (18 november 2026: bij Apparaat toevoegen stonden ze onder elkaar). */
+/* De knoppen in één rij, ook op een pagina met een eigen .knoppen (bij Apparaat toevoegen stonden ze onder elkaar). */
 .nieuwpop .knoppen { display: flex; flex-direction: row; gap: 8px; justify-content: flex-end; margin-top: 6px; }
 .nieuwpop .knop { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 
@@ -489,7 +489,7 @@ details.logboek pre { margin: 0; max-height: 260px; overflow: auto; white-space:
 .niemand .nr-weer svg { width: 40px; height: 40px; }
 .niemand .nr-weer b { display: block; font-size: 22px; font-family: var(--kop); font-weight: 600; }
 .niemand .nr-weer span span { font-size: 14px; color: var(--zacht); }
-/* Een nieuwe versie op het display (21 oktober 2026): blauw, zoals bij Meldingen. */
+/* Een nieuwe versie op het display: blauw, zoals bij Meldingen. */
 .niemand .nr-update svg { width: 32px; height: 32px; color: var(--ijs-t); }
 .niemand .nr-update b { font-size: 17px; }
 .niemand .nk-update svg { color: var(--ijs-t); opacity: 0.8; }

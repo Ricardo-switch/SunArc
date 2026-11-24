@@ -64,7 +64,7 @@ async function laad() {
   teken();
   // jij.html#aod, #uit, #scherm of #startscherm (oude adressen van Functies): dat blad meteen open.
   openSchermUitAdres();
-  // Vanuit Te doen of Functies (30 oktober 2026): jij.html#agenda opent meteen je agenda's.
+  // Vanuit Te doen of Functies: jij.html#agenda opent meteen je agenda's.
   if (location.hash === '#agenda' && agendas && b?.ik?.soort === 'bewoner') openBlad('agenda');
   // jij.html#weergave (de zoeker, oude adressen): het blad Weergave meteen open.
   if (location.hash === '#weergave' && v) openBlad('weergave');
@@ -321,7 +321,7 @@ function tekenBlad() {
     blad.innerHTML = agendaBlad();
     return;
   }
-  // Weergave (22 november 2026): hier, niet eerst naar Thuis. Grotere letters en minder beweging staan al op Jij zelf.
+  // Weergave: hier, niet eerst naar Thuis. Grotere letters en minder beweging staan al op Jij zelf.
   if (blad.dataset.soort === 'weergave') {
     const volgt = app.persoonlijk(v).volgt;
     const w = (volgt != null ? app.persoonlijk(v).weergave : null) ?? v.tel.weergave;

@@ -348,7 +348,7 @@ const FIVE_MIN_H = 5 / 60;
 
 /**
  * Vult de kwartieren zonder eigen meting aan uit de statistiek van Home
- * Assistant (17 oktober 2026).
+ * Assistant.
  *
  * Het eigen logboek begint pas als SunArc draait. Een nieuwe installatie
  * zag daardoor 's middags "0,2 kWh opgewekt" en een zon die om vijf uur begon,

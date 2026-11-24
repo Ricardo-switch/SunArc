@@ -31,7 +31,7 @@
  *             dak lessenaar loopt van h0 naar h; overstek { d, licht } bij een plat dak, aan de kant met de kleinste y),
  *             auto { x, y, b, d, kleur, laadt? }, apparaten [{ id, soort, x, y, z, naam? }] (soort licht, screen of deurbel; een deurbel met n: de richting van zijn muur)
  *
- * De wereld om het huis (20 november 2026, de schets Thuis met de nieuwe tekenaar: minstens zo mooi als het poppenhuis):
+ * De wereld om het huis (de schets Thuis met de nieuwe tekenaar: minstens zo mooi als het poppenhuis):
  *   buiten.erf     { x, y, b, d }: het perceel; dan is het eiland het erf, met een stoep aan de straat en aarde eronder
  *   buiten.units   [{ x, y, n: [nx, ny], aan? }]: buitenunits van de airco's tegen een muur
  *   buiten.laadpaal { x, y, n, laadt? }: een laadpaal tegen een muur; laadt hij, dan loopt de kabel naar de auto
@@ -45,7 +45,7 @@
  *   passend   'huis' of 'dichtbij': alleen het huis in beeld (dichtbij: met wat er vlak naast staat), de randen lopen weg
  *   boven     pixels bovenin vrij (de kop op Thuis)
  *
- * De etages en het always-on display (21 november 2026):
+ * De etages en het always-on display:
  *   etage     één etage (id): op zijn eigen hoogte, zonder dak; de etage eronder en erboven een stukje wazig, de muren
  *             aan de kant van de kijker laag afgesneden, en een dakkapel van die etage als nis met raam
  *   meubels   meubels per soort kamer, uit de vaste lijst (kit/huis-modellen.js): nooit voor een raam, deur of dakkapel,
@@ -107,9 +107,9 @@
      */
     const eenEtage = o.etage ? lagen.findIndex((l) => l.e.id === o.etage) : -1;
     const zWeg = 0;
-    // Wazig erboven alleen bij een etage met ook een etage eronder; de begane grond staat alleen (Ricardo, 21 november 2026).
+    // Wazig erboven alleen bij een etage met ook een etage eronder; de begane grond staat alleen.
     if (eenEtage >= 0) lagen.forEach((l, i) => (l.vaag = i === eenEtage ? null : i === eenEtage - 1 ? 'onder' : i === eenEtage + 1 && eenEtage > 0 && !lagen[eenEtage].bovenste ? 'boven' : 'weg'));
-    // Een appartement met verdiepingen erboven (`o.zonderDak`, 21 november 2026): het dak hoort bij het gebouw, niet bij de woning.
+    // Een appartement met verdiepingen erboven (`o.zonderDak`): het dak hoort bij het gebouw, niet bij de woning.
     const metDak = eenEtage < 0 && !o.zonderDak;
 
     // Kijken: vanaf de straat, gedraaid om het midden, iets lager dan in Je huis zodat je de etages in kijkt.
@@ -156,7 +156,7 @@
       return { b, ...d };
     });
     /*
-     * Onder het dak (19 november 2026, het huis van Ricardo): een lang achterdak
+     * Onder het dak (het huis van Ricardo): een lang achterdak
      * komt lager dan de etages erboven. Hoe hoog het dak van het hoofdhuis op
      * een plek is (Infinity buiten het hoofdhuis of bij een plat dak), zodat
      * muren daar ophouden en een vloer niet onder het dak uitsteekt.
@@ -168,7 +168,7 @@
       const [a, c] = haaks ? [y, x] : [x, y];
       if (a < hd.a0 - 0.01 || a > hd.a1 + 0.01 || c < hd.c0 - 0.01 || c > hd.c1 + 0.01) return Infinity;
       const z = c <= hd.cr ? hd.g0 + ((hd.nok - dakOp - hd.g0) * (c - hd.c0)) / Math.max(0.01, hd.cr - hd.c0) : hd.g1 + ((hd.nok - dakOp - hd.g1) * (hd.c1 - c)) / Math.max(0.01, hd.c1 - hd.cr);
-      // Onder een dakkapel (21 november 2026) komt het plafond hoger: tot de bovenkant van de kapel.
+      // Onder een dakkapel komt het plafond hoger: tot de bovenkant van de kapel.
       let zk = z;
       for (const kp of hd.kapellen ?? []) {
         const xs = kp.boven.p.map((q) => q[0]);
@@ -189,7 +189,7 @@
     // Passend maken: alles wat er staat in beeld, met ruimte eromheen.
     // Passend: om alles wat er staat, of (passend: 'huis') alleen om het huis, zodat het groot in beeld staat en de tuin eromheen wegloopt.
     const alleenHuis = o.passend === 'huis' || o.passend === 'dichtbij';
-    // Dichtbij (20 november 2026): het huis met wat er vlak naast staat en een paar meter grond, de rest van het erf loopt aan de rand zacht weg.
+    // Dichtbij: het huis met wat er vlak naast staat en een paar meter grond, de rest van het erf loopt aan de rand zacht weg.
     const dichtbij = o.passend === 'dichtbij';
     const om2 = dichtbij ? 3.5 : 1;
     const punten = [...(alleenHuis ? [] : eiland.map(([x, y]) => [x, y, -dikte])), ...(alleenHuis ? [[X0 - om2, Y0 - om2, 0], [X1 + om2, Y0 - om2, 0], [X1 + om2, Y1 + om2, 0], [X0 - om2, Y1 + om2, 0]] : eiland.map(([x, y]) => [x, y, 0])), ...lagen.flatMap((l) => [[X0, Y0, l.top], [X1, Y0, l.top], [X1, Y1, l.top], [X0, Y1, l.top]]), ...(metDak ? daken.flatMap((d) => d.vlakken.flatMap((v) => v.p)) : [])];
@@ -198,13 +198,13 @@
     if (dichtbij) for (const q of [...(buiten.gebouwen ?? []), ...(buiten.auto ? [buiten.auto] : [])]) if (!q.buur && q.x < X1 + 4 && q.x + q.b > X0 - 4 && q.y < Y1 + 4 && q.y + q.d > Y0 - 4) punten.push([q.x, q.y, (q.h ?? 1.4) + 0.5], [q.x + q.b, q.y + q.d, 0]);
     if (!alleenHuis) for (const bm of o.bomen ?? []) punten.push([bm.x, bm.y, (bm.h ?? 5) + 0.8]);
     /*
-     * De zonneboog (21 november 2026, het always-on display; zoals de ring van de zon in het poppenhuis, besluit 205):
+     * De zonneboog (het always-on display; zoals de ring van de zon in het poppenhuis, besluit 205):
      * de baan van de zon van vandaag ruim om het huis, met het midden boven de nok, een stip per uur, de tijd van opkomst
      * en ondergang aan de uiteinden, en de zon van nu. `o.zonBoog`: { nu, baan: [{ az, el, uur?, klok? }], voorDeg }.
      */
     const zb = o.zonBoog?.baan?.length && o.zonBoog.voorDeg != null && eenEtage < 0 ? o.zonBoog : null;
     // Breed om het huis, en de hoogte wat opgerekt (de zon staat in november laag; echt op schaal kan niet, hij staat oneindig ver).
-    // Op Thuis (`o.boogVrij`) een kleinere boog dicht om het huis, zodat hij niet in de tekst ernaast loopt (22 november 2026).
+    // Op Thuis (`o.boogVrij`) een kleinere boog dicht om het huis, zodat hij niet in de tekst ernaast loopt.
     const ringR = o.boogVrij ? Math.max(X1 - X0, Y1 - Y0) * 0.62 + 1.5 : Math.max(X1 - X0, Y1 - Y0) * 1.0 + 4.5;
     let ringZ = (hd ? hd.nok : Math.max(...lagen.map((l) => l.top))) + 1.4;
     // De hoogte van de ring voor hij boven het huis uit getild wordt: daar mikt de bundel licht van de zon op (het dak).
@@ -221,7 +221,7 @@
        */
       return [cx - ringR * c * Math.sin(rel), cy - ringR * c * Math.cos(rel), ringZ + ringR * rek * Math.sin(Math.max(0, el) * r)];
     };
-    // Op Thuis (`o.boogVrij`) telt de boog niet mee voor de schaal: het huis blijft groot, de boog loopt erom (22 november 2026).
+    // Op Thuis (`o.boogVrij`) telt de boog niet mee voor de schaal: het huis blijft groot, de boog loopt erom.
     if (zb && !o.boogVrij) for (const q of zb.baan) if (q.el > -1.5) punten.push(ringPunt(q));
     // Eén etage: alleen die etage met de wazige stukjes erboven en eronder in beeld (en een smalle rand grond, op de begane grond).
     if (eenEtage >= 0) {
@@ -248,7 +248,7 @@
     };
     const pt = (x, y, zz) => P(x, y, zz).map((n) => n.toFixed(1)).join(' ');
     /*
-     * De zonneboog op Thuis (23 november 2026, Ricardo): net boven het huis, niet erdoorheen. De ring ligt om het huis,
+     * De zonneboog op Thuis (Ricardo): net boven het huis, niet erdoorheen. De ring ligt om het huis,
      * dus het stuk aan de kant van de kijker valt in beeld over het huis: waar hij boven het huis langs gaat, gaat de
      * hele ring omhoog tot hij 40 cm boven het dak blijft, en hij mag tot een kwart platter als zijn top dan lager
      * blijft (en in beeld). Waar de tekst bovenin ligt (`o.vrij`, de kop op de wand), vervaagt hij (huis-maat-hemel.js):
@@ -284,7 +284,7 @@
     }
     const vlak = (pp) => `M${pp.map((p) => pt(...p)).join('L')}Z`;
     /*
-     * Tikken (21 november 2026, stap c van de nieuwe tekenaar; `o.tik`): onzichtbare vlakken met data-kamer (en
+     * Tikken (stap c van de nieuwe tekenaar; `o.tik`): onzichtbare vlakken met data-kamer (en
      * data-zone voor een deel buiten, `kamer~zone`), zoals in het poppenhuis, zodat Thuis en een kamer er hetzelfde op
      * reageren. In de volgorde van tekenen: wat erover ligt, vangt de tik. De panelen (`o.panelenTik`) liggen onderop,
      * zodat een kamer op zolder onder het dak altijd te tikken is.
@@ -317,7 +317,7 @@
     };
     /** Een muur van het huis: niet hoger dan het dak op die plek. */
     const onder = ([x, y, zz]) => [x, y, Math.min(zz, dakZ(x, y))];
-    // Komt het dak lager dan de vloer, dan valt de muur weg (hij hing anders onder de vloer, 20 november 2026).
+    // Komt het dak lager dan de vloer, dan valt de muur weg (hij hing anders onder de vloer).
     // Een staande muur [a onder, b onder, b boven, a boven] volgt het dak: langs de muur afgetast, alleen waar het dak boven de voet ligt.
     const vlakHuis = (pp) => {
       const [a, b, c, d] = pp;
@@ -338,11 +338,11 @@
       if (langs.length < 2) return '';
       return vlak([...langs.map(([x, y]) => [x, y, voet]), ...langs.reverse()]);
     };
-    /** Het plafond op een plek: de bovenkant van de etage, of lager waar het dak lager komt (20 november 2026: niets zweeft meer boven het dak). */
+    /** Het plafond op een plek: de bovenkant van de etage, of lager waar het dak lager komt (niets zweeft meer boven het dak). */
     const plafond = (x, y, top) => Math.min(top, dakZ(x, y) - 0.08);
     const dp = (pp) => pp.reduce((n, q) => n + diep(q[0], q[1]), 0) / pp.length;
     /**
-     * De hemel (20 november 2026): 's nachts een maan en sterren, overdag de zon met een gloed, 's avonds en
+     * De hemel: 's nachts een maan en sterren, overdag de zon met een gloed, 's avonds en
      * 's ochtends de zon laag en warm. Op het scherm, achter het huis; vaste plekken (geen toeval), zodat het niet springt.
      */
     const hemel = (hm) => {
@@ -362,7 +362,7 @@
         x2 += `<circle cx="${zx}" cy="${zy}" r="${r * 3.4}" fill="url(#hm-zongloed)" opacity="${(0.55 - 0.3 * (hm.wolken ?? 0)).toFixed(2)}"/><circle cx="${zx}" cy="${zy}" r="${r}" fill="${laag ? '#ffb86b' : '#ffd27a'}" opacity="${(1 - 0.5 * (hm.wolken ?? 0)).toFixed(2)}"/>`;
       }
       /*
-       * Wolken (22 november 2026, zoals in het poppenhuis): zoveel als de lucht bewolkt is, op vaste plekken, zacht en grijs;
+       * Wolken (zoals in het poppenhuis): zoveel als de lucht bewolkt is, op vaste plekken, zacht en grijs;
        * bij regen of sneeuw altijd een paar. Overdag lichter dan 's nachts.
        */
       const nW = Math.min(6, Math.round(Math.max(hm.wolken ?? 0, o.weer ? 0.7 : 0) * 6));
@@ -380,7 +380,7 @@
 
     /** @type {any[]} */
     const labels = [];
-    /** Apparaten die nergens pasten (22 november 2026): voor de proef, en om na te lopen. */
+    /** Apparaten die nergens pasten: voor de proef, en om na te lopen. */
     const overgeslagen = [];
     /** Per vloer de plekken van apparaten op de vloer, zodat meubels eromheen gaan. */
     const apparaatVloer = new Map();
@@ -406,7 +406,7 @@
       return `<path d="${vlak(pp)}" ${attr}/>`;
     };
     /*
-     * Een model uit de vaste lijst (kit/huis-modellen.js, 21 november 2026) neerzetten. `p` is { x, y, z }: het punt op de
+     * Een model uit de vaste lijst (kit/huis-modellen.js) neerzetten. `p` is { x, y, z }: het punt op de
      * muur, de vloer of het plafond waar het model staat, met `wand` 'x' of 'y' (langs welke as `a` loopt: bij 'x' langs y)
      * en `kant` +1 of -1: de kant waar de voorkant naartoe kijkt (de kamer in). Geeft { s, d, rect } of null.
      */
@@ -511,7 +511,7 @@
         }
       }
       /*
-       * De voorkant en de zijkant horen bij een blok (`detailBij`, 22 november 2026): de pui van het tuinhuis zit op zijn
+       * De voorkant en de zijkant horen bij een blok (`detailBij`): de pui van het tuinhuis zit op zijn
        * gevel, vóór de palen en het overstek; eerst lag hij over alles heen (de linkerpaal afgekapt, het glas boven het dak).
        * Zonder `detailBij` komen ze als laatste, zoals bij de auto.
        */
@@ -568,7 +568,7 @@
 
     const { weerLaag, feestLaag, zonneboog } = hemelDeel;
     /*
-     * Wat dichterbij staat (20 november 2026): op de randen, niet op het midden. Een lange garage naast het
+     * Wat dichterbij staat: op de randen, niet op het midden. Een lange garage naast het
      * huis viel op zijn midden over de auto en door het huis heen. Liggen twee dingen aan weerskanten van
      * een rechte lijn op de grond, dan staat het ding aan de kant van de kijker voor; anders telt het midden.
      */
@@ -602,7 +602,7 @@
     // buiten: in kit/huis-maat-buiten.js (opgesplitst op 22 november 2026). Wat het deel van de tekenaar deelt:
     /*
      * Een blok met een andere boven- en onderkant (vier hoeken elk): de zijden naar de kijker, dan de bovenkant.
-     * Hier, vóór het deel buiten (23 november 2026): dat tekent bij het maken al wat achter het huis staat, en een
+     * Hier, vóór het deel buiten: dat tekent bij het maken al wat achter het huis staat, en een
      * auto achter het huis (bij sommige hoeken) vroeg prisma toen het nog niet bestond; dan viel Thuis terug op het
      * poppenhuis.
      */
@@ -673,10 +673,10 @@
       // Een wazige etage (eronder of erboven): alleen een strook muur, zonder vloer, namen, apparaten of meubels.
       const band = laag.vaag === 'onder' ? [laagTop - 1.0, laagTop] : laag.vaag === 'boven' ? [z0, z0 + 0.6] : null;
       const s0 = s.length;
-      // De bovenste etage onder een schuin dak (20 november 2026): de muren lopen door tot het dak, zoals een zolder (de gevel is een driehoek).
+      // De bovenste etage onder een schuin dak: de muren lopen door tot het dak, zoals een zolder (de gevel is een driehoek).
       const top = laag.bovenste && hd && /zadel|schild/.test(hd.b.dak ?? '') ? Math.max(laagTop, hd.nok - zWeg) : laagTop;
       /*
-       * Eén etage: de muren aan jouw kant zijn laag afgesneden, zoals een poppenhuis (21 november 2026; op zolder stond
+       * Eén etage: de muren aan jouw kant zijn laag afgesneden, zoals een poppenhuis (op zolder stond
        * anders een grote glazen gevel voor de kamers). De snede krijgt een lichte rand.
        */
       const snee = eenEtage >= 0 && !band ? z0 + 1.0 : null;
@@ -688,7 +688,7 @@
       const bereik = z0 > 0.5 ? onderDakBereik(z0) : null;
       for (const r of rechthoeken(v, BUITEN)) {
         let [x0, y0, x1, y1] = [m(r.x0), m(r.y0), m(r.x1), m(r.y1)];
-        // Onder een dakkapel loopt de vloer door tot de kapel (21 november 2026): daar is het plafond hoger.
+        // Onder een dakkapel loopt de vloer door tot de kapel: daar is het plafond hoger.
         for (const kp of bereik ? hd?.kapellen ?? [] : []) {
           const kx = kp.boven.p.map((q) => q[0]);
           const ky = kp.boven.p.map((q) => q[1]);
@@ -713,13 +713,13 @@
         const tint = TINT[SOORT_TINT[t.soortVan(r)] ?? (r?.kamer ? 'woon' : naam ? 'hal' : 'leeg')];
         const info = kamerInfo[kamerVan(r)];
         const gloed = info?.toon && info.toon !== 'goed' ? TOON[info.toon] : null;
-        // De kamer van de pagina licht op (21 november 2026), zoals in het poppenhuis.
+        // De kamer van de pagina licht op, zoals in het poppenhuis.
         const gekozen = o.gekozen && kamerVan(r) === o.gekozen;
         s += `<path d="${paden.join('')}" fill="#152238"/><path d="${paden.join('')}" fill="rgb(${tint} / ${gekozen ? 0.42 : naam ? 0.2 : 0.06})"/>`;
         if (gekozen) s += `<path d="${paden.join('')}" fill="none" stroke="#bfe6ff" stroke-opacity="0.75" stroke-width="1.6" stroke-linejoin="round"/>`;
         if (gloed) s += `<path d="${paden.join('')}" fill="${gloed}" fill-opacity="0.16"/>`;
         const ta = tikAttr(kamerVan(r), naam);
-        // De hele kamer van vloer tot plafond is te tikken, zoals in het poppenhuis (22 november 2026: alleen de vloer vroeg precisie).
+        // De hele kamer van vloer tot plafond is te tikken, zoals in het poppenhuis (alleen de vloer vroeg precisie).
         if (ta) {
           const z1 = laag.bovenste ? Math.min(top, z0 + 2.4) : top;
           const blokjes = rechthoeken(v, BUITEN).filter((q) => String(q.id) === String(id));
@@ -762,11 +762,11 @@
         const binnen = ia === BUITEN ? ib : ia;
         const n = run.as === 'x' ? [ia === BUITEN ? -1 : 1, 0] : [0, ia === BUITEN ? -1 : 1];
         const voor = run.soort === 2 && naarKijker(...n);
-        // Een buitenmuur die van je af kijkt, staat achter alles in de kamer: eerst tekenen (22 november 2026, de kast op zolder verloor zijn zijkant).
+        // Een buitenmuur die van je af kijkt, staat achter alles in de kamer: eerst tekenen (de kast op zolder verloor zijn zijkant).
         const achterMuur = run.soort === 2 && !voor ? 50 : 0;
         const dicht = run.soort === 2 && DICHT.test(ruimteSoort(binnen));
         const eigenRamen = (v.openingen ?? []).length > 0;
-        // Binnenmuren in stukjes van 40 centimeter (buitenmuren houden hun ramen per stuk van 2 meter): zo komt een meubel tegen een muur goed voor of achter die muur (het bad in de badkamer, 21 november 2026).
+        // Binnenmuren in stukjes van 40 centimeter (buitenmuren houden hun ramen per stuk van 2 meter): zo komt een meubel tegen een muur goed voor of achter die muur (het bad in de badkamer).
         for (const deel of K.muurDelen(v, run, run.soort === 1 ? 4 : 20)) {
           const [a, b] = [deel.van, deel.tot];
           if (deel.soort) {
@@ -781,15 +781,15 @@
             const vul = run.as === 'x' ? '#26354d' : '#2d3d57';
             if (deel.soort === 'raam') {
               const r0 = z0 + 0.9;
-              // Een raam alleen waar het past: onder het dak, en niet ondersteboven in een lage knieschot (20 november 2026).
+              // Een raam alleen waar het past: onder het dak, en niet ondersteboven in een lage knieschot.
               const r1 = Math.min(top - 0.3, z0 + 2.1, dakZ(x0, y0) - 0.25, dakZ(x1, y1) - 0.25);
               const past = r1 - r0 >= 0.5;
               /*
-               * Een dakraam (22 november 2026, Ricardo): een raam getekend in een muur waar het dak lager komt dan het raam,
+               * Een dakraam (Ricardo): een raam getekend in een muur waar het dak lager komt dan het raam,
                * zit in het dakvlak erboven. Vanaf de muur de kamer in tot het dak tussen 1,0 en 2,0 meter boven de vloer is.
                */
               /*
-               * Onder een dakkapel (22 november 2026, Ricardo: het raam van de slaapkamer op zolder kwam over de dakkapel):
+               * Onder een dakkapel (Ricardo: het raam van de slaapkamer op zolder kwam over de dakkapel):
                * dan is het raam het raam van de dakkapel, die zijn eigen raam al tekent; geen dakraam.
                */
               const onderKapel = (hd?.kapellen ?? []).some((kp) => {
@@ -819,12 +819,12 @@
                 }
               }
               const screen = st.apparaten.find((q) => q.raam === deel.id && q.plek?.etage === laag.e.id);
-              // Aan de kant van de kijker: de gevel is glas, het raam krijgt een licht kozijn en wat helderder glas (19 november 2026).
+              // Aan de kant van de kijker: de gevel is glas, het raam krijgt een licht kozijn en wat helderder glas.
               const kozijn = voor && past ? muur(r0, r1, o.avond && lichtIn.has(binnen) ? 'rgb(243 199 122 / 0.35)' : 'rgb(207 230 255 / 0.16)', 'stroke="#eef5fb" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"') : '';
               let x2 = voor ? muur(z0, z0 + 0.1, '#c9d4df', 'fill-opacity="0.6"') + muur(z0 + 0.1, glasTop, 'url(#hm-glas)') + (snee ? sneeLijn(x0, y0, x1, y1) : kozijn) : !past ? muur(z0, top, vul, `stroke="${vul}" stroke-width="0.6"`) : muur(z0, r0, vul, `stroke="${vul}" stroke-width="0.6"`) + muur(r1, top, vul, `stroke="${vul}" stroke-width="0.6"`) + muur(r0, r1, o.avond && lichtIn.has(binnen) ? '#f3c77a' : '#8fb4d6', `fill-opacity="${o.avond && lichtIn.has(binnen) ? 0.6 : 0.35}" stroke="#c9d6e2" stroke-opacity="0.4" stroke-width="0.8"`);
               // Een screen voor het raam: neer als hij dicht is, anders opgerold bovenaan.
               /*
-               * Een screen voor het raam (20 november 2026): aan de buitenkant, een cassette boven het raam en het doek
+               * Een screen voor het raam: aan de buitenkant, een cassette boven het raam en het doek
                * zo ver neer als hij staat (`o.schermen`: de stand in procenten, 100 is open). Zonder stand: dicht als hij aan staat.
                */
               if (screen && past && !band && !(voor && snee)) {
@@ -892,7 +892,7 @@
         for (let i = 0; i < n; i++) {
           const f0 = i / n;
           const f1 = (i + 1) / n;
-          // Zoals de binnenmuren (halfhoog): de trap houdt op 1,2 meter op, anders steekt hij door de kamer erboven (22 november 2026).
+          // Zoals de binnenmuren (halfhoog): de trap houdt op 1,2 meter op, anders steekt hij door de kamer erboven.
           if (hoogte * f1 > 1.2) break;
           const [xa, xb, ya, yb] = rx
             ? (rx > 0 ? [m(rr.x0) + (m(rr.x1) - m(rr.x0)) * f0, m(rr.x0) + (m(rr.x1) - m(rr.x0)) * f1] : [m(rr.x1) - (m(rr.x1) - m(rr.x0)) * f1, m(rr.x1) - (m(rr.x1) - m(rr.x0)) * f0]).concat([m(rr.y0) + 0.1, m(rr.y1) - 0.1])
@@ -908,7 +908,7 @@
       st.etage = was;
       /** De muur het dichtst bij een punt (in ruitjes), met de kant waar het punt ligt. */
       /*
-       * Met `ruimte` (21 november 2026, de spiegel van de badkamer hing in de kamer ernaast): alleen een muur van die ruimte,
+       * Met `ruimte` (de spiegel van de badkamer hing in de kamer ernaast): alleen een muur van die ruimte,
        * met de voorkant naar die ruimte toe. Zo hangt een apparaat nooit aan de verkeerde kant van een muur.
        */
       const wandenBij = (cx, cy, ruimte = null) => {
@@ -930,14 +930,14 @@
         return alle.sort((a, b) => a.afst - b.afst);
       };
       /*
-       * De apparaten van deze etage, elk met zijn model uit de vaste lijst (21 november 2026): waar de bewoner het in Je huis
+       * De apparaten van deze etage, elk met zijn model uit de vaste lijst: waar de bewoner het in Je huis
        * plaatste, tegen de dichtstbijzijnde muur met de voorkant naar de kamer, aan het plafond of los op de vloer.
        */
       /** Eén apparaat tekenen op zijn plek `pl`: het model, een plas licht als hij brandt, een snoer, de lucht van een airco. */
       const tekenApparaat = (q, naam, M, pl, draait) => {
         const md = zetModel(naam, pl, { aan: draait });
         if (!md) return;
-        // Wat op de vloer staat of laag en groot aan de muur hangt (een radiator), houdt zijn plek vrij van meubels (22 november 2026).
+        // Wat op de vloer staat of laag en groot aan de muur hangt (een radiator), houdt zijn plek vrij van meubels.
         if (M.hangt === 'vloer' || M.hangt === 'vrij' || (pl.z - z0 < 0.7 && M.h >= 0.3)) (apparaatVloer.get(v) ?? apparaatVloer.set(v, []).get(v)).push({ x0: md.rect.x - 0.1, x1: md.rect.x + md.rect.b + 0.1, y0: md.rect.y - 0.1, y1: md.rect.y + md.rect.d + 0.1 });
         let x2 = '';
         // Het stuk binnenmuur achter een apparaat dat hoger hangt dan de halfhoge muur.
@@ -969,7 +969,7 @@
           x2 += `<path d="M${s0[0].toFixed(1)} ${s0[1].toFixed(1)}L${s1[0].toFixed(1)} ${s1[1].toFixed(1)}" stroke="#8090a0" stroke-width="1"/>`;
         }
         x2 += md.s;
-        // Een radiator die warm is: zachte warmte die langs de muur omhoog golft, zoals in het poppenhuis (22 november 2026).
+        // Een radiator die warm is: zachte warmte die langs de muur omhoog golft, zoals in het poppenhuis.
         if (naam === 'radiator' && draait) {
           for (const a of [-0.3, 0, 0.3]) {
             const p0 = P(...md.W(a, 0.12, 0.66));
@@ -980,7 +980,7 @@
           const g = P(...md.W(0, 0.05, 0.9));
           x2 += `<circle cx="${g[0].toFixed(1)}" cy="${g[1].toFixed(1)}" r="${(0.6 * k).toFixed(1)}" fill="#ff7a4d" opacity="0.18" filter="url(#hm-zacht)"/>`;
         }
-        // Een bewegingsmelder die nu beweging ziet: een ring die uitdijt op de vloer eronder, zoals in het poppenhuis (22 november 2026).
+        // Een bewegingsmelder die nu beweging ziet: een ring die uitdijt op de vloer eronder, zoals in het poppenhuis.
         if (naam === 'beweging' && draait) {
           const c = P(mx, my, z0 + 0.02);
           const rb = 1.2 * k;
@@ -990,7 +990,7 @@
         }
         // Een airco die draait: drie zachte stromen lucht de kamer in, warm of koel.
         if (M.lucht && draait) {
-          // Blauw als hij koelt, oranje als hij verwarmt (23 november 2026: eerst gaf de kamer de kleur, en die kon koelt zeggen terwijl de airco verwarmde).
+          // Blauw als hij koelt, oranje als hij verwarmt (eerst gaf de kamer de kleur, en die kon koelt zeggen terwijl de airco verwarmde).
           const toon = o.aircoToon?.[q.a.id] ?? kamerInfo[t.st.apparaten.find((a) => a.id === q.a.id)?.kamer]?.toon;
           const kleur = toon === 'koelt' ? '#6fd3ff' : '#ff7a4d';
           for (let i = -1; i <= 1; i++) {
@@ -1009,7 +1009,7 @@
         const draait = aan.has(q.a.id);
         const [x, y] = [m(q.x), m(q.y)];
         /*
-         * Onder een schuin dak (22 november 2026, de zolder van Ricardo): wat op zijn plek niet past, schuift de kamer in
+         * Onder een schuin dak (de zolder van Ricardo): wat op zijn plek niet past, schuift de kamer in
          * tot het past, in plaats van weg te vallen (de staande lamp in de slaapkamer, de droger in de wasruimte).
          */
         const rr = maten(v)[q.ruimte]?.r;
@@ -1022,7 +1022,7 @@
           return null;
         };
         let pl;
-        // Wat los op de vloer staat (een staande lamp) komt na de meubels, op een vrije plek ernaast (22 november 2026).
+        // Wat los op de vloer staat (een staande lamp) komt na de meubels, op een vrije plek ernaast.
         if (M.hangt === 'vrij') {
           uitgesteld.push({ q, naam, M, draait, x, y, midden, rr });
           continue;
@@ -1044,7 +1044,7 @@
         } else {
           /*
            * Tegen de dichtstbijzijnde muur van zijn eigen kamer waar het past: een airco of iets aan de muur niet laag
-           * tegen een knieschot (22 november 2026: de airco op zolder hing bijna op de vloer), maar aan de volgende muur
+           * tegen een knieschot (de airco op zolder hing bijna op de vloer), maar aan de volgende muur
            * waar wel ruimte is; witgoed onder een schuin dak een stukje van de muur af, de kamer in.
            */
           const half = M.b / 2;
@@ -1073,7 +1073,7 @@
             raamVoorkeur = onderRaam.length > 0;
           }
           /*
-           * Witgoed met de voorkant naar de kijker (22 november 2026, Ricardo: de droger stond met zijn rug naar je toe tegen
+           * Witgoed met de voorkant naar de kijker (Ricardo: de droger stond met zijn rug naar je toe tegen
            * de knieschot). Een muur waar de voorkant van je af kijkt telt 2,5 meter verder weg. Ook een radiator zonder raam.
            */
           if (M.hangt === 'vloer' || (naam === 'radiator' && !raamVoorkeur && !q.zelf)) kandidaten = [...kandidaten].sort((a, b) => a.afst + (naarKijker(...(a.run.as === 'x' ? [a.kant, 0] : [0, a.kant])) ? 0 : 25) - (b.afst + (naarKijker(...(b.run.as === 'x' ? [b.kant, 0] : [0, b.kant])) ? 0 : 25)));
@@ -1084,7 +1084,7 @@
             const hi = m(run.tot) - half - 0.05;
             const begin = Math.min(hi, Math.max(lo, m(w.langs)));
             /*
-             * Eerst waar hij hoort, dan verder langs de muur (22 november 2026): onder een schuin dak is een muur in het
+             * Eerst waar hij hoort, dan verder langs de muur: onder een schuin dak is een muur in het
              * midden hoger dan aan de kant, en de airco op zolder in het voorbeeldhuis paste op zijn plek nergens.
              */
             const langs = [begin];
@@ -1111,7 +1111,7 @@
               }
               /*
                * Aan een binnenmuur (die is halfhoog getekend): op zijn eigen hoogte, met een stuk muur erachter zodat het niet
-               * zweeft (22 november 2026; eerst zakte het tot onder de 1,1 m, de spiegel van de badkamer hing op 28 cm).
+               * zweeft (eerst zakte het tot onder de 1,1 m, de spiegel van de badkamer hing op 28 cm).
                */
               const paneel = run.soort === 1 && zb + M.h > z0 + 1.1 ? { as: run.as, op: m(run.op), van: (run.as === 'x' ? py : px) - half - 0.12, tot: (run.as === 'x' ? py : px) + half + 0.12, z0: z0 + 1.1, z1: zb + M.h + 0.1 } : null;
               pl = { x: px, y: py, z: zb, wand: run.as, kant, paneel };
@@ -1126,7 +1126,7 @@
         }
         tekenApparaat(q, naam, M, pl, draait);
       }
-      // De meubels (20 november 2026, zoals in het poppenhuis): per soort kamer, tegen de muren achterin.
+      // De meubels (zoals in het poppenhuis): per soort kamer, tegen de muren achterin.
       if (o.meubels && !band) {
         // Elke kamer in rechthoekige stukken (een kamer in een U-vorm heeft er drie), de grootste eerst.
         const stukkenPer = {};
@@ -1167,7 +1167,7 @@
         tekenApparaat(u.q, u.naam, u.M, { x: plek[0], y: plek[1], z: z0 }, u.draait);
       }
       /*
-       * De dakkapel (21 november 2026: hij viel weg achter de muren van de zolder). Met het dak: een kapel aan de achterkant
+       * De dakkapel (hij viel weg achter de muren van de zolder). Met het dak: een kapel aan de achterkant
        * hoort bij de bovenste etage, tussen de rest gesorteerd. Eén etage: de etage waar het meeste van zijn hoogte in valt
        * krijgt hem als nis in de muur, met het raam, zonder dak; aan jouw kant laag afgesneden zoals de muren.
        */
@@ -1231,10 +1231,10 @@
         const breedte = (rr.x1 - rr.x0) * CEL * k;
         // Zonder iets te melden (een kamer die Home Assistant niet kent) geen naam; met `kamers` leeg (een schets) wel, als het past.
         if (!info && (Object.keys(o.kamers ?? {}).length || breedte < 24)) continue;
-        // Netter (20 november 2026, Ricardo): gecentreerd, kleiner en overal even groot; naam, temperatuur, en eronder wat er gebeurt.
+        // Netter (Ricardo): gecentreerd, kleiner en overal even groot; naam, temperatuur, en eronder wat er gebeurt.
         const midden = `text-anchor="middle" ${FONT}`;
         /*
-         * Een lange naam in een smalle kamer over twee regels, zoals in het poppenhuis (22 november 2026: Slaapkamer Matts en
+         * Een lange naam in een smalle kamer over twee regels, zoals in het poppenhuis (Slaapkamer Matts en
          * Mylan vielen op Thuis weg).
          */
         const spatie = naam.lastIndexOf(' ');
@@ -1255,7 +1255,7 @@
         // Past het label nergens, dan op één regel: de naam en de temperatuur (zoals in het poppenhuis).
         const wk = (naam.length + (info?.temp ?? '').length + 1) * 7;
         const kort = info?.temp ? { x: p[0] - wk / 2, y: p[1] - 12, b: wk, h: 15, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}><text y="0" ${midden} font-size="12.5" font-weight="700" fill="#dfe6ec">${esc(naam)} <tspan font-weight="800" fill="${TOON[info.toon] && info.toon !== 'goed' ? TOON[info.toon] : '#ffffff'}">${esc(info.temp)}</tspan></text></g>` }  : { x: p[0] - (naam.length * 5.6) / 2, y: p[1] - 10, b: naam.length * 5.6, h: 12, prio: 2, verder: true, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}><text y="0" ${midden} font-size="10.5" font-weight="700" fill="#aebac6">${esc(naam)}</text></g>` };
-        // Een tweede plek, als de eerste bezet is: het midden van de kamer, iets hoger (22 november 2026: Slaapkamer Mylan viel weg).
+        // Een tweede plek, als de eerste bezet is: het midden van de kamer, iets hoger (Slaapkamer Mylan viel weg).
         const p2 = P(mx, my, z0 + 1.3);
         const ook = { x: p2[0] - w / 2, y: p2[1] - 12, s: `<g transform="translate(${p2[0].toFixed(1)} ${(p2[1] + 2).toFixed(1)})" ${halo}>${regels}</g>` };
         labels.push({ x: p[0] - w / 2, y: p[1] - 12, b: w, h, prio: info?.temp ? 3 : info ? 2 : 1, s: `<g transform="translate(${p[0].toFixed(1)} ${(p[1] + 2).toFixed(1)})" ${halo}>${regels}</g>`, kader: true, kort, ook, kamer: kamerVan(r) });
@@ -1294,7 +1294,7 @@
       const [u0, u1] = [b.u, b.u + b.b];
       const bgTop = lagen[0]?.top ?? 2.5;
       /*
-       * Onder de ramen van de etage erboven (22 november 2026): de 3D-kaart gaf bij Ricardo 3,6 m, terwijl de ramen van de
+       * Onder de ramen van de etage erboven: de 3D-kaart gaf bij Ricardo 3,6 m, terwijl de ramen van de
        * 1e op 0,9 m boven die vloer beginnen; het dakje liep door de ramen. Hooguit 0,75 m boven die vloer, en de lage kant
        * blijft eronder zodat het dakje schuin blijft.
        */
@@ -1317,13 +1317,13 @@
     for (const d of metDak ? daken : []) {
       for (const v of d.vlakken) {
         if (!naarKijker(...v.n)) continue;
-        // Een afdak of uitbouw voor het huis is dicht: daar kijk je niet in (19 november 2026, het afdak van Ricardo).
+        // Een afdak of uitbouw voor het huis is dicht: daar kijk je niet in (het afdak van Ricardo).
         if (d.b.soort !== 'hoofdhuis' && v.dak) {
           s += `<path d="${vlak(v.p)}" fill="#3b4a66" stroke="rgb(13 26 48 / 0.6)" stroke-width="0.8" stroke-linejoin="round"/>`;
           continue;
         }
         s += `<path d="${vlak(v.p)}" fill="rgb(191 230 255 / 0.05)" stroke="#9fd8ff" stroke-opacity="0.4" stroke-width="1.1" stroke-dasharray="5 4" stroke-linejoin="round"/>`;
-        // Sneeuw op het dak (22 november 2026, zoals in het poppenhuis).
+        // Sneeuw op het dak (zoals in het poppenhuis).
         if (o.weer === 'sneeuw' && v.dak) s += `<path d="${vlak(v.p.map(([x, y, zz]) => [x, y, zz + 0.04]))}" fill="#eef3f8" fill-opacity="0.85"/>`;
         // Het midden van de panelen: daar begint de stroom van de zon, en daar hangt het label.
         if (d === hoofdDak && v.dak && paneelVan(v) && !panelenMidden) panelenMidden = [0, 1, 2].map((j) => v.p.reduce((n, q) => n + q[j], 0) / v.p.length);
@@ -1377,7 +1377,7 @@
       if (o.metDakLabel && o.stil) regels.length = 0;
       const w = Math.max(dl.titel.length * 15 + 24, ...regels.map((r) => r.length * 7 + 24));
       const h = 40 + regels.length * 18;
-      // Met de zonneboog op Thuis rechts naast het dak, onder de boog (22 november 2026); anders erboven.
+      // Met de zonneboog op Thuis rechts naast het dak, onder de boog; anders erboven.
       const [px, py] = o.boogVrij && zb ? [Math.max(ax + 40, P(X1, Y0, 0)[0] + 8), ay + (o.stil ? 10 : 95)] : [ax + (dl.dx ?? 60), ay + (dl.dy ?? -80)];
       const kl = STROOM[dl.toon] ?? STROOM.zon;
       labels.push({ x: px, y: py, b: w, h, prio: 5, s: `<path d="M${ax.toFixed(1)} ${ay.toFixed(1)}L${(px + 12).toFixed(1)} ${(py + h).toFixed(1)}" stroke="${kl}" stroke-opacity="0.7" stroke-width="1.2"/><circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="3.5" fill="${kl}"/><g transform="translate(${px.toFixed(1)} ${py.toFixed(1)})"${tikData(dl.tik, dl.tikLabel)}><rect width="${w.toFixed(0)}" height="${h}" rx="12" fill="#0d1a30" fill-opacity="0.92" stroke="${kl}" stroke-opacity="0.5"/><text x="12" y="30" ${FONT} font-size="24" font-weight="800" fill="${kl}">${esc(dl.titel)}</text>${regels.map((r, i) => `<text x="12" y="${50 + i * 18}" ${FONT} font-size="13" font-weight="${i === 0 ? 700 : 500}" fill="${i === 0 ? kl : '#cfd8e1'}">${esc(r)}</text>`).join('')}</g>` });
@@ -1401,7 +1401,7 @@
     const apparatenDeel = global.huisMaatApparaten(capparaten);
 
     const { buitenApparaat } = apparatenDeel;
-    // Wat achter het huis hangt (het zonnescherm aan de achtergevel) komt achter het huis, de rest ervoor (20 november 2026).
+    // Wat achter het huis hangt (het zonnescherm aan de achtergevel) komt achter het huis, de rest ervoor.
     const achterKant = (a) => !dichterbij(klein(a.x ?? a.punten?.[0]?.[0] ?? cx, a.y ?? a.punten?.[0]?.[1] ?? cy), huisDoos);
     const achterStuk = (buiten.apparaten ?? []).filter(achterKant).map(buitenApparaat).join('');
     s = s.replace(ACHTER, () => achterStuk);
@@ -1412,9 +1412,9 @@
         // De namen bovenop. Wat botst schuift een stukje op of neer; past het nergens, dan valt het weg. De kamers met een temperatuur gaan voor.
     labels.sort((a, b) => b.prio - a.prio);
     const gezet = [];
-    // Eerst op en neer, dan ook opzij (20 november 2026: op een huis met drie etages vielen kamers met een temperatuur weg).
+    // Eerst op en neer, dan ook opzij (op een huis met drie etages vielen kamers met een temperatuur weg).
     const plekken = [[0, 0], [0, -14], [0, 14], [0, -26], [0, 26], [-36, 0], [36, 0], [0, -40], [0, 40], [-36, -20], [36, -20], [-36, 20], [36, 20]];
-    // `verder`: een kleine naam zonder temperatuur mag als laatste ook wat verder opzij (22 november 2026: Slaapkamer Mylan).
+    // `verder`: een kleine naam zonder temperatuur mag als laatste ook wat verder opzij (Slaapkamer Mylan).
     const zet = (l, verder = false) => {
       for (const [dx, dy] of verder ? [...plekken, [64, 0], [-64, 0], [64, -16], [-64, -16], [0, -54], [0, 54]] : l.prio >= 2 ? plekken : plekken.slice(0, 5)) {
         const r = { x0: l.x - 4 + dx, y0: l.y - 6 + dy, x1: l.x + l.b + 4 + dx, y1: l.y + l.h + dy };

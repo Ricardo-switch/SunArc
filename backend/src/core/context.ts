@@ -28,7 +28,7 @@ export interface ProfileChoice {
 /**
  * Thuis, met rust: wie net wegging, telt de eerste tien minuten nog als thuis.
  * Zo wisselt het comfort niet bij een boodschap. Wie thuiskomt, telt meteen
- * (1 november 2026): de stand "dag" gaat bij thuiskomen ook meteen aan, en met
+ *: de stand "dag" gaat bij thuiskomen ook meteen aan, en met
  * rust bij aankomst wisselde het comfort bij twee bewoners die vlak na elkaar
  * thuiskwamen twee keer (eerst niemand, dan de een, dan allebei). De meting
  * draagt sinds wanneer ze zo staat.

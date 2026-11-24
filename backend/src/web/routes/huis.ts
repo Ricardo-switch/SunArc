@@ -1,7 +1,7 @@
 /**
  * Het huis: de indeling, het huis zelf, en licht, scènes en schermen bedienen.
  *
- * Geknipt uit server.ts (besluit 180, 23 oktober 2026): letterlijk, met de
+ * Geknipt uit server.ts (besluit 180): letterlijk, met de
  * context `d` in plaats van de webserver zelf.
  */
 
@@ -160,7 +160,7 @@ export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
       // Klimaat buiten de regeling, zoals het tuinhuis (besluit 319).
       const los = h.los?.() ?? [];
       const apparaten = (await h.hand.standen(knoppen.map((k) => k.id), los.map((k) => k.id))).map((s) => {
-        // De luchtvochtigheid alleen als het apparaat die zelf meet (19 november 2026): die van de kamer bij een airco zonder meter verwarde.
+        // De luchtvochtigheid alleen als het apparaat die zelf meet: die van de kamer bij een airco zonder meter verwarde.
         const knop = knoppen.find((k) => k.id === s.id);
         if (knop) return { ...s, naam: knop.naam, kamer: knop.kamer, zoneId: null, actuatorId: null, ...(knop.zone ? { zone: knop.zone } : {}) };
         const l = los.find((k) => k.id === s.id);
@@ -437,7 +437,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
         return;
       }
       const soort = g['soort'];
-      // Ronde 2 (20 november 2026): op maat, bestaat niet meer, terug, en het afdak van de kaart.
+      // Ronde 2: op maat, bestaat niet meer, terug, en het afdak van de kaart.
       const vak = g['vak'];
       const vakOk = typeof vak === 'object' && vak != null && !Array.isArray(vak) && ['u', 'v', 'b', 'd'].every((x) => typeof (vak as Record<string, unknown>)[x] === 'number');
       const ronde2 =
@@ -543,7 +543,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       apparaten = {};
       for (const id of new Set([...Object.keys(basis.apparaten), ...Object.keys(naarKamer ?? {})])) {
         const oud = basis.apparaten[id];
-        // Buiten (19 november 2026): `kamer~zone` is een deel van een ruimte buiten, zoals het terras in de tuin.
+        // Buiten: `kamer~zone` is een deel van een ruimte buiten, zoals het terras in de tuin.
         const gevraagdIn = naarKamer?.[id];
         const [gevraagd, deel] = typeof gevraagdIn === 'string' ? gevraagdIn.split(DEEL) : [undefined, undefined];
         const kamer = typeof gevraagd === 'string' && kamerOp.has(gevraagd) ? gevraagd : oud?.kamer;
@@ -559,7 +559,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
         const raam = ramen ? (typeof ramen[id] === 'string' ? (ramen[id] as string) : undefined) : oudRaam;
         apparaten[id] = { ...zonderRaam, kamer, zone, ...(plek ? { plek } : {}), ...(raam ? { raam } : {}) };
       }
-      // Eén apparaat, één bolletje (20 november 2026): een bijfunctie gaat mee naar de kamer en de zone van zijn hoofd, zonder eigen plek.
+      // Eén apparaat, één bolletje: een bijfunctie gaat mee naar de kamer en de zone van zijn hoofd, zonder eigen plek.
       const alle = [...huis.etages.flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten)), ...huis.zonderRuimte];
       for (const [bij, hoofd] of bijfuncties(alle)) {
         const h = apparaten[hoofd] as { kamer: string; zone: string | null } | undefined;
@@ -587,7 +587,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
   for (const [id, a] of Object.entries(basis.apparaten)) if (a.plek) plekken[id] = { etage: a.plek.etage, u: Math.round((a.plek.u + nu) * 100) / 100, v: Math.round((a.plek.v + nv) * 100) / 100 };
   // De apparaten binnen: in hun kamer, of nog zonder kamer (de strook), met de kamer uit Home Assistant als tip.
   const kamerIds = new Set(binnen.flatMap((e) => e.ruimtes.map((r) => r.id)));
-  // Buiten (19 november 2026): het erf als eigen tekening, met de ruimtes buiten en hun delen.
+  // Buiten: het erf als eigen tekening, met de ruimtes buiten en hun delen.
   const erf = huis.etages.find((e) => e.id === OUTSIDE_FLOOR) ?? null;
   const deelVan = (id: string, kamer: string) => {
     const z = basis.apparaten[id]?.kamer === kamer ? basis.apparaten[id]?.zone : null;
@@ -609,7 +609,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     }),
   ];
   /*
-   * Radiatoren (22 november 2026, besluit 333): een kamer met een thermostaat (de cv) maar zonder radiatorknop krijgt
+   * Radiatoren (besluit 333): een kamer met een thermostaat (de cv) maar zonder radiatorknop krijgt
    * vanzelf één radiator; een radiator die de bewoner erbij zette (`radiator:<kamer>:<n>`) blijft staan. Een radiatorknop
    * is zelf een radiator in de tekening. Weghalen gaat met Verbergen.
    */
@@ -636,7 +636,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     if (/^radiator:.+:\d+$/.test(id) && EIGEN_ID.test(id) && kamerIds.has(a.kamer)) eigen({ id, naam: a.naam ?? radiatorNaam, soort: 'radiator', kamer: a.kamer, hoortBij: undefined });
   }
   /*
-   * De buitenunit van elke airco (22 november 2026, besluit 333): een eigen bolletje buiten. Waar de bewoner hem neerzet,
+   * De buitenunit van elke airco (besluit 333): een eigen bolletje buiten. Waar de bewoner hem neerzet,
    * bepaalt hoe hij hangt (tegen het huis aan de muur, op een plat dak, of op de grond); zolang hij niet verzet is, kiest de
    * tekening zelf. Hij begint in de tuin (of het eerste deel buiten), zonder eigen plek.
    */
@@ -651,7 +651,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       if (kamer) eigen({ id, naam: `${taal === 'en' ? 'Outdoor unit' : 'Buitenunit'} ${a.naam}`, soort: 'buitenunit', kamer: deelVan(id, kamer), hoortBij: undefined });
     }
   }
-  // Eén apparaat, één bolletje (20 november 2026): een bijfunctie staat niet los in de tekening, maar in het blad van zijn hoofd.
+  // Eén apparaat, één bolletje: een bijfunctie staat niet los in de tekening, maar in het blad van zijn hoofd.
   const bijVan = bijfuncties(alle);
   const apparaten = alle
     .filter((a) => !bijVan.has(a.id))
@@ -674,7 +674,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
     kaarten: vorm.kaarten,
     tekeningBron: basis.plattegrondBron ?? vorm.bron,
     woning: huis.woning,
-    // Wat voor huis (20 november 2026): welke muren tegen de buren staan, gekozen of nog niet, en wat de kaart ziet.
+    // Wat voor huis: welke muren tegen de buren staan, gekozen of nog niet, en wat de kaart ziet.
     buren: basis.buren ?? null,
     // Een appartement: op welke verdieping, en hoeveel erboven (dan staat Dak er niet).
     verdieping: basis.verdieping ?? null,
@@ -756,7 +756,7 @@ async function vormVanHuis(
     if (met) vormen[k] = bronVorm(met, voorgevel, woning, lagen);
   }
   if (bron !== 'zelf') vormen.zelf = bronVorm(daken ? dakenMetBron(daken, 'zelf', null)! : leeg, voorgevel, woning, lagen);
-  // Het erf om de gebouwen van de bron van nu (19 november 2026): ook op het ruitjespapier, zodat buiten past.
+  // Het erf om de gebouwen van de bron van nu: ook op het ruitjespapier, zodat buiten past.
   const erfRuw = erfOm(vormen[bron]?.blokken ?? [], vormen[bron]?.omgeving ?? []);
   const papier = eenPapier({ ...Object.fromEntries(Object.entries(vormen).map(([id, v]) => [id, v.blokken])), ...(erfRuw ? { _erf: [{ id: 'erf', soort: 'anders' as const, ...erfRuw }] } : {}) }, plattegrond);
   const erfOpPapier = papier.blokken['_erf']?.[0];

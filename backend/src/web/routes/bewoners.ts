@@ -1,7 +1,7 @@
 /**
  * Bewoners: comfort, voorkeuren, de sleutel, meldingen, uitstel en gevoel.
  *
- * Geknipt uit server.ts (besluit 180, 23 oktober 2026): letterlijk, met de
+ * Geknipt uit server.ts (besluit 180): letterlijk, met de
  * context `d` in plaats van de webserver zelf.
  */
 

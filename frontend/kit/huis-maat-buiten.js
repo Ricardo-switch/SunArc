@@ -1,5 +1,5 @@
 /*
- * SunArc: het huis zoals getekend, wat buiten staat (22 november 2026, opgesplitst uit kit/huis-maat.js).
+ * SunArc: het huis zoals getekend, wat buiten staat (opgesplitst uit kit/huis-maat.js).
  *
  * De gebouwen en dingen op het erf (auto, boom, buitenunit, laadpaal, tuinhuis, garage, schuur, tuinset), van
  * ver naar dichtbij, en de panelen en dakkapellen op het dak.
@@ -106,7 +106,7 @@
         const pl = Math.abs(nx) > Math.abs(ny) ? { x: u.x, y: u.y, z, wand: 'x', kant: Math.sign(nx) } : { x: u.x, y: u.y, z, wand: 'y', kant: Math.sign(ny) };
         const md = kern.zetModel('buitenunit', pl, { aan: !!u.aan });
         if (!md) return '';
-        // Hoger dan de grond en tegen de muur: op een beugel (22 november 2026, besluit 333).
+        // Hoger dan de grond en tegen de muur: op een beugel (besluit 333).
         let beugel = '';
         if (z > 0.5 && !u.los) {
           for (const a of [-0.3, 0.3]) {
@@ -134,7 +134,7 @@
         return x2;
       };
       /*
-       * Het tuinhuis zoals op Thuis nu (het poppenhuis, 24 oktober 2026), op zijn echte maat: een donkere doos
+       * Het tuinhuis zoals op Thuis nu (het poppenhuis), op zijn echte maat: een donkere doos
        * met liggende latten, een glazen pui naar het huis, een plat dak dat aan die kant doorloopt als overstek
        * op twee palen, met een vlonder en twee spots eronder. Wat getekend is (x, y, b, d) is alles samen, het
        * overstek erbij; het overstek ligt aan de kant met de kleinste y (naar het huis).
@@ -152,7 +152,7 @@
         const ov = q.y;
         const spotsAan = !!q.overstek?.licht;
         const binnen = !!q.licht;
-        // De kleur van de lampen uit Home Assistant (22 november 2026, Ricardo); zonder kleur warm wit.
+        // De kleur van de lampen uit Home Assistant (Ricardo); zonder kleur warm wit.
         const binnenKleur = q.lichtKleur ?? '#F4C27E';
         const spotKleur = q.overstek?.kleur ?? '#FFD39A';
         const glas = binnen ? binnenKleur : kern.o.avond ? '#0f1a2a' : '#4d7eac';
@@ -253,7 +253,7 @@
           x2 += `<path d="${kern.vlak(kp.voor.p)}" fill="#97a6ba" stroke="rgb(13 26 48 / 0.4)" stroke-width="0.6"/>`;
           x2 += `<path d="${kern.vlak(kp.raam)}" fill="${kern.o.avond ? '#f3c77a' : '#8fb4d6'}" fill-opacity="${kern.o.avond ? 0.6 : 0.45}"/>`;
         } else {
-          // Van achteren (21 november 2026): door het glazen dak zie je de voorkant van binnen, met het raam, zodat je hem herkent.
+          // Van achteren: door het glazen dak zie je de voorkant van binnen, met het raam, zodat je hem herkent.
           x2 += `<path d="${kern.vlak(kp.voor.p)}" fill="#4a5a76" stroke="#cfe6ff" stroke-opacity="0.45" stroke-width="0.8"/>`;
           x2 += `<path d="${kern.vlak(kp.raam)}" fill="${kern.o.avond ? '#f3c77a' : '#8fb4d6'}" fill-opacity="${kern.o.avond ? 0.6 : 0.5}" stroke="#eef5fb" stroke-opacity="0.7" stroke-width="1"/>`;
         }

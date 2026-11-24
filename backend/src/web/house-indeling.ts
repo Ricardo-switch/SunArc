@@ -1,5 +1,5 @@
 /*
- * Het huis: een indeling voorstellen (22 november 2026, opgesplitst uit web/house.ts).
+ * Het huis: een indeling voorstellen (opgesplitst uit web/house.ts).
  *
  * Wat een kamer is uit zijn naam, de soort en of hij buiten ligt, de eerste indeling uit Home Assistant, en het
  * huis voordat het is ingericht.
@@ -25,7 +25,7 @@ const ALGEMEEN_WOORD = new Set(['kamer', 'de', 'het', 'van', 'en', 'boven', 'ben
  * hoort in de Entree. Hele woorden, en bij twee kamers de langste naam: dan wint
  * "Slaapkamer Daan" van "Slaapkamer".
  *
- * Staat de hele kamernaam er niet in, dan nog (30 oktober 2026, "Spot 1 Matts"):
+ * Staat de hele kamernaam er niet in, dan nog ("Spot 1 Matts"):
  * een woord dat alleen in de naam van die ene kamer staat ("Matts" bij
  * "Slaapkamer Matts"), of het woord voor de soort van een kamer als er maar één
  * kamer van die soort is ("Spot 1 hal" bij de Entree, die een hal is).
@@ -267,7 +267,7 @@ export function houseBeforeSetup(registers: HouseRegisters, states: ReadonlyMap<
 
 /**
  * De gebieden in Home Assistant die nog geen kamer worden, omdat er niets in
- * staat dat het huis toont (23 november 2026). Een nieuw Home Assistant heeft
+ * staat dat het huis toont. Een nieuw Home Assistant heeft
  * zulke lege gebieden vaak al; het welkom noemt ze, zodat 0 ruimtes niet lijkt
  * alsof SunArc ze niet ziet. Op de volgorde van Home Assistant.
  */

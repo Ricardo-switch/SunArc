@@ -1,5 +1,5 @@
 /*
- * SunArc: het huis zoals getekend, de apparaten buiten (22 november 2026, opgesplitst uit kit/huis-maat.js).
+ * SunArc: het huis zoals getekend, de apparaten buiten (opgesplitst uit kit/huis-maat.js).
  *
  * Lampen in de tuin, de lampjes van de border, de lantaarn, de deurbel, camera, aansluitkast, thuisaccu en het
  * zonnescherm, elk op zijn plek en in de kleur van zijn lamp.
@@ -29,7 +29,7 @@
           x2 += `<circle cx="${h[0].toFixed(1)}" cy="${h[1].toFixed(1)}" r="2.6" fill="${draait ? '#ffe2b0' : '#5c6876'}"/>`;
         } else if (a.soort === 'snoer') {
           // Lampjes langs de border: een snoer met bolletjes; aan geven ze een warm puntje licht.
-          // Zoals in het poppenhuis (22 november 2026): lampjes op een paaltje tussen de struiken, in de kleur van de lamp, met een gloed op de grond.
+          // Zoals in het poppenhuis: lampjes op een paaltje tussen de struiken, in de kleur van de lamp, met een gloed op de grond.
           const pp = a.punten ?? [];
           const lk = kern.o.lampKleur?.[a.id] ?? '#FFD39A';
           for (let i = 0; i + 1 < pp.length; i++) {
@@ -47,11 +47,11 @@
             }
           }
         } else if (a.soort === 'accu') {
-          // De thuisaccu aan de gevel naast de voordeur (22 november 2026, zoals in het poppenhuis).
+          // De thuisaccu aan de gevel naast de voordeur (zoals in het poppenhuis).
           const [nx, ny] = a.n ?? [0, -1];
           x2 += kern.zetModel('accu', Math.abs(nx) > Math.abs(ny) ? { x: a.x, y: a.y, z: 0.05, wand: 'x', kant: Math.sign(nx) } : { x: a.x, y: a.y, z: 0.05, wand: 'y', kant: Math.sign(ny) })?.s ?? '';
         } else if (a.soort === 'kast') {
-          // De aansluitkast aan de straat, met de voorkant naar de straat (22 november 2026).
+          // De aansluitkast aan de straat, met de voorkant naar de straat.
           x2 += kern.zetModel('aansluitkast', { x: a.x, y: a.y + 0.15, z: 0, wand: 'y', kant: -1 })?.s ?? '';
         } else if (a.soort === 'paal') {
           // Een lantaarn: een paal met een kap; aan een kegel licht naar de grond.
@@ -77,7 +77,7 @@
           x2 += `<circle cx="${l[0].toFixed(1)}" cy="${l[1].toFixed(1)}" r="2.4" fill="#6fd3ff"/>`;
           if (a.naam && !kern.o.stil) kern.labels.push({ x: l[0] - a.naam.length * 3.4, y: l[1] - 22, b: a.naam.length * 6.8, h: 14, prio: 2, s: `<text x="${l[0].toFixed(1)}" y="${(l[1] - 12).toFixed(1)}" text-anchor="middle" ${kern.FONT} font-size="11.5" font-weight="700" fill="#cfe6ff" paint-order="stroke" stroke="#0b1424" stroke-width="3">${kern.esc(a.naam)}</text>` });
         } else if (a.soort === 'camera') {
-          // Een camera aan een muur (20 november 2026, de camera aan de garage): een wit kastje dat uitsteekt, de lens donker;
+          // Een camera aan een muur (de camera aan de garage): een wit kastje dat uitsteekt, de lens donker;
           // met een lamp erbij (`licht`) een gloed als die aan is.
           const z = a.z ?? 2.4;
           const [n0, n1] = a.n ?? [0, -1];

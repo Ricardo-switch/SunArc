@@ -4,9 +4,9 @@
  * Weergave). Vier delen: Dit scherm (volledig scherm, alleen in Home
  * Assistant), het always-on display van de wand (besluiten 164, 165, 168 en
  * 206), Scherm uit (met de camera van Fully als bewegingsmelder) en Op je
- * startscherm (21 oktober 2026).
+ * startscherm.
  *
- * Always-on en scherm uit zijn per bewoner (Ricardo, 20 november 2026): op je
+ * Always-on en scherm uit zijn per bewoner: op je
  * eigen Jij die van jou, op de wand die van wie hij volgt. Dit scherm en op je
  * startscherm gelden alleen voor het apparaat.
  *
@@ -71,7 +71,7 @@ const ditScherm = (() => {
     return t(app.inHA() ? (startscherm?.eigenPoort ? 'functies.st.viaChrome' : 'functies.st.eerstInstellen') : 'functies.st.viaBrowser');
   }
   /**
-   * De rijen voor Jij, in twee groepen (Ricardo, 20 november 2026: alles bij
+   * De rijen voor Jij, in twee groepen (alles bij
    * Jij is persoonlijk): `wand` (always-on en scherm uit, van jou; de wand doet
    * het zo als jouw comfort geldt) en `apparaat` (dit scherm alleen in Home
    * Assistant, en op je startscherm), die alleen voor dit apparaat gelden.
@@ -108,7 +108,7 @@ const ditScherm = (() => {
   }
 
   /*
-   * Op je startscherm (21 oktober 2026). Met het eigen icoon kan alleen als
+   * Op je startscherm. Met het eigen icoon kan alleen als
    * Chrome de app installeert: over https en buiten Home Assistant, dus via de
    * eigen poort in Tailscale (besluit 160). In de app van Home Assistant wijst
    * dit de weg daarheen; staat de eigen poort nog dicht, dan de stappen, met de
@@ -201,7 +201,7 @@ const ditScherm = (() => {
   }
 
   /**
-   * Wat Fully Kiosk op dit scherm doet (29 oktober 2026): ziet de app Fully, en
+   * Wat Fully Kiosk op dit scherm doet: ziet de app Fully, en
    * kijkt de camera mee. Alleen op het scherm zelf te zien; op een telefoon
    * zegt het niets, behalve dat je het op de wand ziet.
    */
@@ -232,7 +232,7 @@ const ditScherm = (() => {
     const zin = wanneer
       ? [t('functies.uit.zin', { wanneer, n: n.aanMin }), n.melder ? t('functies.uit.beweging') : null, t('functies.uit.tik')].filter(Boolean).join(' ')
       : t('functies.uit.nooit');
-    // De camera van de wand zelf, via Fully Kiosk (29 oktober 2026), en de melders uit het huis.
+    // De camera van de wand zelf, via Fully Kiosk, en de melders uit het huis.
     const opties = `<option value="fully" ${n.melder === 'fully' ? 'selected' : ''}>${esc(t('functies.uit.camera'))}</option>${melders.map((m) => `<option value="${esc(m.id)}" ${m.id === n.melder ? 'selected' : ''}>${esc(t('functies.uit.melder', { kamer: m.kamer, naam: m.naam }))}</option>`).join('')}`;
     return `<p class="klein geen-marge" data-nk-zin>${esc(zin)}</p>
     <div class="regelrij"><div class="l"><b>${esc(t('functies.uit.snachts'))}</b><span>${esc(t('functies.uit.snachtsZin'))}</span></div>${schakel(n.nacht, 'data-nk-nacht', t('functies.uit.snachtsLabel'), !mag)}</div>
@@ -286,7 +286,7 @@ const ditScherm = (() => {
   /** Een tik in een blad: true als het hier hoorde. */
   function klik(knop) {
     if (!knop || knop.disabled) return false;
-    // Op je startscherm (21 oktober 2026): Chrome vraagt het zelf.
+    // Op je startscherm: Chrome vraagt het zelf.
     if (knop.hasAttribute('data-installeer')) {
       void app.installeer().then(() => teken());
       return true;

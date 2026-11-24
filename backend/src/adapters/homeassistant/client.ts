@@ -39,11 +39,11 @@ const READ_COMMANDS: ReadonlySet<string> = new Set([
   'assist_pipeline/pipeline/list',
   // Wie er beheerder is (besluit 161): de accounts, om achter Ingress de rol te weten.
   'config/auth/list',
-  // Wat er nieuw is in de nieuwste versie van de add-on (21 oktober 2026).
+  // Wat er nieuw is in de nieuwste versie van de add-on.
   'update/release_notes',
   // Welke versie van de integratie SunArc Home Assistant geladen heeft (besluit 184).
   'manifest/get',
-  // Of de integratie SunArc ook is toegevoegd (22 oktober 2026).
+  // Of de integratie SunArc ook is toegevoegd.
   'config_entries/get',
   // Wanneer de camera's het laatst beweging zagen (besluit 201): de historie van hun melders.
   'history/history_during_period',
@@ -57,7 +57,7 @@ const READ_WITH_FIELDS: ReadonlySet<string> = new Set(['recorder/list_statistic_
 
 /**
  * Zo lang wacht een vraag aan Home Assistant op antwoord, en een nieuwe
- * verbinding op de handdruk (22 oktober 2026). Zonder grens bleef een vraag die
+ * verbinding op de handdruk. Zonder grens bleef een vraag die
  * tijdens een herstart van Home Assistant wegviel voor altijd hangen, en een
  * verbinding die halverwege bleef steken kwam nooit terug.
  */
@@ -112,7 +112,7 @@ export interface HaClientOptions {
    */
   readonly allowCovers?: boolean;
   /**
-   * Bijwerken vanuit de app (21 oktober 2026): `update.install` op precies deze
+   * Bijwerken vanuit de app: `update.install` op precies deze
    * entiteit, de update van de eigen add-on, zonder velden. Null of weg: dicht.
    * Sinds de testerronde (november 2026) ook zoeken naar updates:
    * `homeassistant.update_entity` op dezelfde entiteit; Home Assistant laat de
@@ -172,7 +172,7 @@ export interface HaClientOptions {
   readonly allowTodo?: boolean;
   /** Wachttijd voordat een verbroken verbinding opnieuw wordt opgezet. */
   readonly reconnectBaseMs?: number;
-  /** Zo lang wacht een vraag op antwoord; weg is 20 seconden (22 oktober 2026). Kleiner in de tests. */
+  /** Zo lang wacht een vraag op antwoord; weg is 20 seconden. Kleiner in de tests. */
   readonly antwoordMs?: number;
   readonly reconnectMaxMs?: number;
 }
@@ -221,7 +221,7 @@ function isCoverCall(domain: string, service: string, data: Record<string, unkno
 }
 
 /**
- * De eigen add-on bijwerken (21 oktober 2026): `update.install` op die ene
+ * De eigen add-on bijwerken: `update.install` op die ene
  * entiteit, zonder velden; of zoeken naar updates, `homeassistant.update_entity`
  * op dezelfde entiteit (testerronde, november 2026).
  */

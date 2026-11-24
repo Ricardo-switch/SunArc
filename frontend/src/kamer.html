@@ -49,10 +49,10 @@
   .rij .chev { color: var(--gedempt); font-size: 18px; }
   .rij svg.ic { width: 22px; height: 22px; flex: none; color: var(--zacht); }
   .rij.aan svg.ic { color: var(--zon-t); }
-  /* Een rookmelder die iets ziet (21 oktober 2026). */
+  /* Een rookmelder die iets ziet. */
   .rij.alarm svg.ic, .alarm-t { color: #ff7a6b; }
   .rij.batt.leeg svg.ic, .rij.batt.leeg .naam span { color: var(--gloed-t); }
-  /* Beweging nu (15 oktober 2026): een stip met een zachte golf. */
+  /* Beweging nu: een stip met een zachte golf. */
   .beweegt { position: relative; width: 22px; height: 22px; flex: none; display: grid; place-items: center; }
   .beweegt i { width: 10px; height: 10px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px var(--mint); }
   .beweegt::before, .beweegt::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--mint); opacity: 0; animation: golfje 2.2s ease-out infinite; }
@@ -90,7 +90,7 @@
   .schuif { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; border-radius: 14px; background: linear-gradient(90deg, rgba(255, 194, 122, 0.15), rgba(255, 194, 122, 0.85)); outline: none; margin: 0; }
   .schuif::-webkit-slider-thumb { -webkit-appearance: none; width: 36px; height: 36px; border-radius: 11px; background: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); cursor: pointer; }
   .schuif::-moz-range-thumb { width: 36px; height: 36px; border-radius: 11px; background: #fff; border: 0; cursor: pointer; }
-  /* Een lamp die uit is: de schuif links en gedempt, niet vol (29 oktober 2026). */
+  /* Een lamp die uit is: de schuif links en gedempt, niet vol. */
   .schuif.uit { opacity: 0.55; }
   .schuif.wit { background: linear-gradient(90deg, #ffb46b, #fff1dc 55%, #cfe4ff); }
   .schuif:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
@@ -109,7 +109,7 @@
   .camerabeeld:fullscreen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; cursor: zoom-out; }
 
   /* De telefoon. */
-  /* Boven de tekening (28 oktober 2026): de lucht van het huis loopt erover, en ving de tik op de etages op. */
+  /* Boven de tekening: de lucht van het huis loopt erover, en ving de tik op de etages op. */
   #tel .boven { padding: 18px 18px 0; position: relative; z-index: 2; }
   #tel .temp { font-size: 52px; }
   #tel .kop .lead { font-size: 15px; }

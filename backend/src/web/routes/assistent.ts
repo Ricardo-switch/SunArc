@@ -1,7 +1,7 @@
 /**
  * De assistent: vragen, de stem, Assist en het taalmodel (besluiten 141, 148 en 184).
  *
- * Geknipt uit server.ts (besluit 180, 23 oktober 2026): letterlijk, met de
+ * Geknipt uit server.ts (besluit 180): letterlijk, met de
  * context `d` in plaats van de webserver zelf.
  */
 
@@ -155,7 +155,7 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
     }
     // Het taalmodel (besluit 148), als de bewoner er een koos; anders null.
     const model = d.options.praten?.model() ?? null;
-    // Voor eigen woorden alleen als het model snel genoeg is (29 oktober 2026); het brein vraagt het altijd.
+    // Voor eigen woorden alleen als het model snel genoeg is; het brein vraagt het altijd.
     const woorden = model && d.options.praten?.eigenWoorden?.() !== false ? model : null;
     // De assistent van Home Assistant (147) bedient niets: die schakelt zelf.
     const viaSleutel = d.metSleutel(req, url, path);
@@ -180,7 +180,7 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
       // Wat bijna goed verstaan is, recht zetten naar de namen uit het huis (besluit 211).
       else tekst = verbeter(tekst, huisNamen(d, config)) || tekst;
       vrijeTekst = tekst;
-      // Alleen geluid, of het gesprek is klaar (21 oktober 2026): geen vraag.
+      // Alleen geluid, of het gesprek is klaar: geen vraag.
       if (isRuis(tekst)) {
         sendJson(res, 200, { vraag: 'ruis', taal: lang, kamer: null, antwoord: '', feiten: [], gesproken: '' });
         return true;
@@ -324,7 +324,7 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
     let today = null;
     if ((parsed.question.kind === 'zon' || parsed.question.kind === 'vandaag' || parsed.question.kind === 'terug') && logDir != null) {
       try {
-        // Met de geschiedenis van Home Assistant waar het logboek nog niets heeft, zoals Vandaag (30 oktober 2026).
+        // Met de geschiedenis van Home Assistant waar het logboek nog niets heeft, zoals Vandaag.
         today = await d.vandaag();
       } catch {
         // Zonder dagoverzicht zegt het antwoord dat het het niet weet.
@@ -382,7 +382,7 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
     sendJson(res, 200, {
       dagen: dagen.slice(0, 7).map((x) => ({ dag: x.dag, vragen: x.vragen, fouten: x.fouten, gemiddeldMs: x.vragen > x.fouten ? Math.round(x.totaalMs / (x.vragen - x.fouten)) : null, langsteMs: x.langsteMs || null })),
       wachtMs: WACHT_MS,
-      // Eigen woorden staan even uit omdat het model te traag is (29 oktober 2026).
+      // Eigen woorden staan even uit omdat het model te traag is.
       eigenWoorden: d.options.praten?.eigenWoorden?.() ?? true,
       // De dag in het huis, zodat de pagina vandaag vindt.
       vandaag: new Intl.DateTimeFormat('en-CA', { timeZone: d.config()?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone }).format(new Date()),
@@ -573,7 +573,7 @@ export async function situatieVoor(d: Diensten, config: SiteConfig, lang: Lang):
     feiten.push(...a.feiten);
   }
   if (d.options.logDir != null) {
-    // Ook voor het brein met de geschiedenis van Home Assistant (30 oktober 2026).
+    // Ook voor het brein met de geschiedenis van Home Assistant.
     const vandaag = await d.vandaag().catch(() => null);
     const gisteren = await d.vandaag(true).catch(() => null);
     for (const [r, dag] of [[vandaag, 'vandaag'], [gisteren, 'gisteren']] as const) {

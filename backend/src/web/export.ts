@@ -244,7 +244,7 @@ async function openSettled(path: string): Promise<{ handle: FileHandle; name: st
  * Het bestand van vandaag groeit terwijl we lezen. De kop noemt de omvang van
  * het moment van openen, en daarom lezen we tot daar en niet tot het einde dat
  * er tegen die tijd is — anders loopt elk volgend bestand in het archief scheef
- * (1 oktober: `runs.ndjson` kwam onleesbaar mee). Wat erbij kwam, komt de
+ * (`runs.ndjson` kwam onleesbaar mee). Wat erbij kwam, komt de
  * volgende export mee. Een open bestand blijft leesbaar als het ondertussen
  * wordt weggehaald, dus ook de compressie kan er niet meer tussen komen.
  */

@@ -29,7 +29,7 @@ const KLANK: readonly (readonly [RegExp, string])[] = [[/\bcv\b/gi, 'cee vee']];
 /**
  * Woorden die Piper anders uitspreekt dan je ze zegt. Alleen voor Piper (en
  * andere Wyoming-stemmen): Chirp van Google las "ep" als de letters E en P, en
- * zegt "app" en "airco" zelf goed (31 oktober 2026, besluit 225).
+ * zegt "app" en "airco" zelf goed (besluit 225).
  */
 const PIPER: readonly (readonly [RegExp, string])[] = [
   [/\bairco's\b/gi, "erko's"],
@@ -86,7 +86,7 @@ export function uitspraak(tekst: string, lang: 'nl' | 'en' = 'nl', stem: string 
     if (euro === 0) return `${cent} cent`;
     return cent === 0 ? `${euro} euro` : `${euro} euro ${cent}`;
   });
-  // De komma in een getal hardop (29 oktober 2026): "21,5" klonk als "eenentwintig vijf".
+  // De komma in een getal hardop: "21,5" klonk als "eenentwintig vijf".
   s = s.replace(/(\d),(\d)/g, '$1 komma $2');
   // Eenheden achter een getal; de langste eerst.
   s = s

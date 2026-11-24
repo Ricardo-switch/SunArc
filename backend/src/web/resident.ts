@@ -155,17 +155,17 @@ const HEAD = {
     many: 'Het huis wordt geregeld',
     // Tijdens de schaduw gebeurt het niet echt (besluit 124).
     oneWould: (room: string, cool: boolean) => `${cap(room)} zou ${cool ? 'koelen' : 'verwarmen'}`,
-    // "Het huis zou regelen" las krom voor wie net begint (30 oktober 2026); de kamers eronder zeggen wat het zou doen.
+    // "Het huis zou regelen" las krom voor wie net begint; de kamers eronder zeggen wat het zou doen.
     manyWould: 'Het huis kijkt mee',
     // De schaduw wil wat er al echt gebeurt (besluit 188): zoals het in huis is.
     manyReal: (rooms: string, cool: boolean) => `${cap(rooms)} worden ${cool ? 'gekoeld' : 'verwarmd'}`,
-    // Onder de kop over één kamer de getallen, niet nog eens de kop (17 oktober 2026).
+    // Onder de kop over één kamer de getallen, niet nog eens de kop.
     numbers: (temp: string, goal: string | null) => `Het is er ${temp}°${goal != null ? `, het doel is ${goal}°` : ''}.`,
     ownSun: ' Dat kan op eigen zon.',
     waitSun: 'Het huis wacht op zon',
-    // Koelen of verwarmen naar wat de kamers willen; eerst stond er altijd koelen (25 oktober 2026).
+    // Koelen of verwarmen naar wat de kamers willen; eerst stond er altijd koelen.
     waitSunWhy: (rooms: string, many: boolean, doen: string) => `${cap(rooms)} ${many ? 'willen' : 'wil'} ${doen} zodra er genoeg zon over is.`,
-    // De zon is nog niet op, of komt vandaag niet meer genoeg (25 oktober 2026).
+    // De zon is nog niet op, of komt vandaag niet meer genoeg.
     waitSunNog: 'Nog geen zon',
     waitSunNogWhy: (rooms: string, many: boolean, doen: string) => `${cap(rooms)} ${many ? 'willen' : 'wil'} op zon ${doen} zodra de zon op is.`,
     waitSunWeg: 'Vandaag geen zon meer',
@@ -181,7 +181,7 @@ const HEAD = {
     // Zonder slimme regeling (besluit 194): geen kamers om naar te kijken.
     nothingSunNoRooms: 'De zon schijnt, en er hoeft niets te draaien.',
     nothingDarkNoRooms: 'Geen zon, en er hoeft niets te draaien.',
-    // De namen hebben hun lidwoord al (withArticle): eerst stond er "de de zolder" (31 oktober 2026).
+    // De namen hebben hun lidwoord al (withArticle): eerst stond er "de de zolder".
     and: ' en ',
     comma: ', ',
     towards: 'naar',

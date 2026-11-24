@@ -157,7 +157,7 @@ function blad() {
  * Waar iemand die erbij komt SunArc opent. In Home Assistant (de add-on)
  * is dat het paneel in Home Assistant zelf, met de inlog van Home Assistant: het
  * adres van de app binnen Home Assistant werkt alleen voor wie daar al is
- * (21 oktober 2026). Anders de inlogpagina van de app.
+ *. Anders de inlogpagina van de app.
  */
 function adresVoorErbij() {
   if (app.inHA()) {
@@ -202,7 +202,7 @@ function tekenNu() {
   // Niet onder de vinger opnieuw opbouwen terwijl iemand een naam typt.
   const actief = document.activeElement;
   if (actief?.matches?.('[data-naam], [data-schermnaam]')) return;
-  // Elk deel apart (21 oktober 2026): lukt er een niet, dan staan de andere er wel, en zegt dat deel wat er misging.
+  // Elk deel apart: lukt er een niet, dan staan de andere er wel, en zegt dat deel wat er misging.
   const deel = (sel, maak) => {
     let html;
     try {

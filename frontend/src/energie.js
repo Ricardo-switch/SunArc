@@ -118,7 +118,7 @@ const blok = (titel, inhoud) => `<div class="deelvraag">${titel ? `<h3 class="ko
 /** Of de vaste kosten op de wand over de hele breedte openstaan om aan te passen. */
 let vastBewerk = false;
 const kolommen = (links, rechts) => `<div class="kolommen"><div>${links}</div><div>${rechts}</div></div>`;
-/** Drie kolommen op de wand voor Meters: met een echt huis schoof het blad in twee (19 november 2026). */
+/** Drie kolommen op de wand voor Meters: met een echt huis schoof het blad in twee. */
 const drieKolommen = (a1, a2, a3) => `<div class="kolommen drie"><div>${a1}</div><div>${a2}</div><div>${a3}</div></div>`;
 const naamVan = (id) => eInfo?.meters?.find((m) => m.id === id)?.naam ?? id;
 
@@ -334,7 +334,7 @@ function prijzenVorm() {
   const erbij = VOORSTELLEN.filter((x) => !p.vast.some((v) => v.naam.toLowerCase() === x.naam.toLowerCase()));
   const erbijKnoppen = `<div class="meterchips">${erbij.map((x) => `<button type="button" data-vast-erbij="${esc(x.naam)}">+ ${esc(x.naam)}</button>`).join('')}<button type="button" data-vast-erbij="">${esc(t('energie.anderePost'))}</button></div>`;
   /*
-   * Vaste kosten op de wand (19 november 2026): met zes posten schoof het blad
+   * Vaste kosten op de wand: met zes posten schoof het blad
    * 553 punten. Daarom een regel per post, en Aanpassen zet ze over de hele
    * breedte, in twee kolommen. Op de telefoon blijft alles onder elkaar.
    */
@@ -463,7 +463,7 @@ function tekenNu() {
     verwarming: () => (a ? verwarmingVorm() : wacht),
   }[nu]?.() ?? wacht;
   // Een eigen voorvoegsel per scherm voor de namen in de tekening van boven (besluit 254): wand en telefoon staan allebei in de pagina.
-  // Wat schuift (de rechterkolom van Daken en panelen) houdt zijn plek bij opnieuw tekenen (6 november 2026).
+  // Wat schuift (de rechterkolom van Daken en panelen) houdt zijn plek bij opnieuw tekenen.
   $$('[data-vorm]').forEach((el, i) => {
     const plek = [...el.querySelectorAll('.pan-rechts')].map((x) => x.scrollTop);
     el.innerHTML = vorm.replaceAll('dkid-', `dk${i}-`);
@@ -543,9 +543,9 @@ function bewaarDaken(w) {
     const omgeving = w.omgeving ?? d.tekening?.omgeving ?? [];
     // Wat elke omvormer hooguit levert (stap 4): wat de bewoner invulde blijft staan.
     const grenzen = w.grenzen ?? a.daken?.grenzen ?? {};
-    // Wat de kaarten zeiden (6 november 2026) blijft staan tot de bewoner opnieuw kijkt.
+    // Wat de kaarten zeiden blijft staan tot de bewoner opnieuw kijkt.
     const kaartStand = w.kaartStand ?? a.daken?.kaartStand ?? d.kaartStand ?? null;
-    // Het dak uit 3D BAG (6 november 2026): zolang het hoofdhuis uit 3D BAG komt.
+    // Het dak uit 3D BAG: zolang het hoofdhuis uit 3D BAG komt.
     const uitBag = gebouwen.some((g) => g.soort === 'hoofdhuis' && g.bron === 'kaart' && g.kaart === 'bag3d');
     const kaartDak = !uitBag ? null : w.kaartDak !== undefined ? w.kaartDak : (a.daken?.kaartDak ?? d.kaartDak ?? null);
     a.daken = w.vlakken.length || gebouwen.length ? { vlakken: w.vlakken, voorgevelDeg: d.voorgevelDeg, omvormerW: d.omvormerW, gebouwen, omgeving, ...(Object.keys(grenzen).length ? { grenzen } : {}), ...(kaartStand ? { kaartStand } : {}), ...(kaartDak?.length ? { kaartDak } : {}) } : null;
@@ -581,7 +581,7 @@ document.addEventListener('click', async (ev) => {
   // De dakvlakken in de tekening van boven zijn geen knoppen, maar wel aan te tikken (besluit 254).
   const knop = ev.target.closest('button, [data-dak-dakvlak]');
   if (!knop || knop.disabled) return;
-  // Het vraagteken bij Daken en panelen (Ricardo, 5 november 2026): de rondleiding opnieuw, zoals op Thuis.
+  // Het vraagteken bij Daken en panelen: de rondleiding opnieuw, zoals op Thuis.
   if (knop.hasAttribute('data-dak-uitleg')) {
     if (dakStaat.scherm !== 'alle') {
       Object.assign(dakStaat, { scherm: 'alle', concept: null, origineel: null });

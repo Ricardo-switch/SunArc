@@ -109,7 +109,7 @@
     }
   }
   /**
-   * Per stand een vaste helderheid, in procenten (21 oktober 2026): de
+   * Per stand een vaste helderheid, in procenten: de
    * avondstand zijn eigen, overdag en in de app die van de dag. Eerst onthield
    * de pagina wat er was en zette ze dat terug; laadde de wand intussen een
    * andere pagina, dan bleef het scherm de ochtend erna gedimd.
@@ -223,7 +223,7 @@
       el.innerHTML = `<div class="nk-uit">${esc(t(instelling.melder ? 'niemand.uit' : 'niemand.uitTik'))}</div>`;
       return;
     }
-    // Een nieuwe versie die klaarstaat (21 oktober 2026): ook als niemand kijkt.
+    // Een nieuwe versie die klaarstaat: ook als niemand kijkt.
     const update = global.app.updateKlaar?.() ?? null;
     if (toont === 'avond') {
       const morgen = morgenZin();
@@ -270,7 +270,7 @@
       etages: model.etages.map((et) => ({ ...et, kamers: et.kamers.map((k) => ({ ...k, stil: true, ...(nacht ? { stand: undefined } : {}) })) })),
       // 's Nachts zoals de schets: donker, zonder zon, wolken of stromen.
       ...(nacht ? { beschrijving: t('niemand.beschrijving'), tijd: 'nacht', wolken: 0, zon: { ...model.zon, aandeel: 0, stand: undefined, hoogte: undefined }, stromen: [] } : {}),
-      // Overdag de ring van de zon rond het huis (29 oktober 2026, besluit 205): hier staan geen labels of kop op het huis.
+      // Overdag de ring van de zon rond het huis (besluit 205): hier staan geen labels of kop op het huis.
       ...(!nacht && model.zon ? { zon: { ...model.zon, ...(global.huismodel?.zonNu?.(bron?.zon?.()) ?? {}) } } : {}),
     };
     const breed = nacht ? 600 : 720;
@@ -278,7 +278,7 @@
     // Het huis zoals getekend (src/huisthuis.js) als die aan staat, met overdag de zonneboog; anders het poppenhuis.
     const opnieuw = () => toont && tekenHuis(laag().querySelector('[data-nk-huis]'));
     if (global.huisThuis?.teken(vak, stil, { soort: 'rust', breedte: breed, hoogte: hoog, huisData: bron?.huis?.() ?? null, avond: nacht, opnieuw })) return;
-    // Het poppenhuis laadt pas als het nodig is (23 november 2026); dan tekent opnieuw.
+    // Het poppenhuis laadt pas als het nodig is; dan tekent opnieuw.
     if (global.huisThuis && !global.huisThuis.poppenhuis(opnieuw)) return;
     global.huis?.teken(vak, stil, { breedte: breed, hoogte: hoog, marge: 0.04 });
   }
@@ -295,7 +295,7 @@
       } catch {
         // Dan rust Thuis na de gewone tijd.
       }
-      // Eerst de toegang van Home Assistant vasthouden, anders een 401 (21 oktober 2026).
+      // Eerst de toegang van Home Assistant vasthouden, anders een 401.
       void global.app.houToegang().finally(() => (location.href = 'thuis.html'));
       return;
     }
@@ -333,7 +333,7 @@
   }
 
   /*
-   * Fully Kiosk (29 oktober 2026). De camera van de wand als bewegingsmelder
+   * Fully Kiosk. De camera van de wand als bewegingsmelder
    * (melder `fully`), en het scherm dat aangaat zonder de app: door de eigen
    * bewegingsdetectie van Fully of de aan-knop. Dan de klok, geen zwarte
    * pagina. Fully voert de code van bind() uit in de bovenste pagina; in Home
@@ -450,7 +450,7 @@
     } catch {
       // Geen sessionStorage.
     }
-    // Na een nieuwe pagina de helderheid van nu, ook als er niets wisselt (21 oktober 2026).
+    // Na een nieuwe pagina de helderheid van nu, ook als er niets wisselt.
     if (!toont) helderheid('app');
     if (scherm) bindFully();
     kijk();

@@ -4,7 +4,7 @@
  * wat er aan de cv hangt, met welke sensor de kamer meet, en of een zone apart
  * regelt. Eerst stond dit bij Kamers en indeling, als tab Verwarmen en koelen;
  * het verhuisde mee naar het blad van de kamer bij Klimaat (stap 3 van de
- * kwaliteitsronde, 17 november 2026).
+ * kwaliteitsronde).
  *
  * De pagina geeft wat ze weet in `ctx`: de indeling (`info`, uit api/indeling),
  * het huis (`huis`, uit api/huis), de verwarming uit Energie, de gekozen kamer
@@ -80,7 +80,7 @@
     const AAN_KEUZE = ['thermostaat', 'knop', 'stekker', 'hand'].map((a) => [a, t(`indeling.aan.${a}`)]);
     /** Het formulier van een bron, of null. */
     let bronVorm = null;
-    /** De zone waar Eigen regeling werd getikt zonder klimaatapparaat erin: daar staat de uitleg (12 november 2026). */
+    /** De zone waar Eigen regeling werd getikt zonder klimaatapparaat erin: daar staat de uitleg. */
     let zoneUitleg = null;
     /** Meten en regeling open (besluit 317): op de wand past het blad zo zonder scrollen. */
     let metenOpen = false;
@@ -147,7 +147,7 @@
       return c.length ? c.reduce((s, x) => s + x, 0) / c.length : null;
     }
     /**
-     * Wat ervoor zorgt, per zone (zones als deel van de kamer, schets Wand-Klimaat-Subzone, 18 november 2026):
+     * Wat ervoor zorgt, per zone (zones als deel van de kamer, schets Wand-Klimaat-Subzone):
      * een kop met de naam en wat daar gemeten wordt, en rechts met de kamer mee of een eigen temperatuur.
      * Een eigen temperatuur kan alleen met een klimaatapparaat in die zone, zoals een radiatorknop.
      */
@@ -308,7 +308,7 @@
         const wat = toestellen.length ? toestellen.map((a) => a.naam).join(', ') : t('indeling.zone.geenKnop');
         const temp = eigen && reg?.temperatuurC != null ? `<span class="zone-temp">${nl(reg.temperatuurC)}°${reg.doelC != null ? ` · ${esc(t('indeling.zone.doel', { c: nl(reg.doelC) }))}` : ''}</span>` : '';
         const seg = `<div class="keuze" role="group" aria-label="${esc(t('indeling.zone.regeling', { naam: z.naam }))}"><button type="button" aria-pressed="${!eigen}" data-zone-regeling="${esc(z.id)}" data-waarde="kamer">${esc(t('indeling.zone.metKamer'))}</button><button type="button" aria-pressed="${eigen}" data-zone-regeling="${esc(z.id)}" data-waarde="eigen"${toestellen.length ? '' : ' data-leeg aria-describedby="zone-uitleg-' + esc(z.id) + '"'}>${esc(t('indeling.zone.eigen'))}</button></div>`;
-        // Zonder klimaatapparaat in de zone kan het nog niet: een tik zegt waarom en wat je doet (Ricardo, 12 november 2026).
+        // Zonder klimaatapparaat in de zone kan het nog niet: een tik zegt waarom en wat je doet.
         const uitleg = !toestellen.length && zoneUitleg === `${k.id}/${z.id}` ? `<p class="zone-uitleg" id="zone-uitleg-${esc(z.id)}" role="status">${esc(t('indeling.zone.nogNiet', { naam: z.naam }))}</p>` : '';
         return `<div class="zone-regel"><div class="zone-kop"><b>${esc(z.naam)}</b>${temp}</div><span class="mini">${esc(wat)}</span>${seg}${uitleg}</div>`;
       });
@@ -393,7 +393,7 @@
       } else if (v.aan !== 'hand' && v.apparaat) b.apparaat = v.apparaat;
       if (huismodel.isElektrischSlim(b) && w >= 50) b.vermogenW = Math.round(w);
       if (v.opZon && b.vermogenW) b.opZon = true;
-      // Waar hij hangt, als de kamer zones heeft (zones als deel van de kamer, 18 november 2026).
+      // Waar hij hangt, als de kamer zones heeft (zones als deel van de kamer).
       if (v.zone && (k.zones ?? []).some((z) => z.id === v.zone)) b.zone = v.zone;
       return b;
     }

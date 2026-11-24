@@ -411,7 +411,7 @@
     }
     half = '';
     halfKeer = 0;
-    // Alleen geluid: zoals niets gezegd (21 oktober 2026).
+    // Alleen geluid: zoals niets gezegd.
     if (uit.ruis) return verwerk('');
     // "Oké bedankt" of "dat was het": iets terug zeggen en niet verder luisteren.
     if (uit.klaar) {

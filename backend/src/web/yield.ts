@@ -304,7 +304,7 @@ function sumBy(rows: Rows, ids: readonly string[]): Map<number, number> {
 
 /**
  * Opgewekt per uur of dag: de omvormer waar hij een statistiek heeft, anders
- * de zonnemeter (5 november 2026). Het vermogen van een omvormer staat er vaak
+ * de zonnemeter. Het vermogen van een omvormer staat er vaak
  * pas sinds hij gekoppeld is (bij Ricardo 1 oktober 2026): alleen de omvormer
  * gaf over een contractjaar 212 kWh in plaats van 3.700, en 0% zon.
  */
@@ -494,7 +494,7 @@ export async function yieldReport(
   const afname = vakken.afname;
   const terug = vakken.terug;
   const stap = fine === 'hour' ? 3_600_000 : 86_400_000;
-  // Opgewekt uit de omvormers als die er zijn (Ricardo, 5 november 2026): een
+  // Opgewekt uit de omvormers als die er zijn: een
   // zonnemeter in kWh kan achterlopen; zelf gebruikt kan per uur nooit meer zijn
   // dan wat hij zegt. Zonder omvormer de zonnemeter, zoals altijd.
   const uitOmvormer = await (source.opgewekt?.(range.startMs, range.endMs, fine) ?? Promise.resolve(null)).catch(() => null);
@@ -766,7 +766,7 @@ async function compareSeries(source: EnergySource, s: EnergySettings, kind: Peri
   const ids = [...new Set([...s.net.afname, ...s.net.teruglevering, ...s.zon, ...(s.gas ? [s.gas] : []), ...(dyn ? [...dyn.afname, ...dyn.terug, ...(dyn.gas ? [dyn.gas] : [])] : []), ...(s.accu ? [...s.accu.geladen, ...s.accu.geleverd] : [])])];
   const from = kind === 'jaar' ? starts[0]!.ms : yearBack(starts[0]!.ms);
   const rows = await source.changes(ids, from, range.endMs, period);
-  // Opgewekt uit de omvormers per dag, als die er zijn (5 november 2026).
+  // Opgewekt uit de omvormers per dag, als die er zijn.
   const uitOmvormer = await (source.opgewekt?.(from, range.endMs, 'day') ?? Promise.resolve(null)).catch(() => null);
   const sums = { afname: sumBy(rows, s.net.afname), terug: sumBy(rows, s.net.teruglevering), zon: opgewektPerVak(sumBy(rows, s.zon), uitOmvormer), gas: s.gas ? sumBy(rows, [s.gas]) : new Map<number, number>() };
   // De thuisaccu (besluit 272): het verbruik is ook wat eruit kwam, min wat erin ging.

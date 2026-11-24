@@ -1,5 +1,5 @@
 /*
- * SunArc: je huis tekenen, wat de kaarten vinden en het dak (22 november 2026, opgesplitst uit kit/huistekenen.js).
+ * SunArc: je huis tekenen, wat de kaarten vinden en het dak (opgesplitst uit kit/huistekenen.js).
  *
  * Het afdak van de 3D-kaart, een gebouw op maat, de muren tegen de buren, en het dak met de dakkapellen: de
  * maat van het dak, wat lager is dan 1,5 m, en een dakkapel bewaren.
@@ -78,7 +78,7 @@
        * van de straat af gezien. Buiten en zonder hoofdhuis: geen.
        */
       const buurMuren = () => {
-        // Het hoofdhuis zoals deze etage het heeft: boven het afdak korter (20 november 2026).
+        // Het hoofdhuis zoals deze etage het heeft: boven het afdak korter.
         const h = kern.etageVan(kern.st.etage)?.blokken?.find((x) => x.soort === 'hoofdhuis') ?? kern.hoofdBlok();
         const kanten = kern.huis.woning?.soort === 'vrijstaand' ? [] : (kern.huis.woning?.buren ?? []);
         if (!h || !kanten.length || kern.etageVan(kern.st.etage)?.buiten) return [];

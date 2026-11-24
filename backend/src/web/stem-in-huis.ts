@@ -1,5 +1,5 @@
 /*
- * Helemaal in huis (28 oktober 2026, besluit 203): verstaan en praten op je
+ * Helemaal in huis (besluit 203): verstaan en praten op je
  * eigen Home Assistant, met Whisper, Piper en openWakeWord. Die drie add-ons
  * installeert de bewoner zelf: de knop opent hun pagina in Home Assistant, en
  * SunArc krijgt er geen extra rechten voor. Staan ze erin, dan doet de

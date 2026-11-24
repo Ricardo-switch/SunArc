@@ -1,7 +1,7 @@
 /**
  * Camera's en de deurbel (besluiten 106, 109 en 182).
  *
- * Geknipt uit server.ts (besluit 180, 23 oktober 2026): letterlijk, met de
+ * Geknipt uit server.ts (besluit 180): letterlijk, met de
  * context `d` in plaats van de webserver zelf.
  */
 
@@ -26,7 +26,7 @@ export async function cameraRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
 
   // De kaart Camera's (besluit 201): de camera's met wat ze nu zien of wanneer het laatst.
   if (path === '/api/cameras') {
-    // Bij Apparaten (20 november 2026): alle camera's, met hoe vaak ze vandaag iets zagen.
+    // Bij Apparaten: alle camera's, met hoe vaak ze vandaag iets zagen.
     const lijst = url.searchParams.get('alle') === '1' ? (d.options.camerasAlle?.() ?? []) : (d.options.cameras?.() ?? []);
     sendJson(res, 200, { aan: lijst.length > 0, cameras: lijst });
     return true;
@@ -51,7 +51,7 @@ export async function cameraRoute(d: Diensten, req: IncomingMessage, res: Server
   }
   // Meteen luisteren of de kijker ophangt, nog vóór het wachten op de inlog: een
   // luisteraar die later komt, hoort het niet meer, en dan liep de stroom bij
-  // Home Assistant door zonder kijker (16 oktober 2026).
+  // Home Assistant door zonder kijker.
   const stop = new AbortController();
   res.on('close', () => stop.abort());
   if (access.kind === 'sessions' && (await access.store.visitor(cookieValue(req, SESSION_COOKIE))) == null) {
@@ -64,7 +64,7 @@ export async function cameraRoute(d: Diensten, req: IncomingMessage, res: Server
     return;
   }
   const live = url.searchParams.get('live') === '1';
-  // Aanbellen gaat voor (25 oktober 2026): een telefoon met een camera open mag de deurbel niet blokkeren.
+  // Aanbellen gaat voor: een telefoon met een camera open mag de deurbel niet blokkeren.
   const bel = url.searchParams.get('bel') === '1';
   if (live && d.liveStreams >= (bel ? 8 : 4)) {
     sendJson(res, 429, { fout: 'er kijken al vier schermen mee; probeer het zo nog eens' });

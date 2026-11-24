@@ -62,13 +62,13 @@ export interface Fuse {
 
 export interface FoundPhase {
   readonly id: 'L1' | 'L2' | 'L3';
-  /** De stroommeter (A); zonder die het vermogen op de fase (W, 23 november 2026). Eén van de twee. */
+  /** De stroommeter (A); zonder die het vermogen op de fase (W). Eén van de twee. */
   readonly current?: string;
   readonly power?: string;
   readonly voltage?: string;
 }
 
-/** Een meter op één fase om uit te kiezen (23 november 2026): stroom in A of vermogen in W. */
+/** Een meter op één fase om uit te kiezen: stroom in A of vermogen in W. */
 export interface FoundPhaseMeter {
   readonly id: string;
   readonly naam: string;
@@ -78,7 +78,7 @@ export interface FoundPhaseMeter {
   readonly waarde: number | null;
 }
 
-/** De keuze van de bewoner: per fase welke meter (23 november 2026). */
+/** De keuze van de bewoner: per fase welke meter. */
 export type FaseKeuze = Partial<Record<FoundPhase['id'], string>>;
 
 export type ApplianceKind = 'droger' | 'wasmachine' | 'vaatwasser' | 'apparaat';
@@ -137,7 +137,7 @@ export interface ConnectionAnswers {
   readonly daken?: Daken | null;
   /** De stroommeters zoals bij het bewaren gevonden, zodat de regeling ze bij het starten kent. */
   readonly fasen: readonly FoundPhase[];
-  /** Per fase de meter die de bewoner koos (23 november 2026); weg is wat de dienst vond. */
+  /** Per fase de meter die de bewoner koos; weg is wat de dienst vond. */
   readonly faseKeuze?: FaseKeuze;
   readonly apparaten: readonly (FoundAppliance & { readonly opZon: boolean })[];
   /**
@@ -227,7 +227,7 @@ export function findPhases(states: Iterable<HaEntityState>): FoundPhase[] {
     return pool.length === 1 ? pool[0]!.entity_id : null;
   };
   /*
-   * Zonder stroommeter het vermogen op die fase (23 november 2026): een
+   * Zonder stroommeter het vermogen op die fase: een
    * HomeWizard P1 zet zijn stroom per fase in Home Assistant standaard uit, het
    * vermogen per fase niet. Alleen van de netmeter zelf: het vermogen per fase
    * van een laadpaal zegt niets over de aansluiting.
@@ -248,7 +248,7 @@ export function findPhases(states: Iterable<HaEntityState>): FoundPhase[] {
 }
 
 /**
- * Elke meter op één fase om uit te kiezen (23 november 2026): de stroom in A en
+ * Elke meter op één fase om uit te kiezen: de stroom in A en
  * het vermogen in W, eerst die van de netmeter. Voor de keuze per fase bij
  * Energie › Aansluiting.
  */
@@ -712,7 +712,7 @@ export function validateConnection(
   if (!Array.isArray(omvRaw) || omvRaw.length > 8 || omvRaw.some((x) => !bekend(x)) || new Set(omvRaw).size !== omvRaw.length) {
     return { ok: false, reden: 'de omvormers zijn tot acht verschillende sensoren met een vermogen' };
   }
-  // Per fase een meter (23 november 2026): een stroom- of vermogensmeter op die fase; leeg is wat de dienst vindt.
+  // Per fase een meter: een stroom- of vermogensmeter op die fase; leeg is wat de dienst vindt.
   const keuzeRaw = b['faseKeuze'] === undefined ? (vorige?.faseKeuze ?? {}) : (b['faseKeuze'] ?? {});
   if (typeof keuzeRaw !== 'object' || Array.isArray(keuzeRaw)) return { ok: false, reden: 'de keuze per fase is een object met L1, L2 en L3' };
   const faseKeuze: FaseKeuze = {};
@@ -987,7 +987,7 @@ export interface DakenView {
   /** Wat de meting over het hoofddak zegt (besluit 157), om per vlak naast te leggen. */
   readonly meting: readonly { readonly azimuthDeg: number; readonly tiltDeg: number; readonly peakW: number }[] | null;
   /** De meters om uit te kiezen: alleen de omvormers die bij Omvormers en meters
-   * gekozen zijn (Ricardo, 5 november 2026), met hun naam en wat ze hooguit
+   * gekozen zijn, met hun naam en wat ze hooguit
    * leveren (stap 4): zelf ingevuld, uit het typenummer, of onbekend.
    */
   readonly meters: readonly { readonly id: string; readonly naam: string; readonly grensW: number | null; readonly grensBron: 'zelf' | 'type' | null }[];
@@ -1003,7 +1003,7 @@ export interface DakenView {
   readonly tekening: Tekening;
   /** Kan SunArc de omtrek uit de kaart halen (is de plek van het huis bekend)? */
   readonly kaart: boolean;
-  /** Ligt het huis in Nederland (3D BAG)? In huis nagegaan, zonder iets te vragen (6 november 2026). */
+  /** Ligt het huis in Nederland (3D BAG)? In huis nagegaan, zonder iets te vragen. */
   readonly nederland: boolean;
   /** Wat de kaarten zeiden, de laatste keer dat de bewoner keek; null als hij nog niet keek. */
   readonly kaartStand: KaartStand | null;
@@ -1058,7 +1058,7 @@ export interface ConnectionContext {
   readonly applied: Pick<Applied, 'toegevoegd' | 'overgeslagen'>;
   /** Zei de bewoner bij Inrichten dat het huis een plat dak heeft (issue 143)? */
   readonly huisPlat?: boolean;
-  /** Ligt het huis in Nederland, voor 3D BAG (6 november 2026)? */
+  /** Ligt het huis in Nederland, voor 3D BAG? */
   readonly nederland?: boolean;
   /** De netmeter en de omvormers in de configuratie waarmee de regeling draait. */
   readonly inGebruik?: { readonly netmeter: Netmeter | null; readonly omvormers: readonly string[] };
@@ -1142,7 +1142,7 @@ export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): Connect
     configuratie: {
       zekering: grid && grid.phases.length > 0 ? { fasen: grid.phases.length === 3 ? 3 : 1, ampere: grid.phases[0]!.maxA } : null,
       apparaten: [...(c.base.deferrables ?? []), ...(c.base.heatStores ?? [])].map((d) => ({ id: d.id, naam: d.name })),
-      // Met de hand een komma: Node in de add-on kent alleen Engelse getallen (10 november 2026).
+      // Met de hand een komma: Node in de add-on kent alleen Engelse getallen.
       panelen: planes.map((pl) => `${lang === 'nl' ? String(Math.round(pl.peakW / 100) / 10).replace('.', ',') : String(Math.round(pl.peakW / 100) / 10)} kWp ${compass(pl.azimuthDeg, lang)}, ${Math.round(pl.tiltDeg)}°`),
     },
     zonnesensor: c.solar

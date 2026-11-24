@@ -24,7 +24,7 @@
  * en Straks; is er niemand thuis, die van de hoofdgebruiker. Wie nog geen
  * kleur koos, krijgt er een op volgorde. Wat de wand doet als niemand kijkt
  * (always-on display en scherm uit) is sinds stap 4 punt 2 ook per bewoner
- * (Ricardo, 20 november 2026: alles bij Jij is persoonlijk): de wand volgt
+ * (alles bij Jij is persoonlijk): de wand volgt
  * wie geldt. Zonder bewoners blijft het van de wand.
  *
  * Alles staat in één eigen bestand naast de dataset en gaat mee in de
@@ -48,7 +48,7 @@ export type KaartId = (typeof KAARTEN)[number];
 
 /** De kaarten die op de wand kunnen. De kamers staan daar in het huis, Straks komt vanzelf. */
 export const WAND_KAARTEN: readonly KaartId[] = ['favorieten', 'vandaag', 'apparaat', 'gevoel', 'morgen', 'auto', 'batterij', 'maand', 'deurbel', 'boiler', 'sluip', 'fasen', 'tedoen'];
-/** Twaalf favorieten, vier per pagina (21 oktober 2026; eerst vier, besluit 162). */
+/** Twaalf favorieten, vier per pagina (eerst vier, besluit 162). */
 export const MAX_FAVORIETEN = 12;
 
 /** Zo staat Thuis erbij zolang niemand iets koos: zoals het was, met Favorieten onder de kamers. */
@@ -70,7 +70,7 @@ export interface Weergave {
   readonly groteLetters: boolean;
   /** Geen lopende stromen en geen ademende bol. */
   readonly minderBeweging: boolean;
-  /** Het seizoen in het huis: herfstbladeren, kale bomen in de winter (25 oktober 2026). */
+  /** Het seizoen in het huis: herfstbladeren, kale bomen in de winter. */
   readonly seizoen: boolean;
   /** Het weer rond het huis: regen en sneeuw. */
   readonly weer: boolean;
@@ -78,7 +78,7 @@ export interface Weergave {
   readonly feestdagen: boolean;
   /** De baan van de zon rond het huis, met de uren, opkomst en ondergang (besluit 205); de zon zelf staat er altijd. */
   readonly zonnebaan: boolean;
-  /** Het huis zoals getekend in Je huis (21 november 2026, de nieuwe tekenaar), standaard aan sinds 0.218.0 (Ricardo); uit: het poppenhuis. */
+  /** Het huis zoals getekend in Je huis (de nieuwe tekenaar), standaard aan sinds 0.218.0 (Ricardo); uit: het poppenhuis. */
   readonly getekend: boolean;
 }
 export const STANDAARD_WEERGAVE: Weergave = { eenvoudig: false, groteLetters: false, minderBeweging: false, seizoen: true, weer: true, feestdagen: true, zonnebaan: true, getekend: true };
@@ -116,7 +116,7 @@ export interface Niemand {
   readonly dag: boolean;
   readonly avond: boolean;
   /**
-   * Hoe fel het scherm is, in procenten (21 oktober 2026): overdag (ook als
+   * Hoe fel het scherm is, in procenten: overdag (ook als
    * iemand de app gebruikt) en in de avondstand. Eerst zette de avondstand
    * de helderheid laag en onthield de pagina wat er was; laadde de wand
    * intussen een andere pagina, dan bleef hij ook de ochtend erna zo laag.
@@ -127,7 +127,7 @@ export interface Niemand {
   readonly helderAvond: number;
   /**
    * De bewegingsmelder die het display aanzet, of null. `fully` is de camera
-   * van de wand zelf, via Fully Kiosk (29 oktober 2026): die ziet de dienst
+   * van de wand zelf, via Fully Kiosk: die ziet de dienst
    * niet, de pagina op de wand hoort het van Fully.
    */
   readonly melder: string | null;
@@ -211,7 +211,7 @@ export interface VoorkeurenView {
    */
   readonly wand: { readonly kaarten: readonly KaartId[]; readonly breed: readonly KaartId[]; readonly favorieten: readonly Favoriet[]; readonly cameras: readonly string[] | null; readonly magAanpassen: boolean; readonly niemand: Niemand; readonly kleur: Kleur; readonly van: string | null; readonly naam: string | null; readonly eigen: boolean;
     /**
-     * Wat de wand overneemt van wie hij volgt (25 oktober 2026): de weergave, het
+     * Wat de wand overneemt van wie hij volgt: de weergave, het
      * thema en de taal van diens account, net als de kaarten en de kleur. Null
      * zonder bewoners: dan die van het scherm zelf.
      */

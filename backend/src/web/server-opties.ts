@@ -214,12 +214,12 @@ export interface WebOptions {
    * (besluit 154). Gaat mee in het antwoord van `api/onboarding`.
    */
   readonly welkomHuis?: () => HouseReport | null;
-  /** De gebieden in Home Assistant waar nog niets in staat, voor het welkom (23 november 2026). */
+  /** De gebieden in Home Assistant waar nog niets in staat, voor het welkom. */
   readonly welkomLegeRuimtes?: () => string[];
   /**
    * Het vermogen van de panelen en het net per vijf minuten uit de statistiek
    * van Home Assistant, voor de kwartieren van Vandaag die het eigen logboek
-   * nog niet heeft (17 oktober 2026). Null als die statistiek er niet is.
+   * nog niet heeft. Null als die statistiek er niet is.
    */
   readonly historie?: (vanMs: number, totMs: number) => Promise<{ zon: readonly PowerRow[]; net: readonly PowerRow[] } | null>;
   /** De opbrengst per dakvlak over een periode (besluit 254, stap 5), of null zonder daken. */
@@ -322,7 +322,7 @@ export interface WebOptions {
    * nu ziet of wanneer het laatst; de deurbel met wanneer er werd aangebeld.
    */
   readonly cameras?: () => readonly CameraNu[];
-  /** Alle camera's uit Home Assistant, voor Apparaten (20 november 2026): ook die niet op Thuis staan, met vandaag. */
+  /** Alle camera's uit Home Assistant, voor Apparaten: ook die niet op Thuis staan, met vandaag. */
   readonly camerasAlle?: () => readonly CameraApparaat[];
   /**
    * Het profiel (besluit 181): de bewoners op volgorde en wiens comfort geldt,
@@ -395,7 +395,7 @@ export interface WebOptions {
     readonly bedienen: () => boolean;
     /** Hoeveel vragen er per dag naar het model gingen en hoe snel (besluit 213), nieuwste dag eerst. */
     readonly teller?: () => Promise<readonly Dagtelling[]>;
-    /** Of eigen woorden nu lonen, of dat het model te traag is (29 oktober 2026); weg is altijd. */
+    /** Of eigen woorden nu lonen, of dat het model te traag is; weg is altijd. */
     readonly eigenWoorden?: () => boolean;
   };
   /**
@@ -415,7 +415,7 @@ export interface WebOptions {
    */
   readonly version?: Version;
   /**
-   * Of melden uit de app op pauze staat (14 november 2026). Weglaten geeft wat
+   * Of melden uit de app op pauze staat. Weglaten geeft wat
    * `MELDEN_PAUZE` in version.ts zegt, en dat alleen voor de add-on; een test zet het uit om het meldblad zelf
    * te blijven bewaken.
    */
@@ -425,7 +425,7 @@ export interface WebOptions {
    * niet gaf. Alleen voor de stand van de zon (besluit 93).
    */
   readonly location?: () => Location | null;
-  /** De omtrek van het huis op de kaart (21 oktober 2026); anders OpenStreetMap. Voor de tests. */
+  /** De omtrek van het huis op de kaart; anders OpenStreetMap. Voor de tests. */
   readonly omtrek?: (latDeg: number, lonDeg: number) => Promise<readonly Punt[] | null>;
   /**
    * De precieze plek van het huis uit Home Assistant (besluit 254, stap 2a),
@@ -435,10 +435,10 @@ export interface WebOptions {
   readonly exacteLocatie?: () => Promise<Location | null>;
   /** Het antwoord van OpenStreetMap voor een vak van het raster; anders Overpass. Voor de tests. */
   readonly kaartAntwoord?: (latDeg: number, lonDeg: number) => Promise<unknown>;
-  /** Het kaartvak van 3D BAG (5 november 2026); anders het echte. Null: geen vak. Voor de tests. */
+  /** Het kaartvak van 3D BAG; anders het echte. Null: geen vak. Voor de tests. */
   readonly bagVak?: (latDeg: number, lonDeg: number) => Promise<CityJson | null>;
   /**
-   * Bijwerken vanuit de app (21 oktober 2026): wat er klaarstaat en wat er nieuw
+   * Bijwerken vanuit de app: wat er klaarstaat en wat er nieuw
    * is, en de add-on bijwerken. Alleen in de add-on.
    */
   readonly bijwerken?: {

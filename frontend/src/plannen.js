@@ -82,7 +82,7 @@
     return ms > Date.now() ? t('gp.vandaagOm', { klok: klok(ms) }) : t('gp.morgenRond', { klok: klok(ms + 86_400_000) });
   }
 
-  /** De kamer van de scènes in een geplande taak ("Slaapkamer"); leeg zonder scène (8 november 2026). */
+  /** De kamer van de scènes in een geplande taak ("Slaapkamer"); leeg zonder scène. */
   /** Staat de kamer al in de naam ("Scène Woonkamer Avond"), dan niet nog eens. */
   const inNaam = (g, kamer) => (g.tekst ?? '').toLowerCase().includes(kamer.toLowerCase());
   const sceneKamer = (g) => [...new Set((g.scenes ?? []).map((s) => s.kamer))].filter((k) => !inNaam(g, k)).join(', ');
@@ -103,7 +103,7 @@
   /*
    * Elke boog een eigen naam voor zijn kleurverloop: Te doen tekent hem op de
    * wand en op de telefoon, en met dezelfde naam pakte de telefoon het verloop
-   * uit het verborgen wanddeel. Dan bleef de boog weg (2 november 2026).
+   * uit het verborgen wanddeel. Dan bleef de boog weg.
    */
   let boogNr = 0;
   function boog(lijst, o, zon) {

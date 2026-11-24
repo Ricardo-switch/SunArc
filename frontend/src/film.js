@@ -428,7 +428,7 @@
   }
 
   /*
-   * De film als trailer (25 oktober 2026): acht shots op de maat, elk met een
+   * De film als trailer: acht shots op de maat, elk met een
    * camera die van een begin naar een eind beweegt. Een camera is [vergroting,
    * [px, py], [qx, qy]]: het punt p van de tekening (als deel van het scherm)
    * komt op plek q van het scherm. Een shot zonder zijn cijfer valt weg; zo
@@ -507,7 +507,7 @@
   const VERLOOP = 'linear-gradient(90deg, rgba(5, 10, 20, 0.72) 0%, rgba(5, 10, 20, 0.35) 38%, rgba(5, 10, 20, 0) 60%)';
   const STIJL = `
     .film { position: fixed; inset: 0; z-index: 90; color: var(--tekst); background: #050a14; overflow: hidden; }
-    /* De film is altijd donker, ook in het lichte thema (29 oktober 2026): anders donkere letters op een donkere kaart. */
+    /* De film is altijd donker, ook in het lichte thema: anders donkere letters op een donkere kaart. */
     .film { color-scheme: dark; --tekst: #eef3f7; --zacht: #b8c4cf; --gedempt: #7f8e9c; --wit: 255 255 255; --glas: rgba(255, 255, 255, 0.055); --glas-rand: rgba(255, 255, 255, 0.09); --zon-t: var(--zon); --ijs-t: var(--ijs); --mint-t: var(--mint); --gloed-t: var(--gloed); --violet-t: #b7b0ff; }
     .film-lucht { position: absolute; inset: 0; opacity: 0; transition: opacity 1.6s ease; pointer-events: none; }
     .film-lucht.aan { opacity: 1; }
@@ -727,7 +727,7 @@
     }
 
     function naarBeeld(i) {
-      // De film tekent het poppenhuis; op Thuis laadt dat pas als het nodig is (23 november 2026).
+      // De film tekent het poppenhuis; op Thuis laadt dat pas als het nodig is.
       if (!global.huis?.teken && global.huisThuis && !global.huisThuis.poppenhuis(() => naarBeeld(i))) return;
       beeldNu = i;
       stap = 0;

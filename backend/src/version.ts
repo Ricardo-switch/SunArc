@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 export const VERSIE = '0.236.0';
 
 /**
- * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
+ * Melden staat uit: tot de opknapbeurt van januari klaar is,
  * komen er geen nieuwe meldingen bij. De knop Meld een probleem blijft staan en
  * zegt waarom, met een dankwoord aan de testers. Weer aan: zet dit op false.
  * Alleen voor de add-on, dus voor de testers: op een eigen server (de NAS van
@@ -78,7 +78,7 @@ export function eersteVan(n: Pick<Nieuw, 'nieuw' | 'beter' | 'opgelost'>): strin
 export const TERUGKIJKEN = 10;
 
 /**
- * De versies die op main kwamen, de nieuwste eerst (6 november 2026): de tags
+ * De versies die op main kwamen, de nieuwste eerst: de tags
  * `v<versie>`, plus de versie van een open PR beta → main. De changelog zet
  * alles wat alleen op beta stond onder de uitgave die het naar main bracht, zo
  * ziet wie bijwerkt één overzicht sinds de vorige uitgave. Bij een PR naar

@@ -71,7 +71,7 @@ export class LiveStroom {
     }
     // Meteen open, ook zonder besluit om mee te sturen: anders hoort de pagina
     // pas bij de eerste ping (25 tellen) dat hij verbonden is, en toont hij
-    // na 15 tellen "geen verbinding" (21 oktober 2026).
+    // na 15 tellen "geen verbinding".
     res.flushHeaders();
 
     // Een kwartier stilte is normaal 's nachts. Zonder teken van leven sluit
@@ -110,7 +110,7 @@ data: ${JSON.stringify({ melders: this.#alarm, tMs: Date.now() })}
     this.#zend('aanbellen', { camera, naam, tMs: Date.now(), seconden: hoe.seconden, schermAan: hoe.schermAan, reserve: hoe.reserve ?? [] });
   }
 
-  /** Wat de rookmelders nu zien (21 oktober 2026). */
+  /** Wat de rookmelders nu zien. */
   #alarm: readonly AlarmMelder[] = [];
 
   /**
@@ -146,7 +146,7 @@ data: ${JSON.stringify({ melders: this.#alarm, tMs: Date.now() })}
   }
 
   /*
-   * Het huis en wie er thuis is, live (21 oktober 2026). Eerst vroeg Thuis het
+   * Het huis en wie er thuis is, live. Eerst vroeg Thuis het
    * huis elke 15 tellen op en Kamer elke 5, per open scherm, ook 's nachts als
    * er niets veranderde. Nu zegt de dienst het als er iets veranderde, en
    * haalt de pagina het dan op. Wat je bedient of ziet bewegen (een lamp, een
@@ -181,7 +181,7 @@ data: ${JSON.stringify({ melders: this.#alarm, tMs: Date.now() })}
     this.#huisWacht.unref?.();
   }
 
-  /** De meldingen veranderden (21 oktober 2026): een nieuwe versie, een lege batterij, of iemand haalde er een weg. */
+  /** De meldingen veranderden: een nieuwe versie, een lege batterij, of iemand haalde er een weg. */
   meldingenVeranderd(): void {
     this.#zend('meldingen', { tMs: Date.now() });
   }

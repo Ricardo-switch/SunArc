@@ -229,7 +229,7 @@ export function klaarFuncties(punten: readonly KlaarPunt[], x: KlaarExtra, lang:
 
   /*
    * De wand: wat hij zelf meldt (besluit 246), en Functies › Scherm. Open is
-   * alleen wat de wand zelf zegt dat mist (2 november 2026): de koppeling met
+   * alleen wat de wand zelf zegt dat mist: de koppeling met
    * de pagina, of de camera als die de wand moet wekken. Nog niet gemeld, geen
    * wekker of het scherm aan laten is een keuze, geen tekort.
    */

@@ -1,5 +1,5 @@
 /*
- * SunArc: het huis zoals getekend, de lucht (22 november 2026, opgesplitst uit kit/huis-maat.js).
+ * SunArc: het huis zoals getekend, de lucht (opgesplitst uit kit/huis-maat.js).
  *
  * Het weer over het huis (regen, sneeuw), de feestdag (kerst, Halloween, Oud en Nieuw, Pasen), de hemel achter
  * het huis en de zonneboog om het huis.
@@ -11,7 +11,7 @@
 
   global.huisMaatHemel = function (kern) {
       /*
-       * Het weer over het huis (22 november 2026, zoals in het poppenhuis): regen als schuine streepjes, sneeuw als vlokjes;
+       * Het weer over het huis (zoals in het poppenhuis): regen als schuine streepjes, sneeuw als vlokjes;
        * vaste plekken, en ze bewegen alleen als er geen rust is gevraagd.
        */
       const weerLaag = () => {
@@ -28,7 +28,7 @@
         return `<g pointer-events="none">${x2}${beweeg}</g>`;
       };
       /**
-       * De feestdag (22 november 2026, zoals in het poppenhuis; `o.feest`): met Kerst lichtjes langs de goot, met Halloween een
+       * De feestdag (zoals in het poppenhuis; `o.feest`): met Kerst lichtjes langs de goot, met Halloween een
        * pompoen bij de voordeur, met Oud en Nieuw vuurwerk in de lucht, met Pasen eieren in het gras.
        */
       const feestLaag = () => {
@@ -108,7 +108,7 @@
             if (q.uur % 3 === 0) x2 += tekst(String(q.uur), -8);
           }
         });
-        // De zon van nu en zijn bundel apart: die vervagen nooit onder de tekst (23 november 2026).
+        // De zon van nu en zijn bundel apart: die vervagen nooit onder de tekst.
         let zonS = '';
         const nu = kern.zb.nu;
         if (nu && nu.el > -2) {
@@ -130,7 +130,7 @@
           }
         }
         /*
-         * Onder de tekst bovenin (`o.vrij`, de kop op de wand) vervaagt de boog met een zachte rand (23 november 2026):
+         * Onder de tekst bovenin (`o.vrij`, de kop op de wand) vervaagt de boog met een zachte rand:
          * hij loopt er niet doorheen. Het masker staat één keer in de tekening.
          */
         const vrij = (kern.o.vrij ?? []).filter((v) => v && Number.isFinite(v.x0) && Number.isFinite(v.y1));
@@ -144,7 +144,7 @@
       };
       kern.s += zonneboog(true);
       // Het eiland: de zijkanten naar de kijker, dan het gras. Met een erf: een zachte schaduw, een randje gras en aarde in lagen.
-      // Zonder eiland (een etage boven de begane grond zweeft, 21 november 2026).
+      // Zonder eiland (een etage boven de begane grond zweeft).
       if (!kern.o.geenEiland) {
         const zijden = [];
         if (kern.erf) {
@@ -198,7 +198,7 @@
         }
         if (v.soort === 'border') {
           /*
-           * Struiken zoals in het poppenhuis (22 november 2026): een rij kleine struiken langs het midden van de border,
+           * Struiken zoals in het poppenhuis: een rij kleine struiken langs het midden van de border,
            * elk twee bollen, met bloemen in de lente en de zomer en bladkleur in de herfst; niet groter dan de border, zodat
            * er niets over de rand of door het hek steekt.
            */

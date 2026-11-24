@@ -96,7 +96,7 @@ const vermogens = (() => {
   }
 
   /**
-   * Per fase de meter (23 november 2026, bij de ouders van Ricardo: drie fasen,
+   * Per fase de meter (bij de ouders van Ricardo: drie fasen,
    * maar er was maar één meter te kiezen). Een stroommeter in A, of anders het
    * vermogen op die fase in W; dan rekent SunArc de stroom uit. Staat een fase op
    * W, dan zegt de hint hoe het preciezer kan.

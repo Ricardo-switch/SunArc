@@ -289,7 +289,7 @@ const ACTIE: Readonly<Record<string, string>> = {
 };
 
 /**
- * Een stap van het model in de woorden van de bouwers (29 oktober 2026): de
+ * Een stap van het model in de woorden van de bouwers: de
  * proef met Flash-Lite gaf "sluiten", "dimmen" en "30%". Dimmen met een getal
  * is een helderheid; een getal mag een procentteken hebben.
  */
@@ -460,7 +460,7 @@ export class Teller {
   }
 
   /**
-   * Of eigen woorden nu de moeite waard zijn (29 oktober 2026). Antwoordt het
+   * Of eigen woorden nu de moeite waard zijn. Antwoordt het
    * model meestal later dan de assistent wacht, dan wacht elk antwoord voor
    * niets en komt daarna toch het vaste antwoord. Dan even niet, behalve eens
    * per tien minuten één keer, om te meten of het weer sneller is. Het brein

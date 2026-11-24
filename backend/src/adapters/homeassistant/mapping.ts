@@ -304,7 +304,7 @@ export function buildSystemState(
             phases: Object.fromEntries(
               config.grid.phases.map((ph) => {
                 const v = ph.voltage ? source.number(ph.voltage.id) : null;
-                // Zonder stroommeter het vermogen op die fase (23 november 2026): |W| / V, met 230 V zonder spanningsmeter.
+                // Zonder stroommeter het vermogen op die fase: |W| / V, met 230 V zonder spanningsmeter.
                 const w = !ph.current && ph.power ? source.number(ph.power.id) : null;
                 const a = ph.current ? source.number(ph.current.id) : w == null ? null : Math.abs(w) / (v != null && v > 100 ? v : 230);
                 return [

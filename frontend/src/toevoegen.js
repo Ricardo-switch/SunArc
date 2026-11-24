@@ -442,7 +442,7 @@ function bladHtml(soort, id) {
   else if (x.wat === 'laden') regels = instellen.regels('laden', x.id);
   else if (x.wat === 'accu') regels = instellen.regels('accu', x.id);
   else regels = instellen.regels('buffer', x.id);
-  // Een klimaatapparaat (keuze Ricardo, 18 november): de taak bij Klimaat, niet hier.
+  // Een klimaatapparaat (keuze Ricardo): de taak bij Klimaat, niet hier.
   const r = ruimteVan(x.id);
   const klimaatKamer = x.wat === 'klimaat' && r ? (r.zones ?? []).find((z) => z.id === (r.apparaten ?? []).find((a) => a.id === x.id)?.zone)?.regeling?.zoneId ?? r.zoneId ?? r.id : null;
   const taak = x.wat === 'klimaat' ? `<div class="in-rij"><div class="l"><b>${esc(t('toev.taakKlimaat'))}</b><span>${esc(t('toev.taakKlimaatZin'))}</span></div>${klimaatKamer ? `<a class="w zon" href="comfort.html#${esc(encodeURIComponent(klimaatKamer))}">${esc(t('toev.bijKlimaat'))} ›</a>` : ''}</div>` : '';

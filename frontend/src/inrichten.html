@@ -149,7 +149,7 @@
   .kaart { display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow: hidden; }
   /* Volgende blijft altijd in beeld; is er te weinig plek, dan wijkt eerst de tip (besluit 166). */
   .kaart > .voet { flex: none; }
-  /* De inhoud van elke stap in een eigen vak (4 november 2026): past hij niet, dan schuift dat vak en blijven de knoppen staan. */
+  /* De inhoud van elke stap in een eigen vak: past hij niet, dan schuift dat vak en blijven de knoppen staan. */
   .kaart > .midden { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 14px; overflow: hidden auto; overscroll-behavior: contain; margin: 0 -6px; padding: 0 6px; }
   .kaart > .midden.groei { flex-grow: 1; }
   .midden > .noot { flex-shrink: 1; min-height: 0; overflow: hidden; }
@@ -245,7 +245,7 @@
   .regel .ik svg { width: 18px; height: 18px; }
   .regel .tekst, .bewoner .tekst, .klaarregel .tekst { min-width: 0; }
   .regel .tekst b { display: block; font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  /* Een zin onder een regel mag twee regels lang zijn; afgekapt halverwege een woord las als een fout (31 oktober 2026). */
+  /* Een zin onder een regel mag twee regels lang zijn; afgekapt halverwege een woord las als een fout. */
   .regel .tekst span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 12px; color: var(--gedempt); overflow: hidden; }
   .regel .rechts { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--zacht); white-space: nowrap; }
   .regel .rechts.mint { color: var(--mint-t); }
@@ -331,7 +331,7 @@
   .stapper button { width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgb(var(--wit) / 0.08); color: var(--tekst); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
   .stapper button:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
   .stapper b { min-width: 44px; text-align: center; font-family: var(--kop); font-size: 16px; color: var(--tekst); }
-  /* Je dag (6 november 2026, schets Wand-Inrichten-Comfort #dag): een balk van 24 uur met drie grepen, en per grens een regel. */
+  /* Je dag (schets Wand-Inrichten-Comfort #dag): een balk van 24 uur met drie grepen, en per grens een regel. */
   .dg { display: flex; flex-direction: column; gap: 7px; flex: none; }
   .dg-kop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13.5px; }
   .dg-kop span { font-size: 12.5px; font-weight: 600; color: var(--gedempt); }
@@ -359,7 +359,7 @@
   .dg-grens > div span { display: block; font-size: 12.5px; line-height: 1.35; color: var(--gedempt); }
   .dg-grens .stapper b { min-width: 58px; font-size: 20px; }
   .dg-grens .stapper button { width: 34px; height: 34px; }
-  /* Hoe warm wil je het (6 november 2026): per kamer overdag en 's nachts, verwarmen en koelen. */
+  /* Hoe warm wil je het: per kamer overdag en 's nachts, verwarmen en koelen. */
   .cf-tabel { display: grid; grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 132px)); gap: 5px 10px; align-items: center; flex: none; }
   .cf-tabel.een { grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 76px)); }
   .cf-kolkop { padding: 4px 2px 3px; border: 0; border-radius: 9px; background: none; color: var(--zacht); font: inherit; font-size: 12.5px; font-weight: 700; text-align: center; cursor: pointer; }
@@ -400,7 +400,7 @@
   .wandje { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; flex: none; height: 124px; grid-template-rows: minmax(0, 1fr); margin-bottom: 6px; padding: 10px; border-radius: 16px; background: rgb(var(--wit) / 0.04); border: 1px solid rgb(var(--wit) / 0.08); box-sizing: border-box; }
   .wandje .huisvak { position: relative; display: block; border-radius: 10px; background: linear-gradient(160deg, rgb(111 211 255 / 0.12), rgb(255 255 255 / 0.03)); overflow: hidden; }
   .wandje .huisvak svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  /* Zoveel kaartjes als er passen: met meer kaarten groeide de rij eerst onder het kader uit (25 oktober 2026). */
+  /* Zoveel kaartjes als er passen: met meer kaarten groeide de rij eerst onder het kader uit. */
   .wandje .kaartjes { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 24px; gap: 5px; align-content: start; min-height: 0; overflow: hidden; }
   .wandje .kaartjes i { border-radius: 7px; background: rgb(var(--wit) / 0.09); }
   .wandje .kaartjes i.breed { grid-column: span 2; }
@@ -424,7 +424,7 @@
   body.inr-groot [data-welkom] { display: block; }
   #wand { position: relative; }
   #wand .welkom-groot { position: absolute; inset: 0; overflow: hidden; }
-  /* Het logo voluit (1 november 2026), zoals bij Over deze app. */
+  /* Het logo voluit, zoals bij Over deze app. */
   .welkom-groot .wk-sluit { position: absolute; top: 22px; right: 26px; z-index: 5; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); color: var(--zacht); font-size: 20px; text-decoration: none; }
   .welkom-groot .wk-sluit:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
   #tel .welkom-groot .wk-sluit { top: calc(14px + env(safe-area-inset-top)); right: 16px; }
@@ -469,7 +469,7 @@
   #wand .wk-zoekt i { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); animation: wk-puls 1.6s infinite; }
   #wand .wk-zoekt.klaar i { animation: none; }
   @keyframes wk-puls { 0% { box-shadow: 0 0 0 0 rgb(var(--mint-k) / 0.6); } 70% { box-shadow: 0 0 0 9px rgb(var(--mint-k) / 0); } 100% { box-shadow: 0 0 0 0 rgb(var(--mint-k) / 0); } }
-  /* Alleen bij het welkom (28 oktober 2026): zonder body.inr-groot stond het op de telefoon onder elke stap. */
+  /* Alleen bij het welkom: zonder body.inr-groot stond het op de telefoon onder elke stap. */
   body.inr-groot #tel .welkom-groot { position: relative; min-height: 100dvh; display: flex; flex-direction: column; }
   #tel .wk-merk { position: absolute; left: 22px; top: 20px; z-index: 1; gap: 12px; }
   #tel .wk-merk img { width: 66px; }
@@ -504,7 +504,7 @@
    * De telefoon (schets Tel-Inrichten-3): bovenin het hoofdstuk en hoe ver je
    * bent, het huis klein, dan de vraag; Terug, Later en Volgende vast onderaan.
    */
-  /* Het scherm vol, zodat Terug, Later en Volgende bij elke stap onderin staan (28 oktober 2026). */
+  /* Het scherm vol, zodat Terug, Later en Volgende bij elke stap onderin staan. */
   #tel .inhoud { padding: 14px 0 0; display: flex; flex-direction: column; min-height: 100dvh; }
   #tel .inhoud > .kaart { flex: 1 0 auto; }
   #tel .kop3 { display: flex; align-items: center; gap: 12px; padding: 4px 18px 6px; }
@@ -512,7 +512,7 @@
   #tel .telwaar { flex: 1; min-width: 0; }
   #tel .telwaar b { display: block; font-size: 14px; }
   #tel .telwaar span { font-size: 12px; color: var(--gedempt); }
-  /* Op de wand ook een weg eruit, net als op de telefoon (2 november 2026): eerst alleen via het logo. */
+  /* Op de wand ook een weg eruit, net als op de telefoon: eerst alleen via het logo. */
   #wand .bovenbalk .sluit { flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); color: var(--zacht); font-size: 20px; text-decoration: none; }
   #wand .bovenbalk .sluit:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
   #tel .sluit { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--wit) / 0.08); color: var(--zacht); font-size: 18px; text-decoration: none; }

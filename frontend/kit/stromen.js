@@ -29,7 +29,7 @@
     const doelen = o.doelen.filter((d) => som(d.id, 'naar') > 0);
     const totaal = Math.max(bronnen.reduce((t, b) => t + som(b.id, 'van'), 0), doelen.reduce((t, d) => t + som(d.id, 'naar'), 0)) || 1;
     // Elk blok krijgt minstens de ruimte van zijn naam, zodat een klein blok (1 kWh
-    // van de haard) zijn naam niet naast het volgende blok krijgt (Ricardo, 19 november 2026).
+    // van de haard) zijn naam niet naast het volgende blok krijgt.
     const minVak = (x) => 14 * ((x.regels ?? []).length + 1) + 4 - gat;
     // Onderaan ruimte voor de naam van het laatste blok; de schaal zo dat de grote blokken de rest delen.
     const schaalVan = (lijst, kant) => {

@@ -241,7 +241,7 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     },
   },
   /*
-   * De laadpaal en de boiler (19 november 2026): "waarom laadt de auto niet
+   * De laadpaal en de boiler: "waarom laadt de auto niet
    * sneller", "waar stel ik de laadpaal in" en "waarom zie ik de boiler niet"
    * gingen naar wat het huis nu doet.
    */
@@ -327,7 +327,7 @@ const MORGEN = ['morgen', 'overmorgen', 'regen', 'regent', 'regenen', 'bui', 'bu
 const KOSTEN = ['kost', 'kosten', 'kostte', 'kostten', 'geld', 'euro', 'cost', 'costs', 'costing', 'money', 'euros', 'how much do', 'how much does', 'how much did'];
 /** Het sluipverbruik (besluit 192). */
 const SLUIP = ['sluipverbruik', 'sluip*', 'sluimer*', 'standby', 'stand by', 'basislast', 'nachtverbruik', 'verbruik vannacht', 'nachts verbruik', 'baseload', 'base load', 'phantom*', 'vampire', 'idle power', 'overnight use', 'night use'];
-/** Of er iemand thuis is, wat er terugging, en of een apparaat draait (29 oktober 2026). */
+/** Of er iemand thuis is, wat er terugging, en of een apparaat draait. */
 const THUIS = ['iemand thuis', 'wie is thuis', 'wie is er thuis', 'wie zijn er thuis', 'wie zijn thuis', 'niemand thuis', 'is er iemand', 'anyone home', 'anybody home', 'someone home', 'somebody home', 'who is home', 'who is at home', 'nobody home'];
 const TERUG = ['teruggeleverd', 'terugleveren', 'teruglevering', 'terug geleverd', 'terug naar het net', 'terug het net', 'exported', 'export', 'fed back', 'fed in', 'back to the grid', 'sent back'];
 const DRAAIT = ['draait', 'draaien', 'draaide', 'aan het draaien', 'klaar', 'bezig', 'running', 'done', 'finished', 'still on'];
@@ -363,7 +363,7 @@ function wensIn(los: readonly string[], tekst: string): Wish | null {
   if (los.some((t) => t.startsWith('verwarm') || t === 'heat' || t === 'heating') || /\bwarm\b.* op$/.test(tekst) || ` ${tekst} `.includes(' warm up ')) return 'verwarmen';
   const zet = los.includes('zet') || los.includes('doe') || los.includes('turn') || los.includes('switch');
   if (zet && (los.includes('uit') || los.includes('off'))) return 'uit';
-  // "Zet de airco aan" (29 oktober 2026): aan zonder meer.
+  // "Zet de airco aan": aan zonder meer.
   if (zet && (los.includes('aan') || los.includes('on'))) return 'aan';
   return gevoelWens(tekst);
 }
@@ -378,7 +378,7 @@ function getalIn(los: readonly string[]): number | null {
 }
 
 /**
- * Andere namen voor een kamer (29 oktober 2026): "living room" en "attic"
+ * Andere namen voor een kamer: "living room" en "attic"
  * vonden de woonkamer en de zolder niet, en dan ging het antwoord over iets
  * anders. Alleen als er precies één kamer bij past: bij twee slaapkamers raadt
  * hij niet.
@@ -418,7 +418,7 @@ const RUIS_WOORDEN = new Set(['noise', 'ruis', 'muziek', 'music', 'geluid', 'sti
 const RUIS_ZINNEN = ['ondertiteld door', 'ondertiteling', 'amara org', 'bedankt voor het kijken', 'bedankt voor het luisteren', 'abonneer', 'thanks for watching', 'subtitles by'];
 
 /**
- * Ruis (21 oktober 2026): alleen geluid, geen woorden. Eerst ging dat door als
+ * Ruis: alleen geluid, geen woorden. Eerst ging dat door als
  * een vraag; dan stond er "noise" bovenin en zei het huis dat het je niet kon
  * helpen. Nu telt het als niets gezegd.
  */
@@ -457,7 +457,7 @@ const VASTE_WOORDEN = ['woonkamer', 'slaapkamer', 'keuken', 'zolder', 'badkamer'
 /**
  * Gewone woorden die dicht bij een naam liggen, en die het huis dus nooit
  * rechtzet: "zonder" is geen zolder, "kijken" en "komen" zijn geen keuken
- * (gevonden met alle woorden uit de teksten van de app, 30 oktober 2026).
+ * (gevonden met alle woorden uit de teksten van de app).
  */
 const NOOIT_RECHTZETTEN = new Set([
   'zonder', 'kijken', 'komen', 'kopen', 'koper', 'stuk', 'waarmee', 'verwachting', 'kleine', 'koude', 'warme', 'warmere',
@@ -489,7 +489,7 @@ const VERHOORD: readonly (readonly [RegExp, string])[] = [
 const HA_SOORT = new Set(['light', 'lights', 'cover', 'switch', 'scene', 'sensor', 'climate', 'media', 'player', 'binary', 'input', 'number', 'select', 'button', 'group', 'script', 'automation']);
 
 /**
- * Een woord zoals het klinkt (30 oktober 2026): "th" is een t, "oe" een u,
+ * Een woord zoals het klinkt: "th" is een t, "oe" een u,
  * "ou", "au" en "eu" een o, "ij" en "ei" een i, lange klinkers kort, s een z,
  * f een v, een d aan het eind een t, en geen h. Zo is "sitoek" de zithoek en
  * "koot" koud: wat een sneller Whisper-model ervan maakte.
@@ -531,7 +531,7 @@ export function verbeter(ruw: string, namen: readonly string[]): string {
   const lijst = [...woordenschat];
   const woorden = VERHOORD.reduce((t, [vorm, wordt]) => t.replace(vorm, wordt), gewoon(ruw))
     .replace(/\bzette\b/g, 'zet de')
-    // "Set de zithoek aan" (30 oktober 2026): aan het begin is het zet, en "doet de" is doe de.
+    // "Set de zithoek aan": aan het begin is het zet, en "doet de" is doe de.
     .replace(/^set\b/, 'zet')
     .replace(/^doet (de|het)\b/, 'doe $1')
     .split(' ')
@@ -612,7 +612,7 @@ const AFSCHEID = {
 } as const;
 
 /**
- * "Oké bedankt" of "dat was het" (21 oktober 2026): het gesprek is klaar. Het
+ * "Oké bedankt" of "dat was het": het gesprek is klaar. Het
  * huis zegt iets terug en luistert niet verder. Null als het geen afsluiter is.
  * Welke variant, wisselt per uur (besluit 225).
  */
@@ -659,7 +659,7 @@ export function begrijp(ruw: string, config: SiteConfig, lang: Lang): Begrepen {
   const waarom = telt(WAAROM, tekst, los);
   const wens = wensIn(los, tekst);
   const huis: { vraag: Question; score: number }[] = [];
-  // Zonder kamer zoekt de assistent zelf de kamer die het kan, of vraagt welke (29 oktober 2026).
+  // Zonder kamer zoekt de assistent zelf de kamer die het kan, of vraagt welke.
   const klimaat = telt(KLIMAAT, tekst, los) > 0;
   const nietKlimaat = telt(NIET_KLIMAAT, tekst, los) > 0;
   const gevoel = gevoelWens(tekst) != null && !nietKlimaat;
@@ -677,7 +677,7 @@ export function begrijp(ruw: string, config: SiteConfig, lang: Lang): Begrepen {
   if (vandaag) huis.push({ vraag: { kind: 'vandaag' }, score: 3 * vandaag });
   const overal = telt(['overal', 'alle kamers', 'elke kamer', 'in huis', 'everywhere', 'every room', 'all rooms', 'in the house', 'whole house'], tekst, los);
   if (overal && kamer == null && telt(['warm', 'koud', 'temperatuur', 'graden', 'temperature', 'hot', 'cold', 'degrees'], tekst, los)) huis.push({ vraag: { kind: 'warm' }, score: 5 });
-  // "Hoe warm is het in de slaapkamer" voor een kamer zonder regeling (19 november 2026): dan hoe warm het overal is, die kamer erbij.
+  // "Hoe warm is het in de slaapkamer" voor een kamer zonder regeling: dan hoe warm het overal is, die kamer erbij.
   else if (kamer == null && telt(['hoe warm', 'hoe koud', 'hoeveel graden', 'welke temperatuur', 'how warm', 'how cold', 'what temperature', 'how many degrees'], tekst, los)) huis.push({ vraag: { kind: 'warm' }, score: 4 });
   // Het weer van morgen, en wat iets kost (besluit 142).
   const morgen = telt(MORGEN, tekst, los);

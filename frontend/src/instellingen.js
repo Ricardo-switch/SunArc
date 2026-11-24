@@ -26,11 +26,11 @@ async function laadAlles() {
  * Instellingen in vier tegels (schets Wand-Instellingen-Vier #tegels, goedgekeurd
  * 17 november 2026). Bovenaan de stand als één regel: de zonnewaaier van Hoe ver
  * je huis is en wat er nog mist (het eerste, met een knop). De hele regel
- * opent Wat je huis kan (18 november 2026: eerst stond er ook een tweede knop
+ * opent Wat je huis kan (eerst stond er ook een tweede knop
  * naar dezelfde pagina).
  */
 function standregel() {
-  // Dezelfde som als Wat je huis kan (19 november 2026): stand.eerstDit en stand.erbij.
+  // Dezelfde som als Wat je huis kan: stand.eerstDit en stand.erbij.
   const mis = isGast() ? [] : stand.eerstDit(d);
   const v = window.waaier ? stand.voortgang(d) : null;
   const titel = mis.length ? t('inst4.mist', { n: mis.length }) : t('instellingen.allesGoed');
@@ -120,7 +120,7 @@ function knoppenVan(id) {
 function panelenZin() {
   const a = d.aansluiting;
   const aantal = a?.antwoorden?.panelen?.aantal;
-  // Een ligging die je bij Inrichten bevestigde, telt ook (30 oktober 2026: "Klopt" gaf hier toch "nog kiezen").
+  // Een ligging die je bij Inrichten bevestigde, telt ook ("Klopt" gaf hier toch "nog kiezen").
   const lig = ['bevestigd', 'configuratie'].includes(a?.ligging?.stand) ? a.ligging.nu : null;
   return aantal ? (a.antwoorden.panelen.ligging === 'beide' ? t('instellingen.tweeKanten', { n: aantal }) : t('inst4.panelen', { n: aantal })) : (a?.configuratie?.panelen ?? []).length ? t('instellingen.vlakken', { n: a.configuratie.panelen.length }) : lig ? (lig.vermogenKort ?? lig.vermogen ?? lig.richting ?? null) : null;
 }
@@ -143,7 +143,7 @@ function groepen() {
   return TEGELS.filter(([id]) => !isGast() || id === 'app').map(([id, href, oud]) => {
     const hier = mis.filter((x) => oud.includes(x.groep));
     const n = hier.length;
-    // Wat mist, staat bovenaan de tegel met een tik ernaartoe (Ricardo, 19 november 2026: "1 mist", maar wat?).
+    // Wat mist, staat bovenaan de tegel met een tik ernaartoe ("1 mist", maar wat?).
     const mistKnoppen = hier.map((x) => `<a class="deelknop mist" href="${x.href}"><span><b><i class="stip" aria-hidden="true"></i>${esc(x.wat)}</b><span>${esc(x.zin)}</span></span><span class="pijl" aria-hidden="true">›</span></a>`).join('');
     const knoppen = mistKnoppen + knoppenVan(id)
       .map(([naam, waarde, adres]) => `<a class="deelknop" href="${adres}"><span><b>${esc(naam)}</b><span>${esc(waarde ?? '')}</span></span><span class="pijl" aria-hidden="true">›</span></a>`)

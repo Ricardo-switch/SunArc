@@ -13,7 +13,7 @@ const { esc, haal, deur, telStand } = app;
 const { klok } = taal;
 // De boog en de namen van hoe vaak en de zon staan in plannen.js, met de nieuwe taak (besluit 244).
 const { herhaalNaam, zonNaam, stapperTekst, sceneKamer, sceneLampen } = plannen;
-/** De naam van een taak, met bij een scène de kamer erachter (8 november 2026). */
+/** De naam van een taak, met bij een scène de kamer erachter. */
 const naamHtml = (g) => `${esc(g.tekst)}${sceneKamer(g) ? `<small class="waar"> · ${esc(sceneKamer(g))}</small>` : ''}`;
 const boog = (lijst, tel) => plannen.boog(lijst, { tel }, zon);
 const voorproef = (m) => plannen.voorproef(m, zon);

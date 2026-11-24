@@ -46,7 +46,7 @@ function dakNu() {
   return d.huis?.dakEtage ? 'schuin' : 'plat';
 }
 /**
- * Wat de kaart van het soort huis ziet (20 november 2026): uit Je huis, één
+ * Wat de kaart van het soort huis ziet: uit Je huis, één
  * keer opgehaald zodra deze stap er staat. Inrichten toont hetzelfde deel als
  * Je huis › Vorm (keuze Ricardo).
  */
@@ -71,7 +71,7 @@ function woningStap() {
   const tegels = `<div class="wn-breed">${woningDeel.html({ soort, buren: gekozen ? c.buren : soort === kaart?.soort ? kaart.buren : woningDeel.burenBij(soort, kaart, []), kaart, gekozen: gekozen || !!c?.woning, verdieping: c?.verdieping, erboven: c?.erboven })}</div>`;
   const kelder = (c?.kamers ?? []).some((k) => k.etage === 'kelder');
   const dak = dakNu();
-  // Een appartement heeft geen eigen kelder, en een dak alleen als er niets boven ligt (20 november 2026).
+  // Een appartement heeft geen eigen kelder, en een dak alleen als er niets boven ligt.
   const dakRij = rij(t('inr.dakVraag'), `${knop('data-dak="schuin"', t('inr.dak.schuin'), dak === 'schuin')}${knop('data-dak="plat"', t('inr.dak.plat'), dak === 'plat')}`);
   const rijen = nu === 'appartement'
     ? (woningDeel.eigenDak({ soort: nu, erboven: c?.erboven }) ? dakRij : '')
@@ -246,9 +246,9 @@ function buitenStap() {
   // De jacuzzi (besluit 186): gevonden in Home Assistant, of alleen getekend.
   const jacuzzi = (d.aans?.gevonden?.apparaten ?? []).find((x) => x.soort === 'jacuzzi');
   const delen = RONDOM.flatMap(([w, naam, , icoon]) => {
-    // Aanvinken is genoeg (28 oktober 2026): het deel komt op zijn vaste plek; de ruimte
+    // Aanvinken is genoeg: het deel komt op zijn vaste plek; de ruimte
     // uit Home Assistant die erbij hoort, volgt uit zijn naam of wat hij is bij Kamers en indeling.
-    // Het tuinhuis en het schuurtje als twee losse schakelaars (18 november 2026): je kunt ze allebei hebben.
+    // Het tuinhuis en het schuurtje als twee losse schakelaars: je kunt ze allebei hebben.
     if (w === 'tuinhuis') {
       const h = huismodel.huisjesVan(rond);
       return ['tuinhuis', 'schuurtje'].map((x) => {

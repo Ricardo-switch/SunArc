@@ -1,5 +1,5 @@
 /*
- * Het huis zoals getekend: de opties voor de tekenaar (23 november 2026, uit src/huisthuis.js).
+ * Het huis zoals getekend: de opties voor de tekenaar (uit src/huisthuis.js).
  *
  * Zet om wat een pagina weet (de tekenaar van Je huis, het model van Thuis, api/huis) naar de opties van
  * kit/huis-maat.js: de kamers, wat aan staat, de screens, het erf met de gebouwen, de auto, de stroom, de hemel.
@@ -54,7 +54,7 @@
     const schermen = {};
     const lichtBij = {};
     const lampKleur = {};
-    // Wat een airco zelf doet (23 november 2026): koelen of verwarmen, uit zijn eigen stand, niet die van de kamer.
+    // Wat een airco zelf doet: koelen of verwarmen, uit zijn eigen stand, niet die van de kamer.
     const aircoToon = {};
     for (const e of huisApi?.etages ?? []) {
       for (const r of e.ruimtes ?? []) {
@@ -63,7 +63,7 @@
           if (a.aan) aanSet.add(a.id);
           if (a.soort === 'screen' && typeof a.positiePct === 'number') schermen[a.id] = a.positiePct;
           if (a.soort === 'licht' && a.hoortBij) lichtBij[a.hoortBij] = a.id;
-          // De kleur van een lamp die brandt, zoals in het poppenhuis (22 november 2026: de nieuwe tekenaar had altijd geel).
+          // De kleur van een lamp die brandt, zoals in het poppenhuis (de nieuwe tekenaar had altijd geel).
           if (a.soort === 'licht' && a.aan) lampKleur[a.id] = global.huismodel?.kleurVanLicht?.(a) ?? '#FFD9A0';
           if (a.soort === 'klimaat') {
             const code = a.klimaat?.actieCode === 'koelt' || a.standCode === 'koelen' ? 'koelt' : a.klimaat?.actieCode === 'verwarmt' || a.standCode === 'verwarmen' ? 'verwarmt' : null;
@@ -74,7 +74,7 @@
         }
       }
     }
-    // Een radiator is warm als zijn kamer stookt: een radiatorknop die verwarmt, of een thermostaat (niet een airco) die aan staat (22 november 2026).
+    // Een radiator is warm als zijn kamer stookt: een radiatorknop die verwarmt, of een thermostaat (niet een airco) die aan staat.
     for (const e of huisApi?.etages ?? []) {
       for (const r of e.ruimtes ?? []) {
         if (!(r.apparaten ?? []).some((a) => a.soort === 'klimaat' && !a.klimaat?.kanKoelen && a.aan)) continue;
@@ -92,7 +92,7 @@
       }
     }
     // Ook een kamer zonder temperatuur die Home Assistant kent (Slaapkamer Matts) krijgt zijn naam; een kamer die alleen
-    // getekend is (het toilet, de meterkast) niet, zoals in het poppenhuis (22 november 2026).
+    // getekend is (het toilet, de meterkast) niet, zoals in het poppenhuis.
     for (const e of huisApi?.etages ?? []) for (const r of e.ruimtes ?? []) kamers[r.id] ??= {};
     // Buiten: het erf, de plekken als vlakken, de gebouwen erop.
     const erfE = tk.huis.etages.find((e) => e.buiten);
@@ -194,7 +194,7 @@
         const lang = b.x1 - b.x0 >= b.y1 - b.y0;
         apparaten.push({ id: a.id, soort: 'snoer', punten: lang ? [[b.x0 + 0.2, (b.y0 + b.y1) / 2], [b.x1 - 0.2, (b.y0 + b.y1) / 2]] : [[(b.x0 + b.x1) / 2, b.y0 + 0.2], [(b.x0 + b.x1) / 2, b.y1 - 0.2]] });
       } else if (a.soort === 'licht' && kamerSoort(a.kamer) !== 'tuinhuis') {
-        // Een lamp in de tuin (niet in de border of het tuinhuis): een tuinlamp op een paaltje op zijn plek (22 november 2026).
+        // Een lamp in de tuin (niet in de border of het tuinhuis): een tuinlamp op een paaltje op zijn plek.
         apparaten.push({ id: a.id, soort: 'licht', x, y, z: 0.6 });
       } else if (a.soort === 'camera' && /deurbel|doorbell/i.test(`${a.id} ${a.naam}`)) {
         // Een deurbel hangt aan de gevel van het huis, het dichtst bij waar hij in Je huis staat.
@@ -223,7 +223,7 @@
     const halR = halId ? K.maten(bgV)[halId]?.r : null;
     const deur = voordeur ? (voordeur.as === 'x' ? { x: m(voordeur.op), y: m((voordeur.van + voordeur.tot) / 2) } : { x: m((voordeur.van + voordeur.tot) / 2), y: m(voordeur.op) }) : deurbel ? { x: deurbel.x, y: deurbel.y } : halR ? { x: m((halR.x0 + halR.x1) / 2), y: hoofd ? hoofd.v : m(halR.y0) } : null;
     /*
-     * De stroom (22 november 2026, zoals in het poppenhuis), uit de stromen van nu: van het net via de aansluitkast aan de
+     * De stroom (zoals in het poppenhuis), uit de stromen van nu: van het net via de aansluitkast aan de
      * straat naar de voordeur; van de panelen langs de voorgevel naar binnen; teruglevering van de panelen naar de kast; naar
      * de auto bij de laadpaal; van en naar de thuisaccu. Elke lijn en zijn label opent de energiekaart (`tik`).
      */
@@ -265,7 +265,7 @@
     const panelenLabel = (model.labels ?? []).find((l) => l.bij === 'panelen');
     const voortuin = plek('voortuin')[0];
     /*
-     * De buitenunits (22 november 2026, besluit 333): elke airco heeft een eigen bolletje buiten (`buitenunit:<airco>`).
+     * De buitenunits (besluit 333): elke airco heeft een eigen bolletje buiten (`buitenunit:<airco>`).
      * Waar de bewoner hem neerzette, bepaalt hoe hij hangt: tegen het huis aan de muur op de hoogte van zijn airco, op een
      * gebouw met een plat dak (garage, carport) op dat dak, anders op de grond. Zonder eigen plek: aan de gevel het dichtst
      * bij zijn airco (niet tegen de buren, aan de straat alleen als het niet anders kan), op de grond bij de begane grond,
@@ -321,7 +321,7 @@
      */
     const bomen = [];
     /*
-     * Ook in de achtertuin één boom als die groot genoeg is (22 november 2026, zoals in het poppenhuis), in de hoek die het
+     * Ook in de achtertuin één boom als die groot genoeg is (zoals in het poppenhuis), in de hoek die het
      * verst ligt van het huis, de gebouwen, het terras en de border.
      */
     const terras = plek('terras');
@@ -342,12 +342,12 @@
     const zon = model.zon ?? {};
     const panelen = [zon.panelen ? { aantal: zon.panelen, kant: 0 } : null, zon.panelenLinks ? { aantal: zon.panelenLinks, kant: 1 } : null].filter(Boolean);
     const tijd = model.tijd ?? 'dag';
-    // Het weer en de feestdag (22 november 2026), zoals bij Weergave gekozen.
+    // Het weer en de feestdag, zoals bij Weergave gekozen.
     const wg = global.app?.weergave?.() ?? {};
     const weer = wg.weer === false ? null : model.weer ?? null;
     const feest = wg.feestdagen === false ? null : model.feest !== undefined ? model.feest : (global.huisBasis ?? global.huis)?.feestdagVan?.(Date.now()) ?? null;
     /*
-     * Stap f (21 november 2026, het voorbeeldhuis en een appartement): een appartement is alleen de woning, zonder
+     * Stap f (het voorbeeldhuis en een appartement): een appartement is alleen de woning, zonder
      * tuin en, met verdiepingen erboven, zonder dak; een erf waar nog niets op getekend is, staat niet als lege wei
      * om het huis (alleen gras, geen gebouw of auto): dan het huis dichtbij.
      */
@@ -384,7 +384,7 @@
   }
 
   /*
-   * De tuin ingekort (22 november 2026, Ricardo): op Thuis en het always-on display staat het huis groot, zoals in het
+   * De tuin ingekort (Ricardo): op Thuis en het always-on display staat het huis groot, zoals in het
    * poppenhuis. Een lege strook tuin langer dan 2 meter tussen het huis en een gebouw (het tuinhuis 20 meter achterin)
    * wordt korter; het huis, de gebouwen, de auto en de bomen houden hun maat. Niet op schaal, wel alles in beeld; bij een
    * kamer buiten staat alles op ware afstand.
@@ -459,7 +459,7 @@
 
   /** Het always-on display: het hele huis zonder getallen; overdag de zonneboog, 's avonds donker. */
   function alsRust(o, avond, model) {
-    // 's Avonds de maan en de sterren, overdag de wolken (de zon staat op de boog) (22 november 2026, zoals in het poppenhuis).
+    // 's Avonds de maan en de sterren, overdag de wolken (de zon staat op de boog) (zoals in het poppenhuis).
     Object.assign(o, { stil: true, boven: 0, rand: 10, stroom: [], dakLabel: null, hemel: avond ? { tijd: 'nacht', wolken: o.hemel?.wolken ?? 0 } : { tijd: 'dag', wolken: o.hemel?.wolken ?? 0, geenZon: true } });
     if (avond) o.avond = true;
     const zon = model?.zon;

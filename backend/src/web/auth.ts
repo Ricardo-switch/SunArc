@@ -69,10 +69,10 @@ export const DOOR_ROLES: Readonly<Record<string, Role>> = {
   '/api/bijspringen': 'beheerder',
   // Helpen bij de cv (besluit 292), bij Regeling: net als de rest van Regeling.
   '/api/helpen': 'beheerder',
-  // De gevels opmeten op de kaart (21 oktober 2026): stuurt de ligging naar OpenStreetMap.
+  // De gevels opmeten op de kaart: stuurt de ligging naar OpenStreetMap.
   '/api/gevel-kaart': 'beheerder',
   '/api/daken-kaart': 'beheerder',
-  // De add-on bijwerken (21 oktober 2026): alleen de beheerder.
+  // De add-on bijwerken: alleen de beheerder.
   '/api/update': 'beheerder',
   '/api/functies': 'beheerder',
   // Comfort zet de bewoner zelf (besluit 130).
@@ -255,7 +255,7 @@ export interface HaLogin {
 export function homeAssistantLogin(haUrl: string, fetchFn: typeof fetch = fetch, dienstUrl: string = haUrl): HaLogin {
   // Het adres van de dienst is vaak het websocket-adres ("ws://…/api/websocket");
   // een browser opent alleen http(s). Op de NAS stuurde de inlog zo naar ws://
-  // en gebeurde er niets (7 oktober).
+  // en gebeurde er niets.
   const httpBase = (u: string) =>
     u
       .replace(/\/+$/, '')
@@ -389,7 +389,7 @@ export function haBeheerders(lijst: () => Promise<readonly HaAccount[]>, options
   const geldigMs = options.geldigMs ?? 60_000;
   const opnieuwMs = options.opnieuwMs ?? 15_000;
   let admins: ReadonlySet<string> = new Set();
-  /** Of er ooit een lijst kwam: daarna wacht geen pagina meer op een nieuwe (22 oktober 2026). */
+  /** Of er ooit een lijst kwam: daarna wacht geen pagina meer op een nieuwe. */
   let ooit = false;
   let totMs = 0;
   let bezig: Promise<void> | null = null;

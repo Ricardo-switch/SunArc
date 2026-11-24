@@ -1,6 +1,6 @@
 /*
  * Het huis zoals getekend, op Thuis, een kamer en het always-on display
- * (21 november 2026, stap a van de nieuwe tekenaar; schets design/app2/thuis-nieuw.js).
+ * (stap a van de nieuwe tekenaar; schets design/app2/thuis-nieuw.js).
  *
  * De nieuwe tekenaar (kit/huis-maat.js) tekent het huis zoals het in Je huis
  * staat, met de vaste lijst van modellen (kit/huis-modellen.js). Dit bestand
@@ -45,7 +45,7 @@
 
   const staat = { tk: null, bezig: null, fout: false, opnieuw: new Set() };
   /*
-   * Of dit scherm de vorige keer een tekening vond (22 november 2026): '1' of '0'. Met '1' (of nog onbekend) staat er
+   * Of dit scherm de vorige keer een tekening vond: '1' of '0'. Met '1' (of nog onbekend) staat er
    * tijdens het laden een rustige gloed in plaats van even het poppenhuis; met '0' meteen het poppenhuis.
    */
   const ER = 'sc-tekening-er';
@@ -65,7 +65,7 @@
   };
   /*
    * Scripts laden: allemaal tegelijk ophalen, en ze draaien in de volgorde van de lijst (async = false), want elk deel
-   * leunt op het vorige (23 november 2026; eerst één voor één, dat wachtte per script op het netwerk).
+   * leunt op het vorige (eerst één voor één, dat wachtte per script op het netwerk).
    */
   const laadScripts = (lijst) =>
     Promise.all(
@@ -152,7 +152,7 @@
   }
 
   /*
-   * Draaien met een vinger of de muis (22 november 2026, Ricardo): horizontaal vegen draait het huis om zijn as; een tik
+   * Draaien met een vinger of de muis (Ricardo): horizontaal vegen draait het huis om zijn as; een tik
    * blijft een tik (pas vanaf 8 pixels opzij draait het). Na 20 seconden zonder aanraken draait het in een halve seconde
    * terug naar de vaste kant, zodat Thuis altijd hetzelfde begint.
    */
@@ -244,7 +244,7 @@
     const B = Math.round(breedte ?? el.clientWidth ?? 860);
     const H = Math.round(hoogte ?? 612);
     if (!klaar(opnieuw)) {
-      // Nog aan het laden: een rustige gloed waar het huis komt, niet even het poppenhuis (22 november 2026, Ricardo).
+      // Nog aan het laden: een rustige gloed waar het huis komt, niet even het poppenhuis (Ricardo).
       if (erWas() === '0') return false;
       if (!el.querySelector('[data-huis-laadt]')) el.innerHTML = gloed(B, H);
       return true;
@@ -257,7 +257,7 @@
       if (soort === 'kamer') alsEtage(o, staat.tk, huisData, kamerId);
       else if (soort === 'rust') alsRust(o, avond, model);
       /*
-       * Thuis en de telefoon (22 november 2026, Ricardo: op de telefoon klopte niets). De telefoon toont net als het
+       * Thuis en de telefoon (Ricardo: op de telefoon klopte niets). De telefoon toont net als het
        * poppenhuis het hele huis met de ingekorte tuin, de stroomlijnen, het label van de panelen en de zonneboog; alleen
        * de namen staan eronder in plaats van in de tekening.
        */
@@ -265,7 +265,7 @@
         if (soort === 'tel') Object.assign(o, { boven: 0, rand: 8, metDakLabel: true });
         else {
           o.boven = 90;
-          // De kop op de wand (groet, titel en zin) ligt over de tekening: de zonneboog loopt er niet doorheen (23 november 2026).
+          // De kop op de wand (groet, titel en zin) ligt over de tekening: de zonneboog loopt er niet doorheen.
           const ti = el.parentElement?.querySelector(':scope > .titel');
           const pr = el.getBoundingClientRect();
           const tr = ti?.getBoundingClientRect();
@@ -274,7 +274,7 @@
             o.vrij = [{ x0: (tr.left - pr.left) * sc, y0: (tr.top - pr.top) * sc, x1: (tr.right - pr.left) * sc, y1: (tr.bottom - pr.top) * sc }].map((v) => Object.fromEntries(Object.entries(v).map(([k, w]) => [k, Math.round(w)])));
           }
         }
-        // De baan van de zon om het huis, zoals in het poppenhuis (besluit 205); het huis blijft even groot (22 november 2026).
+        // De baan van de zon om het huis, zoals in het poppenhuis (besluit 205); het huis blijft even groot.
         // De baan en de zon van nu uit api/zon (zoals het always-on display ze krijgt); het model van Thuis heeft alleen de stand.
         const zon = { ...(model?.zon ?? {}), ...(global.huismodel?.zonNu?.(zonData) ?? {}) };
         const voorDeg = model?.voorgevelDeg ?? model?.kompas?.voorgevelDeg;
@@ -288,12 +288,12 @@
       if (soort === 'tel' || tel) Object.assign(o, { stil: true, rand: 6 });
       // Tikken op een kamer, een deel buiten of de panelen, zoals in het poppenhuis (niet als niemand kijkt).
       if (soort !== 'rust') o.tik = true;
-      // Draaien op Thuis en de telefoon (22 november 2026, Ricardo: vrij, en na 20 seconden terug).
+      // Draaien op Thuis en de telefoon (Ricardo: vrij, en na 20 seconden terug).
       const draaibaar = soort === 'thuis' || soort === 'tel';
       const tekenNu = () => {
         const o2 = draaibaar ? { ...o, hoek: (o.hoek ?? -58) + (draai.get(el) ?? 0) } : o;
         /*
-         * Alleen opnieuw tekenen als er iets veranderde (23 november 2026). Thuis tekent bij elke verandering in huis
+         * Alleen opnieuw tekenen als er iets veranderde. Thuis tekent bij elke verandering in huis
          * opnieuw, maar meestal is het huis daarna precies hetzelfde (van 17 keer in 75 seconden 12 keer). Dezelfde
          * opties, maat en taal, en de tekening staat er nog: dan blijft hij staan.
          */
@@ -305,7 +305,7 @@
           uit = global.huisMaat.teken(staat.tk, B, H, o2);
         } catch (e) {
           /*
-           * Een tekening die mislukt (23 november 2026: bij sommige hoeken tijdens het draaien) laat de vorige staan,
+           * Een tekening die mislukt (bij sommige hoeken tijdens het draaien) laat de vorige staan,
            * in plaats van Thuis voor de rest van de dag op het poppenhuis te zetten. Zonder vorige tekening wel.
            */
           if (vorige?.svg && vorige.svg === el.firstElementChild) {
@@ -331,7 +331,7 @@
   }
 
   /*
-   * Het poppenhuis pas laden als het nodig is (23 november 2026). Thuis, een kamer en het always-on display laden
+   * Het poppenhuis pas laden als het nodig is. Thuis, een kamer en het always-on display laden
    * vast alleen kit/huis-basis.js (de kleuren, de iconen van de kamers, de feestdagen); de rest van het poppenhuis
    * (ruim 230 kB) komt pas als het getekende huis niet aan staat of niet lukt. `poppenhuis(opnieuw)` zegt of het er
    * is; zo niet, dan begint het laden en tekent `opnieuw` zodra het er is.

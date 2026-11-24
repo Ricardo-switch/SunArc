@@ -1,5 +1,5 @@
 /*
- * Hulp op de plek (besluit 325, schets Wand-Hulp-Plek, 19 november 2026).
+ * Hulp op de plek (besluit 325, schets Wand-Hulp-Plek).
  * De stukjes handleiding zijn één bron: hun teksten staan in teksten.nl.js en
  * teksten.en.js (`hulp.<id>.kop`, `.tekst`, `.zoek`), hier staat waar ze horen.
  *
@@ -115,7 +115,7 @@
     if (!s) return;
     const tel = global.app?.telStand?.() ?? global.innerHeight > global.innerWidth;
     const naar = hierAl(s.href) ? '' : `<a class="hulpnaar" href="${esc(s.href)}">${esc(t('hulp.instellen', { waar: s.waar }))} ›</a>`;
-    // Ook op deze pagina (19 november 2026): de andere stukjes van dezelfde plek, een tik zet ze in dit blad.
+    // Ook op deze pagina: de andere stukjes van dezelfde plek, een tik zet ze in dit blad.
     const ook = Object.keys(STUKJES).filter((x) => x !== id && STUKJES[x].plek === s.plek).slice(0, 5).map(stukje);
     const ookHtml = ook.length ? `<div class="hulpook"><span>${esc(t('hulp.ook'))}</span>${ook.map((o) => `<button type="button" data-hulpander="${esc(o.id)}">${esc(o.kop)}</button>`).join('')}</div>` : '';
     const blad = document.createElement('div');

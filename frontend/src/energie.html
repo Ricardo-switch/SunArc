@@ -103,8 +103,8 @@
   .dk-stand.schatting { color: var(--zon-t); }
   .dk-rechts { text-align: right; font-size: 12px; color: var(--zacht); line-height: 1.3; white-space: nowrap; }
   .dk-rechts b { display: inline; font: 600 15px var(--kop); color: var(--tekst); }
-  /* Wat kan bij jouw huis (6 november 2026, schets Wand-Daken-Watkan). */
-  /* Zoekt (7 november 2026): zolang de kaarten nog antwoorden, knippert het bolletje. */
+  /* Wat kan bij jouw huis (schets Wand-Daken-Watkan). */
+  /* Zoekt: zolang de kaarten nog antwoorden, knippert het bolletje. */
   .dk-som { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
   .dk-voet { margin-top: auto; padding-top: 6px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .dk-voet .mini { flex: 1; }
@@ -171,13 +171,13 @@
   #tel .dk-noot { display: none; }
 
   /* Het huis van boven (besluit 254, stap 2a). */
-  /* De naam van een vlak, als kop zelf in te vullen (5 november 2026). */
+  /* De naam van een vlak, als kop zelf in te vullen. */
   .dk-naamveld { display: block; width: 100%; min-width: 0; margin: 0 0 1px; padding: 2px 6px; border-radius: 8px; border: 1px dashed rgb(var(--wit) / 0.18); background: transparent; color: var(--tekst); font: 700 15px var(--kop); }
   .dk-naamveld::placeholder { color: var(--tekst); opacity: 1; }
   .dk-naamveld:focus { outline: none; border-style: solid; border-color: var(--ijs-t); background: rgb(var(--wit) / 0.06); }
   .dk-naamveld:focus::placeholder { color: var(--gedempt); }
   .dk-nieuw { display: block; font-size: 11.5px; color: var(--ijs-t); font-weight: 700; }
-  /* Het vraagteken (5 november 2026): rustig, rechts in de kop; geen rand die na een tik blijft staan. */
+  /* Het vraagteken: rustig, rechts in de kop; geen rand die na een tik blijft staan. */
   .dk-vraag { width: 30px; height: 30px; padding: 0; justify-content: center; font-weight: 700; font-size: 14px; color: var(--gedempt); background: rgb(var(--wit) / 0.05); border: 0; margin-left: 8px; flex: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .dk-vraag:hover { color: var(--zacht); background: rgb(var(--wit) / 0.09); }
   .dk-vraag:focus { outline: none; }
@@ -212,7 +212,7 @@
   .dk-gnaam text { fill: var(--zacht); font-weight: 700; font-family: var(--romp); }
   .dk-straat { fill: rgb(var(--wit) / 0.4); font-weight: 700; font-family: var(--romp); letter-spacing: 0.1em; pointer-events: none; }
   .dk-noord { position: absolute; top: 10px; right: 12px; width: 34px; height: 34px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; background: rgb(var(--nacht) / 0.6); border: 1px solid rgb(var(--wit) / 0.3); font-weight: 800; font-size: 12px; line-height: 1; color: var(--zon); }
-  /* Een klein rood pijltje boven de N (6 november 2026): het noorden is boven. */
+  /* Een klein rood pijltje boven de N: het noorden is boven. */
   .dk-noord svg { width: 8px; height: 6px; fill: #e5484d; }
   .dk-kaart { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: rgb(var(--nacht) / 0.82); }
   .dk-kaart .lig-knop { height: 36px; padding: 0 14px; font-size: 13.5px; white-space: nowrap; }
@@ -227,13 +227,13 @@
   .dk-podium .dk-noot { bottom: auto; top: 10px; right: 56px; }
   .dk-ligt { margin: -4px 0 0; }
   .dk-gicoon svg { width: 22px; height: 16px; }
-  /* Op de telefoon (5 november 2026): de tekening houdt haar hoogte, de uitleg en de balk van de kaart staan eronder in plaats van erover. */
+  /* Op de telefoon: de tekening houdt haar hoogte, de uitleg en de balk van de kaart staan eronder in plaats van erover. */
   #tel .dk-podium { height: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 6px; }
   #tel .dk-podium .dk-boven { position: relative; inset: auto; height: 250px; flex: none; }
   #tel .dk-podium .dk-noot, #tel .dk-podium .dk-kaart { display: flex; position: static; margin: 0 6px; }
   #tel .dk-podium .dk-noot { display: block; }
   #tel .pan-kop .dk-wissel { margin-left: 0; }
-  /* De kaart is experimenteel (schets Wand-Daken-Kaart, 5 november 2026): de balk, en de melding over de hele pagina. */
+  /* De kaart is experimenteel (schets Wand-Daken-Kaart): de balk, en de melding over de hele pagina. */
 </style>
 </head>
 <body class="lucht lucht-dag">

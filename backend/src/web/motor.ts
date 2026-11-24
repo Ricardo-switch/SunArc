@@ -1,5 +1,5 @@
 /**
- * De motor (23 november 2026, kwaliteitsronde stap 4 punt 4; schets design/app2/Wand-Motor.html): de rondes van een
+ * De motor (kwaliteitsronde stap 4 punt 4; schets design/app2/Wand-Motor.html): de rondes van een
  * dag uit het beslislogboek, voor De motor › Vandaag.
  *
  * Eén regel blijft: hier wordt niets nagerekend. Wat er staat, is wat de kern in elke ronde meegaf; dit bestand

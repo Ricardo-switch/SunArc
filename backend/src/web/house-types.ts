@@ -1,5 +1,5 @@
 /*
- * Het huis: de vormen van wat de dienst over het huis vertelt (22 november 2026, opgesplitst uit web/house.ts).
+ * Het huis: de vormen van wat de dienst over het huis vertelt (opgesplitst uit web/house.ts).
  *
  * Alleen typen: een etage, een kamer, een apparaat met zijn stand, een scène, de batterijen, de toegang en de
  * ligging van het huis.
@@ -24,7 +24,7 @@ export interface HouseRegisters {
 
 /**
  * `apparaat`: een uitstelbaar apparaat (besluit 98), zoals de droger; `camera`: om te bekijken (besluit 106);
- * `rookmelder`: een rookmelder zoals de Nest Protect (21 oktober 2026), alleen lezen.
+ * `rookmelder`: een rookmelder zoals de Nest Protect, alleen lezen.
  */
 export type DeviceKind = 'klimaat' | 'screen' | 'licht' | 'meter' | 'apparaat' | 'camera' | 'rookmelder';
 
@@ -33,7 +33,7 @@ export interface HouseReading {
   readonly temperatuurC: number | null;
   readonly vochtPct: number | null;
   /**
-   * Beweging (15 oktober 2026): van een bewegingsmelder bij hetzelfde
+   * Beweging: van een bewegingsmelder bij hetzelfde
    * apparaat. `nu` als hij nu beweging ziet; `sindsMs` wanneer dat veranderde.
    * Weg als het apparaat geen beweging meet. `id` is de melder in Home
    * Assistant: die kan de wand wekken (besluit 164).
@@ -64,7 +64,7 @@ export interface HouseClimate {
    * helpt op zon, of kijkt alleen.
    */
   readonly rol: 'houdt' | 'zon' | 'kijken';
-  /** Wat het nu vraagt, in W, als er een stroommeter bij is (Apparaten, 15 oktober 2026); anders weg. */
+  /** Wat het nu vraagt, in W, als er een stroommeter bij is (Apparaten); anders weg. */
   readonly vermogenW?: number | null;
   /** De kWh-meter van hetzelfde apparaat in Home Assistant, om het verbruik van vandaag te vinden. */
   readonly energieMeter?: string;
@@ -94,7 +94,7 @@ export interface HouseDevice {
   /** Voor de pagina, als sleutel; de bewoner ziet hem nooit (45). */
   readonly id: string;
   /**
-   * Witgoed (22 november 2026): een uitstelbaar apparaat zoals de droger. Het
+   * Witgoed: een uitstelbaar apparaat zoals de droger. Het
    * deelt de soort `apparaat` met een losse stekker en een warmtebuffer, maar
    * staat op de kamerpagina apart en heeft in de tekening een eigen soort.
    */
@@ -106,7 +106,7 @@ export interface HouseDevice {
   /** Een lamp achter een schakelaar (besluit 297): waarlangs, zoals "Shelly 1 mini". */
   readonly via?: string;
   /**
-   * Eén apparaat, één bolletje (20 november 2026): dit is een bijfunctie van
+   * Eén apparaat, één bolletje: dit is een bijfunctie van
    * een ander apparaat in Home Assistant, zoals de schijnwerper of de
    * bewegingsmelder van een camera. Het id van dat hoofdapparaat.
    */
@@ -194,7 +194,7 @@ export interface HouseDevice {
     readonly vermogenW?: number | null;
   };
   /**
-   * Alleen bij een rookmelder (21 oktober 2026): wat hij ziet (rook, koolmonoxide
+   * Alleen bij een rookmelder: wat hij ziet (rook, koolmonoxide
    * of hitte) en sinds wanneer, of zijn batterij een probleem meldt, wanneer hij
    * vervangen moet en wanneer hij getest is (`JJJJ-MM-DD`).
    */
@@ -315,10 +315,10 @@ export interface HouseReport {
   readonly accu: LayoutAccu | null;
   /** Wat voor huis het is (besluit 190): vrijstaand als de bewoner niets koos. */
   readonly woning: Woning;
-  /** Bij een appartement (20 november 2026): hoeveel verdiepingen van het gebouw eronder en erboven liggen; anders null. */
+  /** Bij een appartement: hoeveel verdiepingen van het gebouw eronder en erboven liggen; anders null. */
   readonly gebouw: { readonly onder: number; readonly boven: number } | null;
   /**
-   * Hoe het huis ligt, voor de tekening (28 oktober 2026, besluit 205): waar
+   * Hoe het huis ligt, voor de tekening (besluit 205): waar
    * de voorgevel naartoe kijkt, hoe de nok loopt en hoe steil het dak is. Null
    * zolang de ligging niet bekend is; dan tekent de app het zoals eerst.
    */
@@ -339,7 +339,7 @@ export interface HouseReport {
     readonly groepen: readonly string[];
     /** De kamer die bij een van die groepen lijkt te horen, of null. */
     readonly voorstelKamer: string | null;
-    /** Een bijfunctie van een ander apparaat (20 november 2026), zie `HouseDevice.hoortBij`. */
+    /** Een bijfunctie van een ander apparaat, zie `HouseDevice.hoortBij`. */
     readonly hoortBij?: string;
     /** Bij een lamp: of hij aan staat, voor Apparaten › Licht (besluit 293). */
     readonly aan?: boolean;

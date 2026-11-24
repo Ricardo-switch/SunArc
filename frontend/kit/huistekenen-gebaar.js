@@ -1,5 +1,5 @@
 /*
- * SunArc: je huis tekenen, het gebaar (22 november 2026, opgesplitst uit kit/huistekenen.js).
+ * SunArc: je huis tekenen, het gebaar (opgesplitst uit kit/huistekenen.js).
  *
  * Wat er onder de vinger ligt (een muur, een opening, een apparaat, een zonelijn), zoomen met twee vingers of
  * het wieltje, en het gebaar zelf: neer, bewegen en loslaten, met een tik als je niet sleept. Eén luisteraar op
@@ -281,7 +281,7 @@
           kern.actie.kandidaat = { soort: 'heel' };
           return;
         }
-        // De stip op het scharnier: een tik zet het scharnier aan het andere eind (20 november 2026).
+        // De stip op het scharnier: een tik zet het scharnier aan het andere eind.
         const sp = kern.metOpeningen ? kern.scharnierStip(kern.vloer()) : null;
         if (sp && Math.hypot(kern.X(sp.x) - p.px, kern.Y(sp.y) - p.py) <= (vinger ? 24 : 14)) {
           kern.actie.kandidaat = { soort: 'scharnier', o: sp.o };
@@ -362,7 +362,7 @@
           return;
         }
         if (kern.actie.type === 'draai') {
-          // Vrij rond draaien, zoals op Thuis (23 november 2026).
+          // Vrij rond draaien, zoals op Thuis.
           kern.st.hoek = (((kern.actie.hoek0 + dx * 0.35 + 180) % 360) + 360) % 360 - 180;
           kern.teken();
           return;
@@ -392,7 +392,7 @@
             // Recht van de muur af is schuiven; schuin of erlangs is een vak trekken dat bij de muur begint.
             const dwars = Math.abs(kd.m.as === 'x' ? dx : dy);
             const langs = Math.abs(kd.m.as === 'x' ? dy : dx);
-            // Buiten is de buitenmuur de erfgrens: die schuif je ook bij Kamers (19 november 2026).
+            // Buiten is de buitenmuur de erfgrens: die schuif je ook bij Kamers.
             const opErf = !!kern.etageVan(kern.st.etage)?.buiten;
             if (dwars > langs * 1.4 && !(kd.m.soort === 2 && kern.st.stand === 'kamers' && !opErf)) {
               kern.actie.type = 'muur';
@@ -704,7 +704,7 @@
         const p = a.start;
         const v = kern.vloer();
         const id = ruimteOp(v, p.x, p.y);
-        // Het huis op het erf: een tik geeft zijn blad, met de weg naar binnen (20 november 2026: eerst sprong hij meteen naar de begane grond, ook als je aan het tekenen was).
+        // Het huis op het erf: een tik geeft zijn blad, met de weg naar binnen (eerst sprong hij meteen naar de begane grond, ook als je aan het tekenen was).
         if (kern.vastId(v, id) && a.kandidaat.soort !== 'apparaat') {
           kern.st.blad = null;
           kern.st.kies = { soort: 'erfhuis', id };

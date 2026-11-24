@@ -1,5 +1,5 @@
 /**
- * Rookmelders (21 oktober 2026, schets Wand-Rook): de Nest Protect, en elke
+ * Rookmelders (schets Wand-Rook): de Nest Protect, en elke
  * melder die in Home Assistant een sensor voor rook of koolmonoxide heeft.
  *
  * SunArc leest alleen. Per melder: of hij rook, koolmonoxide of hitte

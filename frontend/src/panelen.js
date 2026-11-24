@@ -116,7 +116,7 @@ const ligging = (() => {
   }
 
   /*
-   * Opmeten op de kaart (21 oktober 2026): de omtrek van het huis in
+   * Opmeten op de kaart: de omtrek van het huis in
    * OpenStreetMap geeft de richting van de gevels op een graad. Een kompas
    * binnen tegen de muur zat hier 15° naast. Alleen na een tik: de ligging
    * van het huis gaat dan eenmalig naar OpenStreetMap.

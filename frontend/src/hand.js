@@ -175,7 +175,7 @@
       if (open && !open.vrij && !open.wg && !open.st) teken();
     });
   }
-  // Een eigen naam (17 november 2026): onder dezelfde naam verderop overschreef de duur van Met de hand deze.
+  // Een eigen naam: onder dezelfde naam verderop overschreef de duur van Met de hand deze.
   function hulpDuur(min) {
     const u = Math.floor(min / 60);
     const m = Math.round(min % 60);
@@ -208,7 +208,7 @@
     if (b.langerMin >= 1) regels.push([t('hand.hulp.langer', { duur: hulpDuur(b.langerMin), kamer: h.kamer ?? a.kamer ?? '' }), false]);
     if (b.kort.length) regels.push([t('hand.hulp.kort', { n: b.kort.length }), true]);
     if (h.bijC > 0) regels.push([t('hand.hulp.hoger', { graden: nl(h.bijC, h.bijC % 1 ? 1 : 0) }), false]);
-    // Op de wand één regel (19 november 2026): het hele blok duwde de knoppen 140 px uit het blad, en de wand schuift nooit.
+    // Op de wand één regel: het hele blok duwde de knoppen 140 px uit het blad, en de wand schuift nooit.
     // De dag als balk staat bij Helpen bij de cv; op de telefoon schuift het blad, en staat hij hier ook.
     if (!telStand()) return `<div class="hand-koppel"><span>${esc(t('hand.hulp.aan', { kamer: h.kamer ?? a.kamer ?? '' }))} · ${esc(regels[0][0])}</span><a href="comfort.html#helpen">${esc(t('hand.hulp.naar'))}</a></div>`;
     return `<div class="hand-hulp">
@@ -238,9 +238,9 @@
       ['dagdeel', t('hand.totKlok', { klok: klokVan(data.dagdeelTotMs) }), open.tot === 'dagdeel', 'data-hand-tot'],
       ...(stand ? [] : [['doel', t('hand.totDoel', { doel: graden(open.doel) }), open.tot === 'doel', 'data-hand-tot']]),
     ]);
-    // Met de luchtvochtigheid erbij (19 november 2026), van het apparaat of van de kamer.
+    // Met de luchtvochtigheid erbij, van het apparaat of van de kamer.
     const kop = metKop ? kopVan(a.naam, [a.kamer, a.nuC != null ? t('hand.nuGraden', { graden: graden(a.nuC) }) : null, a.vochtPct != null ? t('kamer.vocht', { pct: Math.round(a.vochtPct) }) : null, nuZin(a)].filter(Boolean).join(' · ')) : '';
-    // Een knop die zegt wat hij doet (15 november): een airco die de app zelf aanzette, gaat ook uit.
+    // Een knop die zegt wat hij doet: een airco die de app zelf aanzette, gaat ook uit.
     const zetUit = a.actief && (isStand(a.actief.modus) || m.via === 'direct') && a.soort !== 'radiatorknop';
     const terugKnop = los
       ? (a.actief || (a.hvac && a.hvac !== 'off') ? `<button type="button" class="hand-terug" data-hand-uit>${esc(t('hand.zetUit'))}</button>` : '')
@@ -353,7 +353,7 @@
     if (!s.toegelaten) return `${kop}${instellen}${zon}`;
 
     const vast = open.wanneer !== 'nu';
-    // Uit, nu: meteen uit, zonder hoe lang (7 november 2026).
+    // Uit, nu: meteen uit, zonder hoe lang.
     const meteenUit = !vast && !open.aan;
     const totMs = stekkerTot(open);
     const klok = klokVan(totMs);
@@ -373,7 +373,7 @@
       ['werkdagen', t('gp.h.werkdagen'), open.wanneer === 'werkdagen', 'data-st-wanneer'],
       ['weekend', t('gp.h.weekend'), open.wanneer === 'weekend', 'data-st-wanneer'],
     ]);
-    // Een keuzelijst met tijden, geen klok: op een Android-wand ging Instellen pas na het toetsenbord (7 november 2026).
+    // Een keuzelijst met tijden, geen klok: op een Android-wand ging Instellen pas na het toetsenbord.
     const tijd = !meteenUit && !vast && open.tot === 'tijd' ? `<label class="veldnaam">${esc(t('hand.totHoeLaat'))}${tijdKeuze(open.tijd, 'data-st-tijd', true)}</label>` : '';
     const om = vast ? `<div class="hand-vraag"><span>${esc(t('hand.om'))}</span>${tijdKeuze(open.om, `data-st-om aria-label="${esc(t('hand.omHoeLaat'))}"`, false, 'hand-om')}</div>` : '';
     const duur = t(`tk.duur.${ST_TK[open.tot] ?? 'uur1'}`).trim();
@@ -410,7 +410,7 @@
   }
 
   /**
-   * Een tijd kiezen uit een lijst per kwartier (7 november 2026): een veld met
+   * Een tijd kiezen uit een lijst per kwartier: een veld met
    * een klok vroeg op een Android-wand eerst om het toetsenbord. `vanafNu`
    * begint bij het volgende kwartier, voor "tot hoe laat".
    */
@@ -522,7 +522,7 @@
       laag.setAttribute('aria-modal', 'true');
       (telStand() ? document.body : (document.getElementById('wand') ?? document.body)).append(laag);
     }
-    // Niet 'tel': die klasse is in kit.css het telefoonframe van de schetsen, 390 breed (2 november 2026).
+    // Niet 'tel': die klasse is in kit.css het telefoonframe van de schetsen, 390 breed.
     laag.classList.toggle('op-tel', telStand());
     // Een vrij blad (besluit 298): de pagina zegt de naam, de zin en wat erin staat.
     const vrij = open.vrij ? open.vrij() : null;
@@ -698,7 +698,7 @@
       const s = stekkerVan(open.st);
       if (s) await bewaarVast(s);
     } else if (el('[data-st-zet]') && !open.aan) {
-      // Uit is meteen uit, zonder eind (7 november 2026).
+      // Uit is meteen uit, zonder eind.
       if (await stuur('api/stekker', { id: open.st, aan: false, meteen: true })) open = null;
     } else if (el('[data-st-zet]')) {
       // De keuze, niet het tijdstip: de dienst rekent het eind zelf uit, ook als de klok van de telefoon afwijkt.
@@ -725,7 +725,7 @@
   function nuHtml() {
     const klimaat = (data?.apparaten ?? []).filter((a) => a.actief).map((a) => `<div class="nu-regel"><span class="ik">${IK.klimaat}</span><div><b>${esc(a.naam)}</b><span>${esc(nuZin(a))}</span></div><button type="button" data-nu-terug="${esc(a.id)}">${esc(t('hand.terugKort'))}</button></div>`);
     const wit = uitstelbaar.filter((d) => d.kanKiezen).map((d) => `<a class="nu-regel" href="apparaten.html#wg-${encodeURIComponent(d.id)}"><span class="ik">${IK.witgoed}</span><div><b>${esc(t('witgoed.opZon', { naam: d.naam }))}</b><span>${esc(d.klaarVoor ? t('witgoed.klaarVoorKort', { klok: d.klaarVoor }) : t('witgoed.geenHaastKort'))}</span></div><em>${esc(t('witgoed.aanpassen'))}</em></a>`);
-    // Een stekker met de hand (besluit 265): aan met de hand zegt Zet uit, uit met de hand Zet aan (7 november 2026).
+    // Een stekker met de hand (besluit 265): aan met de hand zegt Zet uit, uit met de hand Zet aan.
     const stek = (stekkers?.stekkers ?? []).filter((s) => s.actief).map((s) => `<div class="nu-regel"><span class="ik">${iconen.svg('stekker')}</span><div><b>${esc(s.naam)}</b><span>${esc(t(s.actief.aan ? 'hand.stekkerAanTot' : 'hand.stekkerUitTot', { klok: klokVan(s.actief.totMs) }))}</span></div>${stekkers?.aan ? `<button type="button" data-nu-stekker="${esc(s.id)}" data-nu-aan="${s.actief.aan}">${esc(t(s.actief.aan ? 'hand.stekkerZetUitKort' : 'hand.stekkerZetAanKort'))}</button>` : ''}</div>`);
     return [...klimaat, ...stek, ...wit].join('');
   }

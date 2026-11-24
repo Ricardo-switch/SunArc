@@ -188,7 +188,7 @@ function huisModel() {
     // op Thuis liep hij door de kop, de stromen en de labels.
     zon: { ...(zon?.dag ? { stand: zon.dag.fractie, hoogte: zon.dag.hoogteDeel, aandeel: Math.min(1, (zonKw * 1000) / Math.max(helder, 1500)), opRechts: huismodel.zonOpRechts(aansluiting?.ligging, aansluiting?.antwoorden?.panelen) ?? undefined, ...opDak } : { aandeel: 0, ...opDak }), ...(dakenTik ? { tik: 'daken', tikLabel: t('daken.nu.kop') } : {}) },
     // Het huis zelf, zoals elke pagina het tekent (besluit 191), met de panelen op een ander dak (besluit 187).
-    // Geen kompas op Thuis (24 oktober 2026): dat hoort bij Zonnepanelen.
+    // Geen kompas op Thuis: dat hoort bij Zonnepanelen.
     ...gekozenBuiten(huismodel.huisDelen(tek, elders)),
     net: true,
     stromen,
@@ -225,7 +225,7 @@ function tekenStromenTel() {
   if (!el) return;
   const s = state?.bewoner?.stromen;
   if (!s) return void (el.hidden = true);
-  // Drie vakjes zonder pijlen (24 oktober 2026: een pijl naar links zei niets): de zon, het huis en het net, elk met een icoon in de kleur van zijn lijn.
+  // Drie vakjes zonder pijlen (een pijl naar links zei niets): de zon, het huis en het net, elk met een icoon in de kleur van zijn lijn.
   const ik = (pad) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${pad}</svg>`;
   const ZON = '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/>';
   const HUIS = '<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/>';
@@ -339,7 +339,7 @@ function tekenNu() {
   lucht(model.tijd, model.seizoen, model.wolken);
   // Een nieuw huis (nog het voorstel uit Home Assistant): de weg naar Inrichten (besluit 114).
   $$('[data-inrichten]').forEach((el) => (el.hidden = huisData?.indeling !== 'voorstel'));
-  // De begroeting (15 oktober 2026), naar de tijd van de dag, met wie je bent (besluit 147).
+  // De begroeting, naar de tijd van de dag, met wie je bent (besluit 147).
   const uur = new Date().getHours();
   const groet = t(`thuis.groet.${uur < 6 ? 'nacht' : uur < 12 ? 'morgen' : uur < 18 ? 'middag' : 'avond'}`);
   // Ieder in zijn eigen kleur (besluit 181).
@@ -351,7 +351,7 @@ function tekenNu() {
   const wandPodium = document.getElementById('podium-wand');
   // Het huis zoals getekend in Je huis (stap a van de nieuwe tekenaar, src/huisthuis.js), als die aan staat; anders het poppenhuis.
   if (!app.telStand()) {
-    // Het poppenhuis laadt pas als het nodig is (23 november 2026): huisThuis.poppenhuis tekent opnieuw zodra het er is.
+    // Het poppenhuis laadt pas als het nodig is: huisThuis.poppenhuis tekent opnieuw zodra het er is.
     if (!window.huisThuis?.teken(wandPodium, model, { breedte: wandPodium.clientWidth || 860, hoogte: 612, huisData, zonData: zon, opnieuw: tekenNu }) && (window.huisThuis?.poppenhuis(tekenNu) ?? true)) huis.teken(wandPodium, model, { breedte: wandPodium.clientWidth || 860, hoogte: 612, marge: 0.04, schuifX: 10, schuifY: 10, tik: true });
   }
   // Eenvoudig (besluit 164): geen getallen op het huis. De telefoon ook met het huis zoals getekend (stap d), als die aan staat.
@@ -554,7 +554,7 @@ function tekenStraks() {
 const klokVan = klok;
 /**
  * Wie er thuis is: meteen zoals Home Assistant het ziet, net als bij Bewoners
- * (21 oktober 2026). Eerst volgden de rondjes de regeling, die pas na tien
+ *. Eerst volgden de rondjes de regeling, die pas na tien
  * minuten rust wisselt; dan stond iemand bij Bewoners al thuis en hier nog
  * weg. Het comfort wisselt nog steeds pas na die tien minuten (besluit 147);
  * dat laat de ring zien.
@@ -666,7 +666,7 @@ document.addEventListener('click', async (e) => {
  * op de laagste etage, meestal waar je woont.
  */
 function tekenGevoel() {
-  // Van beneden naar boven (29 oktober 2026): de gekozen kamer vooraan, niet half buiten beeld.
+  // Van beneden naar boven: de gekozen kamer vooraan, niet half buiten beeld.
   const zones = [...huisData.etages].reverse().flatMap((e) => e.ruimtes).filter((r) => r.zoneId && r.temperatuurC != null);
   // Op de telefoon geen lege kaart zonder kamers.
   $$('#tel [data-gevoel-kaart]').forEach((el) => (el.hidden = !zones.length));

@@ -29,7 +29,7 @@ let huisData = null;
 /** De schakelaars met de keuzes van de bewoner (besluit 297), en of SunArc ze hier kan bedienen. */
 let schakelaarData = null;
 let opbrengst = null;
-/** Alle camera's uit Home Assistant (20 november 2026), met hoe vaak ze vandaag iets zagen. */
+/** Alle camera's uit Home Assistant, met hoe vaak ze vandaag iets zagen. */
 let camData = null;
 /** Het antwoord op de laatste keuze per apparaat, tot het volgende besluit het overneemt. */
 const gezegd = new Map();
@@ -119,7 +119,7 @@ function kaart(d) {
   void rest;
   const draaide = (spans?.draaide ?? []).reduce((som, x) => som + (x.totMs - x.vanMs), 0);
   // Draait hij, dan zette de bewoner hem aan: SunArc start nog niets zelf (de schaduw,
-  // besluit 64). Dan niet "Start op zon", dat las alsof de zon hem startte (25 oktober 2026).
+  // besluit 64). Dan niet "Start op zon", dat las alsof de zon hem startte.
   const label = d.stand === 'running' && !d.doorSmartClimate ? `<span class="label">${esc(t('apparaten.zelfGestart'))}</span>` : `<span class="label zon">${esc(t('apparaten.startOpZon'))}</span>`;
   const el = document.createElement('section');
   el.className = 'glas app';
@@ -301,9 +301,9 @@ function klimaatKaart({ a, r }) {
   const wacht = (state?.rejected ?? []).find((x) => x.blockedBy === 'insufficient_power_budget' && x.intent?.actuatorId === id && x.intent?.budgetW > 0);
   const code = a.klimaat?.actieCode ?? '';
   const doet = /^(koelt|verwarmt|verwarmt-voor|droogt|ventileert)$/.test(code);
-  // Alleen wie op zon wacht, heet zo (14 november 2026): een thermostaat die op zijn draaitijd wacht, kreeg ook "Wacht op zon".
+  // Alleen wie op zon wacht, heet zo: een thermostaat die op zijn draaitijd wacht, kreeg ook "Wacht op zon".
   const stand = bew?.soort === 'wait' ? (wacht ? [t('apparaten.wachtZon'), 'var(--zon)'] : [t('apparaten.wacht'), '#8796a8']) : doet ? [huismodel.metHoofdletter(a.klimaat.actie), code === 'koelt' ? 'var(--ijs)' : 'var(--gloed)'] : [huismodel.metHoofdletter(a.stand ?? t('apparaten.onbekend')), 'var(--mint)'];
-  // Niet twee keer hetzelfde (29 oktober 2026): de zin begon met de stand ("Verwarmen naar 20° · onder het doel"),
+  // Niet twee keer hetzelfde: de zin begon met de stand ("Verwarmen naar 20° · onder het doel"),
   // en een stand die het doel al noemt ("Automatisch naar 18°") kreeg "Doel 18°." eronder. Een radiatorknop noemt het ook al.
   // Een warmtepomp met een stooklijn of watertemperatuur als doel (testerronde, november 2026): dat zegt hij, geen kamer.
   const soortDoel = a.klimaat?.ha?.doel ?? 'kamer';
@@ -311,7 +311,7 @@ function klimaatKaart({ a, r }) {
   const doel = getalDoel == null ? null : soortDoel === 'stooklijn' ? t('apparaten.stooklijn', { doel: `${a.klimaat.doelC > 0 ? '+' : ''}${getalDoel}` }) : soortDoel === 'water' ? t('apparaten.water', { doel: getalDoel }) : `${getalDoel}°`;
   const standLaag = stand[0].toLowerCase();
   const rest = bew?.tekst?.toLowerCase().startsWith(standLaag) ? bew.tekst.slice(standLaag.length).replace(/^[\s·,.;:–-]+/, '') : bew?.tekst;
-  // Twee doelen bij één thermostaat (30 oktober 2026): bovenaan wat het apparaat zelf zegt ("Automatisch naar 18°"),
+  // Twee doelen bij één thermostaat: bovenaan wat het apparaat zelf zegt ("Automatisch naar 18°"),
   // eronder wat SunArc zou doen. Doet het apparaat het niet zelf, dan zegt de zin van wie hij is.
   const vanSC = rest && !doet && bew?.soort !== 'wait' ? t('apparaten.zouKiezen', { wat: rest }) : rest ? `${huismodel.metHoofdletter(rest)}.` : '';
   const zin = bew?.tekst
@@ -353,7 +353,7 @@ function klimaatKaart({ a, r }) {
     el.dataset.blad = 'klimaat';
     el.dataset.klimaat = bijHand.id;
     el.tabIndex = 0;
-    // Een groep, geen knop: er staat een eigen knop in (Klopt iets niet?), en een knop in een knop kan niet (19 november 2026).
+    // Een groep, geen knop: er staat een eigen knop in (Klopt iets niet?), en een knop in een knop kan niet.
     el.setAttribute('role', 'group');
     el.setAttribute('aria-label', t('apparaten.openIn', { naam: a.naam }));
   }
@@ -482,7 +482,7 @@ function tekenZonchip() {
   const overKw = Math.max(0, (state?.explanation?.budget?.surplusW ?? 0) / 1000);
   let kop;
   let onder;
-  // Een huis zonder panelen (19 november 2026): geen zon, maar wat het huis nu gebruikt.
+  // Een huis zonder panelen: geen zon, maar wat het huis nu gebruikt.
   if (app.huisSoort()?.zon === false) {
     kop = t('apparaten.nuVanNet', { kw: nl(Math.max(0, s.netKw ?? 0)) });
     onder = t('apparaten.geenPanelen');
@@ -609,7 +609,7 @@ function stekkerRegel(s) {
 }
 
 /** Het icoon bij wat er aan een schakelaar hangt. */
-/* ------------------------------------------- de camera's (20 november 2026) */
+/* ------------------------------------------- de camera's */
 
 /*
  * Camera's bij Apparaten (schets Wand-Apparaten-Cameras): een eigen soort na
@@ -1085,7 +1085,7 @@ function kaartenPerSoort() {
     auto: [...(opslag.autos ?? (opslag.auto ? [opslag.auto] : [])).map((x) => ladingKaart('auto', x)), ...(aansluiting?.laden?.apparaten ?? []).filter((x) => x.rol === 'laadpaal' && x.aan).map(paalKaart)],
     energie: opslag.batterij ? [ladingKaart('batterij', opslag.batterij)] : [],
     // Een schakelaar met iets anders dan een lamp (besluit 297); een lamp staat bij Licht.
-    // Alle camera's (20 november 2026): één camera is één kaart, met wat er ook in zit.
+    // Alle camera's: één camera is één kaart, met wat er ook in zit.
     cameras: (camData?.cameras ?? []).map(cameraKaart),
     schakelaars: (schakelaarData?.schakelaars ?? []).filter((x) => x.keuze && x.keuze.wat !== 'lamp' && !KLIMAAT_WAT.has(x.keuze.wat)).map(schakelaarKaart),
   };

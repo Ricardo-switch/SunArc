@@ -1,5 +1,5 @@
 /*
- * Wat voor huis (schets Wand-Huis-Woning, 20 november 2026): de vijf soorten
+ * Wat voor huis (schets Wand-Huis-Woning): de vijf soorten
  * met een klein huisje, en welke muren tegen de buren staan. Eén deel voor Je
  * huis › Vorm en voor Inrichten (keuze Ricardo: Inrichten toont hetzelfde
  * deel). De pagina doet de tik: `data-woning` kiest een soort, `data-buur`
@@ -46,7 +46,7 @@
       ? ''
       : `<h4 class="wn-kop">${esc(T('wn.tegen'))}</h4><div class="wn-kanten">${KANTEN.map((k) => `<button type="button" class="wn-kant${tegen.includes(k) ? ' aan' : ''}" ${doe('buur')}data-buur="${k}" aria-pressed="${tegen.includes(k)}">${esc(T(`wn.kant.${k}`))}</button>`).join('')}</div>
          ${nu === 'appartement' && tegen.length ? '' : `<p class="wn-zin">${esc(tegen.length ? T(tegen.length === 1 ? 'wn.tegenZinEen' : 'wn.tegenZinMeer', { kanten: opsomming(tegen.map((k) => T(`wn.kantKlein.${k}`))) }) : T('wn.tegenGeen'))}</p>`}`;
-    // Een appartement (20 november 2026): op welke verdieping, en hoeveel erboven; met niets erboven is het dak van jou.
+    // Een appartement: op welke verdieping, en hoeveel erboven; met niets erboven is het dak van jou.
     let flat = '';
     if (nu === 'appartement') {
       const f = flatVan({ verdieping, erboven });

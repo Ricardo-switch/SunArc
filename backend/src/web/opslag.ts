@@ -302,7 +302,7 @@ const LAADPAAL_KOPPELING = /^(easee|zaptec|wallbox|alfen_wallbox|peblar|ohme|mye
 const LAADPAAL_MERK = /\b(easee|zaptec|wallbox|alfen|peblar|ohme|zappi|go-e|openevse|nrgkick|wall connector)\b/i;
 /**
  * Koppelingen die een afstand of een plek meten maar nooit een auto of een
- * laadpaal zijn (6 november 2026): een iBeacon meet hoe ver de telefoon is,
+ * laadpaal zijn: een iBeacon meet hoe ver de telefoon is,
  * Proximity hoe ver iemand van huis is. Eerst telde elke afstand als auto.
  */
 const GEEN_AUTO_KOPPELING = /^(ibeacon|proximity|bermuda|private_ble_device|bluetooth_le_tracker|ble_monitor|espresense|mqtt_room|room_assistant|mobile_app|owntracks|life360|google_maps|icloud|icloud3|find_my|tile|homekit_controller|browser_mod|waze_travel_time|google_travel_time|here_travel_time|places|zone|person|sun|met|buienradar|openweathermap)$/;
@@ -421,7 +421,7 @@ function lezer(registers: Registers, states: ReadonlyMap<string, HaEntityState>)
   /** Iets wat alleen een auto meet: laden of een kabel erin. */
   const laadTeken = (a: Apparaat) => heeft(a, 'battery_charging') || heeft(a, 'plug');
   /*
-   * Een auto (6 november 2026, strenger): een koppeling voor auto's, of een
+   * Een auto (strenger): een koppeling voor auto's, of een
    * bereik samen met een lading of laden, of een automerk met een lading en
    * een bereik of laden. Een afstand alleen is geen auto meer.
    */

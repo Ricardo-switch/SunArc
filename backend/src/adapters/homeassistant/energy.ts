@@ -31,7 +31,7 @@ export function haEnergySource(
   platform: (entityId: string) => string | null = () => null,
   /** Alle entiteiten van nu: om sensoren met een prijs per kWh te vinden. */
   alle: () => Iterable<HaEntityState> = () => [],
-  /** De omvormers met hun vermogen van nu, waarmee de regeling rekent (5 november 2026). */
+  /** De omvormers met hun vermogen van nu, waarmee de regeling rekent. */
   omvormers: () => readonly string[] = () => [],
 ): EnergySource {
   const friendly = (id: string) => {

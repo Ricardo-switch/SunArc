@@ -95,7 +95,7 @@ function andereKamers() {
   return indelingKamers().filter((k) => binnen(k) && !hoofd.has(k.id));
 }
 const ANDER = 'k-';
-/** Een zone onder zijn kamer, met de kamer mee (zones als deel van de kamer, 18 november 2026): `z:kamer:zone`. */
+/** Een zone onder zijn kamer, met de kamer mee (zones als deel van de kamer): `z:kamer:zone`. */
 const ZONE = 'z:';
 /** De zones van een kamer van Klimaat, uit de indeling. */
 const zonesVan = (kamerId) => indelingVan(kamerId)?.zones ?? [];
@@ -300,7 +300,7 @@ function zonEnNet(k) {
   return zon || net ? `<div class="zonnet">${zon}${net}</div>` : '';
 }
 
-/** De luchtvochtigheid van een kamer achter de temperatuur (19 november 2026), als er iets meet. */
+/** De luchtvochtigheid van een kamer achter de temperatuur, als er iets meet. */
 const vochtBij = (r) => (r?.vochtPct != null ? ` · ${esc(t('kamer.vocht', { pct: Math.round(r.vochtPct) }))}` : '');
 
 function kamerVorm(k) {
@@ -773,7 +773,7 @@ function balkBij(rij, k, m) {
 let sleept = false;
 
 /*
- * Alleen het bolletje slepen verandert de temperatuur (21 oktober 2026): het
+ * Alleen het bolletje slepen verandert de temperatuur: het
  * houdt de vinger vast tot je loslaat, en schuift mee vanaf waar je het pakte,
  * zonder naar het midden van je vinger te springen. Een tik op de balk of
  * ergens anders doet niets.

@@ -1,5 +1,5 @@
 /*
- * De assistent: de vormen van vraag en antwoord (22 november 2026, opgesplitst uit web/assistant.ts).
+ * De assistent: de vormen van vraag en antwoord (opgesplitst uit web/assistant.ts).
  *
  * De talen, de soorten vragen en wensen, een vraag, een feit, een antwoord, wat de assistent van het huis weet, en
  * de stand van een kamer.
@@ -22,7 +22,7 @@ export interface DecisionView {
   /** Wat een apparaat zegt dat het nu doet (`hvac_action`), als het dat zegt. */
   readonly observedAction?: Readonly<Record<string, string>>;
   /**
-   * Waar de zon staat (25 oktober 2026): op, nog niet op, of vandaag niet meer
+   * Waar de zon staat: op, nog niet op, of vandaag niet meer
    * genoeg ('s middags lager dan 10°). Zonder ligging weg: dan zoals het was.
    */
   readonly zonNu?: ZonNu;
@@ -36,7 +36,7 @@ export type Lang = (typeof LANGS)[number];
 export const QUESTION_KINDS = ['nu', 'waarom', 'straks', 'zon', 'doe', 'vandaag', 'warm', 'weer', 'morgen', 'kosten', 'sluip', 'thuis', 'terug', 'draait'] as const;
 export type QuestionKind = (typeof QUESTION_KINDS)[number];
 
-/** `aan` zonder meer (29 oktober 2026): koelen of verwarmen, naar wat de kamer nodig heeft. */
+/** `aan` zonder meer: koelen of verwarmen, naar wat de kamer nodig heeft. */
 export type Wish = 'koelen' | 'verwarmen' | 'drogen' | 'uit' | 'aan';
 
 export type Question =
@@ -56,7 +56,7 @@ export type Question =
   | { readonly kind: 'kosten' }
   /** Het sluipverbruik: wat het huis 's nachts gebruikt (besluit 192). */
   | { readonly kind: 'sluip' }
-  /** Of er iemand thuis is, wat er terugging naar het net, en of een apparaat draait (29 oktober 2026). */
+  /** Of er iemand thuis is, wat er terugging naar het net, en of een apparaat draait. */
   | { readonly kind: 'thuis' }
   | { readonly kind: 'terug' }
   | { readonly kind: 'draait'; readonly apparaat: string }
@@ -82,7 +82,7 @@ export interface Answer {
   readonly antwoord: string;
   readonly feiten: readonly Fact[];
   /**
-   * Zo zeggen, niet in eigen woorden (29 oktober 2026): een kamer die er niet
+   * Zo zeggen, niet in eigen woorden: een kamer die er niet
    * is of nog geen besluit. Het model zette er een sfeerzinnetje achter, zoals
    * "Laten we het gezellig houden in huis".
    */
@@ -161,7 +161,7 @@ export interface AskContext {
     readonly maand: string;
     readonly apparaten: readonly { readonly id: string; readonly naam: string; readonly kwh: number; readonly zonKwh: number; readonly euro: number | null }[];
     /**
-     * Het hele huis deze maand (29 oktober 2026), uit de slimme meter: stroom
+     * Het hele huis deze maand, uit de slimme meter: stroom
      * met de teruglevering ervan af, gas, en alles met de vaste kosten. Null
      * waar een prijs ontbreekt.
      */

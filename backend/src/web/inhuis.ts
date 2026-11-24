@@ -17,9 +17,9 @@ export const inHouse = (st: HaEntityState) =>
   st.entity_id.startsWith('scene.') ||
   // De camera's (besluit 106): anders zei het huis "niet bereikbaar" terwijl er beeld was.
   st.entity_id.startsWith('camera.') ||
-  // Beweging, voor de kamer en het huis (15 oktober 2026).
+  // Beweging, voor de kamer en het huis.
   (st.entity_id.startsWith('binary_sensor.') && ['motion', 'occupancy', 'presence'].includes(String(st.attributes['device_class']))) ||
-  // Rookmelders (21 oktober 2026): rook, koolmonoxide, hitte en een batterij die op is.
+  // Rookmelders: rook, koolmonoxide, hitte en een batterij die op is.
   (st.entity_id.startsWith('binary_sensor.') && ['smoke', 'carbon_monoxide', 'heat', 'battery'].includes(String(st.attributes['device_class']))) ||
   // En wanneer een melder getest is en vervangen moet.
   (st.entity_id.startsWith('sensor.') && ['date', 'timestamp'].includes(String(st.attributes['device_class'])) && /replace|test/.test(st.entity_id)) ||
@@ -28,7 +28,7 @@ export const inHouse = (st: HaEntityState) =>
       st.attributes['device_class'] === 'humidity' ||
       // Batterijen (besluit 122): bij het apparaat, en een melding onder de 10%.
       st.attributes['device_class'] === 'battery' ||
-      // Wat een apparaat nu vraagt, voor Apparaten (15 oktober 2026).
+      // Wat een apparaat nu vraagt, voor Apparaten.
       st.attributes['device_class'] === 'power' ||
       st.attributes['device_class'] === 'energy' ||
       // De klep van een radiatorknop (besluit 126), en het filter van een airco (129).

@@ -1,7 +1,7 @@
 /**
  * Beheer: de installatie, het begin, bijwerken, functies, de integratie, gegevens en de versie.
  *
- * Geknipt uit server.ts (besluit 180, 23 oktober 2026): letterlijk, met de
+ * Geknipt uit server.ts (besluit 180): letterlijk, met de
  * context `d` in plaats van de webserver zelf.
  */
 
@@ -86,7 +86,7 @@ export async function beheerRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
     return true;
   }
 
-  // De laatste waarschuwingen en fouten, opgeschoond, om te delen bij een melding (4 november 2026). Alleen lezen.
+  // De laatste waarschuwingen en fouten, opgeschoond, om te delen bij een melding. Alleen lezen.
   if (path === '/api/logboek') {
     sendJson(res, 200, { regels: logboek() });
     return true;
@@ -144,7 +144,7 @@ export async function beheerRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
   if (path === '/api/stem-in-huis') {
     const inHuis = d.options.stemInHuis;
     if (inHuis == null) {
-      // Op een eigen server vraagt Inrichten het toch op: dan gewoon "niets", geen fout in de browser (19 november 2026).
+      // Op een eigen server vraagt Inrichten het toch op: dan gewoon "niets", geen fout in de browser.
       if (method !== 'POST') sendJson(res, 200, null);
       else sendJson(res, 404, { fout: 'dat kan alleen in de add-on' });
       return true;
@@ -269,7 +269,7 @@ export async function beheerRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
 
   // De versie en wat er nieuw is (besluit 131), voor App en toegang.
   /*
-   * Op je startscherm (21 oktober 2026): installeren met het eigen icoon kan
+   * Op je startscherm: installeren met het eigen icoon kan
    * alleen over https en buiten Home Assistant, dus via de eigen poort in
    * Tailscale (besluit 160). Of die openstaat, en op welk adres hij al eens
    * gebruikt is; anders raadt de app het adres uit dat van Home Assistant.
@@ -445,7 +445,7 @@ export async function onboardingRoute(
 
   const result = await onboarding.save(clean, taalVan(new URL(req.url ?? '/', 'http://localhost').searchParams.get('taal') ?? req.headers['x-taal']));
   sendJson(res, result.ok ? 200 : 422, result);
-  // In het logboek van de add-on (4 november 2026): wat de toets noemde, om bij een melding te kunnen meesturen.
+  // In het logboek van de add-on: wat de toets noemde, om bij een melding te kunnen meesturen.
   if (!result.ok) console.warn(`Eerste start niet opgeslagen: ${result.reden}${result.problemen.map((p) => `\n  ${p}`).join('')}`);
   else if (result.weggelaten?.length) console.warn(`Eerste start opgeslagen zonder wat SunArc nog niet begrijpt:${result.weggelaten.map((p) => `\n  ${p}`).join('')}`);
   // Eerst het antwoord, dan opnieuw starten: de pagina wacht tot de dienst terug is.

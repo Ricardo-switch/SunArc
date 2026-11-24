@@ -146,7 +146,7 @@ export interface GeplandeScene {
 }
 
 /**
- * De scènes van een geplande taak met hun kamer en lampen (8 november 2026):
+ * De scènes van een geplande taak met hun kamer en lampen:
  * "Scène Nachtlampje" zegt niet welke lamp het is. Een Hue-scène hoort bij een
  * Hue-kamer of -zone; de lampen in die groep zijn de lampen die hij zet.
  */

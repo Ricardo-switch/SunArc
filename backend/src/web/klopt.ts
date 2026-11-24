@@ -152,7 +152,7 @@ const WOORD = {
     alleenHelpt: {
       titel: (kamer: string) => `Niets houdt ${kamer} op temperatuur`,
       tekst: 'Wat er hangt, helpt alleen als er zon over is. Zonder zon wordt de kamer niet verwarmd of gekoeld.',
-      // Er hangt een radiator of vloer die een thermostaat in een andere kamer volgt (16 november 2026).
+      // Er hangt een radiator of vloer die een thermostaat in een andere kamer volgt.
       titelMee: (kamer: string, met: string) => `${cap(kamer)} verwarmt mee met ${met}`,
       tekstMee: 'SunArc kan deze kamer niet apart verwarmen. Wat er verder hangt, helpt alleen als er zon over is.',
       actie: 'Kies wat regelt',
@@ -251,9 +251,9 @@ export function kloptMelding(f: KloptFeit, lang: Lang, nu: number): KloptMelding
 }
 
 /**
- * De thermostaat die een kamer mee verwarmt (16 november 2026): een radiator of
+ * De thermostaat die een kamer mee verwarmt: een radiator of
  * vloer die een thermostaat in een andere kamer volgt. Bij een zone met een
- * eigen regeling (zones als deel van de kamer, 18 november 2026) ook de
+ * eigen regeling (zones als deel van de kamer) ook de
  * radiator van de kamer waar de zone bij hoort, in die zone of in de hele kamer.
  * De naam van dat apparaat, of null.
  */

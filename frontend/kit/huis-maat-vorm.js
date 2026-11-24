@@ -1,5 +1,5 @@
 /*
- * SunArc: het huis zoals getekend, de vorm (24 november 2026, opgesplitst uit kit/huis-maat.js).
+ * SunArc: het huis zoals getekend, de vorm (opgesplitst uit kit/huis-maat.js).
  *
  * Twee rekenstukken zonder tekenwerk: de ruitjes van een vloer als zo weinig mogelijk rechthoeken per ruimte, en het
  * dak van één gebouw (de vlakken, de nok en de dakkapellen), in meters.
@@ -90,7 +90,7 @@
         let cv = cg + richting * (x.voor ?? Math.min(0.7, breed * 0.25));
         let zv = dakZ(cv);
         /*
-         * Een dakkapel staat op de bovenste etage (Ricardo, 21 november 2026: hij hoort bij de zolder, niet bij de etage
+         * Een dakkapel staat op de bovenste etage (hij hoort bij de zolder, niet bij de etage
          * eronder). Komt zijn voorkant lager dan die vloer (een lange achterkant met een lage goot), dan schuift hij het dak
          * op tot waar het dak de vloer raakt.
          */

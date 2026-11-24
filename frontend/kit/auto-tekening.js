@@ -1,4 +1,4 @@
-// De auto als meter (besluit 259, schets Wand-Auto en Tel-Auto, 6 november 2026).
+// De auto als meter (besluit 259, schets Wand-Auto en Tel-Auto).
 // De schets is de code (besluit 104): de pagina Auto en de schetsen tekenen hiermee.
 (function (global) {
   let nr = 0;

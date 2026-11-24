@@ -63,7 +63,7 @@
       if (terug.charAt(0) !== '/' || terug.charAt(1) === '/') terug = '/thuis.html';
       document.querySelector('[data-inloggen]').setAttribute('href', 'auth/login?terug=' + encodeURIComponent(terug));
       /*
-       * Al ingelogd? (23 oktober 2026) Opent Android de app vanaf het
+       * Al ingelogd? Opent Android de app vanaf het
        * startscherm, dan telt die eerste opening als komend van buiten, en gaat
        * het cookie met SameSite=Strict niet mee: de dienst stuurde je dan
        * hierheen, en je moest elke keer opnieuw inloggen bij Home Assistant. Een

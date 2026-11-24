@@ -265,7 +265,7 @@ const WORDS = {
     wish: { koelen: 'koelen', verwarmen: 'verwarmen', drogen: 'drogen', uit: 'uit', aan: 'aan' } satisfies Record<Wish, string>,
     doing: { cool: 'koelt', heat: 'verwarmt' },
     infinitive: { cool: 'koelen', heat: 'verwarmen' },
-    // Een kamer met alleen hulpapparaten (role assist): die verwarmen of koelen alleen op zon (29 oktober 2026).
+    // Een kamer met alleen hulpapparaten (role assist): die verwarmen of koelen alleen op zon.
     alleenZon: { cool: 'hier alleen met zon over gekoeld wordt', heat: 'hier alleen met zon over verwarmd wordt' },
     observed: {
       cool: 'koelen',
@@ -466,7 +466,7 @@ export function roomStatus(
   const f = new Facts(lang, config.timezone);
   // In de app (de kamer, de wand): geen ik-vorm, SunArc doet (besluit 316). De assistent zelf spreekt wel als ik.
   const s = statusOf(config, snap, zone, lang, shadow, f, true, false);
-  // Wat een apparaat van de kamer echt doet (1 november 2026): verwarmt of koelt het, dan zegt de
+  // Wat een apparaat van de kamer echt doet: verwarmt of koelt het, dan zegt de
   // zin dat ook, want in de schaduw regelt de oude regeling en kan dat anders zijn dan SunArc zou doen.
   const echt = shadow ? zone.actuatorIds.map((id) => ({ a: config.actuators.find((x) => x.id === id), doet: snap.observedAction?.[id] })).filter((x) => x.a && (x.doet === 'heating' || x.doet === 'cooling')) : [];
   const erbij = echt.map(({ a, doet }) => (lang === 'nl' ? `${cap(deviceName(a!, lang))} ${doet === 'heating' ? 'verwarmt' : 'koelt'} nu.` : `${cap(deviceName(a!, lang))} is ${doet === 'heating' ? 'heating' : 'cooling'} right now.`));
@@ -487,7 +487,7 @@ function statusOf(
   f: Facts,
   // "Wat doe je nu?" noemt het net één keer voor het hele huis.
   withGrid = true,
-  // De assistent spreekt als ik; in de app staat er SunArc (19 november 2026, besluit 316).
+  // De assistent spreekt als ik; in de app staat er SunArc (besluit 316).
   ik = true,
 ): { kind: RoomKind; zin: string } {
   const wie = ik ? 'ik' : 'SunArc';
@@ -785,7 +785,7 @@ export function ask(question: Question, ctx: AskContext): Answer {
     case 'straks': {
       const out: string[] = [];
       const e = snapshot?.explanation;
-      // Eerst wat op zon wacht, net als de kaart Straks op Thuis (16 oktober 2026): daar tik je vandaan.
+      // Eerst wat op zon wacht, net als de kaart Straks op Thuis: daar tik je vandaan.
       const wacht = (snapshot?.rejected ?? []).find((r) => r.blockedBy === 'insufficient_power_budget' && r.intent.budgetW > 0 && (r.intent.action === 'cool' || r.intent.action === 'heat'));
       const wachtZone = wacht ? config.zones.find((z) => z.id === wacht.intent.zoneId) : undefined;
       if (wacht && wachtZone) {
@@ -1025,7 +1025,7 @@ export function ask(question: Question, ctx: AskContext): Answer {
     case 'kosten': {
       const k = ctx.kosten;
       const met = (k?.apparaten ?? []).filter((a) => a.euro != null && a.kwh > 0).sort((a, b) => b.euro! - a.euro!);
-      // Eerst het hele huis (29 oktober 2026): "wat kost de stroom" noemde alleen de airco's.
+      // Eerst het hele huis: "wat kost de stroom" noemde alleen de airco's.
       const h = k?.huis;
       const huis: string[] = [];
       if (k != null && h != null && h.stroomEuro != null) {
@@ -1144,7 +1144,7 @@ export function ask(question: Question, ctx: AskContext): Answer {
       const wait = nl
         ? shadow ? 'Schakelen mag ik nog niet, dus zet het nu even zelf.' : 'Opdrachten neem ik nog niet aan.'
         : shadow ? 'I may not switch anything yet, so please set it yourself for now.' : 'I do not take commands yet.';
-      // Geen kamer in de vraag (29 oktober 2026): met één kamer die het kan, die; anders vragen welke.
+      // Geen kamer in de vraag: met één kamer die het kan, die; anders vragen welke.
       let zone: Zone | undefined;
       if (question.kamer === '') {
         const kan = config.zones.filter((z) => actuatorsOf(config, z).some((a) => question.wens === 'koelen' || question.wens === 'drogen' ? a.capabilities.canCool : question.wens === 'verwarmen' ? a.capabilities.canHeat : true));

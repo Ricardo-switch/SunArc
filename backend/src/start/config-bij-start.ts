@@ -1,5 +1,5 @@
 /**
- * De configuratie bij het starten (uit main.ts, 23 november 2026): het bestand lezen en controleren, en daarover wat de
+ * De configuratie bij het starten (uit main.ts): het bestand lezen en controleren, en daarover wat de
  * app eraan toevoegt dat bij het starten al vaststaat: de aansluiting (besluit 103) en meten met (besluit 123). Comfort
  * en bewoners komen daarna in main.ts, omdat die bij elke wijziging opnieuw gaan.
  */

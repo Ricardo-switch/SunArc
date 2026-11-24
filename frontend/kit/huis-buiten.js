@@ -1,5 +1,5 @@
 /*
- * SunArc: het poppenhuis, wat buiten staat (22 november 2026, opgesplitst uit kit/huis.js).
+ * SunArc: het poppenhuis, wat buiten staat (opgesplitst uit kit/huis.js).
  *
  * De buitenunit, voordeur, thuisaccu, garage, panelen, jacuzzi, carport, auto, camera, terras, voortuin, balkon,
  * tuin, de aansluiting op het net, de lagen van het huis en het eiland eronder.
@@ -45,7 +45,7 @@
         // Het kozijn, licht, zodat de deur in de doorsnede te zien is.
         kern.huis.push(kern.line([[v.x0, kern.D, 0], [v.x0, kern.D, h], [v.x1, kern.D, h], [v.x1, kern.D, 0]], 'stroke="#C9D6E2" stroke-opacity="0.85" stroke-width="2.6" stroke-linejoin="round"'));
         // De meterkast in de hal: tegen de achterwand, met de bliksem.
-        // Tegen de zijmuur van de hal, vooraan bij de deur, op ooghoogte (de bewoner, 16 oktober).
+        // Tegen de zijmuur van de hal, vooraan bij de deur, op ooghoogte (de bewoner).
         const mx = v.kamer.x0 + 0.01;
         const my = kern.D - 0.62;
         kern.huis.push(kern.doos(mx, my, 0.2, 0.09, 0.3, 0.38, ['#59677a', '#3d495a', '#4a5769']));
@@ -305,7 +305,7 @@
        * licht over de oprit; ziet hij beweging, dan een koele bundel en een ring.
        */
       function bouwCamera(cam) {
-        // Op een paal naast het huis, tussen de gevel en de oprit (de bewoner, 16 oktober).
+        // Op een paal naast het huis, tussen de gevel en de oprit (de bewoner).
         const px = -0.55;
         const y = kern.D + 0.35;
         const z = 1.3;
@@ -438,7 +438,7 @@
        * meedraait.
        */
       /**
-       * De vage lagen (25 oktober 2026): ingezoomd op een verdieping de etage
+       * De vage lagen: ingezoomd op een verdieping de etage
        * eronder, die naar het eiland wegloopt, en erboven de omtrek van de
        * volgende etage of het dak, die naar boven vervaagt. Vaag genoeg dat de
        * kamers van deze etage het beeld blijven.

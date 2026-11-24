@@ -32,7 +32,7 @@
    * De talen die de hele app spreekt: alleen die kiest de app vanzelf, uit het
    * account of de browser. Een taal die nog half af is, kies je zelf bij Jij;
    * anders zag iemand met zo'n account op de andere pagina's een mengtaal.
-   * Engels sinds stap 9 af is (23 oktober 2026): de app, de dienst en de
+   * Engels sinds stap 9 af is: de app, de dienst en de
    * assistent spreken het.
    */
   const HEEL = ['nl', 'en'];
@@ -64,7 +64,7 @@
   /**
    * Vanzelf: het account, dan de browser; een taal die de app nog niet helemaal
    * spreekt, telt niet. Spreekt iemand alleen een andere taal (Frans, Duits),
-   * dan Engels (19 november 2026): dat begrijpt hij eerder dan Nederlands.
+   * dan Engels: dat begrijpt hij eerder dan Nederlands.
    * Zonder enige taal blijft het Nederlands.
    */
   const vanzelf = () => {

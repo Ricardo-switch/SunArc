@@ -1,5 +1,5 @@
 /*
- * De indeling van het huis lezen: de velden (22 november 2026, opgesplitst uit config/schema.ts).
+ * De indeling van het huis lezen: de velden (opgesplitst uit config/schema.ts).
  *
  * Problemen verzamelen met hun pad, en een veld lezen en controleren: tekst, getal, ja/nee, een keuze uit een
  * lijst, een blok, een lijst, een verwijzing naar een entiteit, een meetpunt en de doeltemperaturen.

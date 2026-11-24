@@ -25,7 +25,7 @@ let perDak = false;
 const getal = (n) => nl(n, Math.abs(n) >= 100 ? 0 : 1);
 /** Een meternaam zoals de bewoner hem zegt: "Airco woonkamer", niet "Airconditioning woonkamer". */
 const kort = (naam) => String(naam).replace(/^airconditioning\b/i, t('vandaag.airco')).replace(/\s+(energie|energy|verbruik|kwh)$/i, '');
-/** Bij Jaar in hele euro's (Ricardo, 8 november 2026): met centen paste het bedrag niet in zijn vak. */
+/** Bij Jaar in hele euro's: met centen paste het bedrag niet in zijn vak. */
 const euro = (n) => `${taal.valuta()} ${nl(n, keuze.soort === 'jaar' ? 0 : 2)}`;
 const ZON = '#F7B548';
 const NET = '#9AAABB';
@@ -43,7 +43,7 @@ const sluipIngang = () => (sluip
   : '');
 
 async function laad() {
-  // Nu (5 november 2026): live, uit de meters van dit moment.
+  // Nu: live, uit de meters van dit moment.
   if (keuze.soort === 'nu') return laadNu();
   const q = new URLSearchParams({ soort: keuze.soort, ...(keuze.datum ? { datum: keuze.datum } : {}) });
   try {
@@ -138,7 +138,7 @@ function cijfers(r, klein = false) {
 }
 
 /**
- * De naam van een dakvlak (Ricardo, 5 november 2026), zoals bij Daken en
+ * De naam van een dakvlak, zoals bij Daken en
  * panelen: de eigen naam, of de plek; met meer vlakken op dezelfde plek de
  * richting erbij ("Hoofddak oost").
  */
@@ -223,7 +223,7 @@ function altijdAan(r) {
 }
 
 /**
- * Het stroombeeld (schets Wand-Opbrengst-Stromen, 5 november 2026): de zon per
+ * Het stroombeeld (schets Wand-Opbrengst-Stromen): de zon per
  * dakvlak als die er zijn, het net met wat het kostte; rechts de apparaten, de
  * rest van het huis, Altijd aan en terug met wat het opbracht. Meer dan zes
  * apparaten: de kleinste samen onder Overig.
@@ -237,7 +237,7 @@ function stroomModel(r) {
   for (const s of stroom) perDoel.set(s.naar, (perDoel.get(s.naar) ?? 0) + s.kwh);
   /*
    * Een apparaat met een eigen meter staat er met zijn naam, ook als het in
-   * deze periode weinig gebruikte (Ricardo, 8 november 2026: de airco's en
+   * deze periode weinig gebruikte (de airco's en
    * stekkers stonden alleen bij Jaar; op een dag vielen ze onder de 2%). Pas
    * boven de zes gaan de kleinste samen onder Overig, zodat het leesbaar blijft.
    */
@@ -381,7 +381,7 @@ function perDag(r) {
 /* ------------------------------------------------------------ nu */
 
 /*
- * Nu (Ricardo, 5 november 2026): naast dag, week, maand en jaar het huis van
+ * Nu: naast dag, week, maand en jaar het huis van
  * dit moment, live. Links de zon, het huis en het net in kW en per dakvlak
  * wat het nu levert; in het midden het stroombeeld van nu: de zon per dakvlak
  * en het net naar de apparaten die nu stroom vragen, de rest van het huis,

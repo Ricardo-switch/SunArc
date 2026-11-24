@@ -1,5 +1,5 @@
 /*
- * De vaste lijst van modellen (21 november 2026, Ricardo): elk apparaat en elk
+ * De vaste lijst van modellen (Ricardo): elk apparaat en elk
  * meubel heeft van tevoren een eigen model op ware grootte, met een voorkant.
  * De nieuwe tekenaar (huis-maat.js) zet een model neer waar de bewoner het in
  * Je huis plaatste, met de voorkant naar de kamer: tegen de dichtstbijzijnde
@@ -136,7 +136,7 @@
       delen: (b) => [heel(b, 0, 0.07, 0, 0.1, 'wit')],
       aanVoor: () => [{ cirkel: [0, 0.07, 0.008], vul: '#6ee7b7' }],
     },
-    /** De aansluitkast aan de straat (22 november 2026, zoals in het poppenhuis): waar de stroom van het net binnenkomt. */
+    /** De aansluitkast aan de straat (zoals in het poppenhuis): waar de stroom van het net binnenkomt. */
     aansluitkast: {
       naam: 'Aansluitkast', b: 0.5, d: 0.3, h: 1.1, hangt: 'vrij',
       delen: (b) => [heel(b, 0, 0.3, 0, 1.1, 'grijs')],
@@ -172,7 +172,7 @@
 
     /* -------------------------------------------------------------------- buiten */
     /*
-     * Buiten (21 november 2026): de auto, de laadpaal, de buitenunit, de tuinset en de gebouwen op het erf. De voorkant
+     * Buiten: de auto, de laadpaal, de buitenunit, de tuinset en de gebouwen op het erf. De voorkant
      * (d groot) is de neus van de auto, de kant van de laadpaal met het lampje, en bij een gebouw de deur of pui.
      * Een gebouw neemt zijn maat uit de tekening: opt.b (breed), opt.d (diep), opt.h (hoog).
      */

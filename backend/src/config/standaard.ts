@@ -1,5 +1,5 @@
 /*
- * De standaard voor een nieuw huis (28 oktober 2026, besluit 204): zuinig,
+ * De standaard voor een nieuw huis (besluit 204): zuinig,
  * zoals energieadvies vaak aanraadt, en niet die van het huis waar Smart
  * Climate begon. Eén plek, zodat de basisregels, een kamer die er later bij
  * komt, Inrichten en "terug naar standaard" in de app hetzelfde zeggen.

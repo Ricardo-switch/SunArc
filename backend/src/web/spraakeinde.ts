@@ -11,7 +11,7 @@
  * of klap is geen zin); stil is het pas na de wachttijd. Er wordt niets
  * bewaard.
  *
- * Met geluid in de kamer (30 oktober 2026): een tv of afzuigkap die net boven
+ * Met geluid in de kamer: een tv of afzuigkap die net boven
  * de achtergrond kwam, telde als praten, en dan luisterde het huis door tot
  * vijftien seconden. Nu is je eigen stem de maat: wat ruim zachter is dan jij
  * praat, telt niet als praten en gaat mee in de achtergrond, ook terwijl je

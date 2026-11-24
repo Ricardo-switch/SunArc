@@ -62,7 +62,7 @@ async function laadKlaar() {
 }
 /*
  * De functie van Klaarzetten bij dit deel (besluit 246): de assistent bij Stem
- * en luisteren, de wand bij Scherm uit. Niet meer bij Praten (4 november 2026):
+ * en luisteren, de wand bij Scherm uit. Niet meer bij Praten:
  * die stappen gaan over "Hé huis", en op de telefoon begonnen Praten en Stem
  * daardoor met hetzelfde blok, alsof het één pagina was.
  */
@@ -189,7 +189,7 @@ function licht() {
   };
   const lijst = kamers
     .map((k) => {
-      // Op de wand alleen hoeveel scènes, anders schoof het blad (19 november 2026); op de telefoon de namen, elke naam één keer.
+      // Op de wand alleen hoeveel scènes, anders schoof het blad; op de telefoon de namen, elke naam één keer.
       const namen = [...new Set(k.scenes.map((x) => x.naam))];
       const tel = namen.length ? `<span class="scenetal" title="${esc(namen.join(', '))}"> · ${esc(t('functies.scenesTal', { n: namen.length }))}</span>` : '';
       return `<div class="lichtkamer"><b>${esc(k.naam)}${tel}</b>${k.dingen.length ? `<div class="keuzes">${k.dingen.map(knopje).join('')}</div>` : ''}${namen.length ? `<span class="mini scenelijst">${esc(t('functies.scenes', { namen: namen.join(', ') }))}</span>` : ''}</div>`;
@@ -235,7 +235,7 @@ function teDoenVorm() {
   const td = concept.tedoen;
   const lijsten = info.gevonden.lijsten ?? [];
   const agendas = info.gevonden.agendas ?? [];
-  // Een keuzelijst per vak (30 oktober 2026): een rij knoppen met elf agenda's was onoverzichtelijk.
+  // Een keuzelijst per vak: een rij knoppen met elf agenda's was onoverzichtelijk.
   const keus = (sleutel, label, opties) =>
     `<label class="veldnaam tdkeus">${esc(label)}<select class="invoer" data-tedoen-keus="${sleutel}" ${td.aan ? '' : 'disabled'}><option value="">${esc(t('instellingen.geen'))}</option>${opties
       .map((x) => `<option value="${esc(x.id)}" ${td[sleutel] === x.id ? 'selected' : ''}>${esc(x.naam)}</option>`)

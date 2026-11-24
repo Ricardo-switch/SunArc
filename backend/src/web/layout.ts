@@ -254,7 +254,7 @@ export interface Layout {
    */
   readonly buren?: readonly ('links' | 'rechts' | 'achter')[];
   /**
-   * Een appartement (20 november 2026): op welke verdieping de woning begint
+   * Een appartement: op welke verdieping de woning begint
    * (0 is de begane grond) en hoeveel verdiepingen van het gebouw erboven
    * liggen. Met niets erboven is het dak ook van de bewoner. Weg: 1 en 1.
    */
@@ -317,7 +317,7 @@ function leesMeten(waarde: unknown, known: Pick<LayoutKnown, 'deviceIds' | 'opvo
 }
 
 /**
- * Wat alleen in de tekening bestaat (22 november 2026, besluit 333): een radiator
+ * Wat alleen in de tekening bestaat (besluit 333): een radiator
  * (`radiator:<kamer>` of `radiator:<kamer>:<n>`) en de buitenunit van een airco
  * (`buitenunit:<airco>`). Ze bestaan niet in Home Assistant, maar wel in Je huis,
  * met een plek; daarom vallen ze bij het bewaren niet weg en kun je ze verbergen.
@@ -598,7 +598,7 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
     const warmte = d['warmte'] ?? null;
     if (warmte !== null && !APPARAAT_WARMTE.includes(warmte as ApparaatWarmte)) return { ok: false, reden: `wat apparaat ${id} verwarmt is ${APPARAAT_WARMTE.join(', ')}` };
     // Waar het staat in de tekening (besluit 308); op een etage die er niet meer is, valt het weg.
-    // Ook buiten (19 november 2026): het erf is een eigen tekening.
+    // Ook buiten: het erf is een eigen tekening.
     const plek = leesPlek(d['plek'], (e) => e === OUTSIDE_FLOOR || binnenEtage(e));
     if (plek != null && 'fout' in plek) return { ok: false, reden: `apparaat ${id}: ${plek.fout}` };
     // Een screen voor een raam: alleen met een plek; of dat raam er is, zie onder.
@@ -649,7 +649,7 @@ export function validateLayout(body: unknown, known: LayoutKnown): { ok: true; l
   // Je huis getekend (besluit 308). Een kamer die weg is of verhuisde, laat een vak zonder naam achter.
   let plattegrond: Record<FloorId, TekenRuimte[]> | undefined;
   if (b['plattegrond'] !== undefined && b['plattegrond'] !== null) {
-    // Buiten (19 november 2026): het huis op het erf, een ruimte buiten of een deel ervan (`kamer~zone`).
+    // Buiten: het huis op het erf, een ruimte buiten of een deel ervan (`kamer~zone`).
     const p = leesTekening(b['plattegrond'], (e) => e === OUTSIDE_FLOOR || binnenEtage(e), (e, kid) => (e === OUTSIDE_FLOOR ? erfRuimteOk(kid, kamers, OUTSIDE_FLOOR) : kamers.some((k) => k.id === kid && k.etage === e)));
     if ('fout' in p) return { ok: false, reden: p.fout };
     if (Object.keys(p.tekening).length) plattegrond = p.tekening;

@@ -97,7 +97,7 @@ export interface ThermischMoment {
 }
 
 /**
- * Eén kwartier, al samengevat (6 november 2026): per zone hoe vaak elke
+ * Eén kwartier, al samengevat: per zone hoe vaak elke
  * temperatuur voorkwam (voor de mediaan), buiten en de zon als som en aantal,
  * en welke standen elk apparaat had. Zo blijft er per kwartier een handvol
  * getallen over in plaats van elk moment: op de NAS liep het bewaren van een

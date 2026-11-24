@@ -217,7 +217,7 @@ export function nuPerVlak(groepen: readonly { readonly vlakken: readonly DakVlak
 
 /**
  * De uren zonder vermogen van de omvormer, aangevuld uit de zonnemeter in kWh
- * per uur (5 november 2026): het vermogen staat er vaak pas sinds de omvormer
+ * per uur: het vermogen staat er vaak pas sinds de omvormer
  * gekoppeld is, de zonnemeter al veel langer.
  */
 export function aanvullenUitMeter(rows: readonly PowerRow[], kwhPerUur: ReadonlyMap<number, number>): PowerRow[] {

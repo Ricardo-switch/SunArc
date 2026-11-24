@@ -14,7 +14,7 @@
 <script>(function () { var d = document.documentElement, w0 = 0, h0 = 0, t = {}, m = matchMedia('(prefers-color-scheme: light)'); try { t = JSON.parse(localStorage.getItem('sc-thema')) || {}; } catch (e) {} function k() { var eigen = d.classList.contains('tel-stand') || !t.scherm, c = eigen ? t.kleur : t.wandKleur; var licht = eigen && (t.thema === 'licht' || (t.thema === 'systeem' && m.matches)), tc = document.querySelector('meta[name="theme-color"]'); d.classList.toggle('sc-licht', licht); if (tc) tc.setAttribute('content', licht ? '#e9eff6' : '#0b1424'); if (c && c !== 'lucht') d.setAttribute('data-kleur', c); else d.removeAttribute('data-kleur'); } window.scThema = function (n) { if (n) { t = n; try { localStorage.setItem('sc-thema', JSON.stringify(n)); } catch (e) {} } k(); }; function s() { var a = document.activeElement; if (w0 === innerWidth && innerHeight < h0 && a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) return; w0 = innerWidth; h0 = innerHeight; var b = Math.min(1700, Math.max(1280, Math.round(800 * innerWidth / innerHeight))); d.classList.toggle('tel-stand', innerHeight > innerWidth || innerWidth < 560); d.style.setProperty('--wandbreedte', b + 'px'); d.style.setProperty('--wandschaal', Math.min(innerWidth / b, innerHeight / 800)); k(); } s(); addEventListener('resize', s); m.addEventListener('change', k); })();</script>
 <style>
   /* De wand (schets Wand-Opbrengst): de cijfers, de sankey, per apparaat. */
-  /* Drie gelijke kolommen (schets Wand-Opbrengst-Stromen, 5 november 2026): het stroombeeld is één kaart. */
+  /* Drie gelijke kolommen (schets Wand-Opbrengst-Stromen): het stroombeeld is één kaart. */
   #wand main { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: auto minmax(0, 1fr); gap: 16px; height: 100%; min-width: 0; }
   .kop { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: end; gap: 24px; }
   .wissel { display: inline-flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgb(var(--wit) / 0.06); }
@@ -91,7 +91,7 @@
     .dakstaaf i { position: absolute; inset: 0 auto 0 0; border-radius: 6px; }
     .dakrij b { text-align: right; font: 600 15px var(--kop); white-space: nowrap; }
     .dakrij b small { display: block; font: 600 11.5px var(--romp); color: var(--gedempt); }
-    /* Nu (5 november 2026): het streepje van de heldere lucht, en live met een stip die klopt. */
+    /* Nu: het streepje van de heldere lucht, en live met een stip die klopt. */
     .dakstaaf em { position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: rgb(var(--wit) / 0.7); border-radius: 1px; }
     .livelabel { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: var(--zacht); }
     .livelabel i { width: 9px; height: 9px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 0 rgb(110 231 183 / 0.6); animation: klop 2s ease-out infinite; }

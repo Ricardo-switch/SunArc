@@ -445,7 +445,7 @@ interface Found {
 const HOOFD_VOLGORDE: readonly DeviceKind[] = ['camera', 'klimaat', 'screen', 'apparaat', 'rookmelder', 'licht', 'meter'];
 
 /**
- * Eén apparaat, één bolletje (20 november 2026): per apparaat in Home
+ * Eén apparaat, één bolletje: per apparaat in Home
  * Assistant (device_id) het hoofd, en wat er een bijfunctie van is. Een camera
  * met een schijnwerper en een bewegingsmelder is één apparaat met de camera als
  * hoofd. Twee van dezelfde soort (twee lampen aan één relais) blijven elk
@@ -511,7 +511,7 @@ const OVERVIEW = /\b(alles|alle|all)\b/i;
  * etage of in het hele huis doet de app zelf, met de lampen uit de indeling.
  *
  * Een groep van Home Assistant (platform `group`) die niet beschikbaar is, somt
- * zijn lampen niet op. Hij blijft toch een groep (30 oktober 2026: "Hal (alles)"
+ * zijn lampen niet op. Hij blijft toch een groep ("Hal (alles)"
  * stond anders als losse lamp naast de spots in de hal).
  */
 function lightGroups(registers: HouseRegisters, states: ReadonlyMap<string, HaEntityState>): LightGroup[] {
@@ -830,7 +830,7 @@ export function collect(
     found.push({ device, haNaam: cam.naam, haArea: areaOf(cam.entityId), groepen: [] });
   }
 
-  // Rookmelders (21 oktober 2026): één per melder, in de kamer van het apparaat.
+  // Rookmelders: één per melder, in de kamer van het apparaat.
   for (const m of vindRookmelders(registers.entities, registers.devices, states)) {
     const { naam: _n, haNaam: _h, zone: _z, groepen: _g, ...device } = rookmelderOf(m.id, m.naam, rookmelderNu(m, (id) => states.get(id)), lang);
     found.push({ device, haNaam: m.naam, haArea: areaOf(m.id), groepen: [] });
@@ -1020,7 +1020,7 @@ export function buildHouse(
     if (found.some((f) => f.device.id === s.id)) continue;
     found.push({ device: stekkerOf(s, states.get(s.actuator), lang), haNaam: s.naam, haArea: s.gebied, groepen: [] });
   }
-  // Eén apparaat, één bolletje (20 november 2026): de bijfuncties van een apparaat met hun hoofd.
+  // Eén apparaat, één bolletje: de bijfuncties van een apparaat met hun hoofd.
   const bijVan = hoortBijVan(found, registers.entities);
   const gekozen = saved ?? proposeLayout(config, registers, states);
   // De kamer die de bewoner bij Apparaat toevoegen koos, tenzij Indeling hem al ergens zette.

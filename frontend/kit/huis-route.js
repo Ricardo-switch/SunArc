@@ -1,5 +1,5 @@
 /*
- * SunArc: het poppenhuis, de weg van de stroom (22 november 2026, opgesplitst uit kit/huis.js).
+ * SunArc: het poppenhuis, de weg van de stroom (opgesplitst uit kit/huis.js).
  *
  * Van waar naar waar een stroomlijn loopt: van de panelen, het net, de thuisaccu en de auto naar het huis en terug.
  *
@@ -41,7 +41,7 @@
         /*
          * Met een voordeur komt het net via de voortuin het huis in, in de
          * meterkast in de hal, en gaat het van daar naar de woonkamer (de
-         * bewoner, 16 oktober). Niet meer om de voortuin heen naar de hoek.
+         * bewoner). Niet meer om de voortuin heen naar de hoek.
          */
         const mk = kern.voordeur ? kern.plek.meterkast : null;
         const voorlangs = kern.D + 0.14;

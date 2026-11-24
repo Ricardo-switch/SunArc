@@ -68,7 +68,7 @@ const STEKKER = {
   },
 } as const;
 
-// Met de hand een komma (10 november 2026): Node in de add-on (Alpine) kent alleen Engelse getallen, en gaf "0.8 kW".
+// Met de hand een komma: Node in de add-on (Alpine) kent alleen Engelse getallen, en gaf "0.8 kW".
 const kwTekst = (w: number | undefined, lang: Lang) => (w == null ? null : lang === 'nl' ? (Math.round(w / 100) / 10).toFixed(1).replace('.', ',') : (Math.round(w / 100) / 10).toFixed(1));
 
 const WOORDEN = {

@@ -1,5 +1,5 @@
 /**
- * Het huis zoals de app het ziet (uit main.ts, 24 november 2026): één keer uitgerekend per verandering, de fasen en de
+ * Het huis zoals de app het ziet (uit main.ts): één keer uitgerekend per verandering, de fasen en de
  * zekering (besluit 338), en het laadadvies per auto (besluit 263). Alleen verhuisd, niets veranderd.
  */
 import { type Lang } from '../web/assistant.js';
@@ -23,7 +23,7 @@ export function maakHuisNu(nodig: MaakHuisNuNodig) {
     webConfig,
   } = nodig;
   /*
-   * Het huis één keer uitrekenen per verandering (21 oktober 2026). Bij een paar
+   * Het huis één keer uitrekenen per verandering. Bij een paar
    * duizend entiteiten kost het tientallen milliseconden op de Pi, en elk open
    * scherm vraagt het om de paar tellen, net als de lampen, de schermen en het
    * rookalarm. Opnieuw zodra Home Assistant iets in het huis meldt of een van de
@@ -111,7 +111,7 @@ export function maakHuisNu(nodig: MaakHuisNuNodig) {
     const nuMs = Date.now();
     const startMs = startOfLocalDay(nuMs, nodig.siteConfig?.timezone ?? 'Europe/Amsterdam');
     const e = runner?.latest?.explanation ?? null;
-    // De meter van elke fase: de stroom, of anders het vermogen (23 november 2026).
+    // De meter van elke fase: de stroom, of anders het vermogen.
     const meterVan = (p: NonNullable<typeof grid>['phases'][number]) => (p.current ?? p.power)!.id;
     const ids = grid?.phases.map(meterVan) ?? [];
     if (ids.length && (faseDag.startMs !== startMs || nuMs - faseDag.opMs > 5 * 60_000)) {

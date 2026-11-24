@@ -20,7 +20,7 @@
  *   is te zien. Tot er een is, rekent het huis met een schatting.
  * - **De omvormer uit zijn typenummer** in Home Assistant, zoals "SE3000H".
  *
- * Getoetst op dit huis (17 oktober 2026, twaalf dagen): elke reeks met één
+ * Getoetst op dit huis (twaalf dagen): elke reeks met één
  * heldere dag gaf oost en west (85 tot 95° en 265 tot 275°), een helling van
  * 45 tot 55° en 4,4 tot 5,1 kWp; werkelijk 97° en 277°, 47° en 4,68 kWp.
  *
@@ -93,7 +93,7 @@ export interface Dak {
   readonly kant: DakKant | null;
   readonly aantal: number | null;
   /**
-   * Hoe de nok loopt (28 oktober 2026, besluit 205): langs de straat, met de
+   * Hoe de nok loopt (besluit 205): langs de straat, met de
    * dakvlakken voor en achter, of haaks erop, met de dakvlakken opzij. Weg:
    * zoals de meting zegt (langs, tenzij een vlak opzij kijkt).
    */
@@ -569,7 +569,7 @@ function hoofddak(i: LiggingInput): { geometry: Geometry; bron: LiggingBron } | 
     const source: GeometrySource = i.dak.bron === 'gemeten' ? 'gemeten' : 'bewoner';
     return { bron: 'app', geometry: { facades: gevels(i.dak.voorgevelDeg, source), solarPlanes: vlakkenVan(i.dak.vlakken, source), ...omvormer(i.dak.omvormerW ?? i.omvormerGevonden) } };
   }
-  // Geen panelen gaat ook boven het bestand (5 november 2026): wie alle vlakken weghaalt, zag ze anders terugkomen.
+  // Geen panelen gaat ook boven het bestand: wie alle vlakken weghaalt, zag ze anders terugkomen.
   if (i.panelen?.ligging === 'geen') return null;
   if (i.configuratie) return { bron: 'configuratie', geometry: i.configuratie };
   const panelen = i.panelen ?? { ligging: null, aantal: null, voorkant: null, achterkant: null };

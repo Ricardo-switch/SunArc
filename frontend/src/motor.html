@@ -14,11 +14,11 @@
 <script>(function () { var d = document.documentElement, w0 = 0, h0 = 0, t = {}, m = matchMedia('(prefers-color-scheme: light)'); try { t = JSON.parse(localStorage.getItem('sc-thema')) || {}; } catch (e) {} function k() { var eigen = d.classList.contains('tel-stand') || !t.scherm, c = eigen ? t.kleur : t.wandKleur; var licht = eigen && (t.thema === 'licht' || (t.thema === 'systeem' && m.matches)), tc = document.querySelector('meta[name="theme-color"]'); d.classList.toggle('sc-licht', licht); if (tc) tc.setAttribute('content', licht ? '#e9eff6' : '#0b1424'); if (c && c !== 'lucht') d.setAttribute('data-kleur', c); else d.removeAttribute('data-kleur'); } window.scThema = function (n) { if (n) { t = n; try { localStorage.setItem('sc-thema', JSON.stringify(n)); } catch (e) {} } k(); }; function s() { var a = document.activeElement; if (w0 === innerWidth && innerHeight < h0 && a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) return; w0 = innerWidth; h0 = innerHeight; var b = Math.min(1700, Math.max(1280, Math.round(800 * innerWidth / innerHeight))); d.classList.toggle('tel-stand', innerHeight > innerWidth || innerWidth < 560); d.style.setProperty('--wandbreedte', b + 'px'); d.style.setProperty('--wandschaal', Math.min(innerWidth / b, innerHeight / 800)); k(); } s(); addEventListener('resize', s); m.addEventListener('change', k); })();</script>
 <style>
   /*
-   * De motor (23 november 2026, kwaliteitsronde stap 4 punt 4; schets design/app2/Wand-Motor.html en Tel-Motor.html).
+   * De motor (kwaliteitsronde stap 4 punt 4; schets design/app2/Wand-Motor.html en Tel-Motor.html).
    * De schaduwpagina in de vorm van de app, achter zeven tikken op het versienummer bij Over deze app.
    */
   /*
-   * De motor (schets, 23 november 2026): de opmaak voor de wand. Technisch mag, rommelig niet: vaste codes in
+   * De motor (schets): de opmaak voor de wand. Technisch mag, rommelig niet: vaste codes in
    * een kleine monoletter achter het gewone woord, kleuren zoals overal (oranje verwarmt, blauw koelt, goud is zon,
    * violet het net, mint de accu).
    */

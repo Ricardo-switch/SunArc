@@ -136,7 +136,7 @@ const ACTIE = { cool: 'koelen', heat: 'verwarmen', off: 'uit', standby: 'geparke
 const KLEUR = { koelen: 'var(--ijs)', verwarmen: 'var(--gloed)', uit: 'var(--mint)', geparkeerd: 'var(--zon)' };
 
 /**
- * Deed het apparaat echt wat SunArc besloot (1 november 2026)? Zolang SunArc
+ * Deed het apparaat echt wat SunArc besloot? Zolang SunArc
  * meekijkt, regelt de oude regeling; dan zegt de tijdlijn alleen "ging
  * verwarmen" als het apparaat rond dat moment ook echt verwarmde (de lijnen
  * van "huidig", sinds 1 november uit wat het apparaat zelf zegt). Onbekend
@@ -204,7 +204,7 @@ function groepeer(lijst) {
     if (!werk || starts < 2) return g.leden;
     const wachtte = g.leden.some((x) => x.actie === 'geparkeerd');
     const eind = g.leden.at(-1);
-    // "Met de zon mee" alleen als de zon de reden was (1 november 2026: een Nest op de cv-ketel
+    // "Met de zon mee" alleen als de zon de reden was (een Nest op de cv-ketel
     // ging na zonsondergang drie keer aan en uit omdat het doel wisselde, en heette zo).
     const opZon = g.leden.some((x) => x.opZon);
     const echt = g.leden.every((x) => x.echt !== false);
@@ -306,7 +306,7 @@ function tekenTijdlijn(r, verwacht, lijst) {
   const nuX = dag === 'vandaag' ? x(nu) : null;
 
   // De rijen: de zon, de kamers met een regeling en metingen, de apparaten.
-  // Elke kamer met een regeling (15 oktober 2026): eerst stonden er hooguit twee, en viel Beneden weg.
+  // Elke kamer met een regeling: eerst stonden er hooguit twee, en viel Beneden weg.
   const zones = dag === 'morgen' ? [] : (r.zones ?? []).filter((z) => z.kwartieren.some((q) => q != null));
   const banen = [];
   if (dag !== 'morgen') {
@@ -395,7 +395,7 @@ function tekenTijdlijn(r, verwacht, lijst) {
     : '';
   const nuStreep = nuX == null ? '' : `<line x1="${nuX.toFixed(1)}" y1="26" x2="${nuX.toFixed(1)}" y2="${hoog - 30}" stroke="#EEF3F7" stroke-width="1.5"/><rect x="${(nuX - 22).toFixed(1)}" y="${hoog - 30}" width="44" height="20" rx="10" fill="#EEF3F7"/><text x="${nuX.toFixed(1)}" y="${hoog - 16}" text-anchor="middle" class="nu">${esc(t('thuis.nuKlein'))}</text>`;
 
-  // Een huis zonder panelen (19 november 2026): geen zon in de tijdlijn, en ook geen getallen erover.
+  // Een huis zonder panelen: geen zon in de tijdlijn, en ook geen getallen erover.
   const metZon = app.huisSoort()?.zon !== false;
   // Een groep: de momenten erin zijn aan te tikken (een plaatje met knoppen erin kan niet).
   box.innerHTML = `<svg viewBox="0 0 ${W} ${hoog}" role="group" aria-label="${esc(t('vandaag.tijdlijn'))}">
@@ -449,7 +449,7 @@ function tekenKaarten(r, verwacht, lijst) {
   // Wat er morgen van je dak komt, in één zin; voor de avond en voor Morgen.
   const morgenZin = m?.verwachtKwh != null ? t(m.tekst ? 'vandaag.morgenVerwachtTekst' : 'vandaag.morgenVerwacht', { kwh: nl(m.verwachtKwh), tekst: m.tekst?.toLowerCase() }) : '';
   if (dag === 'vandaag' && app.huisSoort()?.zon === false) {
-    // Zonder panelen (19 november 2026): het weer van morgen, zonder wat het dak levert.
+    // Zonder panelen: het weer van morgen, zonder wat het dak levert.
     rechts.innerHTML = m
       ? `<div class="bovenrij"><span class="wanneer zon-t">${esc(t('vandaag.morgenWeer'))}</span><span class="mini">${esc(weer?.bron ?? 'Buienradar')}</span></div><h2 class="kop-2 boven-8">${esc(m.tekst ?? t('thuis.weer.kop'))}${m.maxC != null ? `, ${nl(m.maxC, 0)}°` : ''}</h2><p class="klein geen-marge boven-8">${esc([m.zonkansPct != null ? t('vandaag.kansZonPct', { pct: m.zonkansPct }) : '', m.regenkansPct != null ? t('vandaag.kansRegenPct', { pct: m.regenkansPct }) : ''].filter(Boolean).join(', '))}</p>`
       : `<p class="klein">${esc(t('vandaag.geenMorgen'))}</p>`;
@@ -480,7 +480,7 @@ function tekenKaarten(r, verwacht, lijst) {
 
 function tekenTelefoon(r, verwacht, lijst) {
   const kaart = /** @type {HTMLElement | null} */ (document.querySelector('[data-zonkaart]'));
-  // Een huis zonder panelen (19 november 2026): geen kaart over zon.
+  // Een huis zonder panelen: geen kaart over zon.
   if (kaart) kaart.hidden = app.huisSoort()?.zon === false;
   const t0 = r?.vanMs ?? Date.now();
   const tA = t0 + 6 * 3_600_000;

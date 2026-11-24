@@ -1,5 +1,5 @@
 /*
- * SunArc: het huis zoals getekend, de meubels (22 november 2026, opgesplitst uit kit/huis-maat.js).
+ * SunArc: het huis zoals getekend, de meubels (opgesplitst uit kit/huis-maat.js).
  *
  * Meubels per soort kamer, tegen de muren aan de kant die van je af ligt, nooit voor een raam of deur, niet
  * over elkaar heen en onder een schuin dak alleen waar ze passen; onderling op hun randen geordend.
@@ -11,10 +11,10 @@
 
   global.huisMaatMeubels = function (kern) {
       /*
-       * Meubels per soort kamer (20 november 2026, met de vaste lijst sinds 21 november): een bank met een salontafel, een
+       * Meubels per soort kamer (met de vaste lijst sinds 21 november): een bank met een salontafel, een
        * keuken met bovenkasten en een eettafel, een bed met een nachtkastje en een kast, een bad en een wastafel, een toilet,
        * een bureau met een stoel. Altijd tegen de muren aan de kant die van je af ligt, zodat ze niets afdekken; nooit voor
-       * een raam of een deur (Ricardo, 21 november), niet over elkaar heen, en onder een schuin dak alleen waar ze passen.
+       * een raam of een deur, niet over elkaar heen, en onder een schuin dak alleen waar ze passen.
        */
       const meubelsVoor = (soort, q, helften, z0, top, v) => {
         const uit = [];
@@ -30,7 +30,7 @@
           const [op, a0, a1] = [kern.m(g.op), kern.m(g.van), kern.m(g.tot)];
           return g.as === 'x' ? { x0: op - diep2, x1: op + diep2, y0: a0 - 0.05, y1: a1 + 0.05 } : { x0: a0 - 0.05, x1: a1 + 0.05, y0: op - diep2, y1: op + diep2 };
         });
-        // Ook voor het raam van een dakkapel op deze etage (21 november 2026: het bed op zolder stond ervoor).
+        // Ook voor het raam van een dakkapel op deze etage (het bed op zolder stond ervoor).
         for (const kp of kern.hd?.kapellen ?? []) {
           const zt = Math.max(...kp.boven.p.map((q) => q[2]));
           if (zt <= z0 + 0.3 || zt > top + 0.01) continue;
@@ -203,7 +203,7 @@
         else if (/toilet/.test(soort)) toilet(q);
         else if (/werkkamer|kantoor|hobby|studeer/.test(soort)) bureau(q);
         /*
-         * Meubels onderling op hun randen, niet op hun midden (22 november 2026: het bed lag over het nachtkastje ervoor):
+         * Meubels onderling op hun randen, niet op hun midden (het bed lag over het nachtkastje ervoor):
          * liggen twee meubels aan weerskanten van een rechte lijn op de vloer, dan komt het meubel aan de kant van de kijker
          * erna. De diepten blijven dezelfde, alleen hun volgorde onder de meubels verandert.
          */

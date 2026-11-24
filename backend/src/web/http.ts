@@ -77,7 +77,7 @@ export async function readJson(req: IncomingMessage, max: number = MAX_BODY): Pr
 }
 
 /*
- * Inpakken (21 oktober 2026): scripts, opmaak en antwoorden gaan ingepakt over
+ * Inpakken: scripts, opmaak en antwoorden gaan ingepakt over
  * de lijn, als de browser dat kan. Een antwoord van het huis is ruim 100 kB en
  * komt om de paar tellen; ingepakt is dat een tiende. Niet achter Ingress: daar
  * pakt de Supervisor het eerst weer uit, en pakt Home Assistant zelf in.
@@ -168,7 +168,7 @@ export async function sendFile(
    * `last-modified` kost een ongewijzigd bestand een leeg 304-antwoord in
    * plaats van tien kilobyte, en klopt de pagina altijd.
    *
-   * Met een versiestempel in het adres (21 oktober 2026) is dat navragen niet
+   * Met een versiestempel in het adres is dat navragen niet
    * nodig: verandert het bestand, dan verandert het adres. Dan mag de browser
    * het bewaren zonder te vragen. Dat scheelt per pagina tien tot twaalf
    * rondjes, en achter Ingress gaat elk rondje door Home Assistant.

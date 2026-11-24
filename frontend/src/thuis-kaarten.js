@@ -594,7 +594,7 @@ const teken = app.gebundeld(tekenNu);
 addEventListener('standwissel', teken);
 
 /*
- * Bovenin op de telefoon altijd één regel (2 november 2026): met grote letters
+ * Bovenin op de telefoon altijd één regel: met grote letters
  * schoof het tandwiel naar een tweede regel. Past het niet, dan wordt de klok
  * kleiner (tot drie vijfde), en daarna valt het logootje weg. De knoppen
  * houden hun maat.
@@ -862,8 +862,8 @@ void laadAlles();
 setInterval(() => void laadAlles(), 60_000);
 // In het voorbeeldhuis verschuift de klok (besluit 237): dan meteen vers.
 addEventListener('voorbeeldklok', () => void laadAlles());
-// Beweging en lampen in het huis (15 oktober 2026) en wie er thuis is: live, zodra
-// de dienst zegt dat er iets veranderde (21 oktober 2026).
+// Beweging en lampen in het huis en wie er thuis is: live, zodra
+// de dienst zegt dat er iets veranderde.
 app.bijVerandering('huis', async () => {
   huisData = await haal('api/huis');
   teken();

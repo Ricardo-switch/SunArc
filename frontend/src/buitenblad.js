@@ -1,5 +1,5 @@
 /**
- * Buiten op Thuis (28 oktober 2026, besluit 206, schets Wand-Huis-Ligging): een
+ * Buiten op Thuis (besluit 206, schets Wand-Huis-Ligging): een
  * tik op de oprit, de garage of een zone in de tuin opent een blad naast het
  * huis, en je blijft op Thuis. Met de lampen van dat deel, wat er nog meer is
  * (een camera, de garagedeur, de auto aan de lader) en de andere zones. Het

@@ -119,7 +119,7 @@ export function piekVan(punten: readonly FasePunt[], startMs: number, nuMs: numb
 export interface FasenInvoer {
   /** De aansluiting uit de configuratie, of null zonder stroommeters per fase. */
   readonly grid: {
-    /** `current` is de meter van de fase; met `watt` meet die het vermogen, en is de stroom W / 230 (23 november 2026). */
+    /** `current` is de meter van de fase; met `watt` meet die het vermogen, en is de stroom W / 230. */
     readonly phases: readonly { readonly id: string; readonly current: string; readonly watt?: boolean; readonly maxA: number }[];
     readonly marginA: number;
   } | null;

@@ -1,5 +1,5 @@
 /*
- * De kaart Camera's (25 oktober 2026, besluit 201): de camera's die het huis
+ * De kaart Camera's (besluit 201): de camera's die het huis
  * toont, elk met zijn beeld en een regel erbij. Bij de deurbel wanneer er het
  * laatst werd aangebeld; bij elke camera wat hij nu ziet (beweging, of wat hij
  * herkent: een persoon, een voertuig, een dier) of wanneer hij het laatst
@@ -85,7 +85,7 @@ function cameraStand(
 }
 
 /**
- * Een camera bij Apparaten (schets Wand-Apparaten-Cameras, 20 november 2026):
+ * Een camera bij Apparaten (schets Wand-Apparaten-Cameras):
  * alle camera's uit Home Assistant, niet alleen die op Thuis. Met alle beelden
  * (om de schijnwerper en de melders erbij te vinden), of hij op Thuis staat,
  * en hoe vaak hij vandaag iets zag en er is aangebeld.

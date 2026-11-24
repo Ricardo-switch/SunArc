@@ -118,7 +118,7 @@
     const rij = volgorde(delen);
     const nu = actief(delen);
     const open = gekozen(delen) != null;
-    // Alleen wat ontbreekt krijgt een bolletje; wat goed staat, zegt niets extra (15 oktober).
+    // Alleen wat ontbreekt krijgt een bolletje; wat goed staat, zegt niets extra.
     const stip = (d) => (d.stand === 'mist' ? `<span class="stip" style="background: var(--gloed)" aria-label="${esc(t('groep.ermist'))}"></span>` : '');
     const html = rij
       .map((d) => (d.kop

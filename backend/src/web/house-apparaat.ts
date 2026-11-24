@@ -1,5 +1,5 @@
 /*
- * Het huis: een apparaat en zijn stand (22 november 2026, opgesplitst uit web/house.ts).
+ * Het huis: een apparaat en zijn stand (opgesplitst uit web/house.ts).
  *
  * Uit de stand in Home Assistant wat een lamp, scherm, klimaatapparaat, witgoed, stekker, warmtebuffer, camera,
  * rookmelder of meter nu doet, in de woorden van de app.
@@ -242,7 +242,7 @@ export function cameraOf(id: string, name: string, bereikbaar: boolean, lang: La
   };
 }
 
-/** Een rookmelder (21 oktober 2026): wat hij ziet, in woorden; alleen lezen. */
+/** Een rookmelder: wat hij ziet, in woorden; alleen lezen. */
 export function rookmelderOf(id: string, name: string, nu: ReturnType<typeof rookmelderNu>, lang: Lang): HouseDevice {
   const w = WOORDEN[lang];
   const [stand, standCode]: [string, StandCode] = !nu.bereikbaar

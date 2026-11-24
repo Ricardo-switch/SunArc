@@ -49,7 +49,7 @@
   /*
    * De overgang tussen pagina's (@view-transition in basis.css). Breekt de
    * browser die af, omdat de pagina al te zien was, dan meldt hij dat als een
-   * fout die niemand opvangt (CI, 30 oktober 2026). Die vangen we hier: de
+   * fout die niemand opvangt (CI). Die vangen we hier: de
    * pagina staat er gewoon, alleen zonder overgang.
    */
   const vangOvergang = (e) => {
@@ -172,7 +172,7 @@
   }
 
   /**
-   * Wat nu onderweg is, per pad (29 oktober 2026): Thuis vroeg bij het openen
+   * Wat nu onderweg is, per pad: Thuis vroeg bij het openen
    * vier keer tegelijk om api/voorkeuren en drie keer om api/bewoners. Wie
    * hetzelfde vraagt terwijl het onderweg is, wacht op dat antwoord en krijgt
    * een eigen kopie; daarna vraagt de volgende weer vers.
@@ -197,7 +197,7 @@
       throw fout;
     }
     online();
-    // De toegang van Home Assistant verliep (21 oktober 2026): vernieuwen en nog eens.
+    // De toegang van Home Assistant verliep: vernieuwen en nog eens.
     if (ingressDicht(res)) {
       if (!opnieuw && (await verseToegang())) return haalVers(pad, true);
       throw new Error(`${pad}: Home Assistant laat even niet door`);
@@ -251,7 +251,7 @@
   /** Dag, ochtend, avond of nacht, uit de zon van de dienst (`api/zon`). */
   function tijdVanDeDag(zon) {
     const d = zon?.dag;
-    // Geen zonnestand van de dienst (4 november 2026): dan de klok, in plaats van altijd nacht.
+    // Geen zonnestand van de dienst: dan de klok, in plaats van altijd nacht.
     if (!zon?.zon) {
       const u = new Date().getHours();
       return u >= 7 && u < 9 ? 'ochtend' : u >= 9 && u < 18 ? 'dag' : u >= 18 && u < 21 ? 'avond' : 'nacht';
@@ -341,7 +341,7 @@
         const toen = Date.now();
         clearTimeout(wacht);
         wacht = setTimeout(() => deze.readyState !== EventSource.OPEN && offline(toen), 15_000);
-        // Dicht en niet vanzelf terug (een 401 van Home Assistant, 21 oktober 2026):
+        // Dicht en niet vanzelf terug (een 401 van Home Assistant):
         // de toegang vernieuwen en zelf opnieuw verbinden.
         if (deze.readyState === EventSource.CLOSED && bron === deze) {
           bron = null;
@@ -358,7 +358,7 @@
         }
         wasWeg = false;
       });
-      // Het huis of wie er thuis is veranderde (21 oktober 2026): de pagina haalt het op.
+      // Het huis of wie er thuis is veranderde: de pagina haalt het op.
       for (const soort of ['huis', 'bewoners']) {
         deze.addEventListener(soort, (ev) => {
           let snel = true;
@@ -370,11 +370,11 @@
           signaal(soort, snel);
         });
       }
-      // Een nieuwe melding, of een die weg is (21 oktober 2026): meteen bij de bel.
+      // Een nieuwe melding, of een die weg is: meteen bij de bel.
       deze.addEventListener('meldingen', () => void meldLaad());
       // De gekozen bewegingsmelder ziet iemand (besluit 164): de wand wordt wakker.
       deze.addEventListener('wekken', () => dispatchEvent(new CustomEvent('sc-wek', { detail: 'beweging' })));
-      // Een rookmelder ziet iets, of niet meer (21 oktober 2026).
+      // Een rookmelder ziet iets, of niet meer.
       deze.addEventListener('alarm', (ev) => {
         try {
           alarm(JSON.parse(ev.data));
@@ -396,7 +396,7 @@
   }
 
   /*
-   * Het huis en wie er thuis is, live (21 oktober 2026). De dienst zegt het als
+   * Het huis en wie er thuis is, live. De dienst zegt het als
    * er iets veranderde; de pagina haalt het dan op, alleen als ze in beeld is.
    * Wat je bedient of ziet bewegen meteen; een temperatuur of verbruik dat
    * verschuift hooguit eens per `rustig`, zoals de pagina het eerst zelf vroeg.
@@ -444,7 +444,7 @@
   }
 
   /*
-   * Op je startscherm (21 oktober 2026). Chrome biedt het installeren aan met
+   * Op je startscherm. Chrome biedt het installeren aan met
    * `beforeinstallprompt`, alleen over https en buiten Home Assistant; dat
    * bewaren we, zodat de knop bij Functies › Weergave het kan vragen.
    */
@@ -484,7 +484,7 @@
   }
 
   /*
-   * Rook, koolmonoxide of hitte (21 oktober 2026, schets Wand-Rook): op elke
+   * Rook, koolmonoxide of hitte (schets Wand-Rook): op elke
    * pagina, zoals aanbellen, rood en schermvullend, met de kamer en wat de
    * andere melders zien. Sluiten haalt het weg tot een melder iets nieuws ziet;
    * ziet niemand meer iets, dan gaat het vanzelf weg. SunArc zet het
@@ -593,7 +593,7 @@
     belTimer = setTimeout(sluitBel, Math.max(30, Math.min(600, Number(m.seconden) || 120)) * 1000);
   }
   /*
-   * Het beeld van de deurbel, zoals in Kamer (21 oktober 2026): eerst een
+   * Het beeld van de deurbel, zoals in Kamer: eerst een
    * plaatje, dan het live beeld eroverheen zodra dat er is. Eerst wachtte de
    * laag alleen op het live beeld, en bleef hij zwart als dat niet kwam,
    * terwijl dezelfde camera in Kamer meteen beeld gaf. Geeft een beeld geen
@@ -606,7 +606,7 @@
   /** Het live beeld opnieuw starten, bijvoorbeeld als het scherm net aanging. */
   let belOpnieuw = null;
   /*
-   * Meteen het vloeiende beeld (25 oktober 2026): het live beeld start tegelijk
+   * Meteen het vloeiende beeld: het live beeld start tegelijk
    * met het plaatje, niet erna, en met voorrang (`bel=1`): telefoons met een
    * camera open tellen dan niet mee in de grens van vier. Valt het weg of komt
    * het niet, dan opnieuw; tot dan na anderhalve tel elke seconde een vers
@@ -722,7 +722,7 @@
   }
 
   /**
-   * Veel bronnen tegelijk, en tekenen zodra er iets is (6 november 2026): eerst
+   * Veel bronnen tegelijk, en tekenen zodra er iets is: eerst
    * als de bronnen in `eerst` er zijn, daarna opnieuw bij elke bron die
    * binnenkomt. Eén trage bron houdt zo nooit meer de hele pagina tegen. Een
    * bron die niet antwoordt, houdt wat hij de vorige keer gaf.
@@ -780,7 +780,7 @@
   const inHA = () => global.parent !== global && /^\/api\/hassio_ingress\//.test(location.pathname);
 
   /*
-   * De toegang via Home Assistant (21 oktober 2026). In Home Assistant opent
+   * De toegang via Home Assistant. In Home Assistant opent
    * de app via ingress, met een sessie die na een tijd verloopt; Home
    * Assistant houdt hem elke minuut vast. Sliep de tablet aan de wand, dan
    * verliep hij toch, en gaf de eerstvolgende vraag 401 van Home Assistant
@@ -1291,7 +1291,7 @@
     d.toggle('sc-eenvoudig', weergaveNu.eenvoudig);
     d.toggle('sc-groot', weergaveNu.groteLetters);
     d.toggle('sc-stil', weergaveNu.minderBeweging);
-    // Het seizoen, het weer en de feestdagen in het huis (25 oktober 2026): de tekening leest het.
+    // Het seizoen, het weer en de feestdagen in het huis: de tekening leest het.
     d.toggle('sc-geen-seizoen', weergaveNu.seizoen === false);
     d.toggle('sc-geen-weer', weergaveNu.weer === false);
     d.toggle('sc-geen-feest', weergaveNu.feestdagen === false);
@@ -1313,7 +1313,7 @@
     // Niets onthouden.
   }
   /*
-   * Wat geldt op dit scherm (25 oktober 2026): op een scherm aan de wand de
+   * Wat geldt op dit scherm: op een scherm aan de wand de
    * weergave, het thema, de kleur en de taal van wie de wand volgt, net als zijn
    * kaarten; anders die van jou. `volgt` is dan diens naam.
    */
@@ -1348,7 +1348,7 @@
   let kleurenNu = {};
   function zetThema(v) {
     if (!v?.tel) return;
-    // Op een scherm dat iemand volgt, diens thema, kleur en taal (25 oktober 2026).
+    // Op een scherm dat iemand volgt, diens thema, kleur en taal.
     const p = persoonlijk(v);
     global.scThema?.({ thema: p.thema, kleur: p.kleur, wandKleur: v.wand?.kleur, scherm: p.scherm });
     // De taal bij Jij (besluit 185); een scherm zonder bewoners volgt zijn account.

@@ -1,5 +1,5 @@
 /*
- * Over deze app (1 november 2026): het logo groot en voluit, wat de naam
+ * Over deze app: het logo groot en voluit, wat de naam
  * betekent, de versie met wat er nieuw is, en waar de broncode staat.
  */
 'use strict';
@@ -7,7 +7,7 @@
 const { esc, haal } = app;
 const BRON = 'https://github.com/Ricardo-switch/SunArc';
 /*
- * De motor (23 november 2026, stap 4 punt 4): zeven tikken op het versienummer, en daarna staat De motor op dit
+ * De motor (stap 4 punt 4): zeven tikken op het versienummer, en daarna staat De motor op dit
  * toestel onder de versie. Geen slot: de pagina leest alleen, achter dezelfde inlog als de rest.
  */
 const MOTOR = 'sc-motor';

@@ -15695,6 +15695,11 @@ wat er nieuw is als code in de dienst.
   houdt per bestand bij hoeveel datums en namen er in het commentaar staan;
   de test faalt als een bestand er meer krijgt, en de basis mag alleen omlaag
   (`npm run dagboek -- --basis`). Bij het vastleggen: 1.062 in 217 bestanden.
+- **Eén ronde met een script,** dezelfde dag: de datums tussen haakjes uit het
+  commentaar ("(21 november 2026)", "(Ricardo, 5 november)", de datum voor- of
+  achteraan tussen haakjes), 779 keer in 191 bestanden. Alleen commentaar
+  veranderde; zonder commentaar is elk bestand gelijk gebleven. Over: 257 in 94
+  bestanden, die per zin om een keuze vragen ("sinds …", "Ricardo wil …").
 
 ## Wat nog een besluit wacht
 
