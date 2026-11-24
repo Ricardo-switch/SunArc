@@ -420,10 +420,10 @@ function thermostaatKeuze(v) {
 function verwarmingVorm() {
   const v = a.verwarming;
   return `${kop(t('energie.verwarming'))}
-    ${blok(t('energie.waarWarmte'), `${keuzes(t('energie.verwarming'), 'verwarming', [...['cv', 'warmtepomp', 'hybride', 'stadsverwarming'].map((x) => [x, t(`energie.bron.${x}`)]), ['weetniet', t('energie.weetNiet')]], v.soort)}
-      <label class="veldnaam">${esc(t('energie.aanvoerLabel'))}<input class="invoer" type="number" inputmode="numeric" min="25" max="90" step="1" data-aanvoer value="${v.aanvoerC ?? ''}" placeholder="${esc(t('energie.bijvoorbeeld60'))}"></label>
-      <p class="mini">${esc(t('energie.aanvoerUitleg'))}</p>
-      ${v.soort === 'stadsverwarming' ? '' : thermostaatKeuze(v)}`)}`;
+    ${blok(t('energie.waarWarmte'), `${keuzes(t('energie.verwarming'), 'verwarming', [...['cv', 'warmtepomp', 'hybride', 'stadsverwarming', 'airco'].map((x) => [x, t(`energie.bron.${x}`)]), ['weetniet', t('energie.weetNiet')]], v.soort)}
+      ${v.soort === 'airco' ? '' : `<label class="veldnaam">${esc(t('energie.aanvoerLabel'))}<input class="invoer" type="number" inputmode="numeric" min="25" max="90" step="1" data-aanvoer value="${v.aanvoerC ?? ''}" placeholder="${esc(t('energie.bijvoorbeeld60'))}"></label>
+      <p class="mini">${esc(t('energie.aanvoerUitleg'))}</p>`}
+      ${v.soort === 'stadsverwarming' || v.soort === 'airco' ? '' : thermostaatKeuze(v)}`)}`;
 }
 
 /* Ernaast */

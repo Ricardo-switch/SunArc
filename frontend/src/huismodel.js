@@ -621,7 +621,8 @@
   }
   function cvThermostaat(huis, verwarming) {
     const keus = verwarming?.thermostaat ?? null;
-    if (keus === 'geen') return null;
+    // Alleen airco's (besluit 342): er is geen ketel, dus ook geen thermostaat ervan.
+    if (keus === 'geen' || verwarming?.soort === 'airco') return null;
     const lijst = thermostaten(huis);
     return (keus ? lijst.find((x) => x.sleutel === keus) : lijst[0]) ?? null;
   }

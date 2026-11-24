@@ -40,7 +40,8 @@ export type PanelSide = (typeof PANEL_SIDES)[number];
 export const TARIFFS = ['vast', 'dynamisch', 'weetniet'] as const;
 export type Tariff = (typeof TARIFFS)[number];
 /** Waar de warmte vandaan komt (besluit 122). */
-export const HEATERS = ['cv', 'warmtepomp', 'hybride', 'stadsverwarming', 'weetniet'] as const;
+/** `airco`: het huis verwarmt alleen met airco's (besluit 342); dan geen ketel en geen cv-onderdelen. */
+export const HEATERS = ['cv', 'warmtepomp', 'hybride', 'stadsverwarming', 'airco', 'weetniet'] as const;
 export type Heater = (typeof HEATERS)[number];
 /**
  * De verwarming (besluit 122), met de thermostaat die de ketel stuurt (besluit

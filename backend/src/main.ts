@@ -158,12 +158,13 @@ async function configWithComfort(comfort: Comfort | null, bewoners: Bewoners = b
     strategieen: strategies.ids,
     // Helpen bij de cv (besluit 292): de thermostaat van de ketel uit Energie › Verwarming, en de prijzen.
     // Gas alleen bij een cv-ketel: bij een warmtepomp of stadsverwarming vergelijkt het niet met gas.
-    helpen: (() => {
+    // Alleen airco's (besluit 342): geen ketel, dus niets om te helpen.
+    ...(connectionStore?.current?.verwarming?.soort === 'airco' ? {} : { helpen: (() => {
       const vw = connectionStore?.current?.verwarming;
       const p = prijzenVoorHelpen();
       const gasKetel = vw?.soort == null || vw.soort === 'cv' || vw.soort === 'hybride' || vw.soort === 'weetniet';
       return { thermostaat: vw?.thermostaat ?? null, stroom: p.stroom, gas: gasKetel ? p.gas : null };
-    })(),
+    })() }),
     waarschuw: (t) => console.warn(t),
     niet: (lijst) => {
       regelingNiet = lijst;

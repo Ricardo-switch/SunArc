@@ -240,7 +240,11 @@ export function webOpties(mainStand: MainStand, port: number): WebOptions {
           // Helpen bij de cv (besluit 292): van het huis, net als bijspringen.
           helpen: {
             // Met de namen uit de indeling: de kamer heet zoals de bewoner hem noemde (0.190.2, "Zolder" was de wasruimte).
-            view: () => helpenView(webConfig() ?? mainStand.siteConfig!, runner?.latest ?? null, helpenDag, Date.now()),
+            view: () => {
+              const v = helpenView(webConfig() ?? mainStand.siteConfig!, runner?.latest ?? null, helpenDag, Date.now());
+              // Alleen airco's (besluit 342): geen ketel, dus geen airco's die hem helpen.
+              return connectionStore?.current?.verwarming?.soort === 'airco' ? { ...v, aircos: [] } : v;
+            },
             save: async (body: unknown) => {
               const check = controleerHelpen(body, mainStand.siteConfig!);
               if (!check.ok) return { ok: false as const, status: 400, reden: check.reden };

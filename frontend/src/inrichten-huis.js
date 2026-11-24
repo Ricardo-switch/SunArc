@@ -400,7 +400,7 @@ function rolKnoppen(a, nuRol) {
 }
 const rolVan = (k, r, key) => (k?.rollen ? (k.rollen[key] ?? 'kijken') : (klimaatIn(r).find((a) => sleutel(a) === key)?.klimaat?.rol ?? 'kijken'));
 /* Waar de warmte vandaan komt (besluit 122); hoort bij Klimaat (besluit 158). */
-const VERWARMING = [...['cv', 'warmtepomp', 'hybride', 'stadsverwarming'].map((x) => [x, t(`energie.bron.${x}`)]), ['weetniet', t('energie.weetNiet')]];
+const VERWARMING = [...['cv', 'warmtepomp', 'hybride', 'stadsverwarming', 'airco'].map((x) => [x, t(`energie.bron.${x}`)]), ['weetniet', t('energie.weetNiet')]];
 let toevoegenIn = null;
 /*
  * Iets toevoegen (besluit 167): hetzelfde als bij Kamers en indeling. Eerst wat
@@ -494,7 +494,7 @@ function warmteStap() {
   // De thermostaat die de ketel aanzet (besluit 167), zoals een Nest: niets gekozen is het voorstel uit Home Assistant.
   const lijst = huismodel.thermostaten(d.huis);
   const thermoOpties = [['', lijst[0] ? t('inr.thermo', { naam: lijst[0].naam }) : t('inr.geenThermo')], ...lijst.map((x) => [x.sleutel, t('inr.thermoKamer', { naam: x.naam, kamer: x.kamer })]), ['geen', t('energie.geenThermostaat')]];
-  const thermo = a.verwarming.soort === 'stadsverwarming' || !lijst.length ? '' : `<select class="invoer" data-inr-thermostaat aria-label="${esc(t('energie.thermostaatKetel'))}" style="width: 100%">${thermoOpties.map(([w, x]) => `<option value="${esc(w)}" ${w === (a.verwarming.thermostaat ?? '') ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+  const thermo = a.verwarming.soort === 'stadsverwarming' || a.verwarming.soort === 'airco' || !lijst.length ? '' : `<select class="invoer" data-inr-thermostaat aria-label="${esc(t('energie.thermostaatKetel'))}" style="width: 100%">${thermoOpties.map(([w, x]) => `<option value="${esc(w)}" ${w === (a.verwarming.thermostaat ?? '') ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
   // De thermostaat onder de knoppen, over de hele breedte: in de smalle kolom ernaast viel de tekst weg.
   const verwarming = `<div class="rij"><b>${esc(t('energie.verwarming'))}</b><div class="kolom" style="width: 100%"><div class="chips">${VERWARMING.map(([w, x]) => knop(`data-verwarming="${w}"`, x, a.verwarming.soort === w)).join('')}<button type="button" class="chip" data-zonderklimaat="1">${esc(t('inr.zk.knop'))}</button></div>${thermo}</div></div>`;
   return {

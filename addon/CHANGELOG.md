@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.237.0
+## 0.238.0
 
-*24 november 2026 · 0.179.0 – 0.237.0*
+*24 november 2026 · 0.179.0 – 0.238.0*
 
 **Nieuw**
 
+- Energie › Verwarming: kies Alleen airco's als je het huis alleen met airco's verwarmt. Dan verdwijnen de onderdelen van een cv-ketel, en houdt in elke kamer een airco de temperatuur
 - Energie › Aansluiting: kies per fase de meter. Zonder stroommeter rekent SunArc de stroom uit het vermogen per fase, zoals bij een P1-meter van HomeWizard
 - De motor heeft nu ook Geleerd en Vergelijken. Geleerd: hoeveel dagen van elk seizoen hij meemaakte, welke standen hij zag, hoe elke kamer warmte houdt en wat elk apparaat aan zon vraagt. Vergelijken: hoe vaak hij het met de oude regeling eens is, wat het zou schelen, de laatste twee weken per kwartier en waar ze het langst verschilden
 - De motor: tik zeven keer op het versienummer bij Over deze app. Dan zie je wat SunArc meet, verdeelt en besluit, live en elk kwartier van vandaag, met wat het afwijst en waarom, en kun je de stand kopiëren voor bij een melding
@@ -287,6 +288,7 @@
 
 **New**
 
+- Energy › Heating: choose Air conditioners only if you heat your home only with air conditioners. The parts of a central heating boiler then disappear, and in each room an air conditioner keeps the temperature
 - Energy › Connection: pick the meter per phase. Without a current meter, SunArc works out the current from the power per phase, as with a HomeWizard P1 meter
 - The engine now also has Learned and Compare. Learned: how many days of each season it has been through, which modes it saw, how each room holds heat and how much sun each device asks for. Compare: how often it agrees with the old schedule, what it would save, the last two weeks per quarter hour and where they differed longest
 - The engine: tap the version number seven times under About this app. Then you see what SunArc measures, shares and decides, live and every quarter hour today, with what it turns down and why, and you can copy the state for a report

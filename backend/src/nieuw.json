@@ -1,5 +1,17 @@
 [
   {
+    "versie": "0.238.0",
+    "datum": "2026-11-24",
+    "nieuw": [
+      "Energie › Verwarming: kies Alleen airco's als je het huis alleen met airco's verwarmt. Dan verdwijnen de onderdelen van een cv-ketel, en houdt in elke kamer een airco de temperatuur"
+    ],
+    "en": {
+      "nieuw": [
+        "Energy › Heating: choose Air conditioners only if you heat your home only with air conditioners. The parts of a central heating boiler then disappear, and in each room an air conditioner keeps the temperature"
+      ]
+    }
+  },
+  {
     "versie": "0.237.0",
     "datum": "2026-11-24",
     "beter": [

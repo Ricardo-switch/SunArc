@@ -13,6 +13,7 @@ import type { Dakvorm, KaartStandWoord } from '../daken.js';
 import { gevelsUitOmtrek, haalKaart, haalOmtrek, heeftGebouwen, huisEnOmgeving, kaartVak, labelsVan, stratenBij, voorkantUitKaart, type OsmLabels, type StraatBij } from '../kaart.js';
 import { readJson, sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
+import { aircosHouden } from '../alleen-airco.js';
 
 /** De routes van dit onderwerp; waar als het verzoek hier is afgehandeld. */
 export async function energieRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
@@ -341,7 +342,14 @@ export async function aansluitingRoute(d: Diensten, req: IncomingMessage, res: S
       sendJson(res, 400, { fout: checked.reden });
       return;
     }
+    const was = connection.store.current?.verwarming?.soort ?? null;
     await connection.store.save(checked.answers);
+    // Alleen airco's (besluit 342): eenmalig bij het kiezen houdt in elke kamer zonder iets dat houdt een airco de kamer.
+    if (checked.answers.verwarming?.soort === 'airco' && was !== 'airco' && d.options.layout) {
+      const door = d.options.layout;
+      const next = aircosHouden(door.store.current ?? door.proposal(), d.options.house?.('nl') ?? null);
+      if (next) await door.store.save(next);
+    }
     // Op zon aan of uit gaat meteen in (besluit 290), zonder herstart.
     await connection.naBewaren?.();
   }

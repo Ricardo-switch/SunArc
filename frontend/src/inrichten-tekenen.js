@@ -885,10 +885,13 @@ document.addEventListener('change', async (e) => {
     const k = next?.kamers.find((x) => x.id === el.dataset.toevoegen);
     const r = binnen().find((x) => x.id === el.dataset.toevoegen);
     if (!k || !r) return;
-    // Een airco helpt op zon; de eerste verwarming houdt de kamer op temperatuur, een tweede kijkt mee.
+    // Een airco helpt op zon; de eerste verwarming houdt de kamer op temperatuur, een tweede kijkt mee. Met alleen
+    // airco's (besluit 342) houdt de eerste airco de kamer.
     const toestel = binnen().flatMap(klimaatIn).find((a) => sleutel(a) === key);
     const rollen = Object.fromEntries(klimaatIn(r).map((a) => [sleutel(a), rolVan(k, r, sleutel(a))]));
-    const rol = toestel?.klimaat?.kanKoelen ? 'zon' : Object.values(rollen).includes('houdt') ? 'kijken' : 'houdt';
+    const houdt = Object.values(rollen).includes('houdt');
+    const alleenAirco = antwoorden().verwarming?.soort === 'airco';
+    const rol = toestel?.klimaat?.kanKoelen ? (alleenAirco && !houdt ? 'houdt' : 'zon') : houdt ? 'kijken' : 'houdt';
     for (const x of next.kamers) if (x.id !== k.id && x.rollen && key in x.rollen) delete x.rollen[key];
     k.rollen = { ...(k.rollen ?? {}), ...rollen, [key]: rol };
     next.apparaten[key] = { ...(next.apparaten[key] ?? {}), kamer: k.id, zone: null };

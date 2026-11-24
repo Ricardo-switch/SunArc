@@ -141,6 +141,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [261. Wat kan bij jouw huis: de kaarten nagaan, de bewoner kiest](#261-wat-kan-bij-jouw-huis-de-kaarten-nagaan-de-bewoner-kiest)
 - [323. Inrichten in zeven stappen](#323-inrichten-in-zeven-stappen)
 - [338. Per fase een meter, en de stroom uit het vermogen](#338-per-fase-een-meter-en-de-stroom-uit-het-vermogen)
+- [342. Alleen airco's als warmtebron](#342-alleen-aircos-als-warmtebron)
 
 **Meten, data en analyse**
 
@@ -15730,6 +15731,39 @@ doet de boiler" gaf de uitleg waar hij in de app staat, niet wat hij doet.
   bron bij Klimaat "mag opwarmen op zon"; dat is nu verwarmen. De test op het
   kale werkwoord vindt "opwarmen" niet (er staat iets voor), en wordt niet
   strenger: de assistent moet "opwarmen" juist verstaan.
+
+## 342. Alleen airco's als warmtebron
+
+*Onderwerp: configuratie en onboarding · Status: geldig*
+
+24 november 2026, kwaliteitsronde stap 4 punt 6 (issue 170). Een bewoner
+verwarmt zijn huis alleen met airco's. Bij *Waar komt de warmte vandaan?* kon
+dat niet: de keuzes waren cv, warmtepomp, hybride en stadsverwarming. Een
+airco helpt standaard op zon, en met een cv-keuze verschenen onderdelen van een
+ketel die er niet is.
+
+*Besluit:*
+
+- **Een keuze erbij:** *Alleen airco's* (`airco` in `HEATERS`), bij Energie ›
+  Verwarming en bij Inrichten.
+- **Geen ketel:** dan geen aanvoertemperatuur en geen thermostaat van de ketel
+  bij Energie en Inrichten, geen *Helpen bij de cv* in de configuratie (de
+  dienst legt `cvHelp` niet over), en de lijst van airco's die de cv helpen is
+  leeg, zodat Klimaat en het blad van een airco er niets over laten zien. De
+  app ziet ook geen thermostaat van een ketel (`cvThermostaat` geeft niets).
+- **De airco's houden de kamers:** bij het kiezen zet de dienst eenmalig in
+  elke kamer waar nog niets de kamer op temperatuur houdt de eerste airco op
+  *Houdt op temperatuur* (`aircosHouden`), en bewaart de indeling; die laadt de
+  configuratie opnieuw. Wat al houdt, blijft; een kamer zonder airco ook. Een
+  airco die je daarna in een kamer zet, houdt de kamer als er nog niets houdt.
+  Wat de bewoner daarna per kamer kiest, blijft staan.
+
+*Niet:* een eerder bewaarde aanvoertemperatuur of thermostaat wordt niet
+gewist; bij een andere keuze zijn ze er weer.
+
+Nagelopen met de proefdienst op een kopie van de NAS: na het kiezen houdt de
+airco van de wasruimte de kamer (daar hing verder niets), de woonkamer bleef
+bij de Nest, en Helpen bij de cv had geen airco's meer.
 
 ## Wat nog een besluit wacht
 
