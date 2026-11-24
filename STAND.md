@@ -141,7 +141,8 @@ verwijzing bestaat.
   aan is mint), het invoerveld (44, op de telefoon 46), de keuze in delen, de
   knop (46, klein 34), de kaart, de titel (46, op de telefoon 30) en de
   foutregel; sinds 0.235.0 ook de ruimte (vijf vaste afstanden) en de vaste
-  tinten uit het thema ([339]).
+  tinten uit het thema ([339]). De assistent zegt ook hoe warm een kamer is die SunArc niet
+  regelt, met de thermometer daar, en wat de boiler doet ([341]).
 - **Elke opstelling werkt:** de regeling doet wat de opstelling toelaat en zegt
   wat ze daardoor niet kan ([70]). Geavanceerde functies volgen uit wat het huis
   heeft; ingrijpende vragen een bewuste keuze ([78]).
@@ -215,7 +216,7 @@ verwijzing bestaat.
 - **Bij zon over:** eerst comfort, dan de batterij, dan de auto. Laadpaal en
   batterij stuurt SunArc niet zelf ([85]). Wat er na comfort over is,
   gaat in de volgorde van de lijst Op zon: kamers die op zon voorkoelen of
-  opwarmen en apparaten zoals de droger door elkaar ([176]).
+  verwarmen en apparaten zoals de droger door elkaar ([176]).
 - **Zonder thuisbatterij** rekent de app het afgelopen jaar per uur na: welke
   maat past, wat er dan nog van het net kwam, en wanneer hij had bijgesprongen
   ([230]).
@@ -452,7 +453,7 @@ verwijzing bestaat.
   Indeling; Comfort heeft een schakelaar per dagdeel; de batterijen zijn altijd
   te zien ([131]).
 - **Per kamer** staat bij Indeling wat er verwarmt en koelt; een elektrische bron
-  mag op zon opwarmen, en Wat je huis kan zegt in welke kamers iets werkt
+  mag op zon verwarmen, en Wat je huis kan zegt in welke kamers iets werkt
   ([132]).
 - **Comfort** zegt per dagdeel wanneer het aan- en uitgaat, wat er op zon
   gebeurt, en per kamer of koelen van het net mag ([133]). Hoe warm elke kamer
@@ -1110,4 +1111,5 @@ verwijzing bestaat.
 [338]: DECISIONS.md#338-per-fase-een-meter-en-de-stroom-uit-het-vermogen
 [339]: DECISIONS.md#339-bouwstenen-één-schakelaar-één-veld-één-keuze-één-knop
 [340]: DECISIONS.md#340-de-geschiedenis-in-het-besluitenlog-niet-in-de-code
+[341]: DECISIONS.md#341-de-assistent-een-kamer-zonder-regeling-en-wat-de-boiler-doet
 <!-- links:einde -->

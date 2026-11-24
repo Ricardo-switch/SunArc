@@ -662,7 +662,7 @@ export interface SiteConfig {
    */
   readonly cvHelp?: CvHelp;
   /**
-   * De volgorde op zon (besluit 176): de zones die op zon opwarmen of koelen en
+   * De volgorde op zon (besluit 176): de zones die op zon verwarmen of koelen en
    * de uitstelbare apparaten, in één lijst. Wie eerder staat, krijgt het
    * overschot eerst. Comfort gaat altijd voor; dit ordent alleen wat er dan nog
    * over is. Zonder: eerst de zones (op hun voorrang per richting), dan de

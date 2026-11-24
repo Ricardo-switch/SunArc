@@ -345,7 +345,11 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
     const kosten = kind === 'kosten' || kind === 'terug' ? await kostenDezeMaand(d, config, parsed.lang).catch(() => null) : null;
     // Het sluipverbruik (besluit 192): wat de dienst al weet, zonder te wachten.
     const sluip = kind === 'sluip' ? await (d.options.sluipverbruik?.rapport() ?? Promise.resolve(null)).catch(() => null) : null;
+    // Hoe warm het in één kamer is (besluit 341): de kamers uit de indeling, ook die SunArc niet regelt.
+    const huis = kind === 'warm' && parsed.question.kamer ? (d.options.house?.(parsed.lang) ?? null) : null;
+    const kamers = huis ? huis.etages.flatMap((e) => e.ruimtes).map((r) => ({ naam: r.naam, temperatuurC: r.temperatuurC, geregeld: r.zoneId != null })) : null;
     const antwoord = ask(parsed.question, {
+      kamers,
       weer,
       kosten,
       sluip,

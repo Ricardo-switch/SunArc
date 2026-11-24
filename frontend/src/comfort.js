@@ -552,7 +552,7 @@ function afwezigVorm() {
 
 const naamVan = (id) => comfort.kamers.find((k) => k.id === id)?.naam ?? id;
 /*
- * Op zon (besluit 176): de kamers die op zon opwarmen of koelen en de
+ * Op zon (besluit 176): de kamers die op zon verwarmen of koelen en de
  * apparaten op zon, in één volgorde. Alleen als er een apparaat op zon is;
  * anders zeggen de twee lijsten erboven al alles.
  */

@@ -74,8 +74,8 @@ const kwTekst = (w: number | undefined, lang: Lang) => (w == null ? null : lang 
 const WOORDEN = {
   nl: {
     kop: {
-      zon: 'Zou nu opwarmen op zon',
-      onder: 'Zou nu bijwarmen',
+      zon: 'Zou nu verwarmen op zon',
+      onder: 'Zou nu verwarmen',
       klaarOm: 'Zou nu beginnen voor klaar om',
       goedkoop: 'Zou nu beginnen, goedkope uren',
       legionella: 'Zou nu naar 60° gaan',
@@ -86,7 +86,7 @@ const WOORDEN = {
       onbekend: 'Niet te lezen',
     },
     zon: (doel: number | null) => (doel != null ? `Er is zon over: hij zou nu verwarmen naar ${doel}°.` : 'Er is zon over: hij zou nu aangaan tot hij vol is.'),
-    onder: (min: number) => `Onder ${min}°: hij zou nu bijwarmen, ook zonder zon.`,
+    onder: (min: number) => `Onder ${min}°: hij zou nu verwarmen, ook zonder zon.`,
     klaarOm: (by: string, doel: number) => `Anders is hij om ${by} niet op ${doel}°. Daarom zou hij nu beginnen, ook zonder zon.`,
     goedkoop: (by: string | null, doel: number | null) =>
       by && doel != null ? `Nu zijn de goedkoopste uren, en om ${by} is hij dan op ${doel}°.` : 'Nu zijn de goedkoopste uren: hij zou nu een keer vol gaan.',

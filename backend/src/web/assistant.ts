@@ -21,6 +21,8 @@ import type { Actuator, Mode, SiteConfig, Zone } from '../core/model.js';
 import { startOfLocalDay } from './today.js';
 import { KAMERWOORDEN, lidwoordVan, metLidwoord } from './kamerwoorden.js';
 import { valutaTeken } from './valuta.js';
+import { residentBuffers } from './buffers-bewoner.js';
+import { gewoon } from './woordzoeker.js';
 import { type Answer, type AskContext, type DecisionView, type Fact, LANGS, type Lang, type Parsed, QUESTION_KINDS, type Question, type RoomKind, type RoomStatus, type Wish, type ZonNu } from './assistant-types.js';
 // Uit assistant-kort.ts (opgesplitst op 22 november 2026); wie dit bestand importeert, krijgt die namen ook.
 export * from './assistant-kort.js';
@@ -75,6 +77,12 @@ function restSentence(f: Facts, weer: AskContext['weer'], lang: Lang): string | 
 const BIJWOORD = /^(beneden|boven|binnen|buiten|overal|downstairs|upstairs)$/i;
 /** Op zolder, op de overloop; verder in. */
 const OP = /^(zolder|overloop|vliering)\b/i;
+/** Waar een kamer uit de indeling is: "in de slaapkamer", "op zolder", "in Kamer van Sam". */
+function plekNaam(naam: string, lang: Lang): string {
+  if (BIJWOORD.test(naam.trim())) return naam.trim();
+  return `${lang === 'nl' && OP.test(naam.trim()) ? 'op' : 'in'} ${withArticle(naam, lang)}`;
+}
+
 function plekVan(zone: Zone, lang: Lang): string {
   if (BIJWOORD.test(zone.name.trim())) return zone.name.trim();
   return `${lang === 'nl' && OP.test(zone.name.trim()) ? 'op' : 'in'} ${zoneName(zone, lang)}`;
@@ -119,7 +127,6 @@ export function parseQuestion(params: URLSearchParams): Parsed {
     case 'straks':
     case 'zon':
     case 'vandaag':
-    case 'warm':
     case 'weer':
     case 'morgen':
     case 'kosten':
@@ -129,6 +136,12 @@ export function parseQuestion(params: URLSearchParams): Parsed {
       return { ok: true, lang, question: { kind: v } };
     case 'draait':
       return { ok: true, lang, question: { kind: 'draait', apparaat: (params.get('apparaat') ?? '').trim() } };
+    case 'warm':
+      return { ok: true, lang, question: kamer ? { kind: 'warm', kamer } : { kind: 'warm' } };
+    case 'boiler': {
+      const naam = (params.get('naam') ?? '').trim();
+      return { ok: true, lang, question: naam ? { kind: 'boiler', naam } : { kind: 'boiler' } };
+    }
     case 'waarom':
       if (kamer === '') return { ok: false, reden: 'waarom vraagt een kamer' };
       return { ok: true, lang, question: { kind: 'waarom', kamer } };
@@ -913,13 +926,48 @@ export function ask(question: Question, ctx: AskContext): Answer {
     }
 
     case 'warm': {
+      // Eén kamer, ook een die SunArc niet regelt (besluit 341): de meter in die kamer uit de indeling.
+      const gevraagd = question.kamer ? gewoon(question.kamer) : '';
+      const vooraf: string[] = [];
+      if (gevraagd) {
+        // Dezelfde woorden, zonder "van" en lidwoorden: "slaapkamer" vindt alle slaapkamers, "slaapkamer van Mylan" die ene.
+        const woorden = (x: string): string[] => gewoon(x).split(' ').filter((w) => w !== '' && !['van', 'de', 'het', 'the', 'of'].includes(w));
+        const v = woorden(question.kamer ?? '');
+        const passend = (ctx.kamers ?? [])
+          .map((k) => ({ k, n: woorden(k.naam) }))
+          .filter(({ n }) => n.length > 0 && v.length > 0 && (n.every((w) => v.includes(w)) || v.every((w) => n.includes(w))))
+          .map(({ k, n }) => ({ k, raak: n.filter((w) => v.includes(w)).length }));
+        // De kamer met de meeste woorden uit de vraag wint: "slaapkamer van Mylan" is niet de slaapkamer.
+        const meest = Math.max(0, ...passend.map((p) => p.raak));
+        const gevonden = passend.filter((p) => p.raak === meest).map((p) => p.k);
+        const met = gevonden.filter((k): k is typeof k & { temperatuurC: number } => k.temperatuurC != null);
+        if (gevonden.length && !met.length) {
+          const plek = plekNaam(gevonden[0]!.naam, lang);
+          return done(nl ? `${cap(plek)} hangt geen thermometer, dus daar weet ik de temperatuur niet.` : `There is no thermometer ${plek}, so I do not know the temperature there.`);
+        }
+        if (met.length) {
+          const delen = met.map((k) => ({ plek: plekNaam(k.naam, lang), c: f.temp(`kamer.${gewoon(k.naam).replace(/ /g, '-')}.temperatuur`, k.temperatuurC) }));
+          const [eerste, ...rest] = delen;
+          const out = [
+            nl
+              ? `${joinList([`${cap(eerste!.plek)} is het ${eerste!.c}`, ...rest.map((d) => `${d.plek} ${d.c}`)], lang)}.`
+              : `${joinList([`It is ${eerste!.c} ${eerste!.plek}`, ...rest.map((d) => `${d.c} ${d.plek}`)], lang)}.`,
+          ];
+          if (met.every((k) => !k.geregeld)) {
+            out.push(nl ? `SunArc regelt ${met.length > 1 ? 'die kamers' : 'die kamer'} niet; dit is wat de thermometer daar meet.` : `SunArc does not control ${met.length > 1 ? 'those rooms' : 'that room'}; this is what the thermometer there reads.`);
+          }
+          return done(out.join(' '));
+        }
+        // Een kamer die het huis niet kent: dat zeggen, en dan hoe warm het overal is.
+        vooraf.push(nl ? `Een kamer "${question.kamer}" ken ik niet.` : `I do not know a room called "${question.kamer}".`);
+      }
       if (snapshot == null) return letterlijk(noDecision(lang));
       const e = snapshot.explanation;
       const delen = config.zones
         .map((z) => ({ z, c: e.perZone.find((p) => p.zoneId === z.id)?.temperatureC ?? null }))
         .filter((x): x is { z: Zone; c: number } => x.c != null)
         .map((x) => ({ z: x.z, plek: plekVan(x.z, lang), c: f.temp(`zone.${x.z.id}.temperatuur`, x.c) }));
-      const out: string[] = [];
+      const out: string[] = [...vooraf];
       if (delen.length === 0) out.push(nl ? 'Ik meet nu nergens een temperatuur.' : 'I am not measuring a temperature anywhere right now.');
       else if (nl) {
         // "Beneden is het 21,7°, in de badkamer 19° en in de wasruimte 21,7°."
@@ -939,6 +987,33 @@ export function ask(question: Question, ctx: AskContext): Answer {
         const b = f.temp('buiten.temperatuur', e.outdoorTemperatureC);
         out.push(nl ? `Buiten is het ${b}.` : `Outside it is ${b}.`);
       }
+      return done(out.join(' '));
+    }
+
+    case 'boiler': {
+      // Wat de boiler of de jacuzzi nu doet (besluit 341), met dezelfde woorden als in de app.
+      const soorten = (config.heatStores ?? []).filter((h) => h.kind !== 'stekker');
+      if (soorten.length === 0) return done(nl ? 'Ik ken geen boiler of jacuzzi in je huis. Voeg hem toe bij Apparaten.' : 'I do not know a boiler or hot tub in your home. Add it under Devices.');
+      if (snapshot == null) return letterlijk(noDecision(lang));
+      const gevraagd = question.naam ? gewoon(question.naam) : '';
+      const alle = residentBuffers(config, snapshot.explanation.heatStores ?? [], ctx.nowMs, lang).filter((b) => b.soort !== 'stekker');
+      const opNaam = alle.filter((b) => gevraagd !== '' && ` ${gewoon(b.naam)} `.includes(` ${gevraagd} `));
+      const opSoort = alle.filter((b) => (b.soort === 'jacuzzi' ? /jacuzzi|hot ?tub|bubbelbad/ : /boiler|warm ?water|water heater|hot water/).test(gevraagd));
+      const lijst = opNaam.length ? opNaam : opSoort.length ? opSoort : alle;
+      if (lijst.length === 0) return done(nl ? 'De boiler is nu niet te lezen.' : 'The boiler cannot be read right now.');
+      const out = lijst.map((b) => {
+        const e = snapshot.explanation.heatStores?.find((x) => x.id === b.id);
+        const naam = cap(withArticle(b.naam, lang));
+        const kop = b.kop.charAt(0).toLowerCase() + b.kop.slice(1);
+        const temp = e?.temperatureC != null ? f.temp(`boiler.${b.id}.temperatuur`, e.temperatureC) : null;
+        // Begint de zin van de app met de temperatuur (vol, warm genoeg), dan is die zin het hele antwoord.
+        if (b.temperatuurC != null && b.zin.startsWith(`${b.temperatuurC}°:`)) return nl ? `${naam} is ${b.zin}` : `${naam} is at ${b.zin}`;
+        const zin = b.zin;
+        if (!nl) return `${naam}${temp ? ` is ${temp}` : ''}: ${kop}. ${zin}`;
+        const werkwoord = /^(wacht|zou)\b/.test(kop);
+        const kopZin = temp ? (werkwoord ? `${naam} is ${temp} en ${kop}.` : `${naam} is ${temp}: ${kop}.`) : werkwoord ? `${naam} ${kop}.` : `${naam} is ${kop}.`;
+        return `${kopZin} ${zin}`;
+      });
       return done(out.join(' '));
     }
 

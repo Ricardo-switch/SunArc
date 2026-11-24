@@ -33,7 +33,7 @@ export type ZonNu = 'op' | 'nog' | 'weg';
 export const LANGS = ['nl', 'en'] as const;
 export type Lang = (typeof LANGS)[number];
 
-export const QUESTION_KINDS = ['nu', 'waarom', 'straks', 'zon', 'doe', 'vandaag', 'warm', 'weer', 'morgen', 'kosten', 'sluip', 'thuis', 'terug', 'draait'] as const;
+export const QUESTION_KINDS = ['nu', 'waarom', 'straks', 'zon', 'doe', 'vandaag', 'warm', 'weer', 'morgen', 'kosten', 'sluip', 'thuis', 'terug', 'draait', 'boiler'] as const;
 export type QuestionKind = (typeof QUESTION_KINDS)[number];
 
 /** `aan` zonder meer: koelen of verwarmen, naar wat de kamer nodig heeft. */
@@ -46,8 +46,10 @@ export type Question =
   | { readonly kind: 'zon' }
   /** Wat het huis vandaag deed (besluit 141). */
   | { readonly kind: 'vandaag' }
-  /** Hoe warm het overal is (besluit 141). */
-  | { readonly kind: 'warm' }
+  /** Hoe warm het overal is (besluit 141), of in één kamer die SunArc niet regelt (besluit 341). */
+  | { readonly kind: 'warm'; readonly kamer?: string }
+  /** Wat de boiler of de jacuzzi nu doet (besluit 341); zonder naam allemaal. */
+  | { readonly kind: 'boiler'; readonly naam?: string }
   /** Het weer en de zon van vandaag (besluit 166). */
   | { readonly kind: 'weer' }
   /** Het weer en de zon van morgen (besluit 142). */
@@ -112,6 +114,11 @@ export type BrugVraag = (
 
 export interface AskContext {
   readonly config: SiteConfig;
+  /**
+   * De kamers uit de indeling met hun temperatuur (besluit 341): ook een kamer die SunArc niet regelt, met een
+   * meter erin. Alleen bij de vraag hoe warm het in een kamer is.
+   */
+  readonly kamers?: readonly { readonly naam: string; readonly temperatuurC: number | null; readonly geregeld: boolean }[] | null;
   readonly snapshot: DecisionView | null;
   /** Het dagoverzicht, of null waar er niet gelogd wordt. */
   readonly today: TodayReport | null;

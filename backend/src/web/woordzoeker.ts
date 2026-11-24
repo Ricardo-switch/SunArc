@@ -397,6 +397,13 @@ function ookNamen(config: SiteConfig, z: SiteConfig['zones'][number]): string[] 
 }
 
 /** De kamer die in de tekst staat; bij twee de langste naam. */
+/** De kamer na "in de" of "op" aan het eind van een vraag (besluit 341), zonder "nu" erachter: "slaapkamer". */
+export function kamerWoord(tekst: string): string | null {
+  const kaal = ` ${tekst} `.replace(/ (nu|nou|now|op dit moment|right now|vandaag|today) $/, ' ').trimEnd();
+  const m = / (?:in|op|on) (?:de |het |the )?([a-z0-9]+(?: [a-z0-9]+){0,2})$/.exec(kaal);
+  return m ? m[1]! : null;
+}
+
 function kamerIn(config: SiteConfig, tekst: string): string | null {
   let beste: { id: string; lengte: number } | null = null;
   for (const z of config.zones) {
@@ -677,8 +684,14 @@ export function begrijp(ruw: string, config: SiteConfig, lang: Lang): Begrepen {
   if (vandaag) huis.push({ vraag: { kind: 'vandaag' }, score: 3 * vandaag });
   const overal = telt(['overal', 'alle kamers', 'elke kamer', 'in huis', 'everywhere', 'every room', 'all rooms', 'in the house', 'whole house'], tekst, los);
   if (overal && kamer == null && telt(['warm', 'koud', 'temperatuur', 'graden', 'temperature', 'hot', 'cold', 'degrees'], tekst, los)) huis.push({ vraag: { kind: 'warm' }, score: 5 });
-  // "Hoe warm is het in de slaapkamer" voor een kamer zonder regeling: dan hoe warm het overal is, die kamer erbij.
-  else if (kamer == null && telt(['hoe warm', 'hoe koud', 'hoeveel graden', 'welke temperatuur', 'how warm', 'how cold', 'what temperature', 'how many degrees'], tekst, los)) huis.push({ vraag: { kind: 'warm' }, score: 4 });
+  // "Hoe warm is het in de slaapkamer" voor een kamer zonder regeling (besluit 341): de assistent zoekt hem in de indeling.
+  else if (kamer == null && telt(['hoe warm', 'hoe koud', 'hoeveel graden', 'welke temperatuur', 'how warm', 'how cold', 'what temperature', 'how many degrees'], tekst, los)) {
+    const plek = kamerWoord(tekst);
+    huis.push({ vraag: plek ? { kind: 'warm', kamer: plek } : { kind: 'warm' }, score: 4 });
+  }
+  // Wat de boiler of de jacuzzi nu doet (besluit 341); "waarom zie ik de boiler niet" blijft een vraag over de app.
+  const water = telt(['boiler*', 'warm water', 'warmwater', 'water heater', 'hot water', 'jacuzzi', 'hottub', 'hot tub', 'bubbelbad'], tekst, los);
+  if (water && !telt(['zie', 'zien', 'niet', 'see', 'not', 'waar', 'where'], tekst, los)) huis.push({ vraag: { kind: 'boiler', naam: tekst.match(/jacuzzi|hot ?tub|bubbelbad|boilerw*|warm ?water|water heater|hot water/)?.[0] ?? '' }, score: 5 });
   // Het weer van morgen, en wat iets kost (besluit 142).
   const morgen = telt(MORGEN, tekst, los);
   // Het weer zonder morgen erbij gaat over vandaag (besluit 166): "wat voor weer wordt het vandaag?".

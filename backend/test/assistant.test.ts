@@ -1004,3 +1004,39 @@ describe('wiens comfort (besluit 147)', () => {
     expect(vraag({ id: 'ricardo', name: 'Ricardo', reason: 'thuis', home: ['ricardo'] })).not.toContain('comfort van');
   });
 });
+
+describe('een kamer zonder regeling en de boiler (besluit 341)', () => {
+  const kamers = [
+    { naam: 'Slaapkamer', temperatuurC: 19.85, geregeld: false },
+    { naam: 'Slaapkamer Zoë', temperatuurC: null, geregeld: false },
+    { naam: 'Slaapkamer Mylan', temperatuurC: 19.46, geregeld: false },
+    { naam: 'Slaapkamer Matts', temperatuurC: 20.1, geregeld: false },
+    { naam: 'Hal', temperatuurC: null, geregeld: false },
+    { naam: 'Woonkamer', temperatuurC: 21.4, geregeld: true },
+  ];
+  const warm = (kamer: string) => ask({ kind: 'warm', kamer }, { config, snapshot: view(), today: null, nowMs: AT, shadow: true, lang: 'nl', kamers });
+
+  it('zegt hoe warm het in een kamer is die SunArc niet regelt', () => {
+    expect(warm('slaapkamer van mylan').antwoord).toBe('In de slaapkamer Mylan is het 19,5°. SunArc regelt die kamer niet; dit is wat de thermometer daar meet.');
+    expect(warm('slaapkamer').antwoord).toBe('In de slaapkamer is het 19,9°, in de slaapkamer Mylan 19,5° en in de slaapkamer Matts 20,1°. SunArc regelt die kamers niet; dit is wat de thermometer daar meet.');
+    expect(warm('slaapkamer van zoe').antwoord).toBe('In de slaapkamer Zoë hangt geen thermometer, dus daar weet ik de temperatuur niet.');
+    expect(warm('hal').antwoord).toBe('In de hal hangt geen thermometer, dus daar weet ik de temperatuur niet.');
+    expect(warm('woonkamer').antwoord).toBe('In de woonkamer is het 21,4°.');
+    expect(warm('garage').antwoord).toMatch(/^Een kamer "garage" ken ik niet\. .+ is het \d/);
+  });
+
+  const metBoiler = {
+    ...config,
+    heatStores: [{ id: 'boiler', name: 'Boiler', kind: 'boiler', control: 'switch', actuator: 'switch.boiler', temperature: 'sensor.boiler', minC: 50, sunC: 65 }],
+  } as unknown as AskContext['config'];
+  const boiler = (heatStores: NonNullable<Explanation['heatStores']>, naam = 'boiler') =>
+    ask({ kind: 'boiler', naam }, { config: metBoiler, snapshot: view({ explanation: explanation({ heatStores }) }), today: null, nowMs: AT, shadow: true, lang: 'nl' }).antwoord;
+
+  it('zegt wat de boiler nu doet, met de woorden van de app', () => {
+    expect(boiler([{ id: 'boiler', state: 'waiting', reason: 'surplus_insufficient', temperatureC: 52, heating: false }])).toBe(
+      'De boiler is 52° en wacht op zon. Hij verwarmt zodra er zon over is, tot 65°. Minstens 50° houdt hij altijd vast.',
+    );
+    expect(boiler([{ id: 'boiler', state: 'full', reason: 'surplus_insufficient', temperatureC: 66, heating: false }])).toBe('De boiler is 66°: vol tot de zon weer schijnt.');
+    expect(ask({ kind: 'boiler' }, { config, snapshot: view(), today: null, nowMs: AT, shadow: true, lang: 'nl' }).antwoord).toBe('Ik ken geen boiler of jacuzzi in je huis. Voeg hem toe bij Apparaten.');
+  });
+});

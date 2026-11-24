@@ -1,5 +1,25 @@
 [
   {
+    "versie": "0.237.0",
+    "datum": "2026-11-24",
+    "beter": [
+      "Vraag de assistent hoe warm het in een kamer is die SunArc niet regelt, zoals de slaapkamer: hij zegt wat de thermometer daar meet",
+      "Vraag wat de boiler of de jacuzzi doet: de assistent zegt hoe warm hij is en of hij verwarmt of op zon wacht"
+    ],
+    "opgelost": [
+      "De boiler zei \"opwarmen\" en \"bijwarmen\"; dat is nu verwarmen"
+    ],
+    "en": {
+      "beter": [
+        "Ask the assistant how warm it is in a room SunArc does not control, such as the bedroom: it says what the thermometer there reads",
+        "Ask what the boiler or hot tub is doing: the assistant says how hot it is and whether it is heating or waiting for solar"
+      ],
+      "opgelost": [
+        "The boiler texts now use the same word for heating everywhere"
+      ]
+    }
+  },
+  {
     "versie": "0.236.0",
     "datum": "2026-11-24",
     "beter": [

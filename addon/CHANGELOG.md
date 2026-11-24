@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.236.0
+## 0.237.0
 
-*24 november 2026 · 0.179.0 – 0.236.0*
+*24 november 2026 · 0.179.0 – 0.237.0*
 
 **Nieuw**
 
@@ -96,6 +96,8 @@
 
 **Beter**
 
+- Vraag de assistent hoe warm het in een kamer is die SunArc niet regelt, zoals de slaapkamer: hij zegt wat de thermometer daar meet
+- Vraag wat de boiler of de jacuzzi doet: de assistent zegt hoe warm hij is en of hij verwarmt of op zon wacht
 - Ook de rijen met een keuze (De motor, Gepland, met de hand, de zones bij Klimaat) en de kaarten van De motor en Bewoners gebruiken nu de vaste bouwstenen
 - De ruimte tussen dingen is overal een van vijf vaste maten, in plaats van per plek net anders
 - Overal dezelfde schakelaar, hetzelfde invoerveld, dezelfde keuze in delen en dezelfde knoppen: eerst had elke pagina zijn eigen maat (zes schakelaars). Ook de kaarten, de titels en de foutregels zijn overal gelijk
@@ -219,6 +221,7 @@
 
 **Opgelost**
 
+- De boiler zei "opwarmen" en "bijwarmen"; dat is nu verwarmen
 - Inrichten › Klimaat: de keuze per toestel had sinds 0.234.0 geen opmaak meer
 - Bij het draaien van het huis op Thuis verscheen soms ineens het poppenhuis: bij sommige hoeken stond de auto achter het huis en lukte de tekening niet. Dat is opgelost, en lukt een tekening ooit niet, dan blijft de vorige staan
 - De bundel licht van de zon wees boven het dak uit; nu valt hij weer op de panelen
@@ -374,6 +377,8 @@
 
 **Improved**
 
+- Ask the assistant how warm it is in a room SunArc does not control, such as the bedroom: it says what the thermometer there reads
+- Ask what the boiler or hot tub is doing: the assistant says how hot it is and whether it is heating or waiting for solar
 - The rows with a choice (The engine, Scheduled, by hand, the zones in Climate) and the cards of The engine and Residents now use the fixed building blocks too
 - The space between things is one of five fixed sizes everywhere, instead of slightly different in each place
 - The same switch, input field, segmented choice and buttons everywhere: each page used to have its own size (six different switches). Cards, titles and error lines now match too
@@ -497,6 +502,7 @@
 
 **Fixed**
 
+- The boiler texts now use the same word for heating everywhere
 - Set up › Climate: the choice per device had lost its styling since 0.234.0
 - Turning the house on Home sometimes suddenly showed the dollhouse: at some angles the car stood behind the house and the drawing failed. That is fixed, and if a drawing ever fails, the previous one stays
 - The beam of sunlight pointed above the roof; it falls on the panels again

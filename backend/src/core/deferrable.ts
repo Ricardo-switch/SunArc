@@ -173,7 +173,7 @@ export interface ClaimOutcome {
 /**
  * De apparaten die op zon wachten. Met een volgorde op zon (besluit 176) vragen
  * ze hun deel op hun plek in die volgorde, bij de arbiter, tussen de zones
- * die op zon opwarmen of koelen.
+ * die op zon verwarmen of koelen.
  */
 export function deferrableClaims(ctx: DecisionContext): SunClaim[] {
   return (ctx.config.deferrables ?? []).filter((d) => 'zon' in vooraf(ctx, d)).map((d) => ({ id: d.id, estimatedW: d.estimatedW }));

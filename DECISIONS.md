@@ -329,6 +329,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [335. Sluipverbruik: een reden per nacht, en herkennen](#335-sluipverbruik-een-reden-per-nacht-en-herkennen)
 - [337. De motor: de schaduwpagina in de vorm van de app](#337-de-motor-de-schaduwpagina-in-de-vorm-van-de-app)
 - [339. Bouwstenen: één schakelaar, één veld, één keuze, één knop](#339-bouwstenen-één-schakelaar-één-veld-één-keuze-één-knop)
+- [341. De assistent: een kamer zonder regeling, en wat de boiler doet](#341-de-assistent-een-kamer-zonder-regeling-en-wat-de-boiler-doet)
 
 **Veiligheid**
 
@@ -15700,6 +15701,35 @@ wat er nieuw is als code in de dienst.
   achteraan tussen haakjes), 779 keer in 191 bestanden. Alleen commentaar
   veranderde; zonder commentaar is elk bestand gelijk gebleven. Over: 257 in 94
   bestanden, die per zin om een keuze vragen ("sinds …", "Ricardo wil …").
+
+## 341. De assistent: een kamer zonder regeling, en wat de boiler doet
+
+*Onderwerp: weergave · Status: geldig*
+
+24 november 2026, kwaliteitsronde stap 4 punt 9 (wat half bleef uit stap 3,
+besluit 326). Twee vragen gingen half: "hoe warm is het in de slaapkamer"
+gaf hoe warm het in de geregelde kamers was, zonder de slaapkamer; en "wat
+doet de boiler" gaf de uitleg waar hij in de app staat, niet wat hij doet.
+
+*Besluit:*
+
+- **Een kamer die SunArc niet regelt:** de woordzoeker haalt de kamer na "in
+  de" of "op" uit de vraag (`kamerWoord`), en de assistent zoekt hem in de
+  kamers van de indeling, met de thermometer die daar hangt. De kamer met de
+  meeste woorden uit de vraag wint ("slaapkamer van Mylan" is niet de
+  slaapkamer); "slaapkamer" alleen noemt ze allemaal met een thermometer. Hij
+  zegt erbij dat SunArc die kamer niet regelt. Hangt er geen thermometer, dan
+  zegt hij dat; een kamer die hij niet kent ook, en dan hoe warm het overal is.
+  Een geregelde kamer blijft de vraag waarom (besluit 141).
+- **Wat de boiler doet:** een eigen vraag (`boiler`), met dezelfde woorden als
+  bij Apparaten (`residentBuffers`): hoe warm hij is en wat hij doet of waarop
+  hij wacht. Voor de jacuzzi net zo. "Waarom zie ik de boiler niet" en "waar
+  staat de boiler" blijven een vraag over de app. Zonder boiler zegt hij dat,
+  met waar je hem toevoegt.
+- **Verwarmen:** de boiler zei "zou nu opwarmen op zon" en "bijwarmen", en een
+  bron bij Klimaat "mag opwarmen op zon"; dat is nu verwarmen. De test op het
+  kale werkwoord vindt "opwarmen" niet (er staat iets voor), en wordt niet
+  strenger: de assistent moet "opwarmen" juist verstaan.
 
 ## Wat nog een besluit wacht
 

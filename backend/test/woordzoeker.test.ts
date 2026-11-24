@@ -198,3 +198,17 @@ describe('nieuwe vragen (29 oktober 2026)', () => {
     expect(huis('Wat kost de stroom deze maand?')).toEqual({ kind: 'kosten' });
   });
 });
+
+describe('een kamer zonder regeling en de boiler (besluit 341)', () => {
+  it('neemt de kamer mee in hoe warm het is', () => {
+    expect(huis('Hoe warm is het in de slaapkamer?')).toEqual({ kind: 'warm', kamer: 'slaapkamer' });
+    expect(huis('hoeveel graden is het nu in de slaapkamer van mylan')).toEqual({ kind: 'warm', kamer: 'slaapkamer van mylan' });
+    expect(huis('Hoe warm is het overal?')).toEqual({ kind: 'warm' });
+  });
+
+  it('vraagt wat de boiler doet, maar waar hij staat blijft een vraag over de app', () => {
+    expect(huis('Wat doet de boiler?')).toEqual({ kind: 'boiler', naam: 'boiler' });
+    expect(huis('hoe warm is het warm water')).toEqual({ kind: 'boiler', naam: 'warm water' });
+    expect(app('Waarom zie ik de boiler niet?')).toBe('apparaten.html');
+  });
+});

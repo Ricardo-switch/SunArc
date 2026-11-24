@@ -9,7 +9,7 @@
  *
  * Twee dingen doet de dienst ermee. Wat je huis kan zegt per functie waar het
  * werkt. En een elektrische bron die een apparaat van de regeling schakelt,
- * mag op zon opwarmen als de bewoner dat aanzet: dan rekent het met zijn
+ * mag op zon verwarmen als de bewoner dat aanzet: dan rekent het met zijn
  * vermogen, buffert de zone, en mag het ook naast comfort op zon draaien
  * (`withHeatSources`). Zoals comfort (besluit 130) over de configuratie
  * gelegd; er gaat niets naar Home Assistant.
@@ -33,7 +33,7 @@ export interface Warmtebron {
   readonly apparaat?: string;
   /** Samen, in watt; alleen voor elektrisch dat slim aangaat. */
   readonly vermogenW?: number;
-  /** Mag op zon opwarmen (besluit 132); alleen elektrisch, met vermogen. */
+  /** Mag op zon verwarmen (besluit 132); alleen elektrisch, met vermogen. */
   readonly opZon?: boolean;
   /** In welke zone van de kamer hij hangt (zones als deel van de kamer); weg is de hele kamer. */
   readonly zone?: string;
