@@ -14,8 +14,9 @@ import { kiesVerstaan } from '../web/verstaan.js';
 import { FeedbackLog } from '../web/feedback.js';
 import { type Lang } from '../web/assistant.js';
 import { profielenVan, type Wie, GEEN_BEWONERS, hoofdVan, bewonersView, leesActie, persoonsAccount, voerUit, herken as herkenBewoner, personenUit, gastStand } from '../web/bewoners.js';
-import { controleerComfort, type Comfort, type ComfortRoom, bijspringenView, controleerBijspringen } from '../web/comfort.js';
+import { controleerComfort, comfortView, type Comfort, type ComfortRoom, bijspringenView, controleerBijspringen } from '../web/comfort.js';
 import { helpenView, controleerHelpen } from '../web/helpen.js';
+import { leesZonBody, sleutelVan, volgordeVan, zonVerdelenView, type ZonAuto, type ZonVerdelenStore } from '../web/zon-verdelen.js';
 import { type KlaarPunt } from '../web/klaarzetten.js';
 import { klaarFuncties, wolkenVan, type WandMelding } from '../web/klaarzetten-functies.js';
 import { writeFile } from 'node:fs/promises';
@@ -28,7 +29,68 @@ import { apparaatGegevens } from '../web/apparaat-gegevens.js';
 import { WACHT_MS } from '../web/taalmodel.js';
 import { haEnergySource } from '../adapters/homeassistant/energy.js';
 import type { WebOptions } from '../web/server.js';
+import type { SiteConfig } from '../core/model.js';
 import type { MainStand } from '../main.js';
+
+/** De zon verdelen (besluit 343): de lijst zoals de pagina hem toont, en bewaren. */
+function zonVerdelenOptie(mainStand: MainStand, store: ZonVerdelenStore): NonNullable<WebOptions['zonVerdelen']> {
+  const { comfortStore, configWithComfort, runner, allStates, huisNu, webConfig } = mainStand;
+  const autos = (): ZonAuto[] =>
+    (huisNu('nl')?.opslag?.autos ?? []).map((a) => ({
+      id: a.id,
+      naam: a.paalNaam ?? a.naam,
+      laadpaal: a.laadpaal != null,
+      minW: a.paalStroomA ? a.paalStroomA.min * 230 : null,
+      aangesloten: a.aangesloten,
+      laadt: a.laadt,
+      vermogenW: a.vermogenW,
+    }));
+  const gemeten = (entiteit: string): number | null => {
+    const s = allStates.get(entiteit);
+    const w = Number(s?.state);
+    if (s == null || !Number.isFinite(w)) return null;
+    return String(s.attributes?.['unit_of_measurement'] ?? 'W') === 'kW' ? w * 1000 : w;
+  };
+  const volgorde = (config: SiteConfig) => volgordeVan(comfortStore?.current?.voorrang?.zon, comfortView(config, comfortStore?.current ?? null).voorrang.zon, autos());
+  const view = () => {
+    const config = webConfig() ?? mainStand.siteConfig!;
+    const tz = config.timezone ?? 'Europe/Amsterdam';
+    return zonVerdelenView({
+      config,
+      snapshot: runner?.latest ?? null,
+      volgorde: volgorde(config),
+      autos: autos(),
+      keuzes: store.current,
+      gemeten,
+      nowMs: Date.now(),
+      vandaag: new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date()),
+    });
+  };
+  return {
+    view,
+    save: async (body: unknown) => {
+      const config = mainStand.siteConfig!;
+      const nu = volgorde(config);
+      const check = leesZonBody(body, new Set(nu.map(sleutelVan)));
+      if (!check.ok) return { ok: false as const, status: 400, reden: check.reden };
+      const { volgorde: nieuw } = check.body;
+      if (nieuw && nieuw.length !== nu.length) return { ok: false as const, status: 400, reden: 'de volgorde is de hele lijst' };
+      if (nieuw && comfortStore) {
+        // Zoals Op zon bij Klimaat › Voorrang: naar comfort, en zo naar de regeling (zonder de laadpaal).
+        const huidig = comfortStore.current ?? { versie: 1 as const, kamers: {} };
+        const gewoon = comfortView(config, huidig).voorrang;
+        const comfort: Comfort = { ...huidig, voorrang: { koelen: huidig.voorrang?.koelen ?? gewoon.koelen, verwarmen: huidig.voorrang?.verwarmen ?? gewoon.verwarmen, zon: nieuw } };
+        const met = await configWithComfort(comfort);
+        if (!met.ok) return { ok: false as const, status: 400, reden: `past niet in de regeling: ${met.reden}` };
+        if (runner && !runner.setConfig(met.config, allStates.values())) return { ok: false as const, status: 409, reden: 'de regeling kon het niet overnemen; het gaat in na de volgende start' };
+        await comfortStore.save(comfort);
+        mainStand.siteConfig = met.config;
+      }
+      if (check.body.marge || check.body.hand || check.body.uit) await store.save(store.met(check.body));
+      return { ok: true as const, view: view() };
+    },
+  };
+}
 
 export function webOpties(mainStand: MainStand, port: number): WebOptions {
   const {
@@ -41,7 +103,7 @@ export function webOpties(mainStand: MainStand, port: number): WebOptions {
     meldingen, modelTeller, onboarding, openMeteo, pauzeVan, proefmelding, reserveBeelden, runner, scenePictures,
     schakelaarKeuzes, schakelaarStore, sleutel, sluipverbruik, stekkerZon, stekkerhand, stemInHuis, teDoen, telefoons,
     uitstelStore, updateNu, version, verstaan, vindSchakelaarsNu, voorbeeld, voorkeuren, weatherLog, webConfig,
-    weerNaam, weerZone, wekwoordNu, zoekUpdates,
+    weerNaam, weerZone, wekwoordNu, zoekUpdates, zonVerdelenStore,
   } = mainStand;
   return {
     access: mainStand.access,
@@ -222,6 +284,9 @@ export function webOpties(mainStand: MainStand, port: number): WebOptions {
                 // Het comfort van het huis, van de hoofdgebruiker; de eigen comforts blijven.
                 // Bijspringen (besluit 283) komt van Regeling, niet van deze pagina: dat blijft ook.
                 comfort = { ...check.comfort, ...(huidig?.profielen ? { profielen: huidig.profielen } : {}), ...(huidig?.bijspringen ? { bijspringen: huidig.bijspringen } : {}), ...(huidig?.helpen ? { helpen: huidig.helpen } : {}) };
+                // De volgorde op zon komt van Energie › De zon verdelen (besluit 343): die blijft.
+                const zon = huidig?.voorrang?.zon;
+                if (zon && comfort.voorrang && !comfort.voorrang.zon) comfort = { ...comfort, voorrang: { ...comfort.voorrang, zon } };
               } else {
                 // Een eigen comfort (besluit 147): alleen de doelen en het plafond per kamer.
                 const eigen: Record<string, ComfortRoom> = Object.fromEntries(Object.entries(check.comfort.kamers).map(([k, v]) => [k, { modi: v.modi, ...(v.nooitWarmerC !== undefined ? { nooitWarmerC: v.nooitWarmerC } : {}) }]));
@@ -258,6 +323,8 @@ export function webOpties(mainStand: MainStand, port: number): WebOptions {
               return { ok: true as const, view: helpenView(webConfig() ?? met.config, runner?.latest ?? null, helpenDag, Date.now()) };
             },
           },
+          // De zon verdelen (besluit 343): de volgorde gaat zoals Op zon naar de regeling; de marge en de hand worden bewaard.
+          ...(zonVerdelenStore ? { zonVerdelen: zonVerdelenOptie(mainStand, zonVerdelenStore) } : {}),
           // Bijspringen per kamer (besluit 283): van het huis, dus wie het comfort van het huis mag aanpassen.
           bijspringen: {
             view: () => bijspringenView(mainStand.siteConfig!),

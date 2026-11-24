@@ -331,6 +331,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [337. De motor: de schaduwpagina in de vorm van de app](#337-de-motor-de-schaduwpagina-in-de-vorm-van-de-app)
 - [339. Bouwstenen: één schakelaar, één veld, één keuze, één knop](#339-bouwstenen-één-schakelaar-één-veld-één-keuze-één-knop)
 - [341. De assistent: een kamer zonder regeling, en wat de boiler doet](#341-de-assistent-een-kamer-zonder-regeling-en-wat-de-boiler-doet)
+- [343. De zon verdelen: één lijst voor wie de zon krijgt](#343-de-zon-verdelen-één-lijst-voor-wie-de-zon-krijgt)
 
 **Veiligheid**
 
@@ -15764,6 +15765,54 @@ gewist; bij een andere keuze zijn ze er weer.
 Nagelopen met de proefdienst op een kopie van de NAS: na het kiezen houdt de
 airco van de wasruimte de kamer (daar hing verder niets), de woonkamer bleef
 bij de Nest, en Helpen bij de cv had geen airco's meer.
+
+## 343. De zon verdelen: één lijst voor wie de zon krijgt
+
+*Onderwerp: weergave · Status: geldig*
+
+24 november 2026, kwaliteitsronde stap 4 punt 7 (issue 137). Wie de zon krijgt
+die over is, stond op drie plekken: de volgorde van kamers en apparaten bij
+Klimaat › Voorrang › Op zon, de laadpaal bij Auto en laadpaal, en stekkers en
+witgoed elk op hun eigen blad. Er was geen plek die zei wat er nu over is, wie
+het krijgt en wie wacht, en geen marge tegen een wolk.
+
+*Besluit:*
+
+- **Een eigen deel bij Energie, *De zon verdelen*** (schets
+  Wand-/Tel-Energie-Zon-Verdelen), naast Zonnepanelen. Bovenaan wat er nu over
+  is, met een balk van wie het krijgt en wie de volgende is (hoeveel te weinig);
+  daaronder één lijst om te slepen: de kamers die op zon helpen, de apparaten
+  op zon, boiler, jacuzzi, stekkers en de laadpaal. Per plek het vermogen,
+  gemeten als er een meter is die iets meet, anders opgegeven, en wat hij nu
+  doet: krijgt zon, laadt, wacht (met hoeveel te weinig), draait (door iemand
+  anders aangezet), aan van het net, vol, doet nu niets of vandaag
+  overgeslagen.
+- **Met de hand per plek:** *Nu eerst* (tot middernacht), *Vandaag overslaan*
+  en *Uit de lijst*; wat uit de lijst is, staat onder *Doet niet mee* met
+  *Terug in de lijst*.
+- **Eén marge voor het hele huis:** hoeveel er meer over moet zijn dan een
+  apparaat vraagt (standaard 200 W) en hoe lang minstens aan of uit (standaard
+  10 minuten).
+- **Op Thuis in de strook:** zolang SunArc meekijkt en er zon over is, zegt de
+  strook *De zon gaat nu naar …, daarna …*; het blad achter de strook heeft een
+  knop naar het deel.
+- **Waar het staat:** de volgorde in `comfort.json` (`voorrang.zon`, nu ook met
+  `laadpaal`), en gaat zoals Op zon dat deed naar de regeling als `sunOrder`,
+  zonder de laadpaal. De marge en de keuzes met de hand in `zonverdelen.json`
+  naast de dataset (`api/zon-verdelen`). Bewaren bij Klimaat laat de volgorde
+  staan.
+- **Klimaat › Voorrang** houdt alleen koelen en verwarmen per kamer, met een
+  knop naar De zon verdelen.
+
+*Niet nu:* de regeling gebruikt de laadpaal in de lijst, de marge en de keuzes
+met de hand nog niet. Ze worden bewaard en getoond, en gaan in zodra SunArc de
+zon zelf verdeelt; de wintertest vanaf 1 december blijft zo ongemoeid. Dat
+staat ook op het scherm.
+
+Nagelopen met de proefdienst op een kopie van de NAS, op de wand en de
+telefoon: slepen met een nagebootste vinger zet de volgorde in de regeling,
+de marge gaat een stap omhoog en terug, en de strook op Thuis noemt wie de zon
+krijgt. De droger die al draaide, heette eerst *Krijgt zon*; nu *Draait*.
 
 ## Wat nog een besluit wacht
 

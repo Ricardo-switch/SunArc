@@ -326,6 +326,8 @@ export class WebServer {
       (this.#d.options.bijspringen != null && path === '/api/bijspringen') ||
       // Helpen bij de cv (besluit 292): naar hetzelfde bestand als comfort.
       (this.#d.options.helpen != null && path === '/api/helpen') ||
+      // De zon verdelen (besluit 343): de volgorde naar comfort, de marge en de hand naar een eigen bestand.
+      (this.#d.options.zonVerdelen != null && path === '/api/zon-verdelen') ||
       // Bewoners (besluit 147): naar een eigen bestand, en nooit naar Home Assistant.
       (this.#d.options.bewoners != null && path === '/api/bewoners') ||
       (this.#d.options.lights != null && path === '/api/licht') ||

@@ -200,7 +200,7 @@ function delen() {
     // De soort verwarming staat bij Energie (niet dubbel instellen): hier een regel erheen.
     ...(vanHetHuis() ? [{ id: 'verwarming', titel: t('klimaat.soort'), zin: soort ? huismodel.metHoofdletter(soort) : t('instellingen.nogKiezen'), stand: 'goed', href: 'energie.html#verwarming' }] : []),
     ...(vanHetHuis() ? [{ id: 'dagdelen', titel: t('instellingen.dagdelen'), zin: t('comfort.dagdelenZin', { dag: d.dag, nacht: d.nacht }), stand: 'goed' }] : []),
-    ...(vanHetHuis() && (comfort.voorrang?.koelen?.length > 1 || comfort.voorrang?.verwarmen?.length > 1 || zonLijst()) ? [{ id: 'voorrang', titel: t('comfort.voorrang'), zin: voorrangZin(), stand: 'goed' }] : []),
+    ...(vanHetHuis() && (comfort.voorrang?.koelen?.length > 1 || comfort.voorrang?.verwarmen?.length > 1) ? [{ id: 'voorrang', titel: t('comfort.voorrang'), zin: voorrangZin(), stand: 'goed' }] : []),
     { id: 'afwezig', titel: t('comfort.afwezig'), zin: t('comfort.afwezigZin'), stand: 'goed' },
     // Terug naar standaard (besluit 204): alle kamers, en bij de hoofdgebruiker ook de dagdelen.
     { id: 'standaard', titel: t('comfort.std.titel'), zin: comfort.kamers.every(opStandaard) && (!vanHetHuis() || dagdelenStandaard()) ? t('comfort.std.staat') : t('comfort.std.kort'), stand: 'goed' },
@@ -551,30 +551,12 @@ function afwezigVorm() {
 /* ------------------------------------------------- voorrang (besluit 134) */
 
 const naamVan = (id) => comfort.kamers.find((k) => k.id === id)?.naam ?? id;
-/*
- * Op zon (besluit 176): de kamers die op zon verwarmen of koelen en de
- * apparaten op zon, in één volgorde. Alleen als er een apparaat op zon is;
- * anders zeggen de twee lijsten erboven al alles.
- */
-// Een boiler of jacuzzi (besluit 186) staat erin als een apparaat.
-const zonNaam = (z) => (z.soort !== 'kamer' ? comfort.apparatenOpZon?.find((a) => a.id === z.id)?.naam ?? z.id : naamVan(z.id));
-const zonLijst = () => (comfort.apparatenOpZon?.length && comfort.voorrang?.zon?.length > 1 ? comfort.voorrang.zon : null);
-/** Zoals de regeling het doet zonder keuze: eerst de kamers, dan de apparaten, dan boiler en jacuzzi. */
-const zonGewoon = () => {
-  const zon = comfort.voorrang?.zon ?? [];
-  const plek = (z) => comfort.kamers.findIndex((k) => k.id === z.id);
-  return [...zon.filter((z) => z.soort === 'kamer').sort((a, b) => plek(a) - plek(b)), ...zon.filter((z) => z.soort === 'apparaat'), ...zon.filter((z) => z.soort === 'buffer')];
-};
-/** Of de bewoner de lijst Op zon aanraakte: pas dan gaat hij mee naar de regeling. */
-let zonGekozen = false;
 function voorrangZin() {
   const k = comfort.voorrang?.koelen?.[0];
   const w = comfort.voorrang?.verwarmen?.[0];
-  const z = zonLijst()?.[0];
   return [
     k ? t('comfort.vr.koelen', { naam: naamVan(k).toLowerCase() }) : null,
     w && !k ? t('comfort.vr.verwarmen', { naam: naamVan(w).toLowerCase() }) : null,
-    z != null && z.soort !== 'kamer' ? t('comfort.vr.zon', { naam: zonNaam(z).toLowerCase() }) : null,
   ].filter(Boolean).join(', ');
 }
 /** Een voorstel om mee te beginnen: koelen hoog in huis eerst, verwarmen laag in huis eerst. */
@@ -597,24 +579,20 @@ function voorrangVorm() {
       ${ids.map((id, i) => `<div class="r"><i>${i + 1}</i><b>${esc(naamVan(id))}</b>${schuif(`${richting}:${esc(id)}`, naamVan(id), i, ids.length)}</div>`).join('')}
       ${niet.length ? `<p class="niet">${esc(t(`comfort.kanNiet.${richting}`, { n: niet.length, namen: niet.join(` ${t('algemeen.en')} `) }))}</p>` : ''}</div>`;
   };
-  const zon = zonLijst();
-  const zonRang = zon
-    ? `<div class="rang"><h3><span class="stip" style="background: var(--zon)"></span>${esc(t('comfort.opZonKop'))}</h3>
-      ${zon.map((z, i) => `<div class="r"><i>${i + 1}</i><b>${esc(zonNaam(z))}<small>${esc(t(`comfort.soort.${z.soort === 'kamer' ? 'kamer' : 'apparaat'}`))}</small></b>${schuif(`zon:${i}`, zonNaam(z), i, zon.length)}</div>`).join('')}
-      <p class="niet">${esc(t('comfort.zonNiet'))}</p></div>`
-    : '';
+  // Op zon staat sinds besluit 343 bij Energie › De zon verdelen, in één lijst met de laadpaal en de stekkers.
+  const zon = comfort.voorrang?.zon?.length > 0;
   const voorstel = voorrangVoorstel();
   const anders = JSON.stringify(voorstel) !== JSON.stringify({ koelen: v.koelen, verwarmen: v.verwarmen });
   return `<h2 class="kop-2">${esc(t('comfort.voorrang'))}</h2>
-    <p class="klein geen-marge">${esc(t('comfort.voorrangUitleg'))}${zon ? ` ${esc(t('comfort.voorrangZon'))}` : ''}</p>
-    <div class="lijsten${zon ? ' drie' : ''}">${v.koelen.length ? lijst('koelen', t('comfort.alsKoelt'), 'var(--ijs)') : ''}${v.verwarmen.length ? lijst('verwarmen', t('comfort.alsWarmt'), 'var(--gloed)') : ''}${zonRang}</div>
+    <p class="klein geen-marge">${esc(t('comfort.voorrangUitleg'))}</p>
+    <div class="lijsten">${v.koelen.length ? lijst('koelen', t('comfort.alsKoelt'), 'var(--ijs)') : ''}${v.verwarmen.length ? lijst('verwarmen', t('comfort.alsWarmt'), 'var(--gloed)') : ''}</div>
+    ${zon ? `<div class="voorstelrij"><span class="mini">${esc(t('comfort.zonVerhuisd'))}</span><a class="knop" href="energie.html#zon">${esc(t('comfort.zonNaarEnergie'))}</a></div>` : ''}
     ${anders ? `<div class="voorstelrij"><span class="mini">${esc(t('comfort.voorstel'))}</span><button type="button" class="knop" data-voorrang-voorstel>${esc(t('comfort.neemOver'))}</button></div>` : ''}`;
 }
 
 function naast(id) {
   if (id === 'voorrang') {
-    const opZon = zonLijst() ? `<div class="glas"><h3>${esc(t('comfort.opZonKop'))}</h3><p class="geen-marge">${esc(t('comfort.naast.opZon'))}</p></div>` : '';
-    return `${opZon}<div class="glas"><h3>${esc(t('comfort.naast.tweeKop'))}</h3><p class="geen-marge">${esc(t('comfort.naast.twee'))}</p></div>
+    return `<div class="glas"><h3>${esc(t('comfort.naast.tweeKop'))}</h3><p class="geen-marge">${esc(t('comfort.naast.twee'))}</p></div>
       <div class="glas"><h3>${esc(t('comfort.naast.telKop'))}</h3><p class="geen-marge">${esc(t('comfort.naast.tel'))}</p></div>`;
   }
   return `<div class="glas"><h3>${esc(t('comfort.naast.zoKop'))}</h3>
@@ -710,8 +688,6 @@ function bewaar() {
           voorrang: {
             koelen: comfort.voorrang.koelen,
             verwarmen: comfort.voorrang.verwarmen,
-            // Op zon alleen als de bewoner hem koos (besluit 176); anders blijft het zoals het was.
-            ...(zonLijst() && (zonGekozen || JSON.stringify(comfort.voorrang.zon) !== JSON.stringify(zonGewoon())) ? { zon: comfort.voorrang.zon } : {}),
           },
         }
       : {}),
@@ -891,9 +867,7 @@ document.addEventListener('click', (e) => {
     // Een kamer hoger of lager in de lijst (besluit 134).
     const [richting, id, stap] = knop.dataset.schuif.split(':');
     const l = [...comfort.voorrang[richting]];
-    // Op zon (besluit 176) op zijn plek in de lijst: een kamer en een apparaat kunnen dezelfde id hebben.
-    if (richting === 'zon') zonGekozen = true;
-    const i = richting === 'zon' ? Number(id) : l.indexOf(id);
+    const i = l.indexOf(id);
     const j = i + Number(stap);
     if (i < 0 || j < 0 || j >= l.length) return;
     [l[i], l[j]] = [l[j], l[i]];

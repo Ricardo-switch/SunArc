@@ -74,9 +74,12 @@ export interface ComfortRoom {
   readonly opZonC?: number;
 }
 
-/** Een plek in de lijst Op zon (besluit 176): een kamer die op zon verwarmt of koelt, een apparaat op zon, of een boiler of jacuzzi (besluit 186). */
+/**
+ * Een plek in de lijst Op zon (besluit 176): een kamer die op zon verwarmt of koelt, een apparaat op zon, of een boiler of
+ * jacuzzi (besluit 186). De laadpaal staat in dezelfde lijst (besluit 343), maar gaat nog niet naar de regeling.
+ */
 export interface ZonPlek {
-  readonly soort: 'kamer' | 'apparaat' | 'buffer';
+  readonly soort: 'kamer' | 'apparaat' | 'buffer' | 'laadpaal';
   readonly id: string;
 }
 
@@ -232,7 +235,7 @@ export function comfortView(config: SiteConfig, comfort: Comfort | null): Comfor
     ...(config.deferrables ?? []).map((a) => ({ soort: 'apparaat' as const, id: a.id })),
     ...(config.heatStores ?? []).map((a) => ({ soort: 'buffer' as const, id: a.id })),
   ];
-  const plekVan = (z: ZonPlek) => (config.sunOrder ?? []).findIndex((s) => s.id === z.id && s.kind === ZON_KIND[z.soort]);
+  const plekVan = (z: ZonPlek) => (config.sunOrder ?? []).findIndex((s) => z.soort !== 'laadpaal' && s.id === z.id && s.kind === ZON_KIND[z.soort]);
   const zon = alleOpZon
     .map((z, i) => ({ z, p: plekVan(z), i }))
     .sort((a, b) => (a.p < 0 ? Infinity : a.p) - (b.p < 0 ? Infinity : b.p) || a.i - b.i)
@@ -306,7 +309,9 @@ export function withComfort(raw: Record<string, unknown>, comfort: Comfort | nul
     // Een kamer die er niet meer is, zoals een zone die weer met de kamer mee gaat, valt uit de volgorde:
     // anders weigerde de configuratie de hele nieuwe indeling, en rekende de regeling met de oude.
     const zones = new Set(metVoorrang.map((z) => String(z['id'] ?? '')));
-    out['sunOrder'] = comfort.voorrang.zon.filter((z) => z.soort !== 'kamer' || zones.has(z.id)).map((z) => ({ kind: ZON_KIND[z.soort], id: z.id }));
+    out['sunOrder'] = comfort.voorrang.zon
+      .filter((z): z is ZonPlek & { soort: keyof typeof ZON_KIND } => z.soort !== 'laadpaal' && (z.soort !== 'kamer' || zones.has(z.id)))
+      .map((z) => ({ kind: ZON_KIND[z.soort], id: z.id }));
     toegevoegd.push('de volgorde op zon');
   }
   /*
@@ -403,7 +408,8 @@ export function controleerComfort(body: unknown, config: SiteConfig): ComfortChe
         return (
           (soort === 'kamer' && config.zones.some((z) => z.id === id)) ||
           (soort === 'apparaat' && (config.deferrables ?? []).some((d) => d.id === id)) ||
-          (soort === 'buffer' && (config.heatStores ?? []).some((h) => h.id === id))
+          (soort === 'buffer' && (config.heatStores ?? []).some((h) => h.id === id)) ||
+          (soort === 'laadpaal' && typeof id === 'string' && id.length > 0 && id.length <= 80)
         );
       };
       if (!Array.isArray(zon) || !zon.every(bekend) || new Set(zon.map((z) => `${z.soort}:${z.id}`)).size !== zon.length) {

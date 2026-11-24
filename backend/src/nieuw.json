@@ -1,5 +1,25 @@
 [
   {
+    "versie": "0.239.0",
+    "datum": "2026-11-24",
+    "nieuw": [
+      "Energie › De zon verdelen: één lijst voor wie de zon krijgt die over is, de kamers, de boiler, de stekkers, het witgoed en de laadpaal. Sleep om de volgorde te veranderen, zie wat er nu over is en wie wacht, en kies per apparaat Nu eerst, Vandaag overslaan of Uit de lijst",
+      "Op Thuis zegt de strook wie de zon nu krijgt en wie daarna"
+    ],
+    "beter": [
+      "Op zon staat niet meer bij Klimaat › Voorrang, maar bij De zon verdelen"
+    ],
+    "en": {
+      "nieuw": [
+        "Energy › Sharing the sun: one list of who gets the spare sun, the rooms, the boiler, the smart plugs, the appliances and the charger. Drag to change the order, see what is spare now and who is waiting, and choose First now, Skip today or Remove from list per appliance",
+        "On Home, the strip says who gets the sun now and who is next"
+      ],
+      "beter": [
+        "On solar is no longer under Climate › Priority, but under Sharing the sun"
+      ]
+    }
+  },
+  {
     "versie": "0.238.0",
     "datum": "2026-11-24",
     "nieuw": [

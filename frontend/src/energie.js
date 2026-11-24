@@ -138,6 +138,8 @@ function delen() {
   const soort = a?.verwarming.soort ? t(`energie.soort.${a.verwarming.soort}`) : null;
   return [
     { id: 'panelen', titel: t('daken.titel'), zin: dakvlakken.kortZin(aInfo?.daken) ?? (geen ? t('daken.geen') : t('instellingen.nogKiezen')), stand: !aInfo ? null : vlakken.length || geen ? 'goed' : 'mist' },
+    // De zon verdelen (besluit 343): wie de zon krijgt die over is, naast de panelen.
+    { id: 'zon', icoon: 'opzon', titel: t('zv.titel'), zin: zonVerdelen.zin(), stand: 'goed' },
     { id: 'aansluiting', titel: t('energie.aansluiting'), zin: z ? `${z.fasen} × ${z.ampere} A` : t('energie.zekeringKiezen'), stand: !aInfo ? null : z ? 'goed' : 'mist' },
     { id: 'meters', titel: t('energie.meters'), zin: e ? [e.net.afname.length ? t('energie.stroom') : null, e.gas ? t('energie.gas') : null, e.apparaten.length ? t('energie.nApparaten', { n: e.apparaten.length }) : null].filter(Boolean).join(', ') || t('instellingen.nogKiezen') : '…', stand: !e ? null : e.net.afname.length ? 'goed' : 'mist' },
     { id: 'prijzen', titel: t('energie.prijzen'), zin: !e ? '…' : p.dynamisch ? t('energie.prijsPerUur') : p.stroom == null ? t('energie.prijsMist') : t('energie.prijsPerKwh', { prijs: nl(p.stroom, 2) }), stand: !e ? null : prijsMist ? 'mist' : 'goed' },
@@ -429,7 +431,7 @@ function verwarmingVorm() {
 /* Ernaast */
 
 /** Per deel hoeveel punten er bij "Waarvoor dit nodig is" staan (energie.naast.<deel>.<n>). */
-const NAAST = { panelen: 2, aansluiting: 2, meters: 2, prijzen: 3, verwarming: 2 };
+const NAAST = { panelen: 2, zon: 2, aansluiting: 2, meters: 2, prijzen: 3, verwarming: 2 };
 
 function naast(id) {
   const deel = NAAST[id] ? id : 'panelen';
@@ -457,6 +459,7 @@ function tekenNu() {
   const wacht = `<p class="klein">${esc(t('algemeen.laden'))}…</p>`;
   const vorm = {
     panelen: () => (a ? panelenVorm() : wacht),
+    zon: () => zonVerdelen.vorm(),
     aansluiting: () => (a ? aansluitingVorm() : wacht),
     meters: () => (e ? metersVorm() : wacht),
     prijzen: () => (e ? prijzenVorm() : wacht),
@@ -828,6 +831,8 @@ document.addEventListener('focusout', (ev) => {
 
 /** Gebundeld: hooguit één keer per beeld (basis.js). */
 const teken = app.gebundeld(tekenNu);
+zonVerdelen.na = teken;
+void zonVerdelen.laad();
 addEventListener('standwissel', teken);
 addEventListener('hashchange', teken);
 

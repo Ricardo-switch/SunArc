@@ -167,6 +167,30 @@ export async function energieRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
     return true;
   }
 
+  // De zon verdelen (besluit 343): één lijst voor wie de zon krijgt die over is.
+  if (path === '/api/zon-verdelen') {
+    const zv = d.options.zonVerdelen;
+    if (zv == null) {
+      sendJson(res, 503, { wachten: 'de zon verdelen kan pas met een configuratie en een logmap' });
+      return true;
+    }
+    if (method !== 'POST') {
+      sendJson(res, 200, zv.view());
+      return true;
+    }
+    let body: unknown;
+    try {
+      body = await readJson(req);
+    } catch (error) {
+      sendJson(res, 400, { fout: (error as Error).message });
+      return true;
+    }
+    const uit = await zv.save(body);
+    if (uit.ok) sendJson(res, 200, uit.view);
+    else sendJson(res, uit.status, { fout: uit.reden });
+    return true;
+  }
+
   if (path === '/api/gevel-kaart' && method === 'POST') {
     await gevelKaartRoute(d, req, res);
     return true;

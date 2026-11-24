@@ -45,6 +45,7 @@ import type { Location } from './sun.js';
 import type { ForecastDay, HourColumns, WeatherLog } from './weather.js';
 import type { BijspringenView, ComfortView } from './comfort.js';
 import type { HelpenView } from './helpen.js';
+import type { ZonVerdelenView } from './zon-verdelen.js';
 import type { HouseReport } from './house.js';
 import type { Lang } from './assistant.js';
 import type { Layout, LayoutStore } from './layout.js';
@@ -134,6 +135,14 @@ export interface WebOptions {
   readonly helpen?: {
     readonly view: () => HelpenView;
     readonly save: (body: unknown) => Promise<{ readonly ok: true; readonly view: HelpenView } | { readonly ok: false; readonly status: number; readonly reden: string }>;
+  };
+  /**
+   * De zon verdelen (besluit 343), bij Energie: wie de zon krijgt die over is, in één lijst, met de marge en wat de
+   * bewoner met de hand kiest. Zonder dit bestaat de route niet.
+   */
+  readonly zonVerdelen?: {
+    readonly view: () => ZonVerdelenView;
+    readonly save: (body: unknown) => Promise<{ readonly ok: true; readonly view: ZonVerdelenView } | { readonly ok: false; readonly status: number; readonly reden: string }>;
   };
   /**
    * Bewoners (besluit 147): wie hier woont, op volgorde, en wat een bewoner

@@ -37,6 +37,7 @@ import { LayoutStore, herstelMeedoen, withLayoutNames, type Layout } from './web
 import { noteSensors } from './web/meten.js';
 import { configUitDeApp } from './web/config-uit-app.js';
 import { ComfortStore, type Comfort, type ComfortView } from './web/comfort.js';
+import { ZonVerdelenStore } from './web/zon-verdelen.js';
 import { HelpenDag } from './web/helpen.js';
 import { BewonersStore, GEEN_BEWONERS, comfortVanBewoner, vasthoudenVoorbij, zonderVasthoudenVan, type Bewoners, type Wie } from './web/bewoners.js';
 
@@ -111,6 +112,9 @@ let connectionApplied = bijStart.connectionApplied;
  */
 const comfortStore = logDir !== '' ? new ComfortStore(logDir) : null;
 await comfortStore?.load();
+/* De zon verdelen (besluit 343): de marge en wat de bewoner met de hand kiest, naast comfort. */
+const zonVerdelenStore = logDir !== '' ? new ZonVerdelenStore(logDir) : null;
+await zonVerdelenStore?.load();
 /* Bewoners (besluit 147): wie hier woont, op volgorde, met elk een eigen comfort of dat van de hoofdgebruiker. */
 const bewonersStore = logDir !== '' ? new BewonersStore(logDir) : null;
 await bewonersStore?.load();
@@ -1269,7 +1273,7 @@ const mainStand = {
   modelTeller, onboarding, openMeteo, pauzeVan, proefmelding, reserveBeelden, runner, scenePictures, schakelaarKeuzes,
   schakelaarStore, sleutel, sluipverbruik, stekkerZon, stekkerhand, stemInHuis, teDoen, telefoons, uitstelStore,
   updateNu, version, verstaan, vindSchakelaarsNu, voorbeeld, voorkeuren, weatherLog, webConfig, weerNaam, weerZone,
-  wekwoordNu, zoekUpdates,
+  wekwoordNu, zoekUpdates, zonVerdelenStore,
   get access() {
     return access;
   },

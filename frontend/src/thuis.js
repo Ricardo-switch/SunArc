@@ -300,8 +300,19 @@ function tekenStand(e) {
  * zolang SunArc meekijkt: regelt het zelf, of doet er geen kamer mee, dan zegt
  * de zin boven het huis genoeg en is er geen strook.
  */
+/**
+ * De zon verdelen (besluit 343): zolang er zon over is en iemand hem krijgt of erop wacht, zegt de strook wie hem nu
+ * krijgt en wie daarna. Anders de zin van de dienst.
+ */
+function zonZin() {
+  const v = zonVerdelen.data;
+  if (!v || !(v.overW > 50) || !v.lijst.some((x) => x.stand === 'zon' || x.stand === 'laadt' || x.stand === 'wacht')) return null;
+  return zonVerdelen.strook(v);
+}
+
 function tekenDoet() {
   const d = state?.bewoner?.doet ?? null;
+  const zin = zonZin() ?? d?.zin;
   // Met de strook is het vak van het huis op de wand iets lager: vóór het huis getekend wordt.
   document.body.classList.toggle('met-doet', !!d);
   const stip = '<span class="standstip" aria-hidden="true"></span>';
@@ -311,13 +322,13 @@ function tekenDoet() {
     if (!d) return;
     const lang = t('thuis.doet.lang.kijkt');
     const tel = d.van > 0 ? t('thuis.doet.gelijk', { n: d.van, gelijk: d.gelijk }) : '';
-    el.setAttribute('aria-label', [lang, d.zin, tel].filter(Boolean).join('. '));
+    el.setAttribute('aria-label', [lang, zin, tel].filter(Boolean).join('. '));
     if (el.closest('#tel')) {
-      el.innerHTML = `${stip}<span class="dt-twee"><span><b>${esc(t('thuis.doet.stand.kijkt'))}</b> · ${esc(t('thuis.doet.nogNiet'))}</span><span class="dt-zin">${esc(d.zin)}</span></span>${pijl}`;
+      el.innerHTML = `${stip}<span class="dt-twee"><span><b>${esc(t('thuis.doet.stand.kijkt'))}</b> · ${esc(t('thuis.doet.nogNiet'))}</span><span class="dt-zin">${esc(zin)}</span></span>${pijl}`;
       return;
     }
     const blokjes = d.van > 0 && d.van <= 8 ? `<span class="dt-blokjes" aria-hidden="true">${Array.from({ length: d.van }, (_, i) => `<i class="${i < d.gelijk ? 'ja' : ''}"></i>`).join('')}</span>` : '';
-    el.innerHTML = `${stip}<b>${esc(lang)}</b><span class="dt-zin">${esc(d.zin)}</span><span class="dt-tel">${blokjes}${esc(tel)}</span>${pijl}`;
+    el.innerHTML = `${stip}<b>${esc(lang)}</b><span class="dt-zin">${esc(zin)}</span><span class="dt-tel">${blokjes}${esc(tel)}</span>${pijl}`;
   });
   const blad = document.querySelector('[data-kiesblad]');
   if (blad && !blad.hidden && blad.dataset.blad === 'doet') tekenDoetBlad();
@@ -684,6 +695,12 @@ function tekenGevoel() {
   });
 }
 gevoel.bij(() => teken());
+// De zon verdelen (besluit 343): bij het openen en elke minuut, zolang SunArc meekijkt en de strook er is.
+zonVerdelen.na = () => tekenDoet();
+void zonVerdelen.laad();
+setInterval(() => {
+  if (!document.hidden && state?.bewoner?.doet) void zonVerdelen.laad();
+}, 60_000);
 addEventListener('gevoelzone', (/** @type {CustomEvent} */ e) => {
   gekozenZone = e.detail;
   teken();

@@ -1,0 +1,73 @@
+/* De zon verdelen (besluit 343, schets Wand-Energie-Zon-Verdelen): het deel bij Energie, voor wand en telefoon. */
+.zv { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.zv-label { font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); }
+.zv-nu { display: flex; flex-direction: column; gap: 8px; padding: 14px 18px; border-radius: 18px; background: rgb(var(--wit) / 0.04); border: 1px solid var(--glas-rand); }
+.zv-nukop { display: flex; align-items: baseline; gap: 12px; }
+.zv-over { font-family: var(--kop); font-size: 28px; font-weight: 600; color: var(--zon); }
+.zv-wacht { margin-left: auto; font-size: 13px; color: var(--zacht); text-align: right; }
+.zv-balk { display: flex; gap: 3px; height: 14px; }
+.zv-balk i { border-radius: 5px; min-width: 6px; }
+.zv-balk i.rest, .zv-namen i.rest { background: rgb(var(--wit) / 0.12); }
+.zv-namen { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--zacht); }
+.zv-namen span { display: inline-flex; align-items: center; gap: 6px; }
+.zv-namen i { width: 9px; height: 9px; border-radius: 3px; }
+.zv-namen b { color: var(--tekst); font-weight: 700; }
+
+.zv-lijstkop { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.zv-lijstkop h3 { margin: 0; }
+.zv-sleep { font-size: 12.5px; color: var(--gedempt); }
+.zv-lijst { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.zv-rij { display: grid; grid-template-columns: 28px 20px 38px minmax(0, 1fr) auto; align-items: center; gap: 0 8px; padding: 6px 12px 6px 4px; border-radius: 15px; background: rgb(var(--wit) / 0.04); border: 1px solid transparent; transition: transform 0.15s ease; }
+.zv-rij.open { background: rgb(var(--wit) / 0.08); border-color: rgb(var(--wit) / 0.18); }
+.zv-rij.gedimd { opacity: 0.55; }
+.zv-rij.sleept { position: relative; z-index: 2; transition: none; background: rgb(var(--wit) / 0.12); border-color: rgb(var(--wit) / 0.25); box-shadow: 0 8px 24px rgb(0 0 0 / 0.3); }
+.zv-greep { width: 28px; height: 40px; display: grid; place-items: center; color: var(--gedempt); background: none; border: 0; padding: 0; border-radius: 9px; cursor: grab; touch-action: none; }
+.zv-greep:focus-visible { outline: 2px solid var(--ijs); }
+.zv-rij.sleept .zv-greep { cursor: grabbing; }
+.zv-greep svg { width: 16px; height: 16px; }
+.zv-nr { font-family: var(--kop); font-size: 15px; font-weight: 600; color: var(--zacht); text-align: center; }
+.zv-ik { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); color: var(--tekst); }
+.zv-ik svg { width: 20px; height: 20px; }
+.zv-ik.klein { width: 28px; height: 28px; border-radius: 9px; }
+.zv-ik.klein svg { width: 16px; height: 16px; }
+.zv-tekst { display: flex; flex-direction: column; min-width: 0; padding: 0; border: 0; background: none; color: var(--tekst); font: inherit; text-align: left; cursor: pointer; }
+.zv-tekst b { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zv-tekst small { font-size: 12.5px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zv-eerst { font-style: normal; font-size: 12px; font-weight: 700; color: var(--violet-t); margin-top: 2px; }
+.zv-stand { font-size: 12.5px; font-weight: 700; white-space: nowrap; padding: 5px 10px; border-radius: 999px; }
+.zv-stand.zon { color: var(--zon-t); background: rgb(var(--zon-k) / 0.12); }
+.zv-stand.wacht { color: var(--zacht); background: rgb(var(--wit) / 0.06); }
+.zv-stand.klaar { color: var(--mint-t); background: rgb(var(--mint-k) / 0.1); }
+.zv-stand.over { color: var(--gedempt); background: rgb(var(--wit) / 0.05); }
+.zv-hand { grid-column: 3 / -1; display: flex; gap: 6px; margin: 4px 0 4px; }
+.zv-hand .knop { white-space: nowrap; }
+.zv-hand .zv-weg { color: var(--gloed-t); }
+.zv-uit { display: flex; flex-direction: column; gap: 6px; }
+.zv-uitrij { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--zacht); }
+.zv-uitrij .knop-tekst { margin-left: auto; color: var(--ijs-t); font-weight: 700; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; padding: 0; font-family: inherit; cursor: pointer; }
+
+.zv-marge, .zv-thuis { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.04); border: 1px solid var(--glas-rand); }
+.zv-marge h3 { margin: 0; }
+.zv-stap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; }
+.zv-stapnaam { font-size: 14.5px; font-weight: 600; }
+.zv-stap small { grid-column: 1 / -1; font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+.zv-stapper { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 12px; background: rgb(var(--wit) / 0.06); }
+.zv-stapper button { width: 34px; height: 34px; border-radius: 9px; border: 0; background: rgb(var(--wit) / 0.08); color: var(--tekst); font: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
+.zv-stapper button:disabled { opacity: 0.35; cursor: default; }
+.zv-stapper b { min-width: 96px; text-align: center; font-size: 14px; }
+.zv-noot { margin: 0; font-size: 12.5px; color: var(--zacht); line-height: 1.45; }
+.zv-strook { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 14px; background: rgb(var(--nacht) / 0.5); border: 1px solid var(--glas-rand); font-size: 14px; line-height: 1.4; }
+.zv-stip { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--zon); box-shadow: 0 0 0 4px rgb(var(--zon-k) / 0.18); }
+.zv-thuis small { font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+.zv-twee { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px; min-height: 0; }
+.zv-lijstvak { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.zv-rechts { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+/* De telefoon: alles onder elkaar, de stand onder de naam. */
+#tel .zv-kop, #tel .zv-lijstkop { flex-direction: column; align-items: flex-start; gap: 2px; }
+#tel .zv-nukop { flex-wrap: wrap; }
+#tel .zv-wacht { margin-left: 0; width: 100%; text-align: left; }
+#tel .zv-rij { grid-template-columns: 28px 16px 34px minmax(0, 1fr); }
+#tel .zv-rij .zv-stand { grid-column: 4; justify-self: start; margin-top: 4px; }
+#tel .zv-ik { width: 34px; height: 34px; }
+#tel .zv-hand { grid-column: 1 / -1; flex-wrap: wrap; }

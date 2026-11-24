@@ -765,7 +765,7 @@ function tekenDoetBlad() {
   const kop = `<div class="bladkop"><h2 class="kop-2">${esc(t('thuis.doet.kop'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>`;
   el.innerHTML = `${kop}<div class="sb-kolommen">
       <div><div class="sb-held" style="--k: var(--ijs)"><span class="standstip"></span><b>${esc(t('thuis.doet.stand.kijkt'))}</b><span class="dt-onder">${esc(onder)}</span>${fasen}</div>${bij}${kamers}</div>
-      <div>${zelf}<a class="knop dt-naar" href="vandaag.html">${esc(t('thuis.doet.naarVandaag'))} ›</a></div>
+      <div>${zelf}<a class="knop dt-naar" href="vandaag.html">${esc(t('thuis.doet.naarVandaag'))} ›</a>${zonVerdelen.data?.lijst?.length ? `<a class="knop dt-naar" href="energie.html#zon">${esc(t('zv.titel'))} ›</a>` : ''}</div>
     </div>`;
 }
 

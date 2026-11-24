@@ -144,7 +144,9 @@ verwijzing bestaat.
   tinten uit het thema ([339]). De assistent zegt ook hoe warm een kamer is die SunArc niet
   regelt, met de thermometer daar, en wat de boiler doet ([341]). Wie alleen met
   airco's verwarmt, kiest dat bij Energie › Verwarming: geen cv-onderdelen, en
-  een airco houdt elke kamer ([342]).
+  een airco houdt elke kamer ([342]). Wie de zon krijgt die over is, staat in
+  één lijst bij Energie › De zon verdelen, met een marge en knoppen met de hand
+  die pas ingaan als SunArc zelf regelt ([343]).
 - **Elke opstelling werkt:** de regeling doet wat de opstelling toelaat en zegt
   wat ze daardoor niet kan ([70]). Geavanceerde functies volgen uit wat het huis
   heeft; ingrijpende vragen een bewuste keuze ([78]).
@@ -1115,4 +1117,5 @@ verwijzing bestaat.
 [340]: DECISIONS.md#340-de-geschiedenis-in-het-besluitenlog-niet-in-de-code
 [341]: DECISIONS.md#341-de-assistent-een-kamer-zonder-regeling-en-wat-de-boiler-doet
 [342]: DECISIONS.md#342-alleen-aircos-als-warmtebron
+[343]: DECISIONS.md#343-de-zon-verdelen-één-lijst-voor-wie-de-zon-krijgt
 <!-- links:einde -->
