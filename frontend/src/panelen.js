@@ -61,14 +61,14 @@ const ligging = (() => {
       </g></svg>`;
   }
   const RICHTINGEN = ['n', 'no', 'o', 'zo', 'z', 'zw', 'w', 'nw'];
-  const woordVan = (deg) => t(deg == null ? 'panelen.onbekend' : `panelen.richting.${RICHTINGEN[Math.round((((deg % 360) + 360) % 360) / 45) % 8]}`);
+  const woordVan = (deg) => t(deg == null ? 'w.onbekend2' : `panelen.richting.${RICHTINGEN[Math.round((((deg % 360) + 360) % 360) / 45) % 8]}`);
 
   /** De regels van een ligging in woorden, zoals de dienst ze geeft. */
   function regels(w, v, a, metOmvormer = true) {
-    return `${rij(t('panelen.richting'), zin(w.richting, v.kanten))}
+    return `${rij(t('w.richting'), zin(w.richting, v.kanten))}
       ${rij(t('panelen.helling'), zin(w.helling))}
-      ${rij(t('panelen.vermogen'), zin(w.vermogen, w.perPaneel))}
-      ${metOmvormer && w.omvormerW ? rij(t('panelen.omvormer'), `<span class="lig-chip gevonden">✓ ${esc(watt(w.omvormerW))} W</span>`) : ''}`;
+      ${rij(t('w.vermogen'), zin(w.vermogen, w.perPaneel))}
+      ${metOmvormer && w.omvormerW ? rij(t('w.omvormer'), `<span class="lig-chip gevonden">✓ ${esc(watt(w.omvormerW))} W</span>`) : ''}`;
   }
 
   function voorkantVraag(v, a) {
@@ -110,9 +110,9 @@ const ligging = (() => {
         const naam = t(`panelen.dak.${k}`);
         return chip(`data-lig-helling="${d}"`, k === 'plat' && !hier ? naam : `${naam} ${d}°`, hier, 'klein');
       }).join('')}${zelf(`data-lig-hellingzelf aria-label="${esc(t('panelen.hellingLabel'))}"`, esc(t('panelen.anders')), eigenHelling ? Math.round(c.hellingDeg) : null, 0, 90, 1, '°')}</div>`)}
-      ${rij(t('panelen.perPaneel'), `<div class="lig-chips">${WP.map((w) => chip(`data-lig-wp="${w}"`, `${w} Wp`, w === c.wpPerPaneel, 'klein')).join('')}${zelf(`data-lig-wpzelf aria-label="${esc(t('panelen.wattpiek'))}"`, esc(t('panelen.anders')), eigenWp ? c.wpPerPaneel : null, 50, 1000, 5, 'Wp')}</div>
+      ${rij(t('w.perPaneel'), `<div class="lig-chips">${WP.map((w) => chip(`data-lig-wp="${w}"`, `${w} Wp`, w === c.wpPerPaneel, 'klein')).join('')}${zelf(`data-lig-wpzelf aria-label="${esc(t('panelen.wattpiek'))}"`, esc(t('panelen.anders')), eigenWp ? c.wpPerPaneel : null, 50, 1000, 5, 'Wp')}</div>
         ${v.aantal ? `<small class="lig-onder">${esc(t('panelen.samen', { n: v.aantal, wp: c.wpPerPaneel, kwp: kWp(v.aantal * c.wpPerPaneel) }))}</small>` : ''}`)}
-      ${rij(t('panelen.omvormer'), `<div class="lig-chips">${gevonden ? chip(`data-lig-omvormer="${gevonden}"`, `✓ ${watt(gevonden)} W`, c.omvormerW === gevonden, 'gevonden klein') : ''}${zelf(`data-lig-omvormerzelf aria-label="${esc(t('panelen.omvormerLabel'))}"`, esc(t('panelen.anders')), eigenOmvormer ? c.omvormerW : null, 100, 100000, 100, 'W')}${chip('data-lig-omvormer="geen"', t('panelen.weetNiet'), c.omvormerW == null, 'klein')}</div>`)}`;
+      ${rij(t('w.omvormer'), `<div class="lig-chips">${gevonden ? chip(`data-lig-omvormer="${gevonden}"`, `✓ ${watt(gevonden)} W`, c.omvormerW === gevonden, 'gevonden klein') : ''}${zelf(`data-lig-omvormerzelf aria-label="${esc(t('panelen.omvormerLabel'))}"`, esc(t('panelen.anders')), eigenOmvormer ? c.omvormerW : null, 100, 100000, 100, 'W')}${chip('data-lig-omvormer="geen"', t('panelen.weetNiet'), c.omvormerW == null, 'klein')}</div>`)}`;
   }
 
   /*
@@ -157,18 +157,18 @@ const ligging = (() => {
    */
   function kaart(v, a, staat) {
     if (!v) return { kop: t('panelen.hoe'), uitleg: t('kamer.kijken'), inhoud: '', knoppen: '', volgende: true };
-    if (a?.panelen?.ligging === 'geen') return { kop: t('energie.kant.geen'), uitleg: t('panelen.geenUitleg'), inhoud: '', knoppen: '', volgende: true };
+    if (a?.panelen?.ligging === 'geen') return { kop: t('w.geenPanelen'), uitleg: t('panelen.geenUitleg'), inhoud: '', knoppen: '', volgende: true };
     if (staat.aanpassen) {
       staat.concept ??= beginConcept(v);
       return {
         kop: t('panelen.pasAan'),
         uitleg: t('panelen.pasAanUitleg'),
         inhoud: aanpassen(v, staat.concept),
-        knoppen: `<button type="button" class="lig-knop zacht" data-lig-terug>${esc(t('panelen.terug'))}</button><button type="button" class="lig-knop" data-lig-bewaar>${esc(t('panelen.bewaar'))}</button>`,
+        knoppen: `<button type="button" class="lig-knop zacht" data-lig-terug>${esc(t('w.terug'))}</button><button type="button" class="lig-knop" data-lig-bewaar>${esc(t('w.bewaar'))}</button>`,
         volgende: false,
       };
     }
-    const knopAanpassen = `<button type="button" class="lig-knop zacht" data-lig-aanpassen>${esc(t('panelen.aanpassen'))}</button>`;
+    const knopAanpassen = `<button type="button" class="lig-knop zacht" data-lig-aanpassen>${esc(t('w.aanpassen'))}</button>`;
     if (v.stand === 'voorstel') {
       return {
         kop: t('panelen.zoLiggen'),
@@ -192,7 +192,7 @@ const ligging = (() => {
     return {
       kop: t('panelen.nogEen'),
       uitleg: t('panelen.bewolkt'),
-      inhoud: `<div class="lig-regels">${voorkantVraag(v, a)}${v.omvormerGevonden ? rij(t('panelen.omvormer'), `<span class="lig-chip gevonden">✓ ${esc(watt(v.omvormerGevonden))} W</span>`) : ''}</div>
+      inhoud: `<div class="lig-regels">${voorkantVraag(v, a)}${v.omvormerGevonden ? rij(t('w.omvormer'), `<span class="lig-chip gevonden">✓ ${esc(watt(v.omvormerGevonden))} W</span>`) : ''}</div>
         ${n ? `<div class="lig-tip">${esc(t('panelen.schatting', { richting: n.richting.toLowerCase(), helling: n.helling.toLowerCase(), wp: n.wpPerPaneel ?? 400 }))}</div>` : `<div class="lig-tip">${esc(t('panelen.kiesKant'))}</div>`}`,
       knoppen: knopAanpassen,
       volgende: true,
@@ -343,7 +343,7 @@ const ligging = (() => {
         const naam = t('panelen3.huisKant', { kant: t(`panelen3.kant.${richtingVan(vl.azimuthDeg)}`) });
         return `<div class="pan-dak"><i>${HUIS}</i><div><b>${esc(naam)}</b><span>${esc(t('panelen3.kijkt', { graden: graden(vl.azimuthDeg), helling: `${Math.round(vl.tiltDeg)}°` }))}</span></div>${stapper(vl.sleutel, vl.aantal, naam)}</div>`;
       }).join('')
-      : `<div class="pan-dak"><i>${HUIS}</i><div><b>${esc(t('panelen3.huis'))}</b><span>${esc(a?.panelen?.aantal ? t('panelen3.aantal', { n: a.panelen.aantal }) : t('panelen3.nogNiet'))}</span></div></div>`;
+      : `<div class="pan-dak"><i>${HUIS}</i><div><b>${esc(t('w.huis'))}</b><span>${esc(a?.panelen?.aantal ? t('panelen3.aantal', { n: a.panelen.aantal }) : t('panelen3.nogNiet'))}</span></div></div>`;
     const plekken = o.plekken ?? [];
     const elders = o.elders ?? {};
     const eldersRijen = plekken.filter((p) => elders[p]).map((p) => {
@@ -358,24 +358,24 @@ const ligging = (() => {
     const dichtst = HELLING.reduce((b, y) => (Math.abs(y[1] - (w?.hellingDeg ?? 40)) < Math.abs(b[1] - (w?.hellingDeg ?? 40)) ? y : b));
     const tegels = w
       ? `<div class="pan-feiten">
-          <div class="pan-feit breed richting">${wijzer(w, vlakken)}<div><small>${esc(t('panelen.richting'))} ${em}</small>
+          <div class="pan-feit breed richting">${wijzer(w, vlakken)}<div><small>${esc(t('w.richting'))} ${em}</small>
             <div class="pan-graden">${eigenVoorkant ? `<div><b>${graden(w.voorgevelDeg)}</b><span>${esc(t('panelen3.voorkant'))}</span></div>` : ''}${vlakken.map((vl) => `<div><b>${graden(vl.azimuthDeg)}</b><span>${esc(t(`panelen3.kant.${richtingVan(vl.azimuthDeg)}`))}</span></div>`).join('')}</div>
             <p>${esc(t(eigenVoorkant ? 'panelen3.gradenUitleg' : 'panelen3.gradenKort'))}</p></div></div>
           <div class="pan-feit"><small>${esc(t('panelen.helling'))}</small><b>${Math.round(w.hellingDeg)}°</b><span>${esc(t('panelen3.dak', { soort: t(`panelen.dak.${dichtst[0]}`) }))}</span></div>
-          <div class="pan-feit"><small>${esc(t('panelen.vermogen'))}</small><b>${esc(w.vermogenKort ?? w.vermogen)}</b><span>${esc(w.perPaneel ?? '')}</span></div>
-          <div class="pan-feit"><small>${esc(t('panelen.omvormer'))}</small><b>${w.omvormerW ? `${esc(watt(w.omvormerW))} W` : '–'}</b><span>${esc(v.omvormerGevonden ? t('panelen3.omvormerGevonden') : t('panelen3.omvormerOnbekend'))}</span></div>
+          <div class="pan-feit"><small>${esc(t('w.vermogen'))}</small><b>${esc(w.vermogenKort ?? w.vermogen)}</b><span>${esc(w.perPaneel ?? '')}</span></div>
+          <div class="pan-feit"><small>${esc(t('w.omvormer'))}</small><b>${w.omvormerW ? `${esc(watt(w.omvormerW))} W` : '–'}</b><span>${esc(v.omvormerGevonden ? t('w.gevondenInHomeAssistant') : t('panelen3.omvormerOnbekend'))}</span></div>
         </div>`
       : '';
     // Een voorstel wacht op de bewoner; zonder heldere dag de vraag naar de voorkant.
     // Klopt het voorstel: de knoppen naast de kop.
-    const kopKnoppen = v?.stand === 'voorstel' ? `<span class="pan-knoppen"><button type="button" class="lig-knop zacht" data-lig-aanpassen>${esc(t('panelen.aanpassen'))}</button><button type="button" class="lig-knop" data-lig-klopt>${esc(t('panelen.klopt'))}</button></span>` : '';
+    const kopKnoppen = v?.stand === 'voorstel' ? `<span class="pan-knoppen"><button type="button" class="lig-knop zacht" data-lig-aanpassen>${esc(t('w.aanpassen'))}</button><button type="button" class="lig-knop" data-lig-klopt>${esc(t('panelen.klopt'))}</button></span>` : '';
     const knoppen = v?.stand === 'voorstel'
       ? ''
       : bron === 'leert'
         ? `<div class="pan-leert"><b>${esc(t('panelen.nogEen'))}</b><span>${esc(t('panelen.bewolkt'))}</span>${voorkantVraag(v, a)}</div>`
         : v?.stand === 'bevestigd' && v.voorstel ? `<button type="button" class="lig-link" data-lig-meten>${esc(t('panelen.opnieuw'))}</button>` : '';
     return `<div class="pan3">
-      <div class="pan-kop"><h2 class="kop-2">${esc(t('energie.zonnepanelen'))}</h2>${chip}${kopKnoppen}</div>
+      <div class="pan-kop"><h2 class="kop-2">${esc(t('w.zonnepanelen'))}</h2>${chip}${kopKnoppen}</div>
       <div class="pan-veld">
         <div class="pan-podium" data-pan-podium role="img" aria-label="${esc(t('panelen3.huisLabel'))}"></div>
         <div class="pan-rechts">

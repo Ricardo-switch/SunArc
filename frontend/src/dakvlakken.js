@@ -95,7 +95,7 @@ const dakvlakken = (() => {
     const lijst = vlakken.length
       ? `<div class="dk-lijst">${vlakken.map((v, i, alle) => kaartje(v, i, alle, d)).join('')}</div>
         <div class="dk-som">
-          <div class="pan-feit"><small>${esc(t('daken.panelen'))}</small><b>${n}</b></div>
+          <div class="pan-feit"><small>${esc(t('daken.aantal'))}</small><b>${n}</b></div>
           <div class="pan-feit"><small>${esc(t('daken.samen'))}</small><b>${esc(kWp(samen))} kWp</b></div>
           <div class="pan-feit"><small>${esc(t('daken.helderNu'))}</small><b>${helder == null ? '–' : `${esc((helder / 1000).toLocaleString(window.taal.locale, { maximumFractionDigits: 1 }))} kW`}</b></div>
         </div>`
@@ -198,7 +198,7 @@ const dakvlakken = (() => {
   function meterKeuze(d, v) {
     const meters = d.meters ?? [];
     const bekend = meters.some((m) => m.id === v.meter);
-    const knoppen = `${meters.map((m) => seg('data-dak-meter', m.id, m.naam, v.meter === m.id)).join('')}${seg('data-dak-meter', '', t('daken.weetNiet'), !bekend)}`;
+    const knoppen = `${meters.map((m) => seg('data-dak-meter', m.id, m.naam, v.meter === m.id)).join('')}${seg('data-dak-meter', '', t('w.weetIkNiet'), !bekend)}`;
     const uitleg = meters.length ? t('daken.gemetenDoorUitleg') : t('daken.geenMeters');
     // Met één omvormer is er niets uit te leggen.
     return `<div class="dk-seg">${knoppen}</div>${meters.length === 1 ? '' : `<span class="klein">${esc(uitleg)}</span>`}`;
@@ -219,15 +219,15 @@ const dakvlakken = (() => {
       ${ligtOp(d, v)}
       ${veld(t('daken.hoeLiggen'), `<div class="dk-opstel" role="group" aria-label="${esc(t('daken.hoeLiggen'))}">${OPSTELLINGEN.map((o) => `<button type="button" data-dak-opstel="${o}" aria-pressed="${v.opstelling === o}" class="${v.opstelling === o ? 'aan' : ''}"><svg viewBox="0 0 90 38" aria-hidden="true">${OPSTEL_BEELD[o]}</svg>${esc(t(`daken.opstelling.${o}`))}</button>`).join('')}</div>`)}
       ${v.opstelling === 'plat' ? platZin() : `<div class="dk-richting">${kompas(v)}
-        ${veld(t('daken.richting'), `<div class="dk-rij">${stapper('richting', `${norm(v.azimuthDeg)}°`, t('daken.richting'))}${v.opstelling === 'oostwest' ? `<span class="klein">${esc(t('daken.enTegenover', { graden: `${norm(v.azimuthDeg + 180)}°` }))}</span>` : `<span class="klein">${esc(kort(v.azimuthDeg))}</span>`}</div>
+        ${veld(t('w.richting'), `<div class="dk-rij">${stapper('richting', `${norm(v.azimuthDeg)}°`, t('w.richting'))}${v.opstelling === 'oostwest' ? `<span class="klein">${esc(t('daken.enTegenover', { graden: `${norm(v.azimuthDeg + 180)}°` }))}</span>` : `<span class="klein">${esc(kort(v.azimuthDeg))}</span>`}</div>
           <input class="lig-draai" type="range" min="0" max="355" step="1" value="${norm(v.azimuthDeg) % 360}" data-dak-draai aria-label="${esc(t('daken.draai'))}">
           <span class="klein dk-uitleg">${esc(t(v.opstelling === 'oostwest' ? 'daken.richtingOw' : 'daken.richtingUitleg'))}</span>`)}</div>
         ${veld(t('daken.helling'), `<div class="dk-seg">${hellingen.map((h) => seg('data-dak-helling', h, `${h}°`, !eigen && Math.round(v.tiltDeg) === h)).join('')}<label class="lig-zelf${eigen ? ' aan' : ''}">${esc(t('daken.anders'))}<input type="number" inputmode="numeric" min="0" max="90" step="1" data-dak-hellingzelf value="${eigen ? Math.round(v.tiltDeg) : ''}" placeholder="°" aria-label="${esc(t('daken.helling'))}"></label></div>`)}`}
-      <div class="dk-aantallen">${kanten}${veld(t('daken.perPaneel'), stapper('wp', wp(v.wpPerPaneel), t('daken.perPaneel'), ' Wp'))}</div>
+      <div class="dk-aantallen">${kanten}${veld(t('w.perPaneel'), stapper('wp', wp(v.wpPerPaneel), t('w.perPaneel'), ' Wp'))}</div>
       ${veld(t('daken.gemetenDoor'), meterKeuze(d, v))}
       ${metingBij(d, v)}
       ${kaartBij(d, v)}
-      <div class="dk-voet"><button type="button" class="lig-knop zacht" data-dak-scherm="alle">${esc(t('daken.alle'))}</button>${nieuw ? '' : `<button type="button" class="lig-link dk-weg" data-dak-weg>${esc(t('daken.weg'))}</button>`}<button type="button" class="lig-knop" data-dak-bewaar>${esc(t('daken.bewaar'))}</button></div>`;
+      <div class="dk-voet"><button type="button" class="lig-knop zacht" data-dak-scherm="alle">${esc(t('daken.alle'))}</button>${nieuw ? '' : `<button type="button" class="lig-link dk-weg" data-dak-weg>${esc(t('daken.weg'))}</button>`}<button type="button" class="lig-knop" data-dak-bewaar>${esc(t('w.bewaar'))}</button></div>`;
   }
 
   /**
@@ -574,7 +574,7 @@ const dakvlakken = (() => {
     // Van boven of het huis (besluit 254): standaard van boven.
     const wissel = `<span class="dk-wissel" role="group">${['boven', 'huis'].map((z) => `<button type="button" data-dak-zicht="${z}" aria-pressed="${(s.zicht ?? 'boven') === z}">${esc(t(`daken.zicht.${z}`))}</button>`).join('')}</span>`;
     return `<div class="pan3 dk">
-      <div class="pan-kop"><h2 class="kop-2">${esc(t('daken.titel'))}</h2>${chip(vlakken, d?.achter && s.achterGezien !== `${d.achter.letter}:${d.achter.wanneer}`, d)}${d ? `${wissel}<button type="button" class="pil dk-vraag" data-dak-uitleg aria-label="${esc(t('daken.uitleg'))}" title="${esc(t('daken.uitleg'))}">?</button>` : ''}</div>
+      <div class="pan-kop"><h2 class="kop-2">${esc(t('w.zonnepanelen'))}</h2>${chip(vlakken, d?.achter && s.achterGezien !== `${d.achter.letter}:${d.achter.wanneer}`, d)}${d ? `${wissel}<button type="button" class="pil dk-vraag" data-dak-uitleg aria-label="${esc(t('daken.uitleg'))}" title="${esc(t('daken.uitleg'))}">?</button>` : ''}</div>
       <div class="pan-veld">
         ${d ? podium(d, s) : ''}
         <div class="pan-rechts">${rechts}</div>

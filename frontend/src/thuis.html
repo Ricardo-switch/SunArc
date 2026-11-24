@@ -825,19 +825,19 @@
       </div>
       <div class="podium" id="podium-wand"></div>
       <aside class="rechts schuift" data-kaarten="wand">
-        <button type="button" class="glas kaart td-kaart" data-tedoen data-kaart="tedoen" data-t-data-naam="thuis.kaart.tedoen" data-t-data-leeg="thuis.leeg.tedoen" hidden></button>
+        <button type="button" class="glas kaart td-kaart" data-tedoen data-kaart="tedoen" data-t-data-naam="w.teDoen" data-t-data-leeg="thuis.leeg.tedoen" hidden></button>
         <a class="glas kaart straks kaartlink" href="assistent.html#straks" data-straks hidden>
           <div style="display: flex; align-items: center; gap: 10px"><span class="bol" style="width: 24px; height: 24px"></span><span class="klein"><span data-t="thuis.kaart.straks"></span></span></div>
           <h2 class="kop-2" style="margin-top: 10px" data-straks-kop></h2>
           <p class="klein" style="margin: 8px 0 0" data-straks-zin></p>
         </a>
-        <section class="glas kaart fav" data-kaart="favorieten" data-t-data-naam="thuis.kaart.favorieten" data-t-data-leeg="thuis.leeg.favorieten">
-          <div class="kaart-kop"><h2 class="kop-3"><span data-t="thuis.kaart.favorieten"></span></h2><span class="mini" data-fav-uitleg></span></div>
+        <section class="glas kaart fav" data-kaart="favorieten" data-t-data-naam="w.favorieten" data-t-data-leeg="thuis.leeg.favorieten">
+          <div class="kaart-kop"><h2 class="kop-3"><span data-t="w.favorieten"></span></h2><span class="mini" data-fav-uitleg></span></div>
           <div data-favorieten></div>
         </section>
-        <a class="glas kaart kaartlink" href="vandaag.html" data-t-aria-label="thuis.kaart.vandaagLink" data-kaart="vandaag" data-t-data-naam="thuis.kaart.vandaag">
+        <a class="glas kaart kaartlink" href="vandaag.html" data-t-aria-label="thuis.kaart.vandaagLink" data-kaart="vandaag" data-t-data-naam="w.vandaag">
           <div class="kvol">
-            <div class="kaart-kop"><h2 class="kop-3"><span data-t="thuis.kaart.vandaag"></span></h2><span class="mini" data-opgewekt></span></div>
+            <div class="kaart-kop"><h2 class="kop-3"><span data-t="w.vandaag"></span></h2><span class="mini" data-opgewekt></span></div>
             <div data-dag></div>
             <p class="mini" style="margin: 6px 0 0" data-dag-zin></p>
           </div>
@@ -851,13 +851,13 @@
         </section>
         <section class="glas kaart morgenkaart" data-kaart="morgen" data-t-data-naam="thuis.kaart.morgen" data-t-data-leeg="thuis.leeg.morgen" data-morgen hidden></section>
         <section class="adviesplek" data-laadadvies hidden></section>
-        <a class="glas kaart ladingkaart" href="auto.html" data-kaart="auto" data-t-data-naam="thuis.kaart.auto" data-t-data-leeg="thuis.leeg.auto" data-auto hidden></a>
+        <a class="glas kaart ladingkaart" href="auto.html" data-kaart="auto" data-t-data-naam="w.deAuto" data-t-data-leeg="thuis.leeg.auto" data-auto hidden></a>
         <a class="glas kaart ladingkaart" href="apparaten.html#batterij" data-kaart="batterij" data-t-data-naam="thuis.kaart.batterij" data-t-data-leeg="thuis.leeg.batterij" data-batterij hidden></a>
-        <a class="glas kaart maandkaart" href="opbrengst.html" data-kaart="maand" data-t-data-naam="thuis.kaart.maand" data-t-data-leeg="thuis.leeg.maand" data-maand hidden></a>
+        <a class="glas kaart maandkaart" href="opbrengst.html" data-kaart="maand" data-t-data-naam="w.dezeMaand" data-t-data-leeg="thuis.leeg.maand" data-maand hidden></a>
         <section class="glas kaart deurbelkaart" data-kaart="deurbel" data-t-data-naam="thuis.cam.kop" data-t-data-leeg="thuis.leeg.deurbel" data-deurbelkaart hidden></section>
         <a class="glas kaart boilerkaart" href="apparaten.html" data-kaart="boiler" data-t-data-naam="thuis.kaart.boiler" data-t-data-leeg="thuis.leeg.boiler" data-boiler hidden></a>
-        <a class="glas kaart sluipkaart" href="sluipverbruik.html" data-kaart="sluip" data-t-data-naam="thuis.kaart.sluip" data-t-data-leeg="thuis.leeg.sluip" data-sluip hidden></a>
-        <section class="glas kaart fasekaart" role="button" tabindex="0" data-kaart="fasen" data-t-data-naam="thuis.kaart.fasen" data-t-data-leeg="thuis.leeg.fasen" data-fasen hidden></section>
+        <a class="glas kaart sluipkaart" href="sluipverbruik.html" data-kaart="sluip" data-t-data-naam="w.sluipverbruik" data-t-data-leeg="thuis.leeg.sluip" data-sluip hidden></a>
+        <section class="glas kaart fasekaart" role="button" tabindex="0" data-kaart="fasen" data-t-data-naam="w.aansluiting" data-t-data-leeg="thuis.leeg.fasen" data-fasen hidden></section>
         <button type="button" class="vrijvak" data-vrijvak hidden><span data-t="thuis.kaartKiezen"></span></button>
       </aside>
       <section class="glas weer" id="weer-wand" role="dialog" data-t-aria-label="thuis.weer.kop" hidden data-weer></section>
@@ -889,10 +889,10 @@
     <button type="button" class="doet" data-doet aria-haspopup="dialog" hidden></button>
     <section class="glas stromen" data-stromen data-t-aria-label="thuis.stromen.kop" hidden></section>
     <div class="inhoud" data-kaarten="tel">
-      <button type="button" class="glas kaart td-kaart" data-tedoen data-kaart="tedoen" data-t-data-naam="thuis.kaart.tedoen" data-t-data-leeg="thuis.leeg.tedoen" hidden></button>
-      <section class="glas kamers" data-t-aria-label="thuis.kamers" data-kaart="kamers" data-t-data-naam="thuis.kaart.kamers" data-t-data-leeg="thuis.leeg.kamers" hidden><div data-kamers></div></section>
-      <section class="glas kaart fav" data-kaart="favorieten" data-t-data-naam="thuis.kaart.favorieten" data-t-data-leeg="thuis.leeg.favorieten">
-        <div class="kaart-kop"><h2 class="kop-3"><span data-t="thuis.kaart.favorieten"></span></h2><span class="mini" data-fav-uitleg></span></div>
+      <button type="button" class="glas kaart td-kaart" data-tedoen data-kaart="tedoen" data-t-data-naam="w.teDoen" data-t-data-leeg="thuis.leeg.tedoen" hidden></button>
+      <section class="glas kamers" data-t-aria-label="w.kamers" data-kaart="kamers" data-t-data-naam="thuis.kaart.kamers" data-t-data-leeg="thuis.leeg.kamers" hidden><div data-kamers></div></section>
+      <section class="glas kaart fav" data-kaart="favorieten" data-t-data-naam="w.favorieten" data-t-data-leeg="thuis.leeg.favorieten">
+        <div class="kaart-kop"><h2 class="kop-3"><span data-t="w.favorieten"></span></h2><span class="mini" data-fav-uitleg></span></div>
         <div data-favorieten></div>
       </section>
       <a class="glas kaart straks kaartlink" href="assistent.html#straks" data-straks data-kaart="straks" data-t-data-naam="thuis.kaart.straks" data-t-data-leeg="thuis.leeg.straks" hidden>
@@ -906,21 +906,21 @@
         <p class="mini" style="margin: 2px 0 0" data-gevoel-uitleg><span data-t="thuis.gevoel.uitleg"></span></p>
         <div class="gevoelblok" data-gevoel></div>
       </section>
-      <a class="glas kaart kaartlink" href="vandaag.html" data-t-aria-label="thuis.kaart.vandaagLink" data-kaart="vandaag" data-t-data-naam="thuis.kaart.vandaag">
-        <div class="kaart-kop"><h2 class="kop-3"><span data-t="thuis.kaart.vandaag"></span></h2><span class="mini" data-opgewekt></span></div>
+      <a class="glas kaart kaartlink" href="vandaag.html" data-t-aria-label="thuis.kaart.vandaagLink" data-kaart="vandaag" data-t-data-naam="w.vandaag">
+        <div class="kaart-kop"><h2 class="kop-3"><span data-t="w.vandaag"></span></h2><span class="mini" data-opgewekt></span></div>
         <div data-dag></div>
         <p class="mini" style="margin: 6px 0 0" data-dag-zin></p>
         <p class="dag-eenvoudig" data-dag-eenvoudig></p>
       </a>
       <section class="glas kaart morgenkaart" data-kaart="morgen" data-t-data-naam="thuis.kaart.morgen" data-t-data-leeg="thuis.leeg.morgen" data-morgen hidden></section>
       <section class="adviesplek" data-laadadvies hidden></section>
-      <a class="glas kaart ladingkaart" href="auto.html" data-kaart="auto" data-t-data-naam="thuis.kaart.auto" data-t-data-leeg="thuis.leeg.auto" data-auto hidden></a>
+      <a class="glas kaart ladingkaart" href="auto.html" data-kaart="auto" data-t-data-naam="w.deAuto" data-t-data-leeg="thuis.leeg.auto" data-auto hidden></a>
       <a class="glas kaart ladingkaart" href="apparaten.html#batterij" data-kaart="batterij" data-t-data-naam="thuis.kaart.batterij" data-t-data-leeg="thuis.leeg.batterij" data-batterij hidden></a>
-      <a class="glas kaart maandkaart" href="opbrengst.html" data-kaart="maand" data-t-data-naam="thuis.kaart.maand" data-t-data-leeg="thuis.leeg.maand" data-maand hidden></a>
+      <a class="glas kaart maandkaart" href="opbrengst.html" data-kaart="maand" data-t-data-naam="w.dezeMaand" data-t-data-leeg="thuis.leeg.maand" data-maand hidden></a>
       <section class="glas kaart deurbelkaart" data-kaart="deurbel" data-t-data-naam="thuis.cam.kop" data-t-data-leeg="thuis.leeg.deurbel" data-deurbelkaart hidden></section>
         <a class="glas kaart boilerkaart" href="apparaten.html" data-kaart="boiler" data-t-data-naam="thuis.kaart.boiler" data-t-data-leeg="thuis.leeg.boiler" data-boiler hidden></a>
-        <a class="glas kaart sluipkaart" href="sluipverbruik.html" data-kaart="sluip" data-t-data-naam="thuis.kaart.sluip" data-t-data-leeg="thuis.leeg.sluip" data-sluip hidden></a>
-        <section class="glas kaart fasekaart" role="button" tabindex="0" data-kaart="fasen" data-t-data-naam="thuis.kaart.fasen" data-t-data-leeg="thuis.leeg.fasen" data-fasen hidden></section>
+        <a class="glas kaart sluipkaart" href="sluipverbruik.html" data-kaart="sluip" data-t-data-naam="w.sluipverbruik" data-t-data-leeg="thuis.leeg.sluip" data-sluip hidden></a>
+        <section class="glas kaart fasekaart" role="button" tabindex="0" data-kaart="fasen" data-t-data-naam="w.aansluiting" data-t-data-leeg="thuis.leeg.fasen" data-fasen hidden></section>
       <div class="aanpasrij">
         <button type="button" class="aanpasknop" data-aanpassen><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span data-t="thuis.aanpassen"></span></button>
         <button type="button" class="aanpasknop" data-weergave hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span data-t="thuis.weergave"></span></button>
@@ -933,7 +933,7 @@
     </div>
     <div class="vraagbalk">
       <a class="typ" href="assistent.html#typ"><span class="bol adem" style="width: 40px; height: 40px"></span><span data-t="thuis.vraagIets"></span></a>
-      <a class="mic" href="assistent.html#praat" data-t-aria-label="thuis.praat" data-mic hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></a>
+      <a class="mic" href="assistent.html#praat" data-t-aria-label="w.praatMetJeHuis" data-mic hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></a>
     </div>
     <nav class="tabs" id="tabs" data-t-aria-label="nav.hoofdmenu"></nav>
     <div class="weer-achter" hidden data-weer-achter></div>

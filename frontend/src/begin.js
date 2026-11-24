@@ -53,11 +53,11 @@ function naamVan(id) {
 }
 
 function welkom() {
-  return `<h1 class="groot">${esc(t('begin.welkom'))} <em>${esc(t('begin.thuis'))}</em></h1>
+  return `<h1 class="groot">${esc(t('w.welkom'))} <em>${esc(t('w.thuis2'))}</em></h1>
     <p class="lead">${esc(t('begin.lead'))}</p>
     <ul class="kan">
       <li><span class="ik" style="color: var(--gloed-t)">${ICOON.comfort}</span><div><b>${esc(t('begin.comfort'))}</b><span>${esc(t('begin.comfortZin'))}</span></div></li>
-      <li><span class="ik" style="color: var(--zon-t)">${ICOON.zon}</span><div><b>${esc(t('begin.zon'))}</b><span>${esc(t('begin.zonZin'))}</span></div></li>
+      <li><span class="ik" style="color: var(--zon-t)">${ICOON.zon}</span><div><b>${esc(t('w.opJeEigenZon'))}</b><span>${esc(t('begin.zonZin'))}</span></div></li>
       <li><span class="ik" style="color: var(--ijs-t)">${ICOON.licht}</span><div><b>${esc(t('begin.bedienen'))}</b><span>${esc(t('begin.bedienenZin'))}</span></div></li>
     </ul>
     ${foutHtml()}
@@ -90,7 +90,7 @@ function vraag(i) {
     ${foutHtml()}
     <div class="doen">
       <button type="button" class="knop knop-licht" data-verder>${esc(t(i === vragen().length - 1 ? 'algemeen.klaar' : 'begin.verder'))}</button>
-      <button type="button" class="zacht" data-terug>${esc(t('panelen.terug'))}</button>
+      <button type="button" class="zacht" data-terug>${esc(t('w.terug'))}</button>
     </div>`;
 }
 

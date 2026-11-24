@@ -92,15 +92,15 @@ function tekenNu() {
   const meet = `<section class="glas kaart mo-kaart" style="--o: 4"><h2>${esc(t('motor.meet.kop'))} <small>${esc(t('motor.meet.ronde', { tijd: klok(snap.atMs) }))}</small></h2>
       ${rij(t('motor.meet.stand'), esc(woord(`motor.stand.${e.mode}`, e.mode)), e.mode, `${t(e.modeSource === 'override' ? 'motor.meet.zelf' : 'motor.meet.schema')}, ${t(e.occupied ? 'motor.meet.thuis' : 'motor.meet.niemand')}`)}
       ${e.outdoorTemperatureC != null ? rij(t('motor.meet.buiten'), `${getal(e.outdoorTemperatureC, 1)}°`) : ''}
-      ${e.solarProductionW != null ? rij(t('motor.meet.zon'), W(e.solarProductionW)) : ''}
-      ${rij(t('motor.meet.net'), esc(b.gridPowerW >= 0 ? t('motor.meet.vanNet', { w: W(b.gridPowerW) }) : t('motor.meet.terug', { w: W(-b.gridPowerW) })))}
+      ${e.solarProductionW != null ? rij(t('w.zon'), W(e.solarProductionW)) : ''}
+      ${rij(t('w.net'), esc(b.gridPowerW >= 0 ? t('motor.meet.vanNet', { w: W(b.gridPowerW) }) : t('motor.meet.terug', { w: W(-b.gridPowerW) })))}
       ${(e.phases ?? []).map((f) => `<div class="mo-rij"><span>${esc(t('motor.meet.fase', { id: f.id }))}</span><b>${getal(f.currentA, 1)} A <small style="color: var(--gedempt); font-weight: 600">${esc(t('motor.meet.vanA', { a: getal(f.limitA) }))}</small></b><div class="mo-balk"><i style="width: ${Math.min(100, (f.currentA / Math.max(1, f.limitA)) * 100)}%; background: var(--violet)"></i></div></div>`).join('')}
       ${accu?.pct != null ? `<div class="mo-rij"><span>${esc(t('motor.meet.accu'))}</span><b>${esc(t(accu.stand === 'laadt' ? 'motor.meet.accuLaadt' : accu.stand === 'levert' ? 'motor.meet.accuLevert' : 'motor.meet.accuRust', { pct: getal(accu.pct), kw: getal(Math.abs(accu.vermogenW ?? 0) / 1000, 1) }))}</b><div class="mo-balk"><i style="width: ${accu.pct}%; background: var(--mint)"></i></div></div>` : ''}
       <div class="mo-veilig">${e.failsafe?.active ? tag('nee', t('motor.veilig.terugAan')) : tag('goed', t('motor.veilig.terugNiet'))}${twijfel ? tag('nee', t('motor.veilig.twijfel', { n: twijfel })) : tag('goed', t('motor.veilig.goed'))}${tag('', metHand ? t('motor.veilig.hand', { n: metHand }) : t('motor.veilig.geenHand'))}</div>
     </section>`;
 
   const opZon = [
-    ...(stekkers?.stekkers ?? []).filter((s) => s.zon?.schakelt).map((s) => ({ ik: 'stekker', naam: s.naam, tag: ['zon', t('motor.zon.stekker')], zin: `${t(s.aan ? 'motor.zon.stekkerAan' : 'motor.zon.stekkerUit')}${s.vermogenW ? ` · ${W(s.vermogenW)}` : ''}`, code: 'stekker-zon' })),
+    ...(stekkers?.stekkers ?? []).filter((s) => s.zon?.schakelt).map((s) => ({ ik: 'stekker', naam: s.naam, tag: ['zon', t('motor.zon.stekker')], zin: `${t(s.aan ? 'motor.zon.stekkerAan' : 'w.uit2')}${s.vermogenW ? ` · ${W(s.vermogenW)}` : ''}`, code: 'stekker-zon' })),
     ...(snap.bewoner?.warmtebuffers ?? []).map((w) => ({ ik: 'boiler', naam: w.naam, tag: ['zon', t('motor.zon.buffer')], zin: [w.kop, w.zin].filter(Boolean).join(' · '), code: w.stand ?? 'warmtebuffer' })),
     ...(snap.bewoner?.uitstelbaar ?? []).map((u) => ({ ik: 'witgoed', naam: u.naam, tag: ['', t('motor.zon.uitstel')], zin: [u.kop, u.zin].filter(Boolean).join(' · '), code: (e.deferrables ?? []).find((d) => d.id === u.id)?.reason ?? u.stand })),
   ];
@@ -151,8 +151,8 @@ function tekenVandaag() {
   const cel = (kw, soort, extra = '') => `<i class="${soort}" data-kw="${kw}"${extra}></i>`;
   const rijVan = (naam, f) => `<span class="naam">${esc(naam)}</span><div class="rij">${ks.map((k, kw) => (kw > nuKw || !k ? cel(kw, 'leeg') : f(k, kw))).join('')}${gekozenKw != null ? `<span class="mo-gekozen" style="left: calc(${(gekozenKw / 96) * 100}% - 2px); width: calc(${100 / 96}% + 2px)"></span>` : ''}</div>`;
   const regels = [
-    rijVan(t('motor.dag.zon'), (k, kw) => (k.zonW > 30 ? cel(kw, 'zon', ` style="opacity: ${(0.35 + 0.65 * (k.zonW / maxZon)).toFixed(2)}"`) : cel(kw, ''))),
-    rijVan(t('motor.dag.net'), (k, kw) => (k.netW > 100 ? cel(kw, 'net', ` style="opacity: ${Math.min(1, 0.35 + k.netW / 3000).toFixed(2)}"`) : k.netW < -100 ? cel(kw, 'terug') : cel(kw, ''))),
+    rijVan(t('w.zon'), (k, kw) => (k.zonW > 30 ? cel(kw, 'zon', ` style="opacity: ${(0.35 + 0.65 * (k.zonW / maxZon)).toFixed(2)}"`) : cel(kw, ''))),
+    rijVan(t('w.net'), (k, kw) => (k.netW > 100 ? cel(kw, 'net', ` style="opacity: ${Math.min(1, 0.35 + k.netW / 3000).toFixed(2)}"`) : k.netW < -100 ? cel(kw, 'terug') : cel(kw, ''))),
     '<div class="scheid"></div>',
     ...dag.apparaten.map((id) => rijVan(actNaam(id), (k, kw) => {
       const a = k.apparaten[id];
@@ -164,7 +164,7 @@ function tekenVandaag() {
     rijVan(t('motor.dag.oud'), (k, kw) => cel(kw, k.oud ? 'oud' : '')),
   ].join('');
   const as = `<span></span><div class="as">${['00', '03', '06', '09', '12', '15', '18', '21', '24'].map((u) => `<span>${u}</span>`).join('')}</div>`;
-  const leg = `<div class="mo-leg boven-16"><span style="--k: var(--gloed)">${esc(t('motor.dag.leg.warm'))}</span><span style="--k: var(--ijs)">${esc(t('motor.dag.leg.koel'))}</span><span style="--k: var(--zon)">${esc(t('motor.dag.leg.zon'))}</span><span style="--k: var(--violet)">${esc(t('motor.dag.leg.net'))}</span><span style="--k: color-mix(in srgb, var(--violet) 70%, transparent)">${esc(t('motor.dag.leg.oud'))}</span><span class="anders">${esc(t('motor.dag.leg.anders'))}</span></div>`;
+  const leg = `<div class="mo-leg boven-16"><span style="--k: var(--gloed)">${esc(t('motor.dag.leg.warm'))}</span><span style="--k: var(--ijs)">${esc(t('motor.dag.leg.koel'))}</span><span style="--k: var(--zon)">${esc(t('motor.dag.leg.zon'))}</span><span style="--k: var(--violet)">${esc(t('w.vanHetNet'))}</span><span style="--k: color-mix(in srgb, var(--violet) 70%, transparent)">${esc(t('motor.dag.leg.oud'))}</span><span class="anders">${esc(t('motor.dag.leg.anders'))}</span></div>`;
   const tijdlijn = `<section class="glas kaart mo-kaart" style="flex: 1"><h2>${esc(t('motor.dag.kop'))} <small>${esc(t('motor.dag.uitleg'))}</small></h2>
       <div class="mo-tijd">${regels}${as}</div>${leg}<p class="mo-zin">${esc(t('motor.dag.zin'))}</p></section>`;
   return `<div class="mo-kol">${tijdlijn}</div><div class="mo-kol">${tekenRonde()}</div>`;
@@ -181,11 +181,11 @@ function tekenRonde() {
   return `<section class="glas kaart mo-kaart"><h2>${esc(t('motor.ronde.kop', { tijd: klok(ronde.tMs) }))} <small>${esc(t('motor.ronde.van', { n: ronde.n, van: ronde.van }))}</small></h2>
       <div class="mo-blader"><button type="button" data-ronde-t="${ronde.vorigeMs ?? ''}" ${ronde.vorigeMs ? '' : 'disabled'}>${esc(t('motor.ronde.eerder'))}</button><button type="button" data-ronde-t="${ronde.volgendeMs ?? ''}" ${ronde.volgendeMs ? '' : 'disabled'}>${esc(t('motor.ronde.later'))}</button></div>
       ${regel(t('motor.meet.stand'), woord(`motor.stand.${m.mode}`, m.mode ?? ''))}
-      ${regel(t('motor.ronde.zon'), t('motor.ronde.zonNet', { zon: W(m.zonW ?? 0), net: W(b.gridPowerW ?? 0) }))}
+      ${regel(t('w.zon'), t('motor.ronde.zonNet', { zon: W(m.zonW ?? 0), net: W(b.gridPowerW ?? 0) }))}
       ${regel(t('motor.ronde.verdelen'), t('motor.ronde.verdelenZin', { w: W(b.availableW ?? 0), toegewezen: W(b.allocatedW ?? 0) }))}
-      ${regel(t('motor.ronde.zouSturen'), zou.join(' · ') || t('motor.ronde.niets'))}
+      ${regel(t('motor.ronde.zouSturen'), zou.join(' · ') || t('w.niets'))}
       ${af.length ? regel(t('motor.ronde.weesAf'), af.join(' · ')) : ''}
-      ${m.legacy ? regel(t('motor.ronde.oud'), oudTekst(m.legacy)) : ''}
+      ${m.legacy ? regel(t('motor.dag.oud'), oudTekst(m.legacy)) : ''}
       ${oud}<p class="mo-zin">${esc(t('motor.ronde.uitLogboek'))}</p></section>`;
 }
 
@@ -267,7 +267,7 @@ function tekenVergelijken() {
   const tijd = (ms) => `${esc(new Date(ms).toLocaleDateString(taal.locale, { weekday: 'short', day: 'numeric', month: 'short' }))}<br>${esc(new Date(ms).toLocaleTimeString(taal.locale, { hour: '2-digit', minute: '2-digit', hour12: false }))}`;
   const verschil = d.episodes?.length
     ? `<section class="glas kaart mo-kaart mo-verschil mo-breed2"><h2>${esc(t('motor.verschil.kop'))} <small>${esc(t('motor.verschil.uitleg', { n: getal(d.episodesTotaal ?? d.episodes.length) }))}</small></h2>
-      ${d.episodes.slice(0, 6).map((e) => `<div class="mo-moment"><time>${tijd(e.fromMs)}</time><span><b style="color: var(--tekst)">${esc(actNaam(e.actuatorId))}</b> · ${esc(t(e.direction === 'strenger' ? 'motor.verschil.strenger' : 'motor.verschil.ruimer'))} · ${esc(t('motor.verschil.duur', { n: e.minutes }))}${e.blockedBy ? ` · ${esc(woord(`motor.blok.${e.blockedBy}`, e.blockedBy))}${code(e.blockedBy)}` : ''}${e.legacy ? `<br>${esc(t('motor.verschil.oud', { tekst: oudTekst(e.legacy) }))}` : ''}</span></div>`).join('')}</section>`
+      ${d.episodes.slice(0, 6).map((e) => `<div class="mo-moment"><time>${tijd(e.fromMs)}</time><span><b style="color: var(--tekst)">${esc(actNaam(e.actuatorId))}</b> · ${esc(t(e.direction === 'strenger' ? 'motor.verschil.strenger' : 'motor.verschil.ruimer'))} · ${esc(t('w.minuten2', { n: e.minutes }))}${e.blockedBy ? ` · ${esc(woord(`motor.blok.${e.blockedBy}`, e.blockedBy))}${code(e.blockedBy)}` : ''}${e.legacy ? `<br>${esc(t('motor.verschil.oud', { tekst: oudTekst(e.legacy) }))}` : ''}</span></div>`).join('')}</section>`
     : '';
   return `${eens}${per}${schelen}${verschil}${strook}`;
 }

@@ -69,7 +69,7 @@
   }
 
   const DUREN = [30, 60, 120, 180, 240, 360, 480];
-  const duurNaam = (m) => (m < 60 ? t('regeling.minuten', { n: m }) : t(m === 60 ? 'regeling.uur1' : 'regeling.uren', { n: m / 60 }));
+  const duurNaam = (m) => (m < 60 ? t('w.minuten', { n: m }) : t(m === 60 ? 'regeling.uur1' : 'regeling.uren', { n: m / 60 }));
   function klokKeuze(huidig, attr, label) {
     const tijden = Array.from({ length: 96 }, (_, i) => `${String(Math.floor(i / 4)).padStart(2, '0')}:${String((i % 4) * 15).padStart(2, '0')}`);
     return `<select class="invoer in-klein" ${attr} aria-label="${esc(label)}">${tijden.map((x) => `<option value="${x}" ${x === huidig ? 'selected' : ''}>${x}</option>`).join('')}</select>`;
@@ -95,15 +95,15 @@
       : rij(t('in.trekt'), t('in.trektZin'), `<span class="in-invul"><input class="invoer in-klein" type="number" inputmode="numeric" min="50" max="3680" step="10" data-in-w="${esc(id)}" value="${w ?? ''}" placeholder="1000" aria-label="${esc(t('regeling.stekkerVermogen'))}"><span>W</span></span>`);
     const minuten = `<select class="invoer in-klein" data-in-min="${esc(id)}" aria-label="${esc(t('regeling.stekkerMinimumVan', { naam }))}"><option value="">${esc(t('regeling.stekkerMinimumGeen'))}</option>${DUREN.map((m) => `<option value="${m}" ${min?.minuten === m ? 'selected' : ''}>${esc(duurNaam(m))}</option>`).join('')}</select>`;
     return [
-      groep(t('in.kopWaar'), [waarRij(id)]),
-      groep(t('in.kopZon'), [
-        vast ? rij(t('in.opZon'), t('in.uitBestand'), '') : rij(t('in.opZon'), t(opZon ? 'in.opZonAan' : 'in.opZonUit'), schakel(opZon, `data-in-zon="${esc(id)}"`, t('regeling.naamOpZon', { naam }))),
+      groep(t('w.waar'), [waarRij(id)]),
+      groep(t('w.opZon'), [
+        vast ? rij(t('w.opZon'), t('in.uitBestand'), '') : rij(t('w.opZon'), t(opZon ? 'in.opZonAan' : 'in.opZonUit'), schakel(opZon, `data-in-zon="${esc(id)}"`, t('regeling.naamOpZon', { naam }))),
         opZon && !vast ? trekt : '',
         opZon && !vast ? rij(t('in.minstens'), min ? t('regeling.stekkerMinimumUitleg') : null, minuten) : '',
         opZon && !vast && min ? rij(t('in.uiterlijk'), null, klokKeuze(min.klok, `data-in-klok="${esc(id)}"`, t('regeling.stekkerUiterlijkVan', { naam }))) : '',
       ]),
       kanSchakelen
-        ? groep(t('in.kopHand'), [rij(t('in.mag'), t(opZon ? 'in.magZon' : mag ? 'in.magAan' : 'in.magUit'), schakel(opZon || mag, `data-in-mag="${esc(id)}"`, t('in.mag'), opZon))])
+        ? groep(t('w.metDeHand'), [rij(t('in.mag'), t(opZon ? 'in.magZon' : mag ? 'in.magAan' : 'in.magUit'), schakel(opZon || mag, `data-in-mag="${esc(id)}"`, t('in.mag'), opZon))])
         : '',
       fout ? `<p class="hand-fout">${esc(fout)}</p>` : '',
     ].join('');
@@ -117,13 +117,13 @@
     const g = !conf ? gevonden(id) : null;
     const aan = conf ? !(a.opZonUit ?? []).includes(id) : a.opZon?.[id] === true;
     const zon = conf || g ? rij(t('in.startZon'), t(aan ? 'in.startZonAan' : 'in.startZonUit'), schakel(aan, `data-in-wg="${esc(id)}"`, t('regeling.naamOpZon', { naam }))) : '';
-    return [groep(t('in.kopWaar'), [waarRij(id)]), groep(t('in.kopZon'), [zon]), fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''].join('');
+    return [groep(t('w.waar'), [waarRij(id)]), groep(t('w.opZon'), [zon]), fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''].join('');
   }
 
   /** Een boiler of jacuzzi: waar hij staat; op zon staat in het instellingenbestand. */
   function bufferRegels(id) {
-    const zon = uitConfiguratie(id) ? rij(t('in.opZon'), t('in.uitBestand'), '') : '';
-    return [groep(t('in.kopWaar'), [waarRij(id)]), groep(t('in.kopZon'), [zon])].join('');
+    const zon = uitConfiguratie(id) ? rij(t('w.opZon'), t('in.uitBestand'), '') : '';
+    return [groep(t('w.waar'), [waarRij(id)]), groep(t('w.opZon'), [zon])].join('');
   }
 
   /** Een kopie van de antwoorden om in te veranderen, zoals Energie dat deed (laden.js, thuisaccu.js). */

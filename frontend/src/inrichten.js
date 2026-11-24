@@ -389,7 +389,7 @@ function welkom() {
     ...(n.cameras ? [vak(null, n.cameras, t('inr.tel.cameras', { n: n.cameras }))] : []),
   ];
   return {
-    waar: t('inr.welkom'),
+    waar: t('w.welkom'),
     kop: t('inr.welkomKop'),
     groot: true,
     uitleg: t('inr.welkomZin'),
@@ -421,8 +421,8 @@ const WK_IK = {
 };
 function welkomSkelet(tel) {
   const belofte = (ik, kleur, b, zin) => `<li><span class="wk-ik" style="color: ${kleur}">${S(IK[ik])}</span><div><b>${esc(t(b))}</b><span>${esc(t(zin))}</span></div></li>`;
-  const beloftes = `<ul class="wk-beloof">${belofte('thermo', 'var(--gloed)', 'inr.wk.b1', 'inr.wk.b1z')}${belofte('zon', 'var(--zon)', 'inr.wk.b2', 'inr.wk.b2z')}${belofte('praat', 'var(--violet)', 'inr.wk.b3', 'inr.wk.b3z')}</ul>`;
-  const woorden = `<span class="wk-hallo" data-wk-hallo></span><h1 class="wk-kop">${esc(t('inr.wk.kop1'))} <em>${esc(t('inr.wk.kop2'))}</em></h1><p class="wk-zin">${esc(t('inr.wk.zin'))} <b>${esc(t('inr.wk.klopt'))}</b></p>${beloftes}`;
+  const beloftes = `<ul class="wk-beloof">${belofte('thermo', 'var(--gloed)', 'inr.wk.b1', 'inr.wk.b1z')}${belofte('zon', 'var(--zon)', 'w.opJeEigenZon', 'inr.wk.b2z')}${belofte('praat', 'var(--violet)', 'inr.wk.b3', 'inr.wk.b3z')}</ul>`;
+  const woorden = `<span class="wk-hallo" data-wk-hallo></span><h1 class="wk-kop">${esc(t('w.welkom'))} <em>${esc(t('w.thuis2'))}</em></h1><p class="wk-zin">${esc(t('inr.wk.zin'))} <b>${esc(t('inr.wk.klopt'))}</b></p>${beloftes}`;
   const begin = `<a class="knop knop-licht wk-begin" href="#jehuis">${esc(t('inr.begin'))}${PIJL}</a>`;
   const terug = `<a class="wk-terug" href="toegang.html">${esc(t('inr.wk.backup'))}</a>`;
   // Het logo voluit: het teken, de naam en wat ARC betekent.
@@ -569,7 +569,7 @@ function tekenWelkom(m) {
  * verwarmt of koelt, staat in een eigen lijst (besluit 166): dat hoort bij de
  * regeling, en heeft geen ×.
  */
-const wegChip = (a) => `<button type="button" class="chip weg" data-verberg="${esc(a.id)}" aria-label="${esc(t('energie.weghalen', { naam: a.naam }))}">${esc(a.naam)}<span aria-hidden="true">×</span></button>`;
+const wegChip = (a) => `<button type="button" class="chip weg" data-verberg="${esc(a.id)}" aria-label="${esc(t('w.weghalen2', { naam: a.naam }))}">${esc(a.naam)}<span aria-hidden="true">×</span></button>`;
 const geenKlimaat = (lijst) => (lijst ?? []).filter((a) => a.soort !== 'klimaat');
 function welkomLijst() {
   const n = tellingen();
@@ -582,7 +582,7 @@ function welkomLijst() {
     uitleg = t('inr.lijst.kamers');
     rijen = perEtage.map((e) => rij(e.naam, (e.ruimtes ?? []).map((r) => `<span class="chip stil">${esc(r.naam)}</span>`).join('')));
   } else if (lijst === 'apparaten') {
-    kop = t('instellingen.apparaten', { n: n.apparaten });
+    kop = t('w.apparaten', { n: n.apparaten });
     uitleg = t('inr.lijst.apparaten');
     rijen = perEtage.flatMap((e) => (e.ruimtes ?? []).filter((r) => geenKlimaat(r.apparaten).length).map((r) => rij(r.naam, geenKlimaat(r.apparaten).map(wegChip).join(''))));
     if (geenKlimaat(d.huis?.zonderRuimte).length) rijen.push(rij(t('inr.zonderKamer'), geenKlimaat(d.huis.zonderRuimte).map(wegChip).join('')));
@@ -596,7 +596,7 @@ function welkomLijst() {
     kop,
     uitleg,
     inhoud: `<div class="rijen">${rijen.join('') || `<p class="zacht">${esc(t('inr.nietsGevonden'))}</p>`}</div>`,
-    voet: [`<button type="button" class="zachtknop" data-lijst="">${esc(t('panelen.terug'))}</button>`, `<a class="knop knop-licht" href="#woning">${esc(t('inr.begin'))}</a>`],
+    voet: [`<button type="button" class="zachtknop" data-lijst="">${esc(t('w.terug'))}</button>`, `<a class="knop knop-licht" href="#woning">${esc(t('inr.begin'))}</a>`],
   };
 }
 

@@ -76,7 +76,7 @@ function knoppenVan(id) {
       const aircos = d.helpen?.aircos?.length ?? 0;
       return [
         [t('inst4.hoeWarm'), c ? t('inst4.kamersMee', { n: c.kamers.length }) : laden, 'comfort.html'],
-        [t('instellingen.dagdelen'), dd ? t('instellingen.van', { van: `${dd.dag}:00`, tot: `${dd.nacht}:00` }) : laden, 'comfort.html#dagdelen'],
+        [t('instellingen.dagdelen'), dd ? t('w.tot', { van: `${dd.dag}:00`, tot: `${dd.nacht}:00` }) : laden, 'comfort.html#dagdelen'],
         [t('comfort.voorrang'), eerst ? t('inst4.eerst', { naam: naam(eerst).toLowerCase() }) : c ? t('inst4.geenVoorrang') : laden, 'comfort.html#voorrang'],
         [t('comfort.afwezig'), c ? t('inst4.vanzelf') : laden, 'comfort.html#afwezig'],
         [t('klimaat.soort'), soort ? t(`energie.soort.${soort}`) : d.aansluiting ? t('instellingen.nogKiezen') : laden, 'energie.html#verwarming'],
@@ -100,7 +100,7 @@ function knoppenVan(id) {
     }
     case 'app': {
       const f = d.functies?.instellingen ?? d.functies?.voorstel;
-      const weer = (d.functies?.gevonden?.weerbronnen ?? []).find((b) => b.id === f?.weer?.bron)?.naam ?? (f?.weer?.bron ? f.weer.bron : t('instellingen.geen'));
+      const weer = (d.functies?.gevonden?.weerbronnen ?? []).find((b) => b.id === f?.weer?.bron)?.naam ?? (f?.weer?.bron ? f.weer.bron : t('w.geen'));
       const namen = d.bewoners ? d.bewoners.bewoners.map((b) => b.naam).join(', ') || t('instellingen.nogNiemand') : laden;
       return [
         [t('inst4.bewoners'), namen, 'toegang.html#bewoners'],
@@ -183,7 +183,7 @@ function tekenNu() {
   $$('[data-groepen]').forEach((el) => (el.innerHTML = groepen()));
   // Jij (besluit 181): je profiel; een gast heeft er geen, een scherm alleen hoe de app eruitziet.
   const ik = d.bewoners?.ik ?? null;
-  const naam = ik?.soort === 'bewoner' && ik.naam ? ik.naam : t(ik?.soort === 'scherm' ? 'jij.ditScherm' : 'jij.kop');
+  const naam = ik?.soort === 'bewoner' && ik.naam ? ik.naam : t(ik?.soort === 'scherm' ? 'w.ditScherm' : 'jij.kop');
   const letter = ik?.soort === 'bewoner' && ik.naam ? `<span class="jijrondje" aria-hidden="true">${esc(ik.naam.charAt(0).toUpperCase())}</span>` : '';
   const onder = t(ik?.soort === 'bewoner' ? 'instellingen.jijBewoner' : 'instellingen.jijScherm');
   $$('[data-jijregel]').forEach((el) => {

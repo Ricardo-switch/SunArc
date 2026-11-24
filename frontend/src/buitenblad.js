@@ -69,7 +69,7 @@
     const kw = (w) => `${(w / 1000).toLocaleString(global.taal.locale, { maximumFractionDigits: 1 })} kW`;
     const zin = a.laadt ? (a.vermogenW ? t('thuis.lading.laadtMet', { kw: kw(a.vermogenW) }) : t('thuis.lading.laadt')) : a.aangesloten === true ? t('thuis.lading.aangesloten') : a.aangesloten === false ? t('thuis.lading.nietAangesloten') : '';
     const pct = a.pct == null ? null : Math.max(0, Math.min(100, a.pct));
-    return `<div class="bb-auto${a.laadt ? ' laadt' : ''}"><div class="bb-autokop"><i class="bb-ik">${ik(ICOON.auto)}</i><b>${esc(a.naam ?? t('buiten.auto'))}</b><span class="bb-pct">${pct == null ? '–' : `${Math.round(pct)}%`}</span></div>${pct == null ? '' : `<div class="bb-balk"><i style="width: ${pct}%"></i></div>`}${zin ? `<small>${esc(zin)}</small>` : ''}</div>`;
+    return `<div class="bb-auto${a.laadt ? ' laadt' : ''}"><div class="bb-autokop"><i class="bb-ik">${ik(ICOON.auto)}</i><b>${esc(a.naam ?? t('w.deAuto'))}</b><span class="bb-pct">${pct == null ? '–' : `${Math.round(pct)}%`}</span></div>${pct == null ? '' : `<div class="bb-balk"><i style="width: ${pct}%"></i></div>`}${zin ? `<small>${esc(zin)}</small>` : ''}</div>`;
   }
 
   /** De thuisaccu in de garage (besluit 270): hoe vol, en wat hij doet. */
@@ -103,7 +103,7 @@
     if (!zone) {
       for (const c of (r.apparaten ?? []).filter((d) => d.soort === 'camera')) meer.push(linkRij(ICOON.camera, c.naam, t('buiten.camera'), `href="kamer.html#${encodeURIComponent(r.id)}"`));
       for (const d of (huis?.toegang ?? []).filter((x) => x.kamerId === r.id)) {
-        meer.push(`<div class="bb-rij"><i class="bb-ik">${ik(ICOON.garage)}</i><div class="bb-tekst"><b>${esc(d.naam)}</b><span>${esc(t(d.open === true ? 'buiten.deurOpen' : d.open === false ? 'buiten.deurDicht' : 'buiten.deurOnbekend'))}</span></div></div>`);
+        meer.push(`<div class="bb-rij"><i class="bb-ik">${ik(ICOON.garage)}</i><div class="bb-tekst"><b>${esc(d.naam)}</b><span>${esc(t(d.open === true ? 'buiten.deurOpen' : d.open === false ? 'buiten.deurDicht' : 'w.onbekend'))}</span></div></div>`);
       }
     }
     const andere = (r.zones ?? []).filter((z) => z.id !== zone?.id).map((z) => deelRij(`${r.id}::${z.id}`, z.naam, alle.filter((d) => d.zone === z.id), `data-bb-zone="${esc(`${r.id}::${z.id}`)}" data-bb-aan="${!alle.filter((d) => d.zone === z.id).some(aanVan)}"`));
@@ -113,7 +113,7 @@
       ${lampen.length ? `<div class="bb-lijst">${lampen.map(lampRij).join('')}</div>` : `<p class="mini">${esc(t('buiten.geenLampenHier'))}</p>`}
       ${meer.length ? `<h3 class="bb-sectie">${esc(t('buiten.ookHier'))}</h3><div class="bb-lijst">${meer.join('')}</div>` : ''}
       ${andere.length ? `<h3 class="bb-sectie">${esc(t('buiten.ookIn', { naam: r.naam }))}</h3><div class="bb-lijst">${andere.join('')}</div>` : ''}
-      <div class="bb-voet"><button type="button" class="knop" data-bb-open="alles">${esc(t('buiten.allesBuiten'))}</button><a class="knop" href="kamer.html#${encodeURIComponent(r.id)}">${esc(t('buiten.openRuimte', { naam: r.naam }))}</a></div>
+      <div class="bb-voet"><button type="button" class="knop" data-bb-open="alles">${esc(t('buiten.alles'))}</button><a class="knop" href="kamer.html#${encodeURIComponent(r.id)}">${esc(t('w.openen', { naam: r.naam }))}</a></div>
       <p class="mini voet">${esc(t(r.buitenSoort === 'garage' || (huis?.toegang ?? []).some((x) => x.kamerId === r.id) ? 'buiten.voetDeur' : 'buiten.voet'))} <a href="jehuis.html#buiten">${esc(t('buiten.zonesInrichten', { naam: r.naam }))}</a></p>`;
   }
 

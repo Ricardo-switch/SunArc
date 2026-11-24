@@ -428,7 +428,7 @@ function strookVandaag(d, kleur) {
   const blok = (s, licht) => `<i style="left: ${pct(s.vanMs).toFixed(2)}%; width: ${Math.max(0.8, pct(s.totMs) - pct(s.vanMs)).toFixed(2)}%; background: ${kleur}; ${licht ? 'opacity: 0.32' : ''}"></i>`;
   const tijden = a.huidig.slice(-3).map((s) => `${klokVan(s.vanMs)}–${klokVan(s.totMs)}`);
   const zin = a.huidig.length ? t('kamer.draaide', { tijden: tijden.join(', ') }) : t('kamer.draaideNiet');
-  return `<div><b style="font-size: 14px">${esc(t('thuis.kaart.vandaag'))}</b><p class="mini geen-marge boven-4 onder-8">${esc(zin)}</p><div class="strook">${a.smartClimate.map((s) => blok(s, true)).join('')}${a.huidig.map((s) => blok(s, false)).join('')}<span class="nu" style="left: ${pct(Date.now()).toFixed(2)}%"></span></div><div class="uren"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div><p class="mini geen-marge boven-8">${esc(t('kamer.strookUitleg'))}</p></div>`;
+  return `<div><b style="font-size: 14px">${esc(t('w.vandaag'))}</b><p class="mini geen-marge boven-4 onder-8">${esc(zin)}</p><div class="strook">${a.smartClimate.map((s) => blok(s, true)).join('')}${a.huidig.map((s) => blok(s, false)).join('')}<span class="nu" style="left: ${pct(Date.now()).toFixed(2)}%"></span></div><div class="uren"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div><p class="mini geen-marge boven-8">${esc(t('kamer.strookUitleg'))}</p></div>`;
 }
 
 const MEEKIJKEN = t('kamer.meekijken');

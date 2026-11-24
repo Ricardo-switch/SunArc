@@ -84,7 +84,7 @@ function mijlpalen(v) {
   if (!wintertest()) {
     return [
       { soort: 'klaar', titel: t('voortgang.weg.begin'), zin: datum(ds.vanMs) },
-      { soort: 'nu', titel: t('voortgang.weg.nu'), zin: `${t('voortgang.weg.dagen', { n: Math.round(ds.dagenOpgenomen) })}, ${standen}` },
+      { soort: 'nu', titel: t('w.nu2'), zin: `${t('voortgang.weg.dagen', { n: Math.round(ds.dagenOpgenomen) })}, ${standen}` },
       { soort: 'doel', titel: t('voortgang.weg.zelf'), zin: t('voortgang.weg.perKamer') },
     ];
   }
@@ -105,7 +105,7 @@ function mijlpalen(v) {
   }
   return [
     { soort: 'klaar', titel: t('voortgang.weg.begin'), zin: datum(ds.vanMs) },
-    { soort: 'nu', titel: t('voortgang.weg.nu'), zin: `${t('voortgang.weg.dagen', { n: Math.round(ds.dagenOpgenomen) })}, ${standen}` },
+    { soort: 'nu', titel: t('w.nu2'), zin: `${t('voortgang.weg.dagen', { n: Math.round(ds.dagenOpgenomen) })}, ${standen}` },
     !inWinter && begin > nu ? { soort: 'winter', titel: t('voortgang.weg.winter'), zin: t('voortgang.weg.winterZin', { datum: datum(begin) }), alleenTel: true } : null,
     { soort: genoeg ? 'straks' : 'klaar', titel: t('voortgang.weg.genoeg', { n: doel }), zin: genoeg ? t('voortgang.weg.vroegst', { datum: datum(genoeg) }) : t('voortgang.weg.gehaald') },
     { soort: 'doel', titel: t('voortgang.weg.zelf'), zin: t('voortgang.weg.ja') },

@@ -55,7 +55,7 @@
       : '';
     // Laadt hij nu maar telt de statistiek vandaag nog niets, dan zegt het blad liever niets dan "nog niet geladen".
     const dag = vandaag && !(vandaag.kWh < 0.05 && nu.kw > 0.05)
-      ? `<div><h3 class="pb-h3">${esc(t('paal.vandaag'))}</h3><p class="pb-zin">${esc(vandaag.kWh < 0.05 ? t('paal.vandaagNiets') : vandaag.zonKWh != null ? t('paal.vandaagZin', { kwh: getal(vandaag.kWh, 1), pct: Math.round((vandaag.zonKWh / vandaag.kWh) * 100) }) : t('paal.vandaagZinZonder', { kwh: getal(vandaag.kWh, 1) }))}</p></div>`
+      ? `<div><h3 class="pb-h3">${esc(t('w.vandaag'))}</h3><p class="pb-zin">${esc(vandaag.kWh < 0.05 ? t('paal.vandaagNiets') : vandaag.zonKWh != null ? t('paal.vandaagZin', { kwh: getal(vandaag.kWh, 1), pct: Math.round((vandaag.zonKWh / vandaag.kWh) * 100) }) : t('paal.vandaagZinZonder', { kwh: getal(vandaag.kWh, 1) }))}</p></div>`
       : '';
     return `${kop}${stand}${auto}${fasen}${dag}<div class="hand-onder"><a class="hand-zet" href="auto.html">${esc(t('paal.naarAuto'))}</a></div>`;
   }

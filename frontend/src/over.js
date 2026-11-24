@@ -26,7 +26,7 @@ function teken(versie) {
   laatste = versie;
   const nieuwste = versie?.nieuw?.[0] ?? null;
   const regels = nieuwste ? ['nieuw', 'beter', 'opgelost'].flatMap((s) => nieuwste[s] ?? []).slice(0, 3) : [];
-  const motor = motorAan() ? `<a class="knop boven-12" href="motor.html" style="display: inline-flex; gap: 8px; align-items: center">${esc(t('motor.ingang'))} <span aria-hidden="true">›</span></a><p class="mini geen-marge boven-8">${esc(t('motor.ingangZin'))}</p>` : '<p class="mini geen-marge boven-8" style="min-height: 1em" data-motor-tik></p>';
+  const motor = motorAan() ? `<a class="knop boven-12" href="motor.html" style="display: inline-flex; gap: 8px; align-items: center">${esc(t('motor.titel'))} <span aria-hidden="true">›</span></a><p class="mini geen-marge boven-8">${esc(t('motor.ingangZin'))}</p>` : '<p class="mini geen-marge boven-8" style="min-height: 1em" data-motor-tik></p>';
   const html = `<div class="voluit"><img src="kit/merk.svg" alt=""><div class="woord">SunArc</div><div class="arc">${t('over.arc')}</div></div>
     <div class="glas overvak">
       <div><h2>${esc(t('over.versieKop'))}</h2><div class="versie" style="user-select: none">${esc(versie?.nummer ?? '…')}</div>${regels.length ? `<ul>${regels.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}${motor}</div>

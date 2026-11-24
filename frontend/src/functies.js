@@ -110,7 +110,7 @@ async function laad() {
 function keuzes(label, sleutel, opties, huidig, uit = false) {
   return `<div class="keuzes" role="group" aria-label="${esc(label)}">${opties.map(([w, x]) => `<button type="button" data-kies="${esc(sleutel)}" data-waarde='${esc(JSON.stringify(w))}' aria-pressed="${JSON.stringify(w) === JSON.stringify(huidig)}" ${uit ? 'disabled' : ''}>${esc(x)}</button>`).join('')}</div>`;
 }
-const aanUit = () => [[true, t('functies.aan')], [false, t('functies.uit')]];
+const aanUit = () => [[true, t('w.aan')], [false, t('w.uit')]];
 
 /** Het beeld dat van deze camera in de lijst staat, of null als hij niet getoond wordt. */
 const gekozenBeeld = (c) => c.beelden.find((b) => concept.cameras.lijst.includes(b.id))?.id ?? null;
@@ -122,7 +122,7 @@ function cameras() {
     .map((c, i) => {
       const beeld = gekozenBeeld(c);
       const opties = [[null, t('functies.nietTonen')], ...c.beelden.map((b) => [b.id, b.naam.charAt(0).toUpperCase() + b.naam.slice(1)])];
-      return `<div class="regelrij" style="flex-direction: column; align-items: stretch"><div class="l"><b>${esc(c.naam)}</b><span>${esc(t(beeld ? 'functies.inKamer' : 'functies.nietInApp'))}</span></div>${keuzes(t('functies.beeldVan', { naam: c.naam }), `camera:${i}`, opties, beeld, !aan)}</div>`;
+      return `<div class="regelrij" style="flex-direction: column; align-items: stretch"><div class="l"><b>${esc(c.naam)}</b><span>${esc(t(beeld ? 'functies.inKamer' : 'functies.nietInApp'))}</span></div>${keuzes(t('w.beeldVan', { naam: c.naam }), `camera:${i}`, opties, beeld, !aan)}</div>`;
     })
     .join('');
   return `<h2 class="kop-2">${esc(t('functies.cameras'))}</h2>
@@ -140,15 +140,15 @@ function deurbel() {
   const misschien = melders.filter((m) => !m.zeker);
   const melderOpties = `<option value="">${esc(t('functies.kiesMelder'))}</option>${zeker.length ? `<optgroup label="${esc(t('functies.eenDeurbel'))}">${zeker.map((m) => `<option value="${esc(m.id)}" ${m.id === d.melder ? 'selected' : ''}>${esc(m.naam)}</option>`).join('')}</optgroup>` : ''}${misschien.length ? `<optgroup label="${esc(t('functies.heetDeurbel'))}">${misschien.map((m) => `<option value="${esc(m.id)}" ${m.id === d.melder ? 'selected' : ''}>${esc(m.naam)}</option>`).join('')}</optgroup>` : ''}`;
   const uit = !d.aan;
-  return `<h2 class="kop-2">${esc(t('functies.deurbel'))}</h2>
-    ${keuzes(t('functies.deurbel'), 'belAan', aanUit(), d.aan, !melders.length)}
+  return `<h2 class="kop-2">${esc(t('w.deurbel'))}</h2>
+    ${keuzes(t('w.deurbel'), 'belAan', aanUit(), d.aan, !melders.length)}
     ${melders.length ? '' : `<p class="uitleg">${esc(t('functies.geenDeurbel'))}</p>`}
     <label class="veldnaam">${esc(t('functies.melder'))}<select class="invoer" data-veld="melder" ${uit ? 'disabled' : ''}>${melderOpties}</select></label>
     <label class="veldnaam">${esc(t('functies.beeld'))}<select class="invoer" data-veld="camera" ${uit ? 'disabled' : ''}>${opt(beelden, d.camera, t('functies.kiesCamera'))}</select></label>
     <span class="veldnaam">${esc(t('functies.schermAan'))}</span>
-    ${keuzes(t('functies.schermAanLabel'), 'schermAan', [[true, t('functies.ja')], [false, t('functies.nee')]], d.schermAan, uit)}
+    ${keuzes(t('functies.schermAanLabel'), 'schermAan', [[true, t('w.ja')], [false, t('functies.nee')]], d.schermAan, uit)}
     <span class="veldnaam">${esc(t('functies.hoeLang'))}</span>
-    ${keuzes(t('functies.hoeLangLabel'), 'seconden', [60, 120, 300].map((s) => [s, t('functies.minuut', { n: s / 60 })]), d.seconden, uit)}`;
+    ${keuzes(t('functies.hoeLangLabel'), 'seconden', [60, 120, 300].map((s) => [s, t('w.minuten2', { n: s / 60 })]), d.seconden, uit)}`;
 }
 
 /*
@@ -237,15 +237,15 @@ function teDoenVorm() {
   const agendas = info.gevonden.agendas ?? [];
   // Een keuzelijst per vak: een rij knoppen met elf agenda's was onoverzichtelijk.
   const keus = (sleutel, label, opties) =>
-    `<label class="veldnaam tdkeus">${esc(label)}<select class="invoer" data-tedoen-keus="${sleutel}" ${td.aan ? '' : 'disabled'}><option value="">${esc(t('instellingen.geen'))}</option>${opties
+    `<label class="veldnaam tdkeus">${esc(label)}<select class="invoer" data-tedoen-keus="${sleutel}" ${td.aan ? '' : 'disabled'}><option value="">${esc(t('w.geen'))}</option>${opties
       .map((x) => `<option value="${esc(x.id)}" ${td[sleutel] === x.id ? 'selected' : ''}>${esc(x.naam)}</option>`)
       .join('')}</select></label>`;
-  return `<h2 class="kop-2">${esc(t('functies.tedoen.kop'))}</h2>
-    ${keuzes(t('functies.tedoen.kop'), 'tedoen:aan', aanUit(), td.aan)}
+  return `<h2 class="kop-2">${esc(t('w.teDoen'))}</h2>
+    ${keuzes(t('w.teDoen'), 'tedoen:aan', aanUit(), td.aan)}
     <p class="mini">${esc(t('functies.tedoen.uitleg'))}</p>
-    ${lijsten.length ? `<div class="tdkeuzes">${keus('boodschappen', t('functies.tedoen.boodschappen'), lijsten)}${keus('todo', t('functies.tedoen.todo'), lijsten)}</div>` : `<p class="uitleg">${esc(t('functies.tedoen.geenLijsten'))}</p>`}
-    ${agendas.length ? `<div class="tdkeuzes">${keus('afval', t('functies.tedoen.afval'), agendas)}${keus('gezin', t('functies.tedoen.gezin'), agendas)}</div>` : ''}
-    <p class="mini">${esc(t('functies.tedoen.jij'))} <a href="jij.html#agenda">${esc(t('functies.tedoen.naarJij'))} ›</a></p>`;
+    ${lijsten.length ? `<div class="tdkeuzes">${keus('boodschappen', t('functies.tedoen.boodschappen'), lijsten)}${keus('todo', t('w.toDo'), lijsten)}</div>` : `<p class="uitleg">${esc(t('functies.tedoen.geenLijsten'))}</p>`}
+    ${agendas.length ? `<div class="tdkeuzes">${keus('afval', t('w.afval'), agendas)}${keus('gezin', t('functies.tedoen.gezin'), agendas)}</div>` : ''}
+    <p class="mini">${esc(t('functies.tedoen.jij'))} <a href="jij.html#agenda">${esc(t('w.jouwAgendaS'))} ›</a></p>`;
 }
 
 /**
@@ -271,7 +271,7 @@ function praten() {
       <div class="stemkop"><h2 class="kop-2">${esc(t('functies.praten.kop'))}</h2>${status ? `<span class="breinpil ${status.soort}">${esc(status.tekst)}</span>` : ''}</div>
       <p class="uitleg">${esc(t('functies.praten.uitleg'))}</p>
       ${modellen.length
-        ? `<div class="breinkaarten" role="group" aria-label="${esc(t('functies.praten.taalmodel'))}">${modellen.map((m) => kaart(m.id, m.naam, aanbieder(m.id))).join('')}${kaart(null, t('functies.uit'), t('functies.praten.alleenVast'))}</div>`
+        ? `<div class="breinkaarten" role="group" aria-label="${esc(t('functies.praten.taalmodel'))}">${modellen.map((m) => kaart(m.id, m.naam, aanbieder(m.id))).join('')}${kaart(null, t('w.uit'), t('functies.praten.alleenVast'))}</div>`
         : `<p class="uitleg">${esc(t('functies.praten.geenAI'))}</p>`}
       ${p.taalmodel ? gebruikHtml() : ''}
       ${p.taalmodel ? proefHtml() : ''}
@@ -348,7 +348,7 @@ function bedienHtml() {
     bedienKan
       ? rij(
           icoon('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>'),
-          t(info.schermMogelijk ? 'functies.praten.rij.lichtScherm' : 'functies.praten.rij.licht'),
+          t(info.schermMogelijk ? 'functies.licht' : 'functies.praten.rij.licht'),
           t(info.schermMogelijk ? 'functies.praten.rij.lichtSchermZin' : 'functies.praten.rij.lichtZin'),
           schakel(p.bedienen, `data-kies="pratenBedienen" data-waarde='${!p.bedienen}'`, t('functies.praten.bedienen')),
         )
@@ -356,7 +356,7 @@ function bedienHtml() {
     info.gevonden.klimaatBrug
       ? rij(icoon('<path d="M14 14.8V4a2 2 0 0 0-4 0v10.8a4 4 0 1 0 4 0z"/>'), t('functies.praten.klimaat'), t('functies.praten.rij.klimaatZin'), schakel(p.klimaat === true, `data-kies="pratenKlimaat" data-waarde='${p.klimaat !== true}'`, t('functies.praten.klimaat')))
       : '',
-    rij(icoon('<path d="M3 21V9l9-6 9 6v12"/><path d="M7 21v-8h10v8M7 17h10"/>'), t('functies.praten.rij.nooit'), t('functies.praten.rij.nooitZin'), `<span class="breinnooit">${esc(t('functies.praten.nooit'))}</span>`, ' grijs'),
+    rij(icoon('<path d="M3 21V9l9-6 9 6v12"/><path d="M7 21v-8h10v8M7 17h10"/>'), t('functies.praten.rij.nooit'), t('functies.praten.rij.nooitZin'), `<span class="breinnooit">${esc(t('w.nooit'))}</span>`, ' grijs'),
   ].join('');
   const zinnen = ['functies.praten.zin1', 'functies.praten.zin2', 'functies.praten.zin3', ...(p.taalmodel ? ['functies.praten.zin4'] : [])];
   return `<div class="stemrechts">
@@ -412,7 +412,7 @@ function luisterVak() {
     <h2 class="kop-2">${esc(t('functies.luister.kop'))}</h2>
     <div class="wekwoord"><span class="bol" aria-hidden="true"></span><div><b>"Hé huis"</b><span>${esc(t('functies.luister.wekwoordZin'))}</span></div></div>
     <span class="veldnaam geen-marge">${esc(t('functies.luister.hier'))}</span>
-    <div class="keuzes" role="group" aria-label="${esc(t('functies.luister.hierLabel'))}" style="flex-wrap: nowrap"><button type="button" data-hier="aan" aria-pressed="${hier}" ${https ? '' : 'disabled'}>${esc(t('functies.aan'))}</button><button type="button" data-hier="uit" aria-pressed="${!hier}">${esc(t('functies.uit'))}</button></div>
+    <div class="keuzes" role="group" aria-label="${esc(t('functies.luister.hierLabel'))}" style="flex-wrap: nowrap"><button type="button" data-hier="aan" aria-pressed="${hier}" ${https ? '' : 'disabled'}>${esc(t('w.aan'))}</button><button type="button" data-hier="uit" aria-pressed="${!hier}">${esc(t('w.uit'))}</button></div>
     ${https ? '' : `<p class="uitleg" style="color: var(--zon-t)">${esc(t('functies.luister.https'))}</p>`}
     ${hier && https ? schuiven(luisterStand?.zelf === true) : ''}
     <p class="mini">${esc(verstaan ? t('functies.luister.verstaanHuis', { naam: verstaan.replace(/^stt\./, '').replace(/_/g, ' ') }) : t('functies.luister.verstaanHA'))}</p>
@@ -454,7 +454,7 @@ function weer() {
   const meteo = bronnen.find((b) => b.id === 'open-meteo');
   const andere = bronnen.filter((b) => b.id !== 'open-meteo');
   const anderGekozen = concept.weer.bron !== 'open-meteo';
-  return `<h2 class="kop-2">${esc(t('functies.weer.kop'))}</h2>
+  return `<h2 class="kop-2">${esc(t('w.weer'))}</h2>
     ${meteo ? keuzes(t('functies.weer.bron'), 'weerBron', [['open-meteo', t('functies.weer.meteo')]], concept.weer.bron) : ''}
     <p class="mini">${esc(t('functies.weer.waarvoor'))}</p>
     <details ${anderGekozen ? 'open' : ''}><summary class="mini" style="cursor: pointer; font-weight: 700; color: var(--zacht)">${esc(t('functies.weer.andere'))}</summary>
@@ -466,10 +466,10 @@ function weer() {
 }
 
 /** Meldingen (besluit 149): onder welk percentage een batterij of filter een melding geeft. */
-const DREMPELS = () => [[null, t('functies.nooit')], [5, '5%'], [10, '10%'], [20, '20%'], [30, '30%']];
+const DREMPELS = () => [[null, t('w.nooit')], [5, '5%'], [10, '10%'], [20, '20%'], [30, '30%']];
 function meldingen() {
   const m = concept.meldingen;
-  return `<h2 class="kop-2">${esc(t('functies.meld.kop'))}</h2>
+  return `<h2 class="kop-2">${esc(t('w.meldingen'))}</h2>
     <span class="veldnaam">${esc(t('functies.meld.batterij'))}</span>
     ${keuzes(t('functies.meld.batterijLabel'), 'drempelBatterij', DREMPELS(), m.batterij)}
     <span class="veldnaam">${esc(t('functies.meld.filter'))}</span>
@@ -499,24 +499,24 @@ function alleDelen() {
   if (!info || !concept) return [];
   const f = concept;
   const beelden = f.cameras.aan ? f.cameras.lijst.length : 0;
-  const weerNaam = (info.gevonden.weerbronnen ?? []).find((b) => b.id === f.weer.bron)?.naam?.replace(' (via internet)', '') ?? t('instellingen.geen');
+  const weerNaam = (info.gevonden.weerbronnen ?? []).find((b) => b.id === f.weer.bron)?.naam?.replace(' (via internet)', '') ?? t('w.geen');
   const s = f.deurbel.seconden;
   return [
-    { id: 'cameras', titel: t('functies.cameras'), zin: f.cameras.aan ? t('functies.deel.inApp', { n: beelden }) : t('functies.deel.uit'), stand: 'goed' },
-    { id: 'deurbel', titel: t('functies.deurbel'), zin: f.deurbel.aan ? t('instellingen.beeld', { duur: s >= 60 ? t('algemeen.minuten', { n: s / 60 }) : t('instellingen.seconden', { n: s }) }) : t('functies.deel.uit'), stand: f.deurbel.aan && (!f.deurbel.melder || !f.deurbel.camera) ? 'mist' : 'goed' },
+    { id: 'cameras', titel: t('functies.cameras'), zin: f.cameras.aan ? t('functies.deel.inApp', { n: beelden }) : t('w.uit2'), stand: 'goed' },
+    { id: 'deurbel', titel: t('w.deurbel'), zin: f.deurbel.aan ? t('instellingen.beeld', { duur: s >= 60 ? t('algemeen.minuten', { n: s / 60 }) : t('instellingen.seconden', { n: s }) }) : t('w.uit2'), stand: f.deurbel.aan && (!f.deurbel.melder || !f.deurbel.camera) ? 'mist' : 'goed' },
     { id: 'licht', titel: t('functies.licht'), zin: t((info.lichtMogelijk || info.schermMogelijk) && f.licht.bedienen ? 'instellingen.bedienen' : 'instellingen.alleenKijken'), stand: 'goed' },
-    { id: 'weer', titel: t('functies.weer.kop'), zin: weerNaam, stand: f.weer.bron ? 'goed' : 'leeg' },
-    { id: 'meldingen', titel: t('functies.meld.kop'), zin: drempelZin(f.meldingen), stand: 'goed' },
+    { id: 'weer', titel: t('w.weer'), zin: weerNaam, stand: f.weer.bron ? 'goed' : 'leeg' },
+    { id: 'meldingen', titel: t('w.meldingen'), zin: drempelZin(f.meldingen), stand: 'goed' },
     { id: 'praten', titel: t('functies.deel.praten'), zin: f.praten.taalmodel ? (info.gevonden.taalmodellen ?? []).find((m) => m.id === f.praten.taalmodel)?.naam ?? t('functies.deel.eigen') : t('functies.deel.vast'), stand: 'goed' },
     // Stem en luisteren (besluit 212): de stem van je huis, en "Hé huis".
     { id: 'stem', titel: t('functies.deel.stem'), zin: (stemmen?.opties ?? []).find((o) => o.id === stemGekozen())?.naam ?? t('functies.deel.vanzelf'), stand: 'goed' },
     // Te doen (besluit 216): de lijsten en agenda's van Home Assistant.
-    { id: 'tedoen', titel: t('functies.deel.tedoen'), zin: f.tedoen?.aan ? t('functies.tedoen.zin', { n: ['boodschappen', 'todo', 'afval', 'gezin'].filter((k) => f.tedoen[k]).length }) : t('functies.deel.uit'), stand: 'goed' },
+    { id: 'tedoen', titel: t('w.teDoen'), zin: f.tedoen?.aan ? t('functies.tedoen.zin', { n: ['boodschappen', 'todo', 'afval', 'gezin'].filter((k) => f.tedoen[k]).length }) : t('w.uit2'), stand: 'goed' },
   ];
 }
 
 function drempelZin(m) {
-  const z = (v) => (v == null ? t('functies.drempel.nooit') : t('functies.drempel.onder', { pct: v }));
+  const z = (v) => (v == null ? t('functies.deel.nooit') : t('functies.drempel.onder', { pct: v }));
   return m.batterij === m.filter ? z(m.batterij) : t('functies.drempel.apart', { batterij: z(m.batterij), filter: z(m.filter) });
 }
 
@@ -527,7 +527,7 @@ function tekenNu() {
   const nu = groep.tekenDelen(delen().map((x) => (x.id && nogTekst(x.id) ? { ...x, nog: nogTekst(x.id) } : x)));
   const vorm = { cameras, deurbel, licht, weer, praten, stem: stemVorm, tedoen: teDoenVorm, meldingen }[nu]?.() ?? '';
   // Terug naar standaard (besluit 204): rechtsboven, alleen als dit deel afwijkt van wat de app voorstelt.
-  const terug = afwijkend(nu) ? `<button type="button" class="knop stdknop" data-standaard-deel="${esc(nu)}">${esc(t('functies.std'))}</button>` : '';
+  const terug = afwijkend(nu) ? `<button type="button" class="knop stdknop" data-standaard-deel="${esc(nu)}">${esc(t('w.terugNaarStandaard'))}</button>` : '';
   $$('[data-vorm]').forEach((el) => {
     el.innerHTML = terug + nogKlaar(nu) + vorm;
     el.classList.toggle('metstd', !!terug);

@@ -145,7 +145,7 @@ function huisModel() {
   const paalLabel = tek.auto;
   if (paalLabel && paalLabel.stand === 'laadt' && autoKw > 0.05) {
     const pctZon = Math.round((autoZon / autoKw) * 100);
-    labels.push({ bij: 'laadpaal', titel: t('thuis.label.laadt', { kw: getal(autoKw) }), tik: 'laadpaal', tikLabel: t('paal.label'), toon: pctZon >= 50 ? 'zon' : 'violet', regels: [pctZon >= 5 ? t('thuis.label.laadtZon', { pct: pctZon }) : t('thuis.label.laadtNet'), ...(paalLabel.procent != null ? [t('thuis.label.autoPct', { pct: paalLabel.procent })] : [])], dx: -30, dy: -96 });
+    labels.push({ bij: 'laadpaal', titel: t('thuis.label.laadt', { kw: getal(autoKw) }), tik: 'laadpaal', tikLabel: t('paal.label'), toon: pctZon >= 50 ? 'zon' : 'violet', regels: [pctZon >= 5 ? t('thuis.label.laadtZon', { pct: pctZon }) : t('w.vanHetNet'), ...(paalLabel.procent != null ? [t('thuis.label.autoPct', { pct: paalLabel.procent })] : [])], dx: -30, dy: -96 });
   } else if (paalLabel && autoKw < -0.05) labels.push({ bij: 'laadpaal', titel: t('thuis.label.autoLevert', { kw: getal(-autoKw) }), toon: 'ijs', dx: -30, dy: -96 });
   // Van het net in violet, terug in groen: dezelfde kleur als de lijn (besluit 187).
   if (!s.geschat) labels.push({ bij: 'net', titel: netKw > 0.05 ? t('thuis.label.vanNet', { kw: getal(netKw) }) : netKw < -0.05 ? t('thuis.label.terug', { kw: getal(-netKw) }) : t('thuis.label.nietsNet'), toon: netKw > 0.05 ? 'violet' : 'mint', dx: 40, dy: 64, tik: 'stroom:net', tikLabel: t('stroom.label') });
@@ -164,7 +164,7 @@ function huisModel() {
         ? [t(w.opZon ? 'thuis.water.naarZon' : 'thuis.water.naarNet', { doel }), ...kw]
         : w.opZon
           ? [t('thuis.water.wachtZon'), t('thuis.water.doel', { doel: w.zonC })]
-          : [t('thuis.water.genoeg')];
+          : [t('thuis.boiler.rust')];
     labels.push({
       bij,
       titel: w.tempC == null ? x.naam : `${getal(w.tempC, 0)}°`,
@@ -235,7 +235,7 @@ function tekenStromenTel() {
   const netKw = s.netKw ?? 0;
   const delen = [];
   // De zon alleen als het huis panelen heeft; 's nachts gewoon 0.
-  if (s.zonKw != null) delen.push(vak(ZON, 'zon-t', `${getal(s.zonKw)} kW`, t('thuis.stromen.zon'), 'zon'));
+  if (s.zonKw != null) delen.push(vak(ZON, 'zon-t', `${getal(s.zonKw)} kW`, t('w.zon'), 'zon'));
   // Zonder slimme meter (besluit 196): wat er geschat over is, en geen net.
   if (s.geschat) {
     if (s.overKw != null) delen.push(vak(HUIS, '', `± ${getal(s.overKw)} kW`, t('thuis.stromen.overGeschat')));
@@ -245,10 +245,10 @@ function tekenStromenTel() {
   }
   if (s.verbruikKw != null) delen.push(vak(HUIS, '', `${getal(s.verbruikKw)} kW`, t('thuis.stromen.huis'), 'huis'));
   delen.push(netKw > 0.05
-    ? vak(NET, 'violet-t', `${getal(netKw)} kW`, t('thuis.stromen.vanNet'), 'net')
+    ? vak(NET, 'violet-t', `${getal(netKw)} kW`, t('w.vanHetNet2'), 'net')
     : netKw < -0.05
-      ? vak(NET, 'mint-t', `${getal(-netKw)} kW`, t('thuis.stromen.terug'), 'net')
-      : vak(NET, '', '0 kW', t('thuis.stromen.net'), 'net'));
+      ? vak(NET, 'mint-t', `${getal(-netKw)} kW`, t('w.terug'), 'net')
+      : vak(NET, '', '0 kW', t('w.net'), 'net'));
   el.innerHTML = delen.join('');
   el.hidden = false;
 }
@@ -320,7 +320,7 @@ function tekenDoet() {
   $$('[data-doet]').forEach((el) => {
     el.hidden = !d;
     if (!d) return;
-    const lang = t('thuis.doet.lang.kijkt');
+    const lang = t('w.sunarcKijktMee');
     const tel = d.van > 0 ? t('thuis.doet.gelijk', { n: d.van, gelijk: d.gelijk }) : '';
     el.setAttribute('aria-label', [lang, zin, tel].filter(Boolean).join('. '));
     if (el.closest('#tel')) {
@@ -427,7 +427,7 @@ function tekenVerbruikVandaag() {
   $$('[data-dag]').forEach((box) => (box.innerHTML = `<div class="dagcijfers">${cijfer(t('thuis.verbruik.gebruikt'), s ? `${getal(s.verbruikKwh)} <small>kWh</small>` : '–')}${euroNu != null ? cijfer(t('thuis.verbruik.kosten'), `${taal.valuta()} ${getal(euroNu, 2)}`) : ''}</div>${strook}`));
   zet('[data-opgewekt]', '');
   zet('[data-dag-zin]', zin);
-  $$('[data-vandaag-tegel]').forEach((el) => (el.outerHTML = tegel({ id: 'vandaag', naam: t('thuis.kaart.vandaag'), waarde: s ? `${getal(s.verbruikKwh)} <small>kWh</small>` : '–', zin: euroNu != null ? t('thuis.verbruik.tegel', { euro: getal(euroNu, 2) }) : '' }).replace('class="ktegel', 'data-vandaag-tegel class="ktegel')));
+  $$('[data-vandaag-tegel]').forEach((el) => (el.outerHTML = tegel({ id: 'vandaag', naam: t('w.vandaag'), waarde: s ? `${getal(s.verbruikKwh)} <small>kWh</small>` : '–', zin: euroNu != null ? t('thuis.verbruik.tegel', { euro: getal(euroNu, 2) }) : '' }).replace('class="ktegel', 'data-vandaag-tegel class="ktegel')));
   $$('[data-dag-eenvoudig]').forEach((el) => (el.innerHTML = s ? `${vet('thuis.verbruik.eenvoudig', { kwh: getal(s.verbruikKwh) })} ${esc(zin)}` : esc(zin)));
 }
 
@@ -471,7 +471,7 @@ function tekenVandaag() {
     ${helder ? `<path d="${helder}" fill="none" stroke="#F7B548" stroke-opacity="0.35" stroke-dasharray="2 4"/>` : ''}
     <path d="${vlak}" fill="url(#zonvlak-${i})"/><path d="${lijn}" fill="none" stroke="#F7B548" stroke-width="2"/>
     <line x1="${nuX}" y1="14" x2="${nuX}" y2="${hoog - 14}" stroke="#EEF3F7" stroke-opacity="0.6"/>
-    <text x="${nuX}" y="10" fill="#B8C4CF" font-size="10" text-anchor="middle" font-family="Figtree">${esc(t('thuis.nuKlein'))}</text>
+    <text x="${nuX}" y="10" fill="#B8C4CF" font-size="10" text-anchor="middle" font-family="Figtree">${esc(t('w.nu'))}</text>
     <g font-family="Figtree" font-size="10.5" fill="#7F8E9C">${banenSvg}${uren}</g>
   </svg>`));
   const kwh = (vandaag.zonWh ?? 0) / 1000;
@@ -486,7 +486,7 @@ function tekenVandaag() {
   const kLijn = kw.map((q, i) => `${i ? 'L' : 'M'} ${kx(q.tMs).toFixed(1)} ${ky(q.zonW ?? 0).toFixed(1)}`).join(' ');
   const kHelder = lijn2.punten.map((q, i) => `${i ? 'L' : 'M'} ${kx(q.tMs).toFixed(1)} ${ky(q.w).toFixed(1)}`).join(' ');
   const grafiek = `<svg class="grafiek" viewBox="0 0 260 44" preserveAspectRatio="none" aria-hidden="true">${kHelder ? `<path d="${kHelder}" fill="none" stroke="#F7B548" stroke-opacity="0.45" stroke-width="1.5" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>` : ''}<path d="${kLijn} L ${kx(laatste.tMs).toFixed(1)} 42 L 0 42 Z" fill="rgb(247 181 72 / 0.22)"/><path d="${kLijn}" fill="none" stroke="#F7B548" stroke-width="2" vector-effect="non-scaling-stroke"/><line x1="${kx(Date.now()).toFixed(1)}" y1="0" x2="${kx(Date.now()).toFixed(1)}" y2="44" stroke="rgb(255 255 255 / 0.5)" vector-effect="non-scaling-stroke"/></svg>`;
-  $$('[data-vandaag-tegel]').forEach((el) => (el.outerHTML = tegel({ id: 'vandaag', naam: t('thuis.kaart.vandaag'), waarde: `${getal(kwh)} <small>kWh</small>`, zin: kwh > 0.05 && app.huisSoort()?.meter !== false ? t('thuis.tegel.zelf', { pct: getal(Math.max(0, Math.min(100, ((kwh - terug) / kwh) * 100)), 0) }) : '', beeld: grafiek, klasse: 'metgrafiek' }).replace('class="ktegel', 'data-vandaag-tegel class="ktegel')));
+  $$('[data-vandaag-tegel]').forEach((el) => (el.outerHTML = tegel({ id: 'vandaag', naam: t('w.vandaag'), waarde: `${getal(kwh)} <small>kWh</small>`, zin: kwh > 0.05 && app.huisSoort()?.meter !== false ? t('thuis.tegel.zelf', { pct: getal(Math.max(0, Math.min(100, ((kwh - terug) / kwh) * 100)), 0) }) : '', beeld: grafiek, klasse: 'metgrafiek' }).replace('class="ktegel', 'data-vandaag-tegel class="ktegel')));
   const uitleg = t('thuis.vandaag.gestippeld', { lijn: lijn2.naam });
   // Zonder slimme meter (besluit 196) weet het huis niet wat er terugging: dan geen deel zelf gebruikt.
   const metMeter = app.huisSoort()?.meter !== false;
@@ -630,7 +630,7 @@ async function tekenWieBlad() {
   const rijen = lijst.map((b) => {
     const temps = wieTemps.get(b.id);
     const isThuis = thuis.has(b.id);
-    const onder = isThuis ? `<span class="thuis-t">${esc(t('thuis.wie.thuis'))}</span>` : esc(b.thuisSindsMs ? t('thuis.wie.wegSindsKort', { klok: klokVan(b.thuisSindsMs) }) : t('thuis.wie.wegKort'));
+    const onder = isThuis ? `<span class="thuis-t">${esc(t('w.thuis'))}</span>` : esc(b.thuisSindsMs ? t('w.wegSinds', { klok: klokVan(b.thuisSindsMs) }) : t('w.weg'));
     const rechts = temps ? [temps.dag != null ? vet('thuis.wie.overdag', { graden: graad(temps.dag) }) : '', temps.nacht != null ? vet('thuis.wie.snachts', { graden: graad(temps.nacht) }) : ''].filter(Boolean).join('<br>') : '';
     return rij(b.id, `<span class="gezicht${isThuis ? '' : ' afwezig'}" data-kleur="${esc(app.kleurVan(b.id))}" aria-hidden="true">${esc(b.naam.charAt(0).toUpperCase())}</span>`, b.naam, onder, rechts, gekozen === b.id);
   }).join('');

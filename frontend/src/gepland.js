@@ -48,8 +48,8 @@ const aan = (g) => g.opdracht?.aan !== false;
 /** "vandaag", "morgen", "di". */
 function dagWoord(ms) {
   const n = dagenVan(ms);
-  if (n === 0) return t('gp.vandaag');
-  if (n === 1) return t('gp.morgen');
+  if (n === 0) return t('w.vandaag2');
+  if (n === 1) return t('w.morgen');
   return new Intl.DateTimeFormat(taal.code === 'en' ? 'en-GB' : 'nl-NL', { weekday: 'short' }).format(ms).replace('.', '');
 }
 
@@ -78,20 +78,20 @@ function blad(g) {
   const tijd = `${String(m.uur ?? 7).padStart(2, '0')}:${String(m.minuut ?? 0).padStart(2, '0')}`;
   const wanneer = m.soort === 'tijd'
     ? `<input class="gp-tijd" type="time" value="${tijd}" data-gp-tijd aria-label="${esc(t('gp.tijd'))}">`
-    : `<div class="gp-stapper"><button type="button" data-gp-min="-5" aria-label="${esc(t('gp.eerder'))}">−</button><b>${esc(stapperTekst(m))}</b><button type="button" data-gp-min="5" aria-label="${esc(t('gp.later'))}">+</button></div><div class="gp-zo">${esc(voorproef(m))}</div>`;
+    : `<div class="gp-stapper"><button type="button" data-gp-min="-5" aria-label="${esc(t('w.eerder'))}">−</button><b>${esc(stapperTekst(m))}</b><button type="button" data-gp-min="5" aria-label="${esc(t('w.later'))}">+</button></div><div class="gp-zo">${esc(voorproef(m))}</div>`;
   const keuzes = ['een', 'dag', 'werkdagen', 'weekend', 'dagen'].map((s) => `<button type="button" data-gp-herhaal="${s}" aria-pressed="${h.soort === s}"><span>${esc(t(s === 'dagen' ? 'gp.kiesDagen' : `gp.h.${s}`))}</span></button>`).join('');
   const dagen = h.soort === 'dagen' ? `<div class="gp-dagen">${[1, 2, 3, 4, 5, 6, 7].map((d) => `<button type="button" data-gp-dag="${d}" aria-pressed="${(h.dagen ?? []).includes(d)}">${esc(t(`gp.d${d}`))}</button>`).join('')}</div>` : '';
-  return `<div class="boven"><h2>${esc(g.tekst)}</h2><button class="schakelaar" type="button" role="switch" aria-checked="${openOpdracht.aan}" aria-label="${esc(t('gp.aan'))}" data-gp-blad-aan></button><button class="sluit" type="button" data-gp-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
+  return `<div class="boven"><h2>${esc(g.tekst)}</h2><button class="schakelaar" type="button" role="switch" aria-checked="${openOpdracht.aan}" aria-label="${esc(t('w.aan'))}" data-gp-blad-aan></button><button class="sluit" type="button" data-gp-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
     <div class="gp-kolom">
       <div class="gp-vraag"><span>${esc(t('gp.wat'))}</span><div class="gp-waarde"><b>${esc(g.tekst)}${sceneLampen(g).map((r) => `<small>${esc(r)}</small>`).join('')}</b></div></div>
-      <div class="gp-vraag"><span>${esc(t('gp.wanneer'))}</span><div class="keuze">${seg}</div>${wanneer}</div>
+      <div class="gp-vraag"><span>${esc(t('w.wanneer'))}</span><div class="keuze">${seg}</div>${wanneer}</div>
     </div>
     <div class="gp-kolom">
       <div class="gp-vraag" ${herhaalOpen ? 'hidden' : ''}><span>${esc(t('gp.herhalen'))}</span><button type="button" class="gp-waarde" data-gp-herhalen><b>${esc(herhaalNaam(h))}</b><i>›</i></button></div>
       <div class="gp-vraag" ${herhaalOpen ? '' : 'hidden'}><span>${esc(t('gp.herhalen'))}</span><div class="gp-keus">${keuzes}</div>${dagen}</div>
       <div class="gp-rij" ${herhaalOpen ? 'hidden' : ''}><span>${esc(t('gp.overslaan'))}<small>${esc(t('gp.overslaanZin'))}</small></span><button class="schakelaar" type="button" role="switch" aria-checked="${openOpdracht.overslaanWeg}" aria-label="${esc(t('gp.overslaan'))}" data-gp-weg></button></div>
       ${fout ? `<div class="gp-fout">${esc(fout)}</div>` : ''}
-      <div class="gp-onder" ${herhaalOpen ? 'hidden' : ''}><button class="weg" type="button" data-gp-weghalen>${esc(t('gp.weghalen'))}</button><button class="bewaar" type="button" data-gp-bewaar>${esc(t('gp.bewaar'))}</button></div>
+      <div class="gp-onder" ${herhaalOpen ? 'hidden' : ''}><button class="weg" type="button" data-gp-weghalen>${esc(t('w.weghalen'))}</button><button class="bewaar" type="button" data-gp-bewaar>${esc(t('w.bewaar'))}</button></div>
     </div>`;
 }
 
@@ -101,7 +101,7 @@ function teken() {
   app.schaal?.();
   const tel = telStand();
   const kop = `<a class="terugje" href="tedoen.html">${esc(t('gp.terug'))}</a>
-    <div class="gp-kop"><div><h1 class="kop-1">${esc(t('gp.kop'))}</h1><p class="lead">${esc(t('gp.lead'))} <q>${esc(t('gp.voorbeeld'))}</q>.</p></div><button type="button" class="gp-nieuw" data-gp-nieuw>${esc(t('gp.nieuw'))}</button></div>`;
+    <div class="gp-kop"><div><h1 class="kop-1">${esc(t('w.vastEnGepland'))}</h1><p class="lead">${esc(t('gp.lead'))} <q>${esc(t('gp.voorbeeld'))}</q>.</p></div><button type="button" class="gp-nieuw" data-gp-nieuw>${esc(t('w.nieuw2'))}</button></div>`;
   let html;
   if (!data) html = `${kop}<p class="mini">${esc(t('algemeen.laden'))}</p>`;
   else if (!data.aan) html = `${kop}<section class="glas gp-lijst"><p class="gp-leeg">${esc(t('tedoen.uit'))}</p></section>`;
@@ -117,11 +117,11 @@ function teken() {
     ].sort((a, b) => a.ms - b.ms);
     const op = zon?.dag?.opMs != null ? klok(zon.dag.opMs) : null;
     const onder = zon?.dag?.onderMs != null ? klok(zon.dag.onderMs) : null;
-    const dag = `<section class="glas gp-dag"><h2>${esc(t('gp.vandaag.kop'))}${op && onder ? `<span>${esc(t('gp.zonOpOnder', { op, onder }))}</span>` : ''}</h2>${boog(opBoog, tel)}</section>`;
+    const dag = `<section class="glas gp-dag"><h2>${esc(t('w.vandaag'))}${op && onder ? `<span>${esc(t('gp.zonOpOnder', { op, onder }))}</span>` : ''}</h2>${boog(opBoog, tel)}</section>`;
     const leeg = !alle.length ? `<p class="gp-leeg">${esc(t('gp.leeg'))}</p>` : '';
     // Wat nu met de hand of op zon loopt (besluit 238): een eigen blok bovenaan.
     const nu = hand.nuHtml();
-    const links = `<section class="glas gp-lijst">${nu ? `<h3>${esc(t('gp.nu'))}</h3><div class="nu-regels">${nu}</div>` : ''}<h3>${esc(t('gp.vandaagNog'))}</h3>${leeg}${vandaag.map((g) => regel(g)).join('')}${gedaan.map((g) => regel(g, true)).join('')}${!leeg && !vandaag.length && !gedaan.length ? `<p class="gp-leeg">${esc(t('gp.nietsMeer'))}</p>` : ''}</section>`;
+    const links = `<section class="glas gp-lijst">${nu ? `<h3>${esc(t('w.nu2'))}</h3><div class="nu-regels">${nu}</div>` : ''}<h3>${esc(t('gp.vandaagNog'))}</h3>${leeg}${vandaag.map((g) => regel(g)).join('')}${gedaan.map((g) => regel(g, true)).join('')}${!leeg && !vandaag.length && !gedaan.length ? `<p class="gp-leeg">${esc(t('gp.nietsMeer'))}</p>` : ''}</section>`;
     const rechts = `<section class="glas gp-lijst"><h3>${esc(t('gp.komend'))}</h3>${later.map((g) => regel(g)).join('') || `<p class="gp-leeg">${esc(t('gp.nietsKomend'))}</p>`}<p class="tip">${esc(t('gp.tip'))}</p></section>`;
     const g = openOpdracht ? alle.find((x) => x.id === openOpdracht.id) : null;
     const bladHtml = g ? `${tel ? '<div class="gp-achter" data-gp-sluit></div>' : ''}<aside class="glas gp-blad" role="dialog" aria-label="${esc(g.tekst)}">${blad(g)}</aside>` : '';
@@ -146,7 +146,7 @@ async function stuur(body) {
   const res = await deur('api/te-doen', body);
   if (!res) return false;
   if (!res.ok) {
-    fout = (await res.json().catch(() => null))?.fout ?? t('gp.lukteNiet');
+    fout = (await res.json().catch(() => null))?.fout ?? t('w.datLukteNiet');
     teken();
     return false;
   }

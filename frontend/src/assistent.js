@@ -771,7 +771,7 @@ function tekenNu() {
   const scherm = beweegtNog();
   $$('[data-stop]').forEach((el) => {
     el.hidden = stand !== 'praat';
-    el.textContent = taal.t(scherm ? 'assistent.stil' : 'kamer.scherm.stop');
+    el.textContent = taal.t(scherm ? 'w.stil' : 'kamer.scherm.stop');
     el.classList.toggle('zacht', !!scherm);
   });
   $$('[data-stopscherm]').forEach((el) => {

@@ -179,7 +179,7 @@
   function hulpDuur(min) {
     const u = Math.floor(min / 60);
     const m = Math.round(min % 60);
-    return u === 0 ? t('regeling.helpen.min', { n: m }) : m === 0 ? t('regeling.helpen.uur', { n: u }) : t('regeling.helpen.uurMin', { u, m });
+    return u === 0 ? t('algemeen.minuten', { n: m }) : m === 0 ? t('regeling.helpen.uur', { n: u }) : t('regeling.helpen.uurMin', { u, m });
   }
   function hulpBlok(a) {
     const h = helpen?.aircos?.find((x) => x.id === a.actuatorId);
@@ -449,7 +449,7 @@
     });
     if (!res) return false;
     if (!res.ok) {
-      fout = (await res.json().catch(() => null))?.fout ?? t('gp.lukteNiet');
+      fout = (await res.json().catch(() => null))?.fout ?? t('w.datLukteNiet');
       return false;
     }
     fout = '';
@@ -690,7 +690,7 @@
       if ((open.wanneer === 'nu' && open.tot === 'u4') || (open.wanneer !== 'nu' && open.tot === 'tijd')) open.tot = 'u1';
     } else if ((x = el('[data-st-weg]'))) {
       const res = await deur('api/te-doen', { actie: 'annuleer', id: x.dataset.stWeg });
-      if (res && !res.ok) fout = (await res.json().catch(() => null))?.fout ?? t('gp.lukteNiet');
+      if (res && !res.ok) fout = (await res.json().catch(() => null))?.fout ?? t('w.datLukteNiet');
       await laadTaken();
     } else if (el('[data-st-terug]')) {
       if (await stuur('api/stekker', { id: open.st, terug: true })) open = null;

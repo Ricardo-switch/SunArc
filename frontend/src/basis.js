@@ -533,7 +533,7 @@
       <span class="alarm-puls" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20c-2.5 0-4-1.8-4-3.8 0-2.6 2.4-3.4 2.4-6.2 2 1 3 2.8 3 4.4.6-.8 1-2 1-3.4 2.4 1.4 4.6 3.6 4.6 6.6 0 1.7-1.3 2.4-2 2.4"/><path d="M14 6c1-1 1-2.5 0-3.5M18 8c1-1 1-2.5 0-3.5"/></svg></span>
       <h1>${esc(titel)}</h1>
       <p class="alarm-zin">${esc(`${ziet} ${raad}`)}</p>
-      <div class="alarm-lijst">${(m.melders ?? []).map((x) => `<div><b>${esc(x.kamer)}</b><span class="${x.gevaar ? '' : 'ok'}">${esc(x.gevaar ? WAT(x.gevaar) : global.t('basis.alarm.niets'))}</span></div>`).join('')}</div>
+      <div class="alarm-lijst">${(m.melders ?? []).map((x) => `<div><b>${esc(x.kamer)}</b><span class="${x.gevaar ? '' : 'ok'}">${esc(x.gevaar ? WAT(x.gevaar) : global.t('w.niets'))}</span></div>`).join('')}</div>
       <button type="button" class="knop knop-licht" data-alarm-dicht>${esc(global.t('algemeen.sluiten'))}</button>
       <p class="alarm-klein">${esc(global.t('basis.alarm.uitzetten'))}</p>
     </div>`;
@@ -581,7 +581,7 @@
     stopBeelden(laag);
     laag.camera = m;
     // Van de kaart Camera's (besluit 201): de regel van de camera, en de andere camera's eronder om te wisselen.
-    const onder = m.zin ? `${esc(m.naam ?? '')} · ${esc(m.zin)}` : `${esc(m.naam ?? global.t('basis.bel.deurbel'))}, ${klokVan(m.tMs ?? Date.now())}`;
+    const onder = m.zin ? `${esc(m.naam ?? '')} · ${esc(m.zin)}` : `${esc(m.naam ?? global.t('w.deurbel'))}, ${klokVan(m.tMs ?? Date.now())}`;
     const rij = Array.isArray(m.andere) && m.andere.length > 1
       ? `<div class="aanbel-rij" role="group" aria-label="${esc(global.t('basis.bel.andere'))}">${m.andere.map((a, i) => `<button type="button" data-bel-wissel="${i}" aria-pressed="${a.camera === m.camera}">${a.plaatje ? `<img alt="" src="${a.plaatje}">` : ''}<span>${esc(a.naam)}</span></button>`).join('')}</div>`
       : '';
@@ -655,7 +655,7 @@
     if (!res?.ok) {
       if (live) return;
       vak.innerHTML = res?.status === 401
-        ? `<p>${esc(global.t('basis.bel.inloggen'))} <a href="auth/login?terug=${encodeURIComponent(location.pathname + location.hash)}">${esc(global.t('basis.bel.inlogKnop'))}</a></p>`
+        ? `<p>${esc(global.t('basis.bel.inloggen'))} <a href="auth/login?terug=${encodeURIComponent(location.pathname + location.hash)}">${esc(global.t('w.inloggen'))}</a></p>`
         : `<p>${esc(global.t('basis.bel.geenBeeld'))}</p>`;
       return;
     }
@@ -664,7 +664,7 @@
     const url = URL.createObjectURL(await res.blob());
     if (!laag.isConnected) return URL.revokeObjectURL(url);
     // Is het live beeld er al, dan het plaatje niet eroverheen.
-    if (!live) vak.innerHTML = `<img alt="${esc(global.t('basis.bel.beeldVan', { naam }))}" src="${url}">`;
+    if (!live) vak.innerHTML = `<img alt="${esc(global.t('w.beeldVan', { naam }))}" src="${url}">`;
     else URL.revokeObjectURL(url);
     clearInterval(belVers);
     let bezig = false;
@@ -1041,7 +1041,7 @@
     $$('[data-naar-ha-knop]').forEach((k) => k.remove());
     if (!inHA() || !volledigGekozen()) return;
     const uit = gepauzeerd();
-    const label = esc(global.t(uit ? 'basis.volledig' : 'basis.naarHA'));
+    const label = esc(global.t(uit ? 'w.volledigScherm' : 'basis.naarHA'));
     const wat = uit ? `data-weer-volledig aria-label="${label}" title="${label}"` : `data-naar-ha aria-label="${label}" title="${label}"`;
     const icoon = uit ? VOLLEDIG_ICOON : NAAR_HA;
     document.getElementById('balk')?.querySelector('[data-meldbel]')?.insertAdjacentHTML('beforebegin', `<button type="button" class="meldbel naarha" data-naar-ha-knop ${wat}>${icoon}</button>`);

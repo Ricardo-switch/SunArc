@@ -56,7 +56,7 @@ function kanVan(a, r) {
   const graden = (x) => (x == null ? '?' : nl(x, Number.isInteger(x) ? 0 : 1));
   const b = kanBereik(a);
   // Wat hij kan, en van hoe laag tot hoe hoog.
-  const wat = airco && k.kanVerwarmen ? t('inr.kan.koelWarm') : airco ? t('inr.kan.koel') : t('inr.kan.warm');
+  const wat = airco && k.kanVerwarmen ? t('inr.kan.koelWarm') : airco ? t('w.koelen') : t('w.verwarmen');
   const bereikZin = b.min != null && b.max != null ? t('inr.kan.vanTot', { min: graden(b.min), max: graden(b.max) }) : t('inr.kan.geenBereik');
   if (h.doel === 'stooklijn' || h.doel === 'water') {
     punt('ok', `${wat} · ${t(h.doel === 'stooklijn' ? 'inr.kan.stooklijn' : 'inr.kan.water')}`, t(h.doel === 'stooklijn' ? 'inr.kan.stooklijnZin' : 'inr.kan.waterZin', { min: graden(b.min), max: graden(b.max) }));
@@ -238,7 +238,7 @@ function huisDoel(deel, soort) {
 const cfDoel = (id, deel, soort) => (id === 'huis' ? huisDoel(deel, soort) : kamerDoel(d.comfort.kamers.find((k) => k.id === id), deel, soort));
 const volgtHuis = (k, deel, soort) => !kanSoort(k, soort) || kamerDoel(k, deel, soort) === huisDoel(deel, soort);
 const heeftEigen = (k) => DELEN.some((deel) => ['heat', 'cool'].some((s) => !volgtHuis(k, deel, s)));
-const graden = (v) => (v == null ? t('inr.cf.uitWaarde') : `${nl(v)}°`);
+const graden = (v) => (v == null ? t('w.uit2') : `${nl(v)}°`);
 function cfNu() {
   const kamers = d.comfort?.kamers ?? [];
   const k = cfKeuze && kamers.some((x) => x.id === cfKeuze.kamer || cfKeuze.kamer === 'huis') && cfDoel(cfKeuze.kamer, cfKeuze.deel, cfKeuze.soort) !== undefined ? cfKeuze : null;
@@ -252,7 +252,7 @@ function comfortStap() {
   const soorten = [...(kamers.some((k) => k.kanVerwarmen) ? ['heat'] : []), ...(kamers.some((k) => k.kanKoelen) ? ['cool'] : [])];
   const sel = cfNu();
   const dg = dagNu();
-  const deelNaam = { dag: t('inr.cf.overdag'), nacht: t('inr.cf.snachts') };
+  const deelNaam = { dag: t('w.overdag'), nacht: t('inr.cf.snachts') };
   const wat = (deel, soort) => t(soort === 'heat' ? 'inr.cf.onder' : 'inr.cf.boven', { deel: deelNaam[deel] });
   const tal = (id, naam, deel, soort) => {
     const v = cfDoel(id, deel, soort);
@@ -266,10 +266,10 @@ function comfortStap() {
   const volgers = kamers.filter((k) => !heeftEigen(k)).length;
   const telVolgers = (n, m) => (n === m ? t('inr.cf.allen') : t('inr.cf.deel', { n, m }));
   const kop = DELEN.map((deel) => `<button type="button" class="cf-kolkop${sel.deel === deel ? ' aan' : ''}" data-cf-deel="${deel}">${esc(t(`comfort.naam.${deel}`))}<em>${deel === 'dag' ? `${dg.dag}–${dg.nacht}` : `${dg.nacht}–${dg.voorverwarmen}`}</em><small>${soorten.map((s) => `<span class="${s}">${esc(t(s === 'heat' ? 'inr.cf.verwarmen' : 'inr.cf.koelen'))}</span>`).join('')}</small></button>`).join('');
-  const huisRij = `<div class="cf-naam huis"><b>${esc(t('inr.cf.huis'))}</b><span>${esc(telVolgers(volgers, kamers.length))}</span></div>${paren('huis', t('inr.cf.huis'), ' huis')}`;
+  const huisRij = `<div class="cf-naam huis"><b>${esc(t('w.hetHeleHuis'))}</b><span>${esc(telVolgers(volgers, kamers.length))}</span></div>${paren('huis', t('w.hetHeleHuis'), ' huis')}`;
   const kamerRijen = kamers.map((k) => {
     const eigen = heeftEigen(k);
-    const sub = eigen ? t('inr.cf.eigen') : k.kanVerwarmen && k.kanKoelen ? t('inr.cf.beide') : k.kanKoelen ? t('inr.cf.koelt') : t('inr.cf.verwarmt');
+    const sub = eigen ? t('inr.cf.eigen') : k.kanVerwarmen && k.kanKoelen ? t('inr.cf.beide') : k.kanKoelen ? t('w.koelt') : t('w.verwarmt');
     return `<div class="cf-naam${eigen ? ' eigen' : ''}"><b>${esc(k.naam)}</b><span>${esc(sub)}</span></div>${paren(k.id, k.naam)}`;
   }).join('');
   // Eén regel past het gekozen getal aan, met Uit en Zoals het huis.
@@ -281,9 +281,9 @@ function comfortStap() {
     : volgtHuis(k, sel.deel, sel.soort)
       ? `<small>${esc(t('inr.cf.volgt'))}</small>`
       : `<button type="button" class="chip" data-cf-huis>${esc(t('inr.cf.zoalsHuis', { waarde: graden(huisDoel(sel.deel, sel.soort)) }))}</button>`;
-  const bewerk = `<div class="cf-bewerk"><div><b>${esc(k ? k.naam : t('inr.cf.huis'))}</b><span>${esc(wat(sel.deel, sel.soort))}</span></div>
+  const bewerk = `<div class="cf-bewerk"><div><b>${esc(k ? k.naam : t('w.hetHeleHuis'))}</b><span>${esc(wat(sel.deel, sel.soort))}</span></div>
     <span class="stapper"><button type="button" data-cf-stap="-0.5" aria-label="${esc(t('comfort.lager'))}">−</button><b class="${v == null ? 'uit' : sel.soort}">${esc(graden(v))}</b><button type="button" data-cf-stap="0.5" aria-label="${esc(t('comfort.hoger'))}">+</button></span>
-    <div class="cf-keuzes">${knop('data-cf-uit', t('inr.cf.uit'), v == null)}${onder}</div></div>`;
+    <div class="cf-keuzes">${knop('data-cf-uit', t('w.uit'), v == null)}${onder}</div></div>`;
   return {
     waar: waarVan('comfort'),
     kop: t('inr.comfortKop'),
@@ -339,7 +339,7 @@ function afwezigBasis() {
   return { afwezig: { heat: w('afwezig', 'heat', s.warm.afwezig), cool: w('afwezig', 'cool', s.koel.afwezig) }, vakantie: { heat: w('vakantie', 'heat', s.warm.vakantie), cool: w('vakantie', 'cool', s.koel.vakantie) } };
 }
 function afwezigStap() {
-  if (!d.comfort?.kamers?.length) return { waar: waarVan('afwezig'), kop: t('inr.afw.kop'), uitleg: t('inr.comfortLater'), inhoud: '' };
+  if (!d.comfort?.kamers?.length) return { waar: waarVan('afwezig'), kop: t('w.alsNiemandThuisIs2'), uitleg: t('inr.comfortLater'), inhoud: '' };
   const b = afwezigKeuze ?? afwezigBasis();
   const warm = d.comfort.kamers.some((k) => k.kanVerwarmen);
   const koelen = d.comfort.kamers.some((k) => k.kanKoelen);
@@ -352,7 +352,7 @@ function afwezigStap() {
   ];
   return {
     waar: waarVan('afwezig'),
-    kop: t('inr.afw.kop'),
+    kop: t('w.alsNiemandThuisIs2'),
     uitleg: t('inr.afw.zin'),
     inhoud: `<div class="rijen lijst">${rijen.join('')}</div>${tip(t('inr.afw.tip'))}`,
   };
@@ -510,6 +510,6 @@ function liggingStap() {
     kop: k.kop,
     uitleg: k.uitleg,
     inhoud: `<div class="rijen">${k.inhoud}</div>`,
-    voet: [ligStaat.aanpassen ? '' : `<button type="button" class="zachtknop" data-terug>${esc(t('panelen.terug'))}</button>`, rechts],
+    voet: [ligStaat.aanpassen ? '' : `<button type="button" class="zachtknop" data-terug>${esc(t('w.terug'))}</button>`, rechts],
   };
 }

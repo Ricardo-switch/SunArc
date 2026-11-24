@@ -31,7 +31,7 @@ const vermogens = (() => {
     const past = vrij.filter((v) => v.rol === rol);
     const rest = vrij.filter((v) => v.rol !== rol);
     const opties = past.length && rest.length
-      ? `<optgroup label="${esc(t('vermogens.pastHierbij'))}">${past.map(opt).join('')}</optgroup><optgroup label="${esc(t('vermogens.andere'))}">${rest.map(opt).join('')}</optgroup>`
+      ? `<optgroup label="${esc(t('w.pastHierbij'))}">${past.map(opt).join('')}</optgroup><optgroup label="${esc(t('w.andereSensoren'))}">${rest.map(opt).join('')}</optgroup>`
       : vrij.map(opt).join('');
     return `<label class="veldnaam">${esc(label)}<select class="invoer" ${attrs}>${leeg != null ? `<option value="" ${huidig ? '' : 'selected'}>${esc(leeg)}</option>` : ''}${opties}</select></label>`;
   }
@@ -47,7 +47,7 @@ const vermogens = (() => {
       ? `<p class="mini">${esc(t('vermogens.netGeeftNiets'))}</p>`
       : `<p class="mini">${esc(t(nu < 0 ? 'vermogens.netTerug' : 'vermogens.netAf', { w: watt(Math.abs(nu)) }))}</p>`;
     return `<p class="uitleg">${esc(t('vermogens.netUitleg'))}</p>
-      ${keuze(info, 'data-netmeter="afname"', t('vermogens.vanNet'), 'net', net?.afname ?? null, net ? null : t('vermogens.kies'))}
+      ${keuze(info, 'data-netmeter="afname"', t('w.vanHetNet2'), 'net', net?.afname ?? null, net ? null : t('vermogens.kies'))}
       ${net ? keuze(info, 'data-netmeter="terug"', t('vermogens.naarNet'), 'terug', net.terug, t('vermogens.zitErin'), [net.afname]) : ''}
       ${stand}
       <p class="mini">${esc(t('vermogens.netHint'))}</p>`;
@@ -59,7 +59,7 @@ const vermogens = (() => {
     const ids = zonNu(info, a);
     const chips = ids.map((id) => {
       const w = van(info, id)?.w ?? null;
-      const weg = ids.length > 1 ? `<button type="button" data-omvormer-weg="${esc(id)}" aria-label="${esc(t('vermogens.weghalen', { naam: naam(info, id) }))}">${esc(naam(info, id))} · ${esc(watt(w))}<span aria-hidden="true">×</span></button>` : `<span class="meterchip-tekst">${esc(naam(info, id))} · ${esc(watt(w))}</span>`;
+      const weg = ids.length > 1 ? `<button type="button" data-omvormer-weg="${esc(id)}" aria-label="${esc(t('w.weghalen2', { naam: naam(info, id) }))}">${esc(naam(info, id))} · ${esc(watt(w))}<span aria-hidden="true">×</span></button>` : `<span class="meterchip-tekst">${esc(naam(info, id))} · ${esc(watt(w))}</span>`;
       return `<span class="meterchip${w == null ? ' leeg' : ''}">${weg}</span>`;
     }).join('');
     const som = ids.map((id) => van(info, id)?.w).filter((w) => w != null);
@@ -68,7 +68,7 @@ const vermogens = (() => {
     return `<p class="uitleg">${esc(t('vermogens.zonUitleg'))}</p>
       ${ids.length ? `<div class="meterchips">${chips}</div>` : ''}
       ${samen}
-      ${keuze(info, 'data-omvormer-erbij', ids.length ? t('vermogens.nogEen') : t('vermogens.omvormer'), 'zon', null, t('vermogens.kies'), ids)}`;
+      ${keuze(info, 'data-omvormer-erbij', ids.length ? t('vermogens.nogEen') : t('w.omvormer'), 'zon', null, t('vermogens.kies'), ids)}`;
   }
 
   /** Een keuze in een lijst; zet hem in de antwoorden en zegt of er iets te bewaren is. */

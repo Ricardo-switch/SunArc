@@ -449,7 +449,7 @@
       c.gisterenKwh != null && { soort: 'dak', tijd: 'dag', temp: true, anker: 'dak', tekst: { kicker: tk('film.dak.kicker'), groot: `${nl(c.gisterenKwh)} kWh`, kleur: 'var(--zon)', zin: tk('film.dak.zin') }, cam: [[1.3, [0.5, 0.375], [0.75, 0.588]], [1.7, [0.508, 0.363], [0.773, 0.588]]] },
       c.kaarten.length > 0 && { soort: 'apparaten', tijd: 'dag', temp: true, anker: 'zonKamer', cam: [[1.6, [0.516, 0.4], [0.367, 0.588]], [1.9, [0.523, 0.413], [0.352, 0.6]]] },
       assistent && { soort: 'assistent', tijd: 'avond', temp: true, assistent, cam: [[1.2, [0.5, 0.5], [0.789, 0.575]], [1.05, [0.5, 0.513], [0.781, 0.588]]] },
-      c.eigenPct != null && { soort: 'drop', tijd: 'avond', temp: true, drop: true, tekst: { kicker: tk('film.drop.kicker'), groot: `${c.eigenPct}%`, kleur: 'var(--mint)', zin: tk('film.drop.zin') }, cam: [[1.1, [0.5, 0.525], [0.703, 0.575]], [0.9, [0.5, 0.525], [0.688, 0.588]]] },
+      c.eigenPct != null && { soort: 'drop', tijd: 'avond', temp: true, drop: true, tekst: { kicker: tk('w.dezeMaand'), groot: `${c.eigenPct}%`, kleur: 'var(--mint)', zin: tk('film.drop.zin') }, cam: [[1.1, [0.5, 0.525], [0.703, 0.575]], [0.9, [0.5, 0.525], [0.688, 0.588]]] },
       { soort: 'slot', tijd: 'nacht', maten: 4, cam: [[0.92, [0.5, 0.525], [0.5, 0.65]], [0.5, [0.5, 0.525], [0.5, 0.8]]] },
     ].filter(Boolean);
     // Geen getal van de maand: de drop op je dak, of op het shot voor het slot.
@@ -715,7 +715,7 @@
 
     function stukken(b) {
       if (b.soort === 'apparaten') {
-        const kop = c.overKw >= 0.1 ? `<div class="film-kop"><div class="kicker">${esc(tk('film.app.kicker'))}</div><div class="groot">${esc(tk('film.app.over', { kw: nl(c.overKw) }))}</div></div>` : `<div class="film-kop"><div class="kicker">${esc(tk('film.app.kicker'))}</div><div class="groot">${esc(tk('film.app.groot'))}</div></div>`;
+        const kop = c.overKw >= 0.1 ? `<div class="film-kop"><div class="kicker">${esc(tk('w.opJeEigenZon'))}</div><div class="groot">${esc(tk('film.app.over', { kw: nl(c.overKw) }))}</div></div>` : `<div class="film-kop"><div class="kicker">${esc(tk('w.opJeEigenZon'))}</div><div class="groot">${esc(tk('film.app.groot'))}</div></div>`;
         return `<div class="film-kaarten">${kop}${c.kaarten.map((k) => `<div class="film-kaart">${ring({ ...k, tekst: k.ring })}<div><b>${esc(k.naam)}</b><span class="${k.toon}">${esc(k.zin)}</span></div></div>`).join('')}</div>`;
       }
       if (b.soort === 'assistent') {

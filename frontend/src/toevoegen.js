@@ -52,16 +52,16 @@ function lossePaneel() {
     .join('');
   const bestaand = Object.entries(losse.laadpalen ?? {});
   const lijst = bestaand.length
-    ? `<div class="stap"><b>${esc(t('toev.losse.al'))}</b><div class="lijst">${bestaand.map(([id, l]) => `<div class="rij"><span class="ik">${iconen.svg('laadpaal')}</span><b>${esc(l.naam)}</b><small>${esc(t('toev.losse.n', { n: l.sensoren.length }))} · <a href="apparaten.html#laden-${encodeURIComponent(id)}">${esc(t('toev.losse.energie'))}</a></small><button type="button" class="stil" data-lweg="${esc(id)}">${esc(t('toev.weg'))}</button></div>`).join('')}</div></div>`
+    ? `<div class="stap"><b>${esc(t('toev.losse.al'))}</b><div class="lijst">${bestaand.map(([id, l]) => `<div class="rij"><span class="ik">${iconen.svg('laadpaal')}</span><b>${esc(l.naam)}</b><small>${esc(t('toev.losse.n', { n: l.sensoren.length }))} · <a href="apparaten.html#laden-${encodeURIComponent(id)}">${esc(t('toev.losse.energie'))}</a></small><button type="button" class="stil" data-lweg="${esc(id)}">${esc(t('w.weghalen'))}</button></div>`).join('')}</div></div>`
     : '';
   return `
     <div class="wie"><span class="ik">${iconen.svg('laadpaal')}</span><div><h2>${esc(t('toev.losse.titel'))}</h2><small>${esc(t('toev.losse.lead'))}</small></div></div>
     ${lijst}
-    <div class="stap"><b>${esc(t('toev.naam'))}</b><input type="text" class="invoer" maxlength="60" data-lnaam value="${esc(lConcept.naam)}" placeholder="${esc(t('toev.losse.naamVoorbeeld'))}"></div>
+    <div class="stap"><b>${esc(t('w.naam'))}</b><input type="text" class="invoer" maxlength="60" data-lnaam value="${esc(lConcept.naam)}" placeholder="${esc(t('toev.losse.naamVoorbeeld'))}"></div>
     <div class="stap"><b>${esc(t('toev.losse.zoek'))}</b><input type="search" class="invoer" data-lzoek value="${esc(lConcept.zoek)}" placeholder="${esc(t('toev.losse.zoekVoorbeeld'))}"></div>
     <div class="stap"><b>${esc(t('toev.losse.sensoren'))}<small>${esc(t('toev.losse.gekozen', { n: lConcept.gekozen.size }))}</small></b><div>${groepen || `<p class="onder">${esc(t(losse.sensoren.length ? 'toev.losse.geenPassend' : 'toev.losse.geen'))}</p>`}</div></div>
     <p class="fout" data-fout aria-live="polite"></p>
-    <div class="klaar"><button type="button" class="knop hoofd" data-lbewaar ${lConcept.gekozen.size && lConcept.naam.trim() ? '' : 'disabled'}>${esc(t('toev.voegToe'))}</button></div>`;
+    <div class="klaar"><button type="button" class="knop hoofd" data-lbewaar ${lConcept.gekozen.size && lConcept.naam.trim() ? '' : 'disabled'}>${esc(t('w.toevoegen'))}</button></div>`;
 }
 
 async function bewaarLosse(body) {
@@ -143,13 +143,13 @@ function paneel(s) {
     <div class="stap"><b>${esc(t(s.ir ? 'toev.watBedient' : 'toev.watAan'))}</b><div><div class="watkeuzes" role="group">${keuzes}</div>${onder ? `<p class="onder">${esc(onder)}</p>` : ''}</div></div>
     ${knoppen}
     ${erbij}
-    <div class="stap"><b>${esc(t('toev.naam'))}</b><input type="text" class="invoer" maxlength="60" data-naam value="${esc(c.naam)}" placeholder="${esc(s.naam)}"></div>
-    <div class="stap"><b>${esc(t('toev.waar'))}</b><select class="invoer" data-kamer>${opties}</select></div>
-    ${s.meet || c.stekker ? '' : `<div class="stap"><b>${esc(t('toev.vermogen'))}<small>${esc(t('toev.vermogenKlein'))}</small></b><div><input type="number" class="invoer" min="1" max="10000" step="1" inputmode="numeric" data-vermogen value="${esc(c.vermogenW)}" placeholder="W"><p class="onder">${esc(t('toev.vermogenUitleg'))}</p></div></div>`}
-    <div class="stap"><b>${esc(t('toev.watMag'))}</b><div><div class="keuze" role="group"><button type="button" data-mag="kijken" aria-pressed="${c.mag === 'kijken'}">${esc(t('toev.kijken'))}</button><button type="button" data-mag="hand" aria-pressed="${c.mag === 'hand'}">${esc(t('toev.hand'))}</button></div><p class="onder">${esc(t(s.meet || c.stekker ? 'toev.opZonLater' : 'toev.opZonNiet'))}</p></div></div>
+    <div class="stap"><b>${esc(t('w.naam'))}</b><input type="text" class="invoer" maxlength="60" data-naam value="${esc(c.naam)}" placeholder="${esc(s.naam)}"></div>
+    <div class="stap"><b>${esc(t('w.waar'))}</b><select class="invoer" data-kamer>${opties}</select></div>
+    ${s.meet || c.stekker ? '' : `<div class="stap"><b>${esc(t('w.vermogen'))}<small>${esc(t('toev.vermogenKlein'))}</small></b><div><input type="number" class="invoer" min="1" max="10000" step="1" inputmode="numeric" data-vermogen value="${esc(c.vermogenW)}" placeholder="W"><p class="onder">${esc(t('toev.vermogenUitleg'))}</p></div></div>`}
+    <div class="stap"><b>${esc(t('toev.watMag'))}</b><div><div class="keuze" role="group"><button type="button" data-mag="kijken" aria-pressed="${c.mag === 'kijken'}">${esc(t('toev.kijken'))}</button><button type="button" data-mag="hand" aria-pressed="${c.mag === 'hand'}">${esc(t('w.metDeHand'))}</button></div><p class="onder">${esc(t(s.meet || c.stekker ? 'toev.opZonLater' : 'toev.opZonNiet'))}</p></div></div>
     ${let_}
     <p class="fout" data-fout aria-live="polite"></p>
-    <div class="klaar"><button type="button" class="knop hoofd" data-bewaar ${c.wat ? '' : 'disabled'}>${esc(t(s.keuze ? 'toev.bewaar' : 'toev.voegToe'))}</button>${s.keuze ? `<button type="button" class="stil" data-weg>${esc(t('toev.weg'))}</button>` : `<button type="button" class="stil" data-geen>${esc(t('toev.verbergen'))}</button>`}</div>`;
+    <div class="klaar"><button type="button" class="knop hoofd" data-bewaar ${c.wat ? '' : 'disabled'}>${esc(t(s.keuze ? 'w.bewaren' : 'w.toevoegen'))}</button>${s.keuze ? `<button type="button" class="stil" data-weg>${esc(t('w.weghalen'))}</button>` : `<button type="button" class="stil" data-geen>${esc(t('toev.verbergen'))}</button>`}</div>`;
 }
 
 async function bewaar(body) {
@@ -274,7 +274,7 @@ function itemsVan(soort) {
     for (const g of alle) {
       if (uit.some((x) => x.id === g.id)) continue;
       const zon = vast.has(g.id) || opZon[g.id] === true;
-      uit.push({ id: g.id, naam: g.naam, icoon: 'witgoed', zin: [plekZin(g.id), zon ? t('toev.opZonKort') : null].filter(Boolean).join(' · '), nieuw: !zon && !vast.has(g.id) && !ruimteVan(g.id), wat: 'witgoed' });
+      uit.push({ id: g.id, naam: g.naam, icoon: 'witgoed', zin: [plekZin(g.id), zon ? t('w.opZon2') : null].filter(Boolean).join(' · '), nieuw: !zon && !vast.has(g.id) && !ruimteVan(g.id), wat: 'witgoed' });
     }
   } else if (soort === 'auto') {
     // Wat SunArc vond, doet mee; wat je verborg, staat bij Verborgen (stap 4).
@@ -293,7 +293,7 @@ function itemsVan(soort) {
       if (bij.has(id)) continue;
       const naam = (aansluiting?.gevonden?.apparaten ?? []).find((x) => x.id === id)?.naam ?? buffers.find((x) => x.id === id)?.naam ?? stekkers.find((x) => x.id === id)?.naam ?? (huisData?.zonderRuimte ?? []).find((x) => x.id === id)?.naam ?? id;
       const zon = opZon[id] === true || buffers.some((b) => b.id === id && b.soort === 'stekker');
-      uit.push({ id, naam, icoon: 'stekker', zin: [plekZin(id), zon ? t('toev.opZonKort') : null].filter(Boolean).join(' · '), nieuw: zonder.has(id), wat: 'stekker' });
+      uit.push({ id, naam, icoon: 'stekker', zin: [plekZin(id), zon ? t('w.opZon2') : null].filter(Boolean).join(' · '), nieuw: zonder.has(id), wat: 'stekker' });
     }
   } else if (soort === 'schakelaars') {
     for (const s of schakelaars) uit.push({ id: s.id, naam: s.keuze?.naam || s.naam, icoon: s.ir ? 'warm' : 'apparaat', zin: s.keuze ? `${schakelaarZin(s)} · ${t(`toev.wat.${s.keuze.wat}`)}` : `${schakelaarZin(s)} · ${t('toev.nietIngesteld')}`, nieuw: !s.keuze, wat: 'schakelaar' });
@@ -332,7 +332,7 @@ function soortenHtml(nu, tel) {
     .map(([s, icoon]) => {
       const items = itemsVan(s);
       const n = items.filter((x) => x.nieuw).length;
-      return regel(s, iconen.svg(icoon), t(`apparaten.soort.${s}`), n ? t('toev.nNieuw', { n }) : items.length ? t('toev.nKlaar', { n: items.length }) : '', n > 0);
+      return regel(s, iconen.svg(icoon), t(`apparaten.soort.${s}`), n ? t('w.nieuw', { n }) : items.length ? t('toev.nKlaar', { n: items.length }) : '', n > 0);
     })
     .join('');
   return tel ? `<section class="glas groep">${kop}</section><h4 class="tussen">${esc(t('toev.perSoort'))}</h4><section class="glas groep">${per}</section>` : `${kop}<h4 class="tussen">${esc(t('toev.perSoort'))}</h4>${per}`;
@@ -397,7 +397,7 @@ function middenHtml(soort, gekozen, tel) {
 
 /** Wat SunArc nu van het apparaat weet, onder zijn naam. */
 function nuZin(x) {
-  const ding = { stekker: t('toev.ding.stekker'), witgoed: t('apparaten.soort.witgoed'), klimaat: t('toev.ding.klimaat'), licht: t('toev.ding.licht'), buffer: t('toev.ding.anders') }[x.wat] ?? '';
+  const ding = { stekker: t('toev.stekker'), witgoed: t('apparaten.soort.witgoed'), klimaat: t('w.klimaat'), licht: t('toev.ding.licht'), buffer: t('toev.ding.anders') }[x.wat] ?? '';
   return [ding, x.zin].filter(Boolean).join(' · ');
 }
 
@@ -543,9 +543,9 @@ function teken() {
   // Terug: van het blad naar de lijst, van de lijst naar de soorten, anders naar Apparaten.
   $$('#tel a.terug').forEach((a) => {
     a.href = soort ? 'toevoegen.html' : 'apparaten.html';
-    a.lastElementChild.textContent = t(soort ? 'toev.titelKort' : 'nav.apparaten');
+    a.lastElementChild.textContent = t(soort ? 'w.toevoegen' : 'nav.apparaten');
   });
-  $$('#tel [data-telkop]').forEach((el) => (el.textContent = soort ? (soort === 'nieuw' ? t('toev.nieuw') : soort === 'verborgen' ? t('toev.verborgen') : t(`apparaten.soort.${soort}`)) : t('toev.titelKort')));
+  $$('#tel [data-telkop]').forEach((el) => (el.textContent = soort ? (soort === 'nieuw' ? t('toev.nieuw') : soort === 'verborgen' ? t('toev.verborgen') : t(`apparaten.soort.${soort}`)) : t('w.toevoegen')));
 
   // Wie aan het typen was, blijft in hetzelfde veld.
   if (focus) {

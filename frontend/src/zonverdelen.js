@@ -71,7 +71,7 @@ const zonVerdelen = (function (global) {
   function stand(x) {
     if (x.stand === 'zon') return `<span class="zv-stand zon">${esc(t('zv.stand.zon', { w: w(x.krijgtW) }))}</span>`;
     if (x.stand === 'laadt') return `<span class="zv-stand zon">${esc(t('zv.stand.laadt', { w: w(x.krijgtW) }))}</span>`;
-    if (x.stand === 'wacht') return `<span class="zv-stand wacht">${esc(x.tekortW > 0 ? t('zv.stand.tekort', { w: w(x.tekortW) }) : t('zv.stand.wacht'))}</span>`;
+    if (x.stand === 'wacht') return `<span class="zv-stand wacht">${esc(x.tekortW > 0 ? t('zv.stand.tekort', { w: w(x.tekortW) }) : t('w.wacht'))}</span>`;
     if (x.stand === 'draait') return `<span class="zv-stand wacht">${esc(t('zv.stand.draait'))}</span>`;
     if (x.stand === 'net') return `<span class="zv-stand wacht">${esc(t('zv.stand.net'))}</span>`;
     if (x.stand === 'klaar') return `<span class="zv-stand klaar">${esc(t('zv.stand.klaar'))}</span>`;
@@ -126,7 +126,7 @@ const zonVerdelen = (function (global) {
     return `<section class="zv-marge">
       <h3 class="kop-3">${esc(t('zv.marge'))}</h3>
       ${stapper('extraW', t('zv.margeW'), t('zv.extra', { w: w(m.extraW) }), t('zv.margeWUitleg'), b.extraW, m.extraW)}
-      ${stapper('minuten', t('zv.margeMin'), t('zv.minuten', { n: m.minuten }), t('zv.margeMinUitleg'), b.minuten, m.minuten)}
+      ${stapper('minuten', t('zv.margeMin'), t('w.minuten', { n: m.minuten }), t('zv.margeMinUitleg'), b.minuten, m.minuten)}
       <p class="zv-noot">${esc(t('zv.margeNoot'))}</p>
     </section>`;
   }

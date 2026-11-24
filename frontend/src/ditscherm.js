@@ -80,12 +80,12 @@ const ditScherm = (() => {
     const n = niemandNu();
     if (groep === 'wand') {
       return [
-        { id: 'aod', titel: t('functies.aod.kop'), zin: n.rustMin > 0 ? t('functies.deel.aodAan', { n: n.rustMin }) : t('functies.deel.uit') },
-        { id: 'uit', titel: t('functies.uit.kop'), zin: n.nacht ? `${n.van}–${n.tot}` : t(n.weg ? 'functies.deel.niemand' : 'functies.deel.nooit') },
+        { id: 'aod', titel: t('functies.aod.kop'), zin: n.rustMin > 0 ? t('functies.deel.aodAan', { n: n.rustMin }) : t('w.uit2') },
+        { id: 'uit', titel: t('functies.uit.kop'), zin: n.nacht ? `${n.van}–${n.tot}` : t(n.weg ? 'w.alsNiemandThuisIs' : 'functies.deel.nooit') },
       ];
     }
     return [
-      ...(app.inHA() ? [{ id: 'scherm', titel: t('functies.ditScherm'), zin: t(app.volledigGekozen() ? 'functies.deel.volledig' : 'functies.deel.zijbalk') }] : []),
+      ...(app.inHA() ? [{ id: 'scherm', titel: t('w.ditScherm'), zin: t(app.volledigGekozen() ? 'functies.deel.volledig' : 'functies.deel.zijbalk') }] : []),
       { id: 'startscherm', titel: t('functies.st.kop'), zin: startschermZin() },
     ];
   }
@@ -95,14 +95,14 @@ const ditScherm = (() => {
     const naam = voorkeur?.wand?.naam;
     return naam ? t('jij.scherm.vanWie', { naam }) : t('jij.scherm.vanWand');
   }
-  const titel = (id) => ({ scherm: t('functies.ditScherm'), aod: t('functies.aod.kop'), uit: t('functies.uit.kop'), startscherm: t('functies.st.kop') })[id] ?? '';
+  const titel = (id) => ({ scherm: t('w.ditScherm'), aod: t('functies.aod.kop'), uit: t('functies.uit.kop'), startscherm: t('functies.st.kop') })[id] ?? '';
 
   /* ------------------------------------------------------------ de bladen */
 
   /** Dit scherm (besluit 155): volledig scherm, per apparaat; alleen als de app in Home Assistant draait. */
   function scherm() {
     const aan = app.volledigGekozen();
-    return `<div class="regelrij"><div class="l"><b>${esc(t('functies.volledig'))}</b><span>${esc(t('functies.volledigZin'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('functies.volledig'))}" data-volledig></button></div>
+    return `<div class="regelrij"><div class="l"><b>${esc(t('w.volledigScherm'))}</b><span>${esc(t('functies.volledigZin'))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('w.volledigScherm'))}" data-volledig></button></div>
     <p class="mini">${esc(t('functies.volledigUitleg'))}</p>
     <div><button type="button" class="knop" data-naar-ha>${esc(t('basis.naarHA'))}</button></div>`;
   }
@@ -173,8 +173,8 @@ const ditScherm = (() => {
     const onder = zon?.dag?.onderMs != null ? t('functies.aod.onderOm', { klok: taal.klok(zon.dag.onderMs) }) : t('functies.aod.onder');
     const dagVan = n.nacht ? n.tot : zon?.dag?.opMs != null ? t('functies.aod.opOm', { klok: taal.klok(zon.dag.opMs) }) : t('functies.aod.op');
     const avondTot = n.nacht ? n.van : dagVan;
-    const dagZin = !n.avond ? t('functies.aod.dagAltijd') : !n.dag ? t('functies.aod.dagUit') : t('functies.aod.vanTot', { van: dagVan, tot: onder });
-    const avondZin = !n.dag ? t('functies.aod.avondAltijd') : !n.avond ? t('functies.aod.avondUit') : t('functies.aod.vanTot', { van: onder, tot: avondTot });
+    const dagZin = !n.avond ? t('functies.aod.dagAltijd') : !n.dag ? t('functies.aod.dagUit') : t('w.tot', { van: dagVan, tot: onder });
+    const avondZin = !n.dag ? t('functies.aod.avondAltijd') : !n.avond ? t('functies.aod.avondUit') : t('w.tot', { van: onder, tot: avondTot });
     return `<p class="klein geen-marge" data-nk-zin>${esc(zin)}</p>
     <div class="regelrij"><div class="l"><b>${esc(t('functies.aod.kop'))}</b><span>${esc(t('functies.aod.regel'))}</span></div>${schakel(aan, 'data-nk-aod', t('functies.aod.kop'), !mag)}</div>
     <div class="${aan ? '' : 'uitgezet'}" data-nk-onder><span class="veldnaam">${esc(t('functies.aod.na'))}</span>${nkKeuzes(t('functies.aod.naLabel'), 'nk-rust', minuten([2, 5, 15]), n.rustMin, !mag || !aan)}</div>
@@ -236,8 +236,8 @@ const ditScherm = (() => {
     const opties = `<option value="fully" ${n.melder === 'fully' ? 'selected' : ''}>${esc(t('functies.uit.camera'))}</option>${melders.map((m) => `<option value="${esc(m.id)}" ${m.id === n.melder ? 'selected' : ''}>${esc(t('functies.uit.melder', { kamer: m.kamer, naam: m.naam }))}</option>`).join('')}`;
     return `<p class="klein geen-marge" data-nk-zin>${esc(zin)}</p>
     <div class="regelrij"><div class="l"><b>${esc(t('functies.uit.snachts'))}</b><span>${esc(t('functies.uit.snachtsZin'))}</span></div>${schakel(n.nacht, 'data-nk-nacht', t('functies.uit.snachtsLabel'), !mag)}</div>
-    <div class="twee ${n.nacht ? '' : 'uitgezet'}"><label class="veldnaam">${esc(t('functies.uit.vanaf'))}<input class="invoer" type="time" step="900" value="${esc(n.van)}" data-nk-van ${mag && n.nacht ? '' : 'disabled'}></label><label class="veldnaam">${esc(t('functies.uit.tot'))}<input class="invoer" type="time" step="900" value="${esc(n.tot)}" data-nk-tot ${mag && n.nacht ? '' : 'disabled'}></label></div>
-    <div class="regelrij"><div class="l"><b>${esc(t('functies.uit.niemand'))}</b><span>${esc(t('functies.uit.niemandZin'))}</span></div>${schakel(n.weg, 'data-nk-weg', t('functies.uit.niemand'), !mag)}</div>
+    <div class="twee ${n.nacht ? '' : 'uitgezet'}"><label class="veldnaam">${esc(t('w.vanaf'))}<input class="invoer" type="time" step="900" value="${esc(n.van)}" data-nk-van ${mag && n.nacht ? '' : 'disabled'}></label><label class="veldnaam">${esc(t('w.tot2'))}<input class="invoer" type="time" step="900" value="${esc(n.tot)}" data-nk-tot ${mag && n.nacht ? '' : 'disabled'}></label></div>
+    <div class="regelrij"><div class="l"><b>${esc(t('w.alsNiemandThuisIs2'))}</b><span>${esc(t('functies.uit.niemandZin'))}</span></div>${schakel(n.weg, 'data-nk-weg', t('w.alsNiemandThuisIs2'), !mag)}</div>
     <div class="${ergens ? '' : 'uitgezet'}"><span class="veldnaam">${esc(t('functies.uit.na'))}</span>${nkKeuzes(t('functies.uit.naLabel'), 'nk-aan', minuten([1, 5, 15, 30]), n.aanMin, !mag || !ergens)}</div>
     <div class="regelrij"><div class="l"><b>${esc(t('functies.uit.wekken'))}</b><span>${esc(t('functies.uit.wekkenZin'))}</span></div>${schakel(!!n.melder, 'data-nk-beweging', t('functies.uit.wekken'), !mag)}</div>
     ${n.melder ? `<label class="veldnaam">${esc(t('functies.uit.welke'))}<select class="invoer" data-nk-melder ${mag ? '' : 'disabled'}>${opties}</select></label>` : ''}

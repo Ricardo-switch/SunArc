@@ -137,11 +137,11 @@ function delen() {
   const prijsMist = e && ((p.stroom == null && !p.dynamisch) || (e.gas && p.gas == null));
   const soort = a?.verwarming.soort ? t(`energie.soort.${a.verwarming.soort}`) : null;
   return [
-    { id: 'panelen', titel: t('daken.titel'), zin: dakvlakken.kortZin(aInfo?.daken) ?? (geen ? t('daken.geen') : t('instellingen.nogKiezen')), stand: !aInfo ? null : vlakken.length || geen ? 'goed' : 'mist' },
+    { id: 'panelen', titel: t('w.zonnepanelen'), zin: dakvlakken.kortZin(aInfo?.daken) ?? (geen ? t('w.geenPanelen') : t('instellingen.nogKiezen')), stand: !aInfo ? null : vlakken.length || geen ? 'goed' : 'mist' },
     // De zon verdelen (besluit 343): wie de zon krijgt die over is, naast de panelen.
     { id: 'zon', icoon: 'opzon', titel: t('zv.titel'), zin: zonVerdelen.zin(), stand: 'goed' },
-    { id: 'aansluiting', titel: t('energie.aansluiting'), zin: z ? `${z.fasen} × ${z.ampere} A` : t('energie.zekeringKiezen'), stand: !aInfo ? null : z ? 'goed' : 'mist' },
-    { id: 'meters', titel: t('energie.meters'), zin: e ? [e.net.afname.length ? t('energie.stroom') : null, e.gas ? t('energie.gas') : null, e.apparaten.length ? t('energie.nApparaten', { n: e.apparaten.length }) : null].filter(Boolean).join(', ') || t('instellingen.nogKiezen') : '…', stand: !e ? null : e.net.afname.length ? 'goed' : 'mist' },
+    { id: 'aansluiting', titel: t('w.aansluiting'), zin: z ? `${z.fasen} × ${z.ampere} A` : t('energie.zekeringKiezen'), stand: !aInfo ? null : z ? 'goed' : 'mist' },
+    { id: 'meters', titel: t('energie.meters'), zin: e ? [e.net.afname.length ? t('energie.stroom') : null, e.gas ? t('energie.gas') : null, e.apparaten.length ? t('w.apparaten', { n: e.apparaten.length }) : null].filter(Boolean).join(', ') || t('instellingen.nogKiezen') : '…', stand: !e ? null : e.net.afname.length ? 'goed' : 'mist' },
     { id: 'prijzen', titel: t('energie.prijzen'), zin: !e ? '…' : p.dynamisch ? t('energie.prijsPerUur') : p.stroom == null ? t('energie.prijsMist') : t('energie.prijsPerKwh', { prijs: nl(p.stroom, 2) }), stand: !e ? null : prijsMist ? 'mist' : 'goed' },
     { id: 'verwarming', titel: t('energie.verwarming'), zin: soort ? (a.verwarming.aanvoerC ? t('energie.aanvoer', { soort, c: a.verwarming.aanvoerC }) : soort) : t('instellingen.nogKiezen'), stand: !aInfo ? null : a.verwarming.soort ? 'goed' : 'leeg' },
     // Auto en laadpaal en de thuisaccu staan op hun kaart bij Apparaten (besluit 318).
@@ -228,7 +228,7 @@ function aansluitingVorm() {
         ? t('energie.meetFasen', { fasen: t('energie.fase', { n: fasen }) })
         : t('energie.waarZekering');
   // Eerst de fasen, dan de ampère (stap 4): dezelfde vraag als bij Inrichten (zekering.js).
-  return `${kop(t('energie.aansluiting'))}
+  return `${kop(t('w.aansluiting'))}
     ${zekeringNu() ? '' : `<div class="melding"><span class="stip" style="background: var(--gloed)"></span>${esc(t('energie.zonderZekering'))}</div>`}
     ${blok(t('instellingen.zekering'), `<p class="uitleg">${esc(t('energie.zekeringUitleg'))}</p>
       ${zekering.vorm(huidig)}
@@ -251,7 +251,7 @@ function meterKeuze(label, plek, rol, soort, leegTekst = t('energie.meterErbij')
   // Dezelfde naam twee keer, zoals de stand en de maand van een stekker (besluit 264): dan het id erachter.
   const dubbel = new Set(vrij.map((m) => m.naam).filter((n, i, alle) => alle.indexOf(n) !== i));
   const opt = (m) => `<option value="${esc(m.id)}">${esc(dubbel.has(m.naam) ? `${m.naam} (${m.id.replace(/^sensor\./, '')})` : m.naam)}</option>`;
-  const lijst = past.length && rest.length ? `<optgroup label="${esc(t('energie.pastHierbij'))}">${past.map(opt).join('')}</optgroup><optgroup label="${esc(t('energie.andereMeters'))}">${rest.map(opt).join('')}</optgroup>` : vrij.map(opt).join('');
+  const lijst = past.length && rest.length ? `<optgroup label="${esc(t('w.pastHierbij'))}">${past.map(opt).join('')}</optgroup><optgroup label="${esc(t('energie.andereMeters'))}">${rest.map(opt).join('')}</optgroup>` : vrij.map(opt).join('');
   return `<select class="invoer" aria-label="${esc(label)}" data-meer="${plek}"><option value="">${esc(leegTekst)}</option>${lijst}</select>`;
 }
 
@@ -260,8 +260,8 @@ function rol(plek, ids, rolNaam, soort, een = false) {
   const tarief = (plek === 'afname' || plek === 'teruglevering') && dubbel;
   const dal = new Set(e.net.dal ?? []);
   const chips = ids.length
-    ? ids.map((id) => `<span class="meterchip"><button type="button" data-weg="${plek}" data-id="${esc(id)}" aria-label="${esc(t('energie.weghalen', { naam: naamVan(id) }))}">${esc(naamVan(id))}<span aria-hidden="true">×</span></button>${tarief ? `<button type="button" class="tariefknop" data-tarief="${esc(id)}" aria-label="${esc(t('energie.dalOfNormaal', { naam: naamVan(id) }))}">${esc(t(dal.has(id) ? 'energie.dal' : 'energie.normaal'))}</button>` : ''}</span>`).join('')
-    : `<span class="mini">${esc(t('energie.geen'))}</span>`;
+    ? ids.map((id) => `<span class="meterchip"><button type="button" data-weg="${plek}" data-id="${esc(id)}" aria-label="${esc(t('w.weghalen2', { naam: naamVan(id) }))}">${esc(naamVan(id))}<span aria-hidden="true">×</span></button>${tarief ? `<button type="button" class="tariefknop" data-tarief="${esc(id)}" aria-label="${esc(t('energie.dalOfNormaal', { naam: naamVan(id) }))}">${esc(t(dal.has(id) ? 'energie.dal' : 'energie.normaal'))}</button>` : ''}</span>`).join('')
+    : `<span class="mini">${esc(t('w.geen'))}</span>`;
   return `<div style="display: flex; flex-direction: column; gap: 6px; padding: 6px 0">
     <b style="font-size: 14px">${esc(titel)}</b>
     <div class="meterchips">${chips}</div>
@@ -275,14 +275,14 @@ function metersVorm() {
     v.net.afname.length ? t('energie.wat.afname') : null,
     v.net.teruglevering.length ? t('energie.wat.teruglevering') : null,
     v.zon.length ? t('energie.wat.zon') : null,
-    v.gas ? t('energie.wat.gas') : null,
+    v.gas ? t('energie.gas') : null,
     v.apparaten.length ? t('energie.wat.apparaten', { n: v.apparaten.length }) : null,
   ].filter(Boolean) : [];
   const lijst = wat.length > 1 ? `${wat.slice(0, -1).join(', ')} ${t('algemeen.en')} ${wat.at(-1)}` : wat[0];
   const uitHa = v
     ? blok(t('energie.uitHA'), `<p class="uitleg">${esc(t('energie.inDashboard', { lijst: lijst ?? t('energie.geenMeters') }))}</p><button type="button" class="knop" data-overnemen style="align-self: start">${esc(t('energie.overnemen'))}</button>`)
     : blok(t('energie.uitHA'), `<p class="uitleg">${esc(eInfo.fout ?? t('energie.geenDashboard'))}</p>`);
-  const rijen = e.apparaten.map((x, i) => `<div class="regelrij"><div class="l"><input class="invoer" data-apparaatnaam="${i}" value="${esc(x.naam)}" maxlength="40" aria-label="${esc(t('energie.naamVan', { naam: naamVan(x.id) }))}"><span>${esc(naamVan(x.id))}</span></div><button type="button" class="knop" data-apparaat-weg="${i}" aria-label="${esc(t('energie.weghalen', { naam: x.naam }))}">${esc(t('energie.weg'))}</button></div>`).join('');
+  const rijen = e.apparaten.map((x, i) => `<div class="regelrij"><div class="l"><input class="invoer" data-apparaatnaam="${i}" value="${esc(x.naam)}" maxlength="40" aria-label="${esc(t('energie.naamVan', { naam: naamVan(x.id) }))}"><span>${esc(naamVan(x.id))}</span></div><button type="button" class="knop" data-apparaat-weg="${i}" aria-label="${esc(t('w.weghalen2', { naam: x.naam }))}">${esc(t('energie.weg'))}</button></div>`).join('');
   const apparatenBlok = blok(t('energie.eigenMeter'), `${rijen || `<p class="uitleg">${esc(t('energie.nogGeenApparaat'))}</p>`}${meterKeuze(t('energie.apparaatErbij'), 'apparaat', 'apparaat', 'energy', t('energie.apparaatErbijLeeg'))}`);
   return `${kop(t('energie.meters'))}
     ${e.net.afname.length ? '' : `<div class="melding"><span class="stip" style="background: var(--gloed)"></span>${esc(t('stand.metersZin'))}</div>`}
@@ -298,7 +298,7 @@ function metersVorm() {
 /** Eigen daltijden (besluit 178): van welk uur tot welk uur, en het weekend. */
 function eigenDal(d) {
   const uren = (sleutel, huidig) => `<select class="invoer" data-daleigen="${sleutel}" aria-label="${esc(t(sleutel === 'van' ? 'energie.dalVanaf' : 'energie.dalTot'))}">${Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${h === huidig ? 'selected' : ''}>${String(h).padStart(2, '0')}:00</option>`).join('')}</select>`;
-  return `<div class="twee"><label class="veldnaam">${esc(t('energie.vanaf'))}${uren('van', d.van)}</label><label class="veldnaam">${esc(t('energie.tot'))}${uren('tot', d.tot)}</label></div>
+  return `<div class="twee"><label class="veldnaam">${esc(t('w.vanaf'))}${uren('van', d.van)}</label><label class="veldnaam">${esc(t('w.tot2'))}${uren('tot', d.tot)}</label></div>
     ${keuzes(t('energie.weekend'), 'dalWeekend', [[true, t('energie.weekendDal')], [false, t('energie.weekendGewoon')]], d.weekend)}
     <p class="mini">${esc(t('energie.feestdagen'))}</p>`;
 }
@@ -329,7 +329,7 @@ function prijzenVorm() {
         <input class="invoer${v.bedrag == null ? ' leeg' : ''}" type="number" inputmode="decimal" step="any" data-vast="bedrag" data-i="${i}" value="${v.bedrag ?? ''}" aria-label="${esc(t('energie.bedragVan', { naam: v.naam }))}">
         <select class="invoer" data-vast="per" data-i="${i}" aria-label="${esc(t('energie.per'))}">${opt(['dag', 'maand', 'jaar'].map((x) => [x, t(`energie.per.${x}`)]), v.per)}</select>
         <select class="invoer" data-vast="soort" data-i="${i}" aria-label="${esc(t('energie.stroomOfGas'))}">${opt([['stroom', t('energie.stroom')], ['gas', t('energie.gas')]], v.soort)}</select>
-        <button type="button" class="knop" data-vast-weg="${i}" aria-label="${esc(t('energie.weghalen', { naam: v.naam }))}">×</button>
+        <button type="button" class="knop" data-vast-weg="${i}" aria-label="${esc(t('w.weghalen2', { naam: v.naam }))}">×</button>
       </div>
     </div>`);
   const posten = vastRijen.join('');
@@ -422,7 +422,7 @@ function thermostaatKeuze(v) {
 function verwarmingVorm() {
   const v = a.verwarming;
   return `${kop(t('energie.verwarming'))}
-    ${blok(t('energie.waarWarmte'), `${keuzes(t('energie.verwarming'), 'verwarming', [...['cv', 'warmtepomp', 'hybride', 'stadsverwarming', 'airco'].map((x) => [x, t(`energie.bron.${x}`)]), ['weetniet', t('energie.weetNiet')]], v.soort)}
+    ${blok(t('energie.waarWarmte'), `${keuzes(t('energie.verwarming'), 'verwarming', [...['cv', 'warmtepomp', 'hybride', 'stadsverwarming', 'airco'].map((x) => [x, t(`energie.bron.${x}`)]), ['weetniet', t('w.weetIkNiet')]], v.soort)}
       ${v.soort === 'airco' ? '' : `<label class="veldnaam">${esc(t('energie.aanvoerLabel'))}<input class="invoer" type="number" inputmode="numeric" min="25" max="90" step="1" data-aanvoer value="${v.aanvoerC ?? ''}" placeholder="${esc(t('energie.bijvoorbeeld60'))}"></label>
       <p class="mini">${esc(t('energie.aanvoerUitleg'))}</p>`}
       ${v.soort === 'stadsverwarming' || v.soort === 'airco' ? '' : thermostaatKeuze(v)}`)}`;

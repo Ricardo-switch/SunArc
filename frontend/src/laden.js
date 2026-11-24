@@ -33,7 +33,7 @@ const laden = (() => {
 
   /** Wat er in het lijstje links staat: wat hij meet, of dat hij uit staat. */
   function watZin(x) {
-    if (!x.aan) return t('laden.uitZin');
+    if (!x.aan) return t('w.nietVanDitHuis');
     const wat = x.wat.filter((w) => !(w === 'stroomZetten' && x.stroomA)).slice(0, 4).map((w) => t(`laden.wat.${w}`));
     if (x.stroomA) wat.unshift(t('laden.stroomVan', { min: x.stroomA.min, max: x.stroomA.max }));
     return [x.merk, wat.join(', ') || t('laden.watNiets')].filter(Boolean).join(' · ');
@@ -45,7 +45,7 @@ const laden = (() => {
     const x = aan(info);
     const autos = x.filter((y) => y.rol === 'auto').length;
     const palen = x.filter((y) => y.rol === 'laadpaal').length;
-    if (!autos && !palen) return t('laden.nietsKort');
+    if (!autos && !palen) return t('w.nietsGevonden');
     return [autos ? t('laden.nAutos', { n: autos }) : null, palen ? t('laden.nPalen', { n: palen }) : null].filter(Boolean).join(', ');
   }
 
@@ -60,7 +60,7 @@ const laden = (() => {
   function kabelVraag(a, x) {
     if (!x.wat.includes('lading')) return '';
     const k = instelling(a, x.id).kabel ?? KABEL;
-    const knoppen = KABEL_PCT.map((p) => `<button type="button" data-laad="kabel" data-id="${esc(x.id)}" data-waarde="${p ?? ''}" aria-pressed="${k.pct === p}">${esc(p == null ? t('laden.kabelUit') : t('laden.kabelOnder', { pct: p }))}</button>`).join('');
+    const knoppen = KABEL_PCT.map((p) => `<button type="button" data-laad="kabel" data-id="${esc(x.id)}" data-waarde="${p ?? ''}" aria-pressed="${k.pct === p}">${esc(p == null ? t('w.uit') : t('laden.kabelOnder', { pct: p }))}</button>`).join('');
     return `<div class="ld-vraag"><b>${esc(t('laden.kabel'))}</b><div class="keuzes" role="group">${knoppen}</div>
         ${k.pct != null ? `<label class="veldnaam ld-om">${esc(t('laden.kabelOm'))}<input class="invoer" type="time" value="${esc(k.om)}" data-laad-kabelom="${esc(x.id)}"></label>` : ''}
         <p class="mini">${esc(t('laden.kabelUitleg'))}</p></div>`;
@@ -84,7 +84,7 @@ const laden = (() => {
     // Een laadpaal heeft altijd een eigen plek (issue 164); een auto met een paal staat daar als hij aan de kabel zit.
     const plekUitleg = x.rol === 'laadpaal' ? 'laden.paalPlekUitleg' : palen.length ? 'laden.autoPlekUitleg' : 'laden.plekUitleg';
     const plek = `<div class="ld-vraag"><b>${esc(t('laden.plek'))}</b>${keuzes('plek', PLEKKEN.map((p) => [p, t(`laden.plek.${p}`)]), i.plek)}<p class="mini">${esc(t(plekUitleg))}</p></div>`;
-    const rol = x.zelf ? `<div class="ld-vraag"><b>${esc(t('laden.watIsHet'))}</b>${keuzes('rol', [['auto', t('laden.rol.auto')], ['laadpaal', t('laden.rol.laadpaal')]], x.rol)}<button type="button" class="knop" data-laad="weg" data-id="${esc(x.id)}" style="align-self: start">${esc(t('laden.weghalen'))}</button></div>` : '';
+    const rol = x.zelf ? `<div class="ld-vraag"><b>${esc(t('laden.watIsHet'))}</b>${keuzes('rol', [['auto', t('laden.rol.auto')], ['laadpaal', t('laden.rol.laadpaal')]], x.rol)}<button type="button" class="knop" data-laad="weg" data-id="${esc(x.id)}" style="align-self: start">${esc(t('w.weghalen'))}</button></div>` : '';
     if (x.rol === 'auto') {
       const paalOpties = [['', palen.length === 1 ? t('laden.paalVanzelf', { naam: palen[0].naam }) : t('laden.geenPaal')], ...palen.map((p) => [p.id, p.naam])];
       return `${rol}

@@ -50,7 +50,7 @@ function welkom() {
   const hoofd = bewoners.bewoners.find((b) => b.hoofd);
   const comfort = ik.hoofd ? t('welkom.hoofd') : t('welkom.woont', { naam: hoofd?.naam ?? t('jij.deHoofdgebruiker') });
   const thuis = ik.aanwezigheidNaam
-    ? `<div class="bron" aria-pressed="true" style="cursor: default">${esc(ik.gekoppeld ? t('bewoners.inHANaam', { naam: ik.aanwezigheidNaam }) : ik.aanwezigheidNaam)}<span class="${ik.thuis ? 'thuis' : ''}">${ik.thuis == null ? '' : esc(t(ik.thuis ? 'bewoners.thuis' : 'bewoners.weg'))}</span></div>${ik.gekoppeld ? `<span class="hint">${esc(t('bewoners.gekoppeld.ik'))}</span>` : ''}`
+    ? `<div class="bron" aria-pressed="true" style="cursor: default">${esc(ik.gekoppeld ? t('bewoners.inHANaam', { naam: ik.aanwezigheidNaam }) : ik.aanwezigheidNaam)}<span class="${ik.thuis ? 'thuis' : ''}">${ik.thuis == null ? '' : esc(t(ik.thuis ? 'w.thuis' : 'w.weg'))}</span></div>${ik.gekoppeld ? `<span class="hint">${esc(t('bewoners.gekoppeld.ik'))}</span>` : ''}`
     : `<p class="hint">${esc(t('welkom.nogNiet'))}</p>`;
   // Klopt iets niet (besluit 158): per regel waar je het verandert.
   const nietGoed = [
@@ -61,7 +61,7 @@ function welkom() {
     <h1>${esc(t('welkom.kop', { naam: ik.naam }))}</h1>
     <p>${esc(comfort)}</p>
     <div class="vak"><label for="naam">${esc(t('bewoners.noemt.ik'))}</label><input class="invoer" id="naam" data-naam value="${esc(ik.naam)}" maxlength="40" autocomplete="nickname"><span class="hint">${esc(t('welkom.uitHA', { naam: ik.haNaam }))}</span></div>
-    <div class="vak"><span>${esc(t('bewoners.thuisVolgens'))}</span>${thuis}</div>
+    <div class="vak"><span>${esc(t('w.thuisVolgens'))}</span>${thuis}</div>
     <span class="fout" data-fout></span>
     <div class="voet"><a class="zacht" href="${esc(terug)}">${esc(t('basis.versie.later'))}</a><button type="button" class="knop knop-licht" data-klopt>${esc(t('welkom.klopt'))}</button></div>
     <details class="nietgoed"><summary>${esc(t('welkom.kloptNiet'))}</summary>${nietGoed.map((z) => `<p class="hint">${esc(z)}</p>`).join('')}<a class="knop" href="bewoners.html">${esc(t('toegang.naarBewoners'))}</a></details>
@@ -99,7 +99,7 @@ function waarThuis() {
     ${vrij.map((b) => knop(b.id, b.naam, `${t(b.soort === 'persoon' ? 'inr.persoon' : 'bewoners.sensor')}${b.thuis == null ? '' : t(b.thuis ? 'toegang.thuis' : 'toegang.weg')}`, b.thuis ? 'thuis' : '')).join('')}
     ${knop('', t('welkom.nogNietKnop'), t('welkom.alleenNaam'))}
     <span class="fout" data-fout></span>
-    <div class="voet"><button type="button" class="zacht" data-terug-vraag>${esc(t('panelen.terug'))}</button><button type="button" class="knop knop-licht" data-klaar>${esc(t('algemeen.klaar'))}</button></div>`;
+    <div class="voet"><button type="button" class="zacht" data-terug-vraag>${esc(t('w.terug'))}</button><button type="button" class="knop knop-licht" data-klaar>${esc(t('algemeen.klaar'))}</button></div>`;
 }
 
 function teken() {

@@ -61,15 +61,15 @@
     <button class="vb-weer" type="button" aria-expanded="false" data-vb-weer><svg viewBox="0 0 36 36" aria-hidden="true" data-vb-weericoon></svg><span data-vb-weernaam></span></button>
     <button class="vb-probeer" type="button" aria-expanded="false" data-vb-probeer>${esc(t('voorbeeld.probeer'))} <b data-vb-teller></b></button>
     <span class="vb-naam"><i aria-hidden="true"></i>${esc(t('voorbeeld.naam'))}</span>
-    <button class="vb-terug" type="button" data-vb-terug><span class="vb-lang">${esc(t('voorbeeld.terug'))}</span><span class="vb-kort">${esc(t('voorbeeld.terugKort'))}</span></button>
+    <button class="vb-terug" type="button" data-vb-terug><span class="vb-lang">${esc(t('voorbeeld.terug'))}</span><span class="vb-kort">${esc(t('w.terug'))}</span></button>
     <section class="vb-lijst" hidden data-vb-lijst>
       <h2>${esc(t('voorbeeld.probeer'))}</h2>
       <ol data-vb-items></ol>
       <p>${esc(t('voorbeeld.weg'))}</p>
     </section>
     <section class="vb-lijst vb-weerkeuze" hidden data-vb-weerkeuze>
-      <h2>${esc(t('voorbeeld.weer'))}</h2>
-      <div class="keuze" role="group" aria-label="${esc(t('voorbeeld.weer'))}">${WEER.map((w) => `<button type="button" data-vb-weerkies="${w}">${esc(t(`voorbeeld.weer.${w}`))}</button>`).join('')}</div>
+      <h2>${esc(t('w.weer'))}</h2>
+      <div class="keuze" role="group" aria-label="${esc(t('w.weer'))}">${WEER.map((w) => `<button type="button" data-vb-weerkies="${w}">${esc(t(`voorbeeld.weer.${w}`))}</button>`).join('')}</div>
       <p>${esc(t('voorbeeld.weer.uitleg'))}</p>
     </section>`;
   document.body.appendChild(balk);
@@ -101,7 +101,7 @@
     const nu = weerOp(stand.klok);
     $('[data-vb-weericoon]').innerHTML = WEER_ICOON[nu];
     $('[data-vb-weernaam]').textContent = t(`voorbeeld.weer.${keuze}`);
-    $('[data-vb-weer]').setAttribute('aria-label', `${t('voorbeeld.weer')}: ${t(`voorbeeld.weer.${keuze}`)}, ${t(`voorbeeld.weer.${nu}`)}`);
+    $('[data-vb-weer]').setAttribute('aria-label', `${t('w.weer')}: ${t(`voorbeeld.weer.${keuze}`)}, ${t(`voorbeeld.weer.${nu}`)}`);
     balk.querySelectorAll('[data-vb-weerkies]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.vbWeerkies === keuze)));
   }
 

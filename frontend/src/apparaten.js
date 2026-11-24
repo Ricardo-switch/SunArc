@@ -131,7 +131,7 @@ function kaart(d) {
     <div class="boven">${boven}<div><b>${esc(d.naam)}</b><span class="klein ${toon}">${esc(d.kop)}</span></div></div>
     <p class="mini zin">${esc(zin)}</p>
     <div class="labels">${label}</div>
-    <div class="vandaag"><span>${esc(t('thuis.kaart.vandaag'))}</span><b>${esc(draaide > 0 ? t('apparaten.gedraaid', { duur: uren(draaide) }) : t('apparaten.nietGedraaid'))}</b></div>`;
+    <div class="vandaag"><span>${esc(t('w.vandaag'))}</span><b>${esc(draaide > 0 ? t('apparaten.gedraaid', { duur: uren(draaide) }) : t('apparaten.nietGedraaid'))}</b></div>`;
 
   // Een tik opent altijd het blad (besluit 245): wacht hij op zon, dan uiterlijk klaar en Nu starten
   // (besluit 238); anders hoe je hem klaarzet, zodat je ziet dat er iets mee kan.
@@ -204,7 +204,7 @@ function stekkerKaart(b) {
   const zon = st?.zon;
   const kop = zon?.schakelt && b.stand === 'would_heat' && !aan ? t('apparaten.stekkerGaatAan') : zon?.vanSunArc && aan && b.stand === 'waiting' ? t('apparaten.stekkerGaatUit') : b.kop;
   const zin = zon?.rustTot ? t('apparaten.stekkerRust') : zon?.schakelt && aan && !zon.vanSunArc && b.stand === 'waiting' ? `${b.zin} ${t('apparaten.stekkerZelfAan')}` : b.zin;
-  const etiket = zon?.schakelt ? 'apparaten.stekkerSchakelt' : st?.toegelaten ? 'apparaten.stekkerMag' : 'apparaten.kijktMee';
+  const etiket = zon?.schakelt ? 'apparaten.stekkerSchakelt' : st?.toegelaten ? 'apparaten.stekkerMag' : 'w.sunarcKijktMee';
   el.innerHTML = `
     <div class="kopje"><span class="ik">${iconen.svg('stekker')}</span><div><b>${esc(b.naam)}</b><span class="mini">${esc(t('apparaten.stekker'))}</span></div><div class="kw">${kw}</div></div>
     <div class="stand"><i style="background: ${kleur}"></i>${esc(kop)}</div>
@@ -302,7 +302,7 @@ function klimaatKaart({ a, r }) {
   const code = a.klimaat?.actieCode ?? '';
   const doet = /^(koelt|verwarmt|verwarmt-voor|droogt|ventileert)$/.test(code);
   // Alleen wie op zon wacht, heet zo: een thermostaat die op zijn draaitijd wacht, kreeg ook "Wacht op zon".
-  const stand = bew?.soort === 'wait' ? (wacht ? [t('apparaten.wachtZon'), 'var(--zon)'] : [t('apparaten.wacht'), '#8796a8']) : doet ? [huismodel.metHoofdletter(a.klimaat.actie), code === 'koelt' ? 'var(--ijs)' : 'var(--gloed)'] : [huismodel.metHoofdletter(a.stand ?? t('apparaten.onbekend')), 'var(--mint)'];
+  const stand = bew?.soort === 'wait' ? (wacht ? [t('apparaten.wachtZon'), 'var(--zon)'] : [t('w.wacht'), '#8796a8']) : doet ? [huismodel.metHoofdletter(a.klimaat.actie), code === 'koelt' ? 'var(--ijs)' : 'var(--gloed)'] : [huismodel.metHoofdletter(a.stand ?? t('w.onbekend')), 'var(--mint)'];
   // Niet twee keer hetzelfde: de zin begon met de stand ("Verwarmen naar 20° · onder het doel"),
   // en een stand die het doel al noemt ("Automatisch naar 18°") kreeg "Doel 18°." eronder. Een radiatorknop noemt het ook al.
   // Een warmtepomp met een stooklijn of watertemperatuur als doel (testerronde, november 2026): dat zegt hij, geen kamer.
@@ -324,12 +324,12 @@ function klimaatKaart({ a, r }) {
   const aan = (vandaag?.apparaten ?? []).find((x) => x.actuatorId === id)?.huidig ?? [];
   const aanMs = aan.reduce((som, x) => som + (x.totMs - x.vanMs), 0);
   const zonPct = meter && meter.kwh > 0 ? Math.round((meter.zonKwh / meter.kwh) * 100) : 0;
-  const vandaagKop = `<span>${esc(t('thuis.kaart.vandaag'))}</span>`;
+  const vandaagKop = `<span>${esc(t('w.vandaag'))}</span>`;
   const dag = meter
     ? `<div class="vandaag">${vandaagKop}<b>${esc(t('apparaten.eigenZon', { kwh: nl(meter.kwh), pct: zonPct }))}</b></div><div class="verdeel"><i style="width: ${zonPct}%; background: var(--zon)"></i><i style="width: ${100 - zonPct}%; background: #8796a8"></i></div>`
     : `<div class="vandaag">${vandaagKop}<b>${esc(aanMs > 0 ? t('apparaten.aan', { duur: uren(aanMs) }) : t('apparaten.nietAan'))}</b></div>`;
   // Gewone tekst in één regel, geen etiketjes (besluit 228): "Houdt op temperatuur · filter 20%".
-  const labels = [a.klimaat?.rol ? ROL(a.klimaat.rol) : '', a.klimaat?.filter?.pct != null ? t('apparaten.filter', { pct: a.klimaat.filter.pct }) : ''].filter(Boolean).join(' · ');
+  const labels = [a.klimaat?.rol ? ROL(a.klimaat.rol) : '', a.klimaat?.filter?.pct != null ? t('w.filter', { pct: a.klimaat.filter.pct }) : ''].filter(Boolean).join(' · ');
   // Kan hij op zon maar staat hij er niet op: de weg erheen, naar de kamer bij Klimaat (18-11, keuze Ricardo: één plek).
   // Alleen met een kamer of zone bij Klimaat (een zone met eigen regeling, zoals de zithoek): anders is er daar niets te kiezen.
   const klimaatKamer = (r.zones ?? []).find((z) => z.id === a.zone)?.regeling?.zoneId ?? r.zoneId ?? null;
@@ -355,7 +355,7 @@ function klimaatKaart({ a, r }) {
     el.tabIndex = 0;
     // Een groep, geen knop: er staat een eigen knop in (Klopt iets niet?), en een knop in een knop kan niet.
     el.setAttribute('role', 'group');
-    el.setAttribute('aria-label', t('apparaten.openIn', { naam: a.naam }));
+    el.setAttribute('aria-label', t('w.openen', { naam: a.naam }));
   }
   el.innerHTML = `
     <div class="kopje"><span class="ik${a.klimaat?.kanKoelen ? '' : ' warm'}">${a.klimaat?.kanKoelen ? IK.airco : IK.warm}</span><div><b>${esc(a.naam)}</b><span class="mini">${esc(r.naam)}</span></div><div class="kw">${kw}</div></div>
@@ -409,8 +409,8 @@ function ladingKaart(soort, o) {
   const kw = w != null && Math.abs(w) >= 50 ? `${nl(Math.abs(w) / 1000)}<span>${esc(t(soort === 'batterij' && w < 0 ? 'apparaten.kwNaarHuis' : 'apparaten.kwLaden'))}</span>` : '–<span>kW</span>';
   const [sleutel, kleur] =
     soort === 'auto'
-      ? o.laadt ? ['thuis.lading.laadt', 'var(--mint)'] : o.aangesloten === true ? ['thuis.lading.aangesloten', 'var(--net)'] : o.aangesloten === false ? ['thuis.lading.nietAangesloten', 'var(--net)'] : ['apparaten.onbekend', 'var(--net)']
-      : o.stand === 'laadt' ? ['thuis.lading.laadt', 'var(--zon)'] : o.stand === 'levert' ? ['apparaten.levert', 'var(--violet)'] : o.stand === 'rust' ? ['thuis.lading.rust', 'var(--net)'] : ['apparaten.onbekend', 'var(--net)'];
+      ? o.laadt ? ['thuis.lading.laadt', 'var(--mint)'] : o.aangesloten === true ? ['thuis.lading.aangesloten', 'var(--net)'] : o.aangesloten === false ? ['thuis.lading.nietAangesloten', 'var(--net)'] : ['w.onbekend', 'var(--net)']
+      : o.stand === 'laadt' ? ['thuis.lading.laadt', 'var(--zon)'] : o.stand === 'levert' ? ['apparaten.levert', 'var(--violet)'] : o.stand === 'rust' ? ['thuis.lading.rust', 'var(--net)'] : ['w.onbekend', 'var(--net)'];
   const tekst = t(sleutel);
   const pct = o.pct == null ? null : Math.max(0, Math.min(100, o.pct));
   const zin = soort === 'auto'
@@ -424,9 +424,9 @@ function ladingKaart(soort, o) {
   el.dataset.lading = soort;
   el.dataset.actief = String(soort === 'auto' ? !!o.laadt : o.stand === 'laadt' || o.stand === 'levert');
   el.innerHTML = `
-    <div class="kopje"><span class="ik">${LADING_IK[soort]}</span><div><b>${esc(naam)}</b><span class="mini">${esc(t(soort === 'auto' ? 'thuis.kaart.auto' : 'apparaten.thuisbatterij'))}</span></div><div class="kw">${kw}</div></div>
+    <div class="kopje"><span class="ik">${LADING_IK[soort]}</span><div><b>${esc(naam)}</b><span class="mini">${esc(t(soort === 'auto' ? 'w.deAuto' : 'apparaten.thuisbatterij'))}</span></div><div class="kw">${kw}</div></div>
     <div class="stand"><i style="background: ${kleur}"></i>${esc(tekst)}</div>
-    <div class="vandaag"><span>${esc(t('apparaten.lading'))}</span><b>${pct == null ? esc(t('apparaten.onbekendKlein')) : `${nl(pct, 0)}%`}</b></div>
+    <div class="vandaag"><span>${esc(t('apparaten.lading'))}</span><b>${pct == null ? esc(t('w.onbekend2')) : `${nl(pct, 0)}%`}</b></div>
     <div class="verdeel"><i style="width: ${pct ?? 0}%; background: ${kleur}"></i></div>
     ${accuRegels(lijstAccus)}
     ${zin ? `<p class="mini zin">${esc(zin)}</p>` : ''}`;
@@ -538,7 +538,7 @@ function metBlad(el, sleutel, naam) {
   el.dataset.vrij = sleutel;
   el.tabIndex = 0;
   el.setAttribute('role', 'button');
-  el.setAttribute('aria-label', t('apparaten.openIn', { naam }));
+  el.setAttribute('aria-label', t('w.openen', { naam }));
   return el;
 }
 
@@ -565,7 +565,7 @@ function kamerVak({ id: kamer, naam, lampen }) {
       const op = lampAan(d);
       // Een tik op de naam opent het blad van de lamp (besluit 298).
       void kamer;
-      return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><button type="button" class="lnaam" data-vrij="lamp:${esc(d.id)}" aria-label="${esc(t('apparaten.openIn', { naam: d.naam }))}">${esc(d.naam)}${d.via ? `<small>${esc(t('apparaten.via', { via: d.via }))}</small>` : ''}</button><button type="button" class="schakelaar" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
+      return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><button type="button" class="lnaam" data-vrij="lamp:${esc(d.id)}" aria-label="${esc(t('w.openen', { naam: d.naam }))}">${esc(d.naam)}${d.via ? `<small>${esc(t('apparaten.via', { via: d.via }))}</small>` : ''}</button><button type="button" class="schakelaar" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
     })
     .join('');
   const el = document.createElement('div');
@@ -703,7 +703,7 @@ function camVandaag(c) {
 function camBeeldHtml(c) {
   const src = camBeeld.get(c.id);
   const zin = camZin(c);
-  return `<button type="button" class="cambeeld${c.nu ? ' nu' : ''}${c.deurbel ? ' bel' : ''}" data-camgroot="${esc(c.id)}" aria-label="${esc(t('thuis.cam.groot', { naam: c.naam }))}">${src ? `<img alt="" src="${src}">` : ''}${c.deurbel && !c.naam.toLowerCase().includes(t('apparaten.cam.deurbel').toLowerCase()) ? `<span class="camnaam">${iconen.svg('deurbel')}${esc(t('apparaten.cam.deurbel'))}</span>` : ''}${zin ? `<span class="camzin"><i></i>${esc(zin)}</span>` : ''}</button>`;
+  return `<button type="button" class="cambeeld${c.nu ? ' nu' : ''}${c.deurbel ? ' bel' : ''}" data-camgroot="${esc(c.id)}" aria-label="${esc(t('thuis.cam.groot', { naam: c.naam }))}">${src ? `<img alt="" src="${src}">` : ''}${c.deurbel && !c.naam.toLowerCase().includes(t('w.deurbel').toLowerCase()) ? `<span class="camnaam">${iconen.svg('deurbel')}${esc(t('w.deurbel'))}</span>` : ''}${zin ? `<span class="camzin"><i></i>${esc(zin)}</span>` : ''}</button>`;
 }
 
 function cameraKaart(c) {
@@ -716,7 +716,7 @@ function cameraKaart(c) {
     <div class="kopje"><span class="ik" style="background: rgba(169, 156, 255, 0.14)">${iconen.svg(c.deurbel ? 'deurbel' : 'camera')}</span><div><b>${esc(c.naam)}</b>${plek ? `<span class="mini">${esc(plek)}</span>` : ''}</div><div class="kw"></div></div>
     ${camBeeldHtml(c)}
     <div class="camerin">${camErin(c)}</div>
-    ${vandaag ? `<div class="vandaag"><span>${esc(t('apparaten.cam.vandaag'))}</span><b>${esc(vandaag)}</b></div>` : ''}`;
+    ${vandaag ? `<div class="vandaag"><span>${esc(t('w.vandaag'))}</span><b>${esc(vandaag)}</b></div>` : ''}`;
   return metBlad(el, `camera:${c.id}`, c.naam);
 }
 
@@ -738,7 +738,7 @@ function cameraBlad(id) {
   return {
     naam: c.naam,
     zin: [camPlek(c), camZin(c)].filter(Boolean).join(' · '),
-    html: `<div class="camblad">${camBeeldHtml(c)}<p class="mini camlive">${esc(t('apparaten.cam.live'))}</p></div>${erin ? `<div class="in-groep"><h4>${esc(t('ht.app.zitErin'))}</h4><div class="camerin">${erin}</div></div>` : ''}${thuis}${vandaag ? regel(t('apparaten.cam.vandaag'), `<b>${esc(vandaag)}</b>`) : ''}<p class="hand-hoe">${esc(t('apparaten.cam.opnames'))}</p>`,
+    html: `<div class="camblad">${camBeeldHtml(c)}<p class="mini camlive">${esc(t('apparaten.cam.live'))}</p></div>${erin ? `<div class="in-groep"><h4>${esc(t('ht.app.zitErin'))}</h4><div class="camerin">${erin}</div></div>` : ''}${thuis}${vandaag ? regel(t('w.vandaag'), `<b>${esc(vandaag)}</b>`) : ''}<p class="hand-hoe">${esc(t('apparaten.cam.opnames'))}</p>`,
   };
 }
 
@@ -819,7 +819,7 @@ function schakelaarKaart(s) {
     ${s.temperatuurC != null ? `<div class="stand"><i style="background: var(--mint)"></i>${esc(t('apparaten.hetIsEr', { c: nl(s.temperatuurC, 1) }))}</div>` : ''}
     ${zonStand ? `<div class="stand"><i style="background: var(--zon)"></i>${esc(zonStand.kop)}</div>` : ''}
     <div class="knoprijen">${rijen}</div>
-    ${mag ? '' : `<p class="mini etiket">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}`;
+    ${mag ? '' : `<p class="mini etiket">${esc(t(schakelaarData?.bedienen ? 'w.sunarcKijktMee' : 'apparaten.schakelaarAddon'))}</p>`}`;
   return metBlad(el, `schakelaar:${s.id}`, s.keuze.naam || s.naam);
 }
 
@@ -852,14 +852,14 @@ function lampBlad(id) {
   return {
     naam: d.naam,
     zin,
-    html: `${regel(t('apparaten.blad.aan'), schakel)}${helder}${mag ? '' : `<p class="hand-hoe">${esc(t('kamer.lichtUit'))}</p>`}${onder([[plek, t(kamer ? 'apparaten.blad.inKamer' : 'apparaten.kiesKamer')]])}`,
+    html: `${regel(t('w.aan'), schakel)}${helder}${mag ? '' : `<p class="hand-hoe">${esc(t('kamer.lichtUit'))}</p>`}${onder([[plek, t(kamer ? 'apparaten.blad.inKamer' : 'apparaten.kiesKamer')]])}`,
   };
 }
 
 function bufferBlad(id) {
   const b = (state?.bewoner?.warmtebuffers ?? []).find((x) => x.id === id);
   if (!b) return null;
-  const temp = b.temperatuurC == null ? null : regel(t('apparaten.blad.nu'), `<b>${nl(b.temperatuurC, 0)}°</b>`);
+  const temp = b.temperatuurC == null ? null : regel(t('w.nu2'), `<b>${nl(b.temperatuurC, 0)}°</b>`);
   const kw = b.vermogenW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(b.vermogenW / 1000)} kW</b>`) : '';
   const kamer = plekVan(b.id, b.actuator);
   // Waar staat hij? open (besluit 318): dan alleen de kamers.
@@ -885,12 +885,12 @@ function accuBlad() {
   if (!o) return null;
   const lijst = huisData?.opslag?.batterijen;
   const naam = lijst?.length > 1 ? t('apparaten.accuSamen', { n: lijst.length }) : o.naam;
-  const doet = o.stand === 'laadt' ? t('thuis.lading.laadt') : o.stand === 'levert' ? t('apparaten.levert') : o.stand === 'rust' ? t('thuis.lading.rust') : t('apparaten.onbekend');
+  const doet = o.stand === 'laadt' ? t('thuis.lading.laadt') : o.stand === 'levert' ? t('apparaten.levert') : o.stand === 'rust' ? t('thuis.lading.rust') : t('w.onbekend');
   const w = o.vermogenW;
   return {
     naam,
     zin: doet,
-    html: `${regel(t('apparaten.lading'), `<b>${o.pct == null ? esc(t('apparaten.onbekendKlein')) : `${nl(o.pct, 0)}%`}</b>`)}${w != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(Math.abs(w) / 1000)} kW</b>`) : ''}${accuRegels(lijst)}${[accuMaatZin(o), accuSchaduwZin() ?? t('apparaten.batterijKijkt')].filter(Boolean).map((z) => `<p class="hand-hoe">${esc(z)}</p>`).join('')}<div class="in-groep"><h4>${esc(t('in.kopInstellen'))}</h4></div>${instellen.regels('accu', o.id ?? '')}`,
+    html: `${regel(t('apparaten.lading'), `<b>${o.pct == null ? esc(t('w.onbekend2')) : `${nl(o.pct, 0)}%`}</b>`)}${w != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(Math.abs(w) / 1000)} kW</b>`) : ''}${accuRegels(lijst)}${[accuMaatZin(o), accuSchaduwZin() ?? t('apparaten.batterijKijkt')].filter(Boolean).map((z) => `<p class="hand-hoe">${esc(z)}</p>`).join('')}<div class="in-groep"><h4>${esc(t('w.instellen'))}</h4></div>${instellen.regels('accu', o.id ?? '')}`,
   };
 }
 
@@ -901,7 +901,7 @@ function schakelaarBlad(id) {
   return {
     naam: s.keuze.naam || s.naam,
     zin: [t(`toev.wat.${s.keuze.wat}`), t('apparaten.via', { via: s.model ?? s.koppeling })].join(' · '),
-    html: `${s.temperatuurC != null ? regel(t('apparaten.blad.nu'), `<b>${nl(s.temperatuurC, 1)}°</b>`) : ''}<div class="knoprijen vrij-knoppen">${knopRijen(s)}${stekkerRegel(s)}</div>${s.nuW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(s.nuW / 1000)} kW</b>`) : ''}${!s.meet && s.keuze.vermogenW != null ? `<p class="hand-hoe">${esc(t('apparaten.ingevuldZin', { w: s.keuze.vermogenW }))}</p>` : ''}${zonBlok(s)}${mag ? '' : `<p class="hand-hoe">${esc(t(schakelaarData?.bedienen ? 'apparaten.kijktMee' : 'apparaten.schakelaarAddon'))}</p>`}${onder([[`toevoegen.html#s-${encodeURIComponent(s.id)}`, t('apparaten.blad.instellen')]])}`,
+    html: `${s.temperatuurC != null ? regel(t('w.nu2'), `<b>${nl(s.temperatuurC, 1)}°</b>`) : ''}<div class="knoprijen vrij-knoppen">${knopRijen(s)}${stekkerRegel(s)}</div>${s.nuW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(s.nuW / 1000)} kW</b>`) : ''}${!s.meet && s.keuze.vermogenW != null ? `<p class="hand-hoe">${esc(t('apparaten.ingevuldZin', { w: s.keuze.vermogenW }))}</p>` : ''}${zonBlok(s)}${mag ? '' : `<p class="hand-hoe">${esc(t(schakelaarData?.bedienen ? 'w.sunarcKijktMee' : 'apparaten.schakelaarAddon'))}</p>`}${onder([[`toevoegen.html#s-${encodeURIComponent(s.id)}`, t('w.instellen')]])}`,
   };
 }
 
@@ -910,7 +910,7 @@ function zonBlok(s) {
   if (!s.opZonId) return '';
   const b = opZonVan(s);
   if (!b) return `<p class="hand-hoe">${esc(t('apparaten.kanOpZon'))}</p>`;
-  return `${regel(t('apparaten.blad.opZon'), `<b>${esc(b.kop)}</b>`)}${b.zin ? `<p class="hand-hoe">${esc(b.zin)}</p>` : ''}`;
+  return `${regel(t('w.opZon'), `<b>${esc(b.kop)}</b>`)}${b.zin ? `<p class="hand-hoe">${esc(b.zin)}</p>` : ''}`;
 }
 
 /** Het blad bij een sleutel als "lamp:light.x", "buffer:boiler", "accu" of "schakelaar:id". */
@@ -1155,7 +1155,7 @@ function tekenNu() {
   $$('[data-nieuw-tel]').forEach((el) => {
     el.hidden = nieuw === 0;
     el.textContent = String(nieuw);
-    el.setAttribute('aria-label', t('apparaten.nieuwGevonden', { n: nieuw }));
+    el.setAttribute('aria-label', t('w.nieuw', { n: nieuw }));
   });
   // Van Thuis met #auto of #batterij: naar die kaart (besluit 182), één keer.
   const doel = location.hash.slice(1);

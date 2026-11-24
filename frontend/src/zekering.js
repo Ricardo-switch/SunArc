@@ -22,7 +22,7 @@ const zekering = (() => {
 
   function vorm(z) {
     const zek = echt(z);
-    const fasen = `<div class="keuzes zk-rij" role="group" aria-label="${esc(t('energie.fasen'))}">${knop('data-zk-fasen="1"', t('energie.eenFase'), zek?.fasen === 1)}${knop('data-zk-fasen="3"', t('energie.drieFasen'), zek?.fasen === 3)}${knop('data-zk-weetniet', t('energie.weetNiet'), z === 'weetniet')}</div>`;
+    const fasen = `<div class="keuzes zk-rij" role="group" aria-label="${esc(t('energie.fasen'))}">${knop('data-zk-fasen="1"', t('energie.eenFase'), zek?.fasen === 1)}${knop('data-zk-fasen="3"', t('energie.drieFasen'), zek?.fasen === 3)}${knop('data-zk-weetniet', t('w.weetIkNiet'), z === 'weetniet')}</div>`;
     if (z === 'weetniet') return `${fasen}<p class="mini">${esc(t('inr.zekWeetNiet'))}</p>`;
     if (!zek) return `${fasen}<p class="mini">${esc(t('zk.eerstFasen'))}</p>`;
     const lijst = zek.ampere != null && !AMPERES.includes(zek.ampere) ? [...AMPERES, zek.ampere].sort((a, b) => a - b) : AMPERES;

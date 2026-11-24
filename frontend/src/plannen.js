@@ -137,7 +137,7 @@
     // "nu" boven de zon, of eronder als er vlakbij een opdracht staat.
     const dichtbij = lijst.some((o2) => Math.abs(uurVan(o2.ms) - nu) < 1.5);
     const zonY = nu > op && nu < onder ? y(nu) : HOR;
-    if (!klein) s += `<text x="${x(nu)}" y="${dichtbij ? zonY + r + 18 : zonY - r - 10}" text-anchor="middle" font-size="13" font-weight="700" fill="#ffd27a">${esc(t('gp.nuGrafiek'))}</text>`;
+    if (!klein) s += `<text x="${x(nu)}" y="${dichtbij ? zonY + r + 18 : zonY - r - 10}" text-anchor="middle" font-size="13" font-weight="700" fill="#ffd27a">${esc(t('w.nu'))}</text>`;
     // De opdrachten van vandaag; op de telefoon de eerstvolgende met zijn tijd, naast een nieuwe taak die nieuwe.
     const eerstvolgende = lijst.find((o2) => !o2.gedaan && o2.ms >= Date.now());
     for (const o2 of lijst) {
@@ -380,7 +380,7 @@
     if (h.soort === 'een') {
       const eerste = st.momenten?.[0];
       const n = eerste == null ? null : Math.round((new Date(eerste).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86_400_000);
-      vaak = n === 0 ? t('gp.vandaag') : n === 1 ? t('gp.morgen') : n != null ? new Intl.DateTimeFormat(en() ? 'en-GB' : 'nl-NL', { weekday: 'long' }).format(eerste) : '';
+      vaak = n === 0 ? t('w.vandaag2') : n === 1 ? t('w.morgen') : n != null ? new Intl.DateTimeFormat(en() ? 'en-GB' : 'nl-NL', { weekday: 'long' }).format(eerste) : '';
       if (en() && vaak) vaak = vaak.toLowerCase();
     } else vaak = h.soort === 'dagen' ? t('tk.h.dagen', { dagen: herhaalNaam(h).toLowerCase() }) : t(`tk.h.${h.soort}`);
     return groot([vaak, wanneer].filter(Boolean).join(' '));
@@ -445,7 +445,7 @@
       const heel = k.items.filter(heelBaar);
       const allesHeel = heel.length > 0 && heel.every((i) => st.kies.includes(i.sleutel));
       const iets = k.items.some((i) => st.kies.includes(i.sleutel));
-      const heelKnop = heel.length > 1 ? `<button type="button" class="tk-heel" data-pl-kamer="${esc(k.id)}" aria-pressed="${allesHeel}">${esc(t('tk.heleKamer'))}</button>` : '';
+      const heelKnop = heel.length > 1 ? `<button type="button" class="tk-heel" data-pl-kamer="${esc(k.id)}" aria-pressed="${allesHeel}">${esc(t('w.heleKamer'))}</button>` : '';
       // Overig heeft geen kamer: de naam staat al boven het groepje.
       const kop = k.id === '_overig' && !heelKnop ? '' : `<header><b>${esc(k.id === '_overig' ? '' : k.naam)}</b>${heelKnop}</header>`;
       return `<div class="tk-kamer${iets ? ' gekozen' : ''}">${kop}${k.items
@@ -463,10 +463,10 @@
     const tijd = `${String(m.uur ?? 7).padStart(2, '0')}:${String(m.minuut ?? 0).padStart(2, '0')}`;
     const keuze = m.soort === 'tijd'
       ? `<input class="tk-tijd" type="time" value="${tijd}" data-pl-tijd aria-label="${esc(t('gp.tijd'))}">`
-      : `<div class="tk-stapper"><button type="button" data-pl-min="-5" aria-label="${esc(t('gp.eerder'))}">−</button><b>${esc(stapperTekst(m))}</b><button type="button" data-pl-min="5" aria-label="${esc(t('gp.later'))}">+</button></div><div class="tk-zo">${esc(voorproef(m, bron?.zon))}</div>`;
+      : `<div class="tk-stapper"><button type="button" data-pl-min="-5" aria-label="${esc(t('w.eerder'))}">−</button><b>${esc(stapperTekst(m))}</b><button type="button" data-pl-min="5" aria-label="${esc(t('w.later'))}">+</button></div><div class="tk-zo">${esc(voorproef(m, bron?.zon))}</div>`;
     const keuzes = ['een', 'dag', 'werkdagen', 'weekend', 'dagen'].map((s) => `<button type="button" data-pl-herhaal="${s}" aria-pressed="${h.soort === s}"><span>${esc(t(s === 'dagen' ? 'gp.kiesDagen' : `gp.h.${s}`))}</span>${s === 'werkdagen' ? `<small>${esc(t('tk.maVr'))}</small>` : ''}</button>`).join('');
     const dagen = h.soort === 'dagen' ? `<div class="tk-dagen">${[1, 2, 3, 4, 5, 6, 7].map((d) => knop('data-pl-dag', d, t(`gp.d${d}`), (h.dagen ?? []).includes(d))).join('')}</div>` : '';
-    return `<h3 class="tk-kop">${esc(t('tk.k.wanneer'))}</h3><div class="tk-twee">
+    return `<h3 class="tk-kop">${esc(t('w.wanneer'))}</h3><div class="tk-twee">
       <div class="tk-vraag"><span>${esc(t('tk.k.op'))}</span><div class="tk-seg">${seg}</div>${keuze}</div>
       <div class="tk-vraag"><span>${esc(t('tk.k.hoevaak'))}</span><div class="tk-keus">${keuzes}</div>${dagen}</div>
     </div>`;
@@ -543,7 +543,7 @@
     if (!ms.length) return `<p class="tk-fout">${esc(t('pl.geenMoment'))}</p>`;
     const dag = (x) => {
       const n = Math.round((new Date(x).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86_400_000);
-      const d = n === 0 ? t('gp.vandaag') : n === 1 ? t('gp.morgen') : new Intl.DateTimeFormat(en() ? 'en-GB' : 'nl-NL', n > 6 ? { weekday: 'long', day: 'numeric' } : { weekday: 'long' }).format(x);
+      const d = n === 0 ? t('w.vandaag2') : n === 1 ? t('w.morgen') : new Intl.DateTimeFormat(en() ? 'en-GB' : 'nl-NL', n > 6 ? { weekday: 'long', day: 'numeric' } : { weekday: 'long' }).format(x);
       return groot(d);
     };
     return `<div class="tk-komend">${ms.slice(0, 4).map((x) => `<div><b>${esc(dag(x))}</b><span>${esc(klok(x))}</span></div>`).join('')}</div>`;
@@ -689,7 +689,7 @@
     st.bezig = false;
     if (!res) return teken();
     if (!res.ok) {
-      st.fout = (await res.json().catch(() => null))?.fout ?? t('gp.lukteNiet');
+      st.fout = (await res.json().catch(() => null))?.fout ?? t('w.datLukteNiet');
       return teken();
     }
     const klaar = naBewaren;

@@ -37,7 +37,7 @@ async function stuur(body) {
   const res = await fetch('api/bewoners', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   const uit = await res.json().catch(() => ({}));
   if (!res.ok) {
-    zeg(uit.fout ?? t('bewoners.lukteNiet'));
+    zeg(uit.fout ?? t('w.datLukteNiet'));
     return false;
   }
   data = uit;
@@ -56,8 +56,8 @@ function lijst() {
   const nu = gekozenScherm() ? null : gekozen();
   const rijen = volgorde.map((id, i) => {
     const b = data.bewoners.find((x) => x.id === id);
-    const onder = [b.hoofd ? t('bewoners.hoofdgebruiker') : null, b.hoofd || b.comfort === 'eigen' ? t('bewoners.eigenComfort') : t('bewoners.volgt', { naam: data.bewoners[0]?.naam ?? '' })].filter(Boolean).join(' · ');
-    const thuis = b.thuis == null ? '' : b.thuis ? `<span class="label thuis">${esc(t('bewoners.thuis'))}</span>` : `<span class="label weg">${esc(b.thuisSindsMs ? t('bewoners.wegSinds', { klok: tijd(b.thuisSindsMs) }) : t('bewoners.weg'))}</span>`;
+    const onder = [b.hoofd ? t('w.hoofdgebruiker') : null, b.hoofd || b.comfort === 'eigen' ? t('w.eigenComfort') : t('w.volgt', { naam: data.bewoners[0]?.naam ?? '' })].filter(Boolean).join(' · ');
+    const thuis = b.thuis == null ? '' : b.thuis ? `<span class="label thuis">${esc(t('w.thuis'))}</span>` : `<span class="label weg">${esc(b.thuisSindsMs ? t('w.wegSinds', { klok: tijd(b.thuisSindsMs) }) : t('w.weg'))}</span>`;
     return `<div class="bewoner${b.id === nu?.id ? ' gekozen' : ''}" role="button" tabindex="0" data-kies="${esc(b.id)}" data-rij="${esc(b.id)}">
       <span class="greep" ${data.ik.magBeheren ? `data-greep="${esc(b.id)}" aria-label="${esc(t('bewoners.verplaatsen', { naam: b.naam }))}" tabindex="0"` : 'aria-hidden="true" style="visibility: hidden"'}>⋮⋮</span>
       <span class="plek${i === 0 ? ' een' : ''}">${i + 1}</span>
@@ -91,9 +91,9 @@ function schermBlad(s) {
   return `<div class="kop"><span class="gezicht" style="background: #5b6b80">${esc(s.naam.charAt(0).toUpperCase())}</span><div><h2 class="kop-2 geen-marge">${esc(s.naam)}</h2><span class="mini">${esc(t('bewoners.schermSinds', { datum: dag(s.sindsMs) }))}</span></div></div>
     <div class="vak"><label for="scherm-naam">${esc(t('bewoners.schermNaam'))}</label><input class="invoer" id="scherm-naam" data-schermnaam value="${esc(s.naam)}" maxlength="40" ${uit}><span class="hint">${esc(t('bewoners.inHA', { naam: s.haNaam }))}</span></div>
     <div class="vak"><span>${esc(t('bewoners.watHetDoet'))}</span><span class="hint">${esc(t('bewoners.geenBewoner'))}</span></div>
-    <div class="vak"><span>${esc(t('bewoners.hoeWerkt'))}</span><div class="keuze" role="group" aria-label="${esc(t('bewoners.volledig'))}"><button type="button" data-sopt="volledig" data-waarde="ja" aria-pressed="${s.opties?.volledig === true}" ${uit}>${esc(t('bewoners.volledig'))}</button><button type="button" data-sopt="volledig" data-waarde="nee" aria-pressed="${s.opties?.volledig !== true}" ${uit}>${esc(t('bewoners.metBalken'))}</button></div><div class="keuze" role="group" aria-label="${esc(t('bewoners.luisterenLabel'))}"><button type="button" data-sopt="luisteren" data-waarde="ja" aria-pressed="${s.opties?.luisteren === true}" ${uit}>${esc(t('bewoners.luistert'))}</button><button type="button" data-sopt="luisteren" data-waarde="nee" aria-pressed="${s.opties?.luisteren !== true}" ${uit}>${esc(t('bewoners.luistertNiet'))}</button></div><span class="hint">${esc(t('bewoners.neemtOver'))}</span></div>
+    <div class="vak"><span>${esc(t('bewoners.hoeWerkt'))}</span><div class="keuze" role="group" aria-label="${esc(t('w.volledigScherm'))}"><button type="button" data-sopt="volledig" data-waarde="ja" aria-pressed="${s.opties?.volledig === true}" ${uit}>${esc(t('w.volledigScherm'))}</button><button type="button" data-sopt="volledig" data-waarde="nee" aria-pressed="${s.opties?.volledig !== true}" ${uit}>${esc(t('bewoners.metBalken'))}</button></div><div class="keuze" role="group" aria-label="${esc(t('bewoners.luisterenLabel'))}"><button type="button" data-sopt="luisteren" data-waarde="ja" aria-pressed="${s.opties?.luisteren === true}" ${uit}>${esc(t('bewoners.luistert'))}</button><button type="button" data-sopt="luisteren" data-waarde="nee" aria-pressed="${s.opties?.luisteren !== true}" ${uit}>${esc(t('bewoners.luistertNiet'))}</button></div><span class="hint">${esc(t('bewoners.neemtOver'))}</span></div>
     <span class="fout" data-fout></span>
-    ${kan ? `<div class="knoppenrij"><button type="button" class="knop gevaar" data-schermweg>${esc(t('bewoners.weghalen'))}</button></div><span class="hint">${esc(t(s.ik ? 'bewoners.vraagtOpnieuw.dit' : 'bewoners.vraagtOpnieuw.het'))}</span>` : `<span class="hint">${esc(t('bewoners.schermBeheer'))}</span>`}`;
+    ${kan ? `<div class="knoppenrij"><button type="button" class="knop gevaar" data-schermweg>${esc(t('w.weghalen'))}</button></div><span class="hint">${esc(t(s.ik ? 'bewoners.vraagtOpnieuw.dit' : 'bewoners.vraagtOpnieuw.het'))}</span>` : `<span class="hint">${esc(t('bewoners.schermBeheer'))}</span>`}`;
 }
 
 function blad() {
@@ -111,7 +111,7 @@ function blad() {
    */
   const thuisVak = (magKiezen, zonder) => {
     if (b.gekoppeld) {
-      return `<div class="vak"><span>${esc(t('bewoners.thuisVolgens'))}</span><div class="invoer vast">${esc(t('bewoners.inHANaam', { naam: b.aanwezigheidNaam ?? '' }))}</div><span class="hint">${esc(t(`bewoners.gekoppeld.${wie}`))} ${esc(thuisHint)}</span></div>`;
+      return `<div class="vak"><span>${esc(t('w.thuisVolgens'))}</span><div class="invoer vast">${esc(t('bewoners.inHANaam', { naam: b.aanwezigheidNaam ?? '' }))}</div><span class="hint">${esc(t(`bewoners.gekoppeld.${wie}`))} ${esc(thuisHint)}</span></div>`;
     }
     const opties = b.kiesbaar.map((x) => `<option value="${esc(x.id)}" ${x.id === b.aanwezigheid ? 'selected' : ''}>${esc(x.naam)} · ${esc(t(x.soort === 'persoon' ? 'bewoners.persoon' : 'bewoners.sensor'))}</option>`).join('');
     return `<div class="vak"><label for="bron-${esc(b.id)}">${esc(t(`bewoners.welkeSensor.${wie}`, { naam: b.naam }))}</label><select class="invoer" id="bron-${esc(b.id)}" data-bron ${magKiezen ? '' : 'disabled'}><option value="">${esc(t('bewoners.geenSensor'))}</option>${opties}</select><span class="hint">${esc(b.aanwezigheid ? thuisHint : zonder)}</span></div>`;
@@ -132,22 +132,22 @@ function blad() {
       ${thuisVak(data.ik.magBeheren, t('bewoners.gastZonder'))}
       ${soort}
       <span class="fout" data-fout></span>
-      ${data.ik.magBeheren ? `<div class="knoppenrij"><button type="button" class="knop gevaar" data-weg>${esc(t('bewoners.weghalen'))}</button></div>` : ''}`;
+      ${data.ik.magBeheren ? `<div class="knoppenrij"><button type="button" class="knop gevaar" data-weg>${esc(t('w.weghalen'))}</button></div>` : ''}`;
   }
   const comfort = b.hoofd
     ? `<div class="keuze"><button type="button" aria-pressed="true" disabled>${esc(t('bewoners.eigen'))}</button></div><span class="hint">${esc(t('bewoners.hoofdComfort'))} <a href="comfort.html">${esc(t('bewoners.bekijk'))}</a></span>`
-    : `<div class="keuze" role="group" aria-label="${esc(t('bewoners.comfortVan', { naam: b.naam }))}">
+    : `<div class="keuze" role="group" aria-label="${esc(t('w.comfortVan', { naam: b.naam }))}">
         <button type="button" data-comfort="eigen" aria-pressed="${b.comfort === 'eigen'}" ${kan ? '' : 'disabled'}>${esc(t('bewoners.eigen'))}</button>
-        <button type="button" data-comfort="volgt" aria-pressed="${b.comfort === 'volgt'}" ${kan ? '' : 'disabled'}>${esc(t('bewoners.volgtKnop', { naam: hoofd?.naam ?? t('bewoners.hoofdgebruikerKort') }))}</button>
+        <button type="button" data-comfort="volgt" aria-pressed="${b.comfort === 'volgt'}" ${kan ? '' : 'disabled'}>${esc(t('w.volgt2', { naam: hoofd?.naam ?? t('w.hoofdgebruiker2') }))}</button>
       </div><span class="hint">${esc(b.comfort === 'eigen' ? t('bewoners.eenEigen') : t('bewoners.hetzelfde', { naam: hoofd?.naam ?? t('bewoners.deHoofdgebruiker').toLowerCase() }))} <a href="comfort.html?bewoner=${encodeURIComponent(b.id)}">${esc(t(`bewoners.bekijkComfort.${wie}`))}</a></span>`;
   const knoppen = [
     data.ik.magBeheren && !b.hoofd ? `<button type="button" class="knop" data-hoofd>${esc(t('bewoners.maakHoofd'))}</button>` : '',
-    kan && (!b.hoofd || data.bewoners.length === 1) ? `<button type="button" class="knop gevaar" data-weg>${esc(t('bewoners.weghalen'))}</button>` : '',
+    kan && (!b.hoofd || data.bewoners.length === 1) ? `<button type="button" class="knop gevaar" data-weg>${esc(t('w.weghalen'))}</button>` : '',
   ].join('');
   return `<div class="kop"><span class="gezicht" style="background: ${kleur(data.bewoners.indexOf(b))}">${esc(b.naam.charAt(0).toUpperCase())}</span><div><h2 class="kop-2 geen-marge">${esc(b.naam)}</h2><span class="mini">${esc(t('bewoners.ingelogdSinds', { datum: dag(b.sindsMs) }))}</span></div></div>
     <div class="vak"><label for="naam-${esc(b.id)}">${esc(t(`bewoners.noemt.${wie}`, { naam: b.naam }))}</label><input class="invoer" id="naam-${esc(b.id)}" data-naam value="${esc(b.naam)}" maxlength="40" ${kan ? '' : 'disabled'}><span class="hint">${esc(t('bewoners.inHA', { naam: b.haNaam }))}</span></div>
     ${thuisVak(kan, thuisHint)}
-    <div class="vak"><span>${esc(t('bewoners.comfort'))}</span>${comfort}</div>
+    <div class="vak"><span>${esc(t('w.comfort'))}</span>${comfort}</div>
     ${soort}
     <span class="fout" data-fout></span>
     ${knoppen ? `<div class="knoppenrij">${knoppen}</div>` : ''}`;

@@ -151,7 +151,7 @@
     const sluit = `<button type="button" class="sluit" data-fasen-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button>`;
     if (!v.meters) {
       const g = v.zekering.ampere - v.margeA;
-      return `<div class="hand-boven"><div><h2>${esc(t('fasen.titel'))}</h2><p class="nu">${esc(t('fasen.kopZonder', { zek: zekeringKort() }))}</p></div>${sluit}</div>
+      return `<div class="hand-boven"><div><h2>${esc(t('w.aansluiting'))}</h2><p class="nu">${esc(t('fasen.kopZonder', { zek: zekeringKort() }))}</p></div>${sluit}</div>
         <div class="fs-blok">${balken()}</div>
         <div class="fs-uitleg"><h3>${esc(t('fasen.ookPerFase'))}</h3><p>${esc(t('fasen.ookPerFaseZin', { a: g }))}</p><a class="knop knop-licht" href="energie.html#aansluiting">${esc(t('fasen.naarAansluiting'))}</a></div>`;
     }
@@ -160,9 +160,9 @@
     const kop = een ? t('fasen.kopEen', { a: zek, grens: zek - v.margeA }) : t('fasen.kopDrie', { a: zek, grens: zek - v.margeA });
     const legenda = een ? '' : `<div class="fs-legenda">${v.fasen.map((f, k) => `<span><i style="background: ${KLEUR[k % 3]}"></i>${esc(f.id)}</span>`).join('')}</div>`;
     const pieken = v.fasen.map((f) => `<div class="fs-piek"><span>${esc(f.id)}</span><b>${amp(f.piekA)}</b><small>${f.piekMs == null ? '' : esc(t('fasen.om', { tijd: klok(f.piekMs) }))}</small></div>`).join('');
-    return `<div class="hand-boven"><div><h2>${esc(t('fasen.titel'))}</h2><p class="nu">${esc(kop)}</p></div>${sluit}</div>
+    return `<div class="hand-boven"><div><h2>${esc(t('w.aansluiting'))}</h2><p class="nu">${esc(kop)}</p></div>${sluit}</div>
       <div class="fs-blok">${balken()}</div>
-      <div class="fs-dagblok"><div class="fs-dagkop"><h3>${esc(t('fasen.vandaag'))}</h3>${legenda}</div>${dag()}</div>
+      <div class="fs-dagblok"><div class="fs-dagkop"><h3>${esc(t('w.vandaag'))}</h3>${legenda}</div>${dag()}</div>
       <div><h3 class="fs-h3">${esc(t('fasen.hoogst'))}</h3><div class="fs-pieken" style="grid-template-columns: repeat(${v.fasen.length}, minmax(0, 1fr))">${pieken}</div></div>
       <div class="fs-uitleg"><h3>${esc(t('fasen.krapKop'))}</h3><p>${esc(t('fasen.krapZin'))}</p></div>`;
   }
@@ -181,7 +181,7 @@
       laag.setAttribute('data-fasenblad', '');
       laag.setAttribute('role', 'dialog');
       laag.setAttribute('aria-modal', 'true');
-      laag.setAttribute('aria-label', t('fasen.titel'));
+      laag.setAttribute('aria-label', t('w.aansluiting'));
       (tel ? document.body : (document.getElementById('wand') ?? document.body)).append(laag);
       laag.innerHTML = `<div class="hand-achter" data-fasen-sluit></div><div class="hand-vel"><section class="glas hand-blad fs-blad"></section></div>`;
     }

@@ -393,7 +393,7 @@ function tekenTijdlijn(r, verwacht, lijst) {
   const getallenSvg = g
     ? `<text x="${X0}" y="20">${g.rij.map(([w, l], i) => `<tspan class="getal"${i ? ' dx="22" fill="#B8C4CF"' : ''}>${esc(w)}</tspan><tspan class="sub" dx="6">${esc(l)}</tspan>`).join('')}${g.afwijking ? `<tspan class="af${g.afwijking.startsWith('+') ? '' : ' min'}" dx="16">${esc(g.afwijking)}</tspan>` : ''}${g.noot ? `<tspan class="sub" dx="16">${esc(g.noot)}</tspan>` : ''}</text>`
     : '';
-  const nuStreep = nuX == null ? '' : `<line x1="${nuX.toFixed(1)}" y1="26" x2="${nuX.toFixed(1)}" y2="${hoog - 30}" stroke="#EEF3F7" stroke-width="1.5"/><rect x="${(nuX - 22).toFixed(1)}" y="${hoog - 30}" width="44" height="20" rx="10" fill="#EEF3F7"/><text x="${nuX.toFixed(1)}" y="${hoog - 16}" text-anchor="middle" class="nu">${esc(t('thuis.nuKlein'))}</text>`;
+  const nuStreep = nuX == null ? '' : `<line x1="${nuX.toFixed(1)}" y1="26" x2="${nuX.toFixed(1)}" y2="${hoog - 30}" stroke="#EEF3F7" stroke-width="1.5"/><rect x="${(nuX - 22).toFixed(1)}" y="${hoog - 30}" width="44" height="20" rx="10" fill="#EEF3F7"/><text x="${nuX.toFixed(1)}" y="${hoog - 16}" text-anchor="middle" class="nu">${esc(t('w.nu'))}</text>`;
 
   // Een huis zonder panelen: geen zon in de tijdlijn, en ook geen getallen erover.
   const metZon = app.huisSoort()?.zon !== false;

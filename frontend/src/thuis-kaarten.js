@@ -267,7 +267,7 @@ function tekenLading() {
 function tekenFasen() {
   const f = fasekaart;
   if (!f.hier()) return zetKaart('[data-fasen]', 'fasen', '', false);
-  const naam = t('thuis.kaart.fasen');
+  const naam = t('w.aansluiting');
   const kop = `<div class="kaartkop"><span class="ik">${eigen.icoon('fasen')}</span><h2 class="kop-3">${esc(naam)}</h2><span class="fs-zek-kort">${esc(f.zekeringKort())}</span><span class="pijl" aria-hidden="true">›</span></div>`;
   const w = f.tegelWaarden();
   zetKaart('[data-fasen]', 'fasen', `${vol(`${kop}${f.balken()}`)}${tegel({ id: 'fasen', naam, waarde: w.waarde, zin: w.zin, toon: w.toon, beeld: f.staafjes() })}`, true);
@@ -281,11 +281,11 @@ function tekenSluip() {
   const zonderMeter = !s && app.huisSoort()?.meter === false;
   $$('[data-sluip]').forEach((el) => el.setAttribute('href', zonderMeter ? 'energie.html#meters' : 'sluipverbruik.html'));
   if (zonderMeter) {
-    const naam = t('thuis.kaart.sluip');
+    const naam = t('w.sluipverbruik');
     return zetKaart('[data-sluip]', 'sluip', `${vol(`${kaartKop('sluip', naam, false)}<p class="klein geen-marge boven-8 onder-12">${esc(t('thuis.sluip.metMeter'))}</p><span class="pil">${esc(t('thuis.sluip.meterKnop'))}</span>`)}${tegel({ id: 'sluip', naam, waarde: '–', zin: t('thuis.sluip.kanErbij') })}`, true);
   }
   if (!s) return zetKaart('[data-sluip]', 'sluip', '', false);
-  const naam = t('thuis.kaart.sluip');
+  const naam = t('w.sluipverbruik');
   const zin = s.hoog ? t('thuis.sluip.boven', { boven: getal(s.bovenW, 0) }) : t('thuis.sluip.gewoon', { gewoon: getal(s.gewoonW, 0) });
   const toon = s.hoog ? 'var(--gloed-t)' : '';
   const staven = (n, max) => s.nachten.slice(-n).map((x) => `<i class="${x.hoog ? 'hoog' : ''}" style="height: ${Math.max(6, Math.round((x.w / max) * 100))}%"></i>`).join('');
@@ -503,7 +503,7 @@ function tekenWeer() {
   const vandaagKwh = v.verwachtKwh ?? v.opgewektKwh;
   const rijen = [
     `<div class="rij">
-      <div class="dag">${esc(t('thuis.weer.vandaag'))}<span>${esc(v.tekst ?? '')}</span></div>${weerIcoon(v.soort)}
+      <div class="dag">${esc(t('w.vandaag'))}<span>${esc(v.tekst ?? '')}</span></div>${weerIcoon(v.soort)}
       <div class="temp"><span>${buitenNu() == null ? '' : vet('thuis.weer.nu', { graden: getal(buitenNu()) })}</span><span>${v.zonkansPct == null ? '' : esc(t('thuis.weer.zon', { pct: v.zonkansPct }))}</span></div>
       <div class="opbrengst">${balk(vandaagKwh)}<span>${v.verwachtKwh != null ? `${getal(v.verwachtKwh)} kWh` : esc(t('thuis.weer.totNu', { kwh: getal(v.opgewektKwh) }))}</span></div>
     </div>${urenStrook(v.uren ?? [])}`,
@@ -536,7 +536,7 @@ function tekenWeer() {
  */
 function urenStrook(uren) {
   if (!uren.length) return '';
-  const cellen = uren.map((u, i) => `<div class="uur"><span>${esc(i === 0 ? t('thuis.weer.nuKop') : UUR.format(new Date(u.tMs)))}</span>${uurIcoon(u)}<b>${u.buitenC == null ? '–' : `${getal(u.buitenC, 0)}°`}</b><span class="kans">${u.regenkansPct != null && u.regenkansPct >= 30 ? `${u.regenkansPct}%` : ''}</span></div>`).join('');
+  const cellen = uren.map((u, i) => `<div class="uur"><span>${esc(i === 0 ? t('w.nu2') : UUR.format(new Date(u.tMs)))}</span>${uurIcoon(u)}<b>${u.buitenC == null ? '–' : `${getal(u.buitenC, 0)}°`}</b><span class="kans">${u.regenkansPct != null && u.regenkansPct >= 30 ? `${u.regenkansPct}%` : ''}</span></div>`).join('');
   return `<div class="uren" role="list" aria-label="${esc(t('thuis.weer.perUur'))}">${cellen}</div>`;
 }
 
@@ -690,7 +690,7 @@ function standNuHtml(st) {
     if (b.verlengdTot != null && nachtVan != null) delen += `<div class="sb-deel verlengd" style="left: ${pct(nachtVan)}; width: ${pct(Math.max(0, b.verlengdTot - nachtVan))}; --k: var(--ijs)"></div>`;
   }
   const uren = [0, 6, 12, 18, 24].map((u) => `<i style="left: ${pct(u)}">${String(u).padStart(2, '0')}:00</i>`).join('');
-  const balk = `<div class="sb-balk"><div class="sb-delen">${delen}</div><div class="sb-nu" style="left: ${pct(b.nu)}"><em>${esc(t('thuis.nuKlein'))}</em></div><div class="sb-uren">${uren}</div></div><p class="sb-bij">${esc(b.uitleg)}</p>`;
+  const balk = `<div class="sb-balk"><div class="sb-delen">${delen}</div><div class="sb-nu" style="left: ${pct(b.nu)}"><em>${esc(t('w.nu'))}</em></div><div class="sb-uren">${uren}</div></div><p class="sb-bij">${esc(b.uitleg)}</p>`;
   const mee = st.meldingen.map((m) => `<div class="sb-mee" style="--k: ${STAND_KLEUR[m.soort]}"><span class="ik"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${STAND_IK[m.soort]}</svg></span><span><b>${esc(m.wat)}</b><small>${esc(m.hoe)}</small></span><span class="waarde">${esc(m.waarde)}</span></div>`).join('');
   return `<div class="sb-held"><span class="standstip" style="--k: ${kleur}"></span><b>${esc(st.naam)}</b><span>${esc(st.onder)}</span></div>
     ${balk}
@@ -715,7 +715,7 @@ async function openModus() {
   el.dataset.blad = 'modus';
   el.setAttribute('aria-label', t('thuis.modus.kop'));
   const kop = `<div class="bladkop"><h2 class="kop-2">${esc(t('thuis.modus.kop'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>`;
-  const lijst = STANDEN.map((id) => `<div class="modusrij${id === nu ? ' nu' : ''}" ${id === nu ? 'aria-current="true"' : ''}><b>${esc(naam(id))}${id === nu ? `<span class="mini"> · ${esc(t('thuis.nuKlein'))}</span>` : ''}</b><span>${esc(standUitleg(id, dagdelen))}</span></div>`).join('');
+  const lijst = STANDEN.map((id) => `<div class="modusrij${id === nu ? ' nu' : ''}" ${id === nu ? 'aria-current="true"' : ''}><b>${esc(naam(id))}${id === nu ? `<span class="mini"> · ${esc(t('w.nu'))}</span>` : ''}</b><span>${esc(standUitleg(id, dagdelen))}</span></div>`).join('');
   const nogNiet = `<p class="mini geen-marge boven-12">${esc(t('thuis.modus.nogNiet'))}</p>`;
   const st = state.bewoner?.stand;
   el.classList.toggle('standblad', !!st);
@@ -760,7 +760,7 @@ function tekenDoetBlad() {
     : '';
   // Wat op zon gaat: de boiler, de stekkers en het witgoed, met hun stand van nu.
   const opZon = [...(state.bewoner.warmtebuffers ?? []), ...(state.bewoner.uitstelbaar ?? [])];
-  const klimaat = `<div class="dt-wel"><span><b>${esc(t('thuis.doet.klimaat'))}</b><small>${esc(t('thuis.doet.klimaatNog'))}</small></span><span class="dt-waarde">${esc(t('thuis.doet.stand.kijkt'))}</span></div>`;
+  const klimaat = `<div class="dt-wel"><span><b>${esc(t('w.klimaat'))}</b><small>${esc(t('thuis.doet.klimaatNog'))}</small></span><span class="dt-waarde">${esc(t('thuis.doet.stand.kijkt'))}</span></div>`;
   const zelf = `<h3>${esc(t('thuis.doet.zelf'))}</h3>${opZon.map((x) => `<div class="dt-wel"><span><b>${esc(x.naam)}</b></span><span class="dt-waarde">${esc(x.kop)}</span></div>`).join('')}${klimaat}`;
   const kop = `<div class="bladkop"><h2 class="kop-2">${esc(t('thuis.doet.kop'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>`;
   el.innerHTML = `${kop}<div class="sb-kolommen">

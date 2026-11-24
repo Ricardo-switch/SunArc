@@ -21,8 +21,8 @@ function markeerMeer() {
 /** Welke stap er het laatst getekend is: binnen dezelfde stap blijft de lijst waar hij was. */
 let getekend = null;
 /** Onderaan (besluit 158 en 190): Terug, en rechts Later en Volgende. Later gaat door zonder te bewaren. */
-const terugKnop = () => `<button type="button" class="zachtknop" data-terug>${esc(t('panelen.terug'))}</button>`;
-const volgendeKnoppen = () => `<span class="rechts"><button type="button" class="zachtknop" data-later>${esc(t('inr.later'))}</button><button type="button" class="knop knop-licht" data-volgende>${esc(t('inr.volgende'))}</button></span>`;
+const terugKnop = () => `<button type="button" class="zachtknop" data-terug>${esc(t('w.terug'))}</button>`;
+const volgendeKnoppen = () => `<span class="rechts"><button type="button" class="zachtknop" data-later>${esc(t('w.later'))}</button><button type="button" class="knop knop-licht" data-volgende>${esc(t('inr.volgende'))}</button></span>`;
 /** De wand in het klein bij De wand: dit huis, zoals het nu getekend is. */
 function tekenWandje(el, m) {
   huis.teken(el, { ...m, labels: [], etages: m.etages.map((e) => ({ ...e, kamers: e.kamers.map((k) => ({ ...k, stil: true })) })) }, { breedte: el.clientWidth || 200, hoogte: el.clientHeight || 120, marge: 0.06 });
@@ -45,7 +45,7 @@ function tekenNu() {
   // Op de telefoon (schets Tel-Inrichten-Kort): bovenin de stap en hoe ver je bent, zeven streepjes.
   const i = HOOFD.indexOf(hier);
   $$('[data-telwaar]').forEach((el) => {
-    el.innerHTML = i < 0 ? `<b>${esc(nu === 'welkom' ? t('inr.welkom') : t(`inr.stap.${nu}`))}</b><span>${esc(t('inr.telStappen', { n: STAPPEN.length }))}</span>` : `<b>${i + 1}. ${esc(STAPPEN[i][1])}</b><span>${esc(t('inr.stapVan', { i: i + 1, n: STAPPEN.length }))}</span>`;
+    el.innerHTML = i < 0 ? `<b>${esc(nu === 'welkom' ? t('w.welkom') : t(`inr.stap.${nu}`))}</b><span>${esc(t('inr.telStappen', { n: STAPPEN.length }))}</span>` : `<b>${i + 1}. ${esc(STAPPEN[i][1])}</b><span>${esc(t('inr.stapVan', { i: i + 1, n: STAPPEN.length }))}</span>`;
   });
   $$('[data-voortgang]').forEach((el) => {
     el.innerHTML = STAPPEN.map(([id]) => `<i class="${{ nu: 'nu', klaar: 'al', half: 'half' }[standVan(id)] ?? ''}"></i>`).join('');

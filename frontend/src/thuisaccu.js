@@ -28,7 +28,7 @@ const thuisaccu = (() => {
   function kortZin(info) {
     if (!info?.accu) return null;
     const n = aan(info).length;
-    if (!n) return t('accu.nietsKort');
+    if (!n) return t('w.nietsGevonden');
     // Met de maat erbij als die van elke accu bekend is (besluit 275).
     const maten = aan(info).map((x) => x.maatKWh);
     const samen = maten.every((m) => m != null) ? maten.reduce((s, m) => s + m, 0) : null;
@@ -47,7 +47,7 @@ const thuisaccu = (() => {
 
   /** Het zinnetje in het lijstje links: wie het levert en wat hij meet, of dat hij uit staat. */
   function watZin(x) {
-    if (!x.aan) return t('accu.uitZin');
+    if (!x.aan) return t('w.nietVanDitHuis');
     const wat = ['lading', 'vermogen'].filter((r) => x.sensoren[r]).map((r) => t(`accu.wat.${r}`));
     if (x.sensoren.geladen || x.sensoren.geleverd) wat.push(t('accu.wat.totaal'));
     return [x.zelf ? t('accu.zelfGekozen') : x.merk, wat.join(', ') || t('accu.watNiets')].filter(Boolean).join(' · ');
@@ -73,7 +73,7 @@ const thuisaccu = (() => {
     const ander = alle.filter((s) => s.apparaat !== x.id);
     const label = t(`accu.rol.${rol}`);
     return `<label class="ac-sensor"><span class="veldnaam">${esc(label)}${nu?.staat != null ? `<em>${esc(waarde(nu))}</em>` : ''}</span>
-      <select class="invoer" data-accu-sensor="${rol}" data-id="${esc(x.id)}" aria-label="${esc(label)}"><option value="">${esc(t('accu.geen'))}</option>${eigen.map(optie).join('')}${ander.length ? `<optgroup label="${esc(t('accu.andere'))}">${ander.map(optie).join('')}</optgroup>` : ''}</select></label>`;
+      <select class="invoer" data-accu-sensor="${rol}" data-id="${esc(x.id)}" aria-label="${esc(label)}"><option value="">${esc(t('accu.geen'))}</option>${eigen.map(optie).join('')}${ander.length ? `<optgroup label="${esc(t('w.andereSensoren'))}">${ander.map(optie).join('')}</optgroup>` : ''}</select></label>`;
   }
 
   /** Wat de accu nu doet, met het teken toegepast: zo zie je of de keuze klopt. */
@@ -92,7 +92,7 @@ const thuisaccu = (() => {
     const teken = x.ontlaadVermogen
       ? `<p class="mini">${esc(t('accu.tweeVermogens'))}</p>`
       : `<div class="keuzes" role="group">${['laden', 'leveren'].map((w) => `<button type="button" data-accu="teken" data-id="${esc(x.id)}" data-waarde="${w}" aria-pressed="${x.teken === w}">${esc(t(`accu.plus.${w}`))}</button>`).join('')}</div>`;
-    const weg = x.zelf ? `<button type="button" class="knop" data-accu="weg" data-id="${esc(x.id)}" style="align-self: start">${esc(t('accu.weghalen'))}</button>` : '';
+    const weg = x.zelf ? `<button type="button" class="knop" data-accu="weg" data-id="${esc(x.id)}" style="align-self: start">${esc(t('w.weghalen'))}</button>` : '';
     return `<div class="ld-vraag"><b>${esc(t('accu.welkeSensor'))}</b><div class="ac-sensoren">${ROLLEN.map((r) => sensorKeuze(info, x, r)).join('')}</div></div>
       <div class="ld-vraag"><b>${esc(t('accu.plusKop'))}</b>${teken}<span class="ac-nu"><i style="background: ${nu.kleur}"></i>${esc(nu.zin)}</span></div>
       <label class="veldnaam">${esc(t('accu.maat'))}<span class="ld-met ac-maat"><input class="invoer" type="number" inputmode="decimal" min="1" max="200" step="0.1" data-accu-maat="${esc(x.id)}" value="${x.maatKWh ?? ''}" placeholder="${esc(t('accu.maatVoorbeeld'))}"><span>kWh</span></span></label>

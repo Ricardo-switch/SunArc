@@ -21,14 +21,14 @@ function dakVoorstelStap(dk) {
   for (const v of dk.vlakken) if (v.meter) perMeter.set(v.meter, [...(perMeter.get(v.meter) ?? []), v.letter]);
   const samen = [...perMeter.values()].find((l) => l.length > 1);
   const tip = samen ? `<div class="kp-tip">${esc(t('inr.dak.eenMeter', { letters: lijstje(samen) }))}</div>` : '';
-  const rechts = `<span class="rechts"><a class="zachtknop" href="energie.html#panelen">${esc(t('inr.dak.aanpassen'))}</a><button type="button" class="knop knop-licht" data-volgende>${esc(t(gemeten ? 'inr.dak.klopt' : 'inr.volgende'))}</button></span>`;
+  const rechts = `<span class="rechts"><a class="zachtknop" href="energie.html#panelen">${esc(t('w.aanpassen'))}</a><button type="button" class="knop knop-licht" data-volgende>${esc(t(gemeten ? 'inr.dak.klopt' : 'inr.volgende'))}</button></span>`;
   return {
     waar: waarVan('ligging'),
     kop: t(gemeten ? 'inr.dak.voorstelKop' : 'inr.dak.wachtKop'),
     uitleg: t(gemeten ? 'inr.dak.voorstelZin' : 'inr.dak.wachtZin'),
     // Wat kan bij jouw huis: de kaarten, met een link naar Daken en panelen.
     inhoud: `<div class="kp-vlakken">${rijen.join('')}</div>${tip}${dakvlakken.watKanZin(dk)}`,
-    voet: [`<button type="button" class="zachtknop" data-terug>${esc(t('panelen.terug'))}</button>`, rechts],
+    voet: [`<button type="button" class="zachtknop" data-terug>${esc(t('w.terug'))}</button>`, rechts],
   };
 }
 
@@ -162,7 +162,7 @@ function schermRij(s) {
   const o = s.opties ?? {};
   return `<div class="waarderij">${esc(s.naam)}<span>${esc(t(s.ik ? 'inr.ditScherm' : 'inr.scherm'))}</span></div>
     <div class="rondom onder-8">
-      ${schakel(`data-sopt="volledig" data-scherm="${esc(s.id)}"`, t('bewoners.volledig'), o.volledig === true, !mag)}
+      ${schakel(`data-sopt="volledig" data-scherm="${esc(s.id)}"`, t('w.volledigScherm'), o.volledig === true, !mag)}
       ${schakel(`data-sopt="luisteren" data-scherm="${esc(s.id)}"`, t('bewoners.luistert'), o.luisteren === true, !mag)}
     </div>`;
 }
@@ -205,7 +205,7 @@ function wandStap() {
   const taal = v?.tel?.taal ?? 'auto';
   const instellen = v
     ? `${wandje}
-       ${`<div class="schakelblok"><b>${esc(t('inr.kaarten'))}</b><div class="kolom schakels">${WAND_KAARTEN.map((k) => schakel(`data-wkaart="${k}"`, t(`inr.kaart.${k}`), kaarten.includes(k))).join('')}</div></div>`}
+       ${`<div class="schakelblok"><b>${esc(t('w.kaarten'))}</b><div class="kolom schakels">${WAND_KAARTEN.map((k) => schakel(`data-wkaart="${k}"`, t(`inr.kaart.${k}`), kaarten.includes(k))).join('')}</div></div>`}
        ${n ? rij(t('inr.alsNiemand'), knop('data-wnacht', t('inr.nachtsUit', { van: n.van, tot: n.tot }), n.nacht === true)) : ''}
        ${v.scherm ? '' : rij(t('jij.taal.kop'), ['auto', 'nl', 'en'].map((x) => knop(`data-wtaal="${x}"`, t(`jij.taal.${x}`), taal === x)).join(''))}`
     : '';
@@ -264,7 +264,7 @@ function assistentBlok() {
   // Zonder fout gaat hij vanzelf aan bij Klaar, terwijl de film speelt; alleen na een fout een knop.
   const zin = a.bezig ? t(a.stap === 'herstarten' ? 'inr.as.bezigZin' : 'inr.as.even') : a.fout ? t('inr.as.fout', { fout: a.fout }) : t('inr.as.bijKlaar');
   const knop = a.bezig || !a.fout ? '' : `<button type="button" class="knop knop-licht" data-assistent-aan>${esc(t('inr.as.opnieuw'))}</button>`;
-  return `<div class="asblok" aria-live="polite"><div class="askop"><span class="bol" aria-hidden="true"></span><div><b>${esc(t('inr.as.kop'))}</b><span${a.fout && !a.bezig ? ' class="fout"' : ''}>${esc(zin)}</span></div></div><ol class="accstappen asstappen">${stappen}</ol>${knop}</div>`;
+  return `<div class="asblok" aria-live="polite"><div class="askop"><span class="bol" aria-hidden="true"></span><div><b>${esc(t('w.praatMetJeHuis'))}</b><span${a.fout && !a.bezig ? ' class="fout"' : ''}>${esc(zin)}</span></div></div><ol class="accstappen asstappen">${stappen}</ol>${knop}</div>`;
 }
 /** Of de assistent nog aan moet (besluit 202): in de add-on, niet via HACS, nog niet toegevoegd en niet al bezig. */
 function assistentNogAan() {

@@ -151,7 +151,7 @@
         ${s.klembord ? '' : `<pre class="klein geen-marge" data-meldtekst style="white-space: pre-wrap; user-select: all; max-height: 200px; overflow: auto">${esc(s.tekst)}</pre>`}
         <div class="knoppen"><button type="button" class="knop knop-licht" data-meldpop-dicht>${esc(t('algemeen.oke'))}</button></div>`
       : s.vervolg
-      ? `<h2 class="kop-2 geen-marge" id="meldkop">${esc(t('melden.vervolgKop'))}</h2>
+      ? `<h2 class="kop-2 geen-marge" id="meldkop">${esc(t('melden.werktNiet'))}</h2>
         <p class="klein geen-marge">${esc(t('melden.vervolgOver', { code: s.code, titel: s.vervolg.titel ?? '' }))}</p>
         <label class="veldnaam">${esc(t('melden.vervolgWat'))}<textarea class="invoer" data-meldwat rows="4" maxlength="2000" style="height: auto; padding: 10px 12px">${esc(s.wat)}</textarea></label>
         ${meeVak}
@@ -193,7 +193,7 @@
       soort: t(`melden.soort.${s.soort}`),
       wat: s.wat,
       versie: v?.nummer ? `${v.nummer} (${v.installatie ?? ''})` : '',
-      waar: `${global.location.pathname.split('/').pop() || 'thuis.html'} · ${global.app.telStand() ? t('melden.telefoon') : t('melden.wand')} · ${global.taal.code}`,
+      waar: `${global.location.pathname.split('/').pop() || 'thuis.html'} · ${global.app.telStand() ? t('w.telefoon') : t('w.wand')} · ${global.taal.code}`,
       meldcode: s.code,
     };
     const log = s.soort !== 'snap' && s.metLog && s.log.length ? logTekst(s.log) : '';

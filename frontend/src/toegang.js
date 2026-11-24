@@ -62,7 +62,7 @@ function delen() {
     { id: 'bewoners', href: 'bewoners.html', titel: t('instellingen.bewoners'), zin: namen, stand: bewoners ? 'goed' : null },
     // De sleutel alleen als Home Assistant hem nog nodig heeft (besluit 227): in de add-on geeft SunArc hem zelf (besluit 202).
     ...(sleutel && integratie?.toegevoegd !== true ? [{ id: 'assistent', titel: t('toegang.sleutel'), zin: t('toegang.voorHA'), stand: 'goed' }] : []),
-    { id: 'gegevens', titel: t('toegang.gegevens'), zin: gegevens?.bestanden != null ? t('toegang.dagenBewaard', { n: gegevens.bestanden }) : '…', stand: gegevens ? 'goed' : null },
+    { id: 'gegevens', titel: t('w.jeGegevens'), zin: gegevens?.bestanden != null ? t('toegang.dagenBewaard', { n: gegevens.bestanden }) : '…', stand: gegevens ? 'goed' : null },
     versie,
     over,
   ];
@@ -85,7 +85,7 @@ function wieVorm() {
   const terug = encodeURIComponent(location.pathname);
   return s.ingelogd
     ? `<div class="knoppenrij" style="align-items: center"><p class="klein geen-marge" style="flex: 1">${metHtml('toegang.jeBent', { naam: s.naam ?? '', rol })}</p><button type="button" class="knop" data-uitloggen>${esc(t('toegang.uitloggen'))}</button></div>`
-    : `<div class="knoppenrij" style="align-items: center"><p class="klein geen-marge" style="flex: 1">${esc(t('toegang.nietIngelogdZin'))}</p><a class="knop knop-licht" href="auth/login?terug=${terug}" style="display: inline-flex; align-items: center; text-decoration: none">${esc(t('toegang.inloggen'))}</a></div>`;
+    : `<div class="knoppenrij" style="align-items: center"><p class="klein geen-marge" style="flex: 1">${esc(t('toegang.nietIngelogdZin'))}</p><a class="knop knop-licht" href="auth/login?terug=${terug}" style="display: inline-flex; align-items: center; text-decoration: none">${esc(t('w.inloggen'))}</a></div>`;
 }
 
 /** Bewoners (besluit 147): wie jij bent, kort wie hier woont, en de weg naar de pagina. */
@@ -93,7 +93,7 @@ function bewonersVorm() {
   const b = bewoners;
   if (isGast()) return `<h2 class="kop-2">${esc(t('jij.kop'))}</h2>${wieVorm()}<p class="mini geen-marge">${esc(t('toegang.gast'))}</p>`;
   if (!b) return `<h2 class="kop-2">${esc(t('instellingen.bewoners'))}</h2><p class="klein geen-marge">${esc(t('algemeen.laden'))}…</p>`;
-  const rijen = b.bewoners.map((x) => `<div class="rij-b">${esc(x.naam)}${x.ik ? esc(t('toegang.jij')) : ''}<span>${esc(t(x.hoofd ? 'toegang.hoofdgebruiker' : x.comfort === 'eigen' ? 'toegang.eigenComfort' : 'toegang.volgt'))}${x.thuis == null ? '' : esc(t(x.thuis ? 'toegang.thuis' : 'toegang.weg'))}</span></div>`).join('');
+  const rijen = b.bewoners.map((x) => `<div class="rij-b">${esc(x.naam)}${x.ik ? esc(t('toegang.jij')) : ''}<span>${esc(t(x.hoofd ? 'w.hoofdgebruiker2' : x.comfort === 'eigen' ? 'w.eigenComfort' : 'toegang.volgt'))}${x.thuis == null ? '' : esc(t(x.thuis ? 'toegang.thuis' : 'toegang.weg'))}</span></div>`).join('');
   return `<h2 class="kop-2">${esc(t('instellingen.bewoners'))}</h2>
     ${wieVorm()}
     <p class="mini geen-marge">${esc(t('toegang.rollen'))}</p>
@@ -196,7 +196,7 @@ function gegevensVorm() {
   const g = gegevens;
   const mb = g?.bytes != null ? nl(g.bytes / 1_000_000, 0) : null;
   const nu = g?.bestanden != null ? t(mb ? 'toegang.nuDagenMb' : 'toegang.nuDagen', { n: g.bestanden, mb }) : '';
-  const logboek = `<h2 class="kop-2">${esc(t('toegang.gegevens'))}</h2>
+  const logboek = `<h2 class="kop-2">${esc(t('w.jeGegevens'))}</h2>
     <p class="klein geen-marge">${esc(t('toegang.gegevensZin', { nu }))}</p>
     <p class="mini geen-marge">${esc(t('toegang.nietsNaarBuiten'))}</p>`;
   if (melding) return `${logboek}<p class="klein geen-marge" data-melding>${esc(melding)}</p>`;

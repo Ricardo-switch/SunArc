@@ -244,7 +244,7 @@
       const buitenC = st?.explanation?.outdoorTemperatureC ?? w?.vandaag?.buitenC ?? null;
       const d = w?.dagen?.[0];
       const tegels = [
-        buitenC != null || w?.vandaag ? `<div class="glas-klein">${weerIcoon(w?.vandaag?.soort)}<span><b>${buitenC == null ? '–' : `${nl(buitenC, 0)}°`}</b><span>${esc(t('thuis.weer.nuKop'))}${WOORD(w?.vandaag?.soort) ? `, ${esc(WOORD(w.vandaag.soort))}` : ''}</span></span></div>` : '',
+        buitenC != null || w?.vandaag ? `<div class="glas-klein">${weerIcoon(w?.vandaag?.soort)}<span><b>${buitenC == null ? '–' : `${nl(buitenC, 0)}°`}</b><span>${esc(t('w.nu2'))}${WOORD(w?.vandaag?.soort) ? `, ${esc(WOORD(w.vandaag.soort))}` : ''}</span></span></div>` : '',
         d ? `<div class="glas-klein">${weerIcoon(d.soort)}<span><b>${d.maxC == null ? '–' : `${nl(d.maxC, 0)}°`}</b><span>${esc(t('thuis.weer.morgen'))}${d.verwachtKwh == null ? '' : `, ${nl(d.verwachtKwh, 0)} kWh`}</span></span></div>` : '',
         // De droger erbij, zolang hij draait (besluit 166).
         apparaatNu() ? `<div class="glas-klein nr-apparaat" data-nk-apparaat>${apparaatNu()}</div>` : '',

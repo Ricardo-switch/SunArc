@@ -26,7 +26,7 @@ function voorstel(h, { kop, zin, regels, mist = false, noot = '', aanpassen = t(
     kop,
     uitleg: zin,
     inhoud: `${vond(regels)}${noot ? `<p class="noot-k">${esc(noot)}</p>` : ''}${klopt}`,
-    voet: [terugKnop(), `<span class="rechts"><button type="button" class="zachtknop" data-later>${esc(t('inr.later'))}</button></span>`],
+    voet: [terugKnop(), `<span class="rechts"><button type="button" class="zachtknop" data-later>${esc(t('w.later'))}</button></span>`],
   };
 }
 
@@ -167,7 +167,7 @@ function klaarStap() {
     uitleg: t('inr.k.klaarZin'),
     inhoud: `${as}${v?.onderwerpen.length ? `<div class="klaarwaaier"><svg viewBox="0 0 390 214" data-klaarwaaier aria-label="${esc(t('voortgang.beschrijving', { pct: v.totaal }))}"></svg></div>` : ''}
       ${regels.length ? vond(regels) : ''}${nogOpen}
-      <p class="noot-k">${esc(t('inr.k.later'))} <a href="huis-kan.html">${esc(t('inr.kanTitel'))} ›</a></p>`,
+      <p class="noot-k">${esc(t('inr.k.later'))} <a href="huis-kan.html">${esc(t('w.watJeHuisKan'))} ›</a></p>`,
     // De knoppen onderaan vast (besluit 158): de rondleiding als keuze, of meteen naar Thuis.
     voet: [terugKnop(), `<span class="rechts"><button type="button" class="kloptknop" data-film>${esc(t('inr.k.laatZien'))}</button><a class="knop knop-licht" href="thuis.html" data-naar-thuis>${esc(t('inr.k.naarThuis'))}</a></span>`],
   };

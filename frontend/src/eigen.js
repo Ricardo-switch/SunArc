@@ -587,7 +587,7 @@
       plek === 'wand' ? (v.wand.van == null ? global.t('eigen.voorWand') : v.wand.eigen ? global.t('eigen.ookTelefoon') : global.t('eigen.vanWie', { naam: v.wand.naam ?? global.t('eigen.wieGeldt') })) : global.t('eigen.opThuis'),
       gekozen.length > 1 ? global.t('eigen.volgorde') : '',
     ].filter(Boolean).join(' ');
-    el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(global.t('thuis.kaart.favorieten'))}</h2><button type="button" class="knop knop-klein knop-licht" data-fav-klaar>${esc(global.t('algemeen.klaar'))}</button></div>
+    el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(global.t('w.favorieten'))}</h2><button type="button" class="knop knop-klein knop-licht" data-fav-klaar>${esc(global.t('algemeen.klaar'))}</button></div>
       <p class="mini geen-marge" data-fav-teller>${esc(teller)}</p>
       ${chips ? `<div class="favchips tegels" data-favchips>${chips}</div>` : ''}
       ${filters}

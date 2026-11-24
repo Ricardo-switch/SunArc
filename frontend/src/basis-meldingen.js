@@ -70,7 +70,7 @@
       const aandacht = meld.actief.length
         ? `<h3>${kern.esc(kern.global.t('basis.meld.aandacht'))}</h3>${meld.actief.map(kaart).join('')}`
         : `<div class="stil"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--mint)" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><b>${kern.esc(kern.global.t('basis.meld.allesWerkt'))}</b>${kern.esc(kern.global.t('basis.meld.allesWerktZin'))}</div>`;
-      const eerder = meld.eerder.length ? `<h3>${kern.esc(kern.global.t('basis.meld.eerder'))}</h3>${meld.eerder.slice(0, 5).map(oud).join('')}` : '';
+      const eerder = meld.eerder.length ? `<h3>${kern.esc(kern.global.t('w.eerder'))}</h3>${meld.eerder.slice(0, 5).map(oud).join('')}` : '';
       // Alles wissen (besluit 187): alleen als er iets te wissen is.
       const alles = meld.actief.length || meld.eerder.length ? `<button type="button" class="meldalles" data-meld-alles>${kern.esc(kern.global.t('basis.meld.allesWissen'))}</button>` : '';
       return `<div class="kop"><h2 class="kop-2">${kern.esc(kern.global.t('nav.meldingen'))}</h2>${alles}<button type="button" class="sluit" data-meld-sluit aria-label="${kern.esc(kern.global.t('algemeen.sluiten'))}">×</button></div>

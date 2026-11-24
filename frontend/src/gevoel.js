@@ -111,7 +111,7 @@
     if (!zoneId) return '';
     if (!geladen) void laad().catch(() => {});
     const a = antwoord.get(zoneId);
-    const kies = kamers.length > 1 ? `<div class="gevoelkamers" role="group" aria-label="${esc(t('gevoel.kamer'))}">${kamers.map((k) => `<button type="button" data-gevoel-zone="${esc(k.zoneId)}" aria-pressed="${k.zoneId === zoneId}">${esc(k.naam)}${k.c != null ? ` <small>${graden(k.c)}</small>` : ''}</button>`).join('')}</div>` : '';
+    const kies = kamers.length > 1 ? `<div class="gevoelkamers" role="group" aria-label="${esc(t('w.kamer'))}">${kamers.map((k) => `<button type="button" data-gevoel-zone="${esc(k.zoneId)}" aria-pressed="${k.zoneId === zoneId}">${esc(k.naam)}${k.c != null ? ` <small>${graden(k.c)}</small>` : ''}</button>`).join('')}</div>` : '';
     const knoppen = `<div class="gevoel">${GEVOEL.map(([g, kl]) => `<button type="button" class="${kl}" data-gevoel-tik="${g}" data-zone="${esc(zoneId)}" aria-pressed="${a?.gevoel === g}">${esc(t(`gevoel.knop.${g}`))}</button>`).join('')}</div>`;
     let onder = '';
     if (a) {

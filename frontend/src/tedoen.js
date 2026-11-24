@@ -57,8 +57,8 @@
   /** "vandaag", "morgen", of "do". */
   function dagKort(ms) {
     const n = dagenVan(ms);
-    if (n === 0) return t('tedoen.vandaag');
-    if (n === 1) return t('tedoen.morgen');
+    if (n === 0) return t('w.vandaag2');
+    if (n === 1) return t('w.morgen');
     return new Intl.DateTimeFormat(nl() ? 'nl-NL' : 'en-GB', { weekday: 'short' }).format(ms).replace('.', '');
   }
 
@@ -145,7 +145,7 @@
       k.toggleAttribute('data-niet-hier', !data?.aan);
       k.classList.toggle('nu', r.some((x) => x.nu));
       if (!r.length) continue;
-      k.innerHTML = `<div class="td-naam">${esc(t('tedoen.kop'))}<span>${esc(t('tedoen.alles'))} ›</span></div>${r
+      k.innerHTML = `<div class="td-naam">${esc(t('w.teDoen'))}<span>${esc(t('tedoen.alles'))} ›</span></div>${r
         .map((x) => `<div class="td-rij"><span class="td-ik ${x.klasse}">${svg(IK[x.ik])}</span><div><b>${esc(x.kop)}</b><span>${esc(x.zin)}</span></div><span class="td-wanneer">${esc(x.wanneer)}</span></div>`)
         .join('')}`;
     }
@@ -155,8 +155,8 @@
 
   function herinneringHtml(h) {
     const wie = h.eigen ? t('tedoen.jij') : (h.naam ?? t('tedoen.iedereen'));
-    const kanalen = h.voor ? `${svg(IK.wand)} ${esc(t('tedoen.wand'))} ${svg(IK.tel)} ${esc(t('tedoen.telefoon'))}` : `${svg(IK.wand)} ${esc(t('tedoen.wand'))}`;
-    return `<div class="td-her${h.status === 'nu' ? ' nu' : ''}"><div class="td-uur"><b>${esc(klok(h.ms))}</b><span>${esc(dagenVan(h.ms) === 0 ? t('tedoen.vandaag') : dagKort(h.ms))}</span></div><div class="td-wat"><b>${esc(h.tekst)}</b><span>${esc(wie)} · ${kanalen}</span></div><button type="button" class="td-vink" data-td-gedaan="${esc(h.id)}" aria-label="${esc(t('tedoen.gedaan'))}">${svg(IK.vink, 2.4)}</button></div>`;
+    const kanalen = h.voor ? `${svg(IK.wand)} ${esc(t('w.wand'))} ${svg(IK.tel)} ${esc(t('w.telefoon'))}` : `${svg(IK.wand)} ${esc(t('w.wand'))}`;
+    return `<div class="td-her${h.status === 'nu' ? ' nu' : ''}"><div class="td-uur"><b>${esc(klok(h.ms))}</b><span>${esc(dagenVan(h.ms) === 0 ? t('w.vandaag2') : dagKort(h.ms))}</span></div><div class="td-wat"><b>${esc(h.tekst)}</b><span>${esc(wie)} · ${kanalen}</span></div><button type="button" class="td-vink" data-td-gedaan="${esc(h.id)}" aria-label="${esc(t('tedoen.gedaan'))}">${svg(IK.vink, 2.4)}</button></div>`;
   }
 
   /**
@@ -169,7 +169,7 @@
     const vandaag = lijst.filter((g) => dagenVan(g.ms) <= 0);
     const gedaan = lijst.filter((g) => g.opdracht?.laatstMs && dagenVan(g.opdracht.laatstMs) === 0 && dagenVan(g.ms) > 0);
     const opBoog = [...vandaag.map((g) => ({ ms: g.ms, aan: g.opdracht?.aan !== false })), ...gedaan.map((g) => ({ ms: g.opdracht.laatstMs, aan: true, gedaan: true }))];
-    const boog = p ? `<a class="td-boog" href="gepland.html" aria-label="${esc(t('tedoen.vastGepland'))}">${p.boog(opBoog, { mini: true }, zon)}</a>` : '';
+    const boog = p ? `<a class="td-boog" href="gepland.html" aria-label="${esc(t('w.vastEnGepland'))}">${p.boog(opBoog, { mini: true }, zon)}</a>` : '';
     const regels = [...lijst]
       .sort((a, b) => a.ms - b.ms)
       .slice(0, 6)
@@ -183,7 +183,7 @@
       })
       .join('');
     return `<section class="glas tdp-vak td-vast">
-        <h2>${esc(t('tedoen.vastGeplandKop'))}<a class="td-gepland" href="gepland.html">${esc(t('tedoen.alles'))} ›</a></h2>
+        <h2>${esc(t('w.vastEnGepland'))}<a class="td-gepland" href="gepland.html">${esc(t('tedoen.alles'))} ›</a></h2>
         ${nu ? `<div class="nu-regels td-nu">${nu}</div>` : ''}${boog}${regels || `<p class="mini">${esc(t('tedoen.geenTaken'))}</p>`}
       </section>`;
   }
@@ -192,7 +192,7 @@
   function keuzeHtml() {
     if (!keuzeOpen) return '';
     const weg = (soort, ik) => `<button type="button" class="td-weg ${soort}" data-td-keuze="${soort}">${svg(IK[ik], 2)}<b>${esc(t(`tedoen.keuze.${soort}`))}</b><span>${esc(t(`tedoen.keuze.${soort}Zin`))}</span><small>${esc(t(`tedoen.keuze.${soort}Vb`))}</small></button>`;
-    return `<div class="td-keuze-achter" data-td-keuzedicht></div><div class="td-keuze" role="dialog" aria-label="${esc(t('tedoen.plusNieuw'))}">
+    return `<div class="td-keuze-achter" data-td-keuzedicht></div><div class="td-keuze" role="dialog" aria-label="${esc(t('w.nieuw2'))}">
         ${weg('herinnering', 'klok')}${global.plannen ? weg('taak', 'taak') : ''}
         <form class="td-zeg" data-td-zeg><input type="text" maxlength="200" placeholder="${esc(t('tedoen.keuze.zeg'))}" aria-label="${esc(t('tedoen.keuze.zeg'))}"><button type="submit" aria-label="${esc(t('pl.maak'))}">${svg(IK.pijl, 2.2)}</button></form>
       </div>`;
@@ -216,7 +216,7 @@
     const bronnen = new Map();
     for (const a of data.afspraken) {
       const sleutel = a.bron === 'afval' ? 'afval' : a.bron === 'gezin' ? 'gezin' : a.wie ? `wie:${a.wie}` : a.agenda;
-      if (!bronnen.has(sleutel)) bronnen.set(sleutel, { naam: a.bron === 'afval' ? t('tedoen.afval') : a.bron === 'gezin' ? t('tedoen.gezin') : (a.wie ?? data.agendas?.[a.agenda] ?? a.agenda), kleur: a.bron === 'afval' ? 'td-gft' : kleurVan(a) });
+      if (!bronnen.has(sleutel)) bronnen.set(sleutel, { naam: a.bron === 'afval' ? t('w.afval') : a.bron === 'gezin' ? t('tedoen.gezin') : (a.wie ?? data.agendas?.[a.agenda] ?? a.agenda), kleur: a.bron === 'afval' ? 'td-gft' : kleurVan(a) });
     }
     return bronnen;
   }
@@ -231,7 +231,7 @@
     const dagen = [...new Set([vandaag, ...data.afspraken.map((a) => dagStart(a.startMs)).filter((d) => d >= vandaag)])].sort((a, b) => a - b);
     const kort = new Intl.DateTimeFormat(nl() ? 'nl-NL' : 'en-GB', { weekday: 'short' });
     const bronnen = bronnenVan();
-    const kiezen = data.bewoner ? `<a class="tdp-kiezen" href="jij.html#agenda">${esc(t('tedoen.agendasKiezen'))} ›</a>` : '';
+    const kiezen = data.bewoner ? `<a class="tdp-kiezen" href="jij.html#agenda">${esc(t('w.jouwAgendaS'))} ›</a>` : '';
     const legenda = agendasOpen && (bronnen.size || kiezen) ? `<div class="tdp-bronnen">${[...bronnen.values()].map((b) => `<span class="tdp-bron"><i class="${b.kleur}"></i>${esc(b.naam)}</span>`).join('')}${kiezen}</div>` : '';
     const dag = (ms) => {
       const daar = data.afspraken.filter((a) => dagStart(a.startMs) === ms);
@@ -256,7 +256,7 @@
     const opruimen = af.length
       ? `<button type="button" class="td-opruim${vraag ? ' zeker' : ''}" data-td-opruim="${l.soort}">${esc(vraag ? t('tedoen.opruimenZeker', { n: af.length }) : t('tedoen.opruimen', { n: af.length }))}</button>`
       : '';
-    const naam = t(l.soort === 'boodschappen' ? 'tedoen.boodschappen' : 'tedoen.todo');
+    const naam = t(l.soort === 'boodschappen' ? 'tedoen.boodschappen' : 'w.toDo');
     return `<div class="tdp-lijst">
       ${metTabs ? '' : `<h3>${esc(naam)}<span>${open.length}</span></h3>`}
       <div class="td-items">${
@@ -264,7 +264,7 @@
           ? items.map((i) => `<button type="button" class="td-item${i.klaar ? ' af' : ''}" data-td-item="${esc(i.tekst)}" data-td-uid="${esc(i.uid ?? '')}" data-td-lijst="${l.soort}" data-td-klaar="${i.klaar}"><span class="td-box">${i.klaar ? svg(IK.vink, 2.4) : ''}</span>${esc(i.tekst)}</button>`).join('')
           : `<p class="mini">${esc(t('tedoen.leeg'))}</p>`
       }</div>
-      <form class="td-erbij" data-td-erbij data-td-lijst="${l.soort}"><input type="text" maxlength="120" placeholder="${esc(t('tedoen.erbij'))}" aria-label="${esc(t('tedoen.erbijLijst', { lijst: naam }))}"></form>
+      <form class="td-erbij" data-td-erbij data-td-lijst="${l.soort}"><input type="text" maxlength="120" placeholder="${esc(t('w.ietsToevoegen'))}" aria-label="${esc(t('tedoen.erbijLijst', { lijst: naam }))}"></form>
       <div class="td-voet"><p class="td-bron">${esc(t('tedoen.bron', { naam: l.naam ?? naam }))}</p>${opruimen}</div>
     </div>`;
   }
@@ -274,7 +274,7 @@
     if (!data.lijsten.length) return `<p class="mini">${esc(t('tedoen.geenLijsten'))}</p>`;
     const open = data.lijsten.find((l) => l.soort === lijstOpen) ?? data.lijsten[0];
     const tabs = data.lijsten.length > 1
-      ? `<div class="tdp-tabs" role="tablist">${data.lijsten.map((l) => `<button type="button" role="tab" data-td-lijsttab="${l.soort}" aria-selected="${l === open}">${esc(t(l.soort === 'boodschappen' ? 'tedoen.boodschappen' : 'tedoen.todo'))}<b>${l.items.filter((i) => !i.klaar).length}</b></button>`).join('')}</div>`
+      ? `<div class="tdp-tabs" role="tablist">${data.lijsten.map((l) => `<button type="button" role="tab" data-td-lijsttab="${l.soort}" aria-selected="${l === open}">${esc(t(l.soort === 'boodschappen' ? 'tedoen.boodschappen' : 'w.toDo'))}<b>${l.items.filter((i) => !i.klaar).length}</b></button>`).join('')}</div>`
       : '';
     return `<div class="tdp-lijsten">${tabs}${lijstHtml(open, !!tabs)}</div>`;
   }
@@ -282,8 +282,8 @@
   function paginaHtml() {
     const datum = new Intl.DateTimeFormat(nl() ? 'nl-NL' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long' }).format(Date.now());
     // Rustig bovenaan (besluit 245): de datum en + Nieuw; Agenda's kiezen staat bij de agenda, zeg het onder + Nieuw.
-    const kop = `<div class="tdp-kop"><div><h1 class="kop-1">${esc(t('tedoen.kop'))}</h1><p>${esc(datum.charAt(0).toUpperCase() + datum.slice(1))}</p></div>
-      <div class="tdp-knoppen"><button type="button" class="pil licht" data-td-keuzeknop aria-expanded="${keuzeOpen}">${esc(t('tedoen.plusNieuw'))}</button></div></div>${data?.aan ? keuzeHtml() : ''}`;
+    const kop = `<div class="tdp-kop"><div><h1 class="kop-1">${esc(t('w.teDoen'))}</h1><p>${esc(datum.charAt(0).toUpperCase() + datum.slice(1))}</p></div>
+      <div class="tdp-knoppen"><button type="button" class="pil licht" data-td-keuzeknop aria-expanded="${keuzeOpen}">${esc(t('w.nieuw2'))}</button></div></div>${data?.aan ? keuzeHtml() : ''}`;
     if (!data) return `${kop}<p class="mini">${esc(t('algemeen.laden'))}</p>`;
     if (!data.aan) return `${kop}<section class="glas tdp-vak"><p class="uitleg">${esc(t('tedoen.uit'))}</p><a class="pil" href="functies.html?groep=assistent#tedoen">${esc(t('tedoen.naarFuncties'))}</a></section>`;
     // Wat nu met de hand of op zon loopt (besluit 238), boven de rest.
@@ -300,7 +300,7 @@
       </section>
       ${vastGeplandHtml(data.gepland ?? [], nu)}
       <section class="glas tdp-vak">
-        <h2>${esc(t('tedoen.agenda'))}${n || data.bewoner ? `<button type="button" class="tdp-agendas" data-td-agendas aria-expanded="${agendasOpen}">${esc(t('tedoen.agendasN', { n }))} ${agendasOpen ? '‹' : '›'}</button>` : `<em>${esc(t('tedoen.tweeWeken'))}</em>`}</h2>
+        <h2>${esc(t('w.agenda'))}${n || data.bewoner ? `<button type="button" class="tdp-agendas" data-td-agendas aria-expanded="${agendasOpen}">${esc(t('tedoen.agendasN', { n }))} ${agendasOpen ? '‹' : '›'}</button>` : `<em>${esc(t('tedoen.tweeWeken'))}</em>`}</h2>
         ${agendaHtml()}
       </section>
     </div>`;

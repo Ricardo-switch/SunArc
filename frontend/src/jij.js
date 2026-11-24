@@ -143,7 +143,7 @@ function teken() {
   const std = v.standaard;
   const uiterlijkAnders = std && (v.tel.thema !== std.thema || v.tel.kleur !== std.kleur || Object.keys(std.weergave).some((k) => w[k] !== std.weergave[k]));
   const kaartenAnders = std && JSON.stringify(v.tel.kaarten) !== JSON.stringify(std.kaarten);
-  const terug = (data) => `<button type="button" class="rij terugstd" ${data}>${ik('terug')}<b>${esc(t('jij.std'))}</b><small></small><span class="pijl"></span></button>`;
+  const terug = (data) => `<button type="button" class="rij terugstd" ${data}>${ik('terug')}<b>${esc(t('w.terugNaarStandaard'))}</b><small></small><span class="pijl"></span></button>`;
   const uiterlijk = `
     <section class="glas lijst" aria-labelledby="kop-uiterlijk">
       <h2 id="kop-uiterlijk">${esc(t('jij.uiterlijk'))}</h2>
@@ -155,38 +155,38 @@ function teken() {
     </section>`;
   if (!wie) {
     const zin = t(mij?.soort === 'scherm' ? 'jij.scherm' : 'jij.geenProfiel');
-    $$('[data-jij]').forEach((el) => (el.innerHTML = `<div class="wie"><div><h1 class="kop-1">${esc(t(mij?.soort === 'scherm' ? 'jij.ditScherm' : 'jij.kop'))}</h1><small>${esc(zin)}</small></div></div>${uiterlijk}${schermBlok(false)}`));
+    $$('[data-jij]').forEach((el) => (el.innerHTML = `<div class="wie"><div><h1 class="kop-1">${esc(t(mij?.soort === 'scherm' ? 'w.ditScherm' : 'jij.kop'))}</h1><small>${esc(zin)}</small></div></div>${uiterlijk}${schermBlok(false)}`));
     return;
   }
   const hoofd = (b.bewoners ?? []).find((x) => x.hoofd);
   const thuis = wie.thuis == null ? '' : t(wie.thuis ? 'jij.thuisNu' : 'jij.wegNu');
-  const soort = wie.comfort === 'eigen' ? t('jij.eigenTemperaturen') : t('jij.volgt', { naam: hoofd?.naam ?? t('jij.deHoofdgebruiker') });
+  const soort = wie.comfort === 'eigen' ? t('jij.eigenTemperaturen') : t('w.volgt', { naam: hoofd?.naam ?? t('jij.deHoofdgebruiker') });
   const comfort = wie.geldt ? t('jij.geldtNu', { comfort: soort }) : soort;
   const html = `
-    <div class="wie"><span class="rondje" aria-hidden="true">${esc(wie.naam.charAt(0).toUpperCase())}</span><div><h1 class="kop-1">${esc(wie.naam)}</h1><small>${esc(wie.hoofd ? t('jij.hoofdgebruiker') : t('jij.plek', { plek: wie.plek }))}${thuis}</small></div></div>
+    <div class="wie"><span class="rondje" aria-hidden="true">${esc(wie.naam.charAt(0).toUpperCase())}</span><div><h1 class="kop-1">${esc(wie.naam)}</h1><small>${esc(wie.hoofd ? t('w.hoofdgebruiker') : t('jij.plek', { plek: wie.plek }))}${thuis}</small></div></div>
     ${uiterlijk.replace('</section>', `${knop('data-taal-open', 'taal', t('jij.taal.kop'), t(`jij.taal.${v.tel.taal}`))}</section>`)}
     ${schermBlok(true)}
     <section class="glas lijst" aria-labelledby="kop-thuis">
       <h2 id="kop-thuis">${esc(t('jij.thuis'))}</h2>
-      ${link('thuis.html#aanpassen', 'kaarten', t('jij.kaarten'), t('jij.kaartenZin', { n: v.tel.kaarten.length }))}
-      ${link('thuis.html#favorieten', 'favorieten', t('jij.favorieten'), t('jij.favorietenZin', { n: v.tel.favorieten.length }))}
+      ${link('thuis.html#aanpassen', 'kaarten', t('w.kaarten'), t('jij.kaartenZin', { n: v.tel.kaarten.length }))}
+      ${link('thuis.html#favorieten', 'favorieten', t('w.favorieten'), t('jij.favorietenZin', { n: v.tel.favorieten.length }))}
       ${kaartenAnders ? terug('data-std-kaarten') : ''}
       <p class="uitleg">${esc(t('jij.wandUitleg'))}</p>
     </section>
     <section class="glas lijst" aria-labelledby="kop-meldingen">
-      <h2 id="kop-meldingen">${esc(t('jij.meldingen'))}</h2>
+      <h2 id="kop-meldingen">${esc(t('w.meldingen'))}</h2>
       ${link('jij.html#meldingen', 'bel', t('jij.meldingenTel'), mijnTelefoon() ? t('jij.naarTel', { naam: mijnTelefoon().naam }) : t('jij.geenTel'))}
     </section>
     ${agendaBlok()}
     <section class="glas lijst" aria-labelledby="kop-comfort">
-      <h2 id="kop-comfort">${esc(t('jij.comfort'))}</h2>
+      <h2 id="kop-comfort">${esc(t('w.comfort'))}</h2>
       ${link('comfort.html', 'comfort', t('jij.jouwComfort'), comfort.charAt(0).toUpperCase() + comfort.slice(1))}
-      ${link('bewoners.html', 'thuis', t('jij.thuisVolgens'), wie.aanwezigheidNaam ?? t('jij.nogNietGekozen'))}
+      ${link('bewoners.html', 'thuis', t('w.thuisVolgens'), wie.aanwezigheidNaam ?? t('jij.nogNietGekozen'))}
     </section>
     <section class="glas lijst" aria-labelledby="kop-over">
       <h2 id="kop-over">${esc(t('jij.overJou'))}</h2>
       ${link('bewoners.html', 'naam', t('jij.jeNaam'), wie.naam)}
-      ${link('toegang.html#gegevens', 'downloaden', t('jij.gegevens'), t('jij.gegevensZin'))}
+      ${link('toegang.html#gegevens', 'downloaden', t('w.jeGegevens'), t('jij.gegevensZin'))}
     </section>`;
   $$('[data-jij]').forEach((el) => (el.innerHTML = html));
   // Staat het blad open, dan alleen de keuze bijwerken: zo blijft de focus waar hij was.
@@ -211,17 +211,17 @@ function agendaBlok() {
   if (!agendas) return '';
   const k = agendaKeus();
   const namen = agendas.filter((a) => k.ids.includes(a.id)).map((a) => a.naam);
-  const zin = !k.aan ? t('jij.agenda.uit') : namen.length ? namen.join(taal.code === 'en' ? ' and ' : ' en ') : t('jij.agenda.geen');
+  const zin = !k.aan ? t('w.uit') : namen.length ? namen.join(taal.code === 'en' ? ' and ' : ' en ') : t('jij.agenda.geen');
   return `<section class="glas lijst" aria-labelledby="kop-agenda">
-      <h2 id="kop-agenda">${esc(t('jij.agenda.kop'))}</h2>
-      ${knop('data-agenda-open', 'agenda', t('jij.agenda.jouw'), zin)}
+      <h2 id="kop-agenda">${esc(t('w.agenda'))}</h2>
+      ${knop('data-agenda-open', 'agenda', t('w.jouwAgendaS'), zin)}
       <p class="uitleg">${esc(t('jij.agenda.uitleg'))}</p>
     </section>`;
 }
 function agendaBlad() {
   const k = agendaKeus();
   return `
-    <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('jij.agenda.jouw'))}</h2><button type="button" class="knop knop-klein knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
+    <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('w.jouwAgendaS'))}</h2><button type="button" class="knop knop-klein knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
     <div class="rij rij-zonder"><b>${esc(t('jij.agenda.gebruiken'))}</b><small>${esc(t('jij.agenda.gebruikenZin'))}</small><span class="pijl"><button type="button" class="schakelaar" role="switch" aria-checked="${k.aan}" aria-label="${esc(t('jij.agenda.gebruiken'))}" data-agenda-aan></button></span></div>
     <p class="betekenis">${esc(t('jij.agenda.kies'))}</p>
     <div class="rij rij-zonder${k.aan ? '' : ' uitgezet'}"><b>${esc(t('jij.agenda.opWand'))}</b><small>${esc(t('jij.agenda.opWandZin'))}</small><span class="pijl"><button type="button" class="schakelaar" role="switch" aria-checked="${k.wand !== false}" aria-label="${esc(t('jij.agenda.opWand'))}" data-agenda-wand ${k.aan ? '' : 'disabled'}></button></span></div>
@@ -258,7 +258,7 @@ function tekenMeldingen() {
       ${keus('onderhoud', t('jij.meld.onderhoud'), t('jij.meld.onderhoudZin', { tot: m.tot }), false)}
       ${keus('versie', t('jij.meld.versie'), t('jij.meld.versieZin'), false)}
       ${keus('sluip', t('jij.meld.sluip'), t('jij.meld.sluipZin', { tot: m.tot }), false)}
-      ${keus('auto', t('jij.meld.auto'), t('jij.meld.autoZin'), false)}
+      ${keus('auto', t('w.deAuto'), t('jij.meld.autoZin'), false)}
       <p class="uitleg">${esc(t('jij.meld.weerGoed'))}</p>
     </section>
     ${lijst.length
