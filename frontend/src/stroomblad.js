@@ -116,7 +116,7 @@
     const tijd = live ? (global.taal.tijd ? global.taal.tijd(live.at) : new Date(live.at).toLocaleTimeString(global.taal.locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' })) : null;
     const kop = `<div class="hand-boven"><div><h2>${esc(t('stroom.kop'))}</h2><p class="nu">${tijd ? `<span class="livelabel"><i aria-hidden="true"></i>${esc(t('opbrengst.nu.live', { tijd }))}</span>` : esc(t('opbrengst.nu.wachten'))}</p></div>${sluit}</div>`;
     const tabs = ['zon', 'huis', 'net', ...(metAccu ? ['accu'] : [])];
-    const seg = `<div class="chips seg hand-seg" role="group" aria-label="${esc(t('stroom.kop'))}">${tabs.map((k) => `<button type="button" class="chip" data-sb-soort="${k}" aria-pressed="${k === soort}">${esc(t(`stroom.tab.${k}`))}</button>`).join('')}</div>`;
+    const seg = `<div class="keuze hand-seg" role="group" aria-label="${esc(t('stroom.kop'))}">${tabs.map((k) => `<button type="button" data-sb-soort="${k}" aria-pressed="${k === soort}">${esc(t(`stroom.tab.${k}`))}</button>`).join('')}</div>`;
     if (!live) return `${kop}${seg}${zin(data?.fout ? t('kamer.geenVerbinding') : t('opbrengst.nu.wachten'))}`;
     const v = global.stroomNu.verdeling(live, { max: 6 });
     const inhoud = soort === 'huis' ? huisDeel(v) : soort === 'net' ? netDeel(v) : soort === 'accu' ? accuDeel(v) : zonDeel(v);

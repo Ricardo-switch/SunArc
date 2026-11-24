@@ -74,7 +74,7 @@ function blad(g) {
   const m = openOpdracht.moment;
   const h = openOpdracht.herhaal;
   const seg = [['tijd', t('gp.tijd')], ['op', t('gp.op')], ['onder', t('gp.onder')]]
-    .map(([k, naam]) => `<button type="button" class="chip" data-gp-wanneer="${k}" aria-pressed="${(k === 'tijd' ? m.soort === 'tijd' : m.soort === 'zon' && m.zon === k)}">${esc(naam)}</button>`).join('');
+    .map(([k, naam]) => `<button type="button" data-gp-wanneer="${k}" aria-pressed="${(k === 'tijd' ? m.soort === 'tijd' : m.soort === 'zon' && m.zon === k)}">${esc(naam)}</button>`).join('');
   const tijd = `${String(m.uur ?? 7).padStart(2, '0')}:${String(m.minuut ?? 0).padStart(2, '0')}`;
   const wanneer = m.soort === 'tijd'
     ? `<input class="gp-tijd" type="time" value="${tijd}" data-gp-tijd aria-label="${esc(t('gp.tijd'))}">`
@@ -84,7 +84,7 @@ function blad(g) {
   return `<div class="boven"><h2>${esc(g.tekst)}</h2><button class="schakelaar" type="button" role="switch" aria-checked="${openOpdracht.aan}" aria-label="${esc(t('gp.aan'))}" data-gp-blad-aan></button><button class="sluit" type="button" data-gp-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
     <div class="gp-kolom">
       <div class="gp-vraag"><span>${esc(t('gp.wat'))}</span><div class="gp-waarde"><b>${esc(g.tekst)}${sceneLampen(g).map((r) => `<small>${esc(r)}</small>`).join('')}</b></div></div>
-      <div class="gp-vraag"><span>${esc(t('gp.wanneer'))}</span><div class="chips seg">${seg}</div>${wanneer}</div>
+      <div class="gp-vraag"><span>${esc(t('gp.wanneer'))}</span><div class="keuze">${seg}</div>${wanneer}</div>
     </div>
     <div class="gp-kolom">
       <div class="gp-vraag" ${herhaalOpen ? 'hidden' : ''}><span>${esc(t('gp.herhalen'))}</span><button type="button" class="gp-waarde" data-gp-herhalen><b>${esc(herhaalNaam(h))}</b><i>›</i></button></div>

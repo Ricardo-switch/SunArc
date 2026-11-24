@@ -57,7 +57,7 @@
   balk.innerHTML = `
     <button class="vb-speel" type="button" aria-label="${esc(t('voorbeeld.speel'))}" data-vb-speel>▶</button>
     <div class="vb-baan"><span class="vb-uur" data-vb-uur></span><svg viewBox="0 0 640 64" preserveAspectRatio="none" aria-hidden="true" data-vb-baan></svg><input type="range" min="0" max="1435" step="5" aria-label="${esc(t('voorbeeld.tijd'))}" data-vb-schuif></div>
-    <div class="chips seg vb-seizoen" role="group" aria-label="${esc(t('voorbeeld.seizoen'))}"><button class="chip" type="button" data-vb-seizoen="zomer">${esc(t('voorbeeld.zomer'))}</button><button class="chip" type="button" data-vb-seizoen="winter">${esc(t('voorbeeld.winter'))}</button></div>
+    <div class="keuze vb-seizoen" role="group" aria-label="${esc(t('voorbeeld.seizoen'))}"><button type="button" data-vb-seizoen="zomer">${esc(t('voorbeeld.zomer'))}</button><button type="button" data-vb-seizoen="winter">${esc(t('voorbeeld.winter'))}</button></div>
     <button class="vb-weer" type="button" aria-expanded="false" data-vb-weer><svg viewBox="0 0 36 36" aria-hidden="true" data-vb-weericoon></svg><span data-vb-weernaam></span></button>
     <button class="vb-probeer" type="button" aria-expanded="false" data-vb-probeer>${esc(t('voorbeeld.probeer'))} <b data-vb-teller></b></button>
     <span class="vb-naam"><i aria-hidden="true"></i>${esc(t('voorbeeld.naam'))}</span>
@@ -69,7 +69,7 @@
     </section>
     <section class="vb-lijst vb-weerkeuze" hidden data-vb-weerkeuze>
       <h2>${esc(t('voorbeeld.weer'))}</h2>
-      <div class="chips seg" role="group" aria-label="${esc(t('voorbeeld.weer'))}">${WEER.map((w) => `<button class="chip" type="button" data-vb-weerkies="${w}">${esc(t(`voorbeeld.weer.${w}`))}</button>`).join('')}</div>
+      <div class="keuze" role="group" aria-label="${esc(t('voorbeeld.weer'))}">${WEER.map((w) => `<button type="button" data-vb-weerkies="${w}">${esc(t(`voorbeeld.weer.${w}`))}</button>`).join('')}</div>
       <p>${esc(t('voorbeeld.weer.uitleg'))}</p>
     </section>`;
   document.body.appendChild(balk);

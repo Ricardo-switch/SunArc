@@ -52,17 +52,6 @@ html:not(.tel-stand) #tel { display: none; }
 #tel .tabs { position: fixed; }
 
 /* Een keuze uit een paar tijden (klaar voor). */
-/*
- * Bouwsteen: de keuze in delen (schets Bouwstenen, 24 november 2026). Knoppen 36 hoog (klein 30), het gekozen deel
- * zacht wit; op zon geel.
- */
-.keuze { display: flex; gap: 3px; padding: 3px; border-radius: 12px; background: rgb(var(--wit) / 0.06); }
-.keuze button { flex: 1 1 0; min-width: 0; height: 36px; padding: 0 10px; border: 0; border-radius: 9px; background: transparent; color: var(--zacht); font: inherit; font-weight: 700; font-size: 13.5px; white-space: nowrap; cursor: pointer; }
-.keuze-klein button { height: 30px; font-size: 12.5px; padding: 0 8px; }
-.keuze button[aria-pressed='true'] { background: rgb(var(--wit) / 0.15); color: var(--tekst); }
-.keuze button.zon[aria-pressed='true'] { background: rgb(var(--zon-k) / 0.22); color: var(--zon-t); }
-.keuze button:disabled { cursor: default; opacity: 0.4; }
-.keuze button[aria-pressed='true']:disabled { opacity: 1; }
 .keuze button:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
 
 /* Er wordt aangebeld (besluit 107): het beeld van de deurbel over de hele pagina. */
@@ -741,10 +730,9 @@ html.sc-voorbeeld #tel .td-keuze { bottom: calc(250px + env(safe-area-inset-bott
 .hand-boven .nu { margin: 4px 0 0; font-size: 14px; color: var(--zacht); }
 .hand-vraag { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .hand-vraag > span { font-size: 14px; font-weight: 600; color: var(--zacht); }
-.hand-seg > .chip { border: 0; height: 34px; padding: 0 14px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 /* Op een smal blad lopen de knoppen door naar een tweede regel, zodat vier keuzes altijd leesbaar zijn (besluit 268). */
 .hand-laag.op-tel .hand-seg { display: flex; flex-wrap: wrap; width: 100%; }
-.hand-laag.op-tel .hand-seg > .chip { flex: 1 1 auto; padding: 0 10px; }
+.hand-laag.op-tel .hand-seg > button { flex: 1 1 auto; padding: 0 10px; }
 .hand-dag { display: flex; flex-direction: column; gap: 4px; }
 .hand-dag .balk24 { position: relative; height: 22px; border-radius: 8px; background: rgb(var(--wit) / 0.06); overflow: hidden; }
 .hand-dag .balk24 i.hand { position: absolute; top: 5px; bottom: 5px; border-radius: 5px; background: linear-gradient(90deg, var(--zon), #ffd27a); }
@@ -845,7 +833,7 @@ html.sc-voorbeeld:not(.tel-stand) .dok { visibility: hidden; }
 .vb-weer { height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px 0 8px; border-radius: 13px; border: 1px solid rgb(255 255 255 / 0.14); background: rgb(255 255 255 / 0.06); color: var(--tekst); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .vb-weer svg { width: 26px; height: 26px; flex: none; }
 .vb-weerkeuze { width: 400px; }
-.vb-weerkeuze .seg { margin-top: 6px; }
+.vb-weerkeuze .keuze { margin-top: 6px; }
 .vb-probeer { height: 40px; padding: 0 14px; border-radius: 13px; border: 1px solid rgb(143 134 255 / 0.4); background: rgb(143 134 255 / 0.16); color: var(--violet-t); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .vb-probeer b { font-weight: 600; color: var(--zacht); margin-left: 4px; }
 .vb-naam { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700; color: var(--violet-t); white-space: nowrap; }
@@ -872,7 +860,7 @@ html.tel-stand .vb-baan { grid-area: baan; height: 46px; }
 html.tel-stand .vb-seizoen { grid-area: seizoen; width: auto; }
 html.tel-stand .vb-probeer { grid-area: probeer; height: 34px; padding: 0 10px; font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* Smal (een kleine telefoon): de knoppen schuiven in, niets loopt over de rand. */
-html.tel-stand .vb-seizoen .chip { padding: 0 10px; min-width: 0; }
+html.tel-stand .vb-seizoen button { padding: 0 10px; min-width: 0; }
 html.tel-stand .vb-terug { grid-area: terug; height: 34px; padding: 0 10px; font-size: 13px; }
 html.tel-stand .vb-naam { display: none; }
 html.tel-stand .vb-lijst { left: 0; right: 0; width: auto; }

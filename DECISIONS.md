@@ -15659,8 +15659,14 @@ gekleurde knop), en in het thema zouden ze in het lichte thema omklappen. De
 kleuren in de tekeningen (het huis, de grafieken) staan in svg-attributen, die
 geen themakleur lezen.
 
-*Nog niet:* de rijen chips die als keuze werken (Gepland, De motor, Klimaat)
-en de eigen kaartvormen (`mo-kaart`, `klein-kaart`, `dk-kaart`).
+*Aangevuld in 0.236.0.* De rijen chips die als keuze werkten (`.chips.seg` bij
+Gepland, De motor, met de hand, het stroomblad, het voorbeeldhuis en de zones
+bij Klimaat) gebruiken `.keuze`. De bouwsteen staat nu in `kit/kit.css`, met
+`.chips.seg` als oudere naam voor de schetsen: één opmaak. De kaarten van De
+motor (`mo-kaart`) en Bewoners (`klein-kaart`) zijn ook `.kaart`. De balk
+onderin de kaart van Zonnepanelen (`dk-kaart`) is geen kaart en blijft. In
+0.234.0 was één `.seg` blijven staan (Inrichten › Klimaat, de keuze per
+toestel) terwijl zijn opmaak weg was; die is nu ook `.keuze`.
 
 ## Wat nog een besluit wacht
 

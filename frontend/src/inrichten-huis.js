@@ -481,7 +481,7 @@ function warmteStap() {
       // Een radiatorknop of de thermostaat van een gasketel helpt niet op zon (besluit 291).
       const knoppen = rolKnoppen(x, nuRol);
       const ketel = huismodel.cvThermostaat(d.huis, a.verwarming)?.sleutel === sleutel(x);
-      return `<div class="toestel">${esc(x.naam)}${ketel ? `<span class="zacht"> · ${esc(t('inr.zetKetel'))}</span>` : ''}<div class="seg" role="group" aria-label="${esc(t('inr.watMet', { naam: x.naam }))}" data-rol="${esc(sleutel(x))}" data-rolkamer="${esc(r.id)}">${knoppen}</div></div>`;
+      return `<div class="toestel">${esc(x.naam)}${ketel ? `<span class="zacht"> · ${esc(t('inr.zetKetel'))}</span>` : ''}<div class="keuze" role="group" aria-label="${esc(t('inr.watMet', { naam: x.naam }))}" data-rol="${esc(sleutel(x))}" data-rolkamer="${esc(r.id)}">${knoppen}</div></div>`;
     }).join('');
     const bronnen = (r.bronnen ?? []).filter((b) => !b.apparaat).map((b) => `<span class="chip gevonden">${esc(huismodel.bronNaam(b))}</span>`).join('');
     const keuze = toevoegenIn === r.id ? toevoegVorm(r, los, elders) : knop(`data-erbij="${esc(r.id)}"`, t('indeling.plusIets'), false, 'plus');

@@ -29,14 +29,13 @@
   .mo-onder { margin: 4px 0 0; color: var(--zacht); font-size: 14.5px; }
   .mo-onder b { color: var(--tekst); font-weight: 600; }
   .mo-rechts { display: flex; align-items: center; gap: 12px; }
-  .mo-rechts .chips.seg > .chip { min-width: 96px; height: 38px; font-size: 14.5px; font-weight: 700; border: 0; cursor: pointer; }
+  .mo-rechts .keuze button { min-width: 96px; }
   .mo-kopie { height: 44px; padding: 0 16px; border-radius: 13px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.06); color: var(--tekst); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
   .mo-kopie.klaar { color: var(--mint); border-color: color-mix(in srgb, var(--mint) 40%, transparent); }
 
   .mo-deel { flex: 1; min-height: 0; display: grid; gap: 14px; }
   .mo-deel.nu { grid-template-columns: 330px 360px minmax(0, 1fr); }
   .mo-kol { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
-  .mo-kaart { padding: 16px 18px; border-radius: 22px; }
   .mo-kaart > h2 { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 10px; font-family: var(--kop); font-size: 18px; font-weight: 600; }
   .mo-kaart > h2 small { font-family: var(--romp); font-size: 12.5px; font-weight: 600; color: var(--gedempt); }
   .mo-vul { flex: 1; min-height: 0; overflow: hidden; }
@@ -147,8 +146,7 @@
   #tel .mo-kop .kop-1 { margin: 4px 0 0; }
   #tel .mo-onder { font-size: 13.5px; }
   #tel .mo-rechts { flex-direction: column; align-items: stretch; gap: 8px; }
-  #tel .mo-rechts .chips.seg { display: flex; }
-  #tel .mo-rechts .chips.seg > .chip { min-width: 0; flex: 1 1 0; padding: 0 4px; font-size: 13.5px; }
+  #tel .mo-rechts .keuze button { min-width: 0; padding: 0 4px; }
   #tel .mo-kopie { height: 40px; }
   #tel .mo-deel,
   #tel .mo-deel.nu,
@@ -156,7 +154,7 @@
   #tel .mo-deel.geleerd,
   #tel .mo-deel.vergelijken { display: flex; flex-direction: column; gap: 12px; }
   #tel .mo-kol { display: contents; }
-  #tel .mo-kaart { order: var(--o, 9); padding: 14px 16px; }
+  #tel .mo-kaart { order: var(--o, 9); }
   #tel .mo-vul { overflow: visible; }
   #tel .mo-breed2, #tel .mo-breed3 { grid-column: auto; }
   #tel .mo-groot { font-size: 34px; }

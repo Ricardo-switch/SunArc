@@ -145,7 +145,7 @@
     return { tekst: t('hand.zinKnop', { klok, terug }) };
   }
 
-  const seg = (naam, keuzes) => `<div class="chips seg hand-seg" role="group" aria-label="${esc(naam)}">${keuzes.map(([k, w, aan, attr]) => `<button type="button" class="chip" ${attr}="${k}" aria-pressed="${aan}">${esc(w)}</button>`).join('')}</div>`;
+  const seg = (naam, keuzes) => `<div class="keuze hand-seg" role="group" aria-label="${esc(naam)}">${keuzes.map(([k, w, aan, attr]) => `<button type="button" ${attr}="${k}" aria-pressed="${aan}">${esc(w)}</button>`).join('')}</div>`;
 
   function kopVan(naam, zin) {
     return `<div class="hand-boven"><div><h2>${esc(naam)}</h2><p class="nu">${esc(zin)}</p></div><button type="button" class="sluit" data-hand-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>`;

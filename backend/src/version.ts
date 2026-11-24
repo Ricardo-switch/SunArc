@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.235.0';
+export const VERSIE = '0.236.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,24 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.236.0',
+    datum: '2026-11-24',
+    beter: [
+      'Ook de rijen met een keuze (De motor, Gepland, met de hand, de zones bij Klimaat) en de kaarten van De motor en Bewoners gebruiken nu de vaste bouwstenen',
+    ],
+    opgelost: [
+      'Inrichten › Klimaat: de keuze per toestel had sinds 0.234.0 geen opmaak meer',
+    ],
+    en: {
+      beter: [
+        'The rows with a choice (The engine, Scheduled, by hand, the zones in Climate) and the cards of The engine and Residents now use the fixed building blocks too',
+      ],
+      opgelost: [
+        'Set up › Climate: the choice per device had lost its styling since 0.234.0',
+      ],
+    },
+  },
   {
     versie: '0.235.0',
     datum: '2026-11-24',
