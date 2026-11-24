@@ -630,7 +630,7 @@ async function tekenWieBlad() {
       ${rij('', '<span class="gezicht vanzelf" aria-hidden="true">⟳</span>', t('thuis.wie.vanzelf'), esc(nu), '', gekozen == null)}
       ${rijen}
     </div>
-    <p class="mini" style="margin: 12px 0 0">${esc(t(gast ? 'thuis.wie.gast' : 'thuis.wie.totDat'))}${wieTemps.size ? ` ${esc(t('thuis.wie.temperaturenVan', { kamer: [...wieTemps.values()].find(Boolean)?.kamer ?? t('thuis.wie.eersteKamer') }))}` : ''}</p>`;
+    <p class="mini geen-marge boven-12">${esc(t(gast ? 'thuis.wie.gast' : 'thuis.wie.totDat'))}${wieTemps.size ? ` ${esc(t('thuis.wie.temperaturenVan', { kamer: [...wieTemps.values()].find(Boolean)?.kamer ?? t('thuis.wie.eersteKamer') }))}` : ''}</p>`;
 }
 
 async function openWie() {

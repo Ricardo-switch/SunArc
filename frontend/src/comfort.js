@@ -338,7 +338,7 @@ function zoneZorgt(k) {
   if (zorg.kamer !== kamer.id) warm.sluit();
   Object.assign(zorg, { info: indeling, huis: huisData, verwarming, kamer: kamer.id });
   const taken = warm.zoneTaken(kamer.id, zone.id);
-  return `${taken || `<p class="klein" style="margin: 0">${esc(t('klimaat.zoneLeeg', { zone: zone.naam, kamer: kamer.naam }))}</p>`}
+  return `${taken || `<p class="klein geen-marge">${esc(t('klimaat.zoneLeeg', { zone: zone.naam, kamer: kamer.naam }))}</p>`}
     <a class="knop" href="#${encodeURIComponent(naar)}" style="align-self: flex-start">${esc(t('klimaat.naarKamer', { kamer: kamer.naam }))}</a>`;
 }
 
@@ -349,7 +349,7 @@ function anderVorm(id) {
   const r = ruimteVan(k.id);
   const nu = r?.temperatuurC;
   return `<div class="bovenrij"><h2 class="kop-2">${esc(k.naam)}</h2>${nu != null ? `<span class="nu-temp">${esc(t('thuis.nuKlein'))} <b>${graden(Math.round(nu * 10) / 10)}</b>${vochtBij(r)}</span>` : ''}</div>
-    <p class="klein" style="margin: 0">${esc(t(k.meedoenMet ? 'klimaat.doetMeeUitleg' : 'klimaat.nietMeeUitleg'))}</p>
+    <p class="klein geen-marge">${esc(t(k.meedoenMet ? 'klimaat.doetMeeUitleg' : 'klimaat.nietMeeUitleg'))}</p>
     <div class="zorgt" data-zorgt>${zorgVoor(k.id)}</div>`;
 }
 
@@ -388,7 +388,7 @@ function cvRegel(sleutel) {
 /** Wat warmte nu kost, van de airco en van de ketel: twee balken en wat goedkoper is. */
 function kostenBlok() {
   const k = helpen.kosten;
-  if (!k) return `<p class="klein" style="margin: 0">${esc(t('regeling.helpen.geenPrijzen'))} <a href="energie.html#prijzen">${esc(t('regeling.helpen.naarPrijzen'))}</a></p>`;
+  if (!k) return `<p class="klein geen-marge">${esc(t('regeling.helpen.geenPrijzen'))} <a href="energie.html#prijzen">${esc(t('regeling.helpen.naarPrijzen'))}</a></p>`;
   const max = Math.max(k.airco, k.ketel);
   const balk = (label, w, kleur) => `<div class="kostbalk"><span>${esc(label)}</span><i><b style="width: ${Math.round((w / max) * 100)}%; background: ${kleur}"></b></i><em>${esc(t('regeling.helpen.ct', { ct: nl(w * 100, 0) }))}</em></div>`;
   const goedkoper = k.airco < k.ketel;
@@ -422,11 +422,11 @@ function helpenVorm() {
   const stap = (veld, stapje, label, tekst) => `<div class="bijstap"><span>${esc(label)}</span><button type="button" data-helpen="${veld}:-${stapje}" aria-label="${esc(t('regeling.bij.minder', { wat: label }))}">−</button><b>${esc(tekst)}</b><button type="button" data-helpen="${veld}:${stapje}" aria-label="${esc(t('regeling.bij.meer', { wat: label }))}">+</button></div>`;
   const regel = (kop, zin) => `<div class="regelrij gaat"><div class="l"><b>${esc(kop)}</b><span>${esc(zin)}</span></div></div>`;
   return `<h2 class="kop-2">${esc(t('regeling.helpen'))}</h2>
-    <p class="klein" style="margin: 0">${esc(t('regeling.helpen.lead'))}</p>
-    ${helpen.kijktMee ? `<p class="klein" style="margin: 0; color: var(--ijs-t)">${esc(t('regeling.helpen.kijktMee'))}</p>` : ''}
+    <p class="klein geen-marge">${esc(t('regeling.helpen.lead'))}</p>
+    ${helpen.kijktMee ? `<p class="klein geen-marge" style="color: var(--ijs-t)">${esc(t('regeling.helpen.kijktMee'))}</p>` : ''}
     ${kostenBlok()}
     <div class="helpers">${helpen.aircos.map(helperKaart).join('')}</div>
-    <h3 class="kop-3" style="margin: 6px 0 0">${esc(t('regeling.helpen.zoGaatHet'))}</h3>
+    <h3 class="kop-3 geen-marge boven-8">${esc(t('regeling.helpen.zoGaatHet'))}</h3>
     <div>
       ${regel(t('regeling.helpen.begint'), t('regeling.helpen.beginZin', { min: helpen.naMin, graden: gradenMin(helpen.vanafC) }))}
       <div class="regelrij bijgetallen">${stap('naMin', 1, t('regeling.bij.na'), t('regeling.bij.minuten', { n: helpen.naMin }))}${stap('vanafC', 0.1, t('regeling.bij.vanaf'), t('regeling.bij.graden', { graden: gradenMin(helpen.vanafC) }))}</div>
@@ -439,7 +439,7 @@ function helpenNaast() {
   const lijst = [1, 2, 3].map((i) => t(`regeling.naast.helpen.${i}`));
   const k = helpen?.kosten;
   const som = k
-    ? `<div class="glas"><h3>${esc(t('regeling.helpen.somKop', { graden: gradenMin(k.buitenC) }))}</h3><p class="mini" style="margin: 0">${esc(t('regeling.helpen.somKetel', { gas: nl(k.gas, 2), ct: nl(k.ketel * 100, 0) }))}</p><p class="mini" style="margin: 0">${esc(t('regeling.helpen.somAirco', { stroom: nl(k.stroom, 2), cop: nl(k.cop, 1), ct: nl(k.airco * 100, 0) }))}</p><p class="mini" style="margin: 0">${esc(t('regeling.helpen.somTabel'))}</p></div>`
+    ? `<div class="glas"><h3>${esc(t('regeling.helpen.somKop', { graden: gradenMin(k.buitenC) }))}</h3><p class="mini geen-marge">${esc(t('regeling.helpen.somKetel', { gas: nl(k.gas, 2), ct: nl(k.ketel * 100, 0) }))}</p><p class="mini geen-marge">${esc(t('regeling.helpen.somAirco', { stroom: nl(k.stroom, 2), cop: nl(k.cop, 1), ct: nl(k.airco * 100, 0) }))}</p><p class="mini geen-marge">${esc(t('regeling.helpen.somTabel'))}</p></div>`
     : '';
   return `<div class="glas"><h3>${esc(t('regeling.naast.helpen'))}</h3><ul>${lijst.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>${som}`;
 }
@@ -483,13 +483,13 @@ function standaardVorm() {
   ].filter(Boolean);
   const al = comfort.kamers.every(opStandaard) && (!vanHetHuis() || dagdelenStandaard());
   const knop = al
-    ? `<p class="klein" style="margin: 0; color: var(--mint-t)">${esc(t('comfort.std.staat'))}</p>`
+    ? `<p class="klein geen-marge" style="color: var(--mint-t)">${esc(t('comfort.std.staat'))}</p>`
     : allesVragen
-      ? `<p class="klein" style="margin: 0">${esc(t('comfort.std.zeker'))}</p><div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" class="knop knop-licht" data-standaard-alles="ja">${esc(t('comfort.std.ja'))}</button><button type="button" class="knop" data-standaard-alles="nee">${esc(t('comfort.std.nee'))}</button></div>`
+      ? `<p class="klein geen-marge">${esc(t('comfort.std.zeker'))}</p><div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" class="knop knop-licht" data-standaard-alles="ja">${esc(t('comfort.std.ja'))}</button><button type="button" class="knop" data-standaard-alles="nee">${esc(t('comfort.std.nee'))}</button></div>`
       : `<div><button type="button" class="knop" data-standaard-alles="vraag">${esc(t('comfort.std.alles'))}</button></div>`;
   return `<h2 class="kop-2">${esc(t('comfort.std.titel'))}</h2>
-    <p class="klein" style="margin: 0">${esc(t('comfort.std.uitleg'))}</p>
-    <ul class="klein" style="margin: 0; padding-left: 18px; display: grid; gap: 4px">${regels.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>
+    <p class="klein geen-marge">${esc(t('comfort.std.uitleg'))}</p>
+    <ul class="klein geen-marge" style="padding-left: 18px; display: grid; gap: 4px">${regels.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>
     ${knop}`;
 }
 
@@ -504,9 +504,9 @@ function dagbalk() {
 
 function dagdelenVorm() {
   const d = comfort.dagdelen;
-  const uur = (sleutel) => `<div><span class="label" style="font-size: 14.5px; font-weight: 600; display: block; margin-bottom: 6px">${esc(t(`comfort.vanaf.${sleutel}`))}</span><div class="stapper"><button type="button" data-uur="${sleutel}:-1" aria-label="${esc(t('comfort.eerder'))}">−</button><b>${d[sleutel]}:00</b><button type="button" data-uur="${sleutel}:1" aria-label="${esc(t('comfort.later'))}">+</button></div></div>`;
+  const uur = (sleutel) => `<div><span class="label onder-8" style="font-size: 14.5px; font-weight: 600; display: block">${esc(t(`comfort.vanaf.${sleutel}`))}</span><div class="stapper"><button type="button" data-uur="${sleutel}:-1" aria-label="${esc(t('comfort.eerder'))}">−</button><b>${d[sleutel]}:00</b><button type="button" data-uur="${sleutel}:1" aria-label="${esc(t('comfort.later'))}">+</button></div></div>`;
   return `<h2 class="kop-2">${esc(t('instellingen.dagdelen'))}</h2>
-    <p class="klein" style="margin: 0">${esc(t('comfort.dagdelenUitleg'))}</p>
+    <p class="klein geen-marge">${esc(t('comfort.dagdelenUitleg'))}</p>
     <div class="uren">${uur('voorverwarmen')}${uur('dag')}${uur('nacht')}</div>
     ${dagbalk()}
     ${voorverwarmenPerKamer()}`;
@@ -525,16 +525,16 @@ function voorverwarmenPerKamer() {
     const stapper = v != null
       ? `<div class="stapper"><button type="button" data-voor="${esc(k.id)}:-0.5" aria-label="${esc(t('comfort.lager'))}">−</button><b>${graden(v)}</b><button type="button" data-voor="${esc(k.id)}:0.5" aria-label="${esc(t('comfort.hoger'))}">+</button><button type="button" class="geen" data-voor="${esc(k.id)}:uit">${esc(t('comfort.niet'))}</button></div>`
       : `<div class="keuze" role="group" aria-label="${esc(k.naam)}"><button type="button" aria-pressed="true">${esc(t('comfort.niet'))}</button><button type="button" data-voor="${esc(k.id)}:aan" aria-pressed="false">${esc(t('comfort.voor.aan'))}</button></div>`;
-    return `<div data-voor-kamer="${esc(k.id)}"><span class="label" style="font-size: 14.5px; font-weight: 600; display: block; margin-bottom: 6px">${esc(k.naam)}</span>${stapper}</div>`;
+    return `<div data-voor-kamer="${esc(k.id)}"><span class="label onder-8" style="font-size: 14.5px; font-weight: 600; display: block">${esc(k.naam)}</span>${stapper}</div>`;
   };
-  return `<span class="label" style="font-size: 14.5px; font-weight: 600; margin-top: 6px">${esc(t('comfort.voor.titel'))}</span>
+  return `<span class="label boven-8" style="font-size: 14.5px; font-weight: 600">${esc(t('comfort.voor.titel'))}</span>
     <div class="uren">${kamers.map(rij).join('')}</div>`;
 }
 
 /** Zonder slimme regeling (besluit 194): wat comfort per kamer zou doen, en hoe het erbij komt. */
 function erbijVorm() {
   return `<h2 class="kop-2">${esc(t('comfort.erbij.titel'))}</h2>
-    <p class="klein" style="margin: 0">${esc(t('comfort.erbij.zin'))}</p>
+    <p class="klein geen-marge">${esc(t('comfort.erbij.zin'))}</p>
     <div><a class="knop knop-licht" href="huis-kan.html#temperatuur">${esc(t('comfort.erbij.knop'))}</a></div>`;
 }
 
@@ -543,7 +543,7 @@ function afwezigVorm() {
   if (!k) return `<h2 class="kop-2">${esc(t('comfort.afwezig'))}</h2>`;
   afwezigKamer = k.id;
   return `<h2 class="kop-2">${esc(t('comfort.afwezig'))}</h2>
-    <p class="klein" style="margin: 0">${esc(t('comfort.afwezigUitleg'))}</p>
+    <p class="klein geen-marge">${esc(t('comfort.afwezigUitleg'))}</p>
     <div class="kamerkeuze" role="group" aria-label="${esc(t('comfort.kamer'))}">${comfort.kamers.map((x) => `<button type="button" data-afwezig-kamer="${esc(x.id)}" aria-pressed="${x.id === k.id}">${esc(x.naam)}</button>`).join('')}</div>
     ${band(k, 'afwezig')}${band(k, 'vakantie')}`;
 }
@@ -606,19 +606,19 @@ function voorrangVorm() {
   const voorstel = voorrangVoorstel();
   const anders = JSON.stringify(voorstel) !== JSON.stringify({ koelen: v.koelen, verwarmen: v.verwarmen });
   return `<h2 class="kop-2">${esc(t('comfort.voorrang'))}</h2>
-    <p class="klein" style="margin: 0">${esc(t('comfort.voorrangUitleg'))}${zon ? ` ${esc(t('comfort.voorrangZon'))}` : ''}</p>
+    <p class="klein geen-marge">${esc(t('comfort.voorrangUitleg'))}${zon ? ` ${esc(t('comfort.voorrangZon'))}` : ''}</p>
     <div class="lijsten${zon ? ' drie' : ''}">${v.koelen.length ? lijst('koelen', t('comfort.alsKoelt'), 'var(--ijs)') : ''}${v.verwarmen.length ? lijst('verwarmen', t('comfort.alsWarmt'), 'var(--gloed)') : ''}${zonRang}</div>
     ${anders ? `<div class="voorstelrij"><span class="mini">${esc(t('comfort.voorstel'))}</span><button type="button" class="knop" data-voorrang-voorstel>${esc(t('comfort.neemOver'))}</button></div>` : ''}`;
 }
 
 function naast(id) {
   if (id === 'voorrang') {
-    const opZon = zonLijst() ? `<div class="glas"><h3>${esc(t('comfort.opZonKop'))}</h3><p style="margin: 0">${esc(t('comfort.naast.opZon'))}</p></div>` : '';
-    return `${opZon}<div class="glas"><h3>${esc(t('comfort.naast.tweeKop'))}</h3><p style="margin: 0">${esc(t('comfort.naast.twee'))}</p></div>
-      <div class="glas"><h3>${esc(t('comfort.naast.telKop'))}</h3><p style="margin: 0">${esc(t('comfort.naast.tel'))}</p></div>`;
+    const opZon = zonLijst() ? `<div class="glas"><h3>${esc(t('comfort.opZonKop'))}</h3><p class="geen-marge">${esc(t('comfort.naast.opZon'))}</p></div>` : '';
+    return `${opZon}<div class="glas"><h3>${esc(t('comfort.naast.tweeKop'))}</h3><p class="geen-marge">${esc(t('comfort.naast.twee'))}</p></div>
+      <div class="glas"><h3>${esc(t('comfort.naast.telKop'))}</h3><p class="geen-marge">${esc(t('comfort.naast.tel'))}</p></div>`;
   }
   return `<div class="glas"><h3>${esc(t('comfort.naast.zoKop'))}</h3>
-      <p style="margin: 0 0 10px">${esc(t('comfort.naast.zo'))}</p>
+      <p class="geen-marge onder-12">${esc(t('comfort.naast.zo'))}</p>
       ${dagbalk()}
     </div>`;
 }

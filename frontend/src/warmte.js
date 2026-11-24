@@ -166,7 +166,7 @@
             ? `<span>${esc(t('indeling.zone.eigenTemp'))}</span><button type="button" class="schakelaar" role="switch" aria-checked="false" aria-label="${esc(t('indeling.zone.eigenTemp'))}" data-zone-regeling="${esc(z.id)}" data-waarde="eigen"></button>`
             : `<span>${esc(t('indeling.zone.metKamer'))}</span>`;
         const kop = `<div class="zonekop${ctx.zone === z.id ? ' aan' : ''}" data-zonekop="${esc(z.id)}"><b>${esc(z.naam)}</b>${temp != null ? `<em>${esc(nl(temp, 1))}°</em>` : ''}<span class="r">${rechts}</span></div>`;
-        return `<div class="zonegroep${ctx.zone === z.id ? ' aan' : ''}">${kop}${lijst.map((x) => x.html).join('') || `<p class="mini" style="margin: 0 4px">${esc(t('indeling.zone.leeg'))}</p>`}</div>`;
+        return `<div class="zonegroep${ctx.zone === z.id ? ' aan' : ''}">${kop}${lijst.map((x) => x.html).join('') || `<p class="mini geen-marge rechts-4 links-4">${esc(t('indeling.zone.leeg'))}</p>`}</div>`;
       });
       const los = kaarten.filter((x) => !x.zone || !zones.some((z) => z.id === x.zone));
       const heel = los.length ? `<div class="zonegroep"><div class="zonekop"><b>${esc(t('indeling.zone.heleKamer'))}</b></div>${los.map((x) => x.html).join('')}</div>` : '';
@@ -272,7 +272,7 @@
         if (b.aan === 'hand' && elektrisch) regels += `<div class="idee"><b>${esc(t('indeling.maakSlim'))}</b>${esc(t('indeling.maakSlimZin'))}</div>`;
         kaarten.push({ zone: b.zone ?? null, html: bronKaart(huismodel.bronNaam(b), wat, ikoon, b.soorten.includes('airco'), rechts, regels, ` data-bron-open="${esc(b.id)}" role="group" aria-label="${esc(huismodel.bronNaam(b))}" tabindex="0"${ctx.kort ? ' data-kort' : ''}`) });
       }
-      const leeg = !kaarten.length ? `<p class="klein" style="margin: 0">${esc(t('indeling.nogNietsWarm'))}</p>` : '';
+      const leeg = !kaarten.length ? `<p class="klein geen-marge">${esc(t('indeling.nogNietsWarm'))}</p>` : '';
       const doetMee = Object.values(rollenNu(k)).some((x) => x !== 'kijken');
       // Meedoen met een andere kamer (besluit 142): dat zegt de kaart, in plaats van "doet nog niet mee".
       const met = k.meedoenMet ? concept()?.kamers.find((x) => x.id === k.meedoenMet) : null;
@@ -283,7 +283,7 @@
       if (metenOpen) {
         return `${kop}<button type="button" class="terug" data-zorg-meten="uit">‹ ${esc(t('klimaat.terugApparaten'))}</button>
           ${meetRij}
-          <p class="mini" style="margin: 0">${esc(t('indeling.zekeringMee'))}</p>`;
+          <p class="mini geen-marge">${esc(t('indeling.zekeringMee'))}</p>`;
       }
       // Eerst de apparaten (schets Wand-Klimaat-Kamer), per zone als de kamer zones heeft (schets Wand-Klimaat-Subzone),
       // dan een regel naar waarmee de kamer meet en wie hem regelt.
@@ -312,7 +312,7 @@
         const uitleg = !toestellen.length && zoneUitleg === `${k.id}/${z.id}` ? `<p class="zone-uitleg" id="zone-uitleg-${esc(z.id)}" role="status">${esc(t('indeling.zone.nogNiet', { naam: z.naam }))}</p>` : '';
         return `<div class="zone-regel"><div class="zone-kop"><b>${esc(z.naam)}</b>${temp}</div><span class="mini">${esc(wat)}</span>${seg}${uitleg}</div>`;
       });
-      return `<div class="zones-blok"><span class="label">${esc(t('indeling.zone.kop'))}</span>${rijen.join('')}<p class="mini" style="margin: 0">${esc(t('indeling.zone.uitleg'))}</p></div>`;
+      return `<div class="zones-blok"><span class="label">${esc(t('indeling.zone.kop'))}</span>${rijen.join('')}<p class="mini geen-marge">${esc(t('indeling.zone.uitleg'))}</p></div>`;
     }
 
     /** Een zone met de kamer mee, of een eigen regeling (besluit 306). */
@@ -368,7 +368,7 @@
       const vermogen = elektrisch && v.aan && v.aan !== 'hand'
         ? `<div class="vraag"><label class="label" for="bron-w">${esc(t(v.soorten.size > 1 ? 'indeling.samenVermogen' : 'indeling.vermogen'))}</label><div class="invoer-met"><input id="bron-w" inputmode="numeric" data-bron-w value="${v.vermogenW ?? ''}" placeholder="${esc(t('indeling.bv800'))}"><span>${esc(t('indeling.watt'))}</span></div><span class="mini">${esc(t('indeling.genoegZon'))}</span></div>`
         : '';
-      return `<div class="bladkop" style="margin-top: 4px"><h3 class="kop-3" style="margin: 0">${esc(t(v.id ? 'panelen.aanpassen' : 'indeling.ietsToevoegen'))}</h3></div>
+      return `<div class="bladkop boven-4"><h3 class="kop-3 geen-marge">${esc(t(v.id ? 'panelen.aanpassen' : 'indeling.ietsToevoegen'))}</h3></div>
         <div class="vraag"><span class="label">${esc(t('indeling.watHangtEr'))}</span><div class="chips">${BRON_KEUZE.map(([w, x]) => chip('bron-soort', w, x, v.soorten.has(w))).join('')}</div></div>
         ${vloer ? `<div class="vraag"><span class="label">${esc(t('indeling.vloerIs'))}</span><div class="chips">${chip('bron-vloer', 'water', t('indeling.opWater'), v.vloer !== 'elektrisch')}${chip('bron-vloer', 'elektrisch', huismodel.metHoofdletter(t('indeling.elektrisch')), v.vloer === 'elektrisch')}</div></div>` : ''}
         ${v.soorten.size ? `<div class="vraag"><span class="label">${esc(t('indeling.hoeAan'))}</span><div class="chips">${aanOpties.map(([w, x]) => chip('bron-aan', w, x, v.aan === w)).join('')}</div></div>` : ''}
@@ -493,8 +493,8 @@
       const terug = geen || (gekozen.size && !k.regelzone) ? ` <button type="button" class="knop-tekst" data-meten-auto>${esc(t('indeling.meten.laatKiezen'))}</button>` : '';
       return `<div><span class="label">${esc(t('zoek.meten'))}</span>
         <div class="chips" role="group" aria-label="${esc(t('zoek.meten'))}">${hier.length ? hier.map(chip).join('') : `<span class="mini">${esc(t('indeling.geenThermometer'))}</span>`}</div>
-        ${elders.length ? `<select class="invoer" data-actie="meten-erbij" aria-label="${esc(t('indeling.sensorElders'))}" style="margin-top: 6px"><option value="">${esc(t('indeling.sensorElders'))}…</option>${elders.map((b) => `<option value="${esc(b.id)}">${esc(b.naam)} (${esc(b.kamer)}) · ${graad(b.c)}</option>`).join('')}</select>` : ''}
-        <p class="mini" style="margin: 6px 0 0">${esc(uitleg)}${terug}</p></div>`;
+        ${elders.length ? `<select class="invoer boven-8" data-actie="meten-erbij" aria-label="${esc(t('indeling.sensorElders'))}"><option value="">${esc(t('indeling.sensorElders'))}…</option>${elders.map((b) => `<option value="${esc(b.id)}">${esc(b.naam)} (${esc(b.kamer)}) · ${graad(b.c)}</option>`).join('')}</select>` : ''}
+        <p class="mini geen-marge boven-8">${esc(uitleg)}${terug}</p></div>`;
     }
 
     /** Eén regel met waarmee de kamer meet en welke regeling, met een tik naar de keuzes. */

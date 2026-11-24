@@ -54,15 +54,15 @@
   .stappen h2 { margin: 0; font-family: var(--kop); font-size: 28px; font-weight: 600; }
   .stappen .wat { margin: 4px 0 0; font-size: 14.5px; color: var(--zacht); line-height: 1.45; max-width: 62ch; }
   .stand { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
-  .stand.half { color: var(--zon-t); background: rgba(247, 181, 72, 0.12); }
-  .stand.klaar { color: var(--mint-t); background: rgba(110, 231, 183, 0.1); }
+  .stand.half { color: var(--zon-t); background: rgb(var(--zon-k) / 0.12); }
+  .stand.klaar { color: var(--mint-t); background: rgb(var(--mint-k) / 0.1); }
   .let { margin: auto 0 0; display: flex; gap: 12px; align-items: start; padding: 12px 14px; border-radius: 16px; background: rgb(var(--wit) / 0.04); font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
   .let b { color: var(--tekst); }
   .let svg { flex: none; width: 22px; height: 22px; }
   /* De cloud: drie routes naast elkaar, elk met wat het kost en hoe je begint. */
   .routes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
   .route { display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border-radius: 20px; background: rgb(var(--wit) / 0.045); border: 1.5px solid transparent; }
-  .route.gekozen { border-color: rgba(143, 134, 255, 0.55); background: rgba(143, 134, 255, 0.08); }
+  .route.gekozen { border-color: rgb(var(--violet-k) / 0.55); background: rgb(var(--violet-k) / 0.08); }
   .route h3 { margin: 0; font-family: var(--kop); font-size: 19px; font-weight: 600; }
   .route p { margin: 0; font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
   .route dl { margin: 4px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 13px; }

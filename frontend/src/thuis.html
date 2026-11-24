@@ -66,7 +66,7 @@
   a.kaartlink { display: block; color: inherit; text-decoration: none; cursor: pointer; }
   a.kaartlink:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
   .kaart-kop { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-  .straks { background: linear-gradient(160deg, rgba(143,134,255,0.16), rgba(111,211,255,0.06)); border-color: rgba(143,134,255,0.32); }
+  .straks { background: linear-gradient(160deg, rgb(var(--violet-k) / 0.16), rgb(var(--ijs-k) / 0.06)); border-color: rgb(var(--violet-k) / 0.32); }
   .apparaatkaart { display: flex; align-items: center; gap: 14px; color: inherit; text-decoration: none; padding: 14px 18px; }
   .apparaatkaart .ring { width: 54px; height: 54px; flex: none; }
   .apparaatkaart b { display: block; font-size: 16px; }
@@ -216,7 +216,7 @@
   #tel .vraagbalk { position: fixed; left: 12px; right: 12px; bottom: 90px; height: 58px; border-radius: 22px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; background: rgb(var(--nacht) / 0.86); border: 1px solid var(--glas-rand); backdrop-filter: blur(14px); z-index: 4; }
   #tel .vraagbalk .typ { flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 12px; font-size: 15.5px; color: var(--zacht); text-decoration: none; }
   #tel .vraagbalk a:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; border-radius: 16px; }
-  #tel .vraagbalk .mic { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: rgba(110, 231, 183, 0.16); color: var(--mint-t); flex: none; }
+  #tel .vraagbalk .mic { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--mint-k) / 0.16); color: var(--mint-t); flex: none; }
   #tel .vraagbalk .mic svg { width: 21px; height: 21px; }
   .weg { display: none !important; }
 
@@ -240,7 +240,7 @@
   .weer .temp { display: flex; justify-content: space-between; font-size: 14px; color: var(--zacht); }
   .weer .temp b { color: var(--tekst); font-size: 15px; }
   .weer .opbrengst { grid-column: 2 / 4; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--zacht); }
-  .weer .opbrengst i { flex: 1; position: relative; height: 8px; border-radius: 4px; background: rgba(247, 181, 72, 0.14); overflow: hidden; }
+  .weer .opbrengst i { flex: 1; position: relative; height: 8px; border-radius: 4px; background: rgb(var(--zon-k) / 0.14); overflow: hidden; }
   .weer .opbrengst i b { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--zon); }
   .weer .opbrengst span { min-width: 74px; text-align: right; color: var(--tekst); font-weight: 600; }
   .weer .voet { margin: auto 0 0; padding-top: 10px; }
@@ -357,10 +357,10 @@
   .ladingkaart, .maandkaart { color: inherit; text-decoration: none; }
   /* Het advies bij de auto (besluit 259, stap 4): een eigen kaart boven de auto, alleen als het iets zegt. */
   .adviesplek[hidden] { display: none; }
-  .laadadvies { display: block; padding: 16px 18px; border-radius: 22px; color: inherit; text-decoration: none; border: 1px solid rgba(247, 181, 72, 0.35); background: linear-gradient(160deg, rgba(247, 181, 72, 0.14), rgba(247, 181, 72, 0.03)); }
-  .laadadvies.paars { border-color: rgba(143, 134, 255, 0.4); background: linear-gradient(160deg, rgba(143, 134, 255, 0.16), rgba(143, 134, 255, 0.03)); }
-  .laadadvies .kaartkop .ik { background: rgba(247, 181, 72, 0.2); color: var(--zon); }
-  .laadadvies.paars .kaartkop .ik { background: rgba(143, 134, 255, 0.22); color: var(--violet-t); }
+  .laadadvies { display: block; padding: 16px 18px; border-radius: 22px; color: inherit; text-decoration: none; border: 1px solid rgb(var(--zon-k) / 0.35); background: linear-gradient(160deg, rgb(var(--zon-k) / 0.14), rgb(var(--zon-k) / 0.03)); }
+  .laadadvies.paars { border-color: rgb(var(--violet-k) / 0.4); background: linear-gradient(160deg, rgb(var(--violet-k) / 0.16), rgb(var(--violet-k) / 0.03)); }
+  .laadadvies .kaartkop .ik { background: rgb(var(--zon-k) / 0.2); color: var(--zon); }
+  .laadadvies.paars .kaartkop .ik { background: rgb(var(--violet-k) / 0.22); color: var(--violet-t); }
   .laadadvies:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
   .laadadvies .groot { margin-top: 10px; font-family: var(--kop); font-size: 26px; font-weight: 600; line-height: 1.1; }
   .laadadvies p { margin: 6px 0 0; font-size: 14px; color: var(--zacht); line-height: 1.45; }
@@ -404,7 +404,7 @@
   .cambeeld .camzin i { width: 7px; height: 7px; flex: none; border-radius: 50%; background: #8796a8; }
   .cambeeld.bel .camzin i { background: var(--zon); }
   .cambeeld.nu { box-shadow: inset 0 0 0 2px var(--gloed); }
-  .cambeeld.nu .camzin { background: rgba(255, 122, 77, 0.92); }
+  .cambeeld.nu .camzin { background: rgb(var(--gloed-k) / 0.92); }
   .cambeeld.nu .camzin i { background: #fff; animation: campuls 1.2s infinite; }
   .cambeelden.n1 .camnaam, .cambeelden.n1 .camzin { font-size: 12.5px; }
   @keyframes campuls { 50% { opacity: 0.35; } }
@@ -500,7 +500,7 @@
   .sluipkaart .sluipnu small { color: var(--zacht); }
   .sluipkaart .sluipnu small b { color: var(--gloed-t); }
   .sluipkaart .sluipstaven { display: flex; align-items: end; gap: 3px; height: 40px; margin-top: 10px; }
-  .sluipkaart .sluipstaven i { flex: 1; border-radius: 2px; background: rgba(111, 211, 255, 0.45); }
+  .sluipkaart .sluipstaven i { flex: 1; border-radius: 2px; background: rgb(var(--ijs-k) / 0.45); }
   .sluipkaart .sluipstaven i.hoog { background: var(--gloed); }
   .boilerkaart .lading { grid-template-columns: auto 1fr; }
 
@@ -781,7 +781,7 @@
     .dk-boven { position: absolute; inset: 0; width: 100%; height: 100%; }
     .dk-romp { fill: rgb(var(--wit) / 0.06); stroke: rgb(var(--wit) / 0.45); }
     .dk-dv { fill: rgb(var(--wit) / 0.05); stroke: rgb(var(--wit) / 0.28); }
-    .dk-dv.vol { fill: rgba(247, 181, 72, 0.07); }
+    .dk-dv.vol { fill: rgb(var(--zon-k) / 0.07); }
     .dk-paneel { fill: #3f6f9e; stroke: #9cc0e4; }
     .dk-nok { stroke: rgb(var(--wit) / 0.6); }
     .dk-pijl { stroke: #ffd27a; stroke-linecap: round; }

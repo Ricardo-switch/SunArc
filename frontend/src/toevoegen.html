@@ -45,7 +45,7 @@
   .vond b { display: block; font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .vond small { display: block; font-size: 12px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .vond .r { font-size: 16px; color: var(--gedempt); }
-  .vond .r.af { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; background: rgba(110, 231, 183, 0.18); color: var(--mint); }
+  .vond .r.af { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; background: rgb(var(--mint-k) / 0.18); color: var(--mint); }
   .meer, .leeg { margin: 4px 8px; font-size: 12.5px; color: var(--gedempt); }
   .tvoet { margin-top: auto; padding: 10px 8px 0; border-top: 1px solid rgb(var(--wit) / 0.07); display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
   .verborgenregel { display: flex; justify-content: space-between; font-weight: 700; color: var(--zacht); text-decoration: none; }
@@ -79,12 +79,12 @@
   .watkeuze { height: auto; min-height: 56px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px 7px; border-radius: 14px; background: rgb(var(--wit) / 0.045); border: 1px solid rgb(var(--wit) / 0.07); font: inherit; font-size: 13px; font-weight: 600; color: var(--zacht); cursor: pointer; }
   :is(.paneel, .blad) .watkeuze svg { width: 22px; height: 22px; flex: none; }
   .watkeuze span { font-size: 12px; }
-  :is(.paneel, .blad) .watkeuze[aria-pressed='true'] { background: rgba(247, 181, 72, 0.12); border-color: var(--zon); color: var(--tekst); }
+  :is(.paneel, .blad) .watkeuze[aria-pressed='true'] { background: rgb(var(--zon-k) / 0.12); border-color: var(--zon); color: var(--tekst); }
   .onder { margin: 6px 0 0; font-size: 13px; color: var(--zacht); }
   .stap .knoppen { display: flex; flex-direction: column; gap: 8px; }
   .knoplabel { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 14px; color: var(--zacht); }
   .knoplabel input { height: 36px; padding: 0 12px; border-radius: 11px; background: rgb(var(--wit) / 0.06); border: 1px solid var(--glas-rand); color: var(--tekst); font: inherit; font-weight: 600; }
-  .let { margin: 0; padding: 11px 14px; border-radius: 14px; background: rgba(111, 211, 255, 0.07); border: 1px solid rgba(111, 211, 255, 0.18); font-size: 13.5px; color: var(--zacht); line-height: 1.4; }
+  .let { margin: 0; padding: 11px 14px; border-radius: 14px; background: rgb(var(--ijs-k) / 0.07); border: 1px solid rgb(var(--ijs-k) / 0.18); font-size: 13.5px; color: var(--zacht); line-height: 1.4; }
   .fout { margin: 0; }
   .fout:empty { display: none; }
   .klaar { display: flex; align-items: center; gap: 12px; padding-top: 10px; border-top: 1px solid rgb(var(--wit) / 0.07); margin-top: auto; }

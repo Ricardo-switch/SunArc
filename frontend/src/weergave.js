@@ -47,13 +47,13 @@
     const keuze = (eenvoudig, naam, zin, tel) => `<button type="button" role="radio" aria-checked="${w.eenvoudig === eenvoudig}" data-wg-eenvoudig="${eenvoudig}"><span class="wg-mini" aria-hidden="true">${tel}</span><b>${naam}</b><p>${zin}</p></button>`;
     const schakel = (id, naam, zin) => `<button type="button" class="wg-schakel" role="switch" aria-checked="${aan(id)}" data-wg-schakel="${id}"><div><b>${naam}</b><span>${zin}</span></div><span class="schakelaar-teken" aria-hidden="true"></span></button>`;
     return `<div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('thuis.weergave'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
-      <p class="mini" style="margin: 0">${volgt != null ? esc(t('eigen.wg.volgt', { naam: volgt })) : `${esc(t('eigen.wg.voorJou'))}${telStand ? '' : ` ${esc(t('eigen.wg.wand'))}`}`}</p>
+      <p class="mini geen-marge">${volgt != null ? esc(t('eigen.wg.volgt', { naam: volgt })) : `${esc(t('eigen.wg.voorJou'))}${telStand ? '' : ` ${esc(t('eigen.wg.wand'))}`}`}</p>
       <div class="wg-twee" role="radiogroup" aria-label="${esc(t('eigen.wg.keuze'))}">
         ${keuze(true, esc(t('eigen.wg.eenvoudig')), esc(t('eigen.wg.eenvoudigZin')), '<i style="width: 70%; height: 10px; background: rgb(var(--wit) / 0.45)"></i><i style="width: 92%; height: 8px"></i><i style="width: 60%; height: 8px"></i>')}
         ${keuze(false, esc(t('eigen.wg.uitgebreid')), esc(t('eigen.wg.uitgebreidZin')), '<i style="width: 60%; height: 7px; background: rgb(var(--wit) / 0.45)"></i><i style="width: 90%"></i><i style="width: 80%"></i><i style="width: 45%; background: rgba(247,181,72,0.55)"></i><i style="width: 70%"></i>')}
       </div>
-      ${zonderLetters ? '' : `<div style="margin-top: 10px">${schakel('groteLetters', esc(t('eigen.wg.letters')), esc(t('eigen.wg.lettersZin')))}${schakel('minderBeweging', esc(t('eigen.wg.beweging')), esc(t('eigen.wg.bewegingZin')))}</div>`}
-      <p class="mini" style="margin: 14px 0 2px">${esc(t('eigen.wg.huis'))}</p>
+      ${zonderLetters ? '' : `<div class="boven-12">${schakel('groteLetters', esc(t('eigen.wg.letters')), esc(t('eigen.wg.lettersZin')))}${schakel('minderBeweging', esc(t('eigen.wg.beweging')), esc(t('eigen.wg.bewegingZin')))}</div>`}
+      <p class="mini geen-marge boven-16 onder-4">${esc(t('eigen.wg.huis'))}</p>
       <div>${schakel('seizoen', esc(t('eigen.wg.seizoen')), esc(t('eigen.wg.seizoenZin')))}${schakel('weer', esc(t('eigen.wg.weer')), esc(t('eigen.wg.weerZin')))}${schakel('feestdagen', esc(t('eigen.wg.feest')), esc(t('eigen.wg.feestZin')))}${schakel('zonnebaan', esc(t('eigen.wg.zon')), esc(t('eigen.wg.zonZin')))}${schakel('getekend', esc(t('eigen.wg.getekend')), esc(t('eigen.wg.getekendZin')))}</div>`;
   }
 

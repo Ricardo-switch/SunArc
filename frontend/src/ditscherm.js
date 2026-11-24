@@ -149,7 +149,7 @@ const ditScherm = (() => {
       const ha = haAdres() ?? 'http://homeassistant.local:8123';
       const naam = adres ?? `https://smartclimate.${t('functies.st.tailnet')}.ts.net`;
       return `<p class="uitleg">${esc(t('functies.st.waarom'))}</p>
-      <ol style="margin: 0; padding-left: 20px; display: grid; gap: 8px">
+      <ol class="geen-marge" style="padding-left: 20px; display: grid; gap: 8px">
         <li>${metHtml('functies.st.stap1', { ha })}</li>
         <li>${metHtml('functies.st.stap2')}</li>
         <li>${metHtml('functies.st.stap3')}</li>
@@ -175,7 +175,7 @@ const ditScherm = (() => {
     const avondTot = n.nacht ? n.van : dagVan;
     const dagZin = !n.avond ? t('functies.aod.dagAltijd') : !n.dag ? t('functies.aod.dagUit') : t('functies.aod.vanTot', { van: dagVan, tot: onder });
     const avondZin = !n.dag ? t('functies.aod.avondAltijd') : !n.avond ? t('functies.aod.avondUit') : t('functies.aod.vanTot', { van: onder, tot: avondTot });
-    return `<p class="klein" style="margin: 0" data-nk-zin>${esc(zin)}</p>
+    return `<p class="klein geen-marge" data-nk-zin>${esc(zin)}</p>
     <div class="regelrij"><div class="l"><b>${esc(t('functies.aod.kop'))}</b><span>${esc(t('functies.aod.regel'))}</span></div>${schakel(aan, 'data-nk-aod', t('functies.aod.kop'), !mag)}</div>
     <div class="${aan ? '' : 'uitgezet'}" data-nk-onder><span class="veldnaam">${esc(t('functies.aod.na'))}</span>${nkKeuzes(t('functies.aod.naLabel'), 'nk-rust', minuten([2, 5, 15]), n.rustMin, !mag || !aan)}</div>
     <div class="${aan ? '' : 'uitgezet'}">
@@ -234,7 +234,7 @@ const ditScherm = (() => {
       : t('functies.uit.nooit');
     // De camera van de wand zelf, via Fully Kiosk (29 oktober 2026), en de melders uit het huis.
     const opties = `<option value="fully" ${n.melder === 'fully' ? 'selected' : ''}>${esc(t('functies.uit.camera'))}</option>${melders.map((m) => `<option value="${esc(m.id)}" ${m.id === n.melder ? 'selected' : ''}>${esc(t('functies.uit.melder', { kamer: m.kamer, naam: m.naam }))}</option>`).join('')}`;
-    return `<p class="klein" style="margin: 0" data-nk-zin>${esc(zin)}</p>
+    return `<p class="klein geen-marge" data-nk-zin>${esc(zin)}</p>
     <div class="regelrij"><div class="l"><b>${esc(t('functies.uit.snachts'))}</b><span>${esc(t('functies.uit.snachtsZin'))}</span></div>${schakel(n.nacht, 'data-nk-nacht', t('functies.uit.snachtsLabel'), !mag)}</div>
     <div class="twee ${n.nacht ? '' : 'uitgezet'}"><label class="veldnaam">${esc(t('functies.uit.vanaf'))}<input class="invoer" type="time" step="900" value="${esc(n.van)}" data-nk-van ${mag && n.nacht ? '' : 'disabled'}></label><label class="veldnaam">${esc(t('functies.uit.tot'))}<input class="invoer" type="time" step="900" value="${esc(n.tot)}" data-nk-tot ${mag && n.nacht ? '' : 'disabled'}></label></div>
     <div class="regelrij"><div class="l"><b>${esc(t('functies.uit.niemand'))}</b><span>${esc(t('functies.uit.niemandZin'))}</span></div>${schakel(n.weg, 'data-nk-weg', t('functies.uit.niemand'), !mag)}</div>

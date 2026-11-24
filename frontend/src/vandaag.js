@@ -294,7 +294,7 @@ function tekenTijdlijn(r, verwacht, lijst) {
   W = Math.max(1116, Math.round(box.clientWidth - 40) || 1116);
   X1 = W - 16;
   if (!r && dag !== 'morgen') {
-    box.innerHTML = `<p class="klein" style="margin: 8px 0">${esc(t('vandaag.nietsGelogd'))}</p>`;
+    box.innerHTML = `<p class="klein geen-marge boven-8 onder-8">${esc(t('vandaag.nietsGelogd'))}</p>`;
     return;
   }
   const van = dag === 'morgen' ? Date.parse(`${weer?.dagen?.[0]?.datum ?? ''}T00:00:00`) : r.vanMs;
@@ -432,15 +432,15 @@ function tekenKaarten(r, verwacht, lijst) {
   if (dag === 'morgen') {
     const m = weer?.dagen?.[0];
     links.innerHTML = m
-      ? `<div class="bovenrij"><span class="wanneer zon-t">${esc(t('vandaag.morgenWeer'))}</span><span class="mini">${esc(weer?.bron ?? 'Buienradar')}</span></div><h2 class="kop-2" style="margin-top: 8px">${esc(m.tekst ?? t('thuis.weer.kop'))}${m.maxC != null ? `, ${nl(m.maxC, 0)}°` : ''}</h2><p class="klein" style="margin: 8px 0 0">${esc([m.zonkansPct != null ? t('vandaag.kansZonPct', { pct: m.zonkansPct }) : '', m.regenkansPct != null ? t('vandaag.kansRegenPct', { pct: m.regenkansPct }) : ''].filter(Boolean).join(', '))}. ${esc(m.verwachtKwh == null ? t('vandaag.levertOnbekend') : t('vandaag.levert', { kwh: nl(m.verwachtKwh) }))}</p>`
+      ? `<div class="bovenrij"><span class="wanneer zon-t">${esc(t('vandaag.morgenWeer'))}</span><span class="mini">${esc(weer?.bron ?? 'Buienradar')}</span></div><h2 class="kop-2 boven-8">${esc(m.tekst ?? t('thuis.weer.kop'))}${m.maxC != null ? `, ${nl(m.maxC, 0)}°` : ''}</h2><p class="klein geen-marge boven-8">${esc([m.zonkansPct != null ? t('vandaag.kansZonPct', { pct: m.zonkansPct }) : '', m.regenkansPct != null ? t('vandaag.kansRegenPct', { pct: m.regenkansPct }) : ''].filter(Boolean).join(', '))}. ${esc(m.verwachtKwh == null ? t('vandaag.levertOnbekend') : t('vandaag.levert', { kwh: nl(m.verwachtKwh) }))}</p>`
       : `<p class="klein">${esc(t('vandaag.geenMorgen'))}</p>`;
   } else if (i < 0) {
-    links.innerHTML = `<span class="wanneer">${esc(t(dag === 'gisteren' ? 'vandaag.gisteren' : 'vandaag.vandaag'))}</span><h2 class="kop-2" style="margin-top: 8px">${esc(t('vandaag.nogNiets'))}</h2><p class="klein" style="margin: 8px 0 0">${esc(t('vandaag.geenStand'))}</p>`;
+    links.innerHTML = `<span class="wanneer">${esc(t(dag === 'gisteren' ? 'vandaag.gisteren' : 'vandaag.vandaag'))}</span><h2 class="kop-2 boven-8">${esc(t('vandaag.nogNiets'))}</h2><p class="klein geen-marge boven-8">${esc(t('vandaag.geenStand'))}</p>`;
   } else {
     const m = lijst[i];
     links.innerHTML = `<div class="bovenrij"><span class="wanneer" style="color: ${app.tekstKleur(m.kleur)}">${esc(t('vandaag.watGebeurde', { klok: klokVan(m.tMs) }))}</span><span class="mini">${esc(t('vandaag.vanDe', { nr: i + 1, van: lijst.length }))}</span></div>
-      <h2 class="kop-2" style="margin-top: 8px">${esc(m.kop)}</h2>
-      <p class="klein" style="margin: 8px 0 0">${esc(m.zin)}</p>
+      <h2 class="kop-2 boven-8">${esc(m.kop)}</h2>
+      <p class="klein geen-marge boven-8">${esc(m.zin)}</p>
       <div class="bladeren"><button type="button" data-blader="-1" ${i === 0 ? 'disabled' : ''}>‹ ${esc(t('vandaag.eerder'))}</button><button type="button" data-blader="1" ${i === lijst.length - 1 ? 'disabled' : ''}>${esc(t('vandaag.later'))} ›</button></div>`;
   }
 
@@ -451,28 +451,28 @@ function tekenKaarten(r, verwacht, lijst) {
   if (dag === 'vandaag' && app.huisSoort()?.zon === false) {
     // Zonder panelen (19 november 2026): het weer van morgen, zonder wat het dak levert.
     rechts.innerHTML = m
-      ? `<div class="bovenrij"><span class="wanneer zon-t">${esc(t('vandaag.morgenWeer'))}</span><span class="mini">${esc(weer?.bron ?? 'Buienradar')}</span></div><h2 class="kop-2" style="margin-top: 8px">${esc(m.tekst ?? t('thuis.weer.kop'))}${m.maxC != null ? `, ${nl(m.maxC, 0)}°` : ''}</h2><p class="klein" style="margin: 8px 0 0">${esc([m.zonkansPct != null ? t('vandaag.kansZonPct', { pct: m.zonkansPct }) : '', m.regenkansPct != null ? t('vandaag.kansRegenPct', { pct: m.regenkansPct }) : ''].filter(Boolean).join(', '))}</p>`
+      ? `<div class="bovenrij"><span class="wanneer zon-t">${esc(t('vandaag.morgenWeer'))}</span><span class="mini">${esc(weer?.bron ?? 'Buienradar')}</span></div><h2 class="kop-2 boven-8">${esc(m.tekst ?? t('thuis.weer.kop'))}${m.maxC != null ? `, ${nl(m.maxC, 0)}°` : ''}</h2><p class="klein geen-marge boven-8">${esc([m.zonkansPct != null ? t('vandaag.kansZonPct', { pct: m.zonkansPct }) : '', m.regenkansPct != null ? t('vandaag.kansRegenPct', { pct: m.regenkansPct }) : ''].filter(Boolean).join(', '))}</p>`
       : `<p class="klein">${esc(t('vandaag.geenMorgen'))}</p>`;
   } else if (dag === 'vandaag') {
     const v = verwacht[0];
     const rest = weer?.vandaag?.verwachtKwh != null && weer?.vandaag?.opgewektKwh != null ? Math.max(0, weer.vandaag.verwachtKwh - weer.vandaag.opgewektKwh) : null;
     const onder = zon?.zon?.boven === false;
     rechts.innerHTML = v
-      ? `<div class="bovenrij"><span class="wanneer" style="color: var(--violet-t)">${esc(v.vanMs ? t('vandaag.klokVerwacht', { klok: klokVan(v.vanMs) }) : t('thuis.kaart.straks'))}</span><span class="mini">${esc(t('vandaag.uitWeer'))}</span></div><h2 class="kop-2" style="margin-top: 8px">${esc(v.kop)}</h2><p class="klein" style="margin: 8px 0 0">${esc(v.zin)}</p>`
-      : `<div class="bovenrij"><span class="wanneer" style="color: var(--violet-t)">${esc(t('vandaag.rest'))}</span><span class="mini">${esc(t('vandaag.uitWeer'))}</span></div><h2 class="kop-2" style="margin-top: 8px">${esc(!onder && rest != null && rest > 0.05 ? t('vandaag.nogZon', { kwh: nl(rest) }) : t(onder ? 'vandaag.zonOnder' : 'vandaag.weinigZon'))}</h2><p class="klein" style="margin: 8px 0 0">${esc(!onder && rest != null && rest > 0.05 ? t('vandaag.nietsWacht') : morgenZin || t('vandaag.nietsWacht'))}</p>`;
+      ? `<div class="bovenrij"><span class="wanneer" style="color: var(--violet-t)">${esc(v.vanMs ? t('vandaag.klokVerwacht', { klok: klokVan(v.vanMs) }) : t('thuis.kaart.straks'))}</span><span class="mini">${esc(t('vandaag.uitWeer'))}</span></div><h2 class="kop-2 boven-8">${esc(v.kop)}</h2><p class="klein geen-marge boven-8">${esc(v.zin)}</p>`
+      : `<div class="bovenrij"><span class="wanneer" style="color: var(--violet-t)">${esc(t('vandaag.rest'))}</span><span class="mini">${esc(t('vandaag.uitWeer'))}</span></div><h2 class="kop-2 boven-8">${esc(!onder && rest != null && rest > 0.05 ? t('vandaag.nogZon', { kwh: nl(rest) }) : t(onder ? 'vandaag.zonOnder' : 'vandaag.weinigZon'))}</h2><p class="klein geen-marge boven-8">${esc(!onder && rest != null && rest > 0.05 ? t('vandaag.nietsWacht') : morgenZin || t('vandaag.nietsWacht'))}</p>`;
   } else if (dag === 'gisteren') {
     const k = klopteHtml();
     rechts.innerHTML = `<div class="bovenrij"><span class="wanneer" style="color: var(--violet-t)">${esc(t('vandaag.klopte'))}</span><span class="mini">${k.dagen ? esc(t('vandaag.dagen', { n: k.dagen })) : ''}</span></div>
       ${k.balken}
-      <div class="bovenrij" style="margin-top: 8px"><p class="mini" style="margin: 0">${esc(k.zin)}</p>${k.dagen ? LEGENDA() : ''}</div>`;
+      <div class="bovenrij boven-8"><p class="mini geen-marge">${esc(k.zin)}</p>${k.dagen ? LEGENDA() : ''}</div>`;
   } else {
     // Wanneer de zon er morgen is: de kwartieren boven 60% van het hoogste punt.
     const kw = m?.kwartieren ?? [];
     const piek = Math.max(0, ...kw.map((q) => q.verwachtW));
     const goed = kw.filter((q) => piek > 0 && q.verwachtW >= piek * 0.6);
     rechts.innerHTML = goed.length && piek >= 200
-      ? `<div class="bovenrij"><span class="wanneer" style="color: var(--violet-t)">${esc(t('vandaag.meesteZon'))}</span><span class="mini">${esc(t('vandaag.uitWeer'))}</span></div><h2 class="kop-2" style="margin-top: 8px">${esc(t('vandaag.tussen', { van: klokVan(goed[0].tMs), tot: klokVan(goed.at(-1).tMs + 15 * 60_000) }))}</h2><p class="klein" style="margin: 8px 0 0">${esc(t('vandaag.piek', { kw: nl(piek / 1000) }))}</p>`
-      : `<div class="bovenrij"><span class="wanneer" style="color: var(--violet-t)">${esc(t('vandaag.morgenZon'))}</span><span class="mini">${esc(t('vandaag.uitWeer'))}</span></div><h2 class="kop-2" style="margin-top: 8px">${esc(t('vandaag.weinigVerwacht'))}</h2><p class="klein" style="margin: 8px 0 0">${esc(morgenZin || t('vandaag.geenMorgen'))}</p>`;
+      ? `<div class="bovenrij"><span class="wanneer" style="color: var(--violet-t)">${esc(t('vandaag.meesteZon'))}</span><span class="mini">${esc(t('vandaag.uitWeer'))}</span></div><h2 class="kop-2 boven-8">${esc(t('vandaag.tussen', { van: klokVan(goed[0].tMs), tot: klokVan(goed.at(-1).tMs + 15 * 60_000) }))}</h2><p class="klein geen-marge boven-8">${esc(t('vandaag.piek', { kw: nl(piek / 1000) }))}</p>`
+      : `<div class="bovenrij"><span class="wanneer" style="color: var(--violet-t)">${esc(t('vandaag.morgenZon'))}</span><span class="mini">${esc(t('vandaag.uitWeer'))}</span></div><h2 class="kop-2 boven-8">${esc(t('vandaag.weinigVerwacht'))}</h2><p class="klein geen-marge boven-8">${esc(morgenZin || t('vandaag.geenMorgen'))}</p>`;
   }
 }
 
@@ -519,7 +519,7 @@ function tekenTelefoon(r, verwacht, lijst) {
   klopte.hidden = dag !== 'gisteren';
   if (dag === 'gisteren') {
     const k = klopteHtml();
-    klopte.innerHTML = `<h2 class="kop-3">${esc(t('vandaag.klopte'))}</h2>${k.balken}${k.dagen ? `<div style="margin-top: 8px">${LEGENDA()}</div>` : ''}<p class="mini" style="margin: 6px 0 0">${esc(k.zin)}</p>`;
+    klopte.innerHTML = `<h2 class="kop-3">${esc(t('vandaag.klopte'))}</h2>${k.balken}${k.dagen ? `<div class="boven-8">${LEGENDA()}</div>` : ''}<p class="mini geen-marge boven-8">${esc(k.zin)}</p>`;
   }
 
   const lijn = document.querySelector('[data-lijn]');

@@ -201,8 +201,8 @@ function blad(x) {
     : '';
   const som = a
     ? `<div class="som"><div class="somtop"><div><h4>${esc(t('kan.accu.past'))}</h4><div class="getal">${maat(a.kwh)} <small>kWh</small></div></div><div><h4>${esc(t('kan.opleveren'))}</h4><div class="getal">± ${taal.valuta()} ${a.euro} <small>${esc(t('kan.perMaand'))}</small></div></div></div>
-        <p class="mini" style="margin: 8px 0 0">${esc(zin)}</p>
-        <h4 style="margin-top: 12px">${esc(t('kan.accu.wanneer'))}</h4>${bijspringen(a.uren)}</div>`
+        <p class="mini geen-marge boven-8">${esc(zin)}</p>
+        <h4 class="boven-12">${esc(t('kan.accu.wanneer'))}</h4>${bijspringen(a.uren)}</div>`
     : '';
   // Wat er nodig is, koop je zelf; dan is er geen knop, behalve naar wat het nu oplevert.
   const ga = x.ga ?? (x.stand === 'mis' ? t('kan.ga.mis') : x.stand === 'uit' ? t('kan.ga.uit') : x.stand === 'nodig' ? (x.som ? t('kan.ga.opbrengst') : null) : t('kan.ga.bekijken'));
@@ -211,7 +211,7 @@ function blad(x) {
     ? `<div><h4>${esc(t('kan.waar'))}</h4><div class="waar">${x.waar.map((k) => `<div class="kamerkaart"><b>${esc(k.naam)}</b><span>${esc(k.wat)}</span></div>`).join('')}</div></div>`
     : x.som || x.thermisch ? '' : `<div class="nu"><span class="stand ${x.stand}">${esc(t('kan.nu'))}</span>${esc(x.nu)}</div>`;
   const idee = x.idee ? `<a class="kanook" href="${x.idee.href}"><span class="wanneer">${esc(t('kan.idee'))}</span><b>${esc(x.idee.titel)}</b><p>${esc(x.idee.zin)}, ${esc(x.idee.wint)}.</p><span class="knop">${esc(t(x.idee.soort === 'aan' ? 'kan.zetAan' : 'kan.bekijk'))}</span></a>` : '';
-  return `<div class="bovenaan"><div><span class="stand ${x.stand}">${esc(x.label)}</span><h2 class="kop-2" style="margin-top: 10px">${esc(x.titel)}</h2><p class="lead" style="margin-top: 4px; max-width: 52ch">${esc(x.wat)}</p>${x.extra ? `<p class="mini" style="margin: 6px 0 0">${esc(x.extra)}</p>` : ''}</div><button type="button" class="sluit" data-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
+  return `<div class="bovenaan"><div><span class="stand ${x.stand}">${esc(x.label)}</span><h2 class="kop-2 boven-12">${esc(x.titel)}</h2><p class="lead boven-4" style="max-width: 52ch">${esc(x.wat)}</p>${x.extra ? `<p class="mini geen-marge boven-8">${esc(x.extra)}</p>` : ''}</div><button type="button" class="sluit" data-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
     ${waar}
     ${idee}
     ${som}
@@ -238,7 +238,7 @@ function klaarBlad() {
     const hier = punten.filter((p) => p.groep === g);
     return hier.length ? `<div class="klaargroep"><h4>${esc(titel)}</h4>${hier.map(regel).join('')}</div>` : '';
   }).join('');
-  return `<div class="bovenaan"><div><h2 class="kop-2">${esc(t('kan.klaar.kop'))}</h2><p class="lead" style="margin-top: 4px; max-width: 52ch">${esc(t('kan.klaar.lead'))}</p></div><button type="button" class="sluit" data-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
+  return `<div class="bovenaan"><div><h2 class="kop-2">${esc(t('kan.klaar.kop'))}</h2><p class="lead boven-4" style="max-width: 52ch">${esc(t('kan.klaar.lead'))}</p></div><button type="button" class="sluit" data-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
     ${groepen}`;
 }
 

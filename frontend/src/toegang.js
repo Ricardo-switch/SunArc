@@ -79,26 +79,26 @@ const metHtml = (sleutel, p = {}) => t(sleutel, Object.fromEntries(Object.entrie
 function wieVorm() {
   const s = sessie;
   if (!s) return '';
-  if (s.toegang === 'open') return `<p class="klein" style="margin: 0">${esc(t('toegang.open'))}</p>`;
+  if (s.toegang === 'open') return `<p class="klein geen-marge">${esc(t('toegang.open'))}</p>`;
   const rol = s.rol ? `, ${s.rol}` : '';
-  if (s.toegang === 'ingress') return `<p class="klein" style="margin: 0">${metHtml('toegang.viaHA', { naam: s.naam ?? '', rol })}</p>`;
+  if (s.toegang === 'ingress') return `<p class="klein geen-marge">${metHtml('toegang.viaHA', { naam: s.naam ?? '', rol })}</p>`;
   const terug = encodeURIComponent(location.pathname);
   return s.ingelogd
-    ? `<div class="knoppenrij" style="align-items: center"><p class="klein" style="margin: 0; flex: 1">${metHtml('toegang.jeBent', { naam: s.naam ?? '', rol })}</p><button type="button" class="knop" data-uitloggen>${esc(t('toegang.uitloggen'))}</button></div>`
-    : `<div class="knoppenrij" style="align-items: center"><p class="klein" style="margin: 0; flex: 1">${esc(t('toegang.nietIngelogdZin'))}</p><a class="knop knop-licht" href="auth/login?terug=${terug}" style="display: inline-flex; align-items: center; text-decoration: none">${esc(t('toegang.inloggen'))}</a></div>`;
+    ? `<div class="knoppenrij" style="align-items: center"><p class="klein geen-marge" style="flex: 1">${metHtml('toegang.jeBent', { naam: s.naam ?? '', rol })}</p><button type="button" class="knop" data-uitloggen>${esc(t('toegang.uitloggen'))}</button></div>`
+    : `<div class="knoppenrij" style="align-items: center"><p class="klein geen-marge" style="flex: 1">${esc(t('toegang.nietIngelogdZin'))}</p><a class="knop knop-licht" href="auth/login?terug=${terug}" style="display: inline-flex; align-items: center; text-decoration: none">${esc(t('toegang.inloggen'))}</a></div>`;
 }
 
 /** Bewoners (besluit 147): wie jij bent, kort wie hier woont, en de weg naar de pagina. */
 function bewonersVorm() {
   const b = bewoners;
-  if (isGast()) return `<h2 class="kop-2">${esc(t('jij.kop'))}</h2>${wieVorm()}<p class="mini" style="margin: 0">${esc(t('toegang.gast'))}</p>`;
-  if (!b) return `<h2 class="kop-2">${esc(t('instellingen.bewoners'))}</h2><p class="klein" style="margin: 0">${esc(t('algemeen.laden'))}…</p>`;
+  if (isGast()) return `<h2 class="kop-2">${esc(t('jij.kop'))}</h2>${wieVorm()}<p class="mini geen-marge">${esc(t('toegang.gast'))}</p>`;
+  if (!b) return `<h2 class="kop-2">${esc(t('instellingen.bewoners'))}</h2><p class="klein geen-marge">${esc(t('algemeen.laden'))}…</p>`;
   const rijen = b.bewoners.map((x) => `<div class="rij-b">${esc(x.naam)}${x.ik ? esc(t('toegang.jij')) : ''}<span>${esc(t(x.hoofd ? 'toegang.hoofdgebruiker' : x.comfort === 'eigen' ? 'toegang.eigenComfort' : 'toegang.volgt'))}${x.thuis == null ? '' : esc(t(x.thuis ? 'toegang.thuis' : 'toegang.weg'))}</span></div>`).join('');
   return `<h2 class="kop-2">${esc(t('instellingen.bewoners'))}</h2>
     ${wieVorm()}
-    <p class="mini" style="margin: 0">${esc(t('toegang.rollen'))}</p>
-    <p class="klein" style="margin: 0">${esc(t('toegang.volgorde'))}</p>
-    <div>${rijen || `<p class="klein" style="margin: 0">${esc(t('toegang.nogNiemand'))}</p>`}</div>
+    <p class="mini geen-marge">${esc(t('toegang.rollen'))}</p>
+    <p class="klein geen-marge">${esc(t('toegang.volgorde'))}</p>
+    <div>${rijen || `<p class="klein geen-marge">${esc(t('toegang.nogNiemand'))}</p>`}</div>
     <a class="knop knop-licht" href="bewoners.html" style="align-self: start; display: inline-flex; align-items: center; text-decoration: none">${esc(t('toegang.naarBewoners'))}</a>`;
 }
 
@@ -111,13 +111,13 @@ function bewonersVorm() {
  */
 function assistentVorm() {
   return `<h2 class="kop-2">${esc(t('toegang.sleutel'))}</h2>
-    <p class="klein" style="margin: 0">${esc(t('toegang.assistUitleg'))}</p>
+    <p class="klein geen-marge">${esc(t('toegang.assistUitleg'))}</p>
     ${integratieVorm()}
     <details class="hacs"><summary class="klein">${esc(t('toegang.geenAddon'))}</summary>
-      <p class="klein" style="margin: 0">${esc(t('toegang.zonderAddon'))}</p>
+      <p class="klein geen-marge">${esc(t('toegang.zonderAddon'))}</p>
       ${vraagAdres ? `<div class="sleutel" data-vraagadres>${esc(vraagAdres.replace(/\/api\/vraag$/, ''))}</div>` : ''}
       <div class="sleutel" data-sleutel>${esc(sleutel ?? '')}</div>
-      <p class="mini" style="margin: 0">${esc(t('toegang.deelNiet'))}</p>
+      <p class="mini geen-marge">${esc(t('toegang.deelNiet'))}</p>
     </details>`;
 }
 
@@ -133,16 +133,16 @@ const hacsStappen = () => `<ol class="klein stappen">
     <li>${t('toegang.hacs.3')}<div class="sleutel">https://github.com/Ricardo-switch/SunArc</div></li>
     <li>${t('toegang.hacs.4')}</li>
   </ol>`;
-const eenmalig = () => `<p class="mini" style="margin: 0">${esc(t('toegang.eenmalig'))}</p>`;
+const eenmalig = () => `<p class="mini geen-marge">${esc(t('toegang.eenmalig'))}</p>`;
 
 /**
  * Of de integratie ook is toegevoegd (22 oktober 2026): met alleen de bestanden
  * kan Assist SunArc nog niet vragen.
  */
 function toegevoegdZin(i) {
-  if (i.toegevoegd === true) return `<p class="klein" style="margin: 0">${t('toegang.toegevoegd')}</p>`;
+  if (i.toegevoegd === true) return `<p class="klein geen-marge">${t('toegang.toegevoegd')}</p>`;
   if (i.toegevoegd !== false || !i.geladen) return '';
-  return `<p class="klein" style="margin: 0; color: var(--zon-t)">${esc(t('toegang.nietToegevoegd'))}</p>`;
+  return `<p class="klein geen-marge" style="color: var(--zon-t)">${esc(t('toegang.nietToegevoegd'))}</p>`;
 }
 
 /*
@@ -169,19 +169,19 @@ function aanzetVorm(i) {
 
 function integratieVorm() {
   const i = integratie;
-  const zin = integratieZin ? `<p class="mini" style="margin: 0" aria-live="polite">${esc(integratieZin)}</p>` : '';
+  const zin = integratieZin ? `<p class="mini geen-marge" aria-live="polite">${esc(integratieZin)}</p>` : '';
   // Met één knop, in de add-on, zolang hij nog niet werkt (of het net loopt).
   if (i?.aanzetten && i.staat !== 'anders' && (i.aanzetten.bezig || i.toegevoegd !== true || i.geladen !== i.versie || i.oudeKoppeling === true)) return aanzetVorm(i);
-  if (!i?.kan) return `<p class="klein" style="margin: 0">${esc(t('toegang.viaHACS'))}</p>${hacsStappen()}${eenmalig()}`;
-  if (i.staat === 'anders') return `<p class="klein" style="margin: 0">${i.versie ? metHtml('toegang.staatHACSVersie', { versie: i.versie }) : t('toegang.staatHACS')}</p>${toegevoegdZin(i)}${zin}`;
+  if (!i?.kan) return `<p class="klein geen-marge">${esc(t('toegang.viaHACS'))}</p>${hacsStappen()}${eenmalig()}`;
+  if (i.staat === 'anders') return `<p class="klein geen-marge">${i.versie ? metHtml('toegang.staatHACSVersie', { versie: i.versie }) : t('toegang.staatHACS')}</p>${toegevoegdZin(i)}${zin}`;
   if (i.staat === 'nee') {
-    return `<p class="klein" style="margin: 0">${t('toegang.zonderHACS')}</p>
+    return `<p class="klein geen-marge">${t('toegang.zonderHACS')}</p>
       <button type="button" class="knop knop-licht" data-integratie style="align-self: start">${esc(t('toegang.zetNeer'))}</button>${zin}
       <details class="hacs"><summary class="klein">${esc(t('toegang.hebHACS'))}</summary>${hacsStappen()}</details>${eenmalig()}`;
   }
   const herstart = i.geladen !== i.versie;
-  return `<p class="klein" style="margin: 0">${metHtml('toegang.staatAddon', { versie: i.versie ?? '?' })}</p>
-    ${herstart ? `<p class="klein" style="margin: 0; color: var(--zon-t)">${esc(t('toegang.herstart'))}</p>` : toegevoegdZin(i)}${zin}${eenmalig()}`;
+  return `<p class="klein geen-marge">${metHtml('toegang.staatAddon', { versie: i.versie ?? '?' })}</p>
+    ${herstart ? `<p class="klein geen-marge" style="color: var(--zon-t)">${esc(t('toegang.herstart'))}</p>` : toegevoegdZin(i)}${zin}${eenmalig()}`;
 }
 
 const linkKnop = (href, tekst, extra = '') => `<a class="knop knop-licht" href="${href}" ${extra} style="align-self: start; display: inline-flex; align-items: center; text-decoration: none">${esc(tekst)}</a>`;
@@ -197,16 +197,16 @@ function gegevensVorm() {
   const mb = g?.bytes != null ? nl(g.bytes / 1_000_000, 0) : null;
   const nu = g?.bestanden != null ? t(mb ? 'toegang.nuDagenMb' : 'toegang.nuDagen', { n: g.bestanden, mb }) : '';
   const logboek = `<h2 class="kop-2">${esc(t('toegang.gegevens'))}</h2>
-    <p class="klein" style="margin: 0">${esc(t('toegang.gegevensZin', { nu }))}</p>
-    <p class="mini" style="margin: 0">${esc(t('toegang.nietsNaarBuiten'))}</p>`;
-  if (melding) return `${logboek}<p class="klein" style="margin: 0" data-melding>${esc(melding)}</p>`;
+    <p class="klein geen-marge">${esc(t('toegang.gegevensZin', { nu }))}</p>
+    <p class="mini geen-marge">${esc(t('toegang.nietsNaarBuiten'))}</p>`;
+  if (melding) return `${logboek}<p class="klein geen-marge" data-melding>${esc(melding)}</p>`;
   if (!opslag) return logboek;
-  if (!opslag.hoofd) return `${logboek}<p class="klein" style="margin: 0">${esc(t('toegang.alleenHoofd'))}</p>`;
+  if (!opslag.hoofd) return `${logboek}<p class="klein geen-marge">${esc(t('toegang.alleenHoofd'))}</p>`;
 
   if (bevestig === 'opnieuw') {
     return `${logboek}
-      <h3 class="kop-3" style="margin: 6px 0 0">${esc(t('toegang.opnieuwVraag'))}</h3>
-      <p class="klein" style="margin: 0">${esc([t('toegang.opnieuwWeg'), t(opslag.configWeg ? 'toegang.opnieuwInrichten' : 'toegang.configBlijft'), t('toegang.eerstBackup')].join(' '))}</p>
+      <h3 class="kop-3 geen-marge boven-8">${esc(t('toegang.opnieuwVraag'))}</h3>
+      <p class="klein geen-marge">${esc([t('toegang.opnieuwWeg'), t(opslag.configWeg ? 'toegang.opnieuwInrichten' : 'toegang.configBlijft'), t('toegang.eerstBackup')].join(' '))}</p>
       <span class="fout" data-fout></span>
       <div class="knoppenrij"><button type="button" class="knop" data-toch-niet>${esc(t('toegang.tochNiet'))}</button><button type="button" class="knop gevaar" data-ja-opnieuw>${esc(t('toegang.jaOpnieuw'))}</button></div>`;
   }
@@ -214,23 +214,23 @@ function gegevensVorm() {
     const b = bevestig.backup;
     const wanneer = b.gemaakt ? new Date(b.gemaakt).toLocaleString(taal.locale, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : null;
     return `${logboek}
-      <h3 class="kop-3" style="margin: 6px 0 0">${esc(t('toegang.terugVraag'))}</h3>
-      <p class="klein" style="margin: 0">${esc(`${bevestig.naam}${wanneer ? t('toegang.gemaaktOp', { wanneer }) : ''}${b.app ? t('toegang.metVersie', { versie: b.app }) : ''}. ${t('toegang.terugZin')}`)}</p>
+      <h3 class="kop-3 geen-marge boven-8">${esc(t('toegang.terugVraag'))}</h3>
+      <p class="klein geen-marge">${esc(`${bevestig.naam}${wanneer ? t('toegang.gemaaktOp', { wanneer }) : ''}${b.app ? t('toegang.metVersie', { versie: b.app }) : ''}. ${t('toegang.terugZin')}`)}</p>
       <span class="fout" data-fout></span>
       <div class="knoppenrij"><button type="button" class="knop" data-toch-niet>${esc(t('toegang.tochNiet'))}</button><button type="button" class="knop knop-licht" data-ja-terug>${esc(t('toegang.terugzetten'))}</button></div>`;
   }
   const laatste = wanneerBackup(opslag.backups?.[0]);
   return `${logboek}
-    <h3 class="kop-3" style="margin: 6px 0 0">${esc(t('toegang.backup'))}</h3>
-    <p class="klein" style="margin: 0">${esc(t('toegang.backupZin'))}${laatste ? ` ${esc(t('toegang.laatste', { wanneer: laatste }))}` : ''}</p>
+    <h3 class="kop-3 geen-marge boven-8">${esc(t('toegang.backup'))}</h3>
+    <p class="klein geen-marge">${esc(t('toegang.backupZin'))}${laatste ? ` ${esc(t('toegang.laatste', { wanneer: laatste }))}` : ''}</p>
     <div class="knoppenrij">${linkKnop('api/back-up', t('toegang.downloaden'), 'download')}<button type="button" class="knop" data-kies-backup>${esc(t('toegang.kiesBackup'))}</button></div>
     <input type="file" accept=".json,application/json" data-backup-bestand hidden>
     <span class="fout" data-fout></span>
-    ${g?.bestanden ? `<h3 class="kop-3" style="margin: 6px 0 0">${esc(t('toegang.logboek'))}</h3>
-    <p class="klein" style="margin: 0">${esc(t('toegang.logboekZin'))}</p>
+    ${g?.bestanden ? `<h3 class="kop-3 geen-marge boven-8">${esc(t('toegang.logboek'))}</h3>
+    <p class="klein geen-marge">${esc(t('toegang.logboekZin'))}</p>
     ${linkKnop('api/export', t('toegang.logboekDownloaden'), 'download')}` : ''}
-    <h3 class="kop-3" style="margin: 6px 0 0">${esc(t('toegang.opnieuw'))}</h3>
-    <p class="klein" style="margin: 0">${esc(t('toegang.opnieuwZin'))}</p>
+    <h3 class="kop-3 geen-marge boven-8">${esc(t('toegang.opnieuw'))}</h3>
+    <p class="klein geen-marge">${esc(t('toegang.opnieuwZin'))}</p>
     <button type="button" class="knop gevaar" data-opnieuw style="align-self: start">${esc(t('toegang.opnieuw'))}</button>`;
 }
 
@@ -287,7 +287,7 @@ function zegFout(tekst) {
 /** De versie en wat er nieuw is (besluit 131). */
 function versieVorm() {
   const v = health;
-  if (!v?.nummer) return `<h2 class="kop-2">${esc(t('toegang.versie'))}</h2><p class="klein" style="margin: 0">${esc(t('toegang.onbekend'))}</p>`;
+  if (!v?.nummer) return `<h2 class="kop-2">${esc(t('toegang.versie'))}</h2><p class="klein geen-marge">${esc(t('toegang.onbekend'))}</p>`;
   const gebouwd = v.gebouwd ? taal.datum(v.gebouwd, { day: 'numeric', month: 'long', year: 'numeric' }) : null;
   const dag = (d) => taal.datum(`${d}T12:00:00`, { day: 'numeric', month: 'long' });
   // De nieuwste open, de rest ingeklapt, hooguit tien terug; per versie nieuw, beter en opgelost (besluit 133).
@@ -300,17 +300,17 @@ function versieVorm() {
   const addOn = v.installatie === 'add-on';
   const knoppen = sessie?.rol === 'beheerder'
     ? `<div style="display: flex; gap: 8px; flex-wrap: wrap">${addOn ? `<button type="button" class="knop" data-zoek-update>${esc(t('basis.versie.zoek'))}</button>` : ''}<button type="button" class="knop" data-herstart>${esc(t('basis.herstart'))}</button></div>
-      <p class="mini" style="margin: 0">${esc(t(addOn ? 'toegang.zoekZin' : 'toegang.herstartZin'))}</p>`
+      <p class="mini geen-marge">${esc(t(addOn ? 'toegang.zoekZin' : 'toegang.herstartZin'))}</p>`
     : '';
   return `<h2 class="kop-2">${esc(t('toegang.versieNummer', { nummer: v.nummer }))}</h2>
-    <p class="klein" style="margin: 0">${gebouwd ? `${esc(t('toegang.gebouwd', { datum: gebouwd }))} ` : ''}${esc(komt)}</p>
+    <p class="klein geen-marge">${gebouwd ? `${esc(t('toegang.gebouwd', { datum: gebouwd }))} ` : ''}${esc(komt)}</p>
     ${knoppen}
-    <p class="klein" style="margin: 0">${esc(t('over.steun'))}</p>
+    <p class="klein geen-marge">${esc(t('over.steun'))}</p>
     <div style="display: flex; gap: 8px; flex-wrap: wrap">${app.koffieKnop()}<button type="button" class="knop" data-meld-probleem>${esc(t('melden.kop'))}</button></div>
     ${app.jouwMeldingen()}
-    <details class="logboek" data-logboek><summary>${esc(t('toegang.logboekBekijken'))}</summary><p class="mini" style="margin: 6px 0">${esc(t('toegang.logboekBekijkenZin'))}</p><pre data-logboek-tekst></pre></details>
-    ${nieuw ? `<h3 class="kop-3" style="margin: 6px 0 0">${esc(t('toegang.watNieuw'))}</h3>${nieuw}` : ''}
-    <p class="mini" style="margin: 0">${esc(t('toegang.bouw', { commit: v.commit }))}</p>`;
+    <details class="logboek" data-logboek><summary>${esc(t('toegang.logboekBekijken'))}</summary><p class="mini geen-marge boven-8 onder-8">${esc(t('toegang.logboekBekijkenZin'))}</p><pre data-logboek-tekst></pre></details>
+    ${nieuw ? `<h3 class="kop-3 geen-marge boven-8">${esc(t('toegang.watNieuw'))}</h3>${nieuw}` : ''}
+    <p class="mini geen-marge">${esc(t('toegang.bouw', { commit: v.commit }))}</p>`;
 }
 
 /** Per deel hoeveel punten er ernaast staan (toegang.naast.<deel>.<n>). */

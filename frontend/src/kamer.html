@@ -60,7 +60,7 @@
   @keyframes golfje { 0% { transform: scale(0.4); opacity: 0.9; } 100% { transform: scale(1.6); opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .beweegt::before, .beweegt::after { animation: none; } }
   .meterrij em.nu { font-style: normal; color: var(--mint-t); font-weight: 700; }
-  .rij.oplicht { border-radius: 12px; box-shadow: 0 0 0 2px rgba(255, 122, 77, 0.7); padding-left: 8px; padding-right: 8px; }
+  .rij.oplicht { border-radius: 12px; box-shadow: 0 0 0 2px rgb(var(--gloed-k) / 0.7); padding-left: 8px; padding-right: 8px; }
   .gloei { width: 12px; height: 12px; border-radius: 50%; flex: none; }
 
   /* Een schakelaar: een echte knop met role switch. */
@@ -77,7 +77,7 @@
   .beeld svg { width: 100%; max-width: 300px; height: auto; }
   .doelrij { display: flex; align-items: center; justify-content: center; gap: 22px; }
   .rond { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.06); color: var(--tekst); font: inherit; font-size: 26px; font-weight: 600; cursor: pointer; }
-  .regel { display: flex; gap: 10px; align-items: start; font-size: 13.5px; line-height: 1.45; color: var(--zacht); padding: 10px 12px; border-radius: 12px; background: rgba(143, 134, 255, 0.08); border: 1px solid rgba(143, 134, 255, 0.25); }
+  .regel { display: flex; gap: 10px; align-items: start; font-size: 13.5px; line-height: 1.45; color: var(--zacht); padding: 10px 12px; border-radius: 12px; background: rgb(var(--violet-k) / 0.08); border: 1px solid rgb(var(--violet-k) / 0.25); }
   .regel:empty { display: none; }
   .feit { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--zacht); }
   .feit b { color: var(--tekst); }

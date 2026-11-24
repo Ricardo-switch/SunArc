@@ -37,9 +37,9 @@
   .rechts { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
 
   /* Eerst dit: wat echt ontbreekt, met de knop erbij. */
-  .eerst { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px 12px 16px; border-radius: 18px; background: rgba(255, 122, 77, 0.08); border: 1px solid rgba(255, 122, 77, 0.35); }
+  .eerst { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px 12px 16px; border-radius: 18px; background: rgb(var(--gloed-k) / 0.08); border: 1px solid rgb(var(--gloed-k) / 0.35); }
   .eerst .regel { display: flex; align-items: center; gap: 14px; }
-  .eerst .regel + .regel { padding-top: 6px; border-top: 1px solid rgba(255, 122, 77, 0.2); }
+  .eerst .regel + .regel { padding-top: 6px; border-top: 1px solid rgb(var(--gloed-k) / 0.2); }
   /* Na de eerste: op één regel, zodat drie dingen samen klein blijven. */
   #wand .eerst .regel + .regel .tekst { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #wand .eerst .regel + .regel b { display: inline; font-size: 14px; }
@@ -111,7 +111,7 @@
   .blad .lijst li::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--mint); margin-top: 7px; }
   .blad .nu { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.05); font-size: 14px; color: var(--zacht); }
   .blad .nu .stand::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-  .blad .som { padding: 14px 16px; border-radius: 18px; background: rgba(247, 181, 72, 0.07); border: 1px solid rgba(247, 181, 72, 0.25); }
+  .blad .som { padding: 14px 16px; border-radius: 18px; background: rgb(var(--zon-k) / 0.07); border: 1px solid rgb(var(--zon-k) / 0.25); }
   .blad .som .getal { font-family: var(--kop); font-size: 34px; font-weight: 600; line-height: 1.05; color: var(--zon-t); }
   .blad .som .getal small { font-size: 16px; color: var(--zacht); font-weight: 500; }
   /* De batterij (besluit 230): de maat en wat hij oplevert naast elkaar, en wanneer hij bijsprong per uur. */
@@ -146,10 +146,10 @@
   .blad .thermisch .zeker i { width: 7px; height: 4px; border-radius: 2px; background: rgb(var(--wit) / 0.12); }
   .blad .thermisch .zeker i.ja { background: var(--violet); }
   .blad .waar { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
-  .kamerkaart { padding: 12px 14px; border-radius: 16px; background: rgba(110, 231, 183, 0.06); border: 1px solid rgba(110, 231, 183, 0.22); }
+  .kamerkaart { padding: 12px 14px; border-radius: 16px; background: rgb(var(--mint-k) / 0.06); border: 1px solid rgb(var(--mint-k) / 0.22); }
   .kamerkaart b { display: block; font-size: 15px; }
   .kamerkaart span { display: block; font-size: 12.5px; color: var(--zacht); margin-top: 2px; }
-  .kanook { padding: 14px 16px; border-radius: 18px; border: 1px solid rgba(247, 181, 72, 0.3); background: rgba(247, 181, 72, 0.06); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; align-items: center; color: inherit; text-decoration: none; }
+  .kanook { padding: 14px 16px; border-radius: 18px; border: 1px solid rgb(var(--zon-k) / 0.3); background: rgb(var(--zon-k) / 0.06); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; align-items: center; color: inherit; text-decoration: none; }
   .kanook .wanneer { color: var(--zon-t); font-size: 13px; font-weight: 700; }
   .kanook b { font-size: 16px; }
   .kanook p { margin: 0; font-size: 14px; color: var(--zacht); }
@@ -161,7 +161,7 @@
   .klaargroep { display: flex; flex-direction: column; gap: 6px; }
   .klaargroep h4 { margin: 4px 0 0; }
   .klaarregel { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 9px 12px; border-radius: 14px; background: rgb(var(--wit) / 0.04); }
-  .klaarregel.mist { background: rgba(255, 122, 77, 0.07); }
+  .klaarregel.mist { background: rgb(var(--gloed-k) / 0.07); }
   .klaarregel b { display: block; font-size: 14.5px; }
   .klaarregel span:not(.stip), .klaarregel small { display: block; font-size: 13px; color: var(--zacht); margin-top: 1px; }
   .klaarregel small { color: var(--gedempt); }

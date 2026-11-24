@@ -111,7 +111,7 @@
             ? (een.naam ? (een.pct != null ? t('thuis.onderhoud.batterijLang', { naam: een.naam, pct: een.pct }) : t('basis.onderhoud.batterijNaam', { naam: een.naam })) : t('basis.onderhoud.batterij'))
             : (een.naam ? t('basis.onderhoud.filterNaam', { naam: een.naam }) : t('basis.onderhoud.filter'))
           : t('basis.onderhoud.meer', { n: op.length });
-      return `<button type="button" class="onderhoud${op.length ? ' aandacht' : ''}" data-meld-onderhoud>${meldIcoon(op.length ? een.soort : 'onderhoud')}<span><b>${kern.esc(t('basis.onderhoud.kop'))}${op.length ? `<span class="stip" style="background: var(--zon); margin-left: 8px" aria-label="${kern.esc(t('basis.onderhoud.aandacht'))}"></span>` : ''}</b><span>${kern.esc(zin)}</span></span><span class="pijl" aria-hidden="true">›</span></button>`;
+      return `<button type="button" class="onderhoud${op.length ? ' aandacht' : ''}" data-meld-onderhoud>${meldIcoon(op.length ? een.soort : 'onderhoud')}<span><b>${kern.esc(t('basis.onderhoud.kop'))}${op.length ? `<span class="stip links-8" style="background: var(--zon)" aria-label="${kern.esc(t('basis.onderhoud.aandacht'))}"></span>` : ''}</b><span>${kern.esc(zin)}</span></span><span class="pijl" aria-hidden="true">›</span></button>`;
     }
 
     /** Wanneer er een melding komt, in een zin (besluit 149). */
@@ -146,10 +146,10 @@
       const melderNamen = new Set(melders.map((m) => m.naam));
       const batt = (huis?.batterijen ?? []).filter((b) => !melderNamen.has(b.naam));
       const filters = (huis?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).flatMap((r) => (r.apparaten ?? []).filter((a) => a.klimaat?.filter?.pct != null).map((a) => ({ naam: a.naam, kamer: r.naam, pct: a.klimaat.filter.pct }))));
-      return `<div class="kop"><div><button type="button" class="terugmeld" data-meld-terug>‹ ${kern.esc(t('nav.meldingen'))}</button><h2 class="kop-2" style="margin: 2px 0 0">${kern.esc(t('basis.onderhoud.kop'))}</h2></div><button type="button" class="sluit" data-meld-sluit aria-label="${kern.esc(t('algemeen.sluiten'))}">×</button></div>
+      return `<div class="kop"><div><button type="button" class="terugmeld" data-meld-terug>‹ ${kern.esc(t('nav.meldingen'))}</button><h2 class="kop-2 geen-marge boven-4">${kern.esc(t('basis.onderhoud.kop'))}</h2></div><button type="button" class="sluit" data-meld-sluit aria-label="${kern.esc(t('algemeen.sluiten'))}">×</button></div>
         ${melders.length ? `<h3>${kern.esc(t('basis.melder.kop'))}</h3>${melders.map(melderRegel).join('')}` : ''}
         <h3>${kern.esc(t('basis.onderhoud.batterijen'))}</h3>
-        ${batt.length ? batt.map((b) => regel(b.naam, b.kamer, b.pct, 'batterij')).join('') : `<p class="mini" style="margin: 0">${kern.esc(t('thuis.batterijen.geen'))}</p>`}
+        ${batt.length ? batt.map((b) => regel(b.naam, b.kamer, b.pct, 'batterij')).join('') : `<p class="mini geen-marge">${kern.esc(t('thuis.batterijen.geen'))}</p>`}
         ${filters.length ? `<h3>${kern.esc(t('basis.onderhoud.filters'))}</h3>${filters.map((f) => regel(f.naam, f.kamer, f.pct, 'filter')).join('')}` : ''}
         <p class="mini" style="margin: auto 0 0">${kern.esc(drempelZin(huis?.drempels))} <a href="functies.html#meldingen">${kern.esc(t('basis.onderhoud.wanneer'))}</a> ${kern.esc(t('thuis.batterijen.nietBij'))}</p>`;
     }
@@ -244,22 +244,22 @@
       }
       kern.$$('[data-nieuwpop], [data-nieuw-achter]').forEach((el) => el.remove());
       if (!u?.beschikbaar) {
-        document.body.insertAdjacentHTML('beforeend', `<div class="meldachter" data-nieuw-achter></div><div class="glas nieuwpop" role="dialog" aria-modal="true" aria-labelledby="nieuwkop" data-nieuwpop><h2 class="kop-2" id="nieuwkop" style="margin: 0">${kern.esc(kern.global.t('basis.versie.nieuwste'))}</h2><p class="klein" style="margin: 0">${kern.esc(kern.global.t('basis.versie.isBij', { versie: u?.nu ?? '' }))}</p><div class="knoppen"><button type="button" class="knop knop-licht" data-nieuw-dicht>${kern.esc(kern.global.t('algemeen.oke'))}</button></div></div>`);
+        document.body.insertAdjacentHTML('beforeend', `<div class="meldachter" data-nieuw-achter></div><div class="glas nieuwpop" role="dialog" aria-modal="true" aria-labelledby="nieuwkop" data-nieuwpop><h2 class="kop-2 geen-marge" id="nieuwkop">${kern.esc(kern.global.t('basis.versie.nieuwste'))}</h2><p class="klein geen-marge">${kern.esc(kern.global.t('basis.versie.isBij', { versie: u?.nu ?? '' }))}</p><div class="knoppen"><button type="button" class="knop knop-licht" data-nieuw-dicht>${kern.esc(kern.global.t('algemeen.oke'))}</button></div></div>`);
         document.querySelector('[data-nieuw-dicht]').focus();
         return;
       }
       const meer = u.notities.length > 1;
       const notities = u.notities.length
-        ? u.notities.map((n) => `${meer ? `<h3 class="kop-3" style="margin: 6px 0 0">${kern.esc(n.versie)}</h3>` : ''}${UPDATE_SOORT.filter((k) => n[k].length).map((k) => `<div class="soort ${k}"><span class="label">${kern.esc(soortNaam(k))}</span><ul>${n[k].map((p) => `<li>${kern.esc(p)}</li>`).join('')}</ul></div>`).join('')}`).join('')
-        : `<p class="klein" style="margin: 0">${kern.esc(kern.global.t('basis.versie.inHA'))}</p>`;
+        ? u.notities.map((n) => `${meer ? `<h3 class="kop-3 geen-marge boven-8">${kern.esc(n.versie)}</h3>` : ''}${UPDATE_SOORT.filter((k) => n[k].length).map((k) => `<div class="soort ${k}"><span class="label">${kern.esc(soortNaam(k))}</span><ul>${n[k].map((p) => `<li>${kern.esc(p)}</li>`).join('')}</ul></div>`).join('')}`).join('')
+        : `<p class="klein geen-marge">${kern.esc(kern.global.t('basis.versie.inHA'))}</p>`;
       const knop = u.bezig
         ? `<button type="button" class="knop knop-licht" disabled>${kern.esc(kern.global.t('basis.versie.bezig'))}</button>`
         : u.magBijwerken
           ? `<button type="button" class="knop knop-licht" data-bijwerken>${kern.esc(kern.global.t('basis.versie.bijwerken'))}</button>`
           : '';
       document.body.insertAdjacentHTML('beforeend', `<div class="meldachter" data-nieuw-achter></div><div class="glas nieuwpop" role="dialog" aria-modal="true" aria-labelledby="nieuwkop" data-nieuwpop>
-        <span class="mini">${kern.esc(kern.global.t('basis.versie.jeHebt', { versie: u.nu }))}</span><h2 class="kop-2" id="nieuwkop" style="margin: 2px 0 0">${kern.esc(kern.global.t('basis.versie.klaar', { versie: u.nieuwste }))}</h2>${notities}
-        <p class="mini" data-bijwerk-zin style="margin: 0">${kern.esc(kern.global.t(u.bezig ? 'basis.versie.wordtBijgewerkt' : u.magBijwerken ? 'basis.versie.duurt' : 'basis.versie.beheerder'))}</p>
+        <span class="mini">${kern.esc(kern.global.t('basis.versie.jeHebt', { versie: u.nu }))}</span><h2 class="kop-2 geen-marge boven-4" id="nieuwkop">${kern.esc(kern.global.t('basis.versie.klaar', { versie: u.nieuwste }))}</h2>${notities}
+        <p class="mini geen-marge" data-bijwerk-zin>${kern.esc(kern.global.t(u.bezig ? 'basis.versie.wordtBijgewerkt' : u.magBijwerken ? 'basis.versie.duurt' : 'basis.versie.beheerder'))}</p>
         <div class="knoppen"><button type="button" class="knop" data-nieuw-dicht>${kern.esc(kern.global.t('basis.versie.later'))}</button>${knop}</div></div>`);
       (document.querySelector('[data-bijwerken]') ?? document.querySelector('[data-nieuw-dicht]')).focus();
       if (u.bezig) void wachtOpNieuweVersie(u.nu);
@@ -334,7 +334,7 @@
         return;
       }
       kern.$$('[data-nieuwpop], [data-nieuw-achter]').forEach((el) => el.remove());
-      document.body.insertAdjacentHTML('beforeend', `<div class="meldachter" data-nieuw-achter></div><div class="glas nieuwpop" role="dialog" aria-modal="true" aria-labelledby="herstartkop" data-nieuwpop data-herstart-pop><h2 class="kop-2" id="herstartkop" style="margin: 0">${kern.esc(kern.global.t('basis.herstart.kop'))}</h2><p class="klein" data-herstart-zin style="margin: 0">${kern.esc(kern.global.t('basis.herstart.zin'))}</p></div>`);
+      document.body.insertAdjacentHTML('beforeend', `<div class="meldachter" data-nieuw-achter></div><div class="glas nieuwpop" role="dialog" aria-modal="true" aria-labelledby="herstartkop" data-nieuwpop data-herstart-pop><h2 class="kop-2 geen-marge" id="herstartkop">${kern.esc(kern.global.t('basis.herstart.kop'))}</h2><p class="klein geen-marge" data-herstart-zin>${kern.esc(kern.global.t('basis.herstart.zin'))}</p></div>`);
       // Eerst weg, dan weer terug: pas dan draait de nieuwe start.
       let weg = false;
       for (let i = 0; i < 90; i++) {
@@ -361,7 +361,7 @@
     function zegBijKnop(knop, tekst) {
       let zin = knop.parentElement?.querySelector('[data-knop-zin]');
       if (!zin) {
-        knop.insertAdjacentHTML('afterend', '<p class="mini" data-knop-zin style="margin: 4px 0 0"></p>');
+        knop.insertAdjacentHTML('afterend', '<p class="mini geen-marge boven-4" data-knop-zin></p>');
         zin = knop.parentElement.querySelector('[data-knop-zin]');
       }
       zin.textContent = tekst;
@@ -402,7 +402,7 @@
       if (!mijn.length) return '';
       const stand = (m) => kern.global.t(`melden.stand.${m.bevestigd ?? m.uitkomst ?? 'open'}`, { versie: m.versie ?? '' });
       const regel = (m) => `<li><span><b>${kern.esc(m.code)}</b> ${kern.esc(m.titel ?? '')}</span><span class="mini" data-meldstand>${kern.esc(stand(m))}</span>${meldTerugzeg(m)}</li>`;
-      return `<h3 class="kop-3" style="margin: 6px 0 0">${kern.esc(kern.global.t('melden.jouw'))}</h3><ul class="jouw-meldingen">${mijn.map(regel).join('')}</ul>`;
+      return `<h3 class="kop-3 geen-marge boven-8">${kern.esc(kern.global.t('melden.jouw'))}</h3><ul class="jouw-meldingen">${mijn.map(regel).join('')}</ul>`;
     }
 
     function eigenUitkomsten(nieuw) {
@@ -467,7 +467,7 @@
       }
       const delen = (welke ? '' : eigenUitkomsten(v.nieuw)) + UPDATE_SOORT.filter((k) => (n[k] ?? []).length).map((k) => `<div class="soort ${k}"><span class="label">${kern.esc(soortNaam(k))}</span><ul>${n[k].map((p) => `<li>${kern.esc(p)}</li>`).join('')}</ul></div>`).join('');
       document.body.insertAdjacentHTML('beforeend', `<div class="meldachter" data-nieuw-achter></div><div class="glas nieuwpop" role="dialog" aria-modal="true" aria-labelledby="nieuwkop" data-nieuwpop>
-        <span class="mini">${kern.esc(welke ? kern.global.taal.datum(new Date(`${n.datum}T12:00:00Z`), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) : kern.global.t('basis.versie.bijgewerkt'))}</span><h2 class="kop-2" id="nieuwkop" style="margin: 2px 0 0">${kern.esc(kern.global.t('basis.versie.watNieuw', { versie: n.versie }))}</h2>${delen}
+        <span class="mini">${kern.esc(welke ? kern.global.taal.datum(new Date(`${n.datum}T12:00:00Z`), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) : kern.global.t('basis.versie.bijgewerkt'))}</span><h2 class="kop-2 geen-marge boven-4" id="nieuwkop">${kern.esc(kern.global.t('basis.versie.watNieuw', { versie: n.versie }))}</h2>${delen}
         <div class="knoppen"><a class="knop" href="toegang.html#versie">${kern.esc(kern.global.t('basis.versie.alle'))}</a><button type="button" class="knop knop-licht" data-nieuw-dicht>${kern.esc(kern.global.t('algemeen.oke'))}</button></div></div>`);
       document.querySelector('[data-nieuw-dicht]').focus();
     }

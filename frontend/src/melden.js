@@ -87,8 +87,8 @@
   function pastHtml() {
     const p = s?.past;
     if (!p || s.weg?.has(p.id)) return '';
-    return `<div class="meldpast" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 16px; background: rgba(111, 211, 255, 0.07); border: 1px solid rgba(111, 211, 255, 0.22)"><span class="mini" style="color: var(--ijs-t); font-weight: 700">${esc(t('melden.pastKop'))}</span><b>${esc(p.kop)}</b><p class="klein" style="margin: 0">${esc(p.tekst)}</p>
-      <div style="display: flex; gap: 8px; margin-top: 2px"><button type="button" class="knop" style="min-height: 36px; padding: 0 14px; font-size: 13px" data-meldhielp>${esc(t('melden.hielp'))}</button><button type="button" class="knop" style="min-height: 36px; padding: 0 14px; font-size: 13px" data-meldnietdit="${esc(p.id)}">${esc(t('melden.nietDit'))}</button></div></div>`;
+    return `<div class="meldpast" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 16px; background: rgba(111, 211, 255, 0.07); border: 1px solid rgba(111, 211, 255, 0.22)"><span class="mini" style="color: var(--ijs-t); font-weight: 700">${esc(t('melden.pastKop'))}</span><b>${esc(p.kop)}</b><p class="klein geen-marge">${esc(p.tekst)}</p>
+      <div class="boven-4" style="display: flex; gap: 8px"><button type="button" class="knop" style="min-height: 36px; padding: 0 14px; font-size: 13px" data-meldhielp>${esc(t('melden.hielp'))}</button><button type="button" class="knop" style="min-height: 36px; padding: 0 14px; font-size: 13px" data-meldnietdit="${esc(p.id)}">${esc(t('melden.nietDit'))}</button></div></div>`;
   }
 
   /**
@@ -131,46 +131,46 @@
     document.querySelectorAll('[data-meldpop], [data-meldpop-achter]').forEach((el) => el.remove());
     if (!s) return;
     const meeVak = s.apparaat ? `<label class="klein" style="display: flex; gap: 8px; align-items: center"><input type="checkbox" data-meldmee ${s.mee ? 'checked' : ''}>${esc(t('melden.mee', { naam: s.naam ?? '' }))}</label>
-          ${s.mee && s.gegevens ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto; margin: 6px 0 0">${esc(JSON.stringify(s.gegevens, null, 1))}</pre></details>` : ''}` : '';
+          ${s.mee && s.gegevens ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre class="geen-marge boven-8" style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto">${esc(JSON.stringify(s.gegevens, null, 1))}</pre></details>` : ''}` : '';
     // Het logboek meesturen (4 november 2026): wat er meegaat, staat eronder te lezen.
     // Ik snap iets niet: de pagina en het huis gaan mee, tenzij je het vinkje weghaalt (besluit 325).
     const huisVak = s.soort === 'snap' ? `<label class="klein" style="display: flex; gap: 8px; align-items: center"><input type="checkbox" data-meldhuis ${s.huisMee ? 'checked' : ''}><span><b>${esc(t('melden.meeKop'))}</b> ${esc(t('melden.meeHuis', { pagina: pagina() }))}</span></label>
-          ${s.huisMee ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto; margin: 6px 0 0">${esc(JSON.stringify(snapGegevens(), null, 1))}</pre></details>` : ''}` : '';
+          ${s.huisMee ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre class="geen-marge boven-8" style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto">${esc(JSON.stringify(snapGegevens(), null, 1))}</pre></details>` : ''}` : '';
     const logVak = s.log.length ? `<label class="klein" style="display: flex; gap: 8px; align-items: center"><input type="checkbox" data-meldlog ${s.metLog ? 'checked' : ''}>${esc(t('melden.logMee', { n: Math.min(s.log.length, LOG_REGELS) }))}</label>
-          ${s.metLog ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto; margin: 6px 0 0">${esc(logTekst(s.log))}</pre></details>` : ''}` : '';
+          ${s.metLog ? `<details class="klein"><summary>${esc(t('melden.bekijk'))}</summary><pre class="geen-marge boven-8" style="white-space: pre-wrap; font-size: 11.5px; max-height: 180px; overflow: auto">${esc(logTekst(s.log))}</pre></details>` : ''}` : '';
     // Melden op pauze: waarom, een dankwoord en wanneer het weer kan. Reageren op een eerdere melding (Werkt nog niet) blijft.
     const inhoud = s.pauze
-      ? `<h2 class="kop-2" id="meldkop" style="margin: 0">${esc(t('melden.pauze.kop'))}</h2>
-        <p class="klein" style="margin: 0">${esc(t('melden.pauze.waarom'))}</p>
-        <p class="klein" style="margin: 0">${esc(t('melden.pauze.dank'))}</p>
-        <p class="klein" style="margin: 0">${esc(t('melden.pauze.januari'))}</p>
+      ? `<h2 class="kop-2 geen-marge" id="meldkop">${esc(t('melden.pauze.kop'))}</h2>
+        <p class="klein geen-marge">${esc(t('melden.pauze.waarom'))}</p>
+        <p class="klein geen-marge">${esc(t('melden.pauze.dank'))}</p>
+        <p class="klein geen-marge">${esc(t('melden.pauze.januari'))}</p>
         <div class="knoppen"><button type="button" class="knop knop-licht" data-meldpop-dicht>${esc(t('algemeen.oke'))}</button></div>`
       : s.vervolg && s.klaar
-      ? `<h2 class="kop-2" id="meldkop" style="margin: 0">${esc(t('melden.vervolgKlaar'))}</h2>
-        <p class="klein" style="margin: 0">${esc(t(s.klembord ? 'melden.vervolgKlembord' : 'melden.vervolgZelf'))}</p>
-        ${s.klembord ? '' : `<pre class="klein" data-meldtekst style="white-space: pre-wrap; user-select: all; max-height: 200px; overflow: auto; margin: 0">${esc(s.tekst)}</pre>`}
+      ? `<h2 class="kop-2 geen-marge" id="meldkop">${esc(t('melden.vervolgKlaar'))}</h2>
+        <p class="klein geen-marge">${esc(t(s.klembord ? 'melden.vervolgKlembord' : 'melden.vervolgZelf'))}</p>
+        ${s.klembord ? '' : `<pre class="klein geen-marge" data-meldtekst style="white-space: pre-wrap; user-select: all; max-height: 200px; overflow: auto">${esc(s.tekst)}</pre>`}
         <div class="knoppen"><button type="button" class="knop knop-licht" data-meldpop-dicht>${esc(t('algemeen.oke'))}</button></div>`
       : s.vervolg
-      ? `<h2 class="kop-2" id="meldkop" style="margin: 0">${esc(t('melden.vervolgKop'))}</h2>
-        <p class="klein" style="margin: 0">${esc(t('melden.vervolgOver', { code: s.code, titel: s.vervolg.titel ?? '' }))}</p>
+      ? `<h2 class="kop-2 geen-marge" id="meldkop">${esc(t('melden.vervolgKop'))}</h2>
+        <p class="klein geen-marge">${esc(t('melden.vervolgOver', { code: s.code, titel: s.vervolg.titel ?? '' }))}</p>
         <label class="veldnaam">${esc(t('melden.vervolgWat'))}<textarea class="invoer" data-meldwat rows="4" maxlength="2000" style="height: auto; padding: 10px 12px">${esc(s.wat)}</textarea></label>
         ${meeVak}
         ${logVak}
-        <p class="mini" style="margin: 0">${esc(t('melden.vervolgGithub'))}</p>
+        <p class="mini geen-marge">${esc(t('melden.vervolgGithub'))}</p>
         <div class="knoppen"><button type="button" class="knop" data-meldpop-dicht>${esc(t('basis.versie.later'))}</button><button type="button" class="knop knop-licht" data-meldpop-stuur>${esc(t('melden.verder'))}</button></div>`
       : s.klaar
-      ? `<h2 class="kop-2" id="meldkop" style="margin: 0">${esc(t('melden.bedankt'))}</h2>
-        <p class="klein" style="margin: 0">${esc(t('melden.bedanktZin', { code: s.code }))}</p>
-        ${s.klembord ? `<p class="klein" style="margin: 0">${esc(t('melden.klembord'))}</p>` : ''}
+      ? `<h2 class="kop-2 geen-marge" id="meldkop">${esc(t('melden.bedankt'))}</h2>
+        <p class="klein geen-marge">${esc(t('melden.bedanktZin', { code: s.code }))}</p>
+        ${s.klembord ? `<p class="klein geen-marge">${esc(t('melden.klembord'))}</p>` : ''}
         <div class="knoppen"><button type="button" class="knop knop-licht" data-meldpop-dicht>${esc(t('algemeen.oke'))}</button></div>`
-      : `<h2 class="kop-2" id="meldkop" style="margin: 0">${esc(t('melden.kop'))}</h2>
+      : `<h2 class="kop-2 geen-marge" id="meldkop">${esc(t('melden.kop'))}</h2>
         <div class="keuzes" role="group" aria-label="${esc(t('melden.soort'))}">${SOORTEN.filter((k) => k !== 'apparaat' || s.apparaat).map((k) => `<button type="button" data-meldsoort="${k}" aria-pressed="${s.soort === k}">${esc(t(`melden.soort.${k}`))}</button>`).join('')}</div>
         <label class="veldnaam">${esc(t(s.soort === 'idee' ? 'melden.watIdee' : s.soort === 'snap' ? 'melden.watSnap' : 'melden.wat'))}<textarea class="invoer" data-meldwat rows="${s.soort === 'snap' ? 3 : 4}" maxlength="2000" style="height: auto; padding: 10px 12px">${esc(s.wat)}</textarea></label>
         ${s.soort === 'snap' ? `<div data-meldpast>${pastHtml()}</div>` : ''}
         ${meeVak}
         ${huisVak}
         ${s.soort === 'snap' ? '' : logVak}
-        <p class="mini" style="margin: 0">${esc(t('melden.github', { code: s.code }))}</p>
+        <p class="mini geen-marge">${esc(t('melden.github', { code: s.code }))}</p>
         <div class="knoppen"><button type="button" class="knop" data-meldpop-dicht>${esc(t('basis.versie.later'))}</button><button type="button" class="knop knop-licht" data-meldpop-stuur>${esc(t('melden.verder'))}</button></div>`;
     document.body.insertAdjacentHTML('beforeend', `<div class="meldachter" data-meldpop-achter></div><div class="glas nieuwpop" role="dialog" aria-modal="true" aria-labelledby="meldkop" data-meldpop>${inhoud}</div>`);
     (document.querySelector('[data-meldwat]') ?? document.querySelector('[data-meldpop] .knop-licht'))?.focus();

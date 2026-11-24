@@ -35,8 +35,8 @@
   /* De auto groot: hoe vol, wat hij doet, de kabel. */
   [data-held] > .held, [data-held] > .leeg { flex: 1; }
   .held { position: relative; min-height: 0; padding: 22px 26px 18px; border-radius: 26px; display: flex; flex-direction: column; overflow: hidden; }
-  .held::before { content: ''; position: absolute; inset: auto -10% -40% -10%; height: 70%; background: radial-gradient(ellipse at 50% 0%, rgba(247, 181, 72, 0.14), transparent 65%); pointer-events: none; }
-  .held[data-zon='nee']::before { background: radial-gradient(ellipse at 50% 0%, rgba(111, 211, 255, 0.08), transparent 65%); }
+  .held::before { content: ''; position: absolute; inset: auto -10% -40% -10%; height: 70%; background: radial-gradient(ellipse at 50% 0%, rgb(var(--zon-k) / 0.14), transparent 65%); pointer-events: none; }
+  .held[data-zon='nee']::before { background: radial-gradient(ellipse at 50% 0%, rgb(var(--ijs-k) / 0.08), transparent 65%); }
   .boven { position: relative; display: flex; justify-content: space-between; align-items: start; gap: 16px; }
   .stand { display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 700; }
   .stand i { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
@@ -70,8 +70,8 @@
   .advies > div { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: center; }
   .advies .ik { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; }
   .advies .ik svg { width: 19px; height: 19px; }
-  .advies .zon .ik { background: rgba(247, 181, 72, 0.14); color: var(--zon); }
-  .advies .goedkoop .ik { background: rgba(143, 134, 255, 0.14); color: var(--violet-t); }
+  .advies .zon .ik { background: rgb(var(--zon-k) / 0.14); color: var(--zon); }
+  .advies .goedkoop .ik { background: rgb(var(--violet-k) / 0.14); color: var(--violet-t); }
   .advies b { display: block; font-size: 14.5px; font-weight: 600; }
   .advies span { font-size: 13px; color: var(--zacht); line-height: 1.4; }
 
@@ -96,7 +96,7 @@
   .laadblad .stroom .getal span { font-size: 13px; color: var(--gedempt); }
   .laadblad .schaal { position: relative; height: 12px; border-radius: 6px; background: rgb(154 170 187 / 0.22); margin-top: 10px; }
   .laadblad .schaal i { position: absolute; top: 0; bottom: 0; border-radius: 6px; }
-  .laadblad .schaal i.zon { background: linear-gradient(90deg, rgba(247, 181, 72, 0.25), rgba(247, 181, 72, 0.7)); }
+  .laadblad .schaal i.zon { background: linear-gradient(90deg, rgb(var(--zon-k) / 0.25), rgb(var(--zon-k) / 0.7)); }
   .laadblad .schaal i.dicht { background: repeating-linear-gradient(135deg, rgb(var(--wit) / 0.12) 0 4px, transparent 4px 8px); }
   .laadblad .schaal b { position: absolute; top: -5px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: #fff; box-shadow: 0 0 0 3px rgba(11, 20, 36, 0.8); }
   .laadblad .schaal-as { display: flex; justify-content: space-between; margin-top: 5px; font-size: 11.5px; color: var(--gedempt); }

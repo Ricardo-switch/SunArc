@@ -30,6 +30,12 @@
    */
   --wit: 255 255 255;
   --nacht: 9 15 28;
+  /* De vaste tinten als kanalen, voor een doorzichtige variant: rgb(var(--zon-k) / 0.2) (24 november 2026). */
+  --zon-k: 247 181 72;
+  --ijs-k: 111 211 255;
+  --mint-k: 110 231 183;
+  --gloed-k: 255 122 77;
+  --violet-k: 143 134 255;
   --tegen: #0b1424;
   /*
    * De betekeniskleuren als tekst. Op donker dezelfde als de vlakken; op licht
@@ -159,8 +165,8 @@ button {
 }
 .lucht-dag::before {
   background:
-    radial-gradient(60% 55% at 46% 8%, rgba(247, 181, 72, 0.2), transparent 70%),
-    radial-gradient(70% 60% at 50% 105%, rgba(111, 211, 255, 0.1), transparent 70%),
+    radial-gradient(60% 55% at 46% 8%, rgb(var(--zon-k) / 0.2), transparent 70%),
+    radial-gradient(70% 60% at 50% 105%, rgb(var(--ijs-k) / 0.1), transparent 70%),
     linear-gradient(180deg, #1a3557 0%, #13253d 45%, #0d1828 100%);
 }
 .lucht-ochtend::before {
@@ -171,12 +177,12 @@ button {
 .lucht-avond::before {
   background:
     radial-gradient(55% 45% at 86% 64%, rgba(255, 130, 90, 0.26), transparent 70%),
-    radial-gradient(60% 50% at 40% 0%, rgba(143, 134, 255, 0.22), transparent 70%),
+    radial-gradient(60% 50% at 40% 0%, rgb(var(--violet-k) / 0.22), transparent 70%),
     linear-gradient(180deg, #1b1f42 0%, #2a2346 50%, #1a1a2e 78%, #0e1422 100%);
 }
 .lucht-nacht::before {
   background:
-    radial-gradient(60% 50% at 30% 10%, rgba(143, 134, 255, 0.12), transparent 70%),
+    radial-gradient(60% 50% at 30% 10%, rgb(var(--violet-k) / 0.12), transparent 70%),
     linear-gradient(180deg, #070c18 0%, #0a1222 55%, #0b1424 100%);
 }
 .lucht-winter::before {
@@ -210,7 +216,7 @@ button {
 /* De lucht in het lichte thema: dezelfde momenten, als een lichte dag. */
 .sc-licht .lucht-dag::before {
   background:
-    radial-gradient(60% 55% at 46% 8%, rgba(247, 181, 72, 0.22), transparent 70%),
+    radial-gradient(60% 55% at 46% 8%, rgb(var(--zon-k) / 0.22), transparent 70%),
     linear-gradient(180deg, #c9e0f4 0%, #dde9f5 45%, #e9eff6 100%);
 }
 .sc-licht .lucht-ochtend::before {
@@ -221,12 +227,12 @@ button {
 .sc-licht .lucht-avond::before {
   background:
     radial-gradient(55% 45% at 86% 64%, rgba(255, 130, 90, 0.2), transparent 70%),
-    radial-gradient(60% 50% at 40% 0%, rgba(143, 134, 255, 0.2), transparent 70%),
+    radial-gradient(60% 50% at 40% 0%, rgb(var(--violet-k) / 0.2), transparent 70%),
     linear-gradient(180deg, #ddd8f1 0%, #eedfe4 50%, #e9eff6 100%);
 }
 .sc-licht .lucht-nacht::before {
   background:
-    radial-gradient(60% 50% at 30% 10%, rgba(143, 134, 255, 0.14), transparent 70%),
+    radial-gradient(60% 50% at 30% 10%, rgb(var(--violet-k) / 0.14), transparent 70%),
     linear-gradient(180deg, #d3d9e8 0%, #e0e6f0 55%, #e9eff6 100%);
 }
 .sc-licht .lucht-winter::before {
@@ -354,8 +360,8 @@ a.knop:not(.knop-licht) {
 /* Een kop koffie (4 november 2026): warm, maar geen hoofdknop. */
 .knop-koffie {
   gap: 8px;
-  background: rgba(247, 181, 72, 0.14);
-  border-color: rgba(247, 181, 72, 0.45);
+  background: rgb(var(--zon-k) / 0.14);
+  border-color: rgb(var(--zon-k) / 0.45);
 }
 .knop-koffie svg { width: 20px; height: 20px; flex: none; }
 /* De hoofdknop, in je eigen kleur (besluit 181). */
@@ -741,7 +747,7 @@ a.knop:not(.knop-licht) {
 .waaier .straal.gekozen text { fill: var(--tekst); font-weight: 700; }
 .waaier .straal.gekozen .spoor { fill: rgb(var(--wit) / 0.12); }
 .waaier .ring { fill: none; stroke: rgb(var(--wit) / 0.11); stroke-width: 1; stroke-dasharray: 2 5; }
-.waaier .ring.buiten { stroke: rgba(110, 231, 183, 0.32); stroke-dasharray: none; }
+.waaier .ring.buiten { stroke: rgb(var(--mint-k) / 0.32); stroke-dasharray: none; }
 .waaier .ringstreep { stroke: rgb(var(--wit) / 0.18); }
 .waaier .horizon { stroke: rgb(var(--wit) / 0.22); }
 .waaier .groepnaam { font-family: var(--romp); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; fill: var(--gedempt); text-transform: uppercase; }
@@ -777,8 +783,8 @@ a.knop:not(.knop-licht) {
 .wn-soort svg { width: 44px; height: 26px; }
 .wn-soort b { font-size: 11px; line-height: 1.15; text-align: center; margin-top: 2px; overflow-wrap: anywhere; }
 .wn-soort small { display: none; }
-.wn-soort i { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 0 6px; border-radius: 999px; background: #0b1424; border: 1px dashed #6fd3ff; font: 700 9.5px var(--romp, Figtree, sans-serif); font-style: normal; color: #a9e6ff; }
-.wn-soort.aan { border-color: #6fd3ff; background: rgb(111 211 255 / 0.12); }
+.wn-soort i { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 0 6px; border-radius: 999px; background: #0b1424; border: 1px dashed var(--ijs); font: 700 9.5px var(--romp, Figtree, sans-serif); font-style: normal; color: #a9e6ff; }
+.wn-soort.aan { border-color: var(--ijs); background: rgb(111 211 255 / 0.12); }
 .wn-kop { margin: 4px 0 0; font-size: 12.5px; font-weight: 700; color: var(--gedempt); }
 .wn-kanten { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
 .wn-kant { height: 36px; border-radius: 11px; border: 1px solid var(--glas-rand); background: rgb(255 255 255 / 0.06); color: var(--zacht); font: 700 13px var(--romp, Figtree, sans-serif); cursor: pointer; }
@@ -812,3 +818,34 @@ a.knop:not(.knop-licht) {
   .wn-twee .wn-soort svg { grid-row: auto; height: 26px; }
   .wn-twee .wn-soort small { margin-left: 6px; }
 }
+
+/*
+ * Bouwsteen: ruimte (schets Bouwstenen, 24 november 2026). Vijf vaste afstanden: 4, 8, 12, 16 en 24, in plaats van
+ * losse marges in de scripts. Ze winnen zoals de inline stijl die ze vervangen (!important); geen-marge eerst, zodat
+ * een zijde erna die ene kant zet.
+ */
+.geen-marge { margin: 0 !important; }
+.geen-boven { margin-top: 0 !important; }
+.geen-onder { margin-bottom: 0 !important; }
+.geen-links { margin-left: 0 !important; }
+.geen-rechts { margin-right: 0 !important; }
+.boven-4 { margin-top: 4px !important; }
+.boven-8 { margin-top: 8px !important; }
+.boven-12 { margin-top: 12px !important; }
+.boven-16 { margin-top: 16px !important; }
+.boven-24 { margin-top: 24px !important; }
+.onder-4 { margin-bottom: 4px !important; }
+.onder-8 { margin-bottom: 8px !important; }
+.onder-12 { margin-bottom: 12px !important; }
+.onder-16 { margin-bottom: 16px !important; }
+.onder-24 { margin-bottom: 24px !important; }
+.links-4 { margin-left: 4px !important; }
+.links-8 { margin-left: 8px !important; }
+.links-12 { margin-left: 12px !important; }
+.links-16 { margin-left: 16px !important; }
+.links-24 { margin-left: 24px !important; }
+.rechts-4 { margin-right: 4px !important; }
+.rechts-8 { margin-right: 8px !important; }
+.rechts-12 { margin-right: 12px !important; }
+.rechts-16 { margin-right: 16px !important; }
+.rechts-24 { margin-right: 24px !important; }

@@ -145,7 +145,7 @@ const dakvlakken = (() => {
     // Wijkt de helling van de meting af van de 3D-kaart, dan zegt het blad welke nauwkeuriger is (7 november 2026).
     const k = kaartDakvlak(d, v);
     const m = d.vlakMeting?.[v.letter] ?? (d.meting ?? []).find((x) => hoek(x.azimuthDeg, v.azimuthDeg) <= 30);
-    const tip = k && m && Math.abs(k.tiltDeg - m.tiltDeg) > 5 ? `<p class="mini" style="margin: 4px 0 0">${esc(t('daken.meting.hellingKaart'))}</p>` : '';
+    const tip = k && m && Math.abs(k.tiltDeg - m.tiltDeg) > 5 ? `<p class="mini geen-marge boven-4">${esc(t('daken.meting.hellingKaart'))}</p>` : '';
     return tip ? zin.replace(/<\/div>$/, `${tip}</div>`) : zin;
   }
   function metingZin(d, v) {

@@ -21,7 +21,7 @@
 .ld-met { display: flex; align-items: center; gap: 8px; }
 .ld-met .invoer { flex: 1; }
 .ld-met span { color: var(--gedempt); font-size: 13px; }
-.ld-evcc { display: flex; gap: 10px; align-items: start; padding: 11px 14px; border-radius: 14px; background: rgba(111, 211, 255, 0.08); border: 1px solid rgba(111, 211, 255, 0.25); font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+.ld-evcc { display: flex; gap: 10px; align-items: start; padding: 11px 14px; border-radius: 14px; background: rgb(var(--ijs-k) / 0.08); border: 1px solid rgb(var(--ijs-k) / 0.25); font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
 .ld-evcc .stip { margin-top: 6px; flex: none; }
 .ld-evcc b { color: var(--tekst); }
 .ld-leeg { display: flex; flex-direction: column; gap: 10px; align-items: start; max-width: 480px; }

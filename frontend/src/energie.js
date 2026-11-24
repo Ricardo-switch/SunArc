@@ -381,7 +381,7 @@ function prijzenVorm() {
   const terugVast = `${keuzes(t('energie.salderen'), 'salderen', [[true, t('energie.salderenTot')], [false, t('energie.geenSalderen')]], p.salderen)}
       ${p.salderen ? `<p class="uitleg">${esc(t(p.dynamisch ? 'energie.salderenUurprijs' : 'energie.salderenUitleg'))}</p>
       ${bedragVeld(t('energie.vergoedingBoven'), 'teruglevering', p.teruglevering, nl(0.15, 2))}` : `<p class="uitleg">${esc(t('energie.zonderSalderen'))}</p>`}
-      <span class="veldnaam" style="margin-top: 4px">${esc(t(p.salderen ? 'energie.vanaf2027' : 'energie.krijgenBetalen'))}</span>
+      <span class="veldnaam boven-4">${esc(t(p.salderen ? 'energie.vanaf2027' : 'energie.krijgenBetalen'))}</span>
       <div class="twee">${bedragVeld(t('energie.jeKrijgt'), 'vanaf2027.vergoeding', p.vanaf2027.vergoeding, nl(0.07, 2))}${bedragVeld(t('energie.jeBetaalt'), 'vanaf2027.kosten', p.vanaf2027.kosten, nl(0.06, 2))}</div>`;
   const terugBlok = !p.dynamisch
     ? terugVast
@@ -437,9 +437,9 @@ function naast(id) {
   // De ligging van de panelen gaat meteen in (besluit 157); de zekering, de netmeter en de omvormers na een start.
   const laterZin = { aansluiting: 'energie.zekeringLater', meters: 'energie.later', panelen: 'energie.later' }[id];
   // Met een knop om meteen opnieuw te starten (testerronde, november 2026).
-  const later = aInfo?.volgendeStart && laterZin ? `<div class="glas"><h3>${esc(t('regeling.ingaat'))}</h3><p style="margin: 0">${esc(t(laterZin))}</p><button type="button" class="knop" data-herstart style="align-self: start; margin-top: 8px">${esc(t('basis.herstart'))}</button></div>` : '';
+  const later = aInfo?.volgendeStart && laterZin ? `<div class="glas"><h3>${esc(t('regeling.ingaat'))}</h3><p class="geen-marge">${esc(t(laterZin))}</p><button type="button" class="knop boven-8" data-herstart style="align-self: start">${esc(t('basis.herstart'))}</button></div>` : '';
   return `<div class="glas"><h3>${esc(t('energie.waarvoor'))}</h3><ul>${lijst.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
-    <div class="glas"><h3>${esc(t('energie.waarVind'))}</h3><p style="margin: 0">${esc(t(`energie.naast.${deel}.waar`))}</p></div>${later}`;
+    <div class="glas"><h3>${esc(t('energie.waarVind'))}</h3><p class="geen-marge">${esc(t(`energie.naast.${deel}.waar`))}</p></div>${later}`;
 }
 /* ------------------------------------------------------------ tekenen */
 

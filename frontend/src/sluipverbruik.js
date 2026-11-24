@@ -163,7 +163,7 @@ function links() {
   const vorig = r.vorigJaar ? t('sluip.vorigJaar', { maand: maandNaam(r.vorigJaar.maand, false), w: W(r.vorigJaar.w) }) : '';
   const jaar = r.perJaarEuro != null ? t('sluip.perJaarEuro', { euro: euro(r.perJaarEuro) }) : t('sluip.zonderPrijs');
   const scheelt = r.scheelt
-    ? `<section class="glas kaart"><h2 class="kop-3">${esc(t('sluip.weerNaar', { w: W(r.gewoonW) }))}</h2><p class="klein" style="margin: 6px 0 0">${r.scheelt.euro != null ? t('sluip.scheeltEuro', { kwh: `<b class="getal" style="font-size: 18px">${kwh(r.scheelt.kwh)} kWh</b>`, euro: `<b class="getal" style="font-size: 18px">${euro(r.scheelt.euro)}</b>` }) : t('sluip.scheeltKwh', { kwh: `<b class="getal" style="font-size: 18px">${kwh(r.scheelt.kwh)} kWh</b>` })}</p></section>`
+    ? `<section class="glas kaart"><h2 class="kop-3">${esc(t('sluip.weerNaar', { w: W(r.gewoonW) }))}</h2><p class="klein geen-marge boven-8">${r.scheelt.euro != null ? t('sluip.scheeltEuro', { kwh: `<b class="getal" style="font-size: 18px">${kwh(r.scheelt.kwh)} kWh</b>`, euro: `<b class="getal" style="font-size: 18px">${euro(r.scheelt.euro)}</b>` }) : t('sluip.scheeltKwh', { kwh: `<b class="getal" style="font-size: 18px">${kwh(r.scheelt.kwh)} kWh</b>` })}</p></section>`
     : '';
   return `<div class="cijfer"><div class="mini">${esc(t('sluip.vannacht'))}</div><div class="getal">${W(r.vannacht.w)}<small>W</small></div><div class="klein">${onder}</div></div>
     <div class="cijfer"><div class="mini">${esc(t('sluip.gemiddeld30'))}</div><div class="getal">${W(r.gemiddeldW)}<small>W</small></div><div class="klein">${esc(vorig)}</div></div>
@@ -211,14 +211,14 @@ function opvallend() {
   // Vaak meer dan gewoon, niet op rij (29 oktober 2026): een eigen kaart; bij een hoge nacht staat het in de zin.
   if (!r.reeks && r.vaak) {
     const kop = t('sluip.vaakTitel', { n: r.vaak.nachten, meer: r.vaak.meerW });
-    return `<section class="glas kaart opvallend opgevallen"><div class="mini">${esc(t('sluip.vaakKop'))}</div><h3>${esc(kop)}</h3><p class="klein" style="margin: 0">${esc(t('sluip.vaakZin', { maand: maandNaam(r.vaak.sinds.slice(0, 7), false) }))}</p>${redenDeel()}</section>`;
+    return `<section class="glas kaart opvallend opgevallen"><div class="mini">${esc(t('sluip.vaakKop'))}</div><h3>${esc(kop)}</h3><p class="klein geen-marge">${esc(t('sluip.vaakZin', { maand: maandNaam(r.vaak.sinds.slice(0, 7), false) }))}</p>${redenDeel()}</section>`;
   }
   if (!r.reeks) {
-    return `<section class="glas kaart opvallend gewoon"><div class="mini">${esc(t('sluip.gewoonKop'))}</div><h3>${esc(t('sluip.gewoonTitel'))}</h3><p class="klein" style="margin: 0">${esc(t(r.hoogIn30 ? 'sluip.gewoonZin' : 'sluip.gewoonRustig', { n: r.hoogIn30 }))}</p>${r.hoogIn30 || gekozenNacht() ? redenDeel() : ''}</section>`;
+    return `<section class="glas kaart opvallend gewoon"><div class="mini">${esc(t('sluip.gewoonKop'))}</div><h3>${esc(t('sluip.gewoonTitel'))}</h3><p class="klein geen-marge">${esc(t(r.hoogIn30 ? 'sluip.gewoonZin' : 'sluip.gewoonRustig', { n: r.hoogIn30 }))}</p>${r.hoogIn30 || gekozenNacht() ? redenDeel() : ''}</section>`;
   }
   const sinds = r.reeks.nachten > 1 ? t('sluip.sindsTitel', { datum: datum(r.reeks.sinds), boven: Math.round(r.bovenW / 10) * 10 }) : t('sluip.vannachtMeer', { boven: W(r.bovenW) });
   const zin = r.vaak ? t('sluip.ookVaak', { n: r.vaak.nachten }) : r.reeks.nachten > 1 ? t('sluip.opRij', { n: r.reeks.nachten }) : t('sluip.staatIetsAan');
-  return `<section class="glas kaart opvallend opgevallen"><div class="mini">${esc(t('sluip.opgevallen'))}</div><h3>${esc(sinds)}</h3><p class="klein" style="margin: 0">${esc(zin)}</p>${redenDeel()}</section>`;
+  return `<section class="glas kaart opvallend opgevallen"><div class="mini">${esc(t('sluip.opgevallen'))}</div><h3>${esc(sinds)}</h3><p class="klein geen-marge">${esc(zin)}</p>${redenDeel()}</section>`;
 }
 
 /** De nacht waar de kaart over gaat: de aangetikte, anders de laatste als die opviel. */
@@ -287,7 +287,7 @@ function tekenNu() {
   const wand = document.querySelector('#wand');
   const tel = document.querySelector('[data-telinhoud]');
   if (fout || !r) {
-    const leeg = `<section class="glas kaart"><h2 class="kop-3">${esc(t('sluip.nogNietKop'))}</h2><p class="klein" style="margin: 8px 0 0">${esc(fout ?? t('algemeen.laden'))}</p></section>`;
+    const leeg = `<section class="glas kaart"><h2 class="kop-3">${esc(t('sluip.nogNietKop'))}</h2><p class="klein geen-marge boven-8">${esc(fout ?? t('algemeen.laden'))}</p></section>`;
     wand.querySelector('[data-links]').innerHTML = leeg;
     wand.querySelector('[data-midden]').innerHTML = '';
     wand.querySelector('[data-rechts]').innerHTML = '';
@@ -310,7 +310,7 @@ function tekenNu() {
     <section class="glas kaart"><div class="wissel" role="group" aria-label="${esc(t('sluip.weergave'))}">${['nachten', 'maanden'].map((k) => `<button type="button" data-blik="${k}" aria-pressed="${k === keuze.blik}">${esc(t(`sluip.blik.${k}`))}</button>`).join('')}</div><div class="grafiek">${grafiek(330, 200, true)}</div><p class="mini staafinfo">${staafInfo() ? infoHtml(staafInfo()) : esc(tikHint())}</p></section>
     ${vier}
     ${melding()}
-    <p class="mini" style="margin: 4px 2px 0">${esc(t('sluip.zoMeetKort'))}</p>`;
+    <p class="mini geen-marge boven-4 rechts-4 links-4">${esc(t('sluip.zoMeetKort'))}</p>`;
 }
 
 const teken = app.gebundeld(tekenNu);

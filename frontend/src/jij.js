@@ -133,7 +133,7 @@ function teken() {
   // Een gast heeft niets dat bewaard wordt; een scherm of een account zonder bewoner alleen hoe de app eruitziet.
   if (!v || mij?.soort === 'gast') {
     const zin = t(mij?.soort === 'gast' ? 'jij.gast' : 'algemeen.laden');
-    $$('[data-jij]').forEach((el) => (el.innerHTML = `<section class="glas gast"><h1 class="kop-2">${esc(t('jij.kop'))}</h1><p class="klein" style="margin: 6px 0 0">${esc(zin)}</p></section>`));
+    $$('[data-jij]').forEach((el) => (el.innerHTML = `<section class="glas gast"><h1 class="kop-2">${esc(t('jij.kop'))}</h1><p class="klein geen-marge boven-8">${esc(zin)}</p></section>`));
     return;
   }
   const kleurNaam = KLEUREN.find(([k]) => k === v.tel.kleur)?.[1] ?? KLEUREN[0][1];
@@ -268,7 +268,7 @@ function tekenMeldingen() {
       <div class="rij rij-zonder stapel"><b>${esc(t('jij.meld.nachtrust'))}</b><small>${esc(t('jij.meld.nachtrustZin'))}</small><span class="pijl tijden"><input type="time" value="${esc(m.van)}" data-melding-tijd="van" aria-label="${esc(t('jij.meld.vanaf'))}"> ${esc(t('jij.meld.tot'))} <input type="time" value="${esc(m.tot)}" data-melding-tijd="tot" aria-label="${esc(t('jij.meld.totLabel'))}"></span></div>
     </section>
     <div class="proefrij"><button type="button" class="knop" data-proef ${tel ? '' : 'disabled'}>${esc(t('jij.meld.proef'))}</button><span class="mini" data-proef-zin aria-live="polite">${esc(proef)}</span></div>`
-      : `<section class="glas gast"><h2 class="kop-3">${esc(t('jij.meld.geenTel'))}</h2><p class="klein" style="margin: 6px 0 0">${esc(t('jij.meld.geenTelZin'))}</p></section>`}`;
+      : `<section class="glas gast"><h2 class="kop-3">${esc(t('jij.meld.geenTel'))}</h2><p class="klein geen-marge boven-8">${esc(t('jij.meld.geenTelZin'))}</p></section>`}`;
   $$('[data-jij]').forEach((el) => {
     // Een keuzelijst of tijd met de focus niet onder de vinger weghalen.
     if (el.contains(document.activeElement) && document.activeElement.matches('select, input')) return;
@@ -339,7 +339,7 @@ function tekenBlad() {
     <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('jij.themaKleur'))}</h2><button type="button" class="knop knop-klein knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
     <h3 id="kop-thema">${esc(t('jij.thema'))}</h3>
     <div class="drie" role="radiogroup" aria-labelledby="kop-thema">${THEMAS.map(([x, naam]) => `<button type="button" role="radio" aria-checked="${v.tel.thema === x}" data-thema="${x}"><div class="mini-tel mini-${x}" aria-hidden="true"><i></i><i></i><i></i></div><b>${esc(naam)}</b></button>`).join('')}</div>
-    <p class="klein wand-alleen" style="margin: 8px 0 0">${esc(t('jij.themaWand'))}</p>
+    <p class="klein wand-alleen geen-marge boven-8">${esc(t('jij.themaWand'))}</p>
     <h3 id="kop-kleur">${esc(t('jij.jouwKleur'))}</h3>
     <div class="kleuren" role="radiogroup" aria-labelledby="kop-kleur">${KLEUREN.map(([k, naam]) => `<button type="button" role="radio" aria-checked="${v.tel.kleur === k}" data-kies-kleur="${k}"><span data-kleur="${k}" aria-hidden="true"></span>${esc(naam)}</button>`).join('')}</div>
     <p class="betekenis">${esc(t('jij.kleurUitleg')).replace(/\{(blauw|oranje|amber|groen)\}/g, (m, k) => `<i style="background: var(--${{ blauw: 'ijs', oranje: 'gloed', amber: 'zon', groen: 'mint' }[k]})"></i>`)}</p>`;

@@ -492,7 +492,7 @@
     const nu = stand?.kan ? `<button type="button" class="hand-terug" data-wg-start>${esc(t('witgoed.nuStarten'))}</button>` : '';
     return `${kopVan(d.naam, [d.kop, duur].filter(Boolean).join(' · '))}
       ${global.instellen?.regels('witgoed', d.id, { naam: d.naam }) ?? ''}
-      <p class="hand-hoe" style="margin: 0">${esc(d.zin)}</p>
+      <p class="hand-hoe geen-marge">${esc(d.zin)}</p>
       <div class="hand-vraag hand-kolom"><span>${esc(t('witgoed.uiterlijkKlaar'))}</span>
         <div class="hand-tijd"><button type="button" data-wg-stap="-1" aria-label="${esc(t('witgoed.eerder'))}" ${open.stap <= 0 ? 'disabled' : ''}>−</button><div class="getal"><b${s.waarde == null ? ' class="woord"' : ''}>${esc(s.tekst)}</b><span>${esc(zin)}</span></div><button type="button" data-wg-stap="1" aria-label="${esc(t('witgoed.later'))}" ${open.stap >= stappen.length - 1 ? 'disabled' : ''}>+</button></div>
       </div>

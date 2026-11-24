@@ -28,7 +28,7 @@
   /* Back-up, terugzetten en opnieuw beginnen (besluit 151). */
   .knoppenrij { display: flex; gap: 8px; flex-wrap: wrap; }
   .knoppenrij .knop { white-space: nowrap; }
-  .gevaar { color: var(--gloed-zacht); border-color: rgba(255, 122, 77, 0.35); }
+  .gevaar { color: var(--gloed-zacht); border-color: rgb(var(--gloed-k) / 0.35); }
   .vorm .fout { color: var(--gloed-t); font-size: 13px; }
   .vorm .fout:empty { display: none; }
   #tel .inhoud { padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 14px; }
@@ -43,9 +43,9 @@
   .nieuw summary:focus-visible { outline: 2px solid var(--tekst); outline-offset: 4px; border-radius: 8px; }
   .nieuw .soort { margin-top: 10px; }
   .nieuw .soort .label { display: inline-flex; height: 22px; padding: 0 9px; border-radius: 999px; align-items: center; font-size: 12px; font-weight: 700; }
-  .nieuw .nieuw .label, .nieuw .soort.nieuw .label { color: var(--mint-t); background: rgba(110, 231, 183, 0.12); }
-  .nieuw .soort.beter .label { color: var(--ijs-t); background: rgba(111, 211, 255, 0.12); }
-  .nieuw .soort.opgelost .label { color: var(--zon-t); background: rgba(247, 181, 72, 0.12); }
+  .nieuw .nieuw .label, .nieuw .soort.nieuw .label { color: var(--mint-t); background: rgb(var(--mint-k) / 0.12); }
+  .nieuw .soort.beter .label { color: var(--ijs-t); background: rgb(var(--ijs-k) / 0.12); }
+  .nieuw .soort.opgelost .label { color: var(--zon-t); background: rgb(var(--zon-k) / 0.12); }
   .nieuw ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; color: var(--zacht); }
 </style>
 </head>

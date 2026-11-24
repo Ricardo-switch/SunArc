@@ -239,7 +239,7 @@ function bufferKaart(b) {
   if (b.keuzes.length > 0) {
     const opties = [{ tekst: t('apparaten.geenHaast'), waarde: null }, ...b.keuzes];
     const blok = document.createElement('div');
-    blok.innerHTML = `<div class="mini" style="margin-bottom: 6px">${esc(t('apparaten.klaarOm'))}</div><div class="keuze" role="group" aria-label="${esc(t('apparaten.klaarOmVan', { naam: b.naam }))}"></div><p class="mini gezegd" aria-live="polite" style="margin: 8px 0 0">${esc(gezegd.get(b.id) ?? '')}</p>`;
+    blok.innerHTML = `<div class="mini onder-8">${esc(t('apparaten.klaarOm'))}</div><div class="keuze" role="group" aria-label="${esc(t('apparaten.klaarOmVan', { naam: b.naam }))}"></div><p class="mini gezegd geen-marge boven-8" aria-live="polite">${esc(gezegd.get(b.id) ?? '')}</p>`;
     const groep = blok.querySelector('.keuze');
     const antwoord = blok.querySelector('.gezegd');
     for (const o of opties) {

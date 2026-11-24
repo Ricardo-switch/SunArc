@@ -200,7 +200,7 @@ function licht() {
     <div class="lichtbedienen">${mag ? `<div><span class="veldnaam">${esc(t('functies.lichtScenes'))}</span>${keuzes(t('functies.lichtBedienen'), 'lichtAan', bedienen(), concept.licht.bedienen)}</div>` : ''}
     ${schermMag ? `<div><span class="veldnaam">${esc(t('functies.screens'))}</span>${keuzes(t('functies.schermenBedienen'), 'schermenAan', bedienen(), concept.schermen.bedienen)}</div>` : ''}</div>
     <p class="mini">${esc(t(mag || schermMag ? 'functies.bedienenHuis' : 'functies.nietToegestaan'))}</p>
-    ${lijst ? `<h3 class="kop-3" style="margin: 8px 0 0">${esc(t('functies.inDeApp'))}</h3><p class="mini">${esc(t('functies.tikUit'))}${kamers.some((k) => k.dingen.some((d) => d.soort === 'screen')) ? ` ${esc(t('functies.somfy'))}` : ''}</p><div class="lichtkamers">${lijst}</div>` : ''}`;
+    ${lijst ? `<h3 class="kop-3 geen-marge boven-8">${esc(t('functies.inDeApp'))}</h3><p class="mini">${esc(t('functies.tikUit'))}${kamers.some((k) => k.dingen.some((d) => d.soort === 'screen')) ? ` ${esc(t('functies.somfy'))}` : ''}</p><div class="lichtkamers">${lijst}</div>` : ''}`;
 }
 
 /** Een schakelaar, zoals bij Praten met je huis. */
@@ -411,7 +411,7 @@ function luisterVak() {
   return `<div class="stemrechts">
     <h2 class="kop-2">${esc(t('functies.luister.kop'))}</h2>
     <div class="wekwoord"><span class="bol" aria-hidden="true"></span><div><b>"Hé huis"</b><span>${esc(t('functies.luister.wekwoordZin'))}</span></div></div>
-    <span class="veldnaam" style="margin: 0">${esc(t('functies.luister.hier'))}</span>
+    <span class="veldnaam geen-marge">${esc(t('functies.luister.hier'))}</span>
     <div class="keuzes" role="group" aria-label="${esc(t('functies.luister.hierLabel'))}" style="flex-wrap: nowrap"><button type="button" data-hier="aan" aria-pressed="${hier}" ${https ? '' : 'disabled'}>${esc(t('functies.aan'))}</button><button type="button" data-hier="uit" aria-pressed="${!hier}">${esc(t('functies.uit'))}</button></div>
     ${https ? '' : `<p class="uitleg" style="color: var(--zon-t)">${esc(t('functies.luister.https'))}</p>`}
     ${hier && https ? schuiven(luisterStand?.zelf === true) : ''}
@@ -458,7 +458,7 @@ function weer() {
     ${meteo ? keuzes(t('functies.weer.bron'), 'weerBron', [['open-meteo', t('functies.weer.meteo')]], concept.weer.bron) : ''}
     <p class="mini">${esc(t('functies.weer.waarvoor'))}</p>
     <details ${anderGekozen ? 'open' : ''}><summary class="mini" style="cursor: pointer; font-weight: 700; color: var(--zacht)">${esc(t('functies.weer.andere'))}</summary>
-      <div style="margin-top: 8px">${keuzes(t('functies.weer.andereLabel'), 'weerBron', [...andere.map((b) => [b.id, b.naam]), [null, t('functies.weer.geen')]], concept.weer.bron)}</div>
+      <div class="boven-8">${keuzes(t('functies.weer.andereLabel'), 'weerBron', [...andere.map((b) => [b.id, b.naam]), [null, t('functies.weer.geen')]], concept.weer.bron)}</div>
     </details>
     <span class="veldnaam">${esc(t('functies.weer.perUur'))}</span>
     ${keuzes(t('functies.weer.perUurLabel'), 'weerUren', [[true, t('functies.weer.bewaren')], [false, t('functies.weer.nietBewaren')]], concept.weer.uren !== false)}

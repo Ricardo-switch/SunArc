@@ -31,13 +31,13 @@
   .kaart .bladeren { display: flex; gap: 6px; margin-top: auto; padding-top: 12px; }
   .kaart .bladeren button { height: 32px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.05); color: var(--zacht); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
   .kaart .bladeren button:disabled { opacity: 0.35; cursor: default; }
-  .plan { border-color: rgba(143, 134, 255, 0.3); }
+  .plan { border-color: rgb(var(--violet-k) / 0.3); }
   /* Zo klopte de verwachting (besluit 137): per dag gestippeld verwacht, vol opgewekt. */
   .klopte { flex: 1; min-height: 70px; max-height: 150px; display: grid; grid-template-columns: repeat(var(--dagen), 1fr); gap: 6px; margin-top: 10px; }
   .klopte .dag { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 0; }
   .klopte .paar { flex: 1; min-height: 0; width: 100%; display: flex; justify-content: center; align-items: flex-end; gap: 3px; }
   .klopte i, .legenda i { display: block; width: min(14px, 40%); border-radius: 4px 4px 2px 2px; }
-  .klopte .v, .legenda .v { border: 1.5px dashed rgba(247, 181, 72, 0.85); }
+  .klopte .v, .legenda .v { border: 1.5px dashed rgb(var(--zon-k) / 0.85); }
   .klopte .e, .legenda .e { background: var(--zon); }
   .klopte b { font-family: var(--kop); font-size: 11.5px; font-weight: 600; }
   .klopte span { font-size: 11px; color: var(--gedempt); white-space: nowrap; }
@@ -58,7 +58,7 @@
   .moment .tijd { position: absolute; left: -74px; top: 12px; width: 44px; text-align: right; font-family: var(--kop); font-weight: 600; font-size: 14px; color: var(--zacht); }
   .moment::before { content: ''; position: absolute; left: -19px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--kleur, var(--zacht)); box-shadow: 0 0 0 4px #0f1b2e; }
   .moment b { display: block; font-size: 15px; }
-  .moment.verwacht { border-style: dashed; border-color: rgba(143, 134, 255, 0.4); background: rgba(143, 134, 255, 0.06); }
+  .moment.verwacht { border-style: dashed; border-color: rgb(var(--violet-k) / 0.4); background: rgb(var(--violet-k) / 0.06); }
   /* Een reeks met de zon mee: één regel, open met een tik (rapport 15 oktober). */
   .reeks > summary { list-style: none; cursor: pointer; }
   .reeks > summary::-webkit-details-marker { display: none; }

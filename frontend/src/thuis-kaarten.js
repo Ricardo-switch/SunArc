@@ -282,7 +282,7 @@ function tekenSluip() {
   $$('[data-sluip]').forEach((el) => el.setAttribute('href', zonderMeter ? 'energie.html#meters' : 'sluipverbruik.html'));
   if (zonderMeter) {
     const naam = t('thuis.kaart.sluip');
-    return zetKaart('[data-sluip]', 'sluip', `${vol(`${kaartKop('sluip', naam, false)}<p class="klein" style="margin: 6px 0 10px">${esc(t('thuis.sluip.metMeter'))}</p><span class="pil">${esc(t('thuis.sluip.meterKnop'))}</span>`)}${tegel({ id: 'sluip', naam, waarde: '–', zin: t('thuis.sluip.kanErbij') })}`, true);
+    return zetKaart('[data-sluip]', 'sluip', `${vol(`${kaartKop('sluip', naam, false)}<p class="klein geen-marge boven-8 onder-12">${esc(t('thuis.sluip.metMeter'))}</p><span class="pil">${esc(t('thuis.sluip.meterKnop'))}</span>`)}${tegel({ id: 'sluip', naam, waarde: '–', zin: t('thuis.sluip.kanErbij') })}`, true);
   }
   if (!s) return zetKaart('[data-sluip]', 'sluip', '', false);
   const naam = t('thuis.kaart.sluip');
@@ -299,7 +299,7 @@ function tekenMaand() {
   const naam = taal.datum(Date.now(), { month: 'long' });
   const titel = t('thuis.maand.titel', { maand: `${naam.charAt(0).toUpperCase()}${naam.slice(1)}` });
   let html = '';
-  if (m?.meters === false) html = `${vol(`${kaartKop('maand', titel)}<p class="klein" style="margin: 8px 0 0">${esc(t('thuis.maand.meters'))}</p>`)}${tegel({ id: 'maand', naam: `${naam.charAt(0).toUpperCase()}${naam.slice(1)}`, waarde: '–', zin: t('thuis.tegel.meters') })}`;
+  if (m?.meters === false) html = `${vol(`${kaartKop('maand', titel)}<p class="klein geen-marge boven-8">${esc(t('thuis.maand.meters'))}</p>`)}${tegel({ id: 'maand', naam: `${naam.charAt(0).toUpperCase()}${naam.slice(1)}`, waarde: '–', zin: t('thuis.tegel.meters') })}`;
   else if (m?.stroom) {
     const eerste = m.zon ? `<div><b class="zon-t">${getal(m.zon.opgewektKwh, 0)}</b><span>${esc(t('thuis.maand.opgewekt'))}</span></div>` : `<div><b>${getal(m.stroom.verbruikKwh, 0)}</b><span>${esc(t('thuis.maand.gebruikt'))}</span></div>`;
     const tweede = m.zon?.zelfPct != null ? `<div><b>${getal(m.zon.zelfPct, 0)}%</b><span>${esc(t('thuis.maand.zelf'))}</span></div>` : `<div><b>${getal(m.stroom.vanNetKwh, 0)}</b><span>${esc(t('thuis.maand.vanNet'))}</span></div>`;
@@ -716,12 +716,12 @@ async function openModus() {
   el.setAttribute('aria-label', t('thuis.modus.kop'));
   const kop = `<div class="bladkop"><h2 class="kop-2">${esc(t('thuis.modus.kop'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>`;
   const lijst = STANDEN.map((id) => `<div class="modusrij${id === nu ? ' nu' : ''}" ${id === nu ? 'aria-current="true"' : ''}><b>${esc(naam(id))}${id === nu ? `<span class="mini"> · ${esc(t('thuis.nuKlein'))}</span>` : ''}</b><span>${esc(standUitleg(id, dagdelen))}</span></div>`).join('');
-  const nogNiet = `<p class="mini" style="margin: 10px 0 0">${esc(t('thuis.modus.nogNiet'))}</p>`;
+  const nogNiet = `<p class="mini geen-marge boven-12">${esc(t('thuis.modus.nogNiet'))}</p>`;
   const st = state.bewoner?.stand;
   el.classList.toggle('standblad', !!st);
   el.innerHTML = st
     ? `${kop}<div class="sb-kolommen"><div>${standNuHtml(st)}</div><div><h3>${esc(t('thuis.modus.standen'))}</h3>${lijst}${nogNiet}</div></div>`
-    : `${kop}<p class="klein" style="margin: 0 0 4px">${zin}</p>${lijst}${nogNiet}`;
+    : `${kop}<p class="klein geen-marge onder-4">${zin}</p>${lijst}${nogNiet}`;
   document.querySelector('[data-kies-achter]').hidden = false;
   el.hidden = false;
   el.querySelector('button')?.focus();

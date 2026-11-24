@@ -10,19 +10,19 @@
 .zorgt .label { font-size: 12.5px; color: var(--gedempt); margin-bottom: 6px; display: block; }
 .zorgt .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .zorgt .chip { height: 32px; padding: 0 12px; border-radius: 999px; background: rgb(var(--wit) / 0.07); display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; font-weight: 600; color: var(--tekst); border: 0; cursor: pointer; user-select: none; }
-.zorgt .chip.plus { background: transparent; border: 1px dashed rgba(111, 211, 255, 0.6); color: var(--ijs-t); }
+.zorgt .chip.plus { background: transparent; border: 1px dashed rgb(var(--ijs-k) / 0.6); color: var(--ijs-t); }
 .zorgt .chip:focus-visible, .zorgt .app:focus-visible, .zorgt .kamerrij:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
 .zorgt .chip.zon { background: transparent; border: 1px dashed var(--zon); }
 .zorgt .chip[aria-pressed='true'] { background: var(--accent); color: var(--op-accent); }
 .zorgt .chip.uitchip { color: var(--zacht); }
 .zorgt .chip .weg { color: var(--gedempt); font-weight: 700; }
-.zorgt .gevaar { color: var(--gloed-zacht); border-color: rgba(255, 122, 77, 0.35); }
+.zorgt .gevaar { color: var(--gloed-zacht); border-color: rgb(var(--gloed-k) / 0.35); }
 .zorgt .bron { padding: 12px 14px; border-radius: 16px; background: rgb(var(--wit) / 0.05); border: 1px solid rgb(var(--wit) / 0.07); display: flex; flex-direction: column; gap: 8px; }
 .zorgt .bron[data-bron-open] { cursor: pointer; }
 .zorgt .bron[data-bron-open]:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
 .zorgt .bron .boven { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
-.zorgt .bron .ikoon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(255, 122, 77, 0.14); }
-.zorgt .bron .ikoon.koel { background: rgba(111, 211, 255, 0.14); }
+.zorgt .bron .ikoon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgb(var(--gloed-k) / 0.14); }
+.zorgt .bron .ikoon.koel { background: rgb(var(--ijs-k) / 0.14); }
 .zorgt .bron .ikoon svg { width: 20px; height: 20px; }
 .zorgt .bron b { display: block; font-size: 15px; }
 .zorgt .bron .wat { font-size: 12.5px; color: var(--gedempt); }
@@ -32,10 +32,10 @@
 .zorgt .bron .regelt .mini, .zorgt .bron .regelt .stand { margin-left: auto; }
 .zorgt .stand { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .zorgt .stand::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.zorgt .stand.slim { color: var(--mint-t); background: rgba(110, 231, 183, 0.1); }
+.zorgt .stand.slim { color: var(--mint-t); background: rgb(var(--mint-k) / 0.1); }
 .zorgt .stand.hand { color: var(--zacht); background: rgb(var(--wit) / 0.07); }
 .zorgt .bron .opzon { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--zacht); }
-.zorgt .bron .idee { padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(247, 181, 72, 0.3); background: rgba(247, 181, 72, 0.06); font-size: 13px; color: var(--zacht); line-height: 1.45; }
+.zorgt .bron .idee { padding: 10px 12px; border-radius: 14px; border: 1px solid rgb(var(--zon-k) / 0.3); background: rgb(var(--zon-k) / 0.06); font-size: 13px; color: var(--zacht); line-height: 1.45; }
 .zorgt .bron .idee b { display: block; color: var(--zon-t); font-size: 13px; margin-bottom: 2px; }
 .zorgt .rolrij { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 8px; border-top: 1px solid rgb(var(--wit) / 0.06); font-size: 13px; color: var(--gedempt); }
 .zorgt .rolrij .invoer { width: auto; font-weight: 700; }
@@ -58,8 +58,8 @@
 .zorgt .zone-regel .chips.seg > .chip[data-leeg] { color: var(--gedempt); opacity: 0.6; }
 .zorgt .zone-uitleg { margin: 2px 0 0; padding: 10px 12px; border-radius: 12px; background: rgb(247 181 72 / 0.07); box-shadow: inset 0 0 0 1px rgb(247 181 72 / 0.25); font-size: 13.5px; line-height: 1.45; color: var(--zacht); }
 .zorgt .uitleg b { color: var(--zacht); }
-.zorgt .vraagknop { align-self: start; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px dashed rgba(111, 211, 255, 0.55); background: none; color: var(--ijs-t); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
-.zorgt .plus { height: 42px; border-radius: 14px; border: 1px dashed rgba(111, 211, 255, 0.55); background: none; color: var(--ijs-t); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.zorgt .vraagknop { align-self: start; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px dashed rgb(var(--ijs-k) / 0.55); background: none; color: var(--ijs-t); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.zorgt .plus { height: 42px; border-radius: 14px; border: 1px dashed rgb(var(--ijs-k) / 0.55); background: none; color: var(--ijs-t); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
 .zorgt .vraag { display: flex; flex-direction: column; gap: 6px; }
 .zorgt .vraag .label { margin: 0; }
 .zorgt .invoer-met { display: flex; align-items: center; gap: 8px; height: 42px; border-radius: 12px; border: 1px solid rgb(var(--wit) / 0.18); background: rgb(var(--wit) / 0.05); padding: 0 12px; }

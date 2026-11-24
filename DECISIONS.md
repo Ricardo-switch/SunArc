@@ -15645,11 +15645,22 @@ schakelaar valt, iets te breed is of onder de rand van de wand komt. Bij
 Klimaat viel de bredere schakelaar over "19°"; de regels in de kolommen zijn
 iets krapper gemaakt.
 
-*Nog niet:* de rijen chips die als keuze werken (Gepland, De motor, Klimaat),
-de eigen kaartvormen (`mo-kaart`, `klein-kaart`, `dk-kaart`), en de bouwsteen
-*Ruimte* uit de schets: vijf vaste afstanden in plaats van de 250 losse
-marges in de scripts, en elke kleur uit het thema in plaats van de 676
-regels met een vaste kleur.
+*Aangevuld in 0.235.0: de ruimte.* De 255 losse marges in de scripts
+(`style="margin…"`) zijn klassen met vijf vaste afstanden in `kit/kit.css`:
+`geen-marge`, `boven-`, `onder-`, `links-` en `rechts-` met 4, 8, 12, 16 of 24.
+Een tussenmaat ging naar de dichtstbijzijnde (6 werd 8, 10 werd 12, 2 werd 4).
+Ze winnen zoals de inline stijl die ze vervangen (`!important`). Vier marges
+hangen van een berekening af of zijn `auto` en blijven inline. De vijf vaste
+tinten (zon, ijs, mint, gloed, violet) komen in de opmaak uit het thema: 213
+keer, de doorzichtige met nieuwe kanalen (`rgb(var(--zon-k) / 0.2)`). Ze zijn in
+het lichte en donkere thema gelijk, dus het beeld verandert niet. Wit, donker
+en de tekstkleuren bleven vast: daar is de vaste kleur vaak bewust (wit op een
+gekleurde knop), en in het thema zouden ze in het lichte thema omklappen. De
+kleuren in de tekeningen (het huis, de grafieken) staan in svg-attributen, die
+geen themakleur lezen.
+
+*Nog niet:* de rijen chips die als keuze werken (Gepland, De motor, Klimaat)
+en de eigen kaartvormen (`mo-kaart`, `klein-kaart`, `dk-kaart`).
 
 ## Wat nog een besluit wacht
 

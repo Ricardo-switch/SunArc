@@ -26,14 +26,14 @@ function teken(versie) {
   laatste = versie;
   const nieuwste = versie?.nieuw?.[0] ?? null;
   const regels = nieuwste ? ['nieuw', 'beter', 'opgelost'].flatMap((s) => nieuwste[s] ?? []).slice(0, 3) : [];
-  const motor = motorAan() ? `<a class="knop" href="motor.html" style="margin-top: 12px; display: inline-flex; gap: 8px; align-items: center">${esc(t('motor.ingang'))} <span aria-hidden="true">›</span></a><p class="mini" style="margin: 6px 0 0">${esc(t('motor.ingangZin'))}</p>` : '<p class="mini" style="margin: 6px 0 0; min-height: 1em" data-motor-tik></p>';
+  const motor = motorAan() ? `<a class="knop boven-12" href="motor.html" style="display: inline-flex; gap: 8px; align-items: center">${esc(t('motor.ingang'))} <span aria-hidden="true">›</span></a><p class="mini geen-marge boven-8">${esc(t('motor.ingangZin'))}</p>` : '<p class="mini geen-marge boven-8" style="min-height: 1em" data-motor-tik></p>';
   const html = `<div class="voluit"><img src="kit/merk.svg" alt=""><div class="woord">SunArc</div><div class="arc">${t('over.arc')}</div></div>
     <div class="glas overvak">
       <div><h2>${esc(t('over.versieKop'))}</h2><div class="versie" style="user-select: none">${esc(versie?.nummer ?? '…')}</div>${regels.length ? `<ul>${regels.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}${motor}</div>
       <div><h2>${esc(t('over.naamKop'))}</h2><p>${esc(t('over.naam'))}</p></div>
       <div><h2>${esc(t('over.openKop'))}</h2><p>${esc(t('over.open'))} <a href="${BRON}" target="_blank" rel="noopener">${esc(t('over.bron'))}</a></p></div>
-      <div><h2>${esc(t('over.steunKop'))}</h2><p>${esc(t('over.steun'))}</p><div style="margin-top: 10px">${app.koffieKnop()}</div></div>
-      <div><h2>${esc(t('melden.overKop'))}</h2><p>${esc(t('melden.overZin'))}</p><div style="margin-top: 10px"><button type="button" class="knop" data-meld-probleem>${esc(t('melden.kop'))}</button></div></div>
+      <div><h2>${esc(t('over.steunKop'))}</h2><p>${esc(t('over.steun'))}</p><div class="boven-12">${app.koffieKnop()}</div></div>
+      <div><h2>${esc(t('melden.overKop'))}</h2><p>${esc(t('melden.overZin'))}</p><div class="boven-12"><button type="button" class="knop" data-meld-probleem>${esc(t('melden.kop'))}</button></div></div>
     </div>`;
   document.querySelectorAll('[data-over]').forEach((el) => (el.innerHTML = html));
 }
@@ -57,7 +57,7 @@ document.addEventListener('click', (e) => {
       return;
     }
     teken(laatste);
-    document.querySelectorAll('[data-over] .versie').forEach((el) => el.parentElement?.insertAdjacentHTML('beforeend', `<p class="mini" style="margin: 4px 0 0; color: var(--mint)">${esc(t('motor.ingangAan'))}</p>`));
+    document.querySelectorAll('[data-over] .versie').forEach((el) => el.parentElement?.insertAdjacentHTML('beforeend', `<p class="mini geen-marge boven-4" style="color: var(--mint)">${esc(t('motor.ingangAan'))}</p>`));
   } else if (tikken >= 4) document.querySelectorAll('[data-motor-tik]').forEach((el) => (el.textContent = t('motor.tikNog', { n: 7 - tikken })));
 });
 

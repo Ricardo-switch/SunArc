@@ -29,7 +29,7 @@
   .links { display: flex; flex-direction: column; min-height: 0; }
   .midden { margin: auto 0; display: flex; flex-direction: column; gap: 22px; }
   .groot { margin: 0; font-family: var(--kop); font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: -0.03em; }
-  .groot em { font-style: normal; background: linear-gradient(90deg, #f7b548, #ff7a4d 55%, #8f86ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .groot em { font-style: normal; background: linear-gradient(90deg, var(--zon), var(--gloed) 55%, var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .vraagkop { margin: 0; font-family: var(--kop); font-size: 36px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
   .lead { margin: 0; max-width: 40ch; font-size: 18px; line-height: 1.5; }
   .kan { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 14px; }
@@ -50,7 +50,7 @@
   .opties { display: grid; gap: 8px; max-width: 46ch; }
   .optie { display: flex; align-items: center; gap: 12px; min-height: 50px; padding: 0 16px; border-radius: 14px; background: rgb(var(--wit) / 0.05); border: 1px solid rgb(var(--wit) / 0.1); font: inherit; font-size: 16px; font-weight: 600; color: var(--tekst); text-align: left; cursor: pointer; }
   .optie i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--gedempt); flex: none; }
-  .optie[aria-pressed='true'] { background: rgba(110, 231, 183, 0.1); border-color: rgba(110, 231, 183, 0.45); }
+  .optie[aria-pressed='true'] { background: rgb(var(--mint-k) / 0.1); border-color: rgb(var(--mint-k) / 0.45); }
   .optie[aria-pressed='true'] i { border-color: var(--mint); background: radial-gradient(circle, var(--mint) 45%, transparent 50%); }
   .stapje { font-size: 13px; font-weight: 700; color: var(--mint-t); letter-spacing: 0.02em; }
   .draait { width: 22px; height: 22px; border-radius: 50%; border: 3px solid rgb(var(--wit) / 0.15); border-top-color: var(--mint); animation: draai 0.9s linear infinite; }
@@ -66,7 +66,7 @@
   .gevonden .bezig { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--mint-t); }
   .gevonden .bezig i { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); }
   .gevonden.zoekt .bezig i { animation: puls 1.6s infinite; }
-  @keyframes puls { 0% { box-shadow: 0 0 0 0 rgba(110, 231, 183, 0.6); } 70% { box-shadow: 0 0 0 9px rgba(110, 231, 183, 0); } 100% { box-shadow: 0 0 0 0 rgba(110, 231, 183, 0); } }
+  @keyframes puls { 0% { box-shadow: 0 0 0 0 rgb(var(--mint-k) / 0.6); } 70% { box-shadow: 0 0 0 9px rgb(var(--mint-k) / 0); } 100% { box-shadow: 0 0 0 0 rgb(var(--mint-k) / 0); } }
   @media (prefers-reduced-motion: reduce) { .gevonden .bezig i, .draait { animation: none; } }
   /* De telefoon: onder elkaar, de knop onderaan binnen bereik van de duim. */
   #tel .inhoud { min-height: 100vh; box-sizing: border-box; padding: 18px 22px 26px; display: flex; flex-direction: column; gap: 14px; }

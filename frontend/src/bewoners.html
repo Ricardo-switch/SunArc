@@ -38,9 +38,9 @@
   .labels { display: flex; gap: 6px; justify-content: end; flex-wrap: wrap; }
   .label { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
   .label::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .label.thuis { color: var(--mint-t); background: rgba(110, 231, 183, 0.12); }
+  .label.thuis { color: var(--mint-t); background: rgb(var(--mint-k) / 0.12); }
   .label.weg { color: var(--gedempt); background: rgb(var(--wit) / 0.06); }
-  .label.geldt { color: var(--zon-t); box-shadow: inset 0 0 0 1px rgba(247, 181, 72, 0.5); }
+  .label.geldt { color: var(--zon-t); box-shadow: inset 0 0 0 1px rgb(var(--zon-k) / 0.5); }
   .label.geldt::before { display: none; }
   .uitleg { margin: auto 0 0; padding-top: 12px; border-top: 1px solid rgb(var(--wit) / 0.06); font-size: 13.5px; color: var(--zacht); line-height: 1.5; }
   .uitleg b { color: var(--tekst); }

@@ -160,7 +160,7 @@ const thuisaccu = (() => {
     // Verborgen (stap 4): terughalen; anders de keuzes en onderaan Verbergen.
     if (!x.aan) return { naam: x.naam, html: `<p class="uitleg">${esc(t('accu.verborgenZin'))}</p><button type="button" class="knop" data-accu="aan" data-id="${esc(x.id)}" aria-checked="false" style="align-self: start">${esc(t('toev.terughalen'))}</button>` };
     const verberg = `<button type="button" class="ld-verberg" data-accu="aan" data-id="${esc(x.id)}" aria-checked="true">${VERBERG}<span>${esc(t('toev.verbergen'))}<small>${esc(t('accu.verbergZin'))}</small></span></button>`;
-    return { naam: x.naam, html: `${instellen(info, x)}<a class="ac-waar" href="jehuis.html#buiten/rond" style="margin: 0">${esc(t('accu.waarStaat'))}</a>${verberg}` };
+    return { naam: x.naam, html: `${instellen(info, x)}<a class="ac-waar geen-marge" href="jehuis.html#buiten/rond">${esc(t('accu.waarStaat'))}</a>${verberg}` };
   }
 
   /** Zelf een apparaat kiezen (Toevoegen › Thuisaccu, stap 4). */

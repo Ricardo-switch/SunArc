@@ -140,7 +140,8 @@ verwijzing bestaat.
   overal dezelfde bouwsteen, één keer in `basis.css`: de schakelaar (44 × 26,
   aan is mint), het invoerveld (44, op de telefoon 46), de keuze in delen, de
   knop (46, klein 34), de kaart, de titel (46, op de telefoon 30) en de
-  foutregel ([339]).
+  foutregel; sinds 0.235.0 ook de ruimte (vijf vaste afstanden) en de vaste
+  tinten uit het thema ([339]).
 - **Elke opstelling werkt:** de regeling doet wat de opstelling toelaat en zegt
   wat ze daardoor niet kan ([70]). Geavanceerde functies volgen uit wat het huis
   heeft; ingrijpende vragen een bewuste keuze ([78]).

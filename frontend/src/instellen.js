@@ -153,10 +153,10 @@
     const nu = ruimteVan(id)?.r.id ?? null;
     const etages = (huis?.etages ?? []).filter((e) => (e.ruimtes ?? []).length);
     return `<button type="button" class="hand-terug in-terug" data-in-terug>‹ ${esc(naam)}</button>
-      <div><h2 class="in-kop">${esc(t('in.waar'))}</h2><p class="mini" style="margin: 2px 0 0">${esc(t('in.waarZin'))}</p></div>
+      <div><h2 class="in-kop">${esc(t('in.waar'))}</h2><p class="mini geen-marge boven-4">${esc(t('in.waarZin'))}</p></div>
       ${etages.map((e) => `<div class="in-groep"><h4>${esc(e.naam)}</h4><div class="in-twee">${e.ruimtes.map((r) => `<button type="button" class="in-plek${r.id === nu ? ' aan' : ''}" aria-pressed="${r.id === nu}" data-in-plek="${esc(r.id)}">${esc(r.naam)}</button>`).join('')}</div></div>`).join('')}
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
-      <p class="mini" style="margin: 0">${esc(t('in.waarVoet'))}</p>`;
+      <p class="mini geen-marge">${esc(t('in.waarVoet'))}</p>`;
   }
 
   /* ------------------------------------------------------------ bewaren */

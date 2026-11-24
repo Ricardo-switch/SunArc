@@ -81,14 +81,14 @@ function lijst() {
   } else if (data.bewoners.length) {
     uitleg = `<p class="uitleg">${esc(t('bewoners.wisselt'))}</p>`;
   }
-  return rijen.length ? rijen.join('') + uitleg : `<p class="klein" style="margin: 0">${esc(t('bewoners.nogNiemand'))}</p>`;
+  return rijen.length ? rijen.join('') + uitleg : `<p class="klein geen-marge">${esc(t('bewoners.nogNiemand'))}</p>`;
 }
 
 /** Een scherm zoals de wand (besluit 149): een andere naam, of weghalen. */
 function schermBlad(s) {
   const kan = data.ik.magBeheren || s.ik;
   const uit = kan ? '' : 'disabled';
-  return `<div class="kop"><span class="gezicht" style="background: #5b6b80">${esc(s.naam.charAt(0).toUpperCase())}</span><div><h2 class="kop-2" style="margin: 0">${esc(s.naam)}</h2><span class="mini">${esc(t('bewoners.schermSinds', { datum: dag(s.sindsMs) }))}</span></div></div>
+  return `<div class="kop"><span class="gezicht" style="background: #5b6b80">${esc(s.naam.charAt(0).toUpperCase())}</span><div><h2 class="kop-2 geen-marge">${esc(s.naam)}</h2><span class="mini">${esc(t('bewoners.schermSinds', { datum: dag(s.sindsMs) }))}</span></div></div>
     <div class="vak"><label for="scherm-naam">${esc(t('bewoners.schermNaam'))}</label><input class="invoer" id="scherm-naam" data-schermnaam value="${esc(s.naam)}" maxlength="40" ${uit}><span class="hint">${esc(t('bewoners.inHA', { naam: s.haNaam }))}</span></div>
     <div class="vak"><span>${esc(t('bewoners.watHetDoet'))}</span><span class="hint">${esc(t('bewoners.geenBewoner'))}</span></div>
     <div class="vak"><span>${esc(t('bewoners.hoeWerkt'))}</span><div class="keuze" role="group" aria-label="${esc(t('bewoners.volledig'))}"><button type="button" data-sopt="volledig" data-waarde="ja" aria-pressed="${s.opties?.volledig === true}" ${uit}>${esc(t('bewoners.volledig'))}</button><button type="button" data-sopt="volledig" data-waarde="nee" aria-pressed="${s.opties?.volledig !== true}" ${uit}>${esc(t('bewoners.metBalken'))}</button></div><div class="keuze" role="group" aria-label="${esc(t('bewoners.luisterenLabel'))}"><button type="button" data-sopt="luisteren" data-waarde="ja" aria-pressed="${s.opties?.luisteren === true}" ${uit}>${esc(t('bewoners.luistert'))}</button><button type="button" data-sopt="luisteren" data-waarde="nee" aria-pressed="${s.opties?.luisteren !== true}" ${uit}>${esc(t('bewoners.luistertNiet'))}</button></div><span class="hint">${esc(t('bewoners.neemtOver'))}</span></div>
@@ -100,7 +100,7 @@ function blad() {
   const sc = gekozenScherm();
   if (sc) return schermBlad(sc);
   const b = gekozen();
-  if (!b) return `<p class="klein" style="margin: 0">${esc(t('bewoners.kies'))}</p>`;
+  if (!b) return `<p class="klein geen-marge">${esc(t('bewoners.kies'))}</p>`;
   const kan = mag(b);
   const hoofd = data.bewoners[0];
   const wie = b.ik ? 'ik' : 'ander';
@@ -128,7 +128,7 @@ function blad() {
       </div><span class="hint">${esc(t(b.gast ? 'bewoners.gastZin' : 'bewoners.bewonerZin'))}</span></div>`
     : '';
   if (b.gast) {
-    return `<div class="kop"><span class="gezicht" style="background: #9aa8b6">${esc(b.naam.charAt(0).toUpperCase())}</span><div><h2 class="kop-2" style="margin: 0">${esc(b.naam)}</h2><span class="mini">${esc(t('bewoners.gastSinds', { datum: dag(b.sindsMs) }))}</span></div></div>
+    return `<div class="kop"><span class="gezicht" style="background: #9aa8b6">${esc(b.naam.charAt(0).toUpperCase())}</span><div><h2 class="kop-2 geen-marge">${esc(b.naam)}</h2><span class="mini">${esc(t('bewoners.gastSinds', { datum: dag(b.sindsMs) }))}</span></div></div>
       ${thuisVak(data.ik.magBeheren, t('bewoners.gastZonder'))}
       ${soort}
       <span class="fout" data-fout></span>
@@ -144,7 +144,7 @@ function blad() {
     data.ik.magBeheren && !b.hoofd ? `<button type="button" class="knop" data-hoofd>${esc(t('bewoners.maakHoofd'))}</button>` : '',
     kan && (!b.hoofd || data.bewoners.length === 1) ? `<button type="button" class="knop gevaar" data-weg>${esc(t('bewoners.weghalen'))}</button>` : '',
   ].join('');
-  return `<div class="kop"><span class="gezicht" style="background: ${kleur(data.bewoners.indexOf(b))}">${esc(b.naam.charAt(0).toUpperCase())}</span><div><h2 class="kop-2" style="margin: 0">${esc(b.naam)}</h2><span class="mini">${esc(t('bewoners.ingelogdSinds', { datum: dag(b.sindsMs) }))}</span></div></div>
+  return `<div class="kop"><span class="gezicht" style="background: ${kleur(data.bewoners.indexOf(b))}">${esc(b.naam.charAt(0).toUpperCase())}</span><div><h2 class="kop-2 geen-marge">${esc(b.naam)}</h2><span class="mini">${esc(t('bewoners.ingelogdSinds', { datum: dag(b.sindsMs) }))}</span></div></div>
     <div class="vak"><label for="naam-${esc(b.id)}">${esc(t(`bewoners.noemt.${wie}`, { naam: b.naam }))}</label><input class="invoer" id="naam-${esc(b.id)}" data-naam value="${esc(b.naam)}" maxlength="40" ${kan ? '' : 'disabled'}><span class="hint">${esc(t('bewoners.inHA', { naam: b.haNaam }))}</span></div>
     ${thuisVak(kan, thuisHint)}
     <div class="vak"><span>${esc(t('bewoners.comfort'))}</span>${comfort}</div>
@@ -192,7 +192,7 @@ function schermen() {
     ...data.schermen.map((s) => `<div class="r gastrij${gekozenScherm()?.id === s.id ? ' gekozen' : ''}" role="button" tabindex="0" data-kies="${esc(SCHERM + s.id)}"><span class="n">${esc(s.naam)}${s.ik ? esc(t('bewoners.ditScherm')) : ''}</span><span>${esc(t('bewoners.schermBegroet'))}</span></div>`),
     ...(data.gasten ?? []).map((g) => `<div class="r gastrij${g.id === nu?.id ? ' gekozen' : ''}" role="button" tabindex="0" data-kies="${esc(g.id)}"><span class="n">${esc(g.naam)}${g.ik ? ` ${esc(t('bewoners.jij'))}` : ''}</span><span>${esc(t('bewoners.gastKort'))}${g.thuis == null ? '' : esc(t(g.thuis ? 'toegang.thuis' : 'toegang.weg'))}</span></div>`),
   ];
-  return `<h3>${esc(t('bewoners.schermenGasten'))}</h3>${r.length ? r.join('') : `<p class="klein" style="margin: 0; color: var(--zacht)">${esc(t('bewoners.geenSchermen'))}</p>`}`;
+  return `<h3>${esc(t('bewoners.schermenGasten'))}</h3>${r.length ? r.join('') : `<p class="klein geen-marge" style="color: var(--zacht)">${esc(t('bewoners.geenSchermen'))}</p>`}`;
 }
 
 function tekenNu() {
@@ -208,7 +208,7 @@ function tekenNu() {
     try {
       html = maak();
     } catch (fout) {
-      html = `<p class="klein" style="margin: 0; color: var(--gloed-t)">${esc(t('bewoners.deelMis', { fout: String(fout?.message ?? fout) }))}</p>`;
+      html = `<p class="klein geen-marge" style="color: var(--gloed-t)">${esc(t('bewoners.deelMis', { fout: String(fout?.message ?? fout) }))}</p>`;
     }
     $$(sel).forEach((el) => (el.innerHTML = html));
   };
@@ -328,6 +328,6 @@ app.start('instellingen');
   const [b, z] = await Promise.allSettled([haal('api/bewoners'), haal('api/zon')]);
   if (b.status === 'fulfilled') data = b.value;
   if (z.status === 'fulfilled') zon = z.value;
-  if (!data) $$('[data-lijst]').forEach((el) => (el.innerHTML = `<p class="klein" style="margin: 0">${esc(t('bewoners.geenLogmap'))}</p>`));
+  if (!data) $$('[data-lijst]').forEach((el) => (el.innerHTML = `<p class="klein geen-marge">${esc(t('bewoners.geenLogmap'))}</p>`));
   teken();
 })();

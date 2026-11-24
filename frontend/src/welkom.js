@@ -65,7 +65,7 @@ function welkom() {
     <span class="fout" data-fout></span>
     <div class="voet"><a class="zacht" href="${esc(terug)}">${esc(t('basis.versie.later'))}</a><button type="button" class="knop knop-licht" data-klopt>${esc(t('welkom.klopt'))}</button></div>
     <details class="nietgoed"><summary>${esc(t('welkom.kloptNiet'))}</summary>${nietGoed.map((z) => `<p class="hint">${esc(z)}</p>`).join('')}<a class="knop" href="bewoners.html">${esc(t('toegang.naarBewoners'))}</a></details>
-    <p class="hint" style="margin: 0">${esc(t('welkom.tablet'))} <button type="button" class="zacht" data-wordt-scherm style="font-size: 12.5px; color: var(--ijs-t); padding: 0">${esc(t('welkom.scherm'))}</button></p>`;
+    <p class="hint geen-marge">${esc(t('welkom.tablet'))} <button type="button" class="zacht" data-wordt-scherm style="font-size: 12.5px; color: var(--ijs-t); padding: 0">${esc(t('welkom.scherm'))}</button></p>`;
 }
 
 /** Een gast (besluit 151): kijkt mee, tot de hoofdgebruiker er een bewoner van maakt. */
@@ -74,10 +74,10 @@ function gast() {
   kaart.innerHTML = `${merk}
     <h1>${esc(t('instellingen.gast'))}</h1>
     <p>${esc(t('welkom.gastZin'))}</p>
-    <p class="hint" style="margin: 0">${esc(t('welkom.vraagHoofd', { naam: hoofd?.naam ?? t('jij.deHoofdgebruiker') }))}</p>
+    <p class="hint geen-marge">${esc(t('welkom.vraagHoofd', { naam: hoofd?.naam ?? t('jij.deHoofdgebruiker') }))}</p>
     <span class="fout" data-fout></span>
     <div class="voet"><span></span><a class="knop knop-licht" href="${esc(terug)}" style="display: inline-flex; align-items: center; text-decoration: none">${esc(t('begin.verder'))}</a></div>
-    <p class="hint" style="margin: 0">${esc(t('welkom.tablet'))} <button type="button" class="zacht" data-wordt-scherm style="font-size: 12.5px; color: var(--ijs-t); padding: 0">${esc(t('welkom.scherm'))}</button></p>`;
+    <p class="hint geen-marge">${esc(t('welkom.tablet'))} <button type="button" class="zacht" data-wordt-scherm style="font-size: 12.5px; color: var(--ijs-t); padding: 0">${esc(t('welkom.scherm'))}</button></p>`;
 }
 
 function vraag() {

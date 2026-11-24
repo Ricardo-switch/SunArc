@@ -42,8 +42,8 @@
   /* Een voorstel (besluit 323): wat SunArc vond, met een vinkje, en Klopt dit? */
   .vond { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
   .vondregel { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 12px; align-items: center; padding: 9px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.05); }
-  .vondregel .vink { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: rgba(110, 231, 183, 0.16); color: var(--mint); }
-  .vondregel.mist .vink { background: rgba(255, 122, 77, 0.16); color: var(--gloed); }
+  .vondregel .vink { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: rgb(var(--mint-k) / 0.16); color: var(--mint); }
+  .vondregel.mist .vink { background: rgb(var(--gloed-k) / 0.16); color: var(--gloed); }
   .vondregel .tekst { min-width: 0; }
   .vondregel b { display: block; font-size: 15px; }
   .vondregel .tekst span { display: block; font-size: 12.5px; color: var(--gedempt); }
@@ -106,8 +106,8 @@
   .kapp.open { background: rgb(var(--wit) / 0.09); }
   .kapp:focus-visible { outline: 2px solid var(--tekst); outline-offset: 1px; }
   .kik { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; font-size: 15px; }
-  .kik.koel { background: rgba(111, 211, 255, 0.14); color: var(--ijs); }
-  .kik.warm { background: rgba(255, 122, 77, 0.14); color: var(--gloed); }
+  .kik.koel { background: rgb(var(--ijs-k) / 0.14); color: var(--ijs); }
+  .kik.warm { background: rgb(var(--gloed-k) / 0.14); color: var(--gloed); }
   .kapp b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kapp small { display: block; font-size: 12px; color: var(--gedempt); margin-top: 1px; }
   .kst { font-weight: 700; }
@@ -115,7 +115,7 @@
   .kst.om { color: var(--zon-t); }
   .kst.mee { color: var(--zacht); }
   .kst.beperkt { color: var(--gloed); }
-  .kmist { margin-top: 6px; padding: 9px 12px; border-radius: 14px; border: 1px dashed rgba(111, 211, 255, 0.45); background: none; color: var(--ijs); font: inherit; font-size: 13px; font-weight: 600; text-align: left; cursor: pointer; }
+  .kmist { margin-top: 6px; padding: 9px 12px; border-radius: 14px; border: 1px dashed rgb(var(--ijs-k) / 0.45); background: none; color: var(--ijs); font: inherit; font-size: 13px; font-weight: 600; text-align: left; cursor: pointer; }
   .ksamen { margin: auto 0 0; padding: 8px 4px 0; font-size: 12.5px; color: var(--gedempt); line-height: 1.5; }
   .klos { display: flex; flex-direction: column; gap: 4px; padding: 10px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.04); min-height: 0; overflow: auto; }
   .kkop { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
@@ -125,14 +125,14 @@
   .kpunt { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; padding: 3px 0; border-top: 1px solid rgb(var(--wit) / 0.06); font-size: 14px; }
   .kpunt:first-child { border-top: 0; }
   .kpunt i { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 11px; font-weight: 800; margin-top: 1px; }
-  .kpunt.ok i { background: rgba(110, 231, 183, 0.18); color: var(--mint); }
-  .kpunt.om i { background: conic-gradient(var(--zon) 0 50%, rgba(247, 181, 72, 0.18) 0); }
-  .kpunt.vraag i { background: rgba(111, 211, 255, 0.18); color: var(--ijs); }
+  .kpunt.ok i { background: rgb(var(--mint-k) / 0.18); color: var(--mint); }
+  .kpunt.om i { background: conic-gradient(var(--zon) 0 50%, rgb(var(--zon-k) / 0.18) 0); }
+  .kpunt.vraag i { background: rgb(var(--ijs-k) / 0.18); color: var(--ijs); }
   .kpunt.nee i { background: rgb(var(--wit) / 0.07); color: var(--gedempt); }
   .kpunt.nee > span > b { color: var(--zacht); }
   .kpunt small { display: block; color: var(--gedempt); font-size: 12.5px; line-height: 1.35; margin-top: 1px; }
   .kpunt .chips { margin-top: 4px; }
-  .kweet { padding: 7px 11px; border-radius: 12px; background: rgba(143, 134, 255, 0.08); border: 1px solid rgba(143, 134, 255, 0.22); font-size: 12.5px; color: var(--zacht); line-height: 1.45; }
+  .kweet { padding: 7px 11px; border-radius: 12px; background: rgb(var(--violet-k) / 0.08); border: 1px solid rgb(var(--violet-k) / 0.22); font-size: 12.5px; color: var(--zacht); line-height: 1.45; }
   .kweet b { color: var(--violet-t, #b3adff); }
   .krol { margin-top: auto; display: flex; align-items: center; gap: 10px; padding-top: 6px; border-top: 1px solid rgb(var(--wit) / 0.08); }
   .krol > b { font-size: 13px; color: var(--zacht); white-space: nowrap; }
@@ -144,8 +144,8 @@
   #wand .podium > svg { position: absolute; inset: 0; }
   /* Slepen in het huis (besluit 166): de gepakte kamer en waar hij heen gaat. */
   #wand .podium .sc-tik { cursor: grab; touch-action: none; }
-  #wand .podium .sc-tik.sc-gepakt { fill: rgba(111, 211, 255, 0.12); stroke: var(--ijs); stroke-width: 2; stroke-dasharray: 7 5; cursor: grabbing; }
-  #wand .podium .sc-tik.sc-doel { fill: rgba(110, 231, 183, 0.18); stroke: var(--mint); stroke-width: 2; }
+  #wand .podium .sc-tik.sc-gepakt { fill: rgb(var(--ijs-k) / 0.12); stroke: var(--ijs); stroke-width: 2; stroke-dasharray: 7 5; cursor: grabbing; }
+  #wand .podium .sc-tik.sc-doel { fill: rgb(var(--mint-k) / 0.18); stroke: var(--mint); stroke-width: 2; }
   .kaart { display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow: hidden; }
   /* Volgende blijft altijd in beeld; is er te weinig plek, dan wijkt eerst de tip (besluit 166). */
   .kaart > .voet { flex: none; }
@@ -168,12 +168,12 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { min-height: 34px; padding: 0 11px; border-radius: 999px; border: 0; background: rgb(var(--wit) / 0.08); color: var(--tekst); font: inherit; font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
   .chip.aan { background: var(--accent); color: var(--op-accent); }
-  .chip.gevonden { background: rgba(110, 231, 183, 0.12); color: var(--mint-t); cursor: default; }
-  .chip.plus { background: none; border: 1px dashed rgba(111, 211, 255, 0.55); color: var(--ijs-t); }
+  .chip.gevonden { background: rgb(var(--mint-k) / 0.12); color: var(--mint-t); cursor: default; }
+  .chip.plus { background: none; border: 1px dashed rgb(var(--ijs-k) / 0.55); color: var(--ijs-t); }
   .chip.stil { cursor: default; background: rgb(var(--wit) / 0.05); }
   .chip.weg span { color: var(--gedempt); font-size: 15px; }
   .chip.weg:hover span { color: var(--gloed-t); }
-  .chip.gevaar { background: rgba(255, 122, 77, 0.12); color: var(--gloed-t); white-space: nowrap; justify-self: start; }
+  .chip.gevaar { background: rgb(var(--gloed-k) / 0.12); color: var(--gloed-t); white-space: nowrap; justify-self: start; }
   .chip:disabled, .schakelrij:disabled { opacity: 0.4; cursor: default; }
   .chip:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
   .zacht { font-size: 13.5px; color: var(--gedempt); padding-top: 7px; }
@@ -210,7 +210,7 @@
   .cijfers span { font-size: 13.5px; color: var(--zacht); }
   .cijfers .vak i { position: absolute; right: 14px; top: 12px; font-style: normal; font-size: 20px; color: var(--gedempt); }
   .noot { padding: 12px 16px; border-radius: 14px; background: rgb(var(--wit) / 0.05); font-size: 14px; line-height: 1.5; color: var(--zacht); }
-  .noot.later { border: 1px solid rgba(247, 181, 72, 0.35); background: rgba(247, 181, 72, 0.06); }
+  .noot.later { border: 1px solid rgb(var(--zon-k) / 0.35); background: rgb(var(--zon-k) / 0.06); }
   .noot a { color: var(--ijs-t); font-weight: 600; text-decoration: none; }
   .voet { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 6px; }
   .voet .zachtknop { border: 0; background: none; color: var(--zacht); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; padding: 8px 0; text-decoration: none; }
@@ -269,7 +269,7 @@
   .accstappen .nr { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 800; background: rgb(var(--wit) / 0.08); }
   .accblok .knop { align-self: stretch; }
   /* De assistent met één knop (besluit 202): de bol, wat er gebeurt, en de knop. */
-  .asblok { display: flex; flex-direction: column; gap: 10px; flex: none; padding: 14px 16px; border-radius: 18px; background: linear-gradient(160deg, rgba(143, 134, 255, 0.16), rgba(111, 211, 255, 0.08)); border: 1px solid rgba(143, 134, 255, 0.35); }
+  .asblok { display: flex; flex-direction: column; gap: 10px; flex: none; padding: 14px 16px; border-radius: 18px; background: linear-gradient(160deg, rgb(var(--violet-k) / 0.16), rgb(var(--ijs-k) / 0.08)); border: 1px solid rgb(var(--violet-k) / 0.35); }
   .askop { display: flex; align-items: center; gap: 12px; }
   .askop .bol { width: 40px; height: 40px; }
   .askop b { display: block; font-size: 15.5px; }
@@ -279,7 +279,7 @@
   .asstappen small { font-size: 12px; color: var(--gedempt); }
   .asstappen .nr.klaar { background: var(--mint); color: #062a1c; }
   .asstappen .nr.bezig { background: transparent; box-shadow: inset 0 0 0 2px var(--ijs); animation: asdraai 1s linear infinite; border-radius: 50%; }
-  @keyframes asdraai { 0% { box-shadow: inset 0 0 0 2px rgba(111, 211, 255, 0.25); } 50% { box-shadow: inset 0 0 0 2px var(--ijs); } 100% { box-shadow: inset 0 0 0 2px rgba(111, 211, 255, 0.25); } }
+  @keyframes asdraai { 0% { box-shadow: inset 0 0 0 2px rgb(var(--ijs-k) / 0.25); } 50% { box-shadow: inset 0 0 0 2px var(--ijs); } 100% { box-shadow: inset 0 0 0 2px rgb(var(--ijs-k) / 0.25); } }
   .asblok .knop { align-self: stretch; }
   /* Wachten op Home Assistant voor de rondleiding (besluit 202). */
   .aswacht { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(6, 10, 20, 0.88); backdrop-filter: blur(6px); }
@@ -288,14 +288,14 @@
   /* Hoe praat je huis (besluit 203, schets #stem): twee keuzes, met wat erbij hoort eronder. */
   .keuzes-stem { display: grid; gap: 10px; flex: none; }
   .stemkeuze { display: grid; gap: 10px; padding: 12px 14px; border-radius: 16px; background: rgb(var(--wit) / 0.04); border: 1.5px solid transparent; }
-  .stemkeuze.aan { border-color: var(--ijs); background: rgba(111, 211, 255, 0.08); }
+  .stemkeuze.aan { border-color: var(--ijs); background: rgb(var(--ijs-k) / 0.08); }
   .keuzekop { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .keuzekop .rond { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgb(var(--wit) / 0.3); margin-top: 2px; box-sizing: border-box; }
   .stemkeuze.aan .rond { border-color: var(--ijs); box-shadow: inset 0 0 0 4px #0b1424; background: var(--ijs); }
   .keuzekop b { display: block; font-size: 15px; }
   .keuzekop .zin { display: block; margin-top: 3px; font-size: 12.5px; color: var(--zacht); line-height: 1.4; }
   .stemkeuze .label { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; vertical-align: 2px; }
-  .stemkeuze .label.mint { background: rgba(110, 231, 183, 0.14); color: var(--mint-t); }
+  .stemkeuze .label.mint { background: rgb(var(--mint-k) / 0.14); color: var(--mint-t); }
   .stemkeuze .label.gedempt { background: rgb(var(--wit) / 0.08); color: var(--zacht); }
   .stemkeuze .onder { margin-left: 32px; display: grid; gap: 6px; }
   .stemkeuze .onder .mini { margin: 0; }
@@ -308,7 +308,7 @@
   .addon .ok { font-size: 12px; font-weight: 800; color: var(--mint-t); }
   .addon .ok.gevonden { color: var(--ijs); }
   .schakelrij { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--zacht); line-height: 1.4; }
-  .tip { flex-shrink: 1; min-height: 0; overflow: hidden; padding: 10px 12px; border-radius: 14px; background: rgba(111, 211, 255, 0.08); color: var(--zacht); font-size: 13px; line-height: 1.45; }
+  .tip { flex-shrink: 1; min-height: 0; overflow: hidden; padding: 10px 12px; border-radius: 14px; background: rgb(var(--ijs-k) / 0.08); color: var(--zacht); font-size: 13px; line-height: 1.45; }
   .tellen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .teller { padding: 10px 12px; border: 0; border-radius: 14px; background: rgb(var(--wit) / 0.05); color: var(--tekst); font: inherit; text-align: left; }
   button.teller { cursor: pointer; }
@@ -317,7 +317,7 @@
   .teller span { font-size: 12px; color: var(--zacht); }
   .tegels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; flex: none; }
   .tegel { position: relative; height: 112px; padding: 0; border: 1.5px solid transparent; border-radius: 16px; background: rgb(var(--wit) / 0.05); color: var(--tekst); font: inherit; overflow: hidden; cursor: pointer; }
-  .tegel[aria-pressed="true"] { border-color: var(--ijs); background: rgba(111, 211, 255, 0.1); }
+  .tegel[aria-pressed="true"] { border-color: var(--ijs); background: rgb(var(--ijs-k) / 0.1); }
   .tegel .mini { position: absolute; inset: 0 0 30px 0; }
   .tegel .mini svg { width: 100%; height: 100%; }
   .tegel b { position: absolute; left: 10px; right: 8px; bottom: 7px; font-size: 12.5px; line-height: 1.15; text-align: left; }
@@ -352,8 +352,8 @@
   .dg-lijst { display: flex; flex-direction: column; gap: 6px; }
   .dg-grens { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 0 12px; align-items: center; padding: 9px 12px; border-radius: 15px; background: rgb(var(--wit) / 0.05); border: 1.5px solid transparent; }
   .dg-grens.nu { border-color: rgb(var(--wit) / 0.4); }
-  .dg-grens > i { width: 12px; height: 12px; border-radius: 4px; background: #8f86ff; }
-  .dg-grens.voorverwarmen > i { background: linear-gradient(135deg, #8f86ff, #ff7a4d); }
+  .dg-grens > i { width: 12px; height: 12px; border-radius: 4px; background: var(--violet); }
+  .dg-grens.voorverwarmen > i { background: linear-gradient(135deg, var(--violet), var(--gloed)); }
   .dg-grens.dag > i { background: var(--zon); }
   .dg-grens > div b { display: block; font-size: 15px; }
   .dg-grens > div span { display: block; font-size: 12.5px; line-height: 1.35; color: var(--gedempt); }
@@ -375,8 +375,8 @@
   .cf-naam.huis, .cf-paar.huis { padding-bottom: 6px; border-bottom: 1px solid rgb(var(--wit) / 0.08); }
   .cf-paar { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 6px; }
   .cf-tal { height: 36px; min-width: 0; padding: 0; border: 2px solid transparent; border-radius: 11px; display: grid; place-items: center; font-family: var(--kop); font-size: 15.5px; font-weight: 600; cursor: pointer; }
-  .cf-tal.heat { background: rgba(255, 122, 77, 0.16); color: #ffb090; }
-  .cf-tal.cool { background: rgba(111, 211, 255, 0.14); color: var(--ijs-t); }
+  .cf-tal.heat { background: rgb(var(--gloed-k) / 0.16); color: #ffb090; }
+  .cf-tal.cool { background: rgb(var(--ijs-k) / 0.14); color: var(--ijs-t); }
   .cf-tal.uit { background: rgb(var(--wit) / 0.04); color: var(--gedempt); font-family: inherit; font-size: 12.5px; font-weight: 700; }
   .cf-tal.niet { border: 1px dashed rgb(var(--wit) / 0.12); background: none; color: var(--gedempt); cursor: default; }
   .cf-tal.volgt { opacity: 0.62; }
@@ -438,7 +438,7 @@
   /* Licht: het verloop is te zacht op een lichte lucht, dan één donkere kleur. */
   .sc-licht .welkom-groot .wk-kop em { background: none; color: var(--gloed-t); }
   .welkom-groot .wk-kop { margin: -8px 0 0; font-family: var(--kop); font-size: 92px; font-weight: 700; line-height: 0.95; letter-spacing: -0.035em; }
-  .welkom-groot .wk-kop em { font-style: normal; background: linear-gradient(90deg, #f7b548, #ff7a4d 50%, #8f86ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .welkom-groot .wk-kop em { font-style: normal; background: linear-gradient(90deg, var(--zon), var(--gloed) 50%, var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .welkom-groot .wk-zin { margin: 0; max-width: 34ch; font-size: 19px; line-height: 1.5; color: var(--zacht); }
   .welkom-groot .wk-zin b { color: var(--tekst); font-weight: 600; }
   .welkom-groot .wk-beloof { list-style: none; padding: 0; margin: 2px 0 0; display: grid; gap: 12px; }
@@ -447,7 +447,7 @@
   .welkom-groot .wk-beloof .wk-ik svg { width: 22px; height: 22px; }
   .welkom-groot .wk-beloof b { display: block; font-size: 16px; }
   .welkom-groot .wk-beloof span { font-size: 14px; color: var(--zacht); }
-  .welkom-groot .wk-begin { height: 60px; padding: 0 30px; font-size: 18px; border-radius: 18px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 10px 40px rgba(111, 211, 255, 0.35); }
+  .welkom-groot .wk-begin { height: 60px; padding: 0 30px; font-size: 18px; border-radius: 18px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 10px 40px rgb(var(--ijs-k) / 0.35); }
   .welkom-groot .wk-begin svg { width: 20px; height: 20px; }
   .welkom-groot .wk-terug { font-size: 15px; font-weight: 600; color: var(--zacht); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgb(var(--wit) / 0.25); }
   #wand .wk-podium { position: absolute; left: 30%; right: 0; top: 20px; bottom: 0; }
@@ -468,7 +468,7 @@
   #wand .wk-zoekt { position: absolute; right: 48px; bottom: 34px; display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 13.5px; font-weight: 700; color: var(--mint-t); }
   #wand .wk-zoekt i { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); animation: wk-puls 1.6s infinite; }
   #wand .wk-zoekt.klaar i { animation: none; }
-  @keyframes wk-puls { 0% { box-shadow: 0 0 0 0 rgba(110, 231, 183, 0.6); } 70% { box-shadow: 0 0 0 9px rgba(110, 231, 183, 0); } 100% { box-shadow: 0 0 0 0 rgba(110, 231, 183, 0); } }
+  @keyframes wk-puls { 0% { box-shadow: 0 0 0 0 rgb(var(--mint-k) / 0.6); } 70% { box-shadow: 0 0 0 9px rgb(var(--mint-k) / 0); } 100% { box-shadow: 0 0 0 0 rgb(var(--mint-k) / 0); } }
   /* Alleen bij het welkom (28 oktober 2026): zonder body.inr-groot stond het op de telefoon onder elke stap. */
   body.inr-groot #tel .welkom-groot { position: relative; min-height: 100dvh; display: flex; flex-direction: column; }
   #tel .wk-merk { position: absolute; left: 22px; top: 20px; z-index: 1; gap: 12px; }

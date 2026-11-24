@@ -39,7 +39,7 @@ const KLEUREN = ['#6FD3FF', '#8FD9FF', '#FFB088', '#C4BCFF', '#9EE6FF', '#FFD08A
 /** Het sluipverbruik (besluit 192): een kaart naar zijn eigen scherm, met vannacht erop. */
 let sluip = null;
 const sluipIngang = () => (sluip
-  ? `<a class="glas kaart sluipingang" href="sluipverbruik.html"><div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px"><h2 class="kop-3">${esc(t('sluip.titel'))}</h2><span class="getal" style="font-size: 22px${sluip.hoog ? '; color: var(--gloed-t)' : ''}">${nl(sluip.vannacht.w, 0)} W</span></div><p class="klein" style="margin: 6px 0 0">${esc(sluip.hoog ? t('sluip.ingangHoog', { boven: nl(sluip.bovenW, 0) }) : sluip.vaak ? t('sluip.ingangVaak', { n: sluip.vaak.nachten, meer: nl(sluip.vaak.meerW, 0) }) : t('sluip.ingangGewoon', { gewoon: nl(sluip.gewoonW, 0) }))} ›</p></a>`
+  ? `<a class="glas kaart sluipingang" href="sluipverbruik.html"><div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px"><h2 class="kop-3">${esc(t('sluip.titel'))}</h2><span class="getal" style="font-size: 22px${sluip.hoog ? '; color: var(--gloed-t)' : ''}">${nl(sluip.vannacht.w, 0)} W</span></div><p class="klein geen-marge boven-8">${esc(sluip.hoog ? t('sluip.ingangHoog', { boven: nl(sluip.bovenW, 0) }) : sluip.vaak ? t('sluip.ingangVaak', { n: sluip.vaak.nachten, meer: nl(sluip.vaak.meerW, 0) }) : t('sluip.ingangGewoon', { gewoon: nl(sluip.gewoonW, 0) }))} ›</p></a>`
   : '');
 
 async function laad() {
@@ -91,9 +91,9 @@ function periode(r) {
   const p = r.periode;
   // Begint de meting later dan de periode, dan zegt de regel dat eerst.
   const vorige = r.dekking
-    ? `<span class="mini" style="margin-left: 6px" data-dekking>${esc(t('opbrengst.gemetenVanaf', { datum: datumNl(r.dekking.vanaf), dagen: r.dekking.dagen, van: r.dekking.vanDagen }))}</span>`
-    : r.geschat ? `<span class="mini" style="margin-left: 6px">${esc(t('opbrengst.zelfGeschat'))}</span>`
-    : r.stroom.vorigeKwh != null ? `<span class="mini" style="margin-left: 6px">${esc(t('opbrengst.vorigeGebruikt', { naam: p.vorigeNaam, kwh: getal(r.stroom.vorigeKwh) }))}</span>` : '';
+    ? `<span class="mini links-8" data-dekking>${esc(t('opbrengst.gemetenVanaf', { datum: datumNl(r.dekking.vanaf), dagen: r.dekking.dagen, van: r.dekking.vanDagen }))}</span>`
+    : r.geschat ? `<span class="mini links-8">${esc(t('opbrengst.zelfGeschat'))}</span>`
+    : r.stroom.vorigeKwh != null ? `<span class="mini links-8">${esc(t('opbrengst.vorigeGebruikt', { naam: p.vorigeNaam, kwh: getal(r.stroom.vorigeKwh) }))}</span>` : '';
   return `<button type="button" aria-label="${esc(t('vandaag.eerder'))}" data-naar="${esc(p.vorige)}">‹</button><span class="kop-3" style="font-size: 17px">${esc(p.label)}</span><button type="button" aria-label="${esc(t('vandaag.later'))}" ${p.volgende ? `data-naar="${esc(p.volgende)}"` : 'disabled'}>›</button>${vorige}`;
 }
 
@@ -113,8 +113,8 @@ function cijfersGeschat(r, klein) {
 
 /** Een kaart die een slimme meter aanraadt, of panelen (besluit 196). */
 function erbijKaart(r) {
-  if (r.geschat) return `<section class="glas kaart meterkaart"><h2 class="kop-3">${esc(t('opbrengst.meter.titel'))}</h2><p class="klein" style="margin: 6px 0 12px">${esc(t('opbrengst.meter.zin'))}</p><a class="pil" href="energie.html#meters">${esc(t('opbrengst.meter.knop'))}</a></section>`;
-  if (!r.heeft.zon) return `<section class="glas kaart"><h2 class="kop-3">${esc(t('opbrengst.panelenErbij.titel'))}</h2><p class="klein" style="margin: 6px 0 12px">${esc(t('opbrengst.panelenErbij.zin'))}</p><a class="pil" href="huis-kan.html">${esc(t('opbrengst.panelenErbij.knop'))}</a></section>`;
+  if (r.geschat) return `<section class="glas kaart meterkaart"><h2 class="kop-3">${esc(t('opbrengst.meter.titel'))}</h2><p class="klein geen-marge boven-8 onder-12">${esc(t('opbrengst.meter.zin'))}</p><a class="pil" href="energie.html#meters">${esc(t('opbrengst.meter.knop'))}</a></section>`;
+  if (!r.heeft.zon) return `<section class="glas kaart"><h2 class="kop-3">${esc(t('opbrengst.panelenErbij.titel'))}</h2><p class="klein geen-marge boven-8 onder-12">${esc(t('opbrengst.panelenErbij.zin'))}</p><a class="pil" href="huis-kan.html">${esc(t('opbrengst.panelenErbij.knop'))}</a></section>`;
   return '';
 }
 
@@ -155,7 +155,7 @@ function dakNaam(v, alle) {
 /** De thuisaccu in deze periode (besluit 272): wat hij laadde, waarvan uit de zon, en wat hij leverde. */
 function accuRegel(a) {
   if (!a || (a.geladenKwh < 0.1 && a.geleverdKwh < 0.1)) return '';
-  return `<p class="mini accuregel" style="margin: 8px 0 0"><i style="background: ${ACCU}"></i>${esc(t('opbrengst.accu.regel', { geladen: getal(a.geladenKwh), zon: getal(a.uitZonKwh), geleverd: getal(a.geleverdKwh) }))}</p>`;
+  return `<p class="mini accuregel geen-marge boven-8"><i style="background: ${ACCU}"></i>${esc(t('opbrengst.accu.regel', { geladen: getal(a.geladenKwh), zon: getal(a.uitZonKwh), geleverd: getal(a.geleverdKwh) }))}</p>`;
 }
 
 function panelen(r) {
@@ -164,7 +164,7 @@ function panelen(r) {
   const zelf = z.opgewektKwh > 0 ? (z.zelfKwh / z.opgewektKwh) * 100 : 0;
   // Samen of per dak (besluit 254, stap 5): bij meer dakvlakken.
   const vlakken = daken?.vlakken ?? [];
-  const wissel = vlakken.length > 1 ? `<div class="blik" role="group" aria-label="${esc(t('opbrengst.daken.wissel'))}" style="margin-top: 8px"><button type="button" data-perdak="0" aria-pressed="${!perDak}">${esc(t('opbrengst.daken.samen'))}</button><button type="button" data-perdak="1" aria-pressed="${perDak}">${esc(t('opbrengst.daken.perDak'))}</button></div>` : '';
+  const wissel = vlakken.length > 1 ? `<div class="blik boven-8" role="group" aria-label="${esc(t('opbrengst.daken.wissel'))}"><button type="button" data-perdak="0" aria-pressed="${!perDak}">${esc(t('opbrengst.daken.samen'))}</button><button type="button" data-perdak="1" aria-pressed="${perDak}">${esc(t('opbrengst.daken.perDak'))}</button></div>` : '';
   if (perDak && vlakken.length > 1) {
     const top = Math.max(1, ...vlakken.map((v) => v.kWh));
     const achter = daken.achter?.letter;
@@ -173,16 +173,16 @@ function panelen(r) {
     <div style="display: flex; justify-content: space-between; align-items: baseline"><h2 class="kop-3">${esc(t('opbrengst.panelen'))}</h2><span class="getal zon-t" style="font-size: 22px">${getal(z.opgewektKwh)} kWh</span></div>
     ${wissel}
     <div class="dakrijen">${vlakken.map(rij).join('')}</div>
-    <p class="mini" style="margin: 8px 0 0">${esc(t('opbrengst.daken.uitleg'))}</p>
+    <p class="mini geen-marge boven-8">${esc(t('opbrengst.daken.uitleg'))}</p>
     ${daken.achter ? `<p class="dakopval">${esc(dakvlakken.achterZin(daken.achter))}</p>` : ''}
   </section>`;
   }
   return `<section class="glas kaart">
     <div style="display: flex; justify-content: space-between; align-items: baseline"><h2 class="kop-3">${esc(t('opbrengst.panelen'))}</h2><span class="getal zon-t" style="font-size: 22px">${getal(z.opgewektKwh)} kWh</span></div>
     ${wissel}
-    <div class="verdeel" style="height: 10px; margin-top: 12px"><i style="width: ${zelf.toFixed(1)}%; background: var(--zon)"></i><i style="width: ${(100 - zelf).toFixed(1)}%; background: var(--mint)"></i></div>
-    <div class="klein" style="margin-top: 8px; display: flex; justify-content: space-between"><span>${z.opgewektKwh > 0 ? taal.html('opbrengst.zelfPct', { kwh: getal(z.zelfKwh), pct: Math.round(zelf) }) : esc(t('opbrengst.zelf', { kwh: getal(z.zelfKwh) }))}</span><span>${esc(t('opbrengst.naarNet', { kwh: getal(z.terugKwh) }))}</span></div>
-    ${z.besteDag ? `<p class="mini" style="margin: 8px 0 0">${esc(t('opbrengst.besteDag', { dag: z.besteDag.label, kwh: getal(z.besteDag.kwh) }))}</p>` : ''}
+    <div class="verdeel boven-12" style="height: 10px"><i style="width: ${zelf.toFixed(1)}%; background: var(--zon)"></i><i style="width: ${(100 - zelf).toFixed(1)}%; background: var(--mint)"></i></div>
+    <div class="klein boven-8" style="display: flex; justify-content: space-between"><span>${z.opgewektKwh > 0 ? taal.html('opbrengst.zelfPct', { kwh: getal(z.zelfKwh), pct: Math.round(zelf) }) : esc(t('opbrengst.zelf', { kwh: getal(z.zelfKwh) }))}</span><span>${esc(t('opbrengst.naarNet', { kwh: getal(z.terugKwh) }))}</span></div>
+    ${z.besteDag ? `<p class="mini geen-marge boven-8">${esc(t('opbrengst.besteDag', { dag: z.besteDag.label, kwh: getal(z.besteDag.kwh) }))}</p>` : ''}
     ${accuRegel(r.accu)}
     ${verwachtRegel(r.verwacht, r.periode.soort)}
   </section>`;
@@ -197,7 +197,7 @@ function verwachtRegel(v, soort) {
   const p = Math.round(((v.werkelijkKwh - v.verwachtKwh) / v.verwachtKwh) * 100);
   const af = p > 0 ? `+${p}%` : p < 0 ? `−${-p}%` : t('opbrengst.precies');
   const zin = t(soort === 'dag' ? 'opbrengst.verwachtDag' : 'opbrengst.verwachtDagen', { verwacht: getal(v.verwachtKwh), echt: getal(v.werkelijkKwh), af, n: v.dagen });
-  return `<p class="mini" style="margin: 6px 0 0">${esc(zin)}</p>`;
+  return `<p class="mini geen-marge boven-8">${esc(zin)}</p>`;
 }
 
 /** De kleuren van de dakvlakken, zoals bij Per dak. */
@@ -289,7 +289,7 @@ function sankeyVan(r, breedte, hoogte, links = 104, rechts = 136) {
   if (!m) return `<p class="klein">${esc(t('opbrengst.nietsGemeten'))}</p>`;
   const schema = stromen.svg({ breedte, hoogte, links, rechts, id: `st${breedte}`, beschrijving: t('opbrengst.sankey'), ...m });
   // Zonder meter (besluit 196): zeggen hoe het geschat is.
-  return r.geschat ? `${schema}<p class="mini" style="margin: 14px 0 0">${esc(t('opbrengst.geschatUitleg'))}</p>` : schema;
+  return r.geschat ? `${schema}<p class="mini geen-marge boven-16">${esc(t('opbrengst.geschatUitleg'))}</p>` : schema;
 }
 
 /** Gas apart onder het stroombeeld: op dezelfde schaal zou het alles wegdrukken. */
@@ -311,12 +311,12 @@ function perApparaat(r) {
         ]
       : [a]))
     .sort((x, y) => y.kwh - x.kwh);
-  if (!lijst.length) return `<h2 class="kop-3">${esc(t('opbrengst.perApparaat'))}</h2><p class="mini" style="margin: 6px 0 0">${esc(t('opbrengst.geenMeters'))}</p>`;
+  if (!lijst.length) return `<h2 class="kop-3">${esc(t('opbrengst.perApparaat'))}</h2><p class="mini geen-marge boven-8">${esc(t('opbrengst.geenMeters'))}</p>`;
   const rij = (a) => {
     const zonPct = a.kwh > 0 ? (a.zonKwh / a.kwh) * 100 : 0;
     return `<div class="rij"><div class="boven"><b>${esc(a.rest ? t('opbrengst.rest') : a.id === 'altijd' ? a.naam : kort(a.naam))}</b><span>${getal(a.kwh)} kWh${a.kosten != null ? `, ${euro(a.kosten)}` : ''}</span></div><div class="verdeel"><i style="width: ${zonPct.toFixed(1)}%; background: var(--zon)"></i><i style="width: ${(100 - zonPct).toFixed(1)}%; background: ${NET}"></i></div></div>`;
   };
-  return `<h2 class="kop-3" style="margin-bottom: 4px">${esc(t('opbrengst.perApparaat'))}</h2>${lijst.map(rij).join('')}
+  return `<h2 class="kop-3 onder-4">${esc(t('opbrengst.perApparaat'))}</h2>${lijst.map(rij).join('')}
     <p class="mini legenda">${legendaZonNet(r)}</p>`;
 }
 
@@ -485,15 +485,15 @@ function nuPanelen() {
     const kleur = achter === v.letter ? '#ff8a6b' : 'var(--zon)';
     return `<div class="dakrij"><span class="dakletter" style="background: ${kleur}">${esc(v.letter)}</span><span class="daknaam">${esc(dakNaam(v, vlakken))}<span class="dakstaaf"><i style="width: ${(((n.w ?? 0) / top) * 100).toFixed(1)}%; background: ${kleur}"></i><em style="left: ${((n.helderW / top) * 100).toFixed(1)}%"></em></span></span><b>${n.w == null ? '–' : `${kw(n.w)} kW`}</b></div>`;
   };
-  return `<section class="glas kaart"><h2 class="kop-3">${esc(t('opbrengst.nu.panelen'))}</h2><div class="dakrijen">${vlakken.map(rij).join('')}</div><p class="mini" style="margin: 8px 0 0">${esc(t('daken.nu.streep'))}</p></section>`;
+  return `<section class="glas kaart"><h2 class="kop-3">${esc(t('opbrengst.nu.panelen'))}</h2><div class="dakrijen">${vlakken.map(rij).join('')}</div><p class="mini geen-marge boven-8">${esc(t('daken.nu.streep'))}</p></section>`;
 }
 
 /** Wat er nu aan staat, met zijn deel zon. */
 function nuApparaten(m) {
-  if (!m.apps.length) return `<h2 class="kop-3">${esc(t('opbrengst.nu.apparaten'))}</h2><p class="mini" style="margin: 6px 0 0">${esc(t('opbrengst.nu.geenApparaten'))}</p>`;
+  if (!m.apps.length) return `<h2 class="kop-3">${esc(t('opbrengst.nu.apparaten'))}</h2><p class="mini geen-marge boven-8">${esc(t('opbrengst.nu.geenApparaten'))}</p>`;
   const zonDeel = m.verbruik > 0 ? m.zonHuis / m.verbruik : 0;
   const rij = (a) => `<div class="rij"><div class="boven"><b>${esc(kort(a.naam))}</b><span>${kw(a.w)} kW</span></div><div class="verdeel"><i style="width: ${(zonDeel * 100).toFixed(1)}%; background: var(--zon)"></i><i style="width: ${((1 - zonDeel) * 100).toFixed(1)}%; background: ${NET}"></i></div></div>`;
-  return `<h2 class="kop-3" style="margin-bottom: 4px">${esc(t('opbrengst.nu.apparaten'))}</h2>${m.apps.map(rij).join('')}<p class="mini legenda">${legendaZonNet(null)}</p>`;
+  return `<h2 class="kop-3 onder-4">${esc(t('opbrengst.nu.apparaten'))}</h2>${m.apps.map(rij).join('')}<p class="mini legenda">${legendaZonNet(null)}</p>`;
 }
 
 function tekenLive() {
@@ -537,7 +537,7 @@ function tekenNu() {
 
   if (!data) {
     const tekst = melding === 'meters'
-      ? `<section class="glas kaart"><h2 class="kop-3">${esc(t('opbrengst.eerstMeters'))}</h2><p class="klein" style="margin: 8px 0 12px">${esc(t('opbrengst.metersUitleg'))}</p><a class="pil" href="energie.html#meters">${esc(t('opbrengst.metersInstellen'))}</a></section>`
+      ? `<section class="glas kaart"><h2 class="kop-3">${esc(t('opbrengst.eerstMeters'))}</h2><p class="klein geen-marge boven-8 onder-12">${esc(t('opbrengst.metersUitleg'))}</p><a class="pil" href="energie.html#meters">${esc(t('opbrengst.metersInstellen'))}</a></section>`
       : `<p class="klein">${esc(melding ?? t('kamer.camera.laden'))}</p>`;
     $$('[data-titel]').forEach((el) => (el.textContent = melding ? t('nav.opbrengst') : t('algemeen.laden')));
     document.querySelector('[data-links]').innerHTML = tekst + sluipIngang();

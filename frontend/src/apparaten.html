@@ -54,10 +54,10 @@
   .kkop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0 6px; }
   .kkop b { font-size: 15.5px; font-weight: 700; }
   .kkop small { font-size: 12.5px; font-weight: 600; color: var(--gedempt); }
-  .kkop .mist { height: 24px; padding: 0 10px; border-radius: 999px; background: rgba(255, 122, 77, 0.16); color: var(--gloed-t); font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; text-decoration: none; }
+  .kkop .mist { height: 24px; padding: 0 10px; border-radius: 999px; background: rgb(var(--gloed-k) / 0.16); color: var(--gloed-t); font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; text-decoration: none; }
   .lamp { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 50px; border-top: 1px solid rgb(var(--wit) / 0.06); }
   .lik { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: rgb(var(--wit) / 0.06); opacity: 0.6; }
-  .lamp.aan .lik { background: rgba(247, 181, 72, 0.18); opacity: 1; }
+  .lamp.aan .lik { background: rgb(var(--zon-k) / 0.18); opacity: 1; }
   .lik svg { width: 18px; height: 18px; }
   .lnaam { font-size: 14.5px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; text-decoration: none; }
   button.lnaam { border: 0; padding: 0; background: none; font-family: inherit; text-align: left; cursor: pointer; }
@@ -85,8 +85,8 @@
   .app { gap: 9px; }
   .app .kopje { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
   .app .kopje b { font-size: 16px; }
-  .app .ik { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgba(111, 211, 255, 0.14); }
-  .app .ik.warm { background: rgba(255, 122, 77, 0.14); }
+  .app .ik { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--ijs-k) / 0.14); }
+  .app .ik.warm { background: rgb(var(--gloed-k) / 0.14); }
   .app .ik svg { width: 22px; height: 22px; }
   .app .kw { font-family: var(--kop); font-size: 22px; font-weight: 600; text-align: right; line-height: 1.1; }
   .app .kw span { display: block; font-family: Figtree, sans-serif; font-size: 11.5px; font-weight: 500; color: var(--gedempt); }
@@ -94,11 +94,11 @@
   .app .stand i { width: 8px; height: 8px; border-radius: 50%; display: block; flex: none; }
   .labels { display: flex; gap: 6px; flex-wrap: wrap; }
   .label { height: 24px; padding: 0 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; background: rgb(var(--wit) / 0.07); color: var(--zacht); }
-  .label.zon { background: rgba(247, 181, 72, 0.14); color: var(--zon-t); }
+  .label.zon { background: rgb(var(--zon-k) / 0.14); color: var(--zon-t); }
   .vandaag { margin-top: auto; padding-top: 9px; border-top: 1px solid rgb(var(--wit) / 0.06); display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--gedempt); }
   .vandaag b { color: var(--tekst); font-weight: 600; font-size: 12.5px; }
   /* Camera's (20 november 2026, schets Wand-Apparaten-Cameras): het beeld zoals op Thuis, en wat er ook in zit. */
-  .app.cam.ziet { border-color: rgba(255, 122, 77, 0.32); }
+  .app.cam.ziet { border-color: rgb(var(--gloed-k) / 0.32); }
   .cambeeld { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; padding: 0; border-radius: 14px; overflow: hidden; cursor: pointer; background: linear-gradient(160deg, #3b4a5c, #1b2533); font: inherit; color: #eef3f7; text-align: left; }
   .cambeeld img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
   .cambeeld .camnaam, .cambeeld .camzin { position: absolute; left: 8px; display: inline-flex; align-items: center; gap: 5px; max-width: calc(100% - 16px); padding: 4px 9px; border-radius: 999px; background: rgba(9, 15, 28, 0.68); font-size: 11.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -108,7 +108,7 @@
   .cambeeld .camzin i { width: 7px; height: 7px; flex: none; border-radius: 50%; background: #8796a8; }
   .cambeeld.bel .camzin i { background: var(--zon); }
   .cambeeld.nu { box-shadow: inset 0 0 0 2px var(--gloed); }
-  .cambeeld.nu .camzin { background: rgba(255, 122, 77, 0.92); }
+  .cambeeld.nu .camzin { background: rgb(var(--gloed-k) / 0.92); }
   .cambeeld.nu .camzin i { background: #fff; animation: campuls 1.2s infinite; }
   @keyframes campuls { 50% { opacity: 0.35; } }
   .camerin .lamp { min-height: 46px; }
@@ -117,7 +117,7 @@
   .camerin .lnaam { font-size: 14px; font-weight: 600; min-width: 0; }
   .camerin .lnaam small { display: block; font-size: 12px; font-weight: 500; color: var(--gedempt); }
   .camerin .melder .lik { background: rgba(169, 156, 255, 0.12); color: #c9c0ff; opacity: 1; }
-  .camerin .melder.aan .lik { background: rgba(255, 122, 77, 0.18); color: var(--gloed); }
+  .camerin .melder.aan .lik { background: rgb(var(--gloed-k) / 0.18); color: var(--gloed); }
   .camblad .camlive { margin: 6px 2px 0; }
   .verdeel { height: 7px; border-radius: 4px; background: rgb(var(--wit) / 0.08); overflow: hidden; display: flex; }
   .verdeel i { display: block; height: 100%; }

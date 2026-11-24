@@ -44,7 +44,7 @@
   /* In het licht is wit onzichtbaar: het woord van nu in je eigen kleur (22 oktober 2026). */
   .sc-licht .zegt.loopt .w.nu { color: var(--accent); text-shadow: none; }
   .zegt .w.getal, .zegt.loopt .w.getal.al { color: var(--zon-t); }
-  .zegt.loopt .w.getal:not(.al) { color: rgba(247, 181, 72, 0.3); }
+  .zegt.loopt .w.getal:not(.al) { color: rgb(var(--zon-k) / 0.3); }
   .klein-zegt { margin: 14px 0 0; font-size: 16px; line-height: 1.5; color: var(--zacht); max-width: 46ch; }
   .klein-zegt.nogiets { color: var(--tekst); font-weight: 600; }
   .feiten { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
@@ -55,10 +55,10 @@
   /* Wat er veranderde (besluit 148): het apparaat met zijn nieuwe stand. */
   .gedaan { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
   .ding { display: grid; grid-template-columns: 38px auto; gap: 1px 12px; align-items: center; padding: 9px 15px 9px 9px; border-radius: 16px; background: rgb(var(--wit) / 0.05); border: 1px solid rgb(var(--wit) / 0.08); }
-  .ding.beweegt { border-color: rgba(111, 211, 255, 0.4); }
-  .ding .ik { grid-row: span 2; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgba(111, 211, 255, 0.12); }
+  .ding.beweegt { border-color: rgb(var(--ijs-k) / 0.4); }
+  .ding .ik { grid-row: span 2; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--ijs-k) / 0.12); }
   .ding .ik.lamp { background: rgba(255, 183, 101, 0.16); }
-  .ding .ik.violet { background: rgba(143, 134, 255, 0.18); }
+  .ding .ik.violet { background: rgb(var(--violet-k) / 0.18); }
   .ding .ik svg { width: 20px; height: 20px; }
   .ding b { font-family: var(--kop); font-size: 19px; font-weight: 600; }
   .ding span:last-child { font-size: 12.5px; color: var(--gedempt); }
@@ -68,10 +68,10 @@
   .sug { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 14px; border-radius: 18px; background: rgb(var(--nacht) / 0.72); border: 1px solid var(--glas-rand); backdrop-filter: blur(10px); color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .sug:hover { border-color: rgba(143, 196, 255, 0.45); }
   .sug:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
-  .sug .ik { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: rgba(111, 211, 255, 0.14); }
-  .sug .ik.zon { background: rgba(247, 181, 72, 0.16); }
-  .sug .ik.violet { background: rgba(143, 134, 255, 0.18); }
-  .sug .ik.warm { background: rgba(255, 122, 77, 0.16); }
+  .sug .ik { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: rgb(var(--ijs-k) / 0.14); }
+  .sug .ik.zon { background: rgb(var(--zon-k) / 0.16); }
+  .sug .ik.violet { background: rgb(var(--violet-k) / 0.18); }
+  .sug .ik.warm { background: rgb(var(--gloed-k) / 0.16); }
   .sug .ik.lamp { background: rgba(255, 183, 101, 0.16); }
   .sug .ik svg { width: 19px; height: 19px; }
   .sug b { display: block; font-size: 15px; }
@@ -95,9 +95,9 @@
   .stopscherm i { width: 13px; height: 13px; border-radius: 3px; background: #0b1424; display: block; }
   #tel .stopscherm { height: 44px; padding: 0 14px 0 12px; font-size: 14px; }
   /* De microfoon (besluit 150): tikken, praten; het huis stopt vanzelf als je stil bent. */
-  .mic { width: 50px; height: 50px; flex: none; border-radius: 50%; border: 0; display: grid; place-items: center; background: rgba(110, 231, 183, 0.16); color: var(--mint-t); cursor: pointer; }
+  .mic { width: 50px; height: 50px; flex: none; border-radius: 50%; border: 0; display: grid; place-items: center; background: rgb(var(--mint-k) / 0.16); color: var(--mint-t); cursor: pointer; }
   .mic:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
-  body.luistert .mic { background: var(--mint); color: #0b1424; box-shadow: 0 0 0 6px rgba(110, 231, 183, 0.18); }
+  body.luistert .mic { background: var(--mint); color: #0b1424; box-shadow: 0 0 0 6px rgb(var(--mint-k) / 0.18); }
   .niveau { flex: 1; display: flex; align-items: center; gap: 3px; height: 30px; padding: 0 12px; }
   .niveau i { flex: 1; border-radius: 2px; background: var(--mint); opacity: 0.8; min-height: 4px; }
   body.luistert .balkje form { display: none; }

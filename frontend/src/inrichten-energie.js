@@ -161,7 +161,7 @@ function schermRij(s) {
   const mag = d.bewoners?.ik?.magBeheren || s.ik;
   const o = s.opties ?? {};
   return `<div class="waarderij">${esc(s.naam)}<span>${esc(t(s.ik ? 'inr.ditScherm' : 'inr.scherm'))}</span></div>
-    <div class="rondom" style="margin-bottom: 8px">
+    <div class="rondom onder-8">
       ${schakel(`data-sopt="volledig" data-scherm="${esc(s.id)}"`, t('bewoners.volledig'), o.volledig === true, !mag)}
       ${schakel(`data-sopt="luisteren" data-scherm="${esc(s.id)}"`, t('bewoners.luistert'), o.luisteren === true, !mag)}
     </div>`;

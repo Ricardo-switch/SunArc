@@ -321,20 +321,20 @@ function kamerBlad(k) {
   }).join('');
   const klimaatRijen = zoneGroepen + klimaat.filter((d) => !inZone.has(d.id)).map(rij).join('');
   const delen = [
-    `<div class="bladkop"><div><h2 class="kop-2">${esc(k.naam)}</h2><p class="klein" style="margin: 4px 0 0">${esc(onder)}</p></div></div>`,
-    klimaat.length ? `<div><h3 class="kop-3" style="margin-bottom: 4px">${esc(t(klimaat.some((d) => d.soort === 'klimaat') ? 'kamer.klimaat' : 'nav.apparaten'))}</h3>${klimaatRijen}</div>` : '',
-    witgoed.length ? `<div><h3 class="kop-3" style="margin-bottom: 4px">${esc(t('apparaten.soort.witgoed'))}</h3>${witgoed.map(rij).join('')}</div>` : '',
+    `<div class="bladkop"><div><h2 class="kop-2">${esc(k.naam)}</h2><p class="klein geen-marge boven-4">${esc(onder)}</p></div></div>`,
+    klimaat.length ? `<div><h3 class="kop-3 onder-4">${esc(t(klimaat.some((d) => d.soort === 'klimaat') ? 'kamer.klimaat' : 'nav.apparaten'))}</h3>${klimaatRijen}</div>` : '',
+    witgoed.length ? `<div><h3 class="kop-3 onder-4">${esc(t('apparaten.soort.witgoed'))}</h3>${witgoed.map(rij).join('')}</div>` : '',
     lampen.length || schakelaars.length
-      ? `<div><div class="groepkop"><h3 class="kop-3">${esc(t('kamer.licht'))}</h3>${bedienen && lampen.some((d) => d.aan) ? `<button type="button" class="pil" data-alles-uit style="height: 30px; font-size: 13px; border: 0; color: inherit; cursor: pointer">${esc(t('kamer.allesUit'))}</button>` : ''}</div>${lampen.map(lamp).join('')}${schakelaars.map(battRij).join('')}${bedienen || !lampen.length ? '' : `<p class="mini" style="margin: 6px 0 0">${esc(t('kamer.lichtUit'))}</p>`}</div>`
+      ? `<div><div class="groepkop"><h3 class="kop-3">${esc(t('kamer.licht'))}</h3>${bedienen && lampen.some((d) => d.aan) ? `<button type="button" class="pil" data-alles-uit style="height: 30px; font-size: 13px; border: 0; color: inherit; cursor: pointer">${esc(t('kamer.allesUit'))}</button>` : ''}</div>${lampen.map(lamp).join('')}${schakelaars.map(battRij).join('')}${bedienen || !lampen.length ? '' : `<p class="mini geen-marge boven-8">${esc(t('kamer.lichtUit'))}</p>`}</div>`
       : '',
-    meters.length || sensoren.length ? `<div><h3 class="kop-3" style="margin-bottom: 4px">${esc(t('kamer.sensoren'))}</h3>${meters.map(meterRij).join('')}${sensoren.map(battRij).join('')}</div>` : '',
-    melders.length ? `<div><h3 class="kop-3" style="margin-bottom: 4px">${esc(t('kamer.veiligheid'))}</h3>${melders.map((d) => `<button type="button" class="rij${d.aan ? ' alarm' : ''}" data-open="${esc(d.id)}">${icoon(d)}<span class="naam"><b>${esc(d.naam)}</b><span>${esc(standTekst(d))}</span></span><span class="chev" aria-hidden="true">›</span></button>`).join('')}</div>` : '',
-    cameras.length ? `<div><h3 class="kop-3" style="margin-bottom: 8px">${esc(t('kamer.cameras', { n: cameras.length }))}</h3>${cameras.map((c) => `<div style="margin-bottom: 10px">${cameraBox(c)}</div>`).join('')}</div>` : '',
+    meters.length || sensoren.length ? `<div><h3 class="kop-3 onder-4">${esc(t('kamer.sensoren'))}</h3>${meters.map(meterRij).join('')}${sensoren.map(battRij).join('')}</div>` : '',
+    melders.length ? `<div><h3 class="kop-3 onder-4">${esc(t('kamer.veiligheid'))}</h3>${melders.map((d) => `<button type="button" class="rij${d.aan ? ' alarm' : ''}" data-open="${esc(d.id)}">${icoon(d)}<span class="naam"><b>${esc(d.naam)}</b><span>${esc(standTekst(d))}</span></span><span class="chev" aria-hidden="true">›</span></button>`).join('')}</div>` : '',
+    cameras.length ? `<div><h3 class="kop-3 onder-8">${esc(t('kamer.cameras', { n: cameras.length }))}</h3>${cameras.map((c) => `<div class="onder-12">${cameraBox(c)}</div>`).join('')}</div>` : '',
     // Hoe voelt het hier (besluit 134): dezelfde knoppen als op Thuis.
     // Ook in een kamer die meedoet (besluit 142): het gevoel telt voor die regeling.
-    (k.zoneId ?? k.meedoenMet?.zoneId) ? `<div><h3 class="kop-3" style="margin-bottom: 4px">${esc(t('kamer.gevoel'))}</h3><div class="gevoelblok">${gevoel.html({ zoneId: k.zoneId ?? k.meedoenMet.zoneId, state, kort: true })}</div></div>` : '',
+    (k.zoneId ?? k.meedoenMet?.zoneId) ? `<div><h3 class="kop-3 onder-4">${esc(t('kamer.gevoel'))}</h3><div class="gevoelblok">${gevoel.html({ zoneId: k.zoneId ?? k.meedoenMet.zoneId, state, kort: true })}</div></div>` : '',
     // Geen meters (besluit 129): welke sensoren meten kies je bij Indeling, en het gemiddelde staat bovenaan.
-    `<p class="mini regel-fout" data-fout style="margin: 0"></p>`,
+    `<p class="mini regel-fout geen-marge" data-fout></p>`,
   ];
   return delen.join('');
 }
@@ -380,7 +380,7 @@ function scenesVan(d, alles) {
         : 'background: linear-gradient(160deg, #3a4656, #1d2633)';
     return `<button type="button" class="scene" data-scene="${esc(sc.id)}" aria-pressed="${!!sc.actief && d.aan !== false}" style="${achter}" ${huisData.lichtBedienen ? '' : 'disabled'}><span>${esc(sc.naam)}</span></button>`;
   };
-  const meer = alles.length > 6 ? `<button type="button" class="pil" data-meer-scenes style="border: 0; color: inherit; cursor: pointer; margin-top: 8px">${esc(open ? t('kamer.minderScenes') : t('kamer.alleScenes', { n: alles.length }))}</button>` : '';
+  const meer = alles.length > 6 ? `<button type="button" class="pil boven-8" data-meer-scenes style="border: 0; color: inherit; cursor: pointer">${esc(open ? t('kamer.minderScenes') : t('kamer.alleScenes', { n: alles.length }))}</button>` : '';
   return `<div><div class="groepkop"><h3 class="kop-3">${esc(t('eigen.filter.scenes'))}</h3><span class="mini">${esc(t('kamer.uitHue'))}</span></div><div class="scenes">${lijst.map(knop).join('')}</div>${meer}</div>`;
 }
 
@@ -398,8 +398,8 @@ function apparaatBlad(k, d) {
   else if (soort === 'licht') inhoud = lampBlad(k, d);
   else if (soort === 'camera') inhoud = cameraBlad(d);
   else if (soort === 'rookmelder') inhoud = rookmelderBlad(d);
-  else if (soort === 'apparaat') inhoud = `${kopVan(d, 'zon-t')}<p class="klein" style="margin: 0">${esc(t('kamer.opZon'))}</p><a class="pil" href="apparaten.html" style="align-self: start">${esc(t('kamer.naarApparaten'))}</a>`;
-  else inhoud = `${kopVan(d, '')}<p class="klein" style="margin: 0">${esc(t(d.meetKamer ? 'kamer.meterRegelt' : 'kamer.meterInfo'))}</p>`;
+  else if (soort === 'apparaat') inhoud = `${kopVan(d, 'zon-t')}<p class="klein geen-marge">${esc(t('kamer.opZon'))}</p><a class="pil" href="apparaten.html" style="align-self: start">${esc(t('kamer.naarApparaten'))}</a>`;
+  else inhoud = `${kopVan(d, '')}<p class="klein geen-marge">${esc(t(d.meetKamer ? 'kamer.meterRegelt' : 'kamer.meterInfo'))}</p>`;
   return `${terug}${inhoud}`;
 }
 
@@ -414,10 +414,10 @@ function rookmelderBlad(d) {
   ].filter(([, w]) => w != null);
   return `${kopVan(d, r.gevaar ? 'alarm-t' : '')}
     ${feiten.map(([k, w]) => `<div class="feit"><b>${esc(k)}</b><span>${esc(w)}</span></div>`).join('')}
-    <p class="mini" style="margin: 0">${esc(t('kamer.melder.uitleg'))}</p>`;
+    <p class="mini geen-marge">${esc(t('kamer.melder.uitleg'))}</p>`;
 }
 
-const kopVan = (d, toon, rechts = '') => `<div class="bladkop"><div><h2 class="kop-2">${esc(d.naam)}</h2><p class="klein ${toon}" style="margin: 4px 0 0">${esc(standTekst(d))}</p></div>${rechts}</div>`;
+const kopVan = (d, toon, rechts = '') => `<div class="bladkop"><div><h2 class="kop-2">${esc(d.naam)}</h2><p class="klein ${toon} geen-marge boven-4">${esc(standTekst(d))}</p></div>${rechts}</div>`;
 
 /** De strook van vandaag voor een klimaatapparaat: wanneer het draaide, en licht wanneer SunArc het zou doen. */
 function strookVandaag(d, kleur) {
@@ -428,7 +428,7 @@ function strookVandaag(d, kleur) {
   const blok = (s, licht) => `<i style="left: ${pct(s.vanMs).toFixed(2)}%; width: ${Math.max(0.8, pct(s.totMs) - pct(s.vanMs)).toFixed(2)}%; background: ${kleur}; ${licht ? 'opacity: 0.32' : ''}"></i>`;
   const tijden = a.huidig.slice(-3).map((s) => `${klokVan(s.vanMs)}–${klokVan(s.totMs)}`);
   const zin = a.huidig.length ? t('kamer.draaide', { tijden: tijden.join(', ') }) : t('kamer.draaideNiet');
-  return `<div><b style="font-size: 14px">${esc(t('thuis.kaart.vandaag'))}</b><p class="mini" style="margin: 2px 0 8px">${esc(zin)}</p><div class="strook">${a.smartClimate.map((s) => blok(s, true)).join('')}${a.huidig.map((s) => blok(s, false)).join('')}<span class="nu" style="left: ${pct(Date.now()).toFixed(2)}%"></span></div><div class="uren"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div><p class="mini" style="margin: 6px 0 0">${esc(t('kamer.strookUitleg'))}</p></div>`;
+  return `<div><b style="font-size: 14px">${esc(t('thuis.kaart.vandaag'))}</b><p class="mini geen-marge boven-4 onder-8">${esc(zin)}</p><div class="strook">${a.smartClimate.map((s) => blok(s, true)).join('')}${a.huidig.map((s) => blok(s, false)).join('')}<span class="nu" style="left: ${pct(Date.now()).toFixed(2)}%"></span></div><div class="uren"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div><p class="mini geen-marge boven-8">${esc(t('kamer.strookUitleg'))}</p></div>`;
 }
 
 const MEEKIJKEN = t('kamer.meekijken');
@@ -442,7 +442,7 @@ let tekeningNr = 0;
  */
 function handBlad(k, d, a, soort) {
   return `${kopVan(d, d.aan ? (soort === 'airco' && !/warm/.test(d.stand) ? 'ijs-t' : 'gloed-t') : '')}
-    ${a.actief ? `<p class="klein" style="margin: -6px 0 0; color: var(--zon-t); font-weight: 600">${esc(huismodel.metHoofdletter(hand.nuZin(a)))}</p>` : ''}
+    ${a.actief ? `<p class="klein geen-marge" style="color: var(--zon-t); font-weight: 600">${esc(huismodel.metHoofdletter(hand.nuZin(a)))}</p>` : ''}
     <div data-handplek="${esc(a.id)}"></div>
     ${filterRegel(d)}
     ${knopRegel(d)}
@@ -491,8 +491,8 @@ function aircoBlad(k, d) {
   return `${kopVan(d, warm ? 'gloed-t' : d.aan ? 'ijs-t' : '')}
     <div class="beeld">${svg}</div>
     ${doelRij()}
-    ${k.zoneId ? `<div class="keuze" role="group" aria-label="${esc(t('kamer.watZou'))}">${keuzes.map((w) => `<button type="button" data-wens="${w}">${esc(t(`kamer.wens.${w}`))}</button>`).join('')}</div>` : `<p class="mini" style="margin: 0">${esc(t('kamer.geenRegeling'))}</p>`}
-    <div class="regel"><span class="bol" style="width: 18px; height: 18px; margin-top: 1px; flex: none"></span><span data-gezegd>${esc(gezegd.get(d.id) ?? MEEKIJKEN)}</span></div>
+    ${k.zoneId ? `<div class="keuze" role="group" aria-label="${esc(t('kamer.watZou'))}">${keuzes.map((w) => `<button type="button" data-wens="${w}">${esc(t(`kamer.wens.${w}`))}</button>`).join('')}</div>` : `<p class="mini geen-marge">${esc(t('kamer.geenRegeling'))}</p>`}
+    <div class="regel"><span class="bol geen-boven" style="width: 18px; height: 18px; flex: none"></span><span data-gezegd>${esc(gezegd.get(d.id) ?? MEEKIJKEN)}</span></div>
     ${filterRegel(d)}
     ${strookVandaag(d, kleur)}`;
 }
@@ -518,7 +518,7 @@ function knopRegel(d) {
   if (!knop) return '';
   const klep = knop.klepPct != null ? `<div class="feit"><span>${esc(t('kamer.knop.klep'))}</span><b>${esc(t('kamer.knop.open', { pct: nl(knop.klepPct, 0) }))}</b></div>` : '';
   const via = t(knop.koppeling === 'zha' ? 'kamer.knop.zha' : knop.koppeling === 'zigbee2mqtt' ? 'kamer.knop.z2m' : 'kamer.knop.anders');
-  return `${klep}<p class="mini" style="margin: 0">${esc(`${via} ${t('kamer.knop.later')}`)}</p>`;
+  return `${klep}<p class="mini geen-marge">${esc(`${via} ${t('kamer.knop.later')}`)}</p>`;
 }
 
 function nestBlad(k, d) {
@@ -548,7 +548,7 @@ function nestBlad(k, d) {
     <div class="beeld">${svg}</div>
     ${doelRij()}
     ${k.zoneId ? `<div class="keuze" role="group" aria-label="${esc(t('kamer.watZou'))}"><button type="button" data-wens="verwarmen">${esc(t('kamer.wens.verwarmen'))}</button><button type="button" data-wens="uit">${esc(t('kamer.wens.uit'))}</button></div>` : ''}
-    <div class="regel"><span class="bol" style="width: 18px; height: 18px; margin-top: 1px; flex: none"></span><span data-gezegd>${esc(gezegd.get(d.id) ?? MEEKIJKEN)}</span></div>
+    <div class="regel"><span class="bol geen-boven" style="width: 18px; height: 18px; flex: none"></span><span data-gezegd>${esc(gezegd.get(d.id) ?? MEEKIJKEN)}</span></div>
     ${knopRegel(d)}
     ${strookVandaag(d, '#FF7A4D')}`;
 }
@@ -645,8 +645,8 @@ function screenBlad(k, d) {
   return `${kopVan(d, '', pil)}
     <div class="beeld">${svg}</div>
     ${bedienen ? knoppen : ''}
-    <div class="regel"><span class="bol" style="width: 18px; height: 18px; margin-top: 1px; flex: none"></span><span>${esc(bedienen ? uitleg : t('kamer.scherm.uit'))}</span></div>
-    <p class="mini" data-fout style="margin: 0; color: var(--gloed-t)"></p>`;
+    <div class="regel"><span class="bol geen-boven" style="width: 18px; height: 18px; flex: none"></span><span>${esc(bedienen ? uitleg : t('kamer.scherm.uit'))}</span></div>
+    <p class="mini geen-marge" data-fout style="color: var(--gloed-t)"></p>`;
 }
 
 /*
@@ -660,7 +660,7 @@ function cameraBox(d) {
 function cameraBlad(d) {
   return `${kopVan(d, '')}
     ${cameraBox(d)}
-    <p class="mini" style="margin: 0">${esc(t('kamer.camera.uitleg'))}</p>`;
+    <p class="mini geen-marge">${esc(t('kamer.camera.uitleg'))}</p>`;
 }
 
 /** Het live beeld stoppen: de stroom loopt door tot het plaatje geen bron meer heeft. */
@@ -676,12 +676,12 @@ async function startCamera(box) {
     if (!box.isConnected) return;
     if (res.status === 401) {
       const terug = encodeURIComponent(location.pathname + location.hash);
-      box.innerHTML = `<p class="klein" style="margin: 0 0 12px">${esc(t('kamer.camera.inloggen'))}</p><a class="pil" href="auth/login?terug=${terug}">${esc(t('kamer.camera.inlogKnop'))}</a>`;
+      box.innerHTML = `<p class="klein geen-marge onder-12">${esc(t('kamer.camera.inloggen'))}</p><a class="pil" href="auth/login?terug=${terug}">${esc(t('kamer.camera.inlogKnop'))}</a>`;
       return;
     }
     if (!res.ok) {
       const uit = await res.json().catch(() => ({}));
-      box.innerHTML = `<p class="klein" style="margin: 0">${esc(uit.fout ?? uit.wachten ?? t('kamer.camera.geenBeeld'))}</p>`;
+      box.innerHTML = `<p class="klein geen-marge">${esc(uit.fout ?? uit.wachten ?? t('kamer.camera.geenBeeld'))}</p>`;
       return;
     }
     // Eerst het plaatje, dan live erover: zo staat er meteen iets.
@@ -701,7 +701,7 @@ async function startCamera(box) {
     live.onerror = () => box.querySelector('.live')?.replaceChildren(t('kamer.camera.plaatje'));
     live.src = `api/camera?id=${encodeURIComponent(id)}&live=1`;
   } catch {
-    if (box.isConnected) box.innerHTML = `<p class="klein" style="margin: 0">${esc(t('kamer.geenVerbinding'))}</p>`;
+    if (box.isConnected) box.innerHTML = `<p class="klein geen-marge">${esc(t('kamer.geenVerbinding'))}</p>`;
   }
 }
 
@@ -713,10 +713,10 @@ function lampBlad(k, d) {
   const delen = [
     kopVan(d, d.aan ? 'zon-t' : '', `<button type="button" class="schakelaar" role="switch" aria-checked="${d.aan}" aria-label="${esc(d.naam)}" data-schakel="${esc(d.id)}" ${bedienen ? '' : 'disabled'}></button>`),
   ];
-  if (d.dimbaar) delen.push(`<div><div class="feit" style="margin-bottom: 8px"><b>${esc(t('kamer.lamp.helderheid'))}</b><span data-helder-tekst>${d.aan ? `${d.helderheidPct ?? 100}%` : esc(t('eigen.lamp.uit'))}</span></div><input class="schuif${d.aan ? '' : ' uit'}" type="range" min="1" max="100" step="1" value="${d.aan ? (d.helderheidPct ?? 100) : 1}" aria-label="${esc(t('kamer.lamp.helderheidVan', { naam: d.naam }))}" data-helder="${esc(d.id)}" ${bedienen ? '' : 'disabled'}></div>`);
+  if (d.dimbaar) delen.push(`<div><div class="feit onder-8"><b>${esc(t('kamer.lamp.helderheid'))}</b><span data-helder-tekst>${d.aan ? `${d.helderheidPct ?? 100}%` : esc(t('eigen.lamp.uit'))}</span></div><input class="schuif${d.aan ? '' : ' uit'}" type="range" min="1" max="100" step="1" value="${d.aan ? (d.helderheidPct ?? 100) : 1}" aria-label="${esc(t('kamer.lamp.helderheidVan', { naam: d.naam }))}" data-helder="${esc(d.id)}" ${bedienen ? '' : 'disabled'}></div>`);
   if (wit && l.kleur) delen.push(`<div class="keuze" role="group" aria-label="${esc(t('kamer.lamp.witOfKleur'))}" style="grid-template-columns: 1fr 1fr"><button type="button" data-modus="wit" aria-pressed="${modus === 'wit'}">${esc(t('kamer.lamp.wit'))}</button><button type="button" data-modus="kleur" aria-pressed="${modus === 'kleur'}">${esc(t('kamer.lamp.kleur'))}</button></div>`);
   if (wit && (modus === 'wit' || !l.kleur)) {
-    delen.push(`<div><div class="feit" style="margin-bottom: 8px"><b>${esc(t('kamer.lamp.wit'))}</b><span>${esc(t('kamer.lamp.warmKoel'))}</span></div><input class="schuif wit" type="range" min="${wit.minK}" max="${wit.maxK}" step="50" value="${l.kelvin ?? Math.max(wit.minK, Math.min(wit.maxK, 2700))}" aria-label="${esc(t('kamer.lamp.witVan', { naam: d.naam }))}" data-kelvin="${esc(d.id)}" ${bedienen ? '' : 'disabled'}></div>`);
+    delen.push(`<div><div class="feit onder-8"><b>${esc(t('kamer.lamp.wit'))}</b><span>${esc(t('kamer.lamp.warmKoel'))}</span></div><input class="schuif wit" type="range" min="${wit.minK}" max="${wit.maxK}" step="50" value="${l.kelvin ?? Math.max(wit.minK, Math.min(wit.maxK, 2700))}" aria-label="${esc(t('kamer.lamp.witVan', { naam: d.naam }))}" data-kelvin="${esc(d.id)}" ${bedienen ? '' : 'disabled'}></div>`);
   } else if (!wit && d.kleurtemp) {
     delen.push(`<div class="keuze" role="group" aria-label="${esc(t('kamer.lamp.kleurWit'))}" style="grid-template-columns: repeat(3, 1fr)"><button type="button" data-kleur="warm">${esc(t('kamer.lamp.warm'))}</button><button type="button" data-kleur="neutraal">${esc(t('kamer.lamp.neutraal'))}</button><button type="button" data-kleur="koel">${esc(t('kamer.lamp.koel'))}</button></div>`);
   }
@@ -726,8 +726,8 @@ function lampBlad(k, d) {
     const r = (Math.min(100, s) / 100) * 110;
     delen.push(`<div class="wiel" role="slider" aria-label="${esc(t('kamer.lamp.kleurVan', { naam: d.naam }))}" aria-valuetext="${esc(t('kamer.lamp.tint', { tint: Math.round(h), verzadiging: Math.round(s) }))}" data-wiel="${esc(d.id)}"><i style="left: ${(110 + Math.cos(a) * r).toFixed(1)}px; top: ${(110 + Math.sin(a) * r).toFixed(1)}px; background: hsl(${Math.round(h)} ${Math.round(s)}% 60%)"></i></div>`);
   }
-  if (!bedienen) delen.push(`<p class="mini" style="margin: 0">${esc(t('kamer.lichtUit'))}</p>`);
-  delen.push(scenesVan(d, scenesBij(k, d)), `<p class="mini" data-fout style="margin: 0"></p>`);
+  if (!bedienen) delen.push(`<p class="mini geen-marge">${esc(t('kamer.lichtUit'))}</p>`);
+  delen.push(scenesVan(d, scenesBij(k, d)), `<p class="mini geen-marge" data-fout></p>`);
   return delen.join('');
 }
 

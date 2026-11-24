@@ -105,9 +105,9 @@ function tekenNu() {
     ...(snap.bewoner?.uitstelbaar ?? []).map((u) => ({ ik: 'witgoed', naam: u.naam, tag: ['', t('motor.zon.uitstel')], zin: [u.kop, u.zin].filter(Boolean).join(' · '), code: (e.deferrables ?? []).find((d) => d.id === u.id)?.reason ?? u.stand })),
   ];
   const zon = `<section class="glas mo-kaart" style="--o: 5"><h2>${esc(t('motor.zon.kop'))} <small>${esc(t('motor.zon.los'))}</small></h2>
-      ${opZon.length ? opZon.map((x) => `<div class="mo-besluit"><span class="ik">${iconen.svg(x.ik)}</span><b>${esc(x.naam)}</b>${tag(x.tag[0], x.tag[1])}<span class="zin">${esc(x.zin)}${code(x.code)}</span></div>`).join('') : `<p class="mo-zin" style="margin: 0">${esc(t('motor.zon.niets'))}</p>`}
+      ${opZon.length ? opZon.map((x) => `<div class="mo-besluit"><span class="ik">${iconen.svg(x.ik)}</span><b>${esc(x.naam)}</b>${tag(x.tag[0], x.tag[1])}<span class="zin">${esc(x.zin)}${code(x.code)}</span></div>`).join('') : `<p class="mo-zin geen-marge">${esc(t('motor.zon.niets'))}</p>`}
     </section>`;
-  const oud = snap.legacy ? `<section class="glas mo-kaart" style="--o: 6"><h2>${esc(t('motor.oud.kop'))} <small>${esc(t('motor.oud.tot'))}</small></h2><p class="mo-zin" style="margin: 0">${esc(oudTekst(snap.legacy))}</p></section>` : '';
+  const oud = snap.legacy ? `<section class="glas mo-kaart" style="--o: 6"><h2>${esc(t('motor.oud.kop'))} <small>${esc(t('motor.oud.tot'))}</small></h2><p class="mo-zin geen-marge">${esc(oudTekst(snap.legacy))}</p></section>` : '';
 
   // Wat er te verdelen is: per apparaat wat het kreeg, in de kleur van wat het doet.
   const kreeg = new Map();
@@ -119,7 +119,7 @@ function tekenNu() {
       <div class="mo-groot">${getal(Math.round(b.availableW))}<small>W</small></div>
       <div class="mo-stapel">${[...kreeg].map(([id, k]) => `<i style="width: ${(k.w / totaal) * 100}%; background: ${kleur(k.actie)}">${k.w / totaal > 0.3 ? esc(actNaam(id)) : ''}</i>`).join('')}</div>
       <div class="mo-leg">${[...kreeg].map(([id, k]) => `<span style="--k: ${kleur(k.actie)}">${esc(actNaam(id))} ${W(k.w)}</span>`).join('')}<span style="--k: rgb(255 255 255 / 0.15)">${esc(t('motor.verdeel.vrij', { w: W(vrij) }))}</span></div>
-      <div style="margin-top: 8px">${rij(t('motor.verdeel.toegewezen'), W(b.allocatedW), 'allocatedW')}${rij(t('motor.verdeel.overschot'), W(b.surplusW), 'surplusW')}${rij(t('motor.verdeel.terug'), W(b.reclaimableW), 'reclaimableW', t('motor.verdeel.terugZin'))}</div>
+      <div class="boven-8">${rij(t('motor.verdeel.toegewezen'), W(b.allocatedW), 'allocatedW')}${rij(t('motor.verdeel.overschot'), W(b.surplusW), 'surplusW')}${rij(t('motor.verdeel.terug'), W(b.reclaimableW), 'reclaimableW', t('motor.verdeel.terugZin'))}</div>
     </section>`;
   const kamers = `<section class="glas mo-kaart mo-vul" style="--o: 2"><h2>${esc(t('motor.kamer.kop'))}</h2>
       ${(e.perZone ?? []).map((z) => `<div class="mo-kamer"><b>${esc(zoneNaam(z.zoneId))}</b><span class="t">${z.temperatureC != null ? `${getal(z.temperatureC, 1)}°` : '–'} <small>${z.targetC != null ? esc(t('motor.kamer.naar', { doel: `${getal(z.targetC, 1)}°` })) : ''}</small></span><span>${z.demand === 'heat' ? tag('warm', t('motor.kamer.warm')) : z.demand === 'cool' ? tag('koel', t('motor.kamer.koel')) : tag('', t('motor.kamer.niets'))} ${esc(woord(`motor.reden.${z.reason}`, z.reason ?? ''))}${code(z.reason)}</span></div>`).join('')}
@@ -129,7 +129,7 @@ function tekenNu() {
   const rej = snap.rejected ?? [];
   const MAX = 4;
   const besluit = `<section class="glas mo-kaart mo-vul" style="--o: 1"><h2>${esc(t('motor.besluit.kop'))} <small>${esc(t('motor.besluit.zou'))}</small></h2>
-      ${acc.length ? acc.map((a) => `<div class="mo-besluit"><span class="ik">${iconen.svg(ikVan(a.actuatorId))}</span><b>${esc(actNaam(a.actuatorId))}</b>${actieTag(a.action)}<span class="zin">${esc(woord(`motor.regel.${a.strategyId}`, a.strategyId))}${a.budgetW ? ` · ${W(a.budgetW)}` : ''} · ${esc(t('motor.besluit.voorrang', { n: a.priority }))}${code(a.strategyId)}${nuZin(a.actuatorId) ? `<br>${esc(t('motor.besluit.nu', { zin: nuZin(a.actuatorId) }))}${code(snap.observed?.[a.actuatorId])}` : ''}</span></div>`).join('') : `<p class="mo-zin" style="margin: 0">${esc(t('motor.besluit.niets'))}</p>`}
+      ${acc.length ? acc.map((a) => `<div class="mo-besluit"><span class="ik">${iconen.svg(ikVan(a.actuatorId))}</span><b>${esc(actNaam(a.actuatorId))}</b>${actieTag(a.action)}<span class="zin">${esc(woord(`motor.regel.${a.strategyId}`, a.strategyId))}${a.budgetW ? ` · ${W(a.budgetW)}` : ''} · ${esc(t('motor.besluit.voorrang', { n: a.priority }))}${code(a.strategyId)}${nuZin(a.actuatorId) ? `<br>${esc(t('motor.besluit.nu', { zin: nuZin(a.actuatorId) }))}${code(snap.observed?.[a.actuatorId])}` : ''}</span></div>`).join('') : `<p class="mo-zin geen-marge">${esc(t('motor.besluit.niets'))}</p>`}
       ${rej.length ? `<div class="mo-tussen">${esc(t('motor.besluit.afgewezen'))}</div>${rej.slice(0, MAX).map((r) => `<div class="mo-besluit"><span class="ik">${iconen.svg(ikVan(r.intent.actuatorId))}</span><b>${esc(actNaam(r.intent.actuatorId))}</b>${tag('nee', t('motor.besluit.nee', { wat: woord(`motor.actie.${r.intent.action}`, r.intent.action) }))}<span class="zin">${esc(woord(`motor.blok.${r.blockedBy}`, r.blockedBy))}${r.blockedBy === 'insufficient_power_budget' && r.intent.budgetW ? `: ${esc(t('motor.blok.vraagt', { w: W(r.intent.budgetW), vrij: W(vrij) }))}` : ''}${code(r.blockedBy)}</span></div>`).join('')}${rej.length > MAX ? `<p class="mo-zin">${esc(t('motor.besluit.en', { n: rej.length - MAX }))}</p>` : ''}` : ''}
     </section>`;
   return `<div class="mo-kol">${meet}${zon}${oud}</div><div class="mo-kol">${verdeel}${kamers}</div><div class="mo-kol">${besluit}</div>`;
@@ -164,7 +164,7 @@ function tekenVandaag() {
     rijVan(t('motor.dag.oud'), (k, kw) => cel(kw, k.oud ? 'oud' : '')),
   ].join('');
   const as = `<span></span><div class="as">${['00', '03', '06', '09', '12', '15', '18', '21', '24'].map((u) => `<span>${u}</span>`).join('')}</div>`;
-  const leg = `<div class="mo-leg" style="margin-top: 14px"><span style="--k: var(--gloed)">${esc(t('motor.dag.leg.warm'))}</span><span style="--k: var(--ijs)">${esc(t('motor.dag.leg.koel'))}</span><span style="--k: var(--zon)">${esc(t('motor.dag.leg.zon'))}</span><span style="--k: var(--violet)">${esc(t('motor.dag.leg.net'))}</span><span style="--k: color-mix(in srgb, var(--violet) 70%, transparent)">${esc(t('motor.dag.leg.oud'))}</span><span class="anders">${esc(t('motor.dag.leg.anders'))}</span></div>`;
+  const leg = `<div class="mo-leg boven-16"><span style="--k: var(--gloed)">${esc(t('motor.dag.leg.warm'))}</span><span style="--k: var(--ijs)">${esc(t('motor.dag.leg.koel'))}</span><span style="--k: var(--zon)">${esc(t('motor.dag.leg.zon'))}</span><span style="--k: var(--violet)">${esc(t('motor.dag.leg.net'))}</span><span style="--k: color-mix(in srgb, var(--violet) 70%, transparent)">${esc(t('motor.dag.leg.oud'))}</span><span class="anders">${esc(t('motor.dag.leg.anders'))}</span></div>`;
   const tijdlijn = `<section class="glas mo-kaart" style="flex: 1"><h2>${esc(t('motor.dag.kop'))} <small>${esc(t('motor.dag.uitleg'))}</small></h2>
       <div class="mo-tijd">${regels}${as}</div>${leg}<p class="mo-zin">${esc(t('motor.dag.zin'))}</p></section>`;
   return `<div class="mo-kol">${tijdlijn}</div><div class="mo-kol">${tekenRonde()}</div>`;
@@ -221,7 +221,7 @@ function tekenGeleerd() {
     return `<div class="mo-kamer"><b>${esc(z.naam ?? zoneNaam(z.id))}</b><span class="t"><small>${esc(t('motor.warmte.zeker', { n: Math.min(z.zeker?.afkoelen ?? 0, 4) }))}</small></span><span>${esc(t('motor.warmte.afkoelen', { n: komma(z.k * 10) }))}${z.zonPerKw != null ? ` ${esc(t('motor.warmte.zon', { n: komma(z.zonPerKw) }))}` : ''}</span>${gemeten.map((a) => `<span class="mo-sub">${esc(t('motor.warmte.apparaat', { naam: a.naam, stand: stand(a), n: komma(Math.abs(a.perUur), 1) }))}</span>`).join('')}${nog.length ? `<span class="mo-sub">${esc(t('motor.warmte.nogNiet', { namen: nog.join(', ') }))}</span>` : ''}</div>`;
   };
   const warmte = `<section class="glas mo-kaart" style="--o: 3"><h2>${esc(t('motor.warmte.kop'))} <small>${esc(t('motor.warmte.uitleg'))}</small></h2>
-      ${thermisch?.zones?.length ? `${thermisch.zones.map(kamerWarmte).join('')}<p class="mo-zin">${esc(t('motor.warmte.zin', { dagen: getal(thermisch.dagen ?? 0) }))}</p>` : `<p class="mo-zin" style="margin: 0">${esc(t('motor.warmte.leert'))}</p>`}</section>`;
+      ${thermisch?.zones?.length ? `${thermisch.zones.map(kamerWarmte).join('')}<p class="mo-zin">${esc(t('motor.warmte.zin', { dagen: getal(thermisch.dagen ?? 0) }))}</p>` : `<p class="mo-zin geen-marge">${esc(t('motor.warmte.leert'))}</p>`}</section>`;
   const panelen = zonData?.panelen?.length
     ? `<section class="glas mo-kaart" style="--o: 4"><h2>${esc(t('motor.panelen.kop'))} <small>${esc(t('motor.panelen.uitleg'))}</small></h2>
       ${zonData.panelen.map((v, i) => rij(`${String.fromCharCode(65 + i)}`, esc(t('motor.panelen.vlak', { richting: richting(v.richtingGraden), helling: getal(v.hellingGraden), wp: `${getal(v.wattpiek)} Wp` })))).join('')}
@@ -231,7 +231,7 @@ function tekenGeleerd() {
   const vraagt = new Map();
   for (const x of [...(snap?.accepted ?? []), ...(snap?.rejected ?? []).map((r) => r.intent)]) if (x.budgetW > 0) vraagt.set(x.actuatorId, Math.max(vraagt.get(x.actuatorId) ?? 0, x.budgetW));
   const vermogens = `<section class="glas mo-kaart" style="--o: 5"><h2>${esc(t('motor.vraagt.kop'))} <small>${esc(t('motor.vraagt.uitleg'))}</small></h2>
-      ${vraagt.size ? [...vraagt].map(([id, w]) => rij(actNaam(id), W(w), 'budgetW')).join('') : `<p class="mo-zin" style="margin: 0">${esc(t('motor.vraagt.niets'))}</p>`}
+      ${vraagt.size ? [...vraagt].map(([id, w]) => rij(actNaam(id), W(w), 'budgetW')).join('') : `<p class="mo-zin geen-marge">${esc(t('motor.vraagt.niets'))}</p>`}
       <p class="mo-zin">${esc(t('motor.vraagt.zin'))}</p></section>`;
   // Drie kolommen op de wand; op de telefoon onder elkaar in de volgorde van --o.
   return `<div class="mo-kol">${seizoenen}${vermogens}</div><div class="mo-kol">${standen}${panelen}</div><div class="mo-kol">${warmte}</div>`;
@@ -262,7 +262,7 @@ function tekenVergelijken() {
   const strook = dagen.length
     ? `<section class="glas mo-kaart mo-strook"><h2>${esc(t('motor.dagen.kop'))} <small>${esc(t('motor.dagen.uitleg'))}</small></h2>
       <div class="mo-dagen">${dagen.map((x) => `<span class="naam">${esc(new Date(`${x.day}T12:00:00Z`).toLocaleDateString(taal.locale, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }))}</span><div class="rij">${[...x.states].map((c) => `<i class="${CEL[c] ?? ''}"></i>`).join('')}</div>`).join('')}<span></span><div class="as">${['00', '06', '12', '18', '24'].map((u) => `<span>${u}</span>`).join('')}</div></div>
-      <div class="mo-leg" style="margin-top: 10px"><span style="--k: var(--mint)">${esc(t('motor.dagen.eens'))}</span><span style="--k: var(--gloed)">${esc(t('motor.dagen.strenger'))}</span><span style="--k: var(--ijs)">${esc(t('motor.dagen.ruimer'))}</span><span style="--k: rgb(255 255 255 / 0.16)">${esc(t('motor.dagen.uit'))}</span><span style="--k: #ff8f8f">${esc(t('motor.dagen.failsafe'))}</span></div></section>`
+      <div class="mo-leg boven-12"><span style="--k: var(--mint)">${esc(t('motor.dagen.eens'))}</span><span style="--k: var(--gloed)">${esc(t('motor.dagen.strenger'))}</span><span style="--k: var(--ijs)">${esc(t('motor.dagen.ruimer'))}</span><span style="--k: rgb(255 255 255 / 0.16)">${esc(t('motor.dagen.uit'))}</span><span style="--k: #ff8f8f">${esc(t('motor.dagen.failsafe'))}</span></div></section>`
     : '';
   const tijd = (ms) => `${esc(new Date(ms).toLocaleDateString(taal.locale, { weekday: 'short', day: 'numeric', month: 'short' }))}<br>${esc(new Date(ms).toLocaleTimeString(taal.locale, { hour: '2-digit', minute: '2-digit', hour12: false }))}`;
   const verschil = d.episodes?.length

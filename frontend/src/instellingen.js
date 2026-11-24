@@ -170,7 +170,7 @@ function toonGevonden(veld) {
 
 /** Een gast (besluit 151): kijkt mee, en verandert geen instellingen. */
 const isGast = () => d.bewoners?.ik?.soort === 'gast';
-const GAST = `<h2 class="kop-3">${esc(t('instellingen.gast'))}</h2><p class="mini" style="margin: 2px 0 0">${esc(t('instellingen.gastZin'))}</p>`;
+const GAST = `<h2 class="kop-3">${esc(t('instellingen.gast'))}</h2><p class="mini geen-marge boven-4">${esc(t('instellingen.gastZin'))}</p>`;
 
 function tekenNu() {
   app.schaal();

@@ -120,9 +120,9 @@
       onder += `<p class="gevoelantwoord"><b>${esc(a.c != null ? t('gevoel.genoteerdBij', { woord, graden: graden(a.c) }) : t('gevoel.genoteerd', { woord }))}</b>${nu ? ` ${esc(t('gevoel.hetHuis', { zin: nu.charAt(0).toLowerCase() + nu.slice(1) }))}` : ''}</p>`;
       if (a.voorstel && !a.klaar) {
         onder += `<div class="gevoelvoorstel"><span class="wie">${esc(t('gevoel.anders'))}</span><span>${esc(a.voorstel.zin)}</span><div class="knoppen"><button type="button" class="licht" data-gevoel-ja="${esc(zoneId)}">${esc(t('gevoel.ja', { graden: graden(a.voorstel.v) }))}</button><button type="button" data-gevoel-nee="${esc(zoneId)}">${esc(t('gevoel.nee'))}</button></div></div>`;
-      } else if (a.klaar) onder += `<p class="mini" style="margin: 6px 0 0">${esc(a.klaar)}</p>`;
+      } else if (a.klaar) onder += `<p class="mini geen-marge boven-8">${esc(a.klaar)}</p>`;
     } else if (!kort) {
-      onder += `<p class="mini" style="margin: 6px 0 0">${esc(t('gevoel.uitleg'))}</p>`;
+      onder += `<p class="mini geen-marge boven-8">${esc(t('gevoel.uitleg'))}</p>`;
     }
     const l = !kort && !a?.voorstel ? leerde(zoneId) : null;
     if (l) {

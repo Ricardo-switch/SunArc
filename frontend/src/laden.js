@@ -96,7 +96,7 @@ const laden = (() => {
     }
     // Een laadpaal: wat hij kan, en waar hij staat (issue 164: ook als er een auto is).
     const kan = x.stroomA ? t('laden.paalKan', { min: x.stroomA.min, max: x.stroomA.max }) : t('laden.paalKanNiet');
-    return `${rol}<div class="ld-vraag"><b>${esc(t('laden.watHijKan'))}</b><p class="uitleg" style="margin: 0">${esc(kan)}</p></div>${bedienBlok(info, x)}${plek}`;
+    return `${rol}<div class="ld-vraag"><b>${esc(t('laden.watHijKan'))}</b><p class="uitleg geen-marge">${esc(kan)}</p></div>${bedienBlok(info, x)}${plek}`;
   }
 
   /** Een tik; true als er iets te bewaren is, 'teken' als alleen het beeld verandert. */

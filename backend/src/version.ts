@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.234.0';
+export const VERSIE = '0.235.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.235.0',
+    datum: '2026-11-24',
+    beter: [
+      'De ruimte tussen dingen is overal een van vijf vaste maten, in plaats van per plek net anders',
+    ],
+    en: {
+      beter: [
+        'The space between things is one of five fixed sizes everywhere, instead of slightly different in each place',
+      ],
+    },
+  },
   {
     versie: '0.234.0',
     datum: '2026-11-24',
