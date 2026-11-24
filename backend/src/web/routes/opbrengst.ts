@@ -22,6 +22,7 @@ import { isDal } from '../tarief.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { accuJaar } from '../accu.js';
 import { ThermischLeer } from '../thermisch.js';
+import { algemeen } from '../../taal/getal.js';
 
 /** De routes van dit onderwerp; waar als het verzoek hier is afgehandeld. */
 export async function opbrengstRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
@@ -362,7 +363,7 @@ export async function kostenDezeMaand(d: Diensten, config: SiteConfig, lang: Lan
   if (report == null) return null;
   const eerste = report.periode.label.split(' ')[0]!;
   // Een maand midden in een zin: in het Nederlands klein, in het Engels met een hoofdletter.
-  const maand = lang === 'nl' ? eerste.toLowerCase() : eerste;
+  const maand = algemeen(lang).maandInZin(eerste);
   // Een apparaat heet zoals in de app, niet zoals zijn meter (het klimaatapparaat bij die meter).
   const apparaten = (d.options.house?.()?.etages ?? []).flatMap((e) => e.ruimtes).flatMap((r) => r.apparaten);
   const naamVan = (meter: string, terug: string) => apparaten.find((d) => d.klimaat?.energieMeter === meter)?.naam ?? terug;

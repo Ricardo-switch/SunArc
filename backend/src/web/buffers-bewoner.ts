@@ -9,6 +9,7 @@ import type { HeatStore, SiteConfig } from '../core/model.js';
 import type { Lang } from './assistant.js';
 import { clockIn, nextLocalTime, startOfLocalDay } from './today.js';
 import { perTaal } from '../taal/index.js';
+import { komma } from '../taal/getal.js';
 
 export interface ResidentBuffer {
   readonly id: string;
@@ -42,7 +43,7 @@ export interface ResidentBuffer {
 const STEKKER = perTaal('stekker');
 
 // Met de hand een komma: Node in de add-on (Alpine) kent alleen Engelse getallen, en gaf "0.8 kW".
-const kwTekst = (w: number | undefined, lang: Lang) => (w == null ? null : lang === 'nl' ? (Math.round(w / 100) / 10).toFixed(1).replace('.', ',') : (Math.round(w / 100) / 10).toFixed(1));
+const kwTekst = (w: number | undefined, lang: Lang) => (w == null ? null : komma((Math.round(w / 100) / 10).toFixed(1), lang));
 
 const WOORDEN = perTaal('buffers');
 

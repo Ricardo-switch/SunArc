@@ -31,8 +31,14 @@ werkplaats: waar het omzetten staat, en hoe je een pagina omzet.
 - `taalVan()` in `backend/src/web/server.ts` leest `?taal=` of de kop `x-taal`;
   de app stuurt die mee met `haal()` en `stuur()` (`basis.js`). Een eigen
   `fetch` moet de kop zelf meegeven.
-- Woorden staan per bestand in een tabel `WOORDEN` (of `NAMEN`) met `nl` en
-  `en`. Wat bewaard wordt en duur is om te maken (het huis, Opbrengst), wordt
+- De zinnen van de dienst staan sinds besluit 344 in één bestand per taal:
+  `backend/src/taal/nl.ts` en `en.ts`, per onderwerp, met bij elk onderwerp het
+  bestand dat hem gebruikt. Een bestand haalt zijn tabel met
+  `perTaal('onderwerp')` en kiest `[lang]`. Wat de taal zelf bepaalt (de
+  decimale komma, de codes voor stem en verstaan, een maand midden in een zin)
+  staat onder `algemeen`; `komma()` en `algemeen()` in `taal/getal.ts`. Een
+  nieuwe zin in de dienst: in beide taalbestanden, nooit `lang === 'nl' ? …`
+  in de code. Wat bewaard wordt en duur is om te maken (het huis, Opbrengst), wordt
   per taal bewaard; wat goedkoop is, wordt per verzoek vertaald
   (`weatherInLang`, `todayInLang`, `keuzesInTaal`, `nieuwInTaal`).
 - Meldingen staan in een bestand: de dienst maakt ze in beide talen (`en` op
@@ -55,8 +61,11 @@ werkplaats: waar het omzetten staat, en hoe je een pagina omzet.
    `praten.test.ts`); een nieuwe zin voor Assist in beide lijsten in
    `zinnen.ts`, en `HEMS_ZINNEN_SCHRIJF=1` schrijft de voorbeelden voor de test
    in Home Assistant.
-3. Duits later ([172]): een derde kolom in elke `WOORDEN`-tabel en een
-   `teksten.de.js`.
+3. Duits later ([172]): `backend/src/taal/de.ts` (type `Teksten`, de
+   typecontrole zegt wat mist), `'de'` in `LANGS` (assistant-types.ts) en in
+   `perTaal` (taal/index.ts), en `frontend/kit/teksten.de.js`. De herkenwoorden
+   van de assistent (woordzoeker.ts, opdracht.ts, zinnen.ts) zijn verstaan, geen
+   tekst: Duitse woorden erbij in die lijsten.
 
 ## Een pagina omzetten
 

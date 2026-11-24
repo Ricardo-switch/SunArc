@@ -11,6 +11,10 @@ import type { HeatStoreExplanation } from '../core/decision.js';
 import { type Lang } from './assistant.js';
 import { type HouseClimate, type HouseDevice, type HouseReading, type HuisStekker, type StandCode } from './house-types.js';
 import { WOORDEN, decimaal, standNaOpdracht } from './house.js';
+import { perTaal } from '../taal/index.js';
+
+/** Losse zinnen van dit bestand, per taal (besluit 344). */
+const TAAL_ZIN = perTaal('apparaatZin');
 
 function readingText(r: HouseReading, lang: Lang): string {
   const parts = [r.temperatuurC == null ? null : `${decimaal(r.temperatuurC, lang)}°`, r.vochtPct == null ? null : `${Math.round(r.vochtPct)}%`];
@@ -166,7 +170,7 @@ export function stekkerOf(s: HuisStekker, state: HaEntityState | undefined, lang
     naam: s.naam,
     haNaam: s.naam,
     soort: 'apparaat',
-    stand: state == null || state.state === 'unavailable' ? WOORDEN[lang].meldtNogNiets : aan ? WOORDEN[lang].stekker['stookt']! : lang === 'en' ? 'off' : 'uit',
+    stand: state == null || state.state === 'unavailable' ? WOORDEN[lang].meldtNogNiets : aan ? WOORDEN[lang].stekker['stookt']! : TAAL_ZIN[lang].uit,
     standCode: aan ? 'draait' : 'uit',
     aan,
     helderheidPct: null,

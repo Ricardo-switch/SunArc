@@ -19,6 +19,7 @@
 import type { Lang } from './assistant.js';
 import { valutaTeken } from './valuta.js';
 import { perTaal } from '../taal/index.js';
+import { komma } from '../taal/getal.js';
 
 export type DalRegio = 'nl' | 'zuid' | 'eigen';
 
@@ -214,7 +215,6 @@ export interface Kosten {
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
-const komma = (s: string, lang: Lang) => (lang === 'nl' ? s.replace('.', ',') : s);
 /** Een prijs zoals op het contract: tot vijf decimalen, minstens twee. */
 const eur = (n: number, lang: Lang) => `${valutaTeken(lang)} ${komma(Math.abs(n) < 10 ? n.toFixed(5).replace(/0{1,3}$/, '') : n.toFixed(2), lang)}`;
 const kwh = (n: number, lang: Lang) => `${komma(String(Math.round(n * 10) / 10), lang)} kWh`;

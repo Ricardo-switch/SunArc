@@ -26,6 +26,10 @@ import { residentBuffers } from './buffers-bewoner.js';
 import { gewoon } from './woordzoeker.js';
 import { type Answer, type AskContext, type DecisionView, type Fact, LANGS, type Lang, type Parsed, QUESTION_KINDS, type Question, type RoomKind, type RoomStatus, type Wish, type ZonNu } from './assistant-types.js';
 import { perTaal } from '../taal/index.js';
+import { komma } from '../taal/getal.js';
+
+/** Losse zinnen van dit bestand, per taal (besluit 344). */
+const TAAL_ZIN = perTaal('antwoord');
 // Uit assistant-kort.ts (opgesplitst op 22 november 2026); wie dit bestand importeert, krijgt die namen ook.
 export * from './assistant-kort.js';
 // Uit assistant-types.ts (opgesplitst op 22 november 2026); wie dit bestand importeert, krijgt die namen ook.
@@ -43,16 +47,16 @@ function facadeSentence(zoninval: AskContext['zoninval'], lang: Lang): string | 
   if (zoninval == null || !zoninval.boven) return null;
   const list = zoninval.gevels.map((n) => withArticle(n, lang));
   if (list.length === 0) {
-    return lang === 'nl' ? 'De zon staat nu op geen van de gevels.' : 'The sun is not on any of the facades right now.';
+    return TAAL_ZIN[lang].zonNergens;
   }
-  const joined = list.join(lang === 'nl' ? ' en ' : ' and ');
-  return lang === 'nl' ? `De zon staat nu op ${joined}.` : `The sun is on ${joined} right now.`;
+  const joined = list.join(TAAL_ZIN[lang].verbind);
+  return TAAL_ZIN[lang].zonOp(joined);
 }
 
 /** "a, b en c". */
 function joinList(items: readonly string[], lang: Lang): string {
   if (items.length <= 1) return items.join('');
-  return `${items.slice(0, -1).join(', ')} ${lang === 'nl' ? 'en' : 'and'} ${items.at(-1)}`;
+  return `${items.slice(0, -1).join(', ')} ${TAAL_ZIN[lang].enWoord} ${items.at(-1)}`;
 }
 
 /**
@@ -64,15 +68,15 @@ function restSentence(f: Facts, weer: AskContext['weer'], lang: Lang): string | 
   const rest = weer.verwachtKwh == null ? 0 : Math.max(0, weer.verwachtKwh - weer.opgewektKwh);
   if (rest >= 0.05) {
     const r = f.energy('weer.rest', rest * 1000);
-    return lang === 'nl' ? `Er komt vandaag nog ongeveer ${r} zon bij.` : `About ${r} more sun is expected today.`;
+    return TAAL_ZIN[lang].komtVandaagNogOngeveer(r);
   }
   const m = weer.morgen;
   if (m?.verwachtKwh != null) {
     const k = f.energy('weer.morgen.verwacht', m.verwachtKwh * 1000);
-    return lang === 'nl' ? `Vandaag komt er weinig zon meer bij; morgen verwacht ik ${k} van je panelen.` : `Little more sun today; tomorrow I expect ${k} from your panels.`;
+    return TAAL_ZIN[lang].vandaagKomtWeinigZon(k);
   }
   if (weer.verwachtKwh == null) return null;
-  return lang === 'nl' ? 'Vandaag komt er weinig zon meer bij.' : 'Little more sun is expected today.';
+  return TAAL_ZIN[lang].vandaagKomtWeinigZon2;
 }
 
 /** "Beneden" blijft "Beneden"; "de wasruimte" wordt "in de wasruimte". */
@@ -198,7 +202,7 @@ class Facts {
   #num(n: number): string {
     const r = Math.round(n * 10) / 10;
     const s = Number.isInteger(r) ? String(r) : r.toFixed(1);
-    return this.#lang === 'nl' ? s.replace('.', ',') : s;
+    return komma(s, this.#lang);
   }
 
   /** Neemt de feiten over van een zin die in het antwoord komt. */
@@ -243,7 +247,7 @@ class Facts {
   /** Een bedrag: "€ 0,45", in de valuta van het huis. */
   euro(bron: string, n: number): string {
     const s = (Math.round(n * 100) / 100).toFixed(2);
-    return this.#add(bron, `${valutaTeken(this.#lang)} ${this.#lang === 'nl' ? s.replace('.', ',') : s}`);
+    return this.#add(bron, `${valutaTeken(this.#lang)} ${komma(s, this.#lang)}`);
   }
 
   /** Een duur in gewone woorden: "25 minuten", "1,5 uur". */
@@ -255,7 +259,7 @@ class Facts {
   }
 
   time(bron: string, ms: number): string {
-    const t = new Intl.DateTimeFormat(this.#lang === 'nl' ? 'nl-NL' : 'en-GB', {
+    const t = new Intl.DateTimeFormat(TAAL_ZIN[this.#lang].locale, {
       timeZone: this.#timeZone,
       hour: '2-digit',
       minute: '2-digit',
@@ -290,7 +294,7 @@ function zoneName(zone: Zone, lang: Lang): string {
 
 function deviceName(actuator: Actuator, lang: Lang): string {
   // Een apparaat altijd met lidwoord: "de Nest", "de airco woonkamer".
-  return lang === 'nl' ? `de ${inSentence(actuator.name)}` : `the ${actuator.name}`;
+  return TAAL_ZIN[lang].hetApparaat(inSentence(actuator.name), actuator.name);
 }
 
 export function cap(s: string): string {
@@ -302,12 +306,12 @@ function unreliableWords(config: SiteConfig, ids: readonly string[], lang: Lang)
   const words = new Set<string>();
   for (const id of ids) {
     const zone = config.zones.find((z) => z.temperature.id === id);
-    if (zone) words.add(lang === 'nl' ? `de temperatuur in ${zoneName(zone, lang)}` : `the temperature in ${zoneName(zone, lang)}`);
-    else if (config.power.gridPower?.id === id || config.power.gridExport?.id === id) words.add(lang === 'nl' ? 'de slimme meter' : 'the smart meter');
-    else if (config.solarProduction?.id === id || (config.solarExtra ?? []).some((p) => p.id === id)) words.add(lang === 'nl' ? 'de zonnepanelen' : 'the solar panels');
-    else words.add(lang === 'nl' ? 'een meting' : 'a measurement');
+    if (zone) words.add(TAAL_ZIN[lang].temperatuurIn(zoneName(zone, lang)));
+    else if (config.power.gridPower?.id === id || config.power.gridExport?.id === id) words.add(TAAL_ZIN[lang].slimmeMeter);
+    else if (config.solarProduction?.id === id || (config.solarExtra ?? []).some((p) => p.id === id)) words.add(TAAL_ZIN[lang].zonnepanelen);
+    else words.add(TAAL_ZIN[lang].meting);
   }
-  return [...words].join(lang === 'nl' ? ' en ' : ' and ');
+  return [...words].join(TAAL_ZIN[lang].verbind2);
 }
 
 /** "het is er 24,3° en het doel is 24°" — of minder, als er iets ontbreekt. */
@@ -316,23 +320,23 @@ function tempClause(f: Facts, zone: Zone, e: Explanation, lang: Lang): string {
   const parts: string[] = [];
   if (pz?.temperatureC != null) {
     const t = f.temp(`zone.${zone.id}.temperatuur`, pz.temperatureC);
-    parts.push(lang === 'nl' ? `het is er ${t}` : `it is ${t}`);
+    parts.push(TAAL_ZIN[lang].hetIsEr(t));
   }
   if (pz?.targetC != null) {
     const t = f.temp(`zone.${zone.id}.doel`, pz.targetC);
-    parts.push(lang === 'nl' ? `het doel is ${t}` : `the target is ${t}`);
+    parts.push(TAAL_ZIN[lang].doelIs(t));
   }
-  return parts.join(lang === 'nl' ? ' en ' : ' and ');
+  return parts.join(TAAL_ZIN[lang].verbind3);
 }
 
 /** Wat er van het net komt of teruggaat, als losse zin. */
 function gridSentence(f: Facts, e: Explanation, lang: Lang): string | null {
   const g = e.budget.gridPowerW;
   if (!Number.isFinite(g)) return null;
-  if (Math.abs(g) < 50) return lang === 'nl' ? 'Er gaat nu bijna niets van of naar het net.' : 'Almost nothing goes to or from the grid right now.';
+  if (Math.abs(g) < 50) return TAAL_ZIN[lang].gaatNuBijnaNiets;
   const p = f.power('budget.netvermogen', g);
-  if (g < 0) return lang === 'nl' ? `Er gaat nu ${p} terug naar het net.` : `${cap(p)} is going back to the grid right now.`;
-  return lang === 'nl' ? `Het huis haalt nu ${p} van het net.` : `The house is drawing ${p} from the grid right now.`;
+  if (g < 0) return TAAL_ZIN[lang].gaatNuTerugNaar(p, cap(p));
+  return TAAL_ZIN[lang].huisHaaltNuVan(p);
 }
 
 /**
@@ -344,11 +348,11 @@ function powerSentence(f: Facts, e: Explanation, lang: Lang, withSun: boolean): 
   if (!withSun || zon == null || zon <= 0) return gridSentence(f, e, lang);
   const p = f.power('zon.vermogen', zon);
   const g = e.budget.gridPowerW;
-  if (!Number.isFinite(g)) return lang === 'nl' ? `Je panelen leveren nu ${p}.` : `Your panels are producing ${p}.`;
-  if (Math.abs(g) < 50) return lang === 'nl' ? `Je panelen leveren nu ${p}, precies genoeg voor het huis.` : `Your panels are producing ${p}, just enough for the house.`;
+  if (!Number.isFinite(g)) return TAAL_ZIN[lang].panelenLeverenNu(p);
+  if (Math.abs(g) < 50) return TAAL_ZIN[lang].panelenLeverenNuPrecies(p);
   const q = f.power('budget.netvermogen', g);
-  if (g < 0) return lang === 'nl' ? `Je panelen leveren nu ${p}, en ${q} daarvan gaat terug naar het net.` : `Your panels are producing ${p}, and ${q} of it goes back to the grid.`;
-  return lang === 'nl' ? `Je panelen leveren nu ${p}; het huis haalt er ${q} van het net bij.` : `Your panels are producing ${p}; the house draws another ${q} from the grid.`;
+  if (g < 0) return TAAL_ZIN[lang].panelenLeverenNuEn(p, q);
+  return TAAL_ZIN[lang].panelenLeverenNuHuis(p, q);
 }
 
 /**
@@ -369,7 +373,7 @@ export function roomStatus(
   // Wat een apparaat van de kamer echt doet: verwarmt of koelt het, dan zegt de
   // zin dat ook, want in de schaduw regelt de oude regeling en kan dat anders zijn dan SunArc zou doen.
   const echt = shadow ? zone.actuatorIds.map((id) => ({ a: config.actuators.find((x) => x.id === id), doet: snap.observedAction?.[id] })).filter((x) => x.a && (x.doet === 'heating' || x.doet === 'cooling')) : [];
-  const erbij = echt.map(({ a, doet }) => (lang === 'nl' ? `${cap(deviceName(a!, lang))} ${doet === 'heating' ? 'verwarmt' : 'koelt'} nu.` : `${cap(deviceName(a!, lang))} is ${doet === 'heating' ? 'heating' : 'cooling'} right now.`));
+  const erbij = echt.map(({ a, doet }) => (TAAL_ZIN[lang].apparaatNu(cap(deviceName(a!, lang)), doet === 'heating' ? 'verwarmt' : 'koelt', doet === 'heating' ? 'heating' : 'cooling')));
   return { ...s, zin: [s.zin, ...erbij].join(' '), feiten: f.list };
 }
 
@@ -417,13 +421,13 @@ function statusOf(
     if (taken.untilMs == null) {
       return {
         kind: 'wait',
-        zin: lang === 'nl' ? `Je hebt ${dn} zelf in handen. ${ik ? 'Ik blijf' : 'SunArc blijft'} eraf tot je hem teruggeeft.` : `You have ${dn} in your own hands. ${ik ? 'I will leave' : 'SunArc leaves'} it until you hand it back.`,
+        zin: TAAL_ZIN[lang].hebtZelfInHanden(dn, ik ? 'Ik blijf' : 'SunArc blijft', ik ? 'I will leave' : 'SunArc leaves'),
       };
     }
     const t = f.time(`ingreep.${taken.actuatorId}.tot`, taken.untilMs);
     return {
       kind: 'wait',
-      zin: lang === 'nl' ? `Je hebt ${dn} zelf in handen, tot ${t}. Tot dan ${ik ? 'blijf ik' : 'blijft SunArc'} eraf.` : `You have ${dn} in your own hands until ${t}. ${ik ? 'I will leave' : 'SunArc leaves'} it until then.`,
+      zin: TAAL_ZIN[lang].hebtZelfInHanden2(dn, t, ik ? 'blijf ik' : 'blijft SunArc', ik ? 'I will leave' : 'SunArc leaves'),
     };
   }
 
@@ -436,7 +440,7 @@ function statusOf(
     let sun = '';
     if (onSun && e.solarProductionW != null && e.solarProductionW > 0) {
       const p = f.power('zon.vermogen', e.solarProductionW);
-      sun = lang === 'nl' ? `Je panelen leveren ${p}, dus dat kan op eigen stroom.` : `Your panels are producing ${p}, so it can run on your own power.`;
+      sun = TAAL_ZIN[lang].panelenLeverenDusDat(p);
     }
     const head =
       lang === 'nl'
@@ -459,16 +463,14 @@ function statusOf(
     return {
       kind: 'wait',
       zin:
-        lang === 'nl'
-          ? `${cap(dn)} ${shadow ? `zou ${wie} even stilzetten` : 'staat even stil'}, omdat ${w.reason[parked.reason]}. Komt er genoeg zon terug, dan gaat hij verder.`
-          : `${shadow ? `${who} would pause ${dn}` : `${cap(dn)} is paused`}, because ${w.reason[parked.reason]}. If enough sun comes back, it carries on.`,
+        TAAL_ZIN[lang].evenStilzettenStaatEven(cap(dn), shadow ? `zou ${wie} even stilzetten` : 'staat even stil', w.reason[parked.reason], shadow ? `${who} would pause ${dn}` : `${cap(dn)} is paused`),
     };
   }
 
   if (pz == null || pz.temperatureC == null) {
     return {
       kind: 'bad',
-      zin: lang === 'nl' ? (ik ? `Ik meet ${plek} nu geen temperatuur.` : `${cap(plek)} is nu geen temperatuur gemeten.`) : ik ? `I have no temperature for ${zn} right now.` : `There is no temperature for ${zn} right now.`,
+      zin: ik ? TAAL_ZIN[lang].geenTempIk(plek, zn) : TAAL_ZIN[lang].geenTemp(plek, zn),
     };
   }
 
@@ -486,9 +488,7 @@ function statusOf(
     const grid = sunBlock && withGrid ? gridSentence(f, e, lang) : null;
     // De redenen zijn bijzinnen ("er te weinig zon over is"); na "omdat" staan ze goed.
     const head =
-      lang === 'nl'
-        ? `${cap(zn)} wil ${w.infinitive[a]}: ${temps}. Dat wacht nog even, omdat ${why}.`
-        : `${cap(zn)} wants to ${w.infinitive[a]}: ${temps}. That has to wait, because ${why}.`;
+      TAAL_ZIN[lang].wilDatWachtNog(cap(zn), w.infinitive[a], temps, why);
     return { kind: 'wait', zin: grid ? `${head} ${grid}` : head };
   }
 
@@ -500,7 +500,7 @@ function statusOf(
   if (heatC == null && coolC == null) {
     return {
       kind: 'idle',
-      zin: lang === 'nl' ? `${Plek} is het ${t}. Er is nu geen doel${ik ? ', dus ik laat het zo' : ''}.` : `It is ${t} ${plek}. There is no target right now${ik ? ', so I leave it' : ''}.`,
+      zin: TAAL_ZIN[lang].geenDoel(Plek, t, ik ? ', dus ik laat het zo' : '', plek, ik ? ', so I leave it' : ''),
     };
   }
   const nl = lang === 'nl';
@@ -566,10 +566,10 @@ function realSentence(f: Facts, config: SiteConfig, snap: DecisionView, zone: Zo
     );
   }
   const out: string[] = [];
-  if (known.length > 0) out.push(lang === 'nl' ? `Nu staat ${joinList(known, lang)}.` : `Right now ${joinList(known, lang)}.`);
+  if (known.length > 0) out.push(TAAL_ZIN[lang].nuStaat(joinList(known, lang)));
   if (unknown.length > 0) {
     const names = joinList(unknown, lang);
-    out.push(lang === 'nl' ? `Hoe ${names} staat, weet ik niet.` : `I do not know the state of ${names}.`);
+    out.push(TAAL_ZIN[lang].hoeStaatWeetIk(names));
   }
   return out.join(' ');
 }
@@ -578,15 +578,11 @@ function realSentence(f: Facts, config: SiteConfig, snap: DecisionView, zone: Zo
 
 function unknownRoom(config: SiteConfig, said: string, lang: Lang): string {
   const names = joinList(config.zones.map((z) => inSentence(z.name)), lang);
-  return lang === 'nl'
-    ? `"${said}" ken ik niet als kamer. Ik ken ${names}.`
-    : `I do not know the room "${said}". I know ${names}.`;
+  return TAAL_ZIN[lang].kenIkNietAls(said, names);
 }
 
 function noDecision(lang: Lang): string {
-  return lang === 'nl'
-    ? 'Ik ben net opgestart en heb nog niets besloten. Vraag het me zo nog eens.'
-    : 'I have just started and have not decided anything yet. Ask me again in a moment.';
+  return TAAL_ZIN[lang].ikBenNetOpgestart;
 }
 
 const NO_DAY = {

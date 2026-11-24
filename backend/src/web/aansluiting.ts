@@ -32,6 +32,7 @@ import { leesDaken, piekVan, type Daken, type DakVlak, type KaartDakvlak, type K
 import { leesAccu, leesLaden, type AccuKeuze, type AccuView, type LadenKeuze, type LadenView } from './opslag.js';
 import { VOORKANT_ZON, aantalVan, dakUitAanpassing, dakUitMeting, dakenNu, liggingView, type Dak, type LiggingView, type Meting, type VoorkantZon } from './ligging.js';
 import { perTaal } from '../taal/index.js';
+import { komma } from '../taal/getal.js';
 
 export const CONNECTION_FILE = 'aansluiting.json';
 
@@ -1134,7 +1135,7 @@ export function connectionView(c: ConnectionContext, lang: Lang = 'nl'): Connect
       zekering: grid && grid.phases.length > 0 ? { fasen: grid.phases.length === 3 ? 3 : 1, ampere: grid.phases[0]!.maxA } : null,
       apparaten: [...(c.base.deferrables ?? []), ...(c.base.heatStores ?? [])].map((d) => ({ id: d.id, naam: d.name })),
       // Met de hand een komma: Node in de add-on kent alleen Engelse getallen.
-      panelen: planes.map((pl) => `${lang === 'nl' ? String(Math.round(pl.peakW / 100) / 10).replace('.', ',') : String(Math.round(pl.peakW / 100) / 10)} kWp ${compass(pl.azimuthDeg, lang)}, ${Math.round(pl.tiltDeg)}°`),
+      panelen: planes.map((pl) => `${komma(String(Math.round(pl.peakW / 100) / 10), lang)} kWp ${compass(pl.azimuthDeg, lang)}, ${Math.round(pl.tiltDeg)}°`),
     },
     zonnesensor: c.solar
       ? {

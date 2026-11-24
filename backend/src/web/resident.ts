@@ -27,6 +27,10 @@ import { residentDoet, type ResidentDoet } from './doet.js';
 import { BASIS_ZONDER_METER_W } from './energy.js';
 import { standNu, type ResidentStand, type StandOpties } from './stand-nu.js';
 import { perTaal } from '../taal/index.js';
+import { komma } from '../taal/getal.js';
+
+/** Losse zinnen van dit bestand, per taal (besluit 344). */
+const TAAL_ZIN = perTaal('bewonerZin');
 
 export interface ResidentHeadline {
   /** "Nu · Dag", met "(gekozen)" als de bewoner de modus koos. */
@@ -164,7 +168,7 @@ function dagdeelVan(ms: number, tz: string): Dagdeel {
 const kies = <T>(lijst: readonly T[], ms: number): T => lijst[Math.floor(ms / 10_800_000) % lijst.length]!;
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
-const decimal = (n: number, lang: Lang) => (lang === 'nl' ? String(round1(n)).replace('.', ',') : String(round1(n)));
+const decimal = (n: number, lang: Lang) => komma(String(round1(n)), lang);
 
 /** "de woonkamer", "de zolder" → "de woonkamer en de zolder": de namen hebben hun lidwoord al. */
 function joinRooms(names: readonly string[], lang: Lang): string {
@@ -422,7 +426,7 @@ function readySteps(config: SiteConfig, nowMs: number, durationMin: number, lang
     .map((waarde) => ({ waarde, ms: nextLocalTime(nowMs, waarde, config.timezone) }))
     .filter((c) => c.ms >= earliest && c.ms <= nowMs + 24 * 3_600_000)
     .sort((a, b) => a.ms - b.ms)
-    .map((c) => ({ waarde: c.waarde, klaarMs: c.ms, beginMs: c.ms - durationMin * 60_000, tekst: dayOf(c.ms) === dayOf(nowMs) ? c.waarde : `${lang === 'nl' ? 'morgen' : 'tomorrow'} ${c.waarde}` }));
+    .map((c) => ({ waarde: c.waarde, klaarMs: c.ms, beginMs: c.ms - durationMin * 60_000, tekst: dayOf(c.ms) === dayOf(nowMs) ? c.waarde : `${TAAL_ZIN[lang].morgen} ${c.waarde}` }));
 }
 
 /**
@@ -437,5 +441,5 @@ function readyChoices(config: SiteConfig, nowMs: number, durationMin: number, la
     .filter((c) => c.ms >= earliest)
     .sort((a, b) => a.ms - b.ms)
     .slice(0, 3)
-    .map((c) => ({ waarde: c.waarde, tekst: dayOf(c.ms) === dayOf(nowMs) ? c.waarde : `${lang === 'nl' ? 'morgen' : 'tomorrow'} ${c.waarde}` }));
+    .map((c) => ({ waarde: c.waarde, tekst: dayOf(c.ms) === dayOf(nowMs) ? c.waarde : `${TAAL_ZIN[lang].morgen2} ${c.waarde}` }));
 }

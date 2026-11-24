@@ -34,6 +34,7 @@ import { outsideFromNames, proposeLayout, roomForName, roomTypeFromNames } from 
 import { type ActieCode, type DeviceKind, type Drempels, type HouseBattery, type HouseClimate, type HouseClimateHa, type HouseDevice, type HouseFloor, type HouseReading, type HouseRegisters, type HouseReport, type HouseRoom, type HouseScene, type HouseSummary, type HouseToegang, type HuisLigging, type HuisStekker, type StandCode } from './house-types.js';
 import { applianceOf, bufferOf, cameraOf, climateOf, coverOf, lightOf, meterOf, rookmelderOf, stekkerOf } from './house-apparaat.js';
 import { perTaal } from '../taal/index.js';
+import { komma } from '../taal/getal.js';
 // Uit house-apparaat.ts (opgesplitst op 22 november 2026); wie dit bestand importeert, krijgt die namen ook.
 export * from './house-apparaat.js';
 // Uit house-types.ts (opgesplitst op 22 november 2026); wie dit bestand importeert, krijgt die namen ook.
@@ -130,7 +131,7 @@ const ACTIE_CODE: Readonly<Record<string, ActieCode>> = {
 export function decimaal(n: number, lang: Lang): string {
   const r = Math.round(n * 10) / 10;
   const s = Number.isInteger(r) ? String(r) : r.toFixed(1);
-  return lang === 'nl' ? s.replace('.', ',') : s;
+  return komma(s, lang);
 }
 
 /**

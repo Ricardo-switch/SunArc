@@ -27,6 +27,7 @@
 import type { Actuator, SiteConfig, Zone } from '../core/model.js';
 import { cap, withArticle, type DecisionView, type Lang } from './assistant.js';
 import { perTaal } from '../taal/index.js';
+import { komma } from '../taal/getal.js';
 
 type Kant = 'heat' | 'cool';
 export type Wanneer = 'pauze' | 'zon' | 'nog' | 'morgen' | 'zo' | 'beurt' | 'zekering';
@@ -57,7 +58,7 @@ const WOORD = perTaal('doet');
 
 const graden = (n: number, lang: Lang) => {
   const s = String(Math.round(n * 10) / 10);
-  return lang === 'nl' ? s.replace('.', ',') : s;
+  return komma(s, lang);
 };
 
 const UIT = new Set(['', 'off', 'onbekend', 'unavailable', 'unknown']);

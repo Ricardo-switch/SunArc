@@ -13,6 +13,11 @@
 import type { Lang } from './assistant.js';
 import { APPARAAT, stemOpties, stemUit, taalVanStem, type StemOptie } from './stemmen.js';
 import { uitspraak } from './uitspraak.js';
+import { perTaal } from '../taal/index.js';
+import { algemeen } from '../taal/getal.js';
+
+/** Losse zinnen van dit bestand, per taal (besluit 344). */
+const TAAL_ZIN = perTaal('stem');
 
 export interface StemOpties {
   /** De http-basis van Home Assistant, zoals voor de camera's. */
@@ -37,7 +42,7 @@ type Vast = { readonly engine: string; readonly voice: string };
  */
 export function kiesTaal(talen: readonly string[], lang: Lang = 'nl'): string | null {
   const deze = talen.filter((t) => new RegExp(`^${lang}([_-]|$)`, 'i').test(t));
-  const voorkeur = lang === 'nl' ? [/^nl[_-]nl$/i, /^nl$/i] : [/^en[_-]gb$/i, /^en[_-]us$/i, /^en$/i];
+  const voorkeur = algemeen(lang).stemCodes.map((c) => new RegExp(`^${c.replace('_', '[_-]')}$`, 'i'));
   for (const re of voorkeur) {
     const t = deze.find((x) => re.test(x));
     if (t) return t;
@@ -176,7 +181,7 @@ export class Stem {
     const f = this.#o.fetch ?? fetch;
     const kop = { authorization: `Bearer ${this.#o.token}`, 'content-type': 'application/json' };
     const t = vast ? { taal: taalVanStem(vast.voice), voice: vast.voice } : await this.taalVoor(lang);
-    if (this.#o.talen && t.taal == null) throw new Error(lang === 'nl' ? 'de stem in Home Assistant heeft geen Nederlands' : 'de stem in Home Assistant heeft geen Engels');
+    if (this.#o.talen && t.taal == null) throw new Error(TAAL_ZIN[lang].stemInHomeAssistant);
     const r = await f(`${this.#o.base}/api/tts_get_url`, {
       method: 'POST',
       headers: kop,

@@ -24,6 +24,10 @@ import type { HouseReport } from './house.js';
 import { gewoon } from './woordzoeker.js';
 import { metLidwoord } from './kamerwoorden.js';
 import { momentWoorden, SFEERMOMENT, type Lichtrecept } from './lichtrecept.js';
+import { perTaal } from '../taal/index.js';
+
+/** Losse zinnen van dit bestand, per taal (besluit 344). */
+const TAAL_ZIN = perTaal('opdracht');
 
 /* ------------------------------------------------------------ de lijst */
 
@@ -342,10 +346,10 @@ const SFEER = /\b(sfeer\w*|gezellig\w*|avond\w*|knus|cosy|cozy|relax\w*|mood|eve
 function sfeerVoor(b: Bedienbaar, doel: Extract<LichtDoel, { soort: 'kamer' | 'zone' }>, lang: Lang): string | null {
   const lampen = doel.soort === 'zone' ? doel.zone.lampen : doel.kamer.lampen;
   const sfeerLampen = lampen.filter((l) => SFEER.test(gewoon(l.naam)));
-  if (sfeerLampen.length && sfeerLampen.length < lampen.length) return `${sfeerLampen[0]!.naam} ${lang === 'nl' ? 'aan' : 'on'}`;
+  if (sfeerLampen.length && sfeerLampen.length < lampen.length) return `${sfeerLampen[0]!.naam} ${TAAL_ZIN[lang].aan}`;
   if (doel.soort !== 'kamer') return null;
   const scene = b.scenes.find((s) => s.kamer === doel.kamer.naam && SFEER.test(gewoon(s.naam)));
-  return scene ? `${lang === 'nl' ? 'scène' : 'scene'} ${scene.naam}` : null;
+  return scene ? `${TAAL_ZIN[lang].scene} ${scene.naam}` : null;
 }
 
 /** Na het licht: de andere lampen in dezelfde kamer, en alles uit. */
@@ -374,12 +378,12 @@ export function sceneOpdracht(scene: BedienScene, b: Bedienbaar, lang: Lang): He
       soort: 'scene',
       pad: 'api/scene',
       body: { id: scene.id },
-      antwoord: lang === 'nl' ? `Scène ${scene.naam} staat aan.` : `Scene ${scene.naam} is on.`,
+      antwoord: TAAL_ZIN[lang].sceneStaatAan(scene.naam),
       feiten: naamFeit(scene.naam),
-      gedaan: [{ soort: 'scene', waarde: scene.naam, uitleg: lang === 'nl' ? `Scène, ${scene.kamer.toLowerCase()}` : `Scene, ${scene.kamer}` }],
+      gedaan: [{ soort: 'scene', waarde: scene.naam, uitleg: TAAL_ZIN[lang].scene2(scene.kamer.toLowerCase(), scene.kamer) }],
       beweegt: null,
       ruimte: kamer?.id ?? null,
-      vervolg: !kamer ? [] : lang === 'nl' ? [{ label: `Licht ${kamerZin(kamer.naam)} uit`, tekst: `licht ${kamer.naam} uit` }] : [{ label: `Lights in ${kamer.naam} off`, tekst: `lights ${kamer.naam} off` }],
+      vervolg: !kamer ? [] : TAAL_ZIN[lang].lichtUit(kamer.naam, kamerZin(kamer.naam)),
     },
   };
 }

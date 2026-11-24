@@ -8,6 +8,10 @@ import type { SiteConfig, Zone } from '../core/model.js';
 import { type DecisionView, type Lang, type RoomKind } from './assistant-types.js';
 import { roomStatus } from './assistant.js';
 import { perTaal } from '../taal/index.js';
+import { komma } from '../taal/getal.js';
+
+/** Losse zinnen van dit bestand, per taal (besluit 344). */
+const TAAL_ZIN = perTaal('algemeen');
 
 /* ------------------------------------------------- de stand per kamer, kort */
 
@@ -55,7 +59,7 @@ function shortStatusOf(
   const taken = (e.overrides ?? []).find((o) => ids.has(o.actuatorId));
   if (taken) {
     if (taken.untilMs == null) return { soort: 'wait', kort: w.taken, actuatorId: null, hand: true };
-    const t = new Intl.DateTimeFormat(lang === 'nl' ? 'nl-NL' : 'en-GB', {
+    const t = new Intl.DateTimeFormat(TAAL_ZIN[lang].locale, {
       timeZone: config.timezone,
       hour: '2-digit',
       minute: '2-digit',
@@ -111,7 +115,7 @@ function realShort(config: SiteConfig, snap: DecisionView, zone: Zone, lang: Lan
     if (state === '' || state === 'off' || state === 'onbekend' || state === 'unavailable' || state === 'unknown') continue;
     const word = w.action[state] ?? state;
     const n = sp == null ? NaN : Number(sp);
-    const at = Number.isFinite(n) ? ` ${w.towards} ${lang === 'nl' ? String(Math.round(n * 10) / 10).replace('.', ',') : String(Math.round(n * 10) / 10)}°` : '';
+    const at = Number.isFinite(n) ? ` ${w.towards} ${komma(String(Math.round(n * 10) / 10), lang)}°` : '';
     parts.push(`${a.name} ${word}${at}`);
   }
   return parts.length === 0 ? w.off : parts.join(', ');

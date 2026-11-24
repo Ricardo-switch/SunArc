@@ -34,6 +34,10 @@ import { sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
 import { kostenDezeMaand } from './opbrengst.js';
 import { intentieVoor } from '../zinnen.js';
+import { perTaal } from '../../taal/index.js';
+
+/** Losse zinnen van dit bestand, per taal (besluit 344). */
+const TAAL_ZIN = perTaal('vraagRoute');
 
 /** De routes van dit onderwerp; waar als het verzoek hier is afgehandeld. */
 export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
@@ -234,7 +238,7 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
       // Zeg het, in Nieuw bij Vast en gepland (besluit 240): alleen een voorstel, er wordt niets bewaard of gedaan.
       if (url.searchParams.get('voorstel') === '1') {
         const g = tedoen && lijst && !viaSleutel ? await planZin(d, tedoen.herinneringen, tekst, lijst, await d.bezoeker(req), config.timezone, lang, url.searchParams.get('scherm'), tedoen.naamVan, Date.now(), denkLater, true).catch(() => null) : null;
-        const geen = lang === 'nl' ? 'Zeg wat en wanneer, bijvoorbeeld: elke dag na zonsondergang de screens dicht.' : 'Say what and when, for example: close the screens every day after sunset.';
+        const geen = TAAL_ZIN[lang].zegWatEnWanneer;
         return stuur({ body: g ?? { vraag: 'tedoen', taal: lang, kamer: null, antwoord: geen, feiten: [], gesproken: uitspraak(geen, lang), voorstel: null }, terug: null });
       }
       if (tedoen && !viaSleutel) {
@@ -243,9 +247,7 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
       }
       // Via Assist van Home Assistant zet SunArc niets op een lijst (de integratie leest alleen): zeg dat eerlijk, in plaats van "dat begrijp ik niet" (ronde 5).
       if (tedoen && viaSleutel && leesLijstZin(tekst)) {
-        const antwoord = lang === 'nl'
-          ? 'Iets op een lijst zetten doe ik via de app, op de wand of je telefoon. Via deze spraakassistent kan het met "Opdrachten bij voorkeur lokaal afhandelen" aan in Home Assistant.'
-          : 'I put things on a list through the app, on the wall or your phone. Through this voice assistant it works with "Prefer handling commands locally" switched on in Home Assistant.';
+        const antwoord = TAAL_ZIN[lang].ietsOpLijstZetten;
         return stuur({ body: { vraag: 'tedoen', taal: lang, kamer: null, antwoord, feiten: [], gesproken: uitspraak(antwoord, lang) }, terug: null });
       }
       // Later uitvoeren (besluit 218): "zet over vijf minuten de lamp aan", "na zonsondergang de screens dicht".
@@ -292,7 +294,7 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
             }
             const r = brug?.(s.wens, s.kamer, s.temperatuurC, lang) ?? null;
             if (r?.ok) stukken.push({ antwoord: r.antwoord, feiten: r.feiten, stappen: [r.opdracht], gedaan: r.gedaan, ruimte: null });
-            else nee.push(r?.antwoord ?? (lang === 'nl' ? 'Het klimaat bedien ik niet: de klimaatbrug staat uit.' : 'I do not operate the climate: the climate bridge is off.'));
+            else nee.push(r?.antwoord ?? (TAAL_ZIN[lang].klimaatBedienIkNiet));
           }
           if (stukken.length) return stuur(await bedienAntwoord(samen(stukken), tekst, lang, woorden, leeg, nee.length ? null : plan.zin, nee));
           const antwoord = nee[0]!;

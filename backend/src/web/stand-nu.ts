@@ -16,7 +16,7 @@
 
 import type { Mode, SiteConfig, Zone } from '../core/model.js';
 import { HEAT_ASSIST_DEFAULTS } from '../core/strategies/heatAssist.js';
-import { cap, inSentence, withArticle, type DecisionView, type Lang } from './assistant.js';
+import { cap, withArticle, type DecisionView, type Lang } from './assistant.js';
 import { clockIn, partsIn } from './today.js';
 import { perTaal } from '../taal/index.js';
 
@@ -172,7 +172,7 @@ export function standNu(config: SiteConfig, snap: DecisionView, lang: Lang = 'nl
       const sleutel = `bij:${i.actuatorId}`;
       actief.add(sleutel);
       const sinds = sindsVan(geheugen, sleutel, snap.atMs);
-      const apparaat = lang === 'nl' ? cap(`de ${inSentence(a?.name ?? 'airco')}`) : `The ${a?.name ?? 'air conditioner'}`;
+      const apparaat = w.bijApparaat(a?.name);
       meldingen.push({ soort: 'bijspringen', wat: w.bijWat(apparaat, withArticle(zone?.name ?? i.zoneId, lang), zou), hoe: w.bijHoe(te), waarde: sinds != null ? w.sinds(klokVan(sinds)) : '', knop: w.bijKnop(bij.length > 1, zou), kort: cap(w.bijKnop(bij.length > 1, zou)) });
     }
   }

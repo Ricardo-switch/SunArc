@@ -146,7 +146,8 @@ verwijzing bestaat.
   airco's verwarmt, kiest dat bij Energie › Verwarming: geen cv-onderdelen, en
   een airco houdt elke kamer ([342]). Wie de zon krijgt die over is, staat in
   één lijst bij Energie › De zon verdelen, met een marge en knoppen met de hand
-  die pas ingaan als SunArc zelf regelt ([343]).
+  die pas ingaan als SunArc zelf regelt ([343]). De zinnen van de dienst
+  staan in één bestand per taal, en de app heeft minder teksten ([344]).
 - **Elke opstelling werkt:** de regeling doet wat de opstelling toelaat en zegt
   wat ze daardoor niet kan ([70]). Geavanceerde functies volgen uit wat het huis
   heeft; ingrijpende vragen een bewuste keuze ([78]).
@@ -1118,4 +1119,5 @@ verwijzing bestaat.
 [341]: DECISIONS.md#341-de-assistent-een-kamer-zonder-regeling-en-wat-de-boiler-doet
 [342]: DECISIONS.md#342-alleen-aircos-als-warmtebron
 [343]: DECISIONS.md#343-de-zon-verdelen-één-lijst-voor-wie-de-zon-krijgt
+[344]: DECISIONS.md#344-klaar-voor-een-nieuwe-taal-de-dienst-in-één-bestand-per-taal-minder-teksten
 <!-- links:einde -->

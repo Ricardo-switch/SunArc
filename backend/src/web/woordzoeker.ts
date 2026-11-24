@@ -16,6 +16,9 @@ import type { SiteConfig } from '../core/model.js';
 import type { Lang, Question, Wish } from './assistant.js';
 import { perTaal } from '../taal/index.js';
 
+/** Losse zinnen van dit bestand, per taal (besluit 344). */
+const TAAL_ZIN = perTaal('woordzoekerZin');
+
 /** Hoe lang een vraag mag zijn. */
 export const MAX_TEKST = 200;
 
@@ -574,10 +577,8 @@ export function begrijp(ruw: string, config: SiteConfig, lang: Lang): Begrepen {
   return {
     soort: 'onbekend',
     antwoord:
-      lang === 'nl'
-        ? 'Dat begrijp ik nog niet. Vraag iets over je huis of over de app, bijvoorbeeld:'
-        : 'I do not understand that yet. Ask something about your house or the app, for example:',
-    gesproken: lang === 'nl' ? `Dat begrijp ik nog niet. Vraag bijvoorbeeld ${twee.join(' of ')}.` : `I do not understand that yet. Ask for example ${twee.join(' or ')}.`,
+      TAAL_ZIN[lang].datBegrijpIkNog,
+    gesproken: TAAL_ZIN[lang].datBegrijpIkNog2(twee.join(' of '), twee.join(' or ')),
     voorbeelden: vb,
   };
 }

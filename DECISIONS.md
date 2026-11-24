@@ -332,6 +332,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [339. Bouwstenen: één schakelaar, één veld, één keuze, één knop](#339-bouwstenen-één-schakelaar-één-veld-één-keuze-één-knop)
 - [341. De assistent: een kamer zonder regeling, en wat de boiler doet](#341-de-assistent-een-kamer-zonder-regeling-en-wat-de-boiler-doet)
 - [343. De zon verdelen: één lijst voor wie de zon krijgt](#343-de-zon-verdelen-één-lijst-voor-wie-de-zon-krijgt)
+- [344. Klaar voor een nieuwe taal: de dienst in één bestand per taal, minder teksten](#344-klaar-voor-een-nieuwe-taal-de-dienst-in-één-bestand-per-taal-minder-teksten)
 
 **Veiligheid**
 
@@ -15813,6 +15814,44 @@ Nagelopen met de proefdienst op een kopie van de NAS, op de wand en de
 telefoon: slepen met een nagebootste vinger zet de volgorde in de regeling,
 de marge gaat een stap omhoog en terug, en de strook op Thuis noemt wie de zon
 krijgt. De droger die al draaide, heette eerst *Krijgt zon*; nu *Draait*.
+
+## 344. Klaar voor een nieuwe taal: de dienst in één bestand per taal, minder teksten
+
+*Onderwerp: weergave · Status: geldig*
+
+24 november 2026, kwaliteitsronde stap 4 punt 5 (issue 146 wacht op januari).
+De app had 6.125 teksten per taal, waarvan een deel niet meer gebruikt werd en
+een deel dubbel stond. De zinnen van de dienst stonden in een twintigtal
+bestanden, elk met een eigen tabel Nederlands en Engels, en op 65 plekken als
+`lang === 'nl' ? … : …` in de code. Duits had zo in al die bestanden een kolom
+erbij nodig gehad.
+
+*Besluit:*
+
+- **De app:** 291 teksten die nergens meer gevraagd werden zijn weg, vooral van
+  de oude Indeling. 175 teksten die in het Nederlands én het Engels precies
+  gelijk onder meer sleutels stonden, hebben nu één sleutel; over pagina's
+  heen een gedeelde in `w.` (zoals `w.vandaag`). Alleen sleutels die letterlijk
+  in de code staan; wat de code samenstelt, bleef. Van 6.125 naar 5.659.
+- **De dienst:** alle zinnen staan in `backend/src/taal/nl.ts` en `en.ts`, per
+  onderwerp. Een bestand haalt zijn tabel met `perTaal('onderwerp')`, die pas
+  bij gebruik wordt opgezocht, zodat de volgorde van laden niet uitmaakt. Het
+  Engels moet de vorm van het Nederlands hebben (`Teksten`); de typecontrole
+  zegt wat er in een nieuwe taal mist. Wat de taal zelf bepaalt staat onder
+  `algemeen`: de decimale komma (`komma()`), de codes voor de stem en het
+  verstaan, en of een maand midden in een zin klein is. Kleine hulpjes voor
+  zinnen staan in `taal/hulp.ts`.
+- **Wat blijft:** de herkenwoorden van de assistent (dat is verstaan, geen
+  tekst), en twee plekken in de meldingen die een bewaarde Engelse naam van de
+  melding zelf lezen.
+
+*Niet nu:* Duits zelf (issue 146) komt in januari, na de uitgave. Het doel van
+minder dan 4.000 teksten haalt opruimen niet; daarvoor komt per scherm een
+lijst met uitleg die weg kan, die Ricardo goedkeurt.
+
+Op het scherm verandert niets. Nagelopen met de proefdienst op een kopie van
+de NAS: het huis, Klaarzetten en de assistent antwoorden in beide talen zoals
+eerst, met een komma in het Nederlands en een punt in het Engels.
 
 ## Wat nog een besluit wacht
 

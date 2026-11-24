@@ -6,6 +6,10 @@
  */
 
 import type { Lang } from './assistant.js';
+import { perTaal } from '../taal/index.js';
+
+/** Losse zinnen van dit bestand, per taal (besluit 344). */
+const TAAL_ZIN = perTaal('algemeen');
 
 let code = 'EUR';
 
@@ -20,7 +24,7 @@ export const valuta = (): string => code;
 /** Het teken in de taal van de app: €, $ of CHF. */
 export function valutaTeken(lang: Lang = 'nl'): string {
   try {
-    return new Intl.NumberFormat(lang === 'nl' ? 'nl-NL' : 'en-GB', { style: 'currency', currency: code, currencyDisplay: 'narrowSymbol' }).formatToParts(0).find((d) => d.type === 'currency')?.value ?? code;
+    return new Intl.NumberFormat(TAAL_ZIN[lang].locale, { style: 'currency', currency: code, currencyDisplay: 'narrowSymbol' }).formatToParts(0).find((d) => d.type === 'currency')?.value ?? code;
   } catch {
     return code;
   }

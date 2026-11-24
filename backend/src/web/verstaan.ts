@@ -10,6 +10,7 @@
  * Zonder spraak-naar-tekst in huis valt de app terug op de spraakassistent
  * van Home Assistant, zoals eerst.
  */
+import { algemeen } from '../taal/getal.js';
 
 /** Wat uit de cloud komt: niet vanzelf kiezen. */
 const CLOUD = /google|cloud|openai|azure|amazon|microsoft|deepgram|elevenlabs|nabu/i;
@@ -26,7 +27,7 @@ export function kiesVerstaan(entiteiten: readonly string[]): string | null {
 
 /** De taal zoals deze spraak-naar-tekst hem kent: "nl", "nl-NL" of "nl_NL". */
 export function kiesTaalVoor(talen: readonly string[], lang: 'nl' | 'en'): string {
-  const voorkeur = lang === 'nl' ? ['nl', 'nl-NL', 'nl_NL', 'nl-BE'] : ['en', 'en-GB', 'en-US', 'en_GB', 'en_US'];
+  const voorkeur: readonly string[] = algemeen(lang).verstaanCodes;
   return voorkeur.find((t) => talen.includes(t)) ?? talen.find((t) => t.toLowerCase().startsWith(lang)) ?? voorkeur[0]!;
 }
 

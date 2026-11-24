@@ -4,6 +4,7 @@
  */
 import type { ActieCode } from '../web/house-types.js';
 import type { Gevaar } from '../web/rookmelders.js';
+import { metLidwoord } from '../web/kamerwoorden.js';
 import { hoofdletter, inSentence, lijst, telling } from './hulp.js';
 import type { BlockCode, ReasonCode } from '../core/decision.js';
 import type { Mode } from '../core/model.js';
@@ -365,6 +366,7 @@ export const nl = {
       meterKlaarTekst: 'Je ziet hem bij Opbrengst.',
     },
     om: (tijd: string) => `Om ${tijd}.`,
+    inKamer: (kamer: string) => metLidwoord(kamer),
   },
   // web/buffers-bewoner.ts
   buffers: {
@@ -761,6 +763,7 @@ export const nl = {
     lichtHoe: 'Gaat het uit, dan wordt het Nacht.',
     lichtNoot: 'Welke lampen de dag langer maken, staat in de configuratie van het huis.',
     gewoonNoot: 'Niets bijzonders: het huis volgt de dagdelen.',
+    bijApparaat: (naam: string | undefined) => hoofdletter(`de ${inSentence(naam ?? 'airco')}`),
   },
   // web/woordzoeker.ts
   afscheid: {
@@ -860,4 +863,88 @@ export const nl = {
   },
   // web/push.ts
   weerGoed: { titel: (t: string) => `${t}: weer goed`, tekst: 'Het is vanzelf weer goed gekomen.' },
+  // web/assistant.ts: losse zinnen
+  antwoord: {
+    zonNergens: 'De zon staat nu op geen van de gevels.',
+    verbind: ' en ',
+    zonOp: (a: string | number) => `De zon staat nu op ${a}.`,
+    enWoord: 'en',
+    komtVandaagNogOngeveer: (a: string | number) => `Er komt vandaag nog ongeveer ${a} zon bij.`,
+    vandaagKomtWeinigZon: (a: string | number) => `Vandaag komt er weinig zon meer bij; morgen verwacht ik ${a} van je panelen.`,
+    vandaagKomtWeinigZon2: 'Vandaag komt er weinig zon meer bij.',
+    locale: 'nl-NL',
+    hetApparaat: (a: string | number, _b: string | number) => `de ${a}`,
+    temperatuurIn: (a: string | number) => `de temperatuur in ${a}`,
+    slimmeMeter: 'de slimme meter',
+    zonnepanelen: 'de zonnepanelen',
+    meting: 'een meting',
+    verbind2: ' en ',
+    hetIsEr: (a: string | number) => `het is er ${a}`,
+    doelIs: (a: string | number) => `het doel is ${a}`,
+    verbind3: ' en ',
+    gaatNuBijnaNiets: 'Er gaat nu bijna niets van of naar het net.',
+    gaatNuTerugNaar: (a: string | number, _b: string | number) => `Er gaat nu ${a} terug naar het net.`,
+    huisHaaltNuVan: (a: string | number) => `Het huis haalt nu ${a} van het net.`,
+    panelenLeverenNu: (a: string | number) => `Je panelen leveren nu ${a}.`,
+    panelenLeverenNuPrecies: (a: string | number) => `Je panelen leveren nu ${a}, precies genoeg voor het huis.`,
+    panelenLeverenNuEn: (a: string | number, b: string | number) => `Je panelen leveren nu ${a}, en ${b} daarvan gaat terug naar het net.`,
+    panelenLeverenNuHuis: (a: string | number, b: string | number) => `Je panelen leveren nu ${a}; het huis haalt er ${b} van het net bij.`,
+    apparaatNu: (a: string | number, b: string | number, _c: string | number) => `${a} ${b} nu.`,
+    hebtZelfInHanden: (a: string | number, b: string | number, _c: string | number) => `Je hebt ${a} zelf in handen. ${b} eraf tot je hem teruggeeft.`,
+    hebtZelfInHanden2: (a: string | number, b: string | number, c: string | number, _d: string | number) => `Je hebt ${a} zelf in handen, tot ${b}. Tot dan ${c} eraf.`,
+    panelenLeverenDusDat: (a: string | number) => `Je panelen leveren ${a}, dus dat kan op eigen stroom.`,
+    evenStilzettenStaatEven: (a: string | number, b: string | number, c: string | number, _d: string | number) => `${a} ${b}, omdat ${c}. Komt er genoeg zon terug, dan gaat hij verder.`,
+    wilDatWachtNog: (a: string | number, b: string | number, c: string | number, d: string | number) => `${a} wil ${b}: ${c}. Dat wacht nog even, omdat ${d}.`,
+    geenDoel: (a: string | number, b: string | number, c: string | number, _d: string | number, _e: string | number) => `${a} is het ${b}. Er is nu geen doel${c}.`,
+    nuStaat: (a: string | number) => `Nu staat ${a}.`,
+    hoeStaatWeetIk: (a: string | number) => `Hoe ${a} staat, weet ik niet.`,
+    kenIkNietAls: (a: string | number, b: string | number) => `"${a}" ken ik niet als kamer. Ik ken ${b}.`,
+    ikBenNetOpgestart: 'Ik ben net opgestart en heb nog niets besloten. Vraag het me zo nog eens.',
+    geenTempIk: (plek: string, _zn: string) => `Ik meet ${plek} nu geen temperatuur.`,
+    geenTemp: (plek: string, _zn: string) => `${hoofdletter(plek)} is nu geen temperatuur gemeten.`,
+  },
+  // web/house-apparaat.ts: losse zinnen
+  apparaatZin: {
+    uit: 'uit',
+  },
+  // web/opdracht.ts: losse zinnen
+  opdracht: {
+    aan: 'aan',
+    scene: 'scène',
+    sceneStaatAan: (a: string | number) => `Scène ${a} staat aan.`,
+    scene2: (a: string | number, _b: string | number) => `Scène, ${a}`,
+    lichtUit: (naam: string, inZin: string) => [{ label: `Licht ${inZin} uit`, tekst: `licht ${naam} uit` }],
+  },
+  // web/resident.ts: losse zinnen
+  bewonerZin: {
+    morgen: 'morgen',
+    morgen2: 'morgen',
+  },
+  // web/routes/assistent.ts: losse zinnen
+  vraagRoute: {
+    zegWatEnWanneer: 'Zeg wat en wanneer, bijvoorbeeld: elke dag na zonsondergang de screens dicht.',
+    ietsOpLijstZetten: 'Iets op een lijst zetten doe ik via de app, op de wand of je telefoon. Via deze spraakassistent kan het met "Opdrachten bij voorkeur lokaal afhandelen" aan in Home Assistant.',
+    klimaatBedienIkNiet: 'Het klimaat bedien ik niet: de klimaatbrug staat uit.',
+  },
+  // web/routes/huis.ts: losse zinnen
+  huisRoute: {
+    buitenunit: 'Buitenunit',
+  },
+  // web/stem.ts: losse zinnen
+  stem: {
+    stemInHomeAssistant: 'de stem in Home Assistant heeft geen Nederlands',
+  },
+  // web/woordzoeker.ts: losse zinnen
+  woordzoekerZin: {
+    datBegrijpIkNog: 'Dat begrijp ik nog niet. Vraag iets over je huis of over de app, bijvoorbeeld:',
+    datBegrijpIkNog2: (a: string | number, _b: string | number) => `Dat begrijp ik nog niet. Vraag bijvoorbeeld ${a}.`,
+  },
+  // Overal: de taal van getallen en datums
+  algemeen: {
+    locale: 'nl-NL',
+    decimaal: ',',
+    stemCodes: ['nl_nl', 'nl'] as readonly string[],
+    verstaanCodes: ['nl', 'nl-NL', 'nl_NL', 'nl-BE'] as readonly string[],
+    maandInZin: (m: string) => m.toLowerCase(),
+  },
 } as const;

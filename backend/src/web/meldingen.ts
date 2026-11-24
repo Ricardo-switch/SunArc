@@ -33,7 +33,6 @@ import { join } from 'node:path';
 
 import type { Lang } from './assistant.js';
 import { STANDAARD_DREMPELS, onderDrempel, type Drempels } from './house.js';
-import { metLidwoord } from './kamerwoorden.js';
 import { kloptMelding, type KloptFeit } from './klopt.js';
 import { perTaal } from '../taal/index.js';
 
@@ -218,7 +217,7 @@ const duur = (ms: number, lang: Lang) => {
 };
 const klok = (ms: number, lang: Lang) => new Intl.DateTimeFormat(LOCALE[lang], { hour: '2-digit', minute: '2-digit', timeZone: process.env['TZ'] || undefined }).format(ms);
 /** Een kamer midden in een zin: in het Nederlands met lidwoord, in het Engels zoals de bewoner hem noemde. */
-const inKamer = (kamer: string, lang: Lang) => (lang === 'nl' ? metLidwoord(kamer) : kamer);
+const inKamer = (kamer: string, lang: Lang) => WOORDEN[lang].inKamer(kamer);
 
 /** De woorden van de meldingen, per taal (besluit 185). Engels is Brits. */
 const WOORDEN = perTaal('meldingen');

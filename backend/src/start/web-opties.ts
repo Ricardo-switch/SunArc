@@ -31,6 +31,10 @@ import { haEnergySource } from '../adapters/homeassistant/energy.js';
 import type { WebOptions } from '../web/server.js';
 import type { SiteConfig } from '../core/model.js';
 import type { MainStand } from '../main.js';
+import { perTaal } from '../taal/index.js';
+
+/** Losse zinnen van dit bestand, per taal (besluit 344). */
+const TAAL_ZIN = perTaal('algemeen');
 
 /** De zon verdelen (besluit 343): de lijst zoals de pagina hem toont, en bewaren. */
 function zonVerdelenOptie(mainStand: MainStand, store: ZonVerdelenStore): NonNullable<WebOptions['zonVerdelen']> {
@@ -405,7 +409,7 @@ export function webOpties(mainStand: MainStand, port: number): WebOptions {
         wekker: alleNiemand.find((n) => n.melder != null)?.melder ?? null,
         wolken: wolkenVan(mainStand.houseRegisters?.entities ?? []),
         spraak: mainStand.spraakLijst,
-        tijd: (ms) => new Intl.DateTimeFormat(taal === 'en' ? 'en-GB' : 'nl-NL', { hour: '2-digit', minute: '2-digit', timeZone: weerZone }).format(new Date(ms)),
+        tijd: (ms) => new Intl.DateTimeFormat(TAAL_ZIN[taal].locale, { hour: '2-digit', minute: '2-digit', timeZone: weerZone }).format(new Date(ms)),
       }, lang);
     },
     // De wand meldt zelf of hij in Fully Kiosk draait (besluit 246); bewaard naast het logboek.

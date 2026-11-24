@@ -354,6 +354,7 @@ export const en: Teksten = {
       meterKlaarTekst: 'You see it under Yield.',
     },
     om: (tijd: string) => `At ${tijd}.`,
+    inKamer: (kamer: string) => kamer,
   },
   // web/buffers-bewoner.ts
   buffers: {
@@ -727,6 +728,7 @@ export const en: Teksten = {
     lichtHoe: 'Once it goes off, it becomes Night.',
     lichtNoot: 'Which lights make the day longer is set in the house configuration.',
     gewoonNoot: 'Nothing special: the house follows the parts of the day.',
+    bijApparaat: (naam: string | undefined) => `The ${naam ?? 'air conditioner'}`,
   },
   // web/woordzoeker.ts
   afscheid: {
@@ -822,4 +824,88 @@ export const en: Teksten = {
   },
   // web/push.ts
   weerGoed: { titel: (t: string) => `${t}: fine again`, tekst: 'It sorted itself out.' },
+  // web/assistant.ts: losse zinnen
+  antwoord: {
+    zonNergens: 'The sun is not on any of the facades right now.',
+    verbind: ' and ',
+    zonOp: (a: string | number) => `The sun is on ${a} right now.`,
+    enWoord: 'and',
+    komtVandaagNogOngeveer: (a: string | number) => `About ${a} more sun is expected today.`,
+    vandaagKomtWeinigZon: (a: string | number) => `Little more sun today; tomorrow I expect ${a} from your panels.`,
+    vandaagKomtWeinigZon2: 'Little more sun is expected today.',
+    locale: 'en-GB',
+    hetApparaat: (_a: string | number, b: string | number) => `the ${b}`,
+    temperatuurIn: (a: string | number) => `the temperature in ${a}`,
+    slimmeMeter: 'the smart meter',
+    zonnepanelen: 'the solar panels',
+    meting: 'a measurement',
+    verbind2: ' and ',
+    hetIsEr: (a: string | number) => `it is ${a}`,
+    doelIs: (a: string | number) => `the target is ${a}`,
+    verbind3: ' and ',
+    gaatNuBijnaNiets: 'Almost nothing goes to or from the grid right now.',
+    gaatNuTerugNaar: (_a: string | number, b: string | number) => `${b} is going back to the grid right now.`,
+    huisHaaltNuVan: (a: string | number) => `The house is drawing ${a} from the grid right now.`,
+    panelenLeverenNu: (a: string | number) => `Your panels are producing ${a}.`,
+    panelenLeverenNuPrecies: (a: string | number) => `Your panels are producing ${a}, just enough for the house.`,
+    panelenLeverenNuEn: (a: string | number, b: string | number) => `Your panels are producing ${a}, and ${b} of it goes back to the grid.`,
+    panelenLeverenNuHuis: (a: string | number, b: string | number) => `Your panels are producing ${a}; the house draws another ${b} from the grid.`,
+    apparaatNu: (a: string | number, _b: string | number, c: string | number) => `${a} is ${c} right now.`,
+    hebtZelfInHanden: (a: string | number, _b: string | number, c: string | number) => `You have ${a} in your own hands. ${c} it until you hand it back.`,
+    hebtZelfInHanden2: (a: string | number, b: string | number, _c: string | number, d: string | number) => `You have ${a} in your own hands until ${b}. ${d} it until then.`,
+    panelenLeverenDusDat: (a: string | number) => `Your panels are producing ${a}, so it can run on your own power.`,
+    evenStilzettenStaatEven: (_a: string | number, _b: string | number, c: string | number, d: string | number) => `${d}, because ${c}. If enough sun comes back, it carries on.`,
+    wilDatWachtNog: (a: string | number, b: string | number, c: string | number, d: string | number) => `${a} wants to ${b}: ${c}. That has to wait, because ${d}.`,
+    geenDoel: (_a: string | number, b: string | number, _c: string | number, d: string | number, e: string | number) => `It is ${b} ${d}. There is no target right now${e}.`,
+    nuStaat: (a: string | number) => `Right now ${a}.`,
+    hoeStaatWeetIk: (a: string | number) => `I do not know the state of ${a}.`,
+    kenIkNietAls: (a: string | number, b: string | number) => `I do not know the room "${a}". I know ${b}.`,
+    ikBenNetOpgestart: 'I have just started and have not decided anything yet. Ask me again in a moment.',
+    geenTempIk: (_plek: string, zn: string) => `I have no temperature for ${zn} right now.`,
+    geenTemp: (_plek: string, zn: string) => `There is no temperature for ${zn} right now.`,
+  },
+  // web/house-apparaat.ts: losse zinnen
+  apparaatZin: {
+    uit: 'off',
+  },
+  // web/opdracht.ts: losse zinnen
+  opdracht: {
+    aan: 'on',
+    scene: 'scene',
+    sceneStaatAan: (a: string | number) => `Scene ${a} is on.`,
+    scene2: (_a: string | number, b: string | number) => `Scene, ${b}`,
+    lichtUit: (naam: string, _inZin: string) => [{ label: `Lights in ${naam} off`, tekst: `lights ${naam} off` }],
+  },
+  // web/resident.ts: losse zinnen
+  bewonerZin: {
+    morgen: 'tomorrow',
+    morgen2: 'tomorrow',
+  },
+  // web/routes/assistent.ts: losse zinnen
+  vraagRoute: {
+    zegWatEnWanneer: 'Say what and when, for example: close the screens every day after sunset.',
+    ietsOpLijstZetten: 'I put things on a list through the app, on the wall or your phone. Through this voice assistant it works with "Prefer handling commands locally" switched on in Home Assistant.',
+    klimaatBedienIkNiet: 'I do not operate the climate: the climate bridge is off.',
+  },
+  // web/routes/huis.ts: losse zinnen
+  huisRoute: {
+    buitenunit: 'Outdoor unit',
+  },
+  // web/stem.ts: losse zinnen
+  stem: {
+    stemInHomeAssistant: 'de stem in Home Assistant heeft geen Engels',
+  },
+  // web/woordzoeker.ts: losse zinnen
+  woordzoekerZin: {
+    datBegrijpIkNog: 'I do not understand that yet. Ask something about your house or the app, for example:',
+    datBegrijpIkNog2: (_a: string | number, b: string | number) => `I do not understand that yet. Ask for example ${b}.`,
+  },
+  // Overal: de taal van getallen en datums
+  algemeen: {
+    locale: 'en-GB',
+    decimaal: '.',
+    stemCodes: ['en_gb', 'en_us', 'en'],
+    verstaanCodes: ['en', 'en-GB', 'en-US', 'en_GB', 'en_US'],
+    maandInZin: (m: string) => m,
+  },
 };

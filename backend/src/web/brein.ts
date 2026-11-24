@@ -32,6 +32,7 @@ import { controleerZin, opdrachtKiezen, vanKeuze, type Kamerlijst, type Vraag } 
 import { gewoon } from './woordzoeker.js';
 import type { TodayReport } from './today.js';
 import type { SiteConfig } from '../core/model.js';
+import { komma } from '../taal/getal.js';
 
 /* ------------------------------------------------------------ gespreksgeheugen */
 
@@ -535,7 +536,7 @@ export class Teller {
 function getal1(n: number, lang: Lang): string {
   const r = Math.round(n * 10) / 10;
   const s = Number.isInteger(r) ? String(r) : r.toFixed(1);
-  return lang === 'nl' ? s.replace('.', ',') : s;
+  return komma(s, lang);
 }
 
 /** Uren en minuten: "4 uur en 15 minuten", of "45 minuten". */

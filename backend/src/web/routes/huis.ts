@@ -13,6 +13,10 @@ import { bronVanDaken, bronVorm, dakenMetBron, DEEL, eenPapier, erfOm, verschuif
 import { DAKVORMEN, leesDaken, leesKapellen, type Daken, type Dakvorm, type Xy } from '../daken.js';
 import { validateConnection } from '../aansluiting.js';
 import { kaartBronnen } from './energie.js';
+import { perTaal } from '../../taal/index.js';
+
+/** Losse zinnen van dit bestand, per taal (besluit 344). */
+const TAAL_ZIN = perTaal('huisRoute');
 
 /** De routes van dit onderwerp; waar als het verzoek hier is afgehandeld. */
 export async function huisRoutes(d: Diensten, v: Verzoek): Promise<boolean> {
@@ -648,7 +652,7 @@ async function huistekeningRoute(d: Diensten, v: Verzoek): Promise<void> {
       const id = `buitenunit:${a.id}`;
       if (!EIGEN_ID.test(id)) continue;
       const kamer = basis.apparaten[id]?.kamer ?? beginBuiten;
-      if (kamer) eigen({ id, naam: `${taal === 'en' ? 'Outdoor unit' : 'Buitenunit'} ${a.naam}`, soort: 'buitenunit', kamer: deelVan(id, kamer), hoortBij: undefined });
+      if (kamer) eigen({ id, naam: `${TAAL_ZIN[taal].buitenunit} ${a.naam}`, soort: 'buitenunit', kamer: deelVan(id, kamer), hoortBij: undefined });
     }
   }
   // Eén apparaat, één bolletje: een bijfunctie staat niet los in de tekening, maar in het blad van zijn hoofd.
