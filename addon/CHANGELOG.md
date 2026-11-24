@@ -1,11 +1,13 @@
 # Wat is er nieuw · What is new
 
-## 0.238.0
+## 0.239.0
 
-*24 november 2026 · 0.179.0 – 0.238.0*
+*24 november 2026 · 0.179.0 – 0.239.0*
 
 **Nieuw**
 
+- Energie › De zon verdelen: één lijst voor wie de zon krijgt die over is, de kamers, de boiler, de stekkers, het witgoed en de laadpaal. Sleep om de volgorde te veranderen, zie wat er nu over is en wie wacht, en kies per apparaat Nu eerst, Vandaag overslaan of Uit de lijst
+- Op Thuis zegt de strook wie de zon nu krijgt en wie daarna
 - Energie › Verwarming: kies Alleen airco's als je het huis alleen met airco's verwarmt. Dan verdwijnen de onderdelen van een cv-ketel, en houdt in elke kamer een airco de temperatuur
 - Energie › Aansluiting: kies per fase de meter. Zonder stroommeter rekent SunArc de stroom uit het vermogen per fase, zoals bij een P1-meter van HomeWizard
 - De motor heeft nu ook Geleerd en Vergelijken. Geleerd: hoeveel dagen van elk seizoen hij meemaakte, welke standen hij zag, hoe elke kamer warmte houdt en wat elk apparaat aan zon vraagt. Vergelijken: hoe vaak hij het met de oude regeling eens is, wat het zou schelen, de laatste twee weken per kwartier en waar ze het langst verschilden
@@ -97,6 +99,7 @@
 
 **Beter**
 
+- Op zon staat niet meer bij Klimaat › Voorrang, maar bij De zon verdelen
 - Vraag de assistent hoe warm het in een kamer is die SunArc niet regelt, zoals de slaapkamer: hij zegt wat de thermometer daar meet
 - Vraag wat de boiler of de jacuzzi doet: de assistent zegt hoe warm hij is en of hij verwarmt of op zon wacht
 - Ook de rijen met een keuze (De motor, Gepland, met de hand, de zones bij Klimaat) en de kaarten van De motor en Bewoners gebruiken nu de vaste bouwstenen
@@ -288,6 +291,8 @@
 
 **New**
 
+- Energy › Sharing the sun: one list of who gets the spare sun, the rooms, the boiler, the smart plugs, the appliances and the charger. Drag to change the order, see what is spare now and who is waiting, and choose First now, Skip today or Remove from list per appliance
+- On Home, the strip says who gets the sun now and who is next
 - Energy › Heating: choose Air conditioners only if you heat your home only with air conditioners. The parts of a central heating boiler then disappear, and in each room an air conditioner keeps the temperature
 - Energy › Connection: pick the meter per phase. Without a current meter, SunArc works out the current from the power per phase, as with a HomeWizard P1 meter
 - The engine now also has Learned and Compare. Learned: how many days of each season it has been through, which modes it saw, how each room holds heat and how much sun each device asks for. Compare: how often it agrees with the old schedule, what it would save, the last two weeks per quarter hour and where they differed longest
@@ -379,6 +384,7 @@
 
 **Improved**
 
+- On solar is no longer under Climate › Priority, but under Sharing the sun
 - Ask the assistant how warm it is in a room SunArc does not control, such as the bedroom: it says what the thermometer there reads
 - Ask what the boiler or hot tub is doing: the assistant says how hot it is and whether it is heating or waiting for solar
 - The rows with a choice (The engine, Scheduled, by hand, the zones in Climate) and the cards of The engine and Residents now use the fixed building blocks too
