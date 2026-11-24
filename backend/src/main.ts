@@ -10,21 +10,18 @@
  * client wordt zonder schrijfrechten aangemaakt, en een `callService` zou daar
  * op stuklopen.
  */
-import { PushStore, alsMelding, ontvangersVan, paneelVan, proefTekst, teSturen, telefoonVan, vindTelefoons, type Telefoon } from './web/push.js';
+import { paneelVan } from './web/push.js';
 import { inHouse, snelInHuis } from './web/inhuis.js';
 import { type WandMelding } from './web/klaarzetten-functies.js';
 import { kiesTaal } from './web/stem.js';
 import { InHuis, bevestigViaRest, maakViaWebsocket, type Stroom } from './web/stem-in-huis.js';
 import { rollenUitConfig, type RegelingNiet } from './web/regeling.js';
-import { MeldingenStore } from './web/meldingen.js';
-import { meldingenBron } from './web/meldingen-bron.js';
-import { KloptRegister, kloptVast, verwarmtMeeMet } from './web/klopt.js';
+import { KloptRegister } from './web/klopt.js';
 import { VERSIE } from './version.js';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { parseSiteConfig } from './config/schema.js';
 import type { SiteConfig } from './core/model.js';
 import { HaClient, type HaEntityState, type HandMag } from './adapters/homeassistant/client.js';
 import {
@@ -35,44 +32,34 @@ import {
   type HaFloor,
   type HaRegistryEntity,
 } from './adapters/homeassistant/discovery.js';
-import { buildHouse, knownForLayout, type HouseRegisters, type HuisStekker } from './web/house.js';
-import { LayoutStore, herstelMeedoen, regelKamers, withLayoutNames, type Layout } from './web/layout.js';
+import { buildHouse, knownForLayout, type HouseRegisters } from './web/house.js';
+import { LayoutStore, herstelMeedoen, withLayoutNames, type Layout } from './web/layout.js';
 import { noteSensors } from './web/meten.js';
 import { configUitDeApp } from './web/config-uit-app.js';
 import { ComfortStore, type Comfort, type ComfortView } from './web/comfort.js';
 import { HelpenDag } from './web/helpen.js';
-import { BewonersStore, GEEN_BEWONERS, comfortVanBewoner, hoofdVan, namenVoorExport, personenUit, vasthoudenVoorbij, zonderVasthoudenVan, type Bewoners, type Wie } from './web/bewoners.js';
-import { BACKUP_DIR, OPNIEUW_STARTEN, beginOpnieuw, bewaarBackup, bewaardeBackups, leesBackup, maakBackup, zetTerug } from './web/gegevens.js';
-import { entiteitenLijst, type AnalyseExtra } from './web/export.js';
+import { BewonersStore, GEEN_BEWONERS, comfortVanBewoner, vasthoudenVoorbij, zonderVasthoudenVan, type Bewoners, type Wie } from './web/bewoners.js';
+
 import { UitstelStore } from './web/uitstel.js';
 import { BufferStore, cheapWindows } from './web/warmtebuffers.js';
-import { VoorkeurenStore } from './web/voorkeuren.js';
 import { SceneColorStore, colorsFromLamps } from './web/scene-colors.js';
 import { ScenePictures } from './web/scene-pictures.js';
 import { EnergyStore } from './web/energy.js';
-import { partsIn, startOfLocalDay, zonedMidnight } from './web/today.js';
-import { faseHistorie, fasenView, type FasePunt, type FasenView } from './web/fasen.js';
 import { zetValuta } from './web/valuta.js';
-import { Sluipverbruik, jaarPrijs, sluipVoorBel } from './web/sluipverbruik.js';
 import { httpBase } from './web/camera.js';
 import { Pauze } from './web/taalmodel.js';
 import { Teller } from './web/brein.js';
 import { spraakKeuzes, type SpraakKeuze } from './web/functies.js';
 import { aanKerenHistorie, alleCameraMelders, alleCamerasNu, camerasNu, laatsteAanUitHistorie } from './web/cameras.js';
-import { FunctiesStore, aangebeld, functiesGevonden, functiesVoorstel, getoondeCameras, volledig, type Functies, type FunctiesGevonden } from './web/functies.js';
-import { accusNu, accuView, KABEL_STANDAARD, laadBedieningen, ladenView, metLosseLaadpalen, vindOpslag } from './web/opslag.js';
-import { Laadhand, laadMag } from './web/laadhand.js';
-import { Stekkerhand, stekkerMag, type StekkerBekend } from './web/stekkerhand.js';
-import { StekkerZon } from './web/stekkerzon.js';
-import { laadAdvies, prijzenVooruit, type LaadAdvies } from './web/laadadvies.js';
+import { FunctiesStore, aangebeld, functiesGevonden, functiesVoorstel, volledig, type Functies, type FunctiesGevonden } from './web/functies.js';
+import { accusNu, accuView, ladenView } from './web/opslag.js';
+import { laadMag } from './web/laadhand.js';
+import { stekkerMag } from './web/stekkerhand.js';
 import { ConnectionStore, SensorPace, connectionView, findAppliances, findPhaseMeters, findPhases, findPowers, metOpZonVanNu, withConnection } from './web/aansluiting.js';
-import { clearSkyOnPlaneWm2, sunPosition } from './core/sun.js';
-import { laadDag, zonVerwachtW } from './web/laaddag.js';
-import { clearSkyW } from './web/sun.js';
-import { hoofddakPlat } from './web/daken.js';
+import { sunPosition } from './core/sun.js';
+
 import { inNederland } from './web/bag3d.js';
-import { findHeatStores, findPlugs, type FoundHeatStore } from './web/buffers-vinden.js';
-import { GEEN_KEUZES, SchakelaarStore, kinderslotVan, lampSchakelaars, schakelaarsMag, schakelaarsOpZon, vindSchakelaars, type GevondenSchakelaar, type SchakelaarKeuzes } from './web/schakelaars.js';
+import { lampSchakelaars, schakelaarsMag } from './web/schakelaars.js';
 import { alarmSensoren, vindRookmelders } from './web/rookmelders.js';
 import { eigenUpdate, updateView, type UpdateView } from './web/bijwerken.js';
 import type { DeferrableStateCode } from './core/decision.js';
@@ -87,8 +74,8 @@ import { DivergenceCache } from './web/divergence.js';
 import { configFingerprint, recordRun } from './adapters/runs.js';
 import { Onboarding } from './web/onboarding.js';
 import { laadWekmodellen, type Wekmodellen } from './web/wekwoord.js';
-import { BRUG_ENTITEITEN, KlimaatBrug, MODUS_OPTIES } from './web/klimaatbrug.js';
-import { HAND_KLIMAAT, HAND_KNOPPEN, Handbediening } from './web/hand.js';
+import { BRUG_ENTITEITEN, MODUS_OPTIES } from './web/klimaatbrug.js';
+import { HAND_KLIMAAT, HAND_KNOPPEN } from './web/hand.js';
 import { Voorbeeld } from './web/voorbeeld.js';
 import { Witgoed } from './web/witgoed.js';
 import { Verstaan } from './web/verstaan.js';
@@ -100,6 +87,10 @@ import { maakHerinneringen } from './start/herinneringen.js';
 import { maakLigging } from './start/ligging.js';
 import { maakAssistent } from './start/assistent.js';
 import { maakOpbrengst } from './start/opbrengst.js';
+import { maakMeldingen } from './start/meldingen.js';
+import { maakBediening } from './start/bediening.js';
+import { maakHuisNu } from './start/huis-nu.js';
+import { maakGegevens } from './start/gegevens.js';
 
 
 const strategies = defaultStrategies();
@@ -195,7 +186,7 @@ if (site && (comfortStore?.current || (bewonersStore?.current.volgorde.length ??
   }
 }
 
-const client = new HaClient({
+const client: HaClient = new HaClient({
   url: url!,
   token: token!,
   // Schaduwmodus: expliciet geen schrijfrechten.
@@ -398,301 +389,42 @@ async function spraakBij(): Promise<void> {
 client.on('ready', () => void spraakBij());
 setInterval(() => void spraakBij(), 5 * 60_000).unref();
 /*
- * De klimaatbrug (besluit 210): tot stap B de knoppen van het oude systeem,
- * als de bewoner dat bij Functies aanzet. Alleen in de add-on: de NAS kijkt
- * mee en blijft eraf, anders zou een opdracht twee keer gaan. Elke minuut zet
- * hij terug wat voorbij zijn tijd is, ook als de brug intussen uit ging.
- */
-const klimaatBrug: KlimaatBrug | null = inHuisMetDeuren
-  ? new KlimaatBrug({
-      state: (id) => allStates.get(id),
-      zet: (knop, waarde): Promise<void> => client.callService('input_number', 'set_value', { value: waarde }, { entity_id: knop }),
-      kies: (select, optie): Promise<void> => client.callService('input_select', 'select_option', { option: optie }, { entity_id: select }),
-      map: logDir !== '' ? logDir : null,
-    })
-  : null;
-function klimaatAan(): boolean {
-  const f = klimaatBrug ? functiesNu() : null;
-  return f != null && volledig(f, functiesKeuzes()).praten.klimaat;
-}
-/*
- * Klimaat met de hand (besluit 235): elk apparaat via zijn knop, de airco's op
- * warm ook zelf, en een stekker met een warmtebron die niet in de regeling zit.
- * Alleen in de add-on en als de brug aan staat, net als de klimaatbrug.
- */
-/*
  * Witgoed starten (ronde 5, besluit 238): de startknop van een droger of
  * vaatwasser, op het moment dat de regeling zegt, of op een tik. Alleen in de
  * add-on (en het voorbeeldhuis), net als met de hand.
  */
 let witgoed: Witgoed | null = null;
 
-const handbediening: Handbediening | null = inHuisMetDeuren
-  ? new Handbediening({
-      state: (id) => allStates.get(id),
-      zet: (knop, waarde): Promise<void> => client.callService('input_number', 'set_value', { value: waarde }, { entity_id: knop }),
-      kies: (select, optie): Promise<void> => client.callService('input_select', 'select_option', { option: optie }, { entity_id: select }),
-      klimaat: async (id, stand): Promise<void> => {
-        if (stand === 'uit') return client.callService('climate', 'turn_off', {}, { entity_id: id });
-        await client.callService('climate', 'set_hvac_mode', { hvac_mode: 'heat' }, { entity_id: id });
-        await client.callService('climate', 'set_temperature', { temperature: stand.warm }, { entity_id: id });
-      },
-      schakel: (id, aan): Promise<void> => client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: id }),
-      temperatuur: (id, c): Promise<void> => client.callService('climate', 'set_temperature', { temperature: c }, { entity_id: id }),
-      // Drogen of ventileren, en welke kachel in het tuinhuis (besluit 319).
-      stand: (id, hvac): Promise<void> => client.callService('climate', 'set_hvac_mode', { hvac_mode: hvac }, { entity_id: id }),
-      voorinstelling: (id, preset): Promise<void> => client.callService('climate', 'set_preset_mode', { preset_mode: preset }, { entity_id: id }),
-      map: logDir !== '' ? logDir : null,
-    })
-  : null;
-/** Wat er per auto met de hand te bedienen is (besluit 262). */
-function laadBedieningenNu() {
-  return houseRegisters ? laadBedieningen(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null) : [];
-}
-/*
- * Laden met de hand (besluit 262, stap 5 van besluit 259): de hoogste
- * laadstroom of pauzeren, met een eind. Alleen in de add-on (en het
- * voorbeeldhuis), zoals klimaat met de hand; de NAS kijkt mee.
- */
-const laadhand: Laadhand | null = inHuisMetDeuren
-  ? new Laadhand({
-      state: (id) => allStates.get(id),
-      zetStroom: (id, a): Promise<void> => client.callService('number', 'set_value', { value: a }, { entity_id: id }),
-      schakel: (id, aan): Promise<void> => client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: id }),
-      druk: (id): Promise<void> => client.callService('button', 'press', {}, { entity_id: id }),
-      easee: (apparaat, dienst, data): Promise<void> => client.callService('easee', dienst, { device_id: apparaat, ...data }, {}),
-      kies: (id, optie): Promise<void> => client.callService('select', 'select_option', { option: optie }, { entity_id: id }),
-      auto: (id) => huisNu('nl')?.opslag?.autos.find((a) => a.id === id) ?? null,
-      bediening: (id) => laadBedieningenNu().find((b) => b.auto === id) ?? null,
-      zekeringA: (id) => zekeringVoor(id),
-      map: logDir !== '' ? logDir : null,
-    })
-  : null;
-/*
- * Een slimme stekker met de hand (besluit 265): aan of uit met een eind,
- * alleen de stekkers die de bewoner toeliet. Schakelen alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309);
- * elders kijkt het blad mee.
- */
-function stekkersBekend(): StekkerBekend[] {
-  // Toegelaten in het blad, of op zon: op zon is zelf de toestemming (besluit 290).
-  const mag = new Set((connectionStore?.current?.buffers ?? []).filter((b) => b.bedienen === true || (b.soort === 'stekker' && b.opZon)).map((b) => b.id));
-  return vindBuffers()
-    .filter((b) => b.soort === 'stekker')
-    .map((b) => ({ id: b.id, naam: b.naam, actuator: b.actuator, ...(b.power ? { power: b.power } : {}), mag: mag.has(b.id) }));
-}
-const stekkerhand = new Stekkerhand({
-  state: (id) => allStates.get(id),
-  schakel: (id, aan): Promise<void> => client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: id }),
-  stekkers: stekkersBekend,
-  tijdzone: () => siteConfig?.timezone ?? 'Europe/Amsterdam',
-  map: inHuisMetDeuren && logDir !== '' ? logDir : null,
-});
-/*
- * Een stekker op zon, echt geschakeld (besluit 267): wat de regeling zegt, zet
- * SunArc door, alleen bij een stekker die op zon staat en die de bewoner
- * toeliet, en alleen met de deuren open (add-on of HEMS_DEUREN, besluit 309).
- */
-const stekkerZon = new StekkerZon({
-  state: (id) => allStates.get(id),
-  schakel: (id, aan): Promise<void> => client.callService('switch', aan ? 'turn_on' : 'turn_off', {}, { entity_id: id }),
-  stekkers: stekkersBekend,
-  opZon: () => new Set((siteConfig?.heatStores ?? []).filter((h) => h.kind === 'stekker').map((h) => h.id)),
-  metDeHand: () => new Set(stekkerhand.terugzetten.map((t) => t.id)),
-  aan: () => inHuisMetDeuren,
-  tijdzone: () => siteConfig?.timezone ?? 'Europe/Amsterdam',
-  map: inHuisMetDeuren && logDir !== '' ? logDir : null,
-  write: (r) => console.log(r),
-});
-if (inHuisMetDeuren) {
-  setInterval(() => {
-    stekkerhand.ronde().then(
-      (gedaan) => {
-        klopt.gelukt('terug', 'stekker');
-        gedaan.forEach((g) => console.log(`[stekker met de hand] ${g}`));
-      },
-      (e: unknown) => {
-        klopt.meld({ soort: 'terug', id: 'stekker', naam: 'Een stekker', sindsMs: Date.now() });
-        console.warn(`[stekker met de hand] terugzetten lukte niet: ${(e as Error).message}`);
-      },
-    );
-  }, 60_000).unref();
-}
-if (laadhand) {
-  setInterval(() => {
-    laadhand.ronde().then(
-      (gedaan) => {
-        klopt.gelukt('terug', 'laden');
-        gedaan.forEach((g) => console.log(`[laden met de hand] ${g}`));
-      },
-      (e: unknown) => {
-        klopt.meld({ soort: 'terug', id: 'laden', naam: 'Het laden van de auto', sindsMs: Date.now() });
-        console.warn(`[laden met de hand] terugzetten lukte niet: ${(e as Error).message}`);
-      },
-    );
-  }, 60_000).unref();
-}
-/**
- * De boiler en de jacuzzi (besluit 186) en de slimme stekkers (besluit 264),
- * zoals ze nu in Home Assistant staan. Een schakelaar die de regeling al
- * bedient, is geen losse stekker.
- */
-function vindBuffersHa(): FoundHeatStore[] {
-  if (!houseRegisters) return [];
-  const buffers = findHeatStores(allStates, houseRegisters.entities, houseRegisters.devices);
-  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...buffers.map((b) => b.actuator)]);
-  return [...buffers, ...findPlugs(allStates, houseRegisters.entities, houseRegisters.devices, bekend)];
-}
-/** Met de schakelaars die op zon kunnen (besluit 304): die doen mee als een stekker. */
-function vindBuffers(): FoundHeatStore[] {
-  const ha = vindBuffersHa();
-  if (!houseRegisters) return ha;
-  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...ha.map((b) => b.actuator)]);
-  // Bij het opstarten bestaat het bestand met de keuzes nog niet: dan alleen wat Home Assistant heeft.
-  let keuzes: SchakelaarKeuzes;
-  try {
-    keuzes = schakelaarKeuzes();
-  } catch {
-    return ha;
-  }
-  return [...ha, ...schakelaarsOpZon(vindSchakelaars(allStates, houseRegisters.entities, houseRegisters.devices, bekend), keuzes)];
-}
-/*
- * Schakelaars (besluit 297): een relais zoals een Shelly 1 mini, klik-aan-klik-uit
- * of de knoppen van een IR-afstandsbediening. Wat het huis al kent (de regeling,
- * een boiler, een stekker), telt niet mee. De keuzes staan in een eigen bestand.
- */
-const schakelaarStore = logDir !== '' ? new SchakelaarStore(logDir) : null;
-await schakelaarStore?.load();
-const schakelaarKeuzes = (): SchakelaarKeuzes => schakelaarStore?.current ?? GEEN_KEUZES;
-/**
- * De registers met de laadpalen uit losse sensoren erbij (besluit 301), voor
- * alles over laden en de thuisaccu. Zolang de keuzes nog niet geladen zijn: zonder.
- */
-function laadReg<R extends { readonly devices: readonly HaDevice[]; readonly entities: readonly HaRegistryEntity[] }>(r: R): R {
-  let laadpalen;
-  try {
-    laadpalen = schakelaarStore?.current?.laadpalen;
-  } catch {
-    laadpalen = undefined;
-  }
-  return metLosseLaadpalen(r, laadpalen);
-}
-/**
- * De slimme stekkers als apparaat in het huis (besluit 318), met het gebied
- * van Home Assistant als voorstel voor de kamer. Zo krijgt een stekker een
- * kamer, bij Je huis en in zijn eigen blad.
- */
-function stekkersVoorHuis(): HuisStekker[] {
-  const reg = houseRegisters;
-  if (!reg) return [];
-  // Een stekker die bij een schakelaar hoort (de kachel in het tuinhuis, besluit 300), is daar al een deel van.
-  let bijSchakelaar: Set<string>;
-  try {
-    bijSchakelaar = new Set(Object.values(schakelaarKeuzes().apparaten).flatMap((k) => (k.stekker ? [k.stekker] : [])));
-  } catch {
-    bijSchakelaar = new Set();
-  }
-  return vindBuffersHa()
-    .filter((b) => b.soort === 'stekker' && !bijSchakelaar.has(b.id))
-    .map((b) => {
-      const e = reg.entities.find((x) => x.entity_id === b.actuator);
-      const dev = e?.device_id ? reg.devices.find((d) => d.id === e.device_id) : undefined;
-      return { id: b.id, naam: b.naam, actuator: b.actuator, gebied: e?.area_id ?? dev?.area_id ?? null };
-    });
-}
-function vindSchakelaarsNu(): GevondenSchakelaar[] {
-  if (!houseRegisters) return [];
-  const bekend = new Set([...(siteConfig?.actuators ?? []).map((a) => a.ref.id), ...vindBuffersHa().map((b) => b.actuator)]);
-  return vindSchakelaars(allStates, houseRegisters.entities, houseRegisters.devices, bekend);
-}
-/**
- * De kinderslotten (besluit 299), per klimaatapparaat (op zijn `climate.`) en
- * per witgoed (op zijn id uit de configuratie): het slot op hetzelfde apparaat
- * in Home Assistant.
- */
-function kinderslotten(): Record<string, { readonly id: string; readonly aan: boolean }> {
-  if (!houseRegisters) return {};
-  const uit: Record<string, { readonly id: string; readonly aan: boolean }> = {};
-  for (const e of houseRegisters.entities) {
-    if (!e.entity_id.startsWith('climate.')) continue;
-    const s = kinderslotVan(e.entity_id, houseRegisters.entities, allStates);
-    if (s) uit[e.entity_id] = s;
-  }
-  for (const d of siteConfig?.deferrables ?? []) {
-    const s = kinderslotVan(d.remoteStart.id, houseRegisters.entities, allStates);
-    if (s) uit[d.id] = s;
-  }
-  return uit;
-}
-
-/** De radiatorknoppen buiten de regeling (besluit 126), met hun kamer: die zet de hand direct (besluit 235). */
-function handKnoppen(): { id: string; naam: string; kamer: string; zone?: string }[] {
-  // Een knop in een zone met een eigen regeling (besluit 306) mag ook met de hand: de bewoner koos dat.
-  const zoneGebieden = new Set((layoutNu?.()?.kamers ?? []).flatMap((k) => k.zones.map((z) => z.regelzone).filter((x): x is string => x != null)));
-  const inZone = new Set((siteConfig?.zones ?? []).filter((z) => zoneGebieden.has(z.id)).flatMap((z) => z.actuatorIds));
-  const regeling = new Set((siteConfig?.actuators ?? []).filter((a) => !inZone.has(a.id)).map((a) => a.ref.id));
-  return (houseReport()?.etages ?? []).flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten.filter((a) => a.radiatorknop && a.id.startsWith('climate.') && !regeling.has(a.id)).map((a) => {
-    // De zone die deze knop regelt, voor de zin in het blad.
-    const zone = inZone.has(a.actuatorId ?? a.id) ? r.zones.find((z) => z.id === a.zone && z.regeling)?.naam : undefined;
-    return { id: a.id, naam: a.naam, kamer: r.naam, ...(zone ? { zone } : {}) };
-  })));
-}
-/**
- * Klimaat buiten de regeling (besluit 319), zoals het tuinhuis: een `climate.`
- * in het huis die geen apparaat van de regeling is, geen radiatorknop en geen
- * airco van de hand, en die alleen kan verwarmen. Met de hand: verwarmen of
- * uit, het doel, en zijn eigen voorinstellingen.
- */
-function losKlimaat(): { id: string; naam: string; kamer: string; voorinstellingen: string[] }[] {
-  const regeling = new Set((siteConfig?.actuators ?? []).map((a) => a.ref.id));
-  return (houseReport()?.etages ?? []).flatMap((e) =>
-    e.ruimtes.flatMap((r) =>
-      r.apparaten
-        .filter((a) => a.soort === 'klimaat' && a.id.startsWith('climate.') && !a.radiatorknop && !regeling.has(a.id) && !regeling.has(a.actuatorId ?? '') && !HAND_KLIMAAT.includes(a.id))
-        .filter((a) => {
-          const modes = allStates.get(a.id)?.attributes['hvac_modes'];
-          return Array.isArray(modes) && modes.includes('heat') && !modes.includes('cool');
-        })
-        .map((a) => {
-          const p = allStates.get(a.id)?.attributes['preset_modes'];
-          return { id: a.id, naam: a.naam, kamer: r.naam, voorinstellingen: Array.isArray(p) ? p.filter((x): x is string => typeof x === 'string') : [] };
-        }),
-    ),
-  );
-}
-/** De stekkers met een warmtebron die niet in de regeling zitten (besluit 235). */
-function handSchakelaars(): { id: string; kamer: string; naam: string; aan: boolean }[] {
-  const regeling = new Set((siteConfig?.actuators ?? []).map((a) => a.ref.id));
-  return (layoutNu?.()?.kamers ?? []).flatMap((k) =>
-    (k.bronnen ?? [])
-      .filter((b) => b.aan !== 'hand' && b.apparaat?.startsWith('switch.') && !regeling.has(b.apparaat))
-      .map((b) => ({ id: b.apparaat!, kamer: k.naam ?? k.id, naam: String(allStates.get(b.apparaat!)?.attributes['friendly_name'] ?? b.apparaat), aan: allStates.get(b.apparaat!)?.state === 'on' })),
-  );
-}
-if (klimaatBrug) {
-  setInterval(() => {
-    klimaatBrug.ronde().then(
-      (gedaan) => {
-        klopt.gelukt('terug', 'klimaat');
-        gedaan.forEach((g) => console.log(`[klimaatbrug] ${g}`));
-      },
-      (e: unknown) => {
-        klopt.meld({ soort: 'terug', id: 'klimaat', naam: 'Een airco of thermostaat', sindsMs: Date.now() });
-        console.warn(`[klimaatbrug] terugzetten lukte niet: ${(e as Error).message}`);
-      },
-    );
-    handbediening?.ronde().then(
-      (gedaan) => {
-        klopt.gelukt('terug', 'hand');
-        gedaan.forEach((g) => console.log(`[met de hand] ${g}`));
-      },
-      (e: unknown) => {
-        klopt.meld({ soort: 'terug', id: 'hand', naam: 'Een airco of thermostaat', sindsMs: Date.now() });
-        console.warn(`[met de hand] terugzetten lukte niet: ${(e as Error).message}`);
-      },
-    );
-  }, 60_000).unref();
-}
+/** Wat bediening.ts uit main.ts gebruikt: wat vastligt gewoon, wat kan wijzigen als getter. */
+const maakBedieningNodig = {
+  allStates, client, connectionStore, klopt,
+  get functiesKeuzes() {
+    return functiesKeuzes;
+  },
+  get functiesNu() {
+    return functiesNu;
+  },
+  get houseRegisters() {
+    return houseRegisters;
+  },
+  get houseReport() {
+    return houseReport;
+  },
+  get huisNu() {
+    return huisNu;
+  },
+  get layoutNu() {
+    return layoutNu;
+  },
+  get siteConfig() {
+    return siteConfig;
+  },
+  get zekeringVoor() {
+    return zekeringVoor;
+  },
+};
+export type MaakBedieningNodig = typeof maakBedieningNodig;
+const { handKnoppen, handSchakelaars, handbediening, kinderslotten, klimaatAan, klimaatBrug, laadBedieningenNu, laadReg, laadhand, losKlimaat, schakelaarKeuzes, schakelaarStore, stekkerZon, stekkerhand, stekkersBekend, stekkersVoorHuis, vindBuffers, vindBuffersHa, vindSchakelaarsNu } = await maakBediening(maakBedieningNodig);
 /*
  * Het wekwoord in de dienst (besluit 208): `wekwoord/` naast `dist`, in de
  * add-on, op de NAS en in de repository. Zonder de modellen hoort
@@ -1046,7 +778,7 @@ witgoed = inHuisMetDeuren
  * De indeling van het huis (besluit 96): alleen als er gelogd wordt, want hij
  * staat naast de dataset, en alleen met een configuratie.
  */
-const layoutStore =
+const layoutStore: LayoutStore | null =
   logDir !== '' && siteConfig
     ? new LayoutStore({
         logDir,
@@ -1153,164 +885,6 @@ const { grenzenGevonden, metLigging, metingNu, omvormerGevonden, vlakMetingNu } 
 /** De configuratie zoals de app hem laat zien: met de namen en de volgorde uit de indeling (besluit 131). */
 const webConfig = () => (siteConfig ? metLigging(withLayoutNames(siteConfig, layoutStore?.current ?? null)) : null);
 
-/*
- * Meldingen in de app (besluit 136): elke minuut uit wat de dienst weet, naar
- * een eigen bestand naast de dataset. Niets naar Home Assistant.
- */
-// Het sluipverbruik (besluit 192): de nachten uit dezelfde statistiek, met de prijs van Energie.
-const sluipverbruik = new Sluipverbruik({
-  config: () => siteConfig,
-  vraag: (type, velden) => client.query<Record<string, { start: number | string; mean?: number | null }[]>>(type, velden),
-  prijs: () => jaarPrijs(energyStore?.current?.prijzen ?? null),
-  ...(logDir !== '' ? { logDir } : {}),
-});
-await sluipverbruik.load();
-// Elk half uur de nachten bij, zodat de bel de ochtend erna weet of de nacht opviel.
-setTimeout(() => void sluipverbruik.rapport().catch(() => null), 20_000).unref();
-setInterval(() => void sluipverbruik.rapport().catch(() => null), 30 * 60_000).unref();
-const meldingen = logDir !== '' ? new MeldingenStore({ logDir }) : null;
-// Thuis naar eigen smaak (besluit 162): kaarten en favorieten, naast de dataset.
-const voorkeuren = logDir !== '' ? new VoorkeurenStore(logDir) : null;
-await voorkeuren?.load();
-await meldingen?.load();
-/** Wat de bel van de auto's weet (besluit 263): de auto's met hun keuze voor kabel vergeten, en de klok van het huis. */
-function autoBel(timeZone: string): Pick<Parameters<typeof meldingenBron>[0], 'autos' | 'handKlaar'> {
-  const autos = huisNu('nl')?.opslag?.autos ?? [];
-  if (!autos.length) return {};
-  const nu = Date.now();
-  const p = partsIn(nu, timeZone);
-  const q = partsIn(zonedMidnight(p.y, p.m, p.d, timeZone) - 12 * 3_600_000, timeZone);
-  const dag = (x: { y: number; m: number; d: number }) => `${x.y}-${String(x.m).padStart(2, '0')}-${String(x.d).padStart(2, '0')}`;
-  const minuut = (uu: string) => Number(uu.slice(0, 2)) * 60 + Number(uu.slice(3, 5));
-  const instelling = connectionStore?.current?.laden?.instelling ?? {};
-  return {
-    autos: {
-      minuut: p.h * 60 + p.mi,
-      dag: dag(p),
-      gisteren: dag(q),
-      lijst: autos.map((a) => {
-        // Weg is 21:00 en 50%; null is uit. Zonder lading in procenten kan het niet.
-        const k = instelling[a.id]?.kabel === undefined ? KABEL_STANDAARD : instelling[a.id]!.kabel!;
-        return {
-          id: a.id,
-          naam: a.naam,
-          pct: a.pct,
-          grens: a.laadgrens,
-          aangesloten: a.aangesloten,
-          thuis: a.thuis,
-          fout: a.fout,
-          kabelSindsMs: a.kabelSinds ? Date.parse(a.kabelSinds) : null,
-          kabel: k.pct != null && a.pct != null ? { om: minuut(k.om), pct: k.pct } : null,
-        };
-      }),
-    },
-    handKlaar: (laadhand?.klaar ?? []).map((k) => ({ ...k, naam: autos.find((a) => a.id === k.auto)?.naam ?? k.auto })),
-  };
-}
-/** Wat de bel van de thuisaccu's weet (besluit 276); null zonder accu. */
-function accuBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBron>[0]['accus']> | null {
-  if (!houseRegisters) return null;
-  const lijst = accusNu(laadReg(houseRegisters), allStates, connectionStore?.current?.laden ?? null, connectionStore?.current?.accu ?? null);
-  if (!lijst.length) return null;
-  const p = partsIn(Date.now(), cfg.timezone);
-  const e = runner?.latest?.explanation;
-  const netW = e && cfg.power.gridPower ? e.budget.gridPowerW : null;
-  return {
-    lijst: lijst.map((a) => ({ id: a.id, naam: a.naam, pct: a.pct, fout: a.fout, stilSindsMs: a.stilSindsMs })),
-    terugW: netW == null ? null : Math.max(0, -netW),
-    dag: `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`,
-  };
-}
-/** Wat de bel van de slimme stekkers weet (besluit 264); null zolang de registers er niet zijn. */
-function stekkerBel(cfg: SiteConfig): NonNullable<Parameters<typeof meldingenBron>[0]['stekkers']> | null {
-  if (!houseRegisters) return null;
-  const inRegeling = new Set((cfg.heatStores ?? []).map((h) => h.actuator.id));
-  const gekozen = new Set((connectionStore?.current?.buffers ?? []).filter((b) => b.opZon).map((b) => b.actuator));
-  const meters = energyStore?.current ? new Set(energyStore.current.apparaten.map((a) => a.id)) : null;
-  // Een schakelaar op zon (besluit 304) is niet gevonden maar ingesteld: geen melding.
-  // Verborgen bij Toevoegen of in Je huis (versie 3 van de apparaatkaart): dan ook geen melding meer.
-  const verborgen = new Set(layoutStore?.current?.verborgen ?? []);
-  return vindBuffersHa()
-    .filter((b) => b.soort === 'stekker' && !verborgen.has(b.id))
-    .map((b) => ({ id: b.id, naam: b.naam, opZon: inRegeling.has(b.actuator) || gekozen.has(b.actuator), meter: b.energy ?? null, meterErin: meters == null || (b.energy != null && meters.has(b.energy)) }));
-}
-function meldingenRonde(): void {
-  const cfg = siteConfig;
-  const h = cfg ? houseReport() : null;
-  if (!meldingen || !cfg || !h || allStates.size === 0) return;
-  // Wat de bel weet (meldingen-bron.ts); null als Home Assistant zelf weg is.
-  const bron = meldingenBron({
-    nu: Date.now(),
-    config: cfg,
-    huis: h,
-    states: allStates,
-    addOn: version.installatie === 'add-on',
-    // Met bewaarde daken (besluit 254) is er niets meer te bevestigen.
-    panelenVoorstel: connectionStore?.current?.dak == null && !connectionStore?.current?.daken?.vlakken.length && metingNu() != null,
-    // Een vlak dat op minstens drie zonnige dagen achterbleef (stap 5).
-    dakAchter: (() => {
-      const a = vlakMetingNu()?.achter;
-      return a && a.dagen >= 3 ? { letter: a.letter, wanneer: a.wanneer, minderPct: a.minderPct, eigenMeter: a.eigenMeter } : null;
-    })(),
-    // De wintertest is van het huis met een oude regeling ernaast (besluit 312): alleen daar de mijlpalen van 10, 20 en 30.
-    winterdagen: cfg.migration?.legacyExplanation != null ? (analyse?.latest?.dataset?.seizoenen?.find((s) => s.seizoen === 'winter')?.dagen ?? null) : null,
-    profiel: runner?.latest?.explanation.profile ?? null,
-    hoofd: bewonersStore ? hoofdVan(bewonersStore.current) : null,
-    sluip: sluipVoorBel(sluipverbruik.laatste(), Date.now(), cfg.timezone),
-    // De auto (besluit 263): vol, een fout, kabel vergeten, en laden met de hand dat klaar is.
-    ...autoBel(cfg.timezone),
-    // De thuisaccu (besluit 276): stil, een fout, of vol terwijl de zon naar het net gaat.
-    accus: accuBel(cfg),
-    // De slimme stekkers (besluit 264): gevonden, en zijn meter bij Energie.
-    stekkers: stekkerBel(cfg),
-    // Wat niet klopt (besluit 314): uit de keuzes van nu, en wat mislukte.
-    klopt: [
-      ...kloptVast({
-        answers: connectionStore?.current ?? null,
-        configFasen: basisFasen,
-        regelingNiet,
-        // Met de namen uit de indeling: een kamer heet zoals de bewoner hem noemde (0.190.0, "de zolder" was de wasruimte).
-        config: webConfig() ?? cfg,
-        kamerVanZone: (zoneId) => regelKamers(layoutNu?.()?.kamers ?? []).find((k) => k.regelzone === zoneId)?.id ?? null,
-        // Een radiator of vloer die een thermostaat in een andere kamer volgt: dan verwarmt de kamer mee.
-        meeMet: (zoneId) => verwarmtMeeMet(zoneId, cfg, layoutNu?.()?.kamers ?? []),
-      }),
-      ...klopt.lijst(Date.now()),
-    ],
-  });
-  if (bron == null) return;
-  meldingen.bij(bron);
-  void meldingen.bewaar().catch(() => undefined);
-  void pushRonde().catch(() => undefined);
-  // Live naar de open pagina's (21 oktober 2026): eerst zag je een nieuwe melding pas bij een andere tab.
-  const vinger = JSON.stringify(meldingen.lijst(Date.now()).actief.map((m) => [m.id, m.titel, m.tekst]));
-  if (vinger !== meldingenVinger) {
-    meldingenVinger = vinger;
-    web?.meldingenVeranderd();
-  }
-}
-/** Wat de open pagina's als laatste aan meldingen hoorden; verandert het, dan zegt de dienst het. */
-let meldingenVinger: string | null = null;
-
-/*
- * Meldingen op de telefoon (besluit 183): na elke ronde van de bel kijken wat
- * er naar welke telefoon moet. In de add-on, of op een eigen server met
- * HEMS_DEUREN=1 (besluit 309); niet in het voorbeeldhuis.
- */
-const telefoonDeur = startup.deuren.enabled;
-const pushStore = logDir !== '' && telefoonDeur ? new PushStore(logDir) : null;
-await pushStore?.load();
-let telefoonsVoor: HouseRegisters | null = null;
-let telefoonsNu: Telefoon[] = [];
-/** De telefoons met de app van Home Assistant; opnieuw als de registers veranderen. */
-const telefoons = (): Telefoon[] => {
-  if (!houseRegisters) return [];
-  if (telefoonsVoor !== houseRegisters) {
-    telefoonsNu = vindTelefoons(houseRegisters, allStates);
-    telefoonsVoor = houseRegisters;
-  }
-  return telefoonsNu;
-};
 /** Waar een tik op de melding naartoe gaat: SunArc in de app van Home Assistant. */
 let paneelPad: string | null = null;
 /** De naam van deze add-on bij de Supervisor, voor de pagina met zijn instellingen (besluit 246). */
@@ -1324,45 +898,41 @@ if (version.installatie === 'add-on' && process.env['SUPERVISOR_TOKEN']) {
     })
     .catch(() => undefined);
 }
-let pushBezig = false;
-async function pushRonde(): Promise<void> {
-  if (!pushStore || !voorkeuren || !bewonersStore || !meldingen || pushBezig) return;
-  pushBezig = true;
-  try {
-    const ontvangers = ontvangersVan(bewonersStore.current, voorkeuren, telefoons());
-    const nu = Date.now();
-    const l = meldingen.lijst(nu);
-    const { berichten, verstuurd } = teSturen([...l.actief, ...l.eerder], ontvangers, pushStore.verstuurd, nu, siteConfig?.timezone ?? 'Europe/Amsterdam');
-    for (const m of berichten) {
-      try {
-        const v = alsMelding(m, paneelPad);
-        await client.callService('notify', m.dienst, v, {});
-      } catch (error) {
-        console.warn(`Melding naar ${m.dienst} lukte niet: ${(error as Error).message}`);
-      }
-    }
-    await pushStore.save(verstuurd);
-  } finally {
-    pushBezig = false;
-  }
-}
-/** Een proefmelding naar je eigen telefoon (besluit 183), vanaf Jij. */
-async function proefmelding(userId: string | null): Promise<{ ok: true; naam: string } | { ok: false; status: number; reden: string }> {
-  if (!telefoonDeur) return { ok: false, status: 409, reden: 'meldingen op de telefoon gaan alleen vanuit de add-on, of met HEMS_DEUREN=1' };
-  if (!userId || !voorkeuren) return { ok: false, status: 403, reden: 'log in met je eigen account' };
-  const t = telefoonVan(userId, voorkeuren.meldingen(userId), telefoons());
-  if (!t) return { ok: false, status: 404, reden: 'geen telefoon met de app van Home Assistant gevonden' };
-  try {
-    await client.callService('notify', t.dienst, alsMelding({ dienst: t.dienst, ...proefTekst(voorkeuren.taal(userId)), tag: 'smart-climate-proef', dringend: false, stil: false }, paneelPad), {});
-    return { ok: true, naam: t.naam };
-  } catch (error) {
-    return { ok: false, status: 502, reden: (error as Error).message };
-  }
-}
-if (meldingen) {
-  setTimeout(meldingenRonde, 30_000).unref();
-  setInterval(meldingenRonde, 60_000).unref();
-}
+
+/** Wat meldingen.ts uit main.ts gebruikt: wat vastligt gewoon, wat kan wijzigen als getter. */
+const maakMeldingenNodig = {
+  allStates, analyse, bewonersStore, client, connectionStore, energyStore, klopt, laadReg, laadhand, layoutStore,
+  metingNu, runner, version, vindBuffersHa, vlakMetingNu, webConfig,
+  get basisFasen() {
+    return basisFasen;
+  },
+  get houseRegisters() {
+    return houseRegisters;
+  },
+  get houseReport() {
+    return houseReport;
+  },
+  get huisNu() {
+    return huisNu;
+  },
+  get layoutNu() {
+    return layoutNu;
+  },
+  get paneelPad() {
+    return paneelPad;
+  },
+  get regelingNiet() {
+    return regelingNiet;
+  },
+  get siteConfig() {
+    return siteConfig;
+  },
+  get web() {
+    return web;
+  },
+};
+export type MaakMeldingenNodig = typeof maakMeldingenNodig;
+const { meldingen, meldingenRonde, proefmelding, sluipverbruik, telefoonDeur, telefoons, voorkeuren } = await maakMeldingen(maakMeldingenNodig);
 
 /** Wat herinneringen.ts uit main.ts gebruikt: wat vastligt gewoon, wat kan wijzigen als getter. */
 const maakHerinneringenNodig = {
@@ -1412,156 +982,32 @@ function alarmNu(): AlarmMelder[] {
   return (h?.etages ?? []).flatMap((e) => e.ruimtes.flatMap((r) => r.apparaten.filter((d) => d.soort === 'rookmelder').map((d) => ({ id: d.id, naam: d.naam, kamer: r.naam, gevaar: d.rookmelder?.gevaar ?? null, sindsMs: d.rookmelder?.sindsMs ?? null }))));
 }
 
-/*
- * Het huis één keer uitrekenen per verandering (21 oktober 2026). Bij een paar
- * duizend entiteiten kost het tientallen milliseconden op de Pi, en elk open
- * scherm vraagt het om de paar tellen, net als de lampen, de schermen en het
- * rookalarm. Opnieuw zodra Home Assistant iets in het huis meldt of een van de
- * bronnen verandert, en anders hooguit om de tien tellen: de kleuren van de
- * scènes en de meting van de ligging veranderen zonder dat iets hier het ziet.
- */
-const HUIS_HOOGUIT_MS = 10_000;
-/** Per taal (besluit 185): de stand en de samenvatting staan erin in woorden. */
-const huisBewaard = new Map<Lang, { sleutel: readonly unknown[]; atMs: number; huis: ReturnType<typeof buildHouse> | null }>();
-const huisNu = (lang: Lang) => {
-  const sleutel = [huisVersie, houseRegisters, siteConfig, runner?.latest, layoutStore?.current, functiesStore?.current, connectionStore?.current, schakelaarStore?.current];
-  const b = huisBewaard.get(lang);
-  if (b && Date.now() - b.atMs < HUIS_HOOGUIT_MS && b.sleutel.every((x, i) => x === sleutel[i])) return b.huis;
-  const huis = siteConfig && houseRegisters
-    ? buildHouse(
-        webConfig()!,
-        houseRegisters,
-        houseStates,
-        runner?.latest ?? null,
-        layoutStore?.current ?? null,
-        sceneColors ? (id, naam) => sceneColors.colors(id, naam) : undefined,
-        scenePictures ? (naam) => scenePictures.pictureFor(naam) : undefined,
-        // Alleen de camera's die de bewoner koos; zonder keuze het voorstel (elke camera).
-        functiesStore?.current ? getoondeCameras(functiesStore.current) : null,
-        // Wanneer een batterij of filter een melding geeft (besluit 149).
-        functiesStore?.current?.meldingen,
-        lang,
-        // Lampen achter een schakelaar (besluit 297): bij het licht van hun kamer.
-        lampSchakelaars(vindSchakelaarsNu(), schakelaarKeuzes()),
-        // De slimme stekkers (besluit 318): een apparaat met een kamer, ook niet op zon.
-        stekkersVoorHuis(),
-      )
-    : null;
-  // Een plat dak op het hoofdhuis (issue 131): zoals de bewoner het opgaf bij Daken en panelen of Inrichten (143).
-  const a = connectionStore?.current;
-  // Ook zonder bekende ligging (geen voorgevel): dan alleen dat het dak plat is, anders bleef het een puntdak.
-  const isPlat = huis != null && hoofddakPlat(a?.daken, a?.panelen?.ligging, layoutStore?.current?.dak === 'geen');
-  const plat0 = !isPlat || !huis ? huis : huis.ligging ? { ...huis, ligging: { ...huis.ligging, plat: true } } : { ...huis, dakPlat: true };
-  // De auto's en laadpalen met de keuzes bij Energie (besluit 259), uit alle standen: een kabel of bereik telt niet als iets in huis.
-  const plat = plat0 && houseRegisters ? { ...plat0, opslag: vindOpslag(laadReg(houseRegisters), allStates, a?.laden ?? null, new Date(), a?.accu ?? null) } : plat0;
-  huisBewaard.set(lang, { sleutel, atMs: Date.now(), huis: plat });
-  return plat;
+/** Wat huis-nu.ts uit main.ts gebruikt: wat vastligt gewoon, wat kan wijzigen als getter. */
+const maakHuisNuNodig = {
+  allStates, client, connectionStore, energyStore, functiesStore, houseStates, laadReg, layoutStore, runner,
+  sceneColors, scenePictures, schakelaarKeuzes, schakelaarStore, sluipverbruik, stekkersVoorHuis, vindSchakelaarsNu,
+  webConfig,
+  get houseRegisters() {
+    return houseRegisters;
+  },
+  get huisVersie() {
+    return huisVersie;
+  },
+  get location() {
+    return location;
+  },
+  get openMeteo() {
+    return openMeteo;
+  },
+  get siteConfig() {
+    return siteConfig;
+  },
 };
-/**
- * Het advies per auto (besluit 259, stap 4): uit het net en de stroom per fase
- * van het laatste besluit, en de prijzen per uur uit de prijs-entiteit van
- * Energie. Alleen lezen.
- */
-/** De fasen van de aansluiting uit het laatste besluit, alleen als ze alle gemeten zijn. */
-const fasenNu = () => {
-  const e = runner?.latest?.explanation ?? null;
-  const grid = siteConfig?.grid;
-  return e?.phases && grid && e.phases.length > 0 && e.phases.every((p) => p.bron === 'gemeten' && p.currentA != null)
-    ? e.phases.map((p) => ({ stroomA: p.currentA!, zekeringA: grid.phases.find((g) => g.id === p.id)?.maxA ?? p.limitA + grid.marginA, grensA: p.limitA }))
-    : null;
-};
-/**
- * De hoogste stroom per fase die er met de hand voor een auto op de zekering
- * past (besluit 262): wat hij nu neemt plus de ruimte op de drukste fase; zonder
- * meting per fase de zekering min de marge; zonder aansluiting de zekering
- * die de bewoner bij Energie opgaf, min 2 A; zonder zekering niets.
- */
-function zekeringVoor(id: string): number | null {
-  const grid = siteConfig?.grid;
-  if (!grid || !grid.phases.length) {
-    // Zonder stroommeters per fase komt de zekering niet in de regeling (logboek bij issue 149 t/m 153), maar hij geldt wel.
-    const z = connectionStore?.current?.zekering;
-    return z && z !== 'weetniet' ? Math.max(6, z.ampere - 2) : null;
-  }
-  const fasen = fasenNu();
-  if (!fasen) return Math.min(...grid.phases.map((p) => p.maxA - grid.marginA));
-  const a = huisNu('nl')?.opslag?.autos.find((x) => x.id === id);
-  const nuA = a?.laadt ? Math.max(0, ...(a.stroomA ?? [])) : 0;
-  // Nooit boven de zekering zelf: bij teruglevering loopt er op een fase soms minder dan de auto neemt.
-  return Math.floor(Math.min(nuA + Math.min(...fasen.map((f) => f.grensA - f.stroomA)), ...fasen.map((f) => f.grensA)));
-}
-/**
- * De fasekaart (besluit 302): de stroom per fase nu, en de dag uit de historie
- * van Home Assistant. Die historie hooguit elke vijf minuten opnieuw; de stand
- * van nu komt elke keer uit het laatste besluit.
- */
-let faseDag: { startMs: number; opMs: number; punten: Map<string, FasePunt[]> } = { startMs: 0, opMs: 0, punten: new Map() };
-async function fasenNuView(): Promise<FasenView> {
-  const grid = siteConfig?.grid ?? null;
-  const nuMs = Date.now();
-  const startMs = startOfLocalDay(nuMs, siteConfig?.timezone ?? 'Europe/Amsterdam');
-  const e = runner?.latest?.explanation ?? null;
-  // De meter van elke fase: de stroom, of anders het vermogen (23 november 2026).
-  const meterVan = (p: NonNullable<typeof grid>['phases'][number]) => (p.current ?? p.power)!.id;
-  const ids = grid?.phases.map(meterVan) ?? [];
-  if (ids.length && (faseDag.startMs !== startMs || nuMs - faseDag.opMs > 5 * 60_000)) {
-    try {
-      // Vanaf een uur voor middernacht: de stand van toen geldt ook om middernacht.
-      const antwoord = await client.query('history/history_during_period', { start_time: new Date(startMs - 3_600_000).toISOString(), entity_ids: ids, minimal_response: true, no_attributes: true, significant_changes_only: false });
-      faseDag = { startMs, opMs: nuMs, punten: faseHistorie(antwoord) };
-    } catch {
-      // Zonder historie: alleen de stand van nu; over vijf minuten weer.
-      faseDag = faseDag.startMs === startMs ? { ...faseDag, opMs: nuMs } : { startMs, opMs: nuMs, punten: new Map() };
-    }
-  }
-  const z = connectionStore?.current?.zekering;
-  return fasenView({
-    grid: grid ? { phases: grid.phases.map((p) => ({ id: p.id, current: meterVan(p), ...(p.current ? {} : { watt: true }), maxA: p.maxA })), marginA: grid.marginA } : null,
-    nu: e?.phases?.map((p) => ({ id: p.id, currentA: p.currentA, bron: p.bron })) ?? null,
-    historie: faseDag.punten,
-    dagStartMs: startMs,
-    nuMs,
-    zekering: z && z !== 'weetniet' ? z : null,
-    netW: e && siteConfig?.power.gridPower ? e.budget.gridPowerW : null,
-  });
-}
-const laadadviezen = (): Record<string, LaadAdvies> => {
-  const autos = huisNu('nl')?.opslag?.autos ?? [];
-  if (!autos.length || !siteConfig) return {};
-  const e = runner?.latest?.explanation ?? null;
-  const netW = e && siteConfig.power.gridPower ? e.budget.gridPowerW : null;
-  const fasen = fasenNu();
-  const nuMs = Date.now();
-  const prijsId = energyStore?.current?.prijzen.dynamisch?.prijsEntiteit ?? null;
-  const prijsStaat = prijsId ? allStates.get(prijsId) : undefined;
-  const eenheid = typeof prijsStaat?.attributes['unit_of_measurement'] === 'string' ? (prijsStaat.attributes['unit_of_measurement'] as string) : null;
-  const prijzen = prijsStaat ? prijzenVooruit(prijsStaat.attributes, prijsStaat.state, eenheid, nuMs) : [];
-  const nu = prijsStaat ? Number(prijsStaat.state) : NaN;
-  const prijsNu = Number.isFinite(nu) ? nu / (/mwh/i.test(eenheid ?? '') ? 1000 : /ct|cent/i.test(eenheid ?? '') ? 100 : 1) : null;
-  // De balk van de dag (besluit 279): de zon die naar verwachting over is, de prijs en de goedkoopste uren.
-  const g = siteConfig.geometry;
-  const plek = location;
-  const zonW = (ms: number): number | null =>
-    g && plek && g.solarPlanes.length
-      ? zonVerwachtW(
-          ms,
-          openMeteo.latest?.uren ?? null,
-          (t) => clearSkyW(g, plek, t, null),
-          (t) => clearSkyOnPlaneWm2(sunPosition(t, plek.latDeg, plek.lonDeg), { azimuthDeg: 180, tiltDeg: 0 }),
-        )
-      : null;
-  // Het huis zonder de auto overdag: ruwweg twee keer het sluipverbruik, minstens 300 W.
-  const huisW = Math.max(300, 2 * (sluipverbruik.laatste()?.gewoonW ?? 200));
-  return Object.fromEntries(
-    autos.map((a) => {
-      const advies = laadAdvies(a, { nuMs, netW, fasen, prijzen, prijsNu });
-      return [a.id, { ...advies, dag: laadDag(a, { nuMs, prijzen, goedkoop: advies.goedkoop, zonW, huisW }) }];
-    }),
-  );
-};
+export type MaakHuisNuNodig = typeof maakHuisNuNodig;
+const { fasenNuView, huisNu, laadadviezen, zekeringVoor } = maakHuisNu(maakHuisNuNodig);
 
 /** Het huis, met de stand in woorden in de taal van de app; zonder taal Nederlands. */
-const houseReport = (lang: Lang = 'nl') => {
+const houseReport = (lang: Lang = 'nl'): ReturnType<typeof buildHouse> | null => {
   const h = huisNu(lang);
   // Met de laatste opdracht bij een scherm zonder terugmelding (besluit 128).
   return coverSwitch ? coverSwitch.withLast(h, lang) : h;
@@ -1782,123 +1228,24 @@ if (bewonersStore) {
   }, 60_000).unref();
 }
 
-/*
- * Back-up, herstel en opnieuw beginnen (besluit 151): alleen met een logmap,
- * en alleen voor de hoofdgebruiker. Zolang er niemand woont, een beheerder in
- * Home Assistant: anders kan niemand een back-up terugzetten op een nieuw huis.
- */
-const sitesDir = startup.sitesDir ?? join(process.cwd(), 'config', 'sites');
-/** Stopt met rekenen en schrijven, vóór het terugzetten of weghalen. */
-function stilzetten(): void {
-  runner?.stop();
-  analyse?.stop();
-}
-/*
- * Zoeken naar updates (testerronde, november 2026). Home Assistant ziet een
- * nieuwe versie pas als de Supervisor de add-on-winkel opnieuw leest; anders
- * moest de bewoner bij Instellingen › Updates zelf zoeken. De eigen
- * update-entiteit laten verversen doet dat: een verversing die niet uit de
- * eigen planning komt, laat Home Assistant de winkel opnieuw lezen. Op een tik
- * van de beheerder, en vanzelf elke drie uur. Alleen in de add-on.
- */
-async function zoekUpdates(): Promise<{ ok: boolean; reden?: string }> {
-  const s = eigenUpdate(allStates.values());
-  if (!s) return { ok: false, reden: 'Home Assistant kent de update van SunArc nog niet' };
-  try {
-    await client.callService('homeassistant', 'update_entity', {}, { entity_id: s.entity_id });
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, reden: (e as Error).message };
-  }
-}
-if (version.installatie === 'add-on') {
-  setInterval(() => void zoekUpdates().then((u) => u.ok || console.warn(`Zoeken naar updates: ${u.reden}`)), 3 * 3_600_000).unref();
-}
-
-/** Stopt de dienst; `run.sh` en Docker starten hem opnieuw. */
-function herstart(): void {
-  console.log('SunArc start opnieuw (besluit 151).');
-  setTimeout(() => process.exit(OPNIEUW_STARTEN), 3_000);
-  voorbeeld?.stop();
-  void (web?.stop() ?? Promise.resolve()).finally(() => process.exit(OPNIEUW_STARTEN));
-}
-/** De instellingen en de apparaten voor de export (besluit 151), en welke namen eruit moeten. */
-async function analyseVoorExport(): Promise<AnalyseExtra> {
-  const nu = await maakBackup(logDir, site?.source ?? null, VERSIE);
-  const bronnen: Record<string, unknown> = { configuratie: nu.configuratie?.inhoud ?? null, ...nu.bestanden, 'functies-nu': functiesNu() };
-  const leesmij = [
-    '# Export voor de analyse',
-    '',
-    `SunArc ${VERSIE} (${version.installatie}), gemaakt op ${new Date().toISOString()}.`,
-    '',
-    '- `decisions-*.ndjson`: per dag elk besluit van de arbiter, met de uitleg.',
-    '- `history-*.ndjson`: per dag de ruwe standen waarmee een besluit opnieuw te nemen is.',
-    '- `runs.ndjson`: welke versie wanneer draaide. `gevoel.ndjson`: wat bewoners aangaven.',
-    '- `analyse/instellingen.json`: de configuratie en alles wat in de app is ingesteld of geleerd.',
-    '- `analyse/entiteiten.json`: alle entiteiten uit Home Assistant met apparaat, ruimte en etage;',
-    '  `gebruikt` zegt waar SunArc ze gebruikt, als pad in de configuratie of een instelling.',
-    '',
-    'Namen van bewoners zijn vervangen door "Bewoner 1", "Bewoner 2" (in een id `bewoner_1`).',
-    'Een ligging (latitude, longitude) staat er niet in.',
-    '',
-  ].join('\n');
-  return {
-    bestanden: {
-      'LEESMIJ.md': leesmij,
-      'instellingen.json': `${JSON.stringify({ app: VERSIE, installatie: version.installatie, gemaakt: nu.gemaakt, configuratie: nu.configuratie, bestanden: nu.bestanden, functiesNu: functiesNu() }, null, 2)}\n`,
-      'entiteiten.json': `${JSON.stringify(entiteitenLijst(houseRegisters, allStates, bronnen), null, 2)}\n`,
-    },
-    vervang: namenVoorExport(bewonersStore?.current ?? GEEN_BEWONERS, personenUit(allStates.values())),
-  };
-}
-const gegevens =
-  logDir === ''
-    ? null
-    : {
-        hoofd: (wie: Wie) => {
-          const hoofd = bewonersStore ? hoofdVan(bewonersStore.current) : null;
-          return hoofd ? wie.userId != null && wie.userId === hoofd.haUser : wie.beheerder;
-        },
-        backup: () => maakBackup(logDir, site?.source ?? null, VERSIE),
-        herstel: async (body: unknown) => {
-          const gelezen = leesBackup(body, (c) => {
-            const r = parseSiteConfig(c, { knownStrategies: strategies.ids });
-            return r.ok ? null : `${r.problems[0]?.path ?? ''} ${r.problems[0]?.message ?? ''}`.trim();
-          });
-          if (!gelezen.ok) return { ok: false as const, status: 400, reden: gelezen.reden };
-          try {
-            // Eerst wat er nu is, zodat terugzetten zelf ook terug kan.
-            await bewaarBackup(logDir, await maakBackup(logDir, site?.source ?? null, VERSIE));
-            stilzetten();
-            // In de add-on is de configuratie van de app zelf, net als bij opnieuw beginnen (besluit 151).
-            const uit = await zetTerug(logDir, gelezen.backup, { configPad: site?.source ?? null, sitesDir, vervang: onboarding != null });
-            console.log(`Back-up teruggezet (besluit 151): ${uit.bestanden.join(', ') || 'geen bestanden'}; configuratie ${uit.configuratie}`);
-            return { ok: true as const, bestanden: uit.bestanden, configuratie: uit.configuratie };
-          } catch (error) {
-            // Halverwege mis: opnieuw starten met wat er staat, want de regeling staat al stil.
-            console.error(`Terugzetten mislukt: ${String(error)}`);
-            herstart();
-            return { ok: false as const, status: 500, reden: 'terugzetten lukte niet helemaal; SunArc start opnieuw' };
-          }
-        },
-        opnieuw: async () => {
-          try {
-            const naam = await bewaarBackup(logDir, await maakBackup(logDir, site?.source ?? null, VERSIE));
-            stilzetten();
-            const weg = await beginOpnieuw(logDir, { configPad: site?.source ?? null, configWeg: onboarding != null });
-            console.log(`Opnieuw begonnen (besluit 151): ${weg.length} bestanden weg; de back-up staat in ${BACKUP_DIR}/${naam}`);
-            return { ok: true as const, backup: naam, weg };
-          } catch (error) {
-            console.error(`Opnieuw beginnen mislukt: ${String(error)}`);
-            herstart();
-            return { ok: false as const, status: 500, reden: 'opnieuw beginnen lukte niet helemaal; SunArc start opnieuw' };
-          }
-        },
-        configWeg: onboarding != null && site != null,
-        bewaard: () => bewaardeBackups(logDir),
-        analyse: analyseVoorExport,
-        herstart,
-      };
+/** Wat gegevens.ts uit main.ts gebruikt: wat vastligt gewoon, wat kan wijzigen als getter. */
+const maakGegevensNodig = {
+  allStates, analyse, bewonersStore, client, functiesNu, onboarding, runner, strategies, version,
+  get houseRegisters() {
+    return houseRegisters;
+  },
+  get site() {
+    return site;
+  },
+  get voorbeeld() {
+    return voorbeeld;
+  },
+  get web() {
+    return web;
+  },
+};
+export type MaakGegevensNodig = typeof maakGegevensNodig;
+const { gegevens, herstart, zoekUpdates } = maakGegevens(maakGegevensNodig);
 
 /*
  * Het voorbeeldhuis (besluit 237): een eigen proces, pas als iemand het opent.

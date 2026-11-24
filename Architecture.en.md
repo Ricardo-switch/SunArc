@@ -118,8 +118,10 @@ the timings (decision 55). `main.ts` only carries it out. Its first parts live
 in `backend/src/start/`: `begin.ts` (`.env`, the flags that run without Home
 Assistant, the token), `config-bij-start.ts` (the configuration with the
 connection and measuring) and `web-opties.ts` (what the web server is given),
-and per topic `weer.ts`, `ligging.ts`, `opbrengst.ts`, `herinneringen.ts` and
-`assistent.ts`. Such a topic is a function that `main.ts` calls in the old
+and per topic `weer.ts`, `ligging.ts`, `opbrengst.ts`, `herinneringen.ts`,
+`assistent.ts`, `meldingen.ts` (the bell and the phone), `bediening.ts` (by hand,
+charging, plugs), `huis-nu.ts` (the house, the phases, the charging advice) and
+`gegevens.ts` (backup and restore). Such a topic is a function that `main.ts` calls in the old
 place; what can still change in `main.ts` reaches it through getters
 (`mainStand`, `maakWeerNodig`, ...).
 

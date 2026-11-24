@@ -112,7 +112,10 @@ de tijden (besluit 55). `main.ts` voert het alleen uit. Het begin daarvan staat
 in `backend/src/start/`: `begin.ts` (`.env`, de vlaggen zonder Home Assistant,
 het token), `config-bij-start.ts` (de configuratie met de aansluiting en meten
 met) en `web-opties.ts` (wat de webserver meekrijgt), en per onderwerp `weer.ts`,
-`ligging.ts`, `opbrengst.ts`, `herinneringen.ts` en `assistent.ts`. Zo'n
+`ligging.ts`, `opbrengst.ts`, `herinneringen.ts`, `assistent.ts`, `meldingen.ts`
+(de bel en de telefoon), `bediening.ts` (met de hand, laden, stekkers),
+`huis-nu.ts` (het huis, de fasen, het laadadvies) en `gegevens.ts` (back-up en
+herstel). Zo'n
 onderwerp is een functie die `main.ts` op de oude plek aanroept; wat `main.ts`
 nog kan wijzigen, krijgt het via getters (`mainStand`, `maakWeerNodig`, ...).
 
