@@ -9,7 +9,7 @@
  * krijgt in git een markering `v<nummer>`.
  */
 
-export const VERSIE = '0.233.0';
+export const VERSIE = '0.234.0';
 
 /**
  * Melden staat uit (14 november 2026): tot de opknapbeurt van januari klaar is,
@@ -89,6 +89,18 @@ export const OP_MAIN: readonly string[] = [
 
 /** De nieuwste versie eerst. Per versie kort en voor de bewoner, het belangrijkste eerst. */
 export const NIEUW: readonly Nieuw[] = [
+  {
+    versie: '0.234.0',
+    datum: '2026-11-24',
+    beter: [
+      'Overal dezelfde schakelaar, hetzelfde invoerveld, dezelfde keuze in delen en dezelfde knoppen: eerst had elke pagina zijn eigen maat (zes schakelaars). Ook de kaarten, de titels en de foutregels zijn overal gelijk',
+    ],
+    en: {
+      beter: [
+        'The same switch, input field, segmented choice and buttons everywhere: each page used to have its own size (six different switches). Cards, titles and error lines now match too',
+      ],
+    },
+  },
   {
     versie: '0.233.0',
     datum: '2026-11-23',

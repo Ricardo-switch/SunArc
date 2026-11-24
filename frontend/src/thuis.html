@@ -62,7 +62,6 @@
   #wand .rechts { padding-bottom: 6px; }
   #wand .rechts.meer { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent); }
   body.aanpassen #wand .rechts { padding-top: 18px; top: 78px; }
-  .kaart { padding: 18px 20px; }
   /* Een kaart die ergens heen gaat (besluit 129): Vandaag naar de dag, Straks naar de assistent. */
   a.kaartlink { display: block; color: inherit; text-decoration: none; cursor: pointer; }
   a.kaartlink:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
@@ -199,7 +198,6 @@
   #tel .kamers small { display: block; font-size: 13px; font-weight: 600; }
   #tel .kamers .getal { font-size: 24px; }
   #tel .kamers .pijl { color: var(--gedempt); font-size: 18px; }
-  #tel .kaart { padding: 16px 18px; }
   #tel .straks .kop-2 { font-size: 20px; }
   #tel .apparaatkaart { padding: 12px 16px; }
   #tel .apparaatkaart .ring { width: 50px; height: 50px; }
@@ -578,7 +576,7 @@
   body.aanpassen .aanpasknop { display: none; }
   .potlood { width: 34px; padding: 0; justify-content: center; color: var(--zacht); }
   #tel .bewerkbalk { position: fixed; left: 12px; right: 12px; bottom: 90px; height: 58px; border-radius: 22px; display: flex; align-items: center; gap: 10px; padding: 0 8px; background: rgb(var(--nacht) / 0.94); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); backdrop-filter: blur(14px); z-index: 5; }
-  .bewerkbalk .knop, .bewerkkop .knop { height: 42px; padding: 0 14px; font-size: 14px; color: inherit; }
+  .bewerkbalk .knop, .bewerkkop .knop { color: inherit; }
   .bewerkbalk [data-kaart-erbij] { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); border-color: transparent; }
   .bewerkbalk .knop-licht, .bewerkkop .knop-licht { color: var(--op-accent); }
   .bewerkbalk .uitleg { flex: 1; font-size: 12.5px; color: var(--zacht); line-height: 1.3; }
@@ -641,7 +639,7 @@
   html.tel-stand .kiesblad::before { content: ''; display: block; width: 44px; height: 5px; border-radius: 3px; background: rgb(var(--wit) / 0.2); margin: 0 auto 10px; flex: none; }
   html:not(.tel-stand) .kiesblad { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, 92vw); max-height: 86vh; padding: 18px 22px; }
   .kiesblad .bladkop { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 4px; }
-  .kiesblad .bladkop .knop { height: 38px; padding: 0 14px; font-size: 14px; color: inherit; }
+  .kiesblad .bladkop .knop { color: inherit; }
   .kiesblad .bladkop .knop-licht { color: var(--op-accent); }
   .kiesblad h3 { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gedempt); margin: 14px 0 2px; }
   /*
@@ -765,15 +763,6 @@
   .kiesblad .twee p { font-size: 12.5px; color: var(--gedempt); line-height: 1.35; margin: 2px 0 0; }
   .kiesblad .mini-tel { height: 64px; border-radius: 10px; background: rgb(var(--nacht) / 0.6); padding: 9px; display: flex; flex-direction: column; gap: 6px; }
   .kiesblad .mini-tel i { display: block; height: 6px; border-radius: 3px; background: rgb(var(--wit) / 0.18); }
-  .kiesblad .schakel { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 0; border: 0; border-top: 1px solid rgb(var(--wit) / 0.06); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-  .kiesblad .schakel:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; border-radius: 8px; }
-  .kiesblad .schakel div { flex: 1; }
-  .kiesblad .schakel b { display: block; font-size: 15px; }
-  .kiesblad .schakel span { font-size: 12.5px; color: var(--gedempt); }
-  .kiesblad .knopje { width: 50px; height: 30px; border-radius: 15px; background: rgb(var(--wit) / 0.14); position: relative; flex: none; }
-  .kiesblad .knopje::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #dfe7ee; }
-  .kiesblad .schakel[aria-checked='true'] .knopje { background: var(--mint); }
-  .kiesblad .schakel[aria-checked='true'] .knopje::after { left: 23px; }
   /* Een voorbeeld om te vragen is tekst tussen aanhalingstekens, geen knop (besluit 228). */
   .dok .voorbeeld { flex: none; color: var(--zacht); font-size: 14.5px; font-weight: 600; text-decoration: none; padding: 6px 4px; }
   .dok .voorbeeld::before { content: '“'; }

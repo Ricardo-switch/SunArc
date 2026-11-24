@@ -31,7 +31,7 @@
   .cijfer .getal { font-size: 40px; line-height: 1.05; }
   .cijfer .getal small { font-family: var(--romp); font-size: 15px; color: var(--zacht); font-weight: 500; margin-left: 4px; letter-spacing: 0; }
   .cijfer .klein b, .zin b { color: var(--gloed-t); }
-  .kaart { padding: 18px 20px; min-height: 0; }
+  .kaart { min-height: 0; }
   .midden { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
   .midden > .grafiekkaart { flex: 1; display: flex; flex-direction: column; }
   .grafiekkop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
@@ -55,7 +55,6 @@
   .gewoon .mini { color: var(--mint-t); }
   .opvallend h3 { margin: 6px 0 4px; font-family: var(--kop); font-size: 20px; line-height: 1.15; }
   :is(#wand, #tel) .knoppen { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-  :is(#wand, #tel) .knoppen .knop { height: 38px; padding: 0 13px; font-size: 13.5px; }
   .zeg { display: flex; gap: 8px; margin-top: 12px; }
   .zeg input { flex: 1; min-width: 0; height: 38px; padding: 0 12px; border-radius: 12px; border: 1px solid rgb(var(--wit) / 0.16); background: rgb(var(--wit) / 0.06); color: var(--tekst); font: inherit; font-size: 14px; }
   .zeg input:focus { outline: 2px solid var(--ijs); }
@@ -63,17 +62,11 @@
   .regelrij b { display: block; font-size: 14.5px; }
   .regelrij span { font-size: 12.5px; color: var(--gedempt); }
   .uitleg { font-size: 12.5px; line-height: 1.5; color: var(--zacht); margin: 6px 0 0; }
-  .schakel { position: relative; flex: none; width: 42px; height: 26px; padding: 0; border: 0; border-radius: 13px; background: rgb(var(--wit) / 0.16); cursor: pointer; }
-  .schakel::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.15s; }
-  .schakel[aria-checked='true'] { background: var(--mint); }
-  .schakel[aria-checked='true']::after { transform: translateX(16px); background: #0b2a1f; }
-  .schakel:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
 
   /* De telefoon (schets Tel-Sluipverbruik). */
   #tel .inhoud { padding: 14px 16px 110px; display: flex; flex-direction: column; gap: 12px; }
-  #tel h1 { margin: 6px 0 0; font-size: 30px; line-height: 1.08; }
+  #tel h1 { margin: 6px 0 0; }
   #tel .zin { font-size: 14.5px; color: var(--zacht); margin: -4px 0 2px; }
-  #tel .kaart { padding: 16px; }
   #tel .wissel { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 4px; }
   #tel .opvallend h3 { font-size: 18px; }
   .vier { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -99,7 +92,7 @@
       <div class="kop">
         <div>
           <a class="terug" href="opbrengst.html">‹ <span data-t="nav.opbrengst"></span></a>
-          <h1 class="kop-1" style="font-size: 40px" data-titel><span data-t="algemeen.laden"></span></h1>
+          <h1 class="kop-1" data-titel><span data-t="algemeen.laden"></span></h1>
         </div>
         <div class="wissel" role="group" data-t-aria-label="sluip.weergave" data-wissel></div>
       </div>

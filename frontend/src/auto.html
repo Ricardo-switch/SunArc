@@ -101,10 +101,6 @@
   .laadblad .schaal b { position: absolute; top: -5px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: #fff; box-shadow: 0 0 0 3px rgba(11, 20, 36, 0.8); }
   .laadblad .schaal-as { display: flex; justify-content: space-between; margin-top: 5px; font-size: 11.5px; color: var(--gedempt); }
   .laadblad .schaal-as .zon-t { font-weight: 600; }
-  .laadblad .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border-radius: 12px; background: rgb(var(--wit) / 0.06); }
-  .laadblad .seg button { height: 36px; border: 0; border-radius: 9px; background: transparent; color: var(--zacht); font: inherit; font-size: 13.5px; font-weight: 600; white-space: nowrap; cursor: pointer; }
-  .laadblad .seg button[aria-pressed='true'] { background: rgb(var(--wit) / 0.14); color: var(--tekst); }
-  .laadblad .seg button:disabled { opacity: 0.35; cursor: default; }
   .laadblad .tot-pct { display: grid; grid-template-columns: 40px 64px 40px minmax(0, 1fr); gap: 10px; align-items: center; margin-top: 8px; }
   .laadblad .tot-pct button { width: 40px; height: 40px; border-radius: 12px; border: 0; background: rgb(var(--wit) / 0.08); color: var(--tekst); font-size: 20px; cursor: pointer; }
   .laadblad .tot-pct b { text-align: center; font-family: var(--kop); font-size: 26px; font-weight: 600; }
@@ -130,7 +126,7 @@
   /* Op de wand past het blad zonder scrollen: kleiner getal, lagere knoppen, de balk lager. */
   .hand-laag:not(.op-tel) .laadblad .stroom button { width: 44px; height: 44px; }
   .hand-laag:not(.op-tel) .laadblad .stroom .getal b { font-size: 44px; }
-  .hand-laag:not(.op-tel) .laadblad .seg button { height: 32px; }
+
   .hand-laag:not(.op-tel) .laadblad .dagbalk { margin: 0 0 4px; }
   .hand-laag:not(.op-tel) .laadblad .dagbalk .legenda { margin-top: 2px; }
   .hand-laag:not(.op-tel) .laadblad .stroom .getal span { font-size: 12px; }
@@ -141,7 +137,6 @@
 
   /* Rechts: de laadpaal en wat je instelde. */
   .rechts { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
-  .kaart { padding: 20px 22px; border-radius: 24px; }
   .kaart h2 { margin: 0; font-family: var(--kop); font-size: 24px; font-weight: 600; }
   .kaart .onder { margin: 3px 0 0; font-size: 13.5px; color: var(--zacht); }
   .regel { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 11px 0; border-top: 1px solid rgb(var(--wit) / 0.07); font-size: 14.5px; }
@@ -176,7 +171,7 @@
   /* De telefoon (schets Tel-Auto). */
   #tel .inhoud { padding: 14px 16px 110px; display: flex; flex-direction: column; gap: 12px; }
   #tel .kop { align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-  #tel h1 { margin: 0; font-size: 34px; line-height: 1.05; }
+  #tel h1 { margin: 0; }
   #tel .autos { margin: 0; }
   #tel .autos button { height: 34px; padding: 0 12px; font-size: 13.5px; }
   #tel .held { padding: 16px 16px 14px; border-radius: 24px; }
@@ -195,7 +190,6 @@
   #tel .feiten small { font-size: 11px; }
   #tel .feiten b { font-size: 15px; margin-top: 2px; }
   #tel .feiten span { font-size: 12.5px; }
-  #tel .kaart { padding: 16px; border-radius: 20px; }
   #tel .advies { grid-template-columns: 1fr; gap: 14px; padding: 14px 16px; }
   #tel .kaart h2 { font-size: 21px; }
   #tel .leeg { padding: 18px; border-radius: 20px; }

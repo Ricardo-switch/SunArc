@@ -50,9 +50,6 @@
   .eerst .stip { background: var(--gloed); }
   .eerst .zin { display: block; font-size: 13px; color: var(--zacht); line-height: 1.4; margin-top: 2px; }
   .eerst .daarna { color: var(--gedempt); }
-  .knopje { flex: none; height: 34px; padding: 0 14px; border-radius: 11px; border: 0; display: inline-flex; align-items: center; font: inherit; font-size: 13px; font-weight: 700; background: var(--tekst); color: var(--inkt); white-space: nowrap; text-decoration: none; cursor: pointer; }
-  .knopje.zacht { height: 30px; padding: 0 10px; font-size: 12.5px; background: rgba(247, 181, 72, 0.12); color: var(--zon-t); border: 1px solid rgba(247, 181, 72, 0.4); }
-  .knopje:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
 
   /* Elke functie op één regel met zijn stand, in de groepen van de waaier. */
   .groepen { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-content: start; }
@@ -156,7 +153,7 @@
   .kanook .wanneer { color: var(--zon-t); font-size: 13px; font-weight: 700; }
   .kanook b { font-size: 16px; }
   .kanook p { margin: 0; font-size: 14px; color: var(--zacht); }
-  .kanook .knop { grid-row: 1 / 4; grid-column: 2; height: 40px; padding: 0 16px; border-radius: 12px; background: var(--accent); color: var(--op-accent); font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; }
+  .kanook .knop { grid-row: 1 / 4; grid-column: 2; background: var(--accent); color: var(--op-accent); font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; }
   .blad .onder { margin-top: auto; display: flex; gap: 10px; align-items: center; }
   .blad .onder a { height: 42px; padding: 0 18px; border-radius: 14px; background: var(--accent); color: var(--op-accent); font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; text-decoration: none; }
   .achter { position: fixed; inset: 0; background: rgba(4, 8, 16, 0.55); z-index: 29; }
@@ -168,7 +165,6 @@
   .klaarregel b { display: block; font-size: 14.5px; }
   .klaarregel span:not(.stip), .klaarregel small { display: block; font-size: 13px; color: var(--zacht); margin-top: 1px; }
   .klaarregel small { color: var(--gedempt); }
-  .klaarregel .knop { height: 34px; padding: 0 14px; font-size: 13px; }
 
   /* De telefoon: onder elkaar wat eerst moet, de waaier, de weg, wat erbij kan en de functies. */
   #tel .inhoud { padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 12px; }
@@ -225,7 +221,7 @@
   <div id="tel" class="tel">
     <div class="inhoud">
       <a class="terugje" href="instellingen.html" data-t="jij.terugInstellingen"></a>
-      <h1 class="kop-1" style="font-size: 32px" data-t="instellingen.kan"></h1>
+      <h1 class="kop-1" data-t="instellingen.kan"></h1>
       <div class="tellers" data-tellers></div>
       <div data-eerst></div>
       <div class="waaierveld"><svg viewBox="0 0 390 214" data-waaier="tel"></svg></div>

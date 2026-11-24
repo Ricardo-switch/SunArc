@@ -5,14 +5,9 @@
  */
 .zorgt { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .zorgt > * { flex-shrink: 0; }
-.zorgt .schakel[disabled] { opacity: 0.35; cursor: default; }
 .zorgt .bladkop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .zorgt .bladkop h2 { margin: 0; }
 .zorgt .label { font-size: 12.5px; color: var(--gedempt); margin-bottom: 6px; display: block; }
-.zorgt .veld { width: 100%; height: 42px; border-radius: 12px; border: 1px solid rgb(var(--wit) / 0.18); background: rgb(var(--wit) / 0.05); color: var(--tekst); padding: 0 12px; font: inherit; font-size: 15px; font-weight: 600; }
-.zorgt .veld:focus { outline: 2px solid var(--ijs); outline-offset: 1px; }
-.zorgt select.veld { cursor: pointer; }
-.zorgt select.veld option { background: #13203a; color: var(--tekst); }
 .zorgt .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .zorgt .chip { height: 32px; padding: 0 12px; border-radius: 999px; background: rgb(var(--wit) / 0.07); display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; font-weight: 600; color: var(--tekst); border: 0; cursor: pointer; user-select: none; }
 .zorgt .chip.plus { background: transparent; border: 1px dashed rgba(111, 211, 255, 0.6); color: var(--ijs-t); }
@@ -40,14 +35,10 @@
 .zorgt .stand.slim { color: var(--mint-t); background: rgba(110, 231, 183, 0.1); }
 .zorgt .stand.hand { color: var(--zacht); background: rgb(var(--wit) / 0.07); }
 .zorgt .bron .opzon { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--zacht); }
-.zorgt .schakel { position: relative; flex: none; margin-left: auto; width: 44px; height: 26px; border-radius: 999px; border: 0; padding: 0; background: rgb(var(--wit) / 0.14); cursor: pointer; }
-.zorgt .schakel::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #c9d3dc; transition: left 0.15s; }
-.zorgt .schakel[aria-checked='true'] { background: var(--mint); }
-.zorgt .schakel[aria-checked='true']::after { left: 21px; background: #fff; }
 .zorgt .bron .idee { padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(247, 181, 72, 0.3); background: rgba(247, 181, 72, 0.06); font-size: 13px; color: var(--zacht); line-height: 1.45; }
 .zorgt .bron .idee b { display: block; color: var(--zon-t); font-size: 13px; margin-bottom: 2px; }
 .zorgt .rolrij { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 8px; border-top: 1px solid rgb(var(--wit) / 0.06); font-size: 13px; color: var(--gedempt); }
-.zorgt .rolrij .veld { width: auto; height: 34px; padding: 0 10px; font-size: 13px; font-weight: 700; }
+.zorgt .rolrij .invoer { width: auto; font-weight: 700; }
 .zorgt .rolzin { margin: 0; font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
 .zorgt .keuzes { display: flex; flex-direction: column; gap: 6px; }
 .zorgt .keuze { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 9px 12px; border-radius: 12px; border: 1px solid transparent; background: rgb(var(--wit) / 0.04); color: inherit; font: inherit; text-align: left; cursor: pointer; }
@@ -71,11 +62,11 @@
 .zorgt .plus { height: 42px; border-radius: 14px; border: 1px dashed rgba(111, 211, 255, 0.55); background: none; color: var(--ijs-t); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
 .zorgt .vraag { display: flex; flex-direction: column; gap: 6px; }
 .zorgt .vraag .label { margin: 0; }
-.zorgt .invoer { display: flex; align-items: center; gap: 8px; height: 42px; border-radius: 12px; border: 1px solid rgb(var(--wit) / 0.18); background: rgb(var(--wit) / 0.05); padding: 0 12px; }
-.zorgt .invoer input { flex: 1; min-width: 0; border: 0; background: none; color: var(--tekst); font: inherit; font-size: 15px; font-weight: 600; }
-.zorgt .invoer input:focus { outline: none; }
-.zorgt .invoer:focus-within { outline: 2px solid var(--ijs); outline-offset: 1px; }
-.zorgt .invoer span { color: var(--gedempt); font-size: 13px; }
+.zorgt .invoer-met { display: flex; align-items: center; gap: 8px; height: 42px; border-radius: 12px; border: 1px solid rgb(var(--wit) / 0.18); background: rgb(var(--wit) / 0.05); padding: 0 12px; }
+.zorgt .invoer-met input { flex: 1; min-width: 0; border: 0; background: none; color: var(--tekst); font: inherit; font-size: 15px; font-weight: 600; }
+.zorgt .invoer-met input:focus { outline: none; }
+.zorgt .invoer-met:focus-within { outline: 2px solid var(--ijs); outline-offset: 1px; }
+.zorgt .invoer-met span { color: var(--gedempt); font-size: 13px; }
 .zorgt .knoppenrij { display: flex; gap: 8px; flex-wrap: wrap; }
 .zorgt .knoppenrij .knop { flex: 1; }
 /* Meten en regeling achter één regel, en terug naar de apparaten (besluit 317). */
@@ -102,6 +93,7 @@
 .zorgt .bron[data-kort] .cvregel { padding-top: 4px; }
 .zorgt .bron[data-kort] .vraagknop { height: 26px; font-size: 12px; }
 
+.zorgt .schakelaar { margin-left: auto; }
 /* Wat ervoor zorgt, per zone (zones als deel van de kamer, schets Wand-Klimaat-Subzone, 18 november 2026). */
 .zorgt .zonegroep { display: flex; flex-direction: column; gap: 6px; padding: 8px 8px 8px; border-radius: 16px; background: rgb(var(--wit) / 0.03); border: 1px solid rgb(var(--wit) / 0.06); }
 .zorgt .zonegroep.aan { border-color: rgb(var(--wit) / 0.35); background: rgb(var(--wit) / 0.06); }
@@ -109,7 +101,6 @@
 .zorgt .zonekop b { font-size: 12.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--zacht); }
 .zorgt .zonekop em { font-style: normal; font-size: 13px; font-weight: 700; }
 .zorgt .zonekop .r { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--gedempt); }
-.zorgt .zonekop .schakel { flex: none; }
 .zorgt .zone-eigen { color: var(--zon-t); font-weight: 700; text-decoration: none; }
 .zorgt .volgt { height: 30px; padding: 0 10px; border-radius: 10px; border: 1px dashed var(--glas-rand); display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; color: var(--zacht); white-space: nowrap; }
 /* Binnen een zone regels, geen vakjes: zo past het blad van een kamer met zones op de wand. */

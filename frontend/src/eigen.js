@@ -525,7 +525,7 @@
         return keus({ ik: ICOON[id] ?? '', naam: k.dataset.naam ?? id, klein: KORT.has(id) ? global.t(`eigen.kort.${id}`) : '', rechts: '+', data: `data-erbij="${esc(id)}"` });
       });
       el.setAttribute('aria-label', global.t('eigen.toevoegen'));
-      el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(global.t(plek === 'wand' ? 'eigen.erbij' : 'eigen.toevoegen'))}</h2><button type="button" class="knop" data-blad-dicht>${esc(global.t('algemeen.sluiten'))}</button></div>
+      el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(global.t(plek === 'wand' ? 'eigen.erbij' : 'eigen.toevoegen'))}</h2><button type="button" class="knop knop-klein" data-blad-dicht>${esc(global.t('algemeen.sluiten'))}</button></div>
         ${plek === 'wand' ? `<p class="mini" style="margin: 0">${esc(global.t('eigen.onderaan'))}</p>` : ''}
         ${rijen.length ? rijen.join('') : `<p class="mini">${esc(global.t('eigen.alleKaarten'))}</p>`}`;
       return;
@@ -587,7 +587,7 @@
       plek === 'wand' ? (v.wand.van == null ? global.t('eigen.voorWand') : v.wand.eigen ? global.t('eigen.ookTelefoon') : global.t('eigen.vanWie', { naam: v.wand.naam ?? global.t('eigen.wieGeldt') })) : global.t('eigen.opThuis'),
       gekozen.length > 1 ? global.t('eigen.volgorde') : '',
     ].filter(Boolean).join(' ');
-    el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(global.t('thuis.kaart.favorieten'))}</h2><button type="button" class="knop knop-licht" data-fav-klaar>${esc(global.t('algemeen.klaar'))}</button></div>
+    el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(global.t('thuis.kaart.favorieten'))}</h2><button type="button" class="knop knop-klein knop-licht" data-fav-klaar>${esc(global.t('algemeen.klaar'))}</button></div>
       <p class="mini" style="margin: 0" data-fav-teller>${esc(teller)}</p>
       ${chips ? `<div class="favchips tegels" data-favchips>${chips}</div>` : ''}
       ${filters}
@@ -610,7 +610,7 @@
     };
     const volg = [...gekozen.map((id) => alle.find((c) => c.id === id)).filter(Boolean), ...alle.filter((c) => !gekozen.includes(c.id))];
     el.setAttribute('aria-label', global.t('eigen.cam.kop'));
-    el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(global.t('eigen.cam.kop'))}</h2><button type="button" class="knop knop-licht" data-cam-klaar>${esc(global.t('algemeen.klaar'))}</button></div>
+    el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(global.t('eigen.cam.kop'))}</h2><button type="button" class="knop knop-klein knop-licht" data-cam-klaar>${esc(global.t('algemeen.klaar'))}</button></div>
       <p class="mini" style="margin: 0">${esc(global.t('eigen.cam.zin'))}</p>
       ${volg.length ? volg.map(rij).join('') : `<p class="mini">${esc(global.t('thuis.cam.leeg'))}</p>`}`;
   }

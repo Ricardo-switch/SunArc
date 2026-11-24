@@ -60,7 +60,7 @@ function welkom() {
   kaart.innerHTML = `${merk}
     <h1>${esc(t('welkom.kop', { naam: ik.naam }))}</h1>
     <p>${esc(comfort)}</p>
-    <div class="vak"><label for="naam">${esc(t('bewoners.noemt.ik'))}</label><input class="veld" id="naam" data-naam value="${esc(ik.naam)}" maxlength="40" autocomplete="nickname"><span class="hint">${esc(t('welkom.uitHA', { naam: ik.haNaam }))}</span></div>
+    <div class="vak"><label for="naam">${esc(t('bewoners.noemt.ik'))}</label><input class="invoer" id="naam" data-naam value="${esc(ik.naam)}" maxlength="40" autocomplete="nickname"><span class="hint">${esc(t('welkom.uitHA', { naam: ik.haNaam }))}</span></div>
     <div class="vak"><span>${esc(t('bewoners.thuisVolgens'))}</span>${thuis}</div>
     <span class="fout" data-fout></span>
     <div class="voet"><a class="zacht" href="${esc(terug)}">${esc(t('basis.versie.later'))}</a><button type="button" class="knop knop-licht" data-klopt>${esc(t('welkom.klopt'))}</button></div>

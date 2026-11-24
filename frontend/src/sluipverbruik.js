@@ -249,8 +249,8 @@ function redenDeel() {
   const meer = n.w - r.gewoonW;
   const kop = `<div class="nachtkop"><b>${esc(t('sluip.nacht.kop', { datum: dag }))}</b><span>${esc(n.hoog ? t('sluip.nacht.meer', { w: W(n.w), n: W(meer) }) : t('sluip.nacht.gewoon', { w: W(n.w) }))}</span></div>`;
   const knoppen = (...k) => `<div class="knoppen">${k.join('')}</div>`;
-  const antwoordKnoppen = (r.antwoorden ?? []).map((a) => `<button type="button" class="knop knop-licht" data-antwoord="${esc(a)}">${esc(a)}</button>`);
-  const anders = (licht = false) => `<button type="button" class="knop${licht ? ' knop-licht' : ''}" data-zeg>${esc(t('sluip.anders'))}</button>`;
+  const antwoordKnoppen = (r.antwoorden ?? []).map((a) => `<button type="button" class="knop knop-klein knop-licht" data-antwoord="${esc(a)}">${esc(a)}</button>`);
+  const anders = (licht = false) => `<button type="button" class="knop knop-klein${licht ? ' knop-licht' : ''}" data-zeg>${esc(t('sluip.anders'))}</button>`;
   let onder;
   if (zeggen) {
     onder = `<div class="zeg"><input data-zeg-tekst maxlength="80" placeholder="${esc(t('sluip.zegVoorbeeld'))}" aria-label="${esc(t('sluip.nacht.wat'))}" value="${esc(n.reden?.tekst ?? '')}"><button type="button" class="knop knop-licht" data-zeg-bewaar>${esc(t('sluip.bewaar'))}</button></div>`;
@@ -261,7 +261,7 @@ function redenDeel() {
   } else if (n.herkend) {
     onder = `<p class="klein reden"><b>${esc(t('sluip.nacht.weer', { tekst: n.herkend.tekst }))}</b> ${esc(t('sluip.nacht.weerZin', { n: W(n.herkend.meerW), tekst: n.herkend.tekst }))}</p>${knoppen(`<button type="button" class="knop knop-licht" data-ja>${esc(t('sluip.nacht.ja'))}</button>`, anders())}`;
   } else if (n.hoog) {
-    onder = `<p class="klein reden">${esc(t('sluip.nacht.wat'))}</p>${knoppen(...antwoordKnoppen, anders(!antwoordKnoppen.length), `<button type="button" class="knop" data-weet-niet>${esc(t('sluip.weetNiet'))}</button>`)}`;
+    onder = `<p class="klein reden">${esc(t('sluip.nacht.wat'))}</p>${knoppen(...antwoordKnoppen, anders(!antwoordKnoppen.length), `<button type="button" class="knop knop-klein" data-weet-niet>${esc(t('sluip.weetNiet'))}</button>`)}`;
   } else onder = '';
   return `${telling}<div class="nachtdeel">${kop}${onder}</div>`;
 }
@@ -271,7 +271,7 @@ function melding() {
   const m = voork?.tel?.meldingen;
   if (!m) return '';
   const aan = m.sluip !== false;
-  return `<section class="glas kaart"><div class="regelrij"><div><b>${esc(t('sluip.meldingKop'))}</b><span>${esc(t('sluip.meldingZin', { grens: GRENS }))}</span></div><button type="button" class="schakel" role="switch" aria-checked="${aan}" aria-label="${esc(t('sluip.meldingKop'))}" data-sluip-melding></button></div></section>`;
+  return `<section class="glas kaart"><div class="regelrij"><div><b>${esc(t('sluip.meldingKop'))}</b><span>${esc(t('sluip.meldingZin', { grens: GRENS }))}</span></div><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('sluip.meldingKop'))}" data-sluip-melding></button></div></section>`;
 }
 
 function rechts() {

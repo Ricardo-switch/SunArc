@@ -81,15 +81,11 @@
   .watkeuze span { font-size: 12px; }
   :is(.paneel, .blad) .watkeuze[aria-pressed='true'] { background: rgba(247, 181, 72, 0.12); border-color: var(--zon); color: var(--tekst); }
   .onder { margin: 6px 0 0; font-size: 13px; color: var(--zacht); }
-  .invoer { height: 42px; width: 100%; box-sizing: border-box; padding: 0 14px; border-radius: 13px; background: rgb(var(--wit) / 0.06); border: 1px solid var(--glas-rand); color: var(--tekst); font: inherit; font-size: 15.5px; font-weight: 600; }
   .stap .knoppen { display: flex; flex-direction: column; gap: 8px; }
   .knoplabel { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 14px; color: var(--zacht); }
   .knoplabel input { height: 36px; padding: 0 12px; border-radius: 11px; background: rgb(var(--wit) / 0.06); border: 1px solid var(--glas-rand); color: var(--tekst); font: inherit; font-weight: 600; }
-  .seg { display: inline-grid; grid-auto-flow: column; gap: 3px; padding: 3px; border-radius: 13px; background: rgb(var(--wit) / 0.06); }
-  .seg button { height: 38px; padding: 0 18px; border: 0; border-radius: 10px; background: none; color: var(--zacht); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
-  .seg button[aria-pressed='true'] { background: var(--tekst); color: var(--tegen); }
   .let { margin: 0; padding: 11px 14px; border-radius: 14px; background: rgba(111, 211, 255, 0.07); border: 1px solid rgba(111, 211, 255, 0.18); font-size: 13.5px; color: var(--zacht); line-height: 1.4; }
-  .fout { margin: 0; font-size: 13.5px; color: var(--gloed-t); }
+  .fout { margin: 0; }
   .fout:empty { display: none; }
   .klaar { display: flex; align-items: center; gap: 12px; padding-top: 10px; border-top: 1px solid rgb(var(--wit) / 0.07); margin-top: auto; }
   .klaar .hoofd { height: 46px; padding: 0 26px; border: 0; border-radius: 14px; background: var(--tekst); color: var(--tegen); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
@@ -157,7 +153,7 @@
   <div id="tel" class="tel">
     <div class="inhoud">
       <a class="terug" href="apparaten.html">‹ <span data-t="nav.apparaten"></span></a>
-      <h1 class="kop-1" style="font-size: 30px" data-telkop></h1>
+      <h1 class="kop-1" data-telkop></h1>
       <div data-stap></div>
     </div>
     <div data-laag hidden></div>

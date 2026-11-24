@@ -394,7 +394,7 @@
      */
     function meldTerugzeg(m) {
       if (!['opgelost', 'instelling'].includes(m.uitkomst) || m.bevestigd === 'werkt') return '';
-      return `<span class="meld-terugzeg"><button type="button" class="knop" data-meldwerkt="${kern.esc(m.code)}">${kern.esc(kern.global.t('melden.werkt'))}</button><button type="button" class="knop" data-meldnietgoed="${kern.esc(m.code)}">${kern.esc(kern.global.t('melden.werktNiet'))}</button></span>`;
+      return `<span class="meld-terugzeg"><button type="button" class="knop knop-klein" data-meldwerkt="${kern.esc(m.code)}">${kern.esc(kern.global.t('melden.werkt'))}</button><button type="button" class="knop knop-klein" data-meldnietgoed="${kern.esc(m.code)}">${kern.esc(kern.global.t('melden.werktNiet'))}</button></span>`;
     }
     /** Je meldingen bij Over › Versie: de stand van elk, met dezelfde knoppen. */
     function jouwMeldingen() {

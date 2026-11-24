@@ -565,7 +565,7 @@ function kamerVak({ id: kamer, naam, lampen }) {
       const op = lampAan(d);
       // Een tik op de naam opent het blad van de lamp (besluit 298).
       void kamer;
-      return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><button type="button" class="lnaam" data-vrij="lamp:${esc(d.id)}" aria-label="${esc(t('apparaten.openIn', { naam: d.naam }))}">${esc(d.naam)}${d.via ? `<small>${esc(t('apparaten.via', { via: d.via }))}</small>` : ''}</button><button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
+      return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><button type="button" class="lnaam" data-vrij="lamp:${esc(d.id)}" aria-label="${esc(t('apparaten.openIn', { naam: d.naam }))}">${esc(d.naam)}${d.via ? `<small>${esc(t('apparaten.via', { via: d.via }))}</small>` : ''}</button><button type="button" class="schakelaar" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
     })
     .join('');
   const el = document.createElement('div');
@@ -683,7 +683,7 @@ function camErin(c) {
   const mag = huisData?.lichtBedienen === true;
   const lampen = camLampen(c).map((d) => {
     const op = lampAan(d);
-    return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><span class="lnaam">${esc(zonderCamNaam(d.naam, c.naam))}<small>${esc(t(op ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit'))}</small></span><button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
+    return `<div class="lamp${op ? ' aan' : ''}"><span class="lik">${iconen.svg('lamp')}</span><span class="lnaam">${esc(zonderCamNaam(d.naam, c.naam))}<small>${esc(t(op ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit'))}</small></span><button type="button" class="schakelaar" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button></div>`;
   });
   const zag = c.nu ? t('apparaten.cam.zietNu') : c.laatsteMs ? (isVandaag(c.laatsteMs) ? t('apparaten.cam.laatst', { klok: klokVan(c.laatsteMs) }) : t('apparaten.cam.laatstDag', { dag: camDag(c.laatsteMs) })) : t('thuis.cam.geen');
   const melder = c.melders ? `<div class="lamp melder${c.nu ? ' aan' : ''}"><span class="lik">${iconen.svg('beweging')}</span><span class="lnaam">${esc(t('apparaten.cam.melder'))}<small>${esc(zag)}</small></span></div>` : '';
@@ -733,7 +733,7 @@ function cameraBlad(id) {
   const vandaag = camVandaag(c);
   const thuis = c.deurbel
     ? regel(t('apparaten.cam.opThuis'), `<span class="mini">${esc(t('apparaten.cam.altijdThuis'))}</span>`)
-    : regel(t('apparaten.cam.opThuis'), `<button type="button" class="schakel${c.opThuis ? '' : ' uit'}" role="switch" aria-checked="${c.opThuis}" aria-label="${esc(t('apparaten.cam.opThuis'))}" data-opthuis="${esc(c.id)}"></button>`);
+    : regel(t('apparaten.cam.opThuis'), `<button type="button" class="schakelaar" role="switch" aria-checked="${c.opThuis}" aria-label="${esc(t('apparaten.cam.opThuis'))}" data-opthuis="${esc(c.id)}"></button>`);
   const erin = camErin(c);
   return {
     naam: c.naam,
@@ -799,7 +799,7 @@ function knopRijen(s) {
     .map((k, i) => {
       const aan = knopWens.has(k.id) ? knopWens.get(k.id) : k.aan === true;
       const stand = `${t(aan ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit')}${s.aanname ? ` · ${t('apparaten.laatstGestuurd')}` : ''}`;
-      const knop = mag ? `<button type="button" class="schakel${aan ? '' : ' uit'}" role="switch" aria-checked="${aan}" aria-label="${esc(t('apparaten.lampAanUit', { naam: knopNaam(s, k, i) }))}" data-knop="${esc(k.id)}"></button>` : '';
+      const knop = mag ? `<button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('apparaten.lampAanUit', { naam: knopNaam(s, k, i) }))}" data-knop="${esc(k.id)}"></button>` : '';
       return `<div class="lamp${aan ? ' aan' : ''}"><span class="lnaam">${esc(s.knoppen.length > 1 ? knopNaam(s, k, i) : stand)}${s.knoppen.length > 1 ? `<small>${esc(stand)}</small>` : ''}</span>${knop}</div>`;
     })
     .join('');
@@ -846,7 +846,7 @@ function lampBlad(id) {
   const mag = huisData?.lichtBedienen === true;
   const op = lampAan(d);
   const zin = [kamer?.naam ?? t('apparaten.zonderKamer'), t(op ? 'apparaten.stekkerAan' : 'apparaten.stekkerUit'), d.via ? t('apparaten.via', { via: d.via }) : null].filter(Boolean).join(' · ');
-  const schakel = `<button type="button" class="schakel${op ? '' : ' uit'}" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button>`;
+  const schakel = `<button type="button" class="schakelaar" role="switch" aria-checked="${op}" aria-label="${esc(t('apparaten.lampAanUit', { naam: d.naam }))}" data-lamp="${esc(d.id)}" ${mag ? '' : 'disabled'}></button>`;
   const helder = mag && d.dimbaar ? regel(t('apparaten.blad.helder'), `<input type="range" min="1" max="100" step="1" value="${d.helderheidPct ?? 100}" data-helder="${esc(d.id)}" aria-label="${esc(t('apparaten.blad.helder'))}">`) : '';
   const plek = kamer ? `kamer.html#${encodeURIComponent(kamer.id)}/${encodeURIComponent(d.id)}` : 'jehuis.html#bg/apparaten';
   return {

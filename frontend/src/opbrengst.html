@@ -33,7 +33,7 @@
   .cijfers .cijfer .klein { font-size: 11.5px; margin-top: 2px; }
   .cijfer .getal { font-size: 40px; line-height: 1.05; }
   .cijfer .getal small { font-family: var(--romp); font-size: 15px; color: var(--zacht); font-weight: 500; margin-left: 4px; letter-spacing: 0; }
-  .kaart { padding: 18px 20px; min-height: 0; }
+  .kaart { min-height: 0; }
   .midden { display: flex; flex-direction: column; }
   .midden [data-sankey] { flex: 1; min-height: 0; display: flex; }
   .midden [data-sankey] svg { width: 100%; height: 100%; }
@@ -77,7 +77,6 @@
   .drie { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .drie div { padding: 12px; }
   .drie .getal { font-size: 24px; display: block; }
-  #tel .kaart { padding: 16px; }
   .sluipingang { display: block; color: inherit; text-decoration: none; }
   .sluipingang:hover { border-color: rgb(var(--wit) / 0.3); }
   .sluipingang:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
@@ -110,7 +109,7 @@
     <main data-wandinhoud>
       <div class="kop">
         <div>
-          <h1 class="kop-1" style="font-size: 40px" data-titel><span data-t="algemeen.laden"></span></h1>
+          <h1 class="kop-1" data-titel><span data-t="algemeen.laden"></span></h1>
           <div class="periode" data-periode></div>
         </div>
         <div class="wissel" role="group" data-t-aria-label="opbrengst.periode" data-wissel></div>
@@ -125,7 +124,7 @@
     <div class="inhoud">
       <div class="wissel" role="group" data-t-aria-label="opbrengst.periode" data-wissel></div>
       <div class="periode" data-periode></div>
-      <h1 class="kop-1" style="font-size: 32px" data-titel><span data-t="algemeen.laden"></span></h1>
+      <h1 class="kop-1" data-titel><span data-t="algemeen.laden"></span></h1>
       <div data-telinhoud style="display: flex; flex-direction: column; gap: 14px"></div>
     </div>
     <nav class="tabs" id="tabs" data-t-aria-label="nav.hoofdmenu"></nav>

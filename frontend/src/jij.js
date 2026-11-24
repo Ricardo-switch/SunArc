@@ -111,7 +111,7 @@ function openSchermUitAdres() {
 
 const link = (href, icoon, titel, onder, rechts = '') => `<a class="rij" href="${href}">${ik(icoon)}<b>${esc(titel)}</b><small>${esc(onder)}</small><span class="pijl">${rechts}›</span></a>`;
 const knop = (data, icoon, titel, onder, rechts = '') => `<button type="button" class="rij" ${data}>${ik(icoon)}<b>${esc(titel)}</b><small>${esc(onder)}</small><span class="pijl">${rechts}›</span></button>`;
-const schakel = (sleutel, icoon, titel, onder, aan) => `<div class="rij">${ik(icoon)}<b>${esc(titel)}</b><small>${esc(onder)}</small><span class="pijl"><button type="button" class="schakel" role="switch" aria-checked="${aan}" aria-label="${esc(titel)}" data-weergave="${sleutel}"></button></span></div>`;
+const schakel = (sleutel, icoon, titel, onder, aan) => `<div class="rij">${ik(icoon)}<b>${esc(titel)}</b><small>${esc(onder)}</small><span class="pijl"><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(titel)}" data-weergave="${sleutel}"></button></span></div>`;
 
 /** De telefoon waar je meldingen heen gaan: gekozen, of die aan je persoon hangt. */
 function mijnTelefoon() {
@@ -221,10 +221,10 @@ function agendaBlok() {
 function agendaBlad() {
   const k = agendaKeus();
   return `
-    <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('jij.agenda.jouw'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
-    <div class="rij rij-zonder"><b>${esc(t('jij.agenda.gebruiken'))}</b><small>${esc(t('jij.agenda.gebruikenZin'))}</small><span class="pijl"><button type="button" class="schakel" role="switch" aria-checked="${k.aan}" aria-label="${esc(t('jij.agenda.gebruiken'))}" data-agenda-aan></button></span></div>
+    <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('jij.agenda.jouw'))}</h2><button type="button" class="knop knop-klein knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
+    <div class="rij rij-zonder"><b>${esc(t('jij.agenda.gebruiken'))}</b><small>${esc(t('jij.agenda.gebruikenZin'))}</small><span class="pijl"><button type="button" class="schakelaar" role="switch" aria-checked="${k.aan}" aria-label="${esc(t('jij.agenda.gebruiken'))}" data-agenda-aan></button></span></div>
     <p class="betekenis">${esc(t('jij.agenda.kies'))}</p>
-    <div class="rij rij-zonder${k.aan ? '' : ' uitgezet'}"><b>${esc(t('jij.agenda.opWand'))}</b><small>${esc(t('jij.agenda.opWandZin'))}</small><span class="pijl"><button type="button" class="schakel" role="switch" aria-checked="${k.wand !== false}" aria-label="${esc(t('jij.agenda.opWand'))}" data-agenda-wand ${k.aan ? '' : 'disabled'}></button></span></div>
+    <div class="rij rij-zonder${k.aan ? '' : ' uitgezet'}"><b>${esc(t('jij.agenda.opWand'))}</b><small>${esc(t('jij.agenda.opWandZin'))}</small><span class="pijl"><button type="button" class="schakelaar" role="switch" aria-checked="${k.wand !== false}" aria-label="${esc(t('jij.agenda.opWand'))}" data-agenda-wand ${k.aan ? '' : 'disabled'}></button></span></div>
     <div class="agendas${k.aan ? '' : ' uitgezet'}" role="group" aria-labelledby="bladkop">${agendas
       .map((a) => `<button type="button" role="checkbox" aria-checked="${k.ids.includes(a.id)}" data-agenda-id="${esc(a.id)}" ${k.aan ? '' : 'disabled'}><i aria-hidden="true"></i><b>${esc(a.naam)}</b>${a.huis === 'gezin' ? `<span>${esc(t('jij.agenda.ookWand'))}</span>` : a.huis === 'afval' ? `<span class="afval">${esc(t('jij.agenda.afval'))}</span>` : ''}</button>`)
       .join('')}</div>`;
@@ -245,7 +245,7 @@ function tekenMeldingen() {
   const lijst = v.telefoons ?? [];
   const tel = mijnTelefoon();
   const keus = (sleutel, titel, onder, dringend) =>
-    `<div class="rij rij-zonder"><b>${esc(titel)}${dringend ? `<span class="dringend">${esc(t('jij.meld.dringend'))}</span>` : ''}</b><small>${esc(onder)}</small><span class="pijl"><button type="button" class="schakel" role="switch" aria-checked="${m[sleutel]}" aria-label="${esc(titel)}" data-melding="${sleutel}"></button></span></div>`;
+    `<div class="rij rij-zonder"><b>${esc(titel)}${dringend ? `<span class="dringend">${esc(t('jij.meld.dringend'))}</span>` : ''}</b><small>${esc(onder)}</small><span class="pijl"><button type="button" class="schakelaar" role="switch" aria-checked="${m[sleutel]}" aria-label="${esc(titel)}" data-melding="${sleutel}"></button></span></div>`;
   const eigen = lijst.find((t) => t.eigen);
   const opties = [`<option value="" ${m.telefoon ? '' : 'selected'}>${esc(eigen ? t('jij.meld.vanJou', { naam: eigen.naam }) : t('jij.meld.kiesTel'))}</option>`, ...lijst.filter((t) => !t.eigen).map((t) => `<option value="${esc(t.id)}" ${m.telefoon === t.id ? 'selected' : ''}>${esc(t.naam)}</option>`)].join('');
   const html = `
@@ -313,7 +313,7 @@ function tekenBlad() {
     const id = blad.dataset.soort.slice(7);
     ditScherm.zet(v);
     blad.innerHTML = `
-    <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(ditScherm.titel(id))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
+    <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(ditScherm.titel(id))}</h2><button type="button" class="knop knop-klein knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
     <div class="ds-blad" data-scherm-deel="${esc(id)}">${ditScherm.vorm(id)}</div>`;
     return;
   }
@@ -330,13 +330,13 @@ function tekenBlad() {
   }
   if (blad.dataset.soort === 'taal') {
     blad.innerHTML = `
-    <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('jij.taal.kop'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
+    <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('jij.taal.kop'))}</h2><button type="button" class="knop knop-klein knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
     <div class="drie talen" role="radiogroup" aria-labelledby="bladkop">${TALEN.map((x) => `<button type="button" role="radio" aria-checked="${v.tel.taal === x}" data-kies-taal="${x}"><b>${esc(t(`jij.taal.${x}`))}</b><small>${esc(t(`jij.taal.${x}Uitleg`))}</small></button>`).join('')}</div>
     <p class="betekenis">${esc(t('jij.taal.uitleg'))}</p>`;
     return;
   }
   blad.innerHTML = `
-    <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('jij.themaKleur'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
+    <div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('jij.themaKleur'))}</h2><button type="button" class="knop knop-klein knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
     <h3 id="kop-thema">${esc(t('jij.thema'))}</h3>
     <div class="drie" role="radiogroup" aria-labelledby="kop-thema">${THEMAS.map(([x, naam]) => `<button type="button" role="radio" aria-checked="${v.tel.thema === x}" data-thema="${x}"><div class="mini-tel mini-${x}" aria-hidden="true"><i></i><i></i><i></i></div><b>${esc(naam)}</b></button>`).join('')}</div>
     <p class="klein wand-alleen" style="margin: 8px 0 0">${esc(t('jij.themaWand'))}</p>

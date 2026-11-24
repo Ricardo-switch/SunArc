@@ -280,7 +280,7 @@ function kamerBlad(k) {
     <div class="rij${d.aan ? ' aan' : ''}" style="cursor: default">
       <span class="gloei" style="background: ${d.aan ? huismodel.kleurVanLicht(d) : '#3a4656'}; ${d.aan ? `box-shadow: 0 0 12px ${huismodel.kleurVanLicht(d)}` : ''}"></span>
       <button type="button" class="naam" data-open="${esc(d.id)}" style="background: none; border: 0; color: inherit; font: inherit; text-align: left; padding: 0; cursor: pointer"><b>${esc(d.naam)}</b><span>${esc(d.stand + accu(d))}</span></button>
-      <button type="button" class="schakel" role="switch" aria-checked="${d.aan}" aria-label="${esc(d.naam)}" data-schakel="${esc(d.id)}" ${bedienen ? '' : 'disabled'}></button>
+      <button type="button" class="schakelaar" role="switch" aria-checked="${d.aan}" aria-label="${esc(d.naam)}" data-schakel="${esc(d.id)}" ${bedienen ? '' : 'disabled'}></button>
     </div>`;
   /*
    * Schakelaars en sensoren met een batterij (15 oktober 2026): in Home Assistant
@@ -711,7 +711,7 @@ function lampBlad(k, d) {
   const modus = lampModus.get(d.id) ?? (l.tint ? 'kleur' : 'wit');
   const wit = l.wit;
   const delen = [
-    kopVan(d, d.aan ? 'zon-t' : '', `<button type="button" class="schakel" role="switch" aria-checked="${d.aan}" aria-label="${esc(d.naam)}" data-schakel="${esc(d.id)}" ${bedienen ? '' : 'disabled'}></button>`),
+    kopVan(d, d.aan ? 'zon-t' : '', `<button type="button" class="schakelaar" role="switch" aria-checked="${d.aan}" aria-label="${esc(d.naam)}" data-schakel="${esc(d.id)}" ${bedienen ? '' : 'disabled'}></button>`),
   ];
   if (d.dimbaar) delen.push(`<div><div class="feit" style="margin-bottom: 8px"><b>${esc(t('kamer.lamp.helderheid'))}</b><span data-helder-tekst>${d.aan ? `${d.helderheidPct ?? 100}%` : esc(t('eigen.lamp.uit'))}</span></div><input class="schuif${d.aan ? '' : ' uit'}" type="range" min="1" max="100" step="1" value="${d.aan ? (d.helderheidPct ?? 100) : 1}" aria-label="${esc(t('kamer.lamp.helderheidVan', { naam: d.naam }))}" data-helder="${esc(d.id)}" ${bedienen ? '' : 'disabled'}></div>`);
   if (wit && l.kleur) delen.push(`<div class="keuze" role="group" aria-label="${esc(t('kamer.lamp.witOfKleur'))}" style="grid-template-columns: 1fr 1fr"><button type="button" data-modus="wit" aria-pressed="${modus === 'wit'}">${esc(t('kamer.lamp.wit'))}</button><button type="button" data-modus="kleur" aria-pressed="${modus === 'kleur'}">${esc(t('kamer.lamp.kleur'))}</button></div>`);

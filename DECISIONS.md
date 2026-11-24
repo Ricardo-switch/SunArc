@@ -328,6 +328,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [334. Salderen alleen nog bij gegevens van 2026 en eerder](#334-salderen-alleen-nog-bij-gegevens-van-2026-en-eerder)
 - [335. Sluipverbruik: een reden per nacht, en herkennen](#335-sluipverbruik-een-reden-per-nacht-en-herkennen)
 - [337. De motor: de schaduwpagina in de vorm van de app](#337-de-motor-de-schaduwpagina-in-de-vorm-van-de-app)
+- [339. Bouwstenen: één schakelaar, één veld, één keuze, één knop](#339-bouwstenen-één-schakelaar-één-veld-één-keuze-één-knop)
 
 **Veiligheid**
 
@@ -15596,6 +15597,59 @@ alleen de netmeter in W te kiezen.
 
 *Niet:* SunArc zet zelf geen entiteit aan in Home Assistant; dat blijft de keus
 van de bewoner.
+
+## 339. Bouwstenen: één schakelaar, één veld, één keuze, één knop
+
+*Onderwerp: weergave · Status: geldig*
+
+24 november 2026, kwaliteitsronde stap 4 punt 8 (één opmaak uit vaste
+bouwstenen). Gemeten: van de 5.653 regels in de pagina's was 3.895 opmaak, en
+de gewone onderdelen stonden per pagina net anders: zes maten schakelaar (van
+36 × 20 tot 50 × 30), vier hoogtes invoerveld (38 tot 48), knoppen van 32 tot
+54 hoog, tien kaarten met een eigen binnenrand. De schets *Bouwstenen*
+(`design/app2/Wand-Bouwstenen.html`, `Tel-Bouwstenen.html`) zette per onderdeel
+de varianten naast elkaar met één voorstel; Ricardo koos.
+
+*Besluit:* de bouwstenen staan één keer in `frontend/src/basis.css`; een pagina
+houdt alleen zijn eigen indeling.
+
+- **De schakelaar** (`.schakelaar`): 44 × 26, aan is altijd mint (keuze A, ook
+  bij verwarmen, koelen en een lamp). In een rij die zelf de schakelaar is
+  (Inrichten, Weergave) tekent `.schakelaar-teken` hem. Een uitgeschakelde
+  schakelaar is overal half doorzichtig.
+- **Het invoerveld** (`.invoer`): 44 hoog, 15 punten; `.invoer-klein` 34 in een
+  regel. Op de telefoon 46 en 16 punten, dan zoomt een iPhone niet in bij het
+  typen. Wat bij Klimaat ook `.invoer` heette (een getal met zijn eenheid),
+  heet nu `.invoer-met`.
+- **De keuze in delen** (`.keuze`): knoppen 36 hoog (`.keuze-klein` 30), het
+  gekozen deel zacht wit (keuze A), op zon geel. De vier eigen `.seg`-keuzes
+  (Bewoners, Auto, Inrichten, Toevoegen) gebruiken hem nu.
+- **De knop:** gewoon 46 (`.knop`, uit kit.css), klein 34 (`.knop-klein`), de
+  hoofdknop `.knop-licht`, een tekstknop `.knop-tekst`. De vijftien eigen
+  maten verdwenen; alleen de startknop van Begin (54) en de knop van het
+  rookalarm (50) zijn bewust groter. Het knopje van Wat je huis kan
+  (`.knopje`) is ook een bouwsteen.
+- **De kaart** (`.kaart`): 18 boven en onder, 20 opzij, ronding 24; op de
+  telefoon 16 rondom, ronding 20.
+- **De titel van een pagina** (`.kop-1`): op de wand 46, op de telefoon 30.
+  De losse maten in de pagina's (30 tot 40) zijn weg.
+- **De foutregel** (`.fout`): 13,5 punten, oranje.
+
+De kleine varianten heten `-klein` achter de naam (zoals `knop-licht`): de
+klasse `klein` bestond al voor kleine, zachte tekst en zou kleur en maat
+meenemen.
+
+*Nagelopen* met de proefdienst op een kopie van de NAS: foto's van 31 pagina's
+op de wand en de telefoon vóór en na, en per pagina gemeten of tekst onder een
+schakelaar valt, iets te breed is of onder de rand van de wand komt. Bij
+Klimaat viel de bredere schakelaar over "19°"; de regels in de kolommen zijn
+iets krapper gemaakt.
+
+*Nog niet:* de rijen chips die als keuze werken (Gepland, De motor, Klimaat),
+de eigen kaartvormen (`mo-kaart`, `klein-kaart`, `dk-kaart`), en de bouwsteen
+*Ruimte* uit de schets: vijf vaste afstanden in plaats van de 250 losse
+marges in de scripts, en elke kleur uit het thema in plaats van de 676
+regels met een vaste kleur.
 
 ## Wat nog een besluit wacht
 

@@ -31,11 +31,7 @@
   .wg-schakel:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; border-radius: 8px; }
   .wg-schakel div { flex: 1; }
   .wg-schakel b { display: block; font-size: 15px; }
-  .wg-schakel span { font-size: 12.5px; color: var(--gedempt); }
-  .wg-knopje { width: 50px; height: 30px; border-radius: 15px; background: rgb(var(--wit) / 0.14); position: relative; flex: none; }
-  .wg-knopje::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #dfe7ee; transition: left 0.15s; }
-  .wg-schakel[aria-checked='true'] .wg-knopje { background: var(--mint); }
-  .wg-schakel[aria-checked='true'] .wg-knopje::after { left: 23px; }`;
+  .wg-schakel span { font-size: 12.5px; color: var(--gedempt); }`;
   function opmaak() {
     if (document.getElementById('wg-opmaak')) return;
     const s = document.createElement('style');
@@ -49,7 +45,7 @@
     opmaak();
     const aan = (id) => w[id] === true || (w[id] !== false && STANDAARD_AAN.includes(id));
     const keuze = (eenvoudig, naam, zin, tel) => `<button type="button" role="radio" aria-checked="${w.eenvoudig === eenvoudig}" data-wg-eenvoudig="${eenvoudig}"><span class="wg-mini" aria-hidden="true">${tel}</span><b>${naam}</b><p>${zin}</p></button>`;
-    const schakel = (id, naam, zin) => `<button type="button" class="wg-schakel" role="switch" aria-checked="${aan(id)}" data-wg-schakel="${id}"><div><b>${naam}</b><span>${zin}</span></div><span class="wg-knopje" aria-hidden="true"></span></button>`;
+    const schakel = (id, naam, zin) => `<button type="button" class="wg-schakel" role="switch" aria-checked="${aan(id)}" data-wg-schakel="${id}"><div><b>${naam}</b><span>${zin}</span></div><span class="schakelaar-teken" aria-hidden="true"></span></button>`;
     return `<div class="bladkop"><h2 class="kop-2" id="bladkop">${esc(t('thuis.weergave'))}</h2><button type="button" class="knop knop-licht" data-blad-dicht>${esc(t('algemeen.klaar'))}</button></div>
       <p class="mini" style="margin: 0">${volgt != null ? esc(t('eigen.wg.volgt', { naam: volgt })) : `${esc(t('eigen.wg.voorJou'))}${telStand ? '' : ` ${esc(t('eigen.wg.wand'))}`}`}</p>
       <div class="wg-twee" role="radiogroup" aria-label="${esc(t('eigen.wg.keuze'))}">

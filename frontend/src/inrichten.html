@@ -19,8 +19,6 @@
    * links het eiland dat meegroeit, rechts één vraag tegelijk.
    */
   #wand { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); padding: 18px 26px 22px; gap: 12px; }
-  .veld { height: 38px; padding: 0 10px; border-radius: 12px; border: 1px solid rgb(var(--wit) / 0.14); background: rgb(var(--wit) / 0.06); color: var(--tekst); font: inherit; font-size: 14px; font-weight: 600; color-scheme: dark; }
-  .veld option { background: #14203a; color: var(--tekst); }
   .bovenbalk { display: flex; align-items: center; gap: 16px; }
   .bovenbalk .stappen { flex: 1; min-width: 0; }
   .merk { display: flex; align-items: center; gap: 12px; font-family: var(--kop); font-weight: 600; font-size: 20px; color: var(--tekst); text-decoration: none; }
@@ -54,19 +52,14 @@
   .klopt { display: flex; align-items: center; gap: 10px; padding: 12px 14px 12px 18px; border-radius: 16px; background: rgb(var(--wit) / 0.06); flex-shrink: 0; }
   .klopt b { font-size: 16px; margin-right: auto; }
   .kloptknop { height: 44px; padding: 0 18px; border-radius: 13px; border: 1px solid rgb(var(--wit) / 0.14); background: rgb(var(--wit) / 0.08); color: var(--tekst); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-  .klopt .knop { height: 44px; text-decoration: none; display: inline-flex; align-items: center; white-space: nowrap; }
+  .klopt .knop { text-decoration: none; display: inline-flex; align-items: center; white-space: nowrap; }
   .kloptknop:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
   .klaarwaaier { display: flex; justify-content: center; flex-shrink: 0; }
   .klaarwaaier svg { width: 260px; height: auto; }
   /* Wat elk apparaat doet: drie knoppen naast elkaar, zon in zijn kleur. */
-  .seg { display: flex; gap: 3px; padding: 3px; border-radius: 11px; background: rgb(var(--wit) / 0.05); }
   /* Het apparaat boven, de drie knoppen eronder over de volle breedte: zo past "Op temperatuur". */
-  .toestel:has(.seg) { flex-direction: column; align-items: stretch; gap: 6px; padding: 8px; }
-  .toestel:has(.seg) > .seg { width: 100%; box-sizing: border-box; }
-  .seg button { flex: 1 1 auto; white-space: nowrap; height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--gedempt); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .seg button[aria-pressed="true"] { background: rgb(var(--wit) / 0.15); color: var(--tekst); }
-  .seg button.zon[aria-pressed="true"] { background: rgba(247, 181, 72, 0.22); color: var(--zon-t); }
-  .seg button:focus-visible { outline: 2px solid var(--tekst); outline-offset: 1px; }
+  .toestel:has(.keuze) { flex-direction: column; align-items: stretch; gap: 6px; padding: 8px; }
+  .toestel:has(.keuze) > .keuze { width: 100%; box-sizing: border-box; }
   /* Een vak met een waarde rechts: de prijs, de zekering. */
   .invul { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 46px; padding: 0 8px 0 14px; border-radius: 12px; background: rgb(var(--wit) / 0.05); font-size: 15px; font-weight: 600; }
   .invul + .invul { margin-top: 8px; }
@@ -80,15 +73,11 @@
   .paar .invul + .invul { margin-top: 0; }
   .invul input:focus { outline: none; }
   .invul:focus-within { outline: 2px solid var(--ijs); }
-  .invul .veld { height: 34px; font-family: var(--kop); font-size: 16px; font-weight: 700; }
+  .invul .invoer { height: 34px; font-family: var(--kop); font-size: 16px; font-weight: 700; }
   .invul .klein { font-family: inherit; font-size: 13px; font-weight: 600; color: var(--gedempt); }
   /* Buiten: een vraagje boven de keuzes, en wat erbij hoort als schakelaar. */
   .vraagje { font-size: 12.5px; font-weight: 600; color: var(--gedempt); }
   .schakelrij { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; padding: 8px 10px 8px 14px; border: 0; border-radius: 12px; background: rgb(var(--wit) / 0.05); color: var(--tekst); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-align: left; }
-  .schakelrij i { position: relative; width: 44px; height: 26px; border-radius: 13px; background: rgb(var(--wit) / 0.16); flex-shrink: 0; transition: background 0.15s; }
-  .schakelrij i::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.15s; }
-  .schakelrij[aria-checked="true"] i { background: var(--mint); }
-  .schakelrij[aria-checked="true"] i::after { transform: translateX(18px); }
   .schakelrij:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
   /* Wie woont hier (besluit 147): de code om in te loggen. */
   .erbij { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; align-items: center; }
@@ -143,12 +132,11 @@
   .kpunt.nee > span > b { color: var(--zacht); }
   .kpunt small { display: block; color: var(--gedempt); font-size: 12.5px; line-height: 1.35; margin-top: 1px; }
   .kpunt .chips { margin-top: 4px; }
-  .veld.klein { height: 32px; font-size: 13px; padding: 0 8px; }
   .kweet { padding: 7px 11px; border-radius: 12px; background: rgba(143, 134, 255, 0.08); border: 1px solid rgba(143, 134, 255, 0.22); font-size: 12.5px; color: var(--zacht); line-height: 1.45; }
   .kweet b { color: var(--violet-t, #b3adff); }
   .krol { margin-top: auto; display: flex; align-items: center; gap: 10px; padding-top: 6px; border-top: 1px solid rgb(var(--wit) / 0.08); }
   .krol > b { font-size: 13px; color: var(--zacht); white-space: nowrap; }
-  .krol .seg { flex: 1; }
+  .krol .keuze { flex: 1; }
   #tel .klos { margin: 2px 0 8px; }
   #tel .krol { flex-direction: column; align-items: stretch; }
   /* Het huis vult zijn vak, hoe breed het scherm ook is (besluit 166): eerst groeide de tekening op 16:9 onder de rand uit. */
@@ -158,7 +146,7 @@
   #wand .podium .sc-tik { cursor: grab; touch-action: none; }
   #wand .podium .sc-tik.sc-gepakt { fill: rgba(111, 211, 255, 0.12); stroke: var(--ijs); stroke-width: 2; stroke-dasharray: 7 5; cursor: grabbing; }
   #wand .podium .sc-tik.sc-doel { fill: rgba(110, 231, 183, 0.18); stroke: var(--mint); stroke-width: 2; }
-  .kaart { padding: 26px 28px 22px; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow: hidden; }
+  .kaart { display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow: hidden; }
   /* Volgende blijft altijd in beeld; is er te weinig plek, dan wijkt eerst de tip (besluit 166). */
   .kaart > .voet { flex: none; }
   /* De inhoud van elke stap in een eigen vak (4 november 2026): past hij niet, dan schuift dat vak en blijven de knoppen staan. */
@@ -187,21 +175,21 @@
   .chip.weg:hover span { color: var(--gloed-t); }
   .chip.gevaar { background: rgba(255, 122, 77, 0.12); color: var(--gloed-t); white-space: nowrap; justify-self: start; }
   .chip:disabled, .schakelrij:disabled { opacity: 0.4; cursor: default; }
-  .chip:focus-visible, .veld:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
+  .chip:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
   .zacht { font-size: 13.5px; color: var(--gedempt); padding-top: 7px; }
   .bewerk { grid-column: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end; padding: 10px; border-radius: 14px; background: rgb(var(--wit) / 0.05); }
-  .bewerk > .veld { width: auto; min-width: 0; height: 36px; }
-  .bewerk .veld { height: 36px; }
+  .bewerk > .invoer { width: auto; min-width: 0; }
+  /* In een rij met chips: zo hoog als de chips, zoals .invoer.klein. */
+  .bewerk .invoer, .toestel .invoer { height: 34px; padding: 0 10px; font-size: 13px; }
   /* Elk veld met zijn naam erboven (besluit 158): zo zie je dat de keuzelijst de etage is. */
   .veldlabel { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .veldlabel > span { font-size: 12px; font-weight: 600; color: var(--gedempt); }
   .veldlabel.breed { grid-column: 1 / -1; }
-  .veldlabel .veld { width: 100%; box-sizing: border-box; }
   .zonerij { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 6px; }
   .rondom { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .rondom .schakelrij { margin-top: 0; }
   .toestel { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 4px 4px 4px 12px; border-radius: 12px; background: rgb(var(--wit) / 0.05); font-size: 13.5px; font-weight: 600; }
-  .toestel .veld { width: auto; height: 32px; padding: 0 8px; font-size: 12.5px; font-weight: 700; }
+  .toestel .invoer { width: auto; font-weight: 700; }
   .kolom { display: flex; flex-direction: column; gap: 6px; }
   /* De kaarten van de wand als schakelaars, twee naast elkaar (besluit 228): eerst dertien losse knoppen. */
   .schakelblok { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; }
@@ -252,7 +240,7 @@
   .regel { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 0 10px; align-items: center; width: 100%; box-sizing: border-box; flex: none; padding: 7px 10px; border: 0; border-radius: 13px; background: rgb(var(--wit) / 0.045); color: var(--tekst); font: inherit; text-align: left; text-decoration: none; }
   button.regel, a.regel { cursor: pointer; }
   button.regel:hover, a.regel:hover, .regel.open { background: rgb(var(--wit) / 0.08); }
-  .regel:focus-visible, .tegel:focus-visible, .teller:focus-visible, .bewoner:focus-visible, .schakel:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
+  .regel:focus-visible, .tegel:focus-visible, .teller:focus-visible, .bewoner:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
   .regel .ik { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: rgb(var(--wit) / 0.07); color: var(--zacht); }
   .regel .ik svg { width: 18px; height: 18px; }
   .regel .tekst, .bewoner .tekst, .klaarregel .tekst { min-width: 0; }
@@ -265,11 +253,6 @@
   .regel .rechts.zon { color: var(--zon-t); }
   .regel.uit { background: transparent; border: 1px dashed rgb(var(--wit) / 0.14); }
   .regel .onder { grid-column: 2 / -1; display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
-  .schakel { position: relative; flex: none; width: 42px; height: 26px; padding: 0; border: 0; border-radius: 13px; background: rgb(var(--wit) / 0.16); cursor: pointer; }
-  .schakel::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.15s; }
-  .schakel[aria-checked="true"] { background: var(--mint); }
-  .schakel[aria-checked="true"]::after { transform: translateX(16px); background: #0b2a1f; }
-  .schakel:disabled { opacity: 0.4; cursor: default; }
   /* Een eigen account voor de wand (besluit 202): waarom, en hoe in drie stappen. */
   .regel + .accblok { margin-top: 10px; }
   .accblok { display: flex; flex-direction: column; gap: 10px; flex: none; padding: 14px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.05); border: 1px solid rgb(var(--wit) / 0.08); }
@@ -297,7 +280,7 @@
   .asstappen .nr.klaar { background: var(--mint); color: #062a1c; }
   .asstappen .nr.bezig { background: transparent; box-shadow: inset 0 0 0 2px var(--ijs); animation: asdraai 1s linear infinite; border-radius: 50%; }
   @keyframes asdraai { 0% { box-shadow: inset 0 0 0 2px rgba(111, 211, 255, 0.25); } 50% { box-shadow: inset 0 0 0 2px var(--ijs); } 100% { box-shadow: inset 0 0 0 2px rgba(111, 211, 255, 0.25); } }
-  .asblok .knop { align-self: stretch; height: 46px; }
+  .asblok .knop { align-self: stretch; }
   /* Wachten op Home Assistant voor de rondleiding (besluit 202). */
   .aswacht { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(6, 10, 20, 0.88); backdrop-filter: blur(6px); }
   .aswacht > div { width: min(440px, 100%); }
@@ -318,13 +301,12 @@
   .stemkeuze .onder .mini { margin: 0; }
   .stemkeuze .onder .mini.klaar { color: var(--mint-t); font-weight: 700; }
   .stemkeuze .onder .mini.fout { color: var(--gloed-t); }
-  .stemkeuze .onder > .knop { height: 40px; justify-self: start; }
+  .stemkeuze .onder > .knop { justify-self: start; }
   .addon { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 12px; background: rgb(var(--wit) / 0.05); font-size: 13px; }
   .addon b { font-size: 13.5px; }
   .addon span { display: block; font-size: 11.5px; color: var(--gedempt); }
   .addon .ok { font-size: 12px; font-weight: 800; color: var(--mint-t); }
   .addon .ok.gevonden { color: var(--ijs); }
-  .addon .knop { height: 32px; padding: 0 12px; font-size: 13px; }
   .schakelrij { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--zacht); line-height: 1.4; }
   .tip { flex-shrink: 1; min-height: 0; overflow: hidden; padding: 10px 12px; border-radius: 14px; background: rgba(111, 211, 255, 0.08); color: var(--zacht); font-size: 13px; line-height: 1.45; }
   .tellen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }

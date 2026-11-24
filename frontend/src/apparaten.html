@@ -75,11 +75,6 @@
   .vrij-rij b { font-family: var(--kop); font-size: 20px; font-weight: 600; }
   .vrij-rij input[type='range'] { flex: 1; max-width: 260px; accent-color: var(--zon); }
   .vrij-knoppen .lamp { min-height: 52px; }
-  .schakel { width: 44px; height: 26px; border-radius: 999px; border: 0; padding: 0; background: var(--mint); position: relative; flex: none; cursor: pointer; }
-  .schakel::after { content: ''; position: absolute; right: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; }
-  .schakel.uit { background: rgb(var(--wit) / 0.16); }
-  .schakel.uit::after { right: auto; left: 3px; }
-  .schakel:disabled { opacity: 0.45; cursor: default; }
   .app { padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
   .app .boven { display: flex; align-items: center; gap: 14px; }
   .app .boven > div { min-width: 0; }
@@ -165,7 +160,7 @@
   <div id="tel" class="tel">
     <div class="inhoud">
       <div style="display: flex; justify-content: space-between; align-items: center">
-        <h1 class="kop-1" style="font-size: 34px"><span data-t="nav.apparaten"></span><button type="button" class="hulpvraag" data-hulp="apparaten" data-t-aria-label="groep.waarvoor">?</button></h1>
+        <h1 class="kop-1"><span data-t="nav.apparaten"></span><button type="button" class="hulpvraag" data-hulp="apparaten" data-t-aria-label="groep.waarvoor">?</button></h1>
         <span style="display: flex; gap: 8px; align-items: center"><a class="erbij" href="toevoegen.html" data-t-aria-label="apparaten.toevoegen"><i>+</i><span data-t="apparaten.toevoegenKort"></span><b class="nieuw" data-nieuw-tel hidden></b></a><a class="pil" data-t-aria-label="nav.instellingen" data-tandwiel></a></span>
       </div>
       <div class="glas zonchip" data-zonchip></div>

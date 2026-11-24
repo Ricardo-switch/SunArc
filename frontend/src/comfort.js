@@ -271,7 +271,7 @@ function regels(k, m) {
     const label = aan ? `${esc(wat)} <em>${esc(t(soort === 'heat' ? 'comfort.onder' : 'comfort.boven'))}</em> <b>${graden(v)}</b>` : esc(t('comfort.wordUit', { wat }));
     return `<div class="regel${aan ? '' : ' uit'}${openUitleg.has(sleutel) ? ' open' : ''}">
       <button type="button" class="wat" data-uitleg="${esc(sleutel)}" aria-expanded="${openUitleg.has(sleutel)}"><i style="background: ${aan ? kleur : 'var(--gedempt)'}"></i>${label}</button>
-      <button type="button" class="schakel ${soort}" role="switch" aria-checked="${aan}" aria-label="${esc(wat)}, ${esc(NAAM[m].toLowerCase())}" ${aan ? `data-uit="${soort}"` : `data-aan="${soort}"`}></button>
+      <button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(wat)}, ${esc(NAAM[m].toLowerCase())}" ${aan ? `data-uit="${soort}"` : `data-aan="${soort}"`}></button>
       ${openUitleg.has(sleutel) ? `<small>${uitleg}</small>` : ''}
     </div>`;
   };
@@ -682,7 +682,7 @@ function tekenWie() {
         ? t('comfort.lead.volgt', { naam: v.hoofdNaam })
         : t('comfort.lead.eigen', { naam: v.naam });
   const kies = v.bewoners.length > 1
-    ? `<select class="veld wiekies" data-wie aria-label="${esc(t('comfort.wiens'))}">${v.bewoners.map((b) => `<option value="${esc(b.id)}" ${b.id === v.id ? 'selected' : ''}>${esc(b.id === v.bewoners[0].id ? t('comfort.hoofd', { naam: b.naam }) : b.naam)}</option>`).join('')}</select>`
+    ? `<select class="invoer wiekies" data-wie aria-label="${esc(t('comfort.wiens'))}">${v.bewoners.map((b) => `<option value="${esc(b.id)}" ${b.id === v.id ? 'selected' : ''}>${esc(b.id === v.bewoners[0].id ? t('comfort.hoofd', { naam: b.naam }) : b.naam)}</option>`).join('')}</select>`
     : '';
   $$('[data-titel]').forEach((el) => (el.textContent = titel));
   $$('[data-lead]').forEach((el) => (el.textContent = lead));

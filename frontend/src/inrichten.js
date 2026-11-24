@@ -307,7 +307,7 @@ const knop = (attrs, tekst, aan = false, klasse = '') => `<button type="button" 
 const rij = (kop, inhoud, extra = '') => `<div class="rij"><b>${esc(kop)}</b><div class="chips">${inhoud}</div>${extra}</div>`;
 /** "a, b en c". */
 const lijstje = (xs) => huismodel.opsomming(xs);
-const schakel = (attr, tekst, aan, uit = false) => `<button type="button" class="schakelrij" role="switch" aria-checked="${aan}" ${attr} ${uit ? 'disabled' : ''}><span>${esc(tekst)}</span><i aria-hidden="true"></i></button>`;
+const schakel = (attr, tekst, aan, uit = false) => `<button type="button" class="schakelrij" role="switch" aria-checked="${aan}" ${attr} ${uit ? 'disabled' : ''}><span>${esc(tekst)}</span><i class="schakelaar-teken" aria-hidden="true"></i></button>`;
 
 /*
  * De bouwstenen van Inrichten 3.0 (besluit 190, schets Wand-Inrichten-3): een
@@ -351,7 +351,7 @@ function regel({ ik: icoon, titel, zin = '', rechts = '', toon = '', klasse = ''
   return `<${tag} ${tag === 'button' ? 'type="button" ' : ''}class="regel ${klasse}" ${attrs}><span class="ik">${S(IK[icoon] ?? IK.huis)}</span><span class="tekst"><b>${esc(titel)}</b>${zin ? `<span>${esc(zin)}</span>` : ''}</span><span class="rechts ${toon}">${rechts}</span>${onder ? `<span class="onder">${onder}</span>` : ''}</${tag}>`;
 }
 /** De schakelaar rechts in een regel. */
-const schakelaar = (attr, naam, aan, uit = false) => `<button type="button" class="schakel" role="switch" aria-checked="${aan}" aria-label="${esc(naam)}" ${attr} ${uit ? 'disabled' : ''}></button>`;
+const schakelaar = (attr, naam, aan, uit = false) => `<button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(naam)}" ${attr} ${uit ? 'disabled' : ''}></button>`;
 const tip = (tekst) => `<div class="tip">${esc(tekst)}</div>`;
 
 /* Het startscherm (besluit 158): de getallen tikken open tot een lijst. */

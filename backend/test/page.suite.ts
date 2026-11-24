@@ -2945,7 +2945,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await shot('opzon');
     await p.goto(`${baseUrl}/inrichten.html#functies`);
     await kaart.locator('h1', { hasText: 'Wat mag de app doen?' }).waitFor();
-    expect(await kaart.locator('.schakel').count()).toBeGreaterThan(0);
+    expect(await kaart.locator('.schakelaar').count()).toBeGreaterThan(0);
     await shot('functies');
     await p.goto(`${baseUrl}/inrichten.html#account`);
     // Een eigen account voor de wand (besluit 202): waarom, en hoe.

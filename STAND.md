@@ -136,7 +136,11 @@ verwijzing bestaat.
   schetsen in `design/app2/` (ontwerp 2) zijn de maatstaf voor de app, en de
   schets is de code: de app gebruikt dezelfde tekenmotor voor het huis ([71],
   [104]). Een keuze uit een paar is één balk, aan of uit is een schakelaar, en
-  een bubbel blijft voor wat mist ([228]).
+  een bubbel blijft voor wat mist ([228]). De gewone onderdelen zijn sinds 0.234.0
+  overal dezelfde bouwsteen, één keer in `basis.css`: de schakelaar (44 × 26,
+  aan is mint), het invoerveld (44, op de telefoon 46), de keuze in delen, de
+  knop (46, klein 34), de kaart, de titel (46, op de telefoon 30) en de
+  foutregel ([339]).
 - **Elke opstelling werkt:** de regeling doet wat de opstelling toelaat en zegt
   wat ze daardoor niet kan ([70]). Geavanceerde functies volgen uit wat het huis
   heeft; ingrijpende vragen een bewuste keuze ([78]).
@@ -1100,4 +1104,5 @@ verwijzing bestaat.
 [336]: DECISIONS.md#336-een-kanaal-beta-voor-de-proefhuizen-met-home-assistant
 [337]: DECISIONS.md#337-de-motor-de-schaduwpagina-in-de-vorm-van-de-app
 [338]: DECISIONS.md#338-per-fase-een-meter-en-de-stroom-uit-het-vermogen
+[339]: DECISIONS.md#339-bouwstenen-één-schakelaar-één-veld-één-keuze-één-knop
 <!-- links:einde -->

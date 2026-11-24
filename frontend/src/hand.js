@@ -60,7 +60,7 @@
     const aan = slotWens.has(sl.id) ? slotWens.get(sl.id) : sl.aan;
     const mag = sloten.bedienen === true;
     const wie = naam ? naam.charAt(0).toLowerCase() + naam.slice(1) : '';
-    return `<div class="hand-slot"><h3>${esc(t('hand.slot.op', { naam: wie }))}</h3><div class="hand-slotrij"><span class="hand-slotik">${SLOT}</span><div><b>${esc(t('hand.slot.naam'))}</b><small>${esc(t(mag ? 'hand.slot.zin' : 'hand.slot.addon'))}</small></div><button type="button" class="schakel${aan ? '' : ' uit'}" role="switch" aria-checked="${aan}" aria-label="${esc(t('hand.slot.naam'))}" data-slot="${esc(sl.id)}" ${mag ? '' : 'disabled'}></button></div></div>`;
+    return `<div class="hand-slot"><h3>${esc(t('hand.slot.op', { naam: wie }))}</h3><div class="hand-slotrij"><span class="hand-slotik">${SLOT}</span><div><b>${esc(t('hand.slot.naam'))}</b><small>${esc(t(mag ? 'hand.slot.zin' : 'hand.slot.addon'))}</small></div><button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(t('hand.slot.naam'))}" data-slot="${esc(sl.id)}" ${mag ? '' : 'disabled'}></button></div></div>`;
   }
 
   const graden = (n) => `${nl(n, Number.isInteger(n) ? 0 : 1)}°`;

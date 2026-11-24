@@ -349,7 +349,7 @@ function inHuisOnder() {
   const inHA = app.inHA();
   const rijen = ih.addons
     .map((a) => {
-      const rechts = a.staat === 'aan' ? `<span class="ok">${esc(t('inr.stem.staatErin'))}</span>` : a.staat === 'gevonden' ? `<span class="ok gevonden">${esc(t('inr.stem.gevonden'))}</span>` : inHA ? `<button type="button" class="knop klein" data-ha-pad="/hassio/addon/${esc(a.slug)}/info">${esc(t('inr.stem.installeer'))}</button>` : `<span class="mini">${esc(t('inr.stem.inHA'))}</span>`;
+      const rechts = a.staat === 'aan' ? `<span class="ok">${esc(t('inr.stem.staatErin'))}</span>` : a.staat === 'gevonden' ? `<span class="ok gevonden">${esc(t('inr.stem.gevonden'))}</span>` : inHA ? `<button type="button" class="knop knop-klein" data-ha-pad="/hassio/addon/${esc(a.slug)}/info">${esc(t('inr.stem.installeer'))}</button>` : `<span class="mini">${esc(t('inr.stem.inHA'))}</span>`;
       return `<div class="addon"><div><b>${esc(ADDON_NAAM[a.id] ?? a.id)}</b><span>${esc(t(`inr.stem.wat.${a.id}`))}</span></div>${rechts}</div>`;
     })
     .join('');
@@ -366,7 +366,7 @@ function inHuisOnder() {
   // Klaar zonder "Hé huis" (30 oktober 2026): de laatste twee tikken in Home Assistant, met een knop naar elk.
   const owv = ih.addons.find((a) => a.id === 'openwakeword');
   const wekwoordKnoppen = !ih.assistent?.wekwoord && inHA
-    ? `<div class="chips">${owv?.slug ? `<button type="button" class="knop klein" data-ha-pad="/hassio/addon/${esc(owv.slug)}/info">${esc(t('inr.stem.herstartOwv'))}</button>` : ''}<button type="button" class="knop klein" data-ha-pad="/config/voice-assistants/assistants">${esc(t('inr.stem.kiesWekwoord'))}</button></div>`
+    ? `<div class="chips">${owv?.slug ? `<button type="button" class="knop knop-klein" data-ha-pad="/hassio/addon/${esc(owv.slug)}/info">${esc(t('inr.stem.herstartOwv'))}</button>` : ''}<button type="button" class="knop knop-klein" data-ha-pad="/config/voice-assistants/assistants">${esc(t('inr.stem.kiesWekwoord'))}</button></div>`
     : '';
   const onder = ih.assistent
     ? `<p class="mini klaar">${esc(t(ih.assistent.wekwoord ? 'inr.stem.klaarMet' : 'inr.stem.klaarZonder'))}</p>${wekwoordKnoppen}`

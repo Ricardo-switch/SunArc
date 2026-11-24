@@ -25,7 +25,7 @@
   .tijdlijn .stip { cursor: pointer; }
   .tijdlijn .stip:focus-visible { outline: none; stroke: #fff; stroke-width: 3; }
   .kaarten { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; min-height: 0; }
-  .kaart { padding: 18px 22px; display: flex; flex-direction: column; min-height: 0; }
+  .kaart { display: flex; flex-direction: column; min-height: 0; }
   .kaart .wanneer { font-family: var(--kop); font-size: 15px; font-weight: 600; }
   .kaart .bovenrij { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
   .kaart .bladeren { display: flex; gap: 6px; margin-top: auto; padding-top: 12px; }
@@ -90,7 +90,7 @@
 
   <div id="tel" class="tel">
     <div class="inhoud">
-      <h1 class="kop-1" style="font-size: 34px"><span data-t="vandaag.vandaag"></span></h1>
+      <h1 class="kop-1"><span data-t="vandaag.vandaag"></span></h1>
       <div class="wissel" role="group" data-t-aria-label="vandaag.dag" data-wissel></div>
       <section class="glas zonkaart" data-zonkaart></section>
       <section class="glas klopte-tel" data-klopte hidden></section>

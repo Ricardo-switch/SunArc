@@ -18,19 +18,19 @@ function bewerkKamer(k, etages, naamVan, c) {
   const soortNaam = (w) => huismodel.KAMER_SOORTEN.find(([x]) => x === w)?.[1] ?? '';
   const soorten = [['', voorstel && soortNaam(voorstel) ? t('indeling.uitNaam', { naam: soortNaam(voorstel) }) : t('inr.uitNaam')], ...huismodel.KAMER_SOORTEN];
   const zoneSoorten = [['', t('inr.soort')], ...huismodel.ZONE_SOORTEN];
-  const zones = (k.zones ?? []).map((z) => `<div class="zonerij"><input class="veld" data-zonenaam="${esc(z.id)}" value="${esc(z.naam)}" maxlength="40" aria-label="${esc(t('indeling.zone.naam', { naam: z.naam }))}"><select class="veld" data-zonesoort="${esc(z.id)}" aria-label="${esc(t('indeling.zone.soort', { naam: z.naam }))}">${zoneSoorten.map(([v, x]) => `<option value="${v}" ${v === (z.soort ?? '') ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select><button type="button" class="chip" data-zoneweg="${esc(z.id)}" aria-label="${esc(t('indeling.zone.weg', { naam: z.naam }))}">×</button></div>`).join('');
+  const zones = (k.zones ?? []).map((z) => `<div class="zonerij"><input class="invoer" data-zonenaam="${esc(z.id)}" value="${esc(z.naam)}" maxlength="40" aria-label="${esc(t('indeling.zone.naam', { naam: z.naam }))}"><select class="invoer" data-zonesoort="${esc(z.id)}" aria-label="${esc(t('indeling.zone.soort', { naam: z.naam }))}">${zoneSoorten.map(([v, x]) => `<option value="${v}" ${v === (z.soort ?? '') ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select><button type="button" class="chip" data-zoneweg="${esc(z.id)}" aria-label="${esc(t('indeling.zone.weg', { naam: z.naam }))}">×</button></div>`).join('');
   const buren = (c?.kamers ?? []).filter((x) => x.id !== k.id && x.etage === k.etage);
   // Links of rechts op de etage (besluit 166); slepen in het huis kan ook.
   const opEtage = (c?.kamers ?? []).filter((x) => x.etage === k.etage);
   const plek = opEtage.findIndex((x) => x.id === k.id);
   const schuif = opEtage.length > 1 ? `<div class="veldlabel breed"><span>${esc(t('inr.plek'))}</span><div class="chips"><button type="button" class="chip" data-schuifkamer="-1" ${plek <= 0 ? 'disabled' : ''}>${esc(t('inr.links'))}</button><button type="button" class="chip" data-schuifkamer="1" ${plek >= opEtage.length - 1 ? 'disabled' : ''}>${esc(t('inr.rechts'))}</button></div></div>` : '';
   return `<div class="bewerk">
-    <label class="veldlabel"><span>${esc(t('indeling.naam'))}</span><input class="veld" data-naam="${esc(k.id)}" value="${esc(k.naam)}" maxlength="40"></label>
-    <label class="veldlabel"><span>${esc(t('indeling.etageLabel'))}</span><select class="veld" data-etage="${esc(k.id)}">${etages.map((x) => `<option value="${esc(x.id)}" ${x.id === k.etage ? 'selected' : ''}>${esc(naamVan(x))}</option>`).join('')}</select></label>
+    <label class="veldlabel"><span>${esc(t('indeling.naam'))}</span><input class="invoer" data-naam="${esc(k.id)}" value="${esc(k.naam)}" maxlength="40"></label>
+    <label class="veldlabel"><span>${esc(t('indeling.etageLabel'))}</span><select class="invoer" data-etage="${esc(k.id)}">${etages.map((x) => `<option value="${esc(x.id)}" ${x.id === k.etage ? 'selected' : ''}>${esc(naamVan(x))}</option>`).join('')}</select></label>
     ${k.etage === 'buiten' ? '' : schuif}
-    ${k.etage === 'buiten' ? '' : `<label class="veldlabel breed"><span>${esc(t('indeling.soortKamer'))}</span><select class="veld" data-soort="${esc(k.id)}">${soorten.map(([v, x]) => `<option value="${v}" ${v === (k.soort ?? '') ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>`}
-    ${k.etage === 'buiten' ? '' : `<div class="veldlabel breed"><span>${esc(t('inr.zones'))}</span>${zones}<input class="veld" data-nieuwezone placeholder="${esc(t('inr.zoneErbij'))}" aria-label="${esc(t('indeling.nieuweZone'))}" maxlength="40"></div>`}
-    ${buren.length ? `<label class="veldlabel"><span>${esc(t('inr.eenRuimte'))}</span><select class="veld" data-samen="${esc(k.id)}"><option value="">${esc(t('inr.samenvoegen'))}</option>${buren.map((x) => `<option value="${esc(x.id)}">${esc(x.naam)}</option>`).join('')}</select></label>` : ''}
+    ${k.etage === 'buiten' ? '' : `<label class="veldlabel breed"><span>${esc(t('indeling.soortKamer'))}</span><select class="invoer" data-soort="${esc(k.id)}">${soorten.map(([v, x]) => `<option value="${v}" ${v === (k.soort ?? '') ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>`}
+    ${k.etage === 'buiten' ? '' : `<div class="veldlabel breed"><span>${esc(t('inr.zones'))}</span>${zones}<input class="invoer" data-nieuwezone placeholder="${esc(t('inr.zoneErbij'))}" aria-label="${esc(t('indeling.nieuweZone'))}" maxlength="40"></div>`}
+    ${buren.length ? `<label class="veldlabel"><span>${esc(t('inr.eenRuimte'))}</span><select class="invoer" data-samen="${esc(k.id)}"><option value="">${esc(t('inr.samenvoegen'))}</option>${buren.map((x) => `<option value="${esc(x.id)}">${esc(x.naam)}</option>`).join('')}</select></label>` : ''}
     <div class="veldlabel"><span>&nbsp;</span><button type="button" class="chip gevaar" data-kamerweg="${esc(k.id)}">${esc(t(weghalen === k.id ? 'inr.nogEens' : 'indeling.kamerWeg'))}</button></div>
   </div>`;
 }
@@ -119,7 +119,7 @@ function huisStap() {
     }).join('')}`;
   }).join('');
   const nieuw = openKamer === 'nieuw'
-    ? `<div class="bewerk"><input class="veld" data-nieuwnaam placeholder="${esc(t('inr.kantoor'))}" aria-label="${esc(t('inr.nieuweNaam'))}" maxlength="40"><select class="veld" data-nieuwetage aria-label="${esc(t('indeling.etageLabel'))}">${etages.map((e) => `<option value="${esc(e.id)}" ${e.id === 'bg' ? 'selected' : ''}>${esc(naamVan(e))}</option>`).join('')}</select><button type="button" class="chip aan" data-voegtoe>${esc(t('indeling.toevoegen'))}</button></div>`
+    ? `<div class="bewerk"><input class="invoer" data-nieuwnaam placeholder="${esc(t('inr.kantoor'))}" aria-label="${esc(t('inr.nieuweNaam'))}" maxlength="40"><select class="invoer" data-nieuwetage aria-label="${esc(t('indeling.etageLabel'))}">${etages.map((e) => `<option value="${esc(e.id)}" ${e.id === 'bg' ? 'selected' : ''}>${esc(naamVan(e))}</option>`).join('')}</select><button type="button" class="chip aan" data-voegtoe>${esc(t('indeling.toevoegen'))}</button></div>`
     : openKamer === 'etage'
       ? etageErbijBlok(etages)
       : `<div class="chips" data-meer>${knop('data-nieuw', t('inr.plusKamer'), false, 'plus')}${knop('data-inr-etage-open', t('inr.plusEtage'), false, 'plus')}</div>`;
@@ -141,7 +141,7 @@ function etageErbijBlok(etages) {
   const vast = (d.ind?.standaard ?? []).filter((s) => !nu.has(s.id));
   return `<div class="bewerk">
     ${vast.length ? `<div class="chips" data-meer>${vast.map((s) => knop(`data-inr-etage="${esc(s.id)}"`, s.naam, false, 'plus')).join('')}</div>` : ''}
-    <input class="veld" data-inr-etage-naam placeholder="${esc(t('indeling.vliering'))}" aria-label="${esc(t('indeling.eigenNaam'))}" maxlength="40">
+    <input class="invoer" data-inr-etage-naam placeholder="${esc(t('indeling.vliering'))}" aria-label="${esc(t('indeling.eigenNaam'))}" maxlength="40">
     <div class="chips" data-meer>${knop('data-inr-etage-eigen', t('inr.etageBovenaan'), true)}${knop('data-inr-etage-dicht', t('algemeen.sluiten'))}</div>
   </div>`;
 }
@@ -299,7 +299,7 @@ function bewonerBewerk(x, i, lijst) {
   const hoofd = lijst[0];
   const thuis = x.gekoppeld
     ? `<div class="veldlabel breed"><span>${esc(t('bewoners.thuisVolgens'))}</span><span class="zacht" style="padding: 0">${esc(t('inr.gekoppeld', { naam: x.aanwezigheidNaam ?? '' }))}</span></div>`
-    : `<label class="veldlabel breed"><span>${esc(t('bewoners.thuisVolgens'))}</span><select class="veld" data-bbron="${esc(x.id)}" ${kan ? '' : 'disabled'}><option value="">${esc(t('bewoners.geenSensor'))}</option>${(x.kiesbaar ?? []).map((y) => `<option value="${esc(y.id)}" ${y.id === x.aanwezigheid ? 'selected' : ''}>${esc(y.naam)} · ${esc(t(y.soort === 'persoon' ? 'inr.persoon' : 'bewoners.sensor'))}</option>`).join('')}</select></label>`;
+    : `<label class="veldlabel breed"><span>${esc(t('bewoners.thuisVolgens'))}</span><select class="invoer" data-bbron="${esc(x.id)}" ${kan ? '' : 'disabled'}><option value="">${esc(t('bewoners.geenSensor'))}</option>${(x.kiesbaar ?? []).map((y) => `<option value="${esc(y.id)}" ${y.id === x.aanwezigheid ? 'selected' : ''}>${esc(y.naam)} · ${esc(t(y.soort === 'persoon' ? 'inr.persoon' : 'bewoners.sensor'))}</option>`).join('')}</select></label>`;
   const volgorde = b?.ik?.magBeheren && lijst.length > 1
     ? `<div class="veldlabel breed"><span>${esc(t('inr.volgorde'))}</span><div class="chips"><button type="button" class="chip" data-bvolg="-1" ${i === 0 ? 'disabled' : ''}>${esc(t('inr.hoger'))}</button><button type="button" class="chip" data-bvolg="1" ${i === lijst.length - 1 ? 'disabled' : ''}>${esc(t('inr.lager'))}</button>${x.hoofd ? '' : `<button type="button" class="chip" data-bhoofd>${esc(t('bewoners.maakHoofd'))}</button>`}</div></div>`
     : '';
@@ -307,7 +307,7 @@ function bewonerBewerk(x, i, lijst) {
     ? `<div class="veldlabel breed"><span>${esc(t('bewoners.comfort'))}</span><span class="zacht" style="padding: 0">${esc(t('inr.comfortHuis'))}</span></div>`
     : `<div class="veldlabel breed"><span>${esc(t('bewoners.comfort'))}</span><div class="chips">${knop('data-bcomfort="eigen"', t('inr.eigenTemp'), x.comfort === 'eigen')}${knop('data-bcomfort="volgt"', t('bewoners.volgtKnop', { naam: hoofd?.naam ?? t('jij.deHoofdgebruiker') }), x.comfort !== 'eigen')}${x.comfort === 'eigen' ? `<a class="chip plus" href="comfort.html?bewoner=${encodeURIComponent(x.id)}">${esc(t('inr.tempInstellen'))}</a>` : ''}</div></div>`;
   return `<div class="bewerk" style="grid-column: 1 / -1">
-    <label class="veldlabel breed"><span>${esc(t(x.ik ? 'bewoners.noemt.ik' : 'bewoners.noemt.ander', { naam: x.naam }))}</span><input class="veld" data-bnaam="${esc(x.id)}" value="${esc(x.naam)}" maxlength="40" ${kan ? '' : 'disabled'}></label>
+    <label class="veldlabel breed"><span>${esc(t(x.ik ? 'bewoners.noemt.ik' : 'bewoners.noemt.ander', { naam: x.naam }))}</span><input class="invoer" data-bnaam="${esc(x.id)}" value="${esc(x.naam)}" maxlength="40" ${kan ? '' : 'disabled'}></label>
     ${thuis}${volgorde}${comfort}
   </div>`;
 }
@@ -349,13 +349,13 @@ function apparatenStap() {
   const kamers = (d.huis?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).map((r) => ({ r, e })));
   const nietTonen = `<option value="-">${esc(t('functies.nietTonen'))}</option>`;
   const opties = (voorstel, leeg = t('indeling.kiesKamer')) => `<option value="">${esc(leeg)}</option>${kamers.map(({ r }) => `<option value="${esc(r.id)}" ${r.id === voorstel ? 'selected' : ''}>${esc(r.naam)}</option>`).join('')}${nietTonen}`;
-  const losRijen = los.map((a) => `<div class="rij breed"><b>${esc(a.naam)}</b><select class="veld" data-plek="${esc(a.id)}" aria-label="${esc(t('inr.kamerVoor', { naam: a.naam }))}">${opties(a.voorstelKamer)}</select></div>`).join('');
+  const losRijen = los.map((a) => `<div class="rij breed"><b>${esc(a.naam)}</b><select class="invoer" data-plek="${esc(a.id)}" aria-label="${esc(t('inr.kamerVoor', { naam: a.naam }))}">${opties(a.voorstelKamer)}</select></div>`).join('');
   const perKamer = kamers.filter(({ r }) => geenKlimaat(r.apparaten).length).map(({ r }) => {
     const apps = geenKlimaat(r.apparaten);
     const open = apps.find((a) => a.id === openApparaat);
     const chips = apps.map((a) => knop(`data-apparaat="${esc(a.id)}"`, a.naam, a.id === openApparaat)).join('');
     const bewerk = open
-      ? `<div class="bewerk"><label class="veldlabel breed"><span>${esc(t('inr.andereKamer'))}</span><select class="veld" data-verplaats="${esc(sleutel(open))}" aria-label="${esc(t('inr.kamerVoor', { naam: open.naam }))}">${opties(null, t('inr.blijftIn', { naam: r.naam })).replace(nietTonen, '')}</select></label><div class="veldlabel breed"><button type="button" class="chip gevaar" data-verberg="${esc(open.id)}">${esc(t('inr.uitApp'))}</button></div></div>`
+      ? `<div class="bewerk"><label class="veldlabel breed"><span>${esc(t('inr.andereKamer'))}</span><select class="invoer" data-verplaats="${esc(sleutel(open))}" aria-label="${esc(t('inr.kamerVoor', { naam: open.naam }))}">${opties(null, t('inr.blijftIn', { naam: r.naam })).replace(nietTonen, '')}</select></label><div class="veldlabel breed"><button type="button" class="chip gevaar" data-verberg="${esc(open.id)}">${esc(t('inr.uitApp'))}</button></div></div>`
       : '';
     return rij(r.naam, chips, bewerk);
   }).join('');
@@ -423,13 +423,13 @@ function toevoegVorm(r, los, elders) {
     ? `<span class="zacht">${esc(t('indeling.vloerIs'))}</span><div class="chips">${knop('data-toevoeg-vloer="water"', t('indeling.opWater'), v.vloer === 'water')}${knop('data-toevoeg-vloer="elektrisch"', huismodel.metHoofdletter(t('indeling.elektrisch')), v.vloer === 'elektrisch')}</div>`
     : '';
   const vloerKlaar = v.soort !== 'vloer' || v.vloer != null;
-  const uitHA = `<select class="veld" data-toevoegen="${esc(r.id)}" aria-label="${esc(t('inr.uitHA'))}"><option value="">${esc(t('inr.kiesUitHA'))}</option>${[...los.map((x) => ({ key: x.id, naam: x.naam, waar: t('inr.nogLos') })), ...elders.filter((x) => x.r.id !== r.id).map((x) => ({ key: sleutel(x.a), naam: x.a.naam, waar: x.r.naam }))].map((x) => `<option value="${esc(x.key)}">${esc(t('energie.naamKamer', { naam: x.naam, kamer: x.waar }))}</option>`).join('')}</select>`;
+  const uitHA = `<select class="invoer" data-toevoegen="${esc(r.id)}" aria-label="${esc(t('inr.uitHA'))}"><option value="">${esc(t('inr.kiesUitHA'))}</option>${[...los.map((x) => ({ key: x.id, naam: x.naam, waar: t('inr.nogLos') })), ...elders.filter((x) => x.r.id !== r.id).map((x) => ({ key: sleutel(x.a), naam: x.a.naam, waar: x.r.naam }))].map((x) => `<option value="${esc(x.key)}">${esc(t('energie.naamKamer', { naam: x.naam, kamer: x.waar }))}</option>`).join('')}</select>`;
   const aanOpties = cv
     ? [['thermostaat', ketel ? t('indeling.cvThermoNaam', { naam: ketel.naam }) : t('indeling.cvThermo')], ...(v.soort === 'radiator' ? [['knop', t('indeling.aan.knop')]] : []), ['hand', t('indeling.aan.hand')]]
     : ['thermostaat', 'stekker', 'hand'].map((w) => [w, t(`indeling.aan.${w}`)]);
   const kiesbaar = v.aan === 'knop' ? toestellen.filter((x) => x.a.radiatorknop) : toestellen;
   const welke = v.soort && v.soort !== 'ha' && v.aan && v.aan !== 'hand' && !(cv && v.aan === 'thermostaat')
-    ? `<select class="veld" data-toevoeg-apparaat aria-label="${esc(t('inr.welkApparaat'))}"><option value="">${esc(t(v.aan === 'knop' ? 'inr.welkeKnop' : 'inr.welkApparaatVraag'))}</option>${kiesbaar.map((x) => `<option value="${esc(sleutel(x.a))}" ${sleutel(x.a) === v.apparaat ? 'selected' : ''}>${esc(t('energie.naamKamer', { naam: x.a.naam, kamer: x.r.naam }))}</option>`).join('')}</select>`
+    ? `<select class="invoer" data-toevoeg-apparaat aria-label="${esc(t('inr.welkApparaat'))}"><option value="">${esc(t(v.aan === 'knop' ? 'inr.welkeKnop' : 'inr.welkApparaatVraag'))}</option>${kiesbaar.map((x) => `<option value="${esc(sleutel(x.a))}" ${sleutel(x.a) === v.apparaat ? 'selected' : ''}>${esc(t('energie.naamKamer', { naam: x.a.naam, kamer: x.r.naam }))}</option>`).join('')}</select>`
     : '';
   const klaar = v.soort && v.soort !== 'ha' && vloerKlaar && v.aan && (v.aan === 'hand' || (cv && v.aan === 'thermostaat') || v.apparaat);
   return `<div class="kolom toevoeg" style="width: 100%">
@@ -487,14 +487,14 @@ function warmteStap() {
     const keuze = toevoegenIn === r.id ? toevoegVorm(r, los, elders) : knop(`data-erbij="${esc(r.id)}"`, t('indeling.plusIets'), false, 'plus');
     // Zonder eigen apparaat: meedoen met een kamer die wel regelt (besluit 142).
     const regelaars = binnen().filter((x) => x.id !== r.id && x.zoneId);
-    const mee = !toestellen && regelaars.length ? `<select class="veld" data-meedoen="${esc(r.id)}" aria-label="${esc(t('inr.meedoenVraag', { naam: r.naam }))}"><option value="">${esc(t('inr.nietMee'))}</option>${regelaars.map((x) => `<option value="${esc(x.id)}" ${k?.meedoenMet === x.id ? 'selected' : ''}>${esc(t('indeling.doetMee', { naam: x.naam }))}</option>`).join('')}</select>` : '';
+    const mee = !toestellen && regelaars.length ? `<select class="invoer" data-meedoen="${esc(r.id)}" aria-label="${esc(t('inr.meedoenVraag', { naam: r.naam }))}"><option value="">${esc(t('inr.nietMee'))}</option>${regelaars.map((x) => `<option value="${esc(x.id)}" ${k?.meedoenMet === x.id ? 'selected' : ''}>${esc(t('indeling.doetMee', { naam: x.naam }))}</option>`).join('')}</select>` : '';
     const inhoud = `<div class="kolom" style="width: 100%">${toestellen}${bronnen ? `<div class="chips">${bronnen}</div>` : ''}${mee}${!toestellen && !bronnen && !mee ? `<span class="zacht">${esc(t('inr.nietsGoed'))}</span>` : ''}<div class="chips">${keuze}</div></div>`;
     return `<div class="rij"><b>${esc(r.naam)}</b>${inhoud}</div>`;
   });
   // De thermostaat die de ketel aanzet (besluit 167), zoals een Nest: niets gekozen is het voorstel uit Home Assistant.
   const lijst = huismodel.thermostaten(d.huis);
   const thermoOpties = [['', lijst[0] ? t('inr.thermo', { naam: lijst[0].naam }) : t('inr.geenThermo')], ...lijst.map((x) => [x.sleutel, t('inr.thermoKamer', { naam: x.naam, kamer: x.kamer })]), ['geen', t('energie.geenThermostaat')]];
-  const thermo = a.verwarming.soort === 'stadsverwarming' || !lijst.length ? '' : `<select class="veld" data-inr-thermostaat aria-label="${esc(t('energie.thermostaatKetel'))}" style="width: 100%">${thermoOpties.map(([w, x]) => `<option value="${esc(w)}" ${w === (a.verwarming.thermostaat ?? '') ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+  const thermo = a.verwarming.soort === 'stadsverwarming' || !lijst.length ? '' : `<select class="invoer" data-inr-thermostaat aria-label="${esc(t('energie.thermostaatKetel'))}" style="width: 100%">${thermoOpties.map(([w, x]) => `<option value="${esc(w)}" ${w === (a.verwarming.thermostaat ?? '') ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
   // De thermostaat onder de knoppen, over de hele breedte: in de smalle kolom ernaast viel de tekst weg.
   const verwarming = `<div class="rij"><b>${esc(t('energie.verwarming'))}</b><div class="kolom" style="width: 100%"><div class="chips">${VERWARMING.map(([w, x]) => knop(`data-verwarming="${w}"`, x, a.verwarming.soort === w)).join('')}<button type="button" class="chip" data-zonderklimaat="1">${esc(t('inr.zk.knop'))}</button></div>${thermo}</div></div>`;
   return {

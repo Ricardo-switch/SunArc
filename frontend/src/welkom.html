@@ -20,15 +20,13 @@
   html, body { margin: 0; min-height: 100%; }
   body { color: var(--tekst); }
   main { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; box-sizing: border-box; }
-  .kaart { width: min(460px, 100%); padding: 26px 26px 22px; display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; }
+  .kaart { width: min(460px, 100%); display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; }
   .merk { display: flex; align-items: center; gap: 10px; font-family: var(--kop); font-weight: 600; font-size: 15px; color: var(--zacht); }
   .merk i { width: 26px; height: 26px; border-radius: 8px; background: url('kit/icoon-klein.svg') center / cover; }
   h1 { margin: 4px 0 0; font-family: var(--kop); font-size: 30px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
   p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--zacht); }
   .vak { display: flex; flex-direction: column; gap: 6px; }
   .vak > label, .vak > span:first-child { font-size: 13px; font-weight: 600; color: var(--gedempt); }
-  .veld { height: 48px; padding: 0 14px; border-radius: 12px; background: rgb(var(--wit) / 0.06); border: 1px solid rgb(var(--wit) / 0.16); color: var(--tekst); font: inherit; font-size: 17px; font-weight: 600; }
-  .veld:focus-visible { outline: 2px solid var(--ijs); outline-offset: 1px; }
   .hint { font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
   .keus { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; align-items: center; padding: 16px; border-radius: 18px; background: rgb(var(--wit) / 0.05); border: 1px solid rgb(var(--wit) / 0.1); color: var(--tekst); font: inherit; text-align: left; cursor: pointer; }
   .keus[aria-pressed="true"] { border-color: rgb(var(--wit) / 0.5); background: rgb(var(--wit) / 0.1); }
@@ -49,7 +47,7 @@
   .nietgoed p { margin: 0; }
   .nietgoed .knop { align-self: start; display: inline-flex; align-items: center; text-decoration: none; }
   .zacht { border: 0; background: none; color: var(--zacht); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; padding: 8px 0; text-decoration: none; }
-  .fout { min-height: 18px; font-size: 13px; color: var(--gloed-t); }
+  .fout { min-height: 18px; }
 </style>
 </head>
 <body class="lucht lucht-avond">

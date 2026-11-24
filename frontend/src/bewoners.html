@@ -64,20 +64,13 @@
   .blad .kop .gezicht { width: 56px; height: 56px; font-size: 24px; }
   .vak { display: flex; flex-direction: column; gap: 6px; }
   .vak > label, .vak > span:first-child { font-size: 13px; font-weight: 600; color: var(--gedempt); }
-  .veld { height: 46px; padding: 0 14px; border-radius: 12px; background: rgb(var(--wit) / 0.06); border: 1px solid rgb(var(--wit) / 0.14); color: var(--tekst); font: inherit; font-size: 16px; font-weight: 600; color-scheme: dark; width: 100%; box-sizing: border-box; }
-  .veld option { background: #14203a; }
-  .veld:disabled { opacity: 0.6; }
-  .veld.vast { display: flex; align-items: center; background: rgb(var(--wit) / 0.03); }
+  .invoer.vast { display: flex; align-items: center; background: rgb(var(--wit) / 0.03); }
   .hint { font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
   .hint a { color: var(--ijs-t); font-weight: 700; text-decoration: none; }
-  .seg { display: flex; gap: 3px; padding: 3px; border-radius: 12px; background: rgb(var(--wit) / 0.05); }
-  .seg button { flex: 1; height: 38px; border: 0; border-radius: 9px; background: none; color: var(--gedempt); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .seg button[aria-pressed="true"] { background: rgb(var(--wit) / 0.15); color: var(--tekst); }
-  .seg button:disabled { cursor: default; }
   .knoppenrij { display: flex; gap: 8px; margin-top: auto; padding-top: 8px; }
   .knoppenrij .knop { flex: 1; white-space: nowrap; }
   .gevaar { color: var(--gloed-zacht); }
-  .fout { min-height: 18px; font-size: 13px; color: var(--gloed-t); }
+  .fout { min-height: 18px; }
   #tel .inhoud { padding: 18px 16px 110px; display: flex; flex-direction: column; gap: 14px; }
   #tel .rij2 { grid-template-columns: 1fr; }
   #tel .lijst { overflow: visible; }
@@ -108,7 +101,7 @@
   <div id="tel" class="tel">
     <div class="inhoud">
       <a class="terugje" href="instellingen.html" style="font-size: 14px; font-weight: 600; color: var(--zacht); text-decoration: none" data-t="jij.terugInstellingen"></a>
-      <h1 class="kop-1" style="font-size: 34px; margin: 0" data-t="instellingen.bewoners"></h1>
+      <h1 class="kop-1" style="margin: 0" data-t="instellingen.bewoners"></h1>
       <section class="glas lijst" data-lijst data-t-aria-label="bewoners.opVolgorde"></section>
       <aside class="glas blad" data-blad aria-live="polite"></aside>
       <div class="rij2"><section class="glas klein-kaart" data-erbij></section><section class="glas klein-kaart" data-schermen></section></div>
