@@ -14,6 +14,7 @@
 
 import type { SiteConfig } from '../core/model.js';
 import type { Lang, Question, Wish } from './assistant.js';
+import { perTaal } from '../taal/index.js';
 
 /** Hoe lang een vraag mag zijn. */
 export const MAX_TEKST = 200;
@@ -66,9 +67,9 @@ interface Onderwerp {
   /** Sterke woorden tellen dubbel. */
   readonly sterk: readonly string[];
   readonly zwak: readonly string[];
-  readonly nl: { readonly antwoord: string; readonly label: string };
-  readonly en: { readonly antwoord: string; readonly label: string };
 }
+/** Wat de assistent zegt per onderwerp, en de tekst op de knop (besluit 344: in de taalbestanden). */
+const ONDERWERP_TEKST = perTaal('onderwerpen');
 
 const ONDERWERPEN: readonly Onderwerp[] = [
   {
@@ -76,48 +77,18 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     href: 'jehuis.html',
     sterk: ['indeling', 'plattegrond', 'etage*', 'verdieping*', 'buitenruimte*', 'layout', 'floor', 'floors', 'floor plan', 'outdoor space*'],
     zwak: ['kamer toevoegen', 'kamers', 'ruimte*', 'tuin', 'oprit', 'terras', 'balkon', 'voortuin', 'zolder toevoegen', 'kelder', 'rooms', 'add a room', 'garden', 'driveway', 'patio', 'balcony', 'basement'],
-    nl: {
-      antwoord:
-        'De indeling pas je aan bij Instellingen, onder Je huis. Daar teken je de kamers, zet je een apparaat in een kamer, voeg je een etage toe of haal je er een weg, en kies je wat er buiten is, zoals een tuin of een oprit.',
-      label: 'Naar Je huis',
-    },
-    en: {
-      antwoord:
-        'You change the layout under Settings, Your home. There you draw the rooms, put a device in a room, add or remove a floor, and choose what is outside, such as a garden or a driveway.',
-      label: 'Go to Your home',
-    },
   },
   {
     id: 'prijzen',
     href: 'energie.html#prijzen',
     sterk: ['prijs*', 'prijzen', 'tarief*', 'daltarief', 'dal', 'normaal tarief', 'netbeheer*', 'vastrecht', 'vaste kosten', 'contract', 'energieprijs*', 'stroomprijs*', 'gasprijs*', 'salder*', 'teruglever*', 'energiebelasting', 'price*', 'tariff*', 'off peak', 'peak rate', 'standing charge*', 'fixed costs', 'net metering', 'feed in', 'energy tax'],
     zwak: ['kosten', 'meter', 'meters', 'kwh', 'gas', 'stroom', 'energie', 'leverancier', 'rekening', 'electricity', 'supplier', 'bill', 'energy'],
-    nl: {
-      antwoord:
-        'De prijzen vul je in bij Instellingen, onder Energie: Contract en prijzen. Neem ze over van je contract: stroom normaal en dal, teruglevering, gas, en eventueel de vaste kosten per dag, maand of jaar.',
-      label: 'Naar Contract en prijzen',
-    },
-    en: {
-      antwoord:
-        'You enter prices under Settings, Energy setup: Contract and prices. Copy them from your contract: electricity normal and off-peak, export, gas, and if you like the fixed costs per day, month or year.',
-      label: 'Go to Contract and prices',
-    },
   },
   {
     id: 'aansluiting',
     href: 'energie.html#aansluiting',
     sterk: ['zekering*', 'hoofdzekering*', 'aansluiting', 'fase*', 'ampere', 'omvormer', 'ligging', 'fuse*', 'connection', 'main fuse', 'phase*', 'amp*', 'inverter'],
     zwak: ['panelen', 'zonnepanelen', 'dak', 'dakvlak*', 'netaansluiting', 'panels', 'solar panels', 'roof'],
-    nl: {
-      antwoord:
-        'Je aansluiting stel je in bij Instellingen, onder Energie: waar je panelen liggen, je hoofdzekering en je verwarming. Welke apparaten op zon mogen starten, staat bij Apparaten, op de kaart van elk apparaat.',
-      label: 'Naar Energie',
-    },
-    en: {
-      antwoord:
-        'You set up your connection under Settings, Energy setup: where your panels are, your main fuse and your heating. Which devices may start on solar is under Devices, on the card of each device.',
-      label: 'Go to Energy setup',
-    },
   },
   {
     // Alle batterijen en filters, ook als niets bijna leeg is (besluit 131).
@@ -125,14 +96,6 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     href: 'thuis.html#batterijen',
     sterk: ['batterij', 'batterijen', 'batterijtje', 'filter', 'filters', 'battery', 'batteries'],
     zwak: ['leeg', 'vervangen', 'vol', 'empty', 'replace', 'flat', 'full'],
-    nl: {
-      antwoord: 'Alle apparaten met een batterij, de leegste eerst, en de filters van de airco staan op Thuis. Onder de 10% komt er vanzelf een melding bij.',
-      label: 'Naar de batterijen',
-    },
-    en: {
-      antwoord: 'Every device with a battery, emptiest first, and the air conditioner filters are on Home. Below 10% a notice appears by itself.',
-      label: 'Go to the batteries',
-    },
   },
   {
     id: 'comfort',
@@ -140,14 +103,6 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     // Smal: "hoe warm is het op zolder" is een vraag over het huis, geen instelling.
     sterk: ['comfort', 'dagdeel', 'dagdelen', 'nachttemperatuur', 'vakantie', 'part of the day', 'night temperature', 'holiday'],
     zwak: ['temperatuur', 'instellen', 'temperature'],
-    nl: {
-      antwoord: 'Hoe warm of koel je het wilt, zet je bij Instellingen, onder Klimaat: per kamer en per dagdeel, en wanneer de dag en de nacht beginnen. Daar staat ook wat er in elke kamer verwarmt en koelt. De regeling rekent er meteen mee.',
-      label: 'Naar Klimaat',
-    },
-    en: {
-      antwoord: 'How warm or cool you want it is under Settings, Climate: per room and per part of the day, and when day and night begin. It also shows what heats and cools each room. The control uses it right away.',
-      label: 'Go to Climate',
-    },
   },
   {
     id: 'functies',
@@ -155,90 +110,36 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     // Het weer zelf is een vraag over morgen (besluit 142); hier alleen waar het vandaan komt.
     sterk: ['camera*', 'deurbel*', 'bel', 'aanbellen', 'buienradar', 'weerdienst', 'weerbron', 'functie*', 'doorbell', 'weather source', 'feature*'],
     zwak: ['beeld', 'videodeurbel', 'lampen bedienen', 'licht bedienen', 'weer', 'weather', 'video', 'light control'],
-    nl: {
-      antwoord:
-        'Camera’s, de deurbel, licht bedienen en het weer stel je in bij Instellingen, onder Licht, camera’s en weer. Daar kies je welke camera’s de app toont, wat er gebeurt als er wordt aangebeld, en waar het weer vandaan komt.',
-      label: 'Naar Licht, camera’s en weer',
-    },
-    en: {
-      antwoord:
-        'Cameras, the doorbell, light control and the weather are under Settings, Lights, cameras and weather. Choose which cameras the app shows, what happens when someone rings, and where the weather comes from.',
-      label: 'Go to Lights, cameras and weather',
-    },
   },
   {
     id: 'inrichten',
     href: 'inrichten.html',
     sterk: ['inrichten', 'wizard', 'installeren', 'installatie', 'opzetten', 'beginnen', 'eerste keer', 'setup', 'set up', 'install*', 'getting started', 'first time'],
     zwak: ['stappen', 'begin', 'steps', 'start'],
-    nl: {
-      antwoord:
-        'Bij Inrichten loop je stap voor stap langs alles wat per huis anders is: je huis, klimaat, zon en aansluiting, meters en prijzen, en functies. Je vindt het bovenaan bij Instellingen.',
-      label: 'Naar Inrichten',
-    },
-    en: {
-      antwoord:
-        'Set up walks you through everything that differs per house: your house, climate, sun and connection, meters and prices, and features. It is at the top of Settings.',
-      label: 'Go to Set up',
-    },
   },
   {
     id: 'inloggen',
     href: 'toegang.html',
     sterk: ['inloggen', 'inlog*', 'aanmelden', 'uitloggen', 'wachtwoord', 'login', 'log in', 'sign in', 'log out', 'sign out', 'password'],
     zwak: ['account', 'toegang', 'access'],
-    nl: {
-      antwoord:
-        'Je logt in met je account van Home Assistant; de hele app vraagt dat. Uitloggen kan bij Instellingen, onder Bewoners en toegang.',
-      label: 'Naar Bewoners en toegang',
-    },
-    en: {
-      antwoord: 'You sign in with your Home Assistant account; the whole app asks for it. Signing out is under Settings, Residents and access.',
-      label: 'Go to Residents and access',
-    },
   },
   {
     id: 'opbrengst',
     href: 'opbrengst.html',
     sterk: ['opbrengst', 'bespaard', 'besparing', 'bespaar*', 'verdiend', 'verdien*', 'terugverdien*', 'savings', 'saved', 'saving', 'earned', 'pay back', 'payback'],
     zwak: ['oplevert', 'oplevering', 'geld', 'euro', 'money', 'yield'],
-    nl: {
-      antwoord:
-        'Wat de zon en het slimme schakelen opleveren, staat bij Opbrengst: per dag, week, maand en jaar, in kWh en in euro’s.',
-      label: 'Naar Opbrengst',
-    },
-    en: {
-      antwoord: 'What the sun and smart switching bring in is under Energy: per day, week, month and year, in kWh and in euros.',
-      label: 'Go to Energy',
-    },
   },
   {
     id: 'vandaag',
     href: 'vandaag.html',
     sterk: ['verbruik*', 'grafiek', 'tijdlijn', 'usage', 'consumption', 'graph', 'chart', 'timeline'],
     zwak: ['vandaag', 'today'],
-    nl: {
-      antwoord: 'Het verbruik en de zon van vandaag staan bij Vandaag, kwartier voor kwartier, met wat elk apparaat deed.',
-      label: 'Naar Vandaag',
-    },
-    en: {
-      antwoord: 'Today’s use and sun are under Today, quarter by quarter, with what each device did.',
-      label: 'Go to Today',
-    },
   },
   {
     id: 'apparaten',
     href: 'apparaten.html',
     sterk: ['apparaten', 'alle apparaten', 'devices', 'all devices'],
     zwak: ['lijst', 'overzicht', 'list', 'overview'],
-    nl: {
-      antwoord: 'Alle apparaten staan bij Apparaten, per kamer, met wat ze nu doen.',
-      label: 'Naar Apparaten',
-    },
-    en: {
-      antwoord: 'All devices are under Devices, per room, with what they are doing now.',
-      label: 'Go to Devices',
-    },
   },
   /*
    * De laadpaal en de boiler: "waarom laadt de auto niet
@@ -250,63 +151,24 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     href: 'toevoegen.html#auto',
     sterk: ['laadpaal*', 'laadpunt*', 'laadt', 'laden', 'opladen', 'auto', 'elektrische auto', 'wallbox', 'charger', 'charging', 'charge', 'car', 'ev'],
     zwak: ['sneller', 'langzaam', 'trager', 'snel', 'harder', 'stroom', 'ampere', 'faster', 'slow', 'slower', 'amps'],
-    nl: {
-      antwoord:
-        'Je laadpaal staat bij Apparaten, met per auto hoe hij laadt: op zon, als stroom goedkoop is, of met de hand. Op zon laadt hij alleen met wat er over is, dus bij weinig zon langzamer. En hij blijft altijd onder je hoofdzekering, zodat die er niet uit gaat.',
-      label: 'Naar je laadpaal',
-    },
-    en: {
-      antwoord:
-        'Your charger is under Devices, with how each car charges: on solar, when electricity is cheap, or by hand. On solar it only uses what is left over, so with little sun it charges slower. And it always stays under your main fuse, so that does not trip.',
-      label: 'Go to your charger',
-    },
   },
   {
     id: 'boiler',
     href: 'apparaten.html',
     sterk: ['boiler*', 'warm water', 'warmwater', 'warmwaterboiler', 'water heater', 'hot water', 'jacuzzi', 'hottub', 'hot tub'],
     zwak: ['tank', 'douche', 'water', 'shower'],
-    nl: {
-      antwoord:
-        'De boiler staat bij Apparaten en in de tekening van je huis, met zijn temperatuur en het doel. Met zon over maakt hij het water alvast heet, zodat het daarna minder stroom van het net kost. Zie je hem niet, voeg hem dan toe bij Apparaten › Toevoegen en zet hem bij Je huis op zijn plek.',
-      label: 'Naar Apparaten',
-    },
-    en: {
-      antwoord:
-        'The boiler is under Devices and in the drawing of your home, with its temperature and target. With solar left over it heats the water ahead of time, so it takes less power from the grid later. If you do not see it, add it under Devices › Add and give it its place under Your home.',
-      label: 'Go to Devices',
-    },
   },
   {
     id: 'bedienen',
     href: 'thuis.html',
     sterk: ['bedien*', 'lamp aan', 'lamp uit', 'licht aan', 'licht uit', 'aanzetten', 'uitzetten', 'scene*', 'operate', 'switch on', 'switch off'],
     zwak: ['lamp', 'lampen', 'licht', 'screen', 'screens', 'thermostaat', 'lights', 'light', 'blinds', 'thermostat'],
-    nl: {
-      antwoord:
-        'Bedienen doe je in het huis op Thuis: tik op een kamer of een apparaat. Daarvoor moet je ingelogd zijn.',
-      label: 'Naar Thuis',
-    },
-    en: {
-      antwoord: 'You operate things in the house on Home: tap a room or a device. You need to be signed in.',
-      label: 'Go to Home',
-    },
   },
   {
     id: 'schakelen',
     href: 'huis-kan.html',
     sterk: ['schaduw*', 'meekijken', 'echt schakelen', 'echt regelen', 'zelf regelen', 'bewijs', 'leert', 'leren', 'shadow', 'watching', 'really switch', 'take over', 'learn*'],
     zwak: ['slim', 'slimme', 'smart'],
-    nl: {
-      antwoord:
-        'SunArc kijkt nu mee: het zegt wat het zou doen en leert van je huis, maar schakelt het klimaat nog niet zelf. Bij Wat je huis kan zie je per functie hoe het ervoor staat.',
-      label: 'Naar Wat je huis kan',
-    },
-    en: {
-      antwoord:
-        'SunArc is watching for now: it says what it would do and learns from your house, but does not switch the climate itself yet. What your house can do shows each function and where it stands.',
-      label: 'Go to What your house can do',
-    },
   },
 ];
 
@@ -603,20 +465,7 @@ const AFSLUITERS = new Set([
 ]);
 
 /** Hoe het huis afscheid neemt, met wat afwisseling (besluit 225). De eerste is de gewone. */
-const AFSCHEID = {
-  nl: {
-    slaap: ['Welterusten.', 'Welterusten, slaap lekker.', 'Slaap lekker.'],
-    dag: ['Tot ziens.', 'Tot straks.', 'Tot later.'],
-    dank: ['Graag gedaan.', 'Graag gedaan, hoor.', 'Fijn dat ik kon helpen.'],
-    rest: ['Prima. Ik ben er als je me nodig hebt.', 'Goed. Roep maar als er iets is.', 'Prima. Zeg maar "Hé huis" als je me nodig hebt.'],
-  },
-  en: {
-    slaap: ['Good night.', 'Good night, sleep well.', 'Sleep well.'],
-    dag: ['Goodbye.', 'See you later.', 'Bye for now.'],
-    dank: ['You are welcome.', 'Happy to help.', 'Any time.'],
-    rest: ['All right. I am here when you need me.', 'Okay. Just call if anything comes up.', 'All right. Say "Hé huis" when you need me.'],
-  },
-} as const;
+const AFSCHEID = perTaal('afscheid');
 
 /**
  * "Oké bedankt" of "dat was het": het gesprek is klaar. Het
@@ -715,7 +564,7 @@ export function begrijp(ruw: string, config: SiteConfig, lang: Lang): Begrepen {
 
   // Een hulpvraag over de app wint van het huis; anders telt de hoogste.
   if (app != null && (hulp || beste == null || app.score > beste.score)) {
-    const t = app.o[lang];
+    const t = ONDERWERP_TEKST[lang][app.o.id as keyof (typeof ONDERWERP_TEKST)['nl']];
     return { soort: 'app', onderwerp: app.o.id, antwoord: t.antwoord, link: { href: app.o.href, label: t.label } };
   }
   if (beste != null) return { soort: 'huis', vraag: beste.vraag };

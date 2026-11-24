@@ -31,6 +31,7 @@ import {
 } from '../adapters/homeassistant/discovery.js';
 import { parseSiteConfig } from '../config/schema.js';
 import type { Lang } from './assistant.js';
+import { perTaal } from '../taal/index.js';
 
 /**
  * De vragen bij het begin in het Engels (besluit 185). De ontdekking stelt ze
@@ -80,34 +81,7 @@ export interface OnboardingOptions {
 }
 
 /** Wat het bewaren zegt als het niet lukt, per taal (besluit 185). De pagina toont `reden`. */
-const MISLUKT = {
-  nl: {
-    geenVoorstel: 'Er is nog geen voorstel opgehaald om te bewaren.',
-    alEen: 'Er staat al een configuratie; er is niets geschreven.',
-    staatIn: (f: string, map: string) => `${f} staat in ${map}`,
-    opnieuw: [
-      'Wil je opnieuw beginnen, verplaats of hernoem dat bestand dan eerst.',
-      'Twee configuraties naast elkaar maakt niet duidelijk welke geldt, en',
-      'dan start de dienst niet meer.',
-    ],
-    nietBruikbaar: 'De configuratie is zo niet bruikbaar.',
-    bestaatAl: (pad: string) => `${pad} bestaat al; er is niets geschreven.`,
-    verplaats: 'Verplaats of hernoem dat bestand eerst.',
-  },
-  en: {
-    geenVoorstel: 'No proposal has been fetched yet to save.',
-    alEen: 'There is already a configuration; nothing was written.',
-    staatIn: (f: string, map: string) => `${f} is in ${map}`,
-    opnieuw: [
-      'To start again, move or rename that file first.',
-      'Two configurations side by side make it unclear which one applies, and',
-      'then the service no longer starts.',
-    ],
-    nietBruikbaar: 'The configuration cannot be used like this.',
-    bestaatAl: (pad: string) => `${pad} already exists; nothing was written.`,
-    verplaats: 'Move or rename that file first.',
-  },
-} satisfies Record<Lang, unknown>;
+const MISLUKT = perTaal('onboarding');
 
 export type SaveResult =
   | { readonly ok: true; readonly pad: string; readonly weggelaten?: readonly string[] }

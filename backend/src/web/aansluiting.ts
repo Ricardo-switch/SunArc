@@ -31,6 +31,7 @@ import type { SunPosition } from '../core/sun.js';
 import { leesDaken, piekVan, type Daken, type DakVlak, type KaartDakvlak, type KaartStand } from './daken.js';
 import { leesAccu, leesLaden, type AccuKeuze, type AccuView, type LadenKeuze, type LadenView } from './opslag.js';
 import { VOORKANT_ZON, aantalVan, dakUitAanpassing, dakUitMeting, dakenNu, liggingView, type Dak, type LiggingView, type Meting, type VoorkantZon } from './ligging.js';
+import { perTaal } from '../taal/index.js';
 
 export const CONNECTION_FILE = 'aansluiting.json';
 
@@ -426,18 +427,7 @@ export function solarBrand(platform: string | null, lang: Lang = 'nl'): { merk: 
 }
 
 /** Hoe de zon sneller te meten is, per taal (besluit 185). */
-const WEG: Readonly<Record<Lang, { readonly kwh: string; readonly solaredge: string; readonly growatt: string }>> = {
-  nl: {
-    kwh: 'Een kWh-meter op de groep van de panelen, naast de P1-meter: zelf te doen of door een installateur.',
-    solaredge: 'Zet Modbus TCP aan in SetApp en gebruik de integratie SolarEdge Modbus Multi. Geavanceerd, soms via de installateur.',
-    growatt: 'RS485 naar het netwerk (bijvoorbeeld een Elfin EW11) of een USB-stick aan Home Assistant. Geavanceerd.',
-  },
-  en: {
-    kwh: 'A kWh meter on the circuit of the panels, next to the P1 meter: do it yourself or have an installer do it.',
-    solaredge: 'Turn on Modbus TCP in SetApp and use the SolarEdge Modbus Multi integration. Advanced, sometimes through the installer.',
-    growatt: 'RS485 to the network (for example an Elfin EW11) or a USB stick on Home Assistant. Advanced.',
-  },
-};
+const WEG = perTaal('aansluiting');
 
 /* --------------------------------------------------------- de regeling */
 

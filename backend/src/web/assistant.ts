@@ -15,15 +15,17 @@
  * één plek, in het Nederlands en het Engels (besluit 86).
  */
 
-import type { Explanation, ReasonCode, BlockCode } from '../core/decision.js';
+import type { Explanation } from '../core/decision.js';
 import { actuatorsOf, isHandsOff } from '../core/model.js';
 import type { Actuator, Mode, SiteConfig, Zone } from '../core/model.js';
 import { startOfLocalDay } from './today.js';
-import { KAMERWOORDEN, lidwoordVan, metLidwoord } from './kamerwoorden.js';
+import { lidwoordVan, metLidwoord } from './kamerwoorden.js';
+import { COMMON, inSentence } from '../taal/hulp.js';
 import { valutaTeken } from './valuta.js';
 import { residentBuffers } from './buffers-bewoner.js';
 import { gewoon } from './woordzoeker.js';
 import { type Answer, type AskContext, type DecisionView, type Fact, LANGS, type Lang, type Parsed, QUESTION_KINDS, type Question, type RoomKind, type RoomStatus, type Wish, type ZonNu } from './assistant-types.js';
+import { perTaal } from '../taal/index.js';
 // Uit assistant-kort.ts (opgesplitst op 22 november 2026); wie dit bestand importeert, krijgt die namen ook.
 export * from './assistant-kort.js';
 // Uit assistant-types.ts (opgesplitst op 22 november 2026); wie dit bestand importeert, krijgt die namen ook.
@@ -265,125 +267,10 @@ class Facts {
 
 /* ------------------------------------------------------------- teksten */
 
-const WORDS = {
-  nl: {
-    mode: {
-      dag: 'de dagstand',
-      nacht: 'de nachtstand',
-      voorverwarmen: 'voorverwarmen',
-      afwezig: 'afwezig',
-      vakantie: 'vakantie',
-      handmatig: 'handmatig',
-    } satisfies Record<Mode, string>,
-    wish: { koelen: 'koelen', verwarmen: 'verwarmen', drogen: 'drogen', uit: 'uit', aan: 'aan' } satisfies Record<Wish, string>,
-    doing: { cool: 'koelt', heat: 'verwarmt' },
-    infinitive: { cool: 'koelen', heat: 'verwarmen' },
-    // Een kamer met alleen hulpapparaten (role assist): die verwarmen of koelen alleen op zon.
-    alleenZon: { cool: 'hier alleen met zon over gekoeld wordt', heat: 'hier alleen met zon over verwarmd wordt' },
-    observed: {
-      cool: 'koelen',
-      heat: 'verwarmen',
-      off: 'uit',
-      heat_cool: 'automatisch',
-      auto: 'automatisch',
-      dry: 'drogen',
-      fan_only: 'ventileren',
-    } as Record<string, string>,
-    reason: {
-      zone_below_setpoint: 'het er kouder is dan het doel',
-      zone_above_setpoint: 'het er warmer is dan het doel',
-      zone_satisfied: 'de kamer op temperatuur is',
-      buffering_free_energy: 'er gratis zonnestroom is om op te slaan',
-      surplus_available: 'er zon over is',
-      surplus_insufficient: 'er te weinig zon over is',
-      importing_from_grid: 'het huis stroom van het net haalt',
-      outside_active_hours: 'het buiten de actieve uren is',
-      mode_excludes_action: 'dat niet past bij de stand van nu',
-      nobody_home: 'er niemand thuis is',
-      failsafe_unreliable_input: 'een meting niet betrouwbaar is',
-    } satisfies Record<ReasonCode, string>,
-    // Bijzinnen: ze staan na "omdat", dus het werkwoord achteraan.
-    block: {
-      min_run_not_elapsed: 'het apparaat eerst een minimale tijd moet blijven draaien',
-      min_rest_not_elapsed: 'het apparaat na het uitgaan eerst even moet pauzeren, dat spaart de compressor',
-      stabilisation_active: 'het verbruik eerst even stabiel moet zijn',
-      settling_after_switch: 'het apparaat net van stand is gewisseld',
-      insufficient_power_budget: 'er te weinig zon over is',
-      start_threshold_not_met: 'er net te weinig zon over is om te starten',
-      capability_missing: 'het apparaat dat niet kan',
-      setpoint_out_of_range: 'het doel buiten het bereik van het apparaat valt',
-      superseded_by_higher_priority: 'een andere kamer voorgaat',
-      no_change_needed: 'er niets te veranderen is',
-      resident_override: 'jij het zelf hebt overgenomen',
-      insufficient_current_budget: 'de stroom op de hoofdzekering dan te hoog zou worden',
-    } satisfies Record<BlockCode, string>,
-  },
-  en: {
-    mode: {
-      dag: 'day mode',
-      nacht: 'night mode',
-      voorverwarmen: 'preheating',
-      afwezig: 'away',
-      vakantie: 'holiday',
-      handmatig: 'manual',
-    } satisfies Record<Mode, string>,
-    wish: { koelen: 'cool', verwarmen: 'heat', drogen: 'dry', uit: 'off', aan: 'on' } satisfies Record<Wish, string>,
-    doing: { cool: 'is cooling', heat: 'is heating' },
-    infinitive: { cool: 'cool', heat: 'heat' },
-    alleenZon: { cool: 'it only cools here with surplus solar', heat: 'it only heats here with surplus solar' },
-    observed: {
-      cool: 'cooling',
-      heat: 'heating',
-      off: 'off',
-      heat_cool: 'automatic',
-      auto: 'automatic',
-      dry: 'drying',
-      fan_only: 'fan only',
-    } as Record<string, string>,
-    reason: {
-      zone_below_setpoint: 'it is colder than the target',
-      zone_above_setpoint: 'it is warmer than the target',
-      zone_satisfied: 'the room is at temperature',
-      buffering_free_energy: 'there is free solar power to store',
-      surplus_available: 'there is solar power to spare',
-      surplus_insufficient: 'there is not enough solar power to spare',
-      importing_from_grid: 'the house is drawing power from the grid',
-      outside_active_hours: 'it is outside the active hours',
-      mode_excludes_action: 'that does not fit the current mode',
-      nobody_home: 'nobody is home',
-      failsafe_unreliable_input: 'a measurement is unreliable',
-    } satisfies Record<ReasonCode, string>,
-    block: {
-      min_run_not_elapsed: 'the unit has to finish its minimum run time first',
-      min_rest_not_elapsed: 'the unit has to rest for a moment first',
-      stabilisation_active: 'I am waiting for the power use to settle',
-      settling_after_switch: 'the unit is still settling after a switch',
-      insufficient_power_budget: 'there is not enough solar power to spare',
-      start_threshold_not_met: 'there is just too little solar power to start',
-      capability_missing: 'the unit cannot do that',
-      setpoint_out_of_range: 'the target is outside the range of the unit',
-      superseded_by_higher_priority: 'another room comes first',
-      no_change_needed: 'nothing needs to change',
-      resident_override: 'you took it over yourself',
-      insufficient_current_budget: 'the current on the main fuse would then get too high',
-    } satisfies Record<BlockCode, string>,
-  },
-} as const;
+const WORDS = perTaal('assistent');
 
-/**
- * Een naam midden in een zin. Alleen de eerste letter gaat klein, en alleen als
- * het eerste woord een gewoon woord is: "Slaapkamer Daan" wordt "slaapkamer
- * Daan" en "Nest (beneden)" blijft "Nest (beneden)". Een merk of een naam
- * houdt zijn hoofdletter.
- */
-const COMMON = new RegExp(
-  `^(${[...Object.keys(KAMERWOORDEN), 'airco', 'thermostaat', 'lamp', 'screen', 'zonnescherm', 'droger', 'wasmachine', 'vaatwasser', 'verwarming', 'vloerverwarming', 'radiator', 'ventilatie', 'warmtepomp', 'boiler', 'voorgevel', 'achtergevel', 'zijgevel', 'gevel'].join('|')})\\b`,
-  'i',
-);
-
-export function inSentence(name: string): string {
-  return COMMON.test(name) ? name.charAt(0).toLowerCase() + name.slice(1) : name;
-}
+// Een naam midden in een zin staat sinds besluit 344 bij de taal (taal/hulp.ts): de taalbestanden gebruiken hem ook.
+export { inSentence } from '../taal/hulp.js';
 
 /**
  * Een naam in een zin: "Zolder" wordt "de zolder", maar een eigen naam zoals

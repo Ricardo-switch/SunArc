@@ -25,6 +25,7 @@ import type { QuarterDays, SolarLearned } from './solar-learn.js';
 import { clearSkyW, type Location } from './sun.js';
 import { partsIn, zonedMidnight } from './today.js';
 import type { Lang } from './assistant.js';
+import { perTaal } from '../taal/index.js';
 
 /** Het bestand met de zonkans per dag, naast het logboek. */
 export const WEATHER_FILE = 'weer-verwachting.json';
@@ -255,26 +256,7 @@ export function weatherSources(entities: readonly HaRegistryEntity[], states: Re
 }
 
 /** Het weer in woorden, per taal (besluit 185); `nat` is met een kans op regen van de helft of meer. */
-const WEER_WOORDEN = {
-  nl: {
-    zon: 'Zonnig',
-    half: ['Zon en wolken', 'Zon en wolken, kans op een bui'],
-    bewolkt: ['Bewolkt', 'Bewolkt, kans op regen'],
-    regen: ['Bewolkt, af en toe een bui', 'Bewolkt met regen'],
-    onweer: 'Kans op onweer',
-    sneeuw: 'Sneeuw',
-    mist: 'Mist',
-  },
-  en: {
-    zon: 'Sunny',
-    half: ['Sun and clouds', 'Sun and clouds, chance of a shower'],
-    bewolkt: ['Cloudy', 'Cloudy, chance of rain'],
-    regen: ['Cloudy, the odd shower', 'Cloudy with rain'],
-    onweer: 'Chance of thunder',
-    sneeuw: 'Snow',
-    mist: 'Fog',
-  },
-} as const satisfies Record<Lang, unknown>;
+const WEER_WOORDEN = perTaal('weer');
 
 /** De soort weer in gewone woorden, met de kans op regen erbij als die telt. */
 export function wordsFor(kind: WeatherKind | null, rainPct: number | null, lang: Lang = 'nl'): string | null {

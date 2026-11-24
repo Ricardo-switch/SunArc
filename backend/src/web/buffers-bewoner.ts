@@ -8,6 +8,7 @@ import type { HeatStoreExplanation, HeatStoreStateCode } from '../core/decision.
 import type { HeatStore, SiteConfig } from '../core/model.js';
 import type { Lang } from './assistant.js';
 import { clockIn, nextLocalTime, startOfLocalDay } from './today.js';
+import { perTaal } from '../taal/index.js';
 
 export interface ResidentBuffer {
   readonly id: string;
@@ -38,113 +39,12 @@ export interface ResidentBuffer {
 }
 
 /** Een slimme stekker (besluit 264): aan op zon, uit zonder; geen graden. */
-const STEKKER = {
-  nl: {
-    kop: { aan: 'Aan op zon', zouAan: 'Zou nu aangaan', zouUit: 'Zou nu uitgaan', wachtZon: 'Wacht op zon', niets: 'Aan, vraagt niets', minimum: 'Aan voor zijn minimum', zouMinimum: 'Zou nu aangaan voor zijn minimum' },
-    aan: 'Er is genoeg zon over om hem aan te laten.',
-    zouAan: 'Er is genoeg zon over voor hem.',
-    zouUit: 'Er is te weinig zon over: hij haalt nu stroom van het net.',
-    wachtZon: (kw: string | null) => (kw ? `Hij gaat aan zodra er ${kw} kW zon over is.` : 'Hij gaat aan zodra er zon over is.'),
-    niets: 'Hij staat aan, maar trekt nu niets.',
-    onbekend: 'Home Assistant geeft hem nu niet door.',
-    // Het minimum per dag (besluit 267).
-    minimum: (duur: string, by: string) => `Zo staat hij vóór ${by} toch ${duur} aan, ook zonder zon.`,
-    anders: (latest: string, duur: string, by: string) => `Komt die niet, dan gaat hij om ${latest} aan: zo staat hij vóór ${by} toch ${duur} aan.`,
-    gehaald: (duur: string, by: string) => `Zijn ${duur} vóór ${by} heeft hij al.`,
-    duur: (min: number) => (min % 60 === 0 ? `${min / 60} uur` : min > 60 ? `${String(Math.round((min / 60) * 100) / 100).replace('.', ',')} uur` : `${min} minuten`),
-  },
-  en: {
-    kop: { aan: 'On with solar', zouAan: 'Would switch on now', zouUit: 'Would switch off now', wachtZon: 'Waiting for sun', niets: 'On, draws nothing', minimum: 'On for its minimum', zouMinimum: 'Would switch on now for its minimum' },
-    aan: 'There is enough solar to spare to leave it on.',
-    zouAan: 'There is enough solar to spare for it.',
-    zouUit: 'Not enough solar to spare: it is drawing from the grid now.',
-    wachtZon: (kw: string | null) => (kw ? `It switches on as soon as ${kw} kW of solar is to spare.` : 'It switches on as soon as there is solar to spare.'),
-    niets: 'It is on, but draws nothing right now.',
-    onbekend: 'Home Assistant is not reporting it right now.',
-    minimum: (duur: string, by: string) => `That way it is still on for ${duur} before ${by}, even without sun.`,
-    anders: (latest: string, duur: string, by: string) => `If none comes, it switches on at ${latest}: that way it is still on for ${duur} before ${by}.`,
-    gehaald: (duur: string, by: string) => `It already had its ${duur} before ${by}.`,
-    duur: (min: number) => (min % 60 === 0 ? `${min / 60} ${min === 60 ? 'hour' : 'hours'}` : min > 60 ? `${(min / 60).toLocaleString('en-GB', { maximumFractionDigits: 2 })} hours` : `${min} minutes`),
-  },
-} as const;
+const STEKKER = perTaal('stekker');
 
 // Met de hand een komma: Node in de add-on (Alpine) kent alleen Engelse getallen, en gaf "0.8 kW".
 const kwTekst = (w: number | undefined, lang: Lang) => (w == null ? null : lang === 'nl' ? (Math.round(w / 100) / 10).toFixed(1).replace('.', ',') : (Math.round(w / 100) / 10).toFixed(1));
 
-const WOORDEN = {
-  nl: {
-    kop: {
-      zon: 'Zou nu verwarmen op zon',
-      onder: 'Zou nu verwarmen',
-      klaarOm: 'Zou nu beginnen voor klaar om',
-      goedkoop: 'Zou nu beginnen, goedkope uren',
-      legionella: 'Zou nu naar 60° gaan',
-      wachtZon: 'Wacht op zon',
-      wacht: 'Wacht even',
-      warm: 'Warm genoeg',
-      vol: 'Vol',
-      onbekend: 'Niet te lezen',
-    },
-    zon: (doel: number | null) => (doel != null ? `Er is zon over: hij zou nu verwarmen naar ${doel}°.` : 'Er is zon over: hij zou nu aangaan tot hij vol is.'),
-    onder: (min: number) => `Onder ${min}°: hij zou nu verwarmen, ook zonder zon.`,
-    klaarOm: (by: string, doel: number) => `Anders is hij om ${by} niet op ${doel}°. Daarom zou hij nu beginnen, ook zonder zon.`,
-    goedkoop: (by: string | null, doel: number | null) =>
-      by && doel != null ? `Nu zijn de goedkoopste uren, en om ${by} is hij dan op ${doel}°.` : 'Nu zijn de goedkoopste uren: hij zou nu een keer vol gaan.',
-    legionella: (c: number) => `Eens per week naar ${c}° tegen legionella. Er was deze week geen zon voor, dus nu in de goedkoopste uren.`,
-    wachtZon: (zon: number | null, min: number, latest: string | null, by: string | null) =>
-      latest && by
-        ? `Hij verwarmt zodra er zon over is. Komt die niet, dan begint hij om ${latest}, op tijd voor ${by}.`
-        : zon != null
-          ? `Hij verwarmt zodra er zon over is, tot ${zon}°. Minstens ${min}° houdt hij altijd vast.`
-          : 'Hij gaat aan zodra er zon over is, tot hij vol is.',
-    stabilisatie: 'Er startte net iets anders. Over een paar minuten kijkt het huis opnieuw.',
-    failsafe: 'Een meter is even niet te lezen; de regeling wacht.',
-    handmatig: 'De regeling staat op handmatig.',
-    zekering: 'De hoofdzekering kan er nu niet nog een bij hebben.',
-    warm: (t: number, min: number) => `${t}°: warm genoeg. Minstens ${min}° houdt hij vast.`,
-    vol: (t: number | null) => (t != null ? `${t}°: vol tot de zon weer schijnt.` : 'Vol: hij trekt niets meer.'),
-    onbekend: 'Home Assistant geeft nu geen temperatuur door.',
-    vanavond: 'Vanavond',
-    morgen: 'Morgen',
-    locale: 'nl-NL',
-  },
-  en: {
-    kop: {
-      zon: 'Would heat on solar now',
-      onder: 'Would top up now',
-      klaarOm: 'Would start now for ready at',
-      goedkoop: 'Would start now, cheap hours',
-      legionella: 'Would go to 60° now',
-      wachtZon: 'Waiting for sun',
-      wacht: 'Waiting a moment',
-      warm: 'Warm enough',
-      vol: 'Full',
-      onbekend: 'Cannot be read',
-    },
-    zon: (doel: number | null) => (doel != null ? `There is solar to spare: it would heat to ${doel}° now.` : 'There is solar to spare: it would switch on until it is full.'),
-    onder: (min: number) => `Below ${min}°: it would top up now, even without sun.`,
-    klaarOm: (by: string, doel: number) => `Otherwise it will not be ${doel}° by ${by}. So it would start now, even without sun.`,
-    goedkoop: (by: string | null, doel: number | null) =>
-      by && doel != null ? `These are the cheapest hours, and by ${by} it will be ${doel}°.` : 'These are the cheapest hours: it would fill up once now.',
-    legionella: (c: number) => `Once a week to ${c}° against legionella. There was no sun for it this week, so now in the cheapest hours.`,
-    wachtZon: (zon: number | null, min: number, latest: string | null, by: string | null) =>
-      latest && by
-        ? `It heats as soon as there is solar to spare. If none comes, it starts at ${latest}, in time for ${by}.`
-        : zon != null
-          ? `It heats as soon as there is solar to spare, up to ${zon}°. It always keeps at least ${min}°.`
-          : 'It switches on as soon as there is solar to spare, until it is full.',
-    stabilisatie: 'Something else just started. The house looks again in a few minutes.',
-    failsafe: 'A meter cannot be read right now; control is waiting.',
-    handmatig: 'Control is set to manual.',
-    zekering: 'The main fuse cannot take another one right now.',
-    warm: (t: number, min: number) => `${t}°: warm enough. It keeps at least ${min}°.`,
-    vol: (t: number | null) => (t != null ? `${t}°: full until the sun shines again.` : 'Full: it draws nothing anymore.'),
-    onbekend: 'Home Assistant is not reporting a temperature right now.',
-    vanavond: 'Tonight',
-    morgen: 'Tomorrow',
-    locale: 'en-GB',
-  },
-} as const;
+const WOORDEN = perTaal('buffers');
 
 const graden = (c: number) => Math.round(c * 10) / 10;
 

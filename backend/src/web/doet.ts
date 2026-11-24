@@ -26,9 +26,10 @@
 
 import type { Actuator, SiteConfig, Zone } from '../core/model.js';
 import { cap, withArticle, type DecisionView, type Lang } from './assistant.js';
+import { perTaal } from '../taal/index.js';
 
 type Kant = 'heat' | 'cool';
-type Wanneer = 'pauze' | 'zon' | 'nog' | 'morgen' | 'zo' | 'beurt' | 'zekering';
+export type Wanneer = 'pauze' | 'zon' | 'nog' | 'morgen' | 'zo' | 'beurt' | 'zekering';
 
 export interface ResidentDoetKamer {
   readonly zoneId: string;
@@ -52,59 +53,7 @@ export interface ResidentDoet {
   readonly kamers: readonly ResidentDoetKamer[];
 }
 
-const WOORD = {
-  nl: {
-    doen: { heat: 'verwarmen', cool: 'koelen' },
-    doet: { heat: 'verwarmt', cool: 'koelt' },
-    wanneer: { pauze: 'na een pauze', zon: 'zodra er zon over is', nog: 'als de zon op is', morgen: 'morgen op zon', zo: 'over een paar minuten', beurt: 'na een andere kamer', zekering: 'zodra de zekering ruimte heeft' },
-    // De zin van de strook.
-    zouNu: (kamer: string, doen: string) => `Zou nu ${kamer} ${doen}`,
-    zouNiet: (kamer: string, doen: string) => `Zou ${kamer} nu niet ${doen}`,
-    zouVeel: (n: number) => `Zou het in ${n} kamers anders doen`,
-    zouStraks: (kamers: string, doen: string, wanneer: Wanneer, hoe: string) => (wanneer === 'morgen' ? `Zou ${kamers} ${hoe} ${doen}` : `Zou ${kamers} ${doen} ${hoe}`),
-    zelfde: 'Zou nu hetzelfde doen',
-    storing: 'Staat stil door een storing',
-    nKamers: (n: number) => `${n} kamers`,
-    en: ' en ',
-    // Nu in huis, per apparaat een zinnetje.
-    bezig: (naam: string, doet: string, doel: string | null) => `${naam} ${doet}${doel != null ? ` naar ${doel}°` : ''}`,
-    stil: (naam: string, doel: string | null) => (doel != null ? `${naam} staat op ${doel}° en staat stil` : `${naam} staat aan en staat stil`),
-    uit: (naam: string) => `${naam} staat uit`,
-    allesUit: 'Alles staat uit',
-    // Onder de kop "SunArc zou".
-    hetzelfde: 'Hetzelfde doen',
-    naar: (doen: string, doel: string | null, met: string | null) => cap(`${doen}${doel != null ? ` naar ${doel}°` : ''}${met ? ` met ${met}` : ''}`),
-    wachten: (doen: string, wanneer: Wanneer, hoe: string) => (wanneer === 'morgen' ? `Wachten, en ${hoe} ${doen}` : `Wachten, en ${doen} ${hoe}`),
-    genoeg: { heat: 'Niets doen, het is er warm genoeg', cool: 'Niets doen, het is er koel genoeg' },
-    niets: 'Niets doen',
-    hand: 'Niets, je bedient het met de hand',
-    geenMeting: 'Niets, er is geen meting',
-  },
-  en: {
-    doen: { heat: 'heat', cool: 'cool' },
-    doet: { heat: 'heats', cool: 'cools' },
-    wanneer: { pauze: 'after a pause', zon: 'as soon as there is solar to spare', nog: 'once the sun is up', morgen: 'on solar tomorrow', zo: 'in a few minutes', beurt: 'after another room', zekering: 'once the main fuse has room' },
-    zouNu: (kamer: string, doen: string) => `Would ${doen} ${kamer} now`,
-    zouNiet: (kamer: string, doen: string) => `Would not ${doen} ${kamer} now`,
-    zouVeel: (n: number) => `Would do ${n} rooms differently`,
-    zouStraks: (kamers: string, doen: string, _wanneer: Wanneer, hoe: string) => `Would ${doen} ${kamers} ${hoe}`,
-    zelfde: 'Would do the same now',
-    storing: 'Stopped because of a fault',
-    nKamers: (n: number) => `${n} rooms`,
-    en: ' and ',
-    bezig: (naam: string, doet: string, doel: string | null) => `${naam} ${doet}${doel != null ? ` to ${doel}°` : ''}`,
-    stil: (naam: string, doel: string | null) => (doel != null ? `${naam} is set to ${doel}° and is idle` : `${naam} is on and is idle`),
-    uit: (naam: string) => `${naam} is off`,
-    allesUit: 'Everything is off',
-    hetzelfde: 'Do the same',
-    naar: (doen: string, doel: string | null, met: string | null) => cap(`${doen}${doel != null ? ` to ${doel}°` : ''}${met ? ` with ${met}` : ''}`),
-    wachten: (doen: string, _wanneer: Wanneer, hoe: string) => `Wait, and ${doen} ${hoe}`,
-    genoeg: { heat: 'Do nothing, it is warm enough there', cool: 'Do nothing, it is cool enough there' },
-    niets: 'Do nothing',
-    hand: 'Nothing, you control it by hand',
-    geenMeting: 'Nothing, there is no measurement',
-  },
-} as const;
+const WOORD = perTaal('doet');
 
 const graden = (n: number, lang: Lang) => {
   const s = String(Math.round(n * 10) / 10);

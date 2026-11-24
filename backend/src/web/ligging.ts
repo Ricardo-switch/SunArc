@@ -35,6 +35,7 @@ import type { Lang } from './assistant.js';
 import type { Location } from './sun.js';
 import { dakenUitOud, heeftElders, zonnevlakken, type Daken, type EldersAantal } from './daken.js';
 import { partsIn, type PowerRow } from './today.js';
+import { perTaal } from '../taal/index.js';
 
 /** De kant van het dak, zoals Inrichten hem vraagt (`aansluiting.ts`). */
 /** `geen`: geen panelen; dan is er niets te meten of te schatten. */
@@ -629,36 +630,7 @@ export interface LiggingView {
 }
 
 /** De ligging in woorden, per taal (besluit 185). Engels is Brits. */
-const WOORDEN = {
-  nl: {
-    locale: 'nl-NL',
-    maanden: ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'],
-    eenKant: (kant: string) => `Op het ${kant}en`,
-    en: ' en ',
-    bijnaPlat: (r: number) => `Rond ${r}°, bijna plat`,
-    dak: (r: number, deg: number) => `Rond ${r}°, ${deg < 32 ? 'een flauw' : deg < 45 ? 'een gewoon' : 'een steil'} dak`,
-    samen: (kwp: string) => `Samen ${kwp}`,
-    zoEen: (kwp: string) => `zo'n ${kwp}`,
-    perPaneel: (wp: number, zeker: boolean) => (zeker ? `${wp} Wp per paneel` : `ongeveer ${wp} Wp per paneel`),
-    elkeKant: (n: number) => `${n} panelen op elke kant`,
-    voorAchter: (voor: number, achter: number) => `${voor} aan de voorkant, ${achter} aan de achterkant`,
-    panelen: (n: number) => `${n} panelen`,
-  },
-  en: {
-    locale: 'en-GB',
-    maanden: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    eenKant: (kant: string) => `Facing ${kant}`,
-    en: ' and ',
-    bijnaPlat: (r: number) => `Around ${r}°, almost flat`,
-    dak: (r: number, deg: number) => `Around ${r}°, ${deg < 32 ? 'a shallow' : deg < 45 ? 'an ordinary' : 'a steep'} roof`,
-    samen: (kwp: string) => `${kwp} in total`,
-    zoEen: (kwp: string) => `about ${kwp}`,
-    perPaneel: (wp: number, zeker: boolean) => (zeker ? `${wp} Wp per panel` : `about ${wp} Wp per panel`),
-    elkeKant: (n: number) => `${n} panels on each side`,
-    voorAchter: (voor: number, achter: number) => `${voor} on the front, ${achter} on the back`,
-    panelen: (n: number) => `${n} panels`,
-  },
-} satisfies Record<Lang, unknown>;
+const WOORDEN = perTaal('ligging');
 const kWp = (w: number, lang: Lang) => (w / 1000).toLocaleString(WOORDEN[lang].locale, { maximumFractionDigits: w >= 10_000 ? 1 : 2, minimumFractionDigits: 0 });
 const kWpGrof = (w: number, lang: Lang) => (Math.round(w / 100) / 10).toLocaleString(WOORDEN[lang].locale);
 

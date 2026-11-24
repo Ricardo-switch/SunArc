@@ -25,9 +25,10 @@
 
 import type { SiteConfig } from '../core/model.js';
 import type { ConnectionAnswers } from './aansluiting.js';
-import { cap, withArticle, type Lang } from './assistant.js';
+import { withArticle, type Lang } from './assistant.js';
 import type { RegelingNiet } from './regeling.js';
 import { regelKamers, type LayoutRoom } from './layout.js';
+import { perTaal } from '../taal/index.js';
 
 export type KloptFeit =
   | { readonly soort: 'zekering'; readonly fasen: number; readonly ampere: number; readonly meters: number }
@@ -124,103 +125,7 @@ export class KloptRegister {
   }
 }
 
-const WOORD = {
-  nl: {
-    bekijk: 'Bekijk',
-    zekering: {
-      titel: 'De zekering telt nog niet mee',
-      tekst: (fasen: number, ampere: number, meters: number) =>
-        `Je koos ${fasen} × ${ampere} A, maar er ${meters === 0 ? 'is geen stroommeter' : meters === 1 ? 'is één stroommeter' : `zijn ${meters} stroommeters`} per fase gevonden. Zonder die meters bewaakt SunArc de zekering niet.`,
-      actie: 'Kies de meters',
-      klaar: ['De zekering telt weer mee', 'De stroommeters per fase zijn er.'],
-    },
-    vermogen: {
-      titel: (naam: string) => `${cap(naam)} helpt nog niet op zon`,
-      tekst: 'Je koos helpt op zon, maar daarvoor is zijn vermogen nodig. Tot dan doet hij niet mee.',
-      actie: 'Vul het vermogen in',
-      klaar: (naam: string) => [`${cap(naam)} helpt op zon`, 'Het vermogen is ingevuld.'],
-    },
-    geenKlimaat: {
-      titel: (naam: string) => `${cap(naam)} kan geen kamer regelen`,
-      tekst: (kamer: string) => `Het staat bij ${kamer} als verwarming of koeling, maar het is geen klimaatapparaat.`,
-      actie: 'Kies iets anders',
-    },
-    kanNiet: {
-      titel: (naam: string) => `${cap(naam)} doet nog niet mee`,
-      tekst: 'Home Assistant zegt niet of het kan verwarmen of koelen. Is het apparaat bereikbaar?',
-    },
-    alleenHelpt: {
-      titel: (kamer: string) => `Niets houdt ${kamer} op temperatuur`,
-      tekst: 'Wat er hangt, helpt alleen als er zon over is. Zonder zon wordt de kamer niet verwarmd of gekoeld.',
-      // Er hangt een radiator of vloer die een thermostaat in een andere kamer volgt.
-      titelMee: (kamer: string, met: string) => `${cap(kamer)} verwarmt mee met ${met}`,
-      tekstMee: 'SunArc kan deze kamer niet apart verwarmen. Wat er verder hangt, helpt alleen als er zon over is.',
-      actie: 'Kies wat regelt',
-    },
-    terug: {
-      titel: (naam: string) => `${cap(naam)} staat nog met de hand`,
-      tekst: 'Met de hand was voorbij, maar terugzetten lukte niet. Zet het apparaat zelf terug.',
-    },
-    opZon: {
-      titel: (naam: string) => `${cap(naam)} ging niet aan op zon`,
-      tekst: 'Er was zon over, maar Home Assistant nam het aanzetten niet aan. SunArc probeert het opnieuw.',
-    },
-    gepland: { titel: 'Een geplande taak is niet gedaan', tekst: (wat: string) => `“${wat}” lukte niet.` },
-    weer: {
-      titel: 'Geen weersverwachting',
-      tekst: (uren: number) => `De weerbron geeft al ${uren} uur geen verwachting. De zon van morgen en het laadadvies kloppen dan minder goed.`,
-      actie: 'Kies een weerbron',
-      klaar: ['De weersverwachting is er weer', 'De weerbron geeft weer een verwachting.'],
-    },
-  },
-  en: {
-    bekijk: 'View',
-    zekering: {
-      titel: 'The main fuse does not count yet',
-      tekst: (fasen: number, ampere: number, meters: number) =>
-        `You chose ${fasen} × ${ampere} A, but ${meters === 0 ? 'no current meter' : meters === 1 ? 'one current meter' : `${meters} current meters`} per phase ${meters === 1 || meters === 0 ? 'was' : 'were'} found. Without those meters SunArc does not guard the fuse.`,
-      actie: 'Choose the meters',
-      klaar: ['The main fuse counts again', 'The current meters per phase are there.'],
-    },
-    vermogen: {
-      titel: (naam: string) => `${cap(naam)} does not help on solar yet`,
-      tekst: 'You chose helps on solar, but that needs its power. Until then it does not take part.',
-      actie: 'Enter the power',
-      klaar: (naam: string) => [`${cap(naam)} helps on solar`, 'The power has been entered.'],
-    },
-    geenKlimaat: {
-      titel: (naam: string) => `${cap(naam)} cannot control a room`,
-      tekst: (kamer: string) => `It is listed under ${kamer} as heating or cooling, but it is not a climate device.`,
-      actie: 'Choose something else',
-    },
-    kanNiet: {
-      titel: (naam: string) => `${cap(naam)} does not take part yet`,
-      tekst: 'Home Assistant does not say whether it can heat or cool. Is the device reachable?',
-    },
-    alleenHelpt: {
-      titel: (kamer: string) => `Nothing keeps ${kamer} at temperature`,
-      tekst: 'What is there only helps when there is solar to spare. Without sun the room is not heated or cooled.',
-      titelMee: (kamer: string, met: string) => `${cap(kamer)} heats along with ${met}`,
-      tekstMee: 'SunArc cannot heat this room separately. What else is there only helps when there is solar to spare.',
-      actie: 'Choose what controls',
-    },
-    terug: {
-      titel: (naam: string) => `${cap(naam)} is still set by hand`,
-      tekst: 'By hand had ended, but setting it back failed. Set the device back yourself.',
-    },
-    opZon: {
-      titel: (naam: string) => `${cap(naam)} did not switch on with solar`,
-      tekst: 'There was solar to spare, but Home Assistant did not accept switching on. SunArc will try again.',
-    },
-    gepland: { titel: 'A planned task was not done', tekst: (wat: string) => `“${wat}” failed.` },
-    weer: {
-      titel: 'No weather forecast',
-      tekst: (uren: number) => `The weather source has given no forecast for ${uren} hours. Tomorrow's sun and the charging advice are less accurate then.`,
-      actie: 'Choose a weather source',
-      klaar: ['The weather forecast is back', 'The weather source gives a forecast again.'],
-    },
-  },
-} as const;
+const WOORD = perTaal('klopt');
 
 const paar = (p: readonly [string, string] | readonly string[]) => ({ titel: p[0]!, tekst: p[1]! });
 const naarKamer = (kamerId: string | null) => (kamerId ? `comfort.html#${encodeURIComponent(kamerId)}` : 'comfort.html');

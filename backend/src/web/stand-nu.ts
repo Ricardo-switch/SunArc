@@ -18,6 +18,7 @@ import type { Mode, SiteConfig, Zone } from '../core/model.js';
 import { HEAT_ASSIST_DEFAULTS } from '../core/strategies/heatAssist.js';
 import { cap, inSentence, withArticle, type DecisionView, type Lang } from './assistant.js';
 import { clockIn, partsIn } from './today.js';
+import { perTaal } from '../taal/index.js';
 
 export type StandSoort = 'hand' | 'bijspringen' | 'vakantie' | 'afwezig' | 'licht';
 
@@ -92,117 +93,8 @@ export interface StandOpties {
   readonly toestand?: (entityId: string) => { readonly state: string; readonly naam: string | null; readonly sindsMs: number | null } | null;
 }
 
-const W = {
-  nl: {
-    stand: { dag: 'Dag', nacht: 'Nacht', voorverwarmen: 'Voorverwarmen', afwezig: 'Afwezig', vakantie: 'Vakantie', handmatig: 'Handmatig' } as Record<Mode, string>,
-    tot: (k: string) => `tot ${k}`,
-    sinds: (k: string) => `sinds ${k}`,
-    gekozenHa: 'gekozen in Home Assistant',
-    gekozen: 'gekozen',
-    kortGekozen: (s: string) => `${s}, gekozen`,
-    kortTot: (s: string, k: string) => `${s} tot ${k}`,
-    onderAuto: (k: string, s: string) => `uit de dagdelen · om ${k} ${s}`,
-    onderLicht: (k: string) => `langer dan ${k} · daarna nacht`,
-    onderNiemand: 'vanzelf · niemand thuis',
-    niet: 'niet',
-    graden: (n: number) => `${String(Math.round(n * 10) / 10).replace('.', ',')}°`,
-    uitleg: (p: number, d: number, n: number, kamer: string | null) => `Voorverwarmen ${p}:00, dag ${d}:00, nacht ${n}:00.${kamer ? ` De graden van ${kamer}.` : ''}`,
-    uitlegPlat: 'Geldt de hele dag.',
-    // Met de hand
-    handKnop: (n: string) => `${inSentence(n)} met de hand`,
-    handKort: (n: string, k: string) => `${n} tot ${k}`,
-    handWat: (n: string) => `${n} met de hand`,
-    handHoe: (doel: string | null, totDoel: boolean) => (doel ? `Op ${doel}, ` : 'Aan, ') + (totDoel ? 'tot het doel er is; daarna weer zoals het was.' : 'daarna weer zoals het was.'),
-    zelfHoe: 'Iemand bediende hem zelf.',
-    handNoot: 'Wat met de hand gaat, wint van de stand tot het eind.',
-    // Bijspringen
-    bijKnop: (meer: boolean, zou: boolean) => (zou ? (meer ? "de airco's zouden bijspringen" : 'de airco zou bijspringen') : meer ? "de airco's springen bij" : 'de airco springt bij'),
-    bijWat: (n: string, kamer: string, zou: boolean) => `${n} ${zou ? 'zou bijspringen' : 'springt bij'} in ${kamer}`,
-    bijHoe: (te: string | null) => (te ? `De verwarming houdt het niet bij: het is ${te} te koud.` : 'De verwarming houdt het niet bij.'),
-    bijNoot: (min: number, te: string) => `Hij springt bij na ${min} minuten stoken en vanaf ${te} te koud. In de nacht, bij voorverwarmen, afwezig en vakantie niet.`,
-    nietBij: 'De airco springt niet bij zolang deze stand geldt.',
-    // Vakantie en afwezig
-    vakWat: 'Zo zuinig mogelijk',
-    vakHoe: (ha: boolean) => (ha ? 'Tot je hem in Home Assistant terugzet.' : 'Tot je hem terugzet.'),
-    vakKort: 'Vakantie',
-    vakKortSinds: (d: string) => `Vakantie sinds ${d}`,
-    // Handmatig door een knop in Home Assistant, zoals "Handmatig koelen"
-    koelKnop: 'koelen met de hand',
-    koelKort: 'Koelen met de hand',
-    koelWat: 'Koelen met de hand',
-    knopKnop: (st: string) => `${st} in Home Assistant`,
-    knopHoe: (naam: string | null, st: string) => `In Home Assistant staat ${naam ? `"${naam}"` : 'een knop'} op "${st}". Zolang regelt het huis niets.`,
-    knopNoot: 'Zet je hem in Home Assistant terug, dan regelt het huis weer zelf.',
-    knopOnder: (st: string) => `door "${st}" in Home Assistant`,
-    dag: (ms: number, tz: string) => new Intl.DateTimeFormat('nl-NL', { timeZone: tz, weekday: 'short', day: 'numeric', month: 'short' }).format(ms).replace(/\./g, ''),
-    afwKnop: 'niemand thuis',
-    afwKort: 'Niemand thuis',
-    afwWat: 'Iedereen is weg',
-    afwHoe: 'Is iemand terug, dan weer de dagdelen.',
-    afwGekozenWat: 'Afwezig gekozen',
-    // Licht
-    lichtKnop: 'er brandt nog licht',
-    lichtKort: 'Nog Dag: er brandt licht',
-    lichtWat: (lampen: readonly string[]) => (lampen.length ? `${lijst(lampen, ' en ')} ${lampen.length > 1 ? 'branden' : 'brandt'} nog` : 'Er brandt nog licht'),
-    lichtHoe: 'Gaat het uit, dan wordt het Nacht.',
-    lichtNoot: 'Welke lampen de dag langer maken, staat in de configuratie van het huis.',
-    gewoonNoot: 'Niets bijzonders: het huis volgt de dagdelen.',
-  },
-  en: {
-    stand: { dag: 'Day', nacht: 'Night', voorverwarmen: 'Preheating', afwezig: 'Away', vakantie: 'Holiday', handmatig: 'Manual' } as Record<Mode, string>,
-    tot: (k: string) => `until ${k}`,
-    sinds: (k: string) => `since ${k}`,
-    gekozenHa: 'chosen in Home Assistant',
-    gekozen: 'chosen',
-    kortGekozen: (s: string) => `${s}, chosen`,
-    kortTot: (s: string, k: string) => `${s} until ${k}`,
-    onderAuto: (k: string, s: string) => `from the parts of the day · ${s} at ${k}`,
-    onderLicht: (k: string) => `longer than ${k} · then night`,
-    onderNiemand: 'by itself · nobody home',
-    niet: 'off',
-    graden: (n: number) => `${Math.round(n * 10) / 10}°`,
-    uitleg: (p: number, d: number, n: number, kamer: string | null) => `Preheating ${p}:00, day ${d}:00, night ${n}:00.${kamer ? ` The degrees of ${kamer}.` : ''}`,
-    uitlegPlat: 'Applies all day.',
-    handKnop: (n: string) => `${n} by hand`,
-    handKort: (n: string, k: string) => `${n} until ${k}`,
-    handWat: (n: string) => `${n} by hand`,
-    handHoe: (doel: string | null, totDoel: boolean) => (doel ? `At ${doel}, ` : 'On, ') + (totDoel ? 'until the target is reached; then back as it was.' : 'then back as it was.'),
-    zelfHoe: 'Someone set it themselves.',
-    handNoot: 'What runs by hand wins over the mode until it ends.',
-    bijKnop: (meer: boolean, zou: boolean) => (zou ? (meer ? 'the air conditioners would help out' : 'the air conditioner would help out') : meer ? 'the air conditioners help out' : 'the air conditioner helps out'),
-    bijWat: (n: string, kamer: string, zou: boolean) => `${n} ${zou ? 'would help out' : 'helps out'} in ${kamer}`,
-    bijHoe: (te: string | null) => (te ? `The heating cannot keep up: it is ${te} too cold.` : 'The heating cannot keep up.'),
-    bijNoot: (min: number, te: string) => `It helps out after ${min} minutes of heating and from ${te} too cold. Not at night, while preheating, away or on holiday.`,
-    nietBij: 'The air conditioner does not help out in this mode.',
-    vakWat: 'As economical as possible',
-    vakHoe: (ha: boolean) => (ha ? 'Until you set it back in Home Assistant.' : 'Until you set it back.'),
-    vakKort: 'Holiday',
-    vakKortSinds: (d: string) => `Holiday since ${d}`,
-    koelKnop: 'cooling by hand',
-    koelKort: 'Cooling by hand',
-    koelWat: 'Cooling by hand',
-    knopKnop: (st: string) => `${st} in Home Assistant`,
-    knopHoe: (naam: string | null, st: string) => `In Home Assistant ${naam ? `"${naam}"` : 'a switch'} is set to "${st}". Meanwhile the house controls nothing.`,
-    knopNoot: 'Set it back in Home Assistant and the house controls itself again.',
-    knopOnder: (st: string) => `by "${st}" in Home Assistant`,
-    dag: (ms: number, tz: string) => new Intl.DateTimeFormat('en-GB', { timeZone: tz, weekday: 'short', day: 'numeric', month: 'short' }).format(ms).replace(/,/g, ''),
-    afwKnop: 'nobody home',
-    afwKort: 'Nobody home',
-    afwWat: 'Everyone is out',
-    afwHoe: 'Once someone is back, the parts of the day again.',
-    afwGekozenWat: 'Away chosen',
-    lichtKnop: 'a light is still on',
-    lichtKort: 'Still Day: a light is on',
-    lichtWat: (lampen: readonly string[]) => (lampen.length ? `${lijst(lampen, ' and ')} ${lampen.length > 1 ? 'are' : 'is'} still on` : 'A light is still on'),
-    lichtHoe: 'Once it goes off, it becomes Night.',
-    lichtNoot: 'Which lights make the day longer is set in the house configuration.',
-    gewoonNoot: 'Nothing special: the house follows the parts of the day.',
-  },
-} as const;
+const W = perTaal('standNu');
 
-function lijst(namen: readonly string[], en: string): string {
-  return namen.length <= 1 ? (namen[0] ?? '') : `${namen.slice(0, -1).join(', ')}${en}${namen.at(-1)}`;
-}
 
 /** Wanneer de klok de stand verandert, vanaf dit uur: het eerstvolgende dagdeel. */
 function volgendeWissel(config: SiteConfig, uur: number): { readonly uur: number; readonly stand: 'voorverwarmen' | 'dag' | 'nacht' } {

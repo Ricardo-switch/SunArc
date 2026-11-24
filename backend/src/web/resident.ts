@@ -20,12 +20,13 @@
 import type { Command, DeferrableExplanation, DeferrableStateCode } from '../core/decision.js';
 import { FALLBACK_PROGRAM_MIN } from '../core/deferrable.js';
 import type { Deferrable, SiteConfig } from '../core/model.js';
-import { SHORT, cap, residentRooms, withArticle, type DecisionView, type Lang, type ResidentRoom } from './assistant.js';
+import { SHORT, residentRooms, withArticle, type DecisionView, type Lang, type ResidentRoom } from './assistant.js';
 import { clockIn, nextLocalTime, partsIn } from './today.js';
 import { residentBuffers, type ResidentBuffer } from './buffers-bewoner.js';
 import { residentDoet, type ResidentDoet } from './doet.js';
 import { BASIS_ZONDER_METER_W } from './energy.js';
 import { standNu, type ResidentStand, type StandOpties } from './stand-nu.js';
+import { perTaal } from '../taal/index.js';
 
 export interface ResidentHeadline {
   /** "Nu · Dag", met "(gekozen)" als de bewoner de modus koos. */
@@ -141,114 +142,9 @@ export interface ResidentAccu {
   readonly zou: readonly string[];
 }
 
-const MODE = {
-  nl: { dag: 'Dag', nacht: 'Nacht', voorverwarmen: 'Voorverwarmen', afwezig: 'Afwezig', vakantie: 'Vakantie', handmatig: 'Handmatig' },
-  en: { dag: 'Day', nacht: 'Night', voorverwarmen: 'Preheating', afwezig: 'Away', vakantie: 'Holiday', handmatig: 'Manual' },
-} as const;
+const MODE = perTaal('modus');
 
-const HEAD = {
-  nl: {
-    now: 'Nu',
-    chosen: ' (gekozen)',
-    fault: ['Er is een storing', 'Een meting is onbetrouwbaar; SunArc zet de hulpapparaten veilig uit.'],
-    one: (room: string, cool: boolean) => `${cap(room)} wordt ${cool ? 'gekoeld' : 'verwarmd'}`,
-    many: 'Het huis wordt geregeld',
-    // Tijdens de schaduw gebeurt het niet echt (besluit 124).
-    oneWould: (room: string, cool: boolean) => `${cap(room)} zou ${cool ? 'koelen' : 'verwarmen'}`,
-    // "Het huis zou regelen" las krom voor wie net begint; de kamers eronder zeggen wat het zou doen.
-    manyWould: 'Het huis kijkt mee',
-    // De schaduw wil wat er al echt gebeurt (besluit 188): zoals het in huis is.
-    manyReal: (rooms: string, cool: boolean) => `${cap(rooms)} worden ${cool ? 'gekoeld' : 'verwarmd'}`,
-    // Onder de kop over één kamer de getallen, niet nog eens de kop.
-    numbers: (temp: string, goal: string | null) => `Het is er ${temp}°${goal != null ? `, het doel is ${goal}°` : ''}.`,
-    ownSun: ' Dat kan op eigen zon.',
-    waitSun: 'Het huis wacht op zon',
-    // Koelen of verwarmen naar wat de kamers willen; eerst stond er altijd koelen.
-    waitSunWhy: (rooms: string, many: boolean, doen: string) => `${cap(rooms)} ${many ? 'willen' : 'wil'} ${doen} zodra er genoeg zon over is.`,
-    // De zon is nog niet op, of komt vandaag niet meer genoeg.
-    waitSunNog: 'Nog geen zon',
-    waitSunNogWhy: (rooms: string, many: boolean, doen: string) => `${cap(rooms)} ${many ? 'willen' : 'wil'} op zon ${doen} zodra de zon op is.`,
-    waitSunWeg: 'Vandaag geen zon meer',
-    waitSunWegWhy: (rooms: string, many: boolean, doen: string) => `${cap(rooms)} ${many ? 'kunnen' : 'kan'} morgen weer op zon ${doen}.`,
-    doen: { heat: 'verwarmen', cool: 'koelen', beide: 'verwarmen of koelen' },
-    waitOther: 'Er wacht iets',
-    nothing: 'Er draait niets',
-    // Een droger of wasmachine draait, en het klimaat is rustig (besluit 166).
-    running: (names: string, many: boolean) => `${cap(names)} ${many ? 'draaien' : 'draait'}`,
-    done: (names: string, many: boolean) => `${cap(names)} ${many ? 'zijn' : 'is'} klaar`,
-    nothingSun: 'Geen kamer heeft iets nodig.',
-    nothingDark: 'Geen zon, en geen kamer heeft iets nodig.',
-    // Zonder slimme regeling (besluit 194): geen kamers om naar te kijken.
-    nothingSunNoRooms: 'De zon schijnt, en er hoeft niets te draaien.',
-    nothingDarkNoRooms: 'Geen zon, en er hoeft niets te draaien.',
-    // De namen hebben hun lidwoord al (withArticle): eerst stond er "de de zolder".
-    and: ' en ',
-    comma: ', ',
-    towards: 'naar',
-    would: (what: string, why: string) => `zou ${what}, maar ${why}`,
-    quiet: (names: string) => `${names}: niets te doen`,
-    goal: (c: string) => `doel ${c}°`,
-    stabilise: (min: number) => `Stabiliseren, ${min} minuten`,
-    timer: (id: string) => `Timer ${id}`,
-    deferrable: {
-      surplus_available: () => 'zou nu starten: er is genoeg zon over',
-      latest_start_reached: (t: string) => `zou nu starten: het is na ${t}`,
-      ready_by_reached: () => 'zou nu starten: anders is hij niet op tijd klaar',
-      surplus_insufficient: (t: string) => `wacht op zon, uiterlijk tot ${t}`,
-      stabilisation_active: () => 'wacht een ronde: er is net iets gestart',
-      insufficient_current_budget: () => 'wacht: de hoofdzekering zou te zwaar belast worden',
-      failsafe_unreliable_input: () => 'wacht: een meting is onbetrouwbaar',
-      mode_excludes_action: () => 'wacht: je regelt het huis nu zelf',
-      program_running: () => 'draait een programma',
-    } as Record<string, (t: string) => string>,
-  },
-  en: {
-    now: 'Now',
-    chosen: ' (chosen)',
-    fault: ['There is a fault', 'A measurement is unreliable; SunArc switches the helper units off safely.'],
-    one: (room: string, cool: boolean) => `${cap(room)} is being ${cool ? 'cooled' : 'heated'}`,
-    many: 'The house is being managed',
-    oneWould: (room: string, cool: boolean) => `${cap(room)} would ${cool ? 'cool' : 'heat'}`,
-    manyWould: 'The house is watching',
-    manyReal: (rooms: string, cool: boolean) => `${cap(rooms)} are being ${cool ? 'cooled' : 'heated'}`,
-    numbers: (temp: string, goal: string | null) => `It is ${temp}° there${goal != null ? `, the target is ${goal}°` : ''}.`,
-    ownSun: ' That can run on your own solar.',
-    waitSun: 'The house is waiting for sun',
-    waitSunWhy: (rooms: string, _many: boolean, doen: string) => `${cap(rooms)} will ${doen} as soon as there is enough solar to spare.`,
-    waitSunNog: 'No sun yet',
-    waitSunNogWhy: (rooms: string, _many: boolean, doen: string) => `${cap(rooms)} will ${doen} on solar once the sun is up.`,
-    waitSunWeg: 'No more sun today',
-    waitSunWegWhy: (rooms: string, _many: boolean, doen: string) => `${cap(rooms)} can ${doen} on solar again tomorrow.`,
-    doen: { heat: 'heat', cool: 'cool', beide: 'heat or cool' },
-    waitOther: 'Something is waiting',
-    nothing: 'Nothing is running',
-    running: (names: string, many: boolean) => `${cap(names)} ${many ? 'are' : 'is'} running`,
-    done: (names: string, many: boolean) => `${cap(names)} ${many ? 'are' : 'is'} done`,
-    nothingSun: 'No room needs anything.',
-    nothingDark: 'No sun, and no room needs anything.',
-    nothingSunNoRooms: 'The sun is shining, and nothing needs to run.',
-    nothingDarkNoRooms: 'No sun, and nothing needs to run.',
-    and: ' and ',
-    comma: ', ',
-    towards: 'at',
-    would: (what: string, why: string) => `would be ${what}, but ${why}`,
-    quiet: (names: string) => `${names}: nothing to do`,
-    goal: (c: string) => `target ${c}°`,
-    stabilise: (min: number) => `Settling, ${min} minutes`,
-    timer: (id: string) => `Timer ${id}`,
-    deferrable: {
-      surplus_available: () => 'would start now: there is enough solar to spare',
-      latest_start_reached: (t: string) => `would start now: it is past ${t}`,
-      ready_by_reached: () => 'would start now: otherwise it will not be done in time',
-      surplus_insufficient: (t: string) => `waiting for sun, until ${t} at the latest`,
-      stabilisation_active: () => 'waiting a round: something just started',
-      insufficient_current_budget: () => 'waiting: the main fuse would be overloaded',
-      failsafe_unreliable_input: () => 'waiting: a measurement is unreliable',
-      mode_excludes_action: () => 'waiting: you are running the house yourself',
-      program_running: () => 'is running a programme',
-    } as Record<string, (t: string) => string>,
-  },
-} as const;
+const HEAD = perTaal('kop');
 
 /*
  * De sfeer van de kop (besluit 225): naar het dagdeel en het weer, en wisselend
@@ -257,42 +153,7 @@ const HEAD = {
  * kamers zelf staan al in het huis.
  */
 type Dagdeel = 'nacht' | 'ochtend' | 'middag' | 'avond';
-const SFEER = {
-  nl: {
-    koud: { nacht: ['Koele nacht'], ochtend: ['Frisse ochtend', 'Koude start van de dag'], middag: ['Frisse middag', 'Het mag wat warmer'], avond: ['Koele avond', 'Het mag wat warmer'] },
-    warm: { nacht: ['Warme nacht'], ochtend: ['Warme ochtend'], middag: ['Warme middag', 'Het mag wat koeler'], avond: ['Warme avond', 'Het mag wat koeler'] },
-    rustig: { nacht: ['Rustige nacht', 'Het huis slaapt'], ochtend: ['Rustige ochtend', 'Alles op temperatuur'], middag: ['Alles op temperatuur', 'Rustig in huis'], avond: ['Rustige avond', 'Alles op temperatuur'] },
-    zon: ['Alles op temperatuur', 'Zon op het dak', 'Rustig in huis'],
-    fris: (room: string) => `${cap(room)} is fris`,
-    warmKamer: (room: string) => `${cap(room)} is warm`,
-    binnen: (lo: string, hi: string) => (lo === hi ? `Binnen ${lo}°` : `Binnen ${lo} tot ${hi}°`),
-    buiten: (b: string) => `buiten ${b}°`,
-    kouder: (kamers: string, veel: boolean) => `${cap(kamers)} ${veel ? 'zijn' : 'is'} kouder dan je wilt.`,
-    warmer: (kamers: string, veel: boolean) => `${cap(kamers)} ${veel ? 'zijn' : 'is'} warmer dan je wilt.`,
-    gemengd: 'Een paar kamers zijn kouder of warmer dan je wilt.',
-    tel: (n: number) => `${['', 'Eén', 'Twee', 'Drie', 'Vier', 'Vijf', 'Zes', 'Zeven', 'Acht', 'Negen', 'Tien'][n] ?? n} kamers`,
-    panelen: (kw: string) => `Je panelen geven ${kw} kW.`,
-    niets: 'Geen kamer heeft iets nodig.',
-    buitenZin: (b: string) => `Buiten is het ${b}°.`,
-  },
-  en: {
-    koud: { nacht: ['A cool night'], ochtend: ['A crisp morning', 'A chilly start'], middag: ['A crisp afternoon', 'It could be warmer'], avond: ['A cool evening', 'It could be warmer'] },
-    warm: { nacht: ['A warm night'], ochtend: ['A warm morning'], middag: ['A warm afternoon', 'It could be cooler'], avond: ['A warm evening', 'It could be cooler'] },
-    rustig: { nacht: ['A quiet night', 'The house is asleep'], ochtend: ['A quiet morning', 'All at temperature'], middag: ['All at temperature', 'All quiet at home'], avond: ['A quiet evening', 'All at temperature'] },
-    zon: ['All at temperature', 'Sun on the roof', 'All quiet at home'],
-    fris: (room: string) => `${cap(room)} is chilly`,
-    warmKamer: (room: string) => `${cap(room)} is warm`,
-    binnen: (lo: string, hi: string) => (lo === hi ? `Inside ${lo}°` : `Inside ${lo} to ${hi}°`),
-    buiten: (b: string) => `outside ${b}°`,
-    kouder: (kamers: string, veel: boolean) => `${cap(kamers)} ${veel ? 'are' : 'is'} colder than you like.`,
-    warmer: (kamers: string, veel: boolean) => `${cap(kamers)} ${veel ? 'are' : 'is'} warmer than you like.`,
-    gemengd: 'A few rooms are colder or warmer than you like.',
-    tel: (n: number) => `${['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'][n] ?? n} rooms`,
-    panelen: (kw: string) => `Your panels give ${kw} kW.`,
-    niets: 'No room needs anything.',
-    buitenZin: (b: string) => `It is ${b}° outside.`,
-  },
-} as const;
+const SFEER = perTaal('sfeer');
 
 /** Het dagdeel in het huis zelf. */
 function dagdeelVan(ms: number, tz: string): Dagdeel {
@@ -509,58 +370,7 @@ function latestText(config: SiteConfig, d: Deferrable, dx: DeferrableExplanation
   return dx.latestStartMs != null ? clockIn(dx.latestStartMs, config.timezone) : d.latestStart;
 }
 
-const DEFERRABLE_WORDS = {
-  nl: {
-    kop: {
-      not_ready: 'Niet klaargezet',
-      finished: 'Klaar · het programma is afgelopen',
-      unknown: 'Niet te lezen',
-      running: 'Draait',
-      done: 'Klaar · draait nog tegen kreuken',
-      waiting: 'Klaargezet · wacht op zon',
-      waitingOther: 'Klaargezet · wacht',
-      would_start: 'Klaargezet · zou nu starten',
-    },
-    notReady: (n: string) => `Kies een programma, sluit de deur en zet "op afstand starten" aan op de ${n}. Dan kiest SunArc het moment.`,
-    finished: 'Het programma is afgelopen. Zet een nieuw programma klaar om hem weer op zon te laten draaien.',
-    unknown: 'Home Connect geeft nu geen stand door.',
-    running: (by: string | null) => (by ? `Het programma loopt; hij is op tijd voor ${by}.` : 'Het programma loopt.'),
-    done: (sinds: string) => `Het drogen is klaar sinds ${sinds}. De trommel draait nog af en toe tegen kreuken, tot je de deur opent.`,
-    waitSun: (latest: string, by: string | null) =>
-      by
-        ? `Ik begin zodra er zon over is. Komt er niet genoeg, dan begin ik om ${latest}, op tijd voor ${by}.`
-        : `Ik begin zodra er zon over is, en uiterlijk om ${latest}.`,
-    waitOther: (why: string) => `${why[0]!.toUpperCase()}${why.slice(1)}.`,
-    sun: 'Er is genoeg zon over: ik zou hem nu starten.',
-    late: (latest: string) => `Het is na ${latest}: ik zou hem nu starten, ook zonder zon.`,
-    readyBy: (by: string) => `Ik zou hem nu starten, anders is hij niet op tijd klaar voor ${by}.`,
-  },
-  en: {
-    kop: {
-      not_ready: 'Not set up',
-      finished: 'Done · the programme has finished',
-      unknown: 'Cannot be read',
-      running: 'Running',
-      done: 'Done · still turning against creases',
-      waiting: 'Set up · waiting for sun',
-      waitingOther: 'Set up · waiting',
-      would_start: 'Set up · would start now',
-    },
-    notReady: (n: string) => `Choose a programme, close the door and turn on "remote start" on the ${n}. Then SunArc picks the moment.`,
-    finished: 'The programme has finished. Set up a new one to run it on solar again.',
-    unknown: 'Home Connect is not reporting a state right now.',
-    running: (by: string | null) => (by ? `The programme is running; it will be done by ${by}.` : 'The programme is running.'),
-    done: (since: string) => `Drying has been done since ${since}. The drum still turns now and then against creases, until you open the door.`,
-    waitSun: (latest: string, by: string | null) =>
-      by
-        ? `I start as soon as there is solar to spare. If there is not enough, I start at ${latest}, in time for ${by}.`
-        : `I start as soon as there is solar to spare, and at ${latest} at the latest.`,
-    waitOther: (why: string) => `${why[0]!.toUpperCase()}${why.slice(1)}.`,
-    sun: 'There is enough solar to spare: I would start it now.',
-    late: (latest: string) => `It is past ${latest}: I would start it now, even without sun.`,
-    readyBy: (by: string) => `I would start it now, otherwise it will not be done by ${by}.`,
-  },
-} as const;
+const DEFERRABLE_WORDS = perTaal('uitstelbaar');
 
 /** De uitstelbare apparaten voor het scherm Apparaten (besluit 101). */
 export function residentDeferrables(config: SiteConfig, list: readonly DeferrableExplanation[], nowMs: number, lang: Lang = 'nl'): ResidentDeferrable[] {

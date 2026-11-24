@@ -30,6 +30,7 @@ import type { HaDevice, HaRegistryEntity } from '../adapters/homeassistant/disco
 import type { Lang } from './assistant.js';
 import type { Bewoners } from './bewoners.js';
 import { inTaal, type Melding, type MeldingSoort } from './meldingen.js';
+import { perTaal } from '../taal/index.js';
 
 export const PUSH_FILE = 'push.json';
 
@@ -159,10 +160,7 @@ export function proefTekst(taal: Lang): { titel: string; tekst: string } {
 }
 
 /** Wat er staat als een melding geen eigen woorden heeft voor weer goed. */
-const WEER_GOED: Readonly<Record<Lang, { titel: (t: string) => string; tekst: string }>> = {
-  nl: { titel: (t) => `${t}: weer goed`, tekst: 'Het is vanzelf weer goed gekomen.' },
-  en: { titel: (t) => `${t}: fine again`, tekst: 'It sorted itself out.' },
-};
+const WEER_GOED = perTaal('weerGoed');
 
 export interface Bericht {
   readonly dienst: string;

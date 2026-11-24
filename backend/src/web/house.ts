@@ -23,7 +23,7 @@
 import { autoApparaten, vindOpslag } from './opslag.js';
 import { doelSoort } from './doelsoort.js';
 import { findCameras } from './camera.js';
-import { melderNaam, rookmelderNu, vindRookmelders, type Gevaar } from './rookmelders.js';
+import { melderNaam, rookmelderNu, vindRookmelders } from './rookmelders.js';
 import type { HaEntityState } from '../adapters/homeassistant/client.js';
 import { defaultSceneColors, whiteScene } from './scene-colors.js';
 import type { HaDevice, HaRegistryEntity } from '../adapters/homeassistant/discovery.js';
@@ -33,6 +33,7 @@ import { OUTSIDE_FLOOR, carryOver, floorName, floorOrder, type FloorId, type Lay
 import { outsideFromNames, proposeLayout, roomForName, roomTypeFromNames } from './house-indeling.js';
 import { type ActieCode, type DeviceKind, type Drempels, type HouseBattery, type HouseClimate, type HouseClimateHa, type HouseDevice, type HouseFloor, type HouseReading, type HouseRegisters, type HouseReport, type HouseRoom, type HouseScene, type HouseSummary, type HouseToegang, type HuisLigging, type HuisStekker, type StandCode } from './house-types.js';
 import { applianceOf, bufferOf, cameraOf, climateOf, coverOf, lightOf, meterOf, rookmelderOf, stekkerOf } from './house-apparaat.js';
+import { perTaal } from '../taal/index.js';
 // Uit house-apparaat.ts (opgesplitst op 22 november 2026); wie dit bestand importeert, krijgt die namen ook.
 export * from './house-apparaat.js';
 // Uit house-types.ts (opgesplitst op 22 november 2026); wie dit bestand importeert, krijgt die namen ook.
@@ -136,92 +137,7 @@ export function decimaal(n: number, lang: Lang): string {
  * De stand van de apparaten in woorden, per taal (besluit 185, stap 9). De
  * dienst zegt het in de taal van de app; de app let op de codes ernaast.
  */
-export const WOORDEN = {
-  nl: {
-    geenVerbinding: 'geen verbinding',
-    onbereikbaar: 'onbereikbaar',
-    onbekend: 'onbekend',
-    aan: 'aan',
-    aanPct: (pct: number) => `aan · ${pct}%`,
-    uit: 'uit',
-    scherm: {
-      zonderTerugmelding: 'zonder terugmelding',
-      gaatOpen: 'gaat open',
-      gaatDicht: 'gaat dicht',
-      vouwtUit: 'vouwt uit',
-      klaptIn: 'klapt in',
-      open: 'open',
-      dicht: 'dicht',
-      uitgevouwen: 'uitgevouwen',
-      ingeklapt: 'ingeklapt',
-      pctUitgevouwen: (pct: number) => `${pct}% uitgevouwen`,
-      pctDicht: (pct: number) => `${pct}% dicht`,
-      naOpdracht: (wat: string) => `${wat}, volgens de laatste opdracht`,
-      deelsDicht: 'deels dicht',
-    },
-    modus: { cool: 'koelen', heat: 'verwarmen', heat_cool: 'automatisch', auto: 'automatisch', dry: 'drogen', fan_only: 'ventileren' } as Readonly<Record<string, string>>,
-    naar: (wat: string, graden: string) => `${wat} naar ${graden}°`,
-    actie: { verwarmt: 'verwarmt', 'verwarmt-voor': 'verwarmt voor', koelt: 'koelt', droogt: 'droogt', ventileert: 'ventileert', stil: 'staat stil', uit: 'uit' } satisfies Record<ActieCode, string>,
-    staatKlaar: 'staat klaar',
-    doel: (graden: string) => `doel ${graden}°`,
-    apparaat: { running: 'draait', would_start: 'zou nu starten', waiting: 'klaargezet', not_ready: 'uit' } as Readonly<Record<string, string>>,
-    // Een boiler of jacuzzi (besluit 186).
-    buffer: { stookt: 'verwarmt', would_heat: 'zou nu verwarmen', waiting: 'wacht op zon', full: 'warm', unknown: 'niet te lezen' } as Readonly<Record<string, string>>,
-    stekker: { stookt: 'aan', would_heat: 'zou nu aangaan', waiting: 'wacht op zon', full: 'aan, vraagt niets', unknown: 'niet te lezen' } as Readonly<Record<string, string>>,
-    // Nog geen melding van het apparaat: dat is iets anders dan kapot (besluit 131).
-    meldtNogNiets: 'meldt nog niets',
-    live: 'live te bekijken',
-    nietBereikbaar: 'niet bereikbaar',
-    gezien: { rook: 'rook gezien', co: 'koolmonoxide gezien', hitte: 'hitte gezien' } satisfies Record<Gevaar, string>,
-    batterijVervangen: 'batterij vervangen',
-    allesGoed: 'alles goed',
-    geenMeting: 'geen meting',
-    draaitNiets: 'Er draait niets',
-    nDraaien: (n: number) => `${n} apparaten draaien`,
-    doetMee: (kamer: string) => `Doet mee met de regeling van ${kamer}.`,
-  },
-  en: {
-    geenVerbinding: 'no connection',
-    onbereikbaar: 'unreachable',
-    onbekend: 'unknown',
-    aan: 'on',
-    aanPct: (pct: number) => `on · ${pct}%`,
-    uit: 'off',
-    scherm: {
-      zonderTerugmelding: 'position not reported',
-      gaatOpen: 'opening',
-      gaatDicht: 'closing',
-      vouwtUit: 'extending',
-      klaptIn: 'retracting',
-      open: 'open',
-      dicht: 'closed',
-      uitgevouwen: 'extended',
-      ingeklapt: 'retracted',
-      pctUitgevouwen: (pct: number) => `${pct}% extended`,
-      pctDicht: (pct: number) => `${pct}% closed`,
-      naOpdracht: (wat: string) => `${wat}, going by the last command`,
-      deelsDicht: 'partly closed',
-    },
-    modus: { cool: 'cooling', heat: 'heating', heat_cool: 'automatic', auto: 'automatic', dry: 'drying', fan_only: 'fan only' } as Readonly<Record<string, string>>,
-    naar: (wat: string, graden: string) => `${wat} to ${graden}°`,
-    actie: { verwarmt: 'heating', 'verwarmt-voor': 'preheating', koelt: 'cooling', droogt: 'drying', ventileert: 'ventilating', stil: 'idle', uit: 'off' } satisfies Record<ActieCode, string>,
-    staatKlaar: 'standing by',
-    doel: (graden: string) => `target ${graden}°`,
-    apparaat: { running: 'running', would_start: 'would start now', waiting: 'scheduled', not_ready: 'off' } as Readonly<Record<string, string>>,
-    buffer: { stookt: 'heating', would_heat: 'would heat now', waiting: 'waiting for sun', full: 'warm', unknown: 'cannot be read' } as Readonly<Record<string, string>>,
-    stekker: { stookt: 'on', would_heat: 'would switch on now', waiting: 'waiting for sun', full: 'on, draws nothing', unknown: 'cannot be read' } as Readonly<Record<string, string>>,
-    meldtNogNiets: 'nothing reported yet',
-    live: 'live view',
-    nietBereikbaar: 'unreachable',
-    gezien: { rook: 'smoke detected', co: 'carbon monoxide detected', hitte: 'heat detected' } satisfies Record<Gevaar, string>,
-    batterijVervangen: 'replace battery',
-    allesGoed: 'all good',
-    geenMeting: 'no reading',
-    draaitNiets: 'Nothing running',
-    nDraaien: (n: number) => `${n} devices running`,
-    doetMee: (kamer: string) => `Takes part with the control of ${kamer}.`,
-  },
-} satisfies Record<Lang, unknown>;
+export const WOORDEN = perTaal('huis');
 
 /** Een getal uit een toestand, of null als het er niet is of onbereikbaar. */
 export function num(v: unknown): number | null {

@@ -29,6 +29,7 @@ import type { Lang } from './assistant.js';
 import { SALDEREN_TOT_MS, dalAandeel, kostenMetTellers, raadDal, zonderPrijs, type Gebruik, type Kosten, type KostenRegel } from './tarief.js';
 import { BASIS_ZONDER_METER_W, type EnergySettings, type EnergySource } from './energy.js';
 import { partsIn, zonedMidnight } from './today.js';
+import { perTaal } from '../taal/index.js';
 
 export const PERIODS = ['dag', 'week', 'maand', 'jaar'] as const;
 export type PeriodKind = (typeof PERIODS)[number];
@@ -153,24 +154,7 @@ export interface YieldReport {
 }
 
 /** De namen van maanden en dagen, per taal (besluit 185); Engels is Brits. */
-const NAMEN = {
-  nl: {
-    maanden: ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'],
-    kort: ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'],
-    dagen: ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'],
-    dagErvoor: 'de dag ervoor',
-    vorigeWeek: 'vorige week',
-    rest: 'Rest van het huis',
-  },
-  en: {
-    maanden: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    kort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    dagen: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-    dagErvoor: 'the day before',
-    vorigeWeek: 'last week',
-    rest: 'Rest of the house',
-  },
-} satisfies Record<Lang, unknown>;
+const NAMEN = perTaal('opbrengst');
 const hoofdletter = (s: string) => `${s[0]!.toUpperCase()}${s.slice(1)}`;
 
 const r1 = (n: number) => Math.round(n * 10) / 10;

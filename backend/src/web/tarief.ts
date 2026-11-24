@@ -18,6 +18,7 @@
 
 import type { Lang } from './assistant.js';
 import { valutaTeken } from './valuta.js';
+import { perTaal } from '../taal/index.js';
 
 export type DalRegio = 'nl' | 'zuid' | 'eigen';
 
@@ -220,56 +221,7 @@ const kwh = (n: number, lang: Lang) => `${komma(String(Math.round(n * 10) / 10),
 const m3 = (n: number, lang: Lang) => `${komma(String(r2(n)), lang)} m³`;
 
 /** De namen en uitleg van de kostenregels, per taal (besluit 185). Engels is Brits. */
-const WOORDEN = {
-  nl: {
-    stroom: 'Stroom van het net',
-    normaal: 'Stroom normaal',
-    dal: 'Stroom dal',
-    terug: 'Teruggeleverd',
-    terugNa: 'Teruggeleverd, zonder salderen',
-    gas: 'Gas',
-    vastStroom: 'Vaste kosten stroom',
-    vastGas: 'Vaste kosten gas',
-    vast: 'Vaste kosten',
-    geenPrijs: (wat: string) => `${wat}, prijs nog niet ingesteld`,
-    keer: (wat: string, prijs: string) => `${wat} × ${prijs}`,
-    gesaldeerdGeenPrijs: (wat: string) => `${wat}, gesaldeerd; prijs nog niet ingesteld`,
-    gesaldeerdBoven: (gesaldeerd: string, boven: string, prijs: string) => `${gesaldeerd} gesaldeerd, ${boven} boven je verbruik × ${prijs}`,
-    gesaldeerd: (wat: string) => `${wat}, gesaldeerd tegen je stroomprijs`,
-    geenVergoeding: (wat: string, vanaf2027: boolean) => `${wat}, vergoeding${vanaf2027 ? ' vanaf 2027' : ''} nog niet ingesteld`,
-    vergoeding: (wat: string, prijs: string, kosten: string | null) => `${wat} × ${prijs} vergoeding${kosten ? `, min ${kosten} kosten` : ''}`,
-    perMaand: (prijs: string) => `${prijs} per maand`,
-    nietIngesteld: 'nog niet ingesteld',
-    uurprijs: (wat: string) => `${wat}, met de prijs van elk uur, zoals Home Assistant telt`,
-    zoalsHa: (wat: string) => `${wat}, zoals Home Assistant telt`,
-    deels: (uitleg: string, open: string) => `${uitleg}; ${open} geschat tegen je gemiddelde`,
-    boven: (uitleg: string, boven: string, prijs: string) => `${uitleg}; ${boven} boven je verbruik × ${prijs}`,
-  },
-  en: {
-    stroom: 'Electricity from the grid',
-    normaal: 'Electricity, normal rate',
-    dal: 'Electricity, off-peak',
-    terug: 'Exported',
-    terugNa: 'Exported, without net metering',
-    gas: 'Gas',
-    vastStroom: 'Fixed costs electricity',
-    vastGas: 'Fixed costs gas',
-    vast: 'Fixed costs',
-    geenPrijs: (wat: string) => `${wat}, price not set yet`,
-    keer: (wat: string, prijs: string) => `${wat} × ${prijs}`,
-    gesaldeerdGeenPrijs: (wat: string) => `${wat}, net metered; price not set yet`,
-    gesaldeerdBoven: (gesaldeerd: string, boven: string, prijs: string) => `${gesaldeerd} net metered, ${boven} above your use × ${prijs}`,
-    gesaldeerd: (wat: string) => `${wat}, net metered at your electricity price`,
-    geenVergoeding: (wat: string, vanaf2027: boolean) => `${wat}, payment${vanaf2027 ? ' from 2027' : ''} not set yet`,
-    vergoeding: (wat: string, prijs: string, kosten: string | null) => `${wat} × ${prijs} payment${kosten ? `, minus ${kosten} costs` : ''}`,
-    perMaand: (prijs: string) => `${prijs} a month`,
-    nietIngesteld: 'not set yet',
-    uurprijs: (wat: string) => `${wat}, at the price of each hour, as Home Assistant counts`,
-    zoalsHa: (wat: string) => `${wat}, as Home Assistant counts`,
-    deels: (uitleg: string, open: string) => `${uitleg}; ${open} estimated at your average`,
-    boven: (uitleg: string, boven: string, prijs: string) => `${uitleg}; ${boven} above your use × ${prijs}`,
-  },
-} satisfies Record<Lang, unknown>;
+const WOORDEN = perTaal('tarief');
 
 /**
  * Wat de kostentellers van Home Assistant telden, over de uren (of dagen)
