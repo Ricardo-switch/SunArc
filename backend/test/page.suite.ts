@@ -1063,7 +1063,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
    * kolom met uitleg meer; die zit achter "Waarvoor is dit?". Onderaan door
    * naar het volgende deel, en de wand scrolt niet.
    */
-  it('toont op de wand de uitleg achter Waarvoor is dit, en door naar het volgende deel', async () => {
+  it('toont op de wand de hulp achter de knop Hulp, en door naar het volgende deel (besluit 344)', async () => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
@@ -1080,7 +1080,9 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     expect(await naast.isVisible()).toBe(false);
     await shot('wand');
     await wand.locator('[data-waarvoor]').click();
-    await naast.locator('h3', { hasText: 'Waarvoor dit nodig is' }).waitFor();
+    await naast.locator('h3', { hasText: 'Waar vind je het?' }).waitFor();
+    expect(await naast.locator('h3', { hasText: 'Waarvoor dit nodig is' }).count()).toBe(0);
+    expect(await wand.locator('[data-waarvoor]').textContent()).toContain('Hulp');
     await shot('wand-hulp');
     await p.keyboard.press('Escape');
     expect(await naast.isVisible()).toBe(false);
@@ -2014,7 +2016,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
         // Deel 3: Instellingen en de pagina's erachter.
         ['instellingen.html', /Settings[\s\S]*(Everything is set|still missing)/],
         ['jij.html', /How the app looks[\s\S]*Theme and colour/],
-        ['comfort.html', /Climate[\s\S]*What is this for\?/],
+        ['comfort.html', /Climate[\s\S]*Help/],
         ['energie.html', /Energy setup[\s\S]*Solar panels[\s\S]*Connection[\s\S]*Meters/],
         ['functies.html', /Lights, cameras and weather[\s\S]*Cameras[\s\S]*Doorbell[\s\S]*Lights and screens/],
         ['toegang.html', /Residents and access[\s\S]*Version/],
@@ -3374,7 +3376,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await huis.locator('.addon', { hasText: 'openWakeWord' }).textContent()).toContain('Installeer in Home Assistant');
       await shot('inhuis');
       await huis.locator('[data-inhuis-maak]').click();
-      await huis.locator('.mini.klaar', { hasText: 'nog zonder "Hé huis"' }).waitFor({ timeout: 15_000 });
+      await huis.locator('.mini.klaar', { hasText: 'Herstart openWakeWord' }).waitFor({ timeout: 15_000 });
       expect(gemaakt).toBe(1);
       expect(await p.evaluate<boolean>('document.scrollingElement.scrollHeight <= innerHeight + 1')).toBe(true);
       await shot('inhuis-klaar');

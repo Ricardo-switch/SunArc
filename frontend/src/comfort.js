@@ -434,14 +434,13 @@ function helpenVorm() {
     </div>`;
 }
 
-/** Naast Helpen bij de cv: de punten en de rekensom (besluit 292). */
+/** Naast Helpen bij de cv: de rekensom (besluit 292); de punten erboven gingen weg in besluit 344. */
 function helpenNaast() {
-  const lijst = [1, 2, 3].map((i) => t(`regeling.naast.helpen.${i}`));
   const k = helpen?.kosten;
   const som = k
     ? `<div class="glas"><h3>${esc(t('regeling.helpen.somKop', { graden: gradenMin(k.buitenC) }))}</h3><p class="mini geen-marge">${esc(t('regeling.helpen.somKetel', { gas: nl(k.gas, 2), ct: nl(k.ketel * 100, 0) }))}</p><p class="mini geen-marge">${esc(t('regeling.helpen.somAirco', { stroom: nl(k.stroom, 2), cop: nl(k.cop, 1), ct: nl(k.airco * 100, 0) }))}</p><p class="mini geen-marge">${esc(t('regeling.helpen.somTabel'))}</p></div>`
     : '';
-  return `<div class="glas"><h3>${esc(t('regeling.naast.helpen'))}</h3><ul>${lijst.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>${som}`;
+  return som;
 }
 
 // Helpen bij de cv (besluit 292): meteen bewaard, voor het hele huis; ook de schakelaar onder een airco in het blad van de kamer.
@@ -591,10 +590,7 @@ function voorrangVorm() {
 }
 
 function naast(id) {
-  if (id === 'voorrang') {
-    return `<div class="glas"><h3>${esc(t('comfort.naast.tweeKop'))}</h3><p class="geen-marge">${esc(t('comfort.naast.twee'))}</p></div>
-      <div class="glas"><h3>${esc(t('comfort.naast.telKop'))}</h3><p class="geen-marge">${esc(t('comfort.naast.tel'))}</p></div>`;
-  }
+  if (id === 'voorrang') return '';
   return `<div class="glas"><h3>${esc(t('comfort.naast.zoKop'))}</h3>
       <p class="geen-marge onder-12">${esc(t('comfort.naast.zo'))}</p>
       ${dagbalk()}

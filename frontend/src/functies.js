@@ -477,18 +477,6 @@ function meldingen() {
     <p class="mini">${esc(t('functies.meld.uitleg'))}</p>`;
 }
 
-/** Per deel het kopje ernaast en hoeveel punten (functies.naast.<deel>.<n>). */
-const NAAST = {
-  cameras: ['functies.zoWerkt', 2],
-  deurbel: ['functies.naast.deurbel', 3],
-  licht: ['functies.zoWerkt', 3],
-  praten: ['functies.zoWerkt', 4],
-  stem: ['functies.zoWerkt', 3],
-  tedoen: ['functies.zoWerkt', 3],
-  meldingen: ['functies.zoWerkt', 3],
-  weer: ['functies.naast.weer', 3],
-};
-
 function delen() {
   const alle = alleDelen();
   if (isAssistent) return alle.filter((x) => ASSISTENT.includes(x.id));
@@ -532,10 +520,8 @@ function tekenNu() {
     el.innerHTML = terug + nogKlaar(nu) + vorm;
     el.classList.toggle('metstd', !!terug);
   });
-  const deel = NAAST[nu] ? nu : 'cameras';
-  const [kopje, aantal] = NAAST[deel];
-  const lijst = Array.from({ length: aantal }, (_, i) => t(`functies.naast.${deel}.${i + 1}`));
-  $$('[data-naast]').forEach((el) => (el.innerHTML = `<div class="glas"><h3>${esc(t(kopje))}</h3><ul>${lijst.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`));
+  // Geen opsomming meer ernaast (besluit 344): dan is er ook geen knop Hulp.
+  $$('[data-naast]').forEach((el) => (el.innerHTML = ''));
 }
 /** Welke instellingen bij een deel horen (besluit 204), om ze terug te zetten naar het voorstel. */
 const STANDAARD_DEEL = { cameras: ['cameras'], deurbel: ['deurbel'], licht: ['licht', 'schermen'], weer: ['weer'], meldingen: ['meldingen'], praten: ['praten'] };

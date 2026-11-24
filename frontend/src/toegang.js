@@ -313,18 +313,14 @@ function versieVorm() {
     <p class="mini geen-marge">${esc(t('toegang.bouw', { commit: v.commit }))}</p>`;
 }
 
-/** Per deel hoeveel punten er ernaast staan (toegang.naast.<deel>.<n>). */
-const NAAST = { bewoners: 4, assistent: 3, gegevens: 4, versie: 4 };
-
 function tekenNu() {
   app.schaal();
   app.luchtVan(zon, 0);
   const nu = groep.tekenDelen(delen());
   const vorm = { bewoners: bewonersVorm, assistent: assistentVorm, gegevens: gegevensVorm, versie: versieVorm }[nu]?.() ?? '';
   $$('[data-vorm]').forEach((el) => (el.innerHTML = vorm));
-  const deel = NAAST[nu] ? nu : 'bewoners';
-  const lijst = Array.from({ length: NAAST[deel] }, (_, i) => t(`toegang.naast.${deel}.${i + 1}`));
-  $$('[data-naast]').forEach((el) => (el.innerHTML = `<div class="glas"><h3>${esc(t(`toegang.naast.${deel}`))}</h3><ul>${lijst.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`));
+  // Geen opsomming meer ernaast (besluit 344): dan is er ook geen knop Hulp.
+  $$('[data-naast]').forEach((el) => (el.innerHTML = ''));
 }
 /** Gebundeld: hooguit één keer per beeld (basis.js). */
 const teken = app.gebundeld(tekenNu);

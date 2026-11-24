@@ -242,6 +242,8 @@ body.offline #wand main, body.offline #tel .inhoud { filter: grayscale(0.85); op
 .voet { display: flex; align-items: center; gap: 12px; margin: 0 24px; padding: 10px 0 12px; border-top: 1px solid rgb(var(--wit) / 0.07); }
 .waarvoor { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px 0 10px; border: 0; border-radius: 12px; background: rgb(var(--ijs-k) / 0.1); color: var(--ijs-zacht); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .waarvoor svg { width: 19px; height: 19px; }
+/* Niets achter de knop, dan geen knop (besluit 344). */
+[data-waarvoor-vak]:has(.naast:empty) .waarvoor { display: none; }
 .waarvoor[aria-expanded='true'] { background: var(--accent); color: var(--op-accent); }
 .waarvoor:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
 .verder { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 10px; }

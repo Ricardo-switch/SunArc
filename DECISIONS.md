@@ -15853,6 +15853,19 @@ Op het scherm verandert niets. Nagelopen met de proefdienst op een kopie van
 de NAS: het huis, Klaarzetten en de assistent antwoorden in beide talen zoals
 eerst, met een komma in het Nederlands en een punt in het Engels.
 
+**Aanvulling: woorden als maat, schraplijst deel 1.** Onder de 4.000 teksten
+haalt schrappen niet: 4.968 van de 5.658 teksten zijn korte knoppen en
+kopjes die de schermen nodig hebben. Ricardo koos woorden als maat, want
+woorden kost een vertaling. De rondleidingen blijven. Deel 1 (Inrichten, Je
+huis tekenen, Licht, camera's en weer): 137 lange teksten ingekort tot wat je
+moet weten of doen, in beide talen; 11 stappenplannen bleven. De knop
+*Waarvoor is dit?* heet *Hulp*: de opsomming *Waarvoor dit nodig is* (en *Zo
+werkt het* bij Functies, Toegang en Dit scherm) is weg, *Waar vind je het?*,
+de rekensom bij Helpen bij de cv, de dagbalk bij Klimaat en de Hulp op de plek
+blijven. Staat er niets achter de knop, dan is er geen knop. Samen van 5.658
+naar 5.569 teksten en van 32.500 naar 30.570 woorden. Deel 2 en 3 (de andere
+schermen) volgen op dezelfde manier, elk na Ricardo's akkoord.
+
 ## Wat nog een besluit wacht
 
 - **De ventilatie wordt deze winter geïnstalleerd, en dat verandert het huis.**

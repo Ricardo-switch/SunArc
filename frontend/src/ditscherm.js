@@ -247,14 +247,9 @@ const ditScherm = (() => {
     <p class="mini">${esc(t('functies.uit.fully'))}</p>`;
   }
 
-  /** Zo werkt het (eerst rechts naast het deel bij Functies): drie punten onderaan het blad. */
-  function zoWerkt(id) {
-    const kop = t(id === 'scherm' ? 'functies.naast.scherm' : 'functies.zoWerkt');
-    return `<div class="ds-zo"><h3>${esc(kop)}</h3><ul>${[1, 2, 3].map((i) => `<li>${esc(t(`functies.naast.${id}.${i}`))}</li>`).join('')}</ul></div>`;
-  }
   const vorm = (id) => {
     const deel = ({ scherm, aod, uit: schermUit, startscherm: startschermVorm })[id];
-    return deel ? deel() + zoWerkt(id) : '';
+    return deel ? deel() : '';
   };
 
   /* ------------------------------------------------------------ doen */

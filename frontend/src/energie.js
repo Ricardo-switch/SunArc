@@ -430,18 +430,16 @@ function verwarmingVorm() {
 
 /* Ernaast */
 
-/** Per deel hoeveel punten er bij "Waarvoor dit nodig is" staan (energie.naast.<deel>.<n>). */
-const NAAST = { panelen: 2, zon: 2, aansluiting: 2, meters: 2, prijzen: 3, verwarming: 2 };
+/** De delen met een "Waar vind je het?" (energie.naast.<deel>.waar). Waarvoor dit nodig is ging weg in besluit 344. */
+const NAAST = new Set(['panelen', 'zon', 'aansluiting', 'meters', 'prijzen', 'verwarming']);
 
 function naast(id) {
-  const deel = NAAST[id] ? id : 'panelen';
-  const lijst = Array.from({ length: NAAST[deel] }, (_, i) => t(`energie.naast.${deel}.${i + 1}`));
+  const deel = NAAST.has(id) ? id : 'panelen';
   // De ligging van de panelen gaat meteen in (besluit 157); de zekering, de netmeter en de omvormers na een start.
   const laterZin = { aansluiting: 'energie.zekeringLater', meters: 'energie.later', panelen: 'energie.later' }[id];
   // Met een knop om meteen opnieuw te starten (testerronde, november 2026).
   const later = aInfo?.volgendeStart && laterZin ? `<div class="glas"><h3>${esc(t('regeling.ingaat'))}</h3><p class="geen-marge">${esc(t(laterZin))}</p><button type="button" class="knop boven-8" data-herstart style="align-self: start">${esc(t('basis.herstart'))}</button></div>` : '';
-  return `<div class="glas"><h3>${esc(t('energie.waarvoor'))}</h3><ul>${lijst.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
-    <div class="glas"><h3>${esc(t('energie.waarVind'))}</h3><p class="geen-marge">${esc(t(`energie.naast.${deel}.waar`))}</p></div>${later}`;
+  return `<div class="glas"><h3>${esc(t('energie.waarVind'))}</h3><p class="geen-marge">${esc(t(`energie.naast.${deel}.waar`))}</p></div>${later}`;
 }
 /* ------------------------------------------------------------ tekenen */
 
