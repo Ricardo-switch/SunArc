@@ -15866,6 +15866,11 @@ blijven. Staat er niets achter de knop, dan is er geen knop. Samen van 5.658
 naar 5.569 teksten en van 32.500 naar 30.570 woorden. Deel 2 en 3 (de andere
 schermen) volgen op dezelfde manier, elk na Ricardo's akkoord.
 
+Deel 2 (Energie, Wat je huis kan, Bewoners en toegang, Jij, Daken en panelen,
+Met de hand, Auto en laadpaal): 108 teksten ingekort in beide talen; de
+blokjes *Waar vind je het?*, de teksten over salderen (die gaan in januari,
+besluit 334) en wat al kort was, bleven. Samen nu 29.650 woorden per taal.
+
 ## Wat nog een besluit wacht
 
 - **De ventilatie wordt deze winter geïnstalleerd, en dat verandert het huis.**

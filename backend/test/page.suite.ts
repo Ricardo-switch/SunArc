@@ -922,7 +922,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await kijk.click();
       const venster = p.locator('.kk-venster');
       await venster.locator('h2', { hasText: 'Je huis uit de kaart' }).waitFor();
-      expect(await venster.textContent()).toContain('nooit je adres of je huis');
+      expect(await venster.textContent()).toContain('nooit je adres');
       await Promise.all([p.waitForEvent('load'), p.locator('[data-kk-kaart]').click()]);
       await p.waitForFunction(`window.tekenaar && document.querySelector('#wand #tekening [data-l="vlak"] g')`);
     }
@@ -4769,7 +4769,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await beurtenKaart.locator('.som').textContent()).toMatch(/41,3 kWh.*€ 9,33.*14%/s);
       expect(await beurtenKaart.locator('.beurt').count()).toBe(3);
       expect(await beurtenKaart.locator('.beurt').first().textContent()).toMatch(/Vandaag.*– nu.*4,2 kWh.*€ 0,31/s);
-      expect(await beurtenKaart.locator('.kan').textContent()).toContain('Eigen zon telt als gratis');
+      expect(await beurtenKaart.locator('.kan').textContent()).toContain('Eigen zon is gratis');
       // Laden met de hand (besluit 262): wat er nu loopt, en het blad met de stroom, hoe lang en terug.
       const regel = p.locator('#tel [data-laden-open]');
       expect(await regel.textContent()).toContain('Met de hand · 8 A tot de kabel eruit gaat');
@@ -4811,7 +4811,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await expect.poll(() => regel.textContent()).toContain('De laadpaal kiest zelf · 5 A');
       // Het advies onder de auto: zon met de ruimte op de zekering, en de goedkoopste uren met hoe ver hij komt.
       const adviesAuto = p.locator('#tel .advies');
-      expect(await adviesAuto.locator('.zon').textContent()).toContain('Met 8 A in plaats van 5 A laadt de auto sneller, nog steeds op eigen zon. Er blijft 16 A over op je zekering van 3 × 25 A.');
+      expect(await adviesAuto.locator('.zon').textContent()).toContain('Met 8 A in plaats van 5 A laadt hij sneller, nog steeds op zon. Er blijft 16 A over op je zekering van 3 × 25 A.');
       expect(await adviesAuto.locator('.goedkoop').textContent()).toMatch(/Goedkoopst morgen \d\d:00–\d\d:00.*€ 0,14 per kWh, de helft van nu\. Genoeg om tot 80% te laden, voor ongeveer € 4,60\./s);
       // De wand scrolt nooit (besluit 104): rechts de laadpaal op drie fasen en zoveel beurten als er passen.
       const wand = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
@@ -6642,7 +6642,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       expect(await laag.locator('.hand-wijzer').count()).toBe(0);
       expect(await laag.locator('.hand-stand b').textContent()).toBe('Drogen');
       expect(await laag.locator('[data-hand-tot="doel"]').count()).toBe(0);
-      expect(await laag.locator('.hand-hoe').textContent()).toContain('zonder te verwarmen of te koelen');
+      expect(await laag.locator('.hand-hoe').textContent()).toContain('zonder verwarmen of koelen');
       await laag.locator('[data-hand-tot="u1"]').click();
       await laag.locator('[data-hand-zet]').click();
       await expect.poll(() => gestuurd.length).toBe(1);
@@ -6718,7 +6718,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await laag.locator('.hand-blad').waitFor();
     expect(await laag.locator('.hand-blad h2').textContent()).toBe('Airco zolder');
     expect(await zolder.getAttribute('class')).toContain('gekozen');
-    expect(await laag.locator('.hand-hoe').textContent()).toContain('alleen met zon of als hulp');
+    expect(await laag.locator('.hand-hoe').textContent()).toContain('zelf op verwarmen');
     await laag.locator('[data-hand-doel="1"]').click();
     expect(await laag.locator('.hand-wijzer').textContent()).toContain('19,5°');
     // Tot het doel: terug zodra het er is, uiterlijk aan het eind van het dagdeel.
@@ -6733,7 +6733,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     // Koelen kan niet zolang de koelstrategie uit staat.
     await zolder.click();
     await laag.locator('[data-hand-modus="koelen"]').click();
-    expect(await laag.locator('.hand-hoe').textContent()).toContain('Koelen staat in je regeling uit');
+    expect(await laag.locator('.hand-hoe').textContent()).toContain('Koelen staat uit in je regeling');
     expect(await laag.locator('[data-hand-zet]').isDisabled()).toBe(true);
     await p.keyboard.press('Escape');
     expect(await laag.count()).toBe(0);
