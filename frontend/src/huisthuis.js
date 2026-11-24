@@ -96,7 +96,7 @@
   /** De motor en de modellen laden, de tekening ophalen en de tekenaar opbouwen, op een svg die niemand ziet. */
   async function laad() {
     // De tekening tegelijk met de scripts ophalen.
-    const [d] = await Promise.all([global.app.haal('api/huistekening'), laadScripts(['kit/huistekenen-vloer.js', 'kit/huistekenen-blad.js', 'kit/huistekenen-kaart.js', 'kit/huistekenen-teken.js', 'kit/huistekenen-gebaar.js', 'kit/huistekenen.js', 'kit/huis-modellen.js', 'kit/huis-maat-hemel.js', 'kit/huis-maat-buiten.js', 'kit/huis-maat-meubels.js', 'kit/huis-maat-apparaten.js', 'kit/huis-maat.js', 'huisvoor.js', 'huisthuis-opties.js'])]);
+    const [d] = await Promise.all([global.app.haal('api/huistekening'), laadScripts(['kit/huistekenen-vloer.js', 'kit/huistekenen-blad.js', 'kit/huistekenen-kaart.js', 'kit/huistekenen-teken.js', 'kit/huistekenen-gebaar.js', 'kit/huistekenen.js', 'kit/huis-modellen.js', 'kit/huis-maat-hemel.js', 'kit/huis-maat-buiten.js', 'kit/huis-maat-meubels.js', 'kit/huis-maat-apparaten.js', 'kit/huis-maat-vorm.js', 'kit/huis-maat.js', 'huisvoor.js', 'huisthuis-opties.js'])]);
     const hv = global.huisVoor;
     const huis = hv.huisVoorMotor(d);
     if (!huis.etages.length) throw new Error('geen etages');
