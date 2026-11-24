@@ -15,10 +15,10 @@
  * TypeScript niet als losse naam; die krijgen hier een `declare var` met type
  * any, behalve op een pagina die de naam zelf al gebruikt.
  *
- * Er staan nog meldingen open uit de tijd zonder controle. Die staan per
- * bestand in typecheck-basis.json; de controle faalt als een bestand er meer
- * heeft dan zijn basis (een nieuwe fout), en zegt het als het er minder zijn
- * (dan kan de basis omlaag). Zo gaat het aantal alleen omlaag, tot nul.
+ * De meldingen uit de tijd zonder controle stonden per bestand in
+ * typecheck-basis.json; de controle faalt als een bestand er meer heeft dan
+ * zijn basis (een nieuwe fout). Sinds 24 november 2026 is de basis leeg: elke
+ * melding is een nieuwe fout.
  */
 
 import { readFile, writeFile } from 'node:fs/promises';
@@ -40,6 +40,51 @@ const OP_WINDOW = [
   'paalblad', 'niemand', 'melden', 'luisteren', 'klaarstappen', 'hand', 'groep', 'gevoel', 'film', 'fasekaart', 'eigen',
   'buitenBlad', 'scThema', 'scVoorbeeldVerschil', 'qrcode', 'huisModellen', 'huisVoor', 'huisThuis', 'weergaveDeel', 'htVloer', 'htBlad', 'htTeken', 'htGebaar', 'htKaart', 'huisMaatHemel', 'huisMaatBuiten', 'huisMaatMeubels', 'huisMaatApparaten', 'huisMaatVorm', 'huisBasis', 'huisKamers', 'huisBuiten', 'huisTuin', 'huisRoute', 'basisMeldingen', 'huisOpties',
 ];
+
+/*
+ * De afspraak over elementen (24 november 2026, keuze van Ricardo): wat de app aantikt (`e.target`) of opzoekt
+ * (querySelector, closest), is een HTML-element; een veld heeft een waarde. TypeScript weet uit een selector als
+ * '[data-kamer]' niet welk soort element het wordt, en zonder deze afspraak gaf dat ruim 500 meldingen zonder één echte
+ * fout. Alleen de eigenschappen die de app zo gebruikt; alles daarbuiten blijft gewoon gecontroleerd.
+ */
+const ELEMENTEN = `
+interface AppElement extends HTMLInputElement {
+  readonly selectedOptions: HTMLCollectionOf<HTMLOptionElement>;
+  /** Een uitklapper (details). */
+  open: boolean;
+  /** Een formulier: zijn velden op naam. */
+  readonly elements: HTMLFormControlsCollection & { [naam: string]: any };
+}
+interface EventTarget {
+  closest(selectors: string): AppElement | null;
+  matches(selectors: string): boolean;
+  hasAttribute(name: string): boolean;
+  readonly dataset: DOMStringMap;
+  readonly classList: DOMTokenList;
+  readonly parentElement: HTMLElement | null;
+  readonly selectedOptions: HTMLCollectionOf<HTMLOptionElement>;
+  value: string;
+  checked: boolean;
+  blur(): void;
+}
+interface Element {
+  readonly dataset: DOMStringMap;
+  readonly style: CSSStyleDeclaration;
+  readonly offsetWidth: number;
+  readonly offsetHeight: number;
+  readonly offsetLeft: number;
+  hidden: boolean;
+  disabled: boolean;
+  title: string;
+  tabIndex: number;
+  value: string;
+  selectionStart: number | null;
+  selectionEnd: number | null;
+  setSelectionRange(start: number | null, end: number | null, direction?: 'forward' | 'backward' | 'none'): void;
+  focus(options?: FocusOptions): void;
+  click(): void;
+}
+`;
 
 const OPTIES = {
   allowJs: true,
@@ -99,7 +144,7 @@ for (const pagina of paginas) {
   const scripts = scriptsVan(await readFile(join(SRC, pagina), 'utf-8'));
   if (!scripts.length) continue;
   const eigen = new Set(scripts.flatMap((p) => [...bovensteNamen(p, lees(p))]));
-  const decl = `${OP_WINDOW.filter((n) => !eigen.has(n)).map((n) => `declare var ${n}: any;`).join('\n')}\ninterface Window { [naam: string]: any }\n`;
+  const decl = `${OP_WINDOW.filter((n) => !eigen.has(n)).map((n) => `declare var ${n}: any;`).join('\n')}\ninterface Window { [naam: string]: any }\n${ELEMENTEN}`;
   // TypeScript werkt met schuine strepen naar rechts, ook op Windows.
   const declNaam = join(hier, `${pagina}.__gedeeld.d.ts`).split('\\').join('/');
   const h = { ...host, getSourceFile: (naam, taal) => (naam === declNaam ? ts.createSourceFile(naam, decl, taal) : host.getSourceFile(naam, taal)), fileExists: (n) => n === declNaam || host.fileExists(n) };

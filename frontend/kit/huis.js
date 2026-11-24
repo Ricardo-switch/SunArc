@@ -330,6 +330,10 @@
     // Huis 3.0 overal (besluit 191): het eiland is de standaard, met de lucht van
     // de pagina erachter. Een pagina die het oude perceel wil, zegt `wereld: false`;
     // een eigen lucht achter het eiland is `eigenLucht: true`.
+    /**
+     * @type {{ wereld: boolean, eigenLucht: boolean, breedte?: number, hoogte?: number, marge?: number, zoom?: number,
+     *   schuifX?: number, schuifY?: number, tik?: boolean, ruimte?: boolean, meubels?: boolean, controle?: boolean }}
+     */
     const opts = { wereld: true, eigenLucht: false, ...kies };
     // Bij Weergave (25 oktober 2026): het seizoen en het weer kunnen uit; dan een gewone groene dag.
     const klassen = typeof document !== 'undefined' ? document.documentElement.classList : null;

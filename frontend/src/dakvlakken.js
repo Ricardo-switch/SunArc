@@ -675,6 +675,7 @@ const dakvlakken = (() => {
       }
       // Een leeg dakvlak: een nieuw vlak dat erop ligt.
       const g = d.tekening.gebouwen.find((x) => x.id === gid);
+      /** Een nieuw vlak, op dit gebouw en deze kant van het dak. @type {ReturnType<typeof nieuwVlak> & { gebouw?: string, kant?: number | null }} */
       const v = nieuwVlak(d, NAAR_PLEK[g?.soort] ?? 'hoofddak');
       v.gebouw = gid;
       v.kant = kant;

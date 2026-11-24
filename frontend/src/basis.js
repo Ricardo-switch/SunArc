@@ -25,13 +25,14 @@
     class VoorbeeldDate extends Echt {
       constructor(...a) {
         if (a.length === 0) super(echtNu() + verschil);
+        // @ts-expect-error -- Date kent meer vormen; de echte Date krijgt wat de pagina gaf.
         else super(...a);
       }
       static now() {
         return echtNu() + verschil;
       }
     }
-    global.Date = VoorbeeldDate;
+    global.Date = /** @type {DateConstructor} */ (/** @type {unknown} */ (VoorbeeldDate));
     global.scVoorbeeldVerschil = (nuMs) => {
       verschil = nuMs - echtNu();
       try {
@@ -458,7 +459,7 @@
     dispatchEvent(new Event('sc-installeer'));
   });
   const kanInstalleren = () => installeerVraag != null;
-  const geinstalleerd = () => global.matchMedia?.('(display-mode: standalone)').matches === true || global.navigator.standalone === true;
+  const geinstalleerd = () => global.matchMedia?.('(display-mode: standalone)').matches === true || /** @type {any} */ (global.navigator).standalone === true;
   async function installeer() {
     const vraag = installeerVraag;
     if (!vraag) return false;
@@ -557,6 +558,7 @@
         // Geen Fully Kiosk.
       }
     }
+    /** De laag van de deurbel, met de camera die hij nu toont. @type {(HTMLElement & { camera?: any }) | null} */
     let laag = document.querySelector('.aanbel');
     if (!laag) {
       laag = document.createElement('div');
@@ -791,7 +793,7 @@
   const SESSIE = 'ingress_session';
   function haHass() {
     try {
-      return global.parent.document.querySelector('home-assistant')?.hass ?? null;
+      return /** @type {any} */ (global.parent.document.querySelector('home-assistant'))?.hass ?? null;
     } catch {
       return null;
     }
@@ -950,7 +952,7 @@
   function statusbalk(aan) {
     try {
       const w = global.parent;
-      if (!w.document.querySelector('home-assistant')?.hass?.auth?.external) return;
+      if (!(/** @type {any} */ (w.document.querySelector('home-assistant'))?.hass?.auth?.external)) return;
       w.__scStatusbalk ??= new w.Function(STATUSBALK_CODE)();
       if (aan) w.__scStatusbalk.zet(statusbalkKleur());
       else w.__scStatusbalk.terug();

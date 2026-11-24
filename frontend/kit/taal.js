@@ -43,7 +43,8 @@
   /** De taal van het account in Home Assistant: binnen Home Assistant leest de app die van het paneel eromheen. */
   function haTaal() {
     try {
-      return global.parent?.document?.querySelector('home-assistant')?.hass?.language ?? null;
+      // Het element van Home Assistant zelf, met zijn eigen `hass`.
+      return /** @type {any} */ (global.parent?.document?.querySelector('home-assistant'))?.hass?.language ?? null;
     } catch {
       return null;
     }

@@ -684,7 +684,7 @@ function tekenGevoel() {
   });
 }
 gevoel.bij(() => teken());
-addEventListener('gevoelzone', (e) => {
+addEventListener('gevoelzone', (/** @type {CustomEvent} */ e) => {
   gekozenZone = e.detail;
   teken();
 });

@@ -367,6 +367,7 @@
     const dakVlakken = d.aansluiting?.daken?.bewaard ? (d.aansluiting.daken.vlakken ?? []) : [];
     const ligStand = !lig || !panelen ? null : lig.stand === 'wachten' ? 'leert' : lig.stand === 'voorstel' ? 'mis' : 'werkt';
 
+    /** @type {any[]} */
     const lijst = [
       // Comfort
       {

@@ -603,6 +603,7 @@
   /** Langzaam op gang, langzaam tot stilstand. */
   const zacht = (f) => (f < 0.5 ? 4 * f * f * f : 1 - (-2 * f + 2) ** 3 / 2);
 
+  /** @param {{ opEinde?: Function, opGeladen?: Function }} [o] */
   async function speel({ opEinde, opGeladen } = {}) {
     if (!document.getElementById('film-stijl')) {
       const s = document.createElement('style');

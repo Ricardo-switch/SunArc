@@ -17,6 +17,7 @@
    * telefoon staan op dezelfde pagina, en een verborgen tekening mag de
    * andere niet kleuren.
    */
+  /** @param {{ tekst?: { onbekend?: string, leeg?: string }, [rest: string]: any }} o */
   function scene({ pct, grens, kabel, auto = true, paal = true, tekst = {}, naam = null }) {
     const id = naam ?? `auto${++nr}`;
     const t = global.taal?.t ?? ((k) => k);

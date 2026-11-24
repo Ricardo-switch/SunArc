@@ -311,7 +311,7 @@
       // Wat je aan het typen was, blijft staan als de pagina zich opnieuw tekent (na een vinkje of nieuwe gegevens).
       const bezig = [...vak.querySelectorAll('form input')].map((i) => {
         const f = i.closest('form');
-        return [f.hasAttribute('data-td-nieuw') ? 'form[data-td-nieuw]' : f.hasAttribute('data-td-zeg') ? 'form[data-td-zeg]' : `form[data-td-lijst="${f.dataset.tdLijst}"]`, i.value, i === document.activeElement];
+        return /** @type {[string, string, boolean]} */ ([f.hasAttribute('data-td-nieuw') ? 'form[data-td-nieuw]' : f.hasAttribute('data-td-zeg') ? 'form[data-td-zeg]' : `form[data-td-lijst="${f.dataset.tdLijst}"]`, i.value, i === document.activeElement]);
       });
       vak.innerHTML = paginaHtml();
       for (const [sel, waarde, focus] of bezig) {

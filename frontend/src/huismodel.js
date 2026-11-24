@@ -200,6 +200,7 @@
    */
   function buiten(ruimtes, rond = null) {
     let oprit = null;
+    /** @type {any} */
     let tuin = null;
     let terras = null;
     let balkon = null;
@@ -398,6 +399,7 @@
    */
   function tekening(huis, { kamer = (r) => kamerModel(r, null), aantalPanelen = null, zon = null, kelderOnder = true } = {}) {
     const buitenRuimtes = [];
+    /** @type {any[]} */
     const etages = [];
     let kelder = null;
     // De thuisaccu (besluit 270): aan de gevel, in de garage, of binnen in een kamer.
@@ -435,6 +437,7 @@
       boilerKamer = kleinste.naam;
     }
     const aircos = alles.filter((a) => a.soort === 'klimaat' && a.klimaat?.kanKoelen);
+    /** @type {any} */
     const delen = buiten(buitenRuimtes, huis?.rond ?? null);
     // De deurbel en de camera op de oprit, met hun bewegingsmelders (rapport 15 oktober).
     const naam = (a) => `${a.id} ${a.naam}`;

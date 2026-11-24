@@ -117,7 +117,7 @@ const teken = app.gebundeld(tekenNu);
     vak.querySelectorAll('.sc-doel').forEach((x) => x.classList.remove('sc-doel'));
     el?.classList.add('sc-doel');
   };
-  vak?.addEventListener('pointerdown', (e) => {
+  vak?.addEventListener('pointerdown', (/** @type {PointerEvent} */ e) => {
     const el = e.target.closest('[data-kamer]');
     if (stapNu() !== 'huis' || !el || !binnen().some((r) => r.id === el.dataset.kamer)) return;
     e.preventDefault();

@@ -204,7 +204,7 @@
       wek('tik');
       if (update) void global.app.bijwerkVenster();
     });
-    el.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), wek('tik')));
+    el.addEventListener('keydown', (/** @type {KeyboardEvent} */ e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), wek('tik')));
     (document.getElementById('wand') ?? document.body).append(el);
     return el;
   }
@@ -436,7 +436,7 @@
   // Aanbellen, "Hé huis" en de bewegingsmelder (via de dienst).
   // Een nieuwe versie, of weer weg: opnieuw tekenen als het display er staat.
   addEventListener('sc-meldingen', () => toont && toont !== 'uit' && teken());
-  addEventListener('sc-wek', (e) => (e.detail === 'beweging' ? beweging() : wek(e.detail ?? 'iets')));
+  addEventListener('sc-wek', (/** @type {CustomEvent} */ e) => (e.detail === 'beweging' ? beweging() : wek(e.detail ?? 'iets')));
   addEventListener('standwissel', () => telStand() && wek('telefoon'));
 
   async function begin() {
