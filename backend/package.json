@@ -8,7 +8,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node -e \"require('fs').copyFileSync('src/nieuw.json', 'dist/nieuw.json')\"",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint",
     "test": "vitest run",
@@ -29,7 +29,8 @@
     "shadow:restart": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shadow.ps1 restart",
     "shadow:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shadow.ps1 status",
     "shadow:watch": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shadow.ps1 watch",
-    "divergence": "tsx src/divergence/run.ts"
+    "divergence": "tsx src/divergence/run.ts",
+    "dagboek": "tsx tools/dagboek.ts"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

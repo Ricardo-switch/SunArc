@@ -390,6 +390,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [250. Meld een probleem, apparaatgegevens en warmtepompen](#250-meld-een-probleem-apparaatgegevens-en-warmtepompen)
 - [252. Terugzeggen na een opgeloste melding](#252-terugzeggen-na-een-opgeloste-melding)
 - [253. Het logboek delen bij een melding](#253-het-logboek-delen-bij-een-melding)
+- [340. De geschiedenis in het besluitenlog, niet in de code](#340-de-geschiedenis-in-het-besluitenlog-niet-in-de-code)
 
 Wat nog open staat: [Wat nog een besluit wacht](#wat-nog-een-besluit-wacht).
 
@@ -15667,6 +15668,33 @@ motor (`mo-kaart`) en Bewoners (`klein-kaart`) zijn ook `.kaart`. De balk
 onderin de kaart van Zonnepanelen (`dk-kaart`) is geen kaart en blijft. In
 0.234.0 was één `.seg` blijven staan (Inrichten › Klimaat, de keuze per
 toestel) terwijl zijn opmaak weg was; die is nu ook `.keuze`.
+
+## 340. De geschiedenis in het besluitenlog, niet in de code
+
+*Onderwerp: kwaliteitsbewaking · Status: geldig*
+
+24 november 2026, kwaliteitsronde stap 4 punt 8. Het rapport: "De code leest
+als een dagboek." Geteld: 3.321 verwijzingen naar een besluit in commentaar,
+907 datums, 69 keer een naam, en `version.ts` was 5.841 regels, met 365 versies
+wat er nieuw is als code in de dienst.
+
+*Besluit:*
+
+- **Wat er nieuw is, is gegevens.** De lijst staat in `backend/src/nieuw.json`;
+  `version.ts` houdt het nummer, de vorm (`Nieuw`) en leest het bestand bij het
+  starten. De build kopieert het naar `dist`. Een test (`nieuw.test.ts`)
+  controleert de vorm van elke versie, wat TypeScript eerst deed. Bij een
+  nieuwe versie komt er bovenaan in `nieuw.json` een versie bij.
+- **Commentaar zegt wat het nu doet.** Geen datum, geen naam en geen "eerst
+  deed het X" in nieuw commentaar: het waarom, wie het vroeg en wanneer, hoort
+  hier in het besluitenlog. Een korte verwijzing "(besluit N)" mag, als link
+  naar het waarom.
+- **Opruimen als je een bestand aanraakt,** niet in één grote ronde: dat raakt
+  bijna elk bestand, verandert niets voor de bewoner en botst met werk van
+  andere sessies. Een teller (`npm run dagboek`, `test/dagboek-basis.json`)
+  houdt per bestand bij hoeveel datums en namen er in het commentaar staan;
+  de test faalt als een bestand er meer krijgt, en de basis mag alleen omlaag
+  (`npm run dagboek -- --basis`). Bij het vastleggen: 1.062 in 217 bestanden.
 
 ## Wat nog een besluit wacht
 

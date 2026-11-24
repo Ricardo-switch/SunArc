@@ -757,6 +757,9 @@ verwijzing bestaat.
   linter met een handvol regels ([57]), en de opstart als één zuivere functie
   ([55]).
 - **Namen in het Engels,** de rest in het Nederlands ([59]).
+- **De geschiedenis in het besluitenlog:** commentaar zegt wat het nu doet,
+  zonder datum of naam; een teller laat dat alleen afnemen. Wat er per versie
+  nieuw is, staat als gegevens in `backend/src/nieuw.json` ([340]).
 - **Kleinere bestanden:** HTTP, de live-verbinding en de opties van de
   webserver staan apart van `server.ts`; de routes per onderwerp in
   `web/routes/`, met een gedeelde context (`web/diensten.ts`); en wat in
@@ -1106,4 +1109,5 @@ verwijzing bestaat.
 [337]: DECISIONS.md#337-de-motor-de-schaduwpagina-in-de-vorm-van-de-app
 [338]: DECISIONS.md#338-per-fase-een-meter-en-de-stroom-uit-het-vermogen
 [339]: DECISIONS.md#339-bouwstenen-één-schakelaar-één-veld-één-keuze-één-knop
+[340]: DECISIONS.md#340-de-geschiedenis-in-het-besluitenlog-niet-in-de-code
 <!-- links:einde -->
