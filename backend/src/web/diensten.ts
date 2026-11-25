@@ -107,6 +107,8 @@ export class Diensten {
   readonly yieldBusy = new Map<string, Promise<YieldReport | null>>();
   /** De laatste batterijsom (besluit 230), met de meters waarmee hij is uitgerekend. */
   accu: { sleutel: string; atMs: number; som: Awaited<ReturnType<typeof accuJaar>> } | null = null;
+  /** De som van de thuisbatterij die nu op de achtergrond loopt, zodat er maar één tegelijk rekent. */
+  accuBezig: Promise<void> | null = null;
 
   /** Wie er kijkt (besluit 147): het account, of het een beheerder is, en de naam. Een gast is nooit beheerder. */
   async wie(req: IncomingMessage): Promise<Wie & { readonly naam: string }> {

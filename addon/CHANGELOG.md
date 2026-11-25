@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.240.0
+## 0.241.0
 
-*25 november 2026 · 0.179.0 – 0.240.0*
+*25 november 2026 · 0.179.0 – 0.241.0*
 
 **Nieuw**
 
@@ -99,6 +99,9 @@
 
 **Beter**
 
+- Opbrengst: het kaartje Sluipverbruik toont de laatste 30 nachten als staafjes, zonder eerst door te tikken
+- Een taak met een scène noemt de lamp nog: Gaat de lamp bank naar de scène Avond
+- Wat je huis kan opent meteen: de som van een thuisbatterij rekent op de achtergrond en verschijnt even later
 - Energie › Contract en prijzen vraagt niet meer naar salderen: bij Teruglevering vul je alleen in wat je per kWh krijgt en betaalt. Bedragen uit 2026 en eerder rekent SunArc in Nederland vanzelf met salderen, en daar staat dat bij
 - Kortere teksten op bijna elk scherm, in het Nederlands en het Engels. Waarvoor is dit? heet nu Hulp, en staat er niets achter, dan is er geen knop
 - Op zon staat niet meer bij Klimaat › Voorrang, maar bij De zon verdelen
@@ -227,6 +230,8 @@
 
 **Opgelost**
 
+- Sluipverbruik: het pijltje naar eerdere nachten is met een vinger makkelijker te raken
+- Opbrengst: zon en net vielen op de wand onder Per apparaat en Per dag buiten de kaart
 - De boiler zei "opwarmen" en "bijwarmen"; dat is nu verwarmen
 - Inrichten › Klimaat: de keuze per toestel had sinds 0.234.0 geen opmaak meer
 - Bij het draaien van het huis op Thuis verscheen soms ineens het poppenhuis: bij sommige hoeken stond de auto achter het huis en lukte de tekening niet. Dat is opgelost, en lukt een tekening ooit niet, dan blijft de vorige staan
@@ -386,6 +391,9 @@
 
 **Improved**
 
+- Energy overview: the Standby use card shows the last 30 nights as bars, without tapping through first
+- A task with a scene still names the lamp: The lamp bank switches to the Avond scene
+- What your home can do opens right away: the home battery estimate is worked out in the background and appears a little later
 - Energy › Contract and prices no longer asks about net metering: under Export you only fill in what you get and pay per kWh. In the Netherlands, SunArc works out amounts from 2026 and earlier with net metering by itself, and says so
 - Shorter texts on almost every screen, in Dutch and English. What is this for? is now called Help, and if there is nothing behind it, there is no button
 - On solar is no longer under Climate › Priority, but under Sharing the sun
@@ -514,6 +522,8 @@
 
 **Fixed**
 
+- Standby use: the arrow to earlier nights is easier to hit with a finger
+- Energy overview: sun and grid fell outside the card under Per device and Per day on the wall display
 - The boiler texts now use the same word for heating everywhere
 - Set up › Climate: the choice per device had lost its styling since 0.234.0
 - Turning the house on Home sometimes suddenly showed the dollhouse: at some angles the car stood behind the house and the drawing failed. That is fixed, and if a drawing ever fails, the previous one stays

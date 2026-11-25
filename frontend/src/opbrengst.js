@@ -38,8 +38,27 @@ const KLEUREN = ['#6FD3FF', '#8FD9FF', '#FFB088', '#C4BCFF', '#9EE6FF', '#FFD08A
 
 /** Het sluipverbruik (besluit 192): een kaart naar zijn eigen scherm, met vannacht erop. */
 let sluip = null;
+
+/**
+ * De laatste 30 nachten als staafjes op de kaart, zoals op het scherm
+ * Sluipverbruik: blauw een gewone nacht, oranje 50 W of meer erboven, met de
+ * lijn van je gewone nacht. Alleen om te kijken; een tik opent het scherm.
+ */
+function sluipStaven() {
+  const n = (sluip?.nachten ?? []).slice(-30);
+  if (n.length < 7 || !sluip.gewoonW) return '';
+  const B = 300;
+  const H = 64;
+  const max = Math.max(...n.map((x) => x.w), sluip.gewoonW + 50) * 1.05;
+  const w = B / n.length;
+  const y = (v) => H - (v / max) * H;
+  const staven = n.map((x, i) => `<rect x="${(i * w + w * 0.16).toFixed(1)}" y="${y(x.w).toFixed(1)}" width="${(w * 0.68).toFixed(1)}" height="${(H - y(x.w)).toFixed(1)}" rx="1.5" fill="${x.hoog ? '#ff7a4d' : 'rgba(111,211,255,0.55)'}"/>`).join('');
+  const lijn = `<line x1="0" x2="${B}" y1="${y(sluip.gewoonW).toFixed(1)}" y2="${y(sluip.gewoonW).toFixed(1)}" stroke="#6ee7b7" stroke-width="1.4" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"/>`;
+  return `<svg class="sluipstaven" viewBox="0 0 ${B} ${H}" preserveAspectRatio="none" aria-hidden="true">${staven}${lijn}</svg>`;
+}
+
 const sluipIngang = () => (sluip
-  ? `<a class="glas kaart sluipingang" href="sluipverbruik.html"><div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px"><h2 class="kop-3">${esc(t('w.sluipverbruik'))}</h2><span class="getal" style="font-size: 22px${sluip.hoog ? '; color: var(--gloed-t)' : ''}">${nl(sluip.vannacht.w, 0)} W</span></div><p class="klein geen-marge boven-8">${esc(sluip.hoog ? t('sluip.ingangHoog', { boven: nl(sluip.bovenW, 0) }) : sluip.vaak ? t('sluip.ingangVaak', { n: sluip.vaak.nachten, meer: nl(sluip.vaak.meerW, 0) }) : t('sluip.ingangGewoon', { gewoon: nl(sluip.gewoonW, 0) }))} ›</p></a>`
+  ? `<a class="glas kaart sluipingang" href="sluipverbruik.html"><div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px"><h2 class="kop-3">${esc(t('w.sluipverbruik'))}</h2><span class="getal" style="font-size: 22px${sluip.hoog ? '; color: var(--gloed-t)' : ''}">${nl(sluip.vannacht.w, 0)} W</span></div><p class="klein geen-marge boven-8">${esc(sluip.hoog ? t('sluip.ingangHoog', { boven: nl(sluip.bovenW, 0) }) : sluip.vaak ? t('sluip.ingangVaak', { n: sluip.vaak.nachten, meer: nl(sluip.vaak.meerW, 0) }) : t('sluip.ingangGewoon', { gewoon: nl(sluip.gewoonW, 0) }))} ›</p>${sluipStaven()}</a>`
   : '');
 
 async function laad() {
@@ -316,8 +335,8 @@ function perApparaat(r) {
     const zonPct = a.kwh > 0 ? (a.zonKwh / a.kwh) * 100 : 0;
     return `<div class="rij"><div class="boven"><b>${esc(a.rest ? t('opbrengst.rest') : a.id === 'altijd' ? a.naam : kort(a.naam))}</b><span>${getal(a.kwh)} kWh${a.kosten != null ? `, ${euro(a.kosten)}` : ''}</span></div><div class="verdeel"><i style="width: ${zonPct.toFixed(1)}%; background: var(--zon)"></i><i style="width: ${(100 - zonPct).toFixed(1)}%; background: ${NET}"></i></div></div>`;
   };
-  return `<h2 class="kop-3 onder-4">${esc(t('opbrengst.perApparaat'))}</h2>${lijst.map(rij).join('')}
-    <p class="mini legenda">${legendaZonNet(r)}</p>`;
+  // Zon en net naast de titel: onder de lijst viel het op de wand buiten de kaart.
+  return `<div class="kaartkop onder-4"><h2 class="kop-3">${esc(t('opbrengst.perApparaat'))}</h2><span class="mini legenda">${legendaZonNet(r)}</span></div>${lijst.map(rij).join('')}`;
 }
 
 /*
@@ -374,8 +393,7 @@ function perDag(r) {
     ${maten}
     <div class="staven">${g.html.join('')}</div>
     <div class="asje"><span>${esc(as[0])}</span><span>${esc(as[1])}</span><span>${esc(as[2])}</span></div>
-    <p class="mini detail" aria-live="polite">${esc(gekozen != null ? g.detail(gekozen) : t('opbrengst.tikStaaf'))}</p>
-    <p class="mini legenda">${g.legenda}</p>`;
+    <div class="onderregel"><p class="mini detail" aria-live="polite">${esc(gekozen != null ? g.detail(gekozen) : t('opbrengst.tikStaaf'))}</p><p class="mini legenda">${g.legenda}</p></div>`;
 }
 
 /* ------------------------------------------------------------ nu */

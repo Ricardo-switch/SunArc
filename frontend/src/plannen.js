@@ -363,8 +363,8 @@
     const n = g.items.length > 1 ? 'n' : '1';
     const namen = `<span class="tk-stuk${st.stuk === 'wat' ? ' open' : ''}" data-pl-stuk="wat">${esc(opsom(g.items.map(lidwoord)))}</span>`;
     if (g.soort === 'scene' || g.soort === 'witgoed') return t(`tk.start.${n}`, { namen });
-    // Lampen met een scène (besluit 268): "start de scène Avond".
-    if (g.actie === 'scene') return t('tk.start.1', { namen: `<span class="tk-stuk${st.stuk === 'hoe' ? ' open' : ''}" data-pl-stuk="hoe">${esc(t('tk.scene', { naam: g.scene.naam }))}</span>` });
+    // Lampen met een scène (besluit 268): "gaat de lamp bank naar de scène Avond", met de lamp erin.
+    if (g.actie === 'scene') return t(`tk.gaan.${n}`, { namen, actie: `<span class="tk-stuk${st.stuk === 'hoe' ? ' open' : ''}" data-pl-stuk="hoe">${esc(t(`tk.a.scene.${n}`, { scene: t('tk.scene', { naam: g.scene.naam }) }))}</span>` });
     const duur = g.soort === 'klimaat' || g.soort === 'stekker' || g.soort === 'plug' ? t(`tk.duur.${g.hoe.tot ?? (g.soort === 'klimaat' ? 'doel' : 'uur1')}`) : '';
     const actie = g.soort === 'klimaat' ? t(`tk.a.${g.actie}.${n}`, { doel: graden(g.hoe.doelC) }) : t(`tk.a.${g.actie}.${n}`);
     const hoe = `<span class="tk-stuk${st.stuk === 'hoe' ? ' open' : ''}" data-pl-stuk="hoe">${esc(actie + duur)}</span>`;
@@ -411,7 +411,7 @@
     if (st.voorstel) return st.voorstel.tekst;
     const delen = groepjes().map((g) => {
       const namen = g.items.length > 2 ? t(g.soort === 'licht' ? 'pl.lampen' : g.soort === 'scherm' ? 'pl.schermen' : 'tk.apparaten', { n: g.items.length }) : opsom(g.items.map((i) => i.naam));
-      if (g.actie === 'scene') return t('pl.wat.scene', { naam: g.scene.naam });
+      if (g.actie === 'scene') return t('pl.wat.lichtScene', { naam: namen, scene: g.scene.naam });
       if (g.soort === 'licht') return t(g.actie === 'uit' ? 'pl.wat.lichtUit' : 'pl.wat.lichtAan', { naam: namen });
       if (g.soort === 'scherm') return t(`pl.wat.${g.actie}`, { naam: namen });
       if (g.soort === 'scene') return t('pl.wat.scene', { naam: namen });

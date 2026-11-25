@@ -2575,9 +2575,9 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await expect.poll(() => comfortNu?.voorrang?.koelen[0], { timeout: 5_000 }).toBe(tweede);
       expect(configNu.zones.find((z) => z.id === tweede)?.priorityByAction?.cool).toBe(1);
     }
-    // Op zon staat sinds besluit 343 bij Energie › De zon verdelen: hier alleen een knop erheen.
+    // Op zon staat sinds besluit 343 bij Energie › De zon verdelen, en de tijdelijke knop erheen is weg.
     expect(await wand.locator('[data-vorm] .rang', { hasText: 'Op zon' }).count()).toBe(0);
-    expect(await wand.locator('[data-vorm] a[href="energie.html#zon"]').count()).toBe(1);
+    expect(await wand.locator('[data-vorm] a[href="energie.html#zon"]').count()).toBe(0);
     // Nog niets gekozen: de regeling heeft geen volgorde op zon.
     expect(configNu.sunOrder).toBeUndefined();
     // Past op de wand zonder te scrollen.
@@ -6549,9 +6549,9 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     // Hoe: de airco een halve graad hoger.
     await wiz.locator('[data-pl-doel="1"]').click();
     expect(await zin.textContent()).toBe('Elke werkdag om 06:30 gaat de lamp bank aan en gaat de airco zolder verwarmen naar 20,5°.');
-    // Een scène bij de lampen (besluit 268): die start in plaats van de lamp; Aan zet het terug.
+    // Een scène bij de lampen (besluit 268): die start in plaats van de lamp, en de lamp blijft in de zin; Aan zet het terug.
     await wiz.locator('[data-pl-scene]').selectOption('scene.avond');
-    expect(await zin.textContent()).toContain('start de scène Avond');
+    expect(await zin.textContent()).toBe('Elke werkdag om 06:30 gaat de lamp bank naar de scène Avond en gaat de airco zolder verwarmen naar 20,5°.');
     await wiz.locator('[data-pl-hoe="licht:aan:1"]').click();
     expect(await zin.textContent()).toBe('Elke werkdag om 06:30 gaat de lamp bank aan en gaat de airco zolder verwarmen naar 20,5°.');
     // Een stuk van de zin opent zijn keuze.

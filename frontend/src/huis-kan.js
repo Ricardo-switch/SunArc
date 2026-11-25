@@ -17,6 +17,15 @@ async function laadAlles() {
   const deuren = { site: 'api/site', huis: 'api/huis', functies: 'api/functies', energie: 'api/energie', aansluiting: 'api/aansluiting', state: 'api/state', divergence: 'api/divergence', opbrengst: 'api/opbrengst?soort=maand', accu: 'api/accu', thermisch: 'api/thermisch', zon: 'api/zon', klaar: 'api/klaarzetten', sluip: 'api/sluipverbruik' };
   // Tekenen zodra het huis bekend is, en bij elke bron die daarna binnenkomt (basis.js).
   await app.laadBronnen(deuren, d, teken, ['site', 'huis', 'functies']);
+  // De som van de thuisbatterij loopt op de achtergrond (eerst 503 met wachten): even later nog eens, tot een minuut.
+  for (let i = 0; i < 12 && d.accu == null; i++) {
+    await new Promise((r) => setTimeout(r, 5000));
+    const res = await fetch('api/accu', { cache: 'no-store' }).catch(() => null);
+    if (res?.ok) {
+      d.accu = await res.json().catch(() => null);
+      teken();
+    } else if (res?.status !== 503) break;
+  }
 }
 
 const DAG = 86_400_000;

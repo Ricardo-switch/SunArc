@@ -37,6 +37,9 @@
   .grafiekkop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
   .blader { display: inline-flex; align-items: center; gap: 8px; }
   .blader button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--glas-rand); background: transparent; color: var(--tekst); font-size: 15px; cursor: pointer; }
+  /* Het rondje blijft klein, het raakvlak is 46 punten: met een vinger op de wand kwam je er snel naast. */
+  .blader button { position: relative; }
+  .blader button::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
   .blader button:disabled { opacity: 0.3; cursor: default; }
   .grafiek { flex: 1; min-height: 0; margin-top: 10px; display: flex; align-items: center; }
   .grafiek svg { display: block; width: 100%; height: auto; }

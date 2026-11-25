@@ -579,13 +579,11 @@ function voorrangVorm() {
       ${niet.length ? `<p class="niet">${esc(t(`comfort.kanNiet.${richting}`, { n: niet.length, namen: niet.join(` ${t('algemeen.en')} `) }))}</p>` : ''}</div>`;
   };
   // Op zon staat sinds besluit 343 bij Energie › De zon verdelen, in één lijst met de laadpaal en de stekkers.
-  const zon = comfort.voorrang?.zon?.length > 0;
   const voorstel = voorrangVoorstel();
   const anders = JSON.stringify(voorstel) !== JSON.stringify({ koelen: v.koelen, verwarmen: v.verwarmen });
   return `<h2 class="kop-2">${esc(t('comfort.voorrang'))}</h2>
     <p class="klein geen-marge">${esc(t('comfort.voorrangUitleg'))}</p>
     <div class="lijsten">${v.koelen.length ? lijst('koelen', t('comfort.alsKoelt'), 'var(--ijs)') : ''}${v.verwarmen.length ? lijst('verwarmen', t('comfort.alsWarmt'), 'var(--gloed)') : ''}</div>
-    ${zon ? `<div class="voorstelrij"><span class="mini">${esc(t('comfort.zonVerhuisd'))}</span><a class="knop" href="energie.html#zon">${esc(t('comfort.zonNaarEnergie'))}</a></div>` : ''}
     ${anders ? `<div class="voorstelrij"><span class="mini">${esc(t('comfort.voorstel'))}</span><button type="button" class="knop" data-voorrang-voorstel>${esc(t('comfort.neemOver'))}</button></div>` : ''}`;
 }
 

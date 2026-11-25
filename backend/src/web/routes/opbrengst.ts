@@ -78,7 +78,10 @@ export async function opbrengstRoutes(d: Diensten, v: Verzoek): Promise<boolean>
   /*
    * Een thuisbatterij op je eigen uren (besluit 230): het afgelopen jaar per
    * uur nagerekend, welke maat past en wanneer hij bijsprong. Een jaar per uur
-   * is zwaar, dus een paar uur bewaard.
+   * is zwaar (op de NAS de eerste keer 40 seconden), dus een paar uur bewaard,
+   * en op de achtergrond: wie Wat je huis kan opent, wacht er niet op, en de
+   * volgende pagina ook niet. Tot de eerste som klaar is: 503 met wachten; een
+   * oude som blijft gelden tot de nieuwe er is.
    */
   if (path === '/api/accu') {
     const config = d.config();
@@ -90,13 +93,22 @@ export async function opbrengstRoutes(d: Diensten, v: Verzoek): Promise<boolean>
     }
     const now = Date.now();
     const sleutel = JSON.stringify(settings.net);
-    if (d.accu?.sleutel !== sleutel || now - d.accu.atMs > 6 * 3_600_000) {
-      try {
-        d.accu = { sleutel, atMs: now, som: await accuJaar(energy.source, settings, config.timezone, now) };
-      } catch (error) {
-        sendJson(res, 502, { fout: `Home Assistant gaf de statistiek niet: ${(error as Error).message}` });
-        return true;
-      }
+    const zelfde = d.accu?.sleutel === sleutel;
+    if ((!zelfde || now - d.accu!.atMs > 6 * 3_600_000) && !d.accuBezig) {
+      d.accuBezig = accuJaar(energy.source, settings, config.timezone, now)
+        .then((som) => {
+          d.accu = { sleutel, atMs: Date.now(), som };
+        })
+        .catch(() => {
+          // Home Assistant gaf de statistiek niet: de volgende vraag probeert het opnieuw.
+        })
+        .finally(() => {
+          d.accuBezig = null;
+        });
+    }
+    if (d.accu == null || d.accu.sleutel !== sleutel) {
+      sendJson(res, 503, { wachten: 'de som van een thuisbatterij loopt nog' });
+      return true;
     }
     if (d.accu.som == null) sendJson(res, 404, { fout: 'er ging niets naar het net, dus een batterij heeft niets te bewaren' });
     else sendJson(res, 200, d.accu.som);

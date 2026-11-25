@@ -1,5 +1,29 @@
 [
   {
+    "versie": "0.241.0",
+    "datum": "2026-11-25",
+    "beter": [
+      "Opbrengst: het kaartje Sluipverbruik toont de laatste 30 nachten als staafjes, zonder eerst door te tikken",
+      "Een taak met een scène noemt de lamp nog: Gaat de lamp bank naar de scène Avond",
+      "Wat je huis kan opent meteen: de som van een thuisbatterij rekent op de achtergrond en verschijnt even later"
+    ],
+    "opgelost": [
+      "Sluipverbruik: het pijltje naar eerdere nachten is met een vinger makkelijker te raken",
+      "Opbrengst: zon en net vielen op de wand onder Per apparaat en Per dag buiten de kaart"
+    ],
+    "en": {
+      "beter": [
+        "Energy overview: the Standby use card shows the last 30 nights as bars, without tapping through first",
+        "A task with a scene still names the lamp: The lamp bank switches to the Avond scene",
+        "What your home can do opens right away: the home battery estimate is worked out in the background and appears a little later"
+      ],
+      "opgelost": [
+        "Standby use: the arrow to earlier nights is easier to hit with a finger",
+        "Energy overview: sun and grid fell outside the card under Per device and Per day on the wall display"
+      ]
+    }
+  },
+  {
     "versie": "0.240.0",
     "datum": "2026-11-25",
     "beter": [
