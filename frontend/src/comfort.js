@@ -177,7 +177,7 @@ function delen() {
   const anderDeel = ander.length ? [{ kop: t('klimaat.andere') }, ...ander] : [];
   // Een huis zonder slimme regeling (besluit 194): comfort per kamer kan erbij, meer niet.
   if (!comfort.kamers.length) return [{ id: 'erbij', titel: t('comfort.erbij.titel'), zin: t('comfort.erbij.kort'), stand: 'leeg' }, ...anderDeel];
-  const soort = verwarming?.soort ? t(`energie.soort.${verwarming.soort}`) : null;
+  const meten = vanHetHuis() ? metenKamers() : [];
   return [
     { kop: t('w.kamers') },
     // Een zone staat ingesprongen onder zijn kamer, niet als kamer (schets Wand-Klimaat-Subzone).
@@ -197,8 +197,9 @@ function delen() {
     { kop: t('w.hetHeleHuis') },
     // Helpen bij de cv (besluit 292): alleen als er een airco is die kan helpen. Eerst bij Regeling.
     ...(helpen?.aircos?.length ? [{ id: 'helpen', icoon: 'klimaat', titel: t('regeling.helpen'), zin: helpenZin(), stand: 'goed' }] : []),
-    // De soort verwarming staat bij Energie (niet dubbel instellen): hier een regel erheen.
-    ...(vanHetHuis() ? [{ id: 'verwarming', titel: t('klimaat.soort'), zin: soort ? huismodel.metHoofdletter(soort) : t('instellingen.nogKiezen'), stand: 'goed', href: 'energie.html#verwarming' }] : []),
+    // Meten en regeling (besluit 345): alle kamers op één plek, waar eerst de regel naar Soort verwarming stond
+    // (die staat alleen nog bij Energie).
+    ...(meten.length ? [{ id: 'meten', icoon: 'meters', titel: t('klimaat.meten'), zin: t('klimaat.meten.zin', { eigen: meten.filter((x) => x.soort === 'eigen').length, mee: meten.filter((x) => x.soort === 'mee').length }), stand: 'goed' }] : []),
     ...(vanHetHuis() ? [{ id: 'dagdelen', titel: t('instellingen.dagdelen'), zin: t('comfort.dagdelenZin', { dag: d.dag, nacht: d.nacht }), stand: 'goed' }] : []),
     ...(vanHetHuis() && (comfort.voorrang?.koelen?.length > 1 || comfort.voorrang?.verwarmen?.length > 1) ? [{ id: 'voorrang', titel: t('comfort.voorrang'), zin: voorrangZin(), stand: 'goed' }] : []),
     { id: 'afwezig', titel: t('comfort.afwezig'), zin: t('comfort.afwezigZin'), stand: 'goed' },
@@ -285,10 +286,10 @@ function band(k, m) {
 
 /** Zon en net, per kamer (besluit 133): hoeveel verder op zon, en of koelen van het net mag. */
 function zonEnNet(k) {
+  // Op zon staat op één plek (besluit 345): Energie › De zon verdelen. Hier een regel zonder knop, met de plek in de lijst.
+  const plek = (comfort.voorrang?.zon ?? []).findIndex((z) => z.soort === 'kamer' && z.id === k.id);
   const zon = k.opZon?.verwarmen || k.opZon?.koelen
-    ? `<div class="blok"><span class="label"><span class="stip" style="background: var(--zon)"></span>${esc(t('comfort.opZonMag'))}${window.hulp?.vraag('op-zon-mag-het') ?? ''}</span>
-        <div class="keuze" role="group" aria-label="${esc(t('comfort.opZonMag'))}">${[[0, t('comfort.niet')], [0.5, '½°'], [1, '1°'], [2, '2°']].map(([v, x]) => `<button type="button" data-opzon="${v}" aria-pressed="${k.opZonC === v}">${esc(x)}</button>`).join('')}</div>
-        <p class="uitleg">${esc(t(k.opZon.koelen && k.opZon.verwarmen ? 'comfort.verder.beide' : k.opZon.koelen ? 'comfort.verder.koeler' : 'comfort.verder.warmer'))}</p></div>`
+    ? `<a class="blok zonregel" href="energie.html#zon"><span class="stip" style="background: var(--zon)"></span><span><b>${esc(t('w.opZon'))}</b> · ${esc(t(k.opZonC > 0 ? 'comfort.zonRegel' : 'comfort.zonRegelNiet', { n: plek + 1, c: k.opZonC === 0.5 ? '½' : nl(k.opZonC, 0) }))}</span><span class="pijl" aria-hidden="true">›</span></a>`
     : '';
   const net = k.kanKoelen && !k.koeltVanNet
     ? `<div class="blok"><span class="label"><span class="stip" style="background: var(--ijs)"></span>${esc(t('comfort.koelenNet'))}${window.hulp?.vraag('koelen-van-het-net') ?? ''}</span>
@@ -501,6 +502,64 @@ function dagbalk() {
     <div class="daglegenda"><span><i style="background: rgba(255, 122, 77, 0.7)"></i>${esc(t('comfort.legenda.voorverwarmen'))}</span><span><i style="background: rgba(110, 231, 183, 0.7)"></i>${esc(t('w.overdag'))}</span><span><i style="background: rgba(143, 134, 255, 0.7)"></i>${esc(t('comfort.legenda.nacht'))}</span></div>`;
 }
 
+/* ------------------------------------------------- meten en regeling (besluit 345) */
+
+/** De kamer die bij Meten en regeling open is, of null. */
+let metenKamer = null;
+
+/**
+ * Klimaat › Meten en regeling (schets Wand-Klimaat-Meten): alle kamers met
+ * waarmee ze meten en wie ze regelt, de zones ingesprongen. Een tik opent de
+ * keuzes van die kamer (warmte.js): op de wand naast een smalle lijst, zodat de
+ * wand niet scrolt; op de telefoon onder de kamer.
+ */
+/** De kamers voor Meten en regeling, met de indeling en het huis van nu (warmte.js). */
+function metenKamers() {
+  Object.assign(zorg, { info: indeling, huis: huisData, verwarming });
+  return warm.metenKamers();
+}
+
+function metenVorm() {
+  // Eerst wat een eigen regeling heeft, dan wat meedoet, dan de rest; binnen elk de volgorde van de indeling.
+  const ORDE = { eigen: 0, mee: 1, geen: 2 };
+  const kamers = metenKamers().sort((a, b) => ORDE[a.soort] - ORDE[b.soort]);
+  if (metenKamer && !kamers.some((k) => k.id === metenKamer)) metenKamer = null;
+  const graad = (c) => (c == null ? '–' : `${nl(Math.round(c * 10) / 10, 1)}°`);
+  const tel = (soort) => kamers.filter((k) => k.soort === soort).length;
+  const zonder = kamers.filter((k) => !k.gemeten).length;
+  const samen = `<div class="mt-samen">${[['eigen', t('klimaat.meten.eigen', { n: tel('eigen') })], ['mee', t('klimaat.meten.mee', { n: tel('mee') })], ['geen', t('klimaat.meten.geen', { n: tel('geen') })]]
+    .filter(([s]) => tel(s)).map(([s, x]) => `<span><i class="${s}"></i>${esc(x)}</span>`).join('')}${zonder ? `<span class="let">${esc(t('klimaat.meten.zonder', { n: zonder }))}</span>` : ''}</div>`;
+  // De keuzes van de open kamer: dezelfde als eerst achter Meten en regeling in het blad van de kamer.
+  if (metenKamer && zorg.kamer !== metenKamer) warm.sluit();
+  if (metenKamer) Object.assign(zorg, { info: indeling, huis: huisData, verwarming, kamer: metenKamer, zone: null });
+  const keuzes = metenKamer ? `<div class="zorgt mt-keuzes" data-zorgt>${warm.meten()}</div>` : '';
+  const open = kamers.find((k) => k.id === metenKamer) ?? null;
+  const rij = (k) => {
+    const isOpen = k.id === metenKamer;
+    // De zones als korte regel in de kamer: als eigen rijen paste de lijst niet op de wand.
+    const zones = k.zones.length ? `<small class="mt-zones">${esc(t('klimaat.meten.zones', { namen: new Intl.ListFormat(taal.locale, { type: 'conjunction' }).format(k.zones.map((z) => z.naam)) }))}</small>` : '';
+    return `<li><button type="button" class="mt-rij${isOpen ? ' open' : ''}" data-meten-kamer="${esc(k.id)}" aria-expanded="${isOpen}">
+        <span class="mt-tekst"><b>${esc(k.naam)}</b><small${k.gemeten ? '' : ' class="let"'}>${esc(k.meet)}</small>${zones}</span>
+        <span class="mt-temp">${graad(k.temp)}</span>
+        <span class="mt-pil ${k.soort}">${esc(k.regel)}</span>
+        <span class="mt-pijl" aria-hidden="true">${isOpen ? '⌃' : '›'}</span>
+      </button>${isOpen ? `<div class="mt-onder">${keuzes}</div>` : ''}</li>`;
+  };
+  const lijst = `<ol class="mt-lijst${open ? ' smal' : ''}">${kamers.map(rij).join('')}</ol>`;
+  const zij = open ? `<section class="mt-blad"><div class="mt-bladkop"><b>${esc(open.naam)}</b><span class="mt-temp">${graad(open.temp)}</span><button type="button" class="mt-sluit" data-meten-kamer="${esc(open.id)}" aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>${keuzes}</section>` : '';
+  return `<h2 class="kop-2">${esc(t('klimaat.meten'))}</h2>
+    <p class="klein geen-marge">${esc(t('klimaat.meten.lead'))}</p>
+    ${open ? '' : samen}
+    ${open ? `<div class="mt-twee">${lijst}${zij}</div>` : lijst}
+    ${open ? '' : `<p class="mini geen-marge">${esc(t('klimaat.meten.noot'))}</p>`}`;
+}
+document.addEventListener('click', (e) => {
+  const el = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest?.('[data-meten-kamer]'));
+  if (!el) return;
+  metenKamer = metenKamer === el.dataset.metenKamer ? null : el.dataset.metenKamer ?? null;
+  teken();
+});
+
 function dagdelenVorm() {
   const d = comfort.dagdelen;
   const uur = (sleutel) => `<div><span class="label onder-8" style="font-size: 14.5px; font-weight: 600; display: block">${esc(t(`comfort.vanaf.${sleutel}`))}</span><div class="stapper"><button type="button" data-uur="${sleutel}:-1" aria-label="${esc(t('w.eerder'))}">−</button><b>${d[sleutel]}:00</b><button type="button" data-uur="${sleutel}:1" aria-label="${esc(t('w.later'))}">+</button></div></div>`;
@@ -609,7 +668,7 @@ function tekenNu() {
   const zoneAdres = nu?.startsWith(ZONE) ? nu.slice(ZONE.length).split(':') : null;
   zorg.zone = zoneAdres?.[1] ?? null;
   const k = comfort.kamers.find((x) => x.id === (zoneAdres ? zoneAdres[0] : nu));
-  const vorm = k ? kamerVorm(k) : nu?.startsWith(ANDER) ? anderVorm(nu.slice(ANDER.length)) : nu === 'helpen' ? helpenVorm() : nu === 'erbij' ? erbijVorm() : nu === 'dagdelen' ? dagdelenVorm() : nu === 'voorrang' ? voorrangVorm() : nu === 'standaard' ? standaardVorm() : afwezigVorm();
+  const vorm = k ? kamerVorm(k) : nu?.startsWith(ANDER) ? anderVorm(nu.slice(ANDER.length)) : nu === 'helpen' ? helpenVorm() : nu === 'erbij' ? erbijVorm() : nu === 'dagdelen' ? dagdelenVorm() : nu === 'meten' ? metenVorm() : nu === 'voorrang' ? voorrangVorm() : nu === 'standaard' ? standaardVorm() : afwezigVorm();
   // Een veld waar je in typt, niet onder je vingers vervangen (het vermogen van een bron).
   const typt = document.activeElement?.closest?.('[data-zorgt]') && document.activeElement.matches('input');
   if (typt) return;
@@ -845,9 +904,7 @@ document.addEventListener('click', (e) => {
     }
     return teken();
   }
-  if (k && knop.dataset.opzon != null) {
-    k.opZonC = Number(knop.dataset.opzon);
-  } else if (k && rij && (knop.dataset.aan || knop.dataset.uit)) {
+  if (k && rij && (knop.dataset.aan || knop.dataset.uit)) {
     const m = rij.dataset.modus;
     if (knop.dataset.aan) zet(k, m, knop.dataset.aan, nieuw(knop.dataset.aan, m));
     else k.modi = { ...k.modi, [m]: { ...k.modi[m], [knop.dataset.uit]: null } };

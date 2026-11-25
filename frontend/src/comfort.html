@@ -163,6 +163,64 @@
   .helpdrie .regelrij { align-items: flex-start; }
   #tel .helpdrie { grid-template-columns: 1fr; }
   .tel-stand .kostbalk i { grid-column: 1 / -1; grid-row: 2; }
+  /* Meten en regeling (besluit 345, schets Wand-Klimaat-Meten): alle kamers, een tik opent de keuzes. */
+  .mt-samen { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--zacht); }
+  .mt-samen span { display: inline-flex; align-items: center; gap: 6px; }
+  .mt-samen i { width: 9px; height: 9px; border-radius: 3px; }
+  .mt-samen i.eigen { background: var(--mint); }
+  .mt-samen i.mee { background: var(--ijs); }
+  .mt-samen i.geen { background: rgb(var(--wit) / 0.25); }
+  .mt-samen .let, .mt-tekst small.let { color: var(--gloed-t); }
+  .mt-lijst { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+  .mt-zones { font-size: 12px; color: var(--zacht); }
+  .mt-rij { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 54px auto 18px; align-items: center; gap: 0 12px; padding: 5px 12px 5px 14px; border-radius: 15px; background: rgb(var(--wit) / 0.04); border: 1px solid transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .mt-rij.sub { background: none; padding-top: 2px; padding-bottom: 2px; grid-template-columns: 18px minmax(0, 1fr) 54px; cursor: default; }
+  .mt-rij.open { background: rgb(var(--wit) / 0.08); border-color: rgb(var(--wit) / 0.18); }
+  .mt-lijn { width: 12px; height: 20px; border-left: 2px solid rgb(var(--wit) / 0.14); border-bottom: 2px solid rgb(var(--wit) / 0.14); border-bottom-left-radius: 8px; margin-top: -12px; }
+  .mt-tekst { display: flex; flex-direction: column; min-width: 0; }
+  .mt-tekst b { font-size: 15px; font-weight: 600; }
+  .mt-rij.sub .mt-tekst b { font-size: 14px; }
+  .mt-tekst small { font-size: 12.5px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mt-temp { font-family: var(--kop); font-size: 17px; font-weight: 600; text-align: right; }
+  .mt-rij.sub .mt-temp { font-size: 14px; color: var(--zacht); }
+  .mt-pil { font-size: 12.5px; font-weight: 700; white-space: nowrap; padding: 5px 10px; border-radius: 999px; }
+  .mt-pil.eigen { color: var(--mint-t); background: rgb(var(--mint-k) / 0.1); }
+  .mt-pil.mee { color: var(--ijs-t); background: rgb(var(--ijs-k) / 0.12); }
+  .mt-pil.geen { color: var(--gedempt); background: rgb(var(--wit) / 0.05); }
+  .mt-pijl { color: var(--gedempt); font-size: 18px; text-align: center; }
+  .mt-keuzes { display: flex; flex-direction: column; gap: 12px; }
+  /* Wand: een open kamer naast een smalle lijst; telefoon: onder de kamer. */
+  .mt-twee { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 14px; min-height: 0; }
+  .mt-lijst.smal .mt-rij { grid-template-columns: minmax(0, 1fr) 44px; gap: 2px 8px; padding: 6px 10px; }
+  .mt-lijst.smal .mt-pil { grid-column: 1 / -1; justify-self: start; font-size: 11.5px; padding: 3px 8px; }
+  .mt-lijst.smal .mt-tekst small, .mt-lijst.smal .mt-pijl { display: none; }
+  .mt-lijst.smal .mt-temp { font-size: 15px; grid-row: 1; grid-column: 2; }
+  .mt-blad { padding: 14px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.06); border: 1px solid rgb(var(--wit) / 0.16); display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
+  /* Op de wand compacter, zodat een kamer met twee zones zonder scrollen past. */
+  #wand .mt-blad .chips { gap: 6px; }
+  #wand .mt-blad .chip { height: 32px; }
+  #wand .mt-blad .invoer { height: 40px; }
+  #wand .mt-blad .zone-regel { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: 6px 10px; gap: 0 10px; }
+  #wand .mt-blad .zone-regel > .keuze { grid-column: 2; grid-row: 1 / 3; }
+  #wand .mt-blad .zone-regel > .zone-uitleg { grid-column: 1 / -1; }
+  #wand .mt-blad .zones-blok > .mini, #wand .mt-blad > .mt-keuzes > .mini:last-child { display: none; }
+  .mt-bladkop { display: flex; align-items: center; gap: 12px; }
+  .mt-bladkop b { font-family: var(--kop); font-size: 22px; font-weight: 600; }
+  .mt-sluit { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.06); color: var(--tekst); font-size: 18px; cursor: pointer; }
+  #wand .mt-onder { display: none; }
+  #tel .mt-twee { display: block; }
+  #tel .mt-blad { display: none; }
+  #tel .mt-lijst.smal .mt-rij { grid-template-columns: minmax(0, 1fr) 48px 14px; }
+  #tel .mt-lijst.smal .mt-tekst small, #tel .mt-lijst.smal .mt-pijl { display: block; }
+  #tel .mt-rij { grid-template-columns: minmax(0, 1fr) 48px 14px; }
+  #tel .mt-rij .mt-pil { grid-column: 1 / 3; grid-row: 2; justify-self: start; margin-top: 4px; }
+  #tel .mt-rij .mt-pijl { grid-row: 1; grid-column: 3; }
+  #tel .mt-onder { padding: 10px 4px 4px; }
+  /* Op zon als regel (besluit 345): instellen doe je bij Energie › De zon verdelen. */
+  .zonnet .zonregel, .zonregel { flex-direction: row; align-items: center; gap: 10px; color: inherit; text-decoration: none; font-size: 14px; }
+  .zonregel .stip { flex: none; width: 9px; height: 9px; border-radius: 50%; }
+  .zonregel b { color: var(--zon-t); }
+  .zonregel .pijl { margin-left: auto; color: var(--gedempt); font-size: 18px; }
 </style>
 </head>
 <body class="lucht lucht-dag">

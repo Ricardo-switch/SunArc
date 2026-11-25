@@ -330,11 +330,11 @@ function klimaatKaart({ a, r }) {
     : `<div class="vandaag">${vandaagKop}<b>${esc(aanMs > 0 ? t('apparaten.aan', { duur: uren(aanMs) }) : t('apparaten.nietAan'))}</b></div>`;
   // Gewone tekst in één regel, geen etiketjes (besluit 228): "Houdt op temperatuur · filter 20%".
   const labels = [a.klimaat?.rol ? ROL(a.klimaat.rol) : '', a.klimaat?.filter?.pct != null ? t('w.filter', { pct: a.klimaat.filter.pct }) : ''].filter(Boolean).join(' · ');
-  // Kan hij op zon maar staat hij er niet op: de weg erheen, naar de kamer bij Klimaat (18-11, keuze Ricardo: één plek).
+  // Kan hij op zon maar staat hij er niet op: de weg erheen, naar De zon verdelen (besluit 345: daar staat op zon).
   // Alleen met een kamer of zone bij Klimaat (een zone met eigen regeling, zoals de zithoek): anders is er daar niets te kiezen.
   const klimaatKamer = (r.zones ?? []).find((z) => z.id === a.zone)?.regeling?.zoneId ?? r.zoneId ?? null;
   const naarZon = klimaatKamer && a.klimaat?.rol && a.klimaat.rol !== 'zon' && huismodel.kanOpZon(a, huisData, aansluiting?.antwoorden?.verwarming ?? null)
-    ? `<span class="mini opzon" data-opzon-klimaat="comfort.html#${esc(encodeURIComponent(klimaatKamer))}">${esc(t('apparaten.opZonBijKlimaat'))} ›</span>`
+    ? `<span class="mini opzon" data-opzon-klimaat="energie.html#zon">${esc(t('apparaten.opZonBijZon'))} ›</span>`
     : '';
   const el = document.createElement('a');
   el.className = 'glas app';

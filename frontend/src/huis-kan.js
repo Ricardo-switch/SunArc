@@ -31,7 +31,8 @@ async function laadAlles() {
 const DAG = 86_400_000;
 const TREDEN = ['gevonden', 'geleerd', 'kijkt', 'werkt'];
 const KLEUR = { ...waaier.KLEUR, uit: 'var(--gedempt)', mis: 'var(--gloed)' };
-const gekozen = () => decodeURIComponent(location.hash.slice(1));
+// Hoe je huis warmte vasthoudt is sinds besluit 345 deel van Op tijd warm of koel: een oude link komt daar uit.
+const gekozen = () => { const id = decodeURIComponent(location.hash.slice(1)); return id === 'thermisch' ? 'optijd' : id; };
 const datum = (ms) => taal.datum(ms, { day: 'numeric', month: 'long' });
 const pct = (n) => `${Math.round(n)}%`;
 
@@ -282,7 +283,8 @@ function tekenNu() {
   const svg = document.querySelector(tel ? '[data-waaier="tel"]' : '[data-waaier="wand"]');
   if (!svg || !v.onderwerpen.length) return;
   svg.setAttribute('aria-label', t('voortgang.beschrijving', { pct: v.totaal }));
-  const maat = tel ? { cx: 195, cy: 204, r0: 62, R: 178 } : { cx: 370, cy: 392, r0: 88, R: 238, namen: true, groepnamen: true, horizon: 140, ringen: TREDEN.map((tr) => t(`voortgang.ring.${tr}`)) };
+  // Op de telefoon ook de namen van de groepen langs de ring (besluit 345): zonder was het onduidelijk.
+  const maat = tel ? { cx: 195, cy: 206, r0: 60, R: 168, groepnamen: true } : { cx: 370, cy: 392, r0: 88, R: 238, namen: true, groepnamen: true, horizon: 140, ringen: TREDEN.map((tr) => t(`voortgang.ring.${tr}`)) };
   waaier.teken(svg, { groepen: v.groepen, ...maat, getal: `${v.totaal}%`, onder: t('voortgang.zo'), gekozen: x?.id ?? null, groei: false });
 }
 

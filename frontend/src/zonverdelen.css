@@ -71,3 +71,16 @@
 #tel .zv-rij .zv-stand { grid-column: 4; justify-self: start; margin-top: 4px; }
 #tel .zv-ik { width: 34px; height: 34px; }
 #tel .zv-hand { grid-column: 1 / -1; flex-wrap: wrap; }
+/* Op zon op één plek (besluit 345): de keuzes van een kamer en wat erbij kan. */
+.zv-kamerblad { grid-column: 3 / -1; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.zv-keuze { display: flex; flex-direction: column; gap: 6px; }
+.zv-keuze .keuze { align-self: start; }
+.zv-keuze .keuze button { min-width: 54px; }
+.zv-keuze small { font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+.zv-toestel { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; }
+.zv-toestel .schakelaar { flex: none; }
+.zv-kan .zv-uitrij { gap: 10px; }
+.zv-kantekst { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.zv-kantekst b { font-size: 14px; color: var(--tekst); font-weight: 600; }
+.zv-kantekst small { font-size: 12px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zv-kan .knop { flex: none; }

@@ -977,17 +977,16 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // Op zon staat in het blad van het apparaat (besluit 318); de oude link naar Regeling komt bij Apparaten uit.
     await p.goto(`${baseUrl}/regeling.html#opzon`);
     await p.waitForURL(/apparaten\.html/, { timeout: 10_000 });
-    // Een apparaat dat nog niet op zon staat: een tik opent zijn blad, met de schakelaar.
+    // Een apparaat dat nog niet op zon staat: een tik opent zijn blad. Op zon staat daar als regel naar De zon verdelen (besluit 345).
     await wand.locator('[data-vrij="opzon:vaatwasser"]').click({ timeout: 10_000 });
-    await p.locator('[data-hand] [aria-label="Vaatwasser op zon"][role="switch"]').click({ timeout: 10_000 });
-    await expect.poll(() => connStore.current?.apparaten, { timeout: 5_000 }).toMatchObject([{ id: 'droger', opZon: false }, { id: 'vaatwasser', opZon: true }]);
-    // Ook de droger uit de configuratie (besluit 167): in zijn eigen blad.
+    const zonRegel = p.locator('[data-hand] a[href="energie.html#zon"]', { hasText: 'Op zon' });
+    await zonRegel.waitFor({ timeout: 10_000 });
+    expect(await p.locator('[data-hand] [aria-label="Vaatwasser op zon"][role="switch"]').count()).toBe(0);
+    // Wat De zon verdelen doet (instellen.zetOpZon): een apparaat uit Home Assistant, en de droger uit de configuratie (besluit 167).
     await p.locator('[data-hand] [data-hand-sluit]').first().click();
-    await p.evaluate(`window.instellen.laad()`);
-    await p.evaluate(`window.hand.openVrij('opzon:droger', () => ({ naam: 'Droger', zin: '', html: window.instellen.regels('witgoed', 'droger', { naam: 'Droger' }) }))`);
-    const droger = p.locator('[data-hand] [aria-label="Droger op zon"][role="switch"]');
-    await expect.poll(() => droger.getAttribute('aria-checked'), { timeout: 5_000 }).toBe('true');
-    await droger.click();
+    await p.evaluate(`window.instellen.zetOpZon('vaatwasser', true)`);
+    await expect.poll(() => connStore.current?.apparaten, { timeout: 5_000 }).toMatchObject([{ id: 'droger', opZon: false }, { id: 'vaatwasser', opZon: true }]);
+    await p.evaluate(`window.instellen.zetOpZon('droger', false)`);
     await expect.poll(() => connStore.current?.opZonUit, { timeout: 5_000 }).toEqual(['droger']);
     // De verwarming bleef staan toen het blad bewaarde.
     expect(connStore.current).toMatchObject({ verwarming: { soort: 'cv', aanvoerC: 60 } });
@@ -1336,14 +1335,13 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
     const kamer = huis.etages.flatMap((e) => e.ruimtes).find((r) => r.apparaten.some((d) => d.meting?.temperatuurC != null))!;
     const bron = kamer.apparaten.find((d) => d.meting?.temperatuurC != null)!;
-    // Meten met staat bij wat ervoor zorgt; een oude link naar Kamers en indeling komt hier uit.
-    await p.goto(`${baseUrl}/indeling.html#${encodeURIComponent(kamer.id)}/warmte`);
-    await p.waitForURL(/comfort\.html#/, { timeout: 10_000 });
-    await p.locator('#wand [data-zorgt] [data-zorg-meten="aan"]').click({ timeout: 10_000 });
-    const chip = p.locator(`#wand [data-zorgt] [data-meten="${bron.id}"]`);
+    // Meten met staat bij Klimaat › Meten en regeling (besluit 345): alle kamers, een tik opent de keuzes naast de lijst.
+    await p.goto(`${baseUrl}/comfort.html#meten`);
+    await p.locator(`#wand [data-meten-kamer="${kamer.id}"]`).first().click({ timeout: 10_000 });
+    const chip = p.locator(`#wand .mt-blad [data-meten="${bron.id}"]`);
     await chip.click({ timeout: 10_000 });
     await expect.poll(() => layoutStore.current?.kamers.find((k) => k.id === kamer.id)?.meten).toEqual([bron.id]);
-    await p.locator(`#wand [data-meten="${bron.id}"][aria-pressed="true"]`).click({ timeout: 5000 });
+    await p.locator(`#wand .mt-blad [data-meten="${bron.id}"][aria-pressed="true"]`).click({ timeout: 5000 });
     await expect.poll(() => layoutStore.current?.kamers.find((k) => k.id === kamer.id)?.meten ?? null).toBeNull();
     expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
     expect(fouten).toEqual([]);
@@ -1394,9 +1392,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     await blad.locator('[data-bron-w]').fill('1150');
     await blad.locator('[data-bron-bewaar]').click();
     await expect.poll(() => bronnen()?.[1]).toEqual(expect.objectContaining({ soorten: ['vloer-elektrisch', 'paneel'], aan: 'thermostaat', apparaat: thermo.actuatorId, vermogenW: 1150 }));
-    // Op zon: meteen in de regeling.
-    await blad.locator(`[data-bron-zon="${bronnen()?.[1]?.id}"]`).click();
-    await expect.poll(() => bronnen()?.[1]?.opZon).toBe(true);
+    // Op zon zet je bij De zon verdelen (besluit 345): hier geen schakelaar.
+    expect(await blad.locator('[data-bron-zon]').count()).toBe(0);
     // Een kachel met de hand: geen vermogen, wel een idee.
     await blad.locator('[data-bron-nieuw=""]').click();
     await blad.locator('[data-bron-soort="kachel"]').click();
@@ -1433,23 +1430,21 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const airco = kamer.apparaten.find((d) => d.klimaat?.rol === 'zon')!;
     await p.goto(`${baseUrl}/comfort.html#${encodeURIComponent(kamer.id)}`);
     const blad = p.locator('#wand [data-zorgt]');
-    // Per apparaat een regel met zijn taak; meten en de regeling achter één regel (besluit 167 en 317).
-    const keuze = blad.locator(`[data-rol="${airco.actuatorId}"]`);
-    await keuze.waitFor({ timeout: 10_000 });
-    expect(await keuze.inputValue()).toBe('zon');
-    expect(kamer.meetMet.length).toBeGreaterThan(0);
-    expect(await blad.locator('[data-zorg-meten="aan"]').textContent()).toContain(kamer.meetMet[0]!);
-    await blad.locator('[data-zorg-meten="aan"]').click();
-    await blad.locator('[data-actie="regeling"]').waitFor({ timeout: 10_000 });
-    expect(await blad.textContent()).toContain('Meten met');
-    await blad.locator('[data-zorg-meten="uit"]').click();
-    await keuze.selectOption('houdt');
-    const rollen = () => layoutStore.current?.kamers.find((k) => k.id === kamer.id)?.rollen ?? null;
-    await expect.poll(rollen).toEqual(expect.objectContaining({ [airco.actuatorId!]: 'houdt' }));
+    // Per apparaat een regel met zijn taak. Helpt op zon is een regel naar De zon verdelen (besluit 345), geen keuze.
+    await blad.locator('a.rolzon[href="energie.html#zon"]').first().waitFor({ timeout: 10_000 });
+    expect(await blad.locator(`[data-rol="${airco.actuatorId}"]`).count()).toBe(0);
+    // Meten en de regeling staan niet meer in het blad, maar bij Meten en regeling (besluit 345).
+    expect(await blad.locator('[data-zorg-meten]').count()).toBe(0);
     if (process.env.HEMS_PAGE_SHOT) await p.screenshot({ path: process.env.HEMS_PAGE_SHOT });
-    // Terug zoals het was, voor de andere tests.
-    await blad.locator(`[data-rol="${airco.actuatorId}"]`).selectOption('zon');
-    await expect.poll(() => rollen()?.[airco.actuatorId!]).toBe('zon');
+    expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
+    await p.goto(`${baseUrl}/comfort.html#meten`);
+    const rij = p.locator(`#wand [data-meten-kamer="${kamer.id}"]`).first();
+    await rij.waitFor({ timeout: 10_000 });
+    expect(kamer.meetMet.length).toBeGreaterThan(0);
+    expect(await rij.textContent()).toContain(kamer.meetMet[0]!);
+    await rij.click();
+    await p.locator('#wand .mt-blad [data-actie="regeling"]').waitFor({ timeout: 10_000 });
+    expect(await p.locator('#wand .mt-blad').textContent()).toContain('Meten met');
     expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
     // Klimaat bij Regeling is weg (besluit 317): de oude link komt bij Klimaat uit, met Helpen bij de cv onder Het hele huis.
     await p.goto(`${baseUrl}/regeling.html#klimaat`);
@@ -2531,7 +2526,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     const delen = await wand.locator('[data-delen] .deel b').allTextContents();
     // De kamers met een regeling, dan de andere kamers (besluit 317), dan het hele huis.
     expect(delen.slice(0, exampleSite.zones.length)).toEqual(exampleSite.zones.map((z) => z.name));
-    expect(delen.slice(-6)).toEqual(['Helpen bij de cv', 'Soort verwarming', 'Dagdelen', 'Voorrang', 'Afwezig en vakantie', 'Terug naar standaard']);
+    // Meten en regeling op de plek van Soort verwarming (besluit 345): die staat alleen nog bij Energie.
+    expect(delen.slice(-6)).toEqual(['Helpen bij de cv', 'Meten en regeling', 'Dagdelen', 'Voorrang', 'Afwezig en vakantie', 'Terug naar standaard']);
     // De verwarmgreep van overdag een stuk naar rechts.
     const greep = wand.locator('[data-modus="dag"] [data-greep="heat"]');
     const vak = (await wand.locator('[data-modus="dag"] .schaal').boundingBox())!;
@@ -6325,10 +6321,11 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     const fouten: string[] = [];
     p.on('pageerror', (e) => fouten.push(e.message));
     await p.goto(`${baseUrl}/huis-kan.html`);
-    const regel = p.locator('#wand [data-groepen] .func', { hasText: 'Hoe je huis warmte vasthoudt' });
+    // Eén straal sinds besluit 345: Op tijd warm of koel zegt ook wat het huis van warmte weet.
+    const regel = p.locator('#wand [data-groepen] .func', { hasText: 'Op tijd warm of koel' });
     await regel.waitFor();
     expect(await regel.textContent()).toContain('kent het afkoelen, wacht op het stoken');
-    expect(await p.locator('#wand [data-groepen] .func', { hasText: 'Op tijd warm of koel' }).textContent()).toContain('begint zodra het huis het stoken kent');
+    expect(await p.locator('#wand [data-groepen] .func', { hasText: 'Hoe je huis warmte vasthoudt' }).count()).toBe(0);
     await regel.click();
     const blad = p.locator('.thermisch').first();
     await blad.locator('.lijn').first().waitFor();
@@ -6914,7 +6911,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
    * apparaat heen zet: sinds besluit 317 in Je huis, bij Waar staat hij? Op
    * Thuis opent een tik op de voordeur zijn blad.
    */
-  it('Apparaten: een klimaatapparaat dat op zon kan maar er niet op staat, wijst naar Klimaat (18-11)', async () => {
+  it('Apparaten: een klimaatapparaat dat op zon kan maar er niet op staat, wijst naar De zon verdelen (besluit 345)', async () => {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC', locale: 'nl-NL' });
     await context.addCookies([{ name: 'hems_sessie', value: sessionId, url: baseUrl }]);
     await context.route((url) => !url.href.startsWith(baseUrl), (route) => route.abort());
@@ -6931,8 +6928,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
       for (const k of kaarten) expect(k).not.toContain('Helpt op zon');
       const doel = await regels.first().getAttribute('data-opzon-klimaat');
       await regels.first().click();
-      await p.waitForURL(/comfort\.html#/);
-      expect(doel).toMatch(/^comfort\.html#.+/);
+      await p.waitForURL(/energie\.html#zon/);
+      expect(doel).toBe('energie.html#zon');
       expect(fouten).toEqual([]);
     } finally {
       await context.close();
@@ -8987,23 +8984,32 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await context.close();
   }, 30_000);
 
-  it('route 4: een airco laten helpen op zon', async () => {
+  it('route 4: een airco laten helpen op zon, bij De zon verdelen (besluit 345)', async () => {
     const { context, p, fouten } = await routeOpWand();
     const huis = (await (await fetch(`${baseUrl}/api/huis`)).json()) as HouseReport;
     const kamer = huis.etages.flatMap((e) => e.ruimtes).find((r) => r.zoneId && r.apparaten.some((d) => d.klimaat?.rol === 'zon'))!;
     const airco = kamer.apparaten.find((d) => d.klimaat?.rol === 'zon')!;
     const rollen = () => layoutStore.current?.kamers.find((k) => k.id === kamer.id)?.rollen ?? null;
-    // Via Klimaat naar de kamer (besluit 317); eerst op temperatuur, dan op zon, zoals iemand die het omzet.
+    // Via Klimaat naar de kamer (besluit 317): daar een regel zonder keuze, met een tik naar De zon verdelen.
     await naarInstelling(p, 'comfort.html');
     await p.locator('#wand [data-delen] .deel', { hasText: kamer.naam }).first().click();
-    const keuze = p.locator(`#wand [data-zorgt] [data-rol="${airco.actuatorId}"]`);
-    await keuze.waitFor({ timeout: 10_000 });
-    await keuze.selectOption('houdt');
-    await expect.poll(() => rollen()?.[airco.actuatorId!]).toBe('houdt');
-    await keuze.selectOption('zon');
-    await expect.poll(() => rollen()?.[airco.actuatorId!]).toBe('zon');
-    // Het blad van de kamer zegt het meteen.
-    await expect.poll(() => keuze.inputValue(), { timeout: 10_000 }).toBe('zon');
+    const regel = p.locator('#wand [data-zorgt] a.rolzon').first();
+    await regel.waitFor({ timeout: 10_000 });
+    expect(await p.locator(`#wand [data-zorgt] [data-rol="${airco.actuatorId}"]`).count()).toBe(0);
+    await regel.click();
+    await p.waitForURL(/energie\.html#zon/);
+    // De kamer open: de airco helpt op zon. Uit, en weer aan, zoals iemand die het omzet.
+    await p.locator(`#wand [data-zv-open="kamer:${kamer.zoneId}"]`).click();
+    const schakel = p.locator(`#wand [data-zv-rol="${kamer.zoneId}|${airco.actuatorId}"]`);
+    await schakel.click();
+    await expect.poll(() => rollen()?.[airco.actuatorId!], { timeout: 10_000 }).toBe('kijken');
+    await p.locator(`#wand [data-zv-open="kamer:${kamer.zoneId}"]`).click();
+    await expect.poll(() => schakel.getAttribute('aria-checked'), { timeout: 10_000 }).toBe('false');
+    await schakel.click();
+    await expect.poll(() => rollen()?.[airco.actuatorId!], { timeout: 10_000 }).toBe('zon');
+    // Wat op zon kan en nu niet meedoet, zet je hier erbij: de vaatwasser, bij de aansluiting.
+    await p.locator('#wand [data-zv-erbij="aans:vaatwasser"]').click();
+    await expect.poll(() => connStore.current?.apparaten.find((x) => x.id === 'vaatwasser')?.opZon, { timeout: 10_000 }).toBe(true);
     expect(fouten).toEqual([]);
     await context.close();
   }, 40_000);

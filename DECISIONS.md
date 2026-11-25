@@ -333,6 +333,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [341. De assistent: een kamer zonder regeling, en wat de boiler doet](#341-de-assistent-een-kamer-zonder-regeling-en-wat-de-boiler-doet)
 - [343. De zon verdelen: één lijst voor wie de zon krijgt](#343-de-zon-verdelen-één-lijst-voor-wie-de-zon-krijgt)
 - [344. Klaar voor een nieuwe taal: de dienst in één bestand per taal, minder teksten](#344-klaar-voor-een-nieuwe-taal-de-dienst-in-één-bestand-per-taal-minder-teksten)
+- [345. Eén plek per onderwerp: Meten en regeling, op zon, en warmte vasthouden](#345-eén-plek-per-onderwerp-meten-en-regeling-op-zon-en-warmte-vasthouden)
 
 **Veiligheid**
 
@@ -15897,6 +15898,50 @@ getal en wat al kort was, bleven. Bij De zon verdelen blijft staan dat de
 volgorde meteen geldt en de marge en de hand pas als SunArc zelf regelt. Alle
 drie de delen samen: van 32.500 naar 28.386 woorden per taal, en van 6.125 naar
 5.569 teksten.
+
+## 345. Eén plek per onderwerp: Meten en regeling, op zon, en warmte vasthouden
+
+*Onderwerp: weergave · Status: geldig*
+
+25 november 2026. Puntjes van Ricardo voor december, eerst als schets
+(`Wand-Klimaat-Meten`, `Wand-Energie-Zon-Een`, `Wand-Kan-Warmte`), goedgekeurd
+("Ja, bouwen"). Keuze Ricardo bij op zon: De zon verdelen is de ene plek.
+
+*Besluit:*
+
+- **Klimaat › Meten en regeling** is een eigen deel bij Het hele huis, op de
+  plek waar de regel naar Soort verwarming stond. De soort verwarming staat
+  alleen nog bij Energie. Alle kamers staan onder elkaar met hun temperatuur,
+  waarmee ze meten en wie ze regelt (eigen regeling, doet mee met, niet
+  geregeld), de zones als korte regel in de kamer. Een tik opent dezelfde keuzes
+  als eerst achter "Meten en regeling" in het blad van een kamer: op de wand
+  naast een smalle lijst, zodat de wand niet scrolt; op de telefoon onder de
+  kamer. Die regel in het blad van de kamer is weg (`warmte.js`: `meten`,
+  `metenKamers`). De knoppen van een zone vielen over elkaar; dat is hersteld.
+- **Op zon op één plek: Energie › De zon verdelen.** Erbij zet een kamer of
+  apparaat echt op zon: de taak Helpt op zon van een airco (rol `zon` in de
+  indeling), een elektrische kachel (`opZon` van de bron), een stekker of
+  witgoed (`opZon` en `opZonUit` bij de aansluiting, via `instellen.zetOpZon`).
+  Uit de lijst zet het daar ook echt uit. Een kamer open in de lijst kiest hoe
+  ver het op zon mag (½, 1 of 2 graden, `opZonC` bij het comfort) en welke airco
+  of kachel op zon helpt. Wat nergens anders aan of uit kan (een boiler uit het
+  instellingenbestand, de laadpaal) gaat zoals eerst in `uit` van
+  `zonverdelen.json`. Rechts staat Kan op zon, doet nu niet mee, met Erbij; op
+  de wand staat de strook van Thuis daar niet meer, zodat alles past.
+- **Elders alleen een regel zonder knop:** bij een kamer van Klimaat "Op zon · 2e
+  in De zon verdelen, 1° verder ›"; bij een airco die op zon helpt "Helpt op zon
+  ›" in plaats van de keuze (de taak kies je verder uit Houdt op temperatuur en
+  Doet niet mee); bij stekker en witgoed in hun blad en bij Toevoegen "Staat in
+  De zon verdelen" of "Niet op zon · zet hem erbij". Bij Apparaten wijst "Op zon
+  zetten" naar De zon verdelen. Inrichten houdt zijn eigen stap, want die loopt
+  alles in één keer langs. De regeling verandert niet: de knoppen schrijven
+  dezelfde instellingen als eerst.
+- **Wat je huis kan: één straal Op tijd warm of koel.** Hoe je huis warmte
+  vasthoudt (besluit 231) was een eigen straal, en zijn blad wees alleen door
+  naar Op tijd warm of koel. Nu is het één straal: wat het per kamer weet, wat
+  het daarmee straks doet, en wat het nog nodig heeft; 18 stralen. Een oude link
+  naar `#thermisch` komt bij `#optijd` uit. Op de telefoon staan de namen van de
+  groepen nu langs de ring, zoals op de wand.
 
 ## Wat nog een besluit wacht
 

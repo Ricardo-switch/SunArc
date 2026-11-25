@@ -227,11 +227,13 @@
   }
 
   /**
-   * Hoe je huis warmte vasthoudt (besluit 231): wat de dienst per kamer heeft
-   * geleerd (`api/thermisch`), en wat het nog nodig heeft. Een apparaat zonder
-   * getal is nog niet gezien, of doet nog niets merkbaars.
+   * Op tijd warm of koel, met hoe je huis warmte vasthoudt (besluit 231 en 345):
+   * één straal. Wat de dienst per kamer heeft geleerd (`api/thermisch`), wat het
+   * daarmee straks doet, en wat het nog nodig heeft. Een apparaat zonder getal
+   * is nog niet gezien, of doet nog niets merkbaars. Eerst waren het twee
+   * stralen, en het blad van de een wees alleen door naar de ander.
    */
-  function thermischRegel(d) {
+  function opTijdRegel(d, meekijk) {
     const t = global.taal.t;
     const r = d.thermisch;
     const zones = r?.zones ?? [];
@@ -245,14 +247,12 @@
     ];
     const sinds = r?.sindsMs ? new Date(r.sindsMs).toLocaleDateString(global.taal.code === 'en' ? 'en-GB' : 'nl-NL', { day: 'numeric', month: 'long' }) : null;
     return {
-      ...teksten('thermisch'),
+      ...teksten('optijd'),
       groep: 'leert',
-      stand: r?.stand === 'werkt' ? 'werkt' : 'leert',
-      nu,
-      href: 'huis-kan.html#thermisch',
-      // Op Wat je huis kan wijst het blad door naar wat het straks doet.
-      ga: t('kan.optijd'),
-      gaHref: 'huis-kan.html#optijd',
+      // Kent het huis zijn kamers, dan zou het op tijd beginnen: meekijken, tot SunArc zelf regelt.
+      stand: r?.stand === 'werkt' ? meekijk : 'leert',
+      nu: r ? nu : t('kan.optijd.wacht'),
+      href: 'vandaag.html',
       // Hoe ver het leren is, voor de waaier: afkoelen, zon en de beste warmer per kamer.
       deel: zones.length ? zones.reduce((t, z) => t + (z.zeker.afkoelen + z.zeker.zon + Math.max(0, ...z.apparaten.filter((a) => a.stand === 'verwarmt').map((a) => a.zeker))) / 12, 0) / zones.length : 0,
       thermisch: zones.length ? r : null,
@@ -300,7 +300,7 @@
   }
 
   /** Hoeveel regels "Zo werkt het" en "Wanneer het werkt" elk onderwerp heeft (kan.<id>.zo.<n>). */
-  const REGELS = { ligging: [3, 3], boiler: [3, 2], jacuzzi: [3, 2], temperatuur: [3, 2], thermisch: [2, 2], optijd: [3, 2], perkamer: [3, 2], gevoel: [2, 1], opzon: [3, 2], apparaten: [3, 2], batterij: [3, 1], goedkoop: [2, 1], auto: [2, 1], licht: [2, 2], screens: [2, 1], afwezig: [2, 1], vraag: [2, 1], opbrengst: [2, 1], zekering: [2, 1], sluip: [2, 1], camera: [2, 1], batterijen: [2, 1], weer: [2, 1], tedoen: [3, 2] };
+  const REGELS = { ligging: [3, 3], boiler: [3, 2], jacuzzi: [3, 2], temperatuur: [3, 2], optijd: [3, 2], perkamer: [3, 2], gevoel: [2, 1], opzon: [3, 2], apparaten: [3, 2], batterij: [3, 1], goedkoop: [2, 1], auto: [2, 1], licht: [2, 2], screens: [2, 1], afwezig: [2, 1], vraag: [2, 1], opbrengst: [2, 1], zekering: [2, 1], sluip: [2, 1], camera: [2, 1], batterijen: [2, 1], weer: [2, 1], tedoen: [3, 2] };
   /** De vaste teksten van een onderwerp: de titel, wat het is, hoe en wanneer. */
   function teksten(id) {
     const t = global.taal.t;
@@ -343,7 +343,6 @@
     const accu = batterijSom(d);
     const kop = d.state?.bewoner?.kop?.titel;
     const weerNaam = (d.functies?.gevonden?.weerbronnen ?? []).find((b) => b.id === f?.weer?.bron)?.naam?.replace(' (via internet)', '');
-    const dagen = d.divergence?.dataset?.dagenOpgenomen != null ? Math.round(d.divergence.dataset.dagenOpgenomen) : null;
     // Zonder slimme meter (besluit 196): op zon en het sluipverbruik kunnen erbij; Opbrengst schat.
     const geenP1 = d.site?.meter === false;
     const geschat = geenP1 && (e?.zon ?? []).length > 0;
@@ -377,12 +376,11 @@
         // Geen teller van winterdagen meer (besluit 312).
         extra: null,
       },
-      // Hoe je huis warmte vasthoudt (besluit 231): het thermisch model, uit het logboek.
-      ...(geenRegeling ? [] : [thermischRegel(d)]),
+      // Op tijd warm of koel, met hoe je huis warmte vasthoudt (besluit 231 en 345): één straal.
       // Zonder slimme regeling (besluit 194) is er niets om te leren of per kamer te regelen: het kan erbij.
       geenRegeling
         ? { ...teksten('optijd'), groep: 'leert', stand: 'nodig', label: t('kan.temperatuur.nodig'), nu: t('kan.zonderRegeling'), href: 'huis-kan.html#temperatuur' }
-        : { ...teksten('optijd'), groep: 'leert', stand: 'leert', nu: d.thermisch?.stand === 'leert' ? t('kan.optijd.wacht') : dagen ? t('kan.optijd.dagen', { n: dagen }) : t('kan.optijd.nu'), href: 'vandaag.html' },
+        : opTijdRegel(d, meekijk),
       {
         ...teksten('perkamer'), groep: 'comfort', stand: perKamer.length && !geenRegeling ? meekijk : 'nodig', label: perKamer.length && !geenRegeling ? null : t('kan.perkamer.nodig'),
         nu: perKamer.length && !geenRegeling ? huismodel.inKamers(perKamer.map((r) => r.naam)) : t('kan.perkamer.nu'), href: 'comfort.html',
@@ -468,7 +466,7 @@
       .filter((x) => x.stand !== 'nodig')
       .map((x) => {
         // Op tijd warm leert de seizoenen, het thermisch model zijn kamers (besluit 231); van de ligging weten we alleen of er een heldere dag was.
-        const deel = x.id === 'optijd' && gereedheid ? gereedheid.tijd / 100 : x.id === 'thermisch' ? x.deel : 0;
+        const deel = x.id === 'optijd' ? Math.max(x.deel ?? 0, gereedheid ? gereedheid.tijd / 100 : 0) : 0;
         return { ...x, kort: t(`voortgang.kort.${x.id}`), p: global.waaier.voortgang(x.stand, deel, klaar) };
       });
     const groepen = WAAIER.map((id) => ({ id, naam: t(id === 'leert' ? 'voortgang.groep.leert' : `kan.groep.${id}`), onderwerpen: onderwerpen.filter((x) => x.groep === id) }));

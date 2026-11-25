@@ -1,5 +1,33 @@
 [
   {
+    "versie": "0.242.0",
+    "datum": "2026-11-25",
+    "nieuw": [
+      "Klimaat › Meten en regeling: alle kamers op één plek, met waarmee ze meten en wie ze regelt. Tik op een kamer om het te veranderen"
+    ],
+    "beter": [
+      "Op zon zet je alleen nog bij Energie › De zon verdelen: zet er een kamer of apparaat bij, haal het eraf, en kies per kamer hoe ver het op zon mag. Bij de kamer en het apparaat staat een regel die erheen wijst",
+      "Soort verwarming staat alleen nog bij Energie",
+      "Wat je huis kan: Hoe je huis warmte vasthoudt en Op tijd warm of koel zijn één straal. Op de telefoon staan de namen van de groepen langs de ring"
+    ],
+    "opgelost": [
+      "Klimaat: bij een zone vielen de knoppen Met de kamer en Eigen regeling over elkaar"
+    ],
+    "en": {
+      "nieuw": [
+        "Climate › Measuring and control: all rooms in one place, with what they measure with and what controls them. Tap a room to change it"
+      ],
+      "beter": [
+        "You only put things on solar in Energy › Sharing the sun now: add a room or device, take it off, and choose per room how far it may go on solar. The room and the device show a line that points there",
+        "Heating type is only under Energy now",
+        "What your home can do: How your home holds heat and On time warm or cool are one ray. On the phone, the group names run along the ring"
+      ],
+      "opgelost": [
+        "Climate: in a zone, the buttons With the room and Own control overlapped"
+      ]
+    }
+  },
+  {
     "versie": "0.241.0",
     "datum": "2026-11-25",
     "beter": [

@@ -82,8 +82,6 @@
     let bronVorm = null;
     /** De zone waar Eigen regeling werd getikt zonder klimaatapparaat erin: daar staat de uitleg. */
     let zoneUitleg = null;
-    /** Meten en regeling open (besluit 317): op de wand past het blad zo zonder scrollen. */
-    let metenOpen = false;
 
     /** De klimaatapparaten die het huis kent, met de sleutel waarmee een bron ernaar wijst. */
     function klimaatToestellen() {
@@ -102,6 +100,8 @@
      * staat zoals de dienst het nu regelt.
      */
     const ROL_KEUZE = ['houdt', 'zon', 'kijken'].map((r) => [r, t(`indeling.rol.${r}`), t(`indeling.rol.${r}Zin`)]);
+    /** Helpt op zon, als regel met een tik naar De zon verdelen: daar zet je het aan en uit (besluit 345). */
+    const zonLink = () => `<a class="rolzon" href="energie.html#zon">${esc(t('indeling.rol.zon'))} ›</a>`;
     function rolVan(k, sleutel) {
       if (k.rollen) return k.rollen[sleutel] ?? 'kijken';
       return klimaatToestellen().find((x) => x.sleutel === sleutel)?.a.klimaat?.rol ?? 'kijken';
@@ -125,14 +125,19 @@
       const id = `rol-${sleutel.replace(/[^a-z0-9_-]/gi, '-')}`;
       // Een radiatorknop of de thermostaat van een gasketel helpt niet op zon (besluit 291); stond het er toch, dan blijft het zichtbaar.
       const a = klimaatToestellen().find((x) => x.sleutel === sleutel)?.a;
-      const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon' || rol === 'zon' || !a || huismodel.kanOpZon(a, ctx.huis, ctx.verwarming));
+      // Helpt op zon kies je bij De zon verdelen (besluit 345); staat hij erop, dan zegt de regel dat met een tik erheen.
+      if (rol === 'zon') return `<div class="rolrij"><span>${esc(t('indeling.deRegeling'))}</span>${zonLink()}</div>`;
+      const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon');
+      void a;
       return `<div class="rolrij"><label for="${esc(id)}">${esc(t('indeling.deRegeling'))}</label><select class="invoer invoer-klein rolkeuze" id="${esc(id)}" data-rol="${esc(sleutel)}">${keuzes.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>${rol === 'zon' ? `<p class="rolzin">${esc(t('indeling.rolZon'))}</p>` : ''}`;
     }
     /** Alleen de keuze, voor op de regel van een apparaat (besluit 317): wat SunArc ermee doet. */
     function rolKort(k, sleutel, naam) {
       const rol = rolVan(k, sleutel);
       const a = klimaatToestellen().find((x) => x.sleutel === sleutel)?.a;
-      const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon' || rol === 'zon' || !a || huismodel.kanOpZon(a, ctx.huis, ctx.verwarming));
+      if (rol === 'zon') return zonLink();
+      const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon');
+      void a;
       // Met een vraagteken erachter (Hulp op de plek, besluit 325): wat die taak betekent.
       const hulp = window.hulp?.vraag({ houdt: 'houdt-op-temperatuur', zon: 'helpt-op-zon', kijken: 'doet-niet-mee' }[rol]) ?? '';
       const keuze = `<select class="invoer invoer-klein rolkeuze kort" data-rol="${esc(sleutel)}" aria-label="${esc(`${t('indeling.deRegeling')}: ${naam}`)}">${keuzes.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
@@ -198,8 +203,8 @@
         .map((a) => {
           const sleutel = a.actuatorId ?? a.id;
           const rol = z.rollen?.[sleutel] ?? 'kijken';
-          const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon' || rol === 'zon' || huismodel.kanOpZon(a, ctx.huis, ctx.verwarming));
-          const select = `<select class="invoer invoer-klein rolkeuze kort" data-zone-rol="${esc(`${k.id}|${z.id}|${sleutel}`)}" aria-label="${esc(`${t('indeling.deRegeling')}: ${a.naam}`)}">${keuzes.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+          const keuzes = ROL_KEUZE.filter(([w]) => w !== 'zon');
+          const select = rol === 'zon' ? zonLink() : `<select class="invoer invoer-klein rolkeuze kort" data-zone-rol="${esc(`${k.id}|${z.id}|${sleutel}`)}" aria-label="${esc(`${t('indeling.deRegeling')}: ${a.naam}`)}">${keuzes.map(([w, x]) => `<option value="${w}" ${w === rol ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
           const soort = a.klimaat?.kanKoelen ? t('indeling.airco') : a.radiatorknop ? t('indeling.knopRadiator') : huismodel.metHoofdletter(t('kan.thermostaat'));
           return bronKaart(a.naam, soort, a.klimaat?.kanKoelen ? ICOON_KOEL : a.radiatorknop ? ICOON_RADIATOR : ICOON_THERMO, !!a.klimaat?.kanKoelen, select, rol === 'zon' ? `<p class="rolzin">${esc(t('indeling.rolZon'))}</p>` : '', ' data-kort');
         })
@@ -217,8 +222,6 @@
       const kop = '';
       if (bronVorm) return kop + bronFormulier(k);
       const r = ruimteVan(k.id);
-      // Meten met en de regeling staan hier, bij verwarmen en koelen (besluit 167); eerst bij Kamer.
-      const meetRij = `${metenKeuze(k)}${regelingKeuze(d, k)}${zonesBlok(k)}`;
 
       const bronnen = k.bronnen ?? [];
       // Elk klimaatapparaat staat er zelf, met zijn taak, ook als een radiator het volgt (zones als deel van de kamer,
@@ -268,7 +271,8 @@
         if (b.apparaat && b.vermogenW && !ctx.kort) regels += `<div class="regelt"><span class="w">${b.vermogenW} W</span></div>`;
         // Op zon (besluit 132): alleen elektrisch, met vermogen, en een apparaat van de regeling in deze kamer.
         const vanRegeling = !!b.apparaat && !!r?.zoneId && (r?.apparaten ?? []).some((a) => a.soort === 'klimaat' && a.actuatorId === b.apparaat);
-        if (huismodel.isElektrischSlim(b) && b.vermogenW && vanRegeling) regels += `<div class="opzon">${esc(t('indeling.magZon'))}<button type="button" class="schakelaar" role="switch" aria-checked="${!!b.opZon}" aria-label="${esc(t('indeling.magZon'))}" data-bron-zon="${esc(b.id)}"></button></div>`;
+        // Op zon zet je bij De zon verdelen (besluit 345); hier een regel als hij erop staat.
+        if (huismodel.isElektrischSlim(b) && b.vermogenW && vanRegeling && b.opZon) regels += `<div class="opzon">${zonLink()}</div>`;
         if (b.aan === 'hand' && elektrisch) regels += `<div class="idee"><b>${esc(t('indeling.maakSlim'))}</b>${esc(t('indeling.maakSlimZin'))}</div>`;
         kaarten.push({ zone: b.zone ?? null, html: bronKaart(huismodel.bronNaam(b), wat, ikoon, b.soorten.includes('airco'), rechts, regels, ` data-bron-open="${esc(b.id)}" role="group" aria-label="${esc(huismodel.bronNaam(b))}" tabindex="0"${ctx.kort ? ' data-kort' : ''}`) });
       }
@@ -279,17 +283,10 @@
       const nietMee = met
         ? `<div class="uitleg"><b>${esc(t('indeling.doetMeePunt', { naam: met.naam }))}</b>${esc(t('indeling.doetMeeZin'))}</div>`
         : kaarten.length && !doetMee ? `<div class="uitleg"><b>${esc(t('indeling.nietMee'))}</b>${esc(t('indeling.nietMeeZin'))}</div>` : '';
-      // Meten en regeling achter één regel (besluit 317): het blad van de kamer past zo op de wand.
-      if (metenOpen) {
-        return `${kop}<button type="button" class="terug" data-zorg-meten="uit">‹ ${esc(t('klimaat.terugApparaten'))}</button>
-          ${meetRij}
-          <p class="mini geen-marge">${esc(t('indeling.zekeringMee'))}</p>`;
-      }
-      // Eerst de apparaten (schets Wand-Klimaat-Kamer), per zone als de kamer zones heeft (schets Wand-Klimaat-Subzone),
-      // dan een regel naar waarmee de kamer meet en wie hem regelt.
+      // De apparaten (schets Wand-Klimaat-Kamer), per zone als de kamer zones heeft (schets Wand-Klimaat-Subzone).
+      // Waarmee de kamer meet en wie hem regelt, staat sinds besluit 345 bij Klimaat › Meten en regeling.
       return `${kop}${perZone(k, kaarten)}${leeg}${nietMee}
-        <button type="button" class="plus" data-bron-nieuw="">${esc(t('w.ietsToevoegen'))}</button>
-        ${metenRegel(d, k)}`;
+        <button type="button" class="plus" data-bron-nieuw="">${esc(t('w.ietsToevoegen'))}</button>`;
     }
 
     /*
@@ -456,12 +453,6 @@
         if (!k.bronnen.length) delete k.bronnen;
         if (await ctx.bewaar(next, t('indeling.weggehaald'))) bronVorm = null;
         ctx.teken();
-      } else if (knop.dataset.bronZon) {
-        const b = (k.bronnen ?? []).find((x) => x.id === knop.dataset.bronZon);
-        if (!b) return true;
-        b.opZon = !b.opZon;
-        if (!b.opZon) delete b.opZon;
-        await ctx.bewaar(next, t(b.opZon ? 'indeling.zonAan' : 'indeling.zonUit'));
       } else return false;
       return true;
     }
@@ -497,16 +488,40 @@
         <p class="mini geen-marge boven-8">${esc(uitleg)}${terug}</p></div>`;
     }
 
-    /** Eén regel met waarmee de kamer meet en welke regeling, met een tik naar de keuzes. */
-    function metenRegel(d, k) {
-      if (alleBuitenEtage(k)) return '';
+    /**
+     * Waarmee een kamer meet en wie hem regelt, voor de lijst bij Klimaat › Meten en regeling (besluit 345):
+     * de namen van de meters, de regeling als zin en als soort, en de zones met hun meter.
+     */
+    function metenSamen(d, k) {
       const ruimte = ruimteVan(k.id);
       // Waarmee de kamer echt meet (besluit 138): de sensoren van de regeling, of wat bij Meten met gekozen is.
       const namen = ruimte?.meetMet?.length ? ruimte.meetMet : (k.meten ?? []).map((id) => temperatuurBronnen().find((x) => x.id === id)?.naam).filter(Boolean);
       const meet = Array.isArray(k.meten) && !k.meten.length ? t('klimaat.meetNiets') : namen.length ? namen.join(', ') : ruimte?.gemetenDoor ?? t('klimaat.geenMeter');
       const met = k.meedoenMet ? d.kamers.find((x) => x.id === k.meedoenMet) : null;
+      const soort = met ? 'mee' : k.regelzone ? 'eigen' : 'geen';
       const regel = met ? t('indeling.doetMee', { naam: met.naam }) : k.regelzone ? t('indeling.eigenRegeling') : t('indeling.nietGeregeld');
-      return `<button type="button" class="metenregel" data-zorg-meten="aan"><span class="l"><b>${esc(t('klimaat.meten'))}</b><span>${esc(`${meet} · ${regel}`)}</span></span><span class="pijl" aria-hidden="true">›</span></button>`;
+      const zones = (k.zones ?? []).map((z) => {
+        const toestellen = (ruimte?.apparaten ?? []).filter((a) => a.soort === 'klimaat' && a.zone === z.id);
+        const eigen = !!z.rollen && Object.values(z.rollen).some((x) => x !== 'kijken');
+        const reg = (ruimte?.zones ?? []).find((x) => x.id === z.id)?.regeling ?? null;
+        return { id: z.id, naam: z.naam, temp: reg?.temperatuurC ?? null, zin: `${toestellen.length ? t('klimaat.meten.meetMet', { naam: toestellen.map((a) => a.naam).join(', ') }) : t('indeling.zone.geenKnop')} · ${eigen ? t('indeling.eigenRegeling') : t('indeling.zone.metKamer')}` };
+      });
+      return { meet, gemeten: !!namen.length || !!ruimte?.gemetenDoor, temp: ruimte?.temperatuurC ?? null, regel, soort, zones };
+    }
+
+    /** De kamers voor Meten en regeling: alleen binnen, in de volgorde van de indeling. */
+    function metenKamers() {
+      const d = concept();
+      if (!d) return [];
+      return d.kamers.filter((k) => !alleBuitenEtage(k)).map((k) => ({ id: k.id, naam: k.naam, etage: k.etage, ...metenSamen(d, k) }));
+    }
+
+    /** De keuzes van één kamer bij Meten en regeling: meten met, wie hem regelt, de zones (besluit 123, 142, 306). */
+    function meten() {
+      const d = concept();
+      const k = kamerIn(d);
+      if (!d || !k) return '';
+      return `${metenKeuze(k)}${regelingKeuze(d, k)}${zonesBlok(k)}<p class="mini geen-marge">${esc(t('indeling.zekeringMee'))}</p>`;
     }
 
     /** De kamer van de indeling, in een nieuwe indeling om te bewaren. */
@@ -524,12 +539,6 @@
 
     /** Een tik in het blad; true als het van hier was. */
     async function klik(el) {
-      if (el.dataset.zorgMeten) {
-        metenOpen = el.dataset.zorgMeten === 'aan';
-        bronVorm = null;
-        ctx.teken();
-        return true;
-      }
       if (await bronKlik(el)) return true;
       if (await zoneKlik(el)) return true;
       if (el.dataset.meten) {
@@ -616,10 +625,9 @@
     function sluit() {
       bronVorm = null;
       zoneUitleg = null;
-      metenOpen = false;
     }
 
-    return { blad, klik, wissel, sluit, open: () => bronVorm != null, klimaatToestellen, rollenNu, toestelNaam, zoneTaken };
+    return { blad, meten, metenKamers, klik, wissel, sluit, open: () => bronVorm != null, klimaatToestellen, rollenNu, toestelNaam, zoneTaken };
   }
 
   // Een bronkaart opent met Enter of spatie, net als een knop.

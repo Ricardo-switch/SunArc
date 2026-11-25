@@ -147,7 +147,9 @@ verwijzing bestaat.
   een airco houdt elke kamer ([342]). Wie de zon krijgt die over is, staat in
   één lijst bij Energie › De zon verdelen, met een marge en knoppen met de hand
   die pas ingaan als SunArc zelf regelt ([343]). De zinnen van de dienst
-  staan in één bestand per taal, en de app heeft minder teksten ([344]).
+  staan in één bestand per taal, en de app heeft minder teksten ([344]). Op zon
+  zet je alleen nog bij De zon verdelen, Meten en regeling is een eigen deel bij
+  Klimaat, en warmte vasthouden is deel van Op tijd warm of koel ([345]).
 - **Elke opstelling werkt:** de regeling doet wat de opstelling toelaat en zegt
   wat ze daardoor niet kan ([70]). Geavanceerde functies volgen uit wat het huis
   heeft; ingrijpende vragen een bewuste keuze ([78]).
@@ -1120,4 +1122,5 @@ verwijzing bestaat.
 [342]: DECISIONS.md#342-alleen-aircos-als-warmtebron
 [343]: DECISIONS.md#343-de-zon-verdelen-één-lijst-voor-wie-de-zon-krijgt
 [344]: DECISIONS.md#344-klaar-voor-een-nieuwe-taal-de-dienst-in-één-bestand-per-taal-minder-teksten
+[345]: DECISIONS.md#345-eén-plek-per-onderwerp-meten-en-regeling-op-zon-en-warmte-vasthouden
 <!-- links:einde -->

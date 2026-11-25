@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.241.0
+## 0.242.0
 
-*25 november 2026 · 0.179.0 – 0.241.0*
+*25 november 2026 · 0.179.0 – 0.242.0*
 
 **Nieuw**
 
+- Klimaat › Meten en regeling: alle kamers op één plek, met waarmee ze meten en wie ze regelt. Tik op een kamer om het te veranderen
 - Energie › De zon verdelen: één lijst voor wie de zon krijgt die over is, de kamers, de boiler, de stekkers, het witgoed en de laadpaal. Sleep om de volgorde te veranderen, zie wat er nu over is en wie wacht, en kies per apparaat Nu eerst, Vandaag overslaan of Uit de lijst
 - Op Thuis zegt de strook wie de zon nu krijgt en wie daarna
 - Energie › Verwarming: kies Alleen airco's als je het huis alleen met airco's verwarmt. Dan verdwijnen de onderdelen van een cv-ketel, en houdt in elke kamer een airco de temperatuur
@@ -99,6 +100,9 @@
 
 **Beter**
 
+- Op zon zet je alleen nog bij Energie › De zon verdelen: zet er een kamer of apparaat bij, haal het eraf, en kies per kamer hoe ver het op zon mag. Bij de kamer en het apparaat staat een regel die erheen wijst
+- Soort verwarming staat alleen nog bij Energie
+- Wat je huis kan: Hoe je huis warmte vasthoudt en Op tijd warm of koel zijn één straal. Op de telefoon staan de namen van de groepen langs de ring
 - Opbrengst: het kaartje Sluipverbruik toont de laatste 30 nachten als staafjes, zonder eerst door te tikken
 - Een taak met een scène noemt de lamp nog: Gaat de lamp bank naar de scène Avond
 - Wat je huis kan opent meteen: de som van een thuisbatterij rekent op de achtergrond en verschijnt even later
@@ -230,6 +234,7 @@
 
 **Opgelost**
 
+- Klimaat: bij een zone vielen de knoppen Met de kamer en Eigen regeling over elkaar
 - Sluipverbruik: het pijltje naar eerdere nachten is met een vinger makkelijker te raken
 - Opbrengst: zon en net vielen op de wand onder Per apparaat en Per dag buiten de kaart
 - De boiler zei "opwarmen" en "bijwarmen"; dat is nu verwarmen
@@ -298,6 +303,7 @@
 
 **New**
 
+- Climate › Measuring and control: all rooms in one place, with what they measure with and what controls them. Tap a room to change it
 - Energy › Sharing the sun: one list of who gets the spare sun, the rooms, the boiler, the smart plugs, the appliances and the charger. Drag to change the order, see what is spare now and who is waiting, and choose First now, Skip today or Remove from list per appliance
 - On Home, the strip says who gets the sun now and who is next
 - Energy › Heating: choose Air conditioners only if you heat your home only with air conditioners. The parts of a central heating boiler then disappear, and in each room an air conditioner keeps the temperature
@@ -391,6 +397,9 @@
 
 **Improved**
 
+- You only put things on solar in Energy › Sharing the sun now: add a room or device, take it off, and choose per room how far it may go on solar. The room and the device show a line that points there
+- Heating type is only under Energy now
+- What your home can do: How your home holds heat and On time warm or cool are one ray. On the phone, the group names run along the ring
 - Energy overview: the Standby use card shows the last 30 nights as bars, without tapping through first
 - A task with a scene still names the lamp: The lamp bank switches to the Avond scene
 - What your home can do opens right away: the home battery estimate is worked out in the background and appears a little later
@@ -522,6 +531,7 @@
 
 **Fixed**
 
+- Climate: in a zone, the buttons With the room and Own control overlapped
 - Standby use: the arrow to earlier nights is easier to hit with a finger
 - Energy overview: sun and grid fell outside the card under Per device and Per day on the wall display
 - The boiler texts now use the same word for heating everywhere

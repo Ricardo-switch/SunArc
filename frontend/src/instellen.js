@@ -54,6 +54,12 @@
 
   /* ------------------------------------------------------------ tekenen */
 
+  /**
+   * Op zon staat op één plek (besluit 345): Energie › De zon verdelen. Hier alleen een regel zonder knop, met een tik
+   * erheen. De knoppen erbij en uit de lijst gebruiken `zetOpZon` hieronder.
+   */
+  const zonRegel = (aan) => `<a class="in-rij in-knop" href="energie.html#zon"><span class="l"><b>${esc(t('w.opZon'))}</b><span>${esc(t(aan ? 'in.opZonBij' : 'in.opZonNiet'))}</span></span><span class="pijl" aria-hidden="true">›</span></a>`;
+
   const schakel = (aan, attr, label, uit = false) => `<button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(label)}" ${attr}${uit ? ' disabled' : ''}></button>`;
   function rij(wat, zin, rechts, extra = '') {
     return `<div class="in-rij${extra}"><div class="l"><b>${esc(wat)}</b>${zin ? `<span>${esc(zin)}</span>` : ''}</div>${rechts}</div>`;
@@ -97,7 +103,7 @@
     return [
       groep(t('w.waar'), [waarRij(id)]),
       groep(t('w.opZon'), [
-        vast ? rij(t('w.opZon'), t('in.uitBestand'), '') : rij(t('w.opZon'), t(opZon ? 'in.opZonAan' : 'in.opZonUit'), schakel(opZon, `data-in-zon="${esc(id)}"`, t('regeling.naamOpZon', { naam }))),
+        vast ? rij(t('w.opZon'), t('in.uitBestand'), '') : zonRegel(opZon),
         opZon && !vast ? trekt : '',
         opZon && !vast ? rij(t('in.minstens'), min ? t('regeling.stekkerMinimumUitleg') : null, minuten) : '',
         opZon && !vast && min ? rij(t('in.uiterlijk'), null, klokKeuze(min.klok, `data-in-klok="${esc(id)}"`, t('regeling.stekkerUiterlijkVan', { naam }))) : '',
@@ -110,13 +116,13 @@
   }
 
   /** Witgoed: start hij op zon (uit de configuratie of uit Home Assistant), en waar staat hij. */
-  /** @param {string} id @param {{ naam?: string }} opties */
-  function witgoedRegels(id, { naam = '' } = {}) {
+  /** @param {string} id */
+  function witgoedRegels(id) {
     const a = antwoorden();
     const conf = uitConfiguratie(id);
     const g = !conf ? gevonden(id) : null;
     const aan = conf ? !(a.opZonUit ?? []).includes(id) : a.opZon?.[id] === true;
-    const zon = conf || g ? rij(t('in.startZon'), t(aan ? 'in.startZonAan' : 'in.startZonUit'), schakel(aan, `data-in-wg="${esc(id)}"`, t('regeling.naamOpZon', { naam }))) : '';
+    const zon = conf || g ? zonRegel(aan) : '';
     return [groep(t('w.waar'), [waarRij(id)]), groep(t('w.opZon'), [zon]), fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''].join('');
   }
 
@@ -143,7 +149,7 @@
     // De hele lijst, zoals eerst bij Energie: wat gevonden is met een schakelaar, en een ander apparaat kiezen.
     if (soort === 'accu') return `${global.thuisaccu?.blad(aans, id)?.html ?? ''}${foutRegel()}`;
     if (soort === 'stekker') return stekkerRegels(id, opties);
-    if (soort === 'witgoed') return witgoedRegels(id, opties);
+    if (soort === 'witgoed') return witgoedRegels(id);
     return bufferRegels(id);
   }
 
@@ -229,7 +235,7 @@
   }
 
   document.addEventListener('click', (e) => {
-    const knop = /** @type {HTMLButtonElement | null} */ (/** @type {HTMLElement} */ (e.target).closest?.('[data-in-waar], [data-in-terug], [data-in-plek], [data-in-zon], [data-in-mag], [data-in-wg]'));
+    const knop = /** @type {HTMLButtonElement | null} */ (/** @type {HTMLElement} */ (e.target).closest?.('[data-in-waar], [data-in-terug], [data-in-plek], [data-in-mag]'));
     if (!knop || knop.disabled) return;
     if (knop.dataset.inWaar) {
       kiest = knop.dataset.inWaar;
@@ -243,23 +249,10 @@
     if (knop.dataset.inPlek && kiest) return void bewaarPlek(kiest, knop.dataset.inPlek);
     const aan = knop.getAttribute('aria-checked') !== 'true';
     knop.setAttribute('aria-checked', String(aan));
-    if (knop.dataset.inZon) {
-      const id = knop.dataset.inZon;
-      return void bewaarAansluiting((b) => {
-        b.opZon[id] = aan;
-      });
-    }
     if (knop.dataset.inMag) {
       const id = knop.dataset.inMag;
       return void bewaarAansluiting((b) => {
         b.bedienen = { [id]: aan };
-      });
-    }
-    if (knop.dataset.inWg) {
-      const id = knop.dataset.inWg;
-      return void bewaarAansluiting((b) => {
-        if (uitConfiguratie(id)) b.opZonUit = aan ? b.opZonUit.filter((x) => x !== id) : [...new Set([...b.opZonUit, id])];
-        else b.opZon[id] = aan;
       });
     }
   });
@@ -312,5 +305,25 @@
     });
   });
 
-  global.instellen = { laad, regels, kiezen, sluit: () => (kiest = null), kiest: () => kiest };
+  /**
+   * Op zon aan of uit bij de aansluiting (besluit 345: vanuit De zon verdelen): een stekker of witgoed uit Home
+   * Assistant, of witgoed uit het instellingenbestand (dan via `opZonUit`). Geeft of het bewaard is.
+   */
+  async function zetOpZon(id, aan) {
+    if (!aans) await laad();
+    await bewaarAansluiting((b) => {
+      if (uitConfiguratie(id)) b.opZonUit = aan ? b.opZonUit.filter((x) => x !== id) : [...new Set([...b.opZonUit, id])];
+      else b.opZon[id] = aan;
+    });
+    return !fout;
+  }
+  /** Wat op zon kan bij de aansluiting: gevonden in Home Assistant of uit het instellingenbestand, met of het aan staat. */
+  function opZonApparaten() {
+    const a = antwoorden();
+    const conf = (aans?.configuratie?.apparaten ?? []).map((x) => ({ id: x.id, naam: x.naam ?? x.id, soort: x.soort ?? 'witgoed', aan: !(a.opZonUit ?? []).includes(x.id) }));
+    const gev = (aans?.gevonden?.apparaten ?? []).filter((x) => !conf.some((c) => c.id === x.id)).map((x) => ({ id: x.id, naam: x.naam, soort: x.soort, aan: a.opZon?.[x.id] === true }));
+    return [...conf, ...gev];
+  }
+
+  global.instellen = { laad, regels, kiezen, zetOpZon, opZonApparaten, fout: () => fout, sluit: () => (kiest = null), kiest: () => kiest };
 })(window);

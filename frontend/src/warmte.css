@@ -41,7 +41,8 @@
 .zorgt .rolrij .invoer { width: auto; font-weight: 700; }
 .zorgt .rolzin { margin: 0; font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
 .zorgt .keuzes { display: flex; flex-direction: column; gap: 6px; }
-.zorgt .keuze { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 9px 12px; border-radius: 12px; border: 1px solid transparent; background: rgb(var(--wit) / 0.04); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+/* Alleen de keuzes onder elkaar (wat SunArc ermee doet); niet de knoppenrij van een zone, die viel zo over elkaar. */
+.zorgt .keuzes .keuze { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 9px 12px; border-radius: 12px; border: 1px solid transparent; background: rgb(var(--wit) / 0.04); color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .zorgt .keuzes button.keuze { height: auto; font-weight: inherit; font-size: inherit; color: inherit; border-color: transparent; }
 .zorgt .keuzes button.keuze.aan { border-color: rgb(var(--wit) / 0.35); }
 .zorgt .keuze.aan { border-color: rgb(var(--wit) / 0.35); background: rgb(var(--wit) / 0.08); }
@@ -109,3 +110,5 @@
 .zorgt .zonegroep .bron + .bron { border-top: 1px solid rgb(var(--wit) / 0.06); }
 .zorgt .zonegroep .bron b { font-size: 14px; }
 .zorgt .zonegroep .rolkeuze.kort { max-width: 158px; }
+/* Helpt op zon kies je bij De zon verdelen (besluit 345): hier een regel met een tik erheen. */
+.zorgt .rolzon { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: 11px; background: rgb(var(--zon-k) / 0.12); color: var(--zon-t); font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }

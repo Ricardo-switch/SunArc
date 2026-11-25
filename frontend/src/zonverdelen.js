@@ -9,6 +9,11 @@
  *   zonVerdelen.zin()   de korte zin in de lijst met delen
  *   zonVerdelen.strook(v)  "De zon gaat nu naar …, daarna …", ook voor Thuis
  *   zonVerdelen.na      wat er na laden of bewaren getekend moet worden
+ *
+ * Sinds besluit 345 is dit de ene plek voor op zon: Erbij zet een kamer of apparaat echt op zon (de taak Helpt op zon
+ * van een airco, een elektrische kachel, een stekker of witgoed), Uit de lijst zet het echt uit, en een kamer kiest hier
+ * hoe ver het op zon mag. Bij de kamer en het apparaat staat alleen nog een regel met een tik hierheen. Wat nergens
+ * anders aan of uit kan (een boiler uit het instellingenbestand, de laadpaal), gaat zoals eerst in `uit`.
  */
 const zonVerdelen = (function (global) {
   'use strict';
@@ -20,6 +25,8 @@ const zonVerdelen = (function (global) {
   let data = null;
   /** De plek waarvan de knoppen met de hand openstaan. */
   let open = null;
+  /** Wat er verder nodig is om op zon aan en uit te zetten (besluit 345): het comfort, de indeling, het huis en de aansluiting. */
+  const bron = { comfort: null, indeling: null, huis: null, aans: null };
   const KLEUREN = ['var(--ijs)', 'var(--zon)', 'var(--violet)', 'var(--mint)', 'var(--gloed)'];
 
   const w = (x) => (x == null ? '' : x < 1000 ? `${Math.round(x / 10) * 10} W` : `${global.app.nl(x / 1000, 1)} kW`);
@@ -30,13 +37,155 @@ const zonVerdelen = (function (global) {
   const krijgt = (x) => (x.stand === 'zon' || x.stand === 'laadt') && x.krijgtW > 0;
 
   async function laad() {
-    try {
-      data = await global.app.haal('api/zon-verdelen');
-    } catch {
-      data = null;
-    }
+    const haal = global.app.haal;
+    const [z, c, i, h, a] = await Promise.allSettled([haal('api/zon-verdelen'), haal('api/comfort'), haal('api/indeling'), haal('api/huis'), haal('api/aansluiting'), global.instellen?.laad?.()]);
+    data = z.status === 'fulfilled' ? z.value : null;
+    if (c.status === 'fulfilled') bron.comfort = c.value;
+    if (i.status === 'fulfilled') bron.indeling = i.value;
+    if (h.status === 'fulfilled') bron.huis = h.value;
+    if (a.status === 'fulfilled') bron.aans = a.value;
     zelf.na?.();
     return data;
+  }
+
+  /* ------------------------------------------------- op zon aan en uit (besluit 345) */
+
+  const indelingNu = () => bron.indeling?.indeling ?? bron.indeling?.voorstel ?? null;
+  const verwarming = () => bron.aans?.antwoorden?.verwarming ?? null;
+  /** De ruimte van het huis bij een regelgebied, en de zone als het een zone met eigen regeling is. */
+  function ruimteBij(zoneId) {
+    for (const e of bron.huis?.etages ?? []) {
+      for (const r of e.ruimtes ?? []) {
+        if (r.zoneId === zoneId) return { r, z: null };
+        const z = (r.zones ?? []).find((x) => x.regeling?.zoneId === zoneId);
+        if (z) return { r, z };
+      }
+    }
+    return null;
+  }
+  /** De kamer van de indeling, en de zone daarin, bij een ruimte uit het huis. */
+  function indelingBij(next, p) {
+    const k = next?.kamers.find((x) => x.id === p.r.id) ?? null;
+    return { k, z: p.z ? k?.zones?.find((x) => x.id === p.z.id) ?? null : null };
+  }
+  /** De klimaatapparaten van een kamer of zone, met hun taak zoals bij Klimaat (warmte.js) en of ze op zon kunnen. */
+  function toestellen(zoneId) {
+    const p = ruimteBij(zoneId);
+    if (!p) return [];
+    const { k, z } = indelingBij(indelingNu(), p);
+    const eigenZones = new Set((k?.zones ?? []).filter((x) => x.rollen && Object.values(x.rollen).some((r) => r !== 'kijken')).map((x) => x.id));
+    return (p.r.apparaten ?? [])
+      .filter((a) => a.soort === 'klimaat' && (p.z ? a.zone === p.z.id : !eigenZones.has(a.zone)))
+      .map((a) => {
+        const s = a.actuatorId ?? a.id;
+        const rol = z ? z.rollen?.[s] ?? 'kijken' : k?.rollen ? k.rollen[s] ?? 'kijken' : a.klimaat?.rol ?? 'kijken';
+        return { s, naam: a.naam, rol, kan: global.huismodel.kanOpZon(a, bron.huis, verwarming()) };
+      });
+  }
+  /** De elektrische kachels van een kamer die op zon kunnen (met vermogen en een apparaat van de regeling). */
+  function kachels(zoneId) {
+    const p = ruimteBij(zoneId);
+    if (!p || p.z) return [];
+    const { k } = indelingBij(indelingNu(), p);
+    const van = new Set((p.r.apparaten ?? []).filter((a) => a.soort === 'klimaat').map((a) => a.actuatorId));
+    return (k?.bronnen ?? []).filter((b) => global.huismodel.isElektrischSlim(b) && b.vermogenW && b.apparaat && van.has(b.apparaat)).map((b) => ({ id: b.id, naam: global.huismodel.bronNaam(b), aan: !!b.opZon }));
+  }
+  /** Iets in de indeling veranderen en bewaren, daarna alles opnieuw (de lijst rekent de dienst uit de indeling). */
+  function wijzigIndeling(zoneId, wijzig) {
+    const p = ruimteBij(zoneId);
+    const basis = indelingNu();
+    if (!p || !basis) return;
+    const next = JSON.parse(JSON.stringify(basis));
+    const { k, z } = indelingBij(next, p);
+    if (!k) return;
+    // Zonder eigen taken nog: eerst die van nu vastleggen, zoals Klimaat dat doet (warmte.js, rollenNu).
+    if (!z && !k.rollen) k.rollen = Object.fromEntries((p.r.apparaten ?? []).filter((a) => a.soort === 'klimaat').map((a) => [a.actuatorId ?? a.id, a.klimaat?.rol ?? 'kijken']));
+    wijzig(k, z);
+    open = null;
+    global.groep.bewaarStraks(async () => {
+      const uit = await global.groep.stuur('api/indeling', next);
+      await laad();
+      return uit;
+    });
+  }
+  /** Een kamer op zon of eraf: de taak Helpt op zon van een airco, of een elektrische kachel. */
+  function kamerOpZon(zoneId, aan) {
+    const ts = toestellen(zoneId);
+    const ks = kachels(zoneId);
+    wijzigIndeling(zoneId, (k, z) => {
+      const rollen = z ? (z.rollen ??= {}) : k.rollen;
+      if (aan) {
+        const eerste = ts.find((x) => x.kan && x.rol === 'kijken');
+        if (eerste) rollen[eerste.s] = 'zon';
+        else {
+          const kachel = ks.find((x) => !x.aan);
+          const b = kachel ? (k.bronnen ?? []).find((x) => x.id === kachel.id) : null;
+          if (b) b.opZon = true;
+        }
+      } else {
+        for (const x of ts) if (x.rol === 'zon') rollen[x.s] = 'kijken';
+        for (const b of k.bronnen ?? []) delete b.opZon;
+      }
+    });
+  }
+  /** Hoe ver een kamer op zon mag (besluit 133): bij het comfort, met de rest zoals het was (comfort.js). */
+  function zetOpZonC(zoneId, c) {
+    global.groep.bewaarStraks(async () => {
+      const v = await global.app.haal('api/comfort');
+      const body = {
+        kamers: Object.fromEntries(v.kamers.map((k) => [k.id, { modi: k.modi, nooitWarmerC: k.nooitWarmerC, voorrang: k.voorrang, opZonC: k.id === zoneId ? c : k.opZonC }])),
+        dagdelen: v.dagdelen,
+        ...(v.voorrang ? { voorrang: { koelen: v.voorrang.koelen, verwarmen: v.voorrang.verwarmen } } : {}),
+      };
+      const uit = await global.groep.stuur('api/comfort', body);
+      await laad();
+      return uit;
+    });
+  }
+  /** Stekkers en witgoed bij de aansluiting (instellen.js): wat op zon kan, en of het aan staat. */
+  const aansApparaten = () => global.instellen?.opZonApparaten?.() ?? [];
+  const OPZON_IK = { droger: 'droger', wasmachine: 'droger', vaatwasser: 'vaat', boiler: 'boiler', jacuzzi: 'jacuzzi', stekker: 'stekker' };
+
+  /** Wat op zon kan maar nu niet meedoet: hier zet je het erbij. */
+  function kanErbij() {
+    if (!data) return [];
+    const inLijst = new Set(data.lijst.map((x) => x.sleutel));
+    const uit = [];
+    for (const e of bron.huis?.etages ?? []) {
+      for (const r of e.ruimtes ?? []) {
+        const plekken = [...(r.zoneId ? [{ id: r.zoneId, naam: r.naam }] : []), ...(r.zones ?? []).filter((z) => z.regeling?.zoneId).map((z) => ({ id: z.regeling.zoneId, naam: z.naam }))];
+        for (const p of plekken) {
+          if (inLijst.has(`kamer:${p.id}`)) continue;
+          const ts = toestellen(p.id).filter((x) => x.kan && x.rol === 'kijken');
+          const ks = kachels(p.id).filter((x) => !x.aan);
+          if (!ts.length && !ks.length) continue;
+          uit.push({ naam: p.naam, icoon: 'airco', zin: [...ts.map((x) => x.naam), ...ks.map((x) => x.naam)].join(', '), doe: `kamer:${p.id}` });
+        }
+      }
+    }
+    for (const a of aansApparaten()) {
+      if (a.aan || inLijst.has(`apparaat:${a.id}`) || inLijst.has(`buffer:${a.id}`)) continue;
+      uit.push({ naam: a.naam, icoon: OPZON_IK[a.soort] ?? 'stekker', zin: t(a.soort === 'stekker' ? 'zv.soort.stekker' : 'zv.soort.apparaat'), doe: `aans:${a.id}` });
+    }
+    for (const x of data.uit) uit.push({ naam: x.naam, icoon: x.icoon, zin: soortVan(x), doe: `terug:${x.sleutel}` });
+    return uit;
+  }
+
+  /** De keuzes van een kamer in de lijst: hoe ver op zon, en welk apparaat op zon helpt. */
+  function kamerBlad(x) {
+    const k = (bron.comfort?.kamers ?? []).find((y) => y.id === x.id);
+    const c = k?.opZonC ?? 0;
+    const seg = `<div class="zv-keuze"><span class="zv-stapnaam">${esc(t('comfort.opZonMag'))}</span>
+        <div class="keuze" role="group" aria-label="${esc(t('comfort.opZonMag'))}">${[[0, t('comfort.niet')], [0.5, '½°'], [1, '1°'], [2, '2°']].map(([v, n]) => `<button type="button" data-zv-opzonc="${esc(x.id)}:${v}" aria-pressed="${c === v}">${esc(n)}</button>`).join('')}</div>
+        ${k?.opZon ? `<small>${esc(t(k.opZon.koelen && k.opZon.verwarmen ? 'comfort.verder.beide' : k.opZon.koelen ? 'comfort.verder.koeler' : 'comfort.verder.warmer'))}</small>` : ''}</div>`;
+    const schakel = (aan, attr, label) => `<button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(label)}" ${attr}></button>`;
+    const rijen = [
+      ...toestellen(x.id).map((d) => (d.rol === 'houdt'
+        ? `<div class="zv-toestel"><span>${esc(t('zv.houdt', { naam: d.naam }))}</span></div>`
+        : d.kan || d.rol === 'zon' ? `<div class="zv-toestel"><span>${esc(t('zv.helpt', { naam: d.naam }))}</span>${schakel(d.rol === 'zon', `data-zv-rol="${esc(x.id)}|${esc(d.s)}"`, t('zv.helpt', { naam: d.naam }))}</div>` : '')),
+      ...kachels(x.id).map((b) => `<div class="zv-toestel"><span>${esc(t('zv.kachel', { naam: b.naam }))}</span>${schakel(b.aan, `data-zv-kachel="${esc(x.id)}|${esc(b.id)}"`, t('zv.kachel', { naam: b.naam }))}</div>`),
+    ].join('');
+    return `<div class="zv-kamerblad">${seg}${rijen}</div>`;
   }
 
   /** Wie nu zon krijgt en wie daarna, als zin; null als er niemand in de lijst staat. */
@@ -88,7 +237,7 @@ const zonVerdelen = (function (global) {
           ${x.eerst ? `<button type="button" class="knop knop-klein" data-zv-hand="${s}:geen">${esc(t('zv.nietEerst'))}</button>` : `<button type="button" class="knop knop-klein" data-zv-hand="${s}:eerst">${esc(t('zv.eerst'))}</button>`}
           ${x.stand === 'overgeslagen' ? `<button type="button" class="knop knop-klein" data-zv-hand="${s}:geen">${esc(t('zv.tochVandaag'))}</button>` : `<button type="button" class="knop knop-klein" data-zv-hand="${s}:overslaan">${esc(t('zv.overslaan'))}</button>`}
           <button type="button" class="knop knop-klein zv-weg" data-zv-uit="${s}">${esc(t('zv.uit'))}</button>
-        </div>`
+        </div>${x.soort === 'kamer' ? kamerBlad(x) : ''}`
       : '';
     return `<li class="zv-rij${isOpen ? ' open' : ''}${x.stand === 'overgeslagen' ? ' gedimd' : ''}" data-zv-rij="${s}">
       <button type="button" class="zv-greep" data-zv-greep="${i}" aria-label="${esc(t('zv.verplaats', { naam: x.naam, plek: i + 1, n }))}">${ik('greep')}</button>
@@ -100,11 +249,13 @@ const zonVerdelen = (function (global) {
     </li>`;
   }
 
+  /** Wat op zon kan en nu niet meedoet, met Erbij (besluit 345); eerst stond hier alleen wat uit de lijst was gehaald. */
   function uitLijst() {
-    if (!data.uit.length) return '';
-    return `<section class="zv-uit"><span class="zv-label">${esc(t('zv.doetNiet'))}</span>${data.uit
-      .map((x) => `<span class="zv-uitrij"><span class="zv-ik klein">${ik(x.icoon)}</span>${esc(x.naam)}<button type="button" class="knop-tekst" data-zv-terug="${esc(x.sleutel)}">${esc(t('zv.terug'))}</button></span>`)
-      .join('')}</section>`;
+    const kan = kanErbij();
+    if (!kan.length) return '';
+    return `<section class="zv-uit zv-kan"><span class="zv-label">${esc(t('zv.kan'))}</span>${kan
+      .map((x) => `<span class="zv-uitrij"><span class="zv-ik klein">${ik(x.icoon)}</span><span class="zv-kantekst"><b>${esc(x.naam)}</b><small>${esc(x.zin)}</small></span><button type="button" class="knop knop-klein" data-zv-erbij="${esc(x.doe)}">${esc(t('zv.erbij'))}</button></span>`)
+      .join('')}<small class="zv-noot">${esc(t('zv.kanNoot'))}</small></section>`;
   }
 
   function lijst(metUit) {
@@ -144,7 +295,8 @@ const zonVerdelen = (function (global) {
     const kop = `<div class="kopregel zv-kop"><h2 class="kop-2">${esc(t('zv.titel'))}</h2><span class="mini">${esc(t('zv.kijktMee'))}</span></div>`;
     if (!data) return `${kop}<p class="klein">${esc(t('algemeen.laden'))}…</p>`;
     if (global.app.telStand()) return `${kop}<div class="zv">${balk()}${lijst(true)}${marge()}${thuis()}</div>`;
-    return `${kop}<div class="zv">${balk()}<div class="zv-twee">${lijst(false)}<div class="zv-rechts">${marge()}${thuis()}${uitLijst()}</div></div></div>`;
+    // Op de wand rechts de marge en wat erbij kan (besluit 345); de strook staat op Thuis zelf, en zo past alles.
+    return `${kop}<div class="zv">${balk()}<div class="zv-twee">${lijst(false)}<div class="zv-rechts">${marge()}${uitLijst()}</div></div></div>`;
   }
 
   /* ------------------------------------------------------------ bewaren */
@@ -178,6 +330,15 @@ const zonVerdelen = (function (global) {
     bewaar({ volgorde: volgorde(l) }, () => (data = { ...data, lijst: l }));
   }
 
+  /** Een stekker of witgoed op zon of eraf, bij de aansluiting (instellen.js), en dan de lijst opnieuw. */
+  function zetAans(id, aan) {
+    global.groep.bewaarStraks(async () => {
+      const goed = await global.instellen.zetOpZon(id, aan);
+      await laad();
+      return goed ? { ok: true } : { ok: false, fout: global.instellen.fout() };
+    });
+  }
+
   const vandaag = () => new Intl.DateTimeFormat('en-CA').format(new Date());
   const middernacht = () => {
     const d = new Date();
@@ -186,7 +347,7 @@ const zonVerdelen = (function (global) {
   };
 
   document.addEventListener('click', (ev) => {
-    const knop = ev.target.closest('[data-zv-open], [data-zv-hand], [data-zv-uit], [data-zv-terug], [data-zv-marge]');
+    const knop = ev.target.closest('[data-zv-open], [data-zv-hand], [data-zv-uit], [data-zv-erbij], [data-zv-opzonc], [data-zv-rol], [data-zv-kachel], [data-zv-marge]');
     if (!knop || knop.disabled || !data) return;
     const d = knop.dataset;
     if (d.zvOpen != null) {
@@ -199,10 +360,37 @@ const zonVerdelen = (function (global) {
       const keuze = wat === 'eerst' ? { soort: 'eerst', totMs: middernacht() } : wat === 'overslaan' ? { soort: 'overslaan', datum: vandaag() } : null;
       bewaar({ hand: { [s]: keuze } });
     } else if (d.zvUit) {
+      // Uit de lijst zet het echt uit (besluit 345): bij de kamer of de aansluiting; anders, zoals eerst, alleen hier.
       open = null;
-      bewaar({ uit: [...data.uit.map((x) => x.sleutel), d.zvUit], hand: { [d.zvUit]: null } });
-    } else if (d.zvTerug) {
-      bewaar({ uit: data.uit.map((x) => x.sleutel).filter((s) => s !== d.zvTerug) });
+      const { soort, id } = plekVan(d.zvUit);
+      if (soort === 'kamer' && (toestellen(id).some((x) => x.rol === 'zon') || kachels(id).some((x) => x.aan))) kamerOpZon(id, false);
+      else if ((soort === 'apparaat' || soort === 'buffer') && aansApparaten().some((a) => a.id === id && a.aan)) zetAans(id, false);
+      else bewaar({ uit: [...data.uit.map((x) => x.sleutel), d.zvUit], hand: { [d.zvUit]: null } });
+    } else if (d.zvErbij) {
+      const i = d.zvErbij.indexOf(':');
+      const wat = d.zvErbij.slice(0, i);
+      const id = d.zvErbij.slice(i + 1);
+      if (wat === 'kamer') kamerOpZon(id, true);
+      else if (wat === 'aans') zetAans(id, true);
+      else bewaar({ uit: data.uit.map((x) => x.sleutel).filter((s) => s !== id) });
+    } else if (d.zvOpzonc) {
+      const i = d.zvOpzonc.lastIndexOf(':');
+      zetOpZonC(d.zvOpzonc.slice(0, i), Number(d.zvOpzonc.slice(i + 1)));
+    } else if (d.zvRol) {
+      const [zoneId, s] = d.zvRol.split('|');
+      const aan = knop.getAttribute('aria-checked') !== 'true';
+      wijzigIndeling(zoneId, (k, z) => {
+        (z ? (z.rollen ??= {}) : k.rollen)[s] = aan ? 'zon' : 'kijken';
+      });
+    } else if (d.zvKachel) {
+      const [zoneId, bronId] = d.zvKachel.split('|');
+      const aan = knop.getAttribute('aria-checked') !== 'true';
+      wijzigIndeling(zoneId, (k) => {
+        const b = (k.bronnen ?? []).find((x) => x.id === bronId);
+        if (!b) return;
+        if (aan) b.opZon = true;
+        else delete b.opZon;
+      });
     } else if (d.zvMarge) {
       const [sleutel, stap] = d.zvMarge.split(':');
       const r = data.bereik[sleutel];
