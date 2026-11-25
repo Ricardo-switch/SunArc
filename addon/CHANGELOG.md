@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.242.1
+## 0.243.0
 
-*25 november 2026 · 0.179.0 – 0.242.1*
+*25 november 2026 · 0.179.0 – 0.243.0*
 
 **Nieuw**
 
+- Instellingen › Licht, camera's en weer › Meldingen: kies per soort wat er in de bel komt, zoals sluipverbruik, de auto, de thuisaccu, de panelen en een nieuwe versie. Wat uit staat, komt ook niet op je telefoon. Rook, een meter die niets levert en wat niet klopt staan altijd aan
 - Klimaat › Meten en regeling: alle kamers op één plek, met waarmee ze meten en wie ze regelt. Tik op een kamer om het te veranderen
 - Energie › De zon verdelen: één lijst voor wie de zon krijgt die over is, de kamers, de boiler, de stekkers, het witgoed en de laadpaal. Sleep om de volgorde te veranderen, zie wat er nu over is en wie wacht, en kies per apparaat Nu eerst, Vandaag overslaan of Uit de lijst
 - Op Thuis zegt de strook wie de zon nu krijgt en wie daarna
@@ -100,6 +101,7 @@
 
 **Beter**
 
+- Wiens comfort er geldt staat standaard niet meer in de bel. Zet het aan bij Meldingen als je het wilt zien
 - Op zon zet je alleen nog bij Energie › De zon verdelen: zet er een kamer of apparaat bij, haal het eraf, en kies per kamer hoe ver het op zon mag. Bij de kamer en het apparaat staat een regel die erheen wijst
 - Soort verwarming staat alleen nog bij Energie
 - Wat je huis kan: Hoe je huis warmte vasthoudt en Op tijd warm of koel zijn één straal. Op de telefoon staan de namen van de groepen langs de ring
@@ -305,6 +307,7 @@
 
 **New**
 
+- Settings › Lights, cameras and weather › Notifications: choose per kind what goes to the bell, such as standby use, the car, the home battery, the panels and a new version. What is off won't reach your phone either. Smoke, a meter that gives nothing and something that didn't work are always on
 - Climate › Measuring and control: all rooms in one place, with what they measure with and what controls them. Tap a room to change it
 - Energy › Sharing the sun: one list of who gets the spare sun, the rooms, the boiler, the smart plugs, the appliances and the charger. Drag to change the order, see what is spare now and who is waiting, and choose First now, Skip today or Remove from list per appliance
 - On Home, the strip says who gets the sun now and who is next
@@ -399,6 +402,7 @@
 
 **Improved**
 
+- Whose comfort applies no longer shows at the bell by default. Switch it on under Notifications if you want to see it
 - You only put things on solar in Energy › Sharing the sun now: add a room or device, take it off, and choose per room how far it may go on solar. The room and the device show a line that points there
 - Heating type is only under Energy now
 - What your home can do: How your home holds heat and On time warm or cool are one ray. On the phone, the group names run along the ring
