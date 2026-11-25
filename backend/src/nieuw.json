@@ -1,5 +1,31 @@
 [
   {
+    "versie": "0.244.0",
+    "datum": "2026-11-25",
+    "nieuw": [
+      "Vraag de assistent of SunArc al regelt, of wat er nog mist. Hij zegt het, met een knop naar Wat je huis kan",
+      "Vraag wat stroom nu kost: de assistent geeft de prijs van dit moment, ook bij een prijs per uur"
+    ],
+    "beter": [
+      "Overal hetzelfde over regelen: SunArc kijkt mee en leert je huis kennen. Weet het genoeg, dan kies jij per kamer of het mag regelen",
+      "Bij hoeveel zon er nog komt, zegt de assistent eerst wat er nog komt",
+      "Een vraag over de laadpaal gaat naar de kaart van je laadpaal, niet naar Toevoegen",
+      "Het voorbeeldhuis laat zien hoe een nieuw huis het doet, zonder wintertest"
+    ],
+    "en": {
+      "nieuw": [
+        "Ask the assistant whether SunArc is already in control, or what is still missing. It tells you, with a button to What your house can do",
+        "Ask what electricity costs now: the assistant gives the price of this moment, also with an hourly price"
+      ],
+      "beter": [
+        "The same everywhere about taking over: SunArc watches and gets to know your home. Once it knows enough, you choose per room whether it may take over",
+        "When you ask how much more sun is coming, the assistant first says what is still coming",
+        "A question about the charger goes to your charger's card, not to Add",
+        "The example home shows how a new home works, without the winter test"
+      ]
+    }
+  },
+  {
     "versie": "0.243.0",
     "datum": "2026-11-25",
     "nieuw": [

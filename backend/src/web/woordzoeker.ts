@@ -104,7 +104,7 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     id: 'comfort',
     href: 'comfort.html',
     // Smal: "hoe warm is het op zolder" is een vraag over het huis, geen instelling.
-    sterk: ['comfort', 'dagdeel', 'dagdelen', 'nachttemperatuur', 'vakantie', 'part of the day', 'night temperature', 'holiday'],
+    sterk: ['comfort', 'dagdeel', 'dagdelen', 'nachttemperatuur', 'vakantie', 'hoe warm het moet', 'hoe warm ik het', 'hoe koel het moet', 'temperatuur instellen', 'part of the day', 'night temperature', 'holiday', 'how warm it should', 'set the temperature'],
     zwak: ['temperatuur', 'instellen', 'temperature'],
   },
   {
@@ -151,7 +151,7 @@ const ONDERWERPEN: readonly Onderwerp[] = [
    */
   {
     id: 'laadpaal',
-    href: 'toevoegen.html#auto',
+    href: 'apparaten.html#auto',
     sterk: ['laadpaal*', 'laadpunt*', 'laadt', 'laden', 'opladen', 'auto', 'elektrische auto', 'wallbox', 'charger', 'charging', 'charge', 'car', 'ev'],
     zwak: ['sneller', 'langzaam', 'trager', 'snel', 'harder', 'stroom', 'ampere', 'faster', 'slow', 'slower', 'amps'],
   },
@@ -173,7 +173,21 @@ const ONDERWERPEN: readonly Onderwerp[] = [
     sterk: ['schaduw*', 'meekijken', 'echt schakelen', 'echt regelen', 'zelf regelen', 'bewijs', 'leert', 'leren', 'shadow', 'watching', 'really switch', 'take over', 'learn*'],
     zwak: ['slim', 'slimme', 'smart'],
   },
+  {
+    // Wat er nog mist: de standpagina zegt het, met de knop erbij.
+    id: 'mist',
+    href: 'huis-kan.html',
+    // Zinnen, geen losse woorden: "mist" is ook het weer.
+    sterk: ['wat mist', 'mist er', 'mist nog', 'missen nog', 'wat ontbreekt', 'ontbreekt er', 'nog instellen', 'nog inrichten', 'wat moet ik nog', 'hoe ver is', 'hoe ver ben', 'what is missing', 'whats missing', 'what is left', 'still need to', 'still to set', 'how far is'],
+    zwak: [],
+  },
 ];
+
+/**
+ * Een vraag over SunArc zelf: of het al regelt, en wanneer wel. Die gaat voor
+ * op een opdracht: "schakelt SunArc mijn verwarming al?" is geen opdracht.
+ */
+const ZELF_REGELEN = ['regelt sunarc', 'schakelt sunarc', 'stuurt sunarc', 'regelt het al', 'schakelt het al', 'regel je al', 'schakel je al', 'regelt al', 'schakelt al', 'zelf regelen', 'echt regelen', 'zelf schakelen', 'echt schakelen', 'neemt het over', 'overnemen', 'does sunarc control', 'does sunarc switch', 'do you control', 'are you controlling', 'take over', 'taking over', 'already control', 'already switch'];
 
 /**
  * Woorden die zeggen dat het om de app gaat: waar of hoe iets moet. "Hoe" alleen
@@ -502,6 +516,14 @@ export function begrijp(ruw: string, config: SiteConfig, lang: Lang): Begrepen {
   const tekst = gewoon(ruw.slice(0, MAX_TEKST));
   const los = tekst === '' ? [] : tekst.split(' ');
 
+  // Of SunArc al regelt, en wanneer wel: altijd hetzelfde antwoord, ook als de zin op een opdracht lijkt.
+  // Ook met woorden ertussen: "neemt SunArc de airco al over?".
+  const neemtOver = /\b(neemt|neem)\b.*\bover\b/.test(tekst) && (los.includes('al') || los.includes('sunarc') || los.includes('wanneer'));
+  if (telt(ZELF_REGELEN, tekst, los) > 0 || neemtOver) {
+    const t = ONDERWERP_TEKST[lang].schakelen;
+    return { soort: 'app', onderwerp: 'schakelen', antwoord: t.antwoord, link: { href: 'huis-kan.html', label: t.label } };
+  }
+
   // De app: sterke woorden tellen dubbel, en "waar" of "hoe" geeft een duwtje.
   const hulp = telt(HULP, tekst, los) > 0;
   let app: { o: Onderwerp; score: number } | null = null;
@@ -530,7 +552,9 @@ export function begrijp(ruw: string, config: SiteConfig, lang: Lang): Begrepen {
   const straks = telt(STRAKS, tekst, los);
   if (straks) huis.push({ vraag: { kind: 'straks' }, score: 2 * straks });
   const zon = telt(ZON, tekst, los);
-  if (zon) huis.push({ vraag: { kind: 'zon' }, score: 2 * zon });
+  // "Hoeveel zon komt er nog": wat er nog komt, niet wat er al was.
+  const vooruit = telt(['komt er nog', 'komt nog', 'nog komen', 'nog bij', 'er nog', 'nog verwacht', 'verwacht', 'verwachting', 'still coming', 'more sun', 'still expected', 'expected', 'left today'], tekst, los) > 0;
+  if (zon) huis.push({ vraag: vooruit ? { kind: 'zon', vooruit: true } : { kind: 'zon' }, score: 2 * zon + (vooruit ? 1 : 0) });
   // Wat het huis vandaag deed, en hoe warm het overal is (besluit 141).
   const vandaag = telt(['vandaag gedaan', 'wat deed je', 'heb je gedaan', 'vandaag besloten', 'besloten', 'today did', 'what did you do', 'what have you done', 'did you do', 'decided'], tekst, los);
   if (vandaag) huis.push({ vraag: { kind: 'vandaag' }, score: 3 * vandaag });
@@ -550,7 +574,10 @@ export function begrijp(ruw: string, config: SiteConfig, lang: Lang): Begrepen {
   const overMorgen = telt(['morgen', 'overmorgen', 'tomorrow'], tekst, los) > 0;
   if (morgen && kamer == null) huis.push({ vraag: { kind: overMorgen ? 'morgen' : 'weer' }, score: 3 * morgen });
   const kosten = telt(KOSTEN, tekst, los);
-  if (kosten) huis.push({ vraag: { kind: 'kosten' }, score: 3 * kosten });
+  // De prijs van nu: "wat kost stroom nu", "wat kost een kWh"; geen vraag waar je hem invult.
+  const prijsNu = telt(['kost stroom nu', 'kost de stroom nu', 'kost stroom op dit moment', 'stroomprijs nu', 'prijs nu', 'prijs van nu', 'kost een kwh', 'per kwh', 'kwh prijs', 'price now', 'cost now', 'costs now', 'per kwh now', 'price per kwh', 'cost a kwh'], tekst, los) > 0;
+  if (prijsNu && !hulp) huis.push({ vraag: { kind: 'kosten', nu: true }, score: 8 });
+  else if (kosten) huis.push({ vraag: { kind: 'kosten' }, score: 3 * kosten });
   const sluip = telt(SLUIP, tekst, los);
   if (sluip) huis.push({ vraag: { kind: 'sluip' }, score: 6 * sluip });
   const thuis = telt(THUIS, tekst, los);

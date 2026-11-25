@@ -38,7 +38,7 @@ and explains every decision it makes.</p>
 
 - **What it is:** a Home Assistant add-on with its own app for a wall tablet and your phone. It draws your home as an open dollhouse, built from what Home Assistant already knows.
 - **What it does:** comfort per room, your own solar power used in your own home first, and a clear view of energy and costs. Every decision comes with the reason, in plain words.
-- **Where it stands:** SunArc is **watching**. It decides and records everything, but does not switch your heating and air conditioners on its own yet. Real control comes after a full winter of watching, with a report that proves it does better than your current setup. Lights, scenes, blinds and manual climate control (always with an end time) already work from the app.
+- **Where it stands:** SunArc is **watching** and getting to know your home. It decides and records everything, but does not switch your heating and air conditioners on its own yet. Once it knows enough, you choose per room whether it may take over. Lights, scenes, blinds and manual climate control (always with an end time) already work from the app.
 - **Your data stays home.** Everything runs on your own Home Assistant; only the weather forecast is fetched.
 
 ## Contents
@@ -131,7 +131,7 @@ The app has a page **What your house can do** that lists all of this for your ow
 
 ## What is not there yet
 
-- **Real control** of heating and air conditioners, after a winter of watching with thirty winter days of evidence.
+- **Taking over** heating and air conditioners, per room and when you choose. First SunArc gets to know your home.
 - What the house learns this winter about your boiler and ventilation, used by the controller itself.
 - **Steering a home battery or an EV charger.** SunArc shows them, but does not control them.
 - **Cheap hours** with a dynamic contract: moving cooling, heating and washing to the cheapest hours.

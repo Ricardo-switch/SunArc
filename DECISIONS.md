@@ -54,6 +54,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [290. Een stekker op zon met één schakelaar, en op zon gaat meteen in](#290-een-stekker-op-zon-met-één-schakelaar-en-op-zon-gaat-meteen-in)
 - [310. Geen nieuwe functies tot januari, en één plek per onderwerp](#310-geen-nieuwe-functies-tot-januari-en-één-plek-per-onderwerp)
 - [312. De wintertest is van dit huis; een nieuw huis leert, kijkt mee en regelt als de bewoner dat kiest](#312-de-wintertest-is-van-dit-huis-een-nieuw-huis-leert-kijkt-mee-en-regelt-als-de-bewoner-dat-kiest)
+- [347. Eén verhaal over regelen, en de weg naar de uitgave van januari](#347-eén-verhaal-over-regelen-en-de-weg-naar-de-uitgave-van-januari)
 
 **Kern en regeling**
 
@@ -15986,6 +15987,58 @@ een schakelaar", goedgekeurd ("Ja, bouwen").
   was. Terug naar standaard zet ook de schakelaars terug.
 - Onderaan links: Op je telefoon, met wat er standaard naar de telefoon gaat en
   een weg naar Profiel, waar elke bewoner dat zelf kiest (besluit 183).
+
+## 347. Eén verhaal over regelen, en de weg naar de uitgave van januari
+
+*Onderwerp: visie en principes · Status: geldig*
+
+25 november 2026. Een tweede kwaliteitsrapport, op 0.243.0, vond dat de
+indeling af is, maar dat het verhaal over regelen niet overal meeging met
+besluit [312]. De README, de handleiding en het voorbeeldhuis noemden de
+dertig winterdagen als weg voor ieder huis, en de assistent begreep "Regelt
+SunArc mijn huis al?" niet. Ricardo koos acht dingen, alle acht volgens het advies.
+
+*Besluit:*
+
+- **Eén zin over regelen, overal:** "SunArc kijkt mee en leert je huis kennen.
+  Weet het genoeg, dan kies jij per kamer of het mag regelen." Geen datum. Zo
+  in de README, de handleiding van de add-on, Wat je huis kan en het antwoord
+  van de assistent.
+- **Het voorbeeldhuis is een nieuw huis**, zonder oude regeling ernaast en dus
+  zonder wintertest (geen `legacyExplanation`). Wat je huis kan laat daar de
+  weg van een nieuw huis zien.
+- **De assistent kent de vragen over regelen en wat er mist.** "Regelt SunArc
+  al?", "Schakelt SunArc mijn verwarming al?", "Wanneer gaat SunArc zelf
+  regelen?" en "Neemt het de airco al over?" krijgen het antwoord hierboven,
+  nooit een opdracht. "Wat mist er nog?" en "Wat moet ik nog instellen?" wijzen
+  naar Wat je huis kan; "Waar stel ik in hoe warm het moet zijn?" naar Klimaat.
+  Bij "Hoeveel zon komt er nog?" eerst wat er nog komt; bij "Wat kost stroom
+  nu?" de prijs van dit moment (per uur, normaal of dal). Een vraag over de
+  laadpaal wijst naar zijn kaart, niet naar Toevoegen.
+- **De assistent mag ik zeggen, een scherm niet.** In een gesprek is ik gewoon;
+  op schermen staat SunArc of het apparaat ("Hij begint zodra er zon over
+  is"). Knoppen in de stem van de bewoner ("Ik woon hier") blijven.
+- **De testers krijgen de nieuwe versie rond 10 januari**, los van de
+  overstap van de regeling in dit huis. Beta bevriest op 31 december: daarna
+  alleen fouten.
+- **De losse schermen van Inrichten** (dagdelen, comfort, afwezig, op zon,
+  functies, account, de wand, Home Assistant, de stem) gaan naar de pagina bij
+  Instellingen, met een balk terug. Nog te bouwen.
+- **Eén getal voor hoe ver je huis is: wat er nog mist.** De waaier blijft het
+  beeld op de standpagina, zonder eigen getal ernaast. Nog te bouwen.
+- **De teksten gaan onder de 4.500 per taal**, beginnend bij Inrichten en Je
+  huis tekenen, vóór Duits.
+
+*Wat afviel:*
+
+- **De wintertest laten zien in het voorbeeldhuis.** Mooi om te tonen hoe ver
+  het gaat, maar het belooft een nieuwe gebruiker een weg die alleen dit huis
+  heeft.
+- **De uitgave samen met de overstap eind januari.** Twee grote dingen
+  tegelijk, en de testers wachten op samenhang, niet op regelen.
+
+*Kosten:* de zin noemt geen moment. Wanneer een kamer klaar is om te regelen,
+volgt uit de analyse in januari ([312]).
 
 ## Wat nog een besluit wacht
 

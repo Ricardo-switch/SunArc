@@ -671,12 +671,12 @@ export const en: Teksten = {
     done: (since: string) => `Drying has been done since ${since}. The drum still turns now and then against creases, until you open the door.`,
     waitSun: (latest: string, by: string | null) =>
       by
-        ? `I start as soon as there is solar to spare. If there is not enough, I start at ${latest}, in time for ${by}.`
-        : `I start as soon as there is solar to spare, and at ${latest} at the latest.`,
+        ? `It starts as soon as there is solar to spare. If there is not enough, it starts at ${latest}, in time for ${by}.`
+        : `It starts as soon as there is solar to spare, and at ${latest} at the latest.`,
     waitOther: (why: string) => `${why[0]!.toUpperCase()}${why.slice(1)}.`,
-    sun: 'There is enough solar to spare: I would start it now.',
-    late: (latest: string) => `It is past ${latest}: I would start it now, even without sun.`,
-    readyBy: (by: string) => `I would start it now, otherwise it will not be done by ${by}.`,
+    sun: 'There is enough solar to spare: SunArc would start it now.',
+    late: (latest: string) => `It is past ${latest}: SunArc would start it now, even without sun.`,
+    readyBy: (by: string) => `SunArc would start it now, otherwise it will not be done by ${by}.`,
   },
   // web/stand-nu.ts
   standNu: {
@@ -751,7 +751,7 @@ export const en: Teksten = {
     },
     'aansluiting': {
       antwoord:
-        'You set up your connection under Settings, Energy setup: where your panels are, your main fuse and your heating. Which devices may start on solar is under Devices, on the card of each device.',
+        'You set up your connection under Settings, Energy setup: where your panels are, your main fuse and your heating. What may start on solar, you choose under Energy setup, Sharing the sun.',
       label: 'Go to Energy setup',
     },
     'batterijen': {
@@ -804,7 +804,11 @@ export const en: Teksten = {
     },
     'schakelen': {
       antwoord:
-        'SunArc is watching for now: it says what it would do and learns from your house, but does not switch the climate itself yet. What your house can do shows each function and where it stands.',
+        'SunArc watches and gets to know your home. It says what it would do, but does not switch your heating and air conditioners yet. Once it knows enough, you choose per room whether it may take over.',
+      label: 'Go to What your house can do',
+    },
+    'mist': {
+      antwoord: 'What is still missing is at the top of What your house can do, with a button for each item.',
       label: 'Go to What your house can do',
     },
   },
@@ -833,6 +837,16 @@ export const en: Teksten = {
     komtVandaagNogOngeveer: (a: string | number) => `About ${a} more sun is expected today.`,
     vandaagKomtWeinigZon: (a: string | number) => `Little more sun today; tomorrow I expect ${a} from your panels.`,
     vandaagKomtWeinigZon2: 'Little more sun is expected today.',
+    totNuToe: (a: string | number) => `So far your panels produced ${a}.`,
+    geenVerwachting: 'I do not know how much more sun is coming: there is no weather forecast yet.',
+    prijsNu: {
+      dynamisch: (a: string | number) => `Electricity from the grid costs ${a} per kWh right now, this hour's price.`,
+      normaal: (a: string | number) => `Electricity from the grid costs ${a} per kWh right now, the normal rate.`,
+      dal: (a: string | number) => `Electricity from the grid costs ${a} per kWh right now, the off-peak rate.`,
+      enkel: (a: string | number) => `Electricity from the grid costs ${a} per kWh.`,
+    },
+    zonIsGratis: 'What your panels produce right now costs nothing.',
+    geenPrijs: 'Your electricity price is not set yet under Energy setup, Contract and prices.',
     locale: 'en-GB',
     hetApparaat: (_a: string | number, b: string | number) => `the ${b}`,
     temperatuurIn: (a: string | number) => `the temperature in ${a}`,

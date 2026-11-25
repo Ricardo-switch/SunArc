@@ -38,7 +38,7 @@ en zegt bij elk besluit waarom.</p>
 
 - **Wat het is:** een add-on voor Home Assistant met een eigen app voor de tablet aan de muur en je telefoon. Het tekent je huis als een opengewerkt poppenhuis, uit wat Home Assistant al weet.
 - **Wat het doet:** comfort per kamer, je eigen zonnestroom eerst in je eigen huis, en een helder beeld van energie en kosten. Bij elk besluit staat waarom, in gewone taal.
-- **Waar het staat:** SunArc **kijkt mee**. Het beslist en legt alles vast, maar zet je verwarming en airco's nog niet zelf aan of uit. Echt regelen komt pas na een volledige winter meekijken, met een rapport dat bewijst dat het beter doet dan je huidige regeling. Lampen, scènes, schermen en het klimaat met de hand (altijd met een eindtijd) werken al vanuit de app.
+- **Waar het staat:** SunArc **kijkt mee** en leert je huis kennen. Het beslist en legt alles vast, maar zet je verwarming en airco's nog niet zelf aan of uit. Weet het genoeg, dan kies jij per kamer of het mag regelen. Lampen, scènes, schermen en het klimaat met de hand (altijd met een eindtijd) werken al vanuit de app.
 - **Je gegevens blijven thuis.** Alles draait op je eigen Home Assistant; alleen het weerbericht wordt opgehaald.
 
 ## Inhoud
@@ -131,7 +131,7 @@ In de app staat dit alles voor je eigen huis op de pagina **Wat je huis kan**: w
 
 ## Wat er nog niet is
 
-- **Echt regelen** van verwarming en airco's, na een winter meekijken met dertig winterdagen bewijs.
+- **Zelf regelen** van verwarming en airco's, per kamer en als jij dat kiest. Eerst leert SunArc je huis kennen.
 - Wat het huis deze winter leert over je cv en ventilatie, in de regeling zelf.
 - **Een thuisbatterij of laadpaal sturen.** SunArc laat ze zien, maar stuurt ze niet.
 - **Goedkope uren** met een dynamisch contract: koelen, verwarmen en wassen naar de goedkoopste uren schuiven.

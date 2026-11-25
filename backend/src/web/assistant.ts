@@ -726,6 +726,12 @@ export function ask(question: Question, ctx: AskContext): Answer {
     case 'zon': {
       const t = ctx.today;
       const facade = facadeSentence(ctx.zoninval, lang);
+      // "Hoeveel zon komt er nog": eerst wat er nog komt, dan wat er al was.
+      if (question.vooruit) {
+        const rest = restSentence(f, ctx.weer, lang);
+        const al = t != null && t.zonWh >= 5 ? TAAL_ZIN[lang].totNuToe(f.energy('vandaag.zonWh', t.zonWh)) : null;
+        return done([rest ?? TAAL_ZIN[lang].geenVerwachting, al, facade].filter((x): x is string => x != null && x !== '').join(' '));
+      }
       if (t == null) return done([NO_DAY[lang], facade ?? ''].join(' '));
       const out: string[] = [];
       const vooraf = ctx.weer?.voorafKwh ?? null;
@@ -981,6 +987,14 @@ export function ask(question: Question, ctx: AskContext): Answer {
     }
 
     case 'kosten': {
+      // "Wat kost stroom nu": de prijs van dit moment, niet de maand.
+      if (question.nu) {
+        const p = ctx.prijsNu;
+        if (p == null) return done(TAAL_ZIN[lang].geenPrijs);
+        const prijs = TAAL_ZIN[lang].prijsNu[p.soort](f.euro('prijs.nu', p.euroPerKwh));
+        const zon = snapshot?.explanation.solarProductionW ?? 0;
+        return done(zon >= 200 ? `${prijs} ${TAAL_ZIN[lang].zonIsGratis}` : prijs);
+      }
       const k = ctx.kosten;
       const met = (k?.apparaten ?? []).filter((a) => a.euro != null && a.kwh > 0).sort((a, b) => b.euro! - a.euro!);
       // Eerst het hele huis: "wat kost de stroom" noemde alleen de airco's.

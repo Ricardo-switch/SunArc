@@ -94,7 +94,7 @@ describe('de droger op het scherm Apparaten', () => {
       naam: 'Droger',
       stand: 'waiting',
       kop: 'Klaargezet · wacht op zon',
-      zin: 'Ik begin zodra er zon over is. Komt er niet genoeg, dan begin ik om 15:12, op tijd voor 18:00.',
+      zin: 'Hij begint zodra er zon over is. Komt er niet genoeg, dan begint hij om 15:12, op tijd voor 18:00.',
       klaarVoor: '18:00',
       uiterlijk: '15:12',
       duurMin: 168,
@@ -117,13 +117,13 @@ describe('de droger op het scherm Apparaten', () => {
 
   it('zonder eindtijd de vaste uiterlijke start, en wat te doen als hij niet klaarstaat of klaar is', () => {
     const [waiting] = residentDeferrables(exampleSite, [{ id: 'droger', state: 'waiting', reason: 'surplus_insufficient' }], now);
-    expect(waiting?.zin).toBe('Ik begin zodra er zon over is, en uiterlijk om 15:00.');
+    expect(waiting?.zin).toBe('Hij begint zodra er zon over is, en uiterlijk om 15:00.');
     const [idle] = residentDeferrables(exampleSite, [{ id: 'droger', state: 'not_ready', reason: 'remote_start_not_allowed' }], now);
     expect(idle).toMatchObject({ kop: 'Niet klaargezet', kanKiezen: false, uiterlijk: null });
     const [done] = residentDeferrables(exampleSite, [{ id: 'droger', state: 'not_ready', reason: 'program_finished' }], now);
     expect(done?.kop).toBe('Klaar · het programma is afgelopen');
     const [late] = residentDeferrables(exampleSite, [{ id: 'droger', state: 'would_start', reason: 'ready_by_reached', readyByMs: at, latestStartMs: at - 60 * 60_000 }], now);
-    expect(late?.zin).toBe('Ik zou hem nu starten, anders is hij niet op tijd klaar voor 18:00.');
+    expect(late?.zin).toBe('SunArc zou hem nu starten, anders is hij niet op tijd klaar voor 18:00.');
     const [en] = residentDeferrables(exampleSite, [{ id: 'droger', state: 'running', reason: 'program_running', readyByMs: at }], now, 'en');
     expect(en?.zin).toBe('The programme is running; it will be done by 18:00.');
   });

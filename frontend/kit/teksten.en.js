@@ -4763,7 +4763,7 @@
   'voortgang.weg.zelf': 'Taking over',
   'voortgang.weg.ja': 'after your yes',
   'voortgang.weg.perKamer': 'per room, when you choose',
-  'voortgang.weg.kamerZin': 'SunArc gets to know each room. You choose per room when it takes over.',
+  'voortgang.weg.kamerZin': 'SunArc watches and gets to know your home. Once it knows enough, you choose per room whether it may take over.',
   'voortgang.kort.temperatuur': 'At temperature',
   'voortgang.kort.optijd': 'Warm on time',
   'voortgang.kort.perkamer': 'Per room',

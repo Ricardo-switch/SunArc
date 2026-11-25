@@ -212,3 +212,36 @@ describe('een kamer zonder regeling en de boiler (besluit 341)', () => {
     expect(app('Waarom zie ik de boiler niet?')).toBe('apparaten.html');
   });
 });
+
+describe('regelt SunArc al, wat mist er, en de prijs van nu (kwaliteitsrapport 2, stap 2)', () => {
+  it('beantwoordt de vraag of SunArc al regelt, in elke vorm, en nooit als opdracht', () => {
+    expect(app('Regelt SunArc mijn huis al?')).toBe('huis-kan.html');
+    expect(app('Schakelt SunArc mijn verwarming al?')).toBe('huis-kan.html');
+    expect(app('Wanneer gaat SunArc zelf regelen?')).toBe('huis-kan.html');
+    expect(app('Neemt het de airco al over?')).toBe('huis-kan.html');
+    const b = begrijp('Does SunArc control my heating yet?', config, 'en');
+    expect(b.soort === 'app' ? b.link.href : b.soort).toBe('huis-kan.html');
+  });
+
+  it('zegt wat er nog mist bij de standpagina, maar mist buiten is het weer', () => {
+    expect(app('Wat mist er nog?')).toBe('huis-kan.html');
+    expect(app('Wat moet ik nog instellen?')).toBe('huis-kan.html');
+    expect(huis('Komt er morgen mist?')).toEqual({ kind: 'morgen' });
+  });
+
+  it('leest waar je instelt hoe warm het moet zijn als vraag over de app', () => {
+    expect(app('Waar stel ik in hoe warm het moet zijn?')).toBe('comfort.html');
+  });
+
+  it('kent de zon die nog komt en de prijs van nu', () => {
+    expect(huis('Hoeveel zon komt er nog?')).toEqual({ kind: 'zon', vooruit: true });
+    expect(huis('Hoeveel zon vandaag?')).toEqual({ kind: 'zon' });
+    expect(huis('Wat kost stroom nu?')).toEqual({ kind: 'kosten', nu: true });
+    expect(huis('Wat kost de stroom deze maand?')).toEqual({ kind: 'kosten' });
+    expect(app('Waar vul ik de stroomprijs in?')).toBe('energie.html#prijzen');
+  });
+
+  it('stuurt een vraag over de laadpaal naar zijn kaart, niet naar Toevoegen', () => {
+    expect(app('Waar stel ik de laadpaal in?')).toBe('apparaten.html#auto');
+  });
+});

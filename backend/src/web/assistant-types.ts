@@ -43,7 +43,7 @@ export type Question =
   | { readonly kind: 'nu' }
   | { readonly kind: 'waarom'; readonly kamer: string }
   | { readonly kind: 'straks' }
-  | { readonly kind: 'zon' }
+  | { readonly kind: 'zon'; readonly vooruit?: boolean }
   /** Wat het huis vandaag deed (besluit 141). */
   | { readonly kind: 'vandaag' }
   /** Hoe warm het overal is (besluit 141), of in één kamer die SunArc niet regelt (besluit 341). */
@@ -55,7 +55,7 @@ export type Question =
   /** Het weer en de zon van morgen (besluit 142). */
   | { readonly kind: 'morgen' }
   /** Wat de apparaten met een meter deze maand kostten (besluit 142). */
-  | { readonly kind: 'kosten' }
+  | { readonly kind: 'kosten'; readonly nu?: boolean }
   /** Het sluipverbruik: wat het huis 's nachts gebruikt (besluit 192). */
   | { readonly kind: 'sluip' }
   /** Of er iemand thuis is, wat er terugging naar het net, en of een apparaat draait. */
@@ -180,6 +180,8 @@ export interface AskContext {
       readonly terugKwh: number;
     };
   } | null;
+  /** Wat een kWh van het net nu kost: de prijs per uur of kwartier, of normaal of dal uit het contract. */
+  readonly prijsNu?: { readonly euroPerKwh: number; readonly soort: 'dynamisch' | 'normaal' | 'dal' | 'enkel' } | null;
   /** Het sluipverbruik (besluit 192), uit de nachten van de slimme meter. */
   readonly sluip?: SluipRapport | null;
   /** De klimaatbrug (besluit 210): weg of null als hij uit staat. */

@@ -83,8 +83,8 @@ export const VOORBEELD_SITE = {
   ],
   enabledStrategies: ['comfort', 'heat-assist', 'pv-surplus'],
   criticalInputs: ['climate.beneden', 'climate.air_conditioning_woonkamer', 'climate.air_conditioning_zolder', 'sensor.zolder_temperatuur', 'sensor.p1_vermogen'],
+  // Zonder legacyExplanation: het voorbeeld is een nieuw huis, zonder oude regeling ernaast en dus zonder wintertest (besluit 312).
   migration: {
-    legacyExplanation: 'sensor.airco_assist_reden',
     setpoints: {
       woonkamer: { dag: { heat: 'input_number.temp_nest_dag', cool: 'input_number.temp_airco_woonkamer_koelen' }, voorverwarmen: { heat: 'input_number.temp_nest_voorwarm' }, afwezig: { heat: 'input_number.temp_nest_eco' } },
       badkamer: { dag: { heat: 'input_number.badkamer_heat_off_temp_dag' }, voorverwarmen: { heat: 'input_number.badkamer_heat_off_temp_dag' } },

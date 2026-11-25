@@ -32,7 +32,7 @@ import { stemOpties, VOORBEELD } from '../stemmen.js';
 import { functiesVoorstel, volledig } from '../functies.js';
 import { sendJson } from '../http.js';
 import { taalVan, type Diensten, type Verzoek } from '../diensten.js';
-import { kostenDezeMaand } from './opbrengst.js';
+import { kostenDezeMaand, prijsVanNu } from './opbrengst.js';
 import { intentieVoor } from '../zinnen.js';
 import { perTaal } from '../../taal/index.js';
 
@@ -345,6 +345,7 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
     const weer = kind === 'zon' || kind === 'straks' || kind === 'weer' || kind === 'morgen' ? await weerVoor(d, config, parsed.lang) : null;
     // Wat de apparaten met een meter deze maand kostten (besluit 142), uit Opbrengst; en het hele huis, ook voor wat er terugging.
     const kosten = kind === 'kosten' || kind === 'terug' ? await kostenDezeMaand(d, config, parsed.lang).catch(() => null) : null;
+    const prijsNu = kind === 'kosten' ? prijsVanNu(d, config) : null;
     // Het sluipverbruik (besluit 192): wat de dienst al weet, zonder te wachten.
     const sluip = kind === 'sluip' ? await (d.options.sluipverbruik?.rapport() ?? Promise.resolve(null)).catch(() => null) : null;
     // Hoe warm het in één kamer is (besluit 341): de kamers uit de indeling, ook die SunArc niet regelt.
@@ -354,6 +355,7 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
       kamers,
       weer,
       kosten,
+      prijsNu,
       sluip,
       // De klimaatbrug (besluit 210): als hij aan staat, wordt een wens om te verwarmen een opdracht.
       brug: klimaatBrugVoor(d, config, vrijeTekst),

@@ -318,6 +318,24 @@ describe('zon', () => {
     expect(at(null)).not.toContain('gevel');
   });
 
+  it('zegt bij "hoeveel zon komt er nog" eerst wat er nog komt', () => {
+    const weer = { opgewektKwh: 5.3, verwachtKwh: 9.4, voorafKwh: 9, morgen: null };
+    const a = ask({ kind: 'zon', vooruit: true }, { config, snapshot: view(), today, nowMs: AT, shadow: true, lang: 'nl', weer });
+    expect(a.antwoord).toBe('Er komt vandaag nog ongeveer 4,1 kWh zon bij. Tot nu toe leverden je panelen 5,3 kWh.');
+    const zonder = ask({ kind: 'zon', vooruit: true }, { config, snapshot: view(), today, nowMs: AT, shadow: true, lang: 'nl', weer: null });
+    expect(zonder.antwoord).toContain('er is nog geen weersverwachting');
+  });
+
+  it('geeft bij "wat kost stroom nu" de prijs van dit moment', () => {
+    const met = (prijsNu: NonNullable<AskContext['prijsNu']> | null) =>
+      ask({ kind: 'kosten', nu: true }, { config, snapshot: view({ explanation: explanation({ solarProductionW: 0 }) }), today: null, nowMs: AT, shadow: true, lang: 'nl', prijsNu }).antwoord;
+    expect(met({ euroPerKwh: 0.268, soort: 'dal' })).toBe('Stroom van het net kost nu € 0,27 per kWh, het daltarief.');
+    expect(met({ euroPerKwh: 0.31, soort: 'dynamisch' })).toBe('Stroom van het net kost nu € 0,31 per kWh, de prijs van dit uur.');
+    expect(met(null)).toContain('Contract en prijzen');
+    const opZon = ask({ kind: 'kosten', nu: true }, { config, snapshot: view(), today: null, nowMs: AT, shadow: true, lang: 'nl', prijsNu: { euroPerKwh: 0.3, soort: 'enkel' } }).antwoord;
+    expect(opZon).toBe('Stroom van het net kost € 0,30 per kWh. Wat je panelen nu leveren, kost niets.');
+  });
+
   it('zegt het als er geen dag wordt bijgehouden', () => {
     expect(askNl({ kind: 'zon' }).antwoord).toContain('houd ik geen dag bij');
   });

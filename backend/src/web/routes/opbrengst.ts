@@ -390,6 +390,20 @@ export async function kostenDezeMaand(d: Diensten, config: SiteConfig, lang: Lan
   return { maand, apparaten: report.apparaten.filter((a) => !a.rest).map((a) => ({ id: a.id, naam: naamVan(a.id, a.naam), kwh: a.kwh, zonKwh: a.zonKwh, euro: a.kosten })), ...(huis ? { huis } : {}) };
 }
 
+/** Wat een kWh van het net nu kost: de prijs van dit uur bij een dynamisch contract, anders normaal of dal. */
+export function prijsVanNu(d: Diensten, config: SiteConfig, nuMs: number = Date.now()): NonNullable<AskContext['prijsNu']> | null {
+  const energy = d.options.energy;
+  const p = energy?.store.current?.prijzen;
+  if (energy == null || p == null) return null;
+  const entiteit = p.dynamisch?.prijsEntiteit;
+  const dyn = entiteit ? (energy.source.entityNumber?.(entiteit) ?? null) : null;
+  if (dyn != null && Number.isFinite(dyn)) return { euroPerKwh: dyn, soort: 'dynamisch' };
+  if (p.stroom == null) return null;
+  if (p.stroomDal == null) return { euroPerKwh: p.stroom, soort: 'enkel' };
+  const dal = isDal(nuMs, config.timezone, p.dalUren ?? 'nl', p.dalEigen ?? null);
+  return { euroPerKwh: dal ? p.stroomDal : p.stroom, soort: dal ? 'dal' : 'normaal' };
+}
+
 /** Na een vraag: de andere periodes van vandaag alvast uitrekenen, op de achtergrond. */
 export function yieldWarm(d: Diensten, vandaag: string, lang: Lang): void {
   const config = d.config();

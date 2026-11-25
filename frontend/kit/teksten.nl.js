@@ -4768,7 +4768,7 @@
   'voortgang.weg.zelf': 'Zelf regelen',
   'voortgang.weg.ja': 'na jouw ja',
   'voortgang.weg.perKamer': 'per kamer, als jij dat kiest',
-  'voortgang.weg.kamerZin': 'SunArc leert elke kamer kennen. Zelf regelen kies je per kamer.',
+  'voortgang.weg.kamerZin': 'SunArc kijkt mee en leert je huis kennen. Weet het genoeg, dan kies jij per kamer of het mag regelen.',
   'voortgang.kort.temperatuur': 'Op temperatuur',
   'voortgang.kort.optijd': 'Op tijd warm',
   'voortgang.kort.perkamer': 'Per kamer',

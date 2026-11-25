@@ -9,7 +9,7 @@ draai `npm run decisions:index` in `backend/`. Die zet de links onderaan. Een
 test eist dat elk besluit dat nog geldt hier genoemd wordt, en dat elke
 verwijzing bestaat.
 
-*Stand: 15 november 2026.*
+*Stand: 25 november 2026.*
 
 ## Waar het project staat
 
@@ -73,9 +73,14 @@ verwijzing bestaat.
   is ([337]). Sinds 0.232.0 is de oude schaduwpagina weg (met Tailwind) en opent
   elke installatie op Thuis; de winterdagen tellen alleen nog in het huis met een
   oude regeling ernaast ([312]).
-  Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste);
-  daarna hooguit één versie per week. Melden staat tot januari op pauze in de
-  add-on.
+  Sinds 0.244.0 zegt alles hetzelfde over regelen: SunArc kijkt mee en leert je
+  huis kennen, en weet het genoeg, dan kies jij per kamer of het mag regelen.
+  Het voorbeeldhuis is een nieuw huis, en de assistent kent de vragen over
+  regelen, wat er mist en de prijs van nu ([347]).
+  Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste); de
+  nieuwe versie komt rond 10 januari, los van de overstap van de regeling, en
+  beta bevriest op 31 december ([347]). Daarna hooguit één versie per week.
+  Melden staat tot januari op pauze in de add-on.
 - **De naam is SunArc** (sinds 31 oktober 2026; eerst Smart Climate): de zon
   op de horizon met stralen in mint, ijs en violet. Wat je ziet heet zo; de
   technische namen bleven ([222]). Het logo staat naast de klok en opent Over
@@ -1126,4 +1131,5 @@ verwijzing bestaat.
 [344]: DECISIONS.md#344-klaar-voor-een-nieuwe-taal-de-dienst-in-één-bestand-per-taal-minder-teksten
 [345]: DECISIONS.md#345-eén-plek-per-onderwerp-meten-en-regeling-op-zon-en-warmte-vasthouden
 [346]: DECISIONS.md#346-meldingen-kies-per-soort-wat-er-in-de-bel-komt
+[347]: DECISIONS.md#347-eén-verhaal-over-regelen-en-de-weg-naar-de-uitgave-van-januari
 <!-- links:einde -->
