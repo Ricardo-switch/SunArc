@@ -76,7 +76,10 @@ verwijzing bestaat.
   Sinds 0.244.0 zegt alles hetzelfde over regelen: SunArc kijkt mee en leert je
   huis kennen, en weet het genoeg, dan kies jij per kamer of het mag regelen.
   Het voorbeeldhuis is een nieuw huis, en de assistent kent de vragen over
-  regelen, wat er mist en de prijs van nu ([347]).
+  regelen, wat er mist en de prijs van nu ([347]). Sinds 0.244.1 volgen de
+  handleiding en de README's de vier groepen, is Inrichten overal zeven stappen
+  van zo'n vijf minuten, en noemt `SECURITY.md` alle deuren uit de code, met een
+  test die ze gelijk houdt ([348]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste); de
   nieuwe versie komt rond 10 januari, los van de overstap van de regeling, en
   beta bevriest op 31 december ([347]). Daarna hooguit één versie per week.
@@ -1132,4 +1135,5 @@ verwijzing bestaat.
 [345]: DECISIONS.md#345-eén-plek-per-onderwerp-meten-en-regeling-op-zon-en-warmte-vasthouden
 [346]: DECISIONS.md#346-meldingen-kies-per-soort-wat-er-in-de-bel-komt
 [347]: DECISIONS.md#347-eén-verhaal-over-regelen-en-de-weg-naar-de-uitgave-van-januari
+[348]: DECISIONS.md#348-de-handleiding-volgt-de-app-en-securitymd-volgt-de-deuren
 <!-- links:einde -->

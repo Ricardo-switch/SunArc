@@ -9,11 +9,10 @@
  * (besluit 312).
  *
  * Van eerst: Inrichten in één keer (besluit 139, 144 en 190, schets Wand-Inrichten-3).
- * Acht hoofdstukken op één pagina, zonder menu, met kleine stappen erin: je huis
- * (wat voor huis, de kamers, de apparaten), buiten, wie er woont, klimaat (wat
- * elk apparaat doet, meten, comfort, afwezig en vakantie), energie (zekering,
- * panelen, hoe ze liggen, op zon, prijzen), gemak, je schermen, en klaar (wat
- * er in Home Assistant klaar moet staan, en de film). Na Inrichten is de app af.
+ * Zeven stappen op één pagina, zonder menu, elk met kleine delen erin (besluit
+ * 323): je huis, meter en zekering, panelen, prijzen, verwarming, wie woont hier,
+ * en klaar (wat er in Home Assistant klaar moet staan, en de film). Zo'n vijf
+ * minuten. De rest biedt de standpagina aan als het iets oplevert.
  * Links groeit het huis mee op zijn eiland, rechts staat één vraag. Wat Home
  * Assistant al weet, staat klaar; de bewoner kijkt of het klopt.
  *

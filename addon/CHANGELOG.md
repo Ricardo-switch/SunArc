@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.244.0
+## 0.244.1
 
-*25 november 2026 · 0.179.0 – 0.244.0*
+*25 november 2026 · 0.179.0 – 0.244.1*
 
 **Nieuw**
 
@@ -103,6 +103,9 @@
 
 **Beter**
 
+- Inrichten zegt overal hetzelfde: zeven stappen, zo'n vijf minuten
+- De handleiding van de add-on wijst de weg via de vier groepen van Instellingen
+- SECURITY.md noemt alle tien de deuren waardoor SunArc naar Home Assistant schrijft
 - Overal hetzelfde over regelen: SunArc kijkt mee en leert je huis kennen. Weet het genoeg, dan kies jij per kamer of het mag regelen
 - Bij hoeveel zon er nog komt, zegt de assistent eerst wat er nog komt
 - Een vraag over de laadpaal gaat naar de kaart van je laadpaal, niet naar Toevoegen
@@ -410,6 +413,9 @@
 
 **Improved**
 
+- Setting up says the same everywhere: seven steps, about five minutes
+- The add-on documentation points the way through the four groups of Settings
+- SECURITY.md lists all ten doors through which SunArc writes to Home Assistant
 - The same everywhere about taking over: SunArc watches and gets to know your home. Once it knows enough, you choose per room whether it may take over
 - When you ask how much more sun is coming, the assistant first says what is still coming
 - A question about the charger goes to your charger's card, not to Add

@@ -103,9 +103,9 @@ In de app staat dit alles voor je eigen huis op de pagina **Wat je huis kan**: w
 - **Scherm uit als er niemand is:** met Fully Kiosk Browser op de tablet gaat het scherm uit, en weer aan als er iemand langsloopt.
 
 ### Inrichten
-- **Een welkom en een inrichting van ongeveer tien minuten:** je huis groeit uit wat Home Assistant kent, en jij bevestigt wat het voorstelt.
+- **Een welkom en een inrichting van zeven stappen, zo'n vijf minuten:** je huis groeit uit wat Home Assistant kent, en jij bevestigt wat het voorstelt.
 - **Klaarzetten in Home Assistant:** per functie een lijstje van wat Home Assistant nodig heeft, zoals een slimme meter, spraak of Fully Kiosk.
-- **Hoe ver je huis is:** één beeld van alles wat werkt, leert of nog ontbreekt.
+- **Wat je huis kan:** één beeld van alles wat werkt, leert of nog ontbreekt, met bovenaan wat er nog mist.
 - **Een voorbeeldhuis** om eerst rond te kijken, waarin elke knop werkt.
 - **Een back-up** van je instellingen in één klein bestand, en weer terugzetten.
 - **Nederlands en Engels.**
@@ -157,7 +157,7 @@ Meer heb je niet nodig. Updates komen via Home Assistant; zet op de add-on-pagin
 
 De app heeft een eigen assistent, dus dit hoeft niet. Alleen als je SunArc ook wilt vragen via **Assist** van Home Assistant ("waarom draait de zolder?", "wat doe je nu?"), zet je de kleine integratie **SunArc** erbij. Geen YAML: de add-on meldt zich vanzelf aan.
 
-- **Zonder HACS:** open SunArc → **Instellingen → Bewoners en toegang → Sleutel voor de assistent** en tik op **Zet de integratie in Home Assistant**. Herstart daarna Home Assistant.
+- **Zonder HACS:** open SunArc → **Instellingen → App en bewoners → Sleutel voor de assistent** en tik op **Zet de integratie in Home Assistant**. Herstart daarna Home Assistant.
 - **Met HACS:** kies in HACS de drie puntjes → **Eigen repositories**, voeg `https://github.com/Ricardo-switch/SunArc` toe als **Integratie**, installeer **SunArc** en herstart Home Assistant. HACS installeert alleen deze integratie; de add-on komt altijd uit de add-on-winkel.
 
 Home Assistant toont dan **Nieuw apparaat gevonden: SunArc**; klik op **Toevoegen**. Dat doe je één keer. De integratie heeft een eigen versie (2.0.1), die alleen omhoog gaat als de integratie zelf verandert; een update van SunArc vraagt geen herstart, want de zinnen en de antwoorden komen uit de add-on.

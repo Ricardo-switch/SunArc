@@ -398,6 +398,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [252. Terugzeggen na een opgeloste melding](#252-terugzeggen-na-een-opgeloste-melding)
 - [253. Het logboek delen bij een melding](#253-het-logboek-delen-bij-een-melding)
 - [340. De geschiedenis in het besluitenlog, niet in de code](#340-de-geschiedenis-in-het-besluitenlog-niet-in-de-code)
+- [348. De handleiding volgt de app, en SECURITY.md volgt de deuren](#348-de-handleiding-volgt-de-app-en-securitymd-volgt-de-deuren)
 
 Wat nog open staat: [Wat nog een besluit wacht](#wat-nog-een-besluit-wacht).
 
@@ -16039,6 +16040,35 @@ SunArc mijn huis al?" niet. Ricardo koos acht dingen, alle acht volgens het advi
 
 *Kosten:* de zin noemt geen moment. Wanneer een kamer klaar is om te regelen,
 volgt uit de analyse in januari ([312]).
+
+## 348. De handleiding volgt de app, en SECURITY.md volgt de deuren
+
+*Onderwerp: kwaliteitsbewaking · Status: geldig*
+
+25 november 2026, stap 3 van de afvinklijst uit het tweede kwaliteitsrapport
+([347]). De handleiding noemde routes die er niet meer zijn (Instellingen ›
+Assistent, Bewoners en toegang, Mist nog, Je schermen), Inrichten heette op
+drie plekken anders lang, en `SECURITY.md` noemde vier soorten schrijven waar
+de code er tien kent.
+
+*Besluit:*
+
+- **Routes in de handleiding en de README's lopen via de vier groepen**, met
+  de namen zoals ze op de tegels staan: Je huis, Klimaat, Energie, App en
+  bewoners. Wat er nog mist, staat bij Wat je huis kan.
+- **Inrichten is zeven stappen, zo'n vijf minuten**, in de app, het begin, de
+  handleiding, de README's en het commentaar van `inrichten.js`.
+- **De deuren staan als lijst in de code** (`SCHRIJFDEUREN` in
+  `client.ts`), met per deur één Engelse zin. `SECURITY.md` noemt ze met
+  precies die zinnen. Een test houdt de lijst gelijk aan de toetsen in
+  `callService`, en `SECURITY.md` gelijk aan de lijst: een nieuwe deur zonder
+  regel laat de test falen.
+
+*Wat afviel:*
+
+- **`SECURITY.md` laten maken door een script**, zoals het wijzigingslog. Voor
+  tien regels is een test die vergelijkt eenvoudiger, en de pagina blijft
+  gewoon te bewerken.
 
 ## Wat nog een besluit wacht
 

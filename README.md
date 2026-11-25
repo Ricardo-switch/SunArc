@@ -103,9 +103,9 @@ The app has a page **What your house can do** that lists all of this for your ow
 - **Screen off when nobody is there:** with Fully Kiosk Browser on the tablet, the screen goes off and wakes when someone walks past.
 
 ### Setting up
-- **A welcome and a setup of about ten minutes:** your house grows from what Home Assistant knows, and you confirm what it suggests.
+- **A welcome and a setup of seven steps, about five minutes:** your house grows from what Home Assistant knows, and you confirm what it suggests.
 - **Getting Home Assistant ready:** a checklist per feature of what Home Assistant needs, such as a smart meter, voice or Fully Kiosk.
-- **How far your house is:** one picture of everything that works, learns or is still missing.
+- **What your house can do:** one picture of everything that works, learns or is still missing, with what is missing at the top.
 - **An example house** to look around first, where every button works.
 - **A backup** of your settings in one small file, and restoring it.
 - **English and Dutch.**
@@ -159,7 +159,7 @@ That is all you need. Updates come through Home Assistant; turn on **Auto update
 
 The app has its own assistant, so this is not needed. Only if you also want to ask SunArc through Home Assistant's **Assist** ("why is the attic running?", "what are you doing?"), add the small **SunArc** integration. No YAML: the add-on announces itself.
 
-- **Without HACS:** open SunArc → **Settings → Residents and access → Key for the assistant** and tap **Put the integration in Home Assistant**. Then restart Home Assistant.
+- **Without HACS:** open SunArc → **Settings → App and residents → Key for the assistant** and tap **Put the integration in Home Assistant**. Then restart Home Assistant.
 - **With HACS:** in HACS choose the three dots → **Custom repositories**, add `https://github.com/Ricardo-switch/SunArc` as an **Integration**, install **SunArc** and restart Home Assistant. HACS installs only this integration; the add-on always comes from the add-on store.
 
 Home Assistant then shows **New device discovered: SunArc**; click **Add**. You do this once. The integration has its own version (2.0.1), which only goes up when the integration itself changes; SunArc updates need no restart, because the sentences and answers come from the add-on.

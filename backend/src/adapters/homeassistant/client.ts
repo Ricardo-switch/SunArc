@@ -435,6 +435,25 @@ export function isStartCall(domain: string, service: string, data: Record<string
   return typeof id === 'string' && id.startsWith('button.') && mag.includes(id);
 }
 
+/**
+ * Alle smalle deuren waardoor SunArc naar Home Assistant schrijft, met in
+ * gewone woorden wat erdoor mag. `SECURITY.md` noemt elke deur met precies deze
+ * zin; een test houdt die twee gelijk, en deze lijst gelijk aan de toetsen in
+ * `callService`. Een nieuwe deur zonder regel hier laat de test falen.
+ */
+export const SCHRIJFDEUREN: readonly { readonly toets: string; readonly en: string }[] = [
+  { toets: 'isLightCall', en: 'Lights: `light.turn_on` and `light.turn_off` on `light.` entities only, never an area, device or label.' },
+  { toets: 'isSceneCall', en: 'Scenes: `scene.turn_on` on one `scene.` entity.' },
+  { toets: 'isCoverCall', en: 'Blinds and screens: open, close, stop, or a position from 0 to 100 on one `cover.` entity; no tilt, group or area.' },
+  { toets: 'isUpdateCall', en: 'Its own update: `update.install` and `homeassistant.update_entity` on the update entity of the SunArc add-on itself.' },
+  { toets: 'isNotifyCall', en: 'Notifications: `notify.mobile_app_…` with a title, a text and the fixed fields of the companion app.' },
+  { toets: 'isTodoCall', en: 'Lists: `todo.add_item`, `todo.update_item` (done or not done) and `todo.remove_completed_items` on one `todo.` entity; single items cannot be deleted.' },
+  { toets: 'isKnopCall', en: 'The climate bridge to an existing automation (add-on only): a number on an allowed `input_number`, or an allowed option on an allowed `input_select`.' },
+  { toets: 'isHandCall', en: 'By hand, always with an end time: an air conditioner from the list to heat, a temperature, off, dry or fan only; climate outside the controller (like a garden house) to heat, off or one of its own presets; a smart plug from the list on or off.' },
+  { toets: 'isStartCall', en: 'Appliances waiting for sun: `button.press` on one start button from the list.' },
+  { toets: 'isLaadCall', en: 'Charging by hand, only on a charger you allowed: the charging current within its range, the charge switch, pause or resume; the Easee dynamic limit, pause and resume; or the mode of an evcc charge point.' },
+];
+
 /** Een scène aanzetten (besluit 100): één `scene.`-entiteit, verder niets. */
 function isSceneCall(domain: string, service: string, data: Record<string, unknown>, target: Record<string, unknown>): boolean {
   if (domain !== 'scene' || service !== 'turn_on') return false;

@@ -29,11 +29,11 @@ wacht.
    Dat is een verzonnen huis met alles erin, met een dag om door te spelen
    (schuif de tijd, zomer of winter, of speel de dag af). Elke knop werkt
    daar, maar alleen in het voorbeeld: je eigen huis merkt er niets van.
-4. Kies **Richt je huis in**. In acht korte hoofdstukken kijk je na wat
-   SunArc vond: je huis, buiten, wie er woont, klimaat, energie (zekering,
-   panelen, prijzen), gemak, je schermen, en klaar. Reken op ongeveer tien
-   minuten. Wat je overslaat, staat daarna bij **Instellingen › Mist nog**;
-   de app werkt al.
+4. Kies **Richt je huis in**. In zeven stappen kijk je na wat SunArc vond:
+   je huis, meter en zekering, panelen, prijzen, verwarming, wie woont hier,
+   en klaar. Reken op zo'n vijf minuten. De app werkt al, ook als je iets
+   overslaat. Wat er nog mist, staat bovenaan bij **Instellingen › Wat je
+   huis kan**.
 
 ## Wat je ziet
 
@@ -51,7 +51,7 @@ Het vraagteken bovenin start een korte rondleiding.
 
 Open SunArc in de app van Home Assistant, via de zijbalk. Je logt in met
 je eigen account; elke bewoner heeft zo zijn eigen comfort, kaarten en
-agenda's. Een tablet aan de wand richt je in bij **Je schermen**.
+agenda's. Een tablet aan de wand richt je in op dat scherm zelf, bij **Jij**.
 
 De app is er in het Nederlands en het Engels. **Automatisch** volgt de taal
 van je telefoon of browser.
@@ -61,13 +61,13 @@ van je telefoon of browser.
 SunArc zet bij de eerste start het wekwoord **Hé huis** klaar. Om met je
 stem te praten heb je in Home Assistant de add-ons Whisper, Piper en
 openWakeWord nodig, en een spraakassistent. In de app helpt **Instellingen ›
-Assistent › Stem en luisteren** je daarbij.
+App en bewoners › Assistent › Stem en luisteren** je daarbij.
 
 ## Assist van Home Assistant
 
 Wil je ook via Assist vragen stellen ("waarom draait de zolder?"), zet dan de
-integratie SunArc erbij: in de app bij **Instellingen › Bewoners en
-toegang › Sleutel voor de assistent**, met één knop. Herstart daarna Home
+integratie SunArc erbij: in de app bij **Instellingen › App en bewoners**,
+onder **Sleutel voor de assistent**, met één knop. Herstart daarna Home
 Assistant en kies **Toevoegen** bij "Nieuw apparaat gevonden".
 
 Iets op je lijst zetten ("zet melk op de boodschappenlijst") doet de
@@ -91,8 +91,9 @@ voorkeur lokaal afhandelen** aan.
   mist. Herstarten van de add-on helpt vaak na een update van Home
   Assistant.
 - **Een apparaat ontbreekt of staat in de verkeerde kamer:** zet het in Home
-  Assistant in de goede ruimte, of pas het aan bij **Richt je huis in › Je
-  huis**.
+  Assistant in de goede ruimte, of in de app bij **Instellingen › Je huis ›
+  Waar elk apparaat staat**. Ontbreekt het helemaal, voeg het dan toe bij
+  **Apparaten**, met de knop **+**.
 - **Een vraag of een fout:** meld hem op
   [GitHub](https://github.com/Ricardo-switch/SunArc/issues), het
   liefst met wat er in het logboek staat.
@@ -110,8 +111,9 @@ er zo weinig mogelijk (beveiligingscijfer 8, het hoogste):
 - **Toegang tot Home Assistant:** om je huis te lezen. Home Assistant kent
   geen variant die alleen leest. SunArc schrijft alleen via smalle deuren:
   lampen, scènes, schermen, meldingen, je lijsten, de startknop van witgoed
-  dat op zon wacht, het klimaat met de hand en laden met de hand (als je
-  het bij Energie toeliet), altijd met een eindtijd. De regeling zelf schrijft niets tot het echte
+  dat op zon wacht, en met de hand het klimaat, een stekker en het laden
+  (als je dat bij het apparaat toeliet), altijd met een eindtijd. De volledige
+  lijst staat in `SECURITY.md`. De regeling zelf schrijft niets tot het echte
   regelen begint.
 - **De Supervisor (alleen lezen):** voor Klaarzetten, om te zien hoe Whisper
   staat en of Tailscale draait. Installeren of iets veranderen mag deze rol
@@ -139,7 +141,7 @@ over.
 2. Open **SunArc** from the sidebar. Want to look around first? Choose
    **Look around an example home**: every button works there, only in the
    example.
-3. Choose **Set up your home**: eight short chapters, about ten minutes.
+3. Choose **Set up your home**: seven steps, about five minutes.
 
 The app speaks Dutch and English; **Automatic** follows your phone or
 browser. Questions or bugs:

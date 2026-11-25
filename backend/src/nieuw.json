@@ -1,5 +1,21 @@
 [
   {
+    "versie": "0.244.1",
+    "datum": "2026-11-25",
+    "beter": [
+      "Inrichten zegt overal hetzelfde: zeven stappen, zo'n vijf minuten",
+      "De handleiding van de add-on wijst de weg via de vier groepen van Instellingen",
+      "SECURITY.md noemt alle tien de deuren waardoor SunArc naar Home Assistant schrijft"
+    ],
+    "en": {
+      "beter": [
+        "Setting up says the same everywhere: seven steps, about five minutes",
+        "The add-on documentation points the way through the four groups of Settings",
+        "SECURITY.md lists all ten doors through which SunArc writes to Home Assistant"
+      ]
+    }
+  },
+  {
     "versie": "0.244.0",
     "datum": "2026-11-25",
     "nieuw": [
