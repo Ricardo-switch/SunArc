@@ -1,5 +1,19 @@
 [
   {
+    "versie": "0.242.1",
+    "datum": "2026-11-25",
+    "opgelost": [
+      "Instellingen › Klimaat toonde nog Soort verwarming. Daar staat nu Meten en regeling; de soort verwarming en De zon verdelen staan bij de tegel Energie",
+      "Een paar zinnen zeiden nog dat je Op zon aanzet in het blad van een apparaat. Ze wijzen nu naar De zon verdelen, net als zoeken, Hulp en Wat je huis kan"
+    ],
+    "en": {
+      "opgelost": [
+        "Settings › Climate still showed Heating type. It now shows Measuring and control; the heating type and Sharing the sun are on the Energy tile",
+        "A few lines still said you switch On solar on in a device's sheet. They now point to Sharing the sun, as do search, Help and What your home can do"
+      ]
+    }
+  },
+  {
     "versie": "0.242.0",
     "datum": "2026-11-25",
     "nieuw": [

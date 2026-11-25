@@ -97,11 +97,11 @@
     ['meters', 'energie', 'energie.html#meters'],
     ['prijzen', 'energie', 'energie.html#prijzen'],
     ['verwarming', 'energie', 'energie.html#verwarming'],
-    ['regelt', 'comfort', 'comfort.html'],
-    // Op zon staat in het blad van elk apparaat (besluit 318).
-    ['opzon', 'nav.apparaten', 'apparaten.html'],
+    ['regelt', 'comfort', 'comfort.html#meten'],
+    // Op zon staat op één plek: Energie › De zon verdelen (besluit 345).
+    ['opzon', 'energie', 'energie.html#zon'],
     ['kamers', 'huis', 'jehuis.html'],
-    ['meten', 'huis', 'comfort.html'],
+    ['meten', 'comfort', 'comfort.html#meten'],
     ['cameras', 'functies', 'functies.html#cameras'],
     ['deurbel', 'functies', 'functies.html#deurbel'],
     ['licht', 'functies', 'functies.html#licht'],
@@ -403,11 +403,11 @@
       {
         // Zonder panelen of zonder slimme meter kan dit niet (besluit 196).
         ...teksten('apparaten'), groep: 'zon', stand: !panelen || geenP1 ? 'nodig' : opZon ? meekijk : kanOpZon ? 'uit' : 'nodig', label: !panelen ? t('kan.opzon.nodig') : geenP1 ? t('kan.meterNodig') : opZon || kanOpZon ? null : t('kan.apparaten.nodig'),
-        nu: !panelen ? t('kan.zonderPanelen') : geenP1 ? t('kan.zonderMeter') : t(opZon ? 'kan.apparaten.start' : kanOpZon ? 'kan.apparaten.zetAan' : 'kan.apparaten.nu'), href: geenP1 ? 'energie.html#meters' : 'apparaten.html',
+        nu: !panelen ? t('kan.zonderPanelen') : geenP1 ? t('kan.zonderMeter') : t(opZon ? 'kan.apparaten.start' : kanOpZon ? 'kan.apparaten.zetAan' : 'kan.apparaten.nu'), href: geenP1 ? 'energie.html#meters' : !opZon && kanOpZon && panelen ? 'energie.html#zon' : 'apparaten.html',
       },
       ...['boiler', 'jacuzzi'].flatMap((soort) => {
         const x = buffer(soort);
-        return x ? [{ ...teksten(soort), groep: 'zon', stand: opZonAan(x) ? meekijk : 'uit', nu: warmteNu(x), href: 'apparaten.html' }] : [];
+        return x ? [{ ...teksten(soort), groep: 'zon', stand: opZonAan(x) ? meekijk : 'uit', nu: warmteNu(x), href: opZonAan(x) ? 'apparaten.html' : 'energie.html#zon' }] : [];
       }),
       // Kosten
       thuisAccu

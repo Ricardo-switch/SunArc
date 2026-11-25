@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.242.0
+## 0.242.1
 
-*25 november 2026 · 0.179.0 – 0.242.0*
+*25 november 2026 · 0.179.0 – 0.242.1*
 
 **Nieuw**
 
@@ -234,6 +234,8 @@
 
 **Opgelost**
 
+- Instellingen › Klimaat toonde nog Soort verwarming. Daar staat nu Meten en regeling; de soort verwarming en De zon verdelen staan bij de tegel Energie
+- Een paar zinnen zeiden nog dat je Op zon aanzet in het blad van een apparaat. Ze wijzen nu naar De zon verdelen, net als zoeken, Hulp en Wat je huis kan
 - Klimaat: bij een zone vielen de knoppen Met de kamer en Eigen regeling over elkaar
 - Sluipverbruik: het pijltje naar eerdere nachten is met een vinger makkelijker te raken
 - Opbrengst: zon en net vielen op de wand onder Per apparaat en Per dag buiten de kaart
@@ -531,6 +533,8 @@
 
 **Fixed**
 
+- Settings › Climate still showed Heating type. It now shows Measuring and control; the heating type and Sharing the sun are on the Energy tile
+- A few lines still said you switch On solar on in a device's sheet. They now point to Sharing the sun, as do search, Help and What your home can do
 - Climate: in a zone, the buttons With the room and Own control overlapped
 - Standby use: the arrow to earlier nights is easier to hit with a finger
 - Energy overview: sun and grid fell outside the card under Per device and Per day on the wall display

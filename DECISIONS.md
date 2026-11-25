@@ -15942,6 +15942,12 @@ drie de delen samen: van 32.500 naar 28.386 woorden per taal, en van 6.125 naar
   het daarmee straks doet, en wat het nog nodig heeft; 18 stralen. Een oude link
   naar `#thermisch` komt bij `#optijd` uit. Op de telefoon staan de namen van de
   groepen nu langs de ring, zoals op de wand.
+- **Ook bij Instellingen en in de verwijzingen** (0.242.1): de tegel Klimaat
+  heeft Meten en regeling op de plek van Soort verwarming; de tegel Energie
+  volgt de delen van de pagina Energie, met De zon verdelen en Verwarming.
+  Zoeken, Hulp op de plek, de stralen Apparaten op zon en de boiler in Wat je
+  huis kan, en de zinnen bij Apparaten en Toevoegen wijzen voor op zon naar De
+  zon verdelen in plaats van naar het blad van het apparaat.
 
 ## Wat nog een besluit wacht
 

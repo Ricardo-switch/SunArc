@@ -5613,6 +5613,10 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     // Zonnepanelen staat bij Energie (stap 4): het dak zelf teken je bij Je huis.
     expect(await p.locator('#wand [data-tegel="energie"] .deelknop[href="energie.html#aansluiting"]').count()).toBe(1);
     expect(await p.locator('#wand [data-tegel="energie"] .deelknop[href="energie.html#panelen"] b').textContent()).toBe('Zonnepanelen');
+    // Eén plek per onderwerp (besluit 345): de soort verwarming bij Energie, Meten en regeling bij Klimaat.
+    expect(await p.locator('#wand [data-tegel="energie"] .deelknop[href="energie.html#verwarming"] b').textContent()).toBe('Verwarming');
+    expect(await p.locator('#wand [data-tegel="klimaat"] .deelknop[href="energie.html#verwarming"]').count()).toBe(0);
+    await expect.poll(() => p.locator('#wand [data-tegel="klimaat"] .deelknop[href="comfort.html#meten"] > span > span').textContent()).toMatch(/eigen regeling/);
     // Inrichten staat hier niet meer (besluit 323): de standpagina biedt het aan.
     expect(await p.locator('#wand [data-tegel="app"] .deelknop:not(.mist)[href="inrichten.html"], #wand [data-tegel="app"] .deelknop:not(.mist)[href="klaarzetten.html"]').count()).toBe(0);
     // Elke tegel past zonder te scrollen.
@@ -5623,6 +5627,10 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     await p.locator('#wand [data-zoek]').fill('zekering');
     await p.locator('#wand [data-gevonden] a', { hasText: 'Hoofdzekering' }).waitFor();
     expect(await p.locator('#wand [data-gevonden] a').first().getAttribute('href')).toBe('energie.html#aansluiting');
+    // Op zon vindt De zon verdelen, de ene plek waar je het aan en uit zet (besluit 345).
+    await p.locator('#wand [data-zoek]').fill('op zon');
+    await p.locator('#wand [data-gevonden] a', { hasText: 'De zon verdelen' }).first().waitFor();
+    expect(await p.locator('#wand [data-gevonden] a', { hasText: 'De zon verdelen' }).first().getAttribute('href')).toBe('energie.html#zon');
     // Meervoud, een hoofdletter, en ook wat niet in de vaste lijst staat: een kamer van dit huis (besluit 132).
     await p.locator('#wand [data-zoek]').fill('Batterijen');
     await p.locator('#wand [data-gevonden] a', { hasText: 'Batterijen en filters' }).waitFor();

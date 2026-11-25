@@ -9,10 +9,10 @@
 const { $$, nl, esc, haal } = app;
 
 /** Alles wat de pagina leest, per deur; null zolang die niets gaf. */
-const d = { energie: null, aansluiting: null, huis: null, functies: null, comfort: null, site: null, sessie: null, export: null, health: null, zon: null, bewoners: null, divergence: null, sluip: null, klaar: null, tekening: null, helpen: null };
+const d = { energie: null, aansluiting: null, huis: null, functies: null, comfort: null, site: null, sessie: null, export: null, health: null, zon: null, bewoners: null, divergence: null, sluip: null, klaar: null, tekening: null, helpen: null, indeling: null, zonVerdelen: null };
 
 async function laadAlles() {
-  const deuren = { energie: 'api/energie', aansluiting: 'api/aansluiting', huis: 'api/huis', functies: 'api/functies', comfort: 'api/comfort', site: 'api/site', sessie: 'api/sessie', export: 'api/export/info', health: 'api/health', zon: 'api/zon', bewoners: 'api/bewoners', divergence: 'api/divergence', sluip: 'api/sluipverbruik', klaar: 'api/klaarzetten', tekening: 'api/huistekening', helpen: 'api/helpen' };
+  const deuren = { energie: 'api/energie', aansluiting: 'api/aansluiting', huis: 'api/huis', functies: 'api/functies', comfort: 'api/comfort', site: 'api/site', sessie: 'api/sessie', export: 'api/export/info', health: 'api/health', zon: 'api/zon', bewoners: 'api/bewoners', divergence: 'api/divergence', sluip: 'api/sluipverbruik', klaar: 'api/klaarzetten', tekening: 'api/huistekening', helpen: 'api/helpen', indeling: 'api/indeling', zonVerdelen: 'api/zon-verdelen' };
   const r = await Promise.allSettled(Object.values(deuren).map((p) => haal(p)));
   Object.keys(deuren).forEach((k, i) => {
     if (r[i].status === 'fulfilled') d[k] = r[i].value;
@@ -72,14 +72,14 @@ function knoppenVan(id) {
       const dd = c?.dagdelen;
       const eerst = c?.voorrang?.verwarmen?.[0];
       const naam = (zoneId) => c?.kamers?.find((k) => k.id === zoneId)?.naam ?? zoneId;
-      const soort = d.aansluiting?.antwoorden?.verwarming?.soort;
       const aircos = d.helpen?.aircos?.length ?? 0;
       return [
         [t('inst4.hoeWarm'), c ? t('inst4.kamersMee', { n: c.kamers.length }) : laden, 'comfort.html'],
         [t('instellingen.dagdelen'), dd ? t('w.tot', { van: `${dd.dag}:00`, tot: `${dd.nacht}:00` }) : laden, 'comfort.html#dagdelen'],
         [t('comfort.voorrang'), eerst ? t('inst4.eerst', { naam: naam(eerst).toLowerCase() }) : c ? t('inst4.geenVoorrang') : laden, 'comfort.html#voorrang'],
         [t('comfort.afwezig'), c ? t('inst4.vanzelf') : laden, 'comfort.html#afwezig'],
-        [t('klimaat.soort'), soort ? t(`energie.soort.${soort}`) : d.aansluiting ? t('instellingen.nogKiezen') : laden, 'energie.html#verwarming'],
+        // Meten en regeling staat op de plek van Soort verwarming; die staat bij Energie (besluit 345).
+        [t('klimaat.meten'), metenZin() ?? laden, 'comfort.html#meten'],
         ...(aircos ? [[t('regeling.helpen'), t('inst4.aircos', { n: aircos }), 'comfort.html#helpen']] : []),
       ];
     }
@@ -90,12 +90,16 @@ function knoppenVan(id) {
       const z = (zAntwoord && zAntwoord !== 'weetniet' ? zAntwoord : null) ?? a?.configuratie?.zekering ?? null;
       const omv = a?.antwoorden?.omvormers?.length ?? 0;
       const p = d.energie?.instellingen?.prijzen;
+      const soort = a?.antwoorden?.verwarming?.soort;
       return [
-        // Zonnepanelen staat bij Energie (stap 4): het dak zelf teken je bij Je huis › Vorm.
+        // Zoals de delen van Energie: Zonnepanelen staat hier (stap 4), het dak zelf teken je bij Je huis › Vorm;
+        // De zon verdelen is de ene plek voor op zon, en de soort verwarming staat alleen hier (besluit 345).
         [t('inst4.daken'), panelenZin() ?? (a ? t('instellingen.nogKiezen') : laden), 'energie.html#panelen'],
+        [t('zv.titel'), d.zonVerdelen ? t('zv.inLijst', { n: d.zonVerdelen.lijst.length }) : laden, 'energie.html#zon'],
         [t('inst4.zekering'), z ? `${z.fasen} × ${z.ampere} A` : a ? t('instellingen.nogKiezen') : laden, 'energie.html#aansluiting'],
         [t('inst4.meters'), a ? (omv ? t('inst4.omvormers', { n: omv }) : t('inst4.slimmeMeter')) : laden, 'energie.html#meters'],
         [t('inst4.prijzen'), euro(p?.stroom) ?? (d.energie ? t('instellingen.nogInvullen') : laden), 'energie.html#prijzen'],
+        [t('energie.verwarming'), soort ? t(`energie.soort.${soort}`) : a ? t('instellingen.nogKiezen') : laden, 'energie.html#verwarming'],
       ];
     }
     case 'app': {
@@ -114,6 +118,14 @@ function knoppenVan(id) {
     default:
       return [];
   }
+}
+
+/** Meten en regeling kort, zoals het deel bij Klimaat: hoeveel kamers een eigen regeling hebben, en hoeveel meedoen. */
+function metenZin() {
+  const basis = d.indeling?.indeling ?? d.indeling?.voorstel;
+  if (!basis) return null;
+  const kamers = basis.kamers.filter((k) => k.etage !== 'buiten' && !huismodel.isBuiten({ id: k.etage }, k));
+  return t('klimaat.meten.zin', { eigen: kamers.filter((k) => !k.meedoenMet && k.regelzone).length, mee: kamers.filter((k) => k.meedoenMet).length });
 }
 
 /** De panelen kort: hoeveel, of de vlakken uit de configuratie, of wat Inrichten bevestigde. */
