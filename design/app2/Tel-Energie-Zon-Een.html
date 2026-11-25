@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Op zon op één plek (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="zon-verdelen.css">
+<link rel="stylesheet" href="zon-een.css">
+<style>
+  /* Op zon op één plek op de telefoon (schets, 25 november 2026): hetzelfde als op de wand, onder elkaar. */
+  html, body { height: auto; }
+  body { margin: 0; width: 390px; overflow: auto; }
+  .tel { padding: 54px 16px 100px; display: flex; flex-direction: column; gap: 12px; }
+  .terug { font-size: 14px; font-weight: 700; color: var(--zacht); }
+  h1 { margin: 4px 0 0; font-family: var(--kop); font-size: 30px; font-weight: 600; line-height: 1.08; }
+  .tel > p { margin: 0; font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+  .zv-nukop { flex-wrap: wrap; }
+  .zv-wacht { margin-left: 0; width: 100%; }
+  .zv-rij { grid-template-columns: 16px 16px 34px minmax(0, 1fr); }
+  .zv-rij .zv-stand { grid-column: 4; justify-self: start; margin-top: 4px; }
+  .zv-ik { width: 34px; height: 34px; }
+  .zv-hand { grid-column: 1 / -1; flex-wrap: wrap; }
+  .zv-hand .knop { white-space: nowrap; }
+  .ze-blad { grid-column: 1 / -1; }
+</style>
+</head>
+<body class="lucht lucht-dag">
+<div class="tel">
+  <span class="terug">‹ Energie</span>
+  <h1>De zon verdelen</h1>
+  <p>Hier zet je iets op zon, of haal je het eraf. Comfort gaat altijd voor; dit verdeelt wat er daarna over is.</p>
+  <div data-zv style="display: flex; flex-direction: column; gap: 12px"></div>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="zon-een.js"></script>
+<script>
+  zonEen.teken(document.querySelector('[data-zv]'), 'tel');
+  addEventListener('hashchange', () => location.reload());
+</script>
+</body>
+</html>

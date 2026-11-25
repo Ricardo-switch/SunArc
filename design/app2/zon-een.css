@@ -1,0 +1,24 @@
+/* Schets Op zon op één plek (25 november 2026): bovenop zon-verdelen.css. */
+.ze-blad { grid-column: 3 / -1; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.ze-keuze { display: flex; flex-direction: column; gap: 6px; }
+.ze-keuze.rij { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
+.ze-keuze small, .ze-naam small { font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+.ze-naam { display: flex; flex-direction: column; font-size: 14px; font-weight: 600; }
+.ze-seg { align-self: start; }
+.ze-seg button { min-width: 54px; }
+.ze-aan { flex: none; }
+.ze-blad .zv-hand { grid-column: auto; margin-top: 0; }
+.ze-plus { align-self: start; height: 40px; padding: 0 16px; border-radius: 13px; border: 1px dashed rgb(var(--ijs-k) / 0.5); background: none; color: var(--ijs-t); font: inherit; font-size: 14px; font-weight: 700; }
+.ze-plus.aan { background: rgb(var(--ijs-k) / 0.12); border-style: solid; }
+.ze-kan, .ze-elders { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.04); border: 1px solid var(--glas-rand); }
+.ze-kan.open { background: rgb(var(--ijs-k) / 0.08); border-color: rgb(var(--ijs-k) / 0.4); }
+.ze-kanrij { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.ze-kanrij .zv-tekst b { font-size: 14px; }
+.ze-noot { font-size: 12.5px; color: var(--gedempt); line-height: 1.4; }
+.ze-voorbeeld { display: flex; flex-direction: column; gap: 4px; }
+.ze-waar { font-size: 12px; font-weight: 700; color: var(--gedempt); }
+.ze-regel { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 13px; background: rgb(var(--nacht) / 0.45); border: 1px solid var(--glas-rand); font-size: 13.5px; }
+.ze-regel b { color: var(--zon-t); }
+/* De schakelaar uit de bouwstenen (basis.css), die de schetsen niet laden. */
+.ze-aan { position: relative; width: 50px; height: 30px; border-radius: 999px; background: var(--mint); }
+.ze-aan::after { content: ''; position: absolute; top: 3px; right: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; }

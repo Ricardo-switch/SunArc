@@ -93,6 +93,9 @@ Te bekijken als overzicht op claude.ai (privé): <https://claude.ai/artifact/19g
 | | `Instellingen-Tel-Meldingen` (Jij › Meldingen op je telefoon; `#melding` het slotscherm, `#geen` zonder telefoon; besluit 183) |
 | | `Thuis-Tel-Kaarten` (de auto, de batterij, deze maand en de deurbel als kaart; `#licht`, `#anders` andere standen; besluit 182) |
 | `Wand-Thuis-Profiel` (de wand in de kleur, met de kaarten en favorieten, van wiens comfort geldt; ieder die thuis is in zijn eigen kleur; besluit 181) | `Thuis-Tel-Licht` (Thuis in het lichte thema, met violet), `Instellingen-Tel-Jij` (Jij: alles van één bewoner; `#thema` het blad Thema en kleur, `#donker` hetzelfde in het donker) |
+| `Wand-Klimaat-Meten` (Klimaat › Meten en regeling, 25 november 2026: een eigen deel bij Het hele huis op de plek van Soort verwarming, die alleen nog bij Energie staat; alle kamers met waarmee ze meten en wie ze regelt, zones ingesprongen; `#kamer` de woonkamer open, op de wand de lijst smal met de keuzes ernaast; klimaat-meten.js) | `Tel-Klimaat-Meten` (`#kamer` open onder de kamer) |
+| `Wand-Energie-Zon-Een` (Op zon op één plek, 25 november 2026, keuze Ricardo: De zon verdelen; erbij zetten, weghalen en per kamer hoe ver op zon en of de airco alleen op zon helpt; bij de kamer en het apparaat alleen een regel; `#erbij`; zon-een.js) | `Tel-Energie-Zon-Een` |
+| `Wand-Kan-Warmte` (Wat je huis kan met één straal voor warmte vasthouden, 25 november 2026: Op tijd warm of koel zegt per kamer wat het weet en wat het ermee doet; 18 stralen; kan-warmte.js) | |
 
 Voorbeeldgetallen. Schermafdrukken in `screens/`, opnieuw te maken met
 `node render.cjs Wand-Thuis.html:1280:800 Thuis.html:390:844:vol`.

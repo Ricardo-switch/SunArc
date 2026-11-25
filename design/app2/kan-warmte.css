@@ -1,0 +1,20 @@
+/* Schets Wat je huis kan, één straal voor warmte (25 november 2026): het blad, voor wand en telefoon. */
+.kw-stand { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--violet-t); }
+.kw-stand i { width: 8px; height: 8px; border-radius: 50%; background: var(--violet); }
+.kw-titel { margin: 0; font-family: var(--kop); font-size: 26px; font-weight: 600; }
+.kw-zin { margin: 0; font-size: 15px; color: var(--zacht); line-height: 1.45; }
+.kw-nu { padding: 10px 14px; border-radius: 14px; background: rgb(var(--wit) / 0.06); font-size: 14px; }
+.kw-nu b { color: var(--violet-t); margin-right: 6px; }
+.kw-twee { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.kw-twee section { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.kw-kop { font-size: 13.5px; font-weight: 700; color: var(--zacht); margin-top: 4px; }
+.kw-kamer { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 12px; background: rgb(var(--wit) / 0.04); }
+.kw-kamer span { display: flex; flex-direction: column; min-width: 0; }
+.kw-kamer b { font-size: 14px; }
+.kw-kamer small { font-size: 12px; color: var(--gedempt); }
+.kw-kamer em { font-style: normal; font-size: 12.5px; font-weight: 700; color: var(--mint-t); white-space: nowrap; }
+.kw-kamer.leert em { color: var(--violet-t); }
+.kw-kamer.mee em { color: var(--gedempt); font-weight: 600; }
+.kw-punten { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; line-height: 1.4; }
+.kw-punten li::marker { color: var(--mint); }
+.kw-knop { margin-top: auto; align-self: start; height: 46px; padding: 0 20px; border-radius: 14px; border: 0; background: var(--ijs); color: #0b1424; font: inherit; font-size: 15px; font-weight: 700; }

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Wand · Wat je huis kan, één straal voor warmte (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="kan-warmte.css">
+<style>
+  /*
+   * Wat je huis kan, één straal voor warmte vasthouden (schets, 25 november 2026). Links de waaier met 18 stralen,
+   * de straal Op tijd warm of koel gekozen; rechts het blad dat nu zegt wat het weet en wat het ermee doet. De inhoud
+   * en de waaier: kan-warmte.js met frontend/kit/waaier.js.
+   */
+  main { position: relative; padding: 18px 26px 18px 22px; min-height: 0; }
+  .terug { font-size: 14px; font-weight: 700; color: var(--zacht); display: block; margin-bottom: 2px; }
+  svg[data-waaier] { position: absolute; left: 0; top: 70px; width: 740px; height: 460px; }
+  .blad { position: absolute; right: 26px; top: 100px; bottom: 20px; width: 620px; padding: 22px 24px; border-radius: 24px; background: rgb(var(--nacht) / 0.92); border: 1px solid var(--glas-rand); display: flex; flex-direction: column; gap: 10px; }
+  .was { position: absolute; left: 22px; bottom: 26px; width: 560px; padding: 12px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.05); border: 1px solid var(--glas-rand); font-size: 13px; color: var(--zacht); line-height: 1.45; }
+  .was b { color: var(--tekst); }
+</style>
+</head>
+<body>
+<div class="wand lucht lucht-dag">
+  <nav class="balk" id="balk" aria-label="Hoofdmenu"></nav>
+  <main>
+    <span class="terug">‹ Instellingen</span><h1 class="kop-1" style="margin: 0">Wat je huis kan</h1>
+    <svg data-waaier viewBox="0 0 740 460"></svg>
+    <div class="was"><b>Was:</b> twee stralen, Warmte en Op tijd warm, naast elkaar bij Leert. Het blad van Warmte had alleen een knop naar Op tijd warm. <b>Nu:</b> één straal, 18 in plaats van 19.</div>
+    <aside class="blad" data-blad></aside>
+  </main>
+</div>
+<script src="../../frontend/kit/iconen.js"></script>
+<script src="../../frontend/kit/teksten.nl.js"></script>
+<script src="../../frontend/kit/teksten.en.js"></script>
+<script src="../../frontend/kit/taal.js"></script>
+<script src="../../frontend/kit/nav.js"></script>
+<script src="../../frontend/kit/waaier.js"></script>
+<script src="kan-warmte.js"></script>
+<script>
+  nav.balk(document.getElementById('balk'), 'instellingen');
+  kanWarmte.teken(document.querySelector('[data-waaier]'), document.querySelector('[data-blad]'), 'wand');
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+/* Schets Klimaat › Meten en regeling (25 november 2026): de onderdelen, voor wand en telefoon. */
+.km-samen { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--zacht); }
+.km-samen span { display: inline-flex; align-items: center; gap: 6px; }
+.km-samen b { color: var(--tekst); }
+.km-samen i { width: 9px; height: 9px; border-radius: 3px; }
+.km-samen i.eigen { background: var(--mint); }
+.km-samen i.mee { background: var(--ijs); }
+.km-samen i.geen { background: rgb(var(--wit) / 0.25); }
+.km-samen .let, .km-tekst small.let { color: var(--gloed-t); }
+.km-lijst { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; min-height: 0; }
+.km-rij { display: grid; grid-template-columns: 38px minmax(0, 1fr) 54px auto 18px; align-items: center; gap: 0 12px; padding: 7px 12px 7px 8px; border-radius: 15px; background: rgb(var(--wit) / 0.04); border: 1px solid transparent; }
+.km-rij.sub { background: none; padding-top: 2px; padding-bottom: 2px; }
+.km-rij.open { background: rgb(var(--wit) / 0.08); border-color: rgb(var(--wit) / 0.18); }
+.km-lijn { justify-self: end; width: 14px; height: 22px; border-left: 2px solid rgb(var(--wit) / 0.14); border-bottom: 2px solid rgb(var(--wit) / 0.14); border-bottom-left-radius: 8px; margin-top: -14px; }
+.km-tekst { display: flex; flex-direction: column; min-width: 0; }
+.km-tekst b { font-size: 15px; font-weight: 600; }
+.km-rij.sub .km-tekst b { font-size: 14px; }
+.km-tekst small { font-size: 12.5px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.km-temp { font-family: var(--kop); font-size: 17px; font-weight: 600; text-align: right; }
+.km-rij.sub .km-temp { font-size: 14px; color: var(--zacht); }
+.km-pil { font-size: 12.5px; font-weight: 700; white-space: nowrap; padding: 5px 10px; border-radius: 999px; }
+.km-pil.eigen { color: var(--mint-t); background: rgb(var(--mint-k) / 0.1); }
+.km-pil.mee { color: var(--ijs-t); background: rgb(var(--ijs-k) / 0.12); }
+.km-pil.geen { color: var(--gedempt); background: rgb(var(--wit) / 0.05); }
+.km-pijl { color: var(--gedempt); font-size: 18px; text-align: center; }
+.km-open { grid-column: 2 / -1; display: flex; flex-direction: column; gap: 12px; margin: 10px 0 4px; }
+.km-keuze { display: flex; flex-direction: column; gap: 6px; }
+.km-keuze small { font-size: 12.5px; color: var(--gedempt); }
+.km-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.km-chip { height: 34px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.05); color: var(--zacht); font: inherit; font-size: 13px; font-weight: 600; }
+.km-chip.aan { background: rgb(var(--ijs-k) / 0.2); border-color: rgb(var(--ijs-k) / 0.5); color: var(--tekst); }
+.km-chip.plus { border-style: dashed; color: var(--ijs-t); }
+.km-seg { align-self: start; }
+.km-seg.klein button { height: 30px; font-size: 12.5px; }
+.km-zone { display: grid; grid-template-columns: 90px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 13px; color: var(--gedempt); }
+.km-zone b { color: var(--tekst); font-size: 14px; }
+/* Telefoon: de regeling onder de naam. */
+.km-lijst.smaltel .km-rij { grid-template-columns: 34px minmax(0, 1fr) 48px 14px; }
+.km-lijst.smaltel .km-pil { grid-column: 2 / 4; justify-self: start; margin-top: 4px; }
+.km-lijst.smaltel .km-rij .km-pijl { grid-row: 1; grid-column: 4; }
+.km-lijst.smaltel .km-open { grid-column: 1 / -1; }
+.km-lijst.smaltel .km-zone { grid-template-columns: 1fr; gap: 4px; }
+/* Wand met een kamer open: de lijst smal links, de keuzes ernaast. */
+.km-twee { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; min-height: 0; }
+.km-lijst.smal .km-rij { grid-template-columns: 34px minmax(0, 1fr) 44px; padding: 5px 10px 5px 6px; }
+.km-lijst.smal .zv-ik { width: 34px; height: 34px; }
+.km-lijst.smal .km-pil { grid-column: 2 / 4; justify-self: start; font-size: 11.5px; padding: 3px 8px; margin-top: 2px; }
+.km-lijst.smal .km-tekst small, .km-lijst.smal .km-pijl { display: none; }
+.km-lijst.smal .km-temp { font-size: 15px; }
+.km-blad { padding: 14px 16px; border-radius: 18px; background: rgb(var(--wit) / 0.06); border: 1px solid rgb(var(--wit) / 0.16); display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.km-blad .km-open { margin: 6px 0 0; }
+.km-bladkop { display: flex; align-items: center; gap: 12px; }
+.km-bladkop b { font-family: var(--kop); font-size: 22px; font-weight: 600; }
+.km-sluit { margin-left: auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--glas-rand); background: rgb(var(--wit) / 0.06); color: var(--tekst); font-size: 18px; }
+.km-blad .km-zone { grid-template-columns: 70px minmax(0, 1fr); }
+.km-blad .km-zone .keuze { grid-column: 1 / -1; justify-self: start; }
