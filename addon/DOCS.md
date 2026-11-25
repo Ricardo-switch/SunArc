@@ -4,9 +4,9 @@ Klimaat en zon in één app. SunArc tekent je huis uit wat Home Assistant
 al weet, kijkt mee met je verwarming, airco's en zonnepanelen, en zegt bij elk
 besluit waarom. Lampen, scènes en schermen bedien je vanuit de app.
 
-**Wat het nu doet:** SunArc kijkt mee. Het beslist wat het huis zou doen
-en legt dat vast, maar schakelt je verwarming en airco's nog niet. Echt regelen
-komt pas na een winter meekijken. Wel kun je een airco of thermostaat zelf
+**Wat het nu doet:** SunArc kijkt mee en leert je huis kennen. Het beslist
+wat het huis zou doen en legt dat vast, maar schakelt je verwarming en airco's
+nog niet. Weet het genoeg, dan kies jij per kamer of het mag regelen. Wel kun je een airco of thermostaat zelf
 **met de hand** zetten, met een eindtijd, en start SunArc witgoed dat op zon
 wacht.
 
@@ -132,6 +132,8 @@ SunArc shows your home, climate and solar in one app, built from what Home
 Assistant already knows, and explains every decision. For now it watches
 along: it decides what the house would do but does not yet switch your
 heating or air conditioning (you can set them by hand, with an end time).
+Once it knows your home well enough, you choose per room whether it may take
+over.
 
 1. **Install**, **Start**, and turn on **Show in sidebar**.
 2. Open **SunArc** from the sidebar. Want to look around first? Choose
