@@ -1287,14 +1287,15 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // Op de wand gaat een nieuwe post over de hele breedte (19 november 2026); Klaar zet het blad terug, met de post op één regel.
     await wand.locator('[data-vast-bewerk=""]').click();
     await wand.locator('.vastkort .regel', { hasText: 'Vermindering energiebelasting' }).waitFor();
-    // Regels per land (besluit 178): eigen daltijden en geen salderen.
+    // Regels per land (besluit 178): eigen daltijden.
     await wand.locator('[data-kies="dalUren"]', { hasText: 'Eigen tijden' }).click();
     await wand.locator('[data-daleigen="van"]').selectOption('22');
     await wand.locator('[data-kies="dalWeekend"]', { hasText: 'Weekend als doordeweeks' }).click();
-    await wand.locator('[data-kies="salderen"]', { hasText: 'Geen salderen' }).click();
-    await expect.poll(() => energyStore.current?.prijzen, { timeout: 5_000 }).toMatchObject({ dalUren: 'eigen', dalEigen: { van: 22, tot: 7, weekend: false }, salderen: false });
-    // Zonder salderen geen vergoeding boven je verbruik.
+    await expect.poll(() => energyStore.current?.prijzen, { timeout: 5_000 }).toMatchObject({ dalUren: 'eigen', dalEigen: { van: 22, tot: 7, weekend: false } });
+    // Salderen vraagt de app niet meer (besluit 334): geen keuze en geen vergoeding boven je verbruik, wel wat je krijgt en betaalt.
+    expect(await wand.locator('[data-kies="salderen"]').count()).toBe(0);
     expect(await wand.locator('[data-prijs="teruglevering"]').count()).toBe(0);
+    expect(await wand.locator('[data-prijs="vanaf2027.vergoeding"]').count()).toBe(1);
     expect(fouten).toEqual([]);
     await context.close();
   }, 30_000);

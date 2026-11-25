@@ -26,7 +26,7 @@
  */
 
 import type { Lang } from './assistant.js';
-import { SALDEREN_TOT_MS, dalAandeel, kostenMetTellers, raadDal, zonderPrijs, type Gebruik, type Kosten, type KostenRegel } from './tarief.js';
+import { SALDEREN_TOT_MS, dalAandeel, salderenTelt, kostenMetTellers, raadDal, zonderPrijs, type Gebruik, type Kosten, type KostenRegel } from './tarief.js';
 import { BASIS_ZONDER_METER_W, type EnergySettings, type EnergySource } from './energy.js';
 import { partsIn, zonedMidnight } from './today.js';
 import { perTaal } from '../taal/index.js';
@@ -339,8 +339,8 @@ export function verdeel(
     ad = afDal ?? af * deel;
     td = terugDal ?? terug * deel;
   }
-  // Zonder salderen (besluit 178) telt alles wat teruggaat zoals na 2027.
-  const na = p.salderen === false || van >= SALDEREN_TOT_MS;
+  // Zonder salderen (buiten Nederland, besluit 178 en 334) telt alles wat teruggaat zoals na 2027.
+  const na = !salderenTelt(p) || van >= SALDEREN_TOT_MS;
   return { afNormaal: af - ad, afDal: ad, terugNormaal: na ? 0 : terug - td, terugDal: na ? 0 : td, terugNa: na ? terug : 0 };
 }
 

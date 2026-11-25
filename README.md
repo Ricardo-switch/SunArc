@@ -80,7 +80,7 @@ The app has a page **What your house can do** that lists all of this for your ow
 
 ### Energy and costs
 - **Today:** the day on a timeline, with what each device did and why.
-- **Energy** per day, week, month or contract year: what you use, what your panels produce and what it costs, with the prices of your own contract (peak and off-peak, net metering and after). The meters come straight from Home Assistant's Energy dashboard.
+- **Energy** per day, week, month or contract year: what you use, what your panels produce and what it costs, with the prices of your own contract (peak and off-peak, and export). The meters come straight from Home Assistant's Energy dashboard.
 - **The solar forecast** next to what actually came.
 - **Standby use:** every night the house checks what it uses when nothing runs, and tells you when that stands out.
 - **A home battery, worked out:** no battery yet? The app replays your past year hour by hour and shows the size that fits. Already have one? It shows how full it is and what it does.

@@ -184,14 +184,14 @@
    * Wat een thuisbatterij zou opleveren (besluit 230): het afgelopen jaar per
    * uur nagerekend door de dienst (`api/accu`). Welke maat past, wat die zelf
    * had geleverd, wat er toch van het net kwam, en wanneer hij bijsprong.
-   * Zolang er gesaldeerd wordt bijna niets; vanaf 2027 het verschil tussen je
+   * Het verschil tussen je
    * stroomprijs en wat je voor teruglevering krijgt, plus de terugleverkosten.
    * Per maand: het gemiddelde over het jaar. Een schatting.
    */
   /**
    * Een thuisaccu die het huis al heeft (besluit 275): hoe vol, en wat hij deze
    * maand aan het huis leverde uit Opbrengst; met een stroomprijs ook wat dat
-   * vanaf 2027 ongeveer waard is, zonder salderen.
+   * ongeveer waard is (besluit 334).
    */
   function accuLeverde(d, accu) {
     const a = d.opbrengst?.accu;

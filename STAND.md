@@ -63,8 +63,8 @@ verwijzing bestaat.
   huis een tab Dak, met de dakvorm en de dakkapel ([332]). Sinds 0.220.0
   tekent het huis zoals getekend radiatoren (met de knop eraan, of vanzelf
   onder het raam), de buitenunit als eigen bolletje en dakramen ([333]).
-  Vanaf de versie die in januari live gaat, praat de app niet meer over
-  salderen, behalve bij gegevens van 2026 en eerder ([334]).
+  Sinds 0.240.0 praat de app niet meer over salderen, behalve bij gegevens
+  van 2026 en eerder; het land komt uit Home Assistant ([334]).
   Sinds 0.229.0 zeg je bij Sluipverbruik per nacht wat er draaide, en vraagt
   SunArc bij een nacht die erop lijkt "Weer de pc?" ([335]).
   Sinds 0.230.0 staat De motor achter zeven tikken op de versie bij Over deze

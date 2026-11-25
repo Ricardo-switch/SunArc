@@ -84,7 +84,7 @@ const ONDERWERPEN: readonly Onderwerp[] = [
   {
     id: 'prijzen',
     href: 'energie.html#prijzen',
-    sterk: ['prijs*', 'prijzen', 'tarief*', 'daltarief', 'dal', 'normaal tarief', 'netbeheer*', 'vastrecht', 'vaste kosten', 'contract', 'energieprijs*', 'stroomprijs*', 'gasprijs*', 'salder*', 'teruglever*', 'energiebelasting', 'price*', 'tariff*', 'off peak', 'peak rate', 'standing charge*', 'fixed costs', 'net metering', 'feed in', 'energy tax'],
+    sterk: ['prijs*', 'prijzen', 'tarief*', 'daltarief', 'dal', 'normaal tarief', 'netbeheer*', 'vastrecht', 'vaste kosten', 'contract', 'energieprijs*', 'stroomprijs*', 'gasprijs*', 'teruglever*', 'energiebelasting', 'price*', 'tariff*', 'off peak', 'peak rate', 'standing charge*', 'fixed costs', 'net metering', 'feed in', 'energy tax'],
     zwak: ['kosten', 'meter', 'meters', 'kwh', 'gas', 'stroom', 'energie', 'leverancier', 'rekening', 'electricity', 'supplier', 'bill', 'energy'],
   },
   {

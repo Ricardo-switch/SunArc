@@ -47,6 +47,7 @@ import { SceneColorStore, colorsFromLamps } from './web/scene-colors.js';
 import { ScenePictures } from './web/scene-pictures.js';
 import { EnergyStore } from './web/energy.js';
 import { zetValuta } from './web/valuta.js';
+import { zetLand } from './web/tarief.js';
 import { httpBase } from './web/camera.js';
 import { Pauze } from './web/taalmodel.js';
 import { Teller } from './web/brein.js';
@@ -618,12 +619,13 @@ client.on('ready', (states: HaEntityState[]) => {
     .catch(() => {
       // Zonder registers is er geen huis te tonen; de volgende verbinding opnieuw.
     });
-  // De ligging en, sinds de testerronde (november 2026), de valuta: bij elke verbinding.
+  // De ligging en, sinds de testerronde (november 2026), de valuta en het land (besluit 334): bij elke verbinding.
   {
     client
       .query<HaCoreConfig>('get_config')
       .then((c) => {
         zetValuta(c.currency);
+        zetLand(c.country);
         if (location == null && typeof c.latitude === 'number' && typeof c.longitude === 'number') {
           location = { latDeg: round1(c.latitude), lonDeg: round1(c.longitude) };
         }

@@ -84,7 +84,7 @@ describe('de kosten met een echt contract (besluit 110)', () => {
     expect(en.regels.map((r) => [r.naam, r.uitleg])).toEqual([
       ['Electricity, normal rate', '100.5 kWh × € 0.27142'],
       ['Electricity, off-peak', '50 kWh × € 0.269'],
-      ['Exported, without net metering', '100 kWh × € 0.06635 payment, minus € 0.06385 costs'],
+      ['Exported', '100 kWh × € 0.06635 payment, minus € 0.06385 costs'],
       ['Gas', '12.25 m³ × € 1.36568'],
       ['Fixed costs electricity', 'Vaste leveringskosten, Netbeheer, Vermindering energiebelasting'],
       ['Fixed costs gas', 'Vaste leveringskosten gas, Netbeheer gas'],
@@ -94,16 +94,16 @@ describe('de kosten met een echt contract (besluit 110)', () => {
 
   it('saldeert teruglevering tegen het eigen tarief, en over een jaar het overschot tegen de vergoeding', () => {
     const maand = kostenVan(contract, { ...leeg, afNormaal: 10, terugNormaal: 200, terugDal: 20 }, heeft);
-    expect(maand.regels.find((r) => r.naam === 'Teruggeleverd')!.euro).toBe(-(200 * 0.27142 + 20 * 0.269).toFixed(2) * 1);
+    expect(maand.regels.find((r) => r.naam === 'Teruggeleverd tot 2027')!.euro).toBe(-(200 * 0.27142 + 20 * 0.269).toFixed(2) * 1);
     const jaar = kostenVan(contract, { ...leeg, afNormaal: 1000, terugNormaal: 1500, dagen: 365, heelJaar: true }, heeft);
-    const terug = jaar.regels.find((r) => r.naam === 'Teruggeleverd')!;
-    expect(terug.uitleg).toBe('1000 kWh gesaldeerd, 500 kWh boven je verbruik × € 0,15');
+    const terug = jaar.regels.find((r) => r.naam === 'Teruggeleverd tot 2027')!;
+    expect(terug.uitleg).toBe('1000 kWh met salderen zoals tot 2027, 500 kWh boven je verbruik × € 0,15');
     expect(terug.euro).toBeCloseTo(-(1000 * 0.27142 + 500 * 0.15), 2);
   });
 
   it('rekent vanaf 2027 een vergoeding met terugleverkosten, zonder salderen', () => {
     const k = kostenVan(contract, { ...leeg, terugNa: 100 }, heeft);
-    expect(k.regels.find((r) => r.naam === 'Teruggeleverd, zonder salderen')).toEqual({ soort: 'terug-na', naam: 'Teruggeleverd, zonder salderen', uitleg: '100 kWh × € 0,06635 vergoeding, min € 0,06385 kosten', euro: -0.25 });
+    expect(k.regels.find((r) => r.naam === 'Teruggeleverd')).toEqual({ soort: 'terug-na', naam: 'Teruggeleverd', uitleg: '100 kWh × € 0,06635 vergoeding, min € 0,06385 kosten', euro: -0.25 });
     expect(new Date(SALDEREN_TOT_MS).toISOString()).toBe('2026-12-31T23:00:00.000Z');
   });
 

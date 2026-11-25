@@ -61,8 +61,8 @@ function zekeringStap() {
 
 /*
  * De prijzen (besluit 158): eerst het soort contract, dan alleen de velden die
- * daarbij horen, met gas en wat je vanaf 2027 voor teruglevering krijgt en
- * betaalt. Het salderen stopt op 1 januari 2027.
+ * daarbij horen, met gas en wat je voor teruglevering krijgt en betaalt
+ * (sinds 2027 zonder salderen, besluit 334).
  */
 let contractKeuze = null;
 /** Het soort contract (stap 4): dezelfde rij als bij Energie › Contract en prijzen (contract.js). */

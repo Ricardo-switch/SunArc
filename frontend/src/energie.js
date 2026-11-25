@@ -55,7 +55,6 @@ function aanvullen(c) {
   p.stroomDal ??= null;
   p.dalUren ??= 'nl';
   p.dalEigen ??= { van: 23, tot: 7, weekend: true };
-  p.salderen ??= true;
   p.vanaf2027 ??= { vergoeding: null, kosten: null };
   p.vast ??= [];
   p.contractStart ??= null;
@@ -380,10 +379,8 @@ function prijzenVorm() {
       <p class="mini">${esc(t('energie.totaalprijs'))}</p>${dalTijden}`;
   // Teruglevering per uur, als Home Assistant die telt; anders zegt het wat er mist, en blijven de bedragen.
   const terugKan = p.dynamisch && !p.dynamisch.terug.length && eInfo?.voorstel?.prijzen?.dynamisch?.terug?.length;
-  const terugVast = `${keuzes(t('energie.salderen'), 'salderen', [[true, t('energie.salderenTot')], [false, t('energie.geenSalderen')]], p.salderen)}
-      ${p.salderen ? `<p class="uitleg">${esc(t(p.dynamisch ? 'energie.salderenUurprijs' : 'energie.salderenUitleg'))}</p>
-      ${bedragVeld(t('energie.vergoedingBoven'), 'teruglevering', p.teruglevering, nl(0.15, 2))}` : `<p class="uitleg">${esc(t('energie.zonderSalderen'))}</p>`}
-      <span class="veldnaam boven-4">${esc(t(p.salderen ? 'energie.vanaf2027' : 'energie.krijgenBetalen'))}</span>
+  // Geen keuze over salderen meer (besluit 334): de dienst rekent 2026 en eerder er zelf mee.
+  const terugVast = `<p class="uitleg">${esc(t('energie.terugUitleg'))}</p>
       <div class="twee">${bedragVeld(t('energie.jeKrijgt'), 'vanaf2027.vergoeding', p.vanaf2027.vergoeding, nl(0.07, 2))}${bedragVeld(t('energie.jeBetaalt'), 'vanaf2027.kosten', p.vanaf2027.kosten, nl(0.06, 2))}</div>`;
   const terugBlok = !p.dynamisch
     ? terugVast
@@ -682,7 +679,6 @@ document.addEventListener('click', async (ev) => {
     }
     // De prijzen.
     if (e && s === 'dalUren') e.prijzen.dalUren = w;
-    else if (e && s === 'salderen') e.prijzen.salderen = w;
     else if (e && s === 'dalWeekend') e.prijzen.dalEigen = { ...e.prijzen.dalEigen, weekend: w };
     else return;
     teken();

@@ -16,6 +16,7 @@ import { haEnergySource } from '../src/adapters/homeassistant/energy.js';
 import { partsIn, zonedMidnight } from '../src/web/today.js';
 import { periodRange, verdeel, yearStartOf, yieldReport } from '../src/web/yield.js';
 import { goedkoopVandaag } from '../src/web/routes/opbrengst.js';
+import { zetLand } from '../src/web/tarief.js';
 import { residentFlows } from '../src/web/resident.js';
 import type { DecisionView } from '../src/web/assistant.js';
 
@@ -115,12 +116,12 @@ describe('een dag terugkijken', () => {
     // Kosten: van het net min terug (gesaldeerd tegen dezelfde prijs) plus gas.
     expect(r.kosten.regels.map((x) => [x.naam, x.euro])).toEqual([
       ['Stroom van het net', 1.7],
-      ['Teruggeleverd', -1.75],
+      ['Teruggeleverd tot 2027', -1.75],
       ['Gas', 0.26],
       ['Vaste kosten', null],
     ]);
     expect(r.kosten.totaal).toBe(0.21);
-    expect(r.kosten.regels.map((x) => x.uitleg)).toEqual(['6,8 kWh × € 0,25', '7 kWh, gesaldeerd tegen je stroomprijs', '0,2 m³ × € 1,30', 'nog niet ingesteld']);
+    expect(r.kosten.regels.map((x) => x.uitleg)).toEqual(['6,8 kWh × € 0,25', '7 kWh, met salderen tegen je stroomprijs, zoals tot 2027', '0,2 m³ × € 1,30', 'nog niet ingesteld']);
   });
 
   it('houdt zelf gebruikt plus terug gelijk aan opgewekt, ook als de zonnemeter een uur achterloopt', async () => {
@@ -497,6 +498,23 @@ describe('zonder salderen (besluit 178)', () => {
     expect(met.terugNa).toBe(0);
     const zonder = verdeel({ ...SETTINGS, prijzen: { ...SETTINGS.prijzen, salderen: false } }, 10, null, 4, null, van, tot, 'Europe/Amsterdam');
     expect(zonder).toMatchObject({ terugNormaal: 0, terugDal: 0, terugNa: 4 });
+  });
+
+  it('saldeert alleen in Nederland, het land uit Home Assistant (besluit 334)', () => {
+    const van = Date.UTC(2026, 5, 1);
+    const tot = Date.UTC(2026, 5, 2);
+    try {
+      zetLand('BE');
+      expect(verdeel(SETTINGS, 10, null, 4, null, van, tot, 'Europe/Amsterdam')).toMatchObject({ terugNormaal: 0, terugNa: 4 });
+      zetLand('nl');
+      expect(verdeel(SETTINGS, 10, null, 4, null, van, tot, 'Europe/Amsterdam').terugNa).toBe(4);
+      zetLand('NL');
+      expect(verdeel(SETTINGS, 10, null, 4, null, van, tot, 'Europe/Amsterdam')).toMatchObject({ terugNormaal: 4, terugNa: 0 });
+      // Vanaf 2027 nooit meer, ook niet in Nederland.
+      expect(verdeel(SETTINGS, 10, null, 4, null, Date.UTC(2027, 0, 5), Date.UTC(2027, 0, 6), 'Europe/Amsterdam').terugNa).toBe(4);
+    } finally {
+      zetLand('NL');
+    }
   });
 
   it('bewaart eigen daltijden en geen salderen, en weigert wat niet klopt', () => {

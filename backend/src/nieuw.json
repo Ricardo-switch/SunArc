@@ -1,5 +1,19 @@
 [
   {
+    "versie": "0.240.0",
+    "datum": "2026-11-25",
+    "beter": [
+      "Energie › Contract en prijzen vraagt niet meer naar salderen: bij Teruglevering vul je alleen in wat je per kWh krijgt en betaalt. Bedragen uit 2026 en eerder rekent SunArc in Nederland vanzelf met salderen, en daar staat dat bij",
+      "Kortere teksten op bijna elk scherm, in het Nederlands en het Engels. Waarvoor is dit? heet nu Hulp, en staat er niets achter, dan is er geen knop"
+    ],
+    "en": {
+      "beter": [
+        "Energy › Contract and prices no longer asks about net metering: under Export you only fill in what you get and pay per kWh. In the Netherlands, SunArc works out amounts from 2026 and earlier with net metering by itself, and says so",
+        "Shorter texts on almost every screen, in Dutch and English. What is this for? is now called Help, and if there is nothing behind it, there is no button"
+      ]
+    }
+  },
+  {
     "versie": "0.239.0",
     "datum": "2026-11-24",
     "nieuw": [

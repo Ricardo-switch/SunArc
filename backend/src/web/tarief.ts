@@ -49,7 +49,7 @@ export interface Tarieven {
   readonly dalUren?: DalRegio;
   /** De tijden bij `dalUren: 'eigen'` (besluit 178). */
   readonly dalEigen?: DalEigen | null;
-  /** Of er gesaldeerd wordt (tot 2027, zoals in Nederland); false is nooit (besluit 178). Weg is wel. */
+  /** Of er gesaldeerd wordt voor gegevens tot 2027 (zie `salderenTelt`); false is nooit (besluit 178). Weg is wel; de app vraagt het niet meer (besluit 334). */
   readonly salderen?: boolean;
   /** Wat je krijgt voor wat je over een jaar meer teruglevert dan je verbruikt (zolang er gesaldeerd wordt). */
   readonly teruglevering: number | null;
@@ -92,6 +92,24 @@ export interface Dynamisch {
 
 /** Het salderen stopt op 1 januari 2027, middernacht in Nederland. */
 export const SALDEREN_TOT_MS = Date.UTC(2026, 11, 31, 23, 0, 0);
+
+/** Het land uit Home Assistant (`get_config`, `country`); null zolang het niet gelezen is. */
+let land: string | null = null;
+
+/** Het land onthouden, zoals NL; alleen een code van twee letters. */
+export function zetLand(c: unknown): void {
+  if (typeof c === 'string' && /^[A-Z]{2}$/.test(c)) land = c;
+}
+
+/**
+ * Telt salderen voor gegevens van 2026 en eerder (besluit 334)? Alleen in
+ * Nederland: de bewoner kiest het niet meer. Een land dat Home Assistant niet
+ * noemt, telt als Nederland, zoals altijd; een oude keuze "geen salderen"
+ * (besluit 178) blijft gelden.
+ */
+export function salderenTelt(p: Pick<Tarieven, 'salderen'>): boolean {
+  return p.salderen !== false && (land == null || land === 'NL');
+}
 
 const DAG_MS = 86_400_000;
 
@@ -303,7 +321,7 @@ export function kostenMetTellers(
   } else regels.push(...van(['terug', 'terug-na']));
 
   // Over een heel jaar: wat je meer teruglevert dan je verbruikt, krijg je tegen de vergoeding, niet tegen de prijs van het uur.
-  const boven = g.heelJaar && p.salderen !== false && p.teruglevering != null ? Math.max(0, g.terugNormaal + g.terugDal - (g.afNormaal + g.afDal)) : 0;
+  const boven = g.heelJaar && salderenTelt(p) && p.teruglevering != null ? Math.max(0, g.terugNormaal + g.terugDal - (g.afNormaal + g.afDal)) : 0;
   const i = regels.findIndex((r) => r.soort === 'terug');
   const terugRegel = i >= 0 ? regels[i]! : null;
   if (boven > KLEIN && terugRegel?.euro != null && terugKwh > KLEIN) {
@@ -404,7 +422,7 @@ export function kostenVan(p: Tarieven, u: Gebruik, heeft: { readonly net: boolea
       regels.push({
         soort: 'terug-na',
         naam: w.terugNa,
-        uitleg: v == null ? w.geenVergoeding(kwh(u.terugNa, lang), p.salderen !== false) : w.vergoeding(kwh(u.terugNa, lang), eur(v, lang), k ? eur(k, lang) : null),
+        uitleg: v == null ? w.geenVergoeding(kwh(u.terugNa, lang)) : w.vergoeding(kwh(u.terugNa, lang), eur(v, lang), k ? eur(k, lang) : null),
         euro: tel(v == null ? null : u.terugNa * (k - v)),
       });
     }

@@ -80,7 +80,7 @@ In de app staat dit alles voor je eigen huis op de pagina **Wat je huis kan**: w
 
 ### Energie en kosten
 - **Vandaag:** de dag in de tijd, met wat elk apparaat deed en waarom.
-- **Energie** per dag, week, maand of contractjaar: wat je gebruikt, wat je panelen leveren en wat het kost, met de prijzen van je eigen contract (normaal en dal, salderen en daarna). De meters komen zo uit het Energie-dashboard van Home Assistant.
+- **Energie** per dag, week, maand of contractjaar: wat je gebruikt, wat je panelen leveren en wat het kost, met de prijzen van je eigen contract (normaal en dal, en teruglevering). De meters komen zo uit het Energie-dashboard van Home Assistant.
 - **De zonverwachting** naast wat er echt kwam.
 - **Sluipverbruik:** elke nacht kijkt het huis wat het gebruikt als er niets draait, en zegt het als dat opvalt.
 - **Een thuisbatterij, nagerekend:** nog geen batterij? De app rekent je afgelopen jaar per uur na en laat zien welke maat past. Heb je er een? Dan zie je hoe vol hij is en wat hij doet.

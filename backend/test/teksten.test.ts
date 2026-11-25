@@ -80,3 +80,28 @@ describe('verwarmen, nooit het kale werkwoord', () => {
     expect(fout).toEqual([]);
   });
 });
+
+/*
+ * Salderen alleen nog bij gegevens van 2026 en eerder (besluit 334): de app
+ * vraagt er niet naar en legt het niet uit. Het woord staat alleen nog in de
+ * zinnen van de dienst bij teruglevering tot 2027, en daar staat 2027 bij.
+ */
+const SALDEREN = /salder|net.meter/i;
+
+describe('salderen alleen bij gegevens tot 2027 (besluit 334)', () => {
+  it('noemt in de teksten van de app geen salderen en geen "vanaf 2027"', async () => {
+    for (const f of ['frontend/kit/teksten.nl.js', 'frontend/kit/teksten.en.js']) {
+      const regels = (await readFile(new URL(`../../${f}`, import.meta.url), 'utf-8')).split('\n').filter((r) => /^\s+'[^']+':/.test(r));
+      expect(regels.length).toBeGreaterThan(1000);
+      expect(regels.filter((r) => SALDEREN.test(r) || /vanaf 2027|from 2027/i.test(r))).toEqual([]);
+    }
+  });
+
+  it('noemt het in de dienst alleen met 2027 erbij', async () => {
+    for (const f of ['backend/src/taal/nl.ts', 'backend/src/taal/en.ts']) {
+      const regels = (await readFile(new URL(`../../${f}`, import.meta.url), 'utf-8')).split('\n').filter((r) => SALDEREN.test(r));
+      expect(regels.length).toBe(3);
+      expect(regels.filter((r) => !/tot 2027|until 2027/.test(r))).toEqual([]);
+    }
+  });
+});

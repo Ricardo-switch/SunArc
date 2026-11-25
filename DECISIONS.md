@@ -15434,6 +15434,26 @@ die bedragen geen vertekend beeld geven.
 - **Niet voor andere landen:** daar bestond salderen in de app al niet; er
   verandert niets.
 
+*Uitgevoerd in 0.240.0 (25 november 2026), al vóór januari:*
+
+- **Geen keuze meer bij Energie › Contract en prijzen.** Teruglevering is nu één
+  zin en twee velden: wat je per kWh krijgt en wat je betaalt. Het veld
+  *Vergoeding boven je verbruik* is weg uit het scherm; een ingevuld bedrag
+  blijft bewaard en telt nog voor een heel jaar dat in 2026 of eerder valt.
+- **Het land komt uit Home Assistant** (`get_config`, `country`), naast de
+  valuta. Alleen in Nederland telt salderen voor 2026 en eerder; zonder land
+  telt het als Nederland, zoals altijd. Een oude keuze *Geen salderen*
+  (`salderen: false`) blijft gelden. Dat staat in `salderenTelt` in `tarief.ts`.
+- **De namen van de kostenregels:** *Teruggeleverd tot 2027* voor wat met
+  salderen gerekend is, en gewoon *Teruggeleverd* voor de rest. De uitleg van
+  de eerste zegt "met salderen ... zoals tot 2027".
+- **"Vanaf 2027" is weg** uit Wat je huis kan, de thuisbatterij en Inrichten:
+  dat is nu gewoon nu. Het zoekwoord *saldering* en *salder\** in de
+  woordzoeker zijn weg.
+- **De test** staat in `teksten.test.ts`: geen salderen en geen "vanaf 2027"
+  in de teksten van de app, en in de dienst alleen in de drie zinnen met 2027
+  erbij.
+
 ## 335. Sluipverbruik: een reden per nacht, en herkennen
 
 *Onderwerp: weergave · Status: geldig*

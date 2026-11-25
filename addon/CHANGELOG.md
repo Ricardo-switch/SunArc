@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.239.0
+## 0.240.0
 
-*24 november 2026 · 0.179.0 – 0.239.0*
+*25 november 2026 · 0.179.0 – 0.240.0*
 
 **Nieuw**
 
@@ -99,6 +99,8 @@
 
 **Beter**
 
+- Energie › Contract en prijzen vraagt niet meer naar salderen: bij Teruglevering vul je alleen in wat je per kWh krijgt en betaalt. Bedragen uit 2026 en eerder rekent SunArc in Nederland vanzelf met salderen, en daar staat dat bij
+- Kortere teksten op bijna elk scherm, in het Nederlands en het Engels. Waarvoor is dit? heet nu Hulp, en staat er niets achter, dan is er geen knop
 - Op zon staat niet meer bij Klimaat › Voorrang, maar bij De zon verdelen
 - Vraag de assistent hoe warm het in een kamer is die SunArc niet regelt, zoals de slaapkamer: hij zegt wat de thermometer daar meet
 - Vraag wat de boiler of de jacuzzi doet: de assistent zegt hoe warm hij is en of hij verwarmt of op zon wacht
@@ -384,6 +386,8 @@
 
 **Improved**
 
+- Energy › Contract and prices no longer asks about net metering: under Export you only fill in what you get and pay per kWh. In the Netherlands, SunArc works out amounts from 2026 and earlier with net metering by itself, and says so
+- Shorter texts on almost every screen, in Dutch and English. What is this for? is now called Help, and if there is nothing behind it, there is no button
 - On solar is no longer under Climate › Priority, but under Sharing the sun
 - Ask the assistant how warm it is in a room SunArc does not control, such as the bedroom: it says what the thermometer there reads
 - Ask what the boiler or hot tub is doing: the assistant says how hot it is and whether it is heating or waiting for solar

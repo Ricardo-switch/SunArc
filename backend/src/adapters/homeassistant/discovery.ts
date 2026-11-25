@@ -86,6 +86,8 @@ export interface HaCoreConfig {
   readonly longitude?: number;
   /** De valuta, zoals EUR (testerronde, november 2026). */
   readonly currency?: string;
+  /** Het land, zoals NL: salderen telt alleen in Nederland (besluit 334). */
+  readonly country?: string | null;
 }
 
 /** Alles wat de ontdekking nodig heeft, zodat de functie zelf niets ophaalt. */
