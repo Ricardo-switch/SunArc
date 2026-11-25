@@ -150,6 +150,8 @@ verwijzing bestaat.
   staan in één bestand per taal, en de app heeft minder teksten ([344]). Op zon
   zet je alleen nog bij De zon verdelen, Meten en regeling is een eigen deel bij
   Klimaat, en warmte vasthouden is deel van Op tijd warm of koel ([345]).
+  Bij Meldingen kies je per soort wat er in de bel en op de telefoon komt; rook,
+  een meter en wat niet klopt staan altijd aan ([346]).
 - **Elke opstelling werkt:** de regeling doet wat de opstelling toelaat en zegt
   wat ze daardoor niet kan ([70]). Geavanceerde functies volgen uit wat het huis
   heeft; ingrijpende vragen een bewuste keuze ([78]).
@@ -1123,4 +1125,5 @@ verwijzing bestaat.
 [343]: DECISIONS.md#343-de-zon-verdelen-één-lijst-voor-wie-de-zon-krijgt
 [344]: DECISIONS.md#344-klaar-voor-een-nieuwe-taal-de-dienst-in-één-bestand-per-taal-minder-teksten
 [345]: DECISIONS.md#345-eén-plek-per-onderwerp-meten-en-regeling-op-zon-en-warmte-vasthouden
+[346]: DECISIONS.md#346-meldingen-kies-per-soort-wat-er-in-de-bel-komt
 <!-- links:einde -->

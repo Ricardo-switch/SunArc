@@ -22,6 +22,11 @@
  * - een slimme stekker (besluit 264): gevonden en nog niet op zon, en een
  *   eigen meter die nog niet bij Energie staat.
  *
+ * Bij Instellingen › Meldingen (besluit 346) zet je een soort uit: dan komt
+ * hij niet in de bel en niet op de telefoon. Rook, een meter die niets levert
+ * en wat niet klopt staan altijd aan, net als een apparaat dat SunArc regelt
+ * en niet meer reageert.
+ *
  * Wat vanzelf weer goed is, lost zichzelf op en schuift naar Eerder. Een
  * wachttijd houdt kort haperen buiten de lijst. Alles staat in één eigen
  * bestand naast de dataset; er gaat niets naar Home Assistant. Een deel gaat
@@ -40,6 +45,22 @@ export const MELDINGEN_FILE = 'meldingen.json';
 
 export type MeldingSoort = 'nieuw' | 'weg' | 'stil' | 'batterij' | 'filter' | 'meter' | 'versie' | 'mijlpaal' | 'comfort' | 'panelen' | 'rook' | 'update' | 'sluip' | 'dak' | 'auto' | 'stekker' | 'accu' | 'klopt' | 'mislukt' | 'bron';
 
+/**
+ * De soorten met een eigen schakelaar (besluit 346). De rest staat altijd aan
+ * (rook, een meter, wat niet klopt) of heeft een grens (batterij, filter).
+ */
+export const BEL_SCHAKELAARS = ['nieuw', 'weg', 'stil', 'sluip', 'panelen', 'stekker', 'accu', 'auto', 'comfort', 'versie', 'mijlpaal'] as const;
+export type BelSchakel = (typeof BEL_SCHAKELAARS)[number];
+/** Wat uit staat zonder keuze: wiens comfort er geldt, de rest aan. */
+export const STANDAARD_UIT: readonly BelSchakel[] = ['comfort'];
+
+/** Bij welke schakelaar een soort hoort; null: altijd aan, of een grens. Een dakvlak hoort bij de panelen, een update bij de versie. */
+export function schakelVan(soort: MeldingSoort): BelSchakel | null {
+  if (soort === 'dak') return 'panelen';
+  if (soort === 'update') return 'versie';
+  return (BEL_SCHAKELAARS as readonly string[]).includes(soort) ? (soort as BelSchakel) : null;
+}
+
 export interface Melding {
   /** Vast per onderwerp, zoals `stil:light.hal`: zo komt hetzelfde niet dubbel. */
   readonly id: string;
@@ -57,6 +78,8 @@ export interface Melding {
   readonly klaar?: { readonly titel: string; readonly tekst: string };
   /** Een keuze die mag blijven (besluit 314): dan staat er *Laat zo* bij. */
   readonly laat?: boolean;
+  /** Staat aan, ook als de soort uit staat (besluit 346): een apparaat dat SunArc regelt en niet meer reageert. */
+  readonly vast?: true;
   /**
    * Dezelfde woorden in het Engels (besluit 185): de dienst maakt een melding
    * in beide talen, en de bel en de telefoon kiezen. Een melding van voor
@@ -81,7 +104,7 @@ export interface MeldingenBron {
   /** Wat je zelf verborg bij Indeling: dat is niet weg. Weg: niets verborgen. */
   readonly verborgen?: readonly string[];
   /** Apparaten in een kamer om te volgen, met hun toestand in Home Assistant. */
-  readonly volgen: readonly { readonly id: string; readonly naam: string; readonly kamer: string; readonly kamerId: string; readonly onbereikbaarSindsMs: number | null }[];
+  readonly volgen: readonly { readonly id: string; readonly naam: string; readonly kamer: string; readonly kamerId: string; readonly onbereikbaarSindsMs: number | null; readonly regelt?: boolean }[];
   readonly batterijen: readonly { readonly id: string; readonly naam: string; readonly pct: number; readonly kamerId: string | null }[];
   readonly filters: readonly { readonly id: string; readonly naam: string; readonly pct: number; readonly kamerId: string | null }[];
   /**
@@ -266,6 +289,7 @@ export function wat(bron: MeldingenBron): (Nieuwe & { en: MeldingWoorden })[] {
         id: `stil:${d.id}`,
         soort: 'stil',
         aandacht: true,
+        ...(d.regelt ? { vast: true as const } : {}),
         sindsMs: sinds,
         titel: w.stil.titel(d.naam),
         tekst: w.stil.tekst(duur(nu - sinds, lang), d.kamer),
@@ -545,9 +569,12 @@ export class MeldingenStore {
   readonly #path: string;
   #bestand: Bestand = { versie: 1, meldingen: [], negeer: [], laatsteVersie: null, mijlpalen: [] };
   #vies = false;
+  readonly #uit: () => readonly string[];
 
-  constructor(options: { readonly logDir: string }) {
+  /** `uit`: de soorten die de bewoner uitzette (besluit 346); weg is de standaard. */
+  constructor(options: { readonly logDir: string; readonly uit?: () => readonly string[] }) {
     this.#path = join(options.logDir, MELDINGEN_FILE);
+    this.#uit = options.uit ?? (() => STANDAARD_UIT);
   }
 
   async load(): Promise<void> {
@@ -653,10 +680,13 @@ export class MeldingenStore {
   lijst(nu: number, lang: Lang = 'nl'): { actief: Melding[]; eerder: Melding[] } {
     const b = this.#bestand;
     const wacht = (m: Melding) => m.soort === 'nieuw' && nu - m.sindsMs < NIEUW_NA_MS;
+    // Wat de bewoner uitzette (besluit 346): niet in de bel, en daardoor ook niet op de telefoon. Zet hij het weer aan, dan staat wat nog speelt er meteen.
+    const uit = new Set(this.#uit());
+    const aan = (m: Melding) => m.vast === true || !uit.has(schakelVan(m.soort) ?? '');
     // Nieuw en weg gaan stil weg: een apparaat in een kamer gezet, of terug, hoeft niet onder Eerder.
-    const actief = b.meldingen.filter((m) => m.opgelostMs == null && m.aandacht && !b.negeer.includes(m.id) && !wacht(m)).sort((x, y) => y.sindsMs - x.sindsMs).map((m) => inTaal(m, lang));
+    const actief = b.meldingen.filter((m) => m.opgelostMs == null && m.aandacht && !b.negeer.includes(m.id) && !wacht(m) && aan(m)).sort((x, y) => y.sindsMs - x.sindsMs).map((m) => inTaal(m, lang));
     const eerder = b.meldingen
-      .filter((m) => m.opgelostMs != null && m.soort !== 'nieuw' && m.soort !== 'weg' && (m.klaar != null || !m.aandacht) && !b.negeer.includes(m.id))
+      .filter((m) => m.opgelostMs != null && m.soort !== 'nieuw' && m.soort !== 'weg' && (m.klaar != null || !m.aandacht) && !b.negeer.includes(m.id) && aan(m))
       .sort((x, y) => (y.opgelostMs ?? 0) - (x.opgelostMs ?? 0))
       .slice(0, 10)
       .map((m) => inTaal(m, lang))

@@ -3,8 +3,8 @@
  * welk beeld, welke melder de deurbel is, of je licht en screens bedient in de
  * app, en waar het weer vandaan komt. Praten met je huis (besluit 148): welk
  * taalmodel uit Home Assistant de assistent laat praten in eigen woorden, en of
- * hij met een zin mag bedienen. Meldingen (besluit 149): wanneer een batterij of
- * een airco-filter een melding geeft. In de opbouw van elke groep (130): links
+ * hij met een zin mag bedienen. Meldingen (besluit 149 en 346): wat er in de
+ * bel komt, per soort, en wanneer een batterij of airco-filter. In de opbouw van elke groep (130): links
  * de delen, wat je kiest wordt meteen bewaard. Bewaren vraagt een beheerder.
  * De dienst doet een voorstel uit wat Home Assistant heeft.
  *
@@ -55,6 +55,9 @@ let stemmen = null;
 let geslacht = null;
 /** Klaarzetten per niveau (besluit 246): wat er nog open is voor de assistent en het scherm. */
 let klaar = null;
+/** Voor Meldingen (besluit 346): of er een wintertest loopt, en hoeveel bewoners er zijn. */
+let site = null;
+let bewoners = null;
 
 async function laadKlaar() {
   klaar = await klaarstappen.laad().catch(() => klaar);
@@ -87,7 +90,7 @@ function nogKlaar(deel) {
   return klaarstappen.nog(f, t(f.id === 'wand' ? 'kz.nogScherm' : 'kz.nogHeHuis', { n }));
 }
 async function laad() {
-  const [f, z, h, i] = await Promise.allSettled([haal('api/functies'), haal('api/zon'), haal('api/huis'), haal('api/indeling'), haal('api/luister-stand').then((x) => (luisterStand = x)), haal('api/stemmen').then((x) => (stemmen = x)), laadKlaar()]);
+  const [f, z, h, i] = await Promise.allSettled([haal('api/functies'), haal('api/zon'), haal('api/huis'), haal('api/indeling'), haal('api/luister-stand').then((x) => (luisterStand = x)), haal('api/stemmen').then((x) => (stemmen = x)), laadKlaar(), haal('api/site').then((x) => (site = x)), haal('api/bewoners').then((x) => (bewoners = x))]);
   if (z.status === 'fulfilled') zon = z.value;
   if (h.status === 'fulfilled') huisData = h.value;
   if (i.status === 'fulfilled') indeling = i.value;
@@ -101,6 +104,7 @@ async function laad() {
     concept.tedoen ??= info.voorstel.tedoen ?? { aan: false, boodschappen: null, todo: null, afval: null, gezin: null };
     concept.praten.spraak ??= null;
     concept.meldingen ??= info.voorstel.meldingen ?? { batterij: 10, filter: 10 };
+    concept.meldingen.uit ??= ['comfort'];
   }
   teken();
 }
@@ -467,14 +471,50 @@ function weer() {
 
 /** Meldingen (besluit 149): onder welk percentage een batterij of filter een melding geeft. */
 const DREMPELS = () => [[null, t('w.nooit')], [5, '5%'], [10, '10%'], [20, '20%'], [30, '30%']];
-function meldingen() {
+/*
+ * Meldingen (besluit 346, schets Wand-Instellingen-Meldingen): alles wat de bel
+ * kent, in groepen, met een schakelaar per soort. Rook, een meter en wat niet
+ * klopt staan altijd aan; batterij en filter houden hun grens. Wat je huis niet
+ * heeft (geen auto, geen thuisaccu, geen panelen), staat er niet.
+ */
+const MELD_ALTIJD = 'altijd';
+function meldGroepen() {
+  const opslag = huisData?.opslag;
+  const heeft = {
+    panelen: (zon?.panelen ?? []).length > 0,
+    accu: !!opslag?.batterij,
+    auto: (opslag?.autos ?? []).length > 0,
+    comfort: (bewoners?.bewoners ?? []).length > 1,
+    mijlpaal: site?.migrating === true,
+  };
+  const rij = (soort, keuze = soort) => ({ soort, keuze });
+  const groep = (id, rijen) => ({ id, rijen: rijen.filter((x) => heeft[x.soort] !== false) });
+  return [
+    groep('veiligheid', [rij('rook', MELD_ALTIJD)]),
+    groep('apparaten', [rij('nieuw'), rij('weg'), rij('stil'), rij('batterij', 'grens'), rij('filter', 'grens')]),
+    groep('energie', [rij('meter', MELD_ALTIJD), rij('sluip'), rij('panelen'), rij('stekker'), rij('accu'), rij('auto')]),
+    groep('sunarc', [rij('klopt', MELD_ALTIJD), rij('comfort'), rij('versie'), rij('mijlpaal')]),
+  ];
+}
+function meldRij({ soort, keuze }) {
   const m = concept.meldingen;
-  return `<h2 class="kop-2">${esc(t('w.meldingen'))}</h2>
-    <span class="veldnaam">${esc(t('functies.meld.batterij'))}</span>
-    ${keuzes(t('functies.meld.batterijLabel'), 'drempelBatterij', DREMPELS(), m.batterij)}
-    <span class="veldnaam">${esc(t('functies.meld.filter'))}</span>
-    ${keuzes(t('functies.meld.filterLabel'), 'drempelFilter', DREMPELS(), m.filter)}
-    <p class="mini">${esc(t('functies.meld.uitleg'))}</p>`;
+  const titel = t(`functies.mk.${soort}`);
+  const zin = `<span><b>${esc(titel)}</b><small>${esc(t(`functies.mk.${soort}.zin`))}</small></span>`;
+  if (keuze === MELD_ALTIJD) return `<div class="mk-rij">${zin}<span class="mk-altijd">${esc(t('functies.mk.altijd'))}</span></div>`;
+  if (keuze === 'grens') return `<div class="mk-rij grens${m[soort] == null ? ' uit' : ''}">${zin}${keuzes(t('functies.mk.onder', { titel }), soort === 'batterij' ? 'drempelBatterij' : 'drempelFilter', DREMPELS(), m[soort])}</div>`;
+  const aan = !m.uit.includes(soort);
+  return `<div class="mk-rij${aan ? '' : ' uit'}">${zin}<button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(titel)}" data-meld-schakel="${esc(soort)}"></button></div>`;
+}
+function meldingen() {
+  const groepen = meldGroepen().filter((g) => g.rijen.length);
+  const groepHtml = ({ id, rijen }) => `<section class="mk-groep"><h3>${esc(t(`functies.mk.groep.${id}`))}</h3>${rijen.map(meldRij).join('')}</section>`;
+  const telefoon = `<a class="mk-tel" href="jij.html#meldingen"><span><b>${esc(t('functies.mk.telefoon'))}</b><small>${esc(t('functies.mk.telefoonZin'))}</small></span><span class="pijl" aria-hidden="true">›</span></a>`;
+  const kop = `<div class="mk-kop"><h2 class="kop-2">${esc(t('w.meldingen'))}</h2><span>${esc(t('functies.mk.uitleg'))}</span></div>`;
+  if (app.telStand()) return `${kop}${groepen.map(groepHtml).join('')}${telefoon}`;
+  // Op de wand twee kolommen: links veiligheid en je apparaten, rechts energie en SunArc.
+  const links = groepen.filter((g) => g.id === 'veiligheid' || g.id === 'apparaten');
+  const rechts = groepen.filter((g) => g.id === 'energie' || g.id === 'sunarc');
+  return `${kop}<div class="mk-twee"><div class="mk-kol">${links.map(groepHtml).join('')}${telefoon}</div><div class="mk-kol">${rechts.map(groepHtml).join('')}</div></div>`;
 }
 
 function delen() {
@@ -494,7 +534,7 @@ function alleDelen() {
     { id: 'deurbel', titel: t('w.deurbel'), zin: f.deurbel.aan ? t('instellingen.beeld', { duur: s >= 60 ? t('algemeen.minuten', { n: s / 60 }) : t('instellingen.seconden', { n: s }) }) : t('w.uit2'), stand: f.deurbel.aan && (!f.deurbel.melder || !f.deurbel.camera) ? 'mist' : 'goed' },
     { id: 'licht', titel: t('functies.licht'), zin: t((info.lichtMogelijk || info.schermMogelijk) && f.licht.bedienen ? 'instellingen.bedienen' : 'instellingen.alleenKijken'), stand: 'goed' },
     { id: 'weer', titel: t('w.weer'), zin: weerNaam, stand: f.weer.bron ? 'goed' : 'leeg' },
-    { id: 'meldingen', titel: t('w.meldingen'), zin: drempelZin(f.meldingen), stand: 'goed' },
+    { id: 'meldingen', titel: t('w.meldingen'), zin: meldZin(), stand: 'goed' },
     { id: 'praten', titel: t('functies.deel.praten'), zin: f.praten.taalmodel ? (info.gevonden.taalmodellen ?? []).find((m) => m.id === f.praten.taalmodel)?.naam ?? t('functies.deel.eigen') : t('functies.deel.vast'), stand: 'goed' },
     // Stem en luisteren (besluit 212): de stem van je huis, en "Hé huis".
     { id: 'stem', titel: t('functies.deel.stem'), zin: (stemmen?.opties ?? []).find((o) => o.id === stemGekozen())?.naam ?? t('functies.deel.vanzelf'), stand: 'goed' },
@@ -503,9 +543,12 @@ function alleDelen() {
   ];
 }
 
-function drempelZin(m) {
-  const z = (v) => (v == null ? t('functies.deel.nooit') : t('functies.drempel.onder', { pct: v }));
-  return m.batterij === m.filter ? z(m.batterij) : t('functies.drempel.apart', { batterij: z(m.batterij), filter: z(m.filter) });
+/** Hoeveel soorten de bel meldt (besluit 346): wat je kunt kiezen, en daarvan aan. */
+function meldZin() {
+  const m = concept.meldingen;
+  const rijen = meldGroepen().flatMap((g) => g.rijen).filter((x) => x.keuze !== MELD_ALTIJD);
+  const aan = rijen.filter((x) => (x.keuze === 'grens' ? m[x.soort] != null : !m.uit.includes(x.soort))).length;
+  return aan === rijen.length ? t('functies.mk.alles') : t('functies.mk.zinAan', { aan, alle: rijen.length });
 }
 
 function tekenNu() {
@@ -551,6 +594,15 @@ document.addEventListener('click', (e) => {
   // Terug naar standaard (besluit 204): dit deel weer zoals de app het voorstelt.
   if (knop.dataset.standaardDeel) {
     for (const s of STANDAARD_DEEL[knop.dataset.standaardDeel] ?? []) if (info.voorstel?.[s] != null) concept[s] = JSON.parse(JSON.stringify(info.voorstel[s]));
+    teken();
+    bewaar();
+    return;
+  }
+  // Een soort melding aan of uit (besluit 346).
+  if (knop.dataset.meldSchakel) {
+    const soort = knop.dataset.meldSchakel;
+    const aan = knop.getAttribute('aria-checked') !== 'true';
+    concept.meldingen.uit = aan ? concept.meldingen.uit.filter((x) => x !== soort) : [...concept.meldingen.uit, soort];
     teken();
     bewaar();
     return;

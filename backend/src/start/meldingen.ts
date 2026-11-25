@@ -4,7 +4,7 @@
  */
 import { Sluipverbruik, jaarPrijs, sluipVoorBel } from '../web/sluipverbruik.js';
 import { logDir, startup } from './begin.js';
-import { MeldingenStore } from '../web/meldingen.js';
+import { MeldingenStore, STANDAARD_UIT } from '../web/meldingen.js';
 import { VoorkeurenStore } from '../web/voorkeuren.js';
 import { meldingenBron } from '../web/meldingen-bron.js';
 import { partsIn, zonedMidnight } from '../web/today.js';
@@ -19,7 +19,7 @@ import type { MaakMeldingenNodig } from '../main.js';
 
 export async function maakMeldingen(nodig: MaakMeldingenNodig) {
   const {
-    allStates, analyse, bewonersStore, client, connectionStore, energyStore, klopt, laadReg, laadhand, layoutStore,
+    allStates, analyse, bewonersStore, client, connectionStore, energyStore, functiesNu, klopt, laadReg, laadhand, layoutStore,
     metingNu, runner, version, vindBuffersHa, vlakMetingNu, webConfig,
   } = nodig;
   /*
@@ -37,7 +37,8 @@ export async function maakMeldingen(nodig: MaakMeldingenNodig) {
   // Elk half uur de nachten bij, zodat de bel de ochtend erna weet of de nacht opviel.
   setTimeout(() => void sluipverbruik.rapport().catch(() => null), 20_000).unref();
   setInterval(() => void sluipverbruik.rapport().catch(() => null), 30 * 60_000).unref();
-  const meldingen = logDir !== '' ? new MeldingenStore({ logDir }) : null;
+  // Wat de bewoner bij Instellingen › Meldingen uitzette (besluit 346): niet in de bel, niet op de telefoon.
+  const meldingen = logDir !== '' ? new MeldingenStore({ logDir, uit: () => functiesNu()?.meldingen?.uit ?? STANDAARD_UIT }) : null;
   // Thuis naar eigen smaak (besluit 162): kaarten en favorieten, naast de dataset.
   const voorkeuren = logDir !== '' ? new VoorkeurenStore(logDir) : null;
   await voorkeuren?.load();

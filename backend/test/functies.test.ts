@@ -143,8 +143,16 @@ describe('de keuzes controleren (besluit 109)', () => {
     expect(controleer({ ...goed, meldingen: { batterij: 20, filter: null } }, g)).toMatchObject({ ok: true, functies: { meldingen: { batterij: 20, filter: null } } });
     expect(controleer({ ...goed, meldingen: { batterij: 15, filter: 10 } }, g).ok).toBe(false);
     expect(controleer({ ...goed, meldingen: { batterij: 10 } }, g).ok).toBe(false);
-    // Een ouder bestand zonder drempels: 10%, zoals het was.
-    expect(volledig(goed, g).meldingen).toEqual({ batterij: 10, filter: 10 });
+    // Een ouder bestand zonder drempels: 10%, zoals het was; alleen wiens comfort er geldt staat uit (besluit 346).
+    expect(volledig(goed, g).meldingen).toEqual({ batterij: 10, filter: 10, uit: ['comfort'] });
+  });
+
+  it('neemt een soort melding uit aan, alleen een met een schakelaar (besluit 346)', () => {
+    expect(controleer({ ...goed, meldingen: { batterij: 10, filter: 10, uit: ['sluip', 'auto', 'sluip'] } }, g)).toMatchObject({ ok: true, functies: { meldingen: { uit: ['sluip', 'auto'] } } });
+    // Rook en wat niet klopt staan altijd aan.
+    expect(controleer({ ...goed, meldingen: { batterij: 10, filter: 10, uit: ['rook'] } }, g).ok).toBe(false);
+    expect(controleer({ ...goed, meldingen: { batterij: 10, filter: 10, uit: 'sluip' } }, g).ok).toBe(false);
+    expect(volledig({ ...goed, meldingen: { batterij: 20, filter: 10, uit: [] } }, g).meldingen).toEqual({ batterij: 20, filter: 10, uit: [] });
   });
 
   it('toont geen camera als de camera’s uit staan', () => {

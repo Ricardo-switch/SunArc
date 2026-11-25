@@ -22,6 +22,7 @@ import { CAMERA_ID, GEEN_BEELD, findCameras } from './camera.js';
 import { DREMPEL_KEUZES, STANDAARD_DREMPELS, type Drempels } from './house.js';
 import { OPEN_METEO, OPEN_METEO_NAAM } from './open-meteo.js';
 import { weatherSources } from './weather.js';
+import { BEL_SCHAKELAARS, STANDAARD_UIT, type BelSchakel } from './meldingen.js';
 import { geldigeStemKeuze } from './stemmen.js';
 
 
@@ -97,15 +98,21 @@ export interface Functies {
   };
   /**
    * Wanneer een batterij of een airco-filter een melding geeft (besluit 149):
-   * onder dit percentage, of null voor nooit. Weg is 10%, zoals het was.
+   * onder dit percentage, of null voor nooit. Weg is 10%, zoals het was. En
+   * welke soorten uit staan (besluit 346); weg is alleen wiens comfort er geldt.
    */
-  readonly meldingen?: Drempels;
+  readonly meldingen?: MeldingKeuzes;
   /**
    * Te doen (besluit 216): of het aan staat, welke lijsten van Home Assistant
    * de boodschappen en de to-do zijn, en welke agenda's het afval en het gezin.
    * Weg: het voorstel, met wat Home Assistant heeft.
    */
   readonly tedoen?: TeDoenKeus;
+}
+
+/** Wat de bel meldt (besluit 149 en 346): de grens van batterij en filter, en wat uit staat. */
+export interface MeldingKeuzes extends Drempels {
+  readonly uit?: readonly BelSchakel[];
 }
 
 export interface TeDoenKeus {
@@ -343,7 +350,7 @@ export function functiesVoorstel(g: FunctiesGevonden): Functies {
     // Het taalmodel staat standaard uit (besluit 148): het vaste antwoord werkt altijd.
     // De stem van het apparaat, ook verstaan (besluit 203): werkt meteen, zonder installatie.
     praten: { taalmodel: null, bedienen: true, spraak: null, stem: standaardStem(g), verstaan: true },
-    meldingen: STANDAARD_DREMPELS,
+    meldingen: { ...STANDAARD_DREMPELS, uit: STANDAARD_UIT },
     tedoen: teDoenVoorstel(g),
   };
 }
@@ -352,7 +359,7 @@ export function functiesVoorstel(g: FunctiesGevonden): Functies {
 export function volledig(
   f: Functies,
   g: FunctiesGevonden | null,
-): Functies & { weer: { bron: string | null; uren: boolean }; licht: { bedienen: boolean }; schermen: { bedienen: boolean }; praten: { taalmodel: string | null; bedienen: boolean; spraak: string | null; stem: StemBron; verstaan: boolean; klimaat: boolean; stemKeuze: string | null }; meldingen: Drempels; tedoen: TeDoenKeus } {
+): Functies & { weer: { bron: string | null; uren: boolean }; licht: { bedienen: boolean }; schermen: { bedienen: boolean }; praten: { taalmodel: string | null; bedienen: boolean; spraak: string | null; stem: StemBron; verstaan: boolean; klimaat: boolean; stemKeuze: string | null }; meldingen: MeldingKeuzes & { uit: readonly BelSchakel[] }; tedoen: TeDoenKeus } {
   const weer = f.weer ?? { bron: g?.weerbronnen?.[0]?.id ?? null };
   return {
     ...f,
@@ -360,7 +367,7 @@ export function volledig(
     licht: f.licht ?? { bedienen: true },
     schermen: f.schermen ?? { bedienen: true },
     praten: { taalmodel: f.praten?.taalmodel ?? null, bedienen: f.praten?.bedienen ?? true, spraak: f.praten?.spraak ?? null, stem: f.praten?.stem ?? standaardStem(g), verstaan: f.praten?.verstaan ?? true, klimaat: f.praten?.klimaat ?? false, stemKeuze: f.praten?.stemKeuze ?? null },
-    meldingen: f.meldingen ?? STANDAARD_DREMPELS,
+    meldingen: { ...STANDAARD_DREMPELS, uit: STANDAARD_UIT, ...f.meldingen },
     tedoen: f.tedoen ?? teDoenVoorstel(g),
   };
 }
@@ -451,12 +458,15 @@ export function controleer(body: unknown, g: FunctiesGevonden): FunctiesUitkomst
   }
   // Wanneer een batterij of filter een melding geeft (besluit 149): een van de keuzes, of nooit.
   const meldingenIn = b['meldingen'];
-  let meldingen: Drempels = STANDAARD_DREMPELS;
+  let meldingen: MeldingKeuzes = STANDAARD_DREMPELS;
   if (meldingenIn !== undefined) {
     const m = (typeof meldingenIn === 'object' && meldingenIn != null ? meldingenIn : {}) as Record<string, unknown>;
     const keuze = (v: unknown) => v === null || (DREMPEL_KEUZES as readonly unknown[]).includes(v);
     if (!keuze(m['batterij']) || !keuze(m['filter'])) return { ok: false, reden: `meldingen: onder ${DREMPEL_KEUZES.join(', ')}%, of nooit` };
-    meldingen = { batterij: m['batterij'] as number | null, filter: m['filter'] as number | null };
+    // Welke soorten uit staan (besluit 346): alleen die met een schakelaar.
+    const uit = m['uit'];
+    if (uit !== undefined && (!Array.isArray(uit) || !uit.every((x) => (BEL_SCHAKELAARS as readonly unknown[]).includes(x)))) return { ok: false, reden: `meldingen.uit: een lijst uit ${BEL_SCHAKELAARS.join(', ')}` };
+    meldingen = { batterij: m['batterij'] as number | null, filter: m['filter'] as number | null, ...(uit !== undefined ? { uit: [...new Set(uit as BelSchakel[])] } : {}) };
   }
   // Te doen (besluit 216): alleen lijsten en agenda's die Home Assistant kent.
   const tedoenIn = b['tedoen'];

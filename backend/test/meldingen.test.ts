@@ -8,7 +8,7 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { MeldingenStore, wat, type MeldingenBron } from '../src/web/meldingen.js';
+import { MeldingenStore, schakelVan, wat, type MeldingenBron } from '../src/web/meldingen.js';
 
 const dirs: string[] = [];
 afterEach(async () => {
@@ -26,6 +26,21 @@ const leeg = (o: Partial<MeldingenBron> = {}): MeldingenBron => ({ nu: T0, zonde
 const droger = (sinds: number | null) => ({ id: 'switch.droger', naam: 'De droger', kamer: 'Zolder', kamerId: 'zolder', onbereikbaarSindsMs: sinds });
 
 describe('meldingen (besluit 136)', () => {
+  it('laat weg wat de bewoner uitzette, behalve een apparaat dat SunArc regelt (besluit 346)', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'hems-meldingen-'));
+    dirs.push(dir);
+    let uit: string[] = ['stil', 'sluip'];
+    const s = new MeldingenStore({ logDir: dir, uit: () => uit });
+    const airco = { id: 'climate.zolder', naam: 'Airco zolder', kamer: 'Zolder', kamerId: 'zolder', onbereikbaarSindsMs: T0 - 2 * UUR, regelt: true };
+    s.bij(leeg({ volgen: [droger(T0 - 2 * UUR), airco], sluip: { dag: '2026-10-15', w: 180, gewoonW: 120, bovenW: 60, nachten: 1 } }));
+    expect(s.lijst(T0).actief.map((m) => m.id)).toEqual(['stil:climate.zolder']);
+    // Weer aan: wat nog speelt, staat er meteen.
+    uit = [];
+    expect(s.lijst(T0).actief.map((m) => m.id).sort()).toEqual(['sluip', 'stil:climate.zolder', 'stil:switch.droger']);
+    // Een dakvlak hoort bij de panelen, een update bij de versie; rook heeft geen schakelaar.
+    expect([schakelVan('dak'), schakelVan('update'), schakelVan('rook'), schakelVan('batterij'), schakelVan('auto')]).toEqual(['panelen', 'versie', null, null, 'auto']);
+  });
+
   it('meldt een apparaat dat uit Home Assistant verdween, na tien minuten, en niet wat je zelf verborg', async () => {
     const { s, dir } = await store();
     const lamp = { id: 'light.hal', naam: 'Lamp hal', kamer: 'Hal', kamerId: 'hal', onbereikbaarSindsMs: null };

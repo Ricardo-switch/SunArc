@@ -334,6 +334,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [343. De zon verdelen: één lijst voor wie de zon krijgt](#343-de-zon-verdelen-één-lijst-voor-wie-de-zon-krijgt)
 - [344. Klaar voor een nieuwe taal: de dienst in één bestand per taal, minder teksten](#344-klaar-voor-een-nieuwe-taal-de-dienst-in-één-bestand-per-taal-minder-teksten)
 - [345. Eén plek per onderwerp: Meten en regeling, op zon, en warmte vasthouden](#345-eén-plek-per-onderwerp-meten-en-regeling-op-zon-en-warmte-vasthouden)
+- [346. Meldingen: kies per soort wat er in de bel komt](#346-meldingen-kies-per-soort-wat-er-in-de-bel-komt)
 
 **Veiligheid**
 
@@ -15948,6 +15949,43 @@ drie de delen samen: van 32.500 naar 28.386 woorden per taal, en van 6.125 naar
   Zoeken, Hulp op de plek, de stralen Apparaten op zon en de boiler in Wat je
   huis kan, en de zinnen bij Apparaten en Toevoegen wijzen voor op zon naar De
   zon verdelen in plaats van naar het blad van het apparaat.
+
+## 346. Meldingen: kies per soort wat er in de bel komt
+
+*Onderwerp: weergave · Status: geldig*
+
+25 november 2026. Vraag van Ricardo: Instellingen › Meldingen had alleen
+batterijen en filters, terwijl de bel veel meer soorten kent. Eerst als schets
+(`Wand-Instellingen-Meldingen`, `Tel-Instellingen-Meldingen`), keuze "Alles met
+een schakelaar", goedgekeurd ("Ja, bouwen").
+
+*Besluit:*
+
+- **Alle soorten van de bel in vier groepen**: Veiligheid, Je apparaten,
+  Energie en SunArc. Elke soort heeft een titel en een korte zin wanneer hij
+  komt. Op de wand in twee kolommen, zodat het past zonder te scrollen; op de
+  telefoon onder elkaar.
+- **Een schakelaar per soort** (`meldingen.uit` in `functies.json`, de lijst
+  `BEL_SCHAKELAARS`): nieuw, weg, reageert niet meer, sluipverbruik, panelen en
+  daken, slimme stekker, thuisaccu, auto, wiens comfort er geldt, nieuwe versie
+  en winterdagen. Een dakvlak dat achterblijft hoort bij de panelen, een update
+  van de add-on bij de nieuwe versie.
+- **Altijd aan, zonder schakelaar**: rook en koolmonoxide (ook de batterij van
+  een rookmelder), een meter die niets levert, en wat niet klopt of mislukte.
+  Een apparaat dat SunArc regelt en niet meer reageert, staat er ook als
+  Reageert niet meer uit staat (`vast` op de melding).
+- **Batterij en filter houden hun grens** (besluit 149), als knoppen onder de
+  titel.
+- **Wat uit staat, komt niet in de bel en niet op de telefoon.** De dienst blijft
+  alles bijhouden; de bel laat het alleen niet zien. Zet je een soort weer aan,
+  dan staat wat nog speelt er meteen.
+- **Wat je huis niet heeft, staat er niet**: geen auto, geen thuisaccu, geen
+  panelen, één bewoner (wiens comfort er geldt), of geen wintertest
+  (winterdagen).
+- **Wiens comfort er geldt staat standaard uit.** De rest staat aan, zoals het
+  was. Terug naar standaard zet ook de schakelaars terug.
+- Onderaan links: Op je telefoon, met wat er standaard naar de telefoon gaat en
+  een weg naar Profiel, waar elke bewoner dat zelf kiest (besluit 183).
 
 ## Wat nog een besluit wacht
 

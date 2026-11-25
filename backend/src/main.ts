@@ -908,7 +908,7 @@ if (version.installatie === 'add-on' && process.env['SUPERVISOR_TOKEN']) {
 
 /** Wat meldingen.ts uit main.ts gebruikt: wat vastligt gewoon, wat kan wijzigen als getter. */
 const maakMeldingenNodig = {
-  allStates, analyse, bewonersStore, client, connectionStore, energyStore, klopt, laadReg, laadhand, layoutStore,
+  allStates, analyse, bewonersStore, client, connectionStore, energyStore, functiesNu, klopt, laadReg, laadhand, layoutStore,
   metingNu, runner, version, vindBuffersHa, vlakMetingNu, webConfig,
   get basisFasen() {
     return basisFasen;

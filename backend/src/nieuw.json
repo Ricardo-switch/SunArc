@@ -1,5 +1,23 @@
 [
   {
+    "versie": "0.243.0",
+    "datum": "2026-11-25",
+    "nieuw": [
+      "Instellingen › Licht, camera's en weer › Meldingen: kies per soort wat er in de bel komt, zoals sluipverbruik, de auto, de thuisaccu, de panelen en een nieuwe versie. Wat uit staat, komt ook niet op je telefoon. Rook, een meter die niets levert en wat niet klopt staan altijd aan"
+    ],
+    "beter": [
+      "Wiens comfort er geldt staat standaard niet meer in de bel. Zet het aan bij Meldingen als je het wilt zien"
+    ],
+    "en": {
+      "nieuw": [
+        "Settings › Lights, cameras and weather › Notifications: choose per kind what goes to the bell, such as standby use, the car, the home battery, the panels and a new version. What is off won't reach your phone either. Smoke, a meter that gives nothing and something that didn't work are always on"
+      ],
+      "beter": [
+        "Whose comfort applies no longer shows at the bell by default. Switch it on under Notifications if you want to see it"
+      ]
+    }
+  },
+  {
     "versie": "0.242.1",
     "datum": "2026-11-25",
     "opgelost": [

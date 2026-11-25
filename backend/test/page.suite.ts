@@ -2381,10 +2381,17 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       await wand.locator('[data-kies="drempelBatterij"]').first().waitFor({ timeout: 10_000 });
       // Anders dan het voorstel: dan staat de knop er.
       await wand.locator('[data-kies="drempelBatterij"][data-waarde="30"]').click();
+      // Een soort uit (besluit 346): sluipverbruik, met een schakelaar.
+      const sluip = wand.locator('[data-meld-schakel="sluip"]');
+      expect(await sluip.getAttribute('aria-checked')).toBe('true');
+      await sluip.click();
+      await expect.poll(async () => (await p.evaluate(`fetch('api/functies').then((r) => r.json())`) as { instellingen: { meldingen: { uit?: string[] } } }).instellingen.meldingen.uit, { timeout: 5_000 }).toContain('sluip');
+      expect(await wand.locator('.mk-altijd').count()).toBeGreaterThanOrEqual(3);
       const knop = wand.locator('[data-standaard-deel="meldingen"]');
       await knop.waitFor();
       await knop.click();
       await expect.poll(async () => (await p.evaluate(`fetch('api/functies').then((r) => r.json())`) as { instellingen: { meldingen: { batterij: number } } }).instellingen.meldingen.batterij, { timeout: 5_000 }).toBe(f0.voorstel.meldingen.batterij);
+      expect(await wand.locator('[data-meld-schakel="sluip"]').getAttribute('aria-checked')).toBe('true');
       await expect.poll(() => knop.count()).toBe(0);
       // Jij: een ander thema, en terug.
       expect(await post('api/voorkeuren', { plek: 'tel', thema: 'licht' })).toBe(200);
@@ -2717,8 +2724,9 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
     // Meldingen (besluit 149): een batterij al onder de 20%, een filter nooit.
     await wand.locator('[data-delen] .deel', { hasText: 'Meldingen' }).click();
     await wand.locator('[aria-label="Batterij bijna leeg onder"] button', { hasText: '20%' }).click();
-    await wand.locator('[aria-label="Filter bijna vol onder"] button', { hasText: 'Nooit' }).click();
-    await expect.poll(() => functiesStore.current?.meldingen, { timeout: 5_000 }).toEqual({ batterij: 20, filter: null });
+    await wand.locator('[aria-label="Airco-filter bijna vol onder"] button', { hasText: 'Nooit' }).click();
+    // Wiens comfort er geldt staat standaard uit (besluit 346).
+    await expect.poll(() => functiesStore.current?.meldingen, { timeout: 5_000 }).toEqual({ batterij: 20, filter: null, uit: ['comfort'] });
     expect(await p.evaluate<boolean>('document.documentElement.scrollHeight <= innerHeight + 1')).toBe(true);
     // Zonder deurbel in Home Assistant zegt de pagina dat.
     await wand.locator('[data-delen] .deel', { hasText: 'Deurbel' }).click();

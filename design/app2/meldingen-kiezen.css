@@ -1,0 +1,31 @@
+/* Schets Instellingen › Meldingen, kiezen wat er in de bel komt: wand en telefoon. */
+.mk-twee { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; min-height: 0; }
+.mk-kol { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.mk-groep { display: flex; flex-direction: column; }
+.mk-groep h3 { margin: 0 0 2px; font-size: 12.5px; font-weight: 700; color: var(--gedempt); }
+.mk-rij { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 4px 0; border-top: 1px solid rgb(var(--wit) / 0.07); }
+.mk-groep h3 + .mk-rij { border-top: 0; }
+.mk-rij > span { display: flex; flex-direction: column; min-width: 0; }
+.mk-rij b { font-size: 14.5px; font-weight: 600; }
+.mk-rij small { font-size: 12px; color: var(--gedempt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mk-rij.uit b { color: var(--zacht); }
+.mk-rij.grens { flex-wrap: wrap; row-gap: 4px; }
+.mk-rij.grens > span { flex: 1 1 140px; }
+.mk-grens { flex: none; }
+.mk-grens button { height: 30px; padding: 0 8px; font-size: 12.5px; }
+.mk-altijd { flex: none; font-size: 12.5px; font-weight: 700; color: var(--mint-t); padding: 4px 10px; border-radius: 999px; background: rgb(var(--wit) / 0.06); }
+.schakel { flex: none; width: 44px; height: 26px; border-radius: 999px; border: 0; padding: 0; background: rgb(var(--wit) / 0.14); position: relative; cursor: pointer; }
+.schakel::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #c9d3dc; transition: left 0.15s; }
+.schakel.aan { background: var(--mint); }
+.schakel.aan::after { left: 21px; background: #fff; }
+.mk-tel { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 16px; background: rgb(var(--wit) / 0.06); color: inherit; text-decoration: none; }
+.mk-tel > span { display: flex; flex-direction: column; gap: 2px; }
+.mk-tel b { font-size: 14.5px; }
+.mk-tel small { font-size: 12.5px; color: var(--gedempt); line-height: 1.35; }
+.mk-tel .pijl { color: var(--gedempt); font-size: 20px; }
+
+/* Telefoon: één kolom, de zin mag over twee regels. */
+.smaltel .mk-groep { padding: 8px 14px; border-radius: 20px; background: rgb(var(--wit) / 0.05); }
+.smaltel .mk-rij small { white-space: normal; }
+.smaltel .mk-rij { min-height: 54px; }
+.smaltel .mk-tel { margin-top: 0; }

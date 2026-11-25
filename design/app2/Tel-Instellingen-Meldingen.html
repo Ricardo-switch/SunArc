@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefoon · Instellingen › Meldingen (schets)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../../frontend/kit/kit.css">
+<link rel="stylesheet" href="meldingen-kiezen.css">
+<style>
+  /* Instellingen › Meldingen op de telefoon (schets): dezelfde groepen onder elkaar, de zin mag over twee regels. */
+  html, body { height: auto; }
+  body { margin: 0; width: 390px; overflow: auto; }
+  .tel { padding: 54px 16px 100px; display: flex; flex-direction: column; gap: 12px; }
+  .terug { font-size: 14px; font-weight: 700; color: var(--zacht); }
+  h1 { margin: 4px 0 0; font-family: var(--kop); font-size: 30px; font-weight: 600; line-height: 1.08; }
+  .tel > p { margin: 0; font-size: 13.5px; color: var(--zacht); line-height: 1.45; }
+</style>
+</head>
+<body class="lucht lucht-dag">
+<div class="tel smaltel">
+  <span class="terug">‹ Licht, camera's en weer</span>
+  <h1>Meldingen</h1>
+  <p>Wat er in de bel komt. Wat SunArc nodig heeft om veilig te regelen, staat altijd aan. Wat uit staat, komt ook niet op je telefoon.</p>
+  <div data-mk style="display: flex; flex-direction: column; gap: 10px"></div>
+</div>
+<script src="meldingen-kiezen.js"></script>
+<script>
+  meldingenKiezen.teken(document.querySelector('[data-mk]'), 'tel');
+</script>
+</body>
+</html>

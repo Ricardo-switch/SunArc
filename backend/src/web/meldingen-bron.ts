@@ -53,7 +53,8 @@ export function meldingenBron(i: BronInvoer): MeldingenBron | null {
       r.apparaten.map((d) => {
         const id = entiteit(d);
         const st = id ? allStates.get(id) : undefined;
-        return { id: d.id, naam: d.naam, kamer: r.naam, kamerId: r.id, onbereikbaarSindsMs: st && st.state === 'unavailable' ? Date.parse(st.last_changed) : null };
+        // Wat SunArc regelt, meldt de bel altijd als het niet reageert (besluit 346).
+        return { id: d.id, naam: d.naam, kamer: r.naam, kamerId: r.id, onbereikbaarSindsMs: st && st.state === 'unavailable' ? Date.parse(st.last_changed) : null, regelt: d.actuatorId != null };
       }),
     ),
   );
