@@ -10,6 +10,8 @@
  */
 
 import type { WeatherKind } from './weather.js';
+import type { Lang } from './assistant-types.js';
+import { perTaal } from '../taal/index.js';
 
 export type Lichtmoment = 'dag' | 'grijs' | 'schemer' | 'avond' | 'laat' | 'nacht';
 
@@ -57,10 +59,8 @@ export function lichtRecept(o: { readonly nuMs: number; readonly tijdzone: strin
 }
 
 /** "voor de avond", in de zin die het huis erbij zegt. */
-export function momentWoorden(m: Lichtmoment, nl: boolean): string {
-  return nl
-    ? { dag: 'helder voor overdag', grijs: 'helder, het is grijs buiten', schemer: 'warm voor de schemer', avond: 'warm voor de avond', laat: 'zacht en warm voor de late avond', nacht: 'zacht voor de nacht' }[m]
-    : { dag: 'bright for daytime', grijs: 'bright, it is grey outside', schemer: 'warm for dusk', avond: 'warm for the evening', laat: 'soft and warm for late evening', nacht: 'soft for the night' }[m];
+export function momentWoorden(m: Lichtmoment, lang: Lang): string {
+  return perTaal('opdracht')[lang].moment[m];
 }
 
 /** Avond en later: dan stelt het huis bij aan de sfeerverlichting voor. */

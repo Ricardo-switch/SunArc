@@ -130,3 +130,23 @@ describe('de toon van de teksten (besluit 350)', async () => {
     expect(teksten.filter(([, v]) => /: [a-zà-ÿ]/.test(v)).length).toBeLessThanOrEqual(DUBBELE_PUNT);
   });
 });
+
+/*
+ * De zinnen van de dienst staan in de taalbestanden (besluit 344 en 353): geen keuze meer tussen Nederlands en
+ * Engels midden in de code, zoals `nl ? 'Klaar.' : 'Done.'`. Wat de taal zelf bepaalt (een bewaarde Engelse
+ * naam, een tabel die de taal omzet, de uitspraak, de opdracht aan het taalmodel) mag nog wel naar `lang` kijken.
+ */
+describe('de zinnen van de dienst (besluit 353)', async () => {
+  const SRC = new URL('../src/', import.meta.url);
+  const bestanden = (await readdir(SRC, { recursive: true })).filter((f) => f.endsWith('.ts') && !f.replace(/\\/g, '/').startsWith('taal/'));
+  it('kiest nergens in de code zelf tussen een Nederlandse en een Engelse zin', async () => {
+    const fout: string[] = [];
+    for (const f of bestanden) {
+      const code = zonderCommentaar(await readFile(new URL(f.replace(/\\/g, '/'), SRC), 'utf-8'));
+      for (const [i, regel] of code.split('\n').entries()) {
+        if (/\bnl \?\s*[`'"]|\bnl\(lang\) \?|lang === 'nl'\s*\?\s*[`'"]|lang === 'en'\s*\?\s*[`'"]/.test(regel)) fout.push(`${f}:${i + 1}: ${regel.trim().slice(0, 100)}`);
+      }
+    }
+    expect(fout).toEqual([]);
+  });
+});

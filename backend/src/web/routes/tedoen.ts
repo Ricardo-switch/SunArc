@@ -16,6 +16,7 @@ import type { Diensten, Verzoek } from '../diensten.js';
 import type { Stap } from '../brein.js';
 import type { HouseReport } from '../house.js';
 import { leesStap, type Herhaal, type Moment } from '../gepland.js';
+import { perTaal } from '../../taal/index.js';
 import {
   afvalBak,
   afvalSoort,
@@ -345,20 +346,22 @@ export async function handel(t: TeDoenDienst, body: Record<string, unknown>, wie
 
 /* ------------------------------------------------------------ de assistent */
 
-const nl = (lang: Lang) => lang === 'nl';
+/** De zinnen per taal (besluit 353). */
+const ZIN = perTaal('tedoenZin');
 /** "maandag", "morgen", "vandaag". */
 export function dagWoord(ms: number, nuMs: number, tz: string, lang: Lang): string {
+  const z = ZIN[lang];
   const dag = Math.round((startOfLocalDay(ms, tz) - startOfLocalDay(nuMs, tz)) / 86_400_000);
-  if (dag === 0) return nl(lang) ? 'vandaag' : 'today';
-  if (dag === 1) return nl(lang) ? 'morgen' : 'tomorrow';
-  if (dag === 2 && nl(lang)) return 'overmorgen';
-  return new Intl.DateTimeFormat(nl(lang) ? 'nl-NL' : 'en-GB', { timeZone: tz, weekday: 'long', ...(dag > 6 ? { day: 'numeric', month: 'long' } : {}) }).format(ms);
+  if (dag === 0) return z.vandaag;
+  if (dag === 1) return z.morgen;
+  if (dag === 2 && z.overmorgen) return z.overmorgen;
+  return new Intl.DateTimeFormat(perTaal('antwoord')[lang].locale, { timeZone: tz, weekday: 'long', ...(dag > 6 ? { day: 'numeric', month: 'long' } : {}) }).format(ms);
 }
-const lijstNaam = (s: LijstSoort, lang: Lang) => (nl(lang) ? (s === 'boodschappen' ? 'de boodschappenlijst' : 'de to-do') : s === 'boodschappen' ? 'the shopping list' : 'the to-do list');
+const lijstNaam = (s: LijstSoort, lang: Lang) => ZIN[lang].lijst(s === 'boodschappen');
 /** "melk, brood en eieren". */
 function opsomming(woorden: readonly string[], lang: Lang): string {
   if (woorden.length <= 1) return woorden[0] ?? '';
-  return `${woorden.slice(0, -1).join(', ')} ${nl(lang) ? 'en' : 'and'} ${woorden.at(-1)}`;
+  return `${woorden.slice(0, -1).join(', ')} ${ZIN[lang].en} ${woorden.at(-1)}`;
 }
 
 export interface TeDoenAntwoord {
@@ -375,18 +378,19 @@ export interface TeDoenAntwoord {
  */
 export async function teDoenZin(d: Diensten, t: TeDoenDienst, tekst: string, wie: Visitor | null, tz: string, lang: Lang, nuMs = Date.now()): Promise<TeDoenAntwoord | null> {
   if (!t.keus().aan) return null;
+  const z = ZIN[lang];
   // Gedaan of later, als er een herinnering speelt.
   const speelt = (await t.herinneringen.speelt())[0];
   if (speelt) {
     if (isGedaan(tekst)) {
-      const zin = nl(lang) ? `Mooi, ${speelt.tekst.charAt(0).toLowerCase()}${speelt.tekst.slice(1)} is gedaan.` : `Great, ${speelt.tekst} is done.`;
+      const zin = z.gedaan(speelt.tekst);
       return { antwoord: zin, feiten: [], opdracht: { pad: 'api/te-doen', body: { actie: 'gedaan', id: speelt.id } } };
     }
     const later = leesLater(tekst);
     if (later != null) {
       const tijd = klok(nuMs + later * 60_000, tz);
       return {
-        antwoord: nl(lang) ? `Goed, om ${tijd} zeg ik het nog een keer.` : `All right, I will say it again at ${tijd}.`,
+        antwoord: z.later(tijd),
         feiten: [{ bron: 'tedoen.tijd', tekst: tijd }],
         opdracht: { pad: 'api/te-doen', body: { actie: 'later', id: speelt.id, minuten: later } },
       };
@@ -399,7 +403,7 @@ export async function teDoenZin(d: Diensten, t: TeDoenDienst, tekst: string, wie
     const dag = dagWoord(h.ms, nuMs, tz, lang);
     const wat = h.tekst.charAt(0).toLowerCase() + h.tekst.slice(1);
     return {
-      antwoord: nl(lang) ? `Goed, ik herinner je ${dag} om ${tijd} aan ${wat}.` : `All right, I will remind you ${dag} at ${tijd}: ${wat}.`,
+      antwoord: z.herinner(dag, tijd, wat),
       feiten: [{ bron: 'tedoen.tijd', tekst: tijd }],
       opdracht: { pad: 'api/te-doen', body: { actie: 'herinner', tekst: h.tekst, ms: h.ms } },
       gedaan: [{ soort: 'tedoen', waarde: tijd, uitleg: h.tekst }],
@@ -408,18 +412,9 @@ export async function teDoenZin(d: Diensten, t: TeDoenDienst, tekst: string, wie
   if (h?.soort === 'hoelaat') {
     const wat = h.tekst.charAt(0).toLowerCase() + h.tekst.slice(1);
     return {
-      antwoord: nl(lang) ? `Wanneer moet ik je herinneren aan ${wat}?` : `When should I remind you: ${wat}?`,
+      antwoord: z.wanneer(wat),
       feiten: [],
-      keuze: nl(lang)
-        ? [
-            { label: 'Over een uur', tekst: `herinner me over een uur aan ${wat}` },
-            { label: 'Vanavond om acht', tekst: `herinner me vanavond om 8 uur aan ${wat}` },
-            { label: 'Morgen om negen', tekst: `herinner me morgen om 9 uur aan ${wat}` },
-          ]
-        : [
-            { label: 'In an hour', tekst: `remind me in an hour about ${wat}` },
-            { label: 'Tonight at eight', tekst: `remind me tonight at 8 about ${wat}` },
-          ],
+      keuze: z.wanneerKeuze(wat),
     };
   }
   // Iets op een lijst.
@@ -427,13 +422,13 @@ export async function teDoenZin(d: Diensten, t: TeDoenDienst, tekst: string, wie
   if (l) {
     const keus = t.keus();
     if ((l.lijst === 'boodschappen' ? keus.boodschappen : keus.todo) == null) {
-      return { antwoord: nl(lang) ? `Er is geen ${l.lijst === 'boodschappen' ? 'boodschappenlijst' : 'to-do-lijst'} in Home Assistant. Kies er een bij Assistent, onder Te doen.` : 'There is no such list in Home Assistant. Choose one under Assistant, To do.', feiten: [] };
+      return { antwoord: z.geenLijst(l.lijst === 'boodschappen'), feiten: [] };
     }
     return {
-      antwoord: nl(lang) ? `${l.item} staat op ${lijstNaam(l.lijst, lang)}.` : `${l.item} is on ${lijstNaam(l.lijst, lang)}.`,
+      antwoord: z.staatOp(l.item, lijstNaam(l.lijst, lang)),
       feiten: [],
       opdracht: { pad: 'api/te-doen', body: { actie: 'toevoegen', lijst: l.lijst, item: l.item } },
-      gedaan: [{ soort: 'tedoen', waarde: l.item, uitleg: nl(lang) ? (l.lijst === 'boodschappen' ? 'Boodschappen' : 'To-do') : l.lijst === 'boodschappen' ? 'Shopping' : 'To-do' }],
+      gedaan: [{ soort: 'tedoen', waarde: l.item, uitleg: z.kaart(l.lijst === 'boodschappen') }],
     };
   }
   // Een vraag.
@@ -445,23 +440,21 @@ export async function teDoenZin(d: Diensten, t: TeDoenDienst, tekst: string, wie
     const open = (lijst?.items ?? []).filter((x) => !x.klaar).map((x) => x.tekst);
     const vandaag = vraag === 'todo' ? o.herinneringen.filter((x) => x.ms < startOfLocalDay(nuMs, tz) + 86_400_000) : [];
     const delen: string[] = [];
-    if (open.length) delen.push(nl(lang) ? `Op ${lijstNaam(vraag, lang)} staat ${opsomming(open.slice(0, 8), lang)}${open.length > 8 ? `, en nog ${open.length - 8}` : ''}.` : `On ${lijstNaam(vraag, lang)}: ${opsomming(open.slice(0, 8), lang)}.`);
-    else delen.push(nl(lang) ? `${lijstNaam(vraag, lang).charAt(0).toUpperCase()}${lijstNaam(vraag, lang).slice(1)} is leeg.` : `${lijstNaam(vraag, lang)} is empty.`);
-    for (const x of vandaag.slice(0, 3)) delen.push(nl(lang) ? `Om ${klok(x.ms, tz)}: ${x.tekst.toLowerCase()}.` : `At ${klok(x.ms, tz)}: ${x.tekst}.`);
+    if (open.length) delen.push(z.opLijst(lijstNaam(vraag, lang), opsomming(open.slice(0, 8), lang), open.length - 8));
+    else delen.push(z.leeg(lijstNaam(vraag, lang)));
+    for (const x of vandaag.slice(0, 3)) delen.push(z.om(klok(x.ms, tz), x.tekst));
     return { antwoord: delen.join(' '), feiten: vandaag.map((x) => ({ bron: 'tedoen.tijd', tekst: klok(x.ms, tz) })) };
   }
   if (vraag === 'afval') {
     const afval = o.afspraken.filter((a) => a.bron === 'afval' && a.startMs >= startOfLocalDay(nuMs, tz));
-    if (!afval.length) return { antwoord: nl(lang) ? 'Ik zie de komende twee weken geen afval in de agenda.' : 'I see no waste collection in the next two weeks.', feiten: [] };
+    if (!afval.length) return { antwoord: z.geenAfval, feiten: [] };
     const eerste = afval[0]!;
     const zelfde = afval.filter((a) => a.startMs === eerste.startMs);
     const dag = dagWoord(eerste.startMs, nuMs, tz, lang);
-    const soorten = zelfde.map((a) => (nl(lang) ? `${a.tekst} (${afvalBak(afvalSoort(a.tekst), lang)})` : a.tekst));
+    const soorten = zelfde.map((a) => z.afvalSoort(a.tekst, afvalBak(afvalSoort(a.tekst), lang)));
     const daarna = afval.find((a) => a.startMs > eerste.startMs);
     return {
-      antwoord: nl(lang)
-        ? `${dag.charAt(0).toUpperCase()}${dag.slice(1)} komt ${opsomming(soorten, lang)}.${daarna ? ` Daarna ${dagWoord(daarna.startMs, nuMs, tz, lang)} ${daarna.tekst}.` : ''}`
-        : `${dag.charAt(0).toUpperCase()}${dag.slice(1)}: ${opsomming(soorten, lang)}.`,
+      antwoord: z.afval(dag, opsomming(soorten, lang), daarna ? `${dagWoord(daarna.startMs, nuMs, tz, lang)} ${daarna.tekst}` : null),
       feiten: [],
     };
   }
@@ -482,17 +475,17 @@ export async function teDoenZin(d: Diensten, t: TeDoenDienst, tekst: string, wie
     : [dagStart + dagen * D, dagStart + (dagen + 1) * D];
   const daar = o.afspraken.filter((a) => a.startMs >= (a.heleDag ? startOfLocalDay(van, tz) : van) && a.startMs < tot);
   const wanneer =
-    vraag === 'week' ? (nl(lang) ? 'deze week' : 'this week')
-    : vraag === 'volgendeWeek' ? (nl(lang) ? 'volgende week' : 'next week')
+    vraag === 'week' ? z.week
+    : vraag === 'volgendeWeek' ? z.volgendeWeek
     : dagWoord(dagStart + dagen * D + 12 * 3_600_000, nuMs, tz, lang);
-  if (!daar.length) return { antwoord: nl(lang) ? `Er staat ${wanneer} niets in de agenda.` : `Nothing on the calendar ${wanneer}.`, feiten: [] };
+  if (!daar.length) return { antwoord: z.geenAgenda(wanneer), feiten: [] };
   const regels = daar.slice(0, 5).map((a) => {
-    const tijd = a.heleDag ? '' : ` ${nl(lang) ? 'om' : 'at'} ${klok(a.startMs, tz)}`;
+    const tijd = a.heleDag ? '' : ` ${z.tijd(klok(a.startMs, tz))}`;
     const dag = lang7 ? `${dagWoord(a.startMs, nuMs, tz, lang)}${tijd}` : tijd.trim();
     return `${dag ? `${dag}: ` : ''}${a.tekst}`;
   });
   const feiten = daar.slice(0, 5).filter((a) => !a.heleDag).map((a) => ({ bron: 'tedoen.agenda', tekst: klok(a.startMs, tz) }));
-  return { antwoord: `${nl(lang) ? `${wanneer.charAt(0).toUpperCase()}${wanneer.slice(1)} staat er` : `${wanneer}:`} ${regels.join('; ')}.`, feiten };
+  return { antwoord: z.agenda(wanneer, regels.join('; ')), feiten };
 }
 
 /** Het antwoord voor de pagina, zoals bij bedienen. */

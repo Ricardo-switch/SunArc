@@ -15,6 +15,10 @@ import type { LaadStand } from './laadhand.js';
 import type { Optie } from './opdracht.js';
 import type { Auto } from './opslag.js';
 import { leesTijd } from './tedoen.js';
+import { perTaal } from '../taal/index.js';
+
+/** De zinnen per taal (besluit 353). */
+const ZIN = perTaal('laadzin');
 
 /** Een auto zoals de assistent hem kan laden. */
 export interface LaadAuto {
@@ -68,8 +72,6 @@ export function isLadenZin(ruw: string): boolean {
   return /\b(laad|laden|opladen|laadpaal|laadstroom|charge|charging|charger|evcc)\b/.test(kaal(ruw));
 }
 
-const STAND_NL: Readonly<Record<string, string>> = { off: 'Uit', pv: 'Zon', minpv: 'Min + zon', now: 'Snel', smart: 'Slim' };
-const STAND_EN: Readonly<Record<string, string>> = { off: 'Off', pv: 'Solar', minpv: 'Min + solar', now: 'Fast', smart: 'Smart' };
 
 type Tot = { readonly tot: 'uur' | 'kabel' } | { readonly tot: 'tijd'; readonly totMs: number } | { readonly tot: 'pct'; readonly pct: number };
 
@@ -89,23 +91,16 @@ function totVan(t: string, nuMs: number, tz: string): Tot {
   return { tot: 'kabel' };
 }
 
-function totZin(x: Tot, tz: string, nl: boolean): string {
-  if (x.tot === 'uur') return nl ? 'een uur lang' : 'for an hour';
-  if (x.tot === 'kabel') return nl ? 'tot de kabel eruit gaat' : 'until the cable comes out';
-  if (x.tot === 'pct') return nl ? `tot ${x.pct}%` : `until ${x.pct}%`;
-  if (x.tot === 'tijd') return nl ? `tot ${klok(x.totMs, tz)}` : `until ${klok(x.totMs, tz)}`;
-  return nl ? 'tot de kabel eruit gaat' : 'until the cable comes out';
+function totZin(x: Tot, tz: string, lang: Lang): string {
+  const z = ZIN[lang];
+  if (x.tot === 'uur') return z.uur;
+  if (x.tot === 'pct') return z.pct(x.pct);
+  if (x.tot === 'tijd') return z.tijd(klok(x.totMs, tz));
+  return z.kabel;
 }
-
-/** "de Model 3", of "de auto" zoals hij heet. */
-function wie(naam: string, nl: boolean): string {
-  if (/^(de|het|the) /i.test(naam)) return nl ? naam.replace(/^(The|the) /, 'de ') : naam.replace(/^(De|de|Het|het) /, 'the ');
-  return nl ? `de ${naam}` : `the ${naam}`;
-}
-const hoofd = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** Welke auto: de enige, of de auto die genoemd wordt; anders een vraag terug. */
-function welke(ruw: string, t: string, autos: readonly LaadAuto[], nl: boolean): LaadAuto | LaadHerkend {
+function welke(ruw: string, t: string, autos: readonly LaadAuto[], lang: Lang): LaadAuto | LaadHerkend {
   if (autos.length === 1) return autos[0]!;
   const genoemd = autos.filter((a) => {
     const n = kaal(a.naam).trim();
@@ -114,7 +109,7 @@ function welke(ruw: string, t: string, autos: readonly LaadAuto[], nl: boolean):
   if (genoemd.length === 1) return genoemd[0]!;
   return {
     ok: false,
-    antwoord: nl ? `Welke auto: ${autos.map((a) => a.naam).join(' of ')}?` : `Which car: ${autos.map((a) => a.naam).join(' or ')}?`,
+    antwoord: ZIN[lang].welkeAuto(autos.map((a) => a.naam)),
     keuze: autos.map((a) => ({ label: a.naam, tekst: `${ruw.trim()} ${a.naam}` })),
   };
 }
@@ -126,7 +121,7 @@ function welke(ruw: string, t: string, autos: readonly LaadAuto[], nl: boolean):
 export function herkenLaden(ruw: string, autos: readonly LaadAuto[], lang: Lang, nuMs: number, tz: string): LaadHerkend | null {
   if (!isLadenZin(ruw) || !autos.length) return null;
   const t = kaal(ruw);
-  const nl = lang === 'nl';
+  const z = ZIN[lang];
   // Een vraag ("hoe laat is de auto vol?", "laadt de auto?") is geen opdracht.
   if (/^\s*(hoe|wanneer|waarom|hoeveel|wat|is|laadt|when|why|how|what|is|does)\b/.test(t)) return null;
 
@@ -141,16 +136,14 @@ export function herkenLaden(ruw: string, autos: readonly LaadAuto[], lang: Lang,
   const uit = /\b(laden uit|zet (\w+ )*laden uit|charging off|turn (\w+ )*charging off)\b/.test(t);
   if (!terug && !hervat && !pauze && !amp && !snel && !opZon && !minZon && !slim && !uit) return null;
 
-  const gekozen = welke(ruw, t, autos, nl);
+  const gekozen = welke(ruw, t, autos, lang);
   if ('ok' in gekozen) return gekozen;
   const a = gekozen;
-  const naam = wie(a.naam, nl);
+  const naam = z.wie(a.naam);
   if (!a.mag) {
     return {
       ok: false,
-      antwoord: nl
-        ? `Zet op de kaart van de laadpaal bij Apparaten aan dat SunArc ${a.evcc ? 'de stand van evcc mag zetten' : 'de laadpaal mag bedienen'}. Dan kan het ook met een zin.`
-        : `On the charger's card under Devices, allow SunArc to ${a.evcc ? 'set the evcc mode' : 'control the charger'}. Then it works with a sentence too.`,
+      antwoord: z.magNiet(!!a.evcc),
     };
   }
   const stap = (body: Record<string, unknown>, antwoord: string, waarde: string, uitleg: string): LaadHerkend => ({
@@ -161,43 +154,41 @@ export function herkenLaden(ruw: string, autos: readonly LaadAuto[], lang: Lang,
 
   // Terug naar de laadpaal of evcc; "laad weer" na een pauze met de hand ook.
   if (terug || (hervat && a.actief && !amp)) {
-    if (!a.actief) return { ok: false, antwoord: nl ? `${hoofd(naam)} laadt al zoals de laadpaal kiest.` : `${hoofd(naam)} already charges the way the charger chooses.` };
+    if (!a.actief) return { ok: false, antwoord: z.alZelf(naam) };
     return stap(
       { terug: true },
-      a.evcc ? (nl ? `evcc staat weer zoals daarvoor voor ${naam}.` : `evcc is back as it was for ${naam}.`) : nl ? `De laadpaal kiest weer zelf voor ${naam}.` : `The charger decides again for ${naam}.`,
-      nl ? 'Zelf' : 'Itself',
+      z.terug(naam, !!a.evcc),
+      z.kaartZelf,
       a.naam,
     );
   }
-  if (hervat && !amp && !snel) return { ok: false, antwoord: nl ? `Er staat niets met de hand stil bij ${naam}.` : `Nothing is paused by hand for ${naam}.` };
+  if (hervat && !amp && !snel) return { ok: false, antwoord: z.nietsStil(naam) };
 
   const x = totVan(t, nuMs, tz);
-  const tot = totZin(x, tz, nl);
+  const tot = totZin(x, tz, lang);
 
   // Met evcc: de stand.
   if (a.evcc) {
     const stand = uit && a.evcc.includes('off') ? 'off' : snel ? 'now' : minZon && a.evcc.includes('minpv') ? 'minpv' : opZon && a.evcc.includes('pv') ? 'pv' : (slim || opZon) && a.evcc.includes('smart') ? 'smart' : pauze && a.evcc.includes('off') ? 'off' : null;
     if (!stand) {
-      const namen = a.evcc.map((s) => (nl ? STAND_NL : STAND_EN)[s] ?? s);
-      return { ok: false, antwoord: nl ? `Met evcc kies je de stand: ${namen.join(', ')}.` : `With evcc you choose the mode: ${namen.join(', ')}.` };
+      const namen = a.evcc.map((s) => z.stand[s] ?? s);
+      return { ok: false, antwoord: z.kiesStand(namen.join(', ')) };
     }
-    const woord = (nl ? STAND_NL : STAND_EN)[stand]!;
-    const antwoord = stand === 'off'
-      ? nl ? `Laden staat uit voor ${naam}, ${tot}.` : `Charging is off for ${naam}, ${tot}.`
-      : nl ? `${hoofd(naam)} laadt op ${woord}, ${tot}.` : `${hoofd(naam)} charges on ${woord}, ${tot}.`;
+    const woord = z.stand[stand]!;
+    const antwoord = stand === 'off' ? z.standUit(naam, tot) : z.laadtOp(naam, woord, tot);
     return stap({ stand, ...totBody(x) }, antwoord, woord, `${a.naam}, ${tot}`);
   }
 
   if (pauze) {
-    if (!a.pauze) return { ok: false, antwoord: nl ? 'Deze laadpaal kan niet pauzeren.' : 'This charger cannot pause.' };
-    if (x.tot === 'pct') return { ok: false, antwoord: nl ? 'Pauzeren gaat tot een tijd of tot de kabel eruit gaat.' : 'Pausing goes until a time or until the cable comes out.' };
-    return stap({ pauze: true, ...totBody(x) }, nl ? `Het laden van ${naam} staat stil, ${tot}.` : `Charging ${naam} is paused, ${tot}.`, nl ? 'Pauze' : 'Paused', `${a.naam}, ${tot}`);
+    if (!a.pauze) return { ok: false, antwoord: z.geenPauze };
+    if (x.tot === 'pct') return { ok: false, antwoord: z.pauzeTot };
+    return stap({ pauze: true, ...totBody(x) }, z.pauze(naam, tot), z.kaartPauze, `${a.naam}, ${tot}`);
   }
-  if (!a.stroom) return { ok: false, antwoord: nl ? 'De stroom van deze laadpaal is niet in te stellen.' : 'The current of this charger cannot be set.' };
+  if (!a.stroom) return { ok: false, antwoord: z.geenStroom };
   const hoogste = Math.min(a.stroom.max, a.zekeringA ?? Infinity);
-  if (opZon) return { ok: false, antwoord: nl ? 'Laden op zon kiest de laadpaal zelf. Met de hand kies je een stroom, bijvoorbeeld "laad met 8 ampère".' : 'Charging on solar is up to the charger. By hand you choose a current, for example "charge at 8 amps".' };
+  if (opZon) return { ok: false, antwoord: z.opZon };
   const n = amp ? Number(amp[1]) : Math.floor(hoogste);
-  if (n < a.stroom.min || n > a.stroom.max) return { ok: false, antwoord: nl ? `De laadpaal kan ${a.stroom.min} tot ${a.stroom.max} ampère.` : `The charger can do ${a.stroom.min} to ${a.stroom.max} amps.` };
-  if (a.zekeringA != null && n > a.zekeringA) return { ok: false, antwoord: nl ? `Meer dan ${Math.floor(a.zekeringA)} ampère past nu niet op je zekering.` : `More than ${Math.floor(a.zekeringA)} amps does not fit your main fuse right now.` };
-  return stap({ stroomA: n, ...totBody(x) }, nl ? `${hoofd(naam)} laadt met ${n} ampère, ${tot}.` : `${hoofd(naam)} charges at ${n} amps, ${tot}.`, `${n} A`, `${a.naam}, ${tot}`);
+  if (n < a.stroom.min || n > a.stroom.max) return { ok: false, antwoord: z.bereik(a.stroom.min, a.stroom.max) };
+  if (a.zekeringA != null && n > a.zekeringA) return { ok: false, antwoord: z.zekering(Math.floor(a.zekeringA)) };
+  return stap({ stroomA: n, ...totBody(x) }, z.laadtMet(naam, n, tot), `${n} A`, `${a.naam}, ${tot}`);
 }

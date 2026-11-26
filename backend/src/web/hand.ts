@@ -23,9 +23,9 @@ import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SiteConfig } from '../core/model.js';
 import type { BrugVraag } from './assistant.js';
-import { metLidwoord } from './kamerwoorden.js';
 import { KNOPPEN, KOELSTRATEGIE, MODUS, MODUS_ACTIEF, klok, totWanneer } from './klimaatbrug.js';
 import { doelSoort } from './doelsoort.js';
+import { perTaal } from '../taal/index.js';
 
 export type HandModus = 'verwarmen' | 'koelen';
 /** Een airco met de hand op drogen of alleen ventileren (besluit 319): direct, zonder temperatuur. */
@@ -553,27 +553,15 @@ export function handVraag(hand: Handbediening, config: SiteConfig, tekst: string
     const ids = zone.actuatorIds.map((a) => config.actuators.find((x) => x.id === a)?.ref.id).filter((x): x is string => x != null);
     const def = HAND.find((a) => ids.includes(a.klimaat) && a[wens]);
     if (!def) return null;
-    const nl = lang === 'nl';
+    const z = perTaal('handZin')[lang];
     const p = hand.plan(def.klimaat, wens, temperatuurC);
-    if (!p.ok) {
-      const reden = {
-        koelstrategie: nl ? 'Koelen staat in je regeling uit. Zet de koelstrategie aan in Home Assistant, dan kan het.' : 'Cooling is off in your controller. Turn on the cooling strategy in Home Assistant.',
-        vakantie: nl ? 'Je regeling staat op vakantie of koelen; dan verwarm ik niet met de hand.' : 'Your controller is on holiday or cooling; then I do not heat manually.',
-        bereik: nl ? 'Zo ver kan de knop van je regeling niet.' : 'The knob of your controller does not go that far.',
-        knop: nl ? 'Dat kan hier niet met de hand.' : 'That cannot be done manually here.',
-      }[p.reden];
-      return { ok: false, antwoord: reden };
-    }
+    if (!p.ok) return { ok: false, antwoord: z.reden[p.reden] };
     const totMs = totWanneer(tekst, hand.nu, config.timezone, false);
     const naam = zone.name;
     const doel = graad(p.doelC);
     const tot = klok(totMs, config.timezone);
     const apparaat = config.actuators.find((x) => x.ref.id === def.klimaat)?.name ?? naam;
-    const antwoord = p.direct
-      ? nl ? `Ik zet ${apparaat.toLowerCase().startsWith('airco') ? `de ${apparaat.toLowerCase()}` : apparaat} op verwarmen, ${doel}, tot ${tot}.` : `I am turning ${apparaat} to heat, ${doel}, until ${tot}.`
-      : wens === 'koelen'
-        ? nl ? `Ik zet ${metLidwoord(naam)} op ${doel} om te koelen, tot ${tot}.` : `I am setting ${naam} to cool to ${doel}, until ${tot}.`
-        : nl ? `Ik zet ${metLidwoord(naam)} op ${doel}, tot ${tot}. Daarna weer ${graad(p.terugC)}.` : `I am setting ${naam} to ${doel}, until ${tot}. Then back to ${graad(p.terugC)}.`;
+    const antwoord = p.direct ? z.direct(apparaat, doel, tot) : wens === 'koelen' ? z.koelen(naam, doel, tot) : z.tijdelijk(naam, doel, tot, graad(p.terugC));
     return {
       ok: true,
       antwoord,

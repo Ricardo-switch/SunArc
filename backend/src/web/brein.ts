@@ -33,6 +33,7 @@ import { gewoon } from './woordzoeker.js';
 import type { TodayReport } from './today.js';
 import type { SiteConfig } from '../core/model.js';
 import { komma } from '../taal/getal.js';
+import { perTaal } from '../taal/index.js';
 
 /* ------------------------------------------------------------ gespreksgeheugen */
 
@@ -258,7 +259,6 @@ export function opdrachtDenken(
   klimaat: readonly Kamerlijst[],
   lang: Lang,
 ): string {
-  const nl = lang === 'nl';
   const regels: string[] = [
     'Je bent het brein van een huis dat praat met de bewoner. Kies wat het huis doet met wat de bewoner zei:',
     '- doen: een plan van 1 tot 4 stappen uit de lijsten onderaan, ook als de bewoner een gevoel of een bezigheid noemt ("het is hier zo donker en ik ga film kijken": screens dicht en het licht in de zithoek zachter). Alleen ids uit de lijsten. Klimaat: "warmer" of "koeler" voor een kamer uit de lijst klimaat.',
@@ -266,7 +266,7 @@ export function opdrachtDenken(
     '- antwoord: een vraag die je kunt beantwoorden met alleen de feiten bij "Hoe het huis ervoor staat" (zoals hoe warm het gisteren was). Neem elk getal precies over zoals het er staat, met de eenheid; geen getallen erbij, geen getallen in woorden, geen adviezen.',
     '- niets: als het er niet bij staat, gevaarlijk of onduidelijk is.',
     'Acties per soort, precies zo geschreven: licht: aan, uit, zachter, feller, helderheid (waarde 1 tot 100), warm, neutraal of koel. scherm: open, dicht, stop of stand (waarde 0 is open, 100 is dicht). scene: aan. klimaat: warmer of koeler.',
-    `Zinnen: warm, kort, ${nl ? 'in gewoon Nederlands' : 'in plain English'}, in de ik-vorm, zonder opmaak of aanhalingstekens. Woorden als "die", "daar", "ook", "nog wat" en "weer" gaan over het gesprek tot nu.`,
+    `Zinnen: warm, kort, ${perTaal('handZin')[lang].inTaal}, in de ik-vorm, zonder opmaak of aanhalingstekens. Woorden als "die", "daar", "ook", "nog wat" en "weer" gaan over het gesprek tot nu.`,
     'Hoe het huis ervoor staat:',
     ...situatie.regels.map((r) => `- ${r}`),
   ];
@@ -544,8 +544,7 @@ function duur(ms: number, lang: Lang): string {
   const min = Math.round(ms / 60_000);
   const u = Math.floor(min / 60);
   const m = min % 60;
-  if (lang === 'en') return u === 0 ? `${m} minutes` : m === 0 ? `${u} hours` : `${u} hours and ${m} minutes`;
-  return u === 0 ? `${m} minuten` : m === 0 ? `${u} uur` : `${u} uur en ${m} minuten`;
+  return perTaal('handZin')[lang].duur(u, m);
 }
 
 /**
@@ -554,23 +553,23 @@ function duur(ms: number, lang: Lang): string {
  * apparaat verwarmde of koelde. Voor vragen als "hoe warm was het gisteren?".
  */
 export function dagRegels(r: TodayReport, config: SiteConfig, dag: 'vandaag' | 'gisteren', lang: Lang): Situatie {
-  const nl = lang === 'nl';
-  const label = nl ? (dag === 'vandaag' ? 'Vandaag tot nu' : 'Gisteren') : dag === 'vandaag' ? 'Today so far' : 'Yesterday';
+  const z = perTaal('handZin')[lang];
+  const label = z.dagLabel(dag === 'vandaag');
   const regels: string[] = [];
   const feiten: Fact[] = [];
   const feit = (bron: string, tekst: string) => (feiten.push({ bron: `${dag}.${bron}`, tekst }), tekst);
-  for (const z of r.zones) {
-    const t = z.kwartieren.filter((x): x is number => x != null);
+  for (const zone of r.zones) {
+    const t = zone.kwartieren.filter((x): x is number => x != null);
     if (!t.length) continue;
-    const lo = feit(`${z.zoneId}.min`, `${getal1(Math.min(...t), lang)}°`);
-    const hi = feit(`${z.zoneId}.max`, `${getal1(Math.max(...t), lang)}°`);
-    regels.push(nl ? `${label} in ${z.naam}: van ${lo} tot ${hi}.` : `${label} in ${z.naam}: from ${lo} to ${hi}.`);
+    const lo = feit(`${zone.zoneId}.min`, `${getal1(Math.min(...t), lang)}°`);
+    const hi = feit(`${zone.zoneId}.max`, `${getal1(Math.max(...t), lang)}°`);
+    regels.push(z.dagTemp(label, zone.naam, lo, hi));
   }
   if (r.zonWh > 0 || r.netAfWh > 0 || r.netTerugWh > 0) {
     const zon = feit('zon', `${getal1(r.zonWh / 1000, lang)} kWh`);
     const af = feit('net', `${getal1(r.netAfWh / 1000, lang)} kWh`);
     const terug = feit('terug', `${getal1(r.netTerugWh / 1000, lang)} kWh`);
-    regels.push(nl ? `${label} gaven de panelen ${zon}, kwam er ${af} van het net en ging er ${terug} terug.` : `${label} the panels gave ${zon}, ${af} came from the grid and ${terug} went back.`);
+    regels.push(z.dagStroom(label, zon, af, terug));
   }
   for (const a of r.apparaten) {
     const naam = config.actuators.find((x) => x.id === a.actuatorId)?.name ?? a.actuatorId;
@@ -578,7 +577,7 @@ export function dagRegels(r: TodayReport, config: SiteConfig, dag: 'vandaag' | '
       const ms = a.huidig.filter((s) => s.actie === actie).reduce((n, s) => n + Math.max(0, s.totMs - s.vanMs), 0);
       if (ms < 60_000) continue;
       const hoe = feit(`${a.actuatorId}.${actie}`, duur(ms, lang));
-      regels.push(nl ? `${label} ${actie === 'heat' ? 'verwarmde' : 'koelde'} ${naam} ${hoe}.` : `${label} ${naam} ${actie === 'heat' ? 'heated' : 'cooled'} for ${hoe}.`);
+      regels.push(z.dagDeed(label, naam, actie === 'heat', hoe));
     }
   }
   return { regels, feiten };

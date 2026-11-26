@@ -22,6 +22,7 @@ import type { Lang } from './assistant.js';
 import type { Stap } from './brein.js';
 import type { Herhaal, Moment } from './gepland.js';
 import { partsIn, zonedTime } from './today.js';
+import { perTaal } from '../taal/index.js';
 
 /* ------------------------------------------------------------ gewone tekst */
 
@@ -270,16 +271,7 @@ export function afvalSoort(naam: string): AfvalSoort {
 
 /** Hoe je de bak herkent, in gewone woorden. */
 export function afvalBak(s: AfvalSoort, lang: Lang): string {
-  const nl = lang === 'nl';
-  return {
-    gft: nl ? 'de groene bak' : 'the green bin',
-    pmd: nl ? 'het plastic' : 'the plastic',
-    papier: nl ? 'het oud papier' : 'the paper',
-    rest: nl ? 'de grijze bak' : 'the grey bin',
-    glas: nl ? 'het glas' : 'the glass',
-    textiel: nl ? 'het textiel' : 'the textiles',
-    anders: nl ? 'het afval' : 'the waste',
-  }[s];
+  return perTaal('handZin')[lang].afval[s];
 }
 
 /* ------------------------------------------------------------ agenda's */

@@ -20,7 +20,7 @@ import { readFile, writeFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { actuatorsOf, type SiteConfig } from '../core/model.js';
 import type { BrugVraag } from './assistant.js';
-import { metLidwoord } from './kamerwoorden.js';
+import { perTaal } from '../taal/index.js';
 
 /** De knoppen van het oude systeem, per wens. */
 export const KNOPPEN = {
@@ -298,13 +298,8 @@ export function brugVraag(brug: KlimaatBrug, config: SiteConfig, tekst: string |
     const doel = graden(plan.doel);
     const tot = klok(plan.totMs, config.timezone);
     const terug = graden(plan.terug);
-    const nl = lang === 'nl';
-    const antwoord =
-      wens === 'koelen'
-        ? nl ? `Ik zet ${metLidwoord(naam)} op ${doel} om te koelen, tot ${tot}.` : `I am setting ${naam} to cool to ${doel}, until ${tot}.`
-        : plan.modusDag
-          ? nl ? `Ik zet de verwarming weer aan, op ${doel}, tot ${tot}.` : `I am turning the heating back on, at ${doel}, until ${tot}.`
-          : nl ? `Ik zet ${metLidwoord(naam)} op ${doel}, tot ${tot}. Daarna weer ${terug}.` : `I am setting ${naam} to ${doel}, until ${tot}. Then back to ${terug}.`;
+    const z = perTaal('handZin')[lang];
+    const antwoord = wens === 'koelen' ? z.koelen(naam, doel, tot) : plan.modusDag ? z.verwarmingAan(doel, tot) : z.tijdelijk(naam, doel, tot, terug);
     return {
       ok: true,
       antwoord,

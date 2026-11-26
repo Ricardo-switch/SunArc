@@ -212,8 +212,7 @@ export async function assistentRoutes(d: Diensten, v: Verzoek): Promise<boolean>
       // "Doe maar terug" (besluit 213): hoe het was vóór de laatste opdracht, zonder model.
       if (lijst && isTerug(tekst)) {
         const terug = d.gesprekken.neemTerug(id);
-        const nl = lang === 'nl';
-        const antwoord = terug ? (nl ? 'Ik heb het teruggezet zoals het was.' : 'I put it back the way it was.') : nl ? 'Er is niets om terug te zetten.' : 'There is nothing to undo.';
+        const antwoord = terug ? perTaal('handZin')[lang].teruggezet : perTaal('handZin')[lang].nietsTerug;
         const body = { vraag: 'bedien', taal: lang, kamer: null, antwoord, feiten: [], gesproken: uitspraak(antwoord, lang), ...(terug ? { opdracht: terug[0], meer: terug.slice(1), gedaan: [], beweegt: null, vervolg: [] } : {}) };
         return stuur({ body, terug: null });
       }
@@ -558,14 +557,13 @@ async function weerVoor(d: Diensten, config: SiteConfig, lang: Lang) {
  * getal in een antwoord van het model na te gaan is.
  */
 export async function situatieVoor(d: Diensten, config: SiteConfig, lang: Lang): Promise<Situatie> {
-  const nl = lang === 'nl';
   const nu = Date.now();
   const regels: string[] = [];
   const feiten: Fact[] = [];
   const tijd = klok(nu, config.timezone);
-  const datum = new Intl.DateTimeFormat(nl ? 'nl-NL' : 'en-GB', { timeZone: config.timezone, weekday: 'long', day: 'numeric', month: 'long' }).format(nu);
+  const datum = new Intl.DateTimeFormat(perTaal('antwoord')[lang].locale, { timeZone: config.timezone, weekday: 'long', day: 'numeric', month: 'long' }).format(nu);
   const recept = d.lichtRecept(nu);
-  regels.push(nl ? `Het is ${datum}, ${tijd}${recept ? ` (licht: ${momentWoorden(recept.moment, true)})` : ''}.` : `It is ${datum}, ${tijd}.`);
+  regels.push(perTaal('handZin')[lang].nu(datum, tijd, recept ? momentWoorden(recept.moment, lang) : null));
   feiten.push({ bron: 'nu.klok', tekst: tijd }, { bron: 'nu.datum', tekst: datum });
   const basis = { config, snapshot: d.options.latest(), today: null, nowMs: nu, shadow: true, lang } as const;
   const weer = await weerVoor(d, config, lang).catch(() => null);

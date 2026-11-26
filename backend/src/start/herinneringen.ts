@@ -10,6 +10,7 @@ import { type TeDoenDienst } from '../web/routes/tedoen.js';
 import { type GeplandeDeuren, voerStapUit } from '../web/gepland-uit.js';
 import { telefoonVan, alsMelding } from '../web/push.js';
 import type { MaakHerinneringenNodig } from '../main.js';
+import { perTaal } from '../taal/index.js';
 
 export function maakHerinneringen(nodig: MaakHerinneringenNodig) {
   const {
@@ -128,9 +129,9 @@ export function maakHerinneringen(nodig: MaakHerinneringenNodig) {
         if (h.voor == null) continue;
         const t = telefoonVan(h.voor, voorkeuren.meldingen(h.voor), telefoons());
         if (!t) continue;
-        const nl = voorkeuren.taal(h.voor) !== 'en';
+        const z = perTaal('handZin')[voorkeuren.taal(h.voor) === 'en' ? 'en' : 'nl'];
         try {
-          await client.callService('notify', t.dienst, alsMelding({ dienst: t.dienst, titel: nl ? 'Te doen' : 'To do', tekst: h.tekst, tag: `smart-climate-tedoen-${h.id}`, dringend: true, stil: false }, nodig.paneelPad), {});
+          await client.callService('notify', t.dienst, alsMelding({ dienst: t.dienst, titel: z.tedoenTitel, tekst: h.tekst, tag: `smart-climate-tedoen-${h.id}`, dringend: true, stil: false }, nodig.paneelPad), {});
         } catch (error) {
           console.warn(`Herinnering naar ${t.dienst} lukte niet: ${(error as Error).message}`);
         }

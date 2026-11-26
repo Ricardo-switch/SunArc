@@ -1,5 +1,17 @@
 [
   {
+    "versie": "0.250.0",
+    "datum": "2026-11-26",
+    "beter": [
+      "Alles wat de assistent zegt, staat nu per taal op één plek. Er verandert niets aan wat hij zegt, maar een nieuwe taal komt er zo makkelijker bij"
+    ],
+    "en": {
+      "beter": [
+        "Everything the assistant says now lives in one place per language. Nothing changes in what it says, but a new language is easier to add"
+      ]
+    }
+  },
+  {
     "versie": "0.249.0",
     "datum": "2026-11-26",
     "beter": [

@@ -337,6 +337,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [344. Klaar voor een nieuwe taal: de dienst in één bestand per taal, minder teksten](#344-klaar-voor-een-nieuwe-taal-de-dienst-in-één-bestand-per-taal-minder-teksten)
 - [345. Eén plek per onderwerp: Meten en regeling, op zon, en warmte vasthouden](#345-eén-plek-per-onderwerp-meten-en-regeling-op-zon-en-warmte-vasthouden)
 - [346. Meldingen: kies per soort wat er in de bel komt](#346-meldingen-kies-per-soort-wat-er-in-de-bel-komt)
+- [353. De zinnen van de dienst in de taalbestanden](#353-de-zinnen-van-de-dienst-in-de-taalbestanden)
 
 **Veiligheid**
 
@@ -16305,8 +16306,39 @@ hebben: twee plekken voor dezelfde instelling.
 
 *Nog niet gedaan:*
 
-- **De zinnen van de dienst naar de taalbestanden** (zo'n 195 regels, de
-  meeste in `assistant.ts` en `opdracht.ts`), in een eigen versie.
+- **De zinnen van de dienst naar de taalbestanden**: gedaan in besluit 353.
+
+## 353. De zinnen van de dienst in de taalbestanden
+
+*Onderwerp: weergave · Status: geldig*
+
+26 november 2026, stap 5 van de afvinklijst uit het tweede kwaliteitsrapport
+([347]), het laatste deel. Besluit 344 zette de tabellen van de dienst in
+`taal/nl.ts` en `en.ts`, maar zo'n 230 regels kozen nog midden in de code
+tussen een Nederlandse en een Engelse zin (`nl ? 'Klaar.' : 'Done.'`): de
+antwoorden van de assistent, licht en schermen bedienen, laden met een zin,
+met de hand, iets voor later en Te doen. Duits had daar overal een derde tak
+nodig gehad.
+
+*Besluit:*
+
+- **Elke zin staat in het taalbestand**, per onderwerp: `vraag` (de
+  antwoorden van de assistent), `opdracht` (licht en schermen), `laadzin`,
+  `handZin` (met de hand, de klimaatbrug, afval, de dagregels voor het
+  taalmodel), `gepland` en `tedoenZin`. Een zin met getallen of namen is een
+  functie; het Engels heeft dezelfde vorm, de typecontrole bewaakt dat.
+- **Wat de taal bepaalt, hoort bij de taal**: "op zolder" maar "in de keuken",
+  "de zolder" of "het kantoor", "de plafonnière" (`dingNaam` en `kamerZin`
+  staan nu in `taal/hulp.ts`), en de woorden voor een lichtmoment.
+- **Een test** zoekt in de code van de dienst naar een keuze tussen een
+  Nederlandse en een Engelse zin, en vindt er geen.
+- **Wat blijft**: wat een bewaarde Engelse naam leest (meldingen, wat er nieuw
+  is), tabellen die een rapport omzetten (het weer, vandaag, de vragen bij de
+  eerste start, de etages), de uitspraak voor Piper en de opdrachten aan het
+  taalmodel. Die kijken naar de taal, maar kiezen geen zin.
+
+Op het scherm en in wat de assistent zegt verandert niets; alle tests van de
+assistent geven dezelfde zinnen in beide talen.
 
 ## Wat nog een besluit wacht
 

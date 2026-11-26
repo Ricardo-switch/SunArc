@@ -93,6 +93,8 @@ verwijzing bestaat.
   Sinds 0.249.0 opent Aanpassen in Inrichten de pagina waar het later ook
   staat, met de balk terug; alleen Wat elk apparaat kan is nog een eigen deel.
   Elke tekst staat één keer per taal, 4.499 in plaats van 5.336 ([352]).
+  Sinds 0.250.0 staan ook de zinnen van de assistent, het bedienen, laden en
+  Te doen in de taalbestanden van de dienst; een test bewaakt dat ([353]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste); de
   nieuwe versie komt rond 10 januari, los van de overstap van de regeling, en
   beta bevriest op 31 december ([347]). Daarna hooguit één versie per week.
@@ -1158,4 +1160,5 @@ verwijzing bestaat.
 [350]: DECISIONS.md#350-dunner-paginas-heten-zoals-hun-regel-en-één-getal-voor-hoe-ver-je-huis-is
 [351]: DECISIONS.md#351-gasten-met-alleen-een-tracker-en-wie-wat-mag
 [352]: DECISIONS.md#352-korter-aanpassen-opent-de-pagina-en-elke-tekst-één-keer
+[353]: DECISIONS.md#353-de-zinnen-van-de-dienst-in-de-taalbestanden
 <!-- links:einde -->

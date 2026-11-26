@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.249.0
+## 0.250.0
 
-*26 november 2026 · 0.179.0 – 0.249.0*
+*26 november 2026 · 0.179.0 – 0.250.0*
 
 **Nieuw**
 
@@ -104,6 +104,7 @@
 
 **Beter**
 
+- Alles wat de assistent zegt, staat nu per taal op één plek. Er verandert niets aan wat hij zegt, maar een nieuwe taal komt er zo makkelijker bij
 - Aanpassen in Inrichten opent de pagina waar het later ook staat: Je huis, Energie, Klimaat of Bewoners. Met de balk bovenin ga je terug naar dezelfde stap
 - Meldingen staat bij Instellingen nog maar op één plek, bij Extra's
 - Kortere teksten: minder zinnen die herhalen wat er al staat
@@ -434,6 +435,7 @@
 
 **Improved**
 
+- Everything the assistant says now lives in one place per language. Nothing changes in what it says, but a new language is easier to add
 - Adjust in Set up opens the page where you find it later too: Your home, Energy, Climate or Residents. The bar at the top takes you back to the same step
 - Notifications now appear in one place in Settings, under Extras
 - Shorter texts: fewer sentences that repeat what is already there
