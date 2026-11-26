@@ -80,6 +80,21 @@ export function maakWeer(nodig: MaakWeerNodig) {
   const weerNaam = (): string => weerNaamVan(weerBron(), allStates);
   const forecastNow = () =>
     verwachtingVan(weerBron(), { openMeteo: openMeteo.latest?.dagen ?? null, entities: nodig.houseRegisters?.entities ?? null, states: allStates, entiteit: entityForecast, nu: Date.now(), zone: weerZone });
+  /*
+   * De temperatuur van nu uit de gekozen weerbron (besluit 354), als controle
+   * naast de buitenmeter: een weerentiteit geeft hem zelf, Open-Meteo bij dag 0,
+   * en Buienradar als de temperatuur van dag 0.
+   */
+  const weerNuC = (): number | null => {
+    const bron = weerBron();
+    if (bron?.startsWith('weather.')) {
+      const t = allStates.get(bron)?.attributes['temperature'];
+      return typeof t === 'number' && Number.isFinite(t) ? t : null;
+    }
+    const vandaag = forecastNow().find((f) => f.offset === 0);
+    const c = bron === OPEN_METEO ? vandaag?.nuC : vandaag?.maxC;
+    return typeof c === 'number' && Number.isFinite(c) ? c : null;
+  };
   if (weatherLog && nodig.site) {
     const timeZone = nodig.site.config.timezone;
     const noteTomorrow = () => {
@@ -98,5 +113,5 @@ export function maakWeer(nodig: MaakWeerNodig) {
     setInterval(noteTomorrow, 10 * 60_000).unref();
     setTimeout(noteTomorrow, 60_000).unref();
   }
-  return { forecastNow, openMeteo, weatherLog, weerNaam, weerZone };
+  return { forecastNow, openMeteo, weatherLog, weerNaam, weerNuC, weerZone };
 }

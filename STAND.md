@@ -307,6 +307,10 @@ verwijzing bestaat.
   alleen het thermisch model nodig heeft (`recordOnly`, [65]). De
   buitentemperatuur ([30]) en de gaten daarna ([30b]) gaan mee. De opbrengst van
   de panelen is de instralingsmeter ([47]).
+- **De buitentemperatuur van een airco** telt zonder zijn storingen (een sprong
+  naar 0,0, even weg); met meer airco's de rustigste meter. Wijkt hij langer
+  dan een uur meer dan 3° af van het weer, dan neemt SunArc het weer en zegt
+  het in de bel ([354]).
 - **Bewaren:** export als tar.gz ([48]); ouder dan een week gecomprimeerd
   ([58]); twee jaar ruw, daarna samengevat ([83]). Bij elk besluit is na te gaan
   welke versie het nam ([66]). De export is voor onderzoek: alleen de
@@ -1161,4 +1165,5 @@ verwijzing bestaat.
 [351]: DECISIONS.md#351-gasten-met-alleen-een-tracker-en-wie-wat-mag
 [352]: DECISIONS.md#352-korter-aanpassen-opent-de-pagina-en-elke-tekst-één-keer
 [353]: DECISIONS.md#353-de-zinnen-van-de-dienst-in-de-taalbestanden
+[354]: DECISIONS.md#354-de-buitentemperatuur-van-een-airco-met-het-weer-als-controle
 <!-- links:einde -->

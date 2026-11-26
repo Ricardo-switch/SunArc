@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.250.0
+## 0.251.0
 
-*26 november 2026 · 0.179.0 – 0.250.0*
+*26 november 2026 · 0.179.0 – 0.251.0*
 
 **Nieuw**
 
@@ -104,6 +104,8 @@
 
 **Beter**
 
+- Meet de buitenunit van een airco de buitentemperatuur? Dan valt een korte storing niet meer op: een sprong naar 0° of een meter die even weg is, telt niet mee. Met meer airco's telt de meter die het rustigst meet
+- Wijkt die buitentemperatuur langer dan een uur meer dan 3° af van het weer, bijvoorbeeld door de zon op de buitenunit? Dan gebruikt SunArc het weer, en zegt dat in de meldingen
 - Alles wat de assistent zegt, staat nu per taal op één plek. Er verandert niets aan wat hij zegt, maar een nieuwe taal komt er zo makkelijker bij
 - Aanpassen in Inrichten opent de pagina waar het later ook staat: Je huis, Energie, Klimaat of Bewoners. Met de balk bovenin ga je terug naar dezelfde stap
 - Meldingen staat bij Instellingen nog maar op één plek, bij Extra's
@@ -435,6 +437,8 @@
 
 **Improved**
 
+- Does the outdoor unit of an air conditioner measure the outdoor temperature? A short fault no longer shows: a jump to 0° or a meter that is briefly gone does not count. With more air conditioners, the steadiest meter counts
+- If that outdoor temperature is more than 3° away from the weather for over an hour, for example because of sun on the outdoor unit, SunArc uses the weather and says so in the notifications
 - Everything the assistant says now lives in one place per language. Nothing changes in what it says, but a new language is easier to add
 - Adjust in Set up opens the page where you find it later too: Your home, Energy, Climate or Residents. The bar at the top takes you back to the same step
 - Notifications now appear in one place in Settings, under Extras

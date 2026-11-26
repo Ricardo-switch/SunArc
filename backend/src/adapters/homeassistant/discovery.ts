@@ -219,6 +219,39 @@ const OUTDOOR_WORDS = new RegExp(
   'i',
 );
 
+/** Hangt deze buitenmeter aan een airco: een apparaat met een `climate.`-entiteit? */
+function vanAirco(e: HaRegistryEntity, entities: readonly HaRegistryEntity[]): HaRegistryEntity | null {
+  if (e.device_id == null) return null;
+  return entities.find((x) => x.device_id === e.device_id && x.entity_id.startsWith('climate.')) ?? null;
+}
+
+/**
+ * De buitenmeters waaruit de dienst kiest (besluit 354): de gekozen meter, en
+ * als dat de buitenunit van een airco is ook die van de andere airco's. Met de
+ * naam van de airco, voor de melding.
+ */
+export function buitenunitMeters(
+  entities: readonly HaRegistryEntity[],
+  states: ReadonlyMap<string, HaEntityState>,
+  gekozen: string,
+): { id: string; naam: string }[] {
+  const naam = (e: HaRegistryEntity | undefined, id: string) => {
+    const airco = e ? vanAirco(e, entities) : null;
+    if (airco) return nameOf(airco, states.get(airco.entity_id));
+    return e ? nameOf(e, states.get(id)) : String(states.get(id)?.attributes['friendly_name'] ?? id);
+  };
+  const eigen = entities.find((e) => e.entity_id === gekozen);
+  const uit = [{ id: gekozen, naam: naam(eigen, gekozen) }];
+  if (!eigen || !vanAirco(eigen, entities)) return uit;
+  for (const e of entities) {
+    if (e.entity_id === gekozen || !e.entity_id.startsWith('sensor.') || e.disabled_by != null) continue;
+    if (deviceClass(e, states.get(e.entity_id)) !== 'temperature' || !vanAirco(e, entities)) continue;
+    if (!OUTDOOR_WORDS.test(e.entity_id) && !OUTDOOR_WORDS.test(nameOf(e, states.get(e.entity_id)))) continue;
+    uit.push({ id: e.entity_id, naam: naam(e, e.entity_id) });
+  }
+  return uit;
+}
+
 /** Heet deze sensor gewoon "temperatuur", zonder verdere bijstelling? */
 function bareName(e: HaRegistryEntity): boolean {
   const object = e.entity_id.split('.')[1] ?? '';
@@ -344,7 +377,11 @@ export function discover(r: Registers): Proposal {
       soort: byName && others.length === 0 ? 'gevonden' : 'geraden',
       pad: 'outdoorTemperature',
       tekst: byName
-        ? `${outdoor.entity_id} — ${nameOf(outdoor, statePer.get(outdoor.entity_id))}`
+        ? `${outdoor.entity_id} — ${nameOf(outdoor, statePer.get(outdoor.entity_id))}` +
+          // Besluit 354: een buitenunit kan in de zon te hoog meten.
+          (vanAirco(outdoor, r.entities)
+            ? '. Dat is de buitenunit van een airco: wijkt hij langer dan een uur meer dan 3° af van het weer, dan neemt SunArc het weer'
+            : '')
         : `${outdoor.entity_id}, de enige actuele buitentemperatuur van je weerintegratie`,
       ...(others.length > 0 ? { alternatieven: others } : {}),
     });

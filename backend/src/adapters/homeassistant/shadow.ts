@@ -24,6 +24,7 @@ import type {
 import { decide } from '../../core/decide.js';
 import type { Mode, SiteConfig } from '../../core/model.js';
 import type { HeatStoreExtra, SystemState } from '../../core/state.js';
+import { unavailable, value } from '../../core/state.js';
 import { OwnState } from '../own-state.js';
 import { ShadowActuators } from '../shadow-actuators.js';
 import { StateFile } from '../state-file.js';
@@ -104,6 +105,12 @@ export interface ShadowOptions {
    */
   readonly accu?: () => number | null;
   /**
+   * De buitentemperatuur zoals de dienst hem kiest (besluit 354): storingen
+   * eruit, de rustigste buitenmeter, het weer als controle. Undefined laat de
+   * meter uit de configuratie staan; null is geen buitentemperatuur.
+   */
+  readonly buiten?: (nowMs: number) => number | null | undefined;
+  /**
    * Na hoeveel minuten zonder geslaagde evaluatie het proces zichzelf beëindigt.
    *
    * Een dienst die maanden moet doorlopen faalt zelden met een knal; hij blijft
@@ -180,8 +187,9 @@ function describe(command: Command): string {
 const ACTUATOR_STATE_MAX_AGE_MS = 30 * 60_000;
 
 export class ShadowRunner {
-  readonly #options: Required<Omit<ShadowOptions, 'logDir' | 'readyBy' | 'warmte' | 'accu'>> & {
+  readonly #options: Required<Omit<ShadowOptions, 'logDir' | 'readyBy' | 'warmte' | 'accu' | 'buiten'>> & {
     accu?: ShadowOptions['accu'];
+    buiten?: ShadowOptions['buiten'];
     warmte: ShadowOptions['warmte'];
     logDir: string | null;
     readyBy: () => Readonly<Record<string, number>>;
@@ -251,6 +259,7 @@ export class ShadowRunner {
       strategies: options.strategies,
       client: options.client,
       ...(options.accu ? { accu: options.accu } : {}),
+      ...(options.buiten ? { buiten: options.buiten } : {}),
       tickSeconds: options.tickSeconds ?? 30,
       debounceMs: options.debounceMs ?? 2_000,
       minIntervalSeconds: options.minIntervalSeconds ?? 15,
@@ -505,12 +514,15 @@ export class ShadowRunner {
     const nowMs = this.#options.now();
     this.#lastEvalMs = nowMs;
     const config = configFrom(this.#config, this.#store);
-    const state = withAccu(
-      withWarmte(
-        withReadyBy(buildSystemState(config, this.#store, nowMs, this.#own, this.#shadowActuators), this.#options.readyBy()),
-        this.#options.warmte?.(nowMs),
+    const state = withBuiten(
+      withAccu(
+        withWarmte(
+          withReadyBy(buildSystemState(config, this.#store, nowMs, this.#own, this.#shadowActuators), this.#options.readyBy()),
+          this.#options.warmte?.(nowMs),
+        ),
+        this.#options.accu?.() ?? null,
       ),
-      this.#options.accu?.() ?? null,
+      this.#options.buiten?.(nowMs),
     );
     const decision = decide({
       config,
@@ -786,6 +798,12 @@ export function withAccu(state: SystemState, accuW: number | null): SystemState 
   const vanNet = net.ok ? Math.max(0, net.value) : 0;
   const zonW = Math.max(0, Math.min(zon.value, accuW - vanNet));
   return zonW > 0 ? { ...state, power: { ...state.power, accuZonW: Math.round(zonW) } } : state;
+}
+
+/** De buitentemperatuur zoals de dienst hem koos (besluit 354); undefined laat de meter staan. */
+export function withBuiten(state: SystemState, buitenC: number | null | undefined): SystemState {
+  if (buitenC === undefined) return state;
+  return { ...state, outdoorTemperatureC: buitenC == null ? unavailable<number>('missing') : value(buitenC, state.nowMs) };
 }
 
 /** Zet "klaar voor" van de bewoner bij de uitstelbare apparaten (besluit 101). */

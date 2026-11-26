@@ -570,6 +570,11 @@ export const en: Teksten = {
       actie: 'Choose a weather source',
       klaar: ['The weather forecast is back', 'The weather source gives a forecast again.'],
     },
+    buiten: {
+      titel: (naam: string) => `The outdoor temperature of ${naam} is off`,
+      tekst: 'For an hour it has been more than 3° away from the weather, perhaps because of sun on the outdoor unit. Until it matches again, SunArc uses the weather.',
+      klaar: (naam: string) => [`${hoofdletter(naam)} measures outside correctly again`, 'The outdoor temperature is close to the weather again.'],
+    },
   },
   // web/onboarding.ts
   onboarding: {

@@ -37,7 +37,9 @@ export type KloptFeit =
   | { readonly soort: 'alleenHelpt'; readonly zoneId: string; readonly kamer: string; readonly kamerId: string | null; readonly meeMet?: string | null }
   | { readonly soort: 'terug' | 'opZon'; readonly id: string; readonly naam: string; readonly sindsMs: number }
   | { readonly soort: 'gepland'; readonly id: string; readonly tekst: string; readonly sindsMs: number }
-  | { readonly soort: 'weer'; readonly sindsMs: number };
+  | { readonly soort: 'weer'; readonly sindsMs: number }
+  /** De buitenmeter zit al een uur te ver van het weer, en het weer nam het over (besluit 354). */
+  | { readonly soort: 'buiten'; readonly naam: string; readonly sindsMs: number };
 
 /** De melding zoals de bel hem bewaart, zonder de tijden. */
 export interface KloptMelding {
@@ -98,6 +100,7 @@ export const WEER_NA_MS = 6 * UUR;
 export class KloptRegister {
   readonly #feiten = new Map<string, { feit: KloptFeit; totMs: number }>();
   #weerSindsMs: number | null = null;
+  #buiten: Extract<KloptFeit, { soort: 'buiten' }> | null = null;
 
   /** Iets lukte niet; `duurMs` is hoe lang de melding hooguit blijft staan. */
   meld(feit: Extract<KloptFeit, { soort: 'terug' | 'opZon' | 'gepland' }>, duurMs = 12 * UUR): void {
@@ -117,10 +120,16 @@ export class KloptRegister {
     else this.#weerSindsMs ??= nu;
   }
 
+  /** Of het weer de buitenmeter overnam (besluit 354); null als de meter weer telt. */
+  buiten(afwijkend: { readonly naam: string; readonly sindsMs: number } | null): void {
+    this.#buiten = afwijkend ? { soort: 'buiten', naam: afwijkend.naam, sindsMs: afwijkend.sindsMs } : null;
+  }
+
   lijst(nu: number): KloptFeit[] {
     for (const [k, v] of this.#feiten) if (v.totMs <= nu) this.#feiten.delete(k);
     const uit = [...this.#feiten.values()].map((v) => v.feit);
     if (this.#weerSindsMs != null && nu - this.#weerSindsMs >= WEER_NA_MS) uit.push({ soort: 'weer', sindsMs: this.#weerSindsMs });
+    if (this.#buiten) uit.push(this.#buiten);
     return uit;
   }
 }
@@ -152,6 +161,8 @@ export function kloptMelding(f: KloptFeit, lang: Lang, nu: number): KloptMelding
       return { id: `mislukt:gepland:${f.id}`, soort: 'mislukt', aandacht: true, titel: w.gepland.titel, tekst: w.gepland.tekst(f.tekst), actie: { label: w.bekijk, href: 'gepland.html' }, sindsMs: f.sindsMs };
     case 'weer':
       return { id: 'bron:weer', soort: 'bron', aandacht: true, titel: w.weer.titel, tekst: w.weer.tekst(Math.floor((nu - f.sindsMs) / UUR)), actie: { label: w.weer.actie, href: 'functies.html#weer' }, klaar: paar(w.weer.klaar), sindsMs: f.sindsMs };
+    case 'buiten':
+      return { id: 'bron:buiten', soort: 'bron', aandacht: true, titel: w.buiten.titel(f.naam), tekst: w.buiten.tekst, actie: { label: w.bekijk, href: 'motor.html' }, klaar: paar(w.buiten.klaar(f.naam)), sindsMs: f.sindsMs };
   }
 }
 

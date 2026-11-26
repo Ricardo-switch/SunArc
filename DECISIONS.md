@@ -170,6 +170,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [231. Hoe je huis warmte vasthoudt: het thermisch model leert en laat zien](#231-hoe-je-huis-warmte-vasthoudt-het-thermisch-model-leert-en-laat-zien)
 - [251. Een prijs per uur: de kosten zoals Home Assistant ze telt](#251-een-prijs-per-uur-de-kosten-zoals-home-assistant-ze-telt)
 - [272. De thuisaccu telt mee in de cijfers](#272-de-thuisaccu-telt-mee-in-de-cijfers)
+- [354. De buitentemperatuur van een airco, met het weer als controle](#354-de-buitentemperatuur-van-een-airco-met-het-weer-als-controle)
 
 **Weergave**
 
@@ -16339,6 +16340,51 @@ nodig gehad.
 
 Op het scherm en in wat de assistent zegt verandert niets; alle tests van de
 assistent geven dezelfde zinnen in beide talen.
+
+## 354. De buitentemperatuur van een airco, met het weer als controle
+
+*Onderwerp: meten, data en analyse · Status: geldig*
+
+26 november 2026. In het tweede proefhuis heeft de inrichting vanzelf de
+buitenmeter van een airco als buitensensor gekozen: de naam zegt
+"Buitentemperatuur", en een andere is er niet. Over drie bewolkte
+novemberdagen naast het weerbericht (met.no): de woonkamer-airco gemiddeld
+0,7° warmer (meestal −0,2 tot +1,6, één keer 2,9), de slaapkamer-airco 0,2°.
+Dat de airco draait, maakt de meting niet hoger. Maar de meter valt vaak een
+paar minuten terug op precies 0,0 en springt dan terug (de slaapkamer 127
+keer, de woonkamer 23 keer), en hij valt soms helemaal weg. Een buitenunit in
+de zomerzon kan graden te hoog meten; dat is nog niet gezien, maar wel te
+verwachten. De buitentemperatuur telt bij Helpen bij de cv (wat goedkoper
+verwarmt), het thermisch model, de assistent en Thuis.
+
+Drie opties lagen voor: alleen de storingen eruit, de airco als bron met het
+weer als controle, of altijd het weer. Ricardo koos de tweede.
+
+*Besluit:*
+
+- **Storingen tellen niet.** Weg, onleesbaar, of precies 0,0 terwijl de meter
+  net nog een graad of meer van nul af zat: geen meting. Dan geldt de laatste
+  goede waarde nog een kwartier, daarna het weer. Rond het vriespunt blijft
+  0,0 gewoon een meting.
+- **De rustigste meter.** Is de gekozen meter de buitenunit van een airco, dan
+  kijkt de dienst ook naar die van de andere airco's, en telt de meter met de
+  minste storingen in het laatste etmaal. Bij gelijk blijft hij bij de vorige
+  keus, anders bij die uit de configuratie.
+- **Het weer als controle.** Zit de meter langer dan een uur meer dan 3° naast
+  het weer van nu (de gekozen weerbron: een weerentiteit, Open-Meteo of
+  Buienradar), dan neemt de dienst het weer, tot het verschil weer 2° of
+  minder is. Dat staat dan in de bel bij wat van buiten niet klopt (besluit
+  314), met een knop naar De motor; de melding gaat vanzelf weg.
+- **Zonder buitensensor in de configuratie verandert niets**: dan blijft de
+  kolom leeg in het logboek, zoals besluit 30 wil, en tonen Thuis en de
+  assistent het weer.
+- **Bij het inrichten** zegt de vondst erbij dat het de buitenunit van een
+  airco is, en wat SunArc doet als hij afwijkt.
+
+De keuze zit in de dienst (`web/buitenmeting.ts`), niet in de vertaling van
+Home Assistant naar het model: die blijft zuiver, zodat de replay hetzelfde
+geeft. Op de drie dagen van het proefhuis gaf de nieuwe keuze geen sprong
+van een graad of meer meer, en nam het weer het niet over.
 
 ## Wat nog een besluit wacht
 

@@ -17,6 +17,7 @@ import { kiesTaal } from './web/stem.js';
 import { InHuis, bevestigViaRest, maakViaWebsocket, type Stroom } from './web/stem-in-huis.js';
 import { rollenUitConfig, type RegelingNiet } from './web/regeling.js';
 import { KloptRegister } from './web/klopt.js';
+import { Buitenmeting } from './web/buitenmeting.js';
 import { VERSIE } from './version.js';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -31,6 +32,7 @@ import {
   type HaDevice,
   type HaFloor,
   type HaRegistryEntity,
+  buitenunitMeters,
 } from './adapters/homeassistant/discovery.js';
 import { buildHouse, knownForLayout, type HouseRegisters } from './web/house.js';
 import { LayoutStore, herstelMeedoen, withLayoutNames, type Layout } from './web/layout.js';
@@ -671,6 +673,22 @@ prijzenVoorHelpen = () => {
   return { gas: p?.gas ?? null, stroom: p?.stroom ?? (Number.isFinite(nu) ? nu : null) };
 };
 
+/*
+ * De buitentemperatuur (besluit 354): storingen eruit, de rustigste
+ * buitenmeter als er meer airco's zijn, en het weer als controle. Het weer van
+ * nu komt pas verderop (maakWeer); tot dan is er geen controle.
+ */
+const buitenmeting = new Buitenmeting();
+let weerNuVoorBuiten: () => number | null = () => null;
+const buitenNu = (nowMs: number): number | null | undefined => {
+  const gekozen = (siteConfig ?? site?.config)?.outdoorTemperature?.id;
+  if (gekozen == null) return undefined;
+  const meters = houseRegisters ? buitenunitMeters(houseRegisters.entities, allStates, gekozen) : [{ id: gekozen, naam: gekozen }];
+  const keuze = buitenmeting.meet(nowMs, meters.map((m) => ({ ...m, ruw: allStates.get(m.id)?.state })), weerNuVoorBuiten());
+  klopt.buiten(keuze.afwijkend);
+  return keuze.c;
+};
+
 const runner: ShadowRunner | null =
   site == null
     ? null
@@ -689,6 +707,7 @@ const runner: ShadowRunner | null =
           : {}),
         // De thuisaccu in de schaduw (besluit 274): wat hij met zon laadt, telt daar als zon over.
         accu: accuNuW,
+        buiten: buitenNu,
         ...(webPort == null
           ? {}
           : {
@@ -1144,7 +1163,8 @@ const maakWeerNodig = {
   },
 };
 export type MaakWeerNodig = typeof maakWeerNodig;
-const { forecastNow, openMeteo, weatherLog, weerNaam, weerZone } = maakWeer(maakWeerNodig);
+const { forecastNow, openMeteo, weatherLog, weerNaam, weerNuC, weerZone } = maakWeer(maakWeerNodig);
+weerNuVoorBuiten = weerNuC;
 
 /**
  * Wiens comfort (besluit 147): dat van de gevraagde bewoner, anders van wie er

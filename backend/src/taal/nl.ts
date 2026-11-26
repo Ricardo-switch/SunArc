@@ -591,6 +591,11 @@ export const nl = {
       actie: 'Kies een weerbron',
       klaar: ['De weersverwachting is er weer', 'De weerbron geeft weer een verwachting.'],
     },
+    buiten: {
+      titel: (naam: string) => `De buitentemperatuur van ${naam} wijkt af`,
+      tekst: 'Hij zit al een uur meer dan 3° naast het weer, misschien door de zon op de buitenunit. Tot hij weer klopt, gebruikt SunArc het weer.',
+      klaar: (naam: string) => [`${hoofdletter(naam)} meet buiten weer goed`, 'De buitentemperatuur zit weer dicht bij het weer.'],
+    },
   },
   // web/onboarding.ts
   onboarding: {
