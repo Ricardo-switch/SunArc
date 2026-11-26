@@ -13,7 +13,7 @@ import type { HaEntityState } from '../adapters/homeassistant/client.js';
 import { parseSiteConfig } from '../config/schema.js';
 import type { OccupancySource, SiteConfig } from '../core/model.js';
 import { withConnection, type Applied, type ConnectionAnswers } from './aansluiting.js';
-import { profielenVoor, type Bewoners } from './bewoners.js';
+import { bronnenVanBewoners, profielenVoor, type Bewoners } from './bewoners.js';
 import { withComfort, type Comfort } from './comfort.js';
 import { helpenNu, withCvHelp, type HelpenKeuze } from './helpen.js';
 import { regelKamers, zoneKamerId, type Layout } from './layout.js';
@@ -66,9 +66,23 @@ export function configUitDeApp(base: Record<string, unknown>, i: UitDeApp): { ok
   // De bronnen per kamer (besluit 132): uit de indeling van nu, want op zon gaat meteen in.
   const metBronnen = withHeatSources(metMeten, layout?.kamers ?? null);
   const metComfort = withComfort(metBronnen.raw, i.comfort);
+  /*
+   * Trackers uit de app (besluit 351): een gast met alleen een tracker die de
+   * configuratie niet noemt, telt ook als iemand thuis. De app legt hem erbij
+   * als `bron-<id>`; wat de configuratie al noemt, blijft zoals het is.
+   */
+  const occRaw = Array.isArray(metComfort.raw['occupancy']) ? (metComfort.raw['occupancy'] as unknown[]) : [];
+  const occRef = (v: unknown): string => { const r = (v as Record<string, unknown> | null)?.['ref']; return typeof r === 'string' ? r : String((r as Record<string, unknown> | null)?.['id'] ?? ''); };
+  // Zonder aanwezigheid in de configuratie is het huis altijd bewoond (besluit 40): één tracker erbij zou dat omdraaien.
+  const extra = occRaw.length ? bronnenVanBewoners(i.bewoners, new Set(occRaw.map(occRef))) : [];
+  if (extra.length) {
+    metComfort.raw = { ...metComfort.raw, occupancy: [...occRaw, ...extra] };
+    metComfort.toegevoegd.push(`trackers uit de app: ${extra.map((x) => x.ref).join(', ')}`);
+  }
+  const occupancy = [...i.occupancy.filter((o) => !extra.some((x) => x.id === o.id)), ...extra.map((x) => ({ id: x.id, ref: { adapter: 'homeassistant', id: x.ref } }))];
   // Comfort per bewoner (besluit 147): de profielen op volgorde, en "toch die van" als iemand dat koos.
   const zoneIds = new Set((Array.isArray(metComfort.raw['zones']) ? (metComfort.raw['zones'] as Record<string, unknown>[]) : []).map((z) => String(z['id'])));
-  const profiles = profielenVoor(i.bewoners, i.comfort, i.occupancy, zoneIds);
+  const profiles = profielenVoor(i.bewoners, i.comfort, occupancy, zoneIds);
   if (profiles.length > 0) {
     metComfort.raw = { ...metComfort.raw, profiles, ...(i.bewoners.vasthouden ? { profileHold: { id: i.bewoners.vasthouden.id, home: i.bewoners.vasthouden.home } } : {}) };
     metComfort.toegevoegd.push(`comfort per bewoner: ${profiles.map((x) => x.name).join(', ')}`);

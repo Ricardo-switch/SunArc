@@ -13,7 +13,7 @@ import { type StekkerTot } from '../web/stekkerhand.js';
 import { kiesVerstaan } from '../web/verstaan.js';
 import { FeedbackLog } from '../web/feedback.js';
 import { type Lang } from '../web/assistant.js';
-import { profielenVan, type Wie, GEEN_BEWONERS, hoofdVan, bewonersView, leesActie, persoonsAccount, voerUit, herken as herkenBewoner, personenUit, gastStand } from '../web/bewoners.js';
+import { profielenVan, type Wie, GEEN_BEWONERS, hoofdVan, bewonersView, leesActie, persoonsAccount, voerUit, herken as herkenBewoner, personenUit, gastStand, trackersUit } from '../web/bewoners.js';
 import { controleerComfort, comfortView, type Comfort, type ComfortRoom, bijspringenView, controleerBijspringen } from '../web/comfort.js';
 import { helpenView, controleerHelpen } from '../web/helpen.js';
 import { leesZonBody, sleutelVan, volgordeVan, zonVerdelenView, type ZonAuto, type ZonVerdelenStore } from '../web/zon-verdelen.js';
@@ -351,13 +351,15 @@ export function webOpties(mainStand: MainStand, port: number): WebOptions {
     ...(bewonersStore && mainStand.siteConfig
       ? {
           bewoners: {
-            view: (wie: Wie) => bewonersView(bewonersStore.current, wie, mainStand.siteConfig!.occupancy, (id) => allStates.get(id), runner?.latest?.explanation.profile ?? null),
+            view: (wie: Wie) => bewonersView(bewonersStore.current, wie, mainStand.siteConfig!.occupancy, (id) => allStates.get(id), runner?.latest?.explanation.profile ?? null, allStates.values()),
             actie: async (body: unknown, wie: Wie & { readonly naam: string }) => {
               const a = leesActie(body);
               if (a == null) return { ok: false as const, status: 400, reden: 'dat is geen actie die de app kent' };
               const thuis = runner?.latest?.explanation.profile?.home ?? [];
               const bronAccount = (id: string) => { const o = mainStand.siteConfig!.occupancy.find((x) => x.id === id); return o ? persoonsAccount(o, (e) => allStates.get(e)) : null; };
-              const uit = voerUit(bewonersStore.current, comfortStore?.current ?? null, a, wie, mainStand.siteConfig!.occupancy, thuis, Date.now(), bronAccount);
+              // Trackers die de configuratie niet noemt (besluit 351): die legt de app er zelf bij.
+              const losse = trackersUit(allStates.values(), mainStand.siteConfig!.occupancy, bewonersStore.current).map((x) => x.id);
+              const uit = voerUit(bewonersStore.current, comfortStore?.current ?? null, a, wie, mainStand.siteConfig!.occupancy, thuis, Date.now(), bronAccount, losse);
               if (!uit.ok) return uit;
               const comfort = uit.comfort !== undefined ? uit.comfort : (comfortStore?.current ?? null);
               const met = await configWithComfort(comfort, uit.bewoners);
@@ -366,7 +368,7 @@ export function webOpties(mainStand: MainStand, port: number): WebOptions {
               if (uit.comfort !== undefined && uit.comfort != null) await comfortStore?.save(uit.comfort);
               await bewonersStore.save(uit.bewoners);
               mainStand.siteConfig = met.config;
-              return { ok: true as const, view: bewonersView(uit.bewoners, wie, mainStand.siteConfig.occupancy, (id) => allStates.get(id), runner?.latest?.explanation.profile ?? null) };
+              return { ok: true as const, view: bewonersView(uit.bewoners, wie, mainStand.siteConfig.occupancy, (id) => allStates.get(id), runner?.latest?.explanation.profile ?? null, allStates.values()) };
             },
             herken: async (account: { readonly userId: string; readonly naam: string }) => {
               const r = herkenBewoner(bewonersStore.current, account, personenUit(allStates.values()), mainStand.siteConfig!.occupancy, Date.now());

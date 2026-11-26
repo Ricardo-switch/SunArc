@@ -13,6 +13,9 @@ let data = null;
 let zon = null;
 /** De volgorde tijdens het slepen, voordat hij bewaard is. */
 let sleepVolgorde = null;
+/** Iemand toevoegen (besluit 351): met inloggen, of alleen een tracker. */
+const TOEVOEGEN = 'toevoegen';
+let toevoegWeg = 'inloggen';
 
 const KLEUREN = ['#6fd3ff', '#f7b548', '#6ee7b7', '#8f86ff', '#ff7a4d', '#e7a6ff'];
 const kleur = (i) => KLEUREN[i % KLEUREN.length];
@@ -27,6 +30,7 @@ function gekozenScherm() {
   const id = decodeURIComponent(location.hash.slice(1));
   return id.startsWith(SCHERM) ? (data?.schermen ?? []).find((s) => s.id === id.slice(SCHERM.length)) ?? null : null;
 }
+const kiestToevoegen = () => decodeURIComponent(location.hash.slice(1)) === TOEVOEGEN;
 function gekozen() {
   const id = decodeURIComponent(location.hash.slice(1));
   return iedereen().find((b) => b.id === id) ?? iedereen().find((b) => b.ik) ?? data?.bewoners[0] ?? data?.gasten?.[0] ?? null;
@@ -53,7 +57,7 @@ function zeg(tekst) {
 
 function lijst() {
   const volgorde = sleepVolgorde ?? data.bewoners.map((b) => b.id);
-  const nu = gekozenScherm() ? null : gekozen();
+  const nu = gekozenScherm() || kiestToevoegen() ? null : gekozen();
   const rijen = volgorde.map((id, i) => {
     const b = data.bewoners.find((x) => x.id === id);
     const onder = [b.hoofd ? t('w.hoofdgebruiker') : null, b.hoofd || b.comfort === 'eigen' ? t('w.eigenComfort') : t('w.volgt', { naam: data.bewoners[0]?.naam ?? '' })].filter(Boolean).join(' · ');
@@ -81,7 +85,30 @@ function lijst() {
   } else if (data.bewoners.length) {
     uitleg = `<p class="uitleg">${esc(t('bewoners.wisselt'))}</p>`;
   }
-  return rijen.length ? rijen.join('') + uitleg : `<p class="klein geen-marge">${esc(t('bewoners.nogNiemand'))}</p>`;
+  return `${rijen.length ? rijen.join('') + uitleg : `<p class="klein geen-marge">${esc(t('bewoners.nogNiemand'))}</p>`}${gastenEnSchermen()}`;
+}
+
+/*
+ * Gasten en schermen in dezelfde lijst (besluit 351): eerst de gasten, ook wie
+ * alleen een tracker heeft, dan de schermen, en onderaan Iemand toevoegen.
+ */
+function gastenEnSchermen() {
+  const nu = gekozenScherm() || kiestToevoegen() ? null : gekozen();
+  const sc = gekozenScherm();
+  const thuis = (g) => (g.thuis == null ? '' : g.thuis ? `<span class="label thuis">${esc(t('w.thuis'))}</span>` : `<span class="label weg">${esc(g.thuisSindsMs ? t('w.wegSinds', { klok: tijd(g.thuisSindsMs) }) : t('w.weg'))}</span>`);
+  const gasten = (data.gasten ?? []).map((g) => `<div class="bewoner los${g.id === nu?.id ? ' gekozen' : ''}" role="button" tabindex="0" data-kies="${esc(g.id)}">
+      <span class="gezicht" style="background: #9aa8b6">${esc(g.naam.charAt(0).toUpperCase())}</span>
+      <span><b>${esc(g.naam)}${g.ik ? ` <span class="mini" style="font-weight: 600">${esc(t('bewoners.jij'))}</span>` : ''}</b><span class="onder">${esc(t(g.account ? 'bewoners.gastAccount' : 'bewoners.gastTracker'))}</span></span>
+      <span class="labels">${thuis(g)}</span>
+    </div>`);
+  const schermen = (data.schermen ?? []).map((s) => `<div class="bewoner los${sc?.id === s.id ? ' gekozen' : ''}" role="button" tabindex="0" data-kies="${esc(SCHERM + s.id)}">
+      <span class="gezicht" style="background: #5b6b80">${esc(s.naam.charAt(0).toUpperCase())}</span>
+      <span><b>${esc(s.naam)}${s.ik ? esc(t('bewoners.ditScherm')) : ''}</b><span class="onder">${esc(t('bewoners.schermBegroet'))}</span></span>
+      <span class="labels"></span>
+    </div>`);
+  const groep = (kop, rijen) => (rijen.length ? `<h3 class="groepje">${esc(t(kop))}</h3>${rijen.join('')}` : '');
+  const toevoegen = data.ik.soort === 'gast' ? '' : `<button type="button" class="knop knop-licht toevoegknop" aria-pressed="${kiestToevoegen()}" data-kies="${TOEVOEGEN}">${esc(t('bewoners.toevoegen'))}</button>`;
+  return `${groep('bewoners.gasten', gasten)}${groep('bewoners.schermen', schermen)}${toevoegen}`;
 }
 
 /** Een scherm zoals de wand (besluit 149): een andere naam, of weghalen. */
@@ -96,7 +123,38 @@ function schermBlad(s) {
     ${kan ? `<div class="knoppenrij"><button type="button" class="knop gevaar" data-schermweg>${esc(t('w.weghalen'))}</button></div><span class="hint">${esc(t(s.ik ? 'bewoners.vraagtOpnieuw.dit' : 'bewoners.vraagtOpnieuw.het'))}</span>` : `<span class="hint">${esc(t('bewoners.schermBeheer'))}</span>`}`;
 }
 
+/**
+ * Iemand toevoegen (besluit 351): met inloggen (de QR-code), of alleen een
+ * tracker. Dat laatste alleen de hoofdgebruiker; zonder account is iemand
+ * altijd gast.
+ */
+function toevoegBlad() {
+  const kanTracker = data.ik.hoofd;
+  const weg = kanTracker ? toevoegWeg : 'inloggen';
+  const keuze = kanTracker
+    ? `<div class="keuze" role="group" aria-label="${esc(t('bewoners.toevoegen'))}"><button type="button" data-toevoegweg="inloggen" aria-pressed="${weg === 'inloggen'}">${esc(t('bewoners.metInloggen'))}</button><button type="button" data-toevoegweg="tracker" aria-pressed="${weg === 'tracker'}">${esc(t('bewoners.alleenTracker'))}</button></div>`
+    : '';
+  const kop = `<h2 class="kop-2 geen-marge">${esc(t('bewoners.toevoegen'))}</h2>${keuze}`;
+  if (weg === 'inloggen') return `${kop}${erbij()}`;
+  const bronnen = data.trackers ?? [];
+  if (!bronnen.length) return `${kop}<p class="klein geen-marge">${esc(t('bewoners.geenTrackers'))}</p>`;
+  const opties = bronnen.map((x) => `<option value="${esc(x.id)}">${esc(x.naam)}${x.thuis == null ? '' : ` · ${esc(t(x.thuis ? 'w.thuis' : 'w.weg'))}`}</option>`).join('');
+  return `${kop}
+    <p class="klein geen-marge">${esc(t('bewoners.trackerZin'))}</p>
+    <div class="vak"><label for="tracker-bron">${esc(t('bewoners.welkeTracker'))}</label><select class="invoer" id="tracker-bron" data-tracker-bron><option value="">${esc(t('bewoners.kiesTracker'))}</option>${opties}</select></div>
+    <div class="vak"><label for="tracker-naam">${esc(t('bewoners.trackerNaam'))}</label><input class="invoer" id="tracker-naam" data-tracker-naam maxlength="40" autocomplete="off"></div>
+    <span class="hint">${esc(t('bewoners.trackerHint'))}</span>
+    <span class="fout" data-fout></span>
+    <div class="knoppenrij"><button type="button" class="knop knop-licht" data-tracker-erbij>${esc(t('bewoners.voegToe'))}</button></div>`;
+}
+
+/** Een voorstel voor de naam uit de naam in Home Assistant: "Noor aanwezig (wifi)" wordt "Noor". */
+const naamUit = (naam) => (naam ?? '').replace(/\(.*?\)/g, ' ').trim().split(/\s+/)[0] ?? '';
+/** Het veld dat te zien is: de wand en de telefoon hebben elk hun eigen blad. */
+const zichtbaar = (sel) => [...document.querySelectorAll(sel)].find((x) => x.offsetParent != null) ?? null;
+
 function blad() {
+  if (kiestToevoegen()) return toevoegBlad();
   const sc = gekozenScherm();
   if (sc) return schermBlad(sc);
   const b = gekozen();
@@ -128,9 +186,18 @@ function blad() {
       </div><span class="hint">${esc(t(b.gast ? 'bewoners.gastZin' : 'bewoners.bewonerZin'))}</span></div>`
     : '';
   if (b.gast) {
-    return `<div class="kop"><span class="gezicht" style="background: #9aa8b6">${esc(b.naam.charAt(0).toUpperCase())}</span><div><h2 class="kop-2 geen-marge">${esc(b.naam)}</h2><span class="mini">${esc(t('bewoners.gastSinds', { datum: dag(b.sindsMs) }))}</span></div></div>
+    // Een ingelogde gast die dezelfde is als een gast met alleen een tracker (besluit 351): samen één gast.
+    const losse = (data.gasten ?? []).filter((g) => !g.account);
+    const samen = data.ik.hoofd && b.account && losse.length
+      ? `<div class="vak"><label for="samen-${esc(b.id)}">${esc(t('bewoners.zelfde'))}</label><div class="samenrij"><select class="invoer" id="samen-${esc(b.id)}" data-samen-met><option value="">${esc(t('bewoners.niemandAnders'))}</option>${losse.map((g) => `<option value="${esc(g.id)}">${esc(g.naam)}</option>`).join('')}</select><button type="button" class="knop" data-samen>${esc(t('bewoners.samenvoegen'))}</button></div><span class="hint">${esc(t('bewoners.samenHint'))}</span></div>`
+      : '';
+    const naamVak = `<div class="vak"><label for="naam-${esc(b.id)}">${esc(t('bewoners.noemt.ander', { naam: b.naam }))}</label><input class="invoer" id="naam-${esc(b.id)}" data-naam value="${esc(b.naam)}" maxlength="40" ${data.ik.magBeheren ? '' : 'disabled'}>${b.account ? `<span class="hint">${esc(t('bewoners.inHA', { naam: b.haNaam }))}</span>` : ''}</div>`;
+    const zonderAccount = `<div class="vak"><span>${esc(t('bewoners.woontOfGast'))}</span><div class="invoer vast">${esc(t('bewoners.gast'))}</div><span class="hint">${esc(t('bewoners.geenAccount'))}</span></div>`;
+    return `<div class="kop"><span class="gezicht" style="background: #9aa8b6">${esc(b.naam.charAt(0).toUpperCase())}</span><div><h2 class="kop-2 geen-marge">${esc(b.naam)}</h2><span class="mini">${esc(t(b.account ? 'bewoners.gastSinds' : 'bewoners.trackerSinds', { datum: dag(b.sindsMs) }))}</span></div></div>
+      ${naamVak}
       ${thuisVak(data.ik.magBeheren, t('bewoners.gastZonder'))}
-      ${soort}
+      ${b.account ? soort : zonderAccount}
+      ${samen}
       <span class="fout" data-fout></span>
       ${data.ik.magBeheren ? `<div class="knoppenrij"><button type="button" class="knop gevaar" data-weg>${esc(t('w.weghalen'))}</button></div>` : ''}`;
   }
@@ -182,17 +249,7 @@ function erbij() {
     qr = '';
   }
   const zinnen = [t(app.inHA() ? 'bewoners.erbijHA' : 'bewoners.erbijApp'), data.bewoners.length ? t('bewoners.alsBewonerVan', { naam: data.bewoners[0].naam }) : t('bewoners.alsBewoner'), t('bewoners.alsGast')].join(' ');
-  return `<h3>${esc(t('bewoners.erbij'))}</h3><div class="erbij"><div class="qr" role="img" aria-label="${esc(t('bewoners.qr'))}">${qr}</div><span class="klein">${esc(zinnen)} <a href="${esc(adres)}">${esc(adres.replace(/^https?:\/\//, ''))}</a></span></div>`;
-}
-
-/* Alleen wat in de app is ingelogd: schermen zoals de wand, en gasten (besluit 147). */
-function schermen() {
-  const nu = gekozenScherm() ? null : gekozen();
-  const r = [
-    ...data.schermen.map((s) => `<div class="r gastrij${gekozenScherm()?.id === s.id ? ' gekozen' : ''}" role="button" tabindex="0" data-kies="${esc(SCHERM + s.id)}"><span class="n">${esc(s.naam)}${s.ik ? esc(t('bewoners.ditScherm')) : ''}</span><span>${esc(t('bewoners.schermBegroet'))}</span></div>`),
-    ...(data.gasten ?? []).map((g) => `<div class="r gastrij${g.id === nu?.id ? ' gekozen' : ''}" role="button" tabindex="0" data-kies="${esc(g.id)}"><span class="n">${esc(g.naam)}${g.ik ? ` ${esc(t('bewoners.jij'))}` : ''}</span><span>${esc(t('bewoners.gastKort'))}${g.thuis == null ? '' : esc(t(g.thuis ? 'toegang.thuis' : 'toegang.weg'))}</span></div>`),
-  ];
-  return `<h3>${esc(t('bewoners.schermenGasten'))}</h3>${r.length ? r.join('') : `<p class="klein geen-marge" style="color: var(--zacht)">${esc(t('bewoners.geenSchermen'))}</p>`}`;
+  return `<div class="erbij"><div class="qr" role="img" aria-label="${esc(t('bewoners.qr'))}">${qr}</div><span class="klein">${esc(zinnen)} <a href="${esc(adres)}">${esc(adres.replace(/^https?:\/\//, ''))}</a></span></div>`;
 }
 
 function tekenNu() {
@@ -201,7 +258,7 @@ function tekenNu() {
   if (!data) return;
   // Niet onder de vinger opnieuw opbouwen terwijl iemand een naam typt.
   const actief = document.activeElement;
-  if (actief?.matches?.('[data-naam], [data-schermnaam]')) return;
+  if (actief?.matches?.('[data-naam], [data-schermnaam], [data-tracker-naam]')) return;
   // Elk deel apart: lukt er een niet, dan staan de andere er wel, en zegt dat deel wat er misging.
   const deel = (sel, maak) => {
     let html;
@@ -214,8 +271,6 @@ function tekenNu() {
   };
   deel('[data-lijst]', lijst);
   deel('[data-blad]', blad);
-  deel('[data-erbij]', erbij);
-  deel('[data-schermen]', schermen);
 }
 const teken = app.gebundeld(tekenNu);
 addEventListener('standwissel', teken);
@@ -233,8 +288,30 @@ document.addEventListener('click', async (e) => {
     await stuur({ actie: 'schermOpties', id: sc.id, opties: { [el.dataset.sopt]: el.dataset.waarde === 'ja' } });
     return;
   }
-  if (el.dataset.kies) {
+  if (el.dataset.toevoegweg) {
+    toevoegWeg = el.dataset.toevoegweg;
+    teken();
+  } else if (el.hasAttribute('data-tracker-erbij')) {
+    // Een gast met alleen een tracker (besluit 351).
+    const bron = zichtbaar('[data-tracker-bron]')?.value ?? '';
+    const naam = zichtbaar('[data-tracker-naam]')?.value.trim() ?? '';
+    if (!bron) return zeg(t('bewoners.kiesEerst'));
+    if (!naam) return zeg(t('bewoners.geefNaam'));
+    const voor = new Set((data.gasten ?? []).map((g) => g.id));
+    if (await stuur({ actie: 'tracker', bron, naam })) {
+      const nieuw = (data.gasten ?? []).find((g) => !voor.has(g.id));
+      location.hash = nieuw ? encodeURIComponent(nieuw.id) : '';
+    }
+  } else if (el.hasAttribute('data-samen') && b) {
+    const met = zichtbaar('[data-samen-met]')?.value;
+    if (!met) return;
+    const naar = (data.gasten ?? []).find((g) => g.id === met);
+    if (!confirm(t('bewoners.samenVraag', { naam: b.naam, met: naar?.naam ?? '' }))) return;
+    if (await stuur({ actie: 'samen', id: b.id, met })) location.hash = encodeURIComponent(met);
+  } else if (el.dataset.kies) {
     location.hash = encodeURIComponent(el.dataset.kies);
+    // Op de telefoon staat het blad onder de lijst: daarheen, anders lijkt er niets te gebeuren.
+    if (document.documentElement.classList.contains('tel-stand')) requestAnimationFrame(() => document.querySelector('#tel [data-blad]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   } else if (el.hasAttribute('data-schermweg') && sc) {
     if (!confirm(t('bewoners.schermWeg', { naam: sc.naam }))) return;
     if (await stuur({ actie: 'schermWeg', id: sc.id })) location.hash = '';
@@ -274,6 +351,13 @@ document.addEventListener('change', async (e) => {
     const naam = el.value.trim();
     el.blur();
     if (naam && naam !== sc.naam) await stuur({ actie: 'schermNaam', id: sc.id, naam });
+    return;
+  }
+  if (el.matches('[data-tracker-bron]')) {
+    // Een voorstel voor de naam, zolang er nog niets staat.
+    const naamVeld = el.closest('[data-blad]')?.querySelector('[data-tracker-naam]');
+    const x = (data.trackers ?? []).find((y) => y.id === el.value);
+    if (naamVeld && !naamVeld.value.trim() && x) naamVeld.value = naamUit(x.naam);
     return;
   }
   const b = gekozen();

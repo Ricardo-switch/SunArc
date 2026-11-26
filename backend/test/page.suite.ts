@@ -128,7 +128,7 @@ const ENERGY_SOURCE: EnergySource = {
   },
 };
 import { SessionStore } from '../src/web/auth.js';
-import { BewonersStore, GEEN_BEWONERS, alsScherm, bewonersView, comfortVanBewoner, gastStand, herken, leesActie, personenUit, profielenVan, voegToe, voerUit, type Bewoners } from '../src/web/bewoners.js';
+import { BewonersStore, GEEN_BEWONERS, alsScherm, bewonersView, comfortVanBewoner, gastStand, herken, leesActie, personenUit, profielenVan, trackersUit, voegToe, voerUit, type Bewoners } from '../src/web/bewoners.js';
 import { registers as houseRegisters, states as houseStates } from './house-fixture.js';
 import { klaarzetten } from '../src/web/klaarzetten.js';
 import { leesLosseLaadpaal, losseSensoren } from '../src/web/schakelaars.js';
@@ -718,14 +718,15 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
           access: { kind: 'sessions', store: sessions, login: { authorizeUrl: (_origin, state) => `${haInlog}?state=${state}`, identify: async () => ({ userId: 'u', naam: 'Test', isAdmin: true }) } },
           // Bewoners (besluit 147): dezelfde deur als de dienst, met wie er geldt uit het laatste besluit.
           bewoners: {
-            view: (wie) => bewonersView(bewonersStore.current, wie, exampleSite.occupancy, (id) => houseStates.get(id), live.explanation.profile ?? null),
+            view: (wie) => bewonersView(bewonersStore.current, wie, exampleSite.occupancy, (id) => houseStates.get(id), live.explanation.profile ?? null, houseStates.values()),
             actie: async (body, wie) => {
               const a = leesActie(body);
               if (a == null) return { ok: false as const, status: 400, reden: 'onbekende actie' };
-              const uit = voerUit(bewonersStore.current, comfortNu, a, wie, exampleSite.occupancy, live.explanation.profile?.home ?? [], Date.now());
+              const losse = trackersUit(houseStates.values(), exampleSite.occupancy, bewonersStore.current).map((x) => x.id);
+              const uit = voerUit(bewonersStore.current, comfortNu, a, wie, exampleSite.occupancy, live.explanation.profile?.home ?? [], Date.now(), () => null, losse);
               if (!uit.ok) return uit;
               await bewonersStore.save(uit.bewoners);
-              return { ok: true as const, view: bewonersView(uit.bewoners, wie, exampleSite.occupancy, (id) => houseStates.get(id), live.explanation.profile ?? null) };
+              return { ok: true as const, view: bewonersView(uit.bewoners, wie, exampleSite.occupancy, (id) => houseStates.get(id), live.explanation.profile ?? null, houseStates.values()) };
             },
             herken: async (account) => {
               const r = herken(bewonersStore.current, account, personenUit(houseStates.values()), exampleSite.occupancy, Date.now());
@@ -7529,13 +7530,33 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     expect(await wandL.locator('[data-wie] option').count()).toBe(2);
     await shot(p, 'comfort-noor');
 
-    // Een gast (besluit 147): Noor wordt gast. Ze staat dan bij Schermen en gasten, niet in de volgorde.
+    // Een gast (besluit 147): Noor wordt gast. Ze staat dan bij Gasten, onder de volgorde (besluit 351).
     await p.goto(`${baseUrl}/bewoners.html#noor`);
     await wandL.locator('[data-blad] [data-gast="ja"]').click();
     await expect.poll(() => bewonersStore.current.bewoners['noor']?.gast, kort).toBe(true);
     expect(bewonersStore.current.volgorde).toEqual(['test']);
-    await wandL.locator('[data-schermen] .gastrij', { hasText: 'Noor' }).waitFor();
+    await wandL.locator('[data-lijst] .bewoner.los', { hasText: 'Noor' }).waitFor();
     await shot(p, 'bewoners-gast');
+    // Een gast met alleen een tracker (besluit 351): de hoofdgebruiker kiest hem uit Home Assistant, zonder account.
+    houseStates.set('device_tracker.telefoon_oma', { entity_id: 'device_tracker.telefoon_oma', state: 'home', attributes: { friendly_name: 'Oma telefoon' }, last_changed: new Date().toISOString(), last_updated: new Date().toISOString() });
+    try {
+      await p.goto(`${baseUrl}/bewoners.html`);
+      await wandL.locator('[data-lijst] [data-kies="toevoegen"]').click();
+      await wandL.locator('[data-blad] [data-toevoegweg="tracker"]').click();
+      await wandL.locator('[data-blad] [data-tracker-bron]').selectOption('device_tracker.telefoon_oma');
+      expect(await wandL.locator('[data-blad] [data-tracker-naam]').inputValue()).toBe('Oma');
+      await shot(p, 'bewoners-tracker');
+      await wandL.locator('[data-blad] [data-tracker-erbij]').click();
+      await expect.poll(() => bewonersStore.current.bewoners['oma'], kort).toMatchObject({ haUser: null, gast: true, bron: 'device_tracker.telefoon_oma' });
+      await wandL.locator('[data-lijst] .bewoner.los', { hasText: 'Oma' }).waitFor();
+      // Zonder account geen keuze bewoner of gast.
+      expect(await wandL.locator('[data-blad] [data-gast]').count()).toBe(0);
+      p.once('dialog', (d) => void d.accept());
+      await wandL.locator('[data-blad] [data-weg]').click();
+      await expect.poll(() => bewonersStore.current.bewoners['oma'], kort).toBeUndefined();
+    } finally {
+      houseStates.delete('device_tracker.telefoon_oma');
+    }
     // Home Assistant weer zoals het was: Noor is er niet.
     houseStates.delete('person.noor');
     if (ricardoWas) houseStates.set('person.ricardo_cornelissen', ricardoWas);
@@ -7559,7 +7580,7 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
 
     // Een scherm beheren (besluit 149): de wand een andere naam geven, en weghalen.
     await p.goto(`${baseUrl}/bewoners.html`);
-    await wandL.locator('[data-schermen] [data-kies="scherm:u-wand"]').click();
+    await wandL.locator('[data-lijst] [data-kies="scherm:u-wand"]').click();
     const schermNaam = wandL.locator('[data-blad] [data-schermnaam]');
     await schermNaam.waitFor();
     await shot(p, 'bewoners-scherm');

@@ -27,10 +27,16 @@ export const BEWONERS_FILE = 'bewoners.json';
 
 export interface Bewoner {
   readonly id: string;
-  /** Het account in Home Assistant. */
-  readonly haUser: string;
-  /** De naam van dat account in Home Assistant, zoals hij binnenkwam. */
+  /** Het account in Home Assistant; null bij een gast met alleen een tracker (besluit 351). */
+  readonly haUser: string | null;
+  /** De naam van dat account in Home Assistant, zoals hij binnenkwam; leeg zonder account. */
   readonly haNaam: string;
+  /**
+   * Een entiteit in Home Assistant die de configuratie niet als aanwezigheid
+   * noemt (besluit 351), zoals een `device_tracker`: dan legt de app hem er zelf
+   * bij, als `bron-<id>`, zodat hij ook meetelt voor "iemand thuis".
+   */
+  readonly bron?: string;
   /** Zo noemt het huis je; in de app te veranderen. */
   readonly naam: string;
   /** De aanwezigheidsbron (`occupancy[].id`), of null als het huis het niet weet. */
@@ -107,7 +113,8 @@ export function zonderVasthoudenVan(b: Bewoners): Bewoners {
  * en of wie kijkt een scherm is.
  */
 export function profielenVan(b: Bewoners, geldt: string | null, userId: string | null): { profielen: { volgorde: { id: string; account: string; naam: string }[]; geldt: string | null }; scherm: boolean } {
-  const volgorde = b.volgorde.flatMap((id) => (b.bewoners[id] ? [{ id, account: b.bewoners[id]!.haUser, naam: b.bewoners[id]!.naam }] : []));
+  // Een bewoner heeft altijd een account; zonder account is iemand gast (besluit 351), en die staat niet in de volgorde.
+  const volgorde = b.volgorde.flatMap((id) => { const x = b.bewoners[id]; return x?.haUser != null ? [{ id, account: x.haUser, naam: x.naam }] : []; });
   return { profielen: { volgorde, geldt: geldt == null ? null : (b.bewoners[geldt]?.haUser ?? null) }, scherm: userId != null && b.schermen[userId] != null };
 }
 
@@ -167,6 +174,9 @@ export function herken(b: Bewoners, account: Account, personen: readonly Persoon
   if (bekend) return { soort: 'bewoner', bewoner: bekend, nieuw: false, bewoners: b };
   if (b.schermen[account.userId] != null) return { soort: 'scherm' };
   const persoon = personen.find((p) => p.userId === account.userId);
+  // Een gast met alleen een tracker, wiens persoon nu een account heeft (besluit 351): dat account hoort bij hem, en hij blijft gast.
+  const tracker = persoon == null ? undefined : Object.values(b.bewoners).find((x) => x.haUser == null && (x.bron === persoon.entityId || occupancy.find((o) => o.id === x.aanwezigheid)?.ref.id === persoon.entityId));
+  if (tracker) return { soort: 'gast', bewoners: { ...b, bewoners: { ...b.bewoners, [tracker.id]: { ...tracker, haUser: account.userId, haNaam: account.naam } } } };
   if (persoon == null) return b.volgorde.length === 0 ? { soort: 'vraag' } : { soort: 'gast', bewoners: alsGast(b, account, nowMs) };
   const bron = occupancy.find((o) => o.ref.id === persoon.entityId)?.id ?? null;
   const bewoners = voegToe(b, account, bron, nowMs);
@@ -188,6 +198,47 @@ export function alsGast(b: Bewoners, account: Account, nowMs: number): Bewoners 
   const naam = roepnaam(account.naam);
   const id = nieuwId(b, naam);
   const gast: Bewoner = { id, haUser: account.userId, haNaam: account.naam, naam, aanwezigheid: null, comfort: 'volgt', sindsMs: nowMs, gast: true };
+  return { ...b, bewoners: { ...b.bewoners, [id]: gast } };
+}
+
+/** De aanwezigheid die de app er zelf bij legt voor een bron uit Home Assistant (besluit 351). */
+export const bronId = (bewonerId: string): string => `bron-${bewonerId}`;
+
+/**
+ * De aanwezigheid die de app er zelf bij legt (besluit 351): per bewoner of
+ * gast met een eigen `bron`, als de configuratie die entiteit niet al noemt.
+ */
+export function bronnenVanBewoners(b: Bewoners, bekend: ReadonlySet<string>): { id: string; ref: string }[] {
+  return Object.values(b.bewoners).flatMap((x) => (x.bron != null && !bekend.has(x.bron) ? [{ id: bronId(x.id), ref: x.bron }] : []));
+}
+
+/**
+ * Wat Home Assistant als tracker kent en de configuratie niet noemt (besluit
+ * 351): een persoon zonder account, of een `device_tracker`. Wat al bij iemand
+ * hoort, staat er niet bij.
+ */
+export function trackersUit(states: Iterable<HaEntityState>, occupancy: readonly OccupancySource[], b: Bewoners): Bron[] {
+  // Zonder aanwezigheid in de configuratie is het huis altijd bewoond (besluit 40); een tracker erbij zou dat omdraaien.
+  if (occupancy.length === 0) return [];
+  const genoemd = new Set(occupancy.map((o) => o.ref.id));
+  const bezet = new Set(Object.values(b.bewoners).flatMap((x) => (x.bron ? [x.bron] : [])));
+  const uit: Bron[] = [];
+  for (const s of states) {
+    const persoon = s.entity_id.startsWith('person.');
+    if (!persoon && !s.entity_id.startsWith('device_tracker.')) continue;
+    if (genoemd.has(s.entity_id) || bezet.has(s.entity_id)) continue;
+    const u = s.attributes['user_id'];
+    if (persoon && typeof u === 'string' && u !== '') continue;
+    uit.push({ id: s.entity_id, naam: naamVan(s, s.entity_id), soort: persoon ? 'persoon' : 'sensor', thuis: thuisVan(s) });
+  }
+  return uit.sort((x, y) => x.naam.localeCompare(y.naam));
+}
+
+/** Een nieuwe gast met alleen een tracker (besluit 351): zonder account, dus nooit een bewoner. */
+export function alsTrackerGast(b: Bewoners, naam: string, bron: { readonly aanwezigheid: string } | { readonly entiteit: string }, nowMs: number): Bewoners {
+  const id = nieuwId(b, naam);
+  const waar = 'entiteit' in bron ? { aanwezigheid: bronId(id), bron: bron.entiteit } : { aanwezigheid: bron.aanwezigheid };
+  const gast: Bewoner = { id, haUser: null, haNaam: '', naam, ...waar, comfort: 'volgt', sindsMs: nowMs, gast: true };
   return { ...b, bewoners: { ...b.bewoners, [id]: gast } };
 }
 
@@ -361,6 +412,8 @@ export interface BewonerView {
   readonly ik: boolean;
   readonly sindsMs: number;
   readonly gast: boolean;
+  /** Heeft een account in Home Assistant; een gast met alleen een tracker niet (besluit 351). */
+  readonly account: boolean;
   /** Volgt zijn eigen persoon in Home Assistant, die aan zijn account hangt: dan valt er niets te kiezen. */
   readonly gekoppeld: boolean;
   /** Wat deze bewoner als aanwezigheid kan kiezen. */
@@ -395,6 +448,8 @@ export interface BewonersView {
   readonly schermen: readonly { readonly id: string; readonly naam: string; readonly haNaam: string; readonly sindsMs: number; readonly ik: boolean; readonly opties: { readonly volledig: boolean | null; readonly luisteren: boolean | null } }[];
   /** Wat wie er kijkt als aanwezigheid kan kiezen, bij de eerste inlog. */
   readonly kiesbaarVoorMij: readonly Bron[];
+  /** Voor de hoofdgebruiker: wat een nieuwe gast met alleen een tracker kan volgen (besluit 351). */
+  readonly trackers: readonly Bron[];
   readonly geldt: { readonly id: string; readonly naam: string; readonly waarom: 'thuis' | 'niemand' | 'gekozen'; readonly thuis: readonly string[] } | null;
 }
 
@@ -424,6 +479,8 @@ export function bewonersView(
   occupancy: readonly OccupancySource[],
   state: (entityId: string) => HaEntityState | undefined,
   profile: ProfielNu | null,
+  /** Alles uit Home Assistant, voor trackers die de configuratie niet noemt (besluit 351). */
+  alle: Iterable<HaEntityState> = [],
 ): BewonersView {
   const ikB = Object.values(b.bewoners).find((x) => wie.userId != null && x.haUser === wie.userId) ?? null;
   const ikScherm = wie.userId != null && b.schermen[wie.userId] != null;
@@ -436,6 +493,7 @@ export function bewonersView(
       .filter((o) => o.id === eigen || !Object.values(b.bewoners).some((y) => y.aanwezigheid === o.id))
       .filter((o) => { const a = accountVan(o); return a == null || a === haUser; })
       .map((o) => ({ id: o.id, naam: naamVan(state(o.ref.id), o.id), soort: o.ref.id.startsWith('person.') ? 'persoon' : 'sensor', thuis: thuisVan(state(o.ref.id)) }));
+  const losse = trackersUit(alle, occupancy, b);
   const view = (x: Bewoner, i: number): BewonerView => {
     const o = bron(x.aanwezigheid);
     const s = o ? state(o.ref.id) : undefined;
@@ -445,8 +503,9 @@ export function bewonersView(
       aanwezigheid: o ? o.id : null, aanwezigheidNaam: o ? naamVan(s, o.id) : null,
       thuis: o ? thuisVan(s) : null, thuisSindsMs: Number.isFinite(sinds) ? sinds : null,
       comfort: i === 0 ? 'eigen' : x.comfort, geldt: profile?.id === x.id, ik: ikB?.id === x.id, sindsMs: x.sindsMs, gast: x.gast === true,
-      gekoppeld: o != null && accountVan(o) === x.haUser,
-      kiesbaar: kiesbaarVoor(x.haUser, x.aanwezigheid),
+      account: x.haUser != null,
+      gekoppeld: o != null && x.haUser != null && accountVan(o) === x.haUser,
+      kiesbaar: [...kiesbaarVoor(x.haUser, x.aanwezigheid), ...losse],
     };
   };
   const bewoners = b.volgorde.flatMap((id, i): BewonerView[] => (b.bewoners[id] && !b.bewoners[id].gast ? [view(b.bewoners[id], i)] : []));
@@ -464,6 +523,7 @@ export function bewonersView(
     gasten,
     schermen: Object.values(b.schermen).map((s) => ({ id: s.haUser, naam: s.naam, haNaam: s.haNaam ?? s.naam, sindsMs: s.sindsMs, ik: wie.userId === s.haUser, opties: { volledig: s.opties?.volledig ?? null, luisteren: s.opties?.luisteren ?? null } })),
     kiesbaarVoorMij: kiesbaarVoor(wie.userId, ikB?.aanwezigheid ?? null),
+    trackers: hoofd != null && ikB?.id === hoofd.id ? [...kiesbaarVoor(null, null), ...losse] : [],
     geldt: profile ? { id: profile.id, naam: profile.name, waarom: profile.reason, thuis: profile.home } : null,
   };
 }
@@ -487,7 +547,11 @@ export type Actie =
   /** Dit account is een scherm, ook als het een persoon in Home Assistant heeft (zoals een tablet). */
   | { readonly actie: 'scherm' }
   /** Een gast of weer een bewoner (besluit 147). */
-  | { readonly actie: 'gast'; readonly id: string; readonly gast: boolean };
+  | { readonly actie: 'gast'; readonly id: string; readonly gast: boolean }
+  /** Een gast met alleen een tracker (besluit 351): een aanwezigheid of een entiteit uit Home Assistant, en een naam. */
+  | { readonly actie: 'tracker'; readonly bron: string; readonly naam: string }
+  /** Een ingelogde gast hoort bij een gast met alleen een tracker (besluit 351): samen één gast, met dat account. */
+  | { readonly actie: 'samen'; readonly id: string; readonly met: string };
 
 export type Uitkomst =
   | { readonly ok: true; readonly bewoners: Bewoners; readonly comfort?: Comfort | null }
@@ -534,6 +598,10 @@ export function leesActie(body: unknown): Actie | null {
     }
     case 'gast':
       return id && typeof x['gast'] === 'boolean' ? { actie: 'gast', id, gast: x['gast'] } : null;
+    case 'tracker':
+      return typeof x['bron'] === 'string' && typeof x['naam'] === 'string' ? { actie: 'tracker', bron: x['bron'], naam: x['naam'] } : null;
+    case 'samen':
+      return id && typeof x['met'] === 'string' ? { actie: 'samen', id, met: x['met'] } : null;
     default:
       return null;
   }
@@ -554,6 +622,8 @@ export function voerUit(
   nowMs: number,
   /** Het account achter een bron, als het een persoon met een account is: die is alleen voor dat account. */
   accountVan: (bronId: string) => string | null = () => null,
+  /** Entiteiten in Home Assistant die als tracker mogen, buiten de configuratie om (besluit 351, `trackersUit`). */
+  losse: readonly string[] = [],
 ): Uitkomst {
   const vanEenAnder = (bronId: string | null, haUser: string | null) => { const acc = bronId == null ? null : accountVan(bronId); return acc != null && acc !== haUser; };
   const ik = Object.values(b.bewoners).find((x) => wie.userId != null && x.haUser === wie.userId) ?? null;
@@ -564,6 +634,18 @@ export function voerUit(
   const beheert = wie.beheerder || (hoofd != null && ik?.id === hoofd.id);
   const mag = (id: string) => beheert || ik?.id === id;
   const bewoner = (id: string) => b.bewoners[id];
+  const isHoofd = hoofd != null && ik?.id === hoofd.id;
+  const schoon = (naam: string) => naam.trim().replace(/\s+/g, ' ');
+  /** Waar een bron heen wijst: een aanwezigheid uit de configuratie, of een entiteit die de app erbij legt (besluit 351). */
+  const bronVan = (bron: string, haUser: string | null, voor: string | null): { aanwezigheid: string } | { entiteit: string } | { fout: string } => {
+    if (occupancy.some((o) => o.id === bron)) {
+      if (Object.values(b.bewoners).some((y) => y.id !== voor && y.aanwezigheid === bron)) return { fout: 'die hoort al bij een andere bewoner' };
+      if (vanEenAnder(bron, haUser)) return { fout: 'die persoon hoort bij een ander account' };
+      return { aanwezigheid: bron };
+    }
+    if (losse.includes(bron)) return { entiteit: bron };
+    return { fout: 'die aanwezigheid kent het huis niet' };
+  };
   switch (a.actie) {
     case 'ik': {
       if (wie.userId == null) return { ok: false, status: 403, reden: 'log eerst in' };
@@ -587,10 +669,12 @@ export function voerUit(
       const x = bewoner(a.id);
       if (x == null) return { ok: false, status: 404, reden: 'die bewoner is er niet' };
       if (!mag(a.id)) return { ok: false, status: 403, reden: 'alleen je eigen, of als hoofdgebruiker' };
-      if (a.bron != null && !occupancy.some((o) => o.id === a.bron)) return { ok: false, status: 400, reden: 'die aanwezigheid kent het huis niet' };
-      if (a.bron != null && Object.values(b.bewoners).some((y) => y.id !== a.id && y.aanwezigheid === a.bron)) return { ok: false, status: 400, reden: 'die hoort al bij een andere bewoner' };
-      if (vanEenAnder(a.bron, x.haUser)) return { ok: false, status: 400, reden: 'die persoon hoort bij een ander account' };
-      return { ok: true, bewoners: { ...b, bewoners: { ...b.bewoners, [a.id]: { ...x, aanwezigheid: a.bron } } } };
+      const { bron: _oud, ...zonderBron } = x;
+      if (a.bron == null || a.bron === x.aanwezigheid) return { ok: true, bewoners: { ...b, bewoners: { ...b.bewoners, [a.id]: a.bron == null ? { ...zonderBron, aanwezigheid: null } : x } } };
+      const waar = bronVan(a.bron, x.haUser, x.id);
+      if ('fout' in waar) return { ok: false, status: 400, reden: waar.fout };
+      const nieuw: Bewoner = 'entiteit' in waar ? { ...x, aanwezigheid: bronId(x.id), bron: waar.entiteit } : { ...zonderBron, aanwezigheid: waar.aanwezigheid };
+      return { ok: true, bewoners: { ...b, bewoners: { ...b.bewoners, [a.id]: nieuw } } };
     }
     case 'comfort': {
       const x = bewoner(a.id);
@@ -630,6 +714,8 @@ export function voerUit(
       // Alleen de hoofdgebruiker zelf, ook niet een beheerder in Home Assistant (besluit 151).
       if (hoofd == null || ik?.id !== hoofd.id) return { ok: false, status: 403, reden: 'dat kan alleen de hoofdgebruiker' };
       if (a.gast && hoofd.id === a.id) return { ok: false, status: 400, reden: 'de hoofdgebruiker kan geen gast zijn' };
+      // Zonder account geen bewoner (besluit 351): die kan niet inloggen, en heeft dus geen profiel.
+      if (!a.gast && x.haUser == null) return { ok: false, status: 400, reden: 'zonder account kan iemand alleen gast zijn' };
       if (a.gast === (x.gast === true)) return { ok: true, bewoners: b };
       if (a.gast) {
         // Gast: uit de volgorde, en zonder eigen comfort; er blijft niets van hem bewaard.
@@ -639,6 +725,24 @@ export function voerUit(
       }
       const { gast: _g, ...weerBewoner } = x;
       return { ok: true, bewoners: { ...b, volgorde: [...b.volgorde, a.id], bewoners: { ...b.bewoners, [a.id]: weerBewoner } } };
+    }
+    case 'tracker': {
+      // Alleen de hoofdgebruiker zelf, zoals een gast bewoner maken (besluit 151 en 351).
+      if (!isHoofd) return { ok: false, status: 403, reden: 'dat kan alleen de hoofdgebruiker' };
+      const naam = schoon(a.naam);
+      if (naam === '' || naam.length > 40) return { ok: false, status: 400, reden: 'een naam van 1 tot 40 tekens' };
+      const waar = bronVan(a.bron, null, null);
+      if ('fout' in waar) return { ok: false, status: 400, reden: waar.fout };
+      return { ok: true, bewoners: alsTrackerGast(b, naam, waar, nowMs) };
+    }
+    case 'samen': {
+      if (!isHoofd) return { ok: false, status: 403, reden: 'dat kan alleen de hoofdgebruiker' };
+      const x = bewoner(a.id);
+      const t = bewoner(a.met);
+      if (x == null || t == null || x.id === t.id) return { ok: false, status: 404, reden: 'die gast is er niet' };
+      if (!x.gast || x.haUser == null || !t.gast || t.haUser != null) return { ok: false, status: 400, reden: 'alleen een ingelogde gast met een gast die alleen een tracker heeft' };
+      const { [x.id]: _weg, ...rest } = b.bewoners;
+      return { ok: true, bewoners: { ...b, bewoners: { ...rest, [t.id]: { ...t, haUser: x.haUser, haNaam: x.haNaam } } } };
     }
     case 'scherm': {
       if (wie.userId == null) return { ok: false, status: 403, reden: 'log eerst in' };
@@ -710,7 +814,7 @@ export function namenVoorExport(b: Bewoners, personen: readonly Persoon[]): [str
   for (const x of volgorde) {
     const p = personen.find((q) => q.userId != null && q.userId === x.haUser);
     if (p) gehad.add(p.entityId);
-    const namen = [x.naam, x.haNaam, roepnaam(x.haNaam), ...(p ? [p.naam, roepnaam(p.naam)] : [])];
+    const namen = [x.naam, ...(x.haNaam ? [x.haNaam, roepnaam(x.haNaam)] : []), ...(p ? [p.naam, roepnaam(p.naam)] : [])];
     voeg(namen, [x.id, ...namen.map(alsId), ...(p ? [p.entityId.slice('person.'.length)] : [])]);
   }
   for (const p of personen) {

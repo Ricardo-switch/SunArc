@@ -143,7 +143,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [323. Inrichten in zeven stappen](#323-inrichten-in-zeven-stappen)
 - [338. Per fase een meter, en de stroom uit het vermogen](#338-per-fase-een-meter-en-de-stroom-uit-het-vermogen)
 - [342. Alleen airco's als warmtebron](#342-alleen-aircos-als-warmtebron)
-- [351. Gasten zonder account, en wat een gast mag per soort](#351-gasten-zonder-account-en-wat-een-gast-mag-per-soort)
+- [351. Gasten met alleen een tracker, en wie wat mag](#351-gasten-met-alleen-een-tracker-en-wie-wat-mag)
 
 **Meten, data en analyse**
 
@@ -16170,7 +16170,7 @@ schermen voor dingen die ook bij Instellingen staan.
   zinnen van de dienst naar de taalbestanden** (zo'n 195 regels, de meeste in
   `assistant.ts` en `opdracht.ts`). Elk een eigen versie.
 
-## 351. Gasten zonder account, en wat een gast mag per soort
+## 351. Gasten met alleen een tracker, en wie wat mag
 
 *Onderwerp: configuratie en onboarding · Status: geldig*
 
@@ -16181,72 +16181,75 @@ telt het huis al als bewoond, met het comfort van de hoofdgebruiker. Bij
 Bewoners stonden ze nergens, want daar kwam alleen wie één keer inlogde
 (besluit 147 en 151). Een ingelogde gast zag alles, ook de camera's. Hij
 bediende alleen licht, scènes en screens, en alleen als hij thuis was. De wand
-mocht alles, wie er ook thuis was. Er is geen schets: de keuzes zijn gemaakt
-in drie rondes vragen. Dit is een aanvulling op besluit 147 en 151.
+mocht alles, wie er ook thuis was, en elke ingelogde bewoner mocht
+instellingen veranderen. Er is geen schets; de keuzes zijn gemaakt in rondes
+vragen. Een eerste opzet met soorten gasten (Familie, Oppas, Hulp in huis)
+vond Ricardo te lastig: er zijn nu drie rollen. Dit is een aanvulling op
+besluit 147 en 151.
 
 *Besluit:*
 
 - **Eén lijst bij Bewoners.** Bovenaan staan de bewoners op volgorde. Daaronder
-  staan de gasten, ook wie alleen een tracker heeft, elk met zijn soort.
-  Schermen zoals de wand staan apart onderaan. Eén knop *Iemand toevoegen*
-  heeft twee wegen: *Met inloggen* (de QR-code van nu) of *Alleen een
-  tracker*. De kaart *Schermen en gasten* gaat weg.
-- **Iemand zonder account voeg je zelf toe.** Je kiest uit wat Home Assistant
-  al kent: een persoon zonder account, een aanwezigheidssensor of een
+  staan de gasten, ook wie alleen een tracker heeft. Schermen zoals de wand
+  staan apart onderaan. Eén knop *Iemand toevoegen* heeft twee wegen: *Met
+  inloggen* (de QR-code van nu) of *Alleen een tracker*. De kaart *Schermen en
+  gasten* gaat weg.
+- **Drie rollen:**
+
+  | Rol | Bedienen | Eigen profiel en comfort | Instellingen |
+  |---|---|---|---|
+  | Bewoner (met account) | ja, overal | ja | alleen de hoofdgebruiker en wie in Home Assistant beheerder is |
+  | Gast met account | ja, op zijn telefoon als hij thuis is, en op de wand | nee | nee |
+  | Gast met alleen een tracker | ja, op de wand | nee | nee |
+
+  Bedienen is alles met een knop: licht, scènes, screens, klimaat met de hand
+  (en *Toch die van*), stekkers en laden. Instellingen veranderen is dat niet.
+  De camera's blijven zoals nu: iedereen die kijkt, ziet ze.
+- **Zonder account geen bewoner.** Wie alleen een tracker heeft, is altijd een
+  gast. Bewoner word je alleen met een account: zoals nu meteen als dat
+  account een persoon in Home Assistant heeft, anders als de hoofdgebruiker
+  een ingelogde gast bewoner maakt (besluit 151).
+- **Een gast met alleen een tracker voeg je zelf toe.** Je kiest uit wat Home
+  Assistant al kent: een persoon zonder account, een aanwezigheidssensor of een
   `device_tracker`. Dan geef je een naam. Een bron die al bij iemand anders
-  hoort, staat er niet bij; de dienst weigert die ook, zoals nu. Krijgt de
-  persoon in Home Assistant later een account en logt hij in, dan hoort dat
-  account er vanzelf bij. Heeft hij alleen een sensor, dan kiest de
-  hoofdgebruiker bij de eerste inlog bij wie het account hoort. Er komt niemand
+  hoort, staat er niet bij; de dienst weigert die ook, zoals nu. Er komt niemand
   vanzelf bij: een sensor die bij niemand hoort, blijft weg tot je hem kiest.
-- **Ook zonder account bewoner of gast.** Net als bij een ingelogd account
-  kiest de hoofdgebruiker het. Een bewoner zonder account staat in de
-  volgorde, en de hoofdgebruiker stelt zijn comfort in, want hijzelf kan niet
-  inloggen. Alleen de hoofdgebruiker voegt zo iemand toe, verandert hem of
-  haalt hem weg (zoals besluit 151).
-- **Wat een gast mag, gaat per soort.** Elke gast heeft een soort, en per
-  soort stel je in wat die mag. Om mee te beginnen zijn er drie:
-
-  | Soort | Licht, scènes, screens | Klimaat met de hand | Stekkers en laden | Camera's |
-  |---|---|---|---|---|
-  | Familie of logé | ja | ja | ja | ja |
-  | Oppas | ja | ja | nee | nee |
-  | Hulp in huis | ja | nee | nee | nee |
-
-  Klimaat met de hand betekent een airco of verwarming met de hand aan of uit,
-  en *Toch die van* kiezen. Een nieuwe gast begint als Familie of logé.
-  Bij een soort kun je de vinkjes veranderen. Een eigen soort maken kan niet:
-  er blijven deze drie.
-- **Thuis telt altijd.** Elke gast die thuis is, houdt het huis bewoond, van
-  elke soort, zoals nu. Een gast bepaalt nooit wiens comfort geldt. Zijn er
-  alleen gasten thuis, dan geldt het comfort van de hoofdgebruiker, ook zoals
-  nu.
-- **De wand volgt wie er thuis is.** Is er een bewoner thuis, dan mag de wand
-  alles, zoals nu. Zijn er alleen gasten thuis, dan mag de wand wat hun soorten
-  mogen; zijn er twee soorten thuis, dan mag alles wat één van de twee mag. Dat geldt
-  ook voor de camera's op de wand. De wand weet niet wie ervoor staat, dus het
-  gaat om wie er thuis is.
-- **Op zijn eigen telefoon** mag een ingelogde gast wat zijn soort mag, maar
-  alleen als zijn tracker zegt dat hij thuis is. De camera's ziet hij alleen
-  als zijn soort dat mag. Instellingen veranderen kan een gast nooit, en van
-  hem wordt niets bewaard (besluit 147).
-- **De dienst toetst het, niet alleen de pagina.** Wat een gast of de wand niet
-  mag, weigert de dienst, net als nu bij een gast (besluit 147).
+  Alleen de hoofdgebruiker voegt zo iemand toe, verandert hem of haalt hem weg.
+  Logt die persoon later in met een account dat bij zijn persoon in Home
+  Assistant hoort, dan hoort het account vanzelf bij hem en wordt hij een gast
+  met account. Heeft hij alleen een sensor, dan kiest de hoofdgebruiker bij de
+  eerste inlog bij wie het account hoort.
+- **Een bewoner kan personaliseren, maar geen instellingen veranderen**, tenzij
+  hij de hoofdgebruiker is of in Home Assistant beheerder. Personaliseren is
+  zijn profiel (hoe de app eruitziet, zijn meldingen) en zijn eigen comfort.
+  Instellingen zijn alles onder Instellingen en Inrichten dat voor het hele
+  huis geldt. Dit is nieuw: tot nu toe mocht elke ingelogde bewoner dat.
+- **Thuis telt altijd.** Elke gast die thuis is, houdt het huis bewoond, zoals
+  nu. Een gast bepaalt nooit wiens comfort geldt. Zijn er alleen gasten thuis,
+  dan geldt het comfort van de hoofdgebruiker, ook zoals nu.
+- **De wand volgt wie er thuis is.** De wand weet niet wie ervoor staat. Is er
+  een bewoner thuis, dan blijft de wand zoals nu. Zijn er alleen gasten thuis,
+  dan kun je op de wand alleen bedienen en geen instellingen veranderen. Is er
+  volgens de sensoren niemand thuis, dan blijft de wand ook zoals nu: er kan
+  een gast zonder tracker staan.
+- **De dienst toetst het, niet alleen de pagina.** Wat een gast, een bewoner of
+  de wand niet mag, weigert de dienst, net als nu bij een gast (besluit 147).
 - **Geen nieuwe deur naar Home Assistant.** Een gast bedient via dezelfde
   deuren als de knoppen (licht 97, scènes 100, screens 121, met de hand 235 en
-  319, laden 262, stekkers 265). Naam, bron en soort van een gast staan in
-  `bewoners.json`; er gaat niets naar Home Assistant. In de export worden
-  gasten net als bewoners "Bewoner 1", "Bewoner 2" (besluit 151).
+  319, laden 262, stekkers 265). Naam en bron van een gast staan in
+  `bewoners.json`; er gaat niets naar Home Assistant, en van een gast wordt
+  verder niets bewaard (besluit 147). In de export worden gasten net als
+  bewoners "Bewoner 1", "Bewoner 2" (besluit 151).
 
-*Nog niet gebouwd.* Bouwen pas als Ricardo dat zegt. Een voorstel voor drie
-versies: (1) de ene lijst en iemand toevoegen zonder account; (2) de soorten,
-met de dienst die ze toetst, op de telefoon van de gast; (3) de wand en de
-camera's die volgen wie er thuis is. Daarna voegt Ricardo zelf Saskia, Rob en
-Dini toe en kiest hij hun soort.
-
-*Nog open:* wat de wand mag als volgens de sensoren niemand thuis is. Dan kan
-er een gast zonder tracker staan. Tot er een besluit is, blijft de wand dan
-zoals nu.
+*In drie versies.* (1) De ene lijst en een gast met alleen een tracker
+toevoegen: **gebouwd in 0.247.0**. Een tracker die de configuratie niet noemt,
+legt de app erbij als aanwezigheid `bron-<id>`, maar alleen als de
+configuratie al aanwezigheid heeft: zonder telt het huis altijd als bewoond
+(besluit 40), en één tracker zou dat omdraaien. Een ingelogde gast voeg je bij
+Bewoners samen met een gast met alleen een tracker (*Dezelfde als…*). (2) De
+rollen in de dienst: gasten bedienen alles met een knop, bewoners zonder
+beheer geen instellingen. (3) De wand die volgt wie er thuis is. Daarna voegt
+Ricardo zelf Saskia, Rob en Dini toe.
 
 ## Wat nog een besluit wacht
 

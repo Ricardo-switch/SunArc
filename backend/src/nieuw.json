@@ -1,5 +1,25 @@
 [
   {
+    "versie": "0.247.0",
+    "datum": "2026-11-26",
+    "nieuw": [
+      "Bij Bewoners voeg je iemand toe die alleen een tracker heeft, zonder account in Home Assistant: kies wat ziet of diegene thuis is, en geef een naam. Zo iemand is altijd gast, en telt mee als er iemand thuis is"
+    ],
+    "beter": [
+      "Bewoners is één lijst: eerst de bewoners op volgorde, dan de gasten en de schermen, en onderaan Iemand toevoegen, met inloggen of alleen een tracker",
+      "Logt een gast met alleen een tracker later toch in, dan hoort zijn account er vanzelf bij, of voegt de hoofdgebruiker ze samen"
+    ],
+    "en": {
+      "nieuw": [
+        "Under Residents you can add someone who only has a tracker, without a Home Assistant account: choose what sees whether they are home, and give a name. Such a person is always a guest, and counts when someone is home"
+      ],
+      "beter": [
+        "Residents is one list: first the residents in order, then the guests and the screens, and at the bottom Add someone, with a login or only a tracker",
+        "If a guest with only a tracker signs in later, their account joins them automatically, or the main user merges them"
+      ]
+    }
+  },
+  {
     "versie": "0.246.0",
     "datum": "2026-11-26",
     "beter": [

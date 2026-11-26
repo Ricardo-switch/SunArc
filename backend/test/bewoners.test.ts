@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { OccupancySource } from '../src/core/model.js';
 import { exampleSite } from './site.js';
-import { GEEN_BEWONERS, bewonersView, comfortVanBewoner, gastStand, herken, hoofdVan, leesActie, personenUit, profielenVoor, roepnaam, voerUit, wisselHoofd, type Bewoners } from '../src/web/bewoners.js';
+import { GEEN_BEWONERS, bronnenVanBewoners, bewonersView, namenVoorExport, profielenVan, trackersUit, comfortVanBewoner, gastStand, herken, hoofdVan, leesActie, personenUit, profielenVoor, roepnaam, voerUit, wisselHoofd, type Bewoners } from '../src/web/bewoners.js';
 import type { Comfort } from '../src/web/comfort.js';
 
 const NU = Date.UTC(2026, 9, 16, 17, 0, 0);
@@ -269,5 +269,81 @@ describe('thuis volgens (besluit 147)', () => {
     const account = (id: string) => (id === 'noor' ? 'u-noor' : id === 'ricardo' ? 'u-ricardo' : null);
     expect(voerUit(r.bewoners, comfort, { actie: 'aanwezigheid', id: 'ricardo', bron: 'noor' }, { userId: 'u-ricardo', naam: 'Ricardo', beheerder: false }, occupancy, [], NU, account)).toMatchObject({ ok: false, status: 400 });
     expect(voerUit(GEEN_BEWONERS, comfort, { actie: 'ik', soort: 'bewoner', aanwezigheid: 'noor' }, { userId: 'u-saskia', naam: 'Saskia', beheerder: false }, occupancy, [], NU, account)).toMatchObject({ ok: false, status: 400 });
+  });
+});
+
+describe('een gast met alleen een tracker (besluit 351)', () => {
+  const st = (entity_id: string, state: string, attributes: Record<string, unknown> = {}) => ({ entity_id, state, attributes, last_changed: '', last_updated: '' });
+  const states = [
+    st('person.ricardo_cornelissen', 'home', { user_id: 'u-ricardo', friendly_name: 'Ricardo' }),
+    st('person.noor', 'home', { user_id: 'u-noor', friendly_name: 'Noor' }),
+    st('binary_sensor.saskia_thuis_gestabiliseerd', 'on', { friendly_name: 'Saskia aanwezig (Wi-Fi)' }),
+    st('person.oma', 'home', { friendly_name: 'Oma' }),
+    st('device_tracker.telefoon_rob', 'not_home', { friendly_name: 'Telefoon Rob' }),
+    st('sensor.iets', '3'),
+  ];
+  const state = (id: string) => states.find((s) => s.entity_id === id);
+  const ricardo = { userId: 'u-ricardo', naam: 'Ricardo', beheerder: false };
+  const losse = () => trackersUit(states, occupancy, tweeBewoners()).map((x) => x.id);
+  const metTracker = (bron: string, naam: string) => (voerUit(tweeBewoners(), comfort, { actie: 'tracker', bron, naam }, ricardo, occupancy, [], NU, () => null, losse()) as { ok: true; bewoners: Bewoners }).bewoners;
+
+  it('kiest uit wat Home Assistant kent: een persoon zonder account of een device_tracker, en niets van een ander', () => {
+    expect(losse()).toEqual(['person.oma', 'device_tracker.telefoon_rob']);
+    // Zonder aanwezigheid in de configuratie blijft het huis altijd bewoond: dan geen trackers erbij.
+    expect(trackersUit(states, [], tweeBewoners())).toEqual([]);
+    const v = bewonersView(tweeBewoners(), ricardo, occupancy, state, null, states);
+    expect(v.trackers.map((x) => x.id)).toEqual(['saskia', 'person.oma', 'device_tracker.telefoon_rob']);
+    // Alleen de hoofdgebruiker ziet wat hij kan toevoegen.
+    expect(bewonersView(tweeBewoners(), { userId: 'u-noor', beheerder: true }, occupancy, state, null, states).trackers).toEqual([]);
+  });
+
+  it('voegt de hoofdgebruiker toe, als gast zonder account; een sensor uit de configuratie of een entiteit erbij', () => {
+    const b = tweeBewoners();
+    const saskia = metTracker('saskia', ' Saskia ');
+    expect(saskia.bewoners['saskia']).toMatchObject({ naam: 'Saskia', haUser: null, gast: true, aanwezigheid: 'saskia' });
+    expect(saskia.volgorde).toEqual(['ricardo', 'noor']);
+    const oma = metTracker('person.oma', 'Oma');
+    expect(oma.bewoners['oma']).toMatchObject({ haUser: null, gast: true, aanwezigheid: 'bron-oma', bron: 'person.oma' });
+    // De app legt hem in de configuratie, zodat hij meetelt voor iemand thuis; wat de configuratie noemt niet.
+    expect(bronnenVanBewoners(oma, new Set(occupancy.map((o) => o.ref.id)))).toEqual([{ id: 'bron-oma', ref: 'person.oma' }]);
+    expect(bronnenVanBewoners(saskia, new Set(occupancy.map((o) => o.ref.id)))).toEqual([]);
+    // Een gast zonder account staat niet in de volgorde, ook niet bij de profielen.
+    expect(profielenVan(oma, null, null).profielen.volgorde.map((x) => x.id)).toEqual(['ricardo', 'noor']);
+    // Alleen de hoofdgebruiker, en geen bron die al bij iemand hoort of die het huis niet kent.
+    expect(voerUit(b, comfort, { actie: 'tracker', bron: 'saskia', naam: 'Saskia' }, { userId: 'u-noor', naam: 'Noor', beheerder: true }, occupancy, [], NU, () => null, losse())).toMatchObject({ ok: false, status: 403 });
+    expect(voerUit(b, comfort, { actie: 'tracker', bron: 'noor', naam: 'Saskia' }, ricardo, occupancy, [], NU, () => null, losse())).toMatchObject({ ok: false, status: 400 });
+    expect(voerUit(b, comfort, { actie: 'tracker', bron: 'sensor.iets', naam: 'Iets' }, ricardo, occupancy, [], NU, () => null, losse())).toMatchObject({ ok: false, status: 400 });
+    expect(voerUit(b, comfort, { actie: 'tracker', bron: 'saskia', naam: '  ' }, ricardo, occupancy, [], NU, () => null, losse())).toMatchObject({ ok: false, status: 400 });
+    // Zonder account geen bewoner.
+    expect(voerUit(oma, comfort, { actie: 'gast', id: 'oma', gast: false }, ricardo, occupancy, [], NU)).toMatchObject({ ok: false, status: 400 });
+    // In de export zonder lege naam.
+    expect(namenVoorExport(oma, []).map(([naam]) => naam)).not.toContain('Bewoner');
+  });
+
+  it('krijgt vanzelf het account als zijn persoon er een krijgt, en blijft gast', () => {
+    const b = metTracker('person.oma', 'Oma');
+    const metAccount = personenUit([...states.filter((s) => s.entity_id !== 'person.oma'), st('person.oma', 'home', { user_id: 'u-oma', friendly_name: 'Oma' })]);
+    const r = herken(b, { userId: 'u-oma', naam: 'Oma de Wit' }, metAccount, occupancy, NU);
+    expect(r.soort).toBe('gast');
+    expect(r.soort === 'gast' && r.bewoners.bewoners['oma']).toMatchObject({ haUser: 'u-oma', haNaam: 'Oma de Wit', gast: true });
+    expect(r.soort === 'gast' && Object.keys(r.bewoners.bewoners)).toEqual(['ricardo', 'noor', 'oma']);
+  });
+
+  it('wordt met een ingelogde gast samengevoegd door de hoofdgebruiker', () => {
+    const r = herken(metTracker('saskia', 'Saskia'), { userId: 'u-sas', naam: 'Sas de Vries' }, personen, occupancy, NU) as { soort: 'gast'; bewoners: Bewoners };
+    expect(voerUit(r.bewoners, comfort, { actie: 'samen', id: 'sas', met: 'saskia' }, { userId: 'u-noor', naam: 'Noor', beheerder: true }, occupancy, [], NU)).toMatchObject({ ok: false, status: 403 });
+    const samen = voerUit(r.bewoners, comfort, { actie: 'samen', id: 'sas', met: 'saskia' }, ricardo, occupancy, [], NU) as { ok: true; bewoners: Bewoners };
+    expect(samen.bewoners.bewoners['sas']).toBeUndefined();
+    expect(samen.bewoners.bewoners['saskia']).toMatchObject({ haUser: 'u-sas', naam: 'Saskia', aanwezigheid: 'saskia', gast: true });
+    expect(herken(samen.bewoners, { userId: 'u-sas', naam: 'Sas' }, personen, occupancy, NU)).toMatchObject({ soort: 'bewoner', nieuw: false });
+  });
+
+  it('kiest een andere tracker, en laat de oude los', () => {
+    const b = metTracker('person.oma', 'Oma');
+    const nu = voerUit(b, comfort, { actie: 'aanwezigheid', id: 'oma', bron: 'saskia' }, ricardo, occupancy, [], NU, () => null, losse()) as { ok: true; bewoners: Bewoners };
+    expect(nu.bewoners.bewoners['oma']).toMatchObject({ aanwezigheid: 'saskia' });
+    expect(nu.bewoners.bewoners['oma']?.bron).toBeUndefined();
+    expect(leesActie({ actie: 'tracker', bron: 'saskia', naam: 'S' })).toEqual({ actie: 'tracker', bron: 'saskia', naam: 'S' });
+    expect(leesActie({ actie: 'samen', id: 'a', met: 'b' })).toEqual({ actie: 'samen', id: 'a', met: 'b' });
   });
 });

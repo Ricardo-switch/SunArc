@@ -146,9 +146,10 @@ export function ontvangersVan(
 ): Ontvanger[] {
   return b.volgorde.flatMap((id) => {
     const x = b.bewoners[id];
-    if (!x || x.gast) return [];
-    const keus = voorkeuren.meldingen(x.haUser);
-    return [{ account: x.haUser, keus, telefoon: telefoonVan(x.haUser, keus, telefoons), taal: voorkeuren.taal(x.haUser) }];
+    if (!x || x.gast || x.haUser == null) return [];
+    const account = x.haUser;
+    const keus = voorkeuren.meldingen(account);
+    return [{ account, keus, telefoon: telefoonVan(account, keus, telefoons), taal: voorkeuren.taal(account) }];
   });
 }
 
