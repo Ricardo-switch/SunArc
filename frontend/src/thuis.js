@@ -617,7 +617,8 @@ async function tekenWieBlad() {
   const lijst = bewoners.bewoners ?? [];
   const g = bewoners.geldt;
   const thuis = wieThuis();
-  const gast = bewoners.ik?.soort === 'gast';
+  // Een gast kiest alleen als hij thuis is (besluit 351): dat is bedienen.
+  const gast = bewoners.ik?.soort === 'gast' && (bewoners.gasten ?? []).find((x) => x.ik)?.thuis !== true;
   const gekozen = g?.waarom === 'gekozen' ? g.id : null;
   const graad = (c) => (c == null ? '–' : `${getal(c, Number.isInteger(c) ? 0 : 1)}°`);
   // Waarom het nu deze is, in één zin.

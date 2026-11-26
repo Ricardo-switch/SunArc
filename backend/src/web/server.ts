@@ -28,7 +28,7 @@ import { gevoeligheidVan } from './wekwoord.js';
 import { accepteer, isUpgrade, weiger } from './websocket.js';
 import type { Duplex } from 'node:stream';
 import type { WeatherReport } from './weather.js';
-import { DOOR_ROLES, SESSION_COOKIE, cookieValue, hostAllowed, ingressVisitor, lokaalLezen, openZonderInlog, viaTailscale } from './auth.js';
+import { BEDIENEN, DOOR_ROLES, SESSION_COOKIE, WAND_MET_GASTEN, cookieValue, hostAllowed, ingressVisitor, lokaalLezen, openZonderInlog, viaTailscale } from './auth.js';
 import type { AlarmMelder } from './live.js';
 import type { WebOptions } from './server-opties.js';
 import { INPAKKEN, inpakkingVoor, sameOrigin, sendFile, sendJson } from './http.js';
@@ -398,17 +398,18 @@ export class WebServer {
           sendJson(res, 401, { fout: 'log eerst in', inlog: '/auth/login' });
           return;
         }
-        if (role === 'beheerder' && visitor.rol !== 'beheerder') {
-          sendJson(res, 403, { fout: 'dit mag alleen de beheerder' });
+        // Instellingen voor het hele huis: een beheerder in Home Assistant, of de hoofdgebruiker (besluit 351).
+        if (role === 'beheerder' && visitor.rol !== 'beheerder' && !(await this.#d.hoofd(req))) {
+          sendJson(res, 403, { fout: 'dit verandert de hoofdgebruiker of een beheerder' });
           return;
         }
       }
       // Een gast (besluit 147): bedienen alleen als hij thuis is, en verder niets bewaren. Achter Ingress ook (besluit 161).
+      // Bedienen is alles met een knop (besluit 351), niet alleen licht en screens.
       const gast = access.kind !== 'open' && path !== '/auth/logout' ? await this.#d.gast(req) : null;
       // Behalve bij Bewoners: daar kan een gast zeggen dat hij een scherm is (besluit 151), en de deur laat verder niets toe.
       if (gast?.gast && path !== '/api/bewoners') {
-        const bedienen = path === '/api/licht' || path === '/api/scene' || path === '/api/scherm';
-        if (!bedienen) {
+        if (!BEDIENEN.has(path)) {
           sendJson(res, 403, { fout: 'als gast kun je kijken; dit verandert iets aan het huis' });
           return;
         }
@@ -419,6 +420,17 @@ export class WebServer {
       }
     }
 
+
+    /*
+     * De wand met alleen gasten thuis (besluit 351): bedienen, en wat de wand
+     * zelf doet (melden hoe hij staat, de assistent vragen, Te doen afvinken,
+     * een melding wegzetten). Instellingen niet; bij Bewoners alleen "Toch die
+     * van", en dat toetst die deur zelf.
+     */
+    if (method === 'POST' && access.kind !== 'open' && !BEDIENEN.has(path) && !WAND_MET_GASTEN.has(path) && (await this.#d.schermBedientAlleen(req))) {
+      sendJson(res, 403, { fout: 'met alleen gasten thuis bedient dit scherm alleen' });
+      return;
+    }
 
     // De routes per onderwerp (routes/), op volgorde; de eerste die het verzoek kent, handelt het af.
     const v: Verzoek = { req, res, url, path, method, access };

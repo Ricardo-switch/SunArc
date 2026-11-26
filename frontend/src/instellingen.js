@@ -190,7 +190,11 @@ function tekenNu() {
   app.luchtVan(d.zon, 0);
   // Zoeken leidt een gast alleen naar pagina's die hij niet kan gebruiken.
   $$('[data-zoekvak]').forEach((el) => (el.hidden = isGast()));
-  $$('[data-kan]').forEach((el) => (el.innerHTML = isGast() ? `<div class="gast">${GAST}</div>` : standregel()));
+  // Een bewoner die geen hoofdgebruiker of beheerder is (besluit 351): zijn profiel en comfort wel, de rest niet.
+  // De wand met alleen gasten thuis (besluit 351): dan alleen bedienen.
+  const ikNu = d.bewoners?.ik;
+  const kijkZin = ikNu?.alleenBedienen ? 'instellingen.wandGasten' : ikNu?.soort === 'bewoner' && ikNu.magBeheren !== true ? 'instellingen.alleenProfiel' : null;
+  $$('[data-kan]').forEach((el) => (el.innerHTML = isGast() ? `<div class="gast">${GAST}</div>` : `${standregel()}${kijkZin ? `<p class="mini geen-marge boven-4">${esc(t(kijkZin))}</p>` : ''}`));
   const v = $$('[data-mini]').length ? stand.voortgang(d) : null;
   $$('[data-mini]').forEach((svg) => waaier.teken(svg, { groepen: v.groepen, cx: 95, cy: 104, r0: 32, R: 92, getal: `${v.totaal}%`, groei: false, knoppen: false }));
   $$('[data-groepen]').forEach((el) => (el.innerHTML = groepen()));

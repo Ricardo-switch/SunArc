@@ -118,6 +118,7 @@ async function start(options: {
   praten?: { model: () => ((opdracht: string, velden?: unknown) => Promise<unknown>) | null; proef: (id: string) => (opdracht: string) => Promise<unknown>; bedienen: () => boolean; eigenWoorden?: () => boolean };
   herken?: (account: { userId: string; naam: string }) => Promise<'welkom' | 'vraag' | 'gast' | null>;
   gast?: (userId: string | null) => { gast: boolean; thuis: boolean | null };
+  schermBedientAlleen?: (userId: string | null) => boolean;
   logDir?: string;
   historie?: NonNullable<ConstructorParameters<typeof WebServer>[0]['historie']>;
   gegevens?: NonNullable<ConstructorParameters<typeof WebServer>[0]['gegevens']>;
@@ -173,7 +174,7 @@ async function start(options: {
         ...(options.exacteLocatie ? { exacteLocatie: options.exacteLocatie } : {}),
         ...(options.kaartAntwoord ? { kaartAntwoord: options.kaartAntwoord } : {}),
         ...(options.bagVak ? { bagVak: options.bagVak } : {}),
-        ...(options.herken ? { bewoners: { view: () => { throw new Error('niet in deze test'); }, actie: async () => ({ ok: false as const, status: 400, reden: 'niet in deze test' }), herken: options.herken, ...(options.gast ? { gast: options.gast } : {}) } } : {}),
+        ...(options.herken ? { bewoners: { view: () => { throw new Error('niet in deze test'); }, actie: async () => ({ ok: false as const, status: 400, reden: 'niet in deze test' }), herken: options.herken, ...(options.gast ? { gast: options.gast } : {}), ...(options.schermBedientAlleen ? { schermBedientAlleen: options.schermBedientAlleen } : {}) } } : {}),
         // Open, zoals vóór besluit 99, tenzij een test de inlog zelf toetst.
         access: options.access ?? { kind: 'open' },
         write: () => {},
@@ -2743,6 +2744,54 @@ describe('achter Ingress de rol uit Home Assistant (besluit 161)', () => {
     const res = await fetch(`${base}/api/comfort`, { method: 'POST', headers: { ...JSON_HEADERS, ...als('u3') }, body: '{}' });
     expect(res.status).toBe(403);
     expect(await res.json()).toMatchObject({ fout: expect.stringContaining('gast') });
+  });
+
+  it('laat de hoofdgebruiker instellingen veranderen, en een gast thuis alles met een knop bedienen (besluit 351)', async () => {
+    const logDir = await mkdtemp(join(tmpdir(), 'hems-rollen-'));
+    cleanups.push(() => rm(logDir, { recursive: true, force: true }));
+    const comfort = { view: () => comfortView(exampleSite, null), save: async () => ({ ok: true as const, view: comfortView(exampleSite, null) }) };
+    const niet = async () => ({ ok: false as const, status: 400, reden: 'niet in deze proef' });
+    const { base } = await start({
+      access: { kind: 'ingress', beheerders: haBeheerders(async () => ACCOUNTS) },
+      functies: { store: new FunctiesStore(logDir), gevonden: () => ({ cameras: [], melders: [] }) },
+      comfort,
+      herken: async () => null,
+      // u2 is de hoofdgebruiker, maar geen beheerder in Home Assistant; u3 is een gast, en thuis.
+      gast: (userId) => ({ gast: userId === 'u3', thuis: userId === 'u3' }),
+      gegevens: { hoofd: (wie: { userId: string | null }) => wie.userId === 'u2', backup: async () => { throw new Error('niet in deze proef'); }, herstel: niet, opnieuw: niet, configWeg: () => false } as unknown as NonNullable<ConstructorParameters<typeof WebServer>[0]['gegevens']>,
+    });
+    const post = (id: string, path: string, body: string) => fetch(`${base}${path}`, { method: 'POST', headers: { ...JSON_HEADERS, ...als(id) }, body });
+    expect((await post('u2', '/api/functies', functies)).status).toBe(200);
+    // Een gast thuis bedient: de dienst laat hem door (zonder klimaat met de hand in deze proef is het 503, geen 403).
+    expect((await post('u3', '/api/hand', '{}')).status).not.toBe(403);
+    expect((await post('u3', '/api/stekker', '{}')).status).not.toBe(403);
+    // Een instelling niet, ook niet zijn eigen comfort.
+    expect((await post('u3', '/api/comfort', '{}')).status).toBe(403);
+  });
+
+  it('laat de wand alleen bedienen als er alleen gasten thuis zijn (besluit 351)', async () => {
+    const logDir = await mkdtemp(join(tmpdir(), 'hems-wand-gasten-'));
+    cleanups.push(() => rm(logDir, { recursive: true, force: true }));
+    const comfort = { view: () => comfortView(exampleSite, null), save: async () => ({ ok: true as const, view: comfortView(exampleSite, null) }) };
+    let alleenGasten = true;
+    const { base } = await start({
+      access: { kind: 'ingress', beheerders: haBeheerders(async () => ACCOUNTS) },
+      functies: { store: new FunctiesStore(logDir), gevonden: () => ({ cameras: [], melders: [] }) },
+      comfort,
+      herken: async () => null,
+      // u1 is de wand, en beheerder in Home Assistant.
+      schermBedientAlleen: (userId) => userId === 'u1' && alleenGasten,
+    });
+    const post = (path: string, body: string) => fetch(`${base}${path}`, { method: 'POST', headers: { ...JSON_HEADERS, ...als('u1') }, body });
+    const geweigerd = await post('/api/functies', functies);
+    expect(geweigerd.status).toBe(403);
+    expect(await geweigerd.json()).toMatchObject({ fout: expect.stringContaining('alleen gasten') });
+    expect((await post('/api/comfort', '{}')).status).toBe(403);
+    // Bedienen wel: zonder klimaat met de hand in deze proef is het 503, geen 403.
+    expect((await post('/api/hand', '{}')).status).not.toBe(403);
+    // Komt er een bewoner thuis, of is er niemand, dan weer zoals het was.
+    alleenGasten = false;
+    expect((await post('/api/functies', functies)).status).toBe(200);
   });
 
   it('maakt niemand beheerder als Home Assistant niet antwoordt', async () => {

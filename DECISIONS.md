@@ -16247,9 +16247,22 @@ legt de app erbij als aanwezigheid `bron-<id>`, maar alleen als de
 configuratie al aanwezigheid heeft: zonder telt het huis altijd als bewoond
 (besluit 40), en één tracker zou dat omdraaien. Een ingelogde gast voeg je bij
 Bewoners samen met een gast met alleen een tracker (*Dezelfde als…*). (2) De
-rollen in de dienst: gasten bedienen alles met een knop, bewoners zonder
-beheer geen instellingen. (3) De wand die volgt wie er thuis is. Daarna voegt
-Ricardo zelf Saskia, Rob en Dini toe.
+rollen in de dienst, en (3) de wand die volgt wie er thuis is: samen
+**gebouwd in 0.248.0**, omdat ze dezelfde deuren raken.
+
+- *Bedienen* is een vaste lijst deuren in de dienst (`BEDIENEN`): licht,
+  scènes, screens, klimaat met de hand, de klimaatbrug, witgoed, laden,
+  stekkers, schakelaars, het kinderslot, *klaar voor* en *klaar om*. Bij
+  Bewoners is *Toch die van* het enige wat een gast of de wand dan mag.
+- *Instellingen* zijn de deuren die al alleen voor de beheerder waren; die mag
+  nu ook de hoofdgebruiker. *De zon verdelen* stond nog open voor elke bewoner
+  en hoort er nu bij. Integratie, herstarten en de stem in huis blijven alleen
+  voor de beheerder in Home Assistant: die gaan over Home Assistant zelf.
+- *De wand met alleen gasten thuis* bedient, en doet wat hij zelf doet: melden
+  hoe hij staat, de assistent vragen, Te doen afvinken en een melding
+  wegzetten. Bij Instellingen zegt hij waarom de rest niet kan.
+
+Daarna voegt Ricardo zelf Saskia, Rob en Dini toe.
 
 ## Wat nog een besluit wacht
 

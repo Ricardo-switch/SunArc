@@ -157,6 +157,8 @@ export interface WebOptions {
     readonly herken: (account: { readonly userId: string; readonly naam: string }) => Promise<'welkom' | 'vraag' | 'gast' | null>;
     /** Is dit account een gast, en is hij thuis? Een gast kijkt, en bedient alleen thuis. */
     readonly gast?: (userId: string | null) => { readonly gast: boolean; readonly thuis: boolean | null };
+    /** Is dit account een scherm, en zijn er alleen gasten thuis (besluit 351)? Dan bedient het alleen. */
+    readonly schermBedientAlleen?: (userId: string | null) => boolean;
   };
   /**
    * Back-up, herstel en opnieuw beginnen (besluit 151), en de export voor de

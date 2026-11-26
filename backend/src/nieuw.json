@@ -1,5 +1,21 @@
 [
   {
+    "versie": "0.248.0",
+    "datum": "2026-11-26",
+    "beter": [
+      "Een gast die thuis is, bedient alles met een knop: licht, screens, klimaat met de hand, stekkers en laden. Toch die van kiest hij ook",
+      "Instellingen voor het hele huis verandert de hoofdgebruiker of een beheerder in Home Assistant. Een andere bewoner zet zijn profiel en zijn comfort",
+      "Zijn er alleen gasten thuis, dan kun je op de wand alleen bedienen. Komt er een bewoner thuis, dan is de wand weer zoals altijd"
+    ],
+    "en": {
+      "beter": [
+        "A guest who is home controls everything with a button: lights, screens, climate by hand, plugs and charging. They can also choose whose comfort applies",
+        "The main user or an administrator in Home Assistant changes settings for the whole house. Other residents set their own profile and comfort",
+        "When only guests are home, the wall screen can only control things. Once a resident is home, the wall screen is as always"
+      ]
+    }
+  },
+  {
     "versie": "0.247.0",
     "datum": "2026-11-26",
     "nieuw": [

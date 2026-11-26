@@ -115,14 +115,23 @@ export class Diensten {
     const access = this.access(req);
     if (access.kind === 'open') return { userId: null, beheerder: true, naam: '' };
     const v = await this.bezoeker(req);
-    const gast = this.options.bewoners?.gast?.(v?.userId ?? null).gast === true;
-    return { userId: v?.userId ?? null, beheerder: v?.rol === 'beheerder' && !gast, naam: v?.naam ?? '' };
+    const g = this.options.bewoners?.gast?.(v?.userId ?? null);
+    const gast = g?.gast === true;
+    const alleenBedienen = this.options.bewoners?.schermBedientAlleen?.(v?.userId ?? null) === true;
+    return { userId: v?.userId ?? null, beheerder: v?.rol === 'beheerder' && !gast && !alleenBedienen, naam: v?.naam ?? '', ...(gast ? { gastThuis: g?.thuis === true } : {}), ...(alleenBedienen ? { alleenBedienen } : {}) };
   }
 
   /** Is wie er kijkt de hoofdgebruiker (besluit 151)? Zonder inlog (alleen in tests) mag alles. */
   async hoofd(req: IncomingMessage): Promise<boolean> {
     if (this.access(req).kind === 'open') return true;
     return this.options.gegevens?.hoofd(await this.wie(req)) === true;
+  }
+
+  /** Een scherm terwijl er alleen gasten thuis zijn (besluit 351): dan alleen bedienen. */
+  async schermBedientAlleen(req: IncomingMessage): Promise<boolean> {
+    if (this.access(req).kind === 'open' || this.options.bewoners?.schermBedientAlleen == null) return false;
+    const v = await this.bezoeker(req);
+    return this.options.bewoners.schermBedientAlleen(v?.userId ?? null);
   }
 
   /** Of wie er kijkt een gast is, en thuis (besluit 147). */

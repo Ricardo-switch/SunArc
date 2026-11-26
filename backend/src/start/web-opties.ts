@@ -13,7 +13,7 @@ import { type StekkerTot } from '../web/stekkerhand.js';
 import { kiesVerstaan } from '../web/verstaan.js';
 import { FeedbackLog } from '../web/feedback.js';
 import { type Lang } from '../web/assistant.js';
-import { profielenVan, type Wie, GEEN_BEWONERS, hoofdVan, bewonersView, leesActie, persoonsAccount, voerUit, herken as herkenBewoner, personenUit, gastStand, trackersUit } from '../web/bewoners.js';
+import { profielenVan, type Wie, GEEN_BEWONERS, hoofdVan, bewonersView, leesActie, persoonsAccount, voerUit, herken as herkenBewoner, personenUit, gastStand, schermBedientAlleen, trackersUit } from '../web/bewoners.js';
 import { controleerComfort, comfortView, type Comfort, type ComfortRoom, bijspringenView, controleerBijspringen } from '../web/comfort.js';
 import { helpenView, controleerHelpen } from '../web/helpen.js';
 import { leesZonBody, sleutelVan, volgordeVan, zonVerdelenView, type ZonAuto, type ZonVerdelenStore } from '../web/zon-verdelen.js';
@@ -385,6 +385,8 @@ export function webOpties(mainStand: MainStand, port: number): WebOptions {
             },
             // Een gast (besluit 147): thuis volgens zijn aanwezigheid in Home Assistant.
             gast: (userId: string | null) => gastStand(bewonersStore.current, userId, mainStand.siteConfig!.occupancy, (id) => allStates.get(id)),
+            // De wand met alleen gasten thuis (besluit 351): alleen bedienen.
+            schermBedientAlleen: (userId: string | null) => schermBedientAlleen(bewonersStore.current, userId, mainStand.siteConfig!.occupancy, (id) => allStates.get(id)),
           },
         }
       : {}),

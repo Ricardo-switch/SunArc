@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { OccupancySource } from '../src/core/model.js';
 import { exampleSite } from './site.js';
-import { GEEN_BEWONERS, bronnenVanBewoners, bewonersView, namenVoorExport, profielenVan, trackersUit, comfortVanBewoner, gastStand, herken, hoofdVan, leesActie, personenUit, profielenVoor, roepnaam, voerUit, wisselHoofd, type Bewoners } from '../src/web/bewoners.js';
+import { GEEN_BEWONERS, alleenGastenThuis, alsScherm, schermBedientAlleen, bronnenVanBewoners, bewonersView, namenVoorExport, profielenVan, trackersUit, comfortVanBewoner, gastStand, herken, hoofdVan, leesActie, personenUit, profielenVoor, roepnaam, voerUit, wisselHoofd, type Bewoners } from '../src/web/bewoners.js';
 import type { Comfort } from '../src/web/comfort.js';
 
 const NU = Date.UTC(2026, 9, 16, 17, 0, 0);
@@ -237,6 +237,38 @@ describe('een gast (besluit 147)', () => {
     const terug = voerUit(gast.bewoners, gast.comfort, { actie: 'gast', id: 'noor', gast: false }, ricardo, occupancy, [], NU) as { ok: true; bewoners: Bewoners };
     expect(terug.bewoners.volgorde).toEqual(['ricardo', 'noor']);
     expect(terug.bewoners.bewoners['noor']?.gast).toBeUndefined();
+  });
+
+  it('weet wanneer er alleen gasten thuis zijn, voor de wand (besluit 351)', () => {
+    const b = (voerUit(tweeBewoners(), comfort, { actie: 'gast', id: 'noor', gast: true }, { userId: 'u-ricardo', naam: 'Ricardo', beheerder: false }, occupancy, [], NU) as { ok: true; bewoners: Bewoners }).bewoners;
+    const metWand = alsScherm(b, { userId: 'u-wand', naam: 'Wand' }, NU);
+    const st = (ricardo: string, noor: string) => (id: string) => ({ entity_id: id, state: id === 'person.noor' ? noor : ricardo, attributes: {}, last_changed: '', last_updated: '' });
+    expect(alleenGastenThuis(metWand, occupancy, st('not_home', 'home'))).toBe(true);
+    expect(schermBedientAlleen(metWand, 'u-wand', occupancy, st('not_home', 'home'))).toBe(true);
+    // Niet voor een ander account dan een scherm.
+    expect(schermBedientAlleen(metWand, 'u-ricardo', occupancy, st('not_home', 'home'))).toBe(false);
+    // Een bewoner thuis, of niemand thuis, of het huis weet het niet: zoals het was.
+    expect(alleenGastenThuis(metWand, occupancy, st('home', 'home'))).toBe(false);
+    expect(alleenGastenThuis(metWand, occupancy, st('not_home', 'not_home'))).toBe(false);
+    expect(alleenGastenThuis(metWand, occupancy, st('unknown', 'home'))).toBe(false);
+    // De weergave zegt het, en het scherm beheert dan niets.
+    const v = bewonersView(metWand, { userId: 'u-wand', beheerder: true }, occupancy, st('not_home', 'home'), null);
+    expect(v.ik).toMatchObject({ soort: 'scherm', alleenBedienen: true, magBeheren: false });
+    // De deur: alleen "Toch die van".
+    const wand = { userId: 'u-wand', naam: 'Wand', beheerder: false, alleenBedienen: true };
+    expect(voerUit(metWand, comfort, { actie: 'schermNaam', id: 'u-wand', naam: 'Hal' }, wand, occupancy, [], NU)).toMatchObject({ ok: false, status: 403 });
+    expect(voerUit(metWand, comfort, { actie: 'vasthouden', id: 'ricardo' }, wand, occupancy, [], NU)).toMatchObject({ ok: true });
+  });
+
+  it('kiest "Toch die van" alleen als hij thuis is (besluit 351)', () => {
+    const b = tweeBewoners();
+    const gast = (voerUit(b, comfort, { actie: 'gast', id: 'noor', gast: true }, { userId: 'u-ricardo', naam: 'Ricardo', beheerder: false }, occupancy, [], NU) as { ok: true; bewoners: Bewoners }).bewoners;
+    const noor = { userId: 'u-noor', naam: 'Noor', beheerder: false };
+    expect(voerUit(gast, comfort, { actie: 'vasthouden', id: 'ricardo' }, { ...noor, gastThuis: false }, occupancy, ['ricardo'], NU)).toMatchObject({ ok: false, status: 403 });
+    const thuis = voerUit(gast, comfort, { actie: 'vasthouden', id: 'ricardo' }, { ...noor, gastThuis: true }, occupancy, ['ricardo'], NU) as { ok: true; bewoners: Bewoners };
+    expect(thuis.bewoners.vasthouden).toMatchObject({ id: 'ricardo', home: ['ricardo'] });
+    // Verder blijft hij kijken, ook thuis.
+    expect(voerUit(gast, comfort, { actie: 'naam', id: 'noor', naam: 'N' }, { ...noor, gastThuis: true }, occupancy, [], NU)).toMatchObject({ ok: false, status: 403 });
   });
 
   it('is thuis volgens zijn aanwezigheid; wie geen gast is, telt hier niet', () => {

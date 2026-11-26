@@ -75,6 +75,8 @@ export const DOOR_ROLES: Readonly<Record<string, Role>> = {
   // De add-on bijwerken: alleen de beheerder.
   '/api/update': 'beheerder',
   '/api/functies': 'beheerder',
+  // De zon verdelen (besluit 343) geldt voor het hele huis: een instelling (besluit 351).
+  '/api/zon-verdelen': 'beheerder',
   // Comfort zet de bewoner zelf (besluit 130).
   '/api/comfort': 'bewoner',
   // Bewoners (besluit 147): iedereen die ingelogd is; wat je aan een ander mag, toetst de deur zelf.
@@ -84,6 +86,19 @@ export const DOOR_ROLES: Readonly<Record<string, Role>> = {
   '/api/back-up': 'bewoner',
   '/api/opnieuw': 'bewoner',
 };
+
+/**
+ * Bedienen (besluit 351): alles met een knop, geen instelling. Een gast mag
+ * dit als hij thuis is; licht, scènes en screens, klimaat met de hand en de
+ * klimaatbrug, witgoed, laden, stekkers en schakelaars, het kinderslot, en
+ * "klaar voor" en "klaar om".
+ */
+export const BEDIENEN: ReadonlySet<string> = new Set([
+  '/api/licht', '/api/scene', '/api/scherm', '/api/hand', '/api/klimaat', '/api/witgoed', '/api/laden', '/api/stekker', '/api/schakelaar', '/api/kinderslot', '/api/uitstel', '/api/klaarom',
+]);
+
+/** Wat de wand ook doet als er alleen gasten thuis zijn (besluit 351): geen instelling. */
+export const WAND_MET_GASTEN: ReadonlySet<string> = new Set(['/api/wand', '/api/vraag', '/api/stem', '/api/te-doen', '/api/meldingen', '/api/bewoners', '/auth/logout']);
 
 export const SESSION_COOKIE = 'hems_sessie';
 /** Zo lang blijft een sessie geldig zonder gebruik: de tablet aan de muur logt één keer in. */

@@ -357,6 +357,27 @@ export function gastStand(b: Bewoners, userId: string | null, occupancy: readonl
   return { gast: true, thuis: o ? thuisVan(state(o.ref.id)) : null };
 }
 
+/**
+ * Zijn er alleen gasten thuis (besluit 351)? Geen bewoner thuis, en wel een
+ * gast. Een bewoner zonder aanwezigheid, of met een aanwezigheid die het huis
+ * nu niet weet, kan thuis zijn: dan niet. Is er niemand thuis, ook niet: dan kan
+ * er een gast zonder tracker staan, en blijft de wand zoals hij was.
+ */
+export function alleenGastenThuis(b: Bewoners, occupancy: readonly OccupancySource[], state: (entityId: string) => HaEntityState | undefined): boolean {
+  const thuis = (x: Bewoner): boolean | null => {
+    const o = x.aanwezigheid != null ? occupancy.find((y) => y.id === x.aanwezigheid) : undefined;
+    return o ? thuisVan(state(o.ref.id)) : null;
+  };
+  const bewoners = b.volgorde.flatMap((id) => (b.bewoners[id] ? [b.bewoners[id]] : []));
+  if (bewoners.some((x) => thuis(x) !== false)) return false;
+  return Object.values(b.bewoners).some((x) => x.gast === true && thuis(x) === true);
+}
+
+/** Wat de wand mag (besluit 351): zijn er alleen gasten thuis, dan alleen bedienen. */
+export function schermBedientAlleen(b: Bewoners, userId: string | null, occupancy: readonly OccupancySource[], state: (entityId: string) => HaEntityState | undefined): boolean {
+  return userId != null && b.schermen[userId] != null && alleenGastenThuis(b, occupancy, state);
+}
+
 /* ------------------------------------------------------------- bewaren */
 
 export class BewonersStore {
@@ -440,6 +461,8 @@ export interface BewonersView {
     readonly magBeheren: boolean;
     /** De hoofdgebruiker zelf (besluit 151): alleen die maakt een gast bewoner, en begint opnieuw. */
     readonly hoofd: boolean;
+    /** Een scherm terwijl er alleen gasten thuis zijn (besluit 351): dan alleen bedienen. */
+    readonly alleenBedienen: boolean;
   };
   readonly bewoners: readonly BewonerView[];
   /** Gasten: ingelogd in de app, maar zonder plek in de volgorde. */
@@ -456,6 +479,10 @@ export interface BewonersView {
 export interface Wie {
   readonly userId: string | null;
   readonly beheerder: boolean;
+  /** Een gast die nu thuis is (besluit 351): die bedient, en kiest ook "Toch die van". */
+  readonly gastThuis?: boolean;
+  /** Een scherm terwijl er alleen gasten thuis zijn (besluit 351): alleen bedienen. */
+  readonly alleenBedienen?: boolean;
 }
 
 const thuisVan = (s: HaEntityState | undefined): boolean | null => (s == null || s.state === 'unavailable' || s.state === 'unknown' ? null : s.state === 'on' || s.state === 'home');
@@ -516,8 +543,9 @@ export function bewonersView(
       id: ikB?.id ?? null,
       naam: ikB?.naam ?? null,
       // Een gast beheert nooit, ook niet als hij in Home Assistant beheerder is.
-      magBeheren: !ikB?.gast && (wie.beheerder || (hoofd != null && ikB?.id === hoofd.id) || b.volgorde.length === 0),
+      magBeheren: !ikB?.gast && !(ikScherm && alleenGastenThuis(b, occupancy, state)) && (wie.beheerder || (hoofd != null && ikB?.id === hoofd.id) || b.volgorde.length === 0),
       hoofd: hoofd != null && ikB?.id === hoofd.id,
+      alleenBedienen: ikScherm && alleenGastenThuis(b, occupancy, state),
     },
     bewoners,
     gasten,
@@ -628,8 +656,11 @@ export function voerUit(
   const vanEenAnder = (bronId: string | null, haUser: string | null) => { const acc = bronId == null ? null : accountVan(bronId); return acc != null && acc !== haUser; };
   const ik = Object.values(b.bewoners).find((x) => wie.userId != null && x.haUser === wie.userId) ?? null;
   // Een gast kijkt alleen: van hem wordt niets bewaard, en hij verandert niets. Wel kan hij zeggen dat hij een scherm is (besluit 151).
+  // Thuis bedient hij, en "Toch die van" is bedienen (besluit 351).
   const wordtScherm = a.actie === 'scherm' || (a.actie === 'ik' && a.soort === 'scherm');
-  if (ik?.gast && !wordtScherm) return { ok: false, status: 403, reden: 'een gast kan alleen kijken' };
+  // Een scherm met alleen gasten thuis (besluit 351): alleen "Toch die van", dat is bedienen.
+  if (wie.alleenBedienen === true && a.actie !== 'vasthouden') return { ok: false, status: 403, reden: 'met alleen gasten thuis bedient dit scherm alleen' };
+  if (ik?.gast && !wordtScherm && !(a.actie === 'vasthouden' && wie.gastThuis === true)) return { ok: false, status: 403, reden: ik.gast && a.actie === 'vasthouden' ? 'als gast kies je dit alleen als je thuis bent' : 'een gast kan alleen kijken' };
   const hoofd = hoofdVan(b);
   const beheert = wie.beheerder || (hoofd != null && ik?.id === hoofd.id);
   const mag = (id: string) => beheert || ik?.id === id;
@@ -778,8 +809,8 @@ export function voerUit(
     }
     case 'vasthouden': {
       if (wie.userId == null) return { ok: false, status: 403, reden: 'log eerst in' };
-      // Iedere bewoner en de wand kiezen wiens comfort geldt; een gast kijkt alleen (besluit 169).
-      if (ik?.gast) return { ok: false, status: 403, reden: 'een gast kiest niet wiens comfort geldt' };
+      // Iedere bewoner en de wand kiezen wiens comfort geldt (besluit 169); een gast alleen als hij thuis is (besluit 351).
+      if (ik?.gast && wie.gastThuis !== true) return { ok: false, status: 403, reden: 'als gast kies je dit alleen als je thuis bent' };
       if (a.id == null) return { ok: true, bewoners: zonderVasthouden(b) };
       if (bewoner(a.id) == null) return { ok: false, status: 404, reden: 'die bewoner is er niet' };
       return { ok: true, bewoners: { ...b, vasthouden: { id: a.id, home: [...thuis], sindsMs: nowMs } } };

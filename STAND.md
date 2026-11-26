@@ -725,9 +725,9 @@ verwijzing bestaat.
   bewoner van, en een gast verandert geen instellingen ([151]). Sinds 0.247.0
   is Bewoners één lijst met bewoners, gasten en schermen, en voeg je een gast
   toe die alleen een tracker heeft, zonder account; die telt mee als iemand
-  thuis. Gekozen, nog niet gebouwd: gasten bedienen alles met een knop,
-  bewoners zonder beheer veranderen geen instellingen, en zijn er alleen
-  gasten thuis, dan kun je op de wand alleen bedienen ([351]).
+  thuis. Sinds 0.248.0 bedient een gast die thuis is alles met een knop,
+  verandert alleen de hoofdgebruiker of een beheerder instellingen, en kun je
+  op de wand alleen bedienen als er alleen gasten thuis zijn ([351]).
 - **Comfort uit de app gaat voor** de helpers van het oude systeem; het huis
   heeft een voordeur, de meterkast, de camera, de tuin en de buitenunits zoals
   ze zijn ([143]).
