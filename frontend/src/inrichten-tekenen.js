@@ -3,10 +3,8 @@
  * inrichten-voorstellen.js laadt en zijn bovenste namen deelt met de andere delen van de pagina.
  */
 'use strict';
-/* global $$, BEVESTIG, HOOFD, STAPPEN, aanpas:writable, antwoorden, apparatenStap, assistentNogAan, bewaarAansluiting, bewaarIndeling, bewaarKort, bewaarPrijzen, bewonersHoofd, binnen, buitenStap, concept, contractKeuze:writable, d, delenVan, energieNu, esc, haal, hoofdVan, huisStap, idVan, jeHuisStap, kanBereik, kanOpen:writable, kanStap, kanToestellen, klaarStap, klimaatIn, laad, ligStaat, liggingStap, lijst:writable, markeer, melding, metEtage, metenStap, meterStap, model, naar, naarRondleiding, nl, openKamer:writable, openApparaat:writable, openBewoner:writable, panelenStap, prijzenHoofd, rolVan, rondVanConcept, samenvoegen, sd, sleutel, stapGedaan, stapNagelopen, stapNu, stuurBewoner, tekenMini, tekenWelkom, toevoeg:writable, toevoegenIn:writable, verder, vermogenStap, verplaatsKamer, verwarmingStap, volgende, vorige, warmteStap, weghalen:writable, welkom, wnKaart, woningNu, woningStap, zeg, zekeringStap, zetAssistentAan, zonStap */
-// eslint-disable-next-line no-unused-vars -- alleen teruggezet; gelezen in een ander deel
-/* global dagKeuze:writable, zonderKlimaat:writable */
-/* exported teken, terugKnop, volgendeKnoppen */
+/* global $$, AANPAS, BEVESTIG, HOOFD, STAPPEN, assistentNogAan, bewaarIndeling, bewonersHoofd, binnen, concept, d, delenVan, esc, haal, hoofdVan, jeHuisStap, kanBereik, kanOpen:writable, kanStap, kanToestellen, klaarStap, klimaatIn, laad, lijst:writable, markeer, melding, meterStap, model, naar, naarRondleiding, panelenStap, prijzenHoofd, rolVan, sd, sleutel, stapGedaan, stapNagelopen, stapNu, tekenWelkom, verder, verwarmingStap, volgende, vorige, welkom, zeg, zetAssistentAan */
+/* exported teken, terugKnop */
 /* ------------------------------------------------------------ tekenen */
 
 /** Lijsten die verder gaan dan de kaart, lopen zichtbaar uit (besluit 158). */
@@ -24,9 +22,6 @@ let getekend = null;
 const terugKnop = () => `<button type="button" class="zachtknop" data-terug>${esc(t('w.terug'))}</button>`;
 const volgendeKnoppen = () => `<span class="rechts"><button type="button" class="zachtknop" data-later>${esc(t('w.later'))}</button><button type="button" class="knop knop-licht" data-volgende>${esc(t('inr.volgende'))}</button></span>`;
 /** De wand in het klein bij De wand: dit huis, zoals het nu getekend is. */
-function tekenWandje(el, m) {
-  huis.teken(el, { ...m, labels: [], etages: m.etages.map((e) => ({ ...e, kamers: e.kamers.map((k) => ({ ...k, stil: true })) })) }, { breedte: el.clientWidth || 200, hoogte: el.clientHeight || 120, marge: 0.06 });
-}
 function tekenNu() {
   app.schaal();
   app.luchtVan(d.zon, 0);
@@ -48,7 +43,7 @@ function tekenNu() {
   $$('[data-voortgang]').forEach((el) => {
     el.innerHTML = STAPPEN.map(([id]) => `<i class="${{ nu: 'nu', klaar: 'al', half: 'half' }[standVan(id)] ?? ''}"></i>`).join('');
   });
-  const v = { welkom, jehuis: jeHuisStap, meter: meterStap, panelen: panelenStap, verwarming: verwarmingStap, woning: woningStap, huis: huisStap, buiten: buitenStap, bewoners: bewonersHoofd, apparaten: apparatenStap, meten: metenStap, warmte: warmteStap, apparaat: kanStap, zon: zonStap, ligging: liggingStap, zekering: zekeringStap, vermogen: vermogenStap, prijzen: prijzenHoofd, klaar: klaarStap }[nu]();
+  const v = { welkom, jehuis: jeHuisStap, meter: meterStap, panelen: panelenStap, prijzen: prijzenHoofd, verwarming: verwarmingStap, apparaat: kanStap, bewoners: bewonersHoofd, klaar: klaarStap }[nu]();
   // Onderaan overal hetzelfde (besluit 158): Terug, Later en Volgende, tenzij de stap iets anders zegt.
   const [links, rechts] = v.voet ?? [terugKnop(), volgendeKnoppen()];
   const actief = document.activeElement;
@@ -62,7 +57,7 @@ function tekenNu() {
     const wasMidden = zelfde ? el.querySelector(':scope > .midden')?.scrollTop ?? 0 : 0;
     el.innerHTML = `<span class="waar">${esc(v.waar)}</span>
       <h1 class="${v.groot ? 'kop-1' : 'kop-2'}" style="${v.groot ? 'font-size: 40px; line-height: 1.05' : ''}">${esc(v.kop)}</h1>
-      <p class="uitleg">${esc(v.uitleg)}</p>
+      ${v.uitleg ? `<p class="uitleg">${esc(v.uitleg)}</p>` : ''}
       <div class="midden${nu === 'apparaat' ? ' groei' : ''}">${v.inhoud}</div>
       <span class="melding-inr${melding.fout ? ' fout' : ''}" data-melding>${esc(melding.tekst)}</span>
       <div class="voet">${links || '<span></span>'}${rechts}</div>`;
@@ -79,8 +74,6 @@ function tekenNu() {
     const vg = stand.voortgang(sd);
     waaier.teken(kw, { groepen: vg.groepen, cx: 195, cy: 204, r0: 62, R: 178, getal: `${vg.totaal}%`, onder: t('voortgang.zo'), groei: false });
   }
-  // Een kamer die open gaat, schuift in beeld.
-  document.querySelector(`${app.zicht()} [data-kaart] .bewerk`)?.scrollIntoView({ block: 'nearest' });
   const m = model(nu);
   // Het grote welkom (besluit 200) over het hele scherm, zonder de stappen.
   const groot = nu === 'welkom' && !lijst;
@@ -91,68 +84,13 @@ function tekenNu() {
   }
   // Wat elk apparaat kan (besluit 197): lijst en details naast elkaar, dus een bredere kaart.
   document.querySelector('#wand .veldje')?.classList.toggle('breed', nu === 'apparaat');
-  // De kleine huisjes bij Wat voor huis, en de wand in het klein.
-  document.querySelectorAll(`${app.zicht()} [data-kaart] [data-mini]`).forEach((el) => (el.dataset.mini === 'wand' ? tekenWandje(el, m) : tekenMini(el)));
   // Zo groot als het vak echt is (besluit 166): op een breder scherm is het vak breder. Het eiland van Thuis (besluit 190).
   const vak = document.querySelector('[data-podium="wand"]');
-  // Bij Klopt je huis? zijn de kamers in het huis aan te tikken en te slepen (besluit 166).
-  if (!app.telStand()) huis.teken(vak, m, { breedte: vak.clientWidth || 700, hoogte: vak.clientHeight || 640, meubels: true, marge: 0.04, zoom: 1, schuifY: 10, tik: nu === 'huis' });
+  if (!app.telStand()) huis.teken(vak, m, { breedte: vak.clientWidth || 700, hoogte: vak.clientHeight || 640, meubels: true, marge: 0.04, zoom: 1, schuifY: 10 });
   // Op de telefoon zonder namen in het kleine huis, zoals op Thuis.
   else huis.teken(document.querySelector('[data-podium="tel"]'), { ...m, etages: m.etages.map((e) => ({ ...e, kamers: e.kamers.map((k) => ({ ...k, stil: true })) })) }, { breedte: 390, hoogte: 250, marge: 0.03, zoom: 1 });
 }
 const teken = app.gebundeld(tekenNu);
-
-/*
- * Slepen in het huis (besluit 166): bij Klopt je huis? pak je een kamer in de
- * tekening en laat je hem los op een andere kamer; hij neemt die plek in, ook
- * op een andere etage. Een tik zonder slepen opent de kamer in de lijst.
- */
-{
-  const vak = document.querySelector('[data-podium="wand"]');
-  let sleep = null;
-  const kamerOnder = (x, y) => document.elementFromPoint(x, y)?.closest?.('[data-podium="wand"] [data-kamer]') ?? null;
-  const markeer = (el) => {
-    vak.querySelectorAll('.sc-doel').forEach((x) => x.classList.remove('sc-doel'));
-    el?.classList.add('sc-doel');
-  };
-  vak?.addEventListener('pointerdown', (/** @type {PointerEvent} */ e) => {
-    const el = e.target.closest('[data-kamer]');
-    if (stapNu() !== 'huis' || !el || !binnen().some((r) => r.id === el.dataset.kamer)) return;
-    e.preventDefault();
-    sleep = { id: el.dataset.kamer, x: e.clientX, y: e.clientY, bezig: false };
-    el.classList.add('sc-gepakt');
-  });
-  document.addEventListener('pointermove', (e) => {
-    if (!sleep) return;
-    if (!sleep.bezig && Math.hypot(e.clientX - sleep.x, e.clientY - sleep.y) > 10) sleep.bezig = true;
-    if (!sleep.bezig) return;
-    const doel = kamerOnder(e.clientX, e.clientY);
-    markeer(doel && doel.dataset.kamer !== sleep.id && binnen().some((r) => r.id === doel.dataset.kamer) ? doel : null);
-  });
-  const los = async (e) => {
-    if (!sleep) return;
-    const { id, bezig: gesleept } = sleep;
-    sleep = null;
-    vak.querySelectorAll('.sc-gepakt').forEach((x) => x.classList.remove('sc-gepakt'));
-    markeer(null);
-    if (!gesleept) {
-      openKamer = openKamer === id ? null : id;
-      weghalen = null;
-      teken();
-      return;
-    }
-    const doel = e.type === 'pointerup' ? kamerOnder(e.clientX, e.clientY)?.dataset.kamer : null;
-    const next = concept();
-    if (!doel || !next) return;
-    const naam = next.kamers.find((x) => x.id === id)?.naam;
-    if (verplaatsKamer(next, id, { doelId: doel })) {
-      openKamer = id;
-      await bewaarIndeling(next, t('inr.nieuwePlek', { naam }));
-    }
-  };
-  document.addEventListener('pointerup', los);
-  document.addEventListener('pointercancel', los);
-}
 
 /* ------------------------------------------------------------ doen */
 
@@ -160,12 +98,6 @@ let bezig = false;
 document.addEventListener('click', async (e) => {
   const el = e.target.closest('button, a');
   if (!el) return;
-  // Een omvormer weghalen (testerronde, november 2026).
-  if (el.hasAttribute('data-omvormer-weg')) {
-    const va = antwoorden();
-    if (vermogens.klik(el, d.aans, va)) await bewaarAansluiting(va);
-    return;
-  }
   if (el.hasAttribute('data-film')) {
     // Het filmpje (besluit 139), en daarna de rondleiding op Thuis. Moet de assistent nog aan
     // (besluit 202), dan herstart Home Assistant terwijl de film speelt; de film heeft zijn cijfers dan al.
@@ -200,28 +132,17 @@ document.addEventListener('click', async (e) => {
     return;
   }
   if (el.hasAttribute('data-terug')) {
-    // Terug uit de vragen van Prijzen of Wie woont hier: naar het voorstel.
-    if (aanpas && aanpas === stapNu()) {
-      aanpas = null;
-      teken();
-      return;
-    }
     naar(vorige(stapNu()));
     return;
   }
   if (el.hasAttribute('data-aanpassen')) {
-    // Aanpassen (besluit 323): de schermen van eerst, als delen van deze stap.
+    // Aanpassen en Invullen (besluit 352): de pagina bij Instellingen, met de balk terug naar deze stap.
     const h = stapNu();
-    // Je huis (stap 4): dezelfde tekentafel als bij Instellingen, met een balk terug naar hier.
-    if (h === 'jehuis') {
-      location.href = 'jehuis.html?van=inrichten';
-      return;
-    }
-    const delen = delenVan(h);
-    if (delen.length === 1 && delen[0] === h) {
-      aanpas = h;
-      teken();
-    } else if (delen.length) naar(delen[0]);
+    const doel = AANPAS[h]?.();
+    if (!doel) return;
+    if (doel.startsWith('#')) return naar(doel.slice(1));
+    app.onthoudInrichten('app', h);
+    location.href = doel;
     return;
   }
   if (el.hasAttribute('data-ja')) {
@@ -251,7 +172,6 @@ document.addEventListener('click', async (e) => {
     el.disabled = true;
     try {
       if (BEVESTIG[nu] && !(await BEVESTIG[nu]())) return;
-      aanpas = null;
       verder(nu);
     } finally {
       bezig = false;
@@ -261,69 +181,8 @@ document.addEventListener('click', async (e) => {
   }
   if (el.hasAttribute('data-later')) {
     // Later (besluit 190): door zonder te bewaren; de stap staat dan bij Mist nog. Uit een deel naar de volgende stap.
-    aanpas = null;
     const nu = stapNu();
     naar(hoofdVan(nu) && hoofdVan(nu) !== nu ? volgende(hoofdVan(nu)) : volgende(nu));
-    return;
-  }
-  if (el.dataset.woning || el.dataset.dak || el.dataset.schuur) {
-    // Wat voor huis, en welk dak (besluit 190); in de tuin het tuinhuis of het schuurtje.
-    const next = concept();
-    if (!next) return;
-    if (el.dataset.woning) {
-      next.woning = el.dataset.woning;
-      next.buren = woningDeel.burenBij(next.woning, wnKaart, next.buren);
-    }
-    if (el.dataset.dak) {
-      const boven = (d.huis?.etages ?? []).find((e) => e.id !== 'buiten' && e.id !== 'kelder' && (e.ruimtes ?? []).length);
-      if (el.dataset.dak === 'plat') next.dak = 'geen';
-      else if (d.huis?.dakEtage || boven) next.dak = d.huis?.dakEtage ?? boven.id;
-    }
-    // Het tuinhuis, het schuurtje of allebei.
-    if (el.dataset.schuur) next.rond = { ...rondVanConcept(next), schuur: el.dataset.schuur === 'schuur', allebei: el.dataset.schuur === 'beide' };
-    await bewaarIndeling(next);
-    return;
-  }
-  if (el.dataset.flat) {
-    // Een appartement: de verdieping of erboven een hoger of lager, zoals in Je huis.
-    const next = concept();
-    if (!next) return;
-    Object.assign(next, woningDeel.stap(next, el.dataset.flat, Number(el.dataset.stap)));
-    await bewaarIndeling(next);
-    return;
-  }
-  if (el.dataset.buur) {
-    // Welke muur tegen de buren staat: hetzelfde als in Je huis.
-    const next = concept();
-    if (!next) return;
-    next.buren = woningDeel.wissel(next.buren ?? (wnKaart?.soort === woningNu() ? wnKaart.buren : []), el.dataset.buur);
-    if (next.buren.length && woningNu() === 'vrijstaand') next.woning = next.buren.filter((k) => k !== 'achter').length > 1 ? 'rij' : 'tweekap';
-    else if (!next.buren.length && woningNu() !== 'appartement') next.woning = 'vrijstaand';
-    await bewaarIndeling(next);
-    return;
-  }
-  if (el.dataset.kelder) {
-    // Een kelder (besluit 190): erbij als kamer op de etage Kelder; weg kan alleen als er niets in staat.
-    const next = concept();
-    if (!next) return;
-    const kelder = next.kamers.filter((k) => k.etage === 'kelder');
-    if (el.dataset.kelder === 'ja') {
-      if (kelder.length) return;
-      const naam = t('inr.kelderNaam');
-      next.kamers.push({ id: idVan(naam, new Set(next.kamers.map((k) => k.id))), naam, etage: 'kelder', soort: 'kelder', zones: [], regelzone: null, haGebied: null });
-      await bewaarIndeling(next, t('indeling.toegevoegd', { naam }));
-      return;
-    }
-    if (!kelder.length) return;
-    const vol = kelder.some((k) => (binnen().find((r) => r.id === k.id)?.apparaten ?? []).length > 0 || Object.values(next.apparaten).some((a) => a.kamer === k.id));
-    if (vol) return zeg(t('inr.kelderVol'), true);
-    next.kamers = next.kamers.filter((k) => k.etage !== 'kelder');
-    await bewaarIndeling(next);
-    return;
-  }
-  if (el.dataset.zonderklimaat) {
-    zonderKlimaat = el.dataset.zonderklimaat === '1';
-    teken();
     return;
   }
   // De assistent met één knop (besluit 202).
@@ -333,203 +192,15 @@ document.addEventListener('click', async (e) => {
     teken();
     return;
   }
-  // Hoe de panelen liggen (besluit 157); Klopt telt als nagelopen en gaat door.
-  if (Object.keys(el.dataset).some((k) => k.startsWith('lig'))) {
-    const a = antwoorden();
-    const klopt = el.hasAttribute('data-lig-klopt');
-    const wat = ligging.klik(el, d.aans?.ligging, a, ligStaat);
-    if (wat === 'bewaar') await bewaarAansluiting(a);
-    else if (wat === 'teken') teken();
-    if (klopt && d.aans?.ligging?.stand === 'bevestigd') verder('ligging');
-    return;
-  }
   if (el.dataset.lijst !== undefined) {
     lijst = el.dataset.lijst || null;
     teken();
-    return;
-  }
-  if (el.dataset.sopt) {
-    const s = (d.bewoners?.schermen ?? []).find((x) => x.id === el.dataset.scherm);
-    if (!s) return;
-    const aan = !(s.opties?.[el.dataset.sopt] === true);
-    await stuurBewoner({ actie: 'schermOpties', id: s.id, opties: { [el.dataset.sopt]: aan } }, t(aan ? 'inr.schermAan' : 'inr.schermUit', { naam: s.naam }));
-    return;
-  }
-  if (el.dataset.bewoner) {
-    openBewoner = openBewoner === el.dataset.bewoner ? null : el.dataset.bewoner;
-    teken();
-    return;
-  }
-  if (el.dataset.bvolg && openBewoner) {
-    const v = (d.bewoners?.bewoners ?? []).map((x) => x.id);
-    const i = v.indexOf(openBewoner);
-    const j = i + Number(el.dataset.bvolg);
-    if (i < 0 || j < 0 || j >= v.length) return;
-    [v[i], v[j]] = [v[j], v[i]];
-    await stuurBewoner({ actie: 'volgorde', volgorde: v });
-    return;
-  }
-  if (el.hasAttribute('data-bhoofd') && openBewoner) {
-    await stuurBewoner({ actie: 'hoofd', id: openBewoner });
-    return;
-  }
-  if (el.dataset.bcomfort && openBewoner) {
-    await stuurBewoner({ actie: 'comfort', id: openBewoner, comfort: el.dataset.bcomfort });
-    return;
-  }
-  if (el.dataset.apparaat) {
-    openApparaat = openApparaat === el.dataset.apparaat ? null : el.dataset.apparaat;
-    teken();
-    return;
-  }
-  if (el.dataset.verberg) {
-    const next = concept();
-    if (!next) return;
-    const id = el.dataset.verberg;
-    const naam = [...(d.huis?.zonderRuimte ?? []), ...(d.huis?.etages ?? []).flatMap((x) => x.ruimtes ?? []).flatMap((r) => r.apparaten ?? [])].find((a) => a.id === id)?.naam ?? t('indeling.hetApparaat');
-    next.verborgen = [...new Set([...(next.verborgen ?? []), id])];
-    openApparaat = null;
-    await bewaarIndeling(next, t('indeling.naamWeg', { naam }));
-    return;
-  }
-  if (el.dataset.kamer) {
-    openKamer = openKamer === el.dataset.kamer ? null : el.dataset.kamer;
-    weghalen = null;
-    teken();
-    return;
-  }
-  if (el.hasAttribute('data-nieuw')) {
-    openKamer = 'nieuw';
-    teken();
-    setTimeout(() => document.querySelector(`${app.zicht()} [data-nieuwnaam]`)?.focus(), 50);
-    return;
-  }
-  // Een etage erbij (testerronde, november 2026).
-  if (el.hasAttribute('data-inr-etage-open') || el.hasAttribute('data-inr-etage-dicht')) {
-    openKamer = el.hasAttribute('data-inr-etage-open') ? 'etage' : null;
-    teken();
-    return;
-  }
-  if (el.dataset.inrEtage || el.hasAttribute('data-inr-etage-eigen')) {
-    const next = concept();
-    if (!next) return;
-    let id = el.dataset.inrEtage;
-    const naam = id ? null : document.querySelector(`${app.zicht()} [data-inr-etage-naam]`)?.value.trim();
-    if (!id) {
-      if (!naam) return;
-      const bezet = new Set([...(d.ind?.etages ?? []).map((e) => e.id), ...(d.ind?.standaard ?? []).map((s) => s.id), 'buiten']);
-      id = idVan(naam, bezet);
-    }
-    next.volgorde = metEtage(next, id, !el.dataset.inrEtage);
-    if (naam) next.etages = { ...(next.etages ?? {}), [id]: naam };
-    openKamer = 'nieuw';
-    await bewaarIndeling(next, t('indeling.toegevoegd', { naam: naam ?? el.textContent.trim() }));
-    return;
-  }
-  if (el.hasAttribute('data-voegtoe')) {
-    const naam = document.querySelector(`${app.zicht()} [data-nieuwnaam]`)?.value.trim();
-    if (!naam) return;
-    const next = concept();
-    const id = idVan(naam, new Set(next.kamers.map((k) => k.id)));
-    next.kamers.push({ id, naam, etage: document.querySelector(`${app.zicht()} [data-nieuwetage]`)?.value || 'bg', zones: [], regelzone: null, haGebied: null });
-    openKamer = null;
-    await bewaarIndeling(next, t('indeling.toegevoegd', { naam }));
-    return;
-  }
-  if (el.dataset.kamerweg) {
-    // Twee tikken: de eerste vraagt het nog eens.
-    if (weghalen !== el.dataset.kamerweg) {
-      weghalen = el.dataset.kamerweg;
-      teken();
-      return;
-    }
-    const next = concept();
-    const k = next.kamers.find((x) => x.id === weghalen);
-    if (!k) return;
-    next.kamers = next.kamers.filter((x) => x.id !== k.id);
-    // Wat in deze kamer stond, gaat naar "nog in te delen", net als bij Indeling.
-    for (const [id, a] of Object.entries(next.apparaten)) if (a.kamer === k.id) delete next.apparaten[id];
-    for (const x of next.kamers) if (x.meedoenMet === k.id) delete x.meedoenMet;
-    openKamer = null;
-    weghalen = null;
-    await bewaarIndeling(next, t('indeling.naamWeg', { naam: k.naam }));
-    return;
-  }
-  if (el.dataset.schuifkamer) {
-    const next = concept();
-    if (next && verplaatsKamer(next, openKamer, { stap: Number(el.dataset.schuifkamer) })) await bewaarIndeling(next);
-    return;
-  }
-  if (el.dataset.zoneweg) {
-    const next = concept();
-    const k = next.kamers.find((x) => x.id === openKamer);
-    const z = k?.zones.find((x) => x.id === el.dataset.zoneweg);
-    if (!z) return;
-    k.zones = k.zones.filter((x) => x.id !== z.id);
-    for (const a of Object.values(next.apparaten)) if (a.kamer === k.id && a.zone === z.id) a.zone = null;
-    await bewaarIndeling(next, t('indeling.zoneWeg', { naam: z.naam }));
-    return;
-  }
-  if (el.dataset.erbij) {
-    toevoegenIn = el.dataset.erbij;
-    toevoeg = null;
-    teken();
-    return;
-  }
-  // Iets toevoegen (besluit 167): wat er hangt, hoe het aangaat, en bewaren.
-  if (el.dataset.toevoegSoort) {
-    toevoeg = { soort: el.dataset.toevoegSoort, aan: null, apparaat: null, vloer: null };
-    teken();
-    return;
-  }
-  if (el.dataset.toevoegVloer && toevoeg) {
-    toevoeg = { ...toevoeg, vloer: el.dataset.toevoegVloer, aan: null, apparaat: null };
-    teken();
-    return;
-  }
-  if (el.dataset.toevoegAan && toevoeg) {
-    toevoeg = { ...toevoeg, aan: el.dataset.toevoegAan, apparaat: null };
-    teken();
-    return;
-  }
-  if (el.hasAttribute('data-toevoeg-annuleer')) {
-    toevoegenIn = null;
-    toevoeg = null;
-    teken();
-    return;
-  }
-  if (el.hasAttribute('data-toevoeg-bewaar') && toevoeg && toevoegenIn) {
-    const next = concept();
-    const k = next?.kamers.find((x) => x.id === toevoegenIn);
-    if (!k) return;
-    const v = toevoeg;
-    const elektrisch = v.soort === 'vloer' && v.vloer === 'elektrisch';
-    const cv = v.soort === 'radiator' || (v.soort === 'vloer' && !elektrisch);
-    const ketel = huismodel.cvThermostaat(d.huis, antwoorden().verwarming);
-    // Elektrische vloerverwarming bewaart de dienst als vloer-elektrisch, zoals Kamers en indeling.
-    const soorten = [elektrisch ? 'vloer-elektrisch' : v.soort];
-    const bezet = new Set((k.bronnen ?? []).map((x) => x.id));
-    let id = v.soort;
-    for (let i = 2; bezet.has(id); i++) id = `${v.soort}-${i}`;
-    const b = { id, soorten, aan: v.aan };
-    if (cv && v.aan === 'thermostaat') {
-      if (ketel) b.apparaat = ketel.sleutel;
-    } else if (v.aan !== 'hand' && v.apparaat) b.apparaat = v.apparaat;
-    k.bronnen = [...(k.bronnen ?? []), b];
-    toevoegenIn = null;
-    toevoeg = null;
-    await bewaarIndeling(next, t('inr.toegevoegdBij', { naam: huismodel.bronNaam(b), kamer: k.naam }));
     return;
   }
   if (el.dataset.kanOpen) {
     // Wat elk apparaat kan: een ander apparaat open; op de telefoon dicht als het al open was.
     kanOpen = app.telStand() && kanOpen === el.dataset.kanOpen ? null : el.dataset.kanOpen;
     teken();
-    return;
-  }
-  if (el.hasAttribute('data-kan-mist')) {
-    // Iets toevoegen kan bij Verwarmen en koelen, per kamer.
-    naar('warmte');
     return;
   }
   if (el.dataset.kanWarmte) {
@@ -553,289 +224,32 @@ document.addEventListener('click', async (e) => {
     await bewaarIndeling(next);
     return;
   }
-  // De hoofdzekering (stap 4, zekering.js).
-  {
-    const a = antwoorden();
-    const z = zekering.klik(el, a.zekering);
-    if (z === 'teken') return teken();
-    if (z !== undefined) {
-      a.zekering = z;
-      await bewaarAansluiting(a);
-      return;
-    }
-  }
-  if (el.dataset.verwarming) {
-    const a = antwoorden();
-    a.verwarming = { ...a.verwarming, soort: el.dataset.verwarming };
-    await bewaarAansluiting(a);
-    return;
-  }
-  if (el.dataset.panelen === 'geen') {
-    const a = antwoorden();
-    a.panelen = { ligging: 'geen', aantal: null, voorkant: null, achterkant: null };
-    a.elders = {};
-    // Ook de vlakken van Daken en panelen weg (besluit 254): anders tellen ze nog.
-    await bewaarAansluiting(a, null);
-    return;
-  }
-  // De korte stap Daken (besluit 254, stap 3): een plek aantikken, een teller, de kanten van het hoofddak.
-  if (el.dataset.kortPlek) {
-    const p = el.dataset.kortPlek;
-    const piekW = (d.zon?.panelen ?? []).reduce((som, x) => som + (x.wattpiek ?? 0), 0);
-    const leeg = !Object.keys(dakvlakken.kortVan(d.aans?.daken).aan).length;
-    // Het hoofddak begint bij wat Home Assistant al weet, als het de eerste plek is.
-    const n = p === 'hoofddak' && leeg && piekW > 0 ? Math.max(1, Math.round(piekW / 430)) : p === 'hoofddak' ? 10 : 8;
-    await bewaarKort({ plek: p, n });
-    return;
-  }
-  if (el.dataset.kortStap) {
-    const kort = dakvlakken.kortVan(d.aans?.daken);
-    const stap = Number(el.dataset.kortStap);
-    if (el.dataset.kortN) await bewaarKort({ plek: el.dataset.kortN, n: (kort.aan[el.dataset.kortN] ?? 0) + stap });
-    else if (el.dataset.kortKant) {
-      const i = Number(el.dataset.kortKant);
-      await bewaarKort({ kant: i, n: (kort.perKant[i] ?? 0) + stap });
-    }
-    return;
-  }
-  if (el.dataset.kortKanten) {
-    await bewaarKort({ kanten: Number(el.dataset.kortKanten) });
-    return;
-  }
-  if (contract.klik(el) !== undefined) {
-    // Het soort contract (besluit 158, stap 4: dezelfde rij als bij Energie): één tarief laat het daltarief vallen.
-    contractKeuze = contract.klik(el);
-    const a = antwoorden();
-    const tarief = contract.tarief(contractKeuze);
-    if (a.tarief !== tarief) {
-      a.tarief = tarief;
-      await bewaarAansluiting(a);
-    }
-    const wijzig = {};
-    if (contractKeuze !== 'dagnacht' && energieNu()?.prijzen?.stroomDal != null) wijzig.stroomDal = null;
-    // De uurprijs van Home Assistant gaat mee met het contract (issue 119).
-    const dyn = d.energie?.voorstel?.prijzen?.dynamisch;
-    const heeft = !!energieNu()?.prijzen?.dynamisch;
-    if (tarief === 'dynamisch' && !heeft && dyn) wijzig.dynamisch = JSON.parse(JSON.stringify(dyn));
-    if (tarief === 'vast' && heeft) wijzig.dynamisch = null;
-    if (Object.keys(wijzig).length) await bewaarPrijzen(wijzig);
-    else teken();
-    return;
-  }
-  if (el.dataset.rond) {
-    // Wat er rond het huis is (besluit 158): elk deel apart aan of uit.
-    const next = concept();
-    if (!next) return;
-    next.rond = el.dataset.rond.startsWith('huisje:') ? huismodel.huisjeWissel(rondVanConcept(next), el.dataset.rond.slice(7)) : huismodel.rondWissel(rondVanConcept(next), el.dataset.rond);
-    await bewaarIndeling(next);
-    return;
-  }
-  if (el.dataset.meet) {
-    // Meten met (besluit 123): een thermometer aan of uit voor deze kamer.
-    const next = concept();
-    const k = next?.kamers.find((x) => x.id === el.dataset.meetkamer);
-    if (!k) return;
-    const lijst = new Set(k.meten ?? []);
-    if (lijst.has(el.dataset.meet)) lijst.delete(el.dataset.meet);
-    else lijst.add(el.dataset.meet);
-    if (lijst.size) k.meten = [...lijst].slice(0, 6);
-    else delete k.meten;
-    await bewaarIndeling(next);
-    return;
-  }
 });
 
 document.addEventListener('change', async (e) => {
-  if (ligging.verander(e.target, ligStaat)) return teken();
   const el = e.target;
-  // De netmeter en de omvormers (testerronde, november 2026).
-  const va = antwoorden();
-  if (vermogens.verander(el, d.aans, va)) return bewaarAansluiting(va);
-  const kamerNu = (next) => next?.kamers.find((x) => x.id === openKamer);
-  if (el.dataset.kanBereik) {
-    // Wat elk apparaat kan: het bereik dat de regeling aanhoudt; de laagste blijft onder de hoogste.
-    const key = el.dataset.kanBereik;
-    const x = kanToestellen().find(({ a }) => sleutel(a) === key);
-    const next = concept();
-    if (!x || !next) return;
-    const b = kanBereik(x.a);
-    let [lo, hi] = [b.min, b.max];
-    if (el.dataset.kant === 'min') lo = Number(el.value);
-    else hi = Number(el.value);
-    if (lo >= hi) return void zeg(t('inr.kan.laagOnderHoog'), true);
-    next.apparaten[key] = { ...(next.apparaten[key] ?? { kamer: x.r.id, zone: null }), bereik: [lo, hi] };
-    await bewaarIndeling(next);
-    return;
-  }
-  if (el.dataset.naam) {
-    const v = el.value.trim();
-    const next = concept();
-    const k = next?.kamers.find((x) => x.id === el.dataset.naam);
-    if (!k || !v || v === k.naam) return;
-    k.naam = v;
-    el.blur();
-    await bewaarIndeling(next, t('indeling.naamBewaard'));
-  } else if (el.dataset.etage) {
-    const next = concept();
-    const k = next?.kamers.find((x) => x.id === el.dataset.etage);
-    if (!k) return;
-    k.etage = el.value;
-    if (el.value === 'buiten') openKamer = null;
-    await bewaarIndeling(next, t('indeling.staatOp', { naam: k.naam, etage: el.selectedOptions[0]?.textContent ?? t('inr.andereEtage') }));
-  } else if (el.dataset.soort) {
-    // Wat voor kamer (besluit 119); leeg is weer het voorstel uit de naam.
-    const next = concept();
-    const k = next?.kamers.find((x) => x.id === el.dataset.soort);
-    if (!k) return;
-    if (el.value) k.soort = el.value;
-    else delete k.soort;
-    await bewaarIndeling(next, t('indeling.soortBewaard'));
-  } else if (el.dataset.zonenaam) {
-    const next = concept();
-    const z = kamerNu(next)?.zones.find((x) => x.id === el.dataset.zonenaam);
-    const v = el.value.trim();
-    if (!z || !v || z.naam === v) return;
-    z.naam = v;
-    await bewaarIndeling(next, t('indeling.zoneHeet', { naam: v }));
-  } else if (el.dataset.zonesoort) {
-    const next = concept();
-    const z = kamerNu(next)?.zones.find((x) => x.id === el.dataset.zonesoort);
-    if (!z) return;
-    if (el.value) z.soort = el.value;
-    else delete z.soort;
-    await bewaarIndeling(next, t('indeling.zoneBewaard', { naam: z.naam }));
-  } else if (el.hasAttribute('data-nieuwezone')) {
-    const next = concept();
-    const k = kamerNu(next);
-    const v = el.value.trim();
-    if (!k || !v) return;
-    const bezet = new Set(next.kamers.flatMap((x) => x.zones.map((z) => z.id)));
-    // De eerste zone: de kamer zelf wordt het eerste deel, zodat er twee zijn.
-    if (!k.zones.length) {
-      const eigen = { id: idVan(k.naam, bezet), naam: k.naam };
-      bezet.add(eigen.id);
-      k.zones.push(eigen);
-    }
-    k.zones.push({ id: idVan(v, bezet), naam: v });
-    await bewaarIndeling(next, t('indeling.zoneErbij', { naam: v }));
-  } else if (el.dataset.samen) {
-    if (!el.value) return;
-    const next = concept();
-    const doel = next.kamers.find((x) => x.id === el.value)?.naam;
-    const fout = samenvoegen(next, el.dataset.samen, el.value);
-    if (fout) {
-      el.value = '';
-      zeg(fout, true);
-      return;
-    }
-    await bewaarIndeling(next, t('inr.zoneVan', { naam: doel, kamer: next.kamers.find((x) => x.id === el.dataset.samen)?.naam ?? '' }));
-  } else if (el.dataset.bnaam) {
-    const naam = el.value.trim();
-    const x = (d.bewoners?.bewoners ?? []).find((y) => y.id === el.dataset.bnaam);
-    if (naam && x && naam !== x.naam) await stuurBewoner({ actie: 'naam', id: x.id, naam });
-  } else if (el.dataset.bbron !== undefined) {
-    await stuurBewoner({ actie: 'aanwezigheid', id: el.dataset.bbron, bron: el.value || null });
-  } else if (el.dataset.verplaats) {
-    // Een apparaat naar een andere kamer (besluit 166).
-    const next = concept();
-    const doel = (d.huis?.etages ?? []).flatMap((e) => e.ruimtes ?? []).find((r) => r.id === el.value);
-    if (!next || !doel) return;
-    next.apparaten[el.dataset.verplaats] = { ...(next.apparaten[el.dataset.verplaats] ?? {}), kamer: doel.id, zone: null };
-    openApparaat = null;
-    await bewaarIndeling(next, t('inr.staatIn', { naam: doel.naam }));
-  } else if (el.dataset.plek) {
-    const next = concept();
-    if (!next || !el.value) return;
-    if (el.value === '-') next.verborgen = [...new Set([...(next.verborgen ?? []), el.dataset.plek])];
-    else next.apparaten[el.dataset.plek] = { ...(next.apparaten[el.dataset.plek] ?? {}), kamer: el.value, zone: null };
-    await bewaarIndeling(next);
-  } else if (el.matches('[data-zk-zelf]')) {
-    const a = antwoorden();
-    const z = zekering.verander(el, a.zekering);
-    if (z === undefined) return;
-    a.zekering = z;
-    await bewaarAansluiting(a);
-  } else if (el.hasAttribute('data-inr-thermostaat')) {
-    const a = antwoorden();
-    a.verwarming = { ...a.verwarming, thermostaat: el.value || null };
-    await bewaarAansluiting(a);
-  } else if (el.hasAttribute('data-toevoeg-apparaat') && toevoeg) {
-    toevoeg = { ...toevoeg, apparaat: el.value || null };
-    teken();
-  } else if (el.dataset.toevoegen) {
-
-    const key = el.value;
-    if (!key) return;
-    const next = concept();
-    const k = next?.kamers.find((x) => x.id === el.dataset.toevoegen);
-    const r = binnen().find((x) => x.id === el.dataset.toevoegen);
-    if (!k || !r) return;
-    // Een airco helpt op zon; de eerste verwarming houdt de kamer op temperatuur, een tweede kijkt mee. Met alleen
-    // airco's (besluit 342) houdt de eerste airco de kamer.
-    const toestel = binnen().flatMap(klimaatIn).find((a) => sleutel(a) === key);
-    const rollen = Object.fromEntries(klimaatIn(r).map((a) => [sleutel(a), rolVan(k, r, sleutel(a))]));
-    const houdt = Object.values(rollen).includes('houdt');
-    const alleenAirco = antwoorden().verwarming?.soort === 'airco';
-    const rol = toestel?.klimaat?.kanKoelen ? (alleenAirco && !houdt ? 'houdt' : 'zon') : houdt ? 'kijken' : 'houdt';
-    for (const x of next.kamers) if (x.id !== k.id && x.rollen && key in x.rollen) delete x.rollen[key];
-    k.rollen = { ...(k.rollen ?? {}), ...rollen, [key]: rol };
-    next.apparaten[key] = { ...(next.apparaten[key] ?? {}), kamer: k.id, zone: null };
-    toevoegenIn = null;
-    await bewaarIndeling(next);
-  } else if (el.matches('input[data-kort-n], input[data-kort-kant]')) {
-    // Een aantal getypt in de korte stap Daken; 0 of leeg haalt een plek weg.
-    const v = el.value.trim();
-    const n = v === '' ? 0 : Number(v);
-    if (!(Number.isInteger(n) && n >= 0 && n <= 200)) return zeg(t('inr.aantal200'), true);
-    el.blur();
-    if (el.dataset.kortN) await bewaarKort({ plek: el.dataset.kortN, n });
-    else await bewaarKort({ kant: Number(el.dataset.kortKant), n });
-  } else if (el.dataset.prijs) {
-    const v = el.value.trim().replace(',', '.');
-    const n = v === '' ? null : Number(v);
-    const max = el.dataset.eenheid === 'm³' ? 5 : 2;
-    if (n != null && !(n >= 0 && n < max)) return zeg(el.dataset.eenheid === 'm³' ? t('inr.prijsM3', { voorbeeld: nl(1.35, 2) }) : t('inr.prijsKwh', { voorbeeld: nl(0.25, 2) }), true);
-    el.blur();
-    await bewaarPrijzen({ [el.dataset.prijs]: n });
-  } else if (el.dataset.meedoen) {
-    // Meedoen met een andere kamer (besluit 142).
-    const next = concept();
-    const k = next?.kamers.find((x) => x.id === el.dataset.meedoen);
-    if (!k) return;
-    delete k.meedoenMet;
-    if (el.value) {
-      k.meedoenMet = el.value;
-      k.regelzone = null;
-    }
-    await bewaarIndeling(next);
-  }
-});
-
-// De schuif laat het getal meteen zien; bewaren gebeurt bij loslaten.
-document.addEventListener('input', (e) => {
-  const el = e.target;
-  if (!el.dataset?.comfort) return;
-  const b = el.closest('.schuif')?.querySelector('b');
-  if (b) b.textContent = `${nl(Number(el.value))}°`;
-});
-document.addEventListener('keydown', (e) => {
-  if (e.key !== 'Enter') return;
-  if (e.target.matches?.('[data-nieuwnaam]')) document.querySelector(`${app.zicht()} [data-voegtoe]`)?.click();
-  else if (e.target.matches?.('[data-naam], [data-bnaam], [data-prijs], [data-kort-n], [data-kort-kant], [data-zonenaam], [data-nieuwezone]')) e.target.blur();
+  if (!el.dataset.kanBereik) return;
+  // Wat elk apparaat kan: het bereik dat de regeling aanhoudt; de laagste blijft onder de hoogste.
+  const key = el.dataset.kanBereik;
+  const x = kanToestellen().find(({ a }) => sleutel(a) === key);
+  const next = concept();
+  if (!x || !next) return;
+  const b = kanBereik(x.a);
+  let [lo, hi] = [b.min, b.max];
+  if (el.dataset.kant === 'min') lo = Number(el.value);
+  else hi = Number(el.value);
+  if (lo >= hi) return void zeg(t('inr.kan.laagOnderHoog'), true);
+  next.apparaten[key] = { ...(next.apparaten[key] ?? { kamer: x.r.id, zone: null }), bereik: [lo, hi] };
+  await bewaarIndeling(next);
 });
 
 addEventListener('standwissel', teken);
 addEventListener('hashchange', () => {
-  openKamer = null;
-  weghalen = null;
-  ligStaat.aanpassen = false;
-  toevoegenIn = null;
-  aanpas = null;
   if (stapNu() !== 'welkom') lijst = null;
   zeg('');
   teken();
   // Klaarzetten: opnieuw kijken, want de bewoner kan net in Home Assistant iets hebben gedaan.
-  if (stapNu() === 'ha' || stapNu() === 'klaar') {
+  if (stapNu() === 'klaar') {
     haal('api/klaarzetten').then((x) => {
       d.klaar = x;
       teken();

@@ -402,6 +402,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [348. De handleiding volgt de app, en SECURITY.md volgt de deuren](#348-de-handleiding-volgt-de-app-en-securitymd-volgt-de-deuren)
 - [349. Thuis lichter, en de telefoon makkelijker te raken](#349-thuis-lichter-en-de-telefoon-makkelijker-te-raken)
 - [350. Dunner: pagina's heten zoals hun regel, en één getal voor hoe ver je huis is](#350-dunner-paginas-heten-zoals-hun-regel-en-één-getal-voor-hoe-ver-je-huis-is)
+- [352. Korter: Aanpassen opent de pagina, en elke tekst één keer](#352-korter-aanpassen-opent-de-pagina-en-elke-tekst-één-keer)
 
 Wat nog open staat: [Wat nog een besluit wacht](#wat-nog-een-besluit-wacht).
 
@@ -16263,6 +16264,49 @@ rollen in de dienst, en (3) de wand die volgt wie er thuis is: samen
   wegzetten. Bij Instellingen zegt hij waarom de rest niet kan.
 
 Daarna voegt Ricardo zelf Saskia, Rob en Dini toe.
+
+## 352. Korter: Aanpassen opent de pagina, en elke tekst één keer
+
+*Onderwerp: kwaliteitsbewaking · Status: geldig*
+
+26 november 2026, stap 5 van de afvinklijst uit het tweede kwaliteitsrapport
+([347]), het deel dat [350] liet liggen: de teksten onder de 4.500 per taal,
+te beginnen bij Inrichten en Je huis tekenen. Er stonden er 5.336. Veel zeiden
+precies hetzelfde onder een andere sleutel ("Vandaag", "Klimaat"), maar de
+code bouwde die sleutels op, dus samenvoegen kon niet. En achter Aanpassen in
+Inrichten stonden dertien schermen die Je huis tekenen en Instellingen ook
+hebben: twee plekken voor dezelfde instelling.
+
+*Besluit:*
+
+- **Een verwijslijst in `taal.js`**: een tekst die onder meer sleutels
+  hetzelfde zegt, staat één keer in elk taalbestand; de lijst zegt welke
+  sleutels hem ook gebruiken, met `^` voor een hoofdletter (*van het net*
+  wordt *Van het net*). Heeft een taal de sleutel toch zelf, dan wint die, zo
+  kan een vertaling ze weer uit elkaar halen. Een test bewaakt dat de lijst
+  alleen naar bestaande teksten wijst en dat niets dubbel staat.
+- **Aanpassen en Invullen in Inrichten openen de pagina** waar het later ook
+  staat, met de balk terug naar dezelfde stap: Je huis naar Je huis tekenen,
+  Meter en zekering, Panelen en Prijzen naar Energie, Verwarming naar Klimaat,
+  Wie woont hier naar Bewoners. De zeven *Klopt dit?*-kaarten blijven, en Ja
+  bewaart wat er staat zoals eerst. Alleen **Wat elk apparaat kan** blijft een
+  eigen deel: het bereik verbeteren en zeggen wat een thermostaat verwarmt,
+  kan nergens anders. Een oud adres (`#huis`, `#zekering`, `#meten` en zo)
+  gaat naar zijn pagina. Zo'n 1.500 regels code minder.
+- **Meldingen staat één keer** bij Instellingen: bij Extra's, niet nog eens
+  als eigen regel op de tegel App en bewoners.
+- **Geschrapt**, zoals besproken: een onderschrift dat de kop herhaalt, noten
+  en tips onderaan (ook de tips per koppeling bij Wat elk apparaat kan; dat hij
+  er twee keer in staat, blijft), en bijna gelijke zinnen samen (*Laat los
+  waar het moet komen* voor alles wat je sleept, *Nu: …* voor elke meting).
+  Teksten die niemand meer gebruikte, zijn weg.
+- **Van 5.336 naar 4.499 teksten per taal.** Het plafond voor puntkomma's gaat
+  naar 97 en dat voor uitleg na een dubbele punt naar 162.
+
+*Nog niet gedaan:*
+
+- **De zinnen van de dienst naar de taalbestanden** (zo'n 195 regels, de
+  meeste in `assistant.ts` en `opdracht.ts`), in een eigen versie.
 
 ## Wat nog een besluit wacht
 

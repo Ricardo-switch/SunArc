@@ -57,8 +57,41 @@ describe('de talen van de app (besluit 185)', () => {
     }
   });
 
+  /** De sleutels uit de verwijslijst van taal.js: hun tekst staat onder een andere sleutel (besluit 352). */
+  function verwijzingen(): Map<string, { doel: string; hoofd: boolean }> {
+    const window: { TALEN: typeof talen; taal?: { zelfde: Record<string, string[]> } } = { TALEN: talen };
+    runInNewContext(lees('kit/taal.js'), { window, Intl, console });
+    const uit = new Map<string, { doel: string; hoofd: boolean }>();
+    for (const [doel, lijst] of Object.entries(window.taal!.zelfde)) for (const k of lijst) uit.set(k.replace(/^\^/, ''), { doel, hoofd: k.startsWith('^') });
+    return uit;
+  }
+
+  it('verwijst alleen naar wat er staat, en zet elke tekst maar één keer in een taalbestand', () => {
+    const v = verwijzingen();
+    for (const [k, { doel, hoofd }] of v) {
+      for (const taal of ['nl', 'en']) {
+        expect(talen[taal]![doel], `${k} → ${doel}`).toBeDefined();
+        expect(talen[taal]![k], `${k} staat ook zelf in ${taal}`).toBeUndefined();
+        if (hoofd) expect(typeof talen[taal]![doel], k).toBe('string');
+      }
+      expect(v.has(doel), `${doel} verwijst zelf ook`).toBe(false);
+    }
+  });
+
+  it('geeft via de lijst dezelfde tekst, met een hoofdletter waar dat moet', () => {
+    const window: { TALEN: typeof talen; taal?: { t: (k: string) => string; heeft: (k: string) => boolean } } = { TALEN: talen };
+    runInNewContext(lees('kit/taal.js'), { window, Intl, console });
+    const v = [...verwijzingen()];
+    const [k, { doel, hoofd }] = v.find(([, x]) => x.hoofd && /^[a-z]/.test(String(talen['nl']![x.doel])))!;
+    expect(hoofd).toBe(true);
+    const tekst = String(talen['nl']![doel]);
+    expect(window.taal!.t(k)).toBe(tekst.charAt(0).toUpperCase() + tekst.slice(1));
+    expect(window.taal!.heeft(k)).toBe(true);
+    expect(window.taal!.heeft('bestaat.niet')).toBe(false);
+  });
+
   it('heeft een tekst voor elke sleutel die de app vraagt', () => {
-    const nl = talen['nl']!;
+    const nl = { ...talen['nl']!, ...Object.fromEntries([...verwijzingen().keys()].map((k) => [k, ''])) };
     const soorten = new Set(Object.keys(nl).map((k) => k.split('.')[0]!));
     const ontbreekt: string[] = [];
     for (const pad of VRAGEN) {

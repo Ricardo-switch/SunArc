@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.248.0
+## 0.249.0
 
-*26 november 2026 · 0.179.0 – 0.248.0*
+*26 november 2026 · 0.179.0 – 0.249.0*
 
 **Nieuw**
 
@@ -104,6 +104,9 @@
 
 **Beter**
 
+- Aanpassen in Inrichten opent de pagina waar het later ook staat: Je huis, Energie, Klimaat of Bewoners. Met de balk bovenin ga je terug naar dezelfde stap
+- Meldingen staat bij Instellingen nog maar op één plek, bij Extra's
+- Kortere teksten: minder zinnen die herhalen wat er al staat
 - Een gast die thuis is, bedient alles met een knop: licht, screens, klimaat met de hand, stekkers en laden. Toch die van kiest hij ook
 - Instellingen voor het hele huis verandert de hoofdgebruiker of een beheerder in Home Assistant. Een andere bewoner zet zijn profiel en zijn comfort
 - Zijn er alleen gasten thuis, dan kun je op de wand alleen bedienen. Komt er een bewoner thuis, dan is de wand weer zoals altijd
@@ -431,6 +434,9 @@
 
 **Improved**
 
+- Adjust in Set up opens the page where you find it later too: Your home, Energy, Climate or Residents. The bar at the top takes you back to the same step
+- Notifications now appear in one place in Settings, under Extras
+- Shorter texts: fewer sentences that repeat what is already there
 - A guest who is home controls everything with a button: lights, screens, climate by hand, plugs and charging. They can also choose whose comfort applies
 - The main user or an administrator in Home Assistant changes settings for the whole house. Other residents set their own profile and comfort
 - When only guests are home, the wall screen can only control things. Once a resident is home, the wall screen is as always

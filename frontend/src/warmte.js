@@ -451,7 +451,7 @@
         const id = bronVorm?.id;
         k.bronnen = (k.bronnen ?? []).filter((x) => x.id !== id);
         if (!k.bronnen.length) delete k.bronnen;
-        if (await ctx.bewaar(next, t('indeling.weggehaald'))) bronVorm = null;
+        if (await ctx.bewaar(next, t('ht.gebouw.weggehaald'))) bronVorm = null;
         ctx.teken();
       } else return false;
       return true;

@@ -3,8 +3,8 @@
  * inrichten-energie.js laadt en zijn bovenste namen deelt met de andere delen van de pagina.
  */
 'use strict';
-/* global STAPPEN, antwoorden, assistentBlok, bewaarFuncties, bewaarIndeling, bewaarKamers, bewonersStap, binnen, buitenNu, buitenRuimtes, concept, contractNu, d, dagNu, energieNu, esc, functiesNu, gedaan, geenKlimaatToestel, kanBereik, kanToestellen, klimaatIn, lijstje, nl, prijzenStap, regel, rolVan, sleutel, stapGedaan, stapNagelopen, stuur, teken, tellingen, terugKnop, waarVan, woningNu, zonderKlimaat */
-/* exported BEVESTIG, aanpas, bewonersHoofd, jeHuisStap, klaarStap, meterStap, panelenStap, prijzenHoofd, sd, verwarmingStap */
+/* global STAPPEN, antwoorden, assistentBlok, bewaarIndeling, binnen, buitenNu, buitenRuimtes, concept, contractNu, d, energieNu, esc, geenKlimaatToestel, kanBereik, kanToestellen, klimaatIn, lijstje, nl, regel, rolVan, sleutel, stapGedaan, stapNagelopen, stuur, teken, tellingen, terugKnop, waarVan, woningNu */
+/* exported AANPAS, BEVESTIG, bewonersHoofd, jeHuisStap, klaarStap, meterStap, panelenStap, prijzenHoofd, sd, verwarmingStap */
 /* ------------------------------------------------------------ de voorstellen */
 
 /*
@@ -12,12 +12,24 @@
  * vond, met een vinkje, en Klopt dit? met Ja en Aanpassen. Vond het iets
  * belangrijks niet, dan staat er een vraagteken en is de knop Invullen.
  */
-let aanpas = null; // 'prijzen' of 'bewoners' als Aanpassen hun vragen opent
+/**
+ * Waar Aanpassen en Invullen heen gaan (besluit 352): de pagina bij Instellingen waar het later ook staat, met de
+ * balk terug naar deze stap. Bij Verwarming is dat Wat elk apparaat kan, zodra de soort verwarming bekend is.
+ */
+const soortNu = () => (antwoorden().verwarming.soort && antwoorden().verwarming.soort !== 'weetniet' ? antwoorden().verwarming.soort : null);
+const AANPAS = {
+  jehuis: () => 'jehuis.html?van=inrichten',
+  meter: () => (vermogens.netNu(d.aans, null) ? 'energie.html#aansluiting' : 'energie.html#meters'),
+  panelen: () => 'energie.html#panelen',
+  prijzen: () => 'energie.html#prijzen',
+  verwarming: () => (!soortNu() ? 'comfort.html#verwarming' : kanToestellen().length ? '#apparaat' : 'comfort.html#meten'),
+  bewoners: () => 'toegang.html#bewoners',
+};
 const kW = (w) => (Math.abs(w) >= 1000 ? `${nl(w / 1000, 1)} kW` : `${Math.round(w)} W`);
 function vond(regels) {
   return `<div class="vond">${regels.map((r) => `<div class="vondregel${r.mist ? ' mist' : ''}"><span class="vink" aria-hidden="true">${r.mist ? '?' : '✓'}</span><span class="tekst"><b>${esc(r.b)}</b>${r.zin ? `<span>${esc(r.zin)}</span>` : ''}</span></div>`).join('')}</div>`;
 }
-function voorstel(h, { kop, zin, regels, mist = false, noot = '', aanpassen = t('inr.k.aanpassen') }) {
+function voorstel(h, { kop, zin = '', regels, mist = false, noot = '', aanpassen = t('inr.k.aanpassen') }) {
   const klopt = mist
     ? `<div class="klopt"><b>${esc(t('inr.k.mist'))}</b><button type="button" class="knop knop-licht" data-aanpassen>${esc(t('inr.k.invullen'))}</button></div>`
     : `<div class="klopt"><b>${esc(t('inr.k.klopt'))}</b><button type="button" class="kloptknop" data-aanpassen>${esc(aanpassen)}</button><button type="button" class="knop knop-licht" data-ja>${esc(t('inr.k.ja'))}</button></div>`;
@@ -39,10 +51,10 @@ function jeHuisStap() {
   const regels = [
     { b: `${t('inr.k.etages', { n: n.etages })}, ${t('inr.k.kamers', { n: n.kamers })}`, zin: lijstje(etages.map((e) => e.naam ?? e.id)), mist: n.kamers === 0 },
     ...(n.buiten ? [{ b: t('inr.stap.buiten'), zin: lijstje(buitenRuimtes().map((r) => r.naam.toLowerCase())) }] : []),
-    { b: t('inr.k.apparaten', { n: n.apparaten + n.klimaat }), zin: los ? t('inr.k.zonderPlek', { n: los }) : t('inr.k.allePlek') },
+    { b: t('inr.k.apparaten', { n: n.apparaten + n.klimaat }), zin: los ? t('ht.zonderPlek', { n: los }) : t('ht.allesPlek') },
     { b: t(`inr.woning.${woningNu()}`), zin: kaart ? t('inr.k.vormKaart') : '' },
   ];
-  return voorstel('jehuis', { kop: t('inr.k.huisKop'), zin: t('inr.k.huisZin'), regels, mist: n.kamers === 0 });
+  return voorstel('jehuis', { kop: t('inr.k.huisKop'), regels, mist: n.kamers === 0 });
 }
 
 function meterStap() {
@@ -58,18 +70,18 @@ function meterStap() {
   const zonW = omv.reduce((s, id) => s + (w(id) ?? 0), 0);
   const regels = [
     net || (e?.net?.afname ?? []).length
-      ? { b: t('inr.k.slimmeMeter'), zin: nu == null ? t('inr.k.meetHuis') : t(nu < 0 ? 'inr.k.netTerug' : 'inr.k.netAf', { w: kW(Math.abs(nu)) }) }
+      ? { b: t('inr.k.slimmeMeter'), zin: nu == null ? '' : t(nu < 0 ? 'inr.k.netTerug' : 'inr.k.netAf', { w: kW(Math.abs(nu)) }) }
       : { b: t('inr.k.slimmeMeter'), zin: t('inr.k.nietGevonden'), mist: true },
     zek ? { b: t('inr.k.zekering', { z: `${zek.fasen} × ${zek.ampere} A` }), zin: t(a.zekering ? 'inr.k.zelfIngevuld' : 'inr.k.uitInstellingen') } : { b: t('instellingen.zekering'), zin: t('inr.k.nogNiet'), mist: true },
     ...(omv.length ? [{ b: t('inr.k.omvormers', { n: omv.length }), zin: t('inr.k.zonNu', { w: kW(zonW) }) }] : []),
-    ...(e?.gas ? [{ b: t('inr.k.gas'), zin: t('inr.k.gasZin') }] : []),
+    ...(e?.gas ? [{ b: t('inr.k.gas') }] : []),
   ];
-  return voorstel('meter', { kop: t('inr.k.meterKop'), zin: t('inr.k.meterZin'), regels, mist: !zek });
+  return voorstel('meter', { kop: t('inr.k.meterKop'), regels, mist: !zek });
 }
 
 function panelenStap() {
   const a = antwoorden();
-  if (a.panelen.ligging === 'geen') return voorstel('panelen', { kop: t('inr.k.panelenKop'), zin: t('inr.k.panelenZin'), regels: [{ b: t('inr.k.geenPanelen'), zin: t('inr.k.geenPanelenZin') }] });
+  if (a.panelen.ligging === 'geen') return voorstel('panelen', { kop: t('inr.k.panelenKop'), regels: [{ b: t('inr.k.geenPanelen') }] });
   const n = tellingen().panelen;
   const lig = d.aans?.ligging?.nu ?? null;
   const piekW = lig?.peakW ?? (d.zon?.panelen ?? []).reduce((s, p) => s + (p.wattpiek ?? 0), 0);
@@ -77,36 +89,33 @@ function panelenStap() {
   const vlakken = d.aans?.daken?.vlakken ?? [];
   const gemeten = vlakken.some((v) => v.bron === 'gemeten') || d.aans?.ligging?.stand === 'bevestigd';
   const regels = [
-    n || kwp ? { b: n ? `${t('inr.k.nPanelen', { n })}${kwp ? `, ${kwp}` : ''}` : kwp, zin: vermogens.zonNu(d.aans, null).length ? t('inr.k.uitOmvormer') : '' } : { b: t('inr.k.panelenNaam'), zin: t('inr.k.nogNiet'), mist: true },
+    n || kwp ? { b: n ? `${t('inr.k.nPanelen', { n })}${kwp ? `, ${kwp}` : ''}` : kwp, zin: '' } : { b: t('inr.k.panelen'), zin: t('inr.k.nogNiet'), mist: true },
     ...(vlakken.length
       ? [{ b: t('inr.k.vlakken', { n: vlakken.length }), zin: lijstje(vlakken.map((v) => dakvlakken.waar(v))) }]
       : lig ? [{ b: lig.richting, zin: lig.helling }] : []),
     ...(n || kwp ? [{ b: t('inr.k.waar'), zin: t(gemeten ? 'inr.k.gemeten' : 'inr.k.leertVanzelf') }] : []),
   ];
-  return voorstel('panelen', { kop: t('inr.k.panelenKop'), zin: t('inr.k.panelenZin'), regels, mist: !n && !kwp });
+  return voorstel('panelen', { kop: t('inr.k.panelenKop'), regels, mist: !n && !kwp });
 }
 
 function prijzenHoofd() {
-  // Een voorstel als de prijzen er al zijn, ook uit Home Assistant (het dashboard Energie); Ja bewaart ze dan.
-  const al = energieNu()?.prijzen;
-  if (aanpas !== 'prijzen' && (gedaan('prijzen') || al?.stroom != null || al?.dynamisch)) {
-    const e = energieNu();
-    const p = e?.prijzen ?? {};
-    const geld = (x) => taal.geld(x, 2);
-    const c = contractNu();
-    const regels = [
-      ...(c ? [{ b: t(`ct.${c}`), zin: c === 'dynamisch' && p.dynamisch ? t('inr.k.uurprijs') : '' }] : []),
-      ...(p.stroom != null ? [{ b: t('inr.k.stroom', { prijs: geld(p.stroom) }), zin: p.stroomDal != null ? t('inr.k.dal', { prijs: geld(p.stroomDal) }) : '' }] : []),
-      ...(p.gas != null ? [{ b: t('inr.k.gasPrijs', { prijs: geld(p.gas) }), zin: '' }] : []),
-      ...(p.vanaf2027?.vergoeding != null ? [{ b: t('inr.terug2027'), zin: t('inr.k.terug', { krijgt: geld(p.vanaf2027.vergoeding), betaalt: geld(p.vanaf2027.kosten ?? 0) }) }] : []),
-    ];
-    return voorstel('prijzen', { kop: t('inr.k.prijzenKop'), zin: t('inr.k.prijzenZin'), regels });
-  }
-  return { ...prijzenStap(), waar: waarVan('prijzen') };
+  // Een voorstel uit wat er al is, ook uit Home Assistant (het dashboard Energie); Ja bewaart het. Zonder prijs: Invullen.
+  const p = energieNu()?.prijzen ?? {};
+  const geld = (x) => taal.geld(x, 2);
+  const c = contractNu();
+  const regels = [
+    ...(c ? [{ b: t(`ct.${c}`), zin: c === 'dynamisch' && p.dynamisch ? t('inr.k.uurprijs') : '' }] : []),
+    ...(p.stroom != null ? [{ b: t('inr.k.stroom', { prijs: geld(p.stroom) }), zin: p.stroomDal != null ? t('inr.k.dal', { prijs: geld(p.stroomDal) }) : '' }] : []),
+    ...(p.gas != null ? [{ b: t('inr.k.gasPrijs', { prijs: geld(p.gas) }), zin: '' }] : []),
+    ...(p.vanaf2027?.vergoeding != null ? [{ b: t('inr.terug2027'), zin: t('inr.k.terug', { krijgt: geld(p.vanaf2027.vergoeding), betaalt: geld(p.vanaf2027.kosten ?? 0) }) }] : []),
+  ];
+  const mist = p.stroom == null && !p.dynamisch;
+  if (mist) regels.push({ b: t('inr.k.prijzen'), zin: t('inr.k.nogNiet'), mist: true });
+  return voorstel('prijzen', { kop: t('inr.k.prijzenKop'), regels, mist });
 }
 
 function verwarmingStap() {
-  if (zonderKlimaat ?? geenKlimaatToestel()) return voorstel('verwarming', { kop: t('inr.k.verwKop'), zin: t('inr.k.verwZin'), regels: [{ b: t('inr.k.geenKlimaat'), zin: t('inr.k.geenKlimaatZin') }] });
+  if (geenKlimaatToestel()) return voorstel('verwarming', { kop: t('inr.k.verwKop'), regels: [{ b: t('inr.k.geenKlimaat'), zin: t('inr.k.geenKlimaatZin') }] });
   const a = antwoorden();
   const c = concept();
   const ketel = huismodel.cvThermostaat(d.huis, a.verwarming);
@@ -118,24 +127,22 @@ function verwarmingStap() {
     if (wie.length) doen.push({ b: r.naam, zin: wie.map(([x, rol]) => t(`inr.k.rol.${rol}`, { naam: x.naam })).join(', ') });
     else niet.push(r.naam);
   }
-  const soort = a.verwarming.soort && a.verwarming.soort !== 'weetniet' ? a.verwarming.soort : null;
+  const soort = soortNu();
   const regels = [
     soort ? { b: t(`energie.bron.${soort}`), zin: ketel ? t('inr.k.ketel', { naam: ketel.naam }) : '' } : { b: t('energie.verwarming'), zin: t('inr.k.nogNiet'), mist: true },
     ...doen,
   ];
-  return voorstel('verwarming', { kop: t('inr.k.verwKop'), zin: t('inr.k.verwZin'), regels, mist: !soort && !doen.length, noot: niet.length ? t('inr.k.nietMee', { kamers: lijstje(niet) }) : '', aanpassen: t('inr.k.perKamer') });
+  return voorstel('verwarming', { kop: t('inr.k.verwKop'), regels, mist: !soort && !doen.length, noot: niet.length ? t('inr.k.nietMee', { kamers: lijstje(niet) }) : '', aanpassen: t('inr.k.perKamer') });
 }
 
 function bewonersHoofd() {
   const lijst = d.bewoners?.bewoners ?? [];
-  if (aanpas !== 'bewoners' && lijst.length) {
-    const regels = lijst.map((x) => {
-      const bron = x.gekoppeld ? x.aanwezigheidNaam : (x.kiesbaar ?? []).find((y) => y.id === x.aanwezigheid)?.naam;
-      return { b: `${x.naam}${x.ik ? t('toegang.jij') : ''}`, zin: bron ? t('inr.thuisMet', { naam: bron }) : t('inr.k.geenLocatie') };
-    });
-    return voorstel('bewoners', { kop: t('inr.k.bewKop'), zin: t('inr.k.bewZin'), regels });
-  }
-  return { ...bewonersStap(), waar: waarVan('bewoners') };
+  const regels = lijst.map((x) => {
+    const bron = x.gekoppeld ? x.aanwezigheidNaam : (x.kiesbaar ?? []).find((y) => y.id === x.aanwezigheid)?.naam;
+    return { b: `${x.naam}${x.ik ? t('toegang.jij') : ''}`, zin: bron ? t('inr.thuisMet', { naam: bron }) : t('inr.k.geenLocatie') };
+  });
+  if (!lijst.length) regels.push({ b: t('inr.k.bewoners'), zin: t('inr.k.nogNiet'), mist: true });
+  return voorstel('bewoners', { kop: t('inr.k.bewKop'), zin: t('inr.k.bewZin'), regels, mist: !lijst.length });
 }
 
 /*
@@ -180,15 +187,6 @@ function klaarStap() {
  * blijft de stap staan en zegt de melding waarom.
  */
 const BEVESTIG = {
-  // Je dag en Hoe warm: Volgende bewaart wat er staat, ook als je niets verzette.
-  async dag() {
-    if (!d.comfort?.kamers?.length || d.comfort.kamers.some((k) => k.uitApp)) return true;
-    return bewaarKamers(new Map(), dagNu());
-  },
-  async comfort() {
-    if (!d.comfort?.kamers?.length || d.comfort.kamers.some((k) => k.uitApp)) return true;
-    return bewaarKamers(new Map());
-  },
   async woning() {
     const next = concept();
     if (!next || d.ind?.indeling?.woning) return true;
@@ -206,18 +204,6 @@ const BEVESTIG = {
     for (const k of next.kamers.filter((x) => x.etage === 'buiten' && !x.buiten)) {
       const b = buitenNu(k);
       k.buiten = { soort: b.soort, auto: !!b.auto, tuinhuis: !!b.tuinhuis };
-      anders = true;
-    }
-    return !anders || bewaarIndeling(next);
-  },
-  async apparaten() {
-    const next = concept();
-    if (!next) return true;
-    let anders = false;
-    for (const el of document.querySelectorAll(`${app.zicht()} [data-plek]`)) {
-      if (!el.value) continue;
-      if (el.value === '-') next.verborgen = [...new Set([...(next.verborgen ?? []), el.dataset.plek])];
-      else next.apparaten[el.dataset.plek] = { ...(next.apparaten[el.dataset.plek] ?? {}), kamer: el.value, zone: null };
       anders = true;
     }
     return !anders || bewaarIndeling(next);
@@ -241,8 +227,5 @@ const BEVESTIG = {
     const uit = await stuur('api/energie', { ...v, bron: v.bron ?? 'zelf' });
     if (uit) d.energie = { ...d.energie, instellingen: uit };
     return !!uit;
-  },
-  async functies() {
-    return d.functies?.instellingen != null || !d.functies || bewaarFuncties(functiesNu());
   },
 };

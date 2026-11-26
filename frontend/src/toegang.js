@@ -276,7 +276,7 @@ async function bewaarOpApparaat(url) {
 async function stuurGegevens(pad, body) {
   const r = await fetch(pad, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   const uit = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(uit.fout ? uit.fout.charAt(0).toUpperCase() + uit.fout.slice(1) : t('toegang.lukteNiet'));
+  if (!r.ok) throw new Error(uit.fout ? uit.fout.charAt(0).toUpperCase() + uit.fout.slice(1) : t('w.datLukteNiet'));
   return uit;
 }
 

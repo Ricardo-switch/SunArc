@@ -2,10 +2,11 @@
  * Inrichten in zeven stappen (besluit 323, schets Wand-Inrichten-Kort): je
  * huis, meter en zekering, panelen, prijzen, verwarming, wie woont hier, en
  * klaar. Elke stap is een voorstel uit wat Home Assistant al weet, met "Klopt
- * dit?": één tik als het goed is. Achter Aanpassen staan de schermen van eerst
- * (hieronder), als delen van die stap. Wat er niet meer in zit (je dag,
- * comfort, afwezig, op zon, licht, de wand, de stem) opent nog met een link;
- * de standpagina biedt het aan (besluit 322). SunArc begint met een basis
+ * dit?": één tik als het goed is. Aanpassen opent de pagina bij Instellingen
+ * waar het ook later staat (besluit 352), met de balk terug naar deze stap;
+ * alleen Wat elk apparaat kan staat nergens anders en is hier een eigen deel.
+ * Wat er niet meer in zit (je dag, comfort, afwezig, op zon, licht, de wand, de
+ * stem) biedt de standpagina aan (besluit 322). SunArc begint met een basis
  * (besluit 312).
  *
  * Van eerst: Inrichten in één keer (besluit 139, 144 en 190, schets Wand-Inrichten-3).
@@ -25,7 +26,7 @@
  */
 'use strict';
 /* global antwoorden, kanOpen, kanToestellen, kanVraagOpen, teken */
-/* exported $$, HOOFD, IK, S, STAPPEN, bewaarIndeling, binnen, buitenRuimtes, concept, d, delenVan, deur, energieNu, esc, gedaan, geenKlimaat, haal, hoofdVan, idVan, klimaatIn, knop, laad, lijst, lijstje, markeer, melding, model, naar, nl, regel, rij, schakel, schakelaar, sleutel, stapGedaan, stapNagelopen, stapNu, stuur, tekenWelkom, tellingen, tip, verder, volgende, vorige, waarVan, welkom, zeg */
+/* exported $$, HOOFD, STAPPEN, bewaarIndeling, binnen, buitenRuimtes, concept, d, delenVan, deur, energieNu, esc, haal, hoofdVan, klimaatIn, knop, laad, lijst, lijstje, markeer, melding, model, naar, nl, regel, rij, sleutel, stapGedaan, stapNagelopen, stapNu, stuur, tekenWelkom, tellingen, tip, verder, volgende, vorige, waarVan, welkom, zeg */
 
 const { $$, esc, haal, deur, nl } = app;
 
@@ -54,9 +55,8 @@ setInterval(() => {
 /* ------------------------------------------------------------ de stappen */
 
 /*
- * Zeven stappen (besluit 323, schets Wand-Inrichten-Kort), elk met de delen
- * die Aanpassen opent: de schermen van eerst. Prijzen en Wie woont hier zijn
- * één scherm: het voorstel, of met Aanpassen de vragen.
+ * Zeven stappen (besluit 323, schets Wand-Inrichten-Kort), elk met zijn delen: wat Ja bewaart en wat telt
+ * als ingevuld. Een scherm heeft sinds besluit 352 alleen Wat elk apparaat kan; de rest staat bij Instellingen.
  */
 /** @type {[string, string[]][]} */
 const ZEVEN = [
@@ -69,30 +69,35 @@ const ZEVEN = [
   ['klaar', []],
 ];
 /**
- * De losse schermen van eerst (besluit 350): elk heeft zijn plek bij Instellingen. Een oud adres gaat daarheen,
- * met de balk terug naar Inrichten.
+ * De schermen van eerst (besluit 350 en 352): elk heeft zijn plek bij Instellingen. Een oud adres gaat daarheen,
+ * met de balk terug naar de stap waar het bij hoorde.
  */
-const LOS = { dag: 'comfort.html#dagdelen', comfort: 'comfort.html', afwezig: 'comfort.html#afwezig', opzon: 'energie.html#zon', functies: 'functies.html', account: 'toegang.html#bewoners', wand: 'jij.html#scherm', ha: 'klaarzetten.html', stem: 'functies.html?groep=assistent#stem' };
+const LOS = {
+  dag: 'comfort.html#dagdelen', comfort: 'comfort.html', afwezig: 'comfort.html#afwezig', opzon: 'energie.html#zon', functies: 'functies.html', account: 'toegang.html#bewoners', wand: 'jij.html#scherm', ha: 'klaarzetten.html', stem: 'functies.html?groep=assistent#stem',
+  woning: 'jehuis.html?van=inrichten#bg/vorm', huis: 'jehuis.html?van=inrichten#bg', apparaten: 'jehuis.html?van=inrichten#bg/apparaten', buiten: 'jehuis.html?van=inrichten#buiten',
+  zekering: 'energie.html#aansluiting', vermogen: 'energie.html#meters', zon: 'energie.html#panelen', ligging: 'energie.html#panelen', warmte: 'comfort.html#meten', meten: 'comfort.html#meten',
+};
+const HOOFD = ZEVEN.map(([id]) => id);
+const hoofdVan = (id) => ZEVEN.find(([h, delen]) => h === id || delen.includes(id))?.[0] ?? null;
+const delenVan = (h) => ZEVEN.find(([x]) => x === h)?.[1] ?? [];
 function naarLos() {
-  const doel = LOS[location.hash.slice(1)];
+  const id = location.hash.slice(1);
+  const doel = LOS[id];
   if (!doel) return false;
-  app.onthoudInrichten('app', 'klaar');
+  app.onthoudInrichten('app', hoofdVan(id) ?? 'klaar');
   location.replace(doel);
   return true;
 }
 naarLos();
 addEventListener('hashchange', naarLos);
-const HOOFD = ZEVEN.map(([id]) => id);
 const STAPPEN = ZEVEN.map(([id]) => [id, t(`inr.k.${id}`)]);
-const ALLE = [...new Set(['welkom', ...ZEVEN.flatMap(([id, delen]) => [id, ...delen])])];
-const hoofdVan = (id) => ZEVEN.find(([h, delen]) => h === id || delen.includes(id))?.[0] ?? null;
-const delenVan = (h) => ZEVEN.find(([x]) => x === h)?.[1] ?? [];
-/** "2 van 7 · Meter en zekering"; een deel achter Aanpassen zegt ook welk deel. */
+/** Wat een eigen scherm heeft: het welkom, de zeven, en Wat elk apparaat kan. */
+const ALLE = ['welkom', ...HOOFD, 'apparaat'];
+/** "5 van 7 · Verwarming"; Wat elk apparaat kan zegt ook welk deel. */
 function waarVan(id) {
   const h = hoofdVan(id);
-  if (!h) return t(`inr.stap.${id}`);
   const i = HOOFD.indexOf(h);
-  const deel = id !== h && delenVan(h).length > 1 ? ` · ${t(`inr.stap.${id}`)}` : '';
+  const deel = id !== h ? ` · ${t(`inr.stap.${id}`)}` : '';
   return `${t('inr.k.van', { i: i + 1, n: HOOFD.length })} · ${STAPPEN[i][1]}${deel}`;
 }
 
@@ -167,21 +172,17 @@ function stapNu() {
   return ALLE.includes(h) ? h : 'welkom';
 }
 const naar = (id) => (location.hash = id);
-/** Na een voorstel de volgende stap; na een deel het volgende deel, en na het laatste de volgende stap. Wat los is, gaat naar Klaar. */
+/** Na een voorstel of een deel de volgende stap. */
 function volgende(id) {
   const h = hoofdVan(id);
   if (!h) return id === 'welkom' ? HOOFD[0] : 'klaar';
-  const delen = delenVan(h);
-  const j = delen.indexOf(id);
-  if (id !== h && j < delen.length - 1) return delen[j + 1];
   return HOOFD[Math.min(HOOFD.length - 1, HOOFD.indexOf(h) + 1)];
 }
-/** Terug: het vorige deel, dan het voorstel van de stap, dan de stap ervoor. */
+/** Terug: uit een deel naar het voorstel van de stap, anders de stap ervoor. */
 function vorige(id) {
   const h = hoofdVan(id);
   if (!h) return id === 'welkom' ? 'welkom' : 'klaar';
-  const delen = delenVan(h);
-  if (id !== h) return delen.indexOf(id) > 0 ? delen[delen.indexOf(id) - 1] : h;
+  if (id !== h) return h;
   return HOOFD.indexOf(h) > 0 ? HOOFD[HOOFD.indexOf(h) - 1] : 'welkom';
 }
 /** Nagelopen is een stap als hij zelf, of elk deel ervan, nagelopen is (wie eerst de 23 stappen deed). */
@@ -242,13 +243,6 @@ async function bewaarIndeling(next, tekst = '') {
   return true;
 }
 
-function idVan(naam, bezet) {
-  const basis = naam.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 36) || 'kamer';
-  let id = basis;
-  for (let i = 2; bezet.has(id); i++) id = `${basis}-${i}`;
-  return id;
-}
-
 /* ------------------------------------------------------------ het huis */
 
 /**
@@ -271,11 +265,9 @@ function model(stap) {
       const k = huismodel.kamerModel(r, null);
       if (!na('huis')) k.stil = true;
       if (!na('apparaten')) k.apparaten = [];
-      if (!na('comfort') || groot) k.temp = null;
+      if (!na('klaar') || groot) k.temp = null;
       // Bij Wat elk apparaat kan: de kamer van het apparaat dat open staat.
       if (stap === 'apparaat' && kanToestellen().find(({ a }) => sleutel(a) === kanOpen)?.r.id === r.id) k.gekozen = true;
-      if (stap === 'comfort' && r.zoneId) k.stand = 'goed';
-      // Je dag: bij voorverwarmen gloeien de kamers die meedoen.
       return k;
     },
   });
@@ -300,9 +292,7 @@ function model(stap) {
     buitenunit: na('apparaten') && tek.buitenunit ? { ...tek.buitenunit, aan: false } : null,
     net: true,
     stromen: [],
-    // Hoe ze liggen (besluit 157): op de panelen, zoals de schets.
-    // Met dakvlakken (besluit 254): per vlak zijn letter op het huis, zoals bij Daken en panelen.
-    labels: stap === 'ligging' && d.aans?.daken?.vlakken?.length && a.panelen.ligging !== 'geen' ? dakvlakken.opHetHuis(d.aans.daken, a, tek).labels : stap === 'ligging' && d.aans?.ligging?.nu ? [{ bij: 'panelen', titel: d.aans.ligging.nu.richting, toon: 'zon', regels: [`${Math.round(d.aans.ligging.nu.hellingDeg / 5) * 5}° · ${(d.aans.ligging.nu.peakW / 1000).toLocaleString(taal.locale, { maximumFractionDigits: 1 })} kWp`], dx: -40, dy: -60 }] : [],
+    labels: [],
   };
 }
 
@@ -312,7 +302,6 @@ const knop = (attrs, tekst, aan = false, klasse = '') => `<button type="button" 
 const rij = (kop, inhoud, extra = '') => `<div class="rij"><b>${esc(kop)}</b><div class="chips">${inhoud}</div>${extra}</div>`;
 /** "a, b en c". */
 const lijstje = (xs) => huismodel.opsomming(xs);
-const schakel = (attr, tekst, aan, uit = false) => `<button type="button" class="schakelrij" role="switch" aria-checked="${aan}" ${attr} ${uit ? 'disabled' : ''}><span>${esc(tekst)}</span><i class="schakelaar-teken" aria-hidden="true"></i></button>`;
 
 /*
  * De bouwstenen van Inrichten 3.0 (besluit 190, schets Wand-Inrichten-3): een
@@ -355,8 +344,6 @@ const IK = {
 function regel({ ik: icoon, titel, zin = '', rechts = '', toon = '', klasse = '', attrs = '', onder = '', tag = 'div' }) {
   return `<${tag} ${tag === 'button' ? 'type="button" ' : ''}class="regel ${klasse}" ${attrs}><span class="ik">${S(IK[icoon] ?? IK.huis)}</span><span class="tekst"><b>${esc(titel)}</b>${zin ? `<span>${esc(zin)}</span>` : ''}</span><span class="rechts ${toon}">${rechts}</span>${onder ? `<span class="onder">${onder}</span>` : ''}</${tag}>`;
 }
-/** De schakelaar rechts in een regel. */
-const schakelaar = (attr, naam, aan, uit = false) => `<button type="button" class="schakelaar" role="switch" aria-checked="${aan}" aria-label="${esc(naam)}" ${attr} ${uit ? 'disabled' : ''}></button>`;
 const tip = (tekst) => `<div class="tip">${esc(tekst)}</div>`;
 
 /* Het startscherm (besluit 158): de getallen tikken open tot een lijst. */
@@ -379,31 +366,8 @@ function voorbeeldRegel() {
     </a>`;
 }
 
-function welkom() {
-  if (lijst) return welkomLijst();
-  const n = tellingen();
-  const vak = (soort, getal, tekst) => (soort
-    ? `<button type="button" class="teller" data-lijst="${soort}"><b>${getal}</b><span>${esc(tekst)}</span></button>`
-    : `<div class="teller"><b>${getal}</b><span>${esc(tekst)}</span></div>`);
-  const tellers = [
-    vak('etages', n.etages, t(n.buiten ? 'inr.tel.etagesBuiten' : 'inr.tel.etages', { n: n.etages })),
-    vak('kamers', n.kamers, n.buiten ? t('inr.tel.kamersBuiten', { n: n.kamers, buiten: n.buiten }) : t('inr.tel.kamers', { n: n.kamers })),
-    vak('apparaten', n.apparaten, t('inr.tel.apparaten', { n: n.apparaten })),
-    vak('klimaat', n.klimaat, t('inr.tel.klimaat')),
-    ...(n.panelen ? [vak(null, n.panelen, t('inr.tel.panelen', { n: n.panelen }))] : []),
-    ...(n.cameras ? [vak(null, n.cameras, t('inr.tel.cameras', { n: n.cameras }))] : []),
-  ];
-  return {
-    waar: t('w.welkom'),
-    kop: t('inr.welkomKop'),
-    groot: true,
-    uitleg: t('inr.welkomZin'),
-    inhoud: d.huis
-      ? `<div class="tellen">${tellers.join('')}</div>${tip(t('inr.welkomNoot'))}`
-      : `<p class="zacht">${esc(t('inr.huisLezen'))}</p>`,
-    voet: ['', `<a class="knop knop-licht" href="#jehuis">${esc(t('inr.begin'))}</a>`],
-  };
-}
+/** Het welkom als kaart: alleen nog de lijst achter een getal; anders staat het grote welkom er. */
+const welkom = () => welkomLijst();
 /*
  * Groot welkom (besluit 200, schets Wand-Inrichten-Welkom): het eerste wat een
  * nieuwe bewoner ziet, over het hele scherm en nog zonder de stappen; die
@@ -449,7 +413,7 @@ function welkomGetallen(n, m, zoveel, klaar) {
   const etages = klaar ? n.etages : Math.min(n.etages, staan.length);
   const kamers = klaar ? n.kamers : staan.reduce((s, e) => s + e.kamers.length, 0);
   return [
-    { soort: 'etages', getal: etages, tekst: t(klaar && n.buiten ? 'inr.tel.etagesBuiten' : 'inr.tel.etages', { n: etages }) },
+    { soort: 'etages', getal: etages, tekst: t('inr.tel.etages', { n: etages }) },
     { soort: 'kamers', getal: kamers, tekst: klaar && n.buiten ? t('inr.tel.kamersBuiten', { n: kamers, buiten: n.buiten }) : t('inr.tel.kamers', { n: kamers }) },
     klaar && { soort: 'apparaten', getal: n.apparaten, tekst: t('inr.tel.apparaten', { n: n.apparaten }) },
     klaar && n.klimaat > 0 && { soort: 'klimaat', getal: n.klimaat, tekst: t('inr.tel.klimaat') },
@@ -584,7 +548,7 @@ function welkomLijst() {
   let rijen;
   if (lijst === 'etages' || lijst === 'kamers') {
     kop = lijst === 'etages' ? t('instellingen.etages', { n: n.etages }) : t('instellingen.kamers', { n: n.kamers });
-    uitleg = t('inr.lijst.kamers');
+    uitleg = '';
     rijen = perEtage.map((e) => rij(e.naam, (e.ruimtes ?? []).map((r) => `<span class="chip stil">${esc(r.naam)}</span>`).join('')));
   } else if (lijst === 'apparaten') {
     kop = t('w.apparaten', { n: n.apparaten });
@@ -601,7 +565,7 @@ function welkomLijst() {
     kop,
     uitleg,
     inhoud: `<div class="rijen">${rijen.join('') || `<p class="zacht">${esc(t('inr.nietsGevonden'))}</p>`}</div>`,
-    voet: [`<button type="button" class="zachtknop" data-lijst="">${esc(t('w.terug'))}</button>`, `<a class="knop knop-licht" href="#woning">${esc(t('inr.begin'))}</a>`],
+    voet: [`<button type="button" class="zachtknop" data-lijst="">${esc(t('w.terug'))}</button>`, `<a class="knop knop-licht" href="#jehuis">${esc(t('inr.begin'))}</a>`],
   };
 }
 

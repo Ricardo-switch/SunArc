@@ -112,8 +112,8 @@ describe('salderen alleen bij gegevens tot 2027 (besluit 334)', () => {
  * na een dubbele punt krijgen een plafond dat alleen omlaag mag: wie er een weghaalt, zet het getal lager.
  */
 const BEWONER_ZEGT = new Set(['voorbeeld.terug', 'melden.soort.snap', 'hulp.snap', 'inr.wk.backup', 'begin.backup', 'welkom.ikWoon', 'witgoed.hoeKlaarzetten', 'daken.achter.nakijken', 'daken.kk.ja']);
-const PUNTKOMMA = 106;
-const DUBBELE_PUNT = 168;
+const PUNTKOMMA = 97;
+const DUBBELE_PUNT = 162;
 
 describe('de toon van de teksten (besluit 350)', async () => {
   const bron = await readFile(new URL('../../frontend/kit/teksten.nl.js', import.meta.url), 'utf-8');

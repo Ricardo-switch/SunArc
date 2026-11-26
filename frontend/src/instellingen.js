@@ -111,7 +111,7 @@ function knoppenVan(id) {
         [t('inst4.bewoners'), namen, 'toegang.html#bewoners'],
         [t('groep.assistent'), f ? t(f.praten?.taalmodel ? 'functies.deel.eigen' : 'functies.deel.vast') : laden, 'functies.html?groep=assistent'],
         [t('inst4.licht'), f ? t('inst4.weer', { weer: weer.replace(' (via internet)', '') }) : laden, 'functies.html'],
-        [t('inst4.meldingen'), f ? t('inst4.meldingenZin') : laden, 'functies.html#meldingen'],
+        // Meldingen staat bij Extra's, en niet nog eens los op de tegel (besluit 352).
         // Inrichten staat hier niet meer (besluit 323): de standpagina biedt het aan, en Klaarzetten staat bij Kan er nog bij (besluit 322).
         [t('inst4.versie'), d.health?.versie?.nummer ?? laden, 'toegang.html#versie'],
       ];

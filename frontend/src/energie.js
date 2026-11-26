@@ -284,7 +284,7 @@ function metersVorm() {
     ? blok(t('energie.uitHA'), `<p class="uitleg">${esc(t('energie.inDashboard', { lijst: lijst ?? t('energie.geenMeters') }))}</p><button type="button" class="knop" data-overnemen style="align-self: start">${esc(t('energie.overnemen'))}</button>`)
     : blok(t('energie.uitHA'), `<p class="uitleg">${esc(eInfo.fout ?? t('energie.geenDashboard'))}</p>`);
   const rijen = e.apparaten.map((x, i) => `<div class="regelrij"><div class="l"><input class="invoer" data-apparaatnaam="${i}" value="${esc(x.naam)}" maxlength="40" aria-label="${esc(t('energie.naamVan', { naam: naamVan(x.id) }))}"><span>${esc(naamVan(x.id))}</span></div><button type="button" class="knop" data-apparaat-weg="${i}" aria-label="${esc(t('w.weghalen2', { naam: x.naam }))}">${esc(t('energie.weg'))}</button></div>`).join('');
-  const apparatenBlok = blok(t('energie.eigenMeter'), `${rijen || `<p class="uitleg">${esc(t('energie.nogGeenApparaat'))}</p>`}${meterKeuze(t('energie.apparaatErbij'), 'apparaat', 'apparaat', 'energy', t('energie.apparaatErbijLeeg'))}`);
+  const apparatenBlok = blok(t('energie.eigenMeter'), `${rijen || `<p class="uitleg">${esc(t('energie.nogGeenApparaat'))}</p>`}${meterKeuze(t('energie.apparaatErbij'), 'apparaat', 'apparaat', 'energy', t('energie.apparaatErbij'))}`);
   return `${kop(t('energie.meters'))}
     ${e.net.afname.length ? '' : `<div class="melding"><span class="stip" style="background: var(--gloed)"></span>${esc(t('stand.metersZin'))}</div>`}
     ${drieKolommen(

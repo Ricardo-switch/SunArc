@@ -90,6 +90,9 @@ verwijzing bestaat.
   regelt een thermostaat, en is het percentage in de waaier het ene getal voor
   hoe ver je huis is. Inrichten heeft geen losse schermen meer, en een test
   bewaakt de toon ([350]).
+  Sinds 0.249.0 opent Aanpassen in Inrichten de pagina waar het later ook
+  staat, met de balk terug; alleen Wat elk apparaat kan is nog een eigen deel.
+  Elke tekst staat één keer per taal, 4.499 in plaats van 5.336 ([352]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste); de
   nieuwe versie komt rond 10 januari, los van de overstap van de regeling, en
   beta bevriest op 31 december ([347]). Daarna hooguit één versie per week.
@@ -1154,4 +1157,5 @@ verwijzing bestaat.
 [349]: DECISIONS.md#349-thuis-lichter-en-de-telefoon-makkelijker-te-raken
 [350]: DECISIONS.md#350-dunner-paginas-heten-zoals-hun-regel-en-één-getal-voor-hoe-ver-je-huis-is
 [351]: DECISIONS.md#351-gasten-met-alleen-een-tracker-en-wie-wat-mag
+[352]: DECISIONS.md#352-korter-aanpassen-opent-de-pagina-en-elke-tekst-één-keer
 <!-- links:einde -->

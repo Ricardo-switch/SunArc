@@ -24,8 +24,7 @@ const klok = (ms) => new Date(ms).toLocaleTimeString(taal.locale, { hour: '2-dig
 /** Een tekst als hij er is, anders de code zelf (een nieuwe code die nog geen woord heeft). */
 const woord = (sleutel, code) => {
   // Zonder waarschuwing: een code die de kern later bedenkt, staat dan gewoon als code.
-  const teksten = /** @type {any} */ (window).TALEN ?? {};
-  return teksten[taal.code]?.[sleutel] != null || teksten.nl?.[sleutel] != null ? t(sleutel) : code;
+  return taal.heeft(sleutel) ? t(sleutel) : code;
 };
 
 let snap = null;

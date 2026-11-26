@@ -34,7 +34,7 @@ const ICOON_SCHERM = iconen.svg('wand');
 async function stuur(body) {
   const res = await fetch('api/bewoners', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.fout ?? t('toegang.lukteNiet'));
+  if (!res.ok) throw new Error(data.fout ?? t('w.datLukteNiet'));
   bewoners = data;
   return data;
 }

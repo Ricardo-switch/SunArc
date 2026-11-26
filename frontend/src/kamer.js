@@ -654,7 +654,7 @@ function screenBlad(k, d) {
  * opgehaald. Kijken vraagt de inlog; zonder staat er de weg ernaartoe.
  */
 function cameraBox(d) {
-  return `<div class="camerabeeld" data-camera="${esc(d.id)}" data-cameranaam="${esc(d.naam)}"><p class="mini">${esc(t('kamer.camera.laden'))}</p></div>`;
+  return `<div class="camerabeeld" data-camera="${esc(d.id)}" data-cameranaam="${esc(d.naam)}"><p class="mini">${esc(t('algemeen.laden'))}</p></div>`;
 }
 
 function cameraBlad(d) {

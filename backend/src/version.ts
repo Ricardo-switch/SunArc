@@ -11,7 +11,7 @@
 
 import { readFileSync } from 'node:fs';
 
-export const VERSIE = '0.248.0';
+export const VERSIE = '0.249.0';
 
 /**
  * Melden staat uit: tot de opknapbeurt van januari klaar is,

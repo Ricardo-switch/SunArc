@@ -130,11 +130,10 @@ function tellers(deel) {
   const binnen = (e) => (e.ruimtes ?? []).filter((r) => !huismodel.isBuiten(e, r));
   const etages = (huisNu.etages ?? []).filter((e) => e.id !== 'buiten' && binnen(e).length).length;
   const ruimtes = (huisNu.etages ?? []).filter((e) => e.id !== 'buiten').reduce((n, e) => n + binnen(e).length, 0);
-  const buiten = (huisNu.etages ?? []).some((e) => (e.ruimtes ?? []).some((r) => huismodel.isBuiten(e, r)));
   const apparaten = (huisNu.etages ?? []).flatMap((e) => e.ruimtes ?? []).reduce((n, r) => n + (r.apparaten?.length ?? 0), 0) + (huisNu.zonderRuimte?.length ?? 0);
   const tel = (n) => Math.round(n * deel);
   return `<span class="bezig"><i aria-hidden="true"></i><span>${esc(t('begin.gevonden'))}</span></span>
-    <span class="tellers"><span><b>${tel(etages)}</b>${esc(t(buiten ? 'inr.tel.etagesBuiten' : 'inr.tel.etages', { n: etages }))}</span><span><b>${tel(ruimtes)}</b>${esc(t('begin.ruimtes', { n: ruimtes }))}</span><span><b>${tel(apparaten)}</b>${esc(t('inr.tel.apparaten', { n: apparaten }))}</span></span>${deel >= 1 ? legeRuimtes() : ''}`;
+    <span class="tellers"><span><b>${tel(etages)}</b>${esc(t('inr.tel.etages', { n: etages }))}</span><span><b>${tel(ruimtes)}</b>${esc(t('begin.ruimtes', { n: ruimtes }))}</span><span><b>${tel(apparaten)}</b>${esc(t('inr.tel.apparaten', { n: apparaten }))}</span></span>${deel >= 1 ? legeRuimtes() : ''}`;
 }
 
 /**
@@ -248,7 +247,7 @@ async function wachtOpHerstart(naar) {
 async function stuur(pad, body) {
   const r = await fetch(pad, { method: 'POST', headers: { 'content-type': 'application/json', 'x-taal': taal.code }, body: JSON.stringify(body) });
   const uit = await r.json().catch(() => ({}));
-  if (!r.ok) throw Object.assign(new Error(uit.reden || uit.fout || t('toegang.lukteNiet')), { problemen: Array.isArray(uit.problemen) ? uit.problemen.filter((p) => typeof p === 'string' && p) : [] });
+  if (!r.ok) throw Object.assign(new Error(uit.reden || uit.fout || t('w.datLukteNiet')), { problemen: Array.isArray(uit.problemen) ? uit.problemen.filter((p) => typeof p === 'string' && p) : [] });
   return uit;
 }
 

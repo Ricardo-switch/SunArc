@@ -230,7 +230,7 @@ const ditScherm = (() => {
     const melders = bewegingsmelders();
     const wanneer = n.nacht && n.weg ? t('functies.uit.beide', { van: n.van, tot: n.tot }) : n.nacht ? t('functies.uit.nacht', { van: n.van, tot: n.tot }) : n.weg ? t('functies.uit.weg') : null;
     const zin = wanneer
-      ? [t('functies.uit.zin', { wanneer, n: n.aanMin }), n.melder ? t('functies.uit.beweging') : null, t('functies.uit.tik')].filter(Boolean).join(' ')
+      ? [t('functies.uit.zin', { wanneer, n: n.aanMin }), n.melder ? t('functies.uit.beweging') : null, t('niemand.uitTik')].filter(Boolean).join(' ')
       : t('functies.uit.nooit');
     // De camera van de wand zelf, via Fully Kiosk, en de melders uit het huis.
     const opties = `<option value="fully" ${n.melder === 'fully' ? 'selected' : ''}>${esc(t('functies.uit.camera'))}</option>${melders.map((m) => `<option value="${esc(m.id)}" ${m.id === n.melder ? 'selected' : ''}>${esc(t('functies.uit.melder', { kamer: m.kamer, naam: m.naam }))}</option>`).join('')}`;

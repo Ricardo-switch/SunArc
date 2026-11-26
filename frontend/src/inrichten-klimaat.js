@@ -3,8 +3,8 @@
  * inrichten-huis.js laadt en zijn bovenste namen deelt met de andere delen van de pagina.
  */
 'use strict';
-/* global bewaarAansluiting, binnen, concept, d, dakVoorstelStap, energieNu, esc, klimaatIn, knop, lijstje, nl, rolKnoppen, rolVan, sleutel, stuur, teken, waarVan */
-/* exported antwoorden, bewaarKamers, bewaarKort, dagKeuze, dagNu, kanBereik, kanOpen, kanStap, kanToestellen, kanVraagOpen, ligStaat, liggingStap, standaard, zonStap */
+/* global binnen, concept, d, esc, klimaatIn, knop, lijstje, nl, rolKnoppen, rolVan, sleutel, waarVan */
+/* exported antwoorden, kanBereik, kanOpen, kanStap, kanToestellen, kanVraagOpen */
 
 /*
  * Wat elk apparaat kan (besluit 197, schets Wand-Inrichten-Klimaat): per
@@ -21,8 +21,6 @@ const BEREIK = [4, 35];
 const IR = new Set(['smartir', 'broadlink', 'ir', 'irblaster', 'tuya_ir']);
 const KOPPELING = { lg_thinq: 'LG ThinQ', smartthinq_sensors: 'SmartThinQ', nest: 'Google Nest', zha: 'ZHA', mqtt: 'Zigbee2MQTT', tuya: 'Tuya', smartir: t('inr.kan.ir'), broadlink: t('inr.kan.ir'), daikin: 'Daikin', midea_ac_lan: 'Midea', tado: 'tado°', netatmo: 'Netatmo', honeywell: 'Honeywell', generic_thermostat: t('inr.kan.generiek') };
 const koppelingNaam = (k) => (k ? KOPPELING[k] ?? k : t('inr.kan.onbekend'));
-/** De tip per koppeling; de LG's staan er vaak twee keer in. */
-const TIP = { lg_thinq: 'lg', smartthinq_sensors: 'lg', nest: 'nest', tuya: 'tuya', smartir: 'ir', broadlink: 'ir' };
 let kanOpen = null;
 const kanToestellen = () => binnen().flatMap((r) => klimaatIn(r).map((a) => ({ a, r })));
 const kanKeus = (a) => concept()?.apparaten?.[sleutel(a)] ?? {};
@@ -70,11 +68,11 @@ function kanVan(a, r) {
   if (!airco && (h.standen ?? []).includes('heat_cool') && !(h.standen ?? []).includes('cool')) punt('om', t('inr.kan.ookKoelen'), t('inr.kan.ookKoelenZin'));
   // Zegt hij wat hij doet?
   if (ir) punt('nee', t('inr.kan.irNiets'), t('inr.kan.irNietsZin'));
-  else if (h.zegtActie) punt('ok', t('inr.kan.zegt'), k.actie ? t('inr.kan.zegtNu', { actie: k.actie }) : t('inr.kan.zegtZin'));
+  else if (h.zegtActie) punt('ok', t('inr.kan.zegt'), k.actie ? t('inr.kan.zegtNu', { actie: k.actie }) : '');
   else if (meter) punt('om', t('inr.kan.zegtNiet'), t('inr.kan.zegtNietMeter'));
   else punt('om', airco ? t('inr.kan.zegtNiet') : t('inr.kan.stooktNiet'), t('inr.kan.zegtNietTemp'));
   // De stroom.
-  if (meter) punt('ok', t('inr.kan.meter'), k.vermogenW != null ? t('inr.kan.meterNu', { w: Math.round(k.vermogenW) }) : t('inr.kan.meterZin'));
+  if (meter) punt('ok', t('inr.kan.meter'), k.vermogenW != null ? t('inr.kan.zegtNu', { actie: `${Math.round(k.vermogenW)} W` }) : '');
   else if (a.radiatorknop || warmte === 'cv' || isKetel(a)) punt('nee', t('inr.kan.meterNiet'), t('inr.kan.meterNietCv'));
   else if (airco) punt('om', t('inr.kan.geenMeter'), t('inr.kan.geenMeterAirco'));
   else if (warmte === 'elektrisch') punt('om', t('inr.kan.geenMeter'), t('inr.kan.geenMeterElektrisch'));
@@ -83,28 +81,26 @@ function kanVan(a, r) {
   if (a.batterijPct != null) punt(app.bijnaOp(a.batterijPct, 'batterij', d.huis) ? 'om' : 'ok', t('inr.kan.batterij'), t('inr.kan.batterijZin', { pct: Math.round(a.batterijPct) }));
   // Meet hij de kamer?
   const temp = a.meting?.temperatuurC;
-  if (temp == null) punt('om', t('inr.kan.meetNiet'), t('inr.kan.meetNietZin', { kamer: r.naam }), `<div class="chips"><a class="chip" href="#meten">${esc(t('inr.kan.naarMeten'))}</a></div>`);
+  if (temp == null) punt('om', t('inr.kan.meetNiet'), t('inr.kan.meetNietZin', { kamer: r.naam }), `<div class="chips"><a class="chip" href="comfort.html#meten">${esc(t('inr.kan.naarMeten'))}</a></div>`);
   else if (a.radiatorknop) punt('om', t('inr.kan.meetRadiator'), t('inr.kan.meetRadiatorZin', { c: graden(temp) }));
-  else punt('ok', t('inr.kan.meet'), t('inr.kan.meetZin', { c: graden(temp) }));
+  else punt('ok', t('inr.kan.meet'), t('inr.kan.zegtNu', { actie: `${graden(temp)}°` }));
   // Wat verwarmt hij? Alleen als hij het niet zegt.
   if (vraagtWarmte(a)) {
     const chips = ['cv', 'elektrisch', 'weetniet'].map((w) => knop(`data-kan-warmte="${esc(sleutel(a))}" data-waarde="${w}"`, t(`inr.kan.warmte.${w}`), warmte === w)).join('');
     punt(warmte ? 'ok' : 'vraag', t('inr.kan.watWarmt'), t('inr.kan.watWarmtZin'), `<div class="chips">${chips}</div>`);
   }
-  // De tip: een tweede koppeling, of wat bij deze koppeling hoort.
-  const tweede = h.tweede ? t('inr.kan.tweemaal', { een: koppelingNaam(h.koppeling), twee: koppelingNaam(h.tweede.koppeling) }) : '';
-  const soort = ir ? 'ir' : a.radiatorknop ? 'knop' : TIP[h.koppeling] ?? null;
-  const weet = [tweede, soort ? t(`inr.kan.tip.${soort}`) : ''].filter(Boolean).join(' ');
+  // Goed om te weten: hij staat er twee keer in (de LG's vaak).
+  const weet = h.tweede ? t('inr.kan.tweemaal', { een: koppelingNaam(h.koppeling), twee: koppelingNaam(h.tweede.koppeling) }) : '';
   const omwegen = p.filter((x) => x.soort === 'om').length;
   const vragen = p.filter((x) => x.soort === 'vraag').length;
   const rol = rolVan(concept()?.kamers.find((x) => x.id === r.id), r, sleutel(a));
-  const stand = ir ? ['beperkt', t('inr.kan.st.ir')] : vragen ? ['om', t(vragen === 1 ? 'inr.kan.st.vraag' : 'inr.kan.st.vragen', { n: vragen })] : rol === 'kijken' ? ['mee', t('inr.kan.st.mee')] : omwegen ? ['ok', t(omwegen === 1 ? 'inr.kan.st.omweg' : 'inr.kan.st.omwegen', { n: omwegen })] : ['ok', t('inr.kan.st.helemaal')];
+  const stand = ir ? ['beperkt', t('inr.kan.irNiets')] : vragen ? ['om', t('inr.kan.st.vragen', { n: vragen })] : rol === 'kijken' ? ['mee', t('inr.kan.st.mee')] : omwegen ? ['ok', t('inr.kan.st.omwegen', { n: omwegen })] : ['ok', t('inr.kan.st.helemaal')];
   return { punten: p, weet, stand, rol, ir, vragen };
 }
 
 function kanStap() {
   const lijst = kanToestellen();
-  if (!lijst.length) return { waar: waarVan('apparaat'), kop: t('inr.kan.kop'), uitleg: t('inr.kan.zin'), inhoud: `<p class="zacht">${esc(t('inr.kan.geen'))}</p>` };
+  if (!lijst.length) return { waar: waarVan('apparaat'), kop: t('inr.kan.kop'), inhoud: `<p class="zacht">${esc(t('inr.kan.geen'))}</p>` };
   if (!lijst.some((x) => sleutel(x.a) === kanOpen)) kanOpen = sleutel(lijst[0].a);
   const al = lijst.map((x) => ({ ...x, kan: kanVan(x.a, x.r) }));
   const los = ({ a, r, kan }) => {
@@ -131,32 +127,16 @@ function kanStap() {
     tel((x) => x.kan.ir) ? t('inr.kan.samen.ir', { n: tel((x) => x.kan.ir) }) : '',
   ].filter(Boolean);
   const samen = `${t('inr.kan.samen.n', { n: al.length })} ${lijstje(delen)}.`;
-  const lijstHtml = `<div class="klijst">${al.map(rij).join('')}<button type="button" class="kmist" data-kan-mist>${esc(t('inr.kan.mist'))}</button><p class="ksamen">${esc(samen)}</p></div>`;
+  const lijstHtml = `<div class="klijst">${al.map(rij).join('')}<a class="kmist" href="jehuis.html#bg/apparaten">${esc(t('inr.kan.mist'))}</a><p class="ksamen">${esc(samen)}</p></div>`;
   const open = al.find((x) => sleutel(x.a) === kanOpen);
   return {
     waar: waarVan('apparaat'),
     kop: t('inr.kan.kop'),
-    uitleg: t('inr.kan.zin'),
     inhoud: app.telStand() ? lijstHtml : `<div class="kanstap">${lijstHtml}${open ? los(open) : ''}</div>`,
   };
 }
 
-/** De standaard voor een nieuw huis (besluit 204), zoals de dienst hem geeft. */
-const standaard = () => d.comfort?.standaard ?? { warm: { dag: 20, nacht: 16, afwezig: 15, vakantie: 12 }, koel: { dag: 25, nacht: 25, afwezig: 27, vakantie: 28 }, dagdelen: { voorverwarmen: 6, dag: 7, nacht: 22 } };
-/** Je dag: de dagdelen zoals ze bewaard worden (het voorstel neemt ze mee). */
-let dagKeuze = null;
-const dagNu = () => dagKeuze ?? { ...standaard().dagdelen, ...(d.comfort?.dagdelen ?? {}) };
-/** Bewaar comfort: de kamers die veranderden, en de rest zoals ze zijn; met de dagdelen. */
-async function bewaarKamers(nieuw, dagdelen = null) {
-  const kamers = Object.fromEntries(d.comfort.kamers.map((k) => [k.id, { modi: nieuw.get(k.id) ?? k.modi, nooitWarmerC: k.nooitWarmerC, voorrang: k.voorrang, opZonC: k.opZonC }]));
-  const body = { kamers, dagdelen: { ...standaard().dagdelen, ...(d.comfort.dagdelen ?? {}), ...(dagdelen ?? {}) }, ...(d.comfort.voorrang ? { voorrang: { koelen: d.comfort.voorrang.koelen, verwarmen: d.comfort.voorrang.verwarmen } } : {}) };
-  const uit = await stuur('api/comfort', body);
-  if (uit) d.comfort = uit;
-  teken();
-  return !!uit;
-}
-
-/* De panelen (besluit 158): eerst of ze er zijn, dan de kant van het dak, dan hoeveel. */
+/** De antwoorden van Energie en Klimaat (api/aansluiting), met wat er nog niet is als null. */
 function antwoorden() {
   const x = d.aans?.antwoorden;
   return {
@@ -172,98 +152,5 @@ function antwoorden() {
     opZonUit: [...(x?.opZonUit ?? [])],
     // Panelen op de garage, carport of het tuinhuis (besluit 187): gaan mee, anders vallen ze weg.
     elders: { ...(x?.elders ?? {}) },
-  };
-}
-/** Een plaatje per plek, zoals de schets Wand-Inrichten-Daken. */
-const KORT_BEELD = {
-  hoofddak: '<path d="M4 22 22 8l18 14"/><path d="M8 19v13h28V19"/><path d="M26 13l8 6" stroke-width="4" stroke="#4d7eac"/>',
-  uitbouw: '<path d="M4 18 16 8l12 10v14H4z"/><path d="M28 22h12v10H28z"/><path d="M29 21h10" stroke-width="3" stroke="#4d7eac"/>',
-  garage: '<path d="M5 14h34v18H5z"/><path d="M11 32V21h22v11"/><path d="M8 13h28" stroke-width="3" stroke="#4d7eac"/>',
-  grond: '<path d="M4 32h36"/><path d="M8 30 20 16h16L24 30" fill="#4d7eac" stroke="#9cc0e4"/>',
-  carport: '<path d="M5 12h34M8 12v20M36 12v20"/><path d="M7 10h30" stroke-width="3" stroke="#4d7eac"/>',
-  tuinhuis: '<path d="M8 18l14-9 14 9v14H8z"/><path d="M19 32v-8h6v8"/><path d="M24 12l9 6" stroke-width="3" stroke="#4d7eac"/>',
-  gevel: '<path d="M8 6h20v26H8z"/><path d="M28 14l8 3v10l-8-3z" fill="#4d7eac" stroke="#9cc0e4"/>',
-};
-/** Een teller: − het aantal + (het aantal is ook in te typen, voor 48 panelen). */
-const teller = (attr, n, naam) => `<span class="kp-teller"><button type="button" ${attr} data-kort-stap="-1" aria-label="${esc(t('inr.dak.minder', { naam }))}">−</button><input inputmode="numeric" ${attr} value="${n}" aria-label="${esc(t('inr.dak.aantalVan', { naam }))}"><button type="button" ${attr} data-kort-stap="1" aria-label="${esc(t('inr.dak.meer', { naam }))}">+</button></span>`;
-
-/*
- * De korte stap (besluit 254, stap 3; schets Wand-Inrichten-Daken): alleen
- * waar panelen liggen en hoeveel. Elke plek wordt een vlak bij Daken en
- * panelen; richting en helling zoekt SunArc daarna op in wat ze leveren.
- */
-function zonStap() {
-  const a = antwoorden();
-  const dk = d.aans?.daken ?? null;
-  // Ook wat SunArc al afleidt (de meting, het bestand): dat telt nu al mee.
-  const kort = dakvlakken.kortVan(dk);
-  const piekW = (d.zon?.panelen ?? []).reduce((som, p) => som + (p.wattpiek ?? 0), 0);
-  const meter = (energieNu()?.zon ?? []).length > 0;
-  const geen = a.panelen.ligging === 'geen';
-  // Wat Home Assistant al weet, bij de uitleg (zonder eigen rij: de stap past zo zonder schuiven).
-  const gevonden = piekW > 0 ? ` <span class="chip gevonden">${esc(t('inr.kwpGevonden', { kwp: nl(piekW / 1000) }))}</span>` : meter ? ` <span class="chip gevonden">${esc(t('inr.meterGevonden'))}</span>` : '';
-  const ICOON = (p) => `<svg viewBox="0 0 44 36" fill="none" stroke="#f7b548" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${KORT_BEELD[p]}</svg>`;
-  const meerKanten = kort.kanten >= 2;
-  const plaats = (p) => {
-    const naam = t(p === 'grond' ? 'inr.dak.grond' : `daken.plek.${p}`);
-    const n = kort.aan[p];
-    if (!n) return `<button type="button" class="kp-plaats" data-kort-plek="${p}">${ICOON(p)}<b>${esc(naam)}</b><span class="kp-niet">${esc(t('inr.dak.tikAan'))}</span></button>`;
-    // Bij meer kanten telt het hoofddak per kant, eronder.
-    const onder = p === 'hoofddak' && meerKanten ? `<span class="kp-som">${esc(t('inr.dak.nPanelen', { n }))}</span>` : `${teller(`data-kort-n="${p}"`, n, naam)}`;
-    return `<div class="kp-plaats aan">${ICOON(p)}<b>${esc(naam)}</b>${onder}</div>`;
-  };
-  const hoofd = kort.aan.hoofddak > 0;
-  // Hoeveel kanten weet iedereen, of zoekt het even uit: geen "Weet ik niet" meer.
-  const kantKeuze = String(Math.min(3, Math.max(1, kort.kanten)));
-  const kanten = hoofd
-    ? `<div class="kp-kanten"><b>${esc(t('inr.dak.kantenVraag'))}</b>${[['1', '1'], ['2', '2'], ['3', t('inr.dak.drieOfMeer')]].map(([w, x]) => knop(`data-kort-kanten="${w}"`, x, kantKeuze === w)).join('')}</div>
-      ${meerKanten ?`<div class="kp-perkant">${kort.perKant.map((n, i) => `<label class="kp-kant"><span>${esc(dakvlakken.kantNaam(dk, i))}</span>${teller(`data-kort-kant="${i}"`, n, dakvlakken.kantNaam(dk, i))}</label>`).join('')}</div>` : ''}`
-    : '';
-  return {
-    waar: waarVan('zon'),
-    kop: t('inr.dak.kop'),
-    uitleg: t('inr.dak.zin'),
-    // Geen panelen: een regel onder de plekken; een plek aantikken zet ze weer aan.
-    inhoud: `<div class="kp-plekken">${dakvlakken.KORT_PLEKKEN.map(plaats).join('')}</div>
-      ${geen ? `<p class="kp-geen">${esc(t('inr.dak.geen'))}</p>` : `${kanten}<div class="kp-onder"><button type="button" class="lig-link" data-panelen="geen">${esc(t('daken.geenPanelen'))}</button>${gevonden}</div>`}
-      ${Object.keys(kort.aan).length ? '' : `<div class="kp-tip">${esc(t('inr.dak.tip'))}</div>`}`,
-  };
-}
-
-/** Bewaar de vlakken uit de korte stap, met de oude antwoorden erbij voor het huis en Thuis (zoals Daken en panelen). */
-async function bewaarKort(wijziging) {
-  const dk = d.aans?.daken ?? null;
-  const vlakken = dakvlakken.kortNaar(dk ?? { vlakken: [] }, wijziging);
-  const a = antwoorden();
-  const oud = dakvlakken.oudeAntwoorden(vlakken, dk?.voorgevelDeg ?? null, a.panelen);
-  a.panelen = oud.panelen;
-  a.elders = oud.elders;
-  const gebouwen = dk?.tekening ? dakvlakken.gebouwenUit(dk) : [];
-  const grenzen = d.aans?.antwoorden?.daken?.grenzen;
-  const daken = vlakken.length || gebouwen.length
-    ? { vlakken, voorgevelDeg: dk?.voorgevelDeg ?? null, omvormerW: dk?.omvormerW ?? null, gebouwen, omgeving: dk?.tekening?.omgeving ?? [], ...(grenzen && Object.keys(grenzen).length ? { grenzen } : {}) }
-    : null;
-  await bewaarAansluiting(a, daken);
-}
-
-/*
- * Hoe de panelen liggen (besluit 157, schets Wand-Inrichten-Panelen): de kaart
- * komt uit panelen.js. Onderaan zijn knoppen: Aanpassen en Klopt bij een
- * voorstel, Terug en Bewaar bij aanpassen, en anders Aanpassen naast Volgende.
- */
-const ligStaat = { aanpassen: false, concept: null, na: () => teken() };
-function liggingStap() {
-  // Met dakvlakken (besluit 254, stap 3): het voorstel per vlak, Aanpassen opent Daken en panelen.
-  const dk = d.aans?.daken;
-  if (dk?.vlakken?.length && antwoorden().panelen.ligging !== 'geen') return dakVoorstelStap(dk);
-  // De antwoorden zoals de stap ze kent, ook als er nog niets bewaard is (besluit 166).
-  const k = ligging.kaart(d.aans?.ligging, antwoorden(), ligStaat);
-  const rechts = `<span class="rechts lig-knoppen">${k.knoppen}${k.volgende ? `<button type="button" class="knop knop-licht" data-volgende>${esc(t('inr.volgende'))}</button>` : ''}</span>`;
-  return {
-    waar: waarVan('ligging'),
-    kop: k.kop,
-    uitleg: k.uitleg,
-    inhoud: `<div class="rijen">${k.inhoud}</div>`,
-    voet: [ligStaat.aanpassen ? '' : `<button type="button" class="zachtknop" data-terug>${esc(t('w.terug'))}</button>`, rechts],
   };
 }

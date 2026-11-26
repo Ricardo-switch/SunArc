@@ -142,10 +142,10 @@ function toevoegBlad() {
   return `${kop}
     <p class="klein geen-marge">${esc(t('bewoners.trackerZin'))}</p>
     <div class="vak"><label for="tracker-bron">${esc(t('bewoners.welkeTracker'))}</label><select class="invoer" id="tracker-bron" data-tracker-bron><option value="">${esc(t('bewoners.kiesTracker'))}</option>${opties}</select></div>
-    <div class="vak"><label for="tracker-naam">${esc(t('bewoners.trackerNaam'))}</label><input class="invoer" id="tracker-naam" data-tracker-naam maxlength="40" autocomplete="off"></div>
+    <div class="vak"><label for="tracker-naam">${esc(t('ht.kamer.naam'))}</label><input class="invoer" id="tracker-naam" data-tracker-naam maxlength="40" autocomplete="off"></div>
     <span class="hint">${esc(t('bewoners.trackerHint'))}</span>
     <span class="fout" data-fout></span>
-    <div class="knoppenrij"><button type="button" class="knop knop-licht" data-tracker-erbij>${esc(t('bewoners.voegToe'))}</button></div>`;
+    <div class="knoppenrij"><button type="button" class="knop knop-licht" data-tracker-erbij>${esc(t('w.toevoegen'))}</button></div>`;
 }
 
 /** Een voorstel voor de naam uit de naam in Home Assistant: "Noor aanwezig (wifi)" wordt "Noor". */
@@ -189,7 +189,7 @@ function blad() {
     // Een ingelogde gast die dezelfde is als een gast met alleen een tracker (besluit 351): samen één gast.
     const losse = (data.gasten ?? []).filter((g) => !g.account);
     const samen = data.ik.hoofd && b.account && losse.length
-      ? `<div class="vak"><label for="samen-${esc(b.id)}">${esc(t('bewoners.zelfde'))}</label><div class="samenrij"><select class="invoer" id="samen-${esc(b.id)}" data-samen-met><option value="">${esc(t('bewoners.niemandAnders'))}</option>${losse.map((g) => `<option value="${esc(g.id)}">${esc(g.naam)}</option>`).join('')}</select><button type="button" class="knop" data-samen>${esc(t('bewoners.samenvoegen'))}</button></div><span class="hint">${esc(t('bewoners.samenHint'))}</span></div>`
+      ? `<div class="vak"><label for="samen-${esc(b.id)}">${esc(t('bewoners.zelfde'))}</label><div class="samenrij"><select class="invoer" id="samen-${esc(b.id)}" data-samen-met><option value="">${esc(t('ht.nee'))}</option>${losse.map((g) => `<option value="${esc(g.id)}">${esc(g.naam)}</option>`).join('')}</select><button type="button" class="knop" data-samen>${esc(t('bewoners.samenvoegen'))}</button></div><span class="hint">${esc(t('bewoners.samenHint'))}</span></div>`
       : '';
     const naamVak = `<div class="vak"><label for="naam-${esc(b.id)}">${esc(t('bewoners.noemt.ander', { naam: b.naam }))}</label><input class="invoer" id="naam-${esc(b.id)}" data-naam value="${esc(b.naam)}" maxlength="40" ${data.ik.magBeheren ? '' : 'disabled'}>${b.account ? `<span class="hint">${esc(t('bewoners.inHA', { naam: b.haNaam }))}</span>` : ''}</div>`;
     const zonderAccount = `<div class="vak"><span>${esc(t('bewoners.woontOfGast'))}</span><div class="invoer vast">${esc(t('bewoners.gast'))}</div><span class="hint">${esc(t('bewoners.geenAccount'))}</span></div>`;

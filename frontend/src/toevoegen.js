@@ -486,7 +486,7 @@ async function verbergInIndeling(id, verbergen) {
   if (!res) return;
   if (!res.ok) {
     const uit = await res.json().catch(() => ({}));
-    $$('[data-fout]').forEach((el) => (el.textContent = res.status === 403 ? t('indeling.beheerder') : (uit.fout ?? t('indeling.nietBewaard'))));
+    $$('[data-fout]').forEach((el) => (el.textContent = res.status === 403 ? t('indeling.beheerder') : (uit.fout ?? t('groep.nietBewaard'))));
     return;
   }
   // Weg uit de lijst: het blad gaat dicht, de lijst van de soort blijft.

@@ -376,10 +376,10 @@ function vraag(tk, d) {
     // De straat van het adres onder (ronde 2 versie 2, keuze Ricardo 20 november 2026: met Klopt dit?).
     const v = straatVraag(tk);
     const knop = (doe, tekst, hoofd) => `<button type="button" class="${hoofd ? 'jh-hoofd' : 'jh-zacht'}" data-vraag-doe="${doe}">${esc(t(tekst))}</button>`;
-    const knoppen = v.ja ? `${knop('straat-zelf', 'jehuis.straat.zelf')}${knop(v.ja, 'w.ja', true)}` : `${knop('straat-voor', 'jehuis.straat.laat')}${knop('straat-zelf', 'jehuis.straat.zelf', true)}`;
+    const knoppen = v.ja ? `${knop('straat-zelf', 'jehuis.wn.nee')}${knop(v.ja, 'w.ja', true)}` : `${knop('straat-voor', 'jehuis.straat.laat')}${knop('straat-zelf', 'jehuis.wn.nee', true)}`;
     html = `<span class="jh-vraag-ik">${iconen.svg('oprit')}</span><div class="jh-vraag-tekst"><b>${esc(v.kop)}</b><span>${esc(v.zin)}</span></div><div class="jh-vraag-knoppen">${knoppen}</div>`;
   } else if (opErf && info && twee && !weg.has(`dubbel:${twee.kamer.id}`)) {
-    html = `<span class="jh-vraag-ik">${iconen.svg('tuinhuis')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.dubbel.kop', { naam: twee.kamer.naam }))}</b><span>${esc(t('jehuis.dubbel.zin', { ruimte: twee.van.naam }))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="dubbel-nee">${esc(t('jehuis.dubbel.nee'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="dubbel-ja">${esc(t('jehuis.dubbel.ja'))}</button></div>`;
+    html = `<span class="jh-vraag-ik">${iconen.svg('tuinhuis')}</span><div class="jh-vraag-tekst"><b>${esc(t('jehuis.dubbel.kop', { naam: twee.kamer.naam }))}</b><span>${esc(t('jehuis.dubbel.zin', { ruimte: twee.van.naam }))}</span></div><div class="jh-vraag-knoppen"><button type="button" class="jh-zacht" data-vraag-doe="dubbel-nee">${esc(t('jehuis.straat.laat'))}</button><button type="button" class="jh-hoofd" data-vraag-doe="dubbel-ja">${esc(t('bewoners.samenvoegen'))}</button></div>`;
   }
   el.hidden = !html;
   if (el.innerHTML !== html) el.innerHTML = html;
@@ -395,7 +395,7 @@ function straatVraag(tk) {
   const adres = s.lijst.find((x) => x.adres);
   const twee = s.lijst.length > 1;
   const kant = (x) => t(`jehuis.straat.kant.${x.kant}`);
-  if (adres && adres.kant === 'voor') return { kop: t(twee ? 'jehuis.straat.twee' : 'jehuis.straat.adresKop'), zin: t('jehuis.straat.adresVoor'), ja: 'straat-voor' };
+  if (adres && adres.kant === 'voor') return { kop: t(twee ? 'jehuis.straat.twee' : 'ht.straat.adres'), zin: t('jehuis.straat.adresVoor'), ja: 'straat-voor' };
   if (adres) return { kop: t('jehuis.straat.adresKant', { kant: kant(adres) }), zin: t(s.getekend ? 'jehuis.straat.getekend' : 'jehuis.straat.onder'), ja: s.getekend ? null : `straat-${adres.kant}` };
   if (!twee) return null;
   return { kop: t('jehuis.straat.twee'), zin: t('jehuis.straat.welke'), ja: s.lijst.some((x) => x.kant === 'voor') ? 'straat-voor' : null };
@@ -414,7 +414,7 @@ async function straat(kant) {
     location.reload();
     return;
   }
-  tekenaar.st.gebouwFout = t('ht.gebouw.fout');
+  tekenaar.st.gebouwFout = t('w.datLukteNiet');
   tekenaar.ververs();
 }
 
@@ -638,7 +638,7 @@ async function gebouw(wat) {
     location.reload();
     return;
   }
-  tekenaar.st.gebouwFout = t('ht.gebouw.fout');
+  tekenaar.st.gebouwFout = t('w.datLukteNiet');
   tekenaar.ververs();
 }
 

@@ -336,7 +336,7 @@
     if (weg) return;
     if (!res?.ok) {
       const f = res ? await res.json().catch(() => ({})) : {};
-      global.alert?.(f.fout ?? t('ht.gebouw.fout'));
+      global.alert?.(f.fout ?? t('w.datLukteNiet'));
     }
     await laad();
   }
@@ -346,7 +346,7 @@
     const q = new URLSearchParams({ v: 'vrij', tekst: /^(herinner|remind)/i.test(zin) ? zin : `${nl() ? 'herinner me' : 'remind me'} ${zin}`, taal: global.taal.code });
     const b = await haal(`api/vraag?${q}`).catch(() => null);
     if (b?.opdracht?.pad === 'api/te-doen') await stuur(b.opdracht.body);
-    else global.alert?.(b?.antwoord ?? t('ht.gebouw.fout'));
+    else global.alert?.(b?.antwoord ?? t('w.datLukteNiet'));
   }
 
   /**

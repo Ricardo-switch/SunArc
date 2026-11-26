@@ -556,7 +556,7 @@ function tekenNu() {
   if (!data) {
     const tekst = melding === 'meters'
       ? `<section class="glas kaart"><h2 class="kop-3">${esc(t('opbrengst.eerstMeters'))}</h2><p class="klein geen-marge boven-8 onder-12">${esc(t('opbrengst.metersUitleg'))}</p><a class="pil" href="energie.html#meters">${esc(t('opbrengst.metersInstellen'))}</a></section>`
-      : `<p class="klein">${esc(melding ?? t('kamer.camera.laden'))}</p>`;
+      : `<p class="klein">${esc(melding ?? t('algemeen.laden'))}</p>`;
     $$('[data-titel]').forEach((el) => (el.textContent = melding ? t('nav.opbrengst') : t('algemeen.laden')));
     document.querySelector('[data-links]').innerHTML = tekst + sluipIngang();
     document.querySelector('[data-telinhoud]').innerHTML = tekst + sluipIngang();

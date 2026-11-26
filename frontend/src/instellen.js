@@ -220,7 +220,7 @@
     if (!res) return;
     if (!res.ok) {
       const uit = await res.json().catch(() => ({}));
-      fout = res.status === 403 ? t('indeling.beheerder') : (uit.fout ?? t('indeling.nietBewaard'));
+      fout = res.status === 403 ? t('indeling.beheerder') : (uit.fout ?? t('groep.nietBewaard'));
       return meld();
     }
     fout = '';
