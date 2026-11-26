@@ -1,11 +1,12 @@
 # Wat is er nieuw · What is new
 
-## 0.246.0
+## 0.247.0
 
-*26 november 2026 · 0.179.0 – 0.246.0*
+*26 november 2026 · 0.179.0 – 0.247.0*
 
 **Nieuw**
 
+- Bij Bewoners voeg je iemand toe die alleen een tracker heeft, zonder account in Home Assistant: kies wat ziet of diegene thuis is, en geef een naam. Zo iemand is altijd gast, en telt mee als er iemand thuis is
 - Vraag de assistent of SunArc al regelt, of wat er nog mist. Hij zegt het, met een knop naar Wat je huis kan
 - Vraag wat stroom nu kost: de assistent geeft de prijs van dit moment, ook bij een prijs per uur
 - Instellingen › Licht, camera's en weer › Meldingen: kies per soort wat er in de bel komt, zoals sluipverbruik, de auto, de thuisaccu, de panelen en een nieuwe versie. Wat uit staat, komt ook niet op je telefoon. Rook, een meter die niets levert en wat niet klopt staan altijd aan
@@ -103,6 +104,8 @@
 
 **Beter**
 
+- Bewoners is één lijst: eerst de bewoners op volgorde, dan de gasten en de schermen, en onderaan Iemand toevoegen, met inloggen of alleen een tracker
+- Logt een gast met alleen een tracker later toch in, dan hoort zijn account er vanzelf bij, of voegt de hoofdgebruiker ze samen
 - Elke pagina heet zoals de regel ernaartoe: Licht, camera's en weer heet nu Extra's, en Bewoners en toegang heet Bewoners en inloggen
 - De soort verwarming staat nu bij Klimaat, waar je hem zoekt
 - Wie een kamer regelt, heet nu gewoon thermostaat: eigen thermostaat, volgt een andere kamer, of geen thermostaat
@@ -327,6 +330,7 @@
 
 **New**
 
+- Under Residents you can add someone who only has a tracker, without a Home Assistant account: choose what sees whether they are home, and give a name. Such a person is always a guest, and counts when someone is home
 - Ask the assistant whether SunArc is already in control, or what is still missing. It tells you, with a button to What your house can do
 - Ask what electricity costs now: the assistant gives the price of this moment, also with an hourly price
 - Settings › Lights, cameras and weather › Notifications: choose per kind what goes to the bell, such as standby use, the car, the home battery, the panels and a new version. What is off won't reach your phone either. Smoke, a meter that gives nothing and something that didn't work are always on
@@ -424,6 +428,8 @@
 
 **Improved**
 
+- Residents is one list: first the residents in order, then the guests and the screens, and at the bottom Add someone, with a login or only a tracker
+- If a guest with only a tracker signs in later, their account joins them automatically, or the main user merges them
 - Every page is named like the line that leads to it: Lights, cameras and weather is now Extras, and Residents and access is Residents and sign-in
 - The type of heating is now under Climate, where you look for it
 - What controls a room is now simply called a thermostat: own thermostat, follows another room, or no thermostat
