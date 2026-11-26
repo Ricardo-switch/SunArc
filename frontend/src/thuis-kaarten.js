@@ -224,7 +224,7 @@ document.addEventListener('click', async (e) => {
     setTimeout(() => zetAdvies(), 2500);
   } else {
     k.disabled = false;
-    k.textContent = (await res?.json().catch(() => null))?.fout ?? t('hand.lukteNiet');
+    k.textContent = (await res?.json().catch(() => null))?.fout ?? t('w.datLukteNiet');
   }
 });
 
@@ -245,7 +245,7 @@ function zetAdvies() {
 
 function tekenLading() {
   const a = huisData?.opslag?.auto ?? null;
-  const autoZin = !a ? '' : a.laadt ? (a.vermogenW ? t('thuis.lading.laadtMet', { kw: kw(a.vermogenW) }) : t('thuis.lading.laadt')) : a.aangesloten === true ? t('thuis.lading.aangesloten') : a.aangesloten === false ? t('thuis.lading.nietAangesloten') : '';
+  const autoZin = !a ? '' : a.laadt ? (a.vermogenW ? t('thuis.lading.laadtMet', { kw: kw(a.vermogenW) }) : t('auto.stand.laadt')) : a.aangesloten === true ? t('thuis.lading.aangesloten') : a.aangesloten === false ? t('thuis.lading.nietAangesloten') : '';
   const bereik = a?.bereikKm != null ? `${autoZin ? ' · ' : ''}${getal(a.bereikKm, 0)} km` : '';
   // Elke kaart een eigen naam voor zijn tekening: een verborgen kaart mag de andere niet kleuren.
   zetKaart('[data-auto]', 'auto', (i) => a ? `${vol(`${kaartKop('auto', a.naam)}${autoMeter(a, autoZin + bereik, `thuis-auto-${i}`)}`)}${tegel({ id: 'auto', naam: a.naam, waarde: a.pct == null ? '–' : `${getal(a.pct, 0)}%`, zin: autoZin + bereik, toon: a.laadt ? 'var(--mint-t)' : '', beeld: ring(a.pct, a.laadt ? 'var(--mint)' : 'var(--net)') })}` : '', !!a);
@@ -282,7 +282,7 @@ function tekenSluip() {
   $$('[data-sluip]').forEach((el) => el.setAttribute('href', zonderMeter ? 'energie.html#meters' : 'sluipverbruik.html'));
   if (zonderMeter) {
     const naam = t('w.sluipverbruik');
-    return zetKaart('[data-sluip]', 'sluip', `${vol(`${kaartKop('sluip', naam, false)}<p class="klein geen-marge boven-8 onder-12">${esc(t('thuis.sluip.metMeter'))}</p><span class="pil">${esc(t('thuis.sluip.meterKnop'))}</span>`)}${tegel({ id: 'sluip', naam, waarde: '–', zin: t('thuis.sluip.kanErbij') })}`, true);
+    return zetKaart('[data-sluip]', 'sluip', `${vol(`${kaartKop('sluip', naam, false)}<p class="klein geen-marge boven-8 onder-12">${esc(t('thuis.sluip.metMeter'))}</p><span class="pil">${esc(t('opbrengst.meter.knop'))}</span>`)}${tegel({ id: 'sluip', naam, waarde: '–', zin: t('thuis.sluip.kanErbij') })}`, true);
   }
   if (!s) return zetKaart('[data-sluip]', 'sluip', '', false);
   const naam = t('w.sluipverbruik');
@@ -486,7 +486,7 @@ function tekenBatterijen() {
   for (const el of $$('[data-weer]')) {
     el.setAttribute('aria-label', t('thuis.batterijen.kop'));
     el.innerHTML = `
-      <div class="weerkop"><h2 class="kop-3">${esc(t('thuis.batterijen.kop'))}</h2><button class="sluit" type="button" aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
+      <div class="weerkop"><h2 class="kop-3">${esc(t('thuis.batterijen.kop'))}</h2><button class="sluit" type="button" aria-label="${esc(t('kz.sluit'))}">×</button></div>
       ${rijen || `<p class="mini">${esc(t('thuis.batterijen.geen'))}</p>`}
       <p class="mini voet">${esc(huisData?.drempels?.batterij === null ? t('thuis.batterijen.geenMelding') : t('thuis.batterijen.onder', { pct: huisData?.drempels?.batterij ?? 10 }))} <a href="functies.html#meldingen">${esc(t('thuis.batterijen.wanneer'))}</a> ${esc(t('thuis.batterijen.nietBij'))}</p>`;
     el.querySelector('.sluit').addEventListener('click', sluitWeer);
@@ -523,7 +523,7 @@ function tekenWeer() {
   for (const blad of $$('[data-weer]')) {
     blad.setAttribute('aria-label', t('thuis.weer.kop'));
     blad.innerHTML = `
-      <div class="weerkop"><h2 class="kop-3">${esc(t('thuis.weer.kop'))}</h2><button class="sluit" type="button" aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
+      <div class="weerkop"><h2 class="kop-3">${esc(t('thuis.weer.kop'))}</h2><button class="sluit" type="button" aria-label="${esc(t('kz.sluit'))}">×</button></div>
       ${rijen}
       <p class="mini voet">${esc(t('thuis.weer.voet', { bron: weer.bron ?? 'Buienradar' }))}${esc(geleerd)}</p>`;
     blad.querySelector('.sluit').addEventListener('click', sluitWeer);

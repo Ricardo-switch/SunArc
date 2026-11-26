@@ -386,7 +386,7 @@ function accuSchaduwZin() {
   const a = state?.bewoner?.accu;
   if (!a) return null;
   const kw = nl(a.zonKw);
-  const wat = a.zou.length > 1 ? `${a.zou.slice(0, -1).join(', ')} ${t('algemeen.en')} ${a.zou.at(-1)}` : a.zou[0];
+  const wat = a.zou.length > 1 ? `${a.zou.slice(0, -1).join(', ')} ${t('tk.en')} ${a.zou.at(-1)}` : a.zou[0];
   return a.zou.length ? t('apparaten.accuSchaduw', { kw, wat }) : t('apparaten.accuSchaduwNiets', { kw });
 }
 
@@ -401,7 +401,7 @@ function accuMaatZin(b) {
 /** Bij meer accu's (besluit 275): elk een regel met hoe vol en wat hij doet. */
 function accuRegels(lijst) {
   if (!lijst || lijst.length < 2) return '';
-  const doet = (b) => (b.stand === 'laadt' ? t('thuis.lading.laadt') : b.stand === 'levert' ? t('apparaten.levert') : b.stand === 'rust' ? t('thuis.lading.rust') : '');
+  const doet = (b) => (b.stand === 'laadt' ? t('auto.stand.laadt') : b.stand === 'levert' ? t('apparaten.levert') : b.stand === 'rust' ? t('thuis.lading.rust') : '');
   return `<div class="accuregels">${lijst.map((b) => `<div class="accuregel"><b>${esc(b.naam)}</b><span>${esc([b.pct != null ? `${nl(b.pct, 0)}%` : null, doet(b), b.vermogenW != null && Math.abs(b.vermogenW) >= 50 ? `${nl(Math.abs(b.vermogenW) / 1000)} kW` : null].filter(Boolean).join(' · '))}</span></div>`).join('')}</div>`;
 }
 
@@ -410,8 +410,8 @@ function ladingKaart(soort, o) {
   const kw = w != null && Math.abs(w) >= 50 ? `${nl(Math.abs(w) / 1000)}<span>${esc(t(soort === 'batterij' && w < 0 ? 'apparaten.kwNaarHuis' : 'apparaten.kwLaden'))}</span>` : '–<span>kW</span>';
   const [sleutel, kleur] =
     soort === 'auto'
-      ? o.laadt ? ['thuis.lading.laadt', 'var(--mint)'] : o.aangesloten === true ? ['thuis.lading.aangesloten', 'var(--net)'] : o.aangesloten === false ? ['thuis.lading.nietAangesloten', 'var(--net)'] : ['w.onbekend', 'var(--net)']
-      : o.stand === 'laadt' ? ['thuis.lading.laadt', 'var(--zon)'] : o.stand === 'levert' ? ['apparaten.levert', 'var(--violet)'] : o.stand === 'rust' ? ['thuis.lading.rust', 'var(--net)'] : ['w.onbekend', 'var(--net)'];
+      ? o.laadt ? ['auto.stand.laadt', 'var(--mint)'] : o.aangesloten === true ? ['thuis.lading.aangesloten', 'var(--net)'] : o.aangesloten === false ? ['thuis.lading.nietAangesloten', 'var(--net)'] : ['w.onbekend', 'var(--net)']
+      : o.stand === 'laadt' ? ['auto.stand.laadt', 'var(--zon)'] : o.stand === 'levert' ? ['apparaten.levert', 'var(--violet)'] : o.stand === 'rust' ? ['thuis.lading.rust', 'var(--net)'] : ['w.onbekend', 'var(--net)'];
   const tekst = t(sleutel);
   const pct = o.pct == null ? null : Math.max(0, Math.min(100, o.pct));
   const zin = soort === 'auto'
@@ -619,7 +619,7 @@ function stekkerRegel(s) {
  * Licht. Eén camera is één kaart, zoals in Je huis één icoon: het beeld, wat
  * er ook in zit (de schijnwerper met een schakelaar, de bewegingsmelder) en
  * hoe vaak hij vandaag iets zag. Alle camera's uit Home Assistant; of hij op
- * Thuis staat, kies je in zijn blad of bij Licht, camera's en weer.
+ * Thuis staat, kies je in zijn blad of bij Extra's.
  */
 const camBeeld = new Map();
 const camOp = new Map();
@@ -745,7 +745,7 @@ function cameraBlad(id) {
   };
 }
 
-/** Op Thuis aan of uit: dezelfde keuze als bij Licht, camera's en weer, voor het hele huis. */
+/** Op Thuis aan of uit: dezelfde keuze als bij Extra's, voor het hele huis. */
 async function zetOpThuis(id, aan) {
   const c = (camData?.cameras ?? []).find((x) => x.id === id);
   if (!c) return;
@@ -822,7 +822,7 @@ function schakelaarKaart(s) {
     ${s.temperatuurC != null ? `<div class="stand"><i style="background: var(--mint)"></i>${esc(t('apparaten.hetIsEr', { c: nl(s.temperatuurC, 1) }))}</div>` : ''}
     ${zonStand ? `<div class="stand"><i style="background: var(--zon)"></i>${esc(zonStand.kop)}</div>` : ''}
     <div class="knoprijen">${rijen}</div>
-    ${mag ? '' : `<p class="mini etiket">${esc(t(schakelaarData?.bedienen ? 'w.sunarcKijktMee' : 'apparaten.schakelaarAddon'))}</p>`}`;
+    ${mag ? '' : `<p class="mini etiket">${esc(t(schakelaarData?.bedienen ? 'w.sunarcKijktMee' : 'hand.stekkerAlleenAddon'))}</p>`}`;
   return metBlad(el, `schakelaar:${s.id}`, s.keuze.naam || s.naam);
 }
 
@@ -889,7 +889,7 @@ function accuBlad() {
   if (!o) return null;
   const lijst = huisData?.opslag?.batterijen;
   const naam = lijst?.length > 1 ? t('apparaten.accuSamen', { n: lijst.length }) : o.naam;
-  const doet = o.stand === 'laadt' ? t('thuis.lading.laadt') : o.stand === 'levert' ? t('apparaten.levert') : o.stand === 'rust' ? t('thuis.lading.rust') : t('w.onbekend');
+  const doet = o.stand === 'laadt' ? t('auto.stand.laadt') : o.stand === 'levert' ? t('apparaten.levert') : o.stand === 'rust' ? t('thuis.lading.rust') : t('w.onbekend');
   const w = o.vermogenW;
   return {
     naam,
@@ -905,7 +905,7 @@ function schakelaarBlad(id) {
   return {
     naam: s.keuze.naam || s.naam,
     zin: [t(`toev.wat.${s.keuze.wat}`), t('apparaten.via', { via: s.model ?? s.koppeling })].join(' · '),
-    html: `${s.temperatuurC != null ? regel(t('w.nu2'), `<b>${nl(s.temperatuurC, 1)}°</b>`) : ''}<div class="knoprijen vrij-knoppen">${knopRijen(s)}${stekkerRegel(s)}</div>${s.nuW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(s.nuW / 1000)} kW</b>`) : ''}${!s.meet && s.keuze.vermogenW != null ? `<p class="hand-hoe">${esc(t('apparaten.ingevuldZin', { w: s.keuze.vermogenW }))}</p>` : ''}${zonBlok(s)}${mag ? '' : `<p class="hand-hoe">${esc(t(schakelaarData?.bedienen ? 'w.sunarcKijktMee' : 'apparaten.schakelaarAddon'))}</p>`}${onder([[`toevoegen.html#s-${encodeURIComponent(s.id)}`, t('w.instellen')]])}`,
+    html: `${s.temperatuurC != null ? regel(t('w.nu2'), `<b>${nl(s.temperatuurC, 1)}°</b>`) : ''}<div class="knoprijen vrij-knoppen">${knopRijen(s)}${stekkerRegel(s)}</div>${s.nuW != null ? regel(t('apparaten.blad.vermogen'), `<b>${nl(s.nuW / 1000)} kW</b>`) : ''}${!s.meet && s.keuze.vermogenW != null ? `<p class="hand-hoe">${esc(t('apparaten.ingevuldZin', { w: s.keuze.vermogenW }))}</p>` : ''}${zonBlok(s)}${mag ? '' : `<p class="hand-hoe">${esc(t(schakelaarData?.bedienen ? 'w.sunarcKijktMee' : 'hand.stekkerAlleenAddon'))}</p>`}${onder([[`toevoegen.html#s-${encodeURIComponent(s.id)}`, t('w.instellen')]])}`,
   };
 }
 

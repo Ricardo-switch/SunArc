@@ -524,7 +524,7 @@
     laag.dataset.sleutel = sleutel;
     const eerste = aan[0];
     const kamers = [...new Set(aan.filter((x) => x.gevaar === eerste.gevaar).map((x) => metLidwoord(x.kamer)))];
-    const waar = kamers.length > 1 ? `${kamers.slice(0, -1).join(', ')} ${global.t('algemeen.en')} ${kamers.at(-1)}` : kamers[0];
+    const waar = kamers.length > 1 ? `${kamers.slice(0, -1).join(', ')} ${global.t('tk.en')} ${kamers.at(-1)}` : kamers[0];
     const titel = global.t('basis.alarm.titel', { gevaar: GEVAAR(eerste.gevaar), waar });
     const raad = global.t(eerste.gevaar === 'co' ? 'basis.alarm.raadCo' : 'basis.alarm.raad');
     const ziet = eerste.sindsMs ? global.t('basis.alarm.zietSinds', { kamer: metLidwoord(eerste.kamer), wat: WAT(eerste.gevaar), klok: klokVan(eerste.sindsMs) }) : global.t('basis.alarm.ziet', { kamer: metLidwoord(eerste.kamer), wat: WAT(eerste.gevaar) });
@@ -534,7 +534,7 @@
       <h1>${esc(titel)}</h1>
       <p class="alarm-zin">${esc(`${ziet} ${raad}`)}</p>
       <div class="alarm-lijst">${(m.melders ?? []).map((x) => `<div><b>${esc(x.kamer)}</b><span class="${x.gevaar ? '' : 'ok'}">${esc(x.gevaar ? WAT(x.gevaar) : global.t('w.niets'))}</span></div>`).join('')}</div>
-      <button type="button" class="knop knop-licht" data-alarm-dicht>${esc(global.t('algemeen.sluiten'))}</button>
+      <button type="button" class="knop knop-licht" data-alarm-dicht>${esc(global.t('kz.sluit'))}</button>
       <p class="alarm-klein">${esc(global.t('basis.alarm.uitzetten'))}</p>
     </div>`;
     laag.querySelector('[data-alarm-dicht]').focus();
@@ -585,7 +585,7 @@
     const rij = Array.isArray(m.andere) && m.andere.length > 1
       ? `<div class="aanbel-rij" role="group" aria-label="${esc(global.t('basis.bel.andere'))}">${m.andere.map((a, i) => `<button type="button" data-bel-wissel="${i}" aria-pressed="${a.camera === m.camera}">${a.plaatje ? `<img alt="" src="${a.plaatje}">` : ''}<span>${esc(a.naam)}</span></button>`).join('')}</div>`
       : '';
-    laag.innerHTML = `<div class="aanbel-kop"><span class="bol adem" style="width: 34px; height: 34px"></span><div><b>${esc(m.titel ?? global.t('basis.bel.titel'))}</b><span>${onder}</span></div><button type="button" class="knop" data-bel-dicht>${esc(global.t('algemeen.sluiten'))}</button></div>
+    laag.innerHTML = `<div class="aanbel-kop"><span class="bol adem" style="width: 34px; height: 34px"></span><div><b>${esc(m.titel ?? global.t('basis.bel.titel'))}</b><span>${onder}</span></div><button type="button" class="knop" data-bel-dicht>${esc(global.t('kz.sluit'))}</button></div>
       <div class="aanbel-beeld"><p class="zacht">${esc(global.t('basis.bel.komt'))}</p></div>${rij}`;
     void belBeeld(laag, [m.camera, ...(Array.isArray(m.reserve) ? m.reserve : [])], m.naam ?? global.t('thuis.deurbel.deDeurbel'), m.voorrang !== false);
     laag.querySelector('[data-bel-dicht]').focus();
@@ -750,7 +750,7 @@
   /**
    * Een gast verandert geen instellingen (besluit 151). De dienst weigert het
    * al; hier ziet hij het ook: een instellingenpagina gaat terug naar
-   * Instellingen, die hem alleen Bewoners en toegang laat zien (om uit te
+   * Instellingen, die hem alleen Bewoners en inloggen laat zien (om uit te
    * loggen) en Wat je huis kan.
    */
   async function gastGrens() {

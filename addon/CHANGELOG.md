@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.245.0
+## 0.246.0
 
-*25 november 2026 · 0.179.0 – 0.245.0*
+*26 november 2026 · 0.179.0 – 0.246.0*
 
 **Nieuw**
 
@@ -103,6 +103,11 @@
 
 **Beter**
 
+- Elke pagina heet zoals de regel ernaartoe: Licht, camera's en weer heet nu Extra's, en Bewoners en toegang heet Bewoners en inloggen
+- De soort verwarming staat nu bij Klimaat, waar je hem zoekt
+- Wie een kamer regelt, heet nu gewoon thermostaat: eigen thermostaat, volgt een andere kamer, of geen thermostaat
+- Het percentage in de waaier is het ene getal voor hoe ver je huis is, en wat je zelf uitzette telt niet meer mee
+- Inrichten heeft geen losse schermen meer: elk onderwerp opent zijn plek bij Instellingen, met een balk terug
 - Thuis opent lichter zonder getekend huis: niet elke keer de hele tekenaar
 - De strook op Thuis kapt niet meer af: een lang zinnetje krijgt twee regels
 - Op de telefoon staat bij Apparaten elke soort op één regel met het aantal; tik en hij gaat open
@@ -419,6 +424,11 @@
 
 **Improved**
 
+- Every page is named like the line that leads to it: Lights, cameras and weather is now Extras, and Residents and access is Residents and sign-in
+- The type of heating is now under Climate, where you look for it
+- What controls a room is now simply called a thermostat: own thermostat, follows another room, or no thermostat
+- The percentage in the fan is the one number for how far your home is, and what you switched off yourself no longer counts
+- Set up no longer has separate screens: each topic opens its place in Settings, with a bar back
 - Home opens lighter without a drawn house: not the whole drawing engine every time
 - The strip on Home no longer gets cut off: a long sentence gets two lines
 - On the phone, Devices shows each kind on one line with its count; tap and it opens

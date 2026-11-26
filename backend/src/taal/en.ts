@@ -212,7 +212,7 @@ export const en: Teksten = {
     geenMeting: 'no reading',
     draaitNiets: 'Nothing running',
     nDraaien: (n: number) => `${n} devices running`,
-    doetMee: (kamer: string) => `Takes part with the control of ${kamer}.`,
+    doetMee: (kamer: string) => `Follows the thermostat of ${kamer}.`,
   },
   // web/meldingen.ts
   meldingen: {
@@ -764,8 +764,8 @@ export const en: Teksten = {
     },
     'functies': {
       antwoord:
-        'Cameras, the doorbell, light control and the weather are under Settings, Lights, cameras and weather. Choose which cameras the app shows, what happens when someone rings, and where the weather comes from.',
-      label: 'Go to Lights, cameras and weather',
+        'Cameras, the doorbell, light control and the weather are under Settings, Extras. Choose which cameras the app shows, what happens when someone rings, and where the weather comes from.',
+      label: 'Go to Extras',
     },
     'inrichten': {
       antwoord:
@@ -773,8 +773,8 @@ export const en: Teksten = {
       label: 'Go to Set up',
     },
     'inloggen': {
-      antwoord: 'You sign in with your Home Assistant account; the whole app asks for it. Signing out is under Settings, Residents and access.',
-      label: 'Go to Residents and access',
+      antwoord: 'You sign in with your Home Assistant account; the whole app asks for it. Signing out is under Settings, Residents and sign-in.',
+      label: 'Go to Residents and sign-in',
     },
     'opbrengst': {
       antwoord: 'What the sun and smart switching bring in is under Energy: per day, week, month and year, in kWh and in euros.',

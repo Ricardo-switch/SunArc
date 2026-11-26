@@ -61,13 +61,13 @@
     return `<div class="bb-rij"><i class="bb-ik" style="color: ${kleur}">${ik(ICOON.lamp)}</i><button type="button" class="bb-tekst bb-open" data-bb-open="${esc(sleutel)}"><b>${esc(naam)}</b><span>${esc(deelZin(lampen))}</span></button>${lampen.length ? schakel(aan, schakelAttr, naam) : ''}</div>`;
   }
   const linkRij = (icoon, naam, zin, attr) => `<${attr.startsWith('href') ? 'a' : 'button type="button"'} class="bb-rij bb-link" ${attr}><i class="bb-ik">${ik(icoon)}</i><div class="bb-tekst"><b>${esc(naam)}</b><span>${esc(zin)}</span></div><i class="bb-pijl">${ik(ICOON.pijl)}</i></${attr.startsWith('href') ? 'a' : 'button'}>`;
-  const kop = (titel, zin) => `<div class="weerkop"><div><h2 class="kop-3">${esc(titel)}</h2>${zin ? `<p class="mini geen-marge boven-4">${esc(zin)}</p>` : ''}</div><button class="sluit" type="button" aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>`;
+  const kop = (titel, zin) => `<div class="weerkop"><div><h2 class="kop-3">${esc(titel)}</h2>${zin ? `<p class="mini geen-marge boven-4">${esc(zin)}</p>` : ''}</div><button class="sluit" type="button" aria-label="${esc(t('kz.sluit'))}">×</button></div>`;
 
   /** De auto aan de lader, op de oprit of onder de carport (besluit 206). */
   function autoVak(a) {
     if (!a) return '';
     const kw = (w) => `${(w / 1000).toLocaleString(global.taal.locale, { maximumFractionDigits: 1 })} kW`;
-    const zin = a.laadt ? (a.vermogenW ? t('thuis.lading.laadtMet', { kw: kw(a.vermogenW) }) : t('thuis.lading.laadt')) : a.aangesloten === true ? t('thuis.lading.aangesloten') : a.aangesloten === false ? t('thuis.lading.nietAangesloten') : '';
+    const zin = a.laadt ? (a.vermogenW ? t('thuis.lading.laadtMet', { kw: kw(a.vermogenW) }) : t('auto.stand.laadt')) : a.aangesloten === true ? t('thuis.lading.aangesloten') : a.aangesloten === false ? t('thuis.lading.nietAangesloten') : '';
     const pct = a.pct == null ? null : Math.max(0, Math.min(100, a.pct));
     return `<div class="bb-auto${a.laadt ? ' laadt' : ''}"><div class="bb-autokop"><i class="bb-ik">${ik(ICOON.auto)}</i><b>${esc(a.naam ?? t('w.deAuto'))}</b><span class="bb-pct">${pct == null ? '–' : `${Math.round(pct)}%`}</span></div>${pct == null ? '' : `<div class="bb-balk"><i style="width: ${pct}%"></i></div>`}${zin ? `<small>${esc(zin)}</small>` : ''}</div>`;
   }
@@ -142,7 +142,7 @@
     return `${kop(t('buiten.alles'), aan ? t('buiten.allesZin', { n: aan }) : t('buiten.allesUitZin'))}
       ${lampen.length ? `<button type="button" class="knop ${aan ? 'knop-licht' : ''} bb-hoofd" data-bb-buiten ${aan ? '' : 'disabled'}>${esc(t('buiten.allesBuitenUit'))}</button>` : `<p class="mini">${esc(t('buiten.geenLampen'))}</p>`}
       ${voor.length ? `<h3 class="bb-sectie">${esc(t('buiten.voorHetHuis'))}</h3><div class="bb-lijst">${voor.join('')}</div>` : ''}
-      ${achter.length ? `<h3 class="bb-sectie">${esc(t('buiten.inDeTuin'))}</h3><div class="bb-lijst">${achter.join('')}</div>` : ''}
+      ${achter.length ? `<h3 class="bb-sectie">${esc(t('ht.buiten.tuin'))}</h3><div class="bb-lijst">${achter.join('')}</div>` : ''}
       <p class="mini voet">${esc(t('buiten.allesVoet'))}</p>`;
   }
 

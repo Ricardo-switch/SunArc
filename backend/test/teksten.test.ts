@@ -105,3 +105,28 @@ describe('salderen alleen bij gegevens tot 2027 (besluit 334)', () => {
     }
   });
 });
+
+/*
+ * De toon (besluit 350): de app spreekt niet als "ik". Dat mag alleen de assistent (assistent.*, luisteren.*),
+ * en een knop of keuze waarin de bewoner zelf spreekt ("Weet ik niet", "Ik woon hier"). Puntkomma's en uitleg
+ * na een dubbele punt krijgen een plafond dat alleen omlaag mag: wie er een weghaalt, zet het getal lager.
+ */
+const BEWONER_ZEGT = new Set(['voorbeeld.terug', 'melden.soort.snap', 'hulp.snap', 'inr.wk.backup', 'begin.backup', 'welkom.ikWoon', 'witgoed.hoeKlaarzetten', 'daken.achter.nakijken', 'daken.kk.ja']);
+const PUNTKOMMA = 106;
+const DUBBELE_PUNT = 168;
+
+describe('de toon van de teksten (besluit 350)', async () => {
+  const bron = await readFile(new URL('../../frontend/kit/teksten.nl.js', import.meta.url), 'utf-8');
+  const teksten = [...bron.matchAll(/^ {2}'([^']+)': (.*),$/gm)].map((m) => [m[1]!, m[2]!] as const);
+
+  it('zegt geen ik, behalve de assistent en de bewoner zelf', () => {
+    expect(teksten.length).toBeGreaterThan(1000);
+    const ik = teksten.filter(([k, v]) => /(^|[^\p{L}])(ik|mij|mijn)([^\p{L}]|$)/iu.test(v) && !/^(assistent|luisteren)\./.test(k) && !BEWONER_ZEGT.has(k) && !/^'weet ik niet'$/i.test(v));
+    expect(ik.map(([k]) => k)).toEqual([]);
+  });
+
+  it('heeft niet meer puntkomma’s en dubbele punten dan het plafond', () => {
+    expect(teksten.filter(([, v]) => v.includes(';')).length).toBeLessThanOrEqual(PUNTKOMMA);
+    expect(teksten.filter(([, v]) => /: [a-zà-ÿ]/.test(v)).length).toBeLessThanOrEqual(DUBBELE_PUNT);
+  });
+});

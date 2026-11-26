@@ -150,9 +150,9 @@ function deurbel() {
     <label class="veldnaam">${esc(t('functies.melder'))}<select class="invoer" data-veld="melder" ${uit ? 'disabled' : ''}>${melderOpties}</select></label>
     <label class="veldnaam">${esc(t('functies.beeld'))}<select class="invoer" data-veld="camera" ${uit ? 'disabled' : ''}>${opt(beelden, d.camera, t('functies.kiesCamera'))}</select></label>
     <span class="veldnaam">${esc(t('functies.schermAan'))}</span>
-    ${keuzes(t('functies.schermAanLabel'), 'schermAan', [[true, t('w.ja')], [false, t('functies.nee')]], d.schermAan, uit)}
+    ${keuzes(t('functies.schermAanLabel'), 'schermAan', [[true, t('w.ja')], [false, t('ht.nee')]], d.schermAan, uit)}
     <span class="veldnaam">${esc(t('functies.hoeLang'))}</span>
-    ${keuzes(t('functies.hoeLangLabel'), 'seconden', [60, 120, 300].map((s) => [s, t('w.minuten2', { n: s / 60 })]), d.seconden, uit)}`;
+    ${keuzes(t('hand.hoeLang'), 'seconden', [60, 120, 300].map((s) => [s, t('w.minuten2', { n: s / 60 })]), d.seconden, uit)}`;
 }
 
 /*

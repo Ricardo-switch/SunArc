@@ -62,7 +62,7 @@
       if (k.etage === 'buiten') return '';
       const vrij = ctx.info.regelzones.filter((z) => !d.kamers.some((x) => x.id !== k.id && x.regelzone === z.id));
       const andere = d.kamers.filter((x) => x.id !== k.id && x.etage !== 'buiten' && !x.meedoenMet && (x.regelzone || Object.values(x.rollen ?? {}).some((r) => r !== 'kijken')));
-      const regel = [['', t('indeling.nietGeregeld')], ...vrij.map((z) => [`zone:${z.id}`, z.id === k.regelzone ? t('indeling.eigenRegeling') : t('indeling.geregeldAls', { naam: z.naam })]), ...andere.map((x) => [`kamer:${x.id}`, t('indeling.doetMee', { naam: x.naam })])];
+      const regel = [['', t('inr.nietMee')], ...vrij.map((z) => [`zone:${z.id}`, z.id === k.regelzone ? t('indeling.eigenRegeling') : t('indeling.geregeldAls', { naam: z.naam })]), ...andere.map((x) => [`kamer:${x.id}`, t('indeling.doetMee', { naam: x.naam })])];
       const regelNu = k.meedoenMet ? `kamer:${k.meedoenMet}` : k.regelzone ? `zone:${k.regelzone}` : '';
       return `<div><label class="label" for="regel-${esc(k.id)}">${esc(t('groep.regeling'))}</label><select class="invoer" id="regel-${esc(k.id)}" data-actie="regeling">${regel.map(([v, x]) => `<option value="${esc(v)}" ${v === regelNu ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>`;
     }
@@ -499,7 +499,7 @@
       const meet = Array.isArray(k.meten) && !k.meten.length ? t('klimaat.meetNiets') : namen.length ? namen.join(', ') : ruimte?.gemetenDoor ?? t('klimaat.geenMeter');
       const met = k.meedoenMet ? d.kamers.find((x) => x.id === k.meedoenMet) : null;
       const soort = met ? 'mee' : k.regelzone ? 'eigen' : 'geen';
-      const regel = met ? t('indeling.doetMee', { naam: met.naam }) : k.regelzone ? t('indeling.eigenRegeling') : t('indeling.nietGeregeld');
+      const regel = met ? t('indeling.doetMee', { naam: met.naam }) : k.regelzone ? t('indeling.eigenRegeling') : t('inr.nietMee');
       const zones = (k.zones ?? []).map((z) => {
         const toestellen = (ruimte?.apparaten ?? []).filter((a) => a.soort === 'klimaat' && a.zone === z.id);
         const eigen = !!z.rollen && Object.values(z.rollen).some((x) => x !== 'kijken');

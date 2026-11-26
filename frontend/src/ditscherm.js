@@ -1,6 +1,6 @@
 /*
  * Dit scherm (stap 4 punt 2): wat bij het scherm hoort staat bij Jij, niet
- * meer bij Licht, camera's en weer (besluit 167 zette het daar onder
+ * meer bij Extra's (besluit 167 zette het daar onder
  * Weergave). Vier delen: Dit scherm (volledig scherm, alleen in Home
  * Assistant), het always-on display van de wand (besluiten 164, 165, 168 en
  * 206), Scherm uit (met de camera van Fully als bewegingsmelder) en Op je

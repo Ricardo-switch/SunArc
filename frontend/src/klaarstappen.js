@@ -28,7 +28,7 @@
     if (s.stand === 'klaar') return `<span class="kz-doe klaar">${esc(t('kz.klaar'))}</span>`;
     if (s.doe === 'spraakassistent') return `<button type="button" class="kz-doe zelf" data-kz-doe="${esc(s.doe)}">${esc(t('kz.zetKlaar'))}</button>`;
     if (s.app) return `<a class="kz-doe ha" href="${esc(s.app)}">${esc(t('kz.open'))}</a>`;
-    if (s.ha) return global.app.inHA() ? `<button type="button" class="kz-doe ha naar" data-ha-pad="${esc(s.ha)}">${esc(t('kz.inHA'))}</button>` : `<span class="kz-doe mini">${esc(t('kz.inHAZelf'))}</span>`;
+    if (s.ha) return global.app.inHA() ? `<button type="button" class="kz-doe ha naar" data-ha-pad="${esc(s.ha)}">${esc(t('kz.inHA'))}</button>` : `<span class="kz-doe mini">${esc(t('kz.inHA'))}</span>`;
     return '';
   }
 

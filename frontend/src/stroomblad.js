@@ -90,7 +90,7 @@
       { naam: t('stroom.leg.huis'), w: Math.max(0, v.vanNet - v.ladenNet), kleur: KLEUR.net },
       { naam: t('stroom.leg.accu'), w: v.ladenNet, kleur: KLEUR.accu },
     ]);
-    return `${groot(v.vanNet, t('stroom.net.van'), naar)}<div>${kop3(t('stroom.net.wie'))}${wie.length ? rijen(wie, KLEUR.net) : zin(t('stroom.geenApparaat'))}</div>`;
+    return `${groot(v.vanNet, t('w.vanHetNet'), naar)}<div>${kop3(t('stroom.net.wie'))}${wie.length ? rijen(wie, KLEUR.net) : zin(t('stroom.geenApparaat'))}</div>`;
   }
 
   function accuDeel(v) {
@@ -109,7 +109,7 @@
   }
 
   function html() {
-    const sluit = `<button type="button" class="sluit" data-sb-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button>`;
+    const sluit = `<button type="button" class="sluit" data-sb-sluit aria-label="${esc(t('kz.sluit'))}">×</button>`;
     const live = data?.live;
     const metAccu = !!live?.batterij;
     if (soort === 'accu' && !metAccu) soort = 'zon';

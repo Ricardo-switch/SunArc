@@ -148,7 +148,7 @@ const zonBalk = (pct) => `<div class="zonbalk"><i style="width: ${pct}%"></i></d
 /** De dag van een beurt: vandaag, gisteren of de dag van de week. */
 function dagVan(ms) {
   const d = new Date(ms).toDateString();
-  if (d === new Date().toDateString()) return t('auto.beurt.vandaag');
+  if (d === new Date().toDateString()) return t('w.vandaag');
   if (d === new Date(Date.now() - 86_400_000).toDateString()) return t('auto.beurt.gisteren');
   // Een week terug heeft dezelfde dag als vandaag: dan met de datum erbij.
   const oud = Date.now() - ms > 6 * 86_400_000;
@@ -157,7 +157,7 @@ function dagVan(ms) {
 }
 
 function beurtRegel(b) {
-  const tijd = `${klokVan(Date.parse(b.van))} – ${b.bezig ? t('auto.beurt.nu') : klokVan(Date.parse(b.tot))}`;
+  const tijd = `${klokVan(Date.parse(b.van))} – ${b.bezig ? t('w.nu') : klokVan(Date.parse(b.tot))}`;
   const z = zonPct(b);
   return `<div class="beurt"${z != null ? ` title="${esc(t('auto.beurt.zonZin', { pct: z }))}"` : ''}>
       <div><b>${esc(dagVan(Date.parse(b.van)))}</b><span>${esc(tijd)}</span></div>
@@ -221,10 +221,10 @@ function feiten(a) {
   const waar = [a.paalNaam, plekWoord(a)].filter(Boolean).join(', ');
   // Een laadpaal zonder auto heeft geen accu; dan zegt het derde vak wat er nog kan.
   const accu = a.pct == null && a.paalNaam != null && a.accuKWh == null
-    ? `<small>${esc(t('auto.feit.auto'))}</small><b>${esc(t('auto.nietInHA'))}</b><span><a href="toevoegen.html#auto">${esc(t('auto.kiesBijEnergie'))}</a></span>`
+    ? `<small>${esc(t('auto.titel'))}</small><b>${esc(t('auto.nietInHA'))}</b><span><a href="toevoegen.html#auto">${esc(t('auto.kiesBijEnergie'))}</a></span>`
     : a.accuKWh != null
-    ? `<small>${esc(t('auto.feit.accu'))}</small><b>${esc(t('auto.accuKwh', { kwh: nl(a.accuKWh, a.accuKWh % 1 ? 1 : 0) }))}</b><span>${esc(t('auto.accuZin'))}</span>`
-    : `<small>${esc(t('auto.feit.accu'))}</small><b>${esc(t('auto.accuLeeg'))}</b><span><a href="toevoegen.html#auto">${esc(t('auto.accuWaarom'))}</a></span>`;
+    ? `<small>${esc(t('laden.accu'))}</small><b>${esc(t('auto.accuKwh', { kwh: nl(a.accuKWh, a.accuKWh % 1 ? 1 : 0) }))}</b><span>${esc(t('auto.accuZin'))}</span>`
+    : `<small>${esc(t('laden.accu'))}</small><b>${esc(t('auto.accuLeeg'))}</b><span><a href="toevoegen.html#auto">${esc(t('auto.accuWaarom'))}</a></span>`;
   // Tijdens het laden: deze laadbeurt in plaats van de accu (schets Wand-Auto).
   const nu = dezeBeurt(a);
   const z = nu ? zonPct(nu) : null;
@@ -259,15 +259,15 @@ function paalKaart(a, metLaden = false) {
   const rij = metLaden ? ladenRij(a) : '';
   const kleur = ['zon', 'deels'].includes(bron(a)) ? 'var(--zon)' : a.laadt ? 'var(--ijs)' : 'rgb(var(--wit) / 0.3)';
   const fasen = a.stroomA
-    ? `<div class="fasen"><span>${esc(t(a.stroomA.length > 1 ? 'auto.paal.stroom' : 'auto.paal.stroomEen'))}</span>${a.stroomA
+    ? `<div class="fasen"><span>${esc(t(a.stroomA.length > 1 ? 'paal.fasen' : 'paal.stroom'))}</span>${a.stroomA
         .map((x, i) => `<div class="fase"><em>${a.stroomA.length > 1 ? `L${i + 1}` : ''}</em><div class="fbalk"><i style="width: ${Math.min(100, (x / max) * 100).toFixed(1)}%; background: ${kleur}"></i></div><b>${nl(x, x % 1 ? 1 : 0)} A</b></div>`)
         .join('')}</div>`
-    : `<div class="regel"><span>${esc(t('auto.paal.stroom'))}</span><b>${esc(t('auto.paal.nietGemeten'))}</b></div>`;
+    : `<div class="regel"><span>${esc(t('paal.fasen'))}</span><b>${esc(t('auto.paal.nietGemeten'))}</b></div>`;
   return `<section class="glas kaart">
-      <h2>${esc(a.paalNaam)}</h2><p class="onder">${esc(huismodelZin([a.paalNaam === t('auto.paal.kop') ? '' : t('auto.paal.kop'), plekWoord(a)]))}</p>
+      <h2>${esc(a.paalNaam)}</h2><p class="onder">${esc(huismodelZin([a.paalNaam === t('paal.naam') ? '' : t('paal.naam'), plekWoord(a)]))}</p>
       <div class="regel"><span>${esc(t('auto.paal.stand'))}</span><b style="color: ${s.kleur === 'var(--zacht)' ? 'var(--tekst)' : app.tekstKleur(s.kleur)}">${esc(s.tekst)}</b></div>
       ${rij}
-      ${rij ? '' : `<div class="regel"><span>${esc(t('auto.paal.vermogen'))}</span><b>${a.vermogenW != null ? `${nl(a.vermogenW / 1000)} kW` : esc(t('auto.paal.nietGemeten'))}</b></div>`}
+      ${rij ? '' : `<div class="regel"><span>${esc(t('w.vermogen'))}</span><b>${a.vermogenW != null ? `${nl(a.vermogenW / 1000)} kW` : esc(t('auto.paal.nietGemeten'))}</b></div>`}
       ${fasen}
       ${a.paalStroomA && !rij ? `<p class="kan">${esc(t('laden.paalKan', { min: nl(a.paalStroomA.min, 0), max: nl(a.paalStroomA.max, 0) }))}</p>` : ''}
     </section>`;
@@ -459,7 +459,7 @@ function dagBalk(a, b) {
   h += `<line class="nu-l" x1="${xVan(d.nuMs).toFixed(1)}" y1="4" x2="${xVan(d.nuMs).toFixed(1)}" y2="${H - 12}"/>`;
   for (let i = 0; i <= n; i += 6) {
     const anker = i === 0 ? 'start' : i === n ? 'end' : 'middle';
-    h += `<text class="as${i === 0 ? ' nu' : ''}" x="${(i * uur).toFixed(1)}" y="${H}" text-anchor="${anker}">${esc(i === 0 ? t('auto.laden.dag.nu') : klokVan(d.vanMs + i * DAG_UUR))}</text>`;
+    h += `<text class="as${i === 0 ? ' nu' : ''}" x="${(i * uur).toFixed(1)}" y="${H}" text-anchor="${anker}">${esc(i === 0 ? t('w.nu') : klokVan(d.vanMs + i * DAG_UUR))}</text>`;
   }
   const legenda = [
     metZon ? `<span><i style="background: var(--zon)"></i>${esc(t('auto.laden.dag.zon'))}</span>` : '',
@@ -504,24 +504,24 @@ function standBladHtml(a, s, kop, niet) {
   const stand = `<div class="vraag"><span>${esc(t('auto.laden.stand'))}</span><div class="keuze">${s.evccStand.opties.map(knop).join('')}</div></div>`;
   const keus = (w, tekst) => `<button type="button" data-laden-tot="${w}" aria-pressed="${b.tot === w}" ${w === 'pct' && a.pct == null ? 'disabled' : ''}>${esc(tekst)}</button>`;
   const totPct = b.tot === 'pct' && b.pct != null
-    ? `<div class="tot-pct"><button type="button" data-laden-pct="-5" aria-label="${esc(t('auto.laden.lager'))}">−</button><b>${b.pct}%</b><button type="button" data-laden-pct="5" aria-label="${esc(t('auto.laden.hoger'))}" ${b.pct >= (a.laadgrens ?? 100) ? 'disabled' : ''}>+</button></div>`
+    ? `<div class="tot-pct"><button type="button" data-laden-pct="-5" aria-label="${esc(t('hand.lager'))}">−</button><b>${b.pct}%</b><button type="button" data-laden-pct="5" aria-label="${esc(t('hand.hoger'))}" ${b.pct >= (a.laadgrens ?? 100) ? 'disabled' : ''}>+</button></div>`
     : '';
   const balk = dagBalk(a, b);
-  const lang = `<div class="vraag"><span>${esc(t('auto.laden.hoeLang'))}</span>${balk}<div class="keuze">${keus('uur', t('auto.laden.uur'))}${keus('tijd', t('auto.laden.totTijd', { tijd: klokVan(b.totMs) }))}${keus('pct', t('auto.laden.totPct'))}${keus('kabel', t('auto.laden.totKabel'))}</div>${totPct}</div>`;
+  const lang = `<div class="vraag"><span>${esc(t('hand.hoeLang'))}</span>${balk}<div class="keuze">${keus('uur', t('hand.uur1'))}${keus('tijd', t('auto.laden.totTijd', { tijd: klokVan(b.totMs) }))}${keus('pct', t('auto.laden.totPct'))}${keus('kabel', t('auto.laden.totKabel'))}</div>${totPct}</div>`;
   const actief = s.actief;
   // Daarna weer de stand van nu (loopt er al iets met de hand, dan staat dat al vast en zegt de knop Terug het).
   const naar = s.evccStand.nu ? standNaam(s.evccStand.nu) : 'evcc';
   const na = b.tot === 'kabel' ? t('auto.laden.naStandKabel', { stand: naar }) : b.tot === 'pct' ? t('auto.laden.naStandPct', { pct: b.pct, stand: naar }) : t('auto.laden.naStandTijd', { tijd: klokVan(b.tot === 'uur' ? Date.now() + 3_600_000 : b.totMs), stand: naar });
   const hoe = [actief?.stand ? '' : na, t('auto.laden.zelfWint'), balk ? t('auto.laden.dag.tik') : ''].filter(Boolean).join(' ');
   const links = actief?.stand ? `<button type="button" class="hand-terug" data-laden-terug>${esc(t('auto.laden.terugEvcc', { stand: 'evcc' }))}</button>` : '';
-  const zet = b.stand ? `<button type="button" class="hand-zet" data-laden-zetstand>${esc(actief?.stand === b.stand ? t('hand.bewaar') : t('auto.laden.zetStand', { stand: standNaam(b.stand) }))}</button>` : '';
+  const zet = b.stand ? `<button type="button" class="hand-zet" data-laden-zetstand>${esc(actief?.stand === b.stand ? t('w.bewaar') : t('auto.laden.zetStand', { stand: standNaam(b.stand) }))}</button>` : '';
   return `${kop}${stand}${lang}<div class="hand-hoe">${esc(hoe)}</div>${ladenFout ? `<p class="hand-fout">${esc(ladenFout)}</p>` : ''}${kanRegel}<div class="hand-onder">${links}${zet}</div>`;
 }
 
 function bladHtml(a, s) {
   const b = blad;
   const niet = nietZin(s, a);
-  const kop = `<div class="hand-boven"><div><h2>${esc(t('auto.laden.kop'))}</h2><p class="nu">${esc(ladenNuZin(a, s))}</p></div><button type="button" class="sluit" data-laden-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>`;
+  const kop = `<div class="hand-boven"><div><h2>${esc(t('auto.laden.kop'))}</h2><p class="nu">${esc(ladenNuZin(a, s))}</p></div><button type="button" class="sluit" data-laden-sluit aria-label="${esc(t('kz.sluit'))}">×</button></div>`;
   if (metStand(s)) return standBladHtml(a, s, kop, niet);
   const kan = [s.stroom ? t('laden.paalKan', { min: s.stroom.min, max: s.stroom.max }) : '', s.pauze ? t('auto.laden.kanPauze') : ''].filter(Boolean).join(' ');
   const kanRegel = `<p class="kan">${esc(`${a.paalNaam ?? a.naam}: ${kan}`)} <a href="toevoegen.html#auto">${esc(t('auto.laden.instellen'))}</a></p>`;
@@ -542,15 +542,15 @@ function bladHtml(a, s) {
   }
   const keus = (w, tekst) => `<button type="button" data-laden-tot="${w}" aria-pressed="${b.tot === w}" ${w === 'pct' && a.pct == null ? 'disabled' : ''}>${esc(tekst)}</button>`;
   const totPct = b.tot === 'pct' && b.pct != null
-    ? `<div class="tot-pct"><button type="button" data-laden-pct="-5" aria-label="${esc(t('auto.laden.lager'))}">−</button><b>${b.pct}%</b><button type="button" data-laden-pct="5" aria-label="${esc(t('auto.laden.hoger'))}" ${b.pct >= (a.laadgrens ?? 100) ? 'disabled' : ''}>+</button><span>${esc(t('auto.laden.pctUitleg', { grens: a.laadgrens ?? 100 }))}</span></div>`
+    ? `<div class="tot-pct"><button type="button" data-laden-pct="-5" aria-label="${esc(t('hand.lager'))}">−</button><b>${b.pct}%</b><button type="button" data-laden-pct="5" aria-label="${esc(t('hand.hoger'))}" ${b.pct >= (a.laadgrens ?? 100) ? 'disabled' : ''}>+</button><span>${esc(t('auto.laden.pctUitleg', { grens: a.laadgrens ?? 100 }))}</span></div>`
     : '';
   const balk = dagBalk(a, b);
-  const lang = `<div class="vraag"><span>${esc(t('auto.laden.hoeLang'))}</span>${balk}<div class="keuze">${keus('uur', t('auto.laden.uur'))}${keus('tijd', t('auto.laden.totTijd', { tijd: klokVan(b.totMs) }))}${keus('pct', t('auto.laden.totPct'))}${keus('kabel', t('auto.laden.totKabel'))}</div>${totPct}</div>`;
+  const lang = `<div class="vraag"><span>${esc(t('hand.hoeLang'))}</span>${balk}<div class="keuze">${keus('uur', t('hand.uur1'))}${keus('tijd', t('auto.laden.totTijd', { tijd: klokVan(b.totMs) }))}${keus('pct', t('auto.laden.totPct'))}${keus('kabel', t('auto.laden.totKabel'))}</div>${totPct}</div>`;
   const na = b.tot === 'kabel' ? t('auto.laden.naKabel') : b.tot === 'pct' ? t('auto.laden.naPct', { pct: b.pct }) : t('auto.laden.naTijd', { tijd: klokVan(b.tot === 'uur' ? Date.now() + 3_600_000 : b.totMs) });
   const hoe = [s.zekeringA != null && b.stroomA != null ? t('auto.laden.zekeringZin', { a: Math.floor(s.zekeringA) }) : '', na, t('auto.laden.geenWolk'), balk ? t('auto.laden.dag.tik') : ''].filter(Boolean).join(' ');
   const actief = s.actief;
   const links = actief ? `<button type="button" class="hand-terug" data-laden-terug>${esc(t('auto.laden.terug'))}</button>` : s.pauze ? `<button type="button" class="hand-terug" data-laden-pauze ${b.tot === 'pct' ? 'disabled' : ''}>${esc(t('auto.laden.pauzeer'))}</button>` : '';
-  const zet = b.stroomA != null ? `<button type="button" class="hand-zet" data-laden-zet>${esc(actief && !actief.pauze && actief.stroomA === b.stroomA ? t('hand.bewaar') : t('auto.laden.laadMet', { a: b.stroomA }))}</button>` : '';
+  const zet = b.stroomA != null ? `<button type="button" class="hand-zet" data-laden-zet>${esc(actief && !actief.pauze && actief.stroomA === b.stroomA ? t('w.bewaar') : t('auto.laden.laadMet', { a: b.stroomA }))}</button>` : '';
   return `${kop}${stroom}${lang}<div class="hand-hoe">${esc(hoe)}</div>${ladenFout ? `<p class="hand-fout">${esc(ladenFout)}</p>` : ''}${kanRegel}<div class="hand-onder">${links}${zet}</div>`;
 }
 
@@ -579,7 +579,7 @@ async function stuurLaden(body) {
   const res = await app.deur('api/laden', body);
   if (!res) return false;
   if (!res.ok) {
-    ladenFout = (await res.json().catch(() => null))?.fout ?? t('hand.lukteNiet');
+    ladenFout = (await res.json().catch(() => null))?.fout ?? t('w.datLukteNiet');
     tekenBlad();
     return false;
   }
@@ -642,7 +642,7 @@ function snelKnop(a, z) {
 }
 
 function instellenKaart() {
-  return `<a class="glas kaart naar" href="toevoegen.html#auto"><div><h2>${esc(t('auto.instellen'))}</h2><p class="onder">${esc(t('auto.instellenZin'))}</p></div><span class="pijl" aria-hidden="true">›</span></a>`;
+  return `<a class="glas kaart naar" href="toevoegen.html#auto"><div><h2>${esc(t('w.instellen'))}</h2><p class="onder">${esc(t('auto.instellenZin'))}</p></div><span class="pijl" aria-hidden="true">›</span></a>`;
 }
 
 function kiezer() {

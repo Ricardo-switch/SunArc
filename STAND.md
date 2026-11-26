@@ -85,6 +85,11 @@ verwijzing bestaat.
   Op de telefoon staat één vraagteken, is Apparaten per soort dicht, en zijn
   de kleine knoppen en de staven makkelijker te raken. Een huis zonder panelen
   ziet geen zonknoppen ([349]).
+  Sinds 0.246.0 heet elke pagina zoals de regel ernaartoe (Licht, camera's en
+  weer heet Extra's), staat de soort verwarming bij Klimaat, heet wie een kamer
+  regelt een thermostaat, en is het percentage in de waaier het ene getal voor
+  hoe ver je huis is. Inrichten heeft geen losse schermen meer, en een test
+  bewaakt de toon ([350]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste); de
   nieuwe versie komt rond 10 januari, los van de overstap van de regeling, en
   beta bevriest op 31 december ([347]). Daarna hooguit één versie per week.
@@ -717,7 +722,10 @@ verwijzing bestaat.
   inlog; de assistent van Home Assistant heeft een sleutel ([147]). Een scherm
   krijgt bij Bewoners een andere naam, of gaat weg ([149]). Een account zonder
   persoon in Home Assistant is een gast; alleen de hoofdgebruiker maakt er een
-  bewoner van, en een gast verandert geen instellingen ([151]).
+  bewoner van, en een gast verandert geen instellingen ([151]). Gekozen, nog
+  niet gebouwd: iemand met alleen een tracker toevoegen, en wat een gast mag
+  per soort (Familie of logé, Oppas, Hulp in huis), ook op de wand als alleen
+  gasten thuis zijn ([351]).
 - **Comfort uit de app gaat voor** de helpers van het oude systeem; het huis
   heeft een voordeur, de meterkast, de camera, de tuin en de buitenunits zoals
   ze zijn ([143]).
@@ -1142,4 +1150,6 @@ verwijzing bestaat.
 [347]: DECISIONS.md#347-eén-verhaal-over-regelen-en-de-weg-naar-de-uitgave-van-januari
 [348]: DECISIONS.md#348-de-handleiding-volgt-de-app-en-securitymd-volgt-de-deuren
 [349]: DECISIONS.md#349-thuis-lichter-en-de-telefoon-makkelijker-te-raken
+[350]: DECISIONS.md#350-dunner-paginas-heten-zoals-hun-regel-en-één-getal-voor-hoe-ver-je-huis-is
+[351]: DECISIONS.md#351-gasten-zonder-account-en-wat-een-gast-mag-per-soort
 <!-- links:einde -->

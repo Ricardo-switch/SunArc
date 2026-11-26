@@ -148,7 +148,7 @@
   }
 
   function bladHtml() {
-    const sluit = `<button type="button" class="sluit" data-fasen-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button>`;
+    const sluit = `<button type="button" class="sluit" data-fasen-sluit aria-label="${esc(t('kz.sluit'))}">×</button>`;
     if (!v.meters) {
       const g = v.zekering.ampere - v.margeA;
       return `<div class="hand-boven"><div><h2>${esc(t('w.aansluiting'))}</h2><p class="nu">${esc(t('fasen.kopZonder', { zek: zekeringKort() }))}</p></div>${sluit}</div>

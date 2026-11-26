@@ -38,9 +38,10 @@ const pct = (n) => `${Math.round(n)}%`;
 
 /* ------------------------------------------------------------ tekenen */
 
-/** Bovenin: hoeveel er werkt, meekijkt en leert, en hoeveel er nog bij kan. */
+/** Bovenin: welke kleur werkt, meekijkt, leert en er nog bij kan. */
 function tellers(v, erbij) {
-  const rij = (kleur, naam, n) => (n ? `<span><i class="stip" style="background: ${kleur}"></i>${esc(naam)} <b>${n}</b></span>` : '');
+  // Zonder aantallen (besluit 350): het percentage is het ene getal, dit zegt alleen welke kleur wat is.
+  const rij = (kleur, naam, n) => (n ? `<span><i class="stip" style="background: ${kleur}"></i>${esc(naam)}</span>` : '');
   return ['werkt', 'kijkt', 'leert'].map((s) => rij(KLEUR[s], t(`kan.stand.${s}`), v.tel(s))).join('') + rij('var(--zon)', t('stand1.kanErbij'), erbij.length);
 }
 
@@ -221,7 +222,7 @@ function blad(x) {
     ? `<div><h4>${esc(t('kan.waar'))}</h4><div class="waar">${x.waar.map((k) => `<div class="kamerkaart"><b>${esc(k.naam)}</b><span>${esc(k.wat)}</span></div>`).join('')}</div></div>`
     : x.som || x.thermisch ? '' : `<div class="nu"><span class="stand ${x.stand}">${esc(t('kan.nu'))}</span>${esc(x.nu)}</div>`;
   const idee = x.idee ? `<a class="kanook" href="${x.idee.href}"><span class="wanneer">${esc(t('kan.idee'))}</span><b>${esc(x.idee.titel)}</b><p>${esc(x.idee.zin)}, ${esc(x.idee.wint)}.</p><span class="knop">${esc(t(x.idee.soort === 'aan' ? 'kan.zetAan' : 'kan.bekijk'))}</span></a>` : '';
-  return `<div class="bovenaan"><div><span class="stand ${x.stand}">${esc(x.label)}</span><h2 class="kop-2 boven-12">${esc(x.titel)}</h2><p class="lead boven-4" style="max-width: 52ch">${esc(x.wat)}</p>${x.extra ? `<p class="mini geen-marge boven-8">${esc(x.extra)}</p>` : ''}</div><button type="button" class="sluit" data-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
+  return `<div class="bovenaan"><div><span class="stand ${x.stand}">${esc(x.label)}</span><h2 class="kop-2 boven-12">${esc(x.titel)}</h2><p class="lead boven-4" style="max-width: 52ch">${esc(x.wat)}</p>${x.extra ? `<p class="mini geen-marge boven-8">${esc(x.extra)}</p>` : ''}</div><button type="button" class="sluit" data-sluit aria-label="${esc(t('kz.sluit'))}">×</button></div>
     ${waar}
     ${idee}
     ${som}
@@ -248,7 +249,7 @@ function klaarBlad() {
     const hier = punten.filter((p) => p.groep === g);
     return hier.length ? `<div class="klaargroep"><h4>${esc(titel)}</h4>${hier.map(regel).join('')}</div>` : '';
   }).join('');
-  return `<div class="bovenaan"><div><h2 class="kop-2">${esc(t('kan.klaar.kop'))}</h2><p class="lead boven-4" style="max-width: 52ch">${esc(t('kan.klaar.lead'))}</p></div><button type="button" class="sluit" data-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
+  return `<div class="bovenaan"><div><h2 class="kop-2">${esc(t('kan.klaar.kop'))}</h2><p class="lead boven-4" style="max-width: 52ch">${esc(t('kan.klaar.lead'))}</p></div><button type="button" class="sluit" data-sluit aria-label="${esc(t('kz.sluit'))}">×</button></div>
     ${groepen}`;
 }
 

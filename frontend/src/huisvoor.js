@@ -158,7 +158,7 @@
         ...d.kamers.map((k) => ({ id: k.id, naam: k.naam, soort: k.soort ?? null, etage: k.etage, zones: k.etage === BUITEN_ETAGE ? [] : k.zones })),
         // Elk deel van een ruimte buiten is een eigen vak, en het huis staat er vast op.
         ...d.kamers.filter((k) => k.etage === BUITEN_ETAGE).flatMap((k) => (k.delen ?? []).map((z) => ({ id: `${k.id}~${z.id}`, naam: z.naam, soort: z.soort ?? deelSoort(z.naam), etage: BUITEN_ETAGE, zones: [], deelVan: k.id }))),
-        ...(metErf ? [{ id: HUIS_OP_ERF, naam: t('ht.buiten.huis'), soort: 'thuis', etage: BUITEN_ETAGE, zones: [] }] : []),
+        ...(metErf ? [{ id: HUIS_OP_ERF, naam: t('w.huis'), soort: 'thuis', etage: BUITEN_ETAGE, zones: [] }] : []),
       ],
       // Stap 3: de apparaten binnen, in hun kamer of nog zonder (de strook).
       apparaten: d.apparaten ?? [],

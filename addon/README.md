@@ -78,7 +78,7 @@ openWakeWord-add-on; dan staat `he_huis` bij Instellingen › Spraakassistenten.
 
 Wil je Assist van Home Assistant zelf vragen aan SunArc laten stellen,
 installeer dan de integratie SunArc: via HACS, of met de knop in de app
-bij Instellingen › Bewoners en toegang › Sleutel voor de assistent (besluit
+bij Instellingen › Bewoners en inloggen › Sleutel voor de assistent (besluit
 184). De add-on meldt zich daarna vanzelf aan; geen YAML. Daarvoor mag de
 add-on in de configuratie van Home Assistant schrijven, en dat doet hij alleen
 na die tik, in `custom_components/sunarc`.

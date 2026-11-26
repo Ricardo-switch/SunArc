@@ -161,7 +161,7 @@ const dakvlakken = (() => {
     if (!m) return '';
     // Geen gemeten vlak in de buurt: zeg wat de meting wel ziet.
     if (hoek(m.azimuthDeg, v.azimuthDeg) > 60) {
-      const ziet = d.meting.map((x) => `${norm(x.azimuthDeg)}° (${kort(x.azimuthDeg).toLowerCase()})`).join(` ${t('algemeen.en')} `);
+      const ziet = d.meting.map((x) => `${norm(x.azimuthDeg)}° (${kort(x.azimuthDeg).toLowerCase()})`).join(` ${t('tk.en')} `);
       return `<div class="dk-meting">${esc(t('daken.meting.elders', { richtingen: ziet }))}</div>`;
     }
     const woorden = { richting: `${norm(m.azimuthDeg)}°`, helling: `${Math.round(m.tiltDeg)}°` };
@@ -493,7 +493,7 @@ const dakvlakken = (() => {
     if (!d?.kaart) return '';
     const ks = d.kaartStand;
     const kan = ks ? [...(ks.bag3d === 'huis' ? [t('daken.wk.bag3d')] : []), ...(ks.osm === 'huis' && ks.bag3d !== 'huis' ? [t('daken.wk.osm')] : [])] : [];
-    const zin = !ks ? t('daken.wk.inrNog') : kan.length ? t('daken.wk.inr', { wat: kan.join(` ${t('algemeen.en')} `) }) : t('daken.wk.inrZelf');
+    const zin = !ks ? t('daken.wk.inrNog') : kan.length ? t('daken.wk.inr', { wat: kan.join(` ${t('tk.en')} `) }) : t('daken.wk.inrZelf');
     return `<p class="mini wk-inr">${esc(zin)} <a class="lig-link" href="jehuis.html#bg/vorm">${esc(t('daken.wk.inrLink'))}</a></p>`;
   }
   const KK_IK = {
@@ -933,7 +933,7 @@ const dakvlakken = (() => {
       return `<div class="dk-nurij"><span class="dk-letter" style="background: ${kleur}">${esc(v.letter)}</span><span>${esc(naam(v, vlakken))}</span><span class="dk-staaf"><i style="width: ${(((n.w ?? 0) / top) * 100).toFixed(1)}%; background: ${kleur}"></i><em style="left: ${((n.helderW / top) * 100).toFixed(1)}%"></em></span><b>${n.w == null ? '–' : `${kw(n.w)} kW`}</b></div>`;
     }).join('');
     const svg = d.tekening ? bovenSvg(d, { scherm: 'alle', zicht: 'boven' }).replaceAll('dkid-', 'dkthuis-') : '';
-    return `<div class="dk-bladkop"><h2>${esc(t('daken.nu.kop'))}</h2><button type="button" class="dk-sluit" data-dakblad-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>
+    return `<div class="dk-bladkop"><h2>${esc(t('daken.nu.kop'))}</h2><button type="button" class="dk-sluit" data-dakblad-sluit aria-label="${esc(t('kz.sluit'))}">×</button></div>
       <p class="klein">${esc(t('daken.nu.zin', { nu: kw(som), helder: kw(helder) }))}</p>
       <div class="dk-bladboven">${svg}</div>
       <div class="dk-nurijen">${rijen}</div>
@@ -1045,7 +1045,7 @@ const dakvlakken = (() => {
     if (!v || voor == null) return t('inr.dak.kantN', { n: i + 1 });
     const az = v[1] === 'aantal2' ? v[0].azimuthDeg + 180 : v[0].azimuthDeg;
     const h = hoek(az, voor);
-    return t(h <= 45 ? 'energie.kant.voorkant' : h >= 135 ? 'energie.kant.achterkant' : 'inr.dak.opzij');
+    return t(h <= 45 ? 'ht.dakkapel.voor' : h >= 135 ? 'ht.dakkapel.achter' : 'inr.dak.opzij');
   }
 
   /*

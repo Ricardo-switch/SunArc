@@ -49,8 +49,8 @@
       uit.push({ id: 'inrichten', groep: 'inrichten', wat: t('stand.inrichten'), waarom: t('stand.inrichtenZin'), knop: t('stand.begin'), href: 'inrichten.html' });
     } else if (open?.length) {
       const namen = open.map((x) => t(`inr.k.${x}`).toLowerCase());
-      const zin = namen.length > 1 ? `${namen.slice(0, -1).join(', ')} ${t('algemeen.en')} ${namen.at(-1)}` : namen[0];
-      uit.push({ id: 'inrichten', groep: 'inrichten', wat: t('stand.inrichtenAf'), waarom: t('stand.inrichtenOpen', { stappen: zin }), knop: t('stand.verder'), href: `inrichten.html#${open[0]}` });
+      const zin = namen.length > 1 ? `${namen.slice(0, -1).join(', ')} ${t('tk.en')} ${namen.at(-1)}` : namen[0];
+      uit.push({ id: 'inrichten', groep: 'inrichten', wat: t('stand.inrichtenAf'), waarom: t('stand.inrichtenOpen', { stappen: zin }), knop: t('begin.verder'), href: `inrichten.html#${open[0]}` });
     }
     const e = d.energie?.instellingen;
     const p = e?.prijzen;
@@ -76,7 +76,7 @@
     }
     const zonder = d.huis?.zonderRuimte?.length ?? 0;
     if (zonder > 0) {
-      const namen = d.huis.zonderRuimte.slice(0, 2).map((x) => x.naam).join(` ${t('algemeen.en')} `);
+      const namen = d.huis.zonderRuimte.slice(0, 2).map((x) => x.naam).join(` ${t('tk.en')} `);
       uit.push({ id: 'indelen', groep: 'huis', wat: t('stand.indelen.wat', { n: zonder }), waarom: t(zonder > 2 ? 'stand.indelen.zinMeer' : 'stand.indelen.zin', { namen }), knop: t('stand.indelen'), href: 'jehuis.html#bg/apparaten' });
     }
     return uit;
@@ -96,7 +96,7 @@
     ['zekering', 'energie', 'energie.html#aansluiting'],
     ['meters', 'energie', 'energie.html#meters'],
     ['prijzen', 'energie', 'energie.html#prijzen'],
-    ['verwarming', 'energie', 'energie.html#verwarming'],
+    ['verwarming', 'comfort', 'comfort.html#verwarming'],
     ['regelt', 'comfort', 'comfort.html#meten'],
     // Op zon staat op één plek: Energie › De zon verdelen (besluit 345).
     ['opzon', 'energie', 'energie.html#zon'],
@@ -470,7 +470,12 @@
         return { ...x, kort: t(`voortgang.kort.${x.id}`), p: global.waaier.voortgang(x.stand, deel, klaar) };
       });
     const groepen = WAAIER.map((id) => ({ id, naam: t(id === 'leert' ? 'voortgang.groep.leert' : `kan.groep.${id}`), onderwerpen: onderwerpen.filter((x) => x.groep === id) }));
-    const totaal = onderwerpen.length ? Math.round((onderwerpen.reduce((s, x) => s + x.p, 0) / onderwerpen.length) * 100) : 0;
+    // Wat je zelf uitzette (besluit 350), telt niet mee: zo kan elk huis 100% halen. Het staat wel grijs in de waaier,
+    // zodat je het weer aan kunt zetten. Wat uit staat omdat er nog iets mist (geen weerbron gekozen), telt wel.
+    const zelf = d.functies?.instellingen;
+    const bewust = (x) => x.stand === 'uit' && !!zelf && ({ licht: zelf.licht?.bedienen === false, screens: zelf.schermen?.bedienen === false, camera: !zelf.cameras?.aan && !zelf.deurbel?.aan, tedoen: !zelf.tedoen?.aan }[x.id] ?? false);
+    const telt = onderwerpen.filter((x) => !bewust(x));
+    const totaal = telt.length ? Math.round((telt.reduce((s, x) => s + x.p, 0) / telt.length) * 100) : 0;
     const winter = dataset?.seizoenen?.find((s) => s.seizoen === 'winter') ?? null;
     return { groepen, onderwerpen, totaal, klaar, gereedheid, dataset, winter, tel: (s) => onderwerpen.filter((x) => x.stand === s).length };
   }
@@ -484,7 +489,7 @@
     const t = global.taal.t;
     const lijst = nogTeDoen(d).map((x) => ({ id: x.id, groep: x.groep, wat: x.wat, zin: x.waarom, knop: x.knop, href: x.href }));
     const mist = (d.klaar?.punten ?? []).filter((p) => p.stand === 'mist').length;
-    if (mist) lijst.push({ id: 'klaarzetten', groep: 'klaarzetten', wat: t('kan.klaar.kop'), zin: t('instellingen.mist', { n: mist }), knop: t('stand1.bekijk'), href: 'huis-kan.html#klaarzetten' });
+    if (mist) lijst.push({ id: 'klaarzetten', groep: 'klaarzetten', wat: t('kan.klaar.kop'), zin: t('stand1.klaarMist'), knop: t('stand1.bekijk'), href: 'huis-kan.html#klaarzetten' });
     return lijst;
   }
   /** Kan er nog bij: wat een apparaat of contract nodig heeft, en wat je nog kunt klaarzetten voor iedereen (besluit 246). */

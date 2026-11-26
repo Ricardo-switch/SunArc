@@ -73,7 +73,7 @@ const ligging = (() => {
 
   function voorkantVraag(v, a) {
     if (!v.vraagVoorkant) return '';
-    return rij(t('energie.kant.voorkant'), `<div class="lig-chips" role="group" aria-label="${esc(t('panelen.wanneerZon'))}">${v.vraagVoorkant.map((z) => chip(`data-lig-zon="${z}"`, ZON(z), a.voorkantZon === z)).join('')}</div>`);
+    return rij(t('ht.dakkapel.voor'), `<div class="lig-chips" role="group" aria-label="${esc(t('panelen.wanneerZon'))}">${v.vraagVoorkant.map((z) => chip(`data-lig-zon="${z}"`, ZON(z), a.voorkantZon === z)).join('')}</div>`);
   }
 
   /** Wat er op Aanpassen staat: uit wat nu geldt of het voorstel. */
@@ -174,7 +174,7 @@ const ligging = (() => {
         kop: t('panelen.zoLiggen'),
         uitleg: t('panelen.gevonden'),
         inhoud: `${lijn(v.lijn)}<div class="lig-regels">${regels(v.voorstel, v, a)}${voorkantVraag(v, a)}</div>`,
-        knoppen: `${knopAanpassen}<button type="button" class="lig-knop" data-lig-klopt>${esc(t('panelen.klopt'))}</button>`,
+        knoppen: `${knopAanpassen}<button type="button" class="lig-knop" data-lig-klopt>${esc(t('welkom.klopt'))}</button>`,
         volgende: false,
       };
     }
@@ -368,7 +368,7 @@ const ligging = (() => {
       : '';
     // Een voorstel wacht op de bewoner; zonder heldere dag de vraag naar de voorkant.
     // Klopt het voorstel: de knoppen naast de kop.
-    const kopKnoppen = v?.stand === 'voorstel' ? `<span class="pan-knoppen"><button type="button" class="lig-knop zacht" data-lig-aanpassen>${esc(t('w.aanpassen'))}</button><button type="button" class="lig-knop" data-lig-klopt>${esc(t('panelen.klopt'))}</button></span>` : '';
+    const kopKnoppen = v?.stand === 'voorstel' ? `<span class="pan-knoppen"><button type="button" class="lig-knop zacht" data-lig-aanpassen>${esc(t('w.aanpassen'))}</button><button type="button" class="lig-knop" data-lig-klopt>${esc(t('welkom.klopt'))}</button></span>` : '';
     const knoppen = v?.stand === 'voorstel'
       ? ''
       : bron === 'leert'

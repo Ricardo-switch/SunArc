@@ -19,7 +19,7 @@ const GEDEELD = [
   'paalblad', 'niemand', 'melden', 'luisteren', 'klaarstappen', 'hand', 'groep', 'gevoel', 'film', 'fasekaart', 'eigen',
   'buitenBlad', 'scThema', 'scVoorbeeldVerschil', 'huisModellen', 'huisVoor', 'huisThuis',
   // Via een const bovenaan een gedeeld script.
-  'dakvlakken', 'zonVerdelen', 'laden', 'thuisaccu', 'vermogens', 'ligging', 'zekering', 'contract', 'ditScherm', 'weergaveDeel', 'htVloer', 'htBlad', 'htTeken', 'htGebaar', 'htKaart', 'huisMaatHemel', 'huisMaatBuiten', 'huisMaatMeubels', 'huisMaatApparaten', 'huisMaatVorm', 'huisBasis', 'huisKamers', 'huisBuiten', 'huisTuin', 'huisRoute', 'basisMeldingen', 'huisOpties',
+  'dakvlakken', 'zonVerdelen', 'soortVerwarming', 'laden', 'thuisaccu', 'vermogens', 'ligging', 'zekering', 'contract', 'ditScherm', 'weergaveDeel', 'htVloer', 'htBlad', 'htTeken', 'htGebaar', 'htKaart', 'huisMaatHemel', 'huisMaatBuiten', 'huisMaatMeubels', 'huisMaatApparaten', 'huisMaatVorm', 'huisBasis', 'huisKamers', 'huisBuiten', 'huisTuin', 'huisRoute', 'basisMeldingen', 'huisOpties',
 ];
 
 const REGELS = {

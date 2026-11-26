@@ -13,6 +13,10 @@
 'use strict';
 
 if (location.hash === '#auto' || location.hash === '#accu') location.replace(location.hash === '#auto' ? 'toevoegen.html#auto' : 'toevoegen.html#energie');
+// De soort verwarming staat sinds besluit 350 bij Klimaat: een oud adres gaat daarheen.
+const naarKlimaat = () => location.hash === '#verwarming' && location.replace('comfort.html#verwarming');
+naarKlimaat();
+addEventListener('hashchange', naarKlimaat);
 
 const { $$, esc, haal, nl } = app;
 
@@ -134,7 +138,6 @@ function delen() {
   const z = zekeringNu();
   // Een prijs per uur is ook een stroomprijs (issue 126).
   const prijsMist = e && ((p.stroom == null && !p.dynamisch) || (e.gas && p.gas == null));
-  const soort = a?.verwarming.soort ? t(`energie.soort.${a.verwarming.soort}`) : null;
   return [
     { id: 'panelen', titel: t('w.zonnepanelen'), zin: dakvlakken.kortZin(aInfo?.daken) ?? (geen ? t('w.geenPanelen') : t('instellingen.nogKiezen')), stand: !aInfo ? null : vlakken.length || geen ? 'goed' : 'mist' },
     // De zon verdelen (besluit 343): wie de zon krijgt die over is, naast de panelen.
@@ -142,7 +145,6 @@ function delen() {
     { id: 'aansluiting', titel: t('w.aansluiting'), zin: z ? `${z.fasen} × ${z.ampere} A` : t('energie.zekeringKiezen'), stand: !aInfo ? null : z ? 'goed' : 'mist' },
     { id: 'meters', titel: t('energie.meters'), zin: e ? [e.net.afname.length ? t('energie.stroom') : null, e.gas ? t('energie.gas') : null, e.apparaten.length ? t('w.apparaten', { n: e.apparaten.length }) : null].filter(Boolean).join(', ') || t('instellingen.nogKiezen') : '…', stand: !e ? null : e.net.afname.length ? 'goed' : 'mist' },
     { id: 'prijzen', titel: t('energie.prijzen'), zin: !e ? '…' : p.dynamisch ? t('energie.prijsPerUur') : p.stroom == null ? t('energie.prijsMist') : t('energie.prijsPerKwh', { prijs: nl(p.stroom, 2) }), stand: !e ? null : prijsMist ? 'mist' : 'goed' },
-    { id: 'verwarming', titel: t('energie.verwarming'), zin: soort ? (a.verwarming.aanvoerC ? t('energie.aanvoer', { soort, c: a.verwarming.aanvoerC }) : soort) : t('instellingen.nogKiezen'), stand: !aInfo ? null : a.verwarming.soort ? 'goed' : 'leeg' },
     // Auto en laadpaal en de thuisaccu staan op hun kaart bij Apparaten (besluit 318).
   ];
 }
@@ -277,7 +279,7 @@ function metersVorm() {
     v.gas ? t('energie.gas') : null,
     v.apparaten.length ? t('energie.wat.apparaten', { n: v.apparaten.length }) : null,
   ].filter(Boolean) : [];
-  const lijst = wat.length > 1 ? `${wat.slice(0, -1).join(', ')} ${t('algemeen.en')} ${wat.at(-1)}` : wat[0];
+  const lijst = wat.length > 1 ? `${wat.slice(0, -1).join(', ')} ${t('tk.en')} ${wat.at(-1)}` : wat[0];
   const uitHa = v
     ? blok(t('energie.uitHA'), `<p class="uitleg">${esc(t('energie.inDashboard', { lijst: lijst ?? t('energie.geenMeters') }))}</p><button type="button" class="knop" data-overnemen style="align-self: start">${esc(t('energie.overnemen'))}</button>`)
     : blok(t('energie.uitHA'), `<p class="uitleg">${esc(eInfo.fout ?? t('energie.geenDashboard'))}</p>`);
@@ -394,7 +396,7 @@ function prijzenVorm() {
       <p class="mini">${esc(t('energie.dynamischUitleg'))}</p>
       ${uurprijs}
       <label class="veldnaam">${esc(t('energie.contractStart'))}<input class="invoer" type="date" data-contract value="${esc(p.contractStart ?? '')}" min="2000-01-01" max="2100-12-31"></label>
-      <p class="mini">${esc(t('energie.contractUitleg'))}</p>`)}${blok(t('energie.stroomKop'), stroomBlok)}${e.gas ? blok(t('energie.gasKop'), gasPerUur
+      <p class="mini">${esc(t('energie.contractUitleg'))}</p>`)}${blok(t('opbrengst.stroom'), stroomBlok)}${e.gas ? blok(t('opbrengst.gas'), gasPerUur
       ? `<div class="melding" data-gas-per-uur><span class="stip" style="background: var(--mint)"></span><span>${esc(t('energie.gasPerUur'))}</span></div>`
       : `${bedragVeld(t('energie.perM3'), 'gas', p.gas, nl(1.36, 2), '0', true)}<p class="mini">${esc(t('energie.gasTotaal'))}</p>`) : ''}`, `${blok(t('energie.teruglevering'), terugBlok)}${blok(t('energie.vasteKosten'), p.vast.length
       ? `<div class="vast-tel">${posten}${erbijKnoppen}<p class="mini">${esc(t('energie.postUitleg'))}</p></div><div class="vast-wand">${kort}</div>`
@@ -407,28 +409,10 @@ function prijzenVorm() {
  * De thermostaat die de ketel stuurt (besluit 167), zoals een Nest. Niets
  * gekozen: het voorstel uit Home Assistant. De radiatoren gaan daarmee aan.
  */
-function thermostaatKeuze(v) {
-  const lijst = huismodel.thermostaten(huisData);
-  const voorstel = lijst[0];
-  const nu = v.thermostaat ?? '';
-  const opties = [['', voorstel ? t('energie.thermostaatUitHA', { naam: voorstel.naam, kamer: voorstel.kamer }) : t('energie.geenThermostaatHA')], ...lijst.map((x) => [x.sleutel, t('energie.naamKamer', { naam: x.naam, kamer: x.kamer })]), ['geen', t('energie.geenThermostaat')]];
-  return `<label class="veldnaam">${esc(t('energie.thermostaatKetel'))}<select class="invoer" data-thermostaat>${opties.map(([w, x]) => `<option value="${esc(w)}" ${w === nu ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>
-      <p class="mini">${esc(t('energie.thermostaatUitleg'))}</p>`;
-}
-
-function verwarmingVorm() {
-  const v = a.verwarming;
-  return `${kop(t('energie.verwarming'))}
-    ${blok(t('energie.waarWarmte'), `${keuzes(t('energie.verwarming'), 'verwarming', [...['cv', 'warmtepomp', 'hybride', 'stadsverwarming', 'airco'].map((x) => [x, t(`energie.bron.${x}`)]), ['weetniet', t('w.weetIkNiet')]], v.soort)}
-      ${v.soort === 'airco' ? '' : `<label class="veldnaam">${esc(t('energie.aanvoerLabel'))}<input class="invoer" type="number" inputmode="numeric" min="25" max="90" step="1" data-aanvoer value="${v.aanvoerC ?? ''}" placeholder="${esc(t('energie.bijvoorbeeld60'))}"></label>
-      <p class="mini">${esc(t('energie.aanvoerUitleg'))}</p>`}
-      ${v.soort === 'stadsverwarming' || v.soort === 'airco' ? '' : thermostaatKeuze(v)}`)}`;
-}
-
 /* Ernaast */
 
 /** De delen met een "Waar vind je het?" (energie.naast.<deel>.waar). Waarvoor dit nodig is ging weg in besluit 344. */
-const NAAST = new Set(['panelen', 'zon', 'aansluiting', 'meters', 'prijzen', 'verwarming']);
+const NAAST = new Set(['panelen', 'zon', 'aansluiting', 'meters', 'prijzen']);
 
 function naast(id) {
   const deel = NAAST.has(id) ? id : 'panelen';
@@ -458,7 +442,6 @@ function tekenNu() {
     aansluiting: () => (a ? aansluitingVorm() : wacht),
     meters: () => (e ? metersVorm() : wacht),
     prijzen: () => (e ? prijzenVorm() : wacht),
-    verwarming: () => (a ? verwarmingVorm() : wacht),
   }[nu]?.() ?? wacht;
   // Een eigen voorvoegsel per scherm voor de namen in de tekening van boven (besluit 254): wand en telefoon staan allebei in de pagina.
   // Wat schuift (de rechterkolom van Daken en panelen) houdt zijn plek bij opnieuw tekenen.
@@ -667,13 +650,10 @@ document.addEventListener('click', async (ev) => {
     const w = JSON.parse(knop.dataset.waarde);
     const s = knop.dataset.kies;
     // De aansluiting.
-    if (a && ['ligging', 'verwarming'].includes(s)) {
+    if (a && s === 'ligging') {
       // Wie hier de kant kiest, blijft in dit formulier tot Klaar (besluit 187): eerst het aantal.
-      if (s === 'ligging') {
-        a.panelen.ligging = w;
-        ligStaat.zelf = true;
-      }
-      else if (s === 'verwarming') a.verwarming.soort = w;
+      a.panelen.ligging = w;
+      ligStaat.zelf = true;
       teken();
       return bewaarAansluiting();
     }
@@ -753,17 +733,6 @@ document.addEventListener('change', (ev) => {
   if (z !== undefined) {
     a.zekering = z;
     teken();
-    return bewaarAansluiting();
-  }
-  if (t.matches('[data-thermostaat]') && a) {
-    a.verwarming.thermostaat = t.value || null;
-    teken();
-    return bewaarAansluiting();
-  }
-  if (t.matches('[data-aanvoer]') && a) {
-    const n = Math.round(Number(t.value));
-    a.verwarming.aanvoerC = t.value === '' || !Number.isFinite(n) ? null : Math.min(90, Math.max(25, n));
-    if (a.verwarming.aanvoerC != null) t.value = String(a.verwarming.aanvoerC);
     return bewaarAansluiting();
   }
   if (t.dataset.aantal && a) {

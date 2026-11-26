@@ -297,7 +297,7 @@
         void verwerk(k.tekst);
       }),
     );
-    l.querySelector('[data-sluit]').textContent = tk(stand === 'antwoord' ? 'algemeen.sluiten' : 'kamer.scherm.stop');
+    l.querySelector('[data-sluit]').textContent = tk(stand === 'antwoord' ? 'kz.sluit' : 'kamer.scherm.stop');
     l.querySelector('[data-hint]').textContent = inhoud.hint ?? '';
   }
 

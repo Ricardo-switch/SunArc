@@ -1,5 +1,25 @@
 [
   {
+    "versie": "0.246.0",
+    "datum": "2026-11-26",
+    "beter": [
+      "Elke pagina heet zoals de regel ernaartoe: Licht, camera's en weer heet nu Extra's, en Bewoners en toegang heet Bewoners en inloggen",
+      "De soort verwarming staat nu bij Klimaat, waar je hem zoekt",
+      "Wie een kamer regelt, heet nu gewoon thermostaat: eigen thermostaat, volgt een andere kamer, of geen thermostaat",
+      "Het percentage in de waaier is het ene getal voor hoe ver je huis is, en wat je zelf uitzette telt niet meer mee",
+      "Inrichten heeft geen losse schermen meer: elk onderwerp opent zijn plek bij Instellingen, met een balk terug"
+    ],
+    "en": {
+      "beter": [
+        "Every page is named like the line that leads to it: Lights, cameras and weather is now Extras, and Residents and access is Residents and sign-in",
+        "The type of heating is now under Climate, where you look for it",
+        "What controls a room is now simply called a thermostat: own thermostat, follows another room, or no thermostat",
+        "The percentage in the fan is the one number for how far your home is, and what you switched off yourself no longer counts",
+        "Set up no longer has separate screens: each topic opens its place in Settings, with a bar back"
+      ]
+    }
+  },
+  {
     "versie": "0.245.0",
     "datum": "2026-11-25",
     "beter": [

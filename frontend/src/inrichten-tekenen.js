@@ -3,9 +3,9 @@
  * inrichten-voorstellen.js laadt en zijn bovenste namen deelt met de andere delen van de pagina.
  */
 'use strict';
-/* global $$, BEVESTIG, HOOFD, STAPPEN, aanpas:writable, accountStap, afwezigBasis, afwezigKeuze:writable, afwezigStap, antwoorden, apparatenStap, assistentNogAan, bewaarAansluiting, bewaarAfwezig, bewaarDag, bewaarFuncties, bewaarIndeling, bewaarKort, bewaarPrijzen, bewaarVoorkeur, bewonersHoofd, binnen, buitenStap, cfDoel, cfNu, comfortStap, concept, contractKeuze:writable, d, dagBalk, dagMet, dagMoment, dagNu, dagStap, dagUur, delenVan, deur, energieNu, esc, functiesNu, functiesStap, haStap, haal, hoofdVan, huisDoel, huisStap, idVan, jeHuisStap, kanBereik, kanOpen:writable, kanStap, kanToestellen, klaarStap, klimaatIn, laad, ligStaat, liggingStap, lijst:writable, markeer, melding, metEtage, metenStap, meterStap, model, naar, naarRondleiding, nl, openKamer:writable, openApparaat:writable, openBewoner:writable, opzonStap, panelenStap, prijzenHoofd, rolVan, rondVanConcept, samenvoegen, sd, sleutel, standaard, stapGedaan, stapNagelopen, stapNu, stemStap, stuurBewoner, tekenMini, tekenWelkom, toevoeg:writable, toevoegenIn:writable, verder, vermogenStap, verplaatsKamer, verwarmingStap, volgende, vorige, wandStap, warmteStap, weghalen:writable, welkom, wnKaart, woningNu, woningStap, zeg, zekeringStap, zetAssistentAan, zetCf, zonStap */
+/* global $$, BEVESTIG, HOOFD, STAPPEN, aanpas:writable, antwoorden, apparatenStap, assistentNogAan, bewaarAansluiting, bewaarIndeling, bewaarKort, bewaarPrijzen, bewonersHoofd, binnen, buitenStap, concept, contractKeuze:writable, d, delenVan, energieNu, esc, haal, hoofdVan, huisStap, idVan, jeHuisStap, kanBereik, kanOpen:writable, kanStap, kanToestellen, klaarStap, klimaatIn, laad, ligStaat, liggingStap, lijst:writable, markeer, melding, metEtage, metenStap, meterStap, model, naar, naarRondleiding, nl, openKamer:writable, openApparaat:writable, openBewoner:writable, panelenStap, prijzenHoofd, rolVan, rondVanConcept, samenvoegen, sd, sleutel, stapGedaan, stapNagelopen, stapNu, stuurBewoner, tekenMini, tekenWelkom, toevoeg:writable, toevoegenIn:writable, verder, vermogenStap, verplaatsKamer, verwarmingStap, volgende, vorige, warmteStap, weghalen:writable, welkom, wnKaart, woningNu, woningStap, zeg, zekeringStap, zetAssistentAan, zonStap */
 // eslint-disable-next-line no-unused-vars -- alleen teruggezet; gelezen in een ander deel
-/* global cfKeuze:writable, dagGreep:writable, dagKeuze:writable, zonderKlimaat:writable */
+/* global dagKeuze:writable, zonderKlimaat:writable */
 /* exported teken, terugKnop, volgendeKnoppen */
 /* ------------------------------------------------------------ tekenen */
 
@@ -30,8 +30,6 @@ function tekenWandje(el, m) {
 function tekenNu() {
   app.schaal();
   app.luchtVan(d.zon, 0);
-  // Je dag: de lucht van het uur bij de grens die je het laatst bewoog (ook in de winter de ochtend en de avond).
-  if (stapNu() === 'dag') app.lucht(dagMoment(dagUur()).tijd, 'zomer', 0.3);
   const nu = stapNu();
   const hier = hoofdVan(nu);
   // Zeven stappen (besluit 323): bovenin als knoppen, met een vinkje wat nagelopen is; al ingevuld uit Home Assistant omlijnd (besluit 158).
@@ -50,7 +48,7 @@ function tekenNu() {
   $$('[data-voortgang]').forEach((el) => {
     el.innerHTML = STAPPEN.map(([id]) => `<i class="${{ nu: 'nu', klaar: 'al', half: 'half' }[standVan(id)] ?? ''}"></i>`).join('');
   });
-  const v = { welkom, jehuis: jeHuisStap, meter: meterStap, panelen: panelenStap, verwarming: verwarmingStap, woning: woningStap, huis: huisStap, buiten: buitenStap, bewoners: bewonersHoofd, apparaten: apparatenStap, meten: metenStap, warmte: warmteStap, apparaat: kanStap, dag: dagStap, comfort: comfortStap, afwezig: afwezigStap, zon: zonStap, ligging: liggingStap, zekering: zekeringStap, vermogen: vermogenStap, opzon: opzonStap, prijzen: prijzenHoofd, functies: functiesStap, wand: wandStap, ha: haStap, stem: stemStap, klaar: klaarStap, account: accountStap }[nu]();
+  const v = { welkom, jehuis: jeHuisStap, meter: meterStap, panelen: panelenStap, verwarming: verwarmingStap, woning: woningStap, huis: huisStap, buiten: buitenStap, bewoners: bewonersHoofd, apparaten: apparatenStap, meten: metenStap, warmte: warmteStap, apparaat: kanStap, zon: zonStap, ligging: liggingStap, zekering: zekeringStap, vermogen: vermogenStap, prijzen: prijzenHoofd, klaar: klaarStap }[nu]();
   // Onderaan overal hetzelfde (besluit 158): Terug, Later en Volgende, tenzij de stap iets anders zegt.
   const [links, rechts] = v.voet ?? [terugKnop(), volgendeKnoppen()];
   const actief = document.activeElement;
@@ -328,56 +326,11 @@ document.addEventListener('click', async (e) => {
     teken();
     return;
   }
-  if (el.dataset.afw) {
-    // Afwezig en vakantie (besluit 190): een halve graad per tik, met een graad tussen verwarmen en koelen.
-    const [m, s, stap] = el.dataset.afw.split(':');
-    const b = JSON.parse(JSON.stringify(afwezigKeuze ?? afwezigBasis()));
-    const grens = s === 'heat' ? [5, 28] : [16, 32];
-    b[m][s] = Math.min(grens[1], Math.max(grens[0], b[m][s] + Number(stap)));
-    if (s === 'heat' && b[m].cool < b[m].heat + 1) b[m].cool = b[m].heat + 1;
-    if (s === 'cool' && b[m].heat > b[m].cool - 1) b[m].heat = b[m].cool - 1;
-    afwezigKeuze = b;
-    await bewaarAfwezig();
-    return;
-  }
-  if (el.dataset.opzon || el.dataset.opzonVast) {
-    // Op zon (besluit 167): aan start hij als er zon over is.
-    const a = antwoorden();
-    const aan = el.getAttribute('aria-checked') !== 'true';
-    if (el.dataset.opzon) a.opZon[el.dataset.opzon] = aan;
-    else a.opZonUit = aan ? a.opZonUit.filter((x) => x !== el.dataset.opzonVast) : [...new Set([...a.opZonUit, el.dataset.opzonVast])];
-    await bewaarAansluiting(a);
-    return;
-  }
-  if (el.dataset.wkaart) {
-    // De kaarten op de wand (besluit 190): dezelfde indeling als op je telefoon.
-    const nu = d.voork?.wand?.kaarten ?? [];
-    const k = el.dataset.wkaart;
-    const kaarten = nu.includes(k) ? nu.filter((x) => x !== k) : [...nu, k];
-    if (kaarten.length) await bewaarVoorkeur({ plek: 'wand', kaarten });
-    return;
-  }
-  if (el.hasAttribute('data-wnacht')) {
-    await bewaarVoorkeur({ plek: 'wand', niemand: { nacht: d.voork?.wand?.niemand?.nacht !== true } });
-    return;
-  }
-  if (el.dataset.wtaal) {
-    // Een andere taal laadt de pagina opnieuw (taal.js).
-    const uit = await bewaarVoorkeur({ plek: 'tel', taal: el.dataset.wtaal });
-    if (uit) taal.zetKeuze(uit.tel.taal, { scherm: uit.scherm === true });
-    return;
-  }
   // De assistent met één knop (besluit 202).
   if (el.hasAttribute('data-assistent-aan')) {
     el.disabled = true;
     await zetAssistentAan();
     teken();
-    return;
-  }
-  if (el.dataset.haPad) {
-    // Terug uit Home Assistant op deze stap (besluit 227).
-    app.onthoudInrichten('ha', location.hash.slice(1));
-    app.naarHAScherm(el.dataset.haPad);
     return;
   }
   // Hoe de panelen liggen (besluit 157); Klopt telt als nagelopen en gaat door.
@@ -568,46 +521,6 @@ document.addEventListener('click', async (e) => {
     await bewaarIndeling(next, t('inr.toegevoegdBij', { naam: huismodel.bronNaam(b), kamer: k.naam }));
     return;
   }
-  // Je dag: een grens een uur eerder of later, of een stuk van de dag aantikken.
-  if (el.dataset.dg) {
-    const [g, stap] = el.dataset.dg.split(':');
-    const dg = dagNu();
-    dagGreep = g;
-    await bewaarDag(dagMet(dg, g, dg[g] + Number(stap)));
-    return;
-  }
-  if (el.dataset.dgDeel) {
-    // De tekening laat dat dagdeel zien: overdag de grens van de dag, 's nachts die van de nacht.
-    dagGreep = el.dataset.dgDeel === 'dag' ? 'dag' : 'nacht';
-    teken();
-    return;
-  }
-  // Hoe warm wil je het: een getal kiezen, en het aanpassen.
-  if (el.dataset.cf) {
-    const [kamer, deel, soort] = el.dataset.cf.split('|');
-    cfKeuze = { kamer, deel, soort };
-    teken();
-    return;
-  }
-  if (el.dataset.cfDeel) {
-    const sel = cfNu();
-    cfKeuze = { ...sel, deel: el.dataset.cfDeel };
-    teken();
-    return;
-  }
-  if (el.dataset.cfStap || el.hasAttribute('data-cf-uit') || el.hasAttribute('data-cf-huis')) {
-    const sel = cfNu();
-    const nu = cfDoel(sel.kamer, sel.deel, sel.soort);
-    const s = standaard();
-    const gewoon = sel.soort === 'heat' ? s.warm[sel.deel] : s.koel[sel.deel];
-    const b = d.comfort.bereik?.[sel.soort === 'heat' ? 'verwarmen' : 'koelen'] ?? { min: 5, max: 32 };
-    let v;
-    if (el.dataset.cfStap) v = Math.min(b.max, Math.max(b.min, Math.round(((nu ?? gewoon) + Number(el.dataset.cfStap)) * 2) / 2));
-    else if (el.hasAttribute('data-cf-uit')) v = nu == null ? gewoon : null;
-    else v = huisDoel(sel.deel, sel.soort);
-    await zetCf(sel, v);
-    return;
-  }
   if (el.dataset.kanOpen) {
     // Wat elk apparaat kan: een ander apparaat open; op de telefoon dicht als het al open was.
     kanOpen = app.telStand() && kanOpen === el.dataset.kanOpen ? null : el.dataset.kanOpen;
@@ -728,34 +641,6 @@ document.addEventListener('click', async (e) => {
     if (lijst.size) k.meten = [...lijst].slice(0, 6);
     else delete k.meten;
     await bewaarIndeling(next);
-    return;
-  }
-  if (el.dataset.flicht || el.dataset.fscherm || el.dataset.fcam || el.dataset.fpraat || el.dataset.ftedoen) {
-    const c = functiesNu();
-    if (!c) return;
-    if (el.dataset.flicht) c.licht = { ...c.licht, bedienen: el.dataset.flicht === 'true' };
-    if (el.dataset.fscherm) c.schermen = { ...c.schermen, bedienen: el.dataset.fscherm === 'true' };
-    if (el.dataset.fcam) c.cameras = { ...c.cameras, aan: el.dataset.fcam === 'true' };
-    if (el.dataset.fpraat) c.praten = { ...c.praten, bedienen: el.dataset.fpraat === 'true' };
-    // Te doen (besluit 217): de lijsten en agenda's die het huis vond, die kies je bij Instellingen › Assistent.
-    if (el.dataset.ftedoen) c.tedoen = { boodschappen: null, todo: null, afval: null, gezin: null, ...c.tedoen, aan: el.dataset.ftedoen === 'true' };
-    await bewaarFuncties(c);
-  }
-  // Hoe praat je huis (besluit 203): waar de stem vandaan komt, en of de browser mag verstaan.
-  if (el.dataset.stembron || el.dataset.stemverstaan) {
-    const c = functiesNu();
-    if (!c) return;
-    if (el.dataset.stembron) c.praten = { ...c.praten, stem: el.dataset.stembron };
-    if (el.dataset.stemverstaan) c.praten = { ...c.praten, verstaan: el.dataset.stemverstaan === 'true' };
-    await bewaarFuncties(c);
-    return;
-  }
-  // Helemaal in huis: de spraakassistent maken; de stap kijkt daarna elke drie tellen.
-  if (el.hasAttribute('data-inhuis-maak')) {
-    el.disabled = true;
-    const res = await deur('api/stem-in-huis', { maak: true }).catch(() => null);
-    if (res?.ok) d.inHuis = await res.json().catch(() => d.inHuis);
-    teken();
     return;
   }
 });
@@ -946,7 +831,6 @@ addEventListener('hashchange', () => {
   ligStaat.aanpassen = false;
   toevoegenIn = null;
   aanpas = null;
-  afwezigKeuze = null;
   if (stapNu() !== 'welkom') lijst = null;
   zeg('');
   teken();
@@ -969,44 +853,4 @@ document.addEventListener('click', (e) => {
   if (!a || href.startsWith('#') || /^[a-z]+:/i.test(href) || /^inrichten\.html/.test(href)) return;
   app.onthoudInrichten('app', location.hash.slice(1));
 }, true);
-/*
- * Je dag: een greep van de balk schuiven, per heel uur.
- * Tijdens het schuiven tekent alleen de balk mee; bij loslaten bewaart hij,
- * en tekent het huis met de lucht van dat uur.
- */
-{
-  let greep = null;
-  document.addEventListener('pointerdown', (e) => {
-    const el = e.target.closest?.('[data-dg-greep]');
-    if (!el || stapNu() !== 'dag') return;
-    e.preventDefault();
-    greep = { naam: el.dataset.dgGreep, dg: dagNu(), bewogen: false };
-    dagGreep = greep.naam;
-    el.setPointerCapture?.(e.pointerId);
-  });
-  document.addEventListener('pointermove', (e) => {
-    if (!greep) return;
-    const vak = document.querySelector(`${app.zicht()} [data-dg-grepen]`);
-    if (!vak) return;
-    const r = vak.getBoundingClientRect();
-    const u = Math.round(((e.clientX - r.left) / r.width) * 24);
-    const dg = dagMet(greep.dg, greep.naam, u);
-    if (dg[greep.naam] === dagNu()[greep.naam]) return;
-    greep.dg = dg;
-    greep.bewogen = true;
-    dagKeuze = dg;
-    // Alleen de balk opnieuw, zodat de greep onder de vinger blijft.
-    for (const b of document.querySelectorAll('.dg')) b.innerHTML = dagBalk();
-  });
-  const los = async () => {
-    if (!greep) return;
-    const { dg, bewogen } = greep;
-    greep = null;
-    if (bewogen) await bewaarDag(dg);
-    else teken();
-  };
-  document.addEventListener('pointerup', los);
-  document.addEventListener('pointercancel', los);
-}
-
 void laad();

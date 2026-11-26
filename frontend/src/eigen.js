@@ -248,7 +248,7 @@
       const html = alle.length
         ? `<div class="favpaginas" data-favpaginas>${paginas.map((p) => `<div class="tegels favpagina">${p}</div>`).join('')}</div>${stipjes}${kies}`
         : mag && iets
-          ? `<div class="favleeg"><p class="mini">${esc(global.t('thuis.fav.leeg'))}</p><button type="button" data-fav-kies>${esc(global.t('thuis.fav.kiezen'))}</button></div>`
+          ? `<div class="favleeg"><p class="mini">${esc(global.t('thuis.fav.leeg'))}</p><button type="button" data-fav-kies>${esc(global.t('stand.kiezen'))}</button></div>`
           : '';
       // Zonder lampen, scènes of screens, of op de wand zonder keuze en zonder recht: niets te tonen.
       kaart.hidden = !html;
@@ -525,7 +525,7 @@
         return keus({ ik: ICOON[id] ?? '', naam: k.dataset.naam ?? id, klein: KORT.has(id) ? global.t(`eigen.kort.${id}`) : '', rechts: '+', data: `data-erbij="${esc(id)}"` });
       });
       el.setAttribute('aria-label', global.t('eigen.toevoegen'));
-      el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(global.t(plek === 'wand' ? 'eigen.erbij' : 'eigen.toevoegen'))}</h2><button type="button" class="knop knop-klein" data-blad-dicht>${esc(global.t('algemeen.sluiten'))}</button></div>
+      el.innerHTML = `<div class="bladkop"><h2 class="kop-2">${esc(global.t(plek === 'wand' ? 'eigen.erbij' : 'eigen.toevoegen'))}</h2><button type="button" class="knop knop-klein" data-blad-dicht>${esc(global.t('kz.sluit'))}</button></div>
         ${plek === 'wand' ? `<p class="mini geen-marge">${esc(global.t('eigen.onderaan'))}</p>` : ''}
         ${rijen.length ? rijen.join('') : `<p class="mini">${esc(global.t('eigen.alleKaarten'))}</p>`}`;
       return;

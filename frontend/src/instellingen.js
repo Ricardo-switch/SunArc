@@ -33,8 +33,9 @@ function standregel() {
   // Dezelfde som als Wat je huis kan: stand.eerstDit en stand.erbij.
   const mis = isGast() ? [] : stand.eerstDit(d);
   const v = window.waaier ? stand.voortgang(d) : null;
-  const titel = mis.length ? t('inst4.mist', { n: mis.length }) : t('instellingen.allesGoed');
-  const zin = mis.length ? mis[0].wat : v ? t('inst4.kanZin', { werkt: v.tel('werkt'), bij: stand.erbij(d).length }) : '';
+  // Eén getal (besluit 350): het percentage in de waaier. Wat mist staat als zin, zonder te tellen.
+  const titel = mis.length ? mis[0].wat : t('instellingen.allesGoed');
+  const zin = mis.length ? mis[0].zin ?? '' : v && stand.erbij(d).length ? t('inst4.kanNog') : '';
   const waaierDeel = v?.onderwerpen.length ? `<svg viewBox="0 0 190 110" aria-hidden="true" data-mini></svg>` : '';
   const doe = mis.length ? `<a class="doe" href="${mis[0].href}">${esc(mis[0].knop)}</a>` : '';
   return `<a class="hoever" href="huis-kan.html">${waaierDeel}<span class="tekst"><b>${mis.length ? '' : '<i class="punt" aria-hidden="true"></i>'}${esc(titel)}</b><span class="zin">${esc(zin)}</span></span><span class="pijl" aria-hidden="true">›</span></a>${doe}`;
@@ -73,13 +74,15 @@ function knoppenVan(id) {
       const eerst = c?.voorrang?.verwarmen?.[0];
       const naam = (zoneId) => c?.kamers?.find((k) => k.id === zoneId)?.naam ?? zoneId;
       const aircos = d.helpen?.aircos?.length ?? 0;
+      const soortVw = d.aansluiting?.antwoorden?.verwarming?.soort;
       return [
         [t('inst4.hoeWarm'), c ? t('inst4.kamersMee', { n: c.kamers.length }) : laden, 'comfort.html'],
         [t('instellingen.dagdelen'), dd ? t('w.tot', { van: `${dd.dag}:00`, tot: `${dd.nacht}:00` }) : laden, 'comfort.html#dagdelen'],
         [t('comfort.voorrang'), eerst ? t('inst4.eerst', { naam: naam(eerst).toLowerCase() }) : c ? t('inst4.geenVoorrang') : laden, 'comfort.html#voorrang'],
-        [t('comfort.afwezig'), c ? t('inst4.vanzelf') : laden, 'comfort.html#afwezig'],
-        // Meten en regeling staat op de plek van Soort verwarming; die staat bij Energie (besluit 345).
+        // Afwezig en vakantie staat op de pagina Klimaat; op de tegel maakte het plaats voor Verwarming (besluit 350).
         [t('klimaat.meten'), metenZin() ?? laden, 'comfort.html#meten'],
+        // De soort verwarming (besluit 350): van Energie naar Klimaat.
+        [t('energie.verwarming'), soortVw ? t(`energie.soort.${soortVw}`) : d.aansluiting ? t('instellingen.nogKiezen') : laden, 'comfort.html#verwarming'],
         ...(aircos ? [[t('regeling.helpen'), t('inst4.aircos', { n: aircos }), 'comfort.html#helpen']] : []),
       ];
     }
@@ -90,16 +93,14 @@ function knoppenVan(id) {
       const z = (zAntwoord && zAntwoord !== 'weetniet' ? zAntwoord : null) ?? a?.configuratie?.zekering ?? null;
       const omv = a?.antwoorden?.omvormers?.length ?? 0;
       const p = d.energie?.instellingen?.prijzen;
-      const soort = a?.antwoorden?.verwarming?.soort;
       return [
         // Zoals de delen van Energie: Zonnepanelen staat hier (stap 4), het dak zelf teken je bij Je huis › Vorm;
-        // De zon verdelen is de ene plek voor op zon, en de soort verwarming staat alleen hier (besluit 345).
+        // De zon verdelen is de ene plek voor op zon. De soort verwarming staat sinds besluit 350 bij Klimaat.
         [t('inst4.daken'), panelenZin() ?? (a ? t('instellingen.nogKiezen') : laden), 'energie.html#panelen'],
         [t('zv.titel'), d.zonVerdelen ? t('zv.inLijst', { n: d.zonVerdelen.lijst.length }) : laden, 'energie.html#zon'],
         [t('inst4.zekering'), z ? `${z.fasen} × ${z.ampere} A` : a ? t('instellingen.nogKiezen') : laden, 'energie.html#aansluiting'],
         [t('inst4.meters'), a ? (omv ? t('inst4.omvormers', { n: omv }) : t('inst4.slimmeMeter')) : laden, 'energie.html#meters'],
         [t('inst4.prijzen'), euro(p?.stroom) ?? (d.energie ? t('instellingen.nogInvullen') : laden), 'energie.html#prijzen'],
-        [t('energie.verwarming'), soort ? t(`energie.soort.${soort}`) : a ? t('instellingen.nogKiezen') : laden, 'energie.html#verwarming'],
       ];
     }
     case 'app': {
@@ -161,7 +162,7 @@ function groepen() {
       .map(([naam, waarde, adres]) => `<a class="deelknop" href="${adres}"><span><b>${esc(naam)}</b><span>${esc(waarde ?? '')}</span></span><span class="pijl" aria-hidden="true">›</span></a>`)
       .join('');
     return `<section class="glas tegel${n ? ' aandacht' : ''}" data-tegel="${id}">
-      <a class="titel" href="${href}"><span class="icoon">${ICOON[id]}</span><span class="kop"><h3>${esc(t(`inst4.${id}`))}</h3><span class="zin">${esc(t(`inst4.${id}Zin`))}</span></span>${n ? `<span class="stand mis">${esc(t('instellingen.mist', { n }))}</span>` : ''}<span class="pijl" aria-hidden="true">›</span></a>
+      <a class="titel" href="${href}"><span class="icoon">${ICOON[id]}</span><span class="kop"><h3>${esc(t(`inst4.${id}`))}</h3><span class="zin">${esc(t(`inst4.${id}Zin`))}</span></span>${n ? `<span class="stand mis">${esc(t('inst4.tegelMist'))}</span>` : ''}<span class="pijl" aria-hidden="true">›</span></a>
       <div class="deelknoppen">${knoppen}</div>
     </section>`;
   }).join('');

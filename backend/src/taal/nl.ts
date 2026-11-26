@@ -223,7 +223,7 @@ export const nl = {
     geenMeting: 'geen meting',
     draaitNiets: 'Er draait niets',
     nDraaien: (n: number) => `${n} apparaten draaien`,
-    doetMee: (kamer: string) => `Doet mee met de regeling van ${kamer}.`,
+    doetMee: (kamer: string) => `Volgt de thermostaat van ${kamer}.`,
   },
   // web/meldingen.ts
   meldingen: {
@@ -799,8 +799,8 @@ export const nl = {
     },
     'functies': {
       antwoord:
-        'Camera’s, de deurbel, licht bedienen en het weer stel je in bij Instellingen, onder Licht, camera’s en weer. Daar kies je welke camera’s de app toont, wat er gebeurt als er wordt aangebeld, en waar het weer vandaan komt.',
-      label: 'Naar Licht, camera’s en weer',
+        'Camera’s, de deurbel, licht bedienen en het weer stel je in bij Instellingen, onder Extra’s. Daar kies je welke camera’s de app toont, wat er gebeurt als er wordt aangebeld, en waar het weer vandaan komt.',
+      label: 'Naar Extra’s',
     },
     'inrichten': {
       antwoord:
@@ -809,8 +809,8 @@ export const nl = {
     },
     'inloggen': {
       antwoord:
-        'Je logt in met je account van Home Assistant; de hele app vraagt dat. Uitloggen kan bij Instellingen, onder Bewoners en toegang.',
-      label: 'Naar Bewoners en toegang',
+        'Je logt in met je account van Home Assistant; de hele app vraagt dat. Uitloggen kan bij Instellingen, onder Bewoners en inloggen.',
+      label: 'Naar Bewoners en inloggen',
     },
     'opbrengst': {
       antwoord:

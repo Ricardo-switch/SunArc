@@ -77,7 +77,7 @@ function nuZin(id) {
   const doet = snap?.observedAction?.[id];
   if (stand === 'off') return t('motor.nu.uit');
   const op = doel ? t('motor.nu.op', { doel: `${getal(Number(doel), Number(doel) % 1 ? 1 : 0)}°` }) : woord(`motor.actie.${stand}`, stand);
-  const wat = doet === 'heating' ? t('motor.nu.verwarmt') : doet === 'cooling' ? t('motor.nu.koelt') : doet === 'idle' ? t('motor.nu.stil') : '';
+  const wat = doet === 'heating' ? t('hand.verwarmt') : doet === 'cooling' ? t('hand.koelt') : doet === 'idle' ? t('motor.nu.stil') : '';
   return wat ? `${op}: ${wat}` : op;
 }
 
@@ -91,7 +91,7 @@ function tekenNu() {
   const metHand = (hand?.apparaten ?? []).filter((a) => a.actief).length;
   const meet = `<section class="glas kaart mo-kaart" style="--o: 4"><h2>${esc(t('motor.meet.kop'))} <small>${esc(t('motor.meet.ronde', { tijd: klok(snap.atMs) }))}</small></h2>
       ${rij(t('motor.meet.stand'), esc(woord(`motor.stand.${e.mode}`, e.mode)), e.mode, `${t(e.modeSource === 'override' ? 'motor.meet.zelf' : 'motor.meet.schema')}, ${t(e.occupied ? 'motor.meet.thuis' : 'motor.meet.niemand')}`)}
-      ${e.outdoorTemperatureC != null ? rij(t('motor.meet.buiten'), `${getal(e.outdoorTemperatureC, 1)}°`) : ''}
+      ${e.outdoorTemperatureC != null ? rij(t('ht.buiten.kop'), `${getal(e.outdoorTemperatureC, 1)}°`) : ''}
       ${e.solarProductionW != null ? rij(t('w.zon'), W(e.solarProductionW)) : ''}
       ${rij(t('w.net'), esc(b.gridPowerW >= 0 ? t('motor.meet.vanNet', { w: W(b.gridPowerW) }) : t('motor.meet.terug', { w: W(-b.gridPowerW) })))}
       ${(e.phases ?? []).map((f) => `<div class="mo-rij"><span>${esc(t('motor.meet.fase', { id: f.id }))}</span><b>${getal(f.currentA, 1)} A <small style="color: var(--gedempt); font-weight: 600">${esc(t('motor.meet.vanA', { a: getal(f.limitA) }))}</small></b><div class="mo-balk"><i style="width: ${Math.min(100, (f.currentA / Math.max(1, f.limitA)) * 100)}%; background: var(--violet)"></i></div></div>`).join('')}
@@ -164,7 +164,7 @@ function tekenVandaag() {
     rijVan(t('motor.dag.oud'), (k, kw) => cel(kw, k.oud ? 'oud' : '')),
   ].join('');
   const as = `<span></span><div class="as">${['00', '03', '06', '09', '12', '15', '18', '21', '24'].map((u) => `<span>${u}</span>`).join('')}</div>`;
-  const leg = `<div class="mo-leg boven-16"><span style="--k: var(--gloed)">${esc(t('motor.dag.leg.warm'))}</span><span style="--k: var(--ijs)">${esc(t('motor.dag.leg.koel'))}</span><span style="--k: var(--zon)">${esc(t('motor.dag.leg.zon'))}</span><span style="--k: var(--violet)">${esc(t('w.vanHetNet'))}</span><span style="--k: color-mix(in srgb, var(--violet) 70%, transparent)">${esc(t('motor.dag.leg.oud'))}</span><span class="anders">${esc(t('motor.dag.leg.anders'))}</span></div>`;
+  const leg = `<div class="mo-leg boven-16"><span style="--k: var(--gloed)">${esc(t('motor.dag.leg.warm'))}</span><span style="--k: var(--ijs)">${esc(t('motor.dag.leg.koel'))}</span><span style="--k: var(--zon)">${esc(t('stroom.leg.zon'))}</span><span style="--k: var(--violet)">${esc(t('w.vanHetNet'))}</span><span style="--k: color-mix(in srgb, var(--violet) 70%, transparent)">${esc(t('motor.dag.leg.oud'))}</span><span class="anders">${esc(t('motor.dag.leg.anders'))}</span></div>`;
   const tijdlijn = `<section class="glas kaart mo-kaart" style="flex: 1"><h2>${esc(t('motor.dag.kop'))} <small>${esc(t('motor.dag.uitleg'))}</small></h2>
       <div class="mo-tijd">${regels}${as}</div>${leg}<p class="mo-zin">${esc(t('motor.dag.zin'))}</p></section>`;
   return `<div class="mo-kol">${tijdlijn}</div><div class="mo-kol">${tekenRonde()}</div>`;
@@ -286,7 +286,7 @@ async function laadTerugblik() {
 
 function teken() {
   const kop = `<header class="mo-kop">
-      <div><a class="mo-terug" href="over.html">‹ ${esc(t('motor.terug'))}</a><h1 class="kop-2">${esc(t('motor.titel'))}</h1><p class="mo-onder">${snap ? taal.html('motor.onder', { tijd: klok(snap.atMs) }) : ''}</p></div>
+      <div><a class="mo-terug" href="over.html">‹ ${esc(t('over.kop'))}</a><h1 class="kop-2">${esc(t('motor.titel'))}</h1><p class="mo-onder">${snap ? taal.html('motor.onder', { tijd: klok(snap.atMs) }) : ''}</p></div>
       <div class="mo-rechts"><div class="keuze" role="group" aria-label="${esc(t('motor.delen'))}">${DELEN.map((d) => `<button type="button" aria-pressed="${d === deel}" data-deel="${d}">${esc(t(`motor.deel.${d}`))}</button>`).join('')}</div><button type="button" class="mo-kopie" data-kopie>${esc(t('motor.kopie'))}</button></div>
     </header>`;
   const inhoud = deel === 'vandaag' ? tekenVandaag() : deel === 'geleerd' ? tekenGeleerd() : deel === 'vergelijken' ? tekenVergelijken() : snap ? tekenNu() : `<div class="mo-kol"><section class="glas kaart mo-kaart mo-melding">${esc(fout || t('motor.nogNiet'))}</section></div>`;

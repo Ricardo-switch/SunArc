@@ -3,8 +3,8 @@
  * inrichten-klimaat.js laadt en zijn bovenste namen deelt met de andere delen van de pagina.
  */
 'use strict';
-/* global IK, S, antwoorden, appAdres, d, deur, energieNu, esc, haal, knop, lijstje, nl, qrVan, regel, rij, schakel, schakelaar, stuur, teken, tip, waarVan */
-/* exported accountStap, assistentBlok, assistentNogAan, bewaarAansluiting, bewaarFuncties, bewaarPrijzen, bewaarVoorkeur, contractKeuze, contractNu, dakVoorstelStap, functiesNu, functiesStap, haStap, naarRondleiding, prijzenStap, stemStap, vermogenStap, wandStap, zekeringStap, zetAssistentAan */
+/* global antwoorden, d, deur, energieNu, esc, haal, lijstje, nl, regel, stuur, teken, tip, waarVan */
+/* exported assistentBlok, assistentNogAan, bewaarAansluiting, bewaarFuncties, bewaarPrijzen, contractKeuze, contractNu, dakVoorstelStap, functiesNu, naarRondleiding, prijzenStap, vermogenStap, zekeringStap, zetAssistentAan */
 /*
  * Zo liggen ze, denken we (schets Wand-Inrichten-Daken #voorstel): elk vlak
  * met zijn letter, in de kleur van waar het vandaan komt. Zolang de meting
@@ -81,7 +81,7 @@ function prijzenStap() {
   const gas = e?.gas ? veld('gas', t('inr.gasM3'), p.gas, 'm³') : '';
   const stroom = soort === 'dagnacht'
     ? `<div class="paar">${veld('stroom', t('inr.stroomNormaal'), p.stroom)}${veld('stroomDal', t('inr.stroomDal'), p.stroomDal)}</div>${gas}`
-    : `<div class="paar">${veld('stroom', t(soort === 'dynamisch' ? 'inr.stroomGemiddeld' : 'energie.stroomKop'), p.stroom)}${gas}</div>`;
+    : `<div class="paar">${veld('stroom', t(soort === 'dynamisch' ? 'inr.stroomGemiddeld' : 'opbrengst.stroom'), p.stroom)}${gas}</div>`;
   const velden = soort
     ? `${stroom}
        <span class="vraagje">${esc(t('inr.terug2027'))}</span><div class="paar">${veld('vanaf2027.vergoeding', t('inr.jeKrijgt'), p.vanaf2027?.vergoeding)}${veld('vanaf2027.kosten', t('inr.jeBetaalt'), p.vanaf2027?.kosten)}</div>`
@@ -121,27 +121,6 @@ const functiesNu = () => {
   c.tedoen ??= f.voorstel.tedoen;
   return c;
 };
-function functiesStap() {
-  const c = functiesNu();
-  const f = d.functies;
-  const cams = f?.gevonden?.cameras ?? [];
-  // Elk deel met een schakelaar (besluit 190): aan is bedienen in de app, uit alleen kijken.
-  const een = (icoon, titel, attr, aan, zinAan, zinUit) => regel({ ik: icoon, titel, zin: aan ? zinAan : zinUit, rechts: schakelaar(`${attr}="${!aan}"`, titel, aan) });
-  return {
-    waar: waarVan('functies'),
-    kop: t('inr.gemakKop'),
-    uitleg: t('inr.functiesZin'),
-    inhoud: c
-      ? `<div class="rijen lijst">
-          ${f.lichtMogelijk ? een('lamp', t('inr.licht'), 'data-flicht', c.licht?.bedienen === true, t('functies.bedienen'), t('functies.kijken')) : ''}
-          ${f.schermMogelijk ? een('screen', t('inr.zonneschermen'), 'data-fscherm', c.schermen?.bedienen === true, t('functies.bedienen'), t('functies.kijken')) : ''}
-          ${cams.length ? een('camera', t('functies.cameras'), 'data-fcam', c.cameras?.aan === true, lijstje(cams.map((x) => x.naam)), t('functies.nietTonen')) : ''}
-          ${een('praat', t('inr.assistent'), 'data-fpraat', c.praten?.bedienen !== false, t('inr.assistentAan'), t('inr.assistentUit'))}
-          ${een('lijst', t('nav.tedoen'), 'data-ftedoen', c.tedoen?.aan === true, t('inr.tedoenAan'), t('inr.tedoenUit'))}
-        </div>${tip(t('inr.gemakTip'))}`
-      : `<p class="zacht">${esc(t('inr.lezen'))}</p>`,
-  };
-}
 async function bewaarFuncties(c) {
   const uit = await stuur('api/functies', c);
   if (!uit) return false;
@@ -149,89 +128,7 @@ async function bewaarFuncties(c) {
   teken();
   return true;
 }
-/*
- * De wand (besluit 158): dat doe je op de tablet zelf, niet hier. Wie hier
- * inricht, ziet hoe, met een code om te scannen, en welke schermen er al zijn.
- */
-/*
- * Per scherm (besluit 166): het hele scherm en luisteren naar "Hé huis". De
- * dienst bewaart het, de tablet neemt het over; zo zet je het ook vanaf de pc.
- */
-function schermRij(s) {
-  const mag = d.bewoners?.ik?.magBeheren || s.ik;
-  const o = s.opties ?? {};
-  return `<div class="waarderij">${esc(s.naam)}<span>${esc(t(s.ik ? 'inr.ditScherm' : 'inr.scherm'))}</span></div>
-    <div class="rondom onder-8">
-      ${schakel(`data-sopt="volledig" data-scherm="${esc(s.id)}"`, t('w.volledigScherm'), o.volledig === true, !mag)}
-      ${schakel(`data-sopt="luisteren" data-scherm="${esc(s.id)}"`, t('bewoners.luistert'), o.luisteren === true, !mag)}
-    </div>`;
-}
-/*
- * Een eigen account voor de wand (besluit 202, schets Wand-Inrichten-Klaarzetten
- * #wand): een tablet aan de muur logt het beste in met een eigen account in
- * Home Assistant, geen beheerder. Waarom, en hoe in drie stappen, met een knop
- * naar Personen. Is er al een scherm, dan staat dat er; zonder inlog (op het
- * thuisnetwerk) is er geen account nodig.
- */
-function accountStap() {
-  const schermen = d.bewoners?.schermen ?? [];
-  const inlog = d.sessie?.toegang === 'sessions' || app.inHA();
-  const waarom = `<div class="accblok"><div class="acckop"><span class="ik">${S(IK.tablet)}</span><div><b>${esc(t('inr.acc.waarom'))}</b><span>${esc(t('inr.acc.waaromZin'))}</span></div></div>
-    <ul class="accwaarom">${['w1', 'w2', 'w3'].map((k) => `<li>${esc(t(`inr.acc.${k}`))}</li>`).join('')}</ul></div>`;
-  let inhoud;
-  if (!inlog) inhoud = `${tip(t('inr.acc.geenInlog'))}`;
-  else if (schermen.length) inhoud = `${regel({ ik: 'tablet', titel: t('inr.acc.al', { naam: schermen.map((s) => s.naam).join(', ') }), zin: t('inr.acc.alZin'), rechts: '✓', toon: 'mint' })}${waarom}`;
-  else {
-    const stappen = ['s1', 's2', 's3'].map((k, i) => `<li><span class="nr">${i + 1}</span><span>${esc(t(`inr.acc.${k}`))}</span></li>`).join('');
-    const open = app.inHA() ? `<button type="button" class="knop" data-ha-pad="/config/person">${esc(t('inr.acc.open'))}</button>` : '';
-    inhoud = `${waarom}<div class="accblok"><b>${esc(t('inr.acc.hoe'))}</b><ol class="accstappen">${stappen}</ol>${open}</div>`;
-  }
-  return { waar: waarVan('account'), kop: t('inr.acc.kop'), uitleg: t('inr.acc.zin'), inhoud: `<div class="rijen">${inhoud}</div>` };
-}
-/*
- * De wand (besluit 158, 166 en 190): hoe hij eruitziet, in het klein, met de
- * kaarten om aan of uit te zetten; 's nachts uit en de taal. Dezelfde indeling
- * als op je telefoon (niet dubbel). Daaronder elk scherm.
- */
-const WAND_KAARTEN = ['favorieten', 'vandaag', 'apparaat', 'gevoel', 'morgen', 'auto', 'batterij', 'maand', 'deurbel', 'boiler', 'sluip', 'fasen', 'tedoen'];
-function wandStap() {
-  const schermen = d.bewoners?.schermen ?? [];
-  const inlog = d.sessie?.toegang === 'sessions';
-  const v = d.voork;
-  const kaarten = v?.wand?.kaarten ?? [];
-  const breed = new Set(v?.wand?.breed ?? []);
-  const wandje = `<div class="wandje" aria-hidden="true"><span class="huisvak" data-mini="wand"></span><span class="kaartjes">${kaarten.slice(0, 8).map((k) => `<i class="${breed.has(k) ? 'breed' : ''}"></i>`).join('')}</span></div>`;
-  const n = v?.wand?.niemand;
-  const taal = v?.tel?.taal ?? 'auto';
-  const instellen = v
-    ? `${wandje}
-       ${`<div class="schakelblok"><b>${esc(t('w.kaarten'))}</b><div class="kolom schakels">${WAND_KAARTEN.map((k) => schakel(`data-wkaart="${k}"`, t(`inr.kaart.${k}`), kaarten.includes(k))).join('')}</div></div>`}
-       ${n ? rij(t('inr.alsNiemand'), knop('data-wnacht', t('inr.nachtsUit', { van: n.van, tot: n.tot }), n.nacht === true)) : ''}
-       ${v.scherm ? '' : rij(t('jij.taal.kop'), ['auto', 'nl', 'en'].map((x) => knop(`data-wtaal="${x}"`, t(`jij.taal.${x}`), taal === x)).join(''))}`
-    : '';
-  return {
-    waar: waarVan('wand'),
-    kop: t('inr.wandKop'),
-    uitleg: t(schermen.length ? 'inr.wandPerScherm' : inlog ? 'inr.wandInlog' : 'inr.wandHA'),
-    inhoud: `<div class="rijen">${instellen}
-        ${schermen.length ? schermen.map(schermRij).join('') : ''}
-        ${!schermen.length && inlog ? `<div class="erbij"><div class="qr" role="img" aria-label="${esc(t('bewoners.qr'))}">${qrVan(appAdres())}</div><span class="zacht" style="padding: 0">${esc(t('inr.geenBewoner'))}</span></div>` : ''}
-      </div>`,
-  };
-}
-async function bewaarVoorkeur(body) {
-  const uit = await stuur('api/voorkeuren', body);
-  if (uit) d.voork = uit;
-  teken();
-  return uit;
-}
 
-/*
- * Staat alles klaar? (besluit 179 en 190): wat SunArc in Home Assistant
- * gebruikt, zoals bij Wat je huis kan. Oranje mist nog; in Home Assistant
- * opent een tik dat scherm.
- */
-const KLAAR_STIP = { klaar: 'var(--mint)', mist: 'var(--gloed)', optioneel: 'var(--gedempt)' };
 /*
  * De assistent met één knop (besluit 202, schets Wand-Inrichten-Klaarzetten
  * #assistent en #bezig): de add-on zet de integratie neer, herstart Home
@@ -295,86 +192,7 @@ async function naarRondleiding() {
   }
   location.href = 'thuis.html#rondleiding';
 }
-/** Naar Klaarzetten per functie (besluit 246): hoeveel er voor iedereen nog open is. */
-function klaarRegel() {
-  const open = (d.klaar?.functies ?? []).filter((f) => f.niveau === 'iedereen').reduce((n, f) => n + f.stappen.filter((s) => s.stand === 'open').length, 0);
-  return `<div class="lijst">${regel({ tag: 'a', attrs: 'href="klaarzetten.html"', ik: 'lijst', titel: t('inr.kz.titel'), zin: t('inr.kz.zin'), rechts: open ? String(open) : '›', toon: open ? 'zon' : '' })}</div>`;
-}
-function haStap() {
-  const punten = d.klaar?.punten ?? [];
-  const inHA = app.inHA();
-  const rijen = punten.map((p) => `<div class="klaarregel"><i style="background: ${KLAAR_STIP[p.stand] ?? 'var(--gedempt)'}"></i><span class="tekst"><b>${esc(p.titel)}</b><span>${esc(p.zin)}</span>${!inHA && p.waar && p.stand !== 'klaar' ? `<small>${esc(p.waar)}</small>` : ''}</span>${inHA && p.pad && p.stand !== 'klaar' ? `<button type="button" class="chip" data-ha-pad="${esc(p.pad)}" aria-label="${esc(t('kan.klaar.openIn', { titel: p.titel }))}">${esc(t('kan.klaar.open'))}</button>` : '<span></span>'}</div>`).join('');
-  return {
-    waar: waarVan('ha'),
-    kop: t('inr.ha.kop'),
-    uitleg: t(inHA ? 'inr.ha.zin' : 'inr.ha.zinBuiten'),
-    inhoud: `${assistentBlok()}${klaarRegel()}<div class="rijen lijst klaarlijst">${rijen || `<p class="zacht">${esc(t('inr.lezen'))}</p>`}</div>${tip(t('inr.ha.tip'))}`,
-  };
-}
 
-/*
- * Hoe praat je huis (besluit 203, schets Wand-Inrichten-Klaarzetten #stem): met
- * dit apparaat, zonder iets te installeren; of helemaal in huis met Whisper,
- * Piper en openWakeWord. Die installeer je zelf (de knop opent hun pagina in
- * Home Assistant); daarna maakt de add-on de spraakassistent met één tik.
- */
-const ADDON_NAAM = { whisper: 'Whisper', piper: 'Piper', openwakeword: 'openWakeWord' };
-let inHuisKijk = null;
-function stemStap() {
-  const c = functiesNu();
-  const p = c?.praten ?? {};
-  const huis = p.stem === 'huis';
-  const kanBrowser = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  // Wat bij een keuze hoort, staat alleen onder de gekozen: zo past het op de wand.
-  const keuze = (waarde, aan, kop, label, toon, zin, onder) =>
-    `<div class="stemkeuze${aan ? ' aan' : ''}"><button type="button" class="keuzekop" data-stembron="${waarde}" aria-pressed="${aan}"><span class="rond" aria-hidden="true"></span><span><b>${esc(kop)} <span class="label ${toon}">${esc(label)}</span></b><span class="zin">${esc(zin)}</span></span></button>${aan && onder ? `<div class="onder">${onder}</div>` : ''}</div>`;
-  const verstaan = `<div class="schakelrij"><span>${esc(t('inr.stem.verstaan'))}</span>${schakelaar(`data-stemverstaan="${p.verstaan === false}"`, t('inr.stem.verstaanLabel'), p.verstaan !== false)}</div>${kanBrowser ? '' : `<p class="mini">${esc(t('inr.stem.kanNiet'))}</p>`}`;
-  return {
-    waar: waarVan('stem'),
-    kop: t('inr.stem.kop'),
-    uitleg: t('inr.stem.zin'),
-    inhoud: c
-      ? `<div class="keuzes-stem" role="group" aria-label="${esc(t('inr.stem.kop'))}">
-          ${keuze('apparaat', !huis, t('inr.stem.apparaat'), t('inr.stem.meteen'), 'mint', t('inr.stem.apparaatZin'), verstaan)}
-          ${keuze('huis', huis, t('inr.stem.huis'), t('inr.stem.gevorderd'), 'gedempt', t('inr.stem.huisZin'), inHuisOnder())}
-        </div>`
-      : `<p class="zacht">${esc(t('inr.lezen'))}</p>`,
-  };
-}
-/** Onder Helemaal in huis: de drie add-ons, en de spraakassistent maken. */
-function inHuisOnder() {
-  const ih = d.inHuis;
-  // Buiten de add-on (of geen beheerder): wat je zelf in Home Assistant doet.
-  if (!ih) return `<p class="mini">${esc(t('inr.stem.zelf'))}</p>`;
-  const inHA = app.inHA();
-  const rijen = ih.addons
-    .map((a) => {
-      const rechts = a.staat === 'aan' ? `<span class="ok">${esc(t('inr.stem.staatErin'))}</span>` : a.staat === 'gevonden' ? `<span class="ok gevonden">${esc(t('inr.stem.gevonden'))}</span>` : inHA ? `<button type="button" class="knop knop-klein" data-ha-pad="/hassio/addon/${esc(a.slug)}/info">${esc(t('inr.stem.installeer'))}</button>` : `<span class="mini">${esc(t('inr.stem.inHA'))}</span>`;
-      return `<div class="addon"><div><b>${esc(ADDON_NAAM[a.id] ?? a.id)}</b><span>${esc(t(`inr.stem.wat.${a.id}`))}</span></div>${rechts}</div>`;
-    })
-    .join('');
-  // Loopt het, dan elke drie tellen kijken waar het is.
-  if (ih.bezig && !inHuisKijk) {
-    inHuisKijk = setTimeout(async () => {
-      inHuisKijk = null;
-      d.inHuis = await haal('api/stem-in-huis').catch(() => d.inHuis);
-      if (!d.inHuis?.bezig) d.functies = await haal('api/functies').catch(() => d.functies);
-      teken();
-    }, 3000);
-  }
-  const kan = ih.addons.filter((a) => a.id !== 'openwakeword').every((a) => a.staat !== 'nee');
-  // Klaar zonder "Hé huis": de laatste twee tikken in Home Assistant, met een knop naar elk.
-  const owv = ih.addons.find((a) => a.id === 'openwakeword');
-  const wekwoordKnoppen = !ih.assistent?.wekwoord && inHA
-    ? `<div class="chips">${owv?.slug ? `<button type="button" class="knop knop-klein" data-ha-pad="/hassio/addon/${esc(owv.slug)}/info">${esc(t('inr.stem.herstartOwv'))}</button>` : ''}<button type="button" class="knop knop-klein" data-ha-pad="/config/voice-assistants/assistants">${esc(t('inr.stem.kiesWekwoord'))}</button></div>`
-    : '';
-  const onder = ih.assistent
-    ? `<p class="mini klaar">${esc(t(ih.assistent.wekwoord ? 'inr.stem.klaarMet' : 'inr.stem.klaarZonder'))}</p>${wekwoordKnoppen}`
-    : ih.bezig
-      ? `<p class="mini" aria-live="polite">${esc(t('inr.stem.bezig'))}</p>`
-      : `${ih.fout ? `<p class="mini fout">${esc(t('inr.as.fout', { fout: ih.fout }))}</p>` : ''}<button type="button" class="knop knop-licht" data-inhuis-maak ${kan ? '' : 'disabled'}>${esc(t(ih.fout ? 'inr.as.opnieuw' : 'inr.stem.maak'))}</button>${kan ? '' : `<p class="mini">${esc(t('inr.stem.eerst'))}</p>`}`;
-  return `${rijen}${onder}`;
-}
 /** `daken`: de vlakken van Daken en panelen (besluit 254); weggelaten blijven ze zoals ze waren, null haalt ze weg. */
 async function bewaarAansluiting(a, daken) {
   const opZon = Object.fromEntries(Object.entries(a.opZon).filter(([, v]) => typeof v === 'boolean'));

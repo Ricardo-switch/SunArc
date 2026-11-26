@@ -83,7 +83,7 @@
       if (isStand(a.actief.modus)) return t('hand.handStandTot', { wat: t(`hand.modus.${a.actief.modus}`).toLowerCase(), tot });
       return a.actief.modus === 'koelen' ? t('hand.handKoelenTot', { doel: graden(a.actief.doelC), tot }) : t('hand.handOpTot', { doel: graden(a.actief.doelC), tot });
     }
-    const hvac = a.hvac === 'heat' ? t('hand.verwarmt') : a.hvac === 'cool' ? t('hand.koelt') : a.hvac === 'dry' ? t('hand.droogt') : a.hvac === 'fan_only' ? t('hand.ventileert') : a.hvac === 'off' ? t('hand.uit') : '';
+    const hvac = a.hvac === 'heat' ? t('hand.verwarmt') : a.hvac === 'cool' ? t('hand.koelt') : a.hvac === 'dry' ? t('hand.droogt') : a.hvac === 'fan_only' ? t('hand.ventileert') : a.hvac === 'off' ? t('w.uit2') : '';
     if (a.soort === 'los') return hvac;
     return [t('hand.volgt'), hvac].filter(Boolean).join(' · ');
   }
@@ -98,7 +98,7 @@
     const pct = (ms) => Math.max(0, Math.min(100, ((ms - d.getTime()) / 86_400_000) * 100));
     const nu = pct(Date.now());
     const tot = pct(totMs);
-    return `<div class="hand-dag" role="img" aria-label="${esc(t('hand.balkUitleg', { klok: klokVan(totMs) }))}"><div class="balk24"><i class="hand" style="left: ${nu.toFixed(1)}%; width: ${Math.max(1, tot - nu).toFixed(1)}%"></i><b style="left: ${nu.toFixed(1)}%"></b></div><div class="assen"><span style="left: 0; transform: none">0</span><span style="left: ${nu.toFixed(1)}%; transform: translateX(-100%); padding-right: 4px">${esc(t('hand.nu'))}</span><span style="left: ${Math.min(tot, 76).toFixed(1)}%; transform: none" class="tot">${esc(label)}</span>${tot > 55 ? '' : '<span style="right: 0; left: auto; transform: none">24</span>'}</div></div>`;
+    return `<div class="hand-dag" role="img" aria-label="${esc(t('hand.balkUitleg', { klok: klokVan(totMs) }))}"><div class="balk24"><i class="hand" style="left: ${nu.toFixed(1)}%; width: ${Math.max(1, tot - nu).toFixed(1)}%"></i><b style="left: ${nu.toFixed(1)}%"></b></div><div class="assen"><span style="left: 0; transform: none">0</span><span style="left: ${nu.toFixed(1)}%; transform: translateX(-100%); padding-right: 4px">${esc(t('w.nu'))}</span><span style="left: ${Math.min(tot, 76).toFixed(1)}%; transform: none" class="tot">${esc(label)}</span>${tot > 55 ? '' : '<span style="right: 0; left: auto; transform: none">24</span>'}</div></div>`;
   }
 
   /** De draaiknop: een boog van het laagste tot het hoogste doel, met het doel en wat het nu is. */
@@ -148,7 +148,7 @@
   const seg = (naam, keuzes) => `<div class="keuze hand-seg" role="group" aria-label="${esc(naam)}">${keuzes.map(([k, w, aan, attr]) => `<button type="button" ${attr}="${k}" aria-pressed="${aan}">${esc(w)}</button>`).join('')}</div>`;
 
   function kopVan(naam, zin) {
-    return `<div class="hand-boven"><div><h2>${esc(naam)}</h2><p class="nu">${esc(zin)}</p></div><button type="button" class="sluit" data-hand-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>`;
+    return `<div class="hand-boven"><div><h2>${esc(naam)}</h2><p class="nu">${esc(zin)}</p></div><button type="button" class="sluit" data-hand-sluit aria-label="${esc(t('kz.sluit'))}">×</button></div>`;
   }
 
   /*
@@ -246,12 +246,12 @@
       ? (a.actief || (a.hvac && a.hvac !== 'off') ? `<button type="button" class="hand-terug" data-hand-uit>${esc(t('hand.zetUit'))}</button>` : '')
       : a.actief ? `<button type="button" class="hand-terug" data-hand-terug>${esc(t(zetUit ? 'hand.uitTerug' : 'hand.terug'))}</button>` : '';
     const keuzes = [...a.modi.map((x) => x.modus), ...(a.standen ?? [])];
-    const wat = keuzes.length > 1 ? seg(t('hand.wat'), keuzes.map((x) => [x, t(`hand.modus.${x}`), x === open.modus, 'data-hand-modus'])) : '';
+    const wat = keuzes.length > 1 ? seg(t('gp.wat'), keuzes.map((x) => [x, t(`hand.modus.${x}`), x === open.modus, 'data-hand-modus'])) : '';
     // Welke kachel (het tuinhuis, besluit 319): de voorinstellingen van het apparaat zelf.
     const voor = los && (a.voorinstellingen ?? []).length ? `<div class="hand-vraag"><span>${esc(t('hand.welke'))}</span>${seg(t('hand.welke'), a.voorinstellingen.map((x) => [x, x, x === (open.voor ?? a.voorinstelling), 'data-hand-voor']))}</div>` : '';
     const hoe = hoeZin(a, m, totMs);
     const kan = (data.aan || los) && (stand || !m.niet);
-    const zet = stand ? t('hand.zetStand', { wat: t(`hand.modus.${open.modus}`), klok: klokVan(totMs) }) : a.actief ? t('hand.bewaar') : m.modus === 'koelen' ? t('hand.zetKoel', { doel: graden(open.doel) }) : m.via === 'direct' && open.tot !== 'doel' ? t('hand.zetWarm', { klok: klokVan(totMs) }) : t('hand.zetOp', { doel: graden(open.doel) });
+    const zet = stand ? t('hand.zetStand', { wat: t(`hand.modus.${open.modus}`), klok: klokVan(totMs) }) : a.actief ? t('w.bewaar') : m.modus === 'koelen' ? t('hand.zetKoel', { doel: graden(open.doel) }) : m.via === 'direct' && open.tot !== 'doel' ? t('hand.zetWarm', { klok: klokVan(totMs) }) : t('hand.zetOp', { doel: graden(open.doel) });
     const label = open.tot === 'doel' ? t('hand.balkDoel', { doel: graden(open.doel), klok: klokVan(totMs) }) : t('hand.terugOm', { klok: klokVan(totMs) });
     const knoprij = stand
       ? `<div class="hand-stand">${iconen.svg(open.modus === 'drogen' ? 'vocht' : 'ventilatie')}<b>${esc(t(`hand.modus.${open.modus}`))}</b><span>${esc(t(`hand.standZin.${open.modus}`))}</span></div>`
@@ -337,7 +337,7 @@
       s.vermogenW != null ? `${nl(s.vermogenW, 0)} W` : null,
       s.actief ? t(s.actief.aan ? 'hand.stekkerAanTot' : 'hand.stekkerUitTot', { klok: klokVan(s.actief.totMs) }) : null,
     ].filter(Boolean).join(' · ');
-    const kop = `<div class="hand-boven"><div><h2>${esc(s.naam)}</h2><p class="nu">${stip}${esc(stand || t('apparaten.stekker'))}</p></div><button type="button" class="sluit" data-hand-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>`;
+    const kop = `<div class="hand-boven"><div><h2>${esc(s.naam)}</h2><p class="nu">${stip}${esc(stand || t('apparaten.stekker'))}</p></div><button type="button" class="sluit" data-hand-sluit aria-label="${esc(t('kz.sluit'))}">×</button></div>`;
     const zonZin = s.zon?.schakelt
       ? [t('hand.stekkerOpZon'), s.minimum ? t('hand.stekkerMinimum', { duur: duurVan(s.minimum.minuten), klok: s.minimum.klok, gehad: duurVan(s.gehadMin ?? 0) }) : ''].filter(Boolean).join(' ')
       : '';
@@ -359,7 +359,7 @@
     const klok = klokVan(totMs);
     const wat = seg(t('hand.watWil'), [
       ['aan', t('hand.stekkerZetAanKort'), open.aan, 'data-st-aan'],
-      ['uit', t('hand.stekkerZetUitKort'), !open.aan, 'data-st-aan'],
+      ['uit', t('hand.zetUit'), !open.aan, 'data-st-aan'],
     ]);
     const lang = seg(t('hand.hoeLang'), [
       ['m30', t('hand.min30'), open.tot === 'm30', 'data-st-tot'],
@@ -367,8 +367,8 @@
       ['u2', t('hand.uur2'), open.tot === 'u2', 'data-st-tot'],
       vast ? ['u4', t('hand.uur4'), open.tot === 'u4', 'data-st-tot'] : ['tijd', t('hand.totEenTijd'), open.tot === 'tijd', 'data-st-tot'],
     ]);
-    const wanneer = seg(t('hand.wanneer'), [
-      ['nu', t('hand.stekkerNu'), open.wanneer === 'nu', 'data-st-wanneer'],
+    const wanneer = seg(t('w.wanneer'), [
+      ['nu', t('w.nu2'), open.wanneer === 'nu', 'data-st-wanneer'],
       ['dag', t('gp.h.dag'), open.wanneer === 'dag', 'data-st-wanneer'],
       ['werkdagen', t('gp.h.werkdagen'), open.wanneer === 'werkdagen', 'data-st-wanneer'],
       ['weekend', t('gp.h.weekend'), open.wanneer === 'weekend', 'data-st-wanneer'],
@@ -390,7 +390,7 @@
     const knopTekst = vast
       ? t('hand.stekkerBewaar', { wanneer: t(`hand.vast.${open.wanneer}`).toLowerCase(), klok: open.om })
       : meteenUit
-        ? t('hand.stekkerZetUitKort')
+        ? t('hand.zetUit')
         : t(open.aan ? 'hand.stekkerZetAan' : 'hand.stekkerZetUit', { klok });
     return `${kop}
       ${instellen}
@@ -398,7 +398,7 @@
       <div class="hand-vraag"><span>${esc(t('hand.watWil'))}</span>${wat}</div>
       ${meteenUit ? '' : `<div class="hand-vraag"><span>${esc(t('hand.hoeLang'))}</span>${lang}</div>`}
       ${tijd}
-      <div class="hand-vraag"><span>${esc(t('hand.wanneer'))}</span>${wanneer}</div>
+      <div class="hand-vraag"><span>${esc(t('w.wanneer'))}</span>${wanneer}</div>
       ${om}
       ${vast || meteenUit ? '' : dagbalk(totMs, t(open.aan ? 'hand.stekkerBalkAan' : 'hand.stekkerBalkUit', { klok }))}
       <div class="hand-hoe">${esc(hoe)}</div>
@@ -494,12 +494,12 @@
       ${global.instellen?.regels('witgoed', d.id, { naam: d.naam }) ?? ''}
       <p class="hand-hoe geen-marge">${esc(d.zin)}</p>
       <div class="hand-vraag hand-kolom"><span>${esc(t('witgoed.uiterlijkKlaar'))}</span>
-        <div class="hand-tijd"><button type="button" data-wg-stap="-1" aria-label="${esc(t('witgoed.eerder'))}" ${open.stap <= 0 ? 'disabled' : ''}>−</button><div class="getal"><b${s.waarde == null ? ' class="woord"' : ''}>${esc(s.tekst)}</b><span>${esc(zin)}</span></div><button type="button" data-wg-stap="1" aria-label="${esc(t('witgoed.later'))}" ${open.stap >= stappen.length - 1 ? 'disabled' : ''}>+</button></div>
+        <div class="hand-tijd"><button type="button" data-wg-stap="-1" aria-label="${esc(t('w.eerder'))}" ${open.stap <= 0 ? 'disabled' : ''}>−</button><div class="getal"><b${s.waarde == null ? ' class="woord"' : ''}>${esc(s.tekst)}</b><span>${esc(zin)}</span></div><button type="button" data-wg-stap="1" aria-label="${esc(t('w.later'))}" ${open.stap >= stappen.length - 1 ? 'disabled' : ''}>+</button></div>
       </div>
       <div class="hand-hoe">${esc(stand && !stand.kan && stand.reden ? `${t('witgoed.hoe')} ${t('witgoed.nuNiet', { reden: stand.reden })}` : t('witgoed.hoe'))}</div>
       ${fout ? `<p class="hand-fout">${esc(fout)}</p>` : ''}
       ${slotHtml(d.id, d.naam)}
-      <div class="hand-onder">${nu}<button type="button" class="hand-zet" data-wg-bewaar>${esc(t('hand.bewaar'))}</button></div>`;
+      <div class="hand-onder">${nu}<button type="button" class="hand-zet" data-wg-bewaar>${esc(t('w.bewaar'))}</button></div>`;
   }
 
   function teken() {
@@ -622,7 +622,7 @@
     const res = await deur(pad, body);
     if (!res) return false;
     if (!res.ok) {
-      fout = (await res.json().catch(() => null))?.fout ?? t('hand.lukteNiet');
+      fout = (await res.json().catch(() => null))?.fout ?? t('w.datLukteNiet');
       teken();
       return false;
     }
@@ -723,10 +723,10 @@
     witgoed: iconen.svg('witgoed'),
   };
   function nuHtml() {
-    const klimaat = (data?.apparaten ?? []).filter((a) => a.actief).map((a) => `<div class="nu-regel"><span class="ik">${IK.klimaat}</span><div><b>${esc(a.naam)}</b><span>${esc(nuZin(a))}</span></div><button type="button" data-nu-terug="${esc(a.id)}">${esc(t('hand.terugKort'))}</button></div>`);
-    const wit = uitstelbaar.filter((d) => d.kanKiezen).map((d) => `<a class="nu-regel" href="apparaten.html#wg-${encodeURIComponent(d.id)}"><span class="ik">${IK.witgoed}</span><div><b>${esc(t('witgoed.opZon', { naam: d.naam }))}</b><span>${esc(d.klaarVoor ? t('witgoed.klaarVoorKort', { klok: d.klaarVoor }) : t('witgoed.geenHaastKort'))}</span></div><em>${esc(t('witgoed.aanpassen'))}</em></a>`);
+    const klimaat = (data?.apparaten ?? []).filter((a) => a.actief).map((a) => `<div class="nu-regel"><span class="ik">${IK.klimaat}</span><div><b>${esc(a.naam)}</b><span>${esc(nuZin(a))}</span></div><button type="button" data-nu-terug="${esc(a.id)}">${esc(t('w.terug'))}</button></div>`);
+    const wit = uitstelbaar.filter((d) => d.kanKiezen).map((d) => `<a class="nu-regel" href="apparaten.html#wg-${encodeURIComponent(d.id)}"><span class="ik">${IK.witgoed}</span><div><b>${esc(t('witgoed.opZon', { naam: d.naam }))}</b><span>${esc(d.klaarVoor ? t('witgoed.klaarVoorKort', { klok: d.klaarVoor }) : t('witgoed.geenHaastKort'))}</span></div><em>${esc(t('w.aanpassen'))}</em></a>`);
     // Een stekker met de hand (besluit 265): aan met de hand zegt Zet uit, uit met de hand Zet aan.
-    const stek = (stekkers?.stekkers ?? []).filter((s) => s.actief).map((s) => `<div class="nu-regel"><span class="ik">${iconen.svg('stekker')}</span><div><b>${esc(s.naam)}</b><span>${esc(t(s.actief.aan ? 'hand.stekkerAanTot' : 'hand.stekkerUitTot', { klok: klokVan(s.actief.totMs) }))}</span></div>${stekkers?.aan ? `<button type="button" data-nu-stekker="${esc(s.id)}" data-nu-aan="${s.actief.aan}">${esc(t(s.actief.aan ? 'hand.stekkerZetUitKort' : 'hand.stekkerZetAanKort'))}</button>` : ''}</div>`);
+    const stek = (stekkers?.stekkers ?? []).filter((s) => s.actief).map((s) => `<div class="nu-regel"><span class="ik">${iconen.svg('stekker')}</span><div><b>${esc(s.naam)}</b><span>${esc(t(s.actief.aan ? 'hand.stekkerAanTot' : 'hand.stekkerUitTot', { klok: klokVan(s.actief.totMs) }))}</span></div>${stekkers?.aan ? `<button type="button" data-nu-stekker="${esc(s.id)}" data-nu-aan="${s.actief.aan}">${esc(t(s.actief.aan ? 'hand.zetUit' : 'hand.stekkerZetAanKort'))}</button>` : ''}</div>`);
     return [...klimaat, ...stek, ...wit].join('');
   }
   document.addEventListener('click', async (e) => {

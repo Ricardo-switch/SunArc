@@ -28,7 +28,7 @@ function bewerkKamer(k, etages, naamVan, c) {
     <label class="veldlabel"><span>${esc(t('w.naam'))}</span><input class="invoer" data-naam="${esc(k.id)}" value="${esc(k.naam)}" maxlength="40"></label>
     <label class="veldlabel"><span>${esc(t('w.etage'))}</span><select class="invoer" data-etage="${esc(k.id)}">${etages.map((x) => `<option value="${esc(x.id)}" ${x.id === k.etage ? 'selected' : ''}>${esc(naamVan(x))}</option>`).join('')}</select></label>
     ${k.etage === 'buiten' ? '' : schuif}
-    ${k.etage === 'buiten' ? '' : `<label class="veldlabel breed"><span>${esc(t('indeling.soortKamer'))}</span><select class="invoer" data-soort="${esc(k.id)}">${soorten.map(([v, x]) => `<option value="${v}" ${v === (k.soort ?? '') ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>`}
+    ${k.etage === 'buiten' ? '' : `<label class="veldlabel breed"><span>${esc(t('ht.kamer.soort'))}</span><select class="invoer" data-soort="${esc(k.id)}">${soorten.map(([v, x]) => `<option value="${v}" ${v === (k.soort ?? '') ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>`}
     ${k.etage === 'buiten' ? '' : `<div class="veldlabel breed"><span>${esc(t('inr.zones'))}</span>${zones}<input class="invoer" data-nieuwezone placeholder="${esc(t('inr.zoneErbij'))}" aria-label="${esc(t('indeling.nieuweZone'))}" maxlength="40"></div>`}
     ${buren.length ? `<label class="veldlabel"><span>${esc(t('inr.eenRuimte'))}</span><select class="invoer" data-samen="${esc(k.id)}"><option value="">${esc(t('inr.samenvoegen'))}</option>${buren.map((x) => `<option value="${esc(x.id)}">${esc(x.naam)}</option>`).join('')}</select></label>` : ''}
     <div class="veldlabel"><span>&nbsp;</span><button type="button" class="chip gevaar" data-kamerweg="${esc(k.id)}">${esc(t(weghalen === k.id ? 'inr.nogEens' : 'indeling.kamerWeg'))}</button></div>
@@ -72,10 +72,10 @@ function woningStap() {
   const kelder = (c?.kamers ?? []).some((k) => k.etage === 'kelder');
   const dak = dakNu();
   // Een appartement heeft geen eigen kelder, en een dak alleen als er niets boven ligt.
-  const dakRij = rij(t('inr.dakVraag'), `${knop('data-dak="schuin"', t('inr.dak.schuin'), dak === 'schuin')}${knop('data-dak="plat"', t('inr.dak.plat'), dak === 'plat')}`);
+  const dakRij = rij(t('ht.dak.kop'), `${knop('data-dak="schuin"', t('inr.dak.schuin'), dak === 'schuin')}${knop('data-dak="plat"', t('inr.dak.plat'), dak === 'plat')}`);
   const rijen = nu === 'appartement'
     ? (woningDeel.eigenDak({ soort: nu, erboven: c?.erboven }) ? dakRij : '')
-    : `${rij(t('inr.kelderVraag'), `${knop('data-kelder="ja"', t('w.ja'), kelder)}${knop('data-kelder="nee"', t('functies.nee'), !kelder)}`)}
+    : `${rij(t('inr.kelderVraag'), `${knop('data-kelder="ja"', t('w.ja'), kelder)}${knop('data-kelder="nee"', t('ht.nee'), !kelder)}`)}
        ${dakRij}`;
   return {
     waar: waarVan('woning'),
@@ -142,7 +142,7 @@ function etageErbijBlok(etages) {
   return `<div class="bewerk">
     ${vast.length ? `<div class="chips" data-meer>${vast.map((s) => knop(`data-inr-etage="${esc(s.id)}"`, s.naam, false, 'plus')).join('')}</div>` : ''}
     <input class="invoer" data-inr-etage-naam placeholder="${esc(t('indeling.vliering'))}" aria-label="${esc(t('indeling.eigenNaam'))}" maxlength="40">
-    <div class="chips" data-meer>${knop('data-inr-etage-eigen', t('inr.etageBovenaan'), true)}${knop('data-inr-etage-dicht', t('algemeen.sluiten'))}</div>
+    <div class="chips" data-meer>${knop('data-inr-etage-eigen', t('inr.etageBovenaan'), true)}${knop('data-inr-etage-dicht', t('kz.sluit'))}</div>
   </div>`;
 }
 /** De etages van boven naar beneden, met een nieuwe op zijn plek (zoals Indeling). */
@@ -493,7 +493,7 @@ function warmteStap() {
   });
   // De thermostaat die de ketel aanzet (besluit 167), zoals een Nest: niets gekozen is het voorstel uit Home Assistant.
   const lijst = huismodel.thermostaten(d.huis);
-  const thermoOpties = [['', lijst[0] ? t('inr.thermo', { naam: lijst[0].naam }) : t('inr.geenThermo')], ...lijst.map((x) => [x.sleutel, t('inr.thermoKamer', { naam: x.naam, kamer: x.kamer })]), ['geen', t('energie.geenThermostaat')]];
+  const thermoOpties = [['', lijst[0] ? t('inr.thermo', { naam: lijst[0].naam }) : t('inr.geenThermo')], ...lijst.map((x) => [x.sleutel, t('inr.thermoKamer', { naam: x.naam, kamer: x.kamer })]), ['geen', t('inr.nietMee')]];
   const thermo = a.verwarming.soort === 'stadsverwarming' || a.verwarming.soort === 'airco' || !lijst.length ? '' : `<select class="invoer" data-inr-thermostaat aria-label="${esc(t('energie.thermostaatKetel'))}" style="width: 100%">${thermoOpties.map(([w, x]) => `<option value="${esc(w)}" ${w === (a.verwarming.thermostaat ?? '') ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
   // De thermostaat onder de knoppen, over de hele breedte: in de smalle kolom ernaast viel de tekst weg.
   const verwarming = `<div class="rij"><b>${esc(t('energie.verwarming'))}</b><div class="kolom" style="width: 100%"><div class="chips">${VERWARMING.map(([w, x]) => knop(`data-verwarming="${w}"`, x, a.verwarming.soort === w)).join('')}<button type="button" class="chip" data-zonderklimaat="1">${esc(t('inr.zk.knop'))}</button></div>${thermo}</div></div>`;

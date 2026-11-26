@@ -597,7 +597,7 @@
         s += `<rect x="${l.toFixed(1)}" y="${t2.toFixed(1)}" width="${b.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="rgb(111 211 255 / ${gekozen ? 0.26 : 0.18})" stroke="#6fd3ff" stroke-width="${gekozen ? 3.5 : 2.5}" ${uitKaart ? 'stroke-dasharray="7 5"' : ''}/>`;
         const [cx, cy] = [l + b / 2, t2 + h / 2];
         s += `<text x="${cx.toFixed(1)}" y="${(cy + 2).toFixed(1)}" text-anchor="middle" ${FONT} font-size="12.5" font-weight="700" fill="#eef3f7" pointer-events="none">${esc(T('ht.dakkapel.naam'))}</text>`;
-        if (b > 90 && h > 40) s += `<text x="${cx.toFixed(1)}" y="${(cy + 16).toFixed(1)}" text-anchor="middle" ${FONT} font-size="11" font-weight="600" fill="rgb(169 230 255 / 0.85)" pointer-events="none">${esc(T(uitKaart ? 'ht.dakkapel.vanKaart' : 'ht.dakkapel.staan'))}</text>`;
+        if (b > 90 && h > 40) s += `<text x="${cx.toFixed(1)}" y="${(cy + 16).toFixed(1)}" text-anchor="middle" ${FONT} font-size="11" font-weight="600" fill="rgb(169 230 255 / 0.85)" pointer-events="none">${esc(T(uitKaart ? 'ht.afdak.vanKaart' : 'ht.dakkapel.staan'))}</text>`;
         if (gekozen) {
           // De maat langs de nok, en grepen op de twee zijkanten die je rekt.
           const breed = `${nl(k.tot - k.van)} m`;

@@ -3,8 +3,8 @@
  * inrichten-huis.js laadt en zijn bovenste namen deelt met de andere delen van de pagina.
  */
 'use strict';
-/* global bewaarAansluiting, binnen, concept, d, dakVoorstelStap, energieNu, esc, klimaatIn, knop, lijstje, nl, regel, rij, rolKnoppen, rolVan, schakelaar, sleutel, stuur, teken, tip, waarVan */
-/* exported afwezigBasis, afwezigKeuze, afwezigStap, antwoorden, bewaarAfwezig, bewaarDag, bewaarKamers, bewaarKort, cfDoel, cfKeuze, cfNu, comfortStap, dagBalk, dagGreep, dagKeuze, dagMet, dagMoment, dagNu, dagStap, dagUur, huisDoel, kanBereik, kanOpen, kanStap, kanToestellen, kanVraagOpen, ligStaat, liggingStap, opzonStap, standaard, zetCf, zonStap */
+/* global bewaarAansluiting, binnen, concept, d, dakVoorstelStap, energieNu, esc, klimaatIn, knop, lijstje, nl, rolKnoppen, rolVan, sleutel, stuur, teken, waarVan */
+/* exported antwoorden, bewaarKamers, bewaarKort, dagKeuze, dagNu, kanBereik, kanOpen, kanStap, kanToestellen, kanVraagOpen, ligStaat, liggingStap, standaard, zonStap */
 
 /*
  * Wat elk apparaat kan (besluit 197, schets Wand-Inrichten-Klimaat): per
@@ -143,180 +143,9 @@ function kanStap() {
 
 /** De standaard voor een nieuw huis (besluit 204), zoals de dienst hem geeft. */
 const standaard = () => d.comfort?.standaard ?? { warm: { dag: 20, nacht: 16, afwezig: 15, vakantie: 12 }, koel: { dag: 25, nacht: 25, afwezig: 27, vakantie: 28 }, dagdelen: { voorverwarmen: 6, dag: 7, nacht: 22 } };
-/** Wat de meeste kamers zeggen, of een gewone waarde. */
-function meest(lijst, anders) {
-  const tel = new Map();
-  for (const v of lijst) if (v != null) tel.set(v, (tel.get(v) ?? 0) + 1);
-  return [...tel.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? anders;
-}
-
-/*
- * Je dag (schets Wand-Inrichten-Comfort #dag): de drie
- * grenzen van de dag in een eigen stap, vóór hoe warm. Een balk van 24 uur
- * met een greep per grens, en per grens een regel met − en +. De lucht boven
- * het huis volgt de grens die je het laatst bewoog; bij voorverwarmen gloeien
- * de kamers die meedoen.
- */
-const GRENZEN = ['voorverwarmen', 'dag', 'nacht'];
+/** Je dag: de dagdelen zoals ze bewaard worden (het voorstel neemt ze mee). */
 let dagKeuze = null;
-let dagGreep = null;
 const dagNu = () => dagKeuze ?? { ...standaard().dagdelen, ...(d.comfort?.dagdelen ?? {}) };
-const uurTekst = (u) => `${u}:00`;
-const grensNaam = (g) => (g === 'voorverwarmen' ? t('inr.dag.voor') : t(`comfort.naam.${g}`));
-/** Binnen wat de dienst aanneemt: voorverwarmen vóór de dag, de dag vóór de nacht. */
-function dagMet(dg, grens, u) {
-  const n = { ...dg };
-  if (grens === 'voorverwarmen') n.voorverwarmen = Math.min(Math.max(u, 0), n.dag - 1);
-  if (grens === 'dag') n.dag = Math.min(Math.max(u, n.voorverwarmen + 1), n.nacht - 1);
-  if (grens === 'nacht') n.nacht = Math.min(Math.max(u, n.dag + 1), 23);
-  return n;
-}
-/** Welk uur de tekening laat zien: net na de grens die je het laatst bewoog. */
-function dagUur() {
-  const dg = dagNu();
-  return (dagGreep ? dg[dagGreep] : dg.voorverwarmen) + 0.5;
-}
-/** De lucht en het dagdeel bij een uur van Je dag. */
-function dagMoment(u) {
-  const dg = dagNu();
-  const tijd = u < dg.voorverwarmen || u >= dg.nacht ? 'nacht' : u < dg.dag + 1.5 ? 'ochtend' : u >= dg.nacht - 2.5 ? 'avond' : 'dag';
-  return { tijd, voor: u >= dg.voorverwarmen && u < dg.dag, deel: u >= dg.voorverwarmen && u < dg.nacht ? 'dag' : 'nacht' };
-}
-function dagBalk() {
-  const dg = dagNu();
-  const pct = (u) => `${((u / 24) * 100).toFixed(2)}%`;
-  const op = dagMoment(dagUur()).deel;
-  const stuk = (soort, a, b, naam, deel) => `<button type="button" class="dg-stuk ${soort}${deel === op ? ' op' : ''}" data-dg-deel="${deel}" style="width: ${pct(b - a)}" tabindex="-1">${naam ? esc(naam) : ''}</button>`;
-  const grepen = GRENZEN.map((g) => `<button type="button" class="dg-greep ${g}${dagGreep === g ? ' nu' : ''}" data-dg-greep="${g}" style="left: ${pct(dg[g])}" aria-label="${esc(t('inr.dag.greep', { naam: grensNaam(g), uur: uurTekst(dg[g]) }))}"><b>${uurTekst(dg[g])}</b></button>`).join('');
-  return `<div class="dg-kop"><b>${esc(t('inr.stap.dag'))}</b><span>${esc(t('inr.dag.samen', { dag: dg.nacht - dg.dag, nacht: 24 - dg.nacht + dg.voorverwarmen }))}</span></div>
-    <div class="dg-balk">${stuk('nacht', 0, dg.voorverwarmen, t('comfort.naam.nacht'), 'nacht')}${stuk('voor', dg.voorverwarmen, dg.dag, '', 'dag')}${stuk('dag', dg.dag, dg.nacht, t('comfort.naam.dag'), 'dag')}${stuk('nacht', dg.nacht, 24, '', 'nacht')}</div>
-    <div class="dg-grepen" data-dg-grepen>${grepen}</div>`;
-}
-function dagStap() {
-  const dg = dagNu();
-  const ZIN = { voorverwarmen: t('inr.dag.voorZin', { uur: uurTekst(dg.dag) }), dag: t('inr.dag.dagZin'), nacht: t('inr.dag.nachtZin', { uur: uurTekst(dg.voorverwarmen) }) };
-  const regels = GRENZEN.map((g) => {
-    const naam = grensNaam(g);
-    const stapper = `<span class="stapper"><button type="button" data-dg="${g}:-1" aria-label="${esc(t('inr.dag.eerder', { naam }))}">−</button><b>${uurTekst(dg[g])}</b><button type="button" data-dg="${g}:1" aria-label="${esc(t('inr.dag.later', { naam }))}">+</button></span>`;
-    return `<div class="dg-grens ${g}${dagGreep === g ? ' nu' : ''}"><i aria-hidden="true"></i><div><b>${esc(naam)}</b><span>${esc(ZIN[g])}</span></div>${stapper}</div>`;
-  }).join('');
-  return {
-    waar: waarVan('dag'),
-    kop: t('inr.dag.kop'),
-    uitleg: t('inr.dag.zin'),
-    inhoud: `<div class="dg">${dagBalk()}</div><div class="dg-lijst">${regels}</div>${tip(t('inr.dag.tip'))}`,
-  };
-}
-/** Je dag bewaren: een uur verzet gaat meteen naar de dienst. */
-async function bewaarDag(dg) {
-  dagKeuze = dg;
-  if (!d.comfort?.kamers?.length) return teken();
-  const ok = await bewaarKamers(new Map(), dg);
-  if (ok) dagKeuze = null;
-}
-
-/*
- * Hoe warm wil je het (schets Wand-Inrichten-Comfort): per
- * kamer overdag en 's nachts, elk verwarmen en koelen, en elk getal is aan te
- * tikken. Het hele huis is de bovenste regel: wat de meeste kamers hebben.
- * Een kamer volgt het huis zolang hij dat getal heeft; verander je het huis,
- * dan gaan de kamers die volgen mee. Een eigen getal krijgt een stip.
- */
-const DELEN = ['dag', 'nacht'];
-let cfKeuze = null;
-const kanSoort = (k, soort) => (soort === 'heat' ? k.kanVerwarmen : k.kanKoelen);
-/** Het doel van een kamer; null is uit, undefined kan niet. */
-const kamerDoel = (k, deel, soort) => (kanSoort(k, soort) ? (k.modi?.[deel]?.[soort] ?? null) : undefined);
-/** Het getal van het huis: wat de meeste kamers hebben die het kunnen, ook als dat uit is. */
-function huisDoel(deel, soort) {
-  const lijst = (d.comfort?.kamers ?? []).filter((k) => kanSoort(k, soort)).map((k) => kamerDoel(k, deel, soort));
-  if (!lijst.length) return undefined;
-  const tel = new Map();
-  for (const v of lijst) tel.set(v, (tel.get(v) ?? 0) + 1);
-  return [...tel.entries()].sort((a, b) => b[1] - a[1])[0][0];
-}
-const cfDoel = (id, deel, soort) => (id === 'huis' ? huisDoel(deel, soort) : kamerDoel(d.comfort.kamers.find((k) => k.id === id), deel, soort));
-const volgtHuis = (k, deel, soort) => !kanSoort(k, soort) || kamerDoel(k, deel, soort) === huisDoel(deel, soort);
-const heeftEigen = (k) => DELEN.some((deel) => ['heat', 'cool'].some((s) => !volgtHuis(k, deel, s)));
-const graden = (v) => (v == null ? t('w.uit2') : `${nl(v)}°`);
-function cfNu() {
-  const kamers = d.comfort?.kamers ?? [];
-  const k = cfKeuze && kamers.some((x) => x.id === cfKeuze.kamer || cfKeuze.kamer === 'huis') && cfDoel(cfKeuze.kamer, cfKeuze.deel, cfKeuze.soort) !== undefined ? cfKeuze : null;
-  return k ?? { kamer: 'huis', deel: 'dag', soort: kamers.some((x) => x.kanVerwarmen) ? 'heat' : 'cool' };
-}
-function comfortStap() {
-  if (!d.comfort?.kamers?.length) {
-    return { waar: waarVan('comfort'), kop: t('inr.comfortKop'), uitleg: t('inr.comfortLater'), inhoud: '' };
-  }
-  const kamers = d.comfort.kamers;
-  const soorten = [...(kamers.some((k) => k.kanVerwarmen) ? ['heat'] : []), ...(kamers.some((k) => k.kanKoelen) ? ['cool'] : [])];
-  const sel = cfNu();
-  const dg = dagNu();
-  const deelNaam = { dag: t('w.overdag'), nacht: t('inr.cf.snachts') };
-  const wat = (deel, soort) => t(soort === 'heat' ? 'inr.cf.onder' : 'inr.cf.boven', { deel: deelNaam[deel] });
-  const tal = (id, naam, deel, soort) => {
-    const v = cfDoel(id, deel, soort);
-    if (v === undefined) return '<span class="cf-tal niet" aria-hidden="true">–</span>';
-    const k = id === 'huis' ? null : kamers.find((x) => x.id === id);
-    const gekozen = sel.kamer === id && sel.deel === deel && sel.soort === soort;
-    const volgt = k && volgtHuis(k, deel, soort);
-    return `<button type="button" class="cf-tal ${v == null ? 'uit' : soort}${volgt ? ' volgt' : ''}${gekozen ? ' gekozen' : ''}" data-cf="${esc(id)}|${deel}|${soort}" aria-pressed="${gekozen}" aria-label="${esc(t('inr.cf.tal', { kamer: naam, wat: wat(deel, soort), waarde: graden(v) }))}">${esc(graden(v))}</button>`;
-  };
-  const paren = (id, naam, klasse = '') => DELEN.map((deel) => `<div class="cf-paar${klasse}">${soorten.map((s) => tal(id, naam, deel, s)).join('')}</div>`).join('');
-  const volgers = kamers.filter((k) => !heeftEigen(k)).length;
-  const telVolgers = (n, m) => (n === m ? t('inr.cf.allen') : t('inr.cf.deel', { n, m }));
-  const kop = DELEN.map((deel) => `<button type="button" class="cf-kolkop${sel.deel === deel ? ' aan' : ''}" data-cf-deel="${deel}">${esc(t(`comfort.naam.${deel}`))}<em>${deel === 'dag' ? `${dg.dag}–${dg.nacht}` : `${dg.nacht}–${dg.voorverwarmen}`}</em><small>${soorten.map((s) => `<span class="${s}">${esc(t(s === 'heat' ? 'inr.cf.verwarmen' : 'inr.cf.koelen'))}</span>`).join('')}</small></button>`).join('');
-  const huisRij = `<div class="cf-naam huis"><b>${esc(t('w.hetHeleHuis'))}</b><span>${esc(telVolgers(volgers, kamers.length))}</span></div>${paren('huis', t('w.hetHeleHuis'), ' huis')}`;
-  const kamerRijen = kamers.map((k) => {
-    const eigen = heeftEigen(k);
-    const sub = eigen ? t('inr.cf.eigen') : k.kanVerwarmen && k.kanKoelen ? t('inr.cf.beide') : k.kanKoelen ? t('w.koelt') : t('w.verwarmt');
-    return `<div class="cf-naam${eigen ? ' eigen' : ''}"><b>${esc(k.naam)}</b><span>${esc(sub)}</span></div>${paren(k.id, k.naam)}`;
-  }).join('');
-  // Eén regel past het gekozen getal aan, met Uit en Zoals het huis.
-  const v = cfDoel(sel.kamer, sel.deel, sel.soort);
-  const k = sel.kamer === 'huis' ? null : kamers.find((x) => x.id === sel.kamer);
-  const kunnen = kamers.filter((x) => kanSoort(x, sel.soort));
-  const onder = !k
-    ? `<small>${esc(telVolgers(kunnen.filter((x) => volgtHuis(x, sel.deel, sel.soort)).length, kunnen.length))}</small>`
-    : volgtHuis(k, sel.deel, sel.soort)
-      ? `<small>${esc(t('inr.cf.volgt'))}</small>`
-      : `<button type="button" class="chip" data-cf-huis>${esc(t('inr.cf.zoalsHuis', { waarde: graden(huisDoel(sel.deel, sel.soort)) }))}</button>`;
-  const bewerk = `<div class="cf-bewerk"><div><b>${esc(k ? k.naam : t('w.hetHeleHuis'))}</b><span>${esc(wat(sel.deel, sel.soort))}</span></div>
-    <span class="stapper"><button type="button" data-cf-stap="-0.5" aria-label="${esc(t('comfort.lager'))}">−</button><b class="${v == null ? 'uit' : sel.soort}">${esc(graden(v))}</b><button type="button" data-cf-stap="0.5" aria-label="${esc(t('comfort.hoger'))}">+</button></span>
-    <div class="cf-keuzes">${knop('data-cf-uit', t('w.uit'), v == null)}${onder}</div></div>`;
-  return {
-    waar: waarVan('comfort'),
-    kop: t('inr.comfortKop'),
-    uitleg: t('inr.comfortZin'),
-    inhoud: `<div class="cf-tabel${soorten.length === 1 ? ' een' : ''}"><span></span>${kop}${huisRij}${kamerRijen}</div>${bewerk}<p class="cf-noot">${esc(t('inr.cf.noot'))}</p>`,
-  };
-}
-/** Binnen wat de apparaten van een kamer kunnen: anders weigert de dienst het hele comfort. */
-const haalbaarIn = (k, soort, v) => {
-  const r = k.haalbaar?.[soort === 'heat' ? 'verwarmen' : 'koelen'];
-  return v == null || !r ? v : Math.min(r[1], Math.max(r[0], v));
-};
-/** Een doel voor een kamer: binnen wat hij kan, en minstens een graad tussen verwarmen en koelen. */
-function doelVoor(k, modi, deel, soort, v) {
-  if (v == null) return null;
-  let w = haalbaarIn(k, soort, v);
-  const ander = modi[deel]?.[soort === 'heat' ? 'cool' : 'heat'];
-  if (ander != null) w = soort === 'heat' ? Math.min(w, ander - 1) : Math.max(w, ander + 1);
-  return w;
-}
-/** Zet een doel: voor één kamer, of voor het huis en de kamers die het volgen. */
-async function zetCf(sel, v) {
-  const oud = huisDoel(sel.deel, sel.soort);
-  const nieuw = new Map();
-  for (const k of d.comfort.kamers) {
-    if (!kanSoort(k, sel.soort)) continue;
-    if (sel.kamer === 'huis' ? kamerDoel(k, sel.deel, sel.soort) !== oud : k.id !== sel.kamer) continue;
-    const modi = { ...k.modi, [sel.deel]: { ...k.modi[sel.deel] } };
-    modi[sel.deel][sel.soort] = doelVoor(k, modi, sel.deel, sel.soort, v);
-    nieuw.set(k.id, modi);
-  }
-  return bewaarKamers(nieuw);
-}
 /** Bewaar comfort: de kamers die veranderden, en de rest zoals ze zijn; met de dagdelen. */
 async function bewaarKamers(nieuw, dagdelen = null) {
   const kamers = Object.fromEntries(d.comfort.kamers.map((k) => [k.id, { modi: nieuw.get(k.id) ?? k.modi, nooitWarmerC: k.nooitWarmerC, voorrang: k.voorrang, opZonC: k.opZonC }]));
@@ -325,51 +154,6 @@ async function bewaarKamers(nieuw, dagdelen = null) {
   if (uit) d.comfort = uit;
   teken();
   return !!uit;
-}
-
-/*
- * Afwezig en vakantie (besluit 190): voor het hele huis, zoals comfort. Het
- * huis ziet aan de bewoners dat niemand thuis is; vakantie zet je zelf aan.
- */
-let afwezigKeuze = null;
-function afwezigBasis() {
-  const kamers = d.comfort?.kamers ?? [];
-  const w = (m, s, anders) => meest(kamers.filter((k) => (s === 'heat' ? k.kanVerwarmen : k.kanKoelen)).map((k) => k.modi[m]?.[s]), anders);
-  const s = standaard();
-  return { afwezig: { heat: w('afwezig', 'heat', s.warm.afwezig), cool: w('afwezig', 'cool', s.koel.afwezig) }, vakantie: { heat: w('vakantie', 'heat', s.warm.vakantie), cool: w('vakantie', 'cool', s.koel.vakantie) } };
-}
-function afwezigStap() {
-  if (!d.comfort?.kamers?.length) return { waar: waarVan('afwezig'), kop: t('w.alsNiemandThuisIs2'), uitleg: t('inr.comfortLater'), inhoud: '' };
-  const b = afwezigKeuze ?? afwezigBasis();
-  const warm = d.comfort.kamers.some((k) => k.kanVerwarmen);
-  const koelen = d.comfort.kamers.some((k) => k.kanKoelen);
-  const stapper = (m, s) => `<span class="stapper"><button type="button" data-afw="${m}:${s}:-0.5" aria-label="${esc(t('comfort.lager'))}">−</button><b>${nl(b[m][s])}°</b><button type="button" data-afw="${m}:${s}:0.5" aria-label="${esc(t('comfort.hoger'))}">+</button></span>`;
-  const rijen = [
-    warm ? regel({ ik: 'huis', titel: t('inr.afw.weg'), zin: t('inr.afw.wegZin'), rechts: stapper('afwezig', 'heat') }) : '',
-    koelen ? regel({ ik: 'huis', titel: t('inr.afw.wegKoel'), zin: t('inr.afw.koelZin'), rechts: stapper('afwezig', 'cool') }) : '',
-    warm ? regel({ ik: 'koffer', titel: t('inr.afw.vakantie'), zin: t('inr.afw.vakantieZin'), rechts: stapper('vakantie', 'heat') }) : '',
-    koelen ? regel({ ik: 'koffer', titel: t('inr.afw.vakantieKoel'), zin: t('inr.afw.koelZin'), rechts: stapper('vakantie', 'cool') }) : '',
-  ];
-  return {
-    waar: waarVan('afwezig'),
-    kop: t('w.alsNiemandThuisIs2'),
-    uitleg: t('inr.afw.zin'),
-    inhoud: `<div class="rijen lijst">${rijen.join('')}</div>${tip(t('inr.afw.tip'))}`,
-  };
-}
-async function bewaarAfwezig() {
-  const b = afwezigKeuze ?? afwezigBasis();
-  const kamers = Object.fromEntries(d.comfort.kamers.map((k) => {
-    const paar = (m) => ({ heat: k.kanVerwarmen ? haalbaarIn(k, 'heat', b[m].heat) : null, cool: k.kanKoelen ? haalbaarIn(k, 'cool', b[m].cool) : null });
-    return [k.id, { modi: { ...k.modi, afwezig: paar('afwezig'), vakantie: paar('vakantie') }, nooitWarmerC: k.nooitWarmerC, voorrang: k.voorrang, opZonC: k.opZonC }];
-  }));
-  const body = { kamers, dagdelen: { ...(d.comfort.dagdelen ?? {}) }, ...(d.comfort.voorrang ? { voorrang: { koelen: d.comfort.voorrang.koelen, verwarmen: d.comfort.voorrang.verwarmen } } : {}) };
-  const uit = await stuur('api/comfort', body);
-  if (uit) {
-    d.comfort = uit;
-    afwezigKeuze = null;
-  }
-  teken();
 }
 
 /* De panelen (besluit 158): eerst of ze er zijn, dan de kant van het dak, dan hoeveel. */
@@ -460,36 +244,6 @@ async function bewaarKort(wijziging) {
     ? { vlakken, voorgevelDeg: dk?.voorgevelDeg ?? null, omvormerW: dk?.omvormerW ?? null, gebouwen, omgeving: dk?.tekening?.omgeving ?? [], ...(grenzen && Object.keys(grenzen).length ? { grenzen } : {}) }
     : null;
   await bewaarAansluiting(a, daken);
-}
-
-/*
- * Wat mag er op zon? (besluit 167 en 190): elk apparaat dat kan wachten tot er
- * zon over is, met een schakelaar, ook de boiler en de jacuzzi. Eerst kijkt
- * het mee (de schrijfgrens). Onderaan de aansluiting zoals gevonden.
- */
-const OPZON_IK = { droger: 'droger', wasmachine: 'droger', vaatwasser: 'vaat', boiler: 'boiler', jacuzzi: 'jacuzzi', auto: 'laadpaal', laadpaal: 'laadpaal' };
-function opzonStap() {
-  const x = d.aans;
-  if (!x) return { waar: waarVan('opzon'), kop: t('inr.opzon.kop'), uitleg: t('inr.opzon.zin'), inhoud: `<p class="zacht">${esc(t('inr.lezen'))}</p>` };
-  const a = antwoorden();
-  const vast = new Set((x.configuratie?.apparaten ?? []).map((y) => y.id));
-  // Het icoon bij de soort, of anders bij de naam.
-  const icoon = (y) => OPZON_IK[y.soort] ?? (/droog|droger|dryer|was/i.test(y.naam) ? 'droger' : /vaat|dish/i.test(y.naam) ? 'vaat' : 'stekker');
-  const een = (y, aan, attr) => regel({ ik: icoon(y), titel: y.naam, zin: t(aan ? 'regeling.startZon' : 'regeling.startNiet'), rechts: schakelaar(attr, t('regeling.naamOpZon', { naam: y.naam }), aan) });
-  const rijen = [
-    ...(x.configuratie?.apparaten ?? []).map((y) => een(y, !a.opZonUit.includes(y.id), `data-opzon-vast="${esc(y.id)}"`)),
-    ...(x.gevonden?.apparaten ?? []).filter((y) => !vast.has(y.id)).map((y) => een(y, a.opZon[y.id] === true, `data-opzon="${esc(y.id)}"`)),
-  ];
-  const meer = regel({ tag: 'a', attrs: 'href="huis-kan.html"', ik: 'accu', titel: t('inr.opzon.meer'), zin: t('inr.opzon.meerZin'), rechts: '›', klasse: 'uit' });
-  const zek = a.zekering && a.zekering !== 'weetniet' ? `${a.zekering.fasen} × ${a.zekering.ampere} A` : null;
-  const p1 = (energieNu()?.net?.afname ?? []).length > 0;
-  const aansluiting = zek || p1 ? rij(t('inr.jeAansluiting'), `${zek ? `<span class="chip gevonden">${esc(zek)}</span>` : ''}${p1 ? `<span class="chip gevonden">${esc(t('inr.slimmeMeter'))}</span>` : ''}`) : '';
-  return {
-    waar: waarVan('opzon'),
-    kop: t('inr.opzon.kop'),
-    uitleg: t('inr.opzon.zin'),
-    inhoud: `<div class="rijen lijst">${rijen.join('') || `<p class="zacht">${esc(t('regeling.geenApparaten'))}</p>`}${meer}</div>${aansluiting}`,
-  };
 }
 
 /*

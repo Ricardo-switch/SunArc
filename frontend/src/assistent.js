@@ -88,7 +88,7 @@ function groet() {
   const u = new Date().getHours();
   const tijd = taal.t(`thuis.groet.${u < 6 ? 'nacht' : u < 12 ? 'morgen' : u < 18 ? 'middag' : 'avond'}`);
   const namen = huismodel.groetNamen(bewoners);
-  return namen.length ? `${tijd}, ${namen.length > 1 ? `${namen.slice(0, -1).join(', ')} ${taal.t('algemeen.en')} ${namen.at(-1)}` : namen[0]}` : tijd;
+  return namen.length ? `${tijd}, ${namen.length > 1 ? `${namen.slice(0, -1).join(', ')} ${taal.t('tk.en')} ${namen.at(-1)}` : namen[0]}` : tijd;
 }
 
 /*

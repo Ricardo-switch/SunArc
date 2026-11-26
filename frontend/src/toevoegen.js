@@ -375,7 +375,7 @@ function wegenHtml(soort, gekozen, groep) {
 function middenHtml(soort, gekozen, tel) {
   if (soort === 'verborgen') {
     const lijst = verborgenLijst();
-    return `<h3>${esc(t('toev.verborgen'))}</h3><p class="lead">${esc(t('toev.verborgenLead'))}</p>${lijst.length ? `<div class="groep">${lijst.map((x) => `<div class="vond"><span class="ik">${iconen.svg('verborgen')}</span><span class="tekst"><b>${esc(x.naam)}</b></span>${terugKnop(x)}</div>`).join('')}</div>` : `<p class="leeg">${esc(t('toev.geenVerborgen'))}</p>`}`;
+    return `<h3>${esc(t('toev.verborgen'))}</h3><p class="lead">${esc(t('toev.verborgenLead'))}</p>${lijst.length ? `<div class="groep">${lijst.map((x) => `<div class="vond"><span class="ik">${iconen.svg('verborgen')}</span><span class="tekst"><b>${esc(x.naam)}</b></span>${terugKnop(x)}</div>`).join('')}</div>` : `<p class="leeg">${esc(t('ht.verborgen.leeg'))}</p>`}`;
   }
   if (soort === 'auto' && gekozen === 'losse' && tel) return `<div class="glas paneel" data-rechts data-hand>${lossePaneel()}</div>`;
   const items = soort === 'nieuw' ? nieuwAlles() : itemsVan(soort);
@@ -452,7 +452,7 @@ function bladHtml(soort, id) {
   const kaart = x.wat === 'witgoed' ? `apparaten.html#wg-${encodeURIComponent(x.id)}` : x.wat === 'laden' ? `apparaten.html#laden-${encodeURIComponent(x.id)}` : x.wat === 'accu' ? 'apparaten.html#accu' : x.wat === 'licht' || x.wat === 'klimaat' ? (r ? `kamer.html#${encodeURIComponent(r.id)}` : 'apparaten.html') : 'apparaten.html';
   // Nieuw en nog zonder kamer: Zet klaar opent Waar staat hij? (instellen.js); klaar: naar zijn kaart, of bij klimaat naar Klimaat.
   const hoofd = x.nieuw && zonderKamer().has(x.id)
-    ? `<button type="button" class="zet" data-in-waar="${esc(x.id)}">${esc(t(x.wat === 'klimaat' ? 'toev.zetKlaarKlimaat' : 'toev.zetKlaar'))}</button>`
+    ? `<button type="button" class="zet" data-in-waar="${esc(x.id)}">${esc(t(x.wat === 'klimaat' ? 'toev.zetKlaarKlimaat' : 'kz.zetKlaar'))}</button>`
     : x.nieuw
       ? ''
       : klimaatKamer
@@ -538,7 +538,7 @@ function teken() {
   if (laag) {
     const blad = tel && soort && id && soort !== 'losse' && id !== 'losse' ? bladHtml(bladSoort === 'anders' ? 'nieuw' : bladSoort, id) : '';
     laag.hidden = !blad;
-    laag.innerHTML = blad ? `<a class="achter" href="${href(soort)}" aria-label="${esc(t('algemeen.sluiten'))}"></a><div class="blad" data-rechts data-hand role="dialog" aria-modal="true"><span class="greep" aria-hidden="true"></span>${blad}</div>` : '';
+    laag.innerHTML = blad ? `<a class="achter" href="${href(soort)}" aria-label="${esc(t('kz.sluit'))}"></a><div class="blad" data-rechts data-hand role="dialog" aria-modal="true"><span class="greep" aria-hidden="true"></span>${blad}</div>` : '';
   }
   // Terug: van het blad naar de lijst, van de lijst naar de soorten, anders naar Apparaten.
   $$('#tel a.terug').forEach((a) => {

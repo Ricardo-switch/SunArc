@@ -616,7 +616,7 @@
     const focus = invoer && document.activeElement === invoer;
     const schuif = laag.querySelector('.tk-paneel')?.scrollTop ?? 0;
     const zelfde = laag.dataset.stuk === st.stuk;
-    const sluitKnop = `<button class="tk-sluit" type="button" data-pl-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button>`;
+    const sluitKnop = `<button class="tk-sluit" type="button" data-pl-sluit aria-label="${esc(t('kz.sluit'))}">×</button>`;
     const links = `<section class="tk-links"><span class="tk-soortje">${esc(t('tk.nieuweTaak'))}</span><p class="tk-zin">${zinHtml()}</p><div class="tk-paneel" data-stuk="${st.stuk}">${paneelHtml()}${tel && st.stuk === 'klaar' ? `<div class="tk-boog">${boogHtml()}</div>${komendHtml()}` : ''}</div>${onderHtml()}</section>`;
     const rechts = tel ? '' : `<section class="tk-rechts"><span class="tk-soortje">${esc(t('tk.jeDag'))}</span><div class="tk-boog">${boogHtml()}</div>${komendHtml()}<p class="tk-let">${esc(t('pl.let'))}</p></section>`;
     laag.dataset.stuk = st.stuk;

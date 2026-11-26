@@ -33,7 +33,7 @@
 
   function html() {
     const a = nu.auto;
-    const sluit = `<button type="button" class="sluit" data-paal-sluit aria-label="${esc(t('algemeen.sluiten'))}">×</button>`;
+    const sluit = `<button type="button" class="sluit" data-paal-sluit aria-label="${esc(t('kz.sluit'))}">×</button>`;
     const plek = t(`paal.plek.${nu.plek ?? 'oprit'}`);
     const kop = `<div class="hand-boven"><div><h2>${esc(a.paalNaam ?? t('paal.naam'))}</h2><p class="nu">${esc([plek, a.thuis === false ? t('paal.weg') : null].filter(Boolean).join(' · '))}</p></div>${sluit}</div>`;
     let stand;

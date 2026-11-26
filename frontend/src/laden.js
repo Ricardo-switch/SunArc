@@ -86,7 +86,7 @@ const laden = (() => {
     const plek = `<div class="ld-vraag"><b>${esc(t('laden.plek'))}</b>${keuzes('plek', PLEKKEN.map((p) => [p, t(`laden.plek.${p}`)]), i.plek)}<p class="mini">${esc(t(plekUitleg))}</p></div>`;
     const rol = x.zelf ? `<div class="ld-vraag"><b>${esc(t('laden.watIsHet'))}</b>${keuzes('rol', [['auto', t('laden.rol.auto')], ['laadpaal', t('laden.rol.laadpaal')]], x.rol)}<button type="button" class="knop" data-laad="weg" data-id="${esc(x.id)}" style="align-self: start">${esc(t('w.weghalen'))}</button></div>` : '';
     if (x.rol === 'auto') {
-      const paalOpties = [['', palen.length === 1 ? t('laden.paalVanzelf', { naam: palen[0].naam }) : t('laden.geenPaal')], ...palen.map((p) => [p.id, p.naam])];
+      const paalOpties = [['', palen.length === 1 ? t('laden.paalVanzelf', { naam: palen[0].naam }) : t('auto.paal.geen')], ...palen.map((p) => [p.id, p.naam])];
       return `${rol}
         <label class="veldnaam">${esc(t('laden.accu'))}<span class="ld-met"><input class="invoer" type="number" inputmode="decimal" min="5" max="250" step="0.1" data-laad-accu="${esc(x.id)}" value="${i.accuKWh ?? ''}" placeholder="${esc(t('laden.accuVoorbeeld'))}"><span>kWh</span></span></label>
         <p class="mini">${esc(t('laden.accuUitleg'))}</p>
@@ -184,7 +184,7 @@ const laden = (() => {
     const x = lijst(info).find((y) => y.id === id);
     if (!x) return null;
     // Verborgen (stap 4): terughalen; anders de keuzes, evcc bij de laadpaal, en onderaan Verbergen.
-    if (!x.aan) return { naam: x.naam, rol: x.rol, html: `<p class="uitleg">${esc(t('laden.verborgenZin'))}</p><button type="button" class="knop" data-laad="aan" data-id="${esc(x.id)}" aria-checked="false" style="align-self: start">${esc(t('toev.terughalen'))}</button>` };
+    if (!x.aan) return { naam: x.naam, rol: x.rol, html: `<p class="uitleg">${esc(t('accu.verborgenZin'))}</p><button type="button" class="knop" data-laad="aan" data-id="${esc(x.id)}" aria-checked="false" style="align-self: start">${esc(t('toev.terughalen'))}</button>` };
     const palen = aan(info).filter((y) => y.rol === 'laadpaal');
     const evcc = x.rol === 'laadpaal' || (!palen.length && x === aan(info)[0]) ? evccBlok(info) : '';
     const verberg = `<button type="button" class="ld-verberg" data-laad="aan" data-id="${esc(x.id)}" aria-checked="true">${VERBERG}<span>${esc(t('toev.verbergen'))}<small>${esc(t(x.rol === 'auto' ? 'laden.verbergAuto' : 'laden.verbergPaal'))}</small></span></button>`;

@@ -75,7 +75,7 @@
   }
 
   const DUREN = [30, 60, 120, 180, 240, 360, 480];
-  const duurNaam = (m) => (m < 60 ? t('w.minuten', { n: m }) : t(m === 60 ? 'regeling.uur1' : 'regeling.uren', { n: m / 60 }));
+  const duurNaam = (m) => (m < 60 ? t('w.minuten', { n: m }) : t(m === 60 ? 'hand.uur1' : 'regeling.uren', { n: m / 60 }));
   function klokKeuze(huidig, attr, label) {
     const tijden = Array.from({ length: 96 }, (_, i) => `${String(Math.floor(i / 4)).padStart(2, '0')}:${String((i % 4) * 15).padStart(2, '0')}`);
     return `<select class="invoer in-klein" ${attr} aria-label="${esc(label)}">${tijden.map((x) => `<option value="${x}" ${x === huidig ? 'selected' : ''}>${x}</option>`).join('')}</select>`;

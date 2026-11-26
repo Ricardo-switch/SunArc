@@ -1,5 +1,5 @@
 /*
- * Bewoners en toegang (besluit 130 en 147): wie hier woont en wie jij bent,
+ * Bewoners en inloggen (besluit 130 en 147): wie hier woont en wie jij bent,
  * de sleutel voor de assistent van Home Assistant, je gegevens, en welke
  * versie er draait. Bij je gegevens een back-up, terugzetten, het logboek voor
  * de analyse en opnieuw beginnen, alleen voor de hoofdgebruiker (besluit 151).
@@ -52,7 +52,7 @@ const isGast = () => bewoners?.ik?.soort === 'gast';
 function delen() {
   const inlog = !sessie ? '…' : sessie.toegang === 'open' ? t('instellingen.geenInlog') : sessie.ingelogd ? `${sessie.naam ?? t('toegang.ingelogd')}${sessie.rol ? `, ${t(`toegang.rol.${sessie.rol}`)}` : ''}` : t('toegang.nietIngelogd');
   const namen = bewoners ? bewoners.bewoners.map((b) => b.naam).join(', ') || t('instellingen.nogNiemand') : '…';
-  const versie = { id: 'versie', titel: t('toegang.versie'), zin: health?.nummer ? t('toegang.versieNieuw', { nummer: health.nummer }) : '…', stand: health ? 'goed' : null };
+  const versie = { id: 'versie', titel: t('over.versieKop'), zin: health?.nummer ? t('toegang.versieNieuw', { nummer: health.nummer }) : '…', stand: health ? 'goed' : null };
   // Over deze app (besluit 245): dezelfde pagina als een tik op het logo.
   const over = { id: 'over', href: 'over.html', titel: t('over.kop'), zin: t('toegang.overZin'), stand: 'goed' };
   // Een gast (besluit 151): alleen wie hij is, de versie en over; instellingen veranderen kan hij niet.
@@ -287,7 +287,7 @@ function zegFout(tekst) {
 /** De versie en wat er nieuw is (besluit 131). */
 function versieVorm() {
   const v = health;
-  if (!v?.nummer) return `<h2 class="kop-2">${esc(t('toegang.versie'))}</h2><p class="klein geen-marge">${esc(t('toegang.onbekend'))}</p>`;
+  if (!v?.nummer) return `<h2 class="kop-2">${esc(t('over.versieKop'))}</h2><p class="klein geen-marge">${esc(t('toegang.onbekend'))}</p>`;
   const gebouwd = v.gebouwd ? taal.datum(v.gebouwd, { day: 'numeric', month: 'long', year: 'numeric' }) : null;
   const dag = (d) => taal.datum(`${d}T12:00:00`, { day: 'numeric', month: 'long' });
   // De nieuwste open, de rest ingeklapt, hooguit tien terug; per versie nieuw, beter en opgelost (besluit 133).

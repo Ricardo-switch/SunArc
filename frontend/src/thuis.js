@@ -356,7 +356,7 @@ function tekenNu() {
   const groet = t(`thuis.groet.${uur < 6 ? 'nacht' : uur < 12 ? 'morgen' : uur < 18 ? 'middag' : 'avond'}`);
   // Ieder in zijn eigen kleur (besluit 181).
   const namen = huismodel.groetWie(bewoners);
-  $$('[data-groet]').forEach((el) => (el.innerHTML = namen.length ? `${esc(groet)}, ${namen.map((n) => `<b data-kleur="${esc(app.kleurVan(n.id))}">${esc(n.naam)}</b>`).reduce((acc, n, i, a) => (i === 0 ? n : `${acc}${i === a.length - 1 ? ` ${esc(t('algemeen.en'))} ` : ', '}${n}`), '')}` : esc(groet)));
+  $$('[data-groet]').forEach((el) => (el.innerHTML = namen.length ? `${esc(groet)}, ${namen.map((n) => `<b data-kleur="${esc(app.kleurVan(n.id))}">${esc(n.naam)}</b>`).reduce((acc, n, i, a) => (i === 0 ? n : `${acc}${i === a.length - 1 ? ` ${esc(t('tk.en'))} ` : ', '}${n}`), '')}` : esc(groet)));
   tekenGeldt();
   if (blad === 'batterij' && $$('[data-weer]').some((x) => !x.hidden)) tekenBatterijen();
   if (blad === 'buiten' && buitenKeuze && $$('[data-weer]').some((x) => !x.hidden)) tekenBuiten();
@@ -425,7 +425,7 @@ function tekenVerbruikVandaag() {
   const prijzen = { dal: goedkoop?.dalPrijs != null ? `${taal.valuta()} ${getal(goedkoop.dalPrijs, 2)}` : '', normaal: goedkoop?.normaal != null ? `${taal.valuta()} ${getal(goedkoop.normaal, 2)}` : '' };
   const zin = !dal.length ? t('thuis.goedkoop.geen') : !blokken.length ? t('thuis.goedkoop.vandaagNiet') : t(blok.van <= nuUur ? 'thuis.goedkoop.nu' : 'thuis.goedkoop.vanaf', { van: uur(blok.van), tot: uur(blok.tot), ...prijzen });
   const cijfer = (naam, waarde) => `<div class="dagcijfer"><span class="mini">${esc(naam)}</span><b class="getal">${waarde}</b></div>`;
-  $$('[data-dag]').forEach((box) => (box.innerHTML = `<div class="dagcijfers">${cijfer(t('thuis.verbruik.gebruikt'), s ? `${getal(s.verbruikKwh)} <small>kWh</small>` : '–')}${euroNu != null ? cijfer(t('thuis.verbruik.kosten'), `${taal.valuta()} ${getal(euroNu, 2)}`) : ''}</div>${strook}`));
+  $$('[data-dag]').forEach((box) => (box.innerHTML = `<div class="dagcijfers">${cijfer(t('thuis.verbruik.gebruikt'), s ? `${getal(s.verbruikKwh)} <small>kWh</small>` : '–')}${euroNu != null ? cijfer(t('auto.beurt.kosten'), `${taal.valuta()} ${getal(euroNu, 2)}`) : ''}</div>${strook}`));
   zet('[data-opgewekt]', '');
   zet('[data-dag-zin]', zin);
   $$('[data-vandaag-tegel]').forEach((el) => (el.outerHTML = tegel({ id: 'vandaag', naam: t('w.vandaag'), waarde: s ? `${getal(s.verbruikKwh)} <small>kWh</small>` : '–', zin: euroNu != null ? t('thuis.verbruik.tegel', { euro: getal(euroNu, 2) }) : '' }).replace('class="ktegel', 'data-vandaag-tegel class="ktegel')));

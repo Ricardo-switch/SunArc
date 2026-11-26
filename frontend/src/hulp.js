@@ -123,7 +123,7 @@
     blad.setAttribute('role', 'dialog');
     blad.setAttribute('aria-label', s.kop);
     blad.dataset.hulpblad = '';
-    blad.innerHTML = `<button type="button" class="hulpsluit" data-hulpsluit aria-label="${esc(t('algemeen.sluiten'))}">×</button>
+    blad.innerHTML = `<button type="button" class="hulpsluit" data-hulpsluit aria-label="${esc(t('kz.sluit'))}">×</button>
       <span class="hulpvan">${ik('lijst')}${esc(t('hulp.uitDe'))}</span>
       <h3>${esc(s.kop)}</h3><p>${esc(s.tekst)}</p>
       ${knoppen(s)}
@@ -165,7 +165,7 @@
     sluit();
     const tel = global.app?.telStand?.() ?? false;
     document.body.insertAdjacentHTML('beforeend', `<div class="hulpachter" data-hulpachter></div><aside class="hulpblad hulplijst glas${tel ? ' onder' : ''}" role="dialog" aria-labelledby="hulplijstkop" data-hulpblad>
-      <button type="button" class="hulpsluit" data-hulpsluit aria-label="${esc(t('algemeen.sluiten'))}">×</button>
+      <button type="button" class="hulpsluit" data-hulpsluit aria-label="${esc(t('kz.sluit'))}">×</button>
       <h3 id="hulplijstkop">${esc(t('hulp.handleiding'))}</h3>
       <input class="invoer" type="search" data-hulpzoek placeholder="${esc(t('hulp.zoek'))}" aria-label="${esc(t('hulp.zoek'))}">
       <div class="hulprijen" data-hulprijen></div>

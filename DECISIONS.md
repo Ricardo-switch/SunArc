@@ -143,6 +143,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [323. Inrichten in zeven stappen](#323-inrichten-in-zeven-stappen)
 - [338. Per fase een meter, en de stroom uit het vermogen](#338-per-fase-een-meter-en-de-stroom-uit-het-vermogen)
 - [342. Alleen airco's als warmtebron](#342-alleen-aircos-als-warmtebron)
+- [351. Gasten zonder account, en wat een gast mag per soort](#351-gasten-zonder-account-en-wat-een-gast-mag-per-soort)
 
 **Meten, data en analyse**
 
@@ -400,6 +401,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [340. De geschiedenis in het besluitenlog, niet in de code](#340-de-geschiedenis-in-het-besluitenlog-niet-in-de-code)
 - [348. De handleiding volgt de app, en SECURITY.md volgt de deuren](#348-de-handleiding-volgt-de-app-en-securitymd-volgt-de-deuren)
 - [349. Thuis lichter, en de telefoon makkelijker te raken](#349-thuis-lichter-en-de-telefoon-makkelijker-te-raken)
+- [350. Dunner: pagina's heten zoals hun regel, en één getal voor hoe ver je huis is](#350-dunner-paginas-heten-zoals-hun-regel-en-één-getal-voor-hoe-ver-je-huis-is)
 
 Wat nog open staat: [Wat nog een besluit wacht](#wat-nog-een-besluit-wacht).
 
@@ -16116,6 +16118,135 @@ over vijf schermen, en stonden er twee vraagtekens die bijna hetzelfde ogen.
   vragen. Uit elkaar trekken was veel werk voor weinig winst.
 - **Bij de staven een keuzelijst per dag.** Schuiven met een vinger is
   sneller en laat de grafiek zoals hij is.
+
+## 350. Dunner: pagina's heten zoals hun regel, en één getal voor hoe ver je huis is
+
+*Onderwerp: kwaliteitsbewaking · Status: geldig*
+
+26 november 2026, stap 5 van de afvinklijst uit het tweede kwaliteitsrapport
+([347]). Pagina's heetten anders dan de regel ernaartoe, wie bij Klimaat zocht
+miste de soort verwarming, een kamer had vier woorden voor wie hem regelt, er
+stonden zes getallen voor hoe ver je huis is, en Inrichten had negen losse
+schermen voor dingen die ook bij Instellingen staan.
+
+*Besluit:*
+
+- **Een pagina heet zoals de regel waarop je tikt**, ook in de browser:
+  *Bewoners en inloggen*, en *Licht, camera's en weer* heet nu *Extra's*.
+  Profiel blijft Profiel.
+- **De soort verwarming staat bij Klimaat**, niet meer bij Energie: waar de
+  warmte vandaan komt, hoe warm de cv het water maakt en welke thermostaat de
+  ketel stuurt. Het antwoord hoort nog steeds bij de aansluiting; een oud adres
+  (`energie.html#verwarming`) gaat naar Klimaat.
+- **Wie een kamer regelt, heet thermostaat**: *Eigen thermostaat*, *Volgt
+  {kamer}* en *Geen thermostaat*. *Meedoen* blijft alleen voor de taak *Doet
+  niet mee*.
+- **Eén getal: het percentage in de waaier.** Het groeit vanzelf mee terwijl
+  SunArc je huis leert kennen. *2 mist* op de tegels en de tellingen bij Wat je
+  huis kan gaan weg; wat mist staat er als zin, zonder getal.
+- **Wat je zelf uitzette, telt niet mee**: licht of screens bedienen, camera's
+  en deurbel, Te doen. Zo kan elk huis 100% halen. Het staat wel grijs in de
+  waaier, zodat je het weer aan kunt zetten. Wat uit staat omdat er nog iets
+  mist, telt wel.
+- **De negen losse schermen van Inrichten zijn weg.** Een oud adres (dagdelen,
+  comfort, afwezig, op zon, functies, account, de wand, Home Assistant, de
+  stem) opent de plek bij Instellingen, met de balk terug naar Inrichten.
+  De spraakassistent helemaal in huis maken kan nog bij Klaarzetten; het
+  overzicht van de drie add-ons stond alleen in het losse scherm.
+- **De tegel Klimaat** krijgt Verwarming, en Afwezig en vakantie gaat ervan
+  af (het zei altijd *vanzelf*); het staat op de pagina Klimaat. Zo past de
+  tegel op de wand.
+- **Teksten**: 155 die niemand meer gebruikte zijn weg, en 108 die in beide
+  talen precies hetzelfde zeiden onder een andere sleutel zijn samengevoegd.
+  Van 5.599 naar 5.336.
+- **Een test op de toon**: de app zegt geen *ik*, behalve de assistent en een
+  knop waarin de bewoner zelf spreekt (*Weet ik niet*, *Ik woon hier*).
+  Puntkomma's (106) en uitleg na een dubbele punt (168) hebben een plafond dat
+  alleen omlaag mag.
+
+*Nog niet gedaan:*
+
+- **Snoeien tot 4.500 teksten** (Inrichten en Je huis tekenen eerst) en **de
+  zinnen van de dienst naar de taalbestanden** (zo'n 195 regels, de meeste in
+  `assistant.ts` en `opdracht.ts`). Elk een eigen versie.
+
+## 351. Gasten zonder account, en wat een gast mag per soort
+
+*Onderwerp: configuratie en onboarding · Status: geldig*
+
+Gevraagd op 26 november 2026. In Home Assistant heeft Ricardo mensen die
+alleen een wifi-tracker hebben en geen account: Saskia, Rob en Dini, elk als
+`binary_sensor.…_thuis_gestabiliseerd` in de configuratie. Zijn zij thuis, dan
+telt het huis al als bewoond, met het comfort van de hoofdgebruiker. Bij
+Bewoners stonden ze nergens, want daar kwam alleen wie één keer inlogde
+(besluit 147 en 151). Een ingelogde gast zag alles, ook de camera's. Hij
+bediende alleen licht, scènes en screens, en alleen als hij thuis was. De wand
+mocht alles, wie er ook thuis was. Er is geen schets: de keuzes zijn gemaakt
+in drie rondes vragen. Dit is een aanvulling op besluit 147 en 151.
+
+*Besluit:*
+
+- **Eén lijst bij Bewoners.** Bovenaan staan de bewoners op volgorde. Daaronder
+  staan de gasten, ook wie alleen een tracker heeft, elk met zijn soort.
+  Schermen zoals de wand staan apart onderaan. Eén knop *Iemand toevoegen*
+  heeft twee wegen: *Met inloggen* (de QR-code van nu) of *Alleen een
+  tracker*. De kaart *Schermen en gasten* gaat weg.
+- **Iemand zonder account voeg je zelf toe.** Je kiest uit wat Home Assistant
+  al kent: een persoon zonder account, een aanwezigheidssensor of een
+  `device_tracker`. Dan geef je een naam. Een bron die al bij iemand anders
+  hoort, staat er niet bij; de dienst weigert die ook, zoals nu. Krijgt de
+  persoon in Home Assistant later een account en logt hij in, dan hoort dat
+  account er vanzelf bij. Heeft hij alleen een sensor, dan kiest de
+  hoofdgebruiker bij de eerste inlog bij wie het account hoort. Er komt niemand
+  vanzelf bij: een sensor die bij niemand hoort, blijft weg tot je hem kiest.
+- **Ook zonder account bewoner of gast.** Net als bij een ingelogd account
+  kiest de hoofdgebruiker het. Een bewoner zonder account staat in de
+  volgorde, en de hoofdgebruiker stelt zijn comfort in, want hijzelf kan niet
+  inloggen. Alleen de hoofdgebruiker voegt zo iemand toe, verandert hem of
+  haalt hem weg (zoals besluit 151).
+- **Wat een gast mag, gaat per soort.** Elke gast heeft een soort, en per
+  soort stel je in wat die mag. Om mee te beginnen zijn er drie:
+
+  | Soort | Licht, scènes, screens | Klimaat met de hand | Stekkers en laden | Camera's |
+  |---|---|---|---|---|
+  | Familie of logé | ja | ja | ja | ja |
+  | Oppas | ja | ja | nee | nee |
+  | Hulp in huis | ja | nee | nee | nee |
+
+  Klimaat met de hand betekent een airco of verwarming met de hand aan of uit,
+  en *Toch die van* kiezen. Een nieuwe gast begint als Familie of logé.
+  Bij een soort kun je de vinkjes veranderen. Een eigen soort maken kan niet:
+  er blijven deze drie.
+- **Thuis telt altijd.** Elke gast die thuis is, houdt het huis bewoond, van
+  elke soort, zoals nu. Een gast bepaalt nooit wiens comfort geldt. Zijn er
+  alleen gasten thuis, dan geldt het comfort van de hoofdgebruiker, ook zoals
+  nu.
+- **De wand volgt wie er thuis is.** Is er een bewoner thuis, dan mag de wand
+  alles, zoals nu. Zijn er alleen gasten thuis, dan mag de wand wat hun soorten
+  mogen; zijn er twee soorten thuis, dan mag alles wat één van de twee mag. Dat geldt
+  ook voor de camera's op de wand. De wand weet niet wie ervoor staat, dus het
+  gaat om wie er thuis is.
+- **Op zijn eigen telefoon** mag een ingelogde gast wat zijn soort mag, maar
+  alleen als zijn tracker zegt dat hij thuis is. De camera's ziet hij alleen
+  als zijn soort dat mag. Instellingen veranderen kan een gast nooit, en van
+  hem wordt niets bewaard (besluit 147).
+- **De dienst toetst het, niet alleen de pagina.** Wat een gast of de wand niet
+  mag, weigert de dienst, net als nu bij een gast (besluit 147).
+- **Geen nieuwe deur naar Home Assistant.** Een gast bedient via dezelfde
+  deuren als de knoppen (licht 97, scènes 100, screens 121, met de hand 235 en
+  319, laden 262, stekkers 265). Naam, bron en soort van een gast staan in
+  `bewoners.json`; er gaat niets naar Home Assistant. In de export worden
+  gasten net als bewoners "Bewoner 1", "Bewoner 2" (besluit 151).
+
+*Nog niet gebouwd.* Bouwen pas als Ricardo dat zegt. Een voorstel voor drie
+versies: (1) de ene lijst en iemand toevoegen zonder account; (2) de soorten,
+met de dienst die ze toetst, op de telefoon van de gast; (3) de wand en de
+camera's die volgen wie er thuis is. Daarna voegt Ricardo zelf Saskia, Rob en
+Dini toe en kiest hij hun soort.
+
+*Nog open:* wat de wand mag als volgens de sensoren niemand thuis is. Dan kan
+er een gast zonder tracker staan. Tot er een besluit is, blijft de wand dan
+zoals nu.
 
 ## Wat nog een besluit wacht
 

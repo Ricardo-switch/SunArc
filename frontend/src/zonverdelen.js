@@ -193,7 +193,7 @@ const zonVerdelen = (function (global) {
     if (!v?.lijst?.length) return null;
     const nu = v.lijst.filter(krijgt).map((x) => t('zv.de', { naam: naamKlein(x) }));
     const daarna = v.lijst.find((x) => x.stand === 'wacht');
-    const en = ` ${t('algemeen.en')} `;
+    const en = ` ${t('tk.en')} `;
     const rij = (l) => (l.length > 1 ? `${l.slice(0, -1).join(', ')}${en}${l.at(-1)}` : l[0]);
     if (!nu.length) return daarna ? t('zv.strook.niemand', { naam: t('zv.de', { naam: naamKlein(daarna) }) }) : null;
     return daarna ? t('zv.strook.daarna', { nu: rij(nu), naam: t('zv.de', { naam: naamKlein(daarna) }) }) : t('zv.strook.nu', { nu: rij(nu) });

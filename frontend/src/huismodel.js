@@ -53,7 +53,7 @@
     return zin.charAt(0).toUpperCase() + zin.slice(1);
   }
   /** "a, b en c" in de taal van de app. */
-  const opsomming = (w) => (w.length > 1 ? `${w.slice(0, -1).join(', ')} ${global.taal.t('algemeen.en')} ${w.at(-1)}` : w[0] ?? '');
+  const opsomming = (w) => (w.length > 1 ? `${w.slice(0, -1).join(', ')} ${global.taal.t('tk.en')} ${w.at(-1)}` : w[0] ?? '');
   const isElektrischSlim = (b) => b.aan !== 'hand' && b.soorten.some((s) => ELEKTRISCH.has(s));
   /** "in Beneden en Zolder", of "in 5 kamers" als het er meer dan drie zijn. */
   function inKamers(namen) {

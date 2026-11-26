@@ -7,7 +7,7 @@
  *
  * Scherm (stap 4 punt 2): dit scherm, het always-on display, scherm uit en op
  * je startscherm staan hier, elk in een blad (ditscherm.js); eerst stonden ze
- * bij Licht, camera's en weer onder Weergave.
+ * bij Extra's onder Weergave.
  */
 'use strict';
 

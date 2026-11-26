@@ -19,7 +19,7 @@ let state = null;
 /** De indeling (api/indeling) en het huis (api/huis), voor wat er in een kamer verwarmt en koelt. */
 let indeling = null;
 let huisData = null;
-/** De verwarming uit Energie (besluit 167): soort en de thermostaat van de ketel. */
+/** De verwarming (besluit 167, sinds 350 bij Klimaat › Verwarming): soort en de thermostaat van de ketel. */
 let verwarming = null;
 /** Helpen bij de cv (besluit 292): welke airco's de ketel helpen, wanneer, en wat warmte kost. */
 let helpen = null;
@@ -197,9 +197,10 @@ function delen() {
     { kop: t('w.hetHeleHuis') },
     // Helpen bij de cv (besluit 292): alleen als er een airco is die kan helpen. Eerst bij Regeling.
     ...(helpen?.aircos?.length ? [{ id: 'helpen', icoon: 'klimaat', titel: t('regeling.helpen'), zin: helpenZin(), stand: 'goed' }] : []),
-    // Meten en regeling (besluit 345): alle kamers op één plek, waar eerst de regel naar Soort verwarming stond
-    // (die staat alleen nog bij Energie).
+    // Meten en regeling (besluit 345): alle kamers op één plek.
     ...(meten.length ? [{ id: 'meten', icoon: 'meters', titel: t('klimaat.meten'), zin: t('klimaat.meten.zin', { eigen: meten.filter((x) => x.soort === 'eigen').length, mee: meten.filter((x) => x.soort === 'mee').length }), stand: 'goed' }] : []),
+    // De soort verwarming (besluit 350): stond bij Energie, hoort bij wie bij Klimaat zoekt. Alleen voor de hoofdgebruiker.
+    ...(vanHetHuis() ? [{ id: 'verwarming', icoon: 'klimaat', titel: t('energie.verwarming'), zin: soortVerwarming.zin(), stand: soortVerwarming.stand() }] : []),
     ...(vanHetHuis() ? [{ id: 'dagdelen', titel: t('instellingen.dagdelen'), zin: t('comfort.dagdelenZin', { dag: d.dag, nacht: d.nacht }), stand: 'goed' }] : []),
     ...(vanHetHuis() && (comfort.voorrang?.koelen?.length > 1 || comfort.voorrang?.verwarmen?.length > 1) ? [{ id: 'voorrang', titel: t('comfort.voorrang'), zin: voorrangZin(), stand: 'goed' }] : []),
     { id: 'afwezig', titel: t('comfort.afwezig'), zin: t('comfort.afwezigZin'), stand: 'goed' },
@@ -294,7 +295,7 @@ function zonEnNet(k) {
   const net = k.kanKoelen && !k.koeltVanNet
     ? `<div class="blok"><span class="label"><span class="stip" style="background: var(--ijs)"></span>${esc(t('comfort.koelenNet'))}${window.hulp?.vraag('koelen-van-het-net') ?? ''}</span>
         ${k.nooitWarmerC != null
-          ? `<div class="stapper"><button type="button" data-plafond="-0.5" aria-label="${esc(t('comfort.lager'))}">−</button><b>${esc(t('comfort.bovenGraden', { graden: graden(k.nooitWarmerC) }))}</b><button type="button" data-plafond="0.5" aria-label="${esc(t('comfort.hoger'))}">+</button><button type="button" class="geen" data-plafond="geen">${esc(t('w.nooit'))}</button></div>`
+          ? `<div class="stapper"><button type="button" data-plafond="-0.5" aria-label="${esc(t('hand.lager'))}">−</button><b>${esc(t('comfort.bovenGraden', { graden: graden(k.nooitWarmerC) }))}</b><button type="button" data-plafond="0.5" aria-label="${esc(t('hand.hoger'))}">+</button><button type="button" class="geen" data-plafond="geen">${esc(t('w.nooit'))}</button></div>`
           : `<div class="keuze" role="group" aria-label="${esc(t('comfort.koelenNet'))}"><button type="button" aria-pressed="true">${esc(t('w.nooit'))}</button><button type="button" data-plafond="aan" aria-pressed="false">${esc(t('comfort.bovenTemp'))}</button></div>`}
         <p class="uitleg">${esc(t(k.nooitWarmerC != null ? 'comfort.netUitleg' : 'comfort.netNooit'))}</p></div>`
     : '';
@@ -546,7 +547,7 @@ function metenVorm() {
       </button>${isOpen ? `<div class="mt-onder">${keuzes}</div>` : ''}</li>`;
   };
   const lijst = `<ol class="mt-lijst${open ? ' smal' : ''}">${kamers.map(rij).join('')}</ol>`;
-  const zij = open ? `<section class="mt-blad"><div class="mt-bladkop"><b>${esc(open.naam)}</b><span class="mt-temp">${graad(open.temp)}</span><button type="button" class="mt-sluit" data-meten-kamer="${esc(open.id)}" aria-label="${esc(t('algemeen.sluiten'))}">×</button></div>${keuzes}</section>` : '';
+  const zij = open ? `<section class="mt-blad"><div class="mt-bladkop"><b>${esc(open.naam)}</b><span class="mt-temp">${graad(open.temp)}</span><button type="button" class="mt-sluit" data-meten-kamer="${esc(open.id)}" aria-label="${esc(t('kz.sluit'))}">×</button></div>${keuzes}</section>` : '';
   return `<h2 class="kop-2">${esc(t('klimaat.meten'))}</h2>
     <p class="klein geen-marge">${esc(t('klimaat.meten.lead'))}</p>
     ${open ? '' : samen}
@@ -581,7 +582,7 @@ function voorverwarmenPerKamer() {
   const rij = (k) => {
     const v = k.modi.voorverwarmen?.heat ?? null;
     const stapper = v != null
-      ? `<div class="stapper"><button type="button" data-voor="${esc(k.id)}:-0.5" aria-label="${esc(t('comfort.lager'))}">−</button><b>${graden(v)}</b><button type="button" data-voor="${esc(k.id)}:0.5" aria-label="${esc(t('comfort.hoger'))}">+</button><button type="button" class="geen" data-voor="${esc(k.id)}:uit">${esc(t('comfort.niet'))}</button></div>`
+      ? `<div class="stapper"><button type="button" data-voor="${esc(k.id)}:-0.5" aria-label="${esc(t('hand.lager'))}">−</button><b>${graden(v)}</b><button type="button" data-voor="${esc(k.id)}:0.5" aria-label="${esc(t('hand.hoger'))}">+</button><button type="button" class="geen" data-voor="${esc(k.id)}:uit">${esc(t('comfort.niet'))}</button></div>`
       : `<div class="keuze" role="group" aria-label="${esc(k.naam)}"><button type="button" aria-pressed="true">${esc(t('comfort.niet'))}</button><button type="button" data-voor="${esc(k.id)}:aan" aria-pressed="false">${esc(t('comfort.voor.aan'))}</button></div>`;
     return `<div data-voor-kamer="${esc(k.id)}"><span class="label onder-8" style="font-size: 14.5px; font-weight: 600; display: block">${esc(k.naam)}</span>${stapper}</div>`;
   };
@@ -635,7 +636,7 @@ function voorrangVorm() {
     const niet = comfort.kamers.filter((k) => !ids.includes(k.id)).map((k) => k.naam);
     return `<div class="rang"><h3><span class="stip" style="background: ${kleur}"></span>${esc(titel)}</h3>
       ${ids.map((id, i) => `<div class="r"><i>${i + 1}</i><b>${esc(naamVan(id))}</b>${schuif(`${richting}:${esc(id)}`, naamVan(id), i, ids.length)}</div>`).join('')}
-      ${niet.length ? `<p class="niet">${esc(t(`comfort.kanNiet.${richting}`, { n: niet.length, namen: niet.join(` ${t('algemeen.en')} `) }))}</p>` : ''}</div>`;
+      ${niet.length ? `<p class="niet">${esc(t(`comfort.kanNiet.${richting}`, { n: niet.length, namen: niet.join(` ${t('tk.en')} `) }))}</p>` : ''}</div>`;
   };
   // Op zon staat sinds besluit 343 bij Energie › De zon verdelen, in één lijst met de laadpaal en de stekkers.
   const voorstel = voorrangVoorstel();
@@ -648,6 +649,7 @@ function voorrangVorm() {
 
 function naast(id) {
   if (id === 'voorrang') return '';
+  if (id === 'verwarming') return `<div class="glas"><h3>${esc(t('energie.waarVind'))}</h3><p class="geen-marge">${esc(t('energie.naast.verwarming.waar'))}</p></div>`;
   return `<div class="glas"><h3>${esc(t('comfort.naast.zoKop'))}</h3>
       <p class="geen-marge onder-12">${esc(t('comfort.naast.zo'))}</p>
       ${dagbalk()}
@@ -668,7 +670,7 @@ function tekenNu() {
   const zoneAdres = nu?.startsWith(ZONE) ? nu.slice(ZONE.length).split(':') : null;
   zorg.zone = zoneAdres?.[1] ?? null;
   const k = comfort.kamers.find((x) => x.id === (zoneAdres ? zoneAdres[0] : nu));
-  const vorm = k ? kamerVorm(k) : nu?.startsWith(ANDER) ? anderVorm(nu.slice(ANDER.length)) : nu === 'helpen' ? helpenVorm() : nu === 'erbij' ? erbijVorm() : nu === 'dagdelen' ? dagdelenVorm() : nu === 'meten' ? metenVorm() : nu === 'voorrang' ? voorrangVorm() : nu === 'standaard' ? standaardVorm() : afwezigVorm();
+  const vorm = k ? kamerVorm(k) : nu?.startsWith(ANDER) ? anderVorm(nu.slice(ANDER.length)) : nu === 'helpen' ? helpenVorm() : nu === 'erbij' ? erbijVorm() : nu === 'dagdelen' ? dagdelenVorm() : nu === 'meten' ? metenVorm() : nu === 'verwarming' ? soortVerwarming.vorm() : nu === 'voorrang' ? voorrangVorm() : nu === 'standaard' ? standaardVorm() : afwezigVorm();
   // Een veld waar je in typt, niet onder je vingers vervangen (het vermogen van een bron).
   const typt = document.activeElement?.closest?.('[data-zorgt]') && document.activeElement.matches('input');
   if (typt) return;
@@ -947,6 +949,11 @@ document.addEventListener('click', (e) => {
 
 /** Gebundeld: hooguit één keer per beeld (basis.js). */
 const teken = app.gebundeld(tekenNu);
+// Na bewaren bij Verwarming: ook wat ervoor zorgt (de cv-regel) kent dan de nieuwe soort.
+soortVerwarming.na = () => {
+  verwarming = soortVerwarming.antwoord() ?? verwarming;
+  teken();
+};
 addEventListener('standwissel', teken);
 addEventListener('hashchange', teken);
 

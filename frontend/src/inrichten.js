@@ -24,16 +24,16 @@
  * openen.
  */
 'use strict';
-/* global antwoorden, dagMoment, dagUur, kanOpen, kanToestellen, kanVraagOpen, teken */
+/* global antwoorden, kanOpen, kanToestellen, kanVraagOpen, teken */
 /* exported $$, HOOFD, IK, S, STAPPEN, bewaarIndeling, binnen, buitenRuimtes, concept, d, delenVan, deur, energieNu, esc, gedaan, geenKlimaat, haal, hoofdVan, idVan, klimaatIn, knop, laad, lijst, lijstje, markeer, melding, model, naar, nl, regel, rij, schakel, schakelaar, sleutel, stapGedaan, stapNagelopen, stapNu, stuur, tekenWelkom, tellingen, tip, verder, volgende, vorige, waarVan, welkom, zeg */
 
 const { $$, esc, haal, deur, nl } = app;
 
-const d = { huis: null, ind: null, comfort: null, aans: null, energie: null, zon: null, functies: null, sessie: null, bewoners: null, klaar: null, voork: null, integ: null, inHuis: null };
+const d = { huis: null, ind: null, comfort: null, aans: null, energie: null, zon: null, functies: null, sessie: null, bewoners: null, klaar: null, integ: null };
 
 async function laad() {
-  const namen = ['huis', 'ind', 'comfort', 'aans', 'energie', 'zon', 'functies', 'sessie', 'bewoners', 'klaar', 'voork', 'integ', 'inHuis'];
-  const uit = await Promise.allSettled(['api/huis', 'api/indeling', 'api/comfort', 'api/aansluiting', 'api/energie', 'api/zon', 'api/functies', 'api/sessie', 'api/bewoners', 'api/klaarzetten', 'api/voorkeuren', 'api/integratie', 'api/stem-in-huis'].map((p) => haal(p)));
+  const namen = ['huis', 'ind', 'comfort', 'aans', 'energie', 'zon', 'functies', 'sessie', 'bewoners', 'klaar', 'integ'];
+  const uit = await Promise.allSettled(['api/huis', 'api/indeling', 'api/comfort', 'api/aansluiting', 'api/energie', 'api/zon', 'api/functies', 'api/sessie', 'api/bewoners', 'api/klaarzetten', 'api/integratie'].map((p) => haal(p)));
   uit.forEach((r, i) => {
     if (r.status === 'fulfilled') d[namen[i]] = r.value;
   });
@@ -68,11 +68,23 @@ const ZEVEN = [
   ['bewoners', ['bewoners']],
   ['klaar', []],
 ];
-/** Niet meer in de zeven stappen, maar met een link nog te openen (de standpagina biedt het aan). */
-const LOS = ['dag', 'comfort', 'afwezig', 'opzon', 'functies', 'account', 'wand', 'ha', 'stem'];
+/**
+ * De losse schermen van eerst (besluit 350): elk heeft zijn plek bij Instellingen. Een oud adres gaat daarheen,
+ * met de balk terug naar Inrichten.
+ */
+const LOS = { dag: 'comfort.html#dagdelen', comfort: 'comfort.html', afwezig: 'comfort.html#afwezig', opzon: 'energie.html#zon', functies: 'functies.html', account: 'toegang.html#bewoners', wand: 'jij.html#scherm', ha: 'klaarzetten.html', stem: 'functies.html?groep=assistent#stem' };
+function naarLos() {
+  const doel = LOS[location.hash.slice(1)];
+  if (!doel) return false;
+  app.onthoudInrichten('app', 'klaar');
+  location.replace(doel);
+  return true;
+}
+naarLos();
+addEventListener('hashchange', naarLos);
 const HOOFD = ZEVEN.map(([id]) => id);
 const STAPPEN = ZEVEN.map(([id]) => [id, t(`inr.k.${id}`)]);
-const ALLE = [...new Set(['welkom', ...ZEVEN.flatMap(([id, delen]) => [id, ...delen]), ...LOS])];
+const ALLE = [...new Set(['welkom', ...ZEVEN.flatMap(([id, delen]) => [id, ...delen])])];
 const hoofdVan = (id) => ZEVEN.find(([h, delen]) => h === id || delen.includes(id))?.[0] ?? null;
 const delenVan = (h) => ZEVEN.find(([x]) => x === h)?.[1] ?? [];
 /** "2 van 7 · Meter en zekering"; een deel achter Aanpassen zegt ook welk deel. */
@@ -101,10 +113,6 @@ function gedaan(id) {
   if (id === 'warmte') return binnen().some((r) => klimaatIn(r).some((a) => a.klimaat?.rol && a.klimaat.rol !== 'kijken'));
   // Wat elk apparaat kan (besluit 197): geen open vraag meer.
   if (id === 'apparaat') return kanToestellen().length > 0 && !kanToestellen().some(({ a }) => kanVraagOpen(a));
-  if (id === 'dag' || id === 'comfort' || id === 'afwezig') return (d.comfort?.kamers ?? []).some((k) => k.uitApp);
-  // Op zon (besluit 167): iets mag al op zon. Klaarzetten: niets mist meer in Home Assistant.
-  if (id === 'opzon') return Object.values(d.aans?.antwoorden?.opZon ?? {}).some(Boolean) || (d.aans?.configuratie?.apparaten ?? []).length > 0;
-  if (id === 'ha') return (d.klaar?.punten ?? []).length > 0 && d.klaar.punten.every((p) => p.stand !== 'mist');
   if (id === 'buiten') return d.huis?.rond != null;
   if (id === 'meten') return binnen().filter((r) => r.zoneId).every((r) => (r.meetMet ?? []).length > 0);
   if (id === 'zon') return d.aans?.antwoorden?.panelen?.ligging != null || !!d.aans?.daken?.bewaard;
@@ -118,7 +126,6 @@ function gedaan(id) {
   // Een prijs per uur is ook een stroomprijs (issue 126).
   if (id === 'prijzen') return d.energie?.instellingen?.prijzen?.stroom != null || !!d.energie?.instellingen?.prijzen?.dynamisch;
   if (id === 'functies') return d.functies?.instellingen != null;
-  if (id === 'wand' || id === 'account') return (d.bewoners?.schermen ?? []).length > 0;
   if (id === 'bewoners') return (d.bewoners?.bewoners ?? []).length > 0;
   return false;
 }
@@ -269,7 +276,6 @@ function model(stap) {
       if (stap === 'apparaat' && kanToestellen().find(({ a }) => sleutel(a) === kanOpen)?.r.id === r.id) k.gekozen = true;
       if (stap === 'comfort' && r.zoneId) k.stand = 'goed';
       // Je dag: bij voorverwarmen gloeien de kamers die meedoen.
-      if (stap === 'dag' && r.zoneId && dagMoment(dagUur()).voor) k.stand = 'verwarmt';
       return k;
     },
   });
@@ -282,7 +288,7 @@ function model(stap) {
   const elders = metZon ? a.elders : {};
   return {
     beschrijving: t('inr.beschrijving'),
-    tijd: stap === 'ha' || stap === 'klaar' ? 'nacht' : groot ? 'ochtend' : stap === 'dag' ? dagMoment(dagUur()).tijd : app.tijdVanDeDag(d.zon),
+    tijd: stap === 'klaar' ? 'nacht' : groot ? 'ochtend' : app.tijdVanDeDag(d.zon),
     wolken: 0.3,
     zon: { stand: d.zon?.dag?.fractie ?? 0.4, hoogte: d.zon?.dag?.hoogteDeel ?? 0.6, aandeel: metZon ? 0.6 : 0.2, opRechts: huismodel.zonOpRechts(d.aans?.ligging, a.panelen) ?? undefined, ...opDak },
     // Het huis zelf, zoals elke pagina het tekent (besluit 191); buiten pas vanaf de stap Buiten.

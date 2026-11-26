@@ -73,7 +73,7 @@
       const eerder = meld.eerder.length ? `<h3>${kern.esc(kern.global.t('w.eerder'))}</h3>${meld.eerder.slice(0, 5).map(oud).join('')}` : '';
       // Alles wissen (besluit 187): alleen als er iets te wissen is.
       const alles = meld.actief.length || meld.eerder.length ? `<button type="button" class="meldalles" data-meld-alles>${kern.esc(kern.global.t('basis.meld.allesWissen'))}</button>` : '';
-      return `<div class="kop"><h2 class="kop-2">${kern.esc(kern.global.t('nav.meldingen'))}</h2>${alles}<button type="button" class="sluit" data-meld-sluit aria-label="${kern.esc(kern.global.t('algemeen.sluiten'))}">×</button></div>
+      return `<div class="kop"><h2 class="kop-2">${kern.esc(kern.global.t('nav.meldingen'))}</h2>${alles}<button type="button" class="sluit" data-meld-sluit aria-label="${kern.esc(kern.global.t('kz.sluit'))}">×</button></div>
         ${aandacht}${eerder}
         ${onderhoudKnop()}
         <button type="button" class="meld-probleem-regel" data-meld-probleem>${kern.esc(kern.global.t('melden.kop'))}</button>`;
@@ -146,7 +146,7 @@
       const melderNamen = new Set(melders.map((m) => m.naam));
       const batt = (huis?.batterijen ?? []).filter((b) => !melderNamen.has(b.naam));
       const filters = (huis?.etages ?? []).flatMap((e) => (e.ruimtes ?? []).flatMap((r) => (r.apparaten ?? []).filter((a) => a.klimaat?.filter?.pct != null).map((a) => ({ naam: a.naam, kamer: r.naam, pct: a.klimaat.filter.pct }))));
-      return `<div class="kop"><div><button type="button" class="terugmeld" data-meld-terug>‹ ${kern.esc(t('nav.meldingen'))}</button><h2 class="kop-2 geen-marge boven-4">${kern.esc(t('basis.onderhoud.kop'))}</h2></div><button type="button" class="sluit" data-meld-sluit aria-label="${kern.esc(t('algemeen.sluiten'))}">×</button></div>
+      return `<div class="kop"><div><button type="button" class="terugmeld" data-meld-terug>‹ ${kern.esc(t('nav.meldingen'))}</button><h2 class="kop-2 geen-marge boven-4">${kern.esc(t('basis.onderhoud.kop'))}</h2></div><button type="button" class="sluit" data-meld-sluit aria-label="${kern.esc(t('kz.sluit'))}">×</button></div>
         ${melders.length ? `<h3>${kern.esc(t('basis.melder.kop'))}</h3>${melders.map(melderRegel).join('')}` : ''}
         <h3>${kern.esc(t('basis.onderhoud.batterijen'))}</h3>
         ${batt.length ? batt.map((b) => regel(b.naam, b.kamer, b.pct, 'batterij')).join('') : `<p class="mini geen-marge">${kern.esc(t('thuis.batterijen.geen'))}</p>`}

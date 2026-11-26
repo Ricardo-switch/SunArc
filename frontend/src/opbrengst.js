@@ -95,7 +95,7 @@ async function laad() {
 /* ------------------------------------------------------------ de delen */
 
 /** Panelen zonder slimme meter (besluit 196): zelf gebruikt en terug zijn geschat. */
-const geschatLabel = () => `<span class="geschat">${esc(t('opbrengst.geschat'))}</span>`;
+const geschatLabel = () => `<span class="geschat">${esc(t('ht.geschat'))}</span>`;
 
 function titel(r) {
   if (r.geschat && r.zon) return t('opbrengst.panelenLeverden', { kwh: getal(r.zon.opgewektKwh) });
@@ -123,7 +123,7 @@ function cijfersGeschat(r, klein) {
   const gas = r.gas ? `<div class="cijfer"><div class="mini">${esc(t('opbrengst.gas'))}</div><div class="getal">${getal(r.gas.m3)}<small>m³</small></div></div>` : '';
   if (klein) {
     const blok = (naam, waarde, onder) => `<div class="glas-klein"><span class="mini">${naam}</span><span class="getal">${waarde}</span><span class="mini">${onder}</span></div>`;
-    return `<div class="drie">${blok(esc(t('opbrengst.opgewekt')), getal(z.opgewektKwh), 'kWh')}${blok(esc(t('opbrengst.zelfGebruikt')), `± ${getal(z.zelfKwh)}`, `kWh, ${esc(t('opbrengst.geschat'))}`)}${bespaard ? blok(esc(t('opbrengst.bespaard')), `± ${taal.valuta()} ${nl(z.bespaardEuro, 0)}`, esc(t('opbrengst.geschat'))) : ''}</div>`;
+    return `<div class="drie">${blok(esc(t('opbrengst.opgewekt')), getal(z.opgewektKwh), 'kWh')}${blok(esc(t('opbrengst.zelfGebruikt')), `± ${getal(z.zelfKwh)}`, `kWh, ${esc(t('ht.geschat'))}`)}${bespaard ? blok(esc(t('opbrengst.bespaard')), `± ${taal.valuta()} ${nl(z.bespaardEuro, 0)}`, esc(t('ht.geschat'))) : ''}</div>`;
   }
   return `<div class="cijfer"><div class="mini">${esc(t('opbrengst.opgewekt'))}</div><div class="getal">${getal(z.opgewektKwh)}<small>kWh</small></div><div class="klein">${esc(t('opbrengst.gemetenOmvormer'))}</div></div>
     <div class="cijfer"><div class="mini">${esc(t('opbrengst.zelfGebruikt'))}</div><div class="getal">± ${getal(z.zelfKwh)}<small>kWh</small></div><div class="klein">${geschatLabel()}</div></div>
@@ -133,7 +133,7 @@ function cijfersGeschat(r, klein) {
 /** Een kaart die een slimme meter aanraadt, of panelen (besluit 196). */
 function erbijKaart(r) {
   if (r.geschat) return `<section class="glas kaart meterkaart"><h2 class="kop-3">${esc(t('opbrengst.meter.titel'))}</h2><p class="klein geen-marge boven-8 onder-12">${esc(t('opbrengst.meter.zin'))}</p><a class="pil" href="energie.html#meters">${esc(t('opbrengst.meter.knop'))}</a></section>`;
-  if (!r.heeft.zon) return `<section class="glas kaart"><h2 class="kop-3">${esc(t('opbrengst.panelenErbij.titel'))}</h2><p class="klein geen-marge boven-8 onder-12">${esc(t('opbrengst.panelenErbij.zin'))}</p><a class="pil" href="huis-kan.html">${esc(t('opbrengst.panelenErbij.knop'))}</a></section>`;
+  if (!r.heeft.zon) return `<section class="glas kaart"><h2 class="kop-3">${esc(t('opbrengst.panelenErbij.titel'))}</h2><p class="klein geen-marge boven-8 onder-12">${esc(t('opbrengst.panelenErbij.zin'))}</p><a class="pil" href="huis-kan.html">${esc(t('w.watJeHuisKan'))}</a></section>`;
   return '';
 }
 
@@ -141,7 +141,7 @@ function cijfers(r, klein = false) {
   if (r.geschat && r.zon) return cijfersGeschat(r, klein);
   const s = r.stroom;
   const k = r.kosten;
-  const stroom = `<div class="cijfer"><div class="mini">${esc(t('opbrengst.stroomGebruikt'))}</div><div class="getal">${getal(s.verbruikKwh)}<small>kWh</small></div><div class="klein">${esc(r.heeft.zon ? t('opbrengst.vanNetRest', { kwh: getal(s.vanNetKwh) }) : t('opbrengst.vanNet'))}</div></div>`;
+  const stroom = `<div class="cijfer"><div class="mini">${esc(t('opbrengst.stroomGebruikt'))}</div><div class="getal">${getal(s.verbruikKwh)}<small>kWh</small></div><div class="klein">${esc(r.heeft.zon ? t('opbrengst.vanNetRest', { kwh: getal(s.vanNetKwh) }) : t('w.vanHetNet'))}</div></div>`;
   const vast = k.regels.find((x) => x.soort === 'vast');
   // Wat zonder prijs als nul telt, staat erbij (issue 128): eerst stroom, teruglevering en gas, dan de vaste kosten.
   // Telde Home Assistant de kosten een deel van de tijd niet, dan is dat deel geschat (issue 128).
@@ -183,7 +183,7 @@ function panelen(r) {
   const zelf = z.opgewektKwh > 0 ? (z.zelfKwh / z.opgewektKwh) * 100 : 0;
   // Samen of per dak (besluit 254, stap 5): bij meer dakvlakken.
   const vlakken = daken?.vlakken ?? [];
-  const wissel = vlakken.length > 1 ? `<div class="blik boven-8" role="group" aria-label="${esc(t('opbrengst.daken.wissel'))}"><button type="button" data-perdak="0" aria-pressed="${!perDak}">${esc(t('opbrengst.daken.samen'))}</button><button type="button" data-perdak="1" aria-pressed="${perDak}">${esc(t('opbrengst.daken.perDak'))}</button></div>` : '';
+  const wissel = vlakken.length > 1 ? `<div class="blik boven-8" role="group" aria-label="${esc(t('opbrengst.daken.wissel'))}"><button type="button" data-perdak="0" aria-pressed="${!perDak}">${esc(t('daken.samen'))}</button><button type="button" data-perdak="1" aria-pressed="${perDak}">${esc(t('opbrengst.daken.perDak'))}</button></div>` : '';
   if (perDak && vlakken.length > 1) {
     const top = Math.max(1, ...vlakken.map((v) => v.kWh));
     const achter = daken.achter?.letter;
@@ -278,7 +278,7 @@ function stroomModel(r) {
   const terugEuro = kostenVan(r, ['terug', 'terug-na']);
   const bronnen = [
     ...zonDelen.map((z) => ({ ...z, regels: [{ t: `${getal(van(z.id, 'van'))} kWh` }] })),
-    { id: 'net', naam: t('opbrengst.net'), kleur: NET, regels: [{ t: `${getal(van('net', 'van'))} kWh` }, ...(netEuro != null ? [{ t: euro(netEuro), vet: true }] : [])] },
+    { id: 'net', naam: t('w.net'), kleur: NET, regels: [{ t: `${getal(van('net', 'van'))} kWh` }, ...(netEuro != null ? [{ t: euro(netEuro), vet: true }] : [])] },
     // Uit de thuisaccu (besluit 272), als hij iets leverde.
     ...(van('accu', 'van') > 0.05 ? [{ id: 'accu', naam: t('opbrengst.accu.uit'), kleur: ACCU, regels: [{ t: `${getal(van('accu', 'van'))} kWh` }] }] : []),
   ];
@@ -293,11 +293,11 @@ function stroomModel(r) {
   ids.sort((a, b) => volgorde(a) - volgorde(b) || van(b, 'naar') - van(a, 'naar'));
   const doelen = ids.map((id, i) => {
     if (id === 'terug') {
-      return { id, naam: r.geschat ? t('opbrengst.naarHetNetGeschat') : t('opbrengst.naarHetNet'), kleur: TERUG, regels: [{ t: `${getal(van(id, 'naar'))} kWh` }, ...(terugEuro != null && terugEuro < 0 ? [{ t: `+ ${euro(-terugEuro)}`, vet: true, kleur: 'var(--mint-t)' }] : [])] };
+      return { id, naam: r.geschat ? t('opbrengst.naarHetNetGeschat') : t('opbrengst.nu.terug'), kleur: TERUG, regels: [{ t: `${getal(van(id, 'naar'))} kWh` }, ...(terugEuro != null && terugEuro < 0 ? [{ t: `+ ${euro(-terugEuro)}`, vet: true, kleur: 'var(--mint-t)' }] : [])] };
     }
     if (id === 'altijd') return { id, naam: t('opbrengst.stromen.altijd'), kleur: '#FFB39F', regels: zonRegel(id) };
     if (id === 'naarAccu') return { id, naam: t('opbrengst.accu.naar'), kleur: ACCU, regels: zonRegel(id) };
-    if (id === 'overig') return { id, naam: t('opbrengst.stromen.overig'), kleur: 'rgba(233,239,246,0.55)', regels: zonRegel(id) };
+    if (id === 'overig') return { id, naam: t('tk.overig'), kleur: 'rgba(233,239,246,0.55)', regels: zonRegel(id) };
     return { id, naam: namen.get(id) ?? id, kleur: id === 'rest' ? NET : KLEUREN[i % KLEUREN.length], regels: zonRegel(id) };
   });
   return { bronnen, doelen, stromen: st };
@@ -330,13 +330,13 @@ function perApparaat(r) {
         ]
       : [a]))
     .sort((x, y) => y.kwh - x.kwh);
-  if (!lijst.length) return `<h2 class="kop-3">${esc(t('opbrengst.perApparaat'))}</h2><p class="mini geen-marge boven-8">${esc(t('opbrengst.geenMeters'))}</p>`;
+  if (!lijst.length) return `<h2 class="kop-3">${esc(t('motor.eens.per'))}</h2><p class="mini geen-marge boven-8">${esc(t('opbrengst.geenMeters'))}</p>`;
   const rij = (a) => {
     const zonPct = a.kwh > 0 ? (a.zonKwh / a.kwh) * 100 : 0;
     return `<div class="rij"><div class="boven"><b>${esc(a.rest ? t('opbrengst.rest') : a.id === 'altijd' ? a.naam : kort(a.naam))}</b><span>${getal(a.kwh)} kWh${a.kosten != null ? `, ${euro(a.kosten)}` : ''}</span></div><div class="verdeel"><i style="width: ${zonPct.toFixed(1)}%; background: var(--zon)"></i><i style="width: ${(100 - zonPct).toFixed(1)}%; background: ${NET}"></i></div></div>`;
   };
   // Zon en net naast de titel: onder de lijst viel het op de wand buiten de kaart.
-  return `<div class="kaartkop onder-4"><h2 class="kop-3">${esc(t('opbrengst.perApparaat'))}</h2><span class="mini legenda">${legendaZonNet(r)}</span></div>${lijst.map(rij).join('')}`;
+  return `<div class="kaartkop onder-4"><h2 class="kop-3">${esc(t('motor.eens.per'))}</h2><span class="mini legenda">${legendaZonNet(r)}</span></div>${lijst.map(rij).join('')}`;
 }
 
 /*
@@ -348,7 +348,7 @@ const grafiek = { blik: 'periode', maat: 'stroom', gekozen: null };
 /** Wat je vergelijkt, met zijn eenheid; de naam in teksten.*.js (opbrengst.maat.*). */
 const MATEN = { stroom: 'kWh', zon: 'kWh', gas: 'm³', kosten: '€' };
 /** Zonder panelen (besluit 196) alleen het net. */
-const legendaZonNet = (r) => `${r?.heeft?.zon === false ? '' : `<span><span class="stip" style="background: var(--zon)"></span>${esc(t('opbrengst.zonKlein'))}</span>`}<span><span class="stip" style="background: ${NET}"></span>${esc(t('opbrengst.netKlein'))}</span>`;
+const legendaZonNet = (r) => `${r?.heeft?.zon === false ? '' : `<span><span class="stip" style="background: var(--zon)"></span>${esc(t('stroom.leg.zon'))}</span>`}<span><span class="stip" style="background: ${NET}"></span>${esc(t('stroom.leg.net'))}</span>`;
 const waarde = (n, eenheid) => (n == null ? '–' : eenheid === '€' ? euro(n) : `${getal(n)} ${eenheid}`);
 
 function staven(r) {
@@ -464,13 +464,13 @@ function nuModel() {
     zonW, vanNet, terug, verbruik, zonHuis, apps,
     bronnen: [
       ...zonDelen.map((z) => ({ ...z, regels: [{ t: `${kw(van(z.id))} kW` }] })),
-      { id: 'net', naam: t('opbrengst.net'), kleur: NET, regels: [{ t: `${kw(van('net'))} kW` }] },
+      { id: 'net', naam: t('w.net'), kleur: NET, regels: [{ t: `${kw(van('net'))} kW` }] },
       ...(uitAccu >= 30 ? [{ id: 'accu', naam: t('opbrengst.accu.uit'), kleur: ACCU, regels: [{ t: `${kw(uitAccu)} kW` }] }] : []),
     ],
     doelen: [
       ...doelen.map((d) => ({ id: d.id, naam: d.naam, kleur: d.kleur, regels: [{ t: zonW > 0 ? t('opbrengst.nu.kwZon', { kw: kw(naar(d.id)), pct: naar(d.id) > 0 ? Math.round((zonNaar(d.id) / naar(d.id)) * 100) : 0 }) : `${kw(naar(d.id))} kW` }] })),
       ...(laden >= 30 ? [{ id: 'naarAccu', naam: t('opbrengst.accu.naar'), kleur: ACCU, regels: [{ t: `${kw(laden)} kW` }] }] : []),
-      ...(terug >= 30 ? [{ id: 'terug', naam: t('opbrengst.naarHetNet'), kleur: TERUG, regels: [{ t: `${kw(terug)} kW` }] }] : []),
+      ...(terug >= 30 ? [{ id: 'terug', naam: t('opbrengst.nu.terug'), kleur: TERUG, regels: [{ t: `${kw(terug)} kW` }] }] : []),
     ],
     stromen,
   };
@@ -478,7 +478,7 @@ function nuModel() {
 
 function nuCijfers(m, klein = false) {
   const pct = m.verbruik > 0 ? Math.round((m.zonHuis / m.verbruik) * 100) : 0;
-  const net = m.terug >= 30 ? { naam: t('opbrengst.nu.terug'), w: m.terug, kleur: 'var(--mint-t)' } : { naam: t('opbrengst.nu.vanNet'), w: m.vanNet, kleur: '' };
+  const net = m.terug >= 30 ? { naam: t('opbrengst.nu.terug'), w: m.terug, kleur: 'var(--mint-t)' } : { naam: t('w.vanHetNet2'), w: m.vanNet, kleur: '' };
   const dk = liveDaken?.daken;
   const helder = Object.values(dk?.nu ?? {}).reduce((s, n) => s + (n?.helderW ?? 0), 0);
   if (klein) {

@@ -148,7 +148,7 @@ describe('het voorstel uit Home Assistant', () => {
     // Geen eigen regelzone, zodat de regeling één keer in de app staat.
     expect(r.zoneId).toBeNull();
     expect(r.meedoenMet).toEqual({ kamerId: wk.id, naam: wk.naam, zoneId: 'woonkamer' });
-    expect(r.status?.zin).toMatch(/^Doet mee met de regeling van .+\. .+ is het 21,9°, precies goed\./);
+    expect(r.status?.zin).toMatch(/^Volgt de thermostaat van .+\. .+ is het 21,9°, precies goed\./);
     expect(h.etages.flatMap((e) => e.ruimtes).filter((x) => x.zoneId === 'woonkamer')).toHaveLength(1);
   });
 

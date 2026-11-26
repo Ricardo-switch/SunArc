@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="only dark">
-<title>Bewoners en toegang · SunArc</title>
+<title>Bewoners en inloggen · SunArc</title>
 <link rel="stylesheet" href="kit/kit.css">
 <link rel="stylesheet" href="basis.css">
 <link rel="manifest" href="manifest.webmanifest">
@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" href="icoon-192.png?v=sunarc">
 <script>(function () { var d = document.documentElement, w0 = 0, h0 = 0, t = {}, m = matchMedia('(prefers-color-scheme: light)'); try { t = JSON.parse(localStorage.getItem('sc-thema')) || {}; } catch (e) {} function k() { var eigen = d.classList.contains('tel-stand') || !t.scherm, c = eigen ? t.kleur : t.wandKleur; var licht = eigen && (t.thema === 'licht' || (t.thema === 'systeem' && m.matches)), tc = document.querySelector('meta[name="theme-color"]'); d.classList.toggle('sc-licht', licht); if (tc) tc.setAttribute('content', licht ? '#e9eff6' : '#0b1424'); if (c && c !== 'lucht') d.setAttribute('data-kleur', c); else d.removeAttribute('data-kleur'); } window.scThema = function (n) { if (n) { t = n; try { localStorage.setItem('sc-thema', JSON.stringify(n)); } catch (e) {} } k(); }; function s() { var a = document.activeElement; if (w0 === innerWidth && innerHeight < h0 && a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) return; w0 = innerWidth; h0 = innerHeight; var b = Math.min(1700, Math.max(1280, Math.round(800 * innerWidth / innerHeight))); d.classList.toggle('tel-stand', innerHeight > innerWidth || innerWidth < 560); d.style.setProperty('--wandbreedte', b + 'px'); d.style.setProperty('--wandschaal', Math.min(innerWidth / b, innerHeight / 800)); k(); } s(); addEventListener('resize', s); m.addEventListener('change', k); })();</script>
 <style>
-  /* Bewoners en toegang (besluit 130, 147 en 167): wie hier woont en wie jij bent, de sleutel voor de assistent, je gegevens, de versie. */
+  /* Bewoners en inloggen (besluit 130, 147 en 167): wie hier woont en wie jij bent, de sleutel voor de assistent, je gegevens, de versie. */
   .sleutel { font-family: ui-monospace, Consolas, monospace; font-size: 13px; padding: 10px 12px; border-radius: 10px; background: rgb(var(--wit) / 0.06); word-break: break-all; user-select: all; }
   .rij-b { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid rgb(var(--wit) / 0.06); font-size: 14.5px; }
   .rij-b:first-of-type { border-top: 0; }
