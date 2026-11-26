@@ -21,6 +21,8 @@ body { overflow: hidden; }
  * in een kiosk-browser als Fully (besluit 124). Het schuiven blijft in het vak.
  */
 .wand [data-schuift], #wand .schuift { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+/* Staven: zijwaarts schuiven kiest een staaf (basis.js), op en neer scrolt de pagina. */
+.staven, svg:has([data-staaf]) { touch-action: pan-y; }
 /*
  * Schuifbalken (besluit 128): smal, in de kleur van de app, en alleen te zien
  * terwijl je over het vak beweegt of erin werkt. Een vak dat niet te vol is,
@@ -127,6 +129,12 @@ select.invoer option, select.invoer optgroup { background: #13203a; color: var(-
 .schakelaar[aria-checked='true']::after, [aria-checked='true'] .schakelaar-teken::after { left: 21px; background: #fff; }
 .schakelaar:disabled { opacity: 0.4; cursor: default; }
 .schakelaar:focus-visible { outline: 2px solid var(--tekst); outline-offset: 2px; }
+/* Op de telefoon groter, zodat een duim hem raakt (stap 4). */
+@media (max-width: 600px) {
+  .schakelaar { width: 54px; height: 34px; }
+  .schakelaar::after { left: 4px; top: 4px; width: 26px; height: 26px; }
+  .schakelaar[aria-checked='true']::after { left: 24px; }
+}
 /*
  * Bouwstenen kaart, titel, foutregel en het kleine knopje (schets Bouwstenen).
  * De kaart: 18 boven en onder, 20 opzij, ronding 24 (van .glas); op de telefoon 16 rondom, ronding 20.

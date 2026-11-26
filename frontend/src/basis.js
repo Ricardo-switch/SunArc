@@ -1061,18 +1061,25 @@
    * Eén bovenbalk op de telefoon (besluit 187): op elke tab de hulp, de bel en
    * het tandwiel, even groot (36 px) en op dezelfde plek, rechtsboven, naast de
    * titel als de tab er een heeft. Thuis heeft ze al in zijn kopregel, met het
-   * weer ervoor. De hulp is de rondleiding, vanaf deze tab.
+   * weer ervoor. De hulp is de rondleiding, vanaf deze tab. Heeft de titel een
+   * eigen vraagteken (hulp op de plek), dan is er één: dat van de balk opent de
+   * hulp, en daarin staat de rondleiding.
    */
   const TEL_TABS = ['vandaag', 'apparaten', 'opbrengst', 'assistent'];
   function telBalk(tab) {
     const tel = document.getElementById('tel');
     if (!tel || !TEL_TABS.includes(tab) || tel.querySelector('[data-meldbel]')) return;
     // Elke tab laadt de rondleiding; soms pas na deze regel, dus niet op global.rondleiding wachten.
-    const hulp = `<button type="button" class="pil telknop uitlegknop" aria-label="${esc(global.t('thuis.uitleg'))}" data-tel-hulp>?</button>`;
+    const titel = tel.querySelector('.inhoud > h1.kop-1:first-child');
+    const titelHulp = tel.querySelector('.inhoud h1.kop-1')?.querySelector(':scope > .hulpvraag[data-hulp]');
+    const hulpId = titelHulp?.getAttribute('data-hulp') ?? null;
+    titelHulp?.remove();
+    const hulp = hulpId
+      ? `<button type="button" class="pil telknop uitlegknop" aria-label="${esc(global.t('groep.waarvoor'))}" data-hulp="${esc(hulpId)}">?</button>`
+      : `<button type="button" class="pil telknop uitlegknop" aria-label="${esc(global.t('thuis.uitleg'))}" data-tel-hulp>?</button>`;
     const knoppen = `<span class="telknoppen">${hulp}<button type="button" class="pil telknop meldbel" aria-label="${esc(global.t('nav.meldingen'))}" aria-haspopup="dialog" data-meldbel data-meldicoon><b data-meldaantal hidden></b></button><a class="pil telknop" aria-label="${esc(global.t('nav.instellingen'))}" data-tandwiel></a></span>`;
     const oud = tel.querySelector('[data-tandwiel]');
     // Alleen een titel die bovenaan staat; op Opbrengst staat de periode erboven.
-    const titel = tel.querySelector('.inhoud > h1.kop-1:first-child');
     if (oud) oud.outerHTML = knoppen;
     else if (titel) titel.outerHTML = `<div class="telbalk metkop">${titel.outerHTML}${knoppen}</div>`;
     else (tel.querySelector('.inhoud') ?? tel).insertAdjacentHTML('afterbegin', `<div class="telbalk">${knoppen}</div>`);
@@ -1440,5 +1447,53 @@
     return meldingenDeel.zegMetApparaat(...a);
   }
   const { updateKlaar } = meldingenDeel;
+
+  /*
+   * Staven met een vinger (stap 4): een maand aan staven is op de telefoon een
+   * paar punten breed. Een tik kiest de dichtstbijzijnde staaf, en schuiven over
+   * de grafiek loopt mee. Elke pagina doet met de klik op [data-staaf] wat hij al deed.
+   */
+  const STAVEN = '.staven, svg:has([data-staaf])';
+  let vinger = null;
+  function staafBij(x, y) {
+    const doos = document.elementFromPoint(x, y)?.closest?.(STAVEN);
+    let best = null;
+    let afstand = Infinity;
+    for (const s of doos?.querySelectorAll('[data-staaf]') ?? []) {
+      const r = s.getBoundingClientRect();
+      const d = Math.abs(r.left + r.width / 2 - x);
+      if (d < afstand) [best, afstand] = [s, d];
+    }
+    return best;
+  }
+  const kies = (s) => {
+    if (!s || s.dataset.staaf === vinger?.laatst) return;
+    if (vinger) vinger.laatst = s.dataset.staaf;
+    s.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  };
+  document.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' || !e.target.closest?.(STAVEN)) return;
+    vinger = { y: e.clientY, laatst: e.target.closest('[data-staaf]')?.dataset.staaf ?? null, geschoven: false };
+  });
+  document.addEventListener('pointermove', (e) => {
+    if (!vinger) return;
+    vinger.geschoven = true;
+    kies(staafBij(e.clientX, vinger.y));
+  });
+  document.addEventListener('pointerup', (e) => {
+    const v = vinger;
+    vinger = null;
+    // Na schuiven is de keuze al gemaakt: de klik die de browser er nog achteraan stuurt, telt niet
+    // (op Sluipverbruik zet een tweede tik op dezelfde staaf hem weer uit).
+    if (v?.geschoven) {
+      const stop = (ev) => ev.stopImmediatePropagation();
+      document.addEventListener('click', stop, { capture: true, once: true });
+      setTimeout(() => document.removeEventListener('click', stop, true), 0);
+    }
+    // Een tik naast een staaf: de dichtstbijzijnde. Op een staaf zelf doet de gewone klik het.
+    if (v && !v.geschoven && !e.target.closest?.('[data-staaf]')) staafBij(e.clientX, v.y)?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
+  document.addEventListener('pointercancel', () => (vinger = null));
+
   global.app = { laadBronnen, kanApparaatSpreken, zegMetApparaat, huisSoort, persoonlijk, $$, metLidwoord, nl, zet, esc, bijnaOp, klokVan, wanneer, LINKS, telStand, schaal, haal, deur, tijdVanDeDag, seizoenNu, lucht, luchtVan, klok, live, start, verwachting, gebundeld, zicht, aanbellen, offline, online, inHA, volledigGekozen, zetVolledig, naarHA, zetWeergave, weergave: () => weergaveNu, zetThema, kleurVan, tekstKleur, houToegang, updateKlaar, bijwerkVenster, bijVerandering, kanInstalleren, geinstalleerd, installeer, naarHAScherm, terugknop, onthoudInrichten, vergeetInrichten, segmenten, koffieKnop, jouwMeldingen, laadHulp };
 })(window);

@@ -16,6 +16,9 @@
   /* De wand (schets Wand-Kamer): het huis links, het blad rechts. */
   .pad { display: flex; gap: 8px; align-items: center; color: var(--gedempt); font-size: 14px; font-weight: 600; }
   .pad a { color: var(--zacht); text-decoration: none; }
+  /* Een vinger raakt meer dan de letters: de link is hoger dan hij lijkt. */
+  #tel .pad a { display: inline-block; padding: 10px 2px; margin: -10px -2px; }
+  #tel .etages button { height: 40px; }
   .pad a:hover { color: var(--tekst); }
   .pad b { color: var(--tekst); }
   #wand .kop { position: absolute; left: 22px; top: 58px; width: 760px; z-index: 2; }

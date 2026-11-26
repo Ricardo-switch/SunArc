@@ -333,12 +333,16 @@ function klimaatKaart({ a, r }) {
   // Kan hij op zon maar staat hij er niet op: de weg erheen, naar De zon verdelen (besluit 345: daar staat op zon).
   // Alleen met een kamer of zone bij Klimaat (een zone met eigen regeling, zoals de zithoek): anders is er daar niets te kiezen.
   const klimaatKamer = (r.zones ?? []).find((z) => z.id === a.zone)?.regeling?.zoneId ?? r.zoneId ?? null;
-  const naarZon = klimaatKamer && a.klimaat?.rol && a.klimaat.rol !== 'zon' && huismodel.kanOpZon(a, huisData, aansluiting?.antwoorden?.verwarming ?? null)
+  const naarZon = app.huisSoort()?.zon !== false && klimaatKamer && a.klimaat?.rol && a.klimaat.rol !== 'zon' && huismodel.kanOpZon(a, huisData, aansluiting?.antwoorden?.verwarming ?? null)
     ? `<span class="mini opzon" data-opzon-klimaat="energie.html#zon">${esc(t('apparaten.opZonBijZon'))} ›</span>`
     : '';
-  const el = document.createElement('a');
+  // Een groep, geen link: er staat een eigen knop in (Klopt iets niet?), en een knop in een link kan niet.
+  // De link naar de kamer zit op de naam en ligt over de hele kaart.
+  const el = document.createElement('div');
   el.className = 'glas app';
-  el.href = `kamer.html#${encodeURIComponent(r.id)}/${encodeURIComponent(a.id)}`;
+  el.setAttribute('role', 'group');
+  el.setAttribute('aria-label', a.naam);
+  const naarKamer = `kamer.html#${encodeURIComponent(r.id)}/${encodeURIComponent(a.id)}`;
   el.dataset.actief = String(doet || bew?.soort === 'wait');
   el.dataset.wacht = String(!doet && bew?.soort === 'wait');
   el.dataset.wachtzon = String(!doet && bew?.soort === 'wait' && !!wacht);
@@ -348,17 +352,14 @@ function klimaatKaart({ a, r }) {
   const bijHand = hand.bij({ actuatorId: id, id: a.id });
   const metHand = bijHand?.actief ? bijHand : null;
   if (bijHand) {
-    // Geen link naar de kamer meer, maar het blad hier (de link ging voor de klik van de pagina).
-    el.removeAttribute('href');
+    // Geen link naar de kamer, maar het blad hier.
     el.dataset.blad = 'klimaat';
     el.dataset.klimaat = bijHand.id;
     el.tabIndex = 0;
-    // Een groep, geen knop: er staat een eigen knop in (Klopt iets niet?), en een knop in een knop kan niet.
-    el.setAttribute('role', 'group');
     el.setAttribute('aria-label', t('w.openen', { naam: a.naam }));
   }
   el.innerHTML = `
-    <div class="kopje"><span class="ik${a.klimaat?.kanKoelen ? '' : ' warm'}">${a.klimaat?.kanKoelen ? IK.airco : IK.warm}</span><div><b>${esc(a.naam)}</b><span class="mini">${esc(r.naam)}</span></div><div class="kw">${kw}</div></div>
+    <div class="kopje"><span class="ik${a.klimaat?.kanKoelen ? '' : ' warm'}">${a.klimaat?.kanKoelen ? IK.airco : IK.warm}</span><div><b>${bijHand ? esc(a.naam) : `<a class="kaartlink" href="${naarKamer}">${esc(a.naam)}</a>`}</b><span class="mini">${esc(r.naam)}</span></div><div class="kw">${kw}</div></div>
     <div class="stand"><i style="background: ${stand[1]}"></i>${esc(stand[0])}</div>
     ${metHand ? `<p class="mini zin" style="color: var(--zon-t); font-weight: 600">${esc(huismodel.metHoofdletter(hand.nuZin(metHand)))}</p>` : zin ? `<p class="mini zin">${esc(zin)}</p>` : ''}
     ${labels ? `<p class="mini etiket">${esc(labels)}</p>` : ''}
@@ -448,21 +449,23 @@ function paalKaart(x) {
 
 /** Een apparaat dat de dienst vond maar dat (nog) niet op zon staat. */
 function nietOpZon(a) {
+  // Een huis zonder panelen: geen "Niet op zon" en geen weg naar De zon verdelen, alleen de naam.
+  const metZon = app.huisSoort()?.zon !== false;
   // Een stekker opent zijn blad, ook als hij niet op zon staat (besluit 265).
   if (a.soort === 'stekker') {
     const s = hand.stekker(a.id);
     const el = document.createElement('section');
     el.className = 'glas app niet';
     el.innerHTML = `
-    <div class="kopje"><span class="ik">${iconen.svg('stekker')}</span><div><b>${esc(a.naam)}</b><span class="mini">${esc(t('apparaten.nietOpZon'))}</span></div></div>
-    ${s?.actief ? `<p class="mini zin" style="color: var(--zon-t); font-weight: 600">${esc(hand.stekkerZin(s))}</p>` : `<p class="mini zin">${esc(t('apparaten.stekkerOpZon'))}</p>`}`;
+    <div class="kopje"><span class="ik">${iconen.svg('stekker')}</span><div><b>${esc(a.naam)}</b>${metZon ? `<span class="mini">${esc(t('apparaten.nietOpZon'))}</span>` : ''}</div></div>
+    ${s?.actief ? `<p class="mini zin" style="color: var(--zon-t); font-weight: 600">${esc(hand.stekkerZin(s))}</p>` : metZon ? `<p class="mini zin">${esc(t('apparaten.stekkerOpZon'))}</p>` : ''}`;
     return stekkerBlad(el, a.id, a.naam);
   }
   const el = document.createElement('section');
   el.className = 'glas app niet';
   el.innerHTML = `
-    <div class="boven">${ring({ gestippeld: true })}<div><b>${esc(a.naam)}</b><span class="klein">${esc(t('apparaten.nietOpZon'))}</span></div></div>
-    <p class="mini zin">${esc(t('apparaten.zetOpZon'))}</p>`;
+    <div class="boven">${ring({ gestippeld: true })}<div><b>${esc(a.naam)}</b>${metZon ? `<span class="klein">${esc(t('apparaten.nietOpZon'))}</span>` : ''}</div></div>
+    ${metZon ? `<p class="mini zin">${esc(t('apparaten.zetOpZon'))}</p>` : ''}`;
   return metBlad(el, `opzon:${a.id}`, a.naam);
 }
 
@@ -877,7 +880,8 @@ function opZonBlad(id) {
   const a = (aansluiting?.gevonden?.apparaten ?? []).find((x) => x.id === id) ?? (aansluiting?.configuratie?.apparaten ?? []).find((x) => x.id === id);
   if (!a) return null;
   const kiezen = instellen.kiezen(id, a.naam);
-  return { naam: a.naam, zin: t('apparaten.nietOpZon'), html: kiezen ?? `${instellen.regels('witgoed', id, { naam: a.naam })}<p class="hand-hoe">${esc(t('apparaten.opZonHoe'))}${window.hulp?.vraag('apparaat-op-zon') ?? ''}</p>` };
+  const metZon = app.huisSoort()?.zon !== false;
+  return { naam: a.naam, zin: metZon ? t('apparaten.nietOpZon') : '', html: kiezen ?? `${instellen.regels('witgoed', id, { naam: a.naam })}${metZon ? `<p class="hand-hoe">${esc(t('apparaten.opZonHoe'))}${window.hulp?.vraag('apparaat-op-zon') ?? ''}</p>` : ''}` };
 }
 
 function accuBlad() {
@@ -991,6 +995,27 @@ function soortBlok(soort, inhoud, klein) {
   el.lastElementChild.append(...inhoud);
   return el;
 }
+
+/** Welke soorten op de telefoon open staan; zolang deze pagina open is. */
+const openSoorten = new Set();
+function vouw(blok, n) {
+  const soort = blok.dataset.soort;
+  const open = openSoorten.has(soort) || !!blok.querySelector('.mist');
+  const h = blok.querySelector('h2');
+  blok.classList.add('vouw');
+  blok.classList.toggle('dicht', !open);
+  h.innerHTML = `<button type="button" class="soortkop" data-vouw="${esc(soort)}" aria-expanded="${open}">${h.innerHTML.replace('<small>', `<small><b class="tal">${n}</b>`)}<span class="pijl" aria-hidden="true">›</span></button>`;
+}
+document.addEventListener('click', (e) => {
+  const k = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('[data-vouw]'));
+  if (!k) return;
+  const blok = k.closest('.soort');
+  const open = blok.classList.contains('dicht');
+  if (open) openSoorten.add(k.dataset.vouw);
+  else openSoorten.delete(k.dataset.vouw);
+  blok.classList.toggle('dicht', !open);
+  k.setAttribute('aria-expanded', String(open));
+});
 
 /** De rij met soorten bovenaan; een tik toont alleen die soort, Alles weer alles (besluit 296). */
 function tekenSoortenRij(soorten, aantal) {
@@ -1108,7 +1133,7 @@ function tekenNu() {
   const aantal = {};
   for (const box of $$('[data-apparaten]')) {
     // Een knop met focus niet onder de vinger weghalen.
-    if (box.contains(document.activeElement) && document.activeElement !== document.body && !document.activeElement.matches('[data-lamp], [data-knop]')) continue;
+    if (box.contains(document.activeElement) && document.activeElement !== document.body && !document.activeElement.matches('[data-lamp], [data-knop], [data-vouw]')) continue;
     const per = kaartenPerSoort();
     zouSamen(Object.values(per).flat(), box.closest('#wand, #tel'));
     const blokken = [];
@@ -1136,6 +1161,9 @@ function tekenNu() {
       b.hidden = alleen != null && b.dataset.soort !== alleen;
       if (alleen) b.style.setProperty('--breed', '3');
     }
+    // Op de telefoon bij Alles: elke soort één regel met het aantal, een tik zet hem open.
+    // Een soort waar iets mist, staat open.
+    if (box.closest('#tel') && !alleen) for (const b of blokken) vouw(b, aantal[b.dataset.soort] ?? 0);
     // Waar je stond, blijft staan: het scrollen in de wand gaat niet terug naar boven.
     const top = box.scrollTop;
     box.replaceChildren(...blokken);
@@ -1163,6 +1191,13 @@ function tekenNu() {
     const k = document.querySelector(`${app.telStand() ? '#tel' : '#wand'} [data-lading="${doel}"]`);
     if (k) {
       naarKaart = true;
+      // Op de telefoon: zijn soort eerst open.
+      const dicht = k.closest('.soort.dicht');
+      if (dicht) {
+        openSoorten.add(dicht.dataset.soort);
+        dicht.classList.remove('dicht');
+        dicht.querySelector('[data-vouw]')?.setAttribute('aria-expanded', 'true');
+      }
       k.scrollIntoView({ block: 'center' });
     }
   }

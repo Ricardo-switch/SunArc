@@ -43,10 +43,12 @@
     return global.app?.weergave?.()?.getekend === true;
   }
 
-  const staat = { tk: null, bezig: null, fout: false, opnieuw: new Set() };
+  const staat = { tk: null, bezig: null, fout: false, afdruk: null, opnieuw: new Set() };
   /*
    * Of dit scherm de vorige keer een tekening vond: '1' of '0'. Met '1' (of nog onbekend) staat er
    * tijdens het laden een rustige gloed in plaats van even het poppenhuis; met '0' meteen het poppenhuis.
+   * Na '0:' de vingerafdruk van de tekening die toen niet lukte: is die niet veranderd, dan laadt dit
+   * scherm de tekenaar (vijftien scripts) niet nog eens voor niets (stap 4, Thuis lichter).
    */
   const ER = 'sc-tekening-er';
   const erWas = () => {
@@ -56,9 +58,17 @@
       return null;
     }
   };
+  const nietGelukt = () => erWas()?.startsWith('0') === true;
+  /** Een korte vingerafdruk van de tekening: verandert hij, dan is er iets getekend of veranderd. */
+  const vingerafdruk = (d) => {
+    const s = JSON.stringify(d ?? null);
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(36);
+  };
   const onthoud = (ja) => {
     try {
-      localStorage.setItem(ER, ja ? '1' : '0');
+      localStorage.setItem(ER, ja ? '1' : staat.afdruk ? `0:${staat.afdruk}` : '0');
     } catch {
       // Zonder opslag: de volgende keer weer de gloed.
     }
@@ -95,8 +105,15 @@
 
   /** De motor en de modellen laden, de tekening ophalen en de tekenaar opbouwen, op een svg die niemand ziet. */
   async function laad() {
-    // De tekening tegelijk met de scripts ophalen.
-    const [d] = await Promise.all([global.app.haal('api/huistekening'), laadScripts(['kit/huistekenen-vloer.js', 'kit/huistekenen-blad.js', 'kit/huistekenen-kaart.js', 'kit/huistekenen-teken.js', 'kit/huistekenen-gebaar.js', 'kit/huistekenen.js', 'kit/huis-modellen.js', 'kit/huis-maat-hemel.js', 'kit/huis-maat-buiten.js', 'kit/huis-maat-meubels.js', 'kit/huis-maat-apparaten.js', 'kit/huis-maat-vorm.js', 'kit/huis-maat.js', 'huisvoor.js', 'huisthuis-opties.js'])]);
+    // Lukte het de vorige keer niet: eerst de tekening. Is die dezelfde, dan niet de hele tekenaar laden.
+    // Lukte het wel: de tekening en de scripts tegelijk.
+    const tekening = global.app.haal('api/huistekening');
+    if (nietGelukt()) {
+      staat.afdruk = vingerafdruk(await tekening);
+      if (erWas() === `0:${staat.afdruk}`) throw new Error('nog niets getekend in Je huis (zoals de vorige keer)');
+    }
+    const [d] = await Promise.all([tekening, laadScripts(['kit/huistekenen-vloer.js', 'kit/huistekenen-blad.js', 'kit/huistekenen-kaart.js', 'kit/huistekenen-teken.js', 'kit/huistekenen-gebaar.js', 'kit/huistekenen.js', 'kit/huis-modellen.js', 'kit/huis-maat-hemel.js', 'kit/huis-maat-buiten.js', 'kit/huis-maat-meubels.js', 'kit/huis-maat-apparaten.js', 'kit/huis-maat-vorm.js', 'kit/huis-maat.js', 'huisvoor.js', 'huisthuis-opties.js'])]);
+    staat.afdruk = vingerafdruk(d);
     const hv = global.huisVoor;
     const huis = hv.huisVoorMotor(d);
     if (!huis.etages.length) throw new Error('geen etages');
@@ -245,7 +262,7 @@
     const H = Math.round(hoogte ?? 612);
     if (!klaar(opnieuw)) {
       // Nog aan het laden: een rustige gloed waar het huis komt, niet even het poppenhuis (Ricardo).
-      if (erWas() === '0') return false;
+      if (nietGelukt()) return false;
       if (!el.querySelector('[data-huis-laadt]')) el.innerHTML = gloed(B, H);
       return true;
     }
@@ -375,7 +392,7 @@
    * uit staat of de vorige keer niet lukte.
    */
   setTimeout(() => {
-    if (!aan() || erWas() === '0') poppenhuis(null);
+    if (!aan() || nietGelukt()) poppenhuis(null);
     else if (erWas() === '1') klaar(null);
   }, 0);
 })(window);

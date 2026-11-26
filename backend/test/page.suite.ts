@@ -3834,7 +3834,8 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       const tekst = (await strook.textContent()) ?? '';
       expect(tekst).toContain(doet.zin);
       expect(tekst).toMatch(scherm === 'wand' ? /^SunArc kijkt mee/ : /^Kijkt mee · schakelt je klimaat nog niet/);
-      if (scherm === 'wand') expect(tekst).toContain(`${doet.gelijk} van ${doet.van} kamer`);
+      // Op de wand zeggen de blokjes het; het getal staat in de titel (stap 4: het zinnetje gaat voor).
+      if (scherm === 'wand') expect(await strook.locator('.dt-tel').getAttribute('title')).toContain(`${doet.gelijk} van ${doet.van} kamer`);
       const vak = (await strook.boundingBox())!;
       expect(vak.x).toBeGreaterThanOrEqual(0);
       expect(vak.x + vak.width).toBeLessThanOrEqual(scherm === 'wand' ? 1280 : 390);
@@ -5002,6 +5003,12 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       p.on('pageerror', (e) => fouten.push(e.message));
       await p.goto(`${baseUrl}/apparaten.html`);
       const z = stand === 'wand' ? '#wand' : '#tel';
+      // Op de telefoon staat elke soort dicht (stap 4), met het aantal: eerst Witgoed en Klimaat open.
+      if (stand !== 'wand') {
+        expect(await p.locator('#tel [data-vouw="klimaat"] .tal').textContent()).toMatch(/^\d+$/);
+        await p.locator('#tel [data-vouw="witgoed"]').click();
+        await p.locator('#tel [data-vouw="klimaat"]').click();
+      }
       const droger = p.locator(`${z} .app`, { hasText: 'Droger' });
       await droger.waitFor();
       await p.locator(`${z} .app`, { hasText: 'Vaatwasser' }).filter({ hasText: 'Niet op zon' }).waitFor();
@@ -5011,7 +5018,7 @@ describe.skipIf(!ENABLED)('de pagina in een browser (besluit 69)', () => {
       expect(await p.locator(`${z} [data-soorten] [data-naar="witgoed"]`).count()).toBe(1);
       expect(await p.locator(`${z} .soort[data-soort="witgoed"] h2`).textContent()).toContain('Witgoed');
       // Het nu (besluit 140): elk klimaatapparaat als kaart naar zijn kamer, en geen grafiek van de dag meer.
-      const klimaatKaart = p.locator(`${z} a.app[href^="kamer.html#"]`);
+      const klimaatKaart = p.locator(`${z} .app:has(a.kaartlink[href^="kamer.html#"])`);
       await klimaatKaart.first().waitFor();
       expect(await klimaatKaart.first().textContent()).toMatch(/Vandaag/);
       expect(await p.locator(`${z} [data-dag]`).count()).toBe(0);
@@ -6754,6 +6761,8 @@ return { x, y, wat: wat.slice(-3).join(' > ') };
     // Op de telefoon: het blad van onderen, over de hele breedte; ook op een telefoon breder dan
     // 390, waar de klasse tel uit kit.css het blad eerst 390 breed hield (2 november 2026).
     await p.setViewportSize({ width: 430, height: 932 });
+    // Op de telefoon staat elke soort dicht (stap 4): eerst Klimaat open.
+    await p.locator('#tel [data-vouw="klimaat"]').click();
     await p.locator('#tel .app[data-klimaat="climate.beneden"]').click();
     await p.locator('.hand-laag.op-tel .hand-blad').waitFor();
     expect(await p.locator('.hand-laag.op-tel .hand-terug').textContent()).toBe('Terug naar je regeling');

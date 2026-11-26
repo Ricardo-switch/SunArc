@@ -80,6 +80,11 @@ verwijzing bestaat.
   handleiding en de README's de vier groepen, is Inrichten overal zeven stappen
   van zo'n vijf minuten, en noemt `SECURITY.md` alle deuren uit de code, met een
   test die ze gelijk houdt ([348]).
+  Sinds 0.245.0 laadt Thuis zonder getekend huis de tekenaar niet steeds
+  opnieuw, en kapt de strook niet meer af.
+  Op de telefoon staat één vraagteken, is Apparaten per soort dicht, en zijn
+  de kleine knoppen en de staven makkelijker te raken. Een huis zonder panelen
+  ziet geen zonknoppen ([349]).
   Tot januari gaat er niets meer naar de testers (0.178.2 was de laatste); de
   nieuwe versie komt rond 10 januari, los van de overstap van de regeling, en
   beta bevriest op 31 december ([347]). Daarna hooguit één versie per week.
@@ -1136,4 +1141,5 @@ verwijzing bestaat.
 [346]: DECISIONS.md#346-meldingen-kies-per-soort-wat-er-in-de-bel-komt
 [347]: DECISIONS.md#347-eén-verhaal-over-regelen-en-de-weg-naar-de-uitgave-van-januari
 [348]: DECISIONS.md#348-de-handleiding-volgt-de-app-en-securitymd-volgt-de-deuren
+[349]: DECISIONS.md#349-thuis-lichter-en-de-telefoon-makkelijker-te-raken
 <!-- links:einde -->

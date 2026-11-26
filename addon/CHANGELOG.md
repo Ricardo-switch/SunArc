@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.244.1
+## 0.245.0
 
-*25 november 2026 · 0.179.0 – 0.244.1*
+*25 november 2026 · 0.179.0 – 0.245.0*
 
 **Nieuw**
 
@@ -103,6 +103,12 @@
 
 **Beter**
 
+- Thuis opent lichter zonder getekend huis: niet elke keer de hele tekenaar
+- De strook op Thuis kapt niet meer af: een lang zinnetje krijgt twee regels
+- Op de telefoon staat bij Apparaten elke soort op één regel met het aantal; tik en hij gaat open
+- Eén vraagteken bovenin, met daarin de hulp en Zo werkt het huis
+- Op de telefoon zijn de schakelaars, de etages, Meld het en het vraagteken groter, en bij de staven van Opbrengst en Sluipverbruik kies je met je vinger
+- Zonder zonnepanelen staan er geen zonknoppen meer op de kaarten en op Thuis
 - Inrichten zegt overal hetzelfde: zeven stappen, zo'n vijf minuten
 - De handleiding van de add-on wijst de weg via de vier groepen van Instellingen
 - SECURITY.md noemt alle tien de deuren waardoor SunArc naar Home Assistant schrijft
@@ -413,6 +419,12 @@
 
 **Improved**
 
+- Home opens lighter without a drawn house: not the whole drawing engine every time
+- The strip on Home no longer gets cut off: a long sentence gets two lines
+- On the phone, Devices shows each kind on one line with its count; tap and it opens
+- One question mark at the top, with the help and How the house works inside
+- On the phone the switches, floors, Report it and the question mark are bigger, and on the bars of Energy and Standby use you choose with your finger
+- Without solar panels there are no more sun buttons on the cards and on Home
 - Setting up says the same everywhere: seven steps, about five minutes
 - The add-on documentation points the way through the four groups of Settings
 - SECURITY.md lists all ten doors through which SunArc writes to Home Assistant

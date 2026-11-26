@@ -144,7 +144,7 @@ function paneel(s) {
     ${knoppen}
     ${erbij}
     <div class="stap"><b>${esc(t('w.naam'))}</b><input type="text" class="invoer" maxlength="60" data-naam value="${esc(c.naam)}" placeholder="${esc(s.naam)}"></div>
-    <div class="stap"><b>${esc(t('w.waar'))}</b><select class="invoer" data-kamer>${opties}</select></div>
+    <div class="stap"><b>${esc(t('w.waar'))}</b><select class="invoer" data-kamer aria-label="${esc(t('w.waar'))}">${opties}</select></div>
     ${s.meet || c.stekker ? '' : `<div class="stap"><b>${esc(t('w.vermogen'))}<small>${esc(t('toev.vermogenKlein'))}</small></b><div><input type="number" class="invoer" min="1" max="10000" step="1" inputmode="numeric" data-vermogen value="${esc(c.vermogenW)}" placeholder="W"><p class="onder">${esc(t('toev.vermogenUitleg'))}</p></div></div>`}
     <div class="stap"><b>${esc(t('toev.watMag'))}</b><div><div class="keuze" role="group"><button type="button" data-mag="kijken" aria-pressed="${c.mag === 'kijken'}">${esc(t('toev.kijken'))}</button><button type="button" data-mag="hand" aria-pressed="${c.mag === 'hand'}">${esc(t('w.metDeHand'))}</button></div><p class="onder">${esc(t(s.meet || c.stekker ? 'toev.opZonLater' : 'toev.opZonNiet'))}</p></div></div>
     ${let_}
@@ -391,7 +391,7 @@ function middenHtml(soort, gekozen, tel) {
   const klaarDeel = klaar.length ? `<h4 class="tussen">${esc(t('toev.klaarTussen'))}</h4>${groep(klaar.slice(0, max).map((x) => itemRij(x, rijSoort(x), gekozen)).join(''))}${klaar.length > max ? `<p class="meer">${esc(t('toev.enNog', { n: klaar.length - max }))}</p>` : ''}` : '';
   const leeg = !items.length ? `<p class="leeg">${esc(t(soort === 'nieuw' ? 'toev.geenNieuw' : 'toev.geenSoort'))}</p>` : '';
   const aantalVerborgen = verborgenLijst().length;
-  const voet = `<div class="tvoet">${aantalVerborgen ? `<a class="verborgenregel" href="${href('verborgen')}"><span>${esc(t('toev.verborgen'))}</span><em>${aantalVerborgen} ›</em></a>` : ''}${soort === 'auto' || soort === 'energie' ? '' : `<span>${esc(t(soort === 'nieuw' ? 'toev.kiesSoort' : 'toev.nietErbij'))}</span>`}</div>`;
+  const voet = `<div class="tvoet">${aantalVerborgen ? `<a class="verborgenregel" href="${href('verborgen')}"><span>${esc(t('toev.verborgen'))}</span><em>${aantalVerborgen} ›</em></a>` : ''}${soort === 'auto' || soort === 'energie' ? '' : `<span>${esc(t(soort === 'nieuw' ? 'toev.kiesSoort' : soort === 'water' ? 'toev.nietErbijWater' : 'toev.nietErbij'))}</span>`}</div>`;
   return `<h3>${esc(titel)}</h3>${lead ? `<p class="lead">${esc(lead)}</p>` : ''}${nieuwDeel}${klaarDeel}${leeg}${wegenHtml(soort, gekozen, groep)}${voet}`;
 }
 

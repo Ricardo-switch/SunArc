@@ -41,6 +41,18 @@
   #wand .rol { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; gap: 24px 14px; padding: 2px 4px 20px 0; }
   #wand .soort { grid-column: span var(--breed, 3); min-width: 0; }
   #tel .soort { scroll-margin-top: 56px; }
+  /* Op de telefoon bij Alles (stap 4): elke soort een regel, een tik zet hem open. */
+  #tel .rol:has(> .vouw) { gap: 0; }
+  #tel .soort.vouw { border-bottom: 1px solid rgb(var(--wit) / 0.08); }
+  #tel .soort.vouw h2 { margin: 0; }
+  #tel .soort.vouw:not(.dicht) { padding-bottom: 18px; }
+  #tel .soort.vouw:not(.dicht) h2 { margin-bottom: 12px; }
+  #tel .soort.dicht > :not(h2) { display: none; }
+  .soortkop { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .soortkop small { display: flex; gap: 8px; align-items: baseline; margin-left: auto; text-align: right; }
+  .soortkop small .tal { font-size: 15px; font-weight: 700; color: var(--zacht); }
+  .soortkop .pijl { flex: none; width: 16px; color: var(--gedempt); font-size: 20px; transition: transform 0.2s; }
+  .soort.vouw:not(.dicht) .soortkop .pijl { transform: rotate(90deg); }
   .soort h2 { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; font-family: var(--kop); font-size: 22px; font-weight: 600; }
   .soort h2 small { font-family: var(--romp, Figtree, sans-serif); font-size: 14px; font-weight: 600; color: var(--gedempt); }
   .sik { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; flex: none; }
@@ -128,6 +140,11 @@
   #wand .app .ring { width: 56px; height: 56px; }
   .niet { border-style: dashed; background: transparent; }
   a.app { color: inherit; text-decoration: none; }
+  /* De link naar de kamer op de naam, over de hele kaart; de knoppen erin liggen erboven. */
+  .app:has(.kaartlink) { position: relative; }
+  .app .kaartlink { color: inherit; text-decoration: none; }
+  .app .kaartlink::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+  .app:has(.kaartlink) :is(button, .opzon, [data-hand]) { position: relative; z-index: 1; }
   .gezegd:empty { display: none; }
 
 

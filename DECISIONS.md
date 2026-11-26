@@ -399,6 +399,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [253. Het logboek delen bij een melding](#253-het-logboek-delen-bij-een-melding)
 - [340. De geschiedenis in het besluitenlog, niet in de code](#340-de-geschiedenis-in-het-besluitenlog-niet-in-de-code)
 - [348. De handleiding volgt de app, en SECURITY.md volgt de deuren](#348-de-handleiding-volgt-de-app-en-securitymd-volgt-de-deuren)
+- [349. Thuis lichter, en de telefoon makkelijker te raken](#349-thuis-lichter-en-de-telefoon-makkelijker-te-raken)
 
 Wat nog open staat: [Wat nog een besluit wacht](#wat-nog-een-besluit-wacht).
 
@@ -16069,6 +16070,52 @@ de code er tien kent.
 - **`SECURITY.md` laten maken door een script**, zoals het wijzigingslog. Voor
   tien regels is een test die vergelijkt eenvoudiger, en de pagina blijft
   gewoon te bewerken.
+
+## 349. Thuis lichter, en de telefoon makkelijker te raken
+
+*Onderwerp: kwaliteitsbewaking · Status: geldig*
+
+25 november 2026, stap 4 van de afvinklijst uit het tweede kwaliteitsrapport
+([347]). Thuis laadde 2,0 MB en 47 scripts en vroeg de dienst 30 keer iets bij
+het openen; de strook op de wand was afgekapt; op de telefoon waren de staven,
+de etages, Meld het, het vraagteken en de schakelaars klein, stond Apparaten
+over vijf schermen, en stonden er twee vraagtekens die bijna hetzelfde ogen.
+
+*Besluit:*
+
+- **Thuis eerst lichter, dan meten op de wandtablet.** Lukte het getekende
+  huis de vorige keer niet en is de tekening niet veranderd, dan laadt Thuis
+  de tekenaar (vijftien scripts) niet nog eens. Een plattegrond op trage
+  toestellen komt er alleen als de meting op de tablet tegenvalt.
+- **De strook op Thuis kapt niet af**: past het zinnetje niet op één regel,
+  dan op twee. De blokjes zeggen hoe vaak het gelijk was; het getal staat in
+  het blad.
+- **Eén vraagteken bovenin.** Heeft de titel hulp op de plek, dan opent het
+  vraagteken in de balk die hulp, en daarin staat Zo werkt het huis.
+- **Apparaten op de telefoon: elke soort één regel met het aantal**, een tik
+  zet hem open. Een soort waar iets mist, staat open. Een kaart is geen link
+  meer met een knop erin; de link naar de kamer zit op de naam.
+- **Groter op de telefoon**: het vraagteken, Meld het, de etages en het pad
+  op een kamer, de schakelaars. Bij de staven van Opbrengst en Sluipverbruik
+  kiest een tik de dichtstbijzijnde staaf, en schuiven loopt mee.
+- **Een huis zonder panelen** krijgt geen Niet op zon en geen Op zon zetten op
+  de kaarten, en geen Hoeveel zon vandaag? op Thuis.
+- **Een boiler via Modbus**: bij Warm water en bad staat niet meer dat je bij
+  Auto en laden moet kijken. Een boiler uit losse sensoren komt na de overstap.
+- **Meld het blijft zoals het is** zolang melden op pauze staat: main krijgt
+  tot de uitgave geen nieuwe versie, en wie tikt, leest dat het even niet kan.
+
+*Wat afviel:*
+
+- **Een kort geheugen voor antwoorden bij het openen**, zodat Thuis de dienst
+  minder vaak hetzelfde vraagt. Veranderde er intussen iets bij de dienst, dan
+  kreeg de pagina een oud antwoord; de tests vingen dat. Het scheelde drie
+  vragen van de dertig.
+- **Alle bladen van Thuis pas laden als je ze opent.** De scripts staan al
+  blijvend in de browser; wat het openen zwaar maakt, is het huis en het
+  vragen. Uit elkaar trekken was veel werk voor weinig winst.
+- **Bij de staven een keuzelijst per dag.** Schuiven met een vinger is
+  sneller en laat de grafiek zoals hij is.
 
 ## Wat nog een besluit wacht
 

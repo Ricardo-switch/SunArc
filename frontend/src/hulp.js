@@ -128,7 +128,8 @@
       <h3>${esc(s.kop)}</h3><p>${esc(s.tekst)}</p>
       ${knoppen(s)}
       ${ookHtml}
-      <div class="hulponder">${naar}<button type="button" class="hulpmeer" data-hulplijst="${esc(id)}">${esc(t('hulp.meer'))} ›</button></div>`;
+      <div class="hulponder">${naar}<button type="button" class="hulpmeer" data-hulplijst="${esc(id)}">${esc(t('hulp.meer'))} ›</button></div>
+      ${global.rondleiding && anker?.closest?.('h1, .telknoppen') ? `<button type="button" class="hulpmeer hulprond" data-hulprond>${esc(t('thuis.uitleg'))} ›</button>` : ''}`;
     if (tel) document.body.insertAdjacentHTML('beforeend', '<div class="hulpachter" data-hulpachter></div>');
     document.body.append(blad);
     if (!tel && anker) {
@@ -207,6 +208,11 @@
     const l = /** @type {HTMLElement | null} */ (doel.closest?.('[data-hulplijst]'));
     if (l) return lijst(l.dataset.hulplijst || null, l.dataset.hulpplek || STUKJES[l.dataset.hulplijst]?.plek || null);
     if (doel.closest?.('[data-hulpsluit], [data-hulpachter]')) return sluit();
+    // Eén vraagteken: de rondleiding staat in het blad.
+    if (doel.closest?.('[data-hulprond]')) {
+      sluit();
+      return global.rondleiding?.start();
+    }
     // Melden opent zijn eigen blad: dit blad dicht.
     if (doel.closest?.('[data-hulpblad] [data-meld-probleem]')) return void setTimeout(sluit, 0);
     // Een tik ernaast sluit het korte blad.
@@ -222,6 +228,11 @@
 .hulpvraag { display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; margin-left: 6px; border-radius: 50%; border: 1.5px solid rgb(var(--wit) / 0.35); background: none; color: var(--zacht); font-family: inherit; font-size: 12px; font-weight: 800; line-height: 1; letter-spacing: 0; vertical-align: middle; flex: none; cursor: pointer; position: relative; }
 .hulpvraag::after { content: ''; position: absolute; inset: -11px; }
 h1 .hulpvraag { margin-left: 10px; vertical-align: 6px; }
+@media (max-width: 600px) {
+  .hulpvraag { width: 32px; height: 32px; font-size: 14px; }
+  .hulpvraag::after { inset: -6px; }
+  h1 .hulpvraag { width: 36px; height: 36px; vertical-align: 2px; }
+}
 .metvraag { display: inline-flex; align-items: center; gap: 2px; min-width: 0; }
 .metvraag > select { min-width: 0; }
 .zorgt .metvraag .rolkeuze.kort { max-width: 150px; }
@@ -246,6 +257,7 @@ h1 .hulpvraag { margin-left: 10px; vertical-align: 6px; }
 .hulponder { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .hulpmeer, .hulpnaar { padding: 0; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--ijs-t); text-decoration: none; cursor: pointer; }
 .hulpmeer { margin-left: auto; }
+.hulprond { margin-left: 0; align-self: flex-start; }
 .hulplijst { width: 440px; right: 26px; top: 22px; bottom: 22px; left: auto; }
 .hulplijst.onder { top: auto; bottom: 0; left: 0; right: 0; width: auto; height: 82vh; }
 .hulplijst h3 { font-size: 26px; }

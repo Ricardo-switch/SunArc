@@ -328,7 +328,8 @@ function tekenDoet() {
       return;
     }
     const blokjes = d.van > 0 && d.van <= 8 ? `<span class="dt-blokjes" aria-hidden="true">${Array.from({ length: d.van }, (_, i) => `<i class="${i < d.gelijk ? 'ja' : ''}"></i>`).join('')}</span>` : '';
-    el.innerHTML = `${stip}<b>${esc(lang)}</b><span class="dt-zin">${esc(zin)}</span><span class="dt-tel">${blokjes}${esc(tel)}</span>${pijl}`;
+    // Het zinnetje gaat voor (stap 4): de blokjes zeggen hoe vaak het gelijk was, het getal staat in het blad.
+    el.innerHTML = `${stip}<b>${esc(lang)}</b><span class="dt-zin">${esc(zin)}</span><span class="dt-tel" title="${esc(tel)}">${blokjes || esc(tel)}</span>${pijl}`;
   });
   const blad = document.querySelector('[data-kiesblad]');
   if (blad && !blad.hidden && blad.dataset.blad === 'doet') tekenDoetBlad();
@@ -705,6 +706,10 @@ addEventListener('gevoelzone', (/** @type {CustomEvent} */ e) => {
   gekozenZone = e.detail;
   teken();
 });
+// Een huis zonder panelen: geen "Hoeveel zon vandaag?" in het dok.
+const zonVraag = () => $$('[data-zon-vraag]').forEach((el) => (el.hidden = app.huisSoort()?.zon === false));
+zonVraag();
+addEventListener('huissoort', zonVraag);
 
 /** De kamers op de telefoon: één kaart, een regel per kamer (besluit 159). */
 function tekenKamersTel() {

@@ -482,6 +482,14 @@ a.knop:not(.knop-licht) {
   text-underline-offset: 3px;
   cursor: pointer;
 }
+/* Op de telefoon hoger dan de letters: een duim raakt hem zonder de kaart te openen (stap 4). */
+@media (max-width: 600px) {
+  .meld-app {
+    min-height: 40px;
+    margin: -6px 0 -10px;
+    padding: 0 0 0 12px;
+  }
+}
 /* Onderaan het blad Meldingen, altijd (testerronde, november 2026). */
 .meld-probleem-regel {
   margin-top: 10px;

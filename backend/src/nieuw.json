@@ -1,5 +1,27 @@
 [
   {
+    "versie": "0.245.0",
+    "datum": "2026-11-25",
+    "beter": [
+      "Thuis opent lichter zonder getekend huis: niet elke keer de hele tekenaar",
+      "De strook op Thuis kapt niet meer af: een lang zinnetje krijgt twee regels",
+      "Op de telefoon staat bij Apparaten elke soort op één regel met het aantal; tik en hij gaat open",
+      "Eén vraagteken bovenin, met daarin de hulp en Zo werkt het huis",
+      "Op de telefoon zijn de schakelaars, de etages, Meld het en het vraagteken groter, en bij de staven van Opbrengst en Sluipverbruik kies je met je vinger",
+      "Zonder zonnepanelen staan er geen zonknoppen meer op de kaarten en op Thuis"
+    ],
+    "en": {
+      "beter": [
+        "Home opens lighter without a drawn house: not the whole drawing engine every time",
+        "The strip on Home no longer gets cut off: a long sentence gets two lines",
+        "On the phone, Devices shows each kind on one line with its count; tap and it opens",
+        "One question mark at the top, with the help and How the house works inside",
+        "On the phone the switches, floors, Report it and the question mark are bigger, and on the bars of Energy and Standby use you choose with your finger",
+        "Without solar panels there are no more sun buttons on the cards and on Home"
+      ]
+    }
+  },
+  {
     "versie": "0.244.1",
     "datum": "2026-11-25",
     "beter": [
