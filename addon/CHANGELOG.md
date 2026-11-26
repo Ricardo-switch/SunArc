@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.247.0
+## 0.248.0
 
-*26 november 2026 · 0.179.0 – 0.247.0*
+*26 november 2026 · 0.179.0 – 0.248.0*
 
 **Nieuw**
 
@@ -104,6 +104,9 @@
 
 **Beter**
 
+- Een gast die thuis is, bedient alles met een knop: licht, screens, klimaat met de hand, stekkers en laden. Toch die van kiest hij ook
+- Instellingen voor het hele huis verandert de hoofdgebruiker of een beheerder in Home Assistant. Een andere bewoner zet zijn profiel en zijn comfort
+- Zijn er alleen gasten thuis, dan kun je op de wand alleen bedienen. Komt er een bewoner thuis, dan is de wand weer zoals altijd
 - Bewoners is één lijst: eerst de bewoners op volgorde, dan de gasten en de schermen, en onderaan Iemand toevoegen, met inloggen of alleen een tracker
 - Logt een gast met alleen een tracker later toch in, dan hoort zijn account er vanzelf bij, of voegt de hoofdgebruiker ze samen
 - Elke pagina heet zoals de regel ernaartoe: Licht, camera's en weer heet nu Extra's, en Bewoners en toegang heet Bewoners en inloggen
@@ -428,6 +431,9 @@
 
 **Improved**
 
+- A guest who is home controls everything with a button: lights, screens, climate by hand, plugs and charging. They can also choose whose comfort applies
+- The main user or an administrator in Home Assistant changes settings for the whole house. Other residents set their own profile and comfort
+- When only guests are home, the wall screen can only control things. Once a resident is home, the wall screen is as always
 - Residents is one list: first the residents in order, then the guests and the screens, and at the bottom Add someone, with a login or only a tracker
 - If a guest with only a tracker signs in later, their account joins them automatically, or the main user merges them
 - Every page is named like the line that leads to it: Lights, cameras and weather is now Extras, and Residents and access is Residents and sign-in
