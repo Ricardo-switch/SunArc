@@ -17,8 +17,18 @@ Via File Station of SSH, onder de gedeelde map `docker`:
 └── src/                  ← de projectmap (backend/ en config/)
 ```
 
-De NAS bouwt het image zelf uit `src/`. Dat is met opzet: zo hoef je je niets
-aan te trekken van het verschil tussen de processor van je pc en die van je NAS.
+Het image komt sinds 27 november 2026 kant-en-klaar van GitHub. De CI bouwt het
+bij elke push naar `beta` met `backend/Dockerfile` en dezelfde mappen als in
+`src/`, en zet het op `ghcr.io/ricardo-switch/hems-climate-nas:<commit>`;
+`stable` schuift pas op als dat gelukt is. `deploy.sh` haalt het op en noemt het
+`hems-climate/shadow:latest`. Daarvoor bouwde de NAS zelf, en dat liet bij elke
+versie een oud image, tussenlagen en een bouwvoorraad achter. Op btrfs is elke
+laag een eigen subvolume; op 26 en 27 november liep de schijf vol en daarna liep
+het bestandssysteem een middag vast op ruim 8.000 lagen.
+
+Zelf bouwen kan nog, alleen met de hand, voor een commit die niet via de CI op
+`stable` kwam: `deploy.sh --force --zelf-bouwen`. De bouwvoorraad gaat daarna
+meteen weg.
 
 De build-context is sinds fase 5 de projectwortel en niet `src/backend`, want de
 webweergave in `frontend/` wordt in hetzelfde image gebouwd.
@@ -65,7 +75,7 @@ Via SSH, als root:
 /volume1/docker/hems-climate/deploy.sh --force
 ```
 
-Bouwen duurt de eerste keer een paar minuten. Daarna staat er in het logboek:
+Ophalen duurt de eerste keer een paar minuten. Daarna staat er in het logboek:
 
 ```
 verbonden — 1672 entiteiten in Home Assistant, 31 daarvan volgen we, 0 ontbreken
@@ -92,7 +102,7 @@ rechtstreeks uit Docker en klopt dus altijd.
 
 ## Bijwerken
 
-`deploy.sh` in de Taakplanner haalt de code op en bouwt opnieuw. Het volgt de
+`deploy.sh` in de Taakplanner haalt de code en het image op. Het volgt de
 tak die in `src/` is uitgecheckt, en dat hoort `stable` te zijn: die schuift pas
 mee wanneer de CI op GitHub alles groen heeft (besluit 54). Eenmalig overzetten:
 

@@ -6,14 +6,18 @@
 # doet niets wanneer er niets veranderd is, en weigert wanneer hij iets zou
 # moeten overschrijven.
 #
-#   ./deploy.sh              normaal
-#   ./deploy.sh --force      herbouwen ook zonder wijzigingen
-#   ./deploy.sh --dry-run    alleen tonen wat er zou gebeuren
+#   ./deploy.sh                         normaal
+#   ./deploy.sh --force                 opnieuw ophalen ook zonder wijzigingen
+#   ./deploy.sh --force --zelf-bouwen   zelf bouwen, als GitHub geen image heeft
+#   ./deploy.sh --dry-run               alleen tonen wat er zou gebeuren
+#
+# Het image komt sinds 27-11-2026 kant-en-klaar van ghcr.io (de CI bouwt het);
+# de NAS bouwt alleen nog met --zelf-bouwen.
 #
 # Over "zonder downtime": die is er niet, en die hoeft er niet te zijn. Eén
-# container die herbouwd wordt betekent een onderbreking. Wat dit script wel
-# doet, is éérst bouwen en pas daarna omwisselen — dan duurt de onderbreking
-# seconden in plaats van de hele bouwtijd. Mislukt het bouwen, dan blijft de
+# container die vervangen wordt betekent een onderbreking. Wat dit script wel
+# doet, is éérst het nieuwe image klaarzetten en pas daarna omwisselen — dan
+# duurt de onderbreking seconden. Mislukt het ophalen of bouwen, dan blijft de
 # draaiende container ongemoeid.
 
 # Dit script leunt op bash: arrays en herestrings.
@@ -65,15 +69,22 @@ LOCKDIR="$ROOT/.deploy.lock"
 STATEFILE="$ROOT/.deployed"
 CONTAINER="hems-shadow"
 IMAGE="hems-climate/shadow"
+# Waar de CI het image neerzet, onder de volledige commit (zie ci.yml, stap
+# image). De NAS bouwt sinds 27-11-2026 niet meer zelf; zie het blok Ophalen.
+BRON="${HEMS_IMAGE_BRON:-ghcr.io/ricardo-switch/hems-climate-nas}"
 # De SSH-sleutel waarmee de NAS bij GitHub mag. Zie de uitleg hieronder.
 GIT_SSH_KEY="${GIT_SSH_KEY:-/root/.ssh/id_ed25519}"
 
 FORCE=0
 DRY_RUN=0
+ZELF_BOUWEN=0
 for arg in "$@"; do
   case "$arg" in
     --force) FORCE=1 ;;
     --dry-run) DRY_RUN=1 ;;
+    # Alleen met de hand, als GitHub geen image heeft (een commit op stable
+    # die niet via de CI kwam). Laat een bouwvoorraad achter.
+    --zelf-bouwen) ZELF_BOUWEN=1 ;;
     *) echo "Onbekende optie: $arg" >&2; exit 2 ;;
   esac
 done
@@ -407,23 +418,23 @@ fi
 # ------------------------------------------------- wat er nodig is doen -----
 
 # Niet elke wijziging vraagt hetzelfde werk. De code zit in het image en vraagt
-# een herbouw; het compose-bestand vraagt alleen opnieuw aanmaken. Een gewijzigd
+# een nieuw image; het compose-bestand vraagt alleen opnieuw aanmaken. Een gewijzigd
 # README raakt de draaiende dienst niet.
 NEEDS_BUILD=0
 NEEDS_RECREATE=0
 
 if [ "$FORCE" -eq 1 ]; then
   NEEDS_BUILD=1
-  log "Herbouw afgedwongen met --force."
+  log "Nieuw image afgedwongen met --force."
 elif [ -z "$DEPLOYED" ]; then
   # Nog nooit via dit script uitgerold: uitgaan van het ergste.
   NEEDS_BUILD=1
-  log "Nog geen eerdere uitrol vastgelegd; volledig bouwen."
+  log "Nog geen eerdere uitrol vastgelegd; nieuw image."
 elif ! "$GIT" cat-file -e "$DEPLOYED^{commit}" 2>/dev/null; then
   # De onthouden commit bestaat niet meer, bijvoorbeeld na een geherschreven
   # geschiedenis. Dan valt er niets te vergelijken.
   NEEDS_BUILD=1
-  log "De vorige uitrol ($(echo "$DEPLOYED" | cut -c1-8)) zit niet meer in de geschiedenis; volledig bouwen."
+  log "De vorige uitrol ($(echo "$DEPLOYED" | cut -c1-8)) zit niet meer in de geschiedenis; nieuw image."
 else
   CHANGED="$("$GIT" diff --name-only "$DEPLOYED" "$AFTER")"
   log "Gewijzigd sinds de draaiende versie:"
@@ -551,21 +562,41 @@ if [ "$NEEDS_BUILD" -eq 1 ]; then
     log "Huidige image bewaard als $IMAGE:vorige"
   fi
 
-  log "Bouwen…"
-  # Eerst bouwen, dan pas omwisselen. Mislukt dit, dan draait de oude container
-  # gewoon door en is er niets gebeurd.
-  # De commit en de bouwtijd gaan het image in, zodat /api/health kan zeggen
-  # wat er draait (besluit 54). Op de commandoregel en niet in het
-  # compose-bestand: dat laatste moet je op de NAS met de hand bijwerken, en
-  # tot dan zou deploy.sh stoppen met uitrollen.
-  VERSIE_COMMIT="$("$GIT" -C "$SRC" rev-parse --short HEAD)"
-  VERSIE_GEBOUWD="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  if ! "${COMPOSE[@]}" build       --build-arg HEMS_COMMIT="$VERSIE_COMMIT"       --build-arg HEMS_GEBOUWD="$VERSIE_GEBOUWD"; then
-    log "FOUT: bouwen mislukt. De draaiende container is niet aangeraakt."
-    exit 1
+  # Eerst het nieuwe image, dan pas omwisselen. Mislukt dit, dan draait de oude
+  # container gewoon door en is er niets gebeurd.
+  if [ "$ZELF_BOUWEN" -eq 0 ]; then
+    # ------------------------------------------------------- ophalen ------
+    # De CI bouwt met dezelfde Dockerfile en dezelfde mappen, en zet het image
+    # op ghcr.io onder de commit. `stable` schuift pas op als dat gelukt is.
+    # Ophalen laat alleen de lagen van het image achter; zelf bouwen liet er
+    # elke keer een bouwvoorraad en tussenlagen bij, en op 27-11-2026 liep de
+    # NAS daardoor een middag vast (ruim 8.000 subvolumes). Zie README-NAS.md.
+    log "Ophalen: $BRON:$(echo "$AFTER" | cut -c1-8)…"
+    if ! "$DOCKER" pull -q "$BRON:$AFTER"; then
+      log "FOUT: geen image voor deze commit op ghcr.io. De draaiende container is niet aangeraakt."
+      log "  Kwam deze commit niet via de CI op stable, bouw dan met de hand:"
+      log "    $ROOT/deploy.sh --force --zelf-bouwen"
+      exit 1
+    fi
+    "$DOCKER" tag "$BRON:$AFTER" "$IMAGE:latest"
+    # Alleen de naam weg; het image zelf heet nu $IMAGE:latest.
+    "$DOCKER" rmi "$BRON:$AFTER" >/dev/null 2>&1 || true
+    log "Ophalen gelukt."
+  else
+    log "Zelf bouwen (--zelf-bouwen)…"
+    # De commit en de bouwtijd gaan het image in, zodat /api/health kan zeggen
+    # wat er draait (besluit 54). Op de commandoregel en niet in het
+    # compose-bestand: dat laatste moet je op de NAS met de hand bijwerken, en
+    # tot dan zou deploy.sh stoppen met uitrollen.
+    VERSIE_COMMIT="$("$GIT" -C "$SRC" rev-parse --short HEAD)"
+    VERSIE_GEBOUWD="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    if ! "${COMPOSE[@]}" build       --build-arg HEMS_COMMIT="$VERSIE_COMMIT"       --build-arg HEMS_GEBOUWD="$VERSIE_GEBOUWD"; then
+      log "FOUT: bouwen mislukt. De draaiende container is niet aangeraakt."
+      exit 1
+    fi
+    log "Bouwen gelukt."
   fi
-  log "Bouwen gelukt."
-  # Ná het bouwen en vóór het omwisselen: het image moet bestaan om ermee te
+  # Ná het ophalen of bouwen en vóór het omwisselen: het image moet bestaan om ermee te
   # kunnen toetsen, en de oude container moet nog draaien als het misgaat.
   controleer_configuratie
 fi
@@ -603,12 +634,14 @@ echo "$AFTER" > "$STATEFILE"
 
 # Opruimen, pas nu de nieuwe versie draait. Het image dat vóór deze ronde
 # `vorige` heette, heeft geen naam meer; `rmi` weigert vanzelf als een
-# container het nog gebruikt. De bouwvoorraad blijft hooguit 5 GB: genoeg om
-# snel te bouwen, en hij groeit niet meer tot de schijf vol is.
+# container het nog gebruikt. Een bouwvoorraad is er alleen na --zelf-bouwen,
+# en die gaat dan helemaal weg: de volgende uitrol haalt weer op.
 if [ -n "$OUDE_VORIGE" ] && [ -z "$("$DOCKER" image inspect -f '{{join .RepoTags ","}}' "$OUDE_VORIGE" 2>/dev/null)" ]; then
   "$DOCKER" rmi "$OUDE_VORIGE" >/dev/null 2>&1 && log "Oud image opgeruimd." || true
 fi
-"$DOCKER" builder prune -f --keep-storage 5GB >/dev/null 2>&1 || true
+if [ "$ZELF_BOUWEN" -eq 1 ]; then
+  "$DOCKER" builder prune -af >/dev/null 2>&1 || true
+fi
 
 # Dit script draait vanuit de wortel en niet uit src/, zodat een pull het niet
 # onder je voeten kan wijzigen. De keerzijde is dat een nieuwe versie niet

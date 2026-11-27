@@ -95,6 +95,19 @@ jobs:
     # Dockerfile kopieerde die map niet. De NAS draaide gewoon door op de
     # vorige versie, maar elke vijf minuten mislukte het bouwen opnieuw. Dus
     # bouwt de CI nu ook het image, met dezelfde Dockerfile en context.
+    #
+    # Sinds 27 november 2026 bouwt de NAS niet meer zelf: bij een push naar
+    # beta zet deze stap het image op ghcr.io onder de volledige commit, en
+    # deploy.sh haalt het op. Zelf bouwen liet honderden images en een grote
+    # bouwvoorraad achter; op het bestandssysteem van de NAS is elke laag een
+    # eigen subvolume, en bij ruim 8.000 lagen liep alles vast. `stable` wacht
+    # op deze stap, dus een commit op stable heeft altijd een image.
+    permissions:
+      contents: read
+      packages: write
+    env:
+      NAS_IMAGE: ghcr.io/ricardo-switch/hems-climate-nas
+      VERSTUREN: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/beta' }}
     steps:
       # Alleen de mappen die de NAS uitcheckt (SPARSE_MAPPEN in deploy.sh).
       # Op 8 oktober bouwde de CI groen met design/ erbij, terwijl de NAS het
@@ -119,8 +132,24 @@ jobs:
           docker build
           -f backend/Dockerfile
           --build-arg HEMS_COMMIT="${GITHUB_SHA::7}"
+          --build-arg HEMS_GEBOUWD="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          --label org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          --label org.opencontainers.image.revision=${{ github.sha }}
           -t hems-climate/shadow:ci
+          -t "$NAS_IMAGE:$GITHUB_SHA"
           .
+
+      - name: inloggen bij ghcr.io
+        if: env.VERSTUREN == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: image versturen voor de NAS
+        if: env.VERSTUREN == 'true'
+        run: docker push "$NAS_IMAGE:$GITHUB_SHA"
 
   deploy:
     name: deploy.sh nakijken
