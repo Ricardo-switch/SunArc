@@ -1,5 +1,17 @@
 [
   {
+    "versie": "0.252.0",
+    "datum": "2026-11-27",
+    "beter": [
+      "Zet iemand de thermostaat of een airco zelf anders, aan het apparaat of in de app? Dan ziet SunArc dat ook als hij alleen meekijkt, en laat hij het apparaat met rust tot het volgende dagdeel. Zo is de vergelijking met je oude regeling eerlijk"
+    ],
+    "en": {
+      "beter": [
+        "Does someone change the thermostat or an air conditioner themselves, on the device or in the app? SunArc now sees that while it only watches along too, and leaves the device alone until the next part of the day. That keeps the comparison with your old control fair"
+      ]
+    }
+  },
+  {
     "versie": "0.251.0",
     "datum": "2026-11-26",
     "beter": [

@@ -94,6 +94,8 @@ interface FakeHa {
   readonly close: () => Promise<void>;
   /** Duwt een state_changed naar alle geabonneerde clients. */
   readonly push: (state: HaEntityState) => void;
+  /** Duwt een call_service naar wie de opdrachten volgt (besluit 355). */
+  readonly opdracht: (domain: string, service: string, serviceData: Record<string, unknown>, context: Record<string, unknown>) => void;
   /** Alles wat de client stuurde, voor controle op ongewenste schrijfacties. */
   readonly received: Record<string, unknown>[];
   /** Het geluid dat de client stuurde (besluit 150), als losse binaire berichten. */
@@ -113,7 +115,9 @@ async function startFakeHa(options: {
   const received: Record<string, unknown>[] = [];
   const binary: Buffer[] = [];
   const sockets = new Set<WsSocket>();
+  // Per verbinding het abonnement op toestanden; de opdrachten apart (besluit 355).
   const subscriptions = new Map<WsSocket, number>();
+  const opdrachtSubs = new Map<WsSocket, number>();
 
   // Niet zomaar poort 0: zie ports.ts.
   const wss = await onUsablePort(
@@ -159,7 +163,7 @@ async function startFakeHa(options: {
         return;
       }
       if (msg['type'] === 'subscribe_events') {
-        subscriptions.set(socket, msg['id'] as number);
+        (msg['event_type'] === 'call_service' ? opdrachtSubs : subscriptions).set(socket, msg['id'] as number);
         socket.send(
           JSON.stringify({ id: msg['id'], type: 'result', success: true, result: null }),
         );
@@ -183,6 +187,7 @@ async function startFakeHa(options: {
     socket.on('close', () => {
       sockets.delete(socket);
       subscriptions.delete(socket);
+      opdrachtSubs.delete(socket);
     });
   });
 
@@ -195,6 +200,17 @@ async function startFakeHa(options: {
     binary,
     event(id, type, data) {
       for (const socket of sockets) socket.send(JSON.stringify({ id, type: 'event', event: { type, data } }));
+    },
+    opdracht(domain, service, serviceData, context) {
+      for (const [socket, id] of opdrachtSubs) {
+        socket.send(
+          JSON.stringify({
+            id,
+            type: 'event',
+            event: { event_type: 'call_service', data: { domain, service, service_data: serviceData }, context },
+          }),
+        );
+      }
     },
     push(state) {
       for (const [socket, id] of subscriptions) {
@@ -587,6 +603,47 @@ describe('ShadowRunner', () => {
     expect(ha.received.map((m) => m['type'])).toEqual(
       expect.arrayContaining(['auth', 'get_states', 'subscribe_events']),
     );
+  });
+
+  it('herkent zelf bijstellen aan de Nest, en niet een stand van de oude regeling (besluit 355)', async () => {
+    const states = shadowStates().map((s) =>
+      s.entity_id === 'climate.beneden' ? shadowEntity('climate.beneden', 'heat', { temperature: 20, current_temperature: 24.5, hvac_action: 'idle' }) : s,
+    );
+    const ha = await startFakeHa({ states });
+    cleanups.push(() => ha.close());
+    const client = new HaClient({ url: `http://127.0.0.1:${ha.port}`, token: TOKEN });
+    const lines: string[] = [];
+    let klok = SHADOW_NOW;
+    const runner = new ShadowRunner({
+      config: exampleSite,
+      strategies: defaultStrategies(),
+      client,
+      tickSeconds: 3600,
+      debounceMs: 10,
+      minIntervalSeconds: 0,
+      write: (line) => lines.push(line),
+      now: () => klok,
+    });
+    cleanups.push(() => runner.stop());
+    runner.start();
+    await waitUntil(runner, 1);
+    await waitFor(() => ha.received.some((m) => m['type'] === 'subscribe_events' && m['event_type'] === 'call_service'), 'het volgen van opdrachten');
+    const nest = (temperature: number) => shadowEntity('climate.beneden', 'heat', { temperature, current_temperature: 24.5, hvac_action: 'idle' });
+
+    // De oude regeling zet hem op 19: geen ingreep.
+    ha.opdracht('climate', 'set_temperature', { entity_id: 'climate.beneden', temperature: 19 }, { id: 'a', parent_id: 'b', user_id: null });
+    ha.push(nest(19));
+    await waitUntil(runner, 2);
+    expect(lines.some((l) => l.includes('zelf bijgesteld'))).toBe(false);
+    expect(runner.latest?.explanation.overrides ?? []).toEqual([]);
+
+    // Tien minuten later draait iemand hem zelf naar 21,5.
+    klok += 10 * 60_000;
+    ha.push(nest(21.5));
+    await waitFor(() => lines.some((l) => l.includes('nest zelf bijgesteld naar heat@21.5')), 'de regel over de bijstelling');
+    await waitFor(() => (runner.latest?.explanation.overrides ?? []).some((o) => o.actuatorId === 'nest'), 'de ingreep in het besluit');
+    // Er ging nog steeds niets naar Home Assistant.
+    expect(ha.received.some((m) => m['type'] === 'call_service')).toBe(false);
   });
 
   it('neemt nieuw comfort over zolang het dezelfde entiteiten volgt (besluit 130)', () => {

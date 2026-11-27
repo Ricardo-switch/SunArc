@@ -141,8 +141,8 @@ export interface SystemState {
    *
    * Zo'n apparaat krijgt geen opdrachten tot de ingreep afloopt, behalve van de
    * failsafe. Een ingreep met een eindtijd in het verleden geldt niet meer.
-   * Weglaten betekent: niemand heeft iets overgenomen. Zo is het in de
-   * schaduwmodus, waar niets herkend kan worden.
+   * Weglaten betekent: niemand heeft iets overgenomen. In de schaduwmodus
+   * vult `schaduw-ingrepen.ts` het (besluit 355).
    */
   readonly residentOverrides?: Readonly<Record<string, ResidentOverride>>;
   /**

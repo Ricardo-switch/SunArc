@@ -81,6 +81,46 @@ interface StateChangedEvent {
   };
 }
 
+/**
+ * Een opdracht aan een klimaatapparaat die Home Assistant uitvoerde (besluit 355).
+ *
+ * Alleen wie de opdracht gaf, en voor welke apparaten: genoeg om in de schaduw
+ * een stand van de oude regeling te onderscheiden van een bijstelling door de
+ * bewoner. `doorAutomatisering`: de opdracht kwam uit een automatisering of
+ * script (`context.parent_id`). Een bewoner aan het apparaat zelf geeft geen
+ * opdracht in Home Assistant; een bewoner in een dashboard of de app wel, maar
+ * zonder `parent_id`.
+ */
+export interface KlimaatOpdracht {
+  readonly service: string;
+  readonly entiteiten: readonly string[];
+  readonly doorAutomatisering: boolean;
+}
+
+/** De entiteiten in de data of het doel van een opdracht. */
+function entiteitenVan(data: unknown): string[] {
+  if (typeof data !== 'object' || data === null) return [];
+  const id = (data as Record<string, unknown>)['entity_id'];
+  if (typeof id === 'string') return id.split(',').map((x) => x.trim()).filter((x) => x !== '');
+  if (Array.isArray(id)) return id.filter((x): x is string => typeof x === 'string');
+  return [];
+}
+
+/** Leest een `call_service`-gebeurtenis; null als het geen klimaatopdracht is. */
+export function klimaatOpdrachtUit(event: unknown): KlimaatOpdracht | null {
+  if (typeof event !== 'object' || event === null) return null;
+  const e = event as { event_type?: unknown; data?: Record<string, unknown>; context?: Record<string, unknown> };
+  if (e.event_type !== 'call_service' || e.data?.['domain'] !== 'climate') return null;
+  const entiteiten = [...new Set([...entiteitenVan(e.data['service_data']), ...entiteitenVan(e.data['target'])])];
+  if (entiteiten.length === 0) return null;
+  const parent = e.context?.['parent_id'];
+  return {
+    service: String(e.data['service'] ?? ''),
+    entiteiten,
+    doorAutomatisering: typeof parent === 'string' && parent !== '',
+  };
+}
+
 export interface HaClientOptions {
   /** Basis-URL van Home Assistant, bijvoorbeeld http://homeassistant.local:8123 */
   readonly url: string;
@@ -488,6 +528,8 @@ export function websocketUrl(base: string): string {
 export declare interface HaClient {
   on(event: 'ready', listener: (states: HaEntityState[]) => void): this;
   on(event: 'stateChanged', listener: (state: HaEntityState) => void): this;
+  /** Een opdracht aan een klimaatapparaat (besluit 355). */
+  on(event: 'klimaatOpdracht', listener: (opdracht: KlimaatOpdracht) => void): this;
   on(event: 'disconnected', listener: (reason: string) => void): this;
   on(event: 'error', listener: (error: Error) => void): this;
   /** De verwachting van de gevolgde weerentiteit (besluit 111): per dag, of per uur of halve dag als de entiteit geen dagen geeft. */
@@ -514,6 +556,8 @@ export class HaClient extends EventEmitter {
   #nextId = 1;
   #pending = new Map<number, Pending>();
   #subscriptionId: number | null = null;
+  /** Het abonnement op opdrachten (besluit 355); null als Home Assistant het weigerde. */
+  #opdrachtenId: number | null = null;
   #reconnectAttempt = 0;
   #closing = false;
 
@@ -591,6 +635,7 @@ export class HaClient extends EventEmitter {
       for (const luister of this.#luisteraars.values()) luister({ type: 'error', data: { code: 'verbinding', message: 'verbinding met Home Assistant verbroken' } });
       this.#luisteraars.clear();
       this.#subscriptionId = null;
+      this.#opdrachtenId = null;
       if (this.#closing) return;
       this.emit('disconnected', 'socket gesloten');
       this.#scheduleReconnect();
@@ -637,6 +682,15 @@ export class HaClient extends EventEmitter {
             type: 'get_states',
           })) as HaEntityState[];
           this.#subscriptionId = await this.#subscribe();
+          // Ook de opdrachten aan klimaatapparaten (besluit 355). Alleen een
+          // beheerder mag dat volgen; weigert Home Assistant, dan herkent de
+          // schaduw geen bijstellingen, en verder loopt alles door.
+          const opdrachten = this.#nextId;
+          this.#opdrachtenId = opdrachten;
+          void this.#command({ type: 'subscribe_events', event_type: 'call_service' }).catch((e: Error) => {
+            if (this.#opdrachtenId === opdrachten) this.#opdrachtenId = null;
+            this.#emitError(new Error(`opdrachten volgen lukt niet: ${e.message}`));
+          });
           // Na een herverbinding opnieuw de verwachting volgen, als dat gevraagd was.
           this.#forecastSub = null;
           if (this.#forecastEntity) void this.#followForecast().catch((e: Error) => this.#emitError(e));
@@ -680,6 +734,11 @@ export class HaClient extends EventEmitter {
           const ev = msg['event'] as { type?: unknown; forecast?: unknown } | undefined;
           const soort: ForecastSoort = ev?.type === 'hourly' || ev?.type === 'twice_daily' ? ev.type : 'daily';
           if (Array.isArray(ev?.forecast)) this.emit('forecast', this.#forecastEntity, ev.forecast, soort);
+          return;
+        }
+        if (this.#opdrachtenId != null && msg['id'] === this.#opdrachtenId) {
+          const opdracht = klimaatOpdrachtUit(msg['event']);
+          if (opdracht) this.emit('klimaatOpdracht', opdracht);
           return;
         }
         if (msg['id'] !== this.#subscriptionId) return;

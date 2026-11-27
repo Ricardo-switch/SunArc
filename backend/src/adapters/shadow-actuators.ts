@@ -119,6 +119,20 @@ export class ShadowActuators implements ShadowActuatorReader {
   }
 
   /**
+   * De bewoner stelde het apparaat zelf bij (besluit 355): de boekhouding
+   * neemt zijn stand over, zoals SunArc het apparaat had laten staan.
+   * `lastChangeMs` schuift alleen op als de actie wisselt, net als bij `apply`.
+   */
+  neem(actuatorId: string, action: Action, setpointC: number | null, atMs: number): void {
+    const previous = this.#state.get(actuatorId);
+    this.#state.set(actuatorId, {
+      action,
+      setpointC,
+      lastChangeMs: previous?.action === action ? (previous.lastChangeMs ?? null) : atMs,
+    });
+  }
+
+  /**
    * Voert de apparaatcommando's van een besluit uit op de eigen boekhouding.
    *
    * `lastChangeMs` schuift alleen op bij een werkelijke wisseling van actie.

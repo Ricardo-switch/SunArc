@@ -222,7 +222,8 @@ verwijzing bestaat.
   genegeerd ([16]).
 - **Handen af:** `handmatig` trekt de regeling terug ([8]), gelezen uit beide
   knoppen ([8b]). Wie zelf één apparaat bedient, wordt herkend en met rust
-  gelaten ([74]).
+  gelaten ([74]); in de schaduw aan een nieuwe stand zonder opdracht van de
+  oude regeling ([355]).
 - **Comfort** mag koelen boven een plafond, ook op netstroom ([50]). Een zone
   met meer kamers koelt op de warmste en verwarmt op de koudste ([81]); bij twee
   meters in één kamer kiest de bewoner ([95]).
@@ -1166,4 +1167,5 @@ verwijzing bestaat.
 [352]: DECISIONS.md#352-korter-aanpassen-opent-de-pagina-en-elke-tekst-één-keer
 [353]: DECISIONS.md#353-de-zinnen-van-de-dienst-in-de-taalbestanden
 [354]: DECISIONS.md#354-de-buitentemperatuur-van-een-airco-met-het-weer-als-controle
+[355]: DECISIONS.md#355-zelf-bijstellen-herkennen-in-de-schaduw
 <!-- links:einde -->

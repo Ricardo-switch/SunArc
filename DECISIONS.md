@@ -98,6 +98,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [303. Helpen bij de cv: doordraaien en de dag in het blad van de airco](#303-helpen-bij-de-cv-doordraaien-en-de-dag-in-het-blad-van-de-airco)
 - [304. Een schakelaar met een ingevuld vermogen kan op zon](#304-een-schakelaar-met-een-ingevuld-vermogen-kan-op-zon)
 - [306. Een zone apart regelen, en de radiatorknop per zone met de hand](#306-een-zone-apart-regelen-en-de-radiatorknop-per-zone-met-de-hand)
+- [355. Zelf bijstellen herkennen in de schaduw](#355-zelf-bijstellen-herkennen-in-de-schaduw)
 
 **Configuratie en onboarding**
 
@@ -16385,6 +16386,50 @@ De keuze zit in de dienst (`web/buitenmeting.ts`), niet in de vertaling van
 Home Assistant naar het model: die blijft zuiver, zodat de replay hetzelfde
 geeft. Op de drie dagen van het proefhuis gaf de nieuwe keuze geen sprong
 van een graad of meer meer, en nam het weer het niet over.
+
+## 355. Zelf bijstellen herkennen in de schaduw
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+27 november 2026. De voorproef met de novemberdata liet zien dat de bewoners
+de Nest overdag zelf hoger zetten (20,4 tot 21 graden, 30% van de dagtijd). De
+oude regeling neemt dat over; de schaduw herkende het niet en zette in zijn
+eigen boekhouding 20 terug. Daardoor leek SunArc 0,6 graden kouder dan hij in
+het echt zou zijn, en is de wintertest geen eerlijke vergelijking. Besluit 74
+(met rust laten tot het volgende dagdeel) gold alleen voor echt schakelen,
+omdat de herkenner een stand vergelijkt met de laatste opdracht van SunArc, en
+in de schaduw gaat er geen opdracht uit.
+
+Een proef op de NAS liet zien dat Home Assistant elke opdracht meldt
+(`call_service`), met wie hem gaf: een automatisering of script heeft een
+`parent_id`, een bewoner in een dashboard of de app niet. Wie aan het apparaat
+zelf draait, geeft in Home Assistant helemaal geen opdracht. De geschiedenis
+van Home Assistant bewaart dat niet voor setpoints; het moet dus live.
+
+*Besluit:*
+
+- **De dienst volgt de opdrachten aan klimaatapparaten.** Alleen lezen. Mag het
+  token dat niet (geen beheerder), dan staat dat in het logboek en loopt de
+  rest door zonder herkennen.
+- **Een nieuwe stand zonder opdracht uit een automatisering in de drie minuten
+  ervoor is de bewoner.** Afronding (minder dan een kwart graad) telt niet. De
+  eerste stand na het opstarten of na herverbinden is alleen een beginpunt.
+- **Dan geldt besluit 74 ook in de schaduw.** Het apparaat is overgenomen tot
+  het volgende dagdeel; de arbiter laat het met rust. De boekhouding van de
+  schaduw (besluit 49) neemt de stand van de bewoner over en houdt die vast,
+  ook als de oude regeling het echte apparaat intussen verzet. Een nieuwe
+  bijstelling is de nieuwe stand en begint de tijd opnieuw. Zelf uitzetten
+  beëindigt de ingreep; de regeling gaat verder vanaf uit (49b).
+- **Over een herstart heen bewaard** in de eigen stand (besluit 62), en in elk
+  record van het beslislogboek als `ingrepen`: apparaat, sinds, tot, actie en
+  setpoint. Het logboek krijgt een regel bij elke bijstelling.
+- **De app toont het al**: "Iemand bediende hem zelf", met de eindtijd.
+
+Wat dit niet ziet: een apparaat dat uit zichzelf een andere stand kiest (een
+eigen schema in de Nest) telt als de bewoner, en een bijstelling binnen drie
+minuten na een opdracht van de oude regeling telt als de regeling. Beide zijn
+zeldzaam en terug te vinden in het logboek. Bij echt schakelen (stap B) neemt
+`override-detector.ts` het over; de regel is dan dezelfde.
 
 ## Wat nog een besluit wacht
 

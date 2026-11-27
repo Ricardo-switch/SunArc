@@ -7,9 +7,10 @@
  * beëindigt een ingreep.
  *
  * **Nog niet aangesloten.** In de schaduwmodus voert niemand de opdrachten van
- * de arbiter uit, dus elk apparaat zou er voortdurend "anders" bij staan. De
- * herkenner hoort bij de actuator-laag van stap B, waar opdrachten echt uitgaan.
- * Tot die tijd bewijzen de tests dat de regels kloppen.
+ * de arbiter uit, dus elk apparaat zou er voortdurend "anders" bij staan. Daar
+ * herkent `schaduw-ingrepen.ts` de bewoner aan iets anders: een nieuwe stand
+ * zonder opdracht van de oude regeling (besluit 355). Deze herkenner hoort bij
+ * de actuator-laag van stap B, waar opdrachten echt uitgaan.
  *
  * Wanneer een ingreep eindigt:
  * - op de eindtijd (een uur, vanavond, of het volgende dagdeel);

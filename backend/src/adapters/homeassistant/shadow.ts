@@ -26,13 +26,16 @@ import type { Mode, SiteConfig } from '../../core/model.js';
 import type { HeatStoreExtra, SystemState } from '../../core/state.js';
 import { unavailable, value } from '../../core/state.js';
 import { OwnState } from '../own-state.js';
+import { SchaduwIngrepen } from '../schaduw-ingrepen.js';
+import type { IngreepUitkomst } from '../schaduw-ingrepen.js';
 import { ShadowActuators } from '../shadow-actuators.js';
 import { StateFile } from '../state-file.js';
 import type { StrategyRegistry } from '../../core/strategy.js';
-import type { HaClient, HaEntityState } from './client.js';
+import type { HaClient, HaEntityState, KlimaatOpdracht } from './client.js';
 import {
   buildSystemState,
   configFrom,
+  mapAction,
   observedEntities,
   relevantEntities,
 } from './mapping.js';
@@ -233,6 +236,13 @@ export class ShadowRunner {
   readonly #shadowActuators = new ShadowActuators();
 
   /**
+   * Wat de bewoner zelf bijstelde (besluit 355). De arbiter laat zo'n apparaat
+   * met rust tot het volgende dagdeel, en de boekhouding hierboven houdt de
+   * stand van de bewoner vast.
+   */
+  readonly #ingrepen = new SchaduwIngrepen(() => this.#config);
+
+  /**
    * De ruwe historie van de gevolgde entiteiten (besluit 52), naast het
    * beslislogboek. Alleen wanneer er een logmap is.
    */
@@ -302,6 +312,10 @@ export class ShadowRunner {
 
     client.on('ready', (states: HaEntityState[]) => {
       this.#store.replaceAll(states);
+      // Na (her)verbinden is de stand een beginpunt: wat er in de tussentijd
+      // veranderde, valt niet meer aan iemand toe te schrijven.
+      this.#ingrepen.vergeetStanden();
+      for (const s of states) this.#zieApparaat(s);
       // De volledige stand bij elk (her)verbinden: daar begint de replay, en na
       // een onderbreking is dit de enige manier om te weten waar hij verdergaat.
       this.#history?.record(
@@ -330,6 +344,7 @@ export class ShadowRunner {
       // Alles wat we volgen, ook wat geen herberekening waard is: de replay
       // leest dezelfde entiteiten als de vertaling.
       this.#history?.record([state]);
+      if (this.#ready) this.#zieApparaat(state);
       // Wel vastgelegd, maar geen reden om te herrekenen.
       if (!this.#store.isTrigger(state.entity_id)) return;
       if (!this.#ready) return;
@@ -338,6 +353,14 @@ export class ShadowRunner {
         this.#request('wijziging');
       }, this.#options.debounceMs);
       this.#debounce.unref?.();
+    });
+
+    client.on('klimaatOpdracht', (opdracht: KlimaatOpdracht) => {
+      if (!opdracht.doorAutomatisering) return;
+      const nowMs = this.#options.now();
+      for (const actuator of this.#config.actuators) {
+        if (opdracht.entiteiten.includes(actuator.ref.id)) this.#ingrepen.opdracht(actuator.id, nowMs);
+      }
     });
 
     client.on('disconnected', (reason: string) => {
@@ -390,6 +413,8 @@ export class ShadowRunner {
     const ageMs = this.#options.now() - loaded.savedAtMs;
     const minutes = Math.max(0, Math.round(ageMs / 60_000));
     this.#own.restore(loaded);
+    // Een ingreep heeft zijn eigen eindtijd; een verlopen valt vanzelf weg.
+    if (loaded.ingrepen) this.#ingrepen.restore(loaded.ingrepen);
     const fresh = ageMs <= ACTUATOR_STATE_MAX_AGE_MS;
     if (fresh) this.#shadowActuators.restore(loaded.actuators);
     const count = Object.keys(loaded.actuators).length;
@@ -498,6 +523,24 @@ export class ShadowRunner {
     this.#throttle.unref?.();
   }
 
+  /**
+   * Legt een nieuwe stand van een echt apparaat naast de opdrachten van de oude
+   * regeling (besluit 355). Stelde de bewoner hem zelf bij, dan neemt de
+   * boekhouding van de schaduw zijn stand over.
+   */
+  #zieApparaat(state: HaEntityState): void {
+    const actuator = this.#config.actuators.find((a) => a.ref.id === state.entity_id);
+    if (!actuator) return;
+    const raw = state.attributes['temperature'];
+    const setpointC = typeof raw === 'number' && Number.isFinite(raw) ? raw : null;
+    const action = mapAction(state.state, setpointC, actuator.capabilities.standby ?? null);
+    const nowMs = this.#options.now();
+    const uitkomst = this.#ingrepen.zie(actuator.id, action.ok ? { action: action.value, setpointC } : null, nowMs);
+    if (uitkomst == null || !action.ok) return;
+    this.#shadowActuators.neem(actuator.id, action.value, setpointC, nowMs);
+    this.#log(ingreepRegel(actuator.id, uitkomst, this.#config.timezone));
+  }
+
   /** Meetpunten uit de configuratie die HA niet blijkt te kennen. */
   #missingEntities(): string[] {
     const needed = new Set<string>();
@@ -514,7 +557,14 @@ export class ShadowRunner {
     const nowMs = this.#options.now();
     this.#lastEvalMs = nowMs;
     const config = configFrom(this.#config, this.#store);
-    const state = withBuiten(
+    // Zolang een ingreep loopt, houdt de boekhouding de stand van de bewoner
+    // vast, ook als de oude regeling het echte apparaat intussen verzet.
+    const overrides = this.#ingrepen.overrides(nowMs);
+    for (const id of Object.keys(overrides)) {
+      const i = this.#ingrepen.ingreep(id, nowMs);
+      if (i) this.#shadowActuators.neem(id, i.stand.action, i.stand.setpointC, nowMs);
+    }
+    const state = withIngrepen(withBuiten(
       withAccu(
         withWarmte(
           withReadyBy(buildSystemState(config, this.#store, nowMs, this.#own, this.#shadowActuators), this.#options.readyBy()),
@@ -523,7 +573,7 @@ export class ShadowRunner {
         this.#options.accu?.() ?? null,
       ),
       this.#options.buiten?.(nowMs),
-    );
+    ), overrides);
     const decision = decide({
       config,
       state,
@@ -553,6 +603,7 @@ export class ShadowRunner {
       savedAtMs: nowMs,
       ...this.#own.snapshot(),
       actuators: this.#shadowActuators.snapshot(),
+      ingrepen: this.#ingrepen.snapshot(),
     });
 
     this.#ticks += 1;
@@ -681,7 +732,12 @@ export class ShadowRunner {
     const uitstel = e.deferrables?.map((d) => (d.readyByMs == null ? [d.id, d.state, d.reason] : [d.id, d.state, d.reason, d.readyByMs]));
     // De warmtebuffers (besluit 186): stand, reden, temperatuur en of hij stookt.
     const warmte = e.heatStores?.map((h) => [h.id, h.state, h.reason, h.temperatureC ?? null, h.heating]);
+    // Wat de bewoner zelf bijstelde (besluit 355): apparaat, sinds, tot, en zijn stand.
+    const ingrepen = Object.entries(this.#ingrepen.snapshot()).map(
+      ([id, i]) => [id, i.sinceMs, i.untilMs, i.stand.action, i.stand.setpointC] as const,
+    );
     const phaseFields = {
+      ...(ingrepen.length > 0 ? { ingrepen } : {}),
       // Wat elk apparaat zegt dat het echt doet (`hvac_action`): "heat@20"
       // zegt alleen de stand, niet of de ketel brandt. Vandaag zegt er "ging verwarmen" mee.
       ...(Object.keys(observedAction).length > 0 ? { doet: observedAction } : {}),
@@ -773,6 +829,20 @@ export class ShadowRunner {
   #log(line: string): void {
     this.#options.write(line);
   }
+}
+
+/** De ingrepen van de bewoner (besluit 355); zonder ingreep blijft de stand zoals hij was. */
+function withIngrepen(state: SystemState, overrides: SystemState['residentOverrides']): SystemState {
+  return overrides == null || Object.keys(overrides).length === 0 ? state : { ...state, residentOverrides: overrides };
+}
+
+/** Een regel voor het logboek bij een bijstelling door de bewoner. */
+function ingreepRegel(actuatorId: string, uitkomst: IngreepUitkomst, timezone: string): string {
+  if (uitkomst.soort === 'uitgezet') return `          ${actuatorId} zelf uitgezet — de regeling gaat verder vanaf uit`;
+  const { stand, untilMs } = uitkomst.ingreep;
+  const tot = untilMs == null ? '' : ` tot ${new Date(untilMs).toLocaleTimeString('nl-NL', { timeZone: timezone, hour: '2-digit', minute: '2-digit' })}`;
+  const op = stand.setpointC == null ? stand.action : `${stand.action}@${stand.setpointC}`;
+  return `          ${actuatorId} zelf bijgesteld naar ${op} — met rust gelaten${tot}`;
 }
 
 /** Zet wat de dienst bij de warmtebuffers weet erbij (besluit 186). */

@@ -202,7 +202,8 @@ export class NepHa {
       case 'get_config':
         return { time_zone: 'Europe/Amsterdam', latitude: 52.1, longitude: 5.1, location_name: 'Voorbeeldhuis', version: '2026.10.0' };
       case 'subscribe_events':
-        this.#volgers.add({ verbinding, id });
+        // Opdrachten (besluit 355) geeft het voorbeeldhuis niet: daar stelt niemand iets bij.
+        if (b['event_type'] !== 'call_service') this.#volgers.add({ verbinding, id });
         return null;
       case 'unsubscribe_events':
         return null;

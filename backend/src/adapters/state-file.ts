@@ -25,6 +25,7 @@ import { join } from 'node:path';
 
 import { ACTIONS, MODES, type Action, type Mode } from '../core/model.js';
 import { TIMER_IDS, type TimerId, type TimerState } from '../core/state.js';
+import type { SchaduwIngreep } from './schaduw-ingrepen.js';
 import type { ShadowActuator } from './shadow-actuators.js';
 
 export const STATE_FILE_NAME = 'own-state.json';
@@ -35,6 +36,28 @@ export interface SavedState {
   readonly mode: Mode | null;
   readonly timers: Readonly<Record<TimerId, TimerState>>;
   readonly actuators: Readonly<Record<string, ShadowActuator>>;
+  /**
+   * Wat de bewoner zelf bijstelde, en tot wanneer (besluit 355). Ontbreekt in
+   * bestanden van vóór dat besluit; een onleesbare ingreep valt weg zonder de
+   * rest mee te nemen.
+   */
+  readonly ingrepen?: Readonly<Record<string, SchaduwIngreep>>;
+}
+
+function ingrepenUit(raw: unknown): Record<string, SchaduwIngreep> {
+  const uit: Record<string, SchaduwIngreep> = {};
+  if (!isRecord(raw)) return uit;
+  for (const [id, i] of Object.entries(raw)) {
+    if (!isRecord(i) || typeof i['sinceMs'] !== 'number' || !isNumberOrNull(i['untilMs'])) continue;
+    const stand = i['stand'];
+    if (!isRecord(stand) || !(ACTIONS as readonly unknown[]).includes(stand['action']) || !isNumberOrNull(stand['setpointC'])) continue;
+    uit[id] = {
+      sinceMs: i['sinceMs'],
+      untilMs: i['untilMs'],
+      stand: { action: stand['action'] as Action, setpointC: stand['setpointC'] },
+    };
+  }
+  return uit;
 }
 
 /** Ook zonder wijziging opnieuw wegschrijven, zodat `savedAtMs` vers blijft. */
@@ -96,6 +119,7 @@ export function parseSavedState(text: string): SavedState | string {
     mode: mode as Mode | null,
     timers,
     actuators,
+    ...(raw['ingrepen'] === undefined ? {} : { ingrepen: ingrepenUit(raw['ingrepen']) }),
   };
 }
 

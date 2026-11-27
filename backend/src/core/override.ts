@@ -15,9 +15,10 @@
  *   het apparaat doet een ingreep, een opdracht die nog onderweg is, of een
  *   storing? Dat beslist de adapter; hier staat alleen de regel.
  *
- * In de schaduwmodus wordt er niets herkend: daar voert niemand de opdrachten
- * van de arbiter uit, dus elk apparaat zou er voortdurend "anders" bij staan.
- * Het aansluiten hoort bij stap B, waar de opdrachten echt uitgaan.
+ * In de schaduwmodus voert niemand de opdrachten van de arbiter uit, dus
+ * herkent `adapters/schaduw-ingrepen.ts` daar een bijstelling aan het
+ * ontbreken van een opdracht van de oude regeling (besluit 355). De regels
+ * hieronder horen bij stap B, waar de opdrachten echt uitgaan.
  */
 
 import type { Action, SiteConfig } from './model.js';
