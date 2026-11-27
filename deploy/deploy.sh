@@ -539,7 +539,12 @@ controleer_configuratie() {
   exit 1
 }
 
+OUDE_VORIGE=""
 if [ "$NEEDS_BUILD" -eq 1 ]; then
+  # Welk image nu `vorige` heet. Na het omhangen hieronder heeft het geen naam
+  # meer, en zonder opruimen bleef het voor altijd liggen: op 26-11-2026 lagen
+  # er 593 (elk zo'n 180 MB) en liep de NAS vast op een volle schijf.
+  OUDE_VORIGE="$("$DOCKER" image inspect -f '{{.Id}}' "$IMAGE:vorige" 2>/dev/null || true)"
   # De huidige versie eerst wegzetten, zodat terugvallen mogelijk blijft.
   if "$DOCKER" image inspect "$IMAGE:latest" >/dev/null 2>&1; then
     "$DOCKER" tag "$IMAGE:latest" "$IMAGE:vorige"
@@ -595,6 +600,15 @@ done
 
 # Pas hier vastleggen: nu weten we dat deze versie ook echt draait.
 echo "$AFTER" > "$STATEFILE"
+
+# Opruimen, pas nu de nieuwe versie draait. Het image dat vóór deze ronde
+# `vorige` heette, heeft geen naam meer; `rmi` weigert vanzelf als een
+# container het nog gebruikt. De bouwvoorraad blijft hooguit 5 GB: genoeg om
+# snel te bouwen, en hij groeit niet meer tot de schijf vol is.
+if [ -n "$OUDE_VORIGE" ] && [ -z "$("$DOCKER" image inspect -f '{{join .RepoTags ","}}' "$OUDE_VORIGE" 2>/dev/null)" ]; then
+  "$DOCKER" rmi "$OUDE_VORIGE" >/dev/null 2>&1 && log "Oud image opgeruimd." || true
+fi
+"$DOCKER" builder prune -f --keep-storage 5GB >/dev/null 2>&1 || true
 
 # Dit script draait vanuit de wortel en niet uit src/, zodat een pull het niet
 # onder je voeten kan wijzigen. De keerzijde is dat een nieuwe versie niet
