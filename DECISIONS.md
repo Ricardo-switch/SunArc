@@ -16431,6 +16431,15 @@ minuten na een opdracht van de oude regeling telt als de regeling. Beide zijn
 zeldzaam en terug te vinden in het logboek. Bij echt schakelen (stap B) neemt
 `override-detector.ts` het over; de regel is dan dezelfde.
 
+*Aanvulling (28 november 2026, versie 0.252.1):* een automatisering die op de
+klok start (de oude regeling elke drie minuten, en om 06:00, 08:00 en 22:00)
+geeft opdrachten zonder `parent_id`. De eerste versie zag die als de bewoner.
+De regel is nu: een opdracht **zonder gebruiker** (`user_id`) komt van een
+automatisering of script. Een bewoner in een dashboard of de app geeft er een
+met zijn gebruiker, en aan het apparaat zelf geeft hij er geen. De opdrachten
+van SunArc zelf hebben de gebruiker van zijn token en tellen dus als bewoner,
+zoals bedoeld voor met de hand.
+
 ## Wat nog een besluit wacht
 
 - **De ventilatie wordt deze winter geïnstalleerd, en dat verandert het huis.**

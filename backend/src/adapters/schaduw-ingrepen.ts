@@ -10,10 +10,10 @@
  * hem zou houden, en leek SunArc 0,6 graden kouder dan hij werkelijk zou zijn.
  *
  * In de schaduw stuurt de oude regeling de apparaten. Die doet dat vanuit
- * automatiseringen en scripts in Home Assistant, en zo'n opdracht draagt een
- * `parent_id`. Een bewoner aan het apparaat zelf geeft in Home Assistant geen
- * opdracht; een bewoner in een dashboard of in de app geeft er een zonder
- * `parent_id`. Daarom: verandert de stand van een apparaat zonder dat er kort
+ * automatiseringen en scripts in Home Assistant, en zo'n opdracht heeft geen
+ * gebruiker. Een bewoner aan het apparaat zelf geeft in Home Assistant geen
+ * opdracht; een bewoner in een dashboard of in de app geeft er een met zijn
+ * gebruiker. Daarom: verandert de stand van een apparaat zonder dat er kort
  * daarvoor een opdracht uit een automatisering voor kwam, dan stelde iemand
  * hem zelf bij.
  *

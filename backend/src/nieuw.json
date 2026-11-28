@@ -1,5 +1,17 @@
 [
   {
+    "versie": "0.252.1",
+    "datum": "2026-11-28",
+    "opgelost": [
+      "SunArc zag een stand die je oude regeling op vaste tijden zet, zoals om 06:00, soms aan voor iemand die het apparaat zelf bijstelde. Nu niet meer"
+    ],
+    "en": {
+      "opgelost": [
+        "SunArc sometimes mistook a setting your old control makes at fixed times, such as 06:00, for someone adjusting the device themselves. Not anymore"
+      ]
+    }
+  },
+  {
     "versie": "0.252.0",
     "datum": "2026-11-27",
     "beter": [

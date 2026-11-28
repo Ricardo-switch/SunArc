@@ -87,9 +87,11 @@ interface StateChangedEvent {
  * Alleen wie de opdracht gaf, en voor welke apparaten: genoeg om in de schaduw
  * een stand van de oude regeling te onderscheiden van een bijstelling door de
  * bewoner. `doorAutomatisering`: de opdracht kwam uit een automatisering of
- * script (`context.parent_id`). Een bewoner aan het apparaat zelf geeft geen
- * opdracht in Home Assistant; een bewoner in een dashboard of de app wel, maar
- * zonder `parent_id`.
+ * script, dus zonder gebruiker (`context.user_id`). Een bewoner aan het
+ * apparaat zelf geeft geen opdracht in Home Assistant; een bewoner in een
+ * dashboard of de app wel, en dan met zijn gebruiker. Niet op `parent_id`
+ * letten: een automatisering die op de klok start (elke drie minuten, of om
+ * 06:00) heeft er geen.
  */
 export interface KlimaatOpdracht {
   readonly service: string;
@@ -113,11 +115,11 @@ export function klimaatOpdrachtUit(event: unknown): KlimaatOpdracht | null {
   if (e.event_type !== 'call_service' || e.data?.['domain'] !== 'climate') return null;
   const entiteiten = [...new Set([...entiteitenVan(e.data['service_data']), ...entiteitenVan(e.data['target'])])];
   if (entiteiten.length === 0) return null;
-  const parent = e.context?.['parent_id'];
+  const gebruiker = e.context?.['user_id'];
   return {
     service: String(e.data['service'] ?? ''),
     entiteiten,
-    doorAutomatisering: typeof parent === 'string' && parent !== '',
+    doorAutomatisering: typeof gebruiker !== 'string' || gebruiker === '',
   };
 }
 

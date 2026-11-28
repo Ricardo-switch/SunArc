@@ -129,6 +129,13 @@ describe('opdrachten aan klimaatapparaten lezen (besluit 355)', () => {
     ).toEqual({ service: 'set_temperature', entiteiten: ['climate.beneden'], doorAutomatisering: true });
   });
 
+  it('uit een automatisering die op de klok start: geen parent_id, ook geen gebruiker', () => {
+    expect(
+      klimaatOpdrachtUit(ev({ domain: 'climate', service: 'set_temperature', service_data: { entity_id: 'climate.beneden', temperature: 20 } }, { id: 'a', parent_id: null, user_id: null }))?.doorAutomatisering,
+    ).toBe(true);
+    expect(klimaatOpdrachtUit(ev({ domain: 'climate', service: 'turn_off', service_data: { entity_id: 'climate.beneden' } }, {}))?.doorAutomatisering).toBe(true);
+  });
+
   it('van een bewoner in een dashboard, met de entiteiten als lijst of in het doel', () => {
     expect(
       klimaatOpdrachtUit(ev({ domain: 'climate', service: 'set_hvac_mode', service_data: { entity_id: ['climate.a', 'climate.b'] }, target: { entity_id: 'climate.c' } }, { id: 'a', parent_id: null, user_id: 'u' })),
