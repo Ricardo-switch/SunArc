@@ -1,5 +1,17 @@
 [
   {
+    "versie": "0.254.0",
+    "datum": "2026-11-28",
+    "opgelost": [
+      "Een apparaat dat ook op zon mag, zoals elektrische vloerverwarming, telt niet meer als vrij te maken stroom zolang het verwarmt omdat de kamer te koud is. Zo verwarmt een airco niet op zon met stroom van het net"
+    ],
+    "en": {
+      "opgelost": [
+        "A device that may also run on sun, such as electric floor heating, no longer counts as power that can be freed while it heats because the room is too cold. So an air conditioner no longer heats on sun with power from the grid"
+      ]
+    }
+  },
+  {
     "versie": "0.253.0",
     "datum": "2026-11-28",
     "beter": [

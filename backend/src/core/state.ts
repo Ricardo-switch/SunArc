@@ -101,9 +101,10 @@ export interface PowerState {
    *
    * Weglaten betekent: de stand in `actuators` ís de werkelijkheid, en het
    * verbruik volgt daaruit. Zo is het zonder schaduw en straks bij echt
-   * schakelen.
+   * schakelen. Per apparaat, zodat de kern kan weglaten wat comfort aanhoudt
+   * (besluit 357).
    */
-  readonly observedDrawW?: number;
+  readonly observedDrawPerActuatorW?: Readonly<Record<string, number>>;
 }
 
 /**

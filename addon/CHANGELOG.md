@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.253.0
+## 0.254.0
 
-*28 november 2026 · 0.179.0 – 0.253.0*
+*28 november 2026 · 0.179.0 – 0.254.0*
 
 **Nieuw**
 
@@ -270,6 +270,7 @@
 
 **Opgelost**
 
+- Een apparaat dat ook op zon mag, zoals elektrische vloerverwarming, telt niet meer als vrij te maken stroom zolang het verwarmt omdat de kamer te koud is. Zo verwarmt een airco niet op zon met stroom van het net
 - Het logboek noemt bij het opstarten geen apparaat meer dat Home Assistant nog niet heeft laten zien, zoals een radiatorknop die gewoon meedoet
 - SunArc zag een stand die je oude regeling op vaste tijden zet, zoals om 06:00, soms aan voor iemand die het apparaat zelf bijstelde. Nu niet meer
 - Instellingen › Klimaat toonde nog Soort verwarming. Daar staat nu Meten en regeling; de soort verwarming en De zon verdelen staan bij de tegel Energie
@@ -607,6 +608,7 @@
 
 **Fixed**
 
+- A device that may also run on sun, such as electric floor heating, no longer counts as power that can be freed while it heats because the room is too cold. So an air conditioner no longer heats on sun with power from the grid
 - At startup, the log no longer names a device Home Assistant has not shown yet, such as a radiator knob that simply takes part
 - SunArc sometimes mistook a setting your old control makes at fixed times, such as 06:00, for someone adjusting the device themselves. Not anymore
 - Settings › Climate still showed Heating type. It now shows Measuring and control; the heating type and Sharing the sun are on the Energy tile

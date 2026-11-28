@@ -100,6 +100,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [306. Een zone apart regelen, en de radiatorknop per zone met de hand](#306-een-zone-apart-regelen-en-de-radiatorknop-per-zone-met-de-hand)
 - [355. Zelf bijstellen herkennen in de schaduw](#355-zelf-bijstellen-herkennen-in-de-schaduw)
 - [356. De avond verlengen alleen met een lamp van voor de nacht](#356-de-avond-verlengen-alleen-met-een-lamp-van-voor-de-nacht)
+- [357. Wat comfort aanhoudt, is geen ruimte voor zon](#357-wat-comfort-aanhoudt-is-geen-ruimte-voor-zon)
 
 **Configuratie en onboarding**
 
@@ -16472,6 +16473,38 @@ licht aandoet.
 *Wat afviel:* de dag terug laten komen tot 03:00 zoals de oude regeling; dat
 is wat de bewoner juist niet wil. De oude regeling op de Pi doet het nog wel
 zo; voor een eerlijke wintertest hoort zij dezelfde regel te krijgen.
+
+*Aanvulling (28 november 2026):* de oude regeling op de Pi kreeg dezelfde
+regel, met `last_changed` van de lampen in `scripts.yaml`.
+
+## 357. Wat comfort aanhoudt, is geen ruimte voor zon
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+28 november 2026. Om 09:19 leverde de zon niets en nam het huis 941 W van het
+net, maar zag SunArc in de schaduw 2.196 W om te verdelen. Hij zou de airco op
+zolder 956 W "op zon" hebben gegeven. Een deel van die ruimte was de badkamer:
+elektrische vloerverwarming met een infraroodpaneel, samen 1.150 W, die ook op
+zon mag (besluit 132). Wat op zon mag, telde als terug te winnen (besluit 178),
+ook als de badkamer gewoon verwarmde omdat hij te koud was. Dan schakelt de
+regeling hem nooit terug, dus komt die stroom nooit vrij.
+
+*Besluit:*
+
+- **Een hoofdapparaat dat comfort aanhoudt, telt niet als ruimte.** Vraagt
+  zijn kamer om verwarmen of koelen en kan hij dat, dan blijft hij aan, en is
+  zijn verbruik geen ruimte voor een ander (`comfortHoudtAan` in `vermogen.ts`,
+  dezelfde regel als in comfort).
+- **Verwarmt hij boven zijn doel door omdat er zon is, dan telt hij wel**: dat
+  verbruik schakelt de regeling terug als de zon wegvalt.
+- **Voor elk apparaat**, met of zonder verbruiksmeter: met een meter telt de
+  meting, zonder meter de schatting.
+- In de schaduw geeft de adapter het echte verbruik per apparaat mee
+  (`observedDrawPerActuatorW` in plaats van één getal, besluit 49b), zodat de
+  kern ook daar kan weglaten wat comfort aanhoudt.
+
+*Wat afviel:* de badkamer helemaal uit het budget laten. Op zon mag hij juist
+boven zijn doel doorverwarmen, en dan hoort zijn verbruik er wel in.
 
 ## Wat nog een besluit wacht
 

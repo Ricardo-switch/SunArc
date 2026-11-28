@@ -160,8 +160,8 @@ export function buildSystemState(
 ): SystemState {
   const actuators: Record<string, ActuatorState> = {};
   // Wat de échte apparaten opnemen, en of de schaduw ergens van de
-  // werkelijkheid afwijkt. Zie `PowerState.observedDrawW` (besluit 49b).
-  let actualDrawW = 0;
+  // werkelijkheid afwijkt. Zie `PowerState.observedDrawPerActuatorW` (besluit 49b).
+  const actualDrawW: Record<string, number> = {};
   let assumption = false;
   for (const b of bindingsOf(config)) {
     const haState = source.state(b.climateEntity) ?? 'unavailable';
@@ -187,7 +187,7 @@ export function buildSystemState(
     // Alleen wat de regeling zelf terugschakelt (besluit 178), zoals de kern het telt.
     const actuator = config.actuators.find((a) => a.id === b.actuatorId)!;
     if (actuallyRunning && terugschakelbaar(actuator)) {
-      actualDrawW += powerW ?? actuator.power.estimatedW;
+      actualDrawW[b.actuatorId] = (actualDrawW[b.actuatorId] ?? 0) + (powerW ?? actuator.power.estimatedW);
     }
 
     /*
@@ -323,7 +323,7 @@ export function buildSystemState(
       // Alleen wanneer de schaduw iets veronderstelt. Zonder schaduw volgt het
       // verbruik uit de apparaten zelf, en rekent de kern het precies zo uit als
       // altijd — dat houdt de replay bit-identiek.
-      ...(assumption ? { observedDrawW: actualDrawW } : {}),
+      ...(assumption ? { observedDrawPerActuatorW: actualDrawW } : {}),
     },
     timers: {
       stabilisation: timerOf(config, source, own, 'stabilisation'),

@@ -214,7 +214,8 @@ verwijzing bestaat.
   7 oktober ook een stroombudget per fase tegen de hoofdzekering, in de schaduw
   ([78]).
 - **Terugwinbaar** rekent met wat de apparaten echt opnemen ([49b]), niet met
-  wat de schaduw veronderstelt ([49]).
+  wat de schaduw veronderstelt ([49]). Wat comfort aanhoudt, zoals een badkamer
+  die te koud is, telt niet: die schakelt de regeling niet terug ([357]).
 - **Timers:** de schaduw houdt zijn eigen stabilisatietimer bij ([60]); parkeren
   start hem ook ([61]). Modus en timers horen bij de dienst ([39]) en overleven
   een herstart ([62]).
@@ -1172,4 +1173,5 @@ verwijzing bestaat.
 [354]: DECISIONS.md#354-de-buitentemperatuur-van-een-airco-met-het-weer-als-controle
 [355]: DECISIONS.md#355-zelf-bijstellen-herkennen-in-de-schaduw
 [356]: DECISIONS.md#356-de-avond-verlengen-alleen-met-een-lamp-van-voor-de-nacht
+[357]: DECISIONS.md#357-wat-comfort-aanhoudt-is-geen-ruimte-voor-zon
 <!-- links:einde -->

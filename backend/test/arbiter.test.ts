@@ -103,6 +103,42 @@ describe('wat terug te winnen is (besluit 178)', () => {
   });
 });
 
+/*
+ * Ook op zon, maar voor comfort aan (besluit 357): een hoofdapparaat dat op zon
+ * mag, telt pas als ruimte als comfort het niet aanhoudt. Voor elk apparaat,
+ * met of zonder verbruiksmeter.
+ */
+describe('een apparaat dat comfort aanhoudt, is geen ruimte (besluit 357)', () => {
+  const opZon = (estimatedW: number): SiteConfig => ({
+    ...exampleSite,
+    actuators: exampleSite.actuators.map((a) => (a.id === 'badkamer' ? { ...a, onSurplus: true, power: { ...a.power, estimatedW } } : a)),
+  });
+  const budget = (config: SiteConfig, state: SystemState) => decide({ config, state, strategies: defaultStrategies() }).explanation.budget;
+
+  it('telt de badkamer niet zolang hij voor comfort verwarmt, met meter', () => {
+    const state = buildState({ gridPowerW: 941, bathroomC: 17, actuators: { badkamer: actuator('heat', { powerW: 1150 }), 'ac-zolder': actuator('heat', { powerW: 900 }) } });
+    expect(budget(opZon(1150), state).reclaimableW).toBe(900);
+  });
+
+  it('telt de badkamer niet zolang hij voor comfort verwarmt, zonder meter', () => {
+    const state = buildState({ gridPowerW: 941, bathroomC: 17, actuators: { badkamer: actuator('heat') } });
+    expect(budget(opZon(1150), state).reclaimableW).toBe(0);
+  });
+
+  it('telt de badkamer wel als hij boven zijn doel op zon verwarmt', () => {
+    const state = buildState({ gridPowerW: -500, bathroomC: 18.8, actuators: { badkamer: actuator('heat', { powerW: 1150 }) } });
+    expect(budget(opZon(1150), state).reclaimableW).toBe(1150);
+  });
+
+  it('telt in de schaduw alleen het echte verbruik dat terug kan', () => {
+    const state: SystemState = {
+      ...buildState({ gridPowerW: 941, bathroomC: 17 }),
+      power: { gridPowerW: value(941, NOW), observedDrawPerActuatorW: { badkamer: 1150, 'ac-zolder': 956 } },
+    };
+    expect(budget(opZon(1150), state).reclaimableW).toBe(956);
+  });
+});
+
 describe('vermogensbudget', () => {
   it('start niet twee airco\'s op een overschot dat er maar een dekt', () => {
     // Beide zones warm genoeg om te willen koelen; 900 + 750 W gevraagd,

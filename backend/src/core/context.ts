@@ -9,7 +9,7 @@
 
 import type { ComfortProfile, Mode, SiteConfig, Zone } from './model.js';
 import { actuatorById, PROFILE_SETTLE_MS } from './model.js';
-import { terugschakelbaar } from './vermogen.js';
+import { comfortHoudtAan, terugschakelbaar } from './vermogen.js';
 import { isOverridden } from './override.js';
 import type { SystemState } from './state.js';
 import { readOr, timerActive } from './state.js';
@@ -305,36 +305,6 @@ export function buildContext(
   const gridPowerW = readOr(state.power.gridPowerW, 0);
   const surplusW = gridPowerW < 0 ? -gridPowerW : 0;
 
-  /*
-   * Terugwinbaar: wat de bestuurde apparaten nu opnemen.
-   *
-   * Het hoort bij hetzelfde huis als `gridPowerW`, want het budget is het
-   * verschil tussen die twee: netvermogen zonder de bestuurde apparaten, oftewel
-   * de basislast. Meestal volgt het uit `actuators`. In de schaduwmodus staat
-   * daar wat de arbiter gestuurd zou hebben, en dan geeft de adapter het
-   * werkelijke verbruik apart mee (besluit 49b) — anders telde een
-   * veronderstelde airco als terugwinbaar terwijl de meter hem nooit zag.
-   */
-  let reclaimableW = 0;
-  if (state.power.observedDrawW != null) {
-    reclaimableW = state.power.observedDrawW;
-  } else {
-    for (const actuator of config.actuators) {
-      const s = state.actuators[actuator.id];
-      if (!s) continue;
-      // Een apparaat dat de bewoner heeft overgenomen, schakelt de regeling niet
-      // terug; zijn verbruik is dus geen ruimte voor een ander (besluit 74). Het
-      // zit wel in het netvermogen, en drukt zo vanzelf het budget.
-      if (isOverridden(state, actuator.id)) continue;
-      // Alleen wat de regeling zelf terugschakelt (besluit 178): comfort blijft aan.
-      if (!terugschakelbaar(actuator)) continue;
-      const running = s.action.ok && (s.action.value === 'heat' || s.action.value === 'cool');
-      if (running) {
-        reclaimableW += s.powerW.ok ? s.powerW.value : actuator.power.estimatedW;
-      }
-    }
-  }
-
   // Ontbrekend telt als onbetrouwbaar: een meetpunt dat de adapter niet kon
   // vullen is even onbruikbaar als een meetpunt dat unavailable meldt.
   const unreliableInputs = config.criticalInputs
@@ -361,6 +331,45 @@ export function buildContext(
       aboveComfortCeiling: aboveCeiling(zone, temperatureC, previous),
     };
   });
+
+  /*
+   * Terugwinbaar: wat de bestuurde apparaten nu opnemen.
+   *
+   * Het hoort bij hetzelfde huis als `gridPowerW`, want het budget is het
+   * verschil tussen die twee: netvermogen zonder de bestuurde apparaten, oftewel
+   * de basislast. Meestal volgt het uit `actuators`. In de schaduwmodus staat
+   * daar wat de arbiter gestuurd zou hebben, en dan geeft de adapter het
+   * werkelijke verbruik per apparaat apart mee (besluit 49b) — anders telde een
+   * veronderstelde airco als terugwinbaar terwijl de meter hem nooit zag.
+   *
+   * Een apparaat dat comfort aanhoudt, telt niet (besluit 357): de regeling
+   * schakelt het niet terug als de zon wegvalt.
+   */
+  let reclaimableW = 0;
+  const gemeten = state.power.observedDrawPerActuatorW;
+  if (gemeten != null) {
+    for (const [id, w] of Object.entries(gemeten)) {
+      const actuator = config.actuators.find((a) => a.id === id);
+      if (actuator && comfortHoudtAan(actuator, zones)) continue;
+      reclaimableW += w;
+    }
+  } else {
+    for (const actuator of config.actuators) {
+      const s = state.actuators[actuator.id];
+      if (!s) continue;
+      // Een apparaat dat de bewoner heeft overgenomen, schakelt de regeling niet
+      // terug; zijn verbruik is dus geen ruimte voor een ander (besluit 74). Het
+      // zit wel in het netvermogen, en drukt zo vanzelf het budget.
+      if (isOverridden(state, actuator.id)) continue;
+      // Alleen wat de regeling zelf terugschakelt (besluit 178): comfort blijft aan.
+      if (!terugschakelbaar(actuator)) continue;
+      if (comfortHoudtAan(actuator, zones)) continue;
+      const running = s.action.ok && (s.action.value === 'heat' || s.action.value === 'cool');
+      if (running) {
+        reclaimableW += s.powerW.ok ? s.powerW.value : actuator.power.estimatedW;
+      }
+    }
+  }
 
   return {
     config,
