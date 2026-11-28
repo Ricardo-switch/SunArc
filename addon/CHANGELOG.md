@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.252.0
+## 0.252.1
 
-*27 november 2026 · 0.179.0 – 0.252.0*
+*28 november 2026 · 0.179.0 – 0.252.1*
 
 **Nieuw**
 
@@ -269,6 +269,7 @@
 
 **Opgelost**
 
+- SunArc zag een stand die je oude regeling op vaste tijden zet, zoals om 06:00, soms aan voor iemand die het apparaat zelf bijstelde. Nu niet meer
 - Instellingen › Klimaat toonde nog Soort verwarming. Daar staat nu Meten en regeling; de soort verwarming en De zon verdelen staan bij de tegel Energie
 - Een paar zinnen zeiden nog dat je Op zon aanzet in het blad van een apparaat. Ze wijzen nu naar De zon verdelen, net als zoeken, Hulp en Wat je huis kan
 - Klimaat: bij een zone vielen de knoppen Met de kamer en Eigen regeling over elkaar
@@ -603,6 +604,7 @@
 
 **Fixed**
 
+- SunArc sometimes mistook a setting your old control makes at fixed times, such as 06:00, for someone adjusting the device themselves. Not anymore
 - Settings › Climate still showed Heating type. It now shows Measuring and control; the heating type and Sharing the sun are on the Energy tile
 - A few lines still said you switch On solar on in a device's sheet. They now point to Sharing the sun, as do search, Help and What your home can do
 - Climate: in a zone, the buttons With the room and Own control overlapped
