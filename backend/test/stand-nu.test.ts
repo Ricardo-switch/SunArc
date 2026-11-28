@@ -80,7 +80,7 @@ describe('de stand van het huis (besluit 286)', () => {
   it('na de nacht nog Dag als er licht brandt, met de lamp en de dag die doorloopt', () => {
     const s = standNu(config, view(om(22, 40)), 'nl', { geheugen: new Map(), lampenAan: () => ['Sfeerverlichting'] });
     expect(s).toMatchObject({ soort: 'licht', knop: 'er brandt nog licht', kort: 'Nog Dag: er brandt licht', onder: 'langer dan 22:00 · daarna nacht' });
-    expect(s.meldingen[0]).toMatchObject({ wat: 'Sfeerverlichting brandt nog', hoe: 'Gaat het uit, dan wordt het Nacht.' });
+    expect(s.meldingen[0]).toMatchObject({ wat: 'Sfeerverlichting brandt nog', hoe: 'Gaat het uit, of wordt het 03:00, dan wordt het Nacht.' });
     expect(s.balk.verlengdTot).toBeCloseTo(22.67, 2);
   });
 

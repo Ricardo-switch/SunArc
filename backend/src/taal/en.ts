@@ -730,7 +730,7 @@ export const en: Teksten = {
     lichtKnop: 'a light is still on',
     lichtKort: 'Still Day: a light is on',
     lichtWat: (lampen: readonly string[]) => (lampen.length ? `${lijst(lampen, ' and ')} ${lampen.length > 1 ? 'are' : 'is'} still on` : 'A light is still on'),
-    lichtHoe: 'Once it goes off, it becomes Night.',
+    lichtHoe: 'Once it goes off, or at 03:00, it becomes Night.',
     lichtNoot: 'Which lights make the day longer is set in the house configuration.',
     gewoonNoot: 'Nothing special: the house follows the parts of the day.',
     bijApparaat: (naam: string | undefined) => `The ${naam ?? 'air conditioner'}`,

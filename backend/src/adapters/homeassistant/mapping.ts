@@ -259,8 +259,10 @@ export function buildSystemState(
 
   const lights: SystemState['lights'] = Object.fromEntries(
     config.schedule.eveningExtensionLights.map((ref) => {
+      // Wanneer de lamp aan- of uitging: de avond verlengen telt alleen een lamp
+      // die al brandde voor de nacht begon (besluit 356). Onbekend verlengt niet.
       const b = source.bool(ref.id);
-      return [ref.id, b == null ? unavailable<boolean>() : value(b, nowMs)];
+      return [ref.id, b == null ? unavailable<boolean>() : value(b, source.changedAt(ref.id) ?? 0)];
     }),
   );
 

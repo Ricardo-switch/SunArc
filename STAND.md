@@ -224,6 +224,9 @@ verwijzing bestaat.
   knoppen ([8b]). Wie zelf één apparaat bedient, wordt herkend en met rust
   gelaten ([74]); in de schaduw aan een nieuwe stand zonder opdracht van de
   oude regeling ([355]).
+- **De avond verlengen:** brandt er om tien uur nog een lamp, dan blijft het Dag
+  tot alle lampen uit zijn, hooguit tot 03:00; een lamp die later aangaat, telt
+  niet ([356]).
 - **Comfort** mag koelen boven een plafond, ook op netstroom ([50]). Een zone
   met meer kamers koelt op de warmste en verwarmt op de koudste ([81]); bij twee
   meters in één kamer kiest de bewoner ([95]).
@@ -1168,4 +1171,5 @@ verwijzing bestaat.
 [353]: DECISIONS.md#353-de-zinnen-van-de-dienst-in-de-taalbestanden
 [354]: DECISIONS.md#354-de-buitentemperatuur-van-een-airco-met-het-weer-als-controle
 [355]: DECISIONS.md#355-zelf-bijstellen-herkennen-in-de-schaduw
+[356]: DECISIONS.md#356-de-avond-verlengen-alleen-met-een-lamp-van-voor-de-nacht
 <!-- links:einde -->

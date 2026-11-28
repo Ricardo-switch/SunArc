@@ -144,6 +144,9 @@ function hourIn(timezone: string, atMs: number): number {
   return new Date(atMs).getHours();
 }
 
+/** Zo lang verlengt een brandende lamp de avond hooguit: tot dit uur. */
+const VERLENGEN_TOT_UUR = 3;
+
 /** Bepaalt de modus uit klok, aanwezigheid en avondverlenging. */
 export function scheduledMode(
   config: SiteConfig,
@@ -155,12 +158,23 @@ export function scheduledMode(
   const hour = hourIn(config.timezone, state.nowMs);
   const { preheatFromHour, dayFromHour, nightFromHour } = config.schedule;
 
-  const anyLightOn = config.schedule.eveningExtensionLights.some((ref) =>
-    readOr(state.lights[ref.id], false),
-  );
-  const inNightWindow = hour >= nightFromHour || hour < preheatFromHour;
-  if (inNightWindow && anyLightOn) return 'dag';
-  if (inNightWindow) return 'nacht';
+  const inNight = (h: number) => h >= nightFromHour || h < preheatFromHour;
+  if (inNight(hour)) {
+    /*
+     * De avond verlengen (besluit 356): brandt er om tien uur nog een lamp, dan
+     * blijft het dag tot alle lampen uit zijn, en hooguit tot drie uur, zoals de
+     * oude regeling. Alleen een lamp die al aan was voor de nacht begon telt:
+     * wie 's nachts of vroeg in de ochtend het licht aandoet, haalt de dag niet
+     * terug. `atMs` van een lamp is wanneer hij aanging.
+     */
+    const totUur = Math.min(VERLENGEN_TOT_UUR, preheatFromHour);
+    const magVerlengen = hour >= nightFromHour || hour < totUur;
+    const brandtNog = config.schedule.eveningExtensionLights.some((ref) => {
+      const l = state.lights[ref.id];
+      return l != null && l.ok && l.value && !inNight(hourIn(config.timezone, l.atMs));
+    });
+    return magVerlengen && brandtNog ? 'dag' : 'nacht';
+  }
   if (hour < dayFromHour) return 'voorverwarmen';
   return 'dag';
 }

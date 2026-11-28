@@ -765,7 +765,7 @@ export const nl = {
     lichtKnop: 'er brandt nog licht',
     lichtKort: 'Nog Dag: er brandt licht',
     lichtWat: (lampen: readonly string[]) => (lampen.length ? `${lijst(lampen, ' en ')} ${lampen.length > 1 ? 'branden' : 'brandt'} nog` : 'Er brandt nog licht'),
-    lichtHoe: 'Gaat het uit, dan wordt het Nacht.',
+    lichtHoe: 'Gaat het uit, of wordt het 03:00, dan wordt het Nacht.',
     lichtNoot: 'Welke lampen de dag langer maken, staat in de configuratie van het huis.',
     gewoonNoot: 'Niets bijzonders: het huis volgt de dagdelen.',
     bijApparaat: (naam: string | undefined) => hoofdletter(`de ${inSentence(naam ?? 'airco')}`),

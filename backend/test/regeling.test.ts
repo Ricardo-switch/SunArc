@@ -112,9 +112,15 @@ describe('de regeling per kamer (besluit 138)', () => {
 
   it('slaat over wat Home Assistant niet kent, en een apparaat dat in een andere kamer staat', () => {
     const kamers: RegelKamer[] = [...overgezet(), { id: 'hal', naam: 'Hal', regelzone: 'hal', rollen: { 'climate.weg': 'houdt' } }];
+    // Nog niet gezien (Home Assistant is er bij het opstarten nog niet): geen regel in het logboek, wel in de bel.
     const uit = withRegeling(raw(), kamers, ha());
-    expect(uit.overgeslagen).toEqual(['climate.weg: Home Assistant zegt niet wat het kan']);
+    expect(uit.overgeslagen).toEqual([]);
+    expect(uit.niet?.map((n) => [n.id, n.waarom])).toEqual([['climate.weg', 'kanNiet']]);
     expect(zonesVan(uit.raw).some((z) => z['id'] === 'hal')).toBe(false);
+    // Wel gezien, maar zonder wat het kan: dan wel.
+    const kaal = { entity_id: 'climate.weg', state: 'heat', attributes: {}, last_changed: '', last_updated: '' };
+    const gezien = withRegeling(raw(), kamers, ha({ state: (id) => (id === 'climate.weg' ? kaal : id === airco.entity_id ? airco : undefined) }));
+    expect(gezien.overgeslagen).toEqual(['climate.weg: Home Assistant zegt niet wat het kan']);
     // De Nest staat volgens de indeling in de hal: dan regelt hij Beneden niet.
     const verhuisd = withRegeling(raw(), overgezet(), ha({ kamerVan: (id) => (id === 'nest' ? 'hal' : null) }));
     expect(zonesVan(verhuisd.raw).find((z) => z['id'] === 'woonkamer')?.['actuatorIds']).toEqual(['ac-woonkamer']);

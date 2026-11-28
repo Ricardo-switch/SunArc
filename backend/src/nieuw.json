@@ -1,5 +1,23 @@
 [
   {
+    "versie": "0.253.0",
+    "datum": "2026-11-28",
+    "beter": [
+      "Brandt er om tien uur nog licht, dan blijft het Dag tot alle lampen uit zijn, en hooguit tot 03:00. Doe je 's nachts of vroeg in de ochtend het licht aan, dan blijft het Nacht"
+    ],
+    "opgelost": [
+      "Het logboek noemt bij het opstarten geen apparaat meer dat Home Assistant nog niet heeft laten zien, zoals een radiatorknop die gewoon meedoet"
+    ],
+    "en": {
+      "beter": [
+        "Is a light still on at ten o'clock? Then it stays Day until all lights are off, and until 03:00 at the latest. Turn a light on at night or early in the morning, and it stays Night"
+      ],
+      "opgelost": [
+        "At startup, the log no longer names a device Home Assistant has not shown yet, such as a radiator knob that simply takes part"
+      ]
+    }
+  },
+  {
     "versie": "0.252.1",
     "datum": "2026-11-28",
     "opgelost": [

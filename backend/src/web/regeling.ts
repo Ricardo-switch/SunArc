@@ -244,7 +244,10 @@ export function withRegeling(
       const st = ha.state(id);
       const kan = vermogensVan(st);
       if (!kan) {
-        overgeslagen.push(`${id}: Home Assistant zegt niet wat het kan`);
+        // Nog niet gezien: bij het opstarten is Home Assistant er nog niet, en een
+        // regel in het logboek zou dan een gezond apparaat verdacht maken. De bel
+        // houdt hem wel bij, en die volgt zodra Home Assistant er is.
+        if (st != null) overgeslagen.push(`${id}: Home Assistant zegt niet wat het kan`);
         niet.push({ id, naam: String(st?.attributes['friendly_name'] ?? id), kamerId: k.id, kamer: k.naam, waarom: 'kanNiet' });
         continue;
       }

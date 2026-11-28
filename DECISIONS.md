@@ -99,6 +99,7 @@ Gemaakt met `npm run decisions:index`; een test bewaakt dat hij klopt.
 - [304. Een schakelaar met een ingevuld vermogen kan op zon](#304-een-schakelaar-met-een-ingevuld-vermogen-kan-op-zon)
 - [306. Een zone apart regelen, en de radiatorknop per zone met de hand](#306-een-zone-apart-regelen-en-de-radiatorknop-per-zone-met-de-hand)
 - [355. Zelf bijstellen herkennen in de schaduw](#355-zelf-bijstellen-herkennen-in-de-schaduw)
+- [356. De avond verlengen alleen met een lamp van voor de nacht](#356-de-avond-verlengen-alleen-met-een-lamp-van-voor-de-nacht)
 
 **Configuratie en onboarding**
 
@@ -16439,6 +16440,38 @@ automatisering of script. Een bewoner in een dashboard of de app geeft er een
 met zijn gebruiker, en aan het apparaat zelf geeft hij er geen. De opdrachten
 van SunArc zelf hebben de gebruiker van zijn token en tellen dus als bewoner,
 zoals bedoeld voor met de hand.
+
+## 356. De avond verlengen alleen met een lamp van voor de nacht
+
+*Onderwerp: kern en regeling · Status: geldig*
+
+28 november 2026. Om 05:45 deed de bewoner de sfeerverlichting aan voor een
+vroege dienst. SunArc ging meteen naar Dag en zou de Nest op 20 graden hebben
+gezet; de oude regeling bleef tot 06:00 op Nacht. Een brandende lamp in
+`eveningExtensionLights` maakte de hele nacht, van 22:00 tot 06:00, Dag
+(besluit 92). De oude regeling verlengt alleen tot 03:00, maar ook met een
+lamp die pas na tienen aanging.
+
+De bewoner: de Dag hoort alleen door te lopen als er nog licht brandt op het
+moment dat de nacht wil beginnen, en niet terug te komen als iemand later het
+licht aandoet.
+
+*Besluit:*
+
+- **Alleen een lamp die al brandde voor de nacht begon, houdt het Dag.** Gaan
+  alle lampen uit, dan is het Nacht, en een lamp die daarna aangaat, verandert
+  dat niet. Geen geheugen nodig: van een lamp weet Home Assistant sinds wanneer
+  hij aan is (`last_changed`), en die tijd moet voor de nacht liggen.
+- **Hooguit tot 03:00**, zoals de oude regeling: een vergeten lamp verwarmt
+  niet de hele nacht.
+- Onbekend sinds wanneer (na een herstart van Home Assistant) verlengt niet:
+  dan liever Nacht.
+- De app zegt het bij Nog Dag: "Gaat het uit, of wordt het 03:00, dan wordt het
+  Nacht."
+
+*Wat afviel:* de dag terug laten komen tot 03:00 zoals de oude regeling; dat
+is wat de bewoner juist niet wil. De oude regeling op de Pi doet het nog wel
+zo; voor een eerlijke wintertest hoort zij dezelfde regel te krijgen.
 
 ## Wat nog een besluit wacht
 
