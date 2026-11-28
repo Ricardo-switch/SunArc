@@ -1,8 +1,8 @@
 # Wat is er nieuw · What is new
 
-## 0.252.1
+## 0.253.0
 
-*28 november 2026 · 0.179.0 – 0.252.1*
+*28 november 2026 · 0.179.0 – 0.253.0*
 
 **Nieuw**
 
@@ -104,6 +104,7 @@
 
 **Beter**
 
+- Brandt er om tien uur nog licht, dan blijft het Dag tot alle lampen uit zijn, en hooguit tot 03:00. Doe je 's nachts of vroeg in de ochtend het licht aan, dan blijft het Nacht
 - Zet iemand de thermostaat of een airco zelf anders, aan het apparaat of in de app? Dan ziet SunArc dat ook als hij alleen meekijkt, en laat hij het apparaat met rust tot het volgende dagdeel. Zo is de vergelijking met je oude regeling eerlijk
 - Meet de buitenunit van een airco de buitentemperatuur? Dan valt een korte storing niet meer op: een sprong naar 0° of een meter die even weg is, telt niet mee. Met meer airco's telt de meter die het rustigst meet
 - Wijkt die buitentemperatuur langer dan een uur meer dan 3° af van het weer, bijvoorbeeld door de zon op de buitenunit? Dan gebruikt SunArc het weer, en zegt dat in de meldingen
@@ -269,6 +270,7 @@
 
 **Opgelost**
 
+- Het logboek noemt bij het opstarten geen apparaat meer dat Home Assistant nog niet heeft laten zien, zoals een radiatorknop die gewoon meedoet
 - SunArc zag een stand die je oude regeling op vaste tijden zet, zoals om 06:00, soms aan voor iemand die het apparaat zelf bijstelde. Nu niet meer
 - Instellingen › Klimaat toonde nog Soort verwarming. Daar staat nu Meten en regeling; de soort verwarming en De zon verdelen staan bij de tegel Energie
 - Een paar zinnen zeiden nog dat je Op zon aanzet in het blad van een apparaat. Ze wijzen nu naar De zon verdelen, net als zoeken, Hulp en Wat je huis kan
@@ -439,6 +441,7 @@
 
 **Improved**
 
+- Is a light still on at ten o'clock? Then it stays Day until all lights are off, and until 03:00 at the latest. Turn a light on at night or early in the morning, and it stays Night
 - Does someone change the thermostat or an air conditioner themselves, on the device or in the app? SunArc now sees that while it only watches along too, and leaves the device alone until the next part of the day. That keeps the comparison with your old control fair
 - Does the outdoor unit of an air conditioner measure the outdoor temperature? A short fault no longer shows: a jump to 0° or a meter that is briefly gone does not count. With more air conditioners, the steadiest meter counts
 - If that outdoor temperature is more than 3° away from the weather for over an hour, for example because of sun on the outdoor unit, SunArc uses the weather and says so in the notifications
@@ -604,6 +607,7 @@
 
 **Fixed**
 
+- At startup, the log no longer names a device Home Assistant has not shown yet, such as a radiator knob that simply takes part
 - SunArc sometimes mistook a setting your old control makes at fixed times, such as 06:00, for someone adjusting the device themselves. Not anymore
 - Settings › Climate still showed Heating type. It now shows Measuring and control; the heating type and Sharing the sun are on the Energy tile
 - A few lines still said you switch On solar on in a device's sheet. They now point to Sharing the sun, as do search, Help and What your home can do
